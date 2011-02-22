@@ -493,25 +493,33 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         except Exception, e:
             self.debug("Droping event. Reason %s", str(e))
 
+        self._updateMarkers()
+        self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
+
+    def _updateMarkers(self):
+        '''updates min & max markers if needed'''
         if self.isVisible():
             if self._showMaxPeak:
-                try: maxpoint = [self._xValues[self._yValues.argmax()], self._yValues.max()] #x,y of the maximum
-                except Exception: maxpoint = [0, 0]
+                try: maxpoint = [self._xValues[self._yValues.argmax()],self._yValues.max()]
+                except: maxpoint = [0, 0]
                 self._maxPeakMarker.setValue(*maxpoint)
                 label = self._maxPeakMarker.label()
-                label.setText("Max. %s %.4g at x = %.4g"%(model.getLabel(), maxpoint[1], maxpoint[0]))
-                #label.setText("Max. " + model.getLabel() + " " + repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
+                if self.plot().getXIsTime():
+                    label.setText("Max. " + str(self.title().text()) + " " + repr(maxpoint[1]) + ' at t = ' + datetime.fromtimestamp(maxpoint[0]).ctime())
+                else:
+                    label.setText("Max. " + str(self.title().text()) + " " + repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
+                    
                 self._maxPeakMarker.setLabel(label)
             if self._showMinPeak:
-                try: minpoint = [self._xValues[self._yValues.argmin()], self._yValues.min()]
-                except Exception: minpoint = [0, 0]
+                try: minpoint = [self._xValues[self._yValues.argmin()],self._yValues.min()]
+                except: minpoint = [0,0]
                 self._minPeakMarker.setValue(*minpoint)
                 label = self._minPeakMarker.label()
-                label.setText("Min. %s %.4g at x = %.4g"%(model.getLabel(), minpoint[1], minpoint[0]))
-                #label.setText("Min. " + model.getLabel() + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
+                if self.plot().getXIsTime():
+                    label.setText("Mix. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at t = ' + datetime.fromtimestamp(minpoint[0]).ctime())
+                else:
+                    label.setText("Min. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
                 self._minPeakMarker.setLabel(label)
-
-        self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
 
     def setXYFromModel(self, value):
         """ sets the X (self._xValues) and Y (self._yValues) values from the

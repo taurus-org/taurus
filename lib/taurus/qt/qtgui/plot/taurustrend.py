@@ -357,26 +357,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         #assign xvalues and yvalues to each of the curves in self._curves
         for i,(n,c) in enumerate(self.getCurves()):
             c._xValues, c._yValues = self._xValues, self._yValues[:,i]
+            c._updateMarkers()
             
-            #update min/max markers
-            if c.isVisible():
-                if c._showMaxPeak:
-                    try: maxpoint = [c._xValues[c._yValues.argmax()],c._yValues.max()]
-                    except: maxpoint = [0, 0]
-                    c._maxPeakMarker.setValue(*maxpoint)
-                    label = c._maxPeakMarker.label()
-                    label.setText("Max. " + n + " " + repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
-                    c._maxPeakMarker.setLabel(label)
-                if c._showMinPeak:
-                    try: minpoint = [c._xValues[c._yValues.argmin()],c._yValues.min()]
-                    except: minpoint = [0,0]
-                    c._minPeakMarker.setValue(*minpoint)
-                    label = c._minPeakMarker.label()
-                    label.setText("Max. " + n + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
-                    c._minPeakMarker.setLabel(label)
-
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-        
+            
+
     def isReadOnly(self):
         return True
     
@@ -442,10 +427,24 @@ class ScanTrendsSet(TaurusTrendsSet):
     
     .. seealso:: :class:`TaurusTrendSet`
     """
-    def __init__(self, name, parent = None):
-        TaurusTrendsSet.__init__(self, None, parent=parent, curves=None)
-        self.setModel(name)
+    def __init__(self, name, parent = None, autoClear=True, usePointNumber=True):
+        '''
+        Creator
         
+        :param autoClear: (bool) If True, (default) :meth:`clearTrends` will be
+                          called every time a "data_desc" packet is received
+        :param usePointNumber: (bool) If True (default) the x associated to a 
+                               data record is obtained from the "point_nb" value
+                               of the record itself. Otherwise, an integer count 
+                               is used.
+        '''
+        TaurusTrendsSet.__init__(self, None, parent=parent, curves=None)
+        self._autoClear = autoClear
+        self._usePointNumber = usePointNumber
+        self._currentpoint = -1
+        self.clearTrends()
+        self.setModel(name)
+
     def scanDataReceived(self, packet):
         '''
         packet is a dict with {type:str, "data":object} and the accepted types are: data_desc, record_data, record_end
@@ -454,6 +453,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         id,packet = packet
         pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
         if pcktype == "data_desc": 
+            if self._autoClear:
+                self.clearTrends()
             self._createTrends(packet["data"])
         elif pcktype == "record_data": 
             self._scanLineReceived(packet["data"])
@@ -461,6 +462,27 @@ class ScanTrendsSet(TaurusTrendsSet):
             pass
         else:
             self.debug("Ignoring packet of type %s"%repr(pcktype))
+            
+    def clearTrends(self):
+        '''
+        Erases existing trends. If the autoClear property is True for this trend
+        set, this method is called automatically every time a data_desc package
+        is received.
+        If autoClear is False, you should manually call this
+        '''
+        #clean previous curves
+        for subname in self.getCurveNames():
+            self._parent.detachRawData(subname)
+        self._curves = {}
+        self._orderedCurveNames = []
+        #clean history Buffers
+        self.__xBuffer = None
+        self.__yBuffer = None
+        #reset current point counter
+        self._currentpoint = -1
+    
+    def setPlotablesFilter(self, f):
+        self._plotablesFilter = f
         
     def _createTrends(self, datadesc):
         '''
@@ -471,22 +493,15 @@ class ScanTrendsSet(TaurusTrendsSet):
         :param datadesc: (seq<dict>) each dict is a ColumnDesc.toDict()
         '''
         self.__datadesc = datadesc
-        #clean previous curves
-        for subname in self.getCurveNames():
-            self._parent.detachRawData(subname)
-        self._curves = {}
-        self._orderedCurveNames = []
-        #clean history Buffers
-        self.__xBuffer = None
-        self.__yBuffer = None
         #create as many curves as columns containing scalars
         rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
         for dd in self.__datadesc:
-            if len(stripShape(dd['shape']))== 0:
+            if len(stripShape(dd['shape']))== 0: #an scalar
                 label = dd["label"]
-                rawdata["title"] = label
-                curve = self._parent.attachRawData(rawdata)
-                self.addCurve(label, curve)
+                if label not in self._curves: #and self._plotablesFilter(dd):
+                    rawdata["title"] = label
+                    curve = self._parent.attachRawData(rawdata)
+                    self.addCurve(label, curve)
         self._parent.autoShowYAxes()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
     
@@ -496,43 +511,41 @@ class ScanTrendsSet(TaurusTrendsSet):
         .. seealso:: <Sardana>/MacroServer/scan/scandata.py:Record.data
         
         '''
-        ##I assume that recordData is a dictionary as the one described for <Sardana>/MacroServer/scan/scandata.py:Record.data
-        curvenames = self.getCurveNames()
         
-        #update history
-        if self.__xBuffer is None:
-            self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize() )
-        if self.__yBuffer is None:
-            self.__yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)),dtype='d'), maxSize=self.maxDataBufferSize() )
+        if self._usePointNumber:
+            self._currentpoint = recordData['point_nb']
+        else:
+            self._currentpoint += 1
+            
+        #If autoclear is True, we use buffers
+        if self._autoClear:
+            curvenames = self.getCurveNames()
+            if self.__xBuffer is None:
+                self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize() )
+            if self.__yBuffer is None:
+                self.__yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)),dtype='d'), maxSize=self.maxDataBufferSize() )
+            #x values
+            self.__xBuffer.append(self._currentpoint)
+            #y values        
+            y = numpy.array([recordData.get(n,numpy.NaN) for n in curvenames])
+            self.__yBuffer.append(y)
+            
+            self._xValues, self._yValues = self.__xBuffer.contents(), self.__yBuffer.contents()
+    
+            #assign xvalues and yvalues to each of the curves in self._curves
+            for i,(n,c) in enumerate(self.getCurves()):
+                c._xValues = self._xValues
+                c._yValues = self._yValues[:,i] #this is an assigment by reference
+                c._updateMarkers()
         
-        self.__xBuffer.append(recordData['point_nb'])
+        #if autoclear is False we have to work directly with each curve (and cannot buffer)
+        else:
+            for n,v in recordData.items():
+                c = self._curves[n]
+                c._xValues = numpy.append(c._xValues, self._currentpoint) 
+                c._yValues = numpy.append(c._yValues, v)
+                c._updateMarkers()
                 
-        y = numpy.array([recordData.get(n,numpy.NaN) for n in curvenames])
-        self.__yBuffer.append(y)
-        
-        self._xValues, self._yValues = self.__xBuffer.contents(), self.__yBuffer.contents()
-
-        #assign xvalues and yvalues to each of the curves in self._curves
-        for i,(n,c) in enumerate(self.getCurves()):
-            c._xValues, c._yValues = self._xValues, self._yValues[:,i]
-        
-        #update min/max markers
-        if c.isVisible():
-            if c._showMaxPeak:
-                try: maxpoint = [c._xValues[c._yValues.argmax()],c._yValues.max()]
-                except: maxpoint = [0, 0]
-                c._maxPeakMarker.setValue(*maxpoint)
-                label = c._maxPeakMarker.label()
-                label.setText("Max. " + n + " " + repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
-                c._maxPeakMarker.setLabel(label)
-            if c._showMinPeak:
-                try: minpoint = [c._xValues[c._yValues.argmin()],c._yValues.min()]
-                except: minpoint = [0,0]
-                c._minPeakMarker.setValue(*minpoint)
-                label = c._minPeakMarker.label()
-                label.setText("Max. " + n + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
-                c._minPeakMarker.setLabel(label)
-
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
         
     def connectWithQDoor(self, qdoor):
@@ -591,6 +604,8 @@ class TaurusTrend(TaurusPlot):
         self.setDefaultCurvesTitle('<label><[trend_index]>')
         self._maxDataBufferSize = 1048576 #(=2**20, i.e., 1M events))
         self.__qdoorname = None
+        self._scansUsePointNumber = True
+        self._scansAutoClear = True
         self.__initActions()
         self._startingTime = time.time()
         self._archivingWarningLocked = False
@@ -623,16 +638,46 @@ class TaurusTrend(TaurusPlot):
             self.setAxisScale(self.xBottom, 0, 10) #Set a range of 10 events   
         self._useArchivingAction.setEnabled(enable)
         TaurusPlot.setXIsTime(self, enable, axis=axis)
+        
+    def setScansAutoClear(self, enable):
+        '''
+        sets whether the trend sets associated to scans should be reset every
+        time a data_desc packet is received from the door.
+        
+        :param enable: (bool)
+        
+        .. seealso:: :meth:`setScanDoor` and :class:`ScanTrendsSet`
+        '''
+        self._scansAutoClear = enable
+        
+    def setScansUsePointNumber(self, enable):
+        '''
+        sets whether the trend sets associated to scans should use the point
+        number from the data record for the abscissas (default).
+        
+        :param enable: (bool)
+        
+        .. seealso:: :class:`ScanTrendsSet`
+        '''
+        self._scansUsePointNumber = enable
     
     def setScanDoor(self, qdoorname):
         '''
-        sets the door to which This TrendSet will listen for scans.
-        This removes any previous scan set usinfg this method, but respects scans set with setModel
+        sets the door to which TaurusTrend will listen for scans.
+        This removes any previous scan set using this method, but respects scans set with setModel
         '''
         if self.__qdoorname is not None: 
             self.removeModels(["scan://%s"%self.__qdoorname])
         self.addModels(["scan://%s"%qdoorname])
         self.__qdoorname=qdoorname
+        
+    def clearScan(self, scanname):
+        '''resets the curves associated to the given scan
+        
+        :param scanname: (str) the scan model name (e.g. "scan://a/b/c")
+        '''
+        tset = self.getTrendSet(scanname)
+        tset.clearTrends()
     
     def updateCurves(self, names):
         '''Defines the curves that need to be plotted. For a TaurusTrend, the
@@ -640,7 +685,7 @@ class TaurusTrend(TaurusPlot):
         
         - PyTango.SCALARS: they are to be plotted in a trend
         - PyTango.SPECTRUM: each element of the spectrum is considered
-          independently as in a)
+          independently 
         
         Note that passing an attribute for X values makes no sense in this case
         
@@ -671,7 +716,7 @@ class TaurusTrend(TaurusPlot):
                 if not self.trendSets.has_key(name):
                     matchScan = re.search(r"scan:\/\/(.*)", name) #check if the model name is of scan type and provides a door
                     if matchScan:
-                        tset = ScanTrendsSet(name, parent=self)
+                        tset = ScanTrendsSet(name, parent=self, autoClear=self._scansAutoClear, usePointNumber=self._scansUsePointNumber)
                         qdoor = matchScan.group(1) #the name of the door
                         tset.connectWithQDoor(qdoor)
                     else:
