@@ -50,9 +50,10 @@ def getQtLogger():
     return qtLogger
     
 def qtTaurusMsgHandler(type, msg):
-    log = getQtLogger()
-    caller = QT_LEVEL_MATCHER.get(type)
-    caller(log, msg)
+    global qtLogger
+    if qtLogger is not None:
+        caller = QT_LEVEL_MATCHER.get(type)
+        caller(qtLogger, msg)
 
 def initTaurusQtLogger():
     global qtLogger
