@@ -808,7 +808,7 @@ def init_pre_spock(ip, macro_server, door):
     profile = ip.user_ns['PROFILE']
     
     so.spock_banner = """\
-{Blue}Spock's Door extension %s loaded with profile: %s (linked to door '%s'){Normal}
+{Blue}Spock's sardana extension %s loaded with profile: %s (linked to door '%s'){Normal}
 """ % (v, profile, alias)
 
     # Initialize the environment
@@ -839,7 +839,54 @@ def init_post_spock(ip):
     init_magic(ip)
     
 def init_spock(ip, macro_server, door):
-    
     init_pre_spock(ip, macro_server, door)
     PyTango.ipython.init_ipython(ip)
     init_post_spock(ip)
+
+
+def start(user_ns=None):
+    if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
+    if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
+
+    # Make sure the log level is changed to warning
+    import taurus
+    import taurus.core.util
+    taurus.core.util.CodecFactory()
+    taurus.setLogLevel(taurus.Warning)
+
+    try:
+        check_requirements()
+    except exception.SpockMissingRequirement, requirement:
+        print str(requirement)
+        sys.exit(-1)
+    except exception.SpockMissingRecommended, recommended:
+        print str(recommended)
+    
+    user_ns = user_ns or {}
+    try:
+        user_ns.update(get_args(sys.argv))
+    except exception.SpockException, e:
+        print e.message
+        print 'Starting normal IPython console'
+    except KeyboardInterrupt:
+        print "\nUser pressed Ctrl+C. Exiting..."
+        sys.exit()
+    except Exception, e:
+        print 'spock exited with an unmanaged exception: %s' % str(e)
+        sys.exit(-2)
+        
+    return IPython.Shell.start(user_ns=user_ns)
+
+def mainloop(shell=None, user_ns=None):
+    if shell is None:
+        shell = start(user_ns)
+    shell.mainloop()
+
+def run(user_ns=None):
+    try:
+        mainloop(user_ns=user_ns)
+    finally:
+        try:
+            clean_up()
+        except Exception:
+            pass

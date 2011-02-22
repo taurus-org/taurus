@@ -4,60 +4,9 @@
    ipython file that can be found in <prefix>/ipython (prefix usually being in 
    linux '/usr/bin'"""
 
-import os
-import sys
-import IPython
-
-def usage():
-    prgname = os.path.basename(sys.argv[0])
-    print ""
-    print "Usage: %s [options]" % prgname
-    print ""
-    print "  Options:"
-    print "    -p profile        profile name"
-    print ""
-    sys.exit(1)
-
 def main():
-    
-    if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
-    if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
-
-    # Make sure the log level is changed to warning
-    import taurus
-    import taurus.core.util
-    taurus.core.util.CodecFactory()
-    taurus.setLogLevel(taurus.Warning)
-
-    import spocklib
     import spocklib.genutils
-    import spocklib.exception
-    try:
-        spocklib.genutils.check_requirements()
-    except spocklib.exception.SpockMissingRequirement, requirement:
-        print str(requirement)
-        sys.exit(-1)
-    except spocklib.exception.SpockMissingRecommended, recommended:
-        print str(recommended)
+    spocklib.genutils.run()
     
-    user_ns = {}
-    try:
-        user_ns = spocklib.genutils.get_args(sys.argv)
-    except spocklib.exception.SpockException, e:
-        print e.message
-        print 'Starting normal IPython console'
-    except Exception, e:
-        print 'spock exited with an unmanaged exception: %s' % str(e)
-        sys.exit(-2)
-    
-    try:
-        shell = IPython.Shell.start(user_ns=user_ns)
-        shell.mainloop()
-    finally:
-        try:
-            spocklib.genutils.clean_up()
-        except Exception,e:
-            pass
-
 if __name__ == '__main__':
     main()
