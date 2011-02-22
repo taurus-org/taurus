@@ -261,10 +261,6 @@ class SPEC_FileRecorder(BaseFileRecorder):
         epoch = time.mktime(start_time.timetuple())
         serialno = env['serialno']
         
-        import sys
-        for e in env['datadesc']:
-            sys.stdout.write("%s : %s\n" % (e.label, str(e.shape)))
-        
         #store labels for performance reason
         labels = []
         for e in env['datadesc']:
