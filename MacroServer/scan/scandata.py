@@ -12,7 +12,7 @@ class ColumnDesc:
         """Expected keywords are:
             - label (str, mandatory): column label
             - dtype (str, optional): data type. Defaults to 'float64'
-            - shape (seq, optional): data shape. Defaults to ()
+            - shape (seq, optional): data shape. Defaults to (1,)
             - instrument (Instrument, optional): instrument object. Defaults to None"""
         
         # string to be used as label (e.g. will be used as column header in an ascii output)
