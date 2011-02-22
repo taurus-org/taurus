@@ -1,0 +1,113 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'PermanentCustomPanelsDlg.ui'
+#
+# Created: Wed Sep 15 14:55:07 2010
+#      by: PyQt4 UI code generator 4.4.3
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+class Ui_PermanentCustomPanelsDlg(object):
+    def setupUi(self, PermanentCustomPanelsDlg):
+        PermanentCustomPanelsDlg.setObjectName("PermanentCustomPanelsDlg")
+        PermanentCustomPanelsDlg.resize(533, 426)
+        PermanentCustomPanelsDlg.setModal(True)
+        self.verticalLayout_4 = QtGui.QVBoxLayout(PermanentCustomPanelsDlg)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.label = QtGui.QLabel(PermanentCustomPanelsDlg)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setWordWrap(True)
+        self.label.setMargin(6)
+        self.label.setObjectName("label")
+        self.verticalLayout_4.addWidget(self.label)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.groupBox_2 = QtGui.QGroupBox(PermanentCustomPanelsDlg)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_2.sizePolicy().hasHeightForWidth())
+        self.groupBox_2.setSizePolicy(sizePolicy)
+        self.groupBox_2.setObjectName("groupBox_2")
+        self.verticalLayout_2 = QtGui.QVBoxLayout(self.groupBox_2)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.temporaryPanelsList = QtGui.QListWidget(self.groupBox_2)
+        self.temporaryPanelsList.setDragEnabled(True)
+        self.temporaryPanelsList.setDragDropOverwriteMode(True)
+        self.temporaryPanelsList.setDragDropMode(QtGui.QAbstractItemView.NoDragDrop)
+        self.temporaryPanelsList.setAlternatingRowColors(True)
+        self.temporaryPanelsList.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.temporaryPanelsList.setObjectName("temporaryPanelsList")
+        self.verticalLayout_2.addWidget(self.temporaryPanelsList)
+        self.horizontalLayout.addWidget(self.groupBox_2)
+        self.verticalLayout_3 = QtGui.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem)
+        self.toPermanentBT = QtGui.QToolButton(PermanentCustomPanelsDlg)
+        self.toPermanentBT.setArrowType(QtCore.Qt.RightArrow)
+        self.toPermanentBT.setObjectName("toPermanentBT")
+        self.verticalLayout_3.addWidget(self.toPermanentBT)
+        self.toTemporaryBT = QtGui.QToolButton(PermanentCustomPanelsDlg)
+        self.toTemporaryBT.setArrowType(QtCore.Qt.LeftArrow)
+        self.toTemporaryBT.setObjectName("toTemporaryBT")
+        self.verticalLayout_3.addWidget(self.toTemporaryBT)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem1)
+        self.horizontalLayout.addLayout(self.verticalLayout_3)
+        self.groupBox = QtGui.QGroupBox(PermanentCustomPanelsDlg)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy)
+        self.groupBox.setObjectName("groupBox")
+        self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.permanentPanelsList = QtGui.QListWidget(self.groupBox)
+        self.permanentPanelsList.setDragEnabled(True)
+        self.permanentPanelsList.setDragDropOverwriteMode(True)
+        self.permanentPanelsList.setDragDropMode(QtGui.QAbstractItemView.NoDragDrop)
+        self.permanentPanelsList.setAlternatingRowColors(True)
+        self.permanentPanelsList.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.permanentPanelsList.setObjectName("permanentPanelsList")
+        self.verticalLayout.addWidget(self.permanentPanelsList)
+        self.horizontalLayout.addWidget(self.groupBox)
+        self.verticalLayout_4.addLayout(self.horizontalLayout)
+        self.buttonBox = QtGui.QDialogButtonBox(PermanentCustomPanelsDlg)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.verticalLayout_4.addWidget(self.buttonBox)
+
+        self.retranslateUi(PermanentCustomPanelsDlg)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), PermanentCustomPanelsDlg.accept)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), PermanentCustomPanelsDlg.reject)
+        QtCore.QMetaObject.connectSlotsByName(PermanentCustomPanelsDlg)
+
+    def retranslateUi(self, PermanentCustomPanelsDlg):
+        PermanentCustomPanelsDlg.setWindowTitle(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "Permanent Panels Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "Please select which Custom panels you want to store permanently.", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_2.setTitle(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "Temporary Custom Panels", None, QtGui.QApplication.UnicodeUTF8))
+        self.temporaryPanelsList.setSortingEnabled(True)
+        self.toPermanentBT.setText(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.toTemporaryBT.setText(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox.setTitle(QtGui.QApplication.translate("PermanentCustomPanelsDlg", "Stored Custom Panels", None, QtGui.QApplication.UnicodeUTF8))
+        self.permanentPanelsList.setSortingEnabled(True)
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    PermanentCustomPanelsDlg = QtGui.QDialog()
+    ui = Ui_PermanentCustomPanelsDlg()
+    ui.setupUi(PermanentCustomPanelsDlg)
+    PermanentCustomPanelsDlg.show()
+    sys.exit(app.exec_())
+

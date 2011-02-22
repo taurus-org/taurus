@@ -1,0 +1,408 @@
+<ui version="4.0" >
+ <class>AttributeConfigDialog</class>
+ <widget class="QDialog" name="AttributeConfigDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>453</width>
+    <height>494</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <widget class="TauFrame" name="globalAttributeFrame" >
+     <layout class="QGridLayout" >
+      <item row="0" column="0" colspan="2" >
+       <layout class="QHBoxLayout" >
+        <item>
+         <widget class="QLabel" name="labelLabel" >
+          <property name="text" >
+           <string>Label:</string>
+          </property>
+          <property name="buddy" >
+           <cstring>labelEdit</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TauConfigLineEdit" name="labelEdit" >
+          <property name="useParentModel" stdset="0" >
+           <bool>true</bool>
+          </property>
+          <property name="model" stdset="0" >
+           <string>?configuration=label</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0" colspan="2" >
+       <layout class="QHBoxLayout" >
+        <item>
+         <layout class="QHBoxLayout" >
+          <item>
+           <widget class="QLabel" name="unitLabel" >
+            <property name="text" >
+             <string>Units:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>unitEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="TauConfigLineEdit" name="unitEdit" >
+            <property name="useParentModel" stdset="0" >
+             <bool>true</bool>
+            </property>
+            <property name="model" stdset="0" >
+             <string>?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" >
+          <item>
+           <widget class="QLabel" name="formatLabel" >
+            <property name="text" >
+             <string>Format:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>formatEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="TauConfigLineEdit" name="formatEdit" >
+            <property name="useParentModel" stdset="0" >
+             <bool>true</bool>
+            </property>
+            <property name="model" stdset="0" >
+             <string>?configuration=format</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="descriptionLabel" >
+        <property name="text" >
+         <string>Description:</string>
+        </property>
+        <property name="buddy" >
+         <cstring>descriptionEdit</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="TauConfigLineEdit" name="descriptionEdit" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="useParentModel" stdset="0" >
+         <bool>true</bool>
+        </property>
+        <property name="model" stdset="0" >
+         <string>?configuration=description</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2" >
+       <layout class="QGridLayout" >
+        <item row="0" column="0" >
+         <widget class="QGroupBox" name="rangeGB" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title" >
+           <string>Ranges:</string>
+          </property>
+          <layout class="QGridLayout" >
+           <item row="0" column="0" >
+            <widget class="QLabel" name="minValueLabel" >
+             <property name="text" >
+              <string>Min.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>minValueEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" >
+            <widget class="TauConfigLineEdit" name="minValueEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=min_value</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" >
+            <widget class="QLabel" name="maxValueLabel" >
+             <property name="text" >
+              <string>Max.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>maxValueEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" >
+            <widget class="TauConfigLineEdit" name="maxValueEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=max_value</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QGroupBox" name="alarmGB" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title" >
+           <string>Alarms:</string>
+          </property>
+          <layout class="QGridLayout" >
+           <item row="0" column="0" >
+            <widget class="QLabel" name="minAlarmLabel" >
+             <property name="text" >
+              <string>Min.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>minAlarmEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" >
+            <widget class="TauConfigLineEdit" name="minAlarmEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=min_alarm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" >
+            <widget class="QLabel" name="maxAlarmLabel" >
+             <property name="text" >
+              <string>Max.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>maxAlarmEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" >
+            <widget class="TauConfigLineEdit" name="maxAlarmEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=max_alarm</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QGroupBox" name="warningGB" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title" >
+           <string>Warnings:</string>
+          </property>
+          <layout class="QGridLayout" >
+           <item row="0" column="0" >
+            <widget class="QLabel" name="minWarningLabel" >
+             <property name="text" >
+              <string>Min.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>minWarningEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" >
+            <widget class="TauConfigLineEdit" name="minWarningEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=min_warning</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" >
+            <widget class="QLabel" name="maxWarningLabel" >
+             <property name="text" >
+              <string>Max.:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>maxWarningEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" >
+            <widget class="TauConfigLineEdit" name="maxWarningEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=max_warning</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QGroupBox" name="deltasGB" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title" >
+           <string>Deltas:</string>
+          </property>
+          <layout class="QGridLayout" >
+           <item row="0" column="0" >
+            <widget class="QLabel" name="deltaTLabel" >
+             <property name="text" >
+              <string>T (ms):</string>
+             </property>
+             <property name="buddy" >
+              <cstring>deltaTEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" >
+            <widget class="TauConfigLineEdit" name="deltaTEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=delta_t</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" >
+            <widget class="QLabel" name="deltaValLabel" >
+             <property name="text" >
+              <string>Value:</string>
+             </property>
+             <property name="buddy" >
+              <cstring>deltaValEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" >
+            <widget class="TauConfigLineEdit" name="deltaValEdit" >
+             <property name="useParentModel" stdset="0" >
+              <bool>true</bool>
+             </property>
+             <property name="model" stdset="0" >
+              <string>?configuration=delta_val</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TauFrame</class>
+   <extends>QFrame</extends>
+   <header>tau.widget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TauConfigLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>tau.widget</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>AttributeConfigDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>AttributeConfigDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

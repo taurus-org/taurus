@@ -1,0 +1,882 @@
+<ui version="4.0">
+ <class>TaurusMotorV2</class>
+ <widget class="QDialog" name="TaurusMotorV2">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>297</width>
+    <height>272</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy vsizetype="Expanding" hsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="TaurusGroupBox" name="TaurusGroupBox">
+     <property name="showText">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <widget class="TaurusStateLed" name="ledState">
+        <property name="ledSize">
+         <number>24</number>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/State</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="TaurusValueLabel" name="labelState">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="showQuality">
+         <bool>false</bool>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/State</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <layout class="QHBoxLayout">
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="TaurusBoolLed" name="limitN">
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="ledColor">
+           <string>ORANGE</string>
+          </property>
+          <property name="model">
+           <string>/Limit_switches</string>
+          </property>
+          <property name="boolIndex">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="limitLabel">
+          <property name="text">
+           <string>- lim +</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="4">
+       <widget class="TaurusBoolLed" name="limitP">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="ledColor">
+         <string>ORANGE</string>
+        </property>
+        <property name="model">
+         <string>/Limit_switches</string>
+        </property>
+        <property name="boolIndex">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="positionLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Position?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="TaurusValueLineEdit" name="positionWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Position</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="TaurusValueLabel" name="positionRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Position</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="TaurusConfigLabel" name="positionUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Position?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="velocityLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Velocity?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="TaurusValueLineEdit" name="velocityWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Velocity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="TaurusValueLabel" name="velocityRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Velocity</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="TaurusConfigLabel" name="velocityUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Velocity?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="accelLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Acceleration?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="TaurusValueLineEdit" name="accelWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Acceleration</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="TaurusValueLabel" name="accelRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Acceleration</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="4">
+       <widget class="TaurusConfigLabel" name="accelUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Acceleration?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="decelLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Deceleration?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="TaurusValueLineEdit" name="decelWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Deceleration</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="TaurusValueLabel" name="decelRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Deceleration</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="4">
+       <widget class="TaurusConfigLabel" name="decelUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Deceleration?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="offsetLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Offset?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="TaurusValueLineEdit" name="offsetWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Offset</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="TaurusValueLabel" name="offsetRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Offset</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="4">
+       <widget class="TaurusConfigLabel" name="offsetUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Offset?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="baseRateLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Base_rate?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="TaurusValueLineEdit" name="baseRateWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Base_rate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="3">
+       <widget class="TaurusValueLabel" name="baseRateRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Base_rate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="4">
+       <widget class="TaurusConfigLabel" name="baseRateUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Base_rate?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="stepsUnitLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Step_per_unit?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="2">
+       <widget class="TaurusValueLineEdit" name="stepsUnitsWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Step_per_unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="3">
+       <widget class="TaurusValueLabel" name="stepsUnitRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Step_per_unit</string>
+        </property>
+        <property name="buddy">
+         <cstring/>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="4">
+       <widget class="TaurusConfigLabel" name="stepsUnitUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Step_per_unit?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0" colspan="2">
+       <widget class="TaurusConfigLabel" name="backlashLabel">
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="suffixText">
+         <string>:</string>
+        </property>
+        <property name="model">
+         <string>/Backlash?configuration=label</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="TaurusValueLineEdit" name="backlashWrite">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Backlash</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="3">
+       <widget class="TaurusValueLabel" name="backlashRead">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Backlash</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="4">
+       <widget class="TaurusConfigLabel" name="backlashUnits">
+        <property name="sizePolicy">
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>35</width>
+          <height>22</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="useParentModel">
+         <bool>true</bool>
+        </property>
+        <property name="model">
+         <string>/Backlash?configuration=unit</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TaurusGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>taurus.qt.qtgui.container</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TaurusStateLed</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusBoolLed</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusValueLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>taurus.qt.qtgui.input</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusConfigLabel</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusValueLabel</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+

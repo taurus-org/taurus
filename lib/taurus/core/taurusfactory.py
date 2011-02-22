@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+## 
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+"""
+  The TaurusFactory model containning the abstract base class that any valid
+  Factory in Taurus must inherit.
+  
+  Taurus object naming is URI based:
+
+  foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+  \ /   \________________/\_________/ \__/\_________/ \___/ \_/ \_________/ \_________/ \__/
+   |           |               |        |     |         |     |       |            |     |
+scheme     userinfo         hostname  port  path  filename extension parameter(s) query fragment
+        \________________________________/
+                    authority
+"""
+
+__all__ = ["TaurusFactory"]
+
+__docformat__ = "restructuredtext"
+
+from enums import OperationMode
+import taurusdatabase
+import taurusdevice
+import taurusattribute
+import taurusconfiguration
+
+class TaurusFactory:
+    """The base class for valid Factories in Taurus."""
+    
+    schemes = ()
+
+    DefaultPollingPeriod = 3000
+    
+    def __init__(self):
+        self._polling_period = self.DefaultPollingPeriod
+        self.operation_mode = OperationMode.ONLINE
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Methods that must be implemented by the specific Factory
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-  
+
+    def findObjectClass(self, absolute_name):
+        """findObjectClass(string absolute_name) -> taurus.core.TaurusModel subclass
+           
+        Obtain the class object corresponding to the given name.
+           
+        @param[in] absolute_name the object absolute name string
+
+        @return a class object that should be a subclass of a taurus.core.TaurusModel
+        @throws TaurusException if the given name is invalid.
+        """
+        raise RuntimeError("findObjectClass cannot be called for abstract" \
+                           " TaurusFactory")
+
+    def getDatabase(self, db_name=None):
+        """getDatabase(string db_name) -> taurus.core.TaurusDatabase
+           
+        Obtain the object corresponding to the given database name or the 
+        default database if db_name is None.
+        If the corresponding database object already exists, the existing 
+        instance is returned. Otherwise a new instance is stored and returned.
+           
+        @param[in] db_name database name string. It should be formed like: 
+                           <schema>://<authority>. If <schema> is ommited then 
+                           it will use the default schema. if db_name is None, 
+                           the default database is used
+                           
+        @return a taurus.core.TaurusDatabase object 
+        @throws TaurusException if the given name is invalid.
+        """
+        raise RuntimeError("getDatabase cannot be called for abstract" \
+                           " TaurusFactory")
+
+    def getDevice(self, dev_name, **kw):
+        """getDevice(string dev_name) -> taurus.core.TaurusDevice
+           
+        Obtain the object corresponding to the given device name. If the 
+        corresponding device already exists, the existing instance is returned. 
+        Otherwise a new instance is stored and returned.
+           
+        @param[in] dev_name the device name string. It should be formed like:
+                            <schema>://<authority>/<device name>. If <schema> 
+                            is ommited then it will use the default schema. 
+                            If authority is ommited then it will use the 
+                            default authority for the schema.
+        
+        @return a taurus.core.TaurusDevice object 
+        @throws TaurusException if the given name is invalid.
+        """
+        raise RuntimeError("getDevice cannot be called for abstract" \
+                           " TaurusFactory")
+
+    def getAttribute(self, attr_name):
+        """getAttribute(string attr_name) -> taurus.core.TaurusAttribute
+
+        Obtain the object corresponding to the given attribute name.
+        If the corresponding attribute already exists, the existing instance
+        is returned. Otherwise a new instance is stored and returned.
+
+        @param[in] attr_name string attribute name
+             
+        @return a taurus.core.TaurusAttribute object 
+        @throws TaurusException if the given name is invalid.
+        """
+        raise RuntimeError("getAttribute cannot be called for abstract" \
+                           " TaurusFactory")
+
+    def getConfiguration(self, param):
+        """getConfiguration(param) -> taurus.core.TaurusConfiguration
+
+        Obtain the object corresponding to the given attribute or full name.
+        If the corresponding configuration already exists, the existing instance
+        is returned. Otherwise a new instance is stored and returned.
+
+        @param[in] param taurus.core.TaurusAttribute object or full configuration name
+           
+        @return a taurus.core.TaurusAttribute object
+        @throws TaurusException if the given name is invalid.
+        """
+        raise RuntimeError("getConfiguration cannot be called for abstract" \
+                           " TaurusFactory")
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Factory extension API
+    # Override the following methods if you need to provide special classes for
+    # special object types
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-  
+
+    def registerAttributeClass(self, attr_name, attr_klass):
+        pass
+    
+    def unregisterAttributeClass(self, attr_name):
+        pass
+            
+    def registerDeviceClass(self, dev_klass_name, dev_klass):
+        pass
+    
+    def unregisterDeviceClass(self, dev_klass_name):
+        pass
+    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Generic methods
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-  
+
+    def supportsScheme(self, scheme):
+        return scheme in self.shemes
+
+    def setOperationMode(self, mode):
+        """ setOperationMode(OperationMode mode) -> None
+            Sets the operation mode for the Tango system."""
+        self.operation_mode = mode
+        
+    def getOperationMode(self):
+        return self.operation_mode
+
+    def findObject(self, absolute_name):
+        """ Must give an absolute name"""
+        if self.operation_mode == OperationMode.OFFLINE or not absolute_name:
+            return None
+        obj = None
+        cls = self.findObjectClass(absolute_name)
+        if cls:
+            obj = self.getObject(cls, absolute_name)
+        return obj
+
+    def getObject(self, cls, name):
+        if issubclass(cls, taurusdatabase.TaurusDatabase):
+            return self.getDatabase(name)
+        elif issubclass(cls, taurusdevice.TaurusDevice):
+            return self.getDevice(name)
+        elif issubclass(cls, taurusattribute.TaurusAttribute):
+            return self.getAttribute(name)
+        elif issubclass(cls, taurusconfiguration.TaurusConfiguration):
+            return self.getConfiguration(name)
+        elif issubclass(cls, taurusconfiguration.TaurusConfigurationProxy):
+            return self.getConfiguration(name)
+        else:
+            return None
+
+    def changeDefaultPollingPeriod(self, period):
+        if period > 0:
+            self._polling_period = period
+
+    def getDefaultPollingPeriod(self):
+        return self._polling_period

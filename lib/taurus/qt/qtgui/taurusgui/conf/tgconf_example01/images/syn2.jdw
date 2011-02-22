@@ -1,0 +1,11 @@
+JDFile v11 {
+  Global {
+  }
+  JDImage {
+    summit:10,4,1220,329
+    origin:615,167
+    lineWidth:0
+    name:"Image"
+    file_name:"syn2.jpg"
+  }
+}

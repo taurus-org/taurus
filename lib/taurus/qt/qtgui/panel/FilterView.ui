@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FilterForm</class>
+ <widget class="QWidget" name="FilterForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>276</width>
+    <height>529</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="filterTypeLabel">
+     <property name="toolTip">
+      <string>Specify the type of result you want this filter to produce</string>
+     </property>
+     <property name="text">
+      <string>Filter for:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="buddy">
+      <cstring>filterTypeCombo</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="filterTypeCombo">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Specify the type of result you want this filter to produce</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="serverGroupBox">
+     <property name="toolTip">
+      <string>Filters by server</string>
+     </property>
+     <property name="title">
+      <string>Server</string>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="serverLabel">
+        <property name="toolTip">
+         <string>Filters by server. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;
+You can filter for a specific server by selecting one from the list of existing servers or
+enter a regular expression( ex.: to filter for the LiberaBPM that are in lab01 enter LiberaBPM/lab01.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Full name:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="serverCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by server. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;
+You can filter for a specific server by selecting one from the list of existing servers or
+enter a regular expression( ex.: to filter for the LiberaBPM that are in lab01 enter LiberaBPM/lab01.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="serverNameLabel">
+        <property name="toolTip">
+         <string>Filters by server type. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;
+You can filter for a specific server type by selecting one from the list of existing server types or
+enter a regular expression( ex.: to filter for all the Libera server types enter Libera.*)
+Server types are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Type:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="serverNameCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by server type. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;
+You can filter for a specific server type by selecting one from the list of existing server types or
+enter a regular expression( ex.: to filter for all the Libera server types enter Libera.*)
+Server types are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="serverInstanceLabel">
+        <property name="toolTip">
+         <string>Filters by server instance. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;.
+If you selected a specific server type from the input above, you can filter for a specific server instance by selecting one from the list of existing server instances for the selected server type or
+enter a regular expression( ex.: to filter for all the ID02 server instances no matter what the type: ID02.*)
+Instance names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Instance:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="serverInstanceCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by server instance. Servers have a naming syntax of &lt;server type&gt;/&lt;server instance&gt;.
+If you selected a specific server type from the input above, you can filter for a specific server instance by selecting one from the list of existing server instances for the selected server type or
+enter a regular expression( ex.: to filter for all the ID02 server instances no matter what the type: ID02.*)
+Instance names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="serverClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="serverNameClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="serverInstanceClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="7" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QGroupBox" name="deviceGroupBox">
+     <property name="toolTip">
+      <string>Filters by device</string>
+     </property>
+     <property name="title">
+      <string>Device</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="4" column="0">
+       <widget class="QLabel" name="deviceFamilyLabel">
+        <property name="toolTip">
+         <string>Filters by device family. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+If you selected a specific domain in the above input, then you can filter for a specific family 
+by selecting one from the list of existing families or enter a regular expression( ex.: to filter 
+for all families RF write something like RF.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Family:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="deviceFamilyCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by device family. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+If you selected a specific domain in the above input, then you can filter for a specific family 
+by selecting one from the list of existing families or enter a regular expression( ex.: to filter 
+for all families RF write something like RF.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="deviceMemberLabel">
+        <property name="toolTip">
+         <string>Filters by device member. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+If you selected a specific domain and family in the above inputs, then you can filter for a specific
+member by selecting one from the list of existing member or enter a regular expression( ex.: to 
+filter for all elotech members write something like elotech.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Member:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="deviceMemberCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by device member. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+If you selected a specific domain and family in the above inputs, then you can filter for a specific
+member by selecting one from the list of existing member or enter a regular expression( ex.: to 
+filter for all elotech members write something like elotech.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="deviceTypeLabel">
+        <property name="toolTip">
+         <string>Filters by device type. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt; and they are of some type.
+You can filter for a specific type by selecting one from the list of existing types or
+enter a regular expression( ex.: to filter for all the PLC type of devices write something like PLC.*).
+Names are case SENSITIVE!</string>
+        </property>
+        <property name="text">
+         <string>Type:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="deviceTypeCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by device type. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt; and they are of some type.
+You can filter for a specific type by selecting one from the list of existing types or
+enter a regular expression( ex.: to filter for all the PLC type of devices write something like PLC.*).
+Names are case SENSITIVE!</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="deviceNameLabel">
+        <property name="toolTip">
+         <string>Filters by device. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+You can filter for a specific device by selecting one from the list of existing devices or
+enter a regular expression( ex.: to filter for all the plc(member) devices that are in domain id11
+write something like id11/.*/plc).
+Names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Full name:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="deviceNameCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by device. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+You can filter for a specific device by selecting one from the list of existing devices or
+enter a regular expression( ex.: to filter for all the plc(member) devices that are in domain id11
+write something like id11/.*/plc).
+Names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="deviceDomainCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Filters by device domain. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+You can filter for a specific domain by selecting one from the list of existing domains or
+enter a regular expression( ex.: to filter for all domains BO write something like BO.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="deviceDomainLabel">
+        <property name="toolTip">
+         <string>Filters by device domain. Devices have a naming syntax of &lt;domain&gt;/&lt;family&gt;/&lt;member&gt;.
+You can filter for a specific domain by selecting one from the list of existing domains or
+enter a regular expression( ex.: to filter for all domains BO write something like BO.*).
+Names are case insensitive.</string>
+        </property>
+        <property name="text">
+         <string>Domain:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="deviceNameClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="deviceTypeClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QPushButton" name="deviceFamilyClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="deviceDomainClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QPushButton" name="deviceMemberClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="toolTip">
+      <string>Filters by attribute</string>
+     </property>
+     <property name="title">
+      <string>Attribute</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="attributeLabel">
+        <property name="text">
+         <string>Name:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="attributeCombo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::InsertAtTop</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="attributeClearButton">
+        <property name="toolTip">
+         <string>clears the input field contents</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>filterTypeCombo</tabstop>
+  <tabstop>serverCombo</tabstop>
+  <tabstop>serverNameCombo</tabstop>
+  <tabstop>serverInstanceCombo</tabstop>
+  <tabstop>deviceNameCombo</tabstop>
+  <tabstop>deviceTypeCombo</tabstop>
+  <tabstop>deviceDomainCombo</tabstop>
+  <tabstop>deviceFamilyCombo</tabstop>
+  <tabstop>deviceMemberCombo</tabstop>
+  <tabstop>attributeCombo</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
