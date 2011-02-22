@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="210mm" height="297mm" id="svg2" sodipodi:version="0.32" inkscape:version="0.46" inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs id="defs4">
+    <linearGradient inkscape:collect="always" id="linearGradient3207">
+      <stop style="stop-color:#000000;stop-opacity:1;" offset="0" id="stop3209"/>
+      <stop style="stop-color:#000000;stop-opacity:0;" offset="1" id="stop3211"/>
+    </linearGradient>
+    <linearGradient inkscape:collect="always" id="linearGradient3167">
+      <stop style="stop-color:#ffffff;stop-opacity:1;" offset="0" id="stop3169"/>
+      <stop style="stop-color:#ffffff;stop-opacity:0;" offset="1" id="stop3171"/>
+    </linearGradient>
+    <inkscape:perspective sodipodi:type="inkscape:persp3d" inkscape:vp_x="0 : 526.18109 : 1" inkscape:vp_y="0 : 1000 : 0" inkscape:vp_z="744.09448 : 526.18109 : 1" inkscape:persp3d-origin="372.04724 : 350.78739 : 1" id="perspective10"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3187" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3191" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3195" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3199" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3203" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <radialGradient inkscape:collect="always" xlink:href="#linearGradient3207" id="radialGradient3213" cx="397.85715" cy="779.50507" fx="397.85715" fy="779.50507" r="237.85715" gradientTransform="matrix(1,0,0,0.2822823,0,559.46459)" gradientUnits="userSpaceOnUse"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3221" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <radialGradient inkscape:collect="always" xlink:href="#linearGradient3207" id="radialGradient3223" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1,0,0,0.2822823,0,559.46459)" cx="397.85715" cy="779.50507" fx="397.85715" fy="779.50507" r="237.85715"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3227" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient3167" id="linearGradient3239" gradientUnits="userSpaceOnUse" x1="179.71428" y1="482.36218" x2="568.85712" y2="482.36218"/>
+    <radialGradient inkscape:collect="always" xlink:href="#linearGradient3207" id="radialGradient3241" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1,0,0,0.2822823,0,559.46459)" cx="397.85715" cy="779.50507" fx="397.85715" fy="779.50507" r="237.85715"/>
+  </defs>
+  <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="0.7" inkscape:cx="245.35819" inkscape:cy="582.85714" inkscape:document-units="px" inkscape:current-layer="layer1" showgrid="false" showguides="true" inkscape:guide-bbox="true">
+    <sodipodi:guide orientation="0,1" position="-557.14286,937.14286" id="guide3155"/>
+    <sodipodi:guide orientation="0,1" position="-477.14286,222.85714" id="guide3157"/>
+    <sodipodi:guide orientation="1,0" position="734.28571,60" id="guide3159"/>
+    <sodipodi:guide orientation="1,0" position="20,148.57143" id="guide3161"/>
+  </sodipodi:namedview>
+  <metadata id="metadata7">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>wide area network link</dc:title>
+        <dc:date>July 2010</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Franziska Sponsel</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Franziska Sponsel</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>RRZE</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>wide area network link</rdf:li>
+            <rdf:li>wan link</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:contributor>
+          <cc:Agent>
+            <dc:title>Beate Kaspar, Hendrik Eggers</dc:title>
+          </cc:Agent>
+        </dc:contributor>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/"/>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"/>
+        <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+        <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g inkscape:label="Ebene 1" inkscape:groupmode="layer" id="layer1">
+    <g id="g3243">
+      <rect y="115.21932" x="20" height="714.28571" width="714.28571" id="rect2383" style="opacity:0.87537094;fill:none;fill-opacity:1;stroke:none;stroke-width:7;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/>
+      <g transform="matrix(1.1785714,0,0,1.1785714,-71.581632,-115.42182)" id="g3234">
+        <g id="g3231">
+          <path sodipodi:nodetypes="ccccccc" id="path3163" d="M 185.71428,252.36218 L 308.57142,552.36219 L 377.14286,472.36218 L 562.85714,712.36218 L 399.99999,372.36219 L 331.42857,458.07647 L 185.71428,252.36218 z" style="fill:#729fcf;fill-rule:evenodd;stroke:#204a87;stroke-width:12;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/>
+        </g>
+        <path style="opacity:0.64688427;fill:url(#linearGradient3239);fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:7;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" d="M 270.34375,432.8125 C 284.07698,466.36292 297.80666,499.91479 311.53125,533.46875 C 333.46172,507.86143 355.45286,482.08561 377.625,456.59375 C 422.63532,514.72924 470.50299,579.29314 515.51339,637.42857 C 480.51795,563.75647 441.93456,483.38354 406.66862,409.60219 C 403.71658,403.44312 400.76454,397.28406 397.8125,391.125 C 375.53017,418.95746 353.25647,446.79685 330.96875,474.625 C 296.67252,426.59267 255.1677,362.36576 220.51786,314.59821 C 234.50744,348.76488 256.35417,398.64583 270.34375,432.8125 z" id="path3165" sodipodi:nodetypes="ccccccccc"/>
+      </g>
+      <path transform="matrix(1.024024,0,0,0.5425532,-23.843844,315.86781)" d="M 635.71429,779.50507 A 237.85715,67.14286 0 1 1 160,779.50507 A 237.85715,67.14286 0 1 1 635.71429,779.50507 z" sodipodi:ry="67.14286" sodipodi:rx="237.85715" sodipodi:cy="779.50507" sodipodi:cx="397.85715" id="path3205" style="fill:url(#radialGradient3241);fill-opacity:1;stroke:none;stroke-width:7;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" sodipodi:type="arc"/>
+    </g>
+  </g>
+</svg>
