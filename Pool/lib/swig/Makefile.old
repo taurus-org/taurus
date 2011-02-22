@@ -1,0 +1,6 @@
+
+all:
+	swig -python -c++ -I.. interface.i
+
+clean:
+	rm -fr *.o *.so *.py *.pyc *_wrap.cxx

@@ -1,0 +1,830 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Sardana Configuration User Guide
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+This guide is intended to give an overview of all the different components
+ of the Sardana framework from the point of view of configuration.
+ We briefly explain each part of the framework, and highlight those interesting
+ concepts to take into account.
+\end_layout
+
+\begin_layout Subsection
+Sardana framework
+\end_layout
+
+\begin_layout Standard
+The Sardana framework is designed to hide some internal control of a group
+ of devices, while providing a wide, rich, and extensible set of operations
+ that a user may need.
+ It is composed of:
+\end_layout
+
+\begin_layout Itemize
+a Device Pool Server = the server containing all the devices,
+\end_layout
+
+\begin_layout Itemize
+a MacroServer = the server that asks the Device Pool Server to perform actions
+ on devices,
+\end_layout
+
+\begin_layout Itemize
+Doors = the user access points to the system.
+\end_layout
+
+\begin_layout Subsection
+Device Pool Server
+\end_layout
+
+\begin_layout Standard
+The Device Pool Server is a DeviceServer that provides access to groups
+ (pools) of generic hardware devices as motors or counters.
+ The Pool is configured as any other Tango Device Server, so the configuration
+ is stored in the Tango database.
+ All devices within the Pool are controlled with specific 
+\begin_inset Quotes eld
+\end_inset
+
+Pool controllers
+\begin_inset Quotes erd
+\end_inset
+
+, so the stored Pool configuration contains also all the parameters for
+ those controllers which are loaded automatically when the pool starts.
+ The Pool can contain groups of devices and guarantees operations like synchroni
+zed movement of motors, synchronized data acquisition, or motor limit control.
+ The Device Pool Server is event based.
+\end_layout
+
+\begin_layout Standard
+The Device Pool Server core is developed in C++.
+ The pool controllers can be written in Python or C++ and they will be loaded
+ at pool start-up.
+ The Pool is able to upload new versions of these controllers without restarting.
+\end_layout
+
+\begin_layout Standard
+SardanaGUI is a tool used for the creation and configuration of the Device
+ Pool Server.
+ With this graphical user interface, you can add the desired controllers
+ and devices to the pool.
+ You can also configure the different groups of experiment channels of data
+ acquisition for future use.
+\end_layout
+
+\begin_layout Subsection
+MacroServer
+\end_layout
+
+\begin_layout Standard
+The MacroServer can be connected to different pools.
+ It provides a group of macros (functions) to interact with the hardware
+ through the Pool.
+ The MacroServer communicates with the pool using TANGO.
+ It uses events as well.
+ The MacroServer is also defined as a device in the Tango database.
+\end_layout
+
+\begin_layout Subsection
+Door
+\end_layout
+
+\begin_layout Standard
+A door is another device server that will be started by the MacroServer.
+ The door allows users to connect to the MacroServer.
+ The communication between the user application (client) and the MacroServer
+ is based on TANGO and events.
+ The door is an access point to the MacroServer so from the MacroServer
+ point of view, there is no difference between a CLI (Command Line Interface)
+ and a GUI (Graphical User Interface).
+\end_layout
+
+\begin_layout Standard
+Spock is an application that offers a way to connect to a MacroServer using
+ a door.
+ It is just a Python script that starts an IPython session and offers the
+ macros defined in the MacroServer.
+ Spock needs a profile with the values of the door device server and the
+ MacroServer device server.
+\end_layout
+
+\begin_layout Section
+Getting the code
+\end_layout
+
+\begin_layout Standard
+The code is in the svn repository.
+ It is also accessible via the blissinstaller packages.
+ It has been already installed on controls01.
+\end_layout
+
+\begin_layout Subsection
+Source code
+\end_layout
+
+\begin_layout Standard
+You can checkout the code from the svn server:
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+svn+ssh://user@controls01/siciliarep/svn/trunk/tango_ds/Miscellaneous/pool
+\end_layout
+
+\begin_layout Standard
+svn+ssh://user@controls01/siciliarep/svn/tags/POOL_DEVEL_RELEASE/pool
+\end_layout
+
+\begin_layout Subsection
+SardanaGUI
+\end_layout
+
+\begin_layout Standard
+The SardanaGUI is currently developed in java and the code is at:
+\end_layout
+
+\begin_layout Standard
+svn+ssh://user@controls01/siciliarep/svn/trunk/tango_client/sardanaGUI
+\end_layout
+
+\begin_layout Subsection
+Dependencies
+\end_layout
+
+\begin_layout Standard
+If you want to compile the pool, you will need:
+\end_layout
+
+\begin_layout Standard
+OmniORB >= 4.1.0
+\end_layout
+
+\begin_layout Standard
+OmniNotify >= 2.1
+\end_layout
+
+\begin_layout Standard
+Tango >= 6.0.0
+\end_layout
+
+\begin_layout Standard
+PyTango >= 3.0.3
+\end_layout
+
+\begin_layout Standard
+Python >= 2.4
+\end_layout
+
+\begin_layout Standard
+gcc >= 3.4
+\end_layout
+
+\begin_layout Standard
+automake >= 2.6.1
+\end_layout
+
+\begin_layout Standard
+libtool (installed by default)
+\end_layout
+
+\begin_layout Subsection
+Default controllers
+\end_layout
+
+\begin_layout Standard
+There are some pool controllers already available as blissinstaller packages,
+ for example an Icepap motor controller or the National Instruments 6602
+ DAQ Counter/Timer card.
+ 
+\end_layout
+
+\begin_layout Section
+Creating the Device Pool Server (SardanaGUI)
+\end_layout
+
+\begin_layout Standard
+The SardanaGUI application can be launched with the 'java -jar sardana.jar'
+ command, or installing the sardana blissinstaller package.
+ It uses the TANGO_HOST environment variable to connect to the Tango database
+ and retrieve all defined Device Pool Servers.
+ SardanaGUI is an application under development and it still has a lot of
+ features to be implemented.
+ There are also known bugs that have to be fixed.
+ All the actions that can be performed using the SardanaGUI are also available
+ from Jive.
+\end_layout
+
+\begin_layout Subsection
+Using SardanaGUI to create a Device Pool Server
+\end_layout
+
+\begin_layout Standard
+Right-click on the TANGO_HOST node to create a New Pool (you can also use
+ the Create menu option).
+ It asks you to fill in the Instance name (if you are doing tests, you can
+ use your username for that instance name) and it automatically creates
+ a Pool device name and an alias.
+ As mentioned above, the Pool is meant to load controllers to access real
+ hardware.
+ In order to do so, it uses code taken from outside the core.
+ In order to load the code the Pool needs the PoolPath property set with
+ the directories where the code is located.
+ If the Pool software has been installed in $POOL_HOME, then the directories
+ to be added are:
+\end_layout
+
+\begin_layout Standard
+$POOL_HOME/lib/pool (for the C++ code)
+\end_layout
+
+\begin_layout Standard
+$POOL_HOME/lib/python2.5/site-packages (for the Python code)
+\end_layout
+
+\begin_layout Standard
+Note:If you want to use the already installed Pool software in controls01,
+ the C++ controllers directory is
+\end_layout
+
+\begin_layout Standard
+/homelocal/sicilia/ds/suse102/pool/lib
+\end_layout
+
+\begin_layout Standard
+and the Python controllers directory is
+\end_layout
+
+\begin_layout Standard
+/homelocal/sicilia/ds/suse102/pool/python/site-packages
+\end_layout
+
+\begin_layout Standard
+Note2: After creating the pool, use Jive to be sure that the path is only
+ one line with directories separated by ':' instead of new lines.
+\end_layout
+
+\begin_layout Section
+Adding controllers (SardanaGUI)
+\end_layout
+
+\begin_layout Standard
+Right-clicking on the controllers leaf of the pool node, you can create
+ a new controller.
+ Controllers must be created before hardware devices are added.
+ The Controllers leaf has a tab called Controller Classes.
+ Here you should be able to see all available controllers for the pool.
+ If the controller you want to add is not shown, check that the PoolPath
+ variable includes the directory your controller is in.
+\end_layout
+
+\begin_layout Subsection
+Interfaces defined for controllers
+\end_layout
+
+\begin_layout Standard
+The Pool recognizes the following types of controllers: 
+\end_layout
+
+\begin_layout Itemize
+Motor, Counter/Timer, and Communication as real hardware controllers 
+\end_layout
+
+\begin_layout Itemize
+PseudoMotor and PseudoCounter as software controllers.
+ 
+\end_layout
+
+\begin_layout Standard
+For each type of controller, there is a specific interface developers have
+ to implement.
+ In this way, a hardware abstraction layer is provided to the Pool, which
+ can access them as generic devices.
+\end_layout
+
+\begin_layout Subsection
+Controller properties
+\end_layout
+
+\begin_layout Standard
+Each controller can define specific properties for its execution environment,
+ as for example, a connection to a specific device server.
+ It is also possible to define specific properties for each device added
+ to the controller, for example specific values related to the hardware
+ used.
+\end_layout
+
+\begin_layout Subsection
+Motor Controller
+\end_layout
+
+\begin_layout Standard
+The motor controller must implement an interface for moving and for communicatin
+g the state of the motors it controls.
+ For example, if more than one motor of the same controller must be moved
+ at one time, the pool will notify the controller to move them both at the
+ same time in case the hardware accepts a multiple move command.
+\end_layout
+
+\begin_layout Subsection
+CounterTimer Controller
+\end_layout
+
+\begin_layout Standard
+The pool uses a CounterTimer controller in order to read data from counter
+ cards.
+ Pool clients must specify which hardware channels will be used for measurements.
+ They do this by defining experiment channels in the controller.
+ 
+\end_layout
+
+\begin_layout Standard
+An experiment channel is just a generic term the pool uses for data acquisition
+ channels.
+ For now, it can refer to a counter channel or a zeroD channel.
+ The data is read from or written to experiment channels.
+\end_layout
+
+\begin_layout Standard
+Experiment channels can be grouped in measurement groups for different measureme
+nt tasks.
+ The measurement group must have a master channel defined, which can be
+ either a timer or a monitor counter.
+ The time to count or the number of pulses the monitor must count have to
+ be set before starting the measurement.
+\end_layout
+
+\begin_layout Standard
+Obs.: The information in this subsection might be incomplete.
+ Please contact Tiago if you need more details!
+\end_layout
+
+\begin_layout Subsection
+Communication Channel Controller
+\end_layout
+
+\begin_layout Standard
+Defining a communication channel controller allows you to have communication
+ devices inside the pool for connecting controllers to other devices.
+ The communication device has the open, write, read and close commands.
+\end_layout
+
+\begin_layout Subsection
+Pseudo Motor Controller
+\end_layout
+
+\begin_layout Standard
+A pseudo motor controller provides motor devices that are not real.
+\end_layout
+
+\begin_layout Standard
+**The gap+offset example for the slits could be added here**
+\end_layout
+
+\begin_layout Subsection
+Pseudo Counter Controller
+\end_layout
+
+\begin_layout Standard
+The pseudo counter controllers add software data acquisition channels to
+ the pool.
+ These channels can be based on other devices.
+ For example, if you have the counters CT1 and CT2, you can define a pseudo
+ counter CT3 which value is CT1/CT2.
+\end_layout
+
+\begin_layout Subsection
+Adding hardware devices in the controllers (SardanaGUI)
+\end_layout
+
+\begin_layout Standard
+Any hardware device that has to be available through the pool must be added
+ to a controller.
+ Some controllers may have declared specific properties for each device,
+ so this information should be provided when you create the device.
+ All the devices will be defined within the pool device server, and the
+ user may use the MacroServer to operate with them.
+\end_layout
+
+\begin_layout Section
+Groups of Hardware (SardanaGUI)
+\end_layout
+
+\begin_layout Standard
+The pool allows to create groups of hardware.
+ For example, it is possible to create a group of motors to move them in
+ a synchronized manner, or define a measurement group that includes a timer
+ and some counters channels, so you can get the data from all the channels
+ in the group at the same time.
+\end_layout
+
+\begin_layout Section
+Running the Pool
+\end_layout
+
+\begin_layout Standard
+To run the pool you just need to execute the Pool binary followed by the
+ instance name you want to use.
+\end_layout
+
+\begin_layout Section
+MacroServer
+\end_layout
+
+\begin_layout Standard
+The MacroServer is an engine that offers client connections to perform actions
+ on the Pool devices.
+ The different actions are called macros, and should cover the average user
+ needs to move and acquire data.
+\end_layout
+
+\begin_layout Subsection
+Creation (Jive)
+\end_layout
+
+\begin_layout Standard
+To start a MacroServer you need to use Jive to create a new the device server.
+ The ServerName is 
+\begin_inset Quotes eld
+\end_inset
+
+MacroServer
+\begin_inset Quotes erd
+\end_inset
+
+, you can use any instance name, the Class is also 
+\begin_inset Quotes eld
+\end_inset
+
+MacroServer
+\begin_inset Quotes erd
+\end_inset
+
+ and only one device is needed.
+ Once the device is created, there are three properties that must be defined:
+\end_layout
+
+\begin_layout Itemize
+MacroPath, which should point to the directory where the macros are stored
+ (for now it only reads the standard.py macros file).
+ In the distribution, the macro directory is $POOL_HOME/lib/python2.5/site-packag
+es/macroserver/macros.
+ Using the blissinstaller package, the path is /homelocal/sicilia/ds/suse102/mac
+roserver/macros.
+\end_layout
+
+\begin_layout Itemize
+MaxDoors is the number of doors that your MacroServer will accept.
+\end_layout
+
+\begin_layout Itemize
+PoolNames is a list of pool device names that the MacroServer will connect
+ to.
+ At the time of writing this guide, the MacroServer can connect to only
+ one pool.
+\end_layout
+
+\begin_layout Subsection
+Running
+\end_layout
+
+\begin_layout Standard
+To run the MacroServer, you just need to execute the MacroServer script
+ followed by the instance name you want to use.
+\end_layout
+
+\begin_layout Subsection
+Macros (built-in functions)
+\end_layout
+
+\begin_layout Standard
+The macros available from the macroserver allow users to interact with pool
+ devices.
+ The macro list will be always growing & users will be able to define their
+ own macros.
+ Here are some common macros the MacroServer offers for the time being:
+\end_layout
+
+\begin_layout Itemize
+ascan - Do an absolute scan of the specified motor
+\end_layout
+
+\begin_layout Itemize
+ascan_mot - Do an absolute scan of the specified motor appending motor positions
+ as counters
+\end_layout
+
+\begin_layout Itemize
+ct - Count for the specified time on the active measurement group
+\end_layout
+
+\begin_layout Itemize
+defmeas - Create a new measurement group
+\end_layout
+
+\begin_layout Itemize
+load - Load a macro file
+\end_layout
+
+\begin_layout Itemize
+lsenv - Lists all current environment
+\end_layout
+
+\begin_layout Itemize
+lsmeas - List existing measurement group
+\end_layout
+
+\begin_layout Itemize
+mesh - Do an absolute mesh scan of the specified pair of motors
+\end_layout
+
+\begin_layout Itemize
+motor_par - sets configuration parameters for motor 'motor'.
+ Generic recognized values for the string 'par' follow.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+"Step_per_unit" returns the current step-size parameter.
+ The units are generally in steps per degree or steps per millimeter.
+ If val is given, then the parameter is set to that value.
+\end_layout
+
+\begin_layout Itemize
+"Acceleration" (R/W) returns the value of the current acceleration parameter.
+ The units of acceleration are the time in milliseconds for the motor to
+ accelerate to full speed.
+ If val is given, then the acceleration is set to that value.
+\end_layout
+
+\begin_layout Itemize
+"Decceleration" (R/W) returns the value of the current deceleration parameter.
+ The units of deceleration are the time in milliseconds for the motor to
+ stop.
+ If val is given, then the deceleration is set to that value.
+\end_layout
+
+\begin_layout Itemize
+"Base_rate" (R/W) returns the current base-rate parameter.
+ The units are steps per second.
+ If val is given, then the base rate is set to that value.
+\end_layout
+
+\begin_layout Itemize
+"Velocity" (R/W) returns the current steady-state velocity parameter.
+ The units are steps per second.
+ If val is given, then the steady-state velocity is set to that value.
+\end_layout
+
+\begin_layout Itemize
+"Backlash" (R/W) returns the value of the backlash parameter.
+ Its sign and magnitude determine the direction and extent of the motor's
+ backlash correction.
+ If val is given, then the backlash is set to that value.
+ Setting the backlash to zero disables the backlash correction.
+\end_layout
+
+\begin_layout Itemize
+"Controller" (R) returns the name of the controller for the given motor.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+mv - Move motor(s) to the specified position(s)
+\end_layout
+
+\begin_layout Itemize
+mvr - Move motor(s) relative to the current position(s)
+\end_layout
+
+\begin_layout Itemize
+pwa - Show all motor positions in a pretty table
+\end_layout
+
+\begin_layout Itemize
+pwm - Show the position of the specified motors in a pretty table
+\end_layout
+
+\begin_layout Itemize
+senv - Sets the given environment variable to the given value
+\end_layout
+
+\begin_layout Itemize
+set_lim - Sets the software limits on the specified motor
+\end_layout
+
+\begin_layout Itemize
+set_lm - Sets the dial limits on the specified motor
+\end_layout
+
+\begin_layout Itemize
+set_pos - Sets the position of the motor to the specified value
+\end_layout
+
+\begin_layout Itemize
+settimer - Defines the timer channel for the active measurement group
+\end_layout
+
+\begin_layout Itemize
+uct - Count on the active measurement group and update
+\end_layout
+
+\begin_layout Itemize
+umv - Move motor(s) to the specified position(s) and update
+\end_layout
+
+\begin_layout Itemize
+umvr - Move motor(s) relative to the current position(s) and update
+\end_layout
+
+\begin_layout Itemize
+wa - Show all motor positions
+\end_layout
+
+\begin_layout Itemize
+waenv - Displays the current environment
+\end_layout
+
+\begin_layout Itemize
+wenv - Displays the current value of the given environment variable
+\end_layout
+
+\begin_layout Itemize
+wm - Show the position of the specified motors
+\end_layout
+
+\begin_layout Standard
+Note: For a more detailed description of each macro, you can retrieve the
+ on-line documentation from the spock command prompt.
+\end_layout
+
+\begin_layout Section
+Doors
+\end_layout
+
+\begin_layout Standard
+As the name explicitly says, a door a device server is used to access the
+ MacroServer.
+ The door allows the user to invoke actions on the pool devices.
+ When the MacroServer starts, it starts all the doors defined under the
+ device server.
+\end_layout
+
+\begin_layout Subsection
+Creation (Jive)
+\end_layout
+
+\begin_layout Standard
+To create a door you must use Jive and define, under the same instance name
+ of the MacroServer, the new door device.
+ Proceed as follows:
+\end_layout
+
+\begin_layout Itemize
+ServerName should be MacroServer, 
+\end_layout
+
+\begin_layout Itemize
+Instance name, whatever you want
+\end_layout
+
+\begin_layout Itemize
+Class is Door 
+\end_layout
+
+\begin_layout Itemize
+add as many devices as you want.
+ 
+\end_layout
+
+\begin_layout Standard
+Each Door device must have a property called MacroServerName defined.
+ This is the device name of the MacroServer you want to use.
+\end_layout
+
+\begin_layout Section
+Spock
+\end_layout
+
+\begin_layout Standard
+Spock is a script that acts as a Command Line Interface MacroServer client.
+ It uses IPython to interact with the user.
+ It allows the user to ask the MacroServer to perform the macros.
+ These macros write the results to the Output attribute of the door, to
+ a file, or in shared memory.
+ 
+\end_layout
+
+\begin_layout Standard
+Using the Spock client you can execute macros, and in the future, create
+ new macros or modify existing ones.
+ There are some environment variables that allow you to select a measurement
+ group from the list for a particular data acquisition session.
+\end_layout
+
+\begin_layout Subsection
+Profiles
+\end_layout
+
+\begin_layout Standard
+Spock uses profiles (like the IPython profiles) to connect to different
+ doors.
+ These profiles are also user-related, so each profile can have a specific
+ configuration.
+ If you want to create a new profile just execute 
+\begin_inset Quotes eld
+\end_inset
+
+spock -p myProfile
+\begin_inset Quotes erd
+\end_inset
+
+, it will list the available doors and you can choose the one you want.
+\end_layout
+
+\begin_layout Subsection
+Execution
+\end_layout
+
+\begin_layout Standard
+You can start the connection to a door by executing 
+\begin_inset Quotes eld
+\end_inset
+
+spock -p myProfile
+\begin_inset Quotes erd
+\end_inset
+
+.
+ If no argument is given, the default profile 
+\begin_inset Quotes eld
+\end_inset
+
+spock
+\begin_inset Quotes erd
+\end_inset
+
+ will be used and if it is not available, one will be created.
+\end_layout
+
+\end_body
+\end_document

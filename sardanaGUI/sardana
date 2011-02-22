@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -gt 0 ]
+then
+	if [ $1 = "--usage" ]
+	then
+        	echo "usage: sardana [pool filter] [<tango_host>:<port>]"
+		echo "where: <pool filter> is a filter for the tango device name"
+        	echo "   ex: sardana opticalhutch.* controls01:10000"
+	
+	        exit 1
+	fi
+fi
+
+java -jar sardana.jar $*

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+if test "`echo -e xxx`" = "xxx"
+then
+	echo="echo -e"
+else
+	echo=echo
+fi
+
+if [ $# != 2 ]
+then
+	$echo "\nusage: loop_test <test file path> <DS name>"
+	exit 1
+fi
+
+check_return_value () {
+if [ $1 != "0" ]
+then
+	$echo "Test FAILED.........."
+	exit
+fi
+}
+
+counter=0
+while true;
+do
+	let counter=counter+1
+	echo "Loop " $counter
+	python -u $1 $2
+	ret=$?
+	check_return_value $ret
+#        if [ $counter == 8 ]
+#        then
+#             exit
+#        fi
+done

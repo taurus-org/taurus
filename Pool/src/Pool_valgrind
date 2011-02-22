@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#valgrind --tool=memcheck -v --log-file=bid --leak-check=yes --num-callers=50 --leak-resolution=high --show-reachable=yes --suppressions=../test/memory/valgrind-python.supp ./Pool test
+valgrind --tool=memcheck -v --log-file=bid --leak-check=yes --num-callers=50 --leak-resolution=high --suppressions=valgrind-python.supp Pool $*

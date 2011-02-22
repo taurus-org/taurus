@@ -1,0 +1,902 @@
+<ui version="4.0" >
+ <class>testDialog</class>
+ <widget class="QDialog" name="testDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>413</width>
+    <height>586</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Dialog</string>
+  </property>
+  <widget class="QTabWidget" name="tabWidget" >
+   <property name="geometry" >
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>391</width>
+     <height>551</height>
+    </rect>
+   </property>
+   <property name="currentIndex" >
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="pool" >
+    <attribute name="title" >
+     <string>Device Pool</string>
+    </attribute>
+    <layout class="QGridLayout" >
+     <item row="0" column="0" >
+      <widget class="QTabWidget" name="tabWidget_2" >
+       <property name="currentIndex" >
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="motors" >
+        <attribute name="title" >
+         <string>Motors</string>
+        </attribute>
+        <widget class="QLabel" name="label" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>208</width>
+           <height>18</height>
+          </rect>
+         </property>
+         <property name="text" >
+          <string>Only the first 2 motors are shown</string>
+         </property>
+        </widget>
+        <widget class="TauGroupBox" name="m1GB" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>40</y>
+           <width>341</width>
+           <height>211</height>
+          </rect>
+         </property>
+         <property name="showQuality" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="TauStateLed" name="m1StateLed" >
+            <property name="ledSize" >
+             <number>24</number>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/State</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="4" >
+           <widget class="TauValueLabel" name="m1statusLabel" >
+            <property name="showQuality" >
+             <bool>false</bool>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m1PositionLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/position?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="TauValueLineEdit" name="m1PositionEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Position</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" >
+           <widget class="TauValueLabel" name="m1Position" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Position</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" >
+           <widget class="TauConfigLabel" name="m1PositionUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/position?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m1VelocityLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/velocity?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2" >
+           <widget class="TauValueLineEdit" name="m1VelocityEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Velocity</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" >
+           <widget class="TauValueLabel" name="m1Velocity" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/velocity</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4" >
+           <widget class="TauConfigLabel" name="m1VelocityUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/velocity?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m1AccelerationLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/acceleration?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2" >
+           <widget class="TauValueLineEdit" name="m1AccelerationEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Acceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3" >
+           <widget class="TauValueLabel" name="m1Acceleration" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Acceleration</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="4" >
+           <widget class="TauConfigLabel" name="m1AccelerationUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/acceleration?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m1DecelerationLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/deceleration?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2" >
+           <widget class="TauValueLineEdit" name="m1DecelerationEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Deceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3" >
+           <widget class="TauValueLabel" name="m1Deceleration" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Deceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="4" >
+           <widget class="TauConfigLabel" name="m1DecelerationUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/deceleration?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m1StepPerUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2" >
+           <widget class="TauValueLineEdit" name="m1StepPerUnitEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3" >
+           <widget class="TauValueLabel" name="m1StepPerUnit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="4" >
+           <widget class="TauConfigLabel" name="m1StepPerUnitUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="TauGroupBox" name="m2GB" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>260</y>
+           <width>341</width>
+           <height>191</height>
+          </rect>
+         </property>
+         <property name="showQuality" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="TauStateLed" name="m1StateLed_2" >
+            <property name="ledSize" >
+             <number>24</number>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/State</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="4" >
+           <widget class="TauValueLabel" name="m2statusLabel" >
+            <property name="showQuality" >
+             <bool>false</bool>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m2PositionLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>?configuration=label</string>
+            </property>
+            <property name="buddy" >
+             <cstring>m1PositionEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="TauValueLineEdit" name="m2PositionEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Position</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" >
+           <widget class="TauValueLabel" name="m2Position" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Position</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" >
+           <widget class="TauConfigLabel" name="m2PositionUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>?configuration=unit</string>
+            </property>
+            <property name="buddy" >
+             <cstring>m1PositionEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m2VelocityLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/velocity?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2" >
+           <widget class="TauValueLineEdit" name="m2VelocityEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Velocity</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" >
+           <widget class="TauValueLabel" name="m2Velocity" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/velocity</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4" >
+           <widget class="TauConfigLabel" name="m2VelocityUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/velocity?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m2AccelerationLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/acceleration?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2" >
+           <widget class="TauValueLineEdit" name="m2AccelerationEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Acceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3" >
+           <widget class="TauValueLabel" name="m2Acceleration" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Acceleration</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="4" >
+           <widget class="TauConfigLabel" name="m2AccelerationUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/acceleration?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m2DecelerationLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/deceleration?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2" >
+           <widget class="TauValueLineEdit" name="m2DecelerationEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Deceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3" >
+           <widget class="TauValueLabel" name="m2Deceleration" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Deceleration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="4" >
+           <widget class="TauConfigLabel" name="m2DecelerationUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/deceleration?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="m2StepPerUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2" >
+           <widget class="TauValueLineEdit" name="m2StepPerUnitEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3" >
+           <widget class="TauValueLabel" name="m2StepPerUnit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="4" >
+           <widget class="TauConfigLabel" name="m2StepPerUnitUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/step_per_unit?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="counters" >
+        <attribute name="title" >
+         <string>Counters</string>
+        </attribute>
+        <widget class="QLabel" name="label_2" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>220</width>
+           <height>18</height>
+          </rect>
+         </property>
+         <property name="text" >
+          <string>Only the first 3 counters are shown</string>
+         </property>
+        </widget>
+        <widget class="TauGroupBox" name="c1GB" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>40</y>
+           <width>341</width>
+           <height>131</height>
+          </rect>
+         </property>
+         <property name="showQuality" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="TauStateLed" name="c1StateLed" />
+          </item>
+          <item row="0" column="1" colspan="4" >
+           <widget class="TauValueLabel" name="c1StatusLabel" >
+            <property name="showQuality" >
+             <bool>false</bool>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="c1ValueLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="TauValueLineEdit" name="c1ValueEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" >
+           <widget class="TauValueLabel" name="c1Value" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" >
+           <widget class="TauConfigLabel" name="c1ValueUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" colspan="2" >
+           <widget class="QPushButton" name="c1StartPushButton" >
+            <property name="text" >
+             <string>Start</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="TauGroupBox" name="c2GB" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>180</y>
+           <width>341</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <property name="showQuality" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="TauStateLed" name="c2StateLed" />
+          </item>
+          <item row="0" column="1" colspan="4" >
+           <widget class="TauValueLabel" name="c2StatusLabel" >
+            <property name="showQuality" >
+             <bool>false</bool>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="c2ValueLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="TauValueLineEdit" name="c2ValueEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" >
+           <widget class="TauValueLabel" name="c2Value" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" >
+           <widget class="TauConfigLabel" name="c2ValueUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="TauGroupBox" name="c3GB" >
+         <property name="geometry" >
+          <rect>
+           <x>10</x>
+           <y>280</y>
+           <width>341</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <property name="showQuality" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="TauStateLed" name="c3StateLed" />
+          </item>
+          <item row="0" column="1" colspan="4" >
+           <widget class="TauValueLabel" name="c3StatusLabel" >
+            <property name="showQuality" >
+             <bool>false</bool>
+            </property>
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="TauConfigLabel" name="c3ValueLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="suffixText" >
+             <string>:</string>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="TauValueLineEdit" name="c3ValueEdit" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" >
+           <widget class="TauValueLabel" name="c3Value" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value</string>
+            </property>
+            <property name="buddy" >
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" >
+           <widget class="TauConfigLabel" name="c3ValueUnitLabel" >
+            <property name="useParentModel" >
+             <bool>true</bool>
+            </property>
+            <property name="model" >
+             <string>/value?configuration=unit</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionC1Start" >
+   <property name="text" >
+    <string>c1Start</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TauGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>tau.widget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TauStateLed</class>
+   <extends>QLabel</extends>
+   <header>tau.widget</header>
+  </customwidget>
+  <customwidget>
+   <class>TauValueLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>tau.widget</header>
+  </customwidget>
+  <customwidget>
+   <class>TauConfigLabel</class>
+   <extends>QLabel</extends>
+   <header>tau.widget</header>
+  </customwidget>
+  <customwidget>
+   <class>TauValueLabel</class>
+   <extends>QLabel</extends>
+   <header>tau.widget</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>c1StartPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionC1Start</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>299</x>
+     <y>219</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

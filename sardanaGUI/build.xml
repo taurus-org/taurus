@@ -1,0 +1,96 @@
+<project basedir="." name="es.cells.sardana.client" default="build">
+	
+	<taskdef name="xmlbean" classname="org.apache.xmlbeans.impl.tool.XMLBean" classpath="lib/xmlbeans/xbean.jar:lib/xmlbeans/jsr173_1.0_api.jar"/>
+	
+	<property name="tango.lib" value="lib/tango" />
+	<property name="jgraph.lib" value="lib/jgraph" />
+	<property name="substance.lib" value="lib/substance" />
+	<property name="jgoodies.lib" value="lib/JGoodies" />
+	<property name="xmlbeans.lib" value="lib/xmlbeans" />
+
+	<path id="jgraph.classpath"> 
+		<fileset dir="${jgraph.lib}" includes="jgraph.jar"/>
+	</path>
+	
+	<path id="substance.classpath"> 
+		<fileset dir="${substance.lib}" includes="substance.jar"/>
+	</path>
+	
+	<path id="tango.classpath"> 
+		<fileset dir="${tango.lib}" includes="TangORB.jar,ATKCore.jar,ATKWidget.jar"/>
+	</path>	
+	
+	<path id="xmlbeans.classpath">
+		<fileset dir="${xmlbeans.lib}" includes="xbean.jar,xmlbeans-qname.jar,jsr173_1.0_api.jar"/>
+	</path>	
+	
+	<path id="sardana.xmlbeans.classpath">
+		<fileset dir="lib" includes="tangoconfig.jar,sardanaconfig.jar"/>
+	</path>
+	
+	<target name="build" depends="clean, build_xmlbeans, compile, pack" />
+	
+	<target name="clean">
+		<delete dir="binRelease" />
+		<mkdir dir="binRelease" />
+		<delete file="sardana.jar"/>
+	</target>
+	
+	<target name="copy">
+		<copydir dest="binRelease/res" src="res"></copydir>
+	</target>
+	
+	<target name="compile">
+		<javac 
+			   srcdir="src" 
+			   destdir="binRelease" 
+			   optimize="true" 
+		       debug="false"
+			   source="1.5"> 
+			<classpath>
+				<path refid="tango.classpath"/>
+				<path refid="jgraph.classpath"/>
+				<path refid="substance.classpath"/>
+				<path refid="xmlbeans.classpath"/>
+				<path refid="sardana.xmlbeans.classpath"/>
+				<filelist dir="lib/JGoodies">
+					<file name="validation.jar"/>
+					<file name="looks.jar"/>
+					<file name="binding.jar"/>
+					<file name="forms.jar"/>
+					<file name="animation.jar"/>
+				</filelist>
+			</classpath>
+		</javac>
+	</target>
+	
+	<target name="pack">
+		<jar destfile="sardana.jar" basedir="binRelease">
+			<manifest>
+				<attribute name="Manifest-Version"       value="1.0" />
+				<attribute name="Class-Path"             value="lib/JGoodies/validation.jar lib/JGoodies/looks.jar lib/JGoodies/forms.jar lib/JGoodies/binding.jar lib/JGoodies/animation.jar lib/substance/substance.jar lib/jgraph/jgraph.jar lib/tango/TangORB.jar lib/tango/ATKCore.jar lib/tango/ATKWidget.jar lib/xmlbeans/xbean.jar lib/xmlbeans/xmlbeans-qname.jar lib/xmlbeans/jsr173_1.0_api.jar lib/xmlbeans/xmlpublic.jar lib/tangoconfig.jar lib/sardanaconfig.jar " />
+				<attribute name="Specification-Title"    value="Sardana" />
+				<attribute name="Specification-Version"  value="0.1" />
+				<attribute name="Specification-Vendor"   value="CELLS" />
+				<attribute name="Implementation-Title"   value="Sardana" />
+				<attribute name="Implementation-Version" value="1.0.0" />
+				<attribute name="Implementation-Vendor"  value="CELLS" />
+				<attribute name="Main-class"             value="es.cells.sardana.client.gui.swing.SardanaApplication" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="build_xmlbeans">
+		<xmlbean destfile="lib/tangoconfig.jar"   srcgendir="src_tangoconfig"   javasource="1.5" schema="tango.xsd"   download="true">
+			<classpath>
+				<path refid="xmlbeans.classpath"/>
+			</classpath>
+		</xmlbean>	
+		<xmlbean destfile="lib/sardanaconfig.jar" srcgendir="src_sardanaconfig" javasource="1.5" schema="sardana.xsd" download="true">
+			<classpath>
+				<path refid="xmlbeans.classpath"/>
+				<pathelement location="lib/tangoconfig.jar"/>
+			</classpath>
+		</xmlbean>
+	</target>
+</project>

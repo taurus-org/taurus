@@ -1,0 +1,76 @@
+-------------------------------
+Pool README file
+-------------------------------
+
+1 Installation
+
+  This chapter describes the necessary steps for a MacroServer compilation
+
+  all <install dir> references below refer to the desired installation directory.
+
+  The following instructions describe the necessary steps for installing the
+  entire Pool system including some generic controllers.
+  If you don't need to install the pool and just want to install the controllers
+  please follow the instructions under ctrls/README.
+
+1.1 Prerequisites
+
+  - PyTango >= 3.0.4
+  - SPS - the shared memory library from Grenoble. This is optional package if
+          you want the shared memory features and actually not necessary to 
+          install the MacroServer.
+
+1.2 install
+  
+  Go to the MacroServer root directory and type:
+
+  % mkdir build
+  % cd build
+  % ../configure
+    
+    - if not system installation provide: 
+        --prefix=<install dir>
+    
+    - if using an alternative python distribution provide:
+        --with-python-prefix=<python root>
+    
+    - if you don't want to install the default macros that are provided by this
+      distribution provide:
+      --enable-extra-macros=no or
+      --disable-extra-macros
+      
+  % make
+  % sudo make install
+
+2. Execution
+
+  To configure and start a new MacroServer system please look into the 
+  doc/ConfigUserGuide.lyx under section 7.  
+
+-----------------------
+Appendix A: HKL library 
+-----------------------
+
+The HKL available from http://repo.or.cz/r/hkl.git.
+It has been developed by the SOLEIL synchrotron.
+The contact person is PICCA Frédéric-Emmanuel: frederic-emmanuel.picca .at. synchrotron-soleil.fr
+
+To checkout and build (you need the 'git' tool and 'scons'):
+ % git clone http://repo.or.cz/r/hkl.git
+ % cd hkl
+ % scons
+
+In order to set a VALID HKL_ROOT (or --with-hkl-prefix) to build sardana, you 
+need to make a symbolic link to the build result directory of hkl called 'lib'.
+If you install the library on the system, the step above is, of course, 
+unnecessary.
+
+Example:
+ - suppose you have checked out HKL into /home/bart/workspace
+ - you are on linux with bash
+ 
+ % cd hkl
+ % scons
+   (this will build scons in debug mode)
+ % ln -s debug/linux2/src lib
+ % export HKL_ROOT=/home/bart/workspace/hkl

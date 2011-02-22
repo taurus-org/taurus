@@ -1,0 +1,26 @@
+#!/bin/bash
+
+OUT_FILE=pool_test.log
+POOL_NAME=$1
+USR_NAME=`whoami`
+BASE_DIR="/home/$USR_NAME"
+
+if test "`echo -e xxx`" = "xxx"
+then
+	echo="echo -e"
+else
+	echo=echo
+fi
+
+if [ -f $OUT_FILE ]
+then
+	rm $OUT_FILE
+fi
+
+$echo "\t\tPool device server test" > $OUT_FILE
+$echo "\t\t-----------------------" >> $OUT_FILE
+$echo "\n\n" >> $OUT_FILE
+$echo `date` >> $OUT_FILE
+$echo "\n\n" >> $OUT_FILE
+
+./runpooltest $POOL_NAME 2>&1 | tee -i -a $OUT_FILE

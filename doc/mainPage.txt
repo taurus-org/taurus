@@ -1,0 +1,50 @@
+/** @mainpage Sardana
+
+<P>
+The Sardana is a <A HREF="http://www.tango-controls.org">Tango</A> based control
+system designed for <B>instrument control</B> and <B>data acquisition</B>.     
+</P>
+
+@image html "sardana.jpg" The name 'Sardana' was inspired by the traditional sardana dance from catalunya 
+@image latex "sardana.jpg" The name 'Sardana' was inspired by the traditional sardana dance from catalunya
+
+This is the <A HREF="http://www.doxygen.org/">Doxygen</A> generated API 
+documentation for the Sardana system.
+
+A part from the documentation API, the following manuals are available:
+@li @ref userManual \n
+the 'end user' manual. It explains how to use the end sardana system 
+@li @ref operationManual \n
+the operation manual. It explains how to add and configure new hardware in an existing sardana 
+@li @ref installationManual \n
+the installation manual.It explains how to install a new sardana system 
+@li @ref macroDevelopersManual \n
+the macro developers manual. It explains how to write new macros
+@li @ref controllerDevelopersManual \n
+the controller developers manual. It explains how to write new controllers 
+@li @ref coreDevelopersManual \n
+the core developers manual. It explains the internal sardana system from the 
+developers point of view. Not for the faint of heart!
+
+
+**/
+
+/** @page userManual User manual
+@todo The very important user manual
+*/
+
+/** @page operationManual Operation manual
+@todo The very important operation manual
+*/
+
+/** @page macroDevelopersManual Macro developers manual
+@todo The very important macro developers manual
+*/
+
+/** @page controllerDevelopersManual Controller developers manual
+@todo The very important controller developers manual
+*/
+
+/** @page coreDevelopersManual Core developers manual
+@todo The very important developers manual
+*/

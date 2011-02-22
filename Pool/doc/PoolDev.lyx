@@ -1,0 +1,861 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Sardana pool device management 
+\layout Author
+
+Tiago Coutinho, Emmanuel Taurel
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Section
+
+Introduction
+\layout Standard
+
+This paper describes 
+\layout Itemize
+
+A possible way to implement Tango device classes embedded within the Sardana
+ pool in order to have an easy and user friendly graphical interface to
+ create new devices.
+\layout Itemize
+
+A possible way to dynamically extend the set of devices hosted by the Sardana
+ pool.
+\layout Section
+
+Creating device
+\layout Standard
+
+The principle described here is very similar to what already exists for
+ the Tango wizard available from Jive.
+ It is a not a precise definition of what need to be implemented.
+ It is rather a description of the philosophy used during a pool managed
+ device creation.
+ 
+\layout Standard
+
+Every entity hosted by the pool can be configured by what will be called
+ 
+\series bold 
+parameters
+\series default 
+ later on in this document.
+ For simple Tango class, these parameters are the classical Tango properties.
+ For objects like motor controller or the pseudo motor Tango device, it
+ can not be classical Tango property because a motor controller is not a
+ Tango device and even if a pseudo motor is a Tango device, each pseudo
+ motor implementation could be different and therefore could request different
+ number/types of parameters.
+ Nevertheless, every motor controller belongs to a C++ or Python class and
+ every pseudo Motor also belongs to a Python class (which is not the Tango
+ class).
+ Therefore, it is possible to have a way to define these parameters very
+ close to the way used by classical Tango property.
+\layout Subsection
+
+Retrieving object parameter value
+\layout Standard
+
+Parameter value can be defined at the class level and/or re-defined at instance
+ level.
+ It is also possible to define parameter default value at class/instance
+ level.
+ These default value are stored within the class code.
+ If the default value is not adapted to specific object instance, it is
+ possible to define a new parameter value which will be stored in the Tango
+ database.
+ Tango database allows storing data which are not Tango device property.
+ In Jive, these type of data are under the "Property" leave in the main
+ tree.
+ This storage could be seen simply as a couple name/value.
+ Naming convention for this kind of storage could be defined as 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+begin{center}
+\layout Standard
+
+\end_inset 
+
+class->param: value or class/instance->param: value
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+end{center}
+\end_inset 
+
+ The calls necessary to retrieve/insert/update these values from/to the
+ database already exist in the Tango core.
+ The algorithm used to retrieve a parameter value is the following:
+\layout LyX-Code
+
+/IF/ Parameter has a default value defined at class level
+\layout LyX-Code
+
+    - Parameter value = class default value
+\layout LyX-Code
+
+/ENDIF/
+\layout LyX-Code
+
+ 
+\layout LyX-Code
+
+/IF/ Parameter has a value defined in db at class level
+\layout LyX-Code
+
+    - Parameter value = class db value
+\layout LyX-Code
+
+/ENDIF/
+\layout LyX-Code
+
+ 
+\layout LyX-Code
+
+/IF/ Parameter has a default value defined at instance level
+\layout LyX-Code
+
+    - Parameter value = instance default value
+\layout LyX-Code
+
+/ENDIF/
+\layout LyX-Code
+
+ 
+\layout LyX-Code
+
+/IF/ Parameter has a value defined in db at instance level
+\layout LyX-Code
+
+    - Parameter value = instance db value
+\layout LyX-Code
+
+/ENDIF/
+\layout Standard
+
+Using an example, the following array summarizes the result of this algorithm.
+ The example is for an IcePap controller and the parameter is the port number
+ (called port_number)
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+begin{center}
+\end_inset 
+
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="6" columns="7">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 1
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 2
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 4
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+case 6
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+class default
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+class in DB
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5150
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5150
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5150
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inst.
+ default
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5100
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5200
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5200
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inst.
+ in DB
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5200
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5250
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Parameter value
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5000
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5200
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5100
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5150
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5200
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5250
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+end{center}
+\end_inset 
+
+Case 2 : The IcePap controller is created with an instance name "My_IcePap".
+ The property IcePap/My_IcePap->port_number has been set to 5200 in db
+\newline 
+Case 4: The hard coded value of 5000 for port number does not fulfill the
+ need.
+ A property called IcePap->port_number set to 5150 is defined in db.
+\newline 
+Case 6: We have one instance of IcePap called "My_IcePap".
+ This case need the definition of 2 properties in db
+\layout Enumerate
+
+IcePap->port_number set to 5150
+\layout Enumerate
+
+IcePap/My_IcePap->port_number set to 5250
+\layout Subsection
+
+Defining the object parameters
+\layout Standard
+
+In order to have a user-friendly interface, all the parameters used by the
+ object class has to have informations hard-coded into the object class
+ code.
+ We need at least three informations and sometimes four for each parameter.
+ They are:
+\layout Enumerate
+
+The parameter name
+\layout Enumerate
+
+The parameter data type restricted to the data type available for Tango
+ property
+\layout Enumerate
+
+The parameter description
+\layout Enumerate
+
+The parameter default value (if defined)
+\layout Standard
+
+With these informations, a graphical user interface is able to build at
+ object creation time a panel with the list of all the needed parameters,
+ their descriptions and eventually their default value.
+ The user then have the possibility to re-define parameter value if the
+ default one is not valid for his usage.
+ This is the rule of the graphical panel to store the new value into the
+ Tango database.
+ For Python classes (Python controller class and pseudo motor class), it
+ is possible to define these parameter informations using a Python dictionary
+ with a well defined name.
+ The parameter name is the dictionary element key.
+ The dictionary element value is a list with two or three members which
+ are the parameter data type followed by its description and an optional
+ default value.
+ For instance, for our IcePap port number parameter, this dictionary could
+ be
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+begin{center}
+\end_inset 
+
+cl_param_dict = {"port_number":[PyTango.DevLong,"Port on which the IcePap
+ software server is listening","5000"]}
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+end{center}
+\end_inset 
+
+ Concerning instance level parameter definition, a second similar dictionary
+ has to be used.
+ Something similar has to be implemented for C++ controller.
+ For classical tango classes, these kind of informations are stored in the
+ Tango wizard which is initialized by some code automatically generated
+ by Pogo when the class is created.
+\layout Subsection
+
+Retrieving the object parameter list and informations
+\layout Standard
+
+The pool already has a command called "GetPseudoMotorClassInfo" which from
+ a pseudo motor class name returns miscellaneous informations related to
+ this pseudo motor class.
+ This command could be updated to return the parameter list with their informati
+ons.
+ Nothing is defined yet for motor controller and this need to be added.
+ For classical Tango classes, the Tango admin device already has 2 commands
+ to retrieve Tango wizard data.
+ These commands are called "QueryWizardClassProperty" and "QueryWizardDevPropert
+y"
+\layout Subsection
+
+Device creation
+\layout Standard
+
+As a Tango device server, the pool has a Tango admin device which already
+ has a command called "QueryClass" which returns the list of all Tango classes
+ embedded in the process.
+ This command can be used as the starting point of the procedure used to
+ create a device managed by the Sardana pool.
+ The complete procedure could look like:
+\layout Enumerate
+
+Query the list of Tango class embedded with the pool (QueryClass command)
+\layout Enumerate
+
+Display this list to the user who select one of these class
+\layout Enumerate
+
+If it is the first time a device of this class is created (a db call will
+ give us this information)
+\begin_deeper 
+\layout Enumerate
+
+If it is a Tango class, ask the wizard for ClassProperty info
+\layout Enumerate
+
+If it is a Pseudo Motor, display the list of all pseudo motor classes available.
+ The user selects one and with the GetPseudoMotorClassInfo pool command
+ retrieve pseudo motor class parameters and information
+\layout Enumerate
+
+If it is a motor, display the list of available motor controller.
+ The user selects one and with the xxxxx pool command, retrieve controller
+ class parameters and information
+\layout Enumerate
+
+Display all the parameters defined at class level with their default value
+\layout Enumerate
+
+If the user has modified one of the default value, store the new value in
+ the Tango DB
+\end_deeper 
+\layout Enumerate
+
+Ask for instance level parameters
+\begin_deeper 
+\layout Enumerate
+
+If it is a Tango class, ask the wizard for DevProperty info
+\layout Enumerate
+
+Use the GetPseudoMotorClassInfo command result to get instance level parameters
+\layout Enumerate
+
+If it is a motor, retrieve controller instance parameters with the xxxxx
+ pool command
+\end_deeper 
+\layout Enumerate
+
+Display all the parameters defined at instance level with their default
+ value
+\layout Enumerate
+
+If the user has modified one of the default value, store the new value in
+ the Tango DB
+\layout Enumerate
+
+Create the device using the appropriate pool command
+\layout Subsection
+
+Work to be done
+\layout Standard
+
+To implement this kind of behavior, we need to
+\layout Itemize
+
+Implement the algorithm to retrieve parameter value for pseudo motor and
+ motor controller
+\layout Itemize
+
+Implement the way to define parameter information in Python class and in
+ C++ class (for C++ controller)
+\layout Itemize
+
+Modify the pseudo motor GetPseudoMotorClassInfo that it also returns the
+ parameters list and informations
+\layout Itemize
+
+Add to the pool a new command like GetPseudoMotorClassInfo but dedicated
+ to motor controller
+\layout Itemize
+
+Add a new pool command which returns the list of available motor controller
+ class.
+ Two possible ways (We need to decide which one to implement):
+\begin_deeper 
+\layout Enumerate
+
+Return only the list of class of the already created controllers
+\layout Enumerate
+
+Return a list of motor controller class (C++ and Python) found in a specific
+ directory even if no controller of these class is created yet (similar
+ to what is implemented for Pseudo-Motor)
+\end_deeper 
+\layout Section
+
+Extending the device pool
+\layout Standard
+
+This chapter is much more "experimental" than the previous one.
+ It is simply a theoretical proposal which need to be tested and validated
+ with small examples if it is judged as a desirable feature.
+\layout Subsection
+
+Dynamic pool extension
+\layout Standard
+
+The Sardana device pool will embed a pre-defined list of Tango classes for
+ classical devices found in a typical beam line hardware.
+ Typically, the pool will embed classes for
+\layout Itemize
+
+Motor
+\layout Itemize
+
+Pseudo motor
+\layout Itemize
+
+Motor group
+\layout Itemize
+
+Serial line
+\layout Itemize
+
+GPIB
+\layout Itemize
+
+USB ?
+\layout Standard
+
+and certainly some other.
+ This defines the pool core.
+ Nevertheless, from time to time it could be useful to extend this list
+ in order to manage new device type which could be specific from one beam
+ line to another.
+ Using dynamic loader features, it should be possible to do this without
+ need to compile/link the pool device server.
+\layout Subsection
+
+Adding/Removing a new Tango class to the device pool
+\layout Standard
+
+We need to add three new pool commands to implement this feature.
+ These commands are:
+\layout Itemize
+
+AddClass: The input parameter is the class name (assuming the shared library
+ file name is also the class name).
+ The instance name associated to the specific instance will be the pool
+ instance name.
+ This command will automatically create two new commands and one attribute
+ on the pool device.
+ They are:
+\begin_deeper 
+\layout Itemize
+
+CreateXXX: This command will allow the user to create one device of the
+ added Tango class
+\layout Itemize
+
+DeleteXXX: This command will allow the user to delete one device of the
+ added Tango class
+\layout Itemize
+
+XXXList: One Read/Spectrum/String attribute which is the list of already
+ created device of the added class
+\end_deeper 
+\layout Itemize
+
+RemoveClass: The input parameter is the class name.
+ This command unload the specified class from the device pool.
+ This is possible only if all the devices belonging to this class have been
+ first deleted.
+\layout Itemize
+
+ReloadClass: The input parameter is the class name.
+ This command un-validate all the devices belonging to the class, unload
+ the class, re-load it and validate class devices.
+ This should be the equivalent of a device server process restart.
+\layout Standard
+
+The information that a class has been dynamically added to the pool will
+ be memorized and the class (and all its devices) will be part of the pool
+ at the following pool restart.
+\layout Subsection
+
+Problems to be solved and investigation to be done
+\layout Standard
+
+Some problems generated by this approach are mainly due to the fact that
+ everything will be managed by the same operating system process.
+ What will happens if a class dynamically added has a bug which generates
+ a "core dump" ? Is it possible to make the pool resistant to such an event
+ and to invalidate the class and all its devices if this kind of failure
+ happens ? The same kind of problem could happens if a dynamically added
+ class has a memory leak making the complete pool unavailable ?
+\layout Standard
+
+Some investigation also need to be done in order to dynamically load Python
+ Tango class.
+ Is it possible and how ?
+\the_end

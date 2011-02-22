@@ -1,0 +1,171 @@
+#!/bin/bash
+
+if test "`echo -e xxx`" = "xxx"
+then
+	echo="echo -e"
+else
+	echo=echo
+fi
+
+if [ $# = 0 ]
+then
+	$echo "\nusage: runpooltest <DS name> <usr name>"
+	exit 1
+fi
+
+check_return_value () {
+if [ $1 != "0" ]
+then
+	$echo "Test suite FAILED.........."
+	exit
+fi
+}
+
+# First sone test set-up
+
+python TestSetUp.py $*
+ret=$?
+check_return_value $ret
+
+# Start the device server
+
+python -u StartDs.py $*
+ret=$?
+check_return_value $ret
+
+# Test command/attribute related to controller
+
+python ctrl/PoolTst.py $*
+ret=$?
+check_return_value $ret
+
+python ctrl/FaultyCtrl.py $*
+ret=$?
+check_return_value $ret
+
+python ctrl/InitCtrl.py $*
+ret=$?
+check_return_value $ret
+
+python ctrl/ReloadCtrl.py $*
+ret=$?
+check_return_value $ret
+
+python ctrl/InfoCtrl.py $*
+ret=$?
+check_return_value $ret
+
+python ctrl/SendCtrl.py $*
+ret=$?
+check_return_value $ret
+
+# Test event propagation
+
+python -u event_prop/ev_prop.py $*
+ret=$?
+check_return_value $ret
+
+# Test command.attribute related to motor
+
+
+python motor/MotFaultCtrl.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/StartSim.py $*
+ret=$?
+check_return_value $ret
+
+python -u motor/MotTst.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/MotErr.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/misc_cmd.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/MovMot.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/MotDial.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor/MotPolling.py $*
+ret=$?
+check_return_value $ret
+
+# Test command.attribute related to motor group
+
+python -u motor_group/BasicCmd.py $* 
+ret=$?
+check_return_value $ret
+
+python -u motor_group/ReadWrite.py $* 
+ret=$?
+check_return_value $ret
+
+# Test command/attribute related to pseudo motor
+
+python pseudo_motor/PoolTst.py $*
+ret=$?
+check_return_value $ret
+
+python pseudo_motor/InfoPseudoMotor.py $*
+ret=$?
+check_return_value $ret
+
+python pseudo_motor/ReloadPseudoMotor.py $*
+ret=$?
+check_return_value $ret
+
+python pseudo_motor/ReadWrite.py $*
+ret=$?
+check_return_value $ret
+
+
+# Test command.attribute related to counter timer
+
+python -u CounterTimer/UxTiTst.py $* 
+ret=$?
+check_return_value $ret
+
+python -u CounterTimer/CtTst.py $* 
+ret=$?
+check_return_value $ret
+
+# Test command/attribute related to ZeroDExpChannel
+
+python -u ZeroD/ZeroTst.py $*
+ret=$?
+check_return_value $ret
+
+# Test command.attribute related to measurement group
+
+python -u measurement_group/BasicCmd.py $* 
+ret=$?
+check_return_value $ret
+
+python -u measurement_group/SetupCmd.py $* 
+ret=$?
+check_return_value $ret
+
+#python -u measurement_group/MgTst.py $* 
+#ret=$?
+#check_return_value $ret
+
+# Test Pool shutdown sequence
+
+python -u shutdown/shut.py $*
+ret=$?
+check_return_value $ret
+
+$echo "\n\n"
+$echo "-----------------------------------------------------------------"
+$echo "\t\tWonderfull, all tests passed !!!"
+$echo "-----------------------------------------------------------------"

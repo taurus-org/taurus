@@ -1,0 +1,52 @@
+-----------------
+1. How to compile
+-----------------
+1.0 prerequisites: 
+  - java 1.5 (java.sun.com), 
+  - Ant Tool (ant.apache.org)
+    -> Only necessary if you plan to build a new JAR binary file
+    Note: Ant already ships with eclipse so if you are compiling from eclipse 
+    you won't need to install Ant
+ 
+1.1 The SVN repository already contains a lib directory which contains all 
+necessary JAR files to compile and run SardanaGUI
+
+1.2 Building (optional): run % ant (either from the command line or through your 
+favorite IDE)
+
+----------------
+2. How to run
+----------------
+1.1 Change to the directory were sardana script is located and simply write in 
+the command line:
+
+% ./sardana [ pool filter] [ alternative <TangoHost>:<TangoPort> ] 
+
+  if [pool filter] is not given it defaults to '.*'. 
+
+  In the optional pool filter parameter you can write a regular expression that
+  will match against all pool devices that exist in the database. E.x.: If in the
+  Database the following pool devices have been registered:
+    ctalpha/pool/01
+    ctbeta/pool/01
+    ctgama/pool/01
+    ctgama/pool/02
+  but you know in advance that you only want to work with pools on ctgama you can
+  type in the command line:
+  % ./sardana ctgama.*
+  
+  if no alternative database is given, the one in the environment variable
+  TANGO_HOST will be used.
+
+----------------
+3. How to distribute
+----------------
+The files/directories necessary to run SardanaGUI are:
+
+sardana.jar
+lib/
+res/
+
+if you place all this in a zip file your distribution is done!
+
+

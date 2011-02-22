@@ -1,0 +1,36 @@
+Sardana Pool device stress test
+-------------------------------
+
+Pool set-up:
+------------
+
+2 Motor simulators
+- SimuEtCtrl/manu with 8 motors (simu/etctrl/01 + simu/motor/0x)
+- SimuEtctrl/dyn_test with 6 motors (simu/ctrl_dyn/01 + simu/dyn_motor/0x)
+
+2 Controllers - 1 Python controller not used (IcePapController/first)
+		2 Cpp controller with oscillating motors (DummyController/cpp_ctrl)
+
+2 motors defined on the pool using the Cpp controller on axis 2 and 3
+
+
+Test software
+-------------
+
+for_back.py : A python script moving a motor backward and forward 
+	      (movement of 200) using event
+	      Needs pool motor name as parameter (use the motor with the axis 2 and 3)
+	     
+
+Pool_cmd.py : A python script sending commands to the pool. Commands to create
+	      motor, delete motor, create controller, delete controller.
+	      Also read MotorList and ControllerList attributes.
+	      No parameter needed
+
+Test
+----
+
+Start 2 for_back on the two motors defined in the Cpp controller
+Start Pool_cmd
+
+Should run at least one night without pb.

@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<Title> Tango Device Server User's Guide </Title>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#7F00FF" ALINK="#FF0000">
+
+<P><!-------TITLE------></P>
+
+<TABLE BORDER="0" WIDTH="100%">
+    <TR>
+        <TD ALIGN="left">
+			<A HREF="http://www.esrf.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/gifs/logo/80.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.elettra.trieste.it/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/elettra_logo.gif" BORDER=0></A>
+
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.synchrotron-soleil.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/soleil_logo.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="right">
+			<A HREF="http://www.cells.es/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/alba.jpg" BORDER=0></A>
+		</Td>
+    	 <Td>
+			<H2><FONT COLOR="#7F00FF">
+			<Center><A HREF="http://www.esrf.fr/Infrastructure/Computing/tango/" TARGET="_top">
+					 TANGO </a> <Br> Device Server
+			</Center></FONT>
+    	</Td>
+    </TR>
+</TABLE>
+
+<HR WIDTH="100%"></H5>
+<Br>
+<center>
+<h1>
+Device pool		<Br>
+Properties Description 		<Br> <Br>
+Pool Class	<Br>
+</h1>
+<b>
+Revision: ";
+	start = header.length();
+	string	endstr(" - Author: tcoutinho
+</b>
+</center>
+
+
+<Br> <Br> <Br> 
+<Center>
+<Br> <Br> <Br> 
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Properties</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Property name</b></td></Center>
+<Td><Center><b>Property type</b></td></Center>
+<Td><Center><b>Description</b></td></Center>
+<Tr><Td><b>PoolPath</b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>Path for pool external stuff (C++ shared libraries or Python modules)</Font></Td></Tr>
+
+<Tr><Td><b>DefaultMotPos_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_DOUBLE</Font></Td>
+<Td><Font Size=-1>Default value for motor position attribute abs_change property</Font></Td></Tr>
+
+<Tr><Td><b>DefaultMotGrpPos_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Default value for motor group position attribute abs_change property</Font></Td></Tr>
+
+<Tr><Td><b>GhostGroup_PollingPeriod</b></Td>
+<Td><Font Size=-1>Tango::DEV_STRING</Font></Td>
+<Td><Font Size=-1>Polling period for the ghost motor group</Font></Td></Tr>
+
+<Tr><Td><b>MotThreadLoop_SleepTime</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Sleep time in the motion thread loop in mS</Font></Td></Tr>
+
+<Tr><Td><b>NbStatePerRead</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Number of State to be done before doing a read in the motion thread</Font></Td></Tr>
+
+<Tr><Td><b>DefaultCtVal_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_DOUBLE</Font></Td>
+<Td><Font Size=-1>Default value for counter value attribute abs_change property</Font></Td></Tr>
+
+<Tr><Td><b>ZeroDNbReadPerEvent</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Number of read between firing event during the Zero D Exp Channel
+acquisition loop</Font></Td></Tr>
+
+<Tr><Td><b>DefaultZeroDVal_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_DOUBLE</Font></Td>
+<Td><Font Size=-1>Default value for Zero D Cumulated value attribute abs_change property</Font></Td></Tr>
+
+<Tr><Td><b>DefaultCtGrpVal_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_DOUBLE</Font></Td>
+<Td><Font Size=-1>The default abs_change value for Counter/Timer value attributes in a Measurement Group</Font></Td></Tr>
+
+<Tr><Td><b>DefaultZeroDGrpVal_AbsChange</b></Td>
+<Td><Font Size=-1>Tango::DEV_DOUBLE</Font></Td>
+<Td><Font Size=-1>The default abs_change value for 0D Channel value attributes in a Measurement Group</Font></Td></Tr>
+
+<Tr><Td><b>CTThreadLoop_SleepTime</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Sleep time in the motion thread loop in mS</Font></Td></Tr>
+
+<Tr><Td><b>ZeroDThreadLoop_SleepTime</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Sleep time in the motion thread loop in mS</Font></Td></Tr>
+
+<Tr><Td><b>TmpElement_MaxInactTime</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>Maximum inactivity time for temporary objects.
+Units are multiples of GhostGroup_PollingPeriod.
+If a temporary object (motor/measurement group created with a '__'
+prefix in its name) does not receive a command/attribute request for
+this amount of time, it is marked for deletion.
+</Font></Td></Tr>
+
+</Table>
+
+<Br><Br><Br>
+<Center><b>
+There is no Class properties.<Br><Br>
+</Center></b>
+
+<Center>
+<Br>
+<HR WIDTH="100%"></H5>
+<H3> ESRF - Software Engineering Group </H3>
+</Center>
+</body>
+</html>

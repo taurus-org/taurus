@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/tango/ATKCore.jar"/>
+	<classpathentry kind="lib" path="lib/tango/ATKWidget.jar"/>
+	<classpathentry kind="lib" path="lib/tango/TangORB.jar" sourcepath="/javaapi"/>
+	<classpathentry kind="lib" path="lib/xmlbeans/xbean.jar"/>
+	<classpathentry kind="lib" path="lib/sardanaconfig.jar" sourcepath="src_sardanaconfig"/>
+	<classpathentry kind="lib" path="lib/tangoconfig.jar" sourcepath="src_tangoconfig"/>
+	<classpathentry kind="lib" path="lib/jgraph/jgraph.jar"/>
+	<classpathentry kind="output" path="binDebug"/>
+</classpath>

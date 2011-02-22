@@ -1,0 +1,423 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<Title> Tango Device Server User's Guide </Title>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#7F00FF" ALINK="#FF0000">
+
+<P><!-------TITLE------></P>
+
+<TABLE BORDER="0" WIDTH="100%">
+    <TR>
+        <TD ALIGN="left">
+			<A HREF="http://www.esrf.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/gifs/logo/80.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.elettra.trieste.it/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/elettra_logo.gif" BORDER=0></A>
+
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.synchrotron-soleil.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/soleil_logo.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="right">
+			<A HREF="http://www.cells.es/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/alba.jpg" BORDER=0></A>
+		</Td>
+    	 <Td>
+			<H2><FONT COLOR="#7F00FF">
+			<Center><A HREF="http://www.esrf.fr/Infrastructure/Computing/tango/" TARGET="_top">
+					 TANGO </a> <Br> Device Server
+			</Center></FONT>
+    	</Td>
+    </TR>
+</TABLE>
+
+<HR WIDTH="100%"></H5>
+<Br>
+<center>
+<h1>
+Device pool		<Br>
+Device Commands Description 		<Br> <Br>
+Pool Class	<Br>
+</h1>
+<b>
+Revision: ";
+	start = header.length();
+	string	endstr(" - Author: tcoutinho
+</b>
+</center>
+
+
+<Br>
+<Br>
+<Br>
+<A NAME="Init"><!-- --></A>
+<A NAME="Init"><!-- --></A>
+<h2>1 - Init</h2>
+<ul>
+<Li><Strong>Description: </Strong> This commands re-initialise a device keeping the same network connection.<Br>
+After an Init command executed on a device, it is not necessary for client to re-connect to the device.<Br>
+This command first calls the device <i> delete_device() </i>method and then execute its <i> init_device()</i> method.<Br>
+For C++ device server, all the memory allocated in the <i> nit_device() </i> method must be freed in the <i> delete_device() </i> method.<Br>
+The language device desctructor automatically calls the <i> delete_device() </i> method.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="State"><!-- --></A>
+<A NAME="State"><!-- --></A>
+<h2>2 - State</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device state (stored in its <i>device_state</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_STATE</Strong>
+ : State Code<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="Status"><!-- --></A>
+<A NAME="Status"><!-- --></A>
+<h2>3 - Status</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device status (stored in its <i>device_status</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>CONST_DEV_STRING</Strong>
+ : Status description<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateController"><!-- --></A>
+<A NAME="CreateController"><!-- --></A>
+<h2>4 - CreateController</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a controller object in the pool. Each controller code has to be defined as a shared library
+and the user LD_LIBRARY_PATH environment variable has to be correctly set to find the controller shared library.
+Each controller shared library has to have a C function called "_create_<Controller name>" to create a controller object.
+This command has four arguments which are :
+
+1 - The controller device type (Motor, Ccd,....)
+2 - The controller shared library name (Cpp or Python)
+3 - The controller name
+4 - The controller instance name
+
+Each controller is represented in the pool device by a separate object. If you have several instance of the same controller
+within a pool, the instance name is used to retrieve the correct instance.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : in[0] = Controller dev type, in[1] = Controller lib, in[2] = Controller name, in[3] = Instance name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateExpChannel"><!-- --></A>
+<A NAME="CreateExpChannel"><!-- --></A>
+<h2>5 - CreateExpChannel</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a new experiment channel in the pool. It has three arguments which are
+1 - The controller name (its instance name)
+2 - The experiment channel number within the controller
+3 - The experiment channel name. The experiment channel name is a Tango alias and does not have any '/' characters.
+This command creates a Tango device with a Tango name set to
+"ctexp/controller_instance_name/ctrl_number"
+and with an alias as given by the user in the command parameter.
+All the created experiment channels are automatically re-created at pool device startup time.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_LONGSTRINGARRAY</Strong>
+ : long[0] = Exp Channel number in Ctrl, string[0] = Exp Channel name, string[1] = Controller instance name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateMotor"><!-- --></A>
+<A NAME="CreateMotor"><!-- --></A>
+<h2>6 - CreateMotor</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a new motor in the pool. It has three arguments which are
+1 - The controller name (its instance name)
+2 - The motor number within the controller
+3 - The motor name. The motor name is a Tango alias and does not have any '/' characters.
+This command creates a Tango device with a Tango name set to
+"motor/controller_instance_name/motor_number"
+and with an alias as given by the user in the command parameter.
+All the created motors are automatically re-created at pool device startup time.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_LONGSTRINGARRAY</Strong>
+ : long[0] = Motor number in Ctrl, string[0] = Motor name, string[1] = Controller instance name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateMotorGroup"><!-- --></A>
+<A NAME="CreateMotorGroup"><!-- --></A>
+<h2>7 - CreateMotorGroup</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a motor group. The name of the group is the first element in the input
+argument followed by the group element name.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : Group name followed by motor's name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteController"><!-- --></A>
+<A NAME="DeleteController"><!-- --></A>
+<h2>8 - DeleteController</h2>
+<ul>
+<Li><Strong>Description: </Strong> Delete controller from its name.
+Before executing this command, you must first delete all the elements associated
+with this controller<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : The controller name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteExpChannel"><!-- --></A>
+<A NAME="DeleteExpChannel"><!-- --></A>
+<h2>9 - DeleteExpChannel</h2>
+<ul>
+<Li><Strong>Description: </Strong> Delete a experiment channel from its name
+Once an experiment channel is deleted, it is not available any more. All its information have been
+removed from the database<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Exp Channel name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteMotor"><!-- --></A>
+<A NAME="DeleteMotor"><!-- --></A>
+<h2>10 - DeleteMotor</h2>
+<ul>
+<Li><Strong>Description: </Strong> Delete a motor from its name
+Once a motor is deleted, it is not available any more. All its information have been
+removed from the database<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Motor name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteMotorGroup"><!-- --></A>
+<A NAME="DeleteMotorGroup"><!-- --></A>
+<h2>11 - DeleteMotorGroup</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command delete a motor group from its name<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : The motor group name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeletePseudoMotor"><!-- --></A>
+<A NAME="DeletePseudoMotor"><!-- --></A>
+<h2>12 - DeletePseudoMotor</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command deletes a pseudo motor<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Pseudo Motor name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="GetControllerInfo"><!-- --></A>
+<A NAME="GetControllerInfo"><!-- --></A>
+<h2>13 - GetControllerInfo</h2>
+<ul>
+<Li><Strong>Description: </Strong> Get controller class data like parameters description from the controller class name<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : in[0] - Controller type, in[1] - Controller file name, in[2] - Controller class name, in[3] - Controller instance name (optional)<Br>&nbsp
+<Li><Strong>Argout:<Br>DEVVAR_STRINGARRAY</Strong>
+ : Controller class data<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="InitController"><!-- --></A>
+<A NAME="InitController"><!-- --></A>
+<h2>14 - InitController</h2>
+<ul>
+<Li><Strong>Description: </Strong> Initialiaze a controller. Needed if the pool has been started when a controller was down in order to
+connect the controller to the pool without needs to restart the complete pool once it has
+been switched up.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Controller name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="ReloadControllerCode"><!-- --></A>
+<A NAME="ReloadControllerCode"><!-- --></A>
+<h2>15 - ReloadControllerCode</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command reloads controller code in the device server process. For C++ controller, it will
+unload and load the controller shared library and for Python controller, it will re-load the controller module.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Controller file name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="SendToController"><!-- --></A>
+<A NAME="SendToController"><!-- --></A>
+<h2>16 - SendToController</h2>
+<ul>
+<Li><Strong>Description: </Strong> This commands sends an uninterpreted string to a controller. The first input argument is the controller
+name. The second input argument is the string to be sent to the controller.
+It returns the controller answer without any interpretation.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : In[0] = Controller name, In[1] = String to send<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_STRING</Strong>
+ : The controller answer<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateMeasurementGroup"><!-- --></A>
+<A NAME="CreateMeasurementGroup"><!-- --></A>
+<h2>17 - CreateMeasurementGroup</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a measurement group. The name of the measurement group is the first element in the input
+argument followed by the group element names.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : Measurement Group name followed by names of the elements<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteMeasurementGroup"><!-- --></A>
+<A NAME="DeleteMeasurementGroup"><!-- --></A>
+<h2>18 - DeleteMeasurementGroup</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command deletes a measurement group from its name<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : The motor group name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="CreateComChannel"><!-- --></A>
+<A NAME="CreateComChannel"><!-- --></A>
+<h2>19 - CreateComChannel</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command creates a new communication channel in the pool. It has three arguments which are
+1 - The controller name (its instance name)
+2 - The communication channel number within the controller
+3 - The communication channel name. The communication channel name is a Tango alias and does not have any '/' characters.
+This command creates a Tango device with a Tango name set to
+"comchan/controller_instance_name/ctrl_number"
+and with an alias as given by the user in the command parameter.
+All the created communication channels are automatically re-created at pool device startup time.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_LONGSTRINGARRAY</Strong>
+ : long[0] = Communication Channel number in Ctrl, string[0] = communication Channel name, string[1] = Controller instance name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeleteComChannel"><!-- --></A>
+<A NAME="DeleteComChannel"><!-- --></A>
+<h2>20 - DeleteComChannel</h2>
+<ul>
+<Li><Strong>Description: </Strong> Delete a communication channel from its name
+Once an communication channel is deleted, it is not available any more. All its information have been
+removed from the database<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Communication Channel name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="GetControllerInfoEx"><!-- --></A>
+<A NAME="GetControllerInfoEx"><!-- --></A>
+<h2>21 - GetControllerInfoEx</h2>
+<ul>
+<Li><Strong>Description: </Strong> Get controller class extra data like parameters description from the controller class name<Br>&nbsp
+<Li><Strong>Argin:<Br>DEVVAR_STRINGARRAY</Strong>
+ : in[0] - Controller type, in[1] - Controller file name, in[2] - Controller class name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEVVAR_CHARARRAY</Strong>
+ : Controller class data<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="DeletePseudoCounter"><!-- --></A>
+<A NAME="DeletePseudoCounter"><!-- --></A>
+<h2>22 - DeletePseudoCounter</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command deletes a pseudo counter<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_STRING</Strong>
+ : Pseudo Motor name<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::ALARM</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+
+<Center>
+<Br>
+<HR WIDTH="100%"></H5>
+<H3> ESRF - Software Engineering Group </H3>
+</Center>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<ui version="4.0" >
+ <class>simuConfigDialog</class>
+ <widget class="QDialog" name="simuConfigDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>496</width>
+    <height>608</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Sardana simulation Configurator</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="2" column="2" >
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close</set>
+     </property>
+     <property name="centerButtons" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="3" >
+    <widget class="QTabWidget" name="simuTabWidget" >
+     <property name="currentIndex" >
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="simulators" >
+      <attribute name="title" >
+       <string>Simulators</string>
+      </attribute>
+      <layout class="QVBoxLayout" >
+       <item>
+        <widget class="QGroupBox" name="motorGroupBox" >
+         <property name="title" >
+          <string>Motor simulator</string>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="motorServerNamelabel" >
+            <property name="text" >
+             <string>Server name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorServerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="motorServerNameLineEdit" >
+            <property name="enabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="motorControllerNameLabel" >
+            <property name="text" >
+             <string>Motor controller name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorControllerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QLineEdit" name="motorControllerNameLineEdit" />
+          </item>
+          <item row="2" column="0" >
+           <widget class="QLabel" name="motorNumberLabel" >
+            <property name="text" >
+             <string>Number motors:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorNumberSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" >
+           <widget class="QSpinBox" name="motorNumberSpinBox" >
+            <property name="suffix" >
+             <string/>
+            </property>
+            <property name="value" >
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="counterGroupBox" >
+         <property name="title" >
+          <string>Counter simulator</string>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" colspan="2" >
+           <widget class="QLabel" name="counterServerNamelabel" >
+            <property name="text" >
+             <string>Server name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorServerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" >
+           <widget class="QLineEdit" name="counterServerNameLineEdit" >
+            <property name="enabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="counterControllerNameLabel" >
+            <property name="text" >
+             <string>Counter controller name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorControllerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" >
+           <widget class="QLineEdit" name="counterControllerNameLineEdit" />
+          </item>
+          <item row="2" column="0" >
+           <widget class="QLabel" name="counterNumberLabel" >
+            <property name="text" >
+             <string>Number counters:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorNumberSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2" >
+           <widget class="QSpinBox" name="counterNumberSpinBox" >
+            <property name="suffix" >
+             <string/>
+            </property>
+            <property name="value" >
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3" >
+         <property name="title" >
+          <string>0D Simulator</string>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="zeroDNumberLabel" >
+            <property name="text" >
+             <string>Number 0D Channels:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorNumberSpinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QSpinBox" name="zeroDNumberSpinBox" >
+            <property name="suffix" >
+             <string/>
+            </property>
+            <property name="value" >
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="label" >
+            <property name="text" >
+             <string>(Actually there is no 0D simulator. The 0D controller in the device pool will act as the simulator itself)</string>
+            </property>
+            <property name="wordWrap" >
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pool" >
+      <attribute name="title" >
+       <string>Device Pool</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <item row="0" column="0" >
+        <widget class="QLabel" name="poolServerNameLabel" >
+         <property name="text" >
+          <string>Server name:</string>
+         </property>
+         <property name="buddy" >
+          <cstring>poolServerNameLineEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" >
+        <widget class="QLineEdit" name="poolServerNameLineEdit" >
+         <property name="enabled" >
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="poolNamelabel" >
+         <property name="text" >
+          <string>Pool name:</string>
+         </property>
+         <property name="buddy" >
+          <cstring>motorControllerNameLineEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" >
+        <widget class="QLineEdit" name="poolNameLineEdit" />
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="poolPathLabel" >
+         <property name="text" >
+          <string>PoolPath:</string>
+         </property>
+         <property name="alignment" >
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="buddy" >
+          <cstring>poolPathTextEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>141</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="1" >
+        <widget class="QTextEdit" name="poolPathTextEdit" />
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="macroServer" >
+      <attribute name="title" >
+       <string>Macro Server</string>
+      </attribute>
+      <layout class="QVBoxLayout" >
+       <item>
+        <widget class="QGroupBox" name="groupBox" >
+         <property name="title" >
+          <string>Macro Server</string>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="msServerNameLabel" >
+            <property name="text" >
+             <string>Server name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>msServerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="msServerNameLineEdit" >
+            <property name="enabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="msNameLabel" >
+            <property name="text" >
+             <string>Macro server name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorControllerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QLineEdit" name="msNameLineEdit" />
+          </item>
+          <item row="2" column="0" >
+           <widget class="QLabel" name="macroPathLabel" >
+            <property name="text" >
+             <string>MacroPath:</string>
+            </property>
+            <property name="alignment" >
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="buddy" >
+             <cstring>macroPathTextEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" >
+           <widget class="QTextEdit" name="macroPathTextEdit" />
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2" >
+         <property name="title" >
+          <string>Door</string>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="doorNameLabel" >
+            <property name="text" >
+             <string>Door name:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>motorControllerNameLineEdit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="doorNameLineEdit" />
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionCreate" >
+   <property name="text" >
+    <string>create</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>actionCreate</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>486</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>simuConfigDialog</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>318</x>
+     <y>589</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>491</x>
+     <y>525</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

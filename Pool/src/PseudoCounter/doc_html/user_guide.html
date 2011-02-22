@@ -1,0 +1,300 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<Title> Tango Device Server User's Guide </Title>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#7F00FF" ALINK="#FF0000">
+
+<P><!-------TITLE------></P>
+<TABLE BORDER="0" WIDTH="100%">
+    <TR>
+        <TD ALIGN="left">
+			<A HREF="http://www.esrf.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/gifs/logo/80.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.elettra.trieste.it/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/elettra_logo.gif" BORDER=0></A>
+
+		</Td>
+        <TD ALIGN="center">
+			<A HREF="http://www.synchrotron-soleil.fr/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/soleil_logo.gif" BORDER=0></A>
+		</Td>
+        <TD ALIGN="right">
+			<A HREF="http://www.cells.es/" TARGET=new>
+			<IMG SRC="http://www.esrf.fr/computing/cs/tango/alba.jpg" BORDER=0></A>
+		</Td>
+    	 <Td>
+			<H2><FONT COLOR="#7F00FF">
+			<Center><A HREF="http://www.esrf.fr/Infrastructure/Computing/tango/" TARGET="_top">
+					 TANGO </a> <Br> Device Server
+			</Center></FONT>
+		</Td>
+    </TR>
+</TABLE>
+
+<HR WIDTH="100%"></H5>
+
+<Br>&nbsp;<Br><Br>&nbsp;<Br><Br>&nbsp;<Br><center><Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<Tr><Td><Br>&nbsp;<Br>
+<center>
+<h1>
+PseudoCounterChannel <Br>
+User's Guide<Br>&nbsp;<Br> <Br><Br>
+PseudoCounter Class<Br>&nbsp;<Br></Td></Tr>
+</h1>
+<Tr><Td>
+<b><Center>Revision:  - Author: tcoutinho <Br>
+ Implemented in C++ -  CVS repository: ESRF
+</Center></b>
+</Td></Tr>
+</center>
+</Table>
+</center>
+<Br>
+<Br>
+<Br>
+<Br>
+<Br>&nbsp;<Br><Br>&nbsp;<Br>
+<h2>Introduction:</h2>
+<ul>
+	Pseudo Counter Device used by the Sardana project device pool<Br>
+</ul>
+<Br>
+<Br>
+<Br>&nbsp;<Br><Br>
+<h2>Class Inheritance:</h2>
+	<ul>
+		<li> <a href="http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/cpp_doc/classTango_1_1Device__3Impl.html"> Tango::Device_3Impl</a></li>
+		<ul>
+			<li> PseudoCounter</li>
+			</ul>
+		</ul>
+	</ul>
+</ul>
+<Br>&nbsp;<Br>
+
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Properties:</h2>
+
+
+<Br> <Br> <Br> 
+<Center>
+<Br> <Br> <Br> 
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Properties</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Property name</b></td></Center>
+<Td><Center><b>Property type</b></td></Center>
+<Td><Center><b>Description</b></td></Center>
+<Tr><Td><b>Channel_id</b></Td>
+<Td><Font Size=-1>Tango::DEV_LONG</Font></Td>
+<Td><Font Size=-1>The pseudo counter channel identifier</Font></Td></Tr>
+
+<Tr><Td><b>Channel_list</b></Td>
+<Td><Font Size=-1>Array of string</Font></Td>
+<Td><Font Size=-1>List of channels (counter/timer or 0D experiment channels) involved in this
+pseudo counter</Font></Td></Tr>
+
+</Table>
+
+<Br><Br><Br>
+<Center><b>
+There is no Class properties.<Br><Br>
+</Center></b>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>States:</h2>
+
+
+<Center>
+<Br> <Br> <Br> 
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=2> <Font Size=+2><Center><b>States</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Names</b></td></Center>
+<Td><Center><b>Descriptions</b></td></Center>
+<Tr><Td><b>ON</b></Td>
+<Td><Font Size=-1>The pseudo counter is ON and waiting</Font></Td></Tr>
+
+<Tr><Td><b>FAULT</b></Td>
+<Td><Font Size=-1>A fault has been reported by the device controller</Font></Td></Tr>
+
+<Tr><Td><b>UNKNOWN</b></Td>
+<Td><Font Size=-1>Impossible to communicate with the device controller</Font></Td></Tr>
+
+<Tr><Td><b>MOVING</b></Td>
+<Td><Font Size=-1>The pseudo counter is counting</Font></Td></Tr>
+
+
+
+
+</Table>
+</Center>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Attributes:</h2>
+
+
+<Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=4> <Font Size=+2><Center><b>Scalar Attributes</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Attribute name</b></td></Center>
+<Td><Center><b>Data Type</b></td></Center>
+<Td><Center><b>R/W Type</b></td></Center>
+<Td><Center><b>Expert</b></td></Center>
+<Font Size=-1>
+<Tr><Td><b>Value</b></Td>
+<Td><Center><Font Size=-1>DEV_DOUBLE</Font></Center></Td><Td><Center><Font Size=-1>READ</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+</Table>
+</Center>
+<Br><Br><Br><Br><Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=4> <Font Size=+2><Center><b>Spectrum Attributes</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Attribute name</b></td></Center>
+<Td><Center><b>Data Type</b></td></Center>
+<Td><Center><b>X Data Length</b></td></Center>
+<Td><Center><b>Expert</b></td></Center>
+<Tr><Td><b>ChannelList</b>: <Font Size=-1>The list of counter channels used by this pseudo counter</Font></Td>
+<Td><Center><Font Size=-1>DEV_STRING</Font></Center></Td><Td><Center><Font Size=-1>256</Font></Center></Td><Td><Center><Font Size=-1>No</Font></Center></Td></Tr>
+
+</Table>
+</Center>
+<Br><Br><Br><Br><Br>
+
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br><h2>Commands:</h2>
+
+
+<Center>
+<Br><Br>
+<A Href="DevCommandsFrame.html"> More Details on commands.... </a><Br>
+<Br> <Br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0 WIDTH="100%">
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td COLSPAN=3> <Font Size=+2><Center><b>Device Commands for Operator Level</b></td></Font></Center>
+<TR BGCOLOR="#CCCCFF" CLASS="TableHeadingColor">
+<Td><Center><b>Command name</b></td></Center>
+<Td><Center><b>Argument In</b></td></Center>
+<Td><Center><b>Argument Out</b></td></Center>
+<Tr><Td><b>Init</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Tr><Td><b>State</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_STATE</Font></Td>
+<Tr><Td><b>Status</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>CONST_DEV_STRING</Font></Td>
+<Tr><Td><b>Start</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Tr><Td><b>Abort</b></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+<Td><Font Size=-1>DEV_VOID</Font></Td>
+
+
+
+</Table></Center>
+
+</center>
+<Br>&nbsp;<Br>
+
+<Br>
+<Br>
+<Br>
+<A NAME="Init"><!-- --></A>
+<A NAME="Init"><!-- --></A>
+<h2>1 - Init</h2>
+<ul>
+<Li><Strong>Description: </Strong> This commands re-initialise a device keeping the same network connection.<Br>
+After an Init command executed on a device, it is not necessary for client to re-connect to the device.<Br>
+This command first calls the device <i> delete_device() </i>method and then execute its <i> init_device()</i> method.<Br>
+For C++ device server, all the memory allocated in the <i> nit_device() </i> method must be freed in the <i> delete_device() </i> method.<Br>
+The language device desctructor automatically calls the <i> delete_device() </i> method.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::FAULT<Li>Tango::UNKNOWN<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="State"><!-- --></A>
+<A NAME="State"><!-- --></A>
+<h2>2 - State</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device state (stored in its <i>device_state</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_STATE</Strong>
+ : State Code<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::FAULT<Li>Tango::UNKNOWN<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="Status"><!-- --></A>
+<A NAME="Status"><!-- --></A>
+<h2>3 - Status</h2>
+<ul>
+<Li><Strong>Description: </Strong> This command gets the device status (stored in its <i>device_status</i> data member) and returns it to the caller.<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : none.<Br>&nbsp
+<Li><Strong>Argout:<Br>CONST_DEV_STRING</Strong>
+ : Status description<Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::FAULT<Li>Tango::UNKNOWN<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="Start"><!-- --></A>
+<A NAME="Start"><!-- --></A>
+<h2>4 - Start</h2>
+<ul>
+<Li><Strong>Description: </Strong> Start counting<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::FAULT<Li>Tango::UNKNOWN<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+<A NAME="Abort"><!-- --></A>
+<A NAME="Abort"><!-- --></A>
+<h2>5 - Abort</h2>
+<ul>
+<Li><Strong>Description: </Strong> Stop counting<Br>&nbsp
+<Li><Strong>Argin:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Argout:<Br>DEV_VOID</Strong>
+ : <Br>&nbsp
+<Li><Strong>Command allowed for: </Strong><Ul>
+<Li>Tango::ON<Li>Tango::FAULT<Li>Tango::UNKNOWN<Li>Tango::MOVING</Ul>
+<Br>&nbsp
+</ul><Br>
+<Br>
+
+</center>
+<Br>&nbsp;<Br><Br>&nbsp;<Br>
+
+<Center>
+<Br>
+<HR WIDTH="100%"></H5>
+<H3> ESRF - Software Engineering Group </H3>
+</Center>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<Pools xmlns="http://sardana.cells.es/client/framework/poolconfig">
+	<Pool deviceName="pool/bm10/1" name="bm10">
+		<Property name="PoolPath">/home/tiago/ctrls:/home/tiago/pseudos</Property> 
+		<Property name="DefaultMotPos_AbsChange">5</Property> 
+		<Property name="DefaultMotGrpPos_AbsChange">5</Property>
+		<Property name="GhostGroup_PollingPeriod">5000</Property>
+		<Property name="MotThreadLoop_SleepTime">10</Property> 
+		<Property name="NbStatePerRead">10</Property> 
+		<Property name="DefaultCtVal_AbsChange">5</Property>
+		<Property name="ZeroDNbReadPerEvent">5</Property>
+		<Property name="DefaultZeroDVal_AbsChange">5</Property>
+		<Property name="DefaultCtGrpVal_AbsChange">5</Property>
+		<Property name="DefaultZeroDGrpVal_AbsChange">5</Property>
+		<Property name="CTThreadLoop_SleepTime">10</Property>
+		<Property name="ZeroDThreadLoop_SleepTime">20</Property>
+		<Controller type="Motor" name="ctrl01" libdir="/home/tiago/ctrls" libfile="MyCtrls.so" libclass="MyMotCtrl">
+			<Property name="MaxDevice" type="DevLong">6</Property>
+			<Property name="SimuDeviceName" type="DevString">simu/bm10/motor</Property>
+		</Controller>
+		<Controller type="Motor" name="ctrl02" libdir="/home/tiago/ctrls" libfile="MyCtrls.so" libclass="MyDummyMotCtrl">
+			<Property name="MaxDevice" type="DevLong">6</Property>
+		</Controller>
+		<Controller type="CounterTimer" name="ctrl03" libdir="/home/tiago/ctrls" libfile="MyCTCtrls.so" libclass="MyCTCtrl">
+			<Property name="MaxDevice" type="DevLong">5</Property>
+			<Property name="arrayProp" type="DevVarStringArray"><Item>t1</Item><Item>t2</Item></Property>
+		</Controller>
+		<Controller type="ZeroDExpChannel" name="ctrl04" libdir="/home/tiago/ctrls" libfile="My0DCtrls.so" libclass="My0DCtrl">
+		</Controller>
+		<Motor name="tc_m1">
+			<ControllerRef name="ctrl01" index="156666"/>
+			<Attribute name="Velocity" type="DevDouble">
+				<Value>10.0</Value>
+				<Display>
+					<Label>Velocity</Label>	
+					<Format>%6.2f</Format>
+				</Display>
+				<Units>
+					<Unit>ms-1</Unit>
+					<DisplayUnit>kmh-1</DisplayUnit>
+					<StandardUnit>ms-1</StandardUnit>
+				</Units>
+				<Range></Range>
+			</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble">200.0</Attribute>
+			<Attribute name="Backlash" type="DevLong">50</Attribute>
+			<ExtraAttribute name="aaa" type="DevBoolean">True</ExtraAttribute>
+			<ExtraAttribute name="bbb" type="DevVarBooleanArray"><Item>True</Item><Item>True</Item><Item>True</Item></ExtraAttribute>
+			<ExtraAttribute name="ccc" type="DevVarStringArray"><Item>xpto</Item><Item>go\nand\ngo</Item></ExtraAttribute>
+		</Motor>
+		<Motor name="tc_m2">
+			<ControllerRef name="ctrl01" index="1"/>
+			<Attribute name="Velocity" type="DevDouble">10.0</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble">200.0</Attribute>
+			<Attribute name="Backlash" type="DevLong">50</Attribute>
+			<ExtraAttribute name="aaa" type="DevBoolean">True</ExtraAttribute>
+			<ExtraAttribute name="bbb" type="DevVarBooleanArray"><Item>True</Item><Item>True</Item><Item>True</Item></ExtraAttribute>
+			<ExtraAttribute name="ccc" type="DevVarStringArray"><Item>xpto</Item><Item>go\nand\ngo</Item></ExtraAttribute>
+		</Motor>
+		<Motor name="tc_m3">
+			<ControllerRef name="ctrl01" index="2"/>
+			<Attribute name="Velocity" type="DevDouble">10.0</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble">200.0</Attribute>
+			<Attribute name="Backlash" type="DevLong">50</Attribute>
+			<ExtraAttribute name="aaa" type="DevBoolean">True</ExtraAttribute>
+			<ExtraAttribute name="bbb" type="DevVarBooleanArray"><Item>True</Item><Item>True</Item><Item>True</Item></ExtraAttribute>
+			<ExtraAttribute name="ccc" type="DevVarStringArray"><Item>xpto</Item><Item>go\nand\ngo</Item></ExtraAttribute>
+		</Motor>
+		<Motor name="tc_m4">
+			<ControllerRef name="ctrl01" index="3"/>
+			<Attribute name="Velocity" type="DevDouble">10.0</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble"><Item>True</Item><Item>True</Item><Item>True</Item></Attribute>
+			<Attribute name="Backlash" type="DevLong"><Item><Item>go\nand\ngo</Item><Item>go\nand\ngo</Item></Item><Item><Item>go\nand\ngo</Item><Item>go\nand\ngo</Item></Item></Attribute>
+			<ExtraAttribute name="aaa" type="DevBoolean">True</ExtraAttribute>
+			<ExtraAttribute name="bbb" type="DevVarBooleanArray"><Item>True</Item><Item>True</Item><Item>True</Item></ExtraAttribute>
+			<ExtraAttribute name="ccc" type="DevVarStringArray"><Item><Item>go\nand\ngo</Item><Item>go\nand\ngo</Item></Item><Item><Item>go\nand\ngo</Item><Item>go\nand\ngo</Item></Item></ExtraAttribute>
+		</Motor>
+		<Motor name="tc_m5">
+			<ControllerRef name="ctrl01" index="4"/>
+			<Attribute name="Velocity" type="DevDouble">10.0</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble">200.0</Attribute>
+			<Attribute name="Backlash" type="DevLong">50</Attribute>
+			<ExtraAttribute name="aaa" type="DevBoolean">True</ExtraAttribute>
+			<ExtraAttribute name="bbb" type="DevVarBooleanArray"><Item>True</Item><Item>True</Item><Item>True</Item></ExtraAttribute>
+			<ExtraAttribute name="ccc" type="DevVarStringArray"><Item>xpto</Item><Item>go\nand\ngo</Item></ExtraAttribute>
+		</Motor>
+		<Motor name="tc_m6">
+			<ControllerRef name="ctrl02" index="5"/>
+			<Attribute name="Velocity" type="DevDouble">10.0</Attribute>
+			<Attribute name="Acceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Deceleration" type="DevDouble">5.0</Attribute>
+			<Attribute name="Base_rate" type="DevDouble">1.0</Attribute>
+			<Attribute name="Offset" type="DevDouble">0.0</Attribute>
+			<Attribute name="Step_per_unit" type="DevDouble">200.0</Attribute>
+			<Attribute name="Backlash" type="DevLong">50</Attribute>
+		</Motor>
+		<PseudoMotor name="tc_gap1" role="gap" libdir="/home/tiago/pseudos" libfile="MyPseudoLib.py" libclass="MySlit">
+			<MotorRef name="tc_m1"/>
+			<MotorRef name="tc_m2"/>
+			<Property name="SuperOffset" type="DevDouble">6.0</Property>
+		</PseudoMotor>
+		<PseudoMotor name="tc_offset1" role="offset" libdir="/home/tiago/pseudos" libfile="MyPseudoLib.py" libclass="MySlit">
+			<MotorRef name="tc_m1"/>
+			<MotorRef name="tc_m2"/>
+			<Property name="SuperOffset" type="DevDouble">6.0</Property>
+		</PseudoMotor>
+		<MotorGroup name="tc_mg1">
+			<MotorRef name="tc_m3"/>
+			<MotorRef name="tc_m4"/>
+		</MotorGroup>
+		<MotorGroup name="tc_mg2">
+			<MotorRef name="tc_m5"/>
+			<MotorRef name="tc_m6"/>
+			<PseudoMotorRef name="tc_gap1"/>
+			<PseudoMotorRef name="tc_offset1"/>
+			<MotorGroupRef name="tc_mg1"/>
+		</MotorGroup>
+		<CTExpChannel name="tc_ct1" ctrl="ctrl03" index="1">
+			<ExtraAttribute name="DummyAttr" type="DevDouble">6.0</ExtraAttribute>
+		</CTExpChannel>
+		<CTExpChannel name="tc_ct2" ctrl="ctrl03" index="2">
+			<ExtraAttribute name="DummyAttr" type="DevDouble">6.0</ExtraAttribute>
+		</CTExpChannel>
+		<CTExpChannel name="tc_ct3" ctrl="ctrl03" index="3"/>
+		<CTExpChannel name="tc_ct4" ctrl="ctrl03" index="4"/>
+		<ZeroDExpChannel name="tc_0d1" ctrl="ctrl04" index="1">
+			<ExtraAttribute name="DummyAttr" type="DevDouble">6.0</ExtraAttribute>
+		</ZeroDExpChannel>
+		<ZeroDExpChannel name="tc_0d2" ctrl="ctrl04" index="2"/>
+		<MeasurementGroup name="tc_mntgrp1" timer="Not Initialized" monitor="Not Initialized" itime="1.0" icount="0">
+			<CTExpChannelRef name="tc_ct1"/>
+			<CTExpChannelRef name="tc_ct2"/>
+		</MeasurementGroup>
+		<MeasurementGroup name="tc_mntgrp2" timer="tc_ct1" monitor="tc_ct2" itime="1.0" icount="0">
+			<CTExpChannelRef name="tc_ct1"/>
+			<CTExpChannelRef name="tc_ct2"/>
+			<ZeroDExpChannelRef name="tc_0d1"/>
+		</MeasurementGroup>
+		<MeasurementGroup name="tc_mntgrp3" timer="Not Initialized" monitor="Not Initialized" itime="1.0" icount="0">
+			<ZeroDExpChannelRef name="tc_0d1"/>
+		</MeasurementGroup>
+		<MeasurementGroup name="tc_mntgrp4" timer="Not Initialized" monitor="Not Initialized" itime="1.0" icount="0">
+			<ZeroDExpChannelRef name="tc_0d1"/>
+			<CTExpChannelRef name="tc_ct2"/>
+		</MeasurementGroup>
+		<Library> 
+			<LibElement type="Motor" libdir="/home/tiago/ctrls" libfile="MyCtrls.so" libclass="MyDummyMotCtrl">				
+				<Property name="MaxDevice" type="DevLong" Description="something">6</Property>
+				<Property name="SimuDeviceName" type="DevString" Description="something"></Property>
+			</LibElement>
+			<LibElement type="Motor" libdir="/home/tiago/ctrls" libfile="MyCtrls.so" libclass="MyMotCtrl">
+				<Property name="MaxDevice" type="DevLong" Description="something">6</Property>
+			</LibElement>
+			<LibElement type="CounterTimer" libdir="/home/tiago/ctrls" libfile="MyCTCtrls.so" libclass="MyCTCtrl">
+				<Property name="MaxDevice" type="DevLong" Description="something">6</Property>
+			</LibElement>
+			<LibElement type="CounterTimer" libdir="/home/tiago/ctrls" libfile="MyCTCtrls.so" libclass="MyCTCtrl2"/>
+			<LibElement type="ZeroDExpChannel" libdir="/home/tiago/ctrls" libfile="My0DCtrls.so" libclass="My0DCtrl"/>
+			<LibElement type="PseudoMotor" libdir="/home/tiago/pseudos" libfile="MyPseudoLib.py" libclass="MySlit">
+				<Description></Description>
+				<MotorRole role="sl2t"/>
+				<MotorRole role="sl2b"/>
+				<PseudoMotorRole role="gap"/>
+				<PseudoMotorRole role="offset"/>
+				<Property name="SuperOffset" type="DevDouble">0.0</Property>
+			</LibElement>
+		</Library>
+	</Pool>
+	<Pool deviceName="pool/id05/1">
+		<Controller type="Motor" name="ctrl04" libdir="1" libfile="MyCtrls.so" libclass="MyMotCtrl"/>
+		<Motor name="tc_dummotor" ctrl="ctrl04" index="0"/>
+	</Pool>
+</Pools>
+

@@ -1,0 +1,29 @@
+/** @mainpage Main page
+
+@section abstract Abstract
+This document describes the Device Pool Tango Device Server software API. This
+is a <A HREF="http://www.doxygen.org/">Doxygen</A> automatically generated API 
+document. It is especially intended for the Device Pool core developer.
+
+@section introduction Introduction
+The Device Pool is a software package designed to provide control over a set (pool)
+of heterogeneous hardware devices such as motors and counters. It does this by
+providing a common interface (the "Controller" interface) implemented through a
+series of plugins that access the hardware directly or indirectly. \n
+Although the Device Pool can run stand alone, it is actually just a part of a 
+larger software package called Sardana. Besides the Device Pool, the Sardana system 
+contains other components such as the 'Macro Server', a configuration GUI, a command
+line interface (CLI) application called 'Spock' amongst others. \n
+
+@section implementation Implementation
+<P>
+The Device Pool was designed to be a <A HREF="http://www.tango-controls.org">Tango</A> 
+based device server.\n
+At its core the Pool is entirely built in C++ in order to provide maximum 
+performance. However, the Controller interface allows for the creation of 
+plugins written in C++ or Python.
+<P>
+The device server must contain one and only one device of the class 'Pool' in 
+order to be considered a 'Device Pool Tango device server'. 
+
+*/

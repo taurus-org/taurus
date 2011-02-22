@@ -1,0 +1,6 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+     <file alias="logo.jpg">res/logo.jpg</file>
+     <file alias="watermark.jpg">res/watermark.jpg</file>
+ </qresource>
+ </RCC>
