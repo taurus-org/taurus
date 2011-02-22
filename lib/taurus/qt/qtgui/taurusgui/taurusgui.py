@@ -62,10 +62,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         Qt.QDockWidget.__init__(self, None)
         TaurusBaseWidget.__init__(self, name, parent=parent)
         
-        if isinstance(widget,basestring):
-            self.setWidgetFromClassName(widget)
-        else:
-            self.setWidget(widget)
+        self.setWidget(widget)
         self._widget = self.widget()  #keep a pointer that may change if the widget changes
         name = unicode(name)        
         self.setWindowTitle(name)
@@ -100,7 +97,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
     
     def setWidgetFromClassName(self, classname):
         if self.getWidgetClassName() != classname:
-            klass = TaurusWidgetFactory().getTaurusWidgetClass(classname)
+            klass = TaurusWidgetFactory().getWidgetClass(classname)
             w = klass()
             #set customwidgetmap if necessary
             if hasattr(w,'setCustomWidgetMap'):
@@ -110,7 +107,10 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
             w.setObjectName(wname)
             
     def getWidgetClassName(self):
-        return self.widget().__class__.__name__
+        w = self.widget()
+        if w is None:
+            return ''
+        return w.__class__.__name__
         
     def applyConfig(self, configdict, depth=-1):
         #create the widget
@@ -260,7 +260,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectReader("macroStatus", self.__macroExecutor.onMacroStatusUpdated)
         Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("clearScan", self.__macroExecutor, "??????????")#@ a signal from TaurusMacroExecutorWidget for resetting
+#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "??????????")#@ a signal from TaurusMacroExecutorWidget for resetting
         self.createPanel(self.__macroExecutor, 'Macros', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #put a Sequencer
@@ -271,7 +271,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("macroName", self.__sequencer.tree, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("clearScan", self.__sequencer, "??????????")#@ a signal from TaurusSequencerWidget for resetting
+#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "??????????")#@ a signal from TaurusSequencerWidget for resetting
         self.createPanel(self.__sequencer, 'Sequences', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #puts a macrodescriptionviewer
@@ -304,7 +304,7 @@ class TaurusGui(TaurusMainWindow):
 #        self.__scanTrend.setScansAutoClear(False)
 #        self.__scanTrend.setScansUsePointNumber(False)
         Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
-#        Qt.qApp.SDM.connectReader("clearScan", self.__scanTrend.clearScan)
+#        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.setPlotablesFilter)
         self.createPanel(self.__scanTrend, '1D Scans', Qt.Qt.RightDockWidgetArea, registerconfig=True)
         
         #The app-wide door
@@ -413,28 +413,6 @@ class TaurusGui(TaurusMainWindow):
         :return: (list<str>)
         '''
         return copy.deepcopy(self.__panels.keys())
-
-    def getWidgetClass(self):
-        '''
-        Shows a dialog for letting the user choose a panel widget type.
-        
-        :return: (class or None) the object class chosen by the user (or None if aborted by user)
-        '''
-        
-        choices=[['TaurusForm','TaurusTrend', 'TaurusArrayEditor'],
-                 ['TaurusPlot', 'TaurusQubDataImageDisplay', 'TaurusNeXusBrowser'],
-                 ['TaurusDbTreeWidget']]
-        defPixmap = taurus.qt.qtgui.resource.getPixmap(':/taurus.png')
-        pixmaps={}
-        for row in choices:
-            for k in row:
-                pixmaps[k] = taurus.qt.qtgui.resource.getPixmap(':/snapshot/%s.png'%k)
-        
-        classID,ok = GraphicalChoiceDlg.getChoice(parent=None, title= 'Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps, defaultPixmap=defPixmap)
-        if not ok: 
-            return None
-        klass = TaurusWidgetFactory().getTaurusWidgetClass(classID)
-        return klass
 
     def _setPermanentCustomPanels(self, permCustomPanels):
         '''creates empty panels for restoring custom panels.
