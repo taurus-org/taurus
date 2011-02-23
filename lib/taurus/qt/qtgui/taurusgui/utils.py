@@ -156,7 +156,7 @@ class PanelDescription(object):
         '''
         #instantiate the widget
         if self.modulename is None:
-            klass = TaurusWidgetFactory().getTaurusWidgetClass(self.classname)
+            klass = TaurusWidgetFactory().getWidgetClass(self.classname)
             w = klass()
         else:
             module = __import__(self.modulename, fromlist=[''])
