@@ -184,7 +184,7 @@ class TaurusGui(TaurusMainWindow):
                 
         if confname is not None:
             self.loadConfiguration(confname)
-        if xmlconffile is not None:
+        if xmlconffile is not None:            
             self.loadXmlConfigurationFile(xmlconffile)
         
         self.updatePerspectivesMenu()
@@ -502,6 +502,7 @@ class TaurusGui(TaurusMainWindow):
             synoptic.setModel(jdwFileName)
             self.__synoptics.append(synoptic)
         except Exception,e:
+            print repr(e)
             msg='Error loading synoptic file "%s".\nSynoptic won\'t be available'%jdwFileName
             self.error(msg)
             self.traceback(level=taurus.Info)
@@ -567,16 +568,19 @@ class TaurusGui(TaurusMainWindow):
     def loadXmlConfigurationFile(self, fname=None):
         #raise notImplementedError #@todo
         
+        
+        # input dialooogggggggggggggggggggggggggggggggggggggggggggggggggggg
+        
+        
+        self._confDirectory = os.path.dirname(fname)
         xml = """
             <taurusgui_config>
           <GUI_NAME>Marek</GUI_NAME>
           <ORGANIZATION>TAURUS</ORGANIZATION>
           <CUSTOM_LOGO>/home/mraszewski/Downloads/icepap.png</CUSTOM_LOGO>
           <SYNOPTIC>
-            <synoptic str="/home/mraszewski/Desktop/JDW/1.jdw"/>
-            <synoptic str="/home/mraszewski/Desktop/JDW/2.jdw"/>
-            <synoptic str="/home/mraszewski/Desktop/JDW/3.jdw"/>
-            <synoptic str="/home/mraszewski/Desktop/JDW/4.jdw"/>
+            <synoptic str="/home/mraszewski/Desktop/JDW/example01.jdw"/>
+            <synoptic str="/home/mraszewski/Desktop/JDW/syn2.jdw"/>
           </SYNOPTIC>
           <MACROSERVER_NAME>macroserver/zreszela/1</MACROSERVER_NAME>
           <DOOR_NAME>door/zreszela/3</DOOR_NAME>
@@ -637,7 +641,7 @@ class TaurusGui(TaurusMainWindow):
     
     def loadXmlConfiguration(self, xml):
         
-        raise notImplementedError #@todo
+        #raise notImplementedError #@todo
         try:
             root = etree.fromstring(xml)
         except:
@@ -645,28 +649,29 @@ class TaurusGui(TaurusMainWindow):
             self.error(msg)
             Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
-            
+        
         name = root.find("GUI_NAME")
-        if name is not None:
+        if (name is not None) and (name.text is not None):
             APPNAME = name.text
         else:
+            APPNAME = None
             msg = 'Could not find the GUI_NAME'
             self.error(msg)
             Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
-        
+       
         orgName = root.find("ORGANIZATION")
-        if (orgName is not None) and (len(orgName.text)):
+        if (orgName is not None) and (orgName.text is not None):
             ORGNAME = orgName.text
         else:
             ORGNAME = 'Taurus'
-            
+        
         customLogo = root.find("CUSTOM_LOGO")
-        if (customLogo is not None) and (len(customLogo.text)):
+        if (customLogo is not None) and (customLogo.text is not None):
             CUSTOMLOGO = customLogo.text
         else:
             CUSTOMLOGO = ':/taurus.png'
-            
+        
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
         self.resetQSettings()
@@ -677,51 +682,43 @@ class TaurusGui(TaurusMainWindow):
         self.jorgsBar.addAction(Qt.QIcon(CUSTOMLOGO),APPNAME)
         
         #configure the macro infrastructure
+        
         macroserverName = root.find("MACROSERVER_NAME")
-        if (macroserverName is None) or (len(macroserverName.text)==0):
-            MACROSERVER_NAME = None
-        else:
+        if (macroserverName is not None) and (macroserverName.text is not None):
             MACROSERVER_NAME = macroserverName.text
+        else:
+            MACROSERVER_NAME = None
             
         doorName = root.find("DOOR_NAME")
-        if (doorName is not None) and (len(doorName.text)):
+        if (doorName is not None) and (doorName.text is not None):
             DOOR_NAME = doorName.text
         else:
             DOOR_NAME = ''    
         
-        MACROEDITORS_PATH = '' 
+        macroEditorsPath = root.find("MACROEDITORS_PATH")
+        if (macroEditorsPath is not None) and (macroEditorsPath.text is not None):
+            MACROEDITORS_PATH = macroEditorsPath.text
+        else:
+            MACROEDITORS_PATH = ''   
         
-        #???????????????????????????????????????????????????????????????????
-        #
-        #MACROEDITORS_PATH = getattr(conf,'MACROEDITORS_PATH','')
-        #   
-        #
-        #????????????????????????????????????????????????????????????????????
-            
         if MACROSERVER_NAME is not None:
             self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
-            
-        synoptic = root.find("SYNOPTIC")
+         
         SYNOPTIC = []
-        
-        if (synoptic is not None) or (len(synoptic.text)):
+        synoptic = root.find("SYNOPTIC")
+        if (synoptic is not None) and (synoptic.text is not None):
             for child in synoptic:
-                if (child.get("str") is not None) and (len(child.get("str"))):
-                    SYNOPTIC.append(child.get("str"))
+                if (child.get("str") is not None):
+                    if len(child.get("str")):
+                        SYNOPTIC.append(child.get("str"))
                     
-        #?????????????????????????????????????????????????????????????????????
-        #
-        #for s in SYNOPTIC:
-        #    self.createMainSynoptic(s)
-        #
-        #?????????????????????????????????????????????????????????????????????
+        for s in SYNOPTIC:
+            self.createMainSynoptic(s)
+        
         
         instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
-        if (instrumentsFromPool is not None) and (len(instrumentsFromPool.text)):
-            if instrumentsFromPool.text =="True":
-                INSTRUMENTS_FROM_POOL = True
-            else:
-                INSTRUMENTS_FROM_POOL = False
+        if (instrumentsFromPool is not None) and (instrumentsFromPool.text is not None) and (str(instrumentsFromPool.text).lower() =="true"):
+            INSTRUMENTS_FROM_POOL = True
         else:
             INSTRUMENTS_FROM_POOL = False
         
@@ -729,11 +726,12 @@ class TaurusGui(TaurusMainWindow):
         CUSTOM_PANELS = []
         
         panelDescriptions = root.find("PanelDescriptions")
-        for child in panelDescriptions:
-                if (child.tag == "PanelDescription"):
-                    pd = PanelDescription.fromXml(etree.tostring(child))
-                    if pd is not None:
-                        CUSTOM_PANELS.append(pd)
+        if (panelDescriptions is not None):
+            for child in panelDescriptions:
+                    if (child.tag == "PanelDescription"):
+                        pd = PanelDescription.fromXml(etree.tostring(child))
+                        if pd is not None:
+                            CUSTOM_PANELS.append(pd)
                         
         if INSTRUMENTS_FROM_POOL:
             POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
@@ -759,7 +757,44 @@ class TaurusGui(TaurusMainWindow):
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
+                    
         
+        #add external applications
+        EXTERNAL_APPS = [] 
+        #[obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
+        for a in EXTERNAL_APPS:
+            self.addExternalAppLauncher(a.getAction())
+        
+        #add a beam monitor
+        
+        
+        
+        monitorNode = root.find("MONITOR")
+        if (monitorNode is not None) and (monitorNode.text is not None):
+            MONITOR = str(monitorNode.text).split(",")
+        else:
+            MONITOR = []
+        
+        
+        if MONITOR:
+            self.__monitor = TaurusMonitorTiny()
+            self.__monitor.setModel(MONITOR)
+            self.jorgsBar.addWidget(self.__monitor)
+            self.registerConfigDelegate(self.__monitor, 'monitor')
+        
+        #read QSettings 
+        self.loadSettings()
+        #If no valid ini file is found in the standard locations, try with a fallback ini file
+        if self.getQSettings().allKeys().isEmpty(): 
+            #open the fall back file (aka "factory" settings)
+            iniFileName = os.path.join(self._confDirectory, getattr(conf, 'INIFILE', "%s.ini"%conf.__name__)) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confdir>/<confname>.ini
+            factorySettings = Qt.QSettings(iniFileName, Qt.QSettings.IniFormat)
+            #clone the perspectives found in the "factory" settings
+            for p in self.getPerspectivesList(settings=factorySettings):
+                self.loadPerspective(name=p, settings=factorySettings)
+                self.savePerspective(name=p)
+            #finally load the settings
+            self.loadSettings(settings=factorySettings)
         
     
     def loadConfiguration(self, confname):
