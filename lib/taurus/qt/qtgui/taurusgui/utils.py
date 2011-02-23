@@ -60,7 +60,8 @@ class ExternalApp(object):
         :return: (ExternalAppAction)
         '''
         return ExternalAppAction(*self.args, **self.kwargs)
-    @classmethod
+    
+    @staticmethod
     def fromXml(xmlstring):
         ''' returns a ExternalApp object based on the xml string provided
         
@@ -69,11 +70,43 @@ class ExternalApp(object):
         
         :return: (ExternalApp) object
         '''
-        raise NotImplementedError #@todo:
-        #@todo: extract the values of cmdargs, text, icon and parent from xmlstring
-        return ExternalApp(cmdargs, text=text, icon=icon, parent=parent)
-    
-
+        try:
+            root = etree.fromstring(xmlstring)
+        except:
+            return None
+        
+        commandNode = root.find("command")
+        if (commandNode is not None) and (commandNode.text is not None):
+            command = commandNode.text
+        else:
+            return None
+        
+        paramsNode = root.find("params")
+        if (paramsNode is not None) and (paramsNode.text is not None):
+            params = paramsNode.text
+        else:
+            params = None
+            
+        textNode = root.find("text")
+        if (textNode is not None) and (textNode.text is not None):
+            text = textNode.text
+        else:
+            text = None
+            
+        iconNode = root.find("icon")
+        if (iconNode is not None) and (iconNode.text is not None):
+            icon = iconNode.text
+        else:
+            icon = None
+        
+        #???????????????????????????????????????????????????????????????????????
+        #
+        #    Strange code :/
+        #
+        return None #ExternalApp(command=command, params=params, text=text, icon=icon)
+        #
+        #?????????????????????????????????????????????????????????????????????????
+        
 
 class PanelDescription(object):
     '''
