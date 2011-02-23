@@ -565,79 +565,42 @@ class TaurusGui(TaurusMainWindow):
                 
         return instrument_dict.values()
     
-    def loadXmlConfigurationFile(self, fname=None):
-        #raise notImplementedError #@todo
-        
-        
-        # input dialooogggggggggggggggggggggggggggggggggggggggggggggggggggg
-        
-        
-        self._confDirectory = os.path.dirname(fname)
-        xml = """
-            <taurusgui_config>
-          <GUI_NAME>Marek</GUI_NAME>
-          <ORGANIZATION>TAURUS</ORGANIZATION>
-          <CUSTOM_LOGO>/home/mraszewski/Downloads/icepap.png</CUSTOM_LOGO>
-          <SYNOPTIC>
-            <synoptic str="/home/mraszewski/Desktop/JDW/example01.jdw"/>
-            <synoptic str="/home/mraszewski/Desktop/JDW/syn2.jdw"/>
-          </SYNOPTIC>
-          <MACROSERVER_NAME>macroserver/zreszela/1</MACROSERVER_NAME>
-          <DOOR_NAME>door/zreszela/3</DOOR_NAME>
-          <INSTRUMENTS_FROM_POOL>False</INSTRUMENTS_FROM_POOL>
-          <PanelDescriptions>
-            <PanelDescription>
-              <name>myPanel</name>
-              <classname>TaurusPlot</classname>
-              <modulename/>
-              <widgetname/>
-              <area/>
-              <sharedDataWrite>
-                <item datauid="1" signalName="a"/>
-                <item datauid="2" signalName="b"/>
-              </sharedDataWrite>
-              <sharedDataRead>
-                <item datauid="1" slotName="addLogHandler"/>
-                <item datauid="2" slotName="addLogHandler"/>
-              </sharedDataRead>
-              <model>tango://controls01:10000/WS/TI/HB, tango://controls01:10000/WS/TI/EVR-TEST19, tango://controls01:10000/WS/TI/EVR-TEST18, tango://controls01:10000/WS/TI/EVR-TEST17, tango://controls01:10000/WS/TI/EVR-TEST16, tango://controls01:10000/WS/TI/EVR-TEST15, tango://controls01:10000/WS/TI/EVR-TEST14, tango://controls01:10000/WS/TI/EVR-TEST13, tango://controls01:10000/WS/TI/EVR-TEST12, tango://controls01:10000/WS/TI/EVR-TEST11, tango://controls01:10000/WS/TI/EVR-TEST10, tango://controls01:10000/WS/TI/EVR-TEST09, tango://controls01:10000/WS/TI/EVR-TEST08, tango://controls01:10000/WS/TI/EVR-TEST07, tango://controls01:10000/WS/TI/EVR-TEST06, tango://controls01:10000/WS/TI/EVR-TEST05, tango://controls01:10000/WS/TI/EVR-TEST04, tango://controls01:10000/WS/TI/EVR-TEST03, tango://controls01:10000/WS/TI/EVR-TEST02, tango://controls01:10000/WS/TI/EVR-TEST01, tango://controls01:10000/WS/TI/EVR-TEST00, tango://controls01:10000/ws/ti/evr-libera, tango://controls01:10000/WS/TI/EVR-EVG-TEST-01, tango://controls01:10000/WS/TI/EVG-TEST-01, tango://controls01:10000/ws/ti/evg-libera</model>
-            </PanelDescription>
-            <PanelDescription>
-              <name>myPanel2</name>
-              <classname>TaurusTrend</classname>
-              <modulename/>
-              <widgetname/>
-              <area/>
-              <sharedDataWrite>
-                <item datauid="1" signalName="aa"/>
-                <item datauid="2" signalName="bb"/>
-              </sharedDataWrite>
-              <sharedDataRead>
-                <item datauid="1" slotName="applyConfig"/>
-                <item datauid="2" slotName="attachRawData"/>
-              </sharedDataRead>
-              <model>tango://controls01:10000/zbigniew/psi_pc/1</model>
-            </PanelDescription>
-          </PanelDescriptions>
-          <ExternalApps>
-            <ExternalApp>
-              <command>/home/mraszewski/motors.py</command>
-              <params>asd asd</params>
-              <text>motors</text>
-              <icon>user-trash-full</icon>
-            </ExternalApp>
-            <ExternalApp>
-              <command>asd</command>
-              <params>123 aa</params>
-              <text>asd</text>
-              <icon>dialog-error</icon>
-            </ExternalApp>
-          </ExternalApps>
-          <MONITOR>tango://controls01:10000/tiago/simmot/test010,tango://controls01:10000/tiago/simmot/test009,tango://controls01:10000/tiago/simmot/test008,tango://controls01:10000/tiago/simmot/test007,tango://controls01:10000/tiago/simmot/test006,tango://controls01:10000/tiago/simmot/test005,tango://controls01:10000/tiago/simmot/test004,tango://controls01:10000/tiago/simmot/test003,tango://controls01:10000/tiago/simmot/test002,tango://controls01:10000/tiago/simmot/test001</MONITOR>
-        </taurusgui_config>
-        """
-        self.loadXmlConfiguration(xml)
     
+    def loadXmlConfigurationFile(self, fname=None):
+        if (fname is not None) and (not os.path.exists(fname)) :
+                msg = "The file %s does not exist" % fname
+                self.error(msg)
+                fname =None
+                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n'% msg, Qt.QMessageBox.Open | Qt.QMessageBox.Abort)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+        
+        if (fname is None):
+            fname = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),"/home", self.tr("XML (*.xml); All files (*.*)" ))
+        
+        if os.path.exists(fname):
+            try:
+                xmlFile = open(fname, 'r')
+                xml = xmlFile.read()
+
+                #??????????????????????????????????????????????????????????????
+                #
+                #      SOMETHING WRONG !!!!!!!!!!
+                #
+                self._confDirectory = os.path.dirname("pathto.xml")
+                #
+                #??????????????????????????????????????????????????????????????
+
+                self.loadXmlConfiguration(xml)
+            except:
+                msg = "Can not read the file: %s" % fname
+                self.error(msg)
+                fname =None
+                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n'% msg, Qt.QMessageBox.Abort)
+                sys.exit()
+        else:
+            sys.exit()
+
     
     def loadXmlConfiguration(self, xml):
         
@@ -649,7 +612,7 @@ class TaurusGui(TaurusMainWindow):
             self.error(msg)
             Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
-        
+            
         name = root.find("GUI_NAME")
         if (name is not None) and (name.text is not None):
             APPNAME = name.text
@@ -761,20 +724,25 @@ class TaurusGui(TaurusMainWindow):
         
         #add external applications
         EXTERNAL_APPS = [] 
+        
+        externalAppsNode = root.find("ExternalApps")
+        if (externalAppsNode is not None):
+            for child in externalAppsNode:
+                    if (child.tag == "ExternalApp"):
+                        ea = ExternalApp.fromXml(etree.tostring(child))
+                        if ea is not None:
+                            EXTERNAL_APPS.append(ea)
+        
         #[obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
         for a in EXTERNAL_APPS:
             self.addExternalAppLauncher(a.getAction())
         
-        #add a beam monitor
-        
-        
-        
+        #add a beam monitor      
         monitorNode = root.find("MONITOR")
         if (monitorNode is not None) and (monitorNode.text is not None):
             MONITOR = str(monitorNode.text).split(",")
         else:
             MONITOR = []
-        
         
         if MONITOR:
             self.__monitor = TaurusMonitorTiny()
