@@ -236,7 +236,8 @@ class GScan(Logger):
                     if kw.has_key('instrument'):
                         instrument = self._macro.getObj(kw['instrument'], 
                                                         type_class=Type.Instrument)
-                        kw['instrument'] = instrument
+                        if instrument:
+                            kw['instrument'] = instrument
                     ret.append(TangoExtraData(**kw))
                 except Exception, colexcept:
                     print colexcept

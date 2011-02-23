@@ -14,7 +14,8 @@ class JsonRecorder(DataRecorder):
     def _startRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
         data_desc = recordlist.getEnvironValue('datadesc')
-        data = [ d.toDict() for d in data_desc ]
+        self.data_desc = [ e for e in data_desc if e.shape == (1,) ]
+        data = [ d.toDict() for d in self.data_desc ]
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
     
     def _endRecordList(self, recordlist):
@@ -25,10 +26,10 @@ class JsonRecorder(DataRecorder):
     
     def _writeRecord(self, record):
         macro_id = self.recordlist.getEnvironValue('macro_id')
-        data = dict(record.data)
-        for k,v in data.items():
-            if isinstance(v, numpy.ndarray):
-                data[k] = v.tolist()
+        data = {} # dict(record.data)
+        for k in self.data_desc:
+            name = k.label
+            data[name] = record.data[name]
         self._sendPacket(type="record_data", data=data, macro_id=macro_id)
         
     def _sendPacket(self, **kwargs):
