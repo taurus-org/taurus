@@ -992,6 +992,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
     # Qt properties from TaurusBaseComponent that need to be overwritten
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
+    _UseParentMsg = False
+    
     @Qt.pyqtSignature("setUseParentModel(bool)")
     def setUseParentModel(self, yesno):
         """Sets/unsets using the parent model.
@@ -1006,7 +1008,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         is_same = yesno == self._useParentModel
         if not is_same:
             self._updateUseParentModel(yesno)
-            if yesno and self._designMode:
+            if yesno and self._designMode and not TaurusBaseWidget._UseParentMsg:
+                TaurusBaseWidget._UseParentMsg = True
                 Qt.QMessageBox.information(self, "UseParentModel usage note",
                                          "Using the UseParentModel feature may require you to call "+\
                                          "recheckTaurusParent() manually for this widget after calling " +\
