@@ -64,9 +64,9 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         
         self.setWidget(widget)
         self._widget = self.widget()  #keep a pointer that may change if the widget changes
-        name = unicode(name)        
+        name = unicode(name)
         self.setWindowTitle(name)
-        self.setObjectName(name) 
+        self.setObjectName(name)
         self._custom = False
         
         #store a weakref of the main window
@@ -81,13 +81,15 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
             
     def onSelected(self):
         self.debug('panel "%s" selected'%unicode(self.objectName()))
-        self.widget().emit(Qt.SIGNAL("panelSelected"), unicode(self.objectName()))
+        w = self.widget()
+        if w is not None:
+            w.emit(Qt.SIGNAL("panelSelected"), unicode(self.objectName()))
     
     def isCustom(self):
         return self._custom
     
     def setCustom(self, custom):
-        self._custom = custom    
+        self._custom = custom
         
     def isPermanent(self):
         return self._permanent
