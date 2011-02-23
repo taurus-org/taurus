@@ -183,9 +183,6 @@ class PanelDescription(object):
         
         :return: xmlstring
         '''
-#        raise NotImplementedError
-        #@todo: save the values of properties the XML code
-        #raise NotImplementedError
 
         root = etree.Element("PanelDescription")
         name = etree.SubElement(root, "name")
@@ -212,7 +209,7 @@ class PanelDescription(object):
         
         return  etree.tostring(root)
     
-    @classmethod
+    @staticmethod
     def fromXml(xmlstring):
         '''returns a PanelDescription object based on the xml string provided
         
@@ -221,16 +218,69 @@ class PanelDescription(object):
         
         :return: (PanelDescription) object
         '''
-        raise NotImplementedError #@todo:
-        root = etree.fromstring(xmlstring)
-        name = root.find("name").text
-        classname = root.find("classname").text
-        modulename = root.find("modulename").text
-        widgetname = root.find("widgetname").text
-        area = root.find("area").text
+        
+        try:
+            root = etree.fromstring(xmlstring)
+        except:
+            return None
+        
+        nameNode = root.find("name")
+        if (nameNode is not None) and (nameNode.text is not None):
+            name = nameNode.text
+        else:
+            return None
+        
+        classnameNode = root.find("classname")
+        if (classnameNode is not None) and (classnameNode.text is not None):
+                classname = classnameNode.text
+        else:
+            classname = None
+        
+        modulenameNode = root.find("modulename")
+        if (modulenameNode is not None) and (modulenameNode.text is not None):
+            modulename = modulenameNode.text
+        else:
+            modulename = None    
+        
+        widgetnameNode = root.find("widgetname")
+        if (widgetnameNode is not None) and (widgetnameNode.text is not None):
+            widgetname = widgetnameNode.text
+        else:
+            widgetname = None
+        
+        areaNode = root.find("area")
+        if (areaNode is not None) and (areaNode.text is not None):
+            area = areaNode.text
+        else:
+            area = None
+        
+        sharedDataWrite = {}
+        sharedDataWriteNode = root.find("sharedDataWrite")
+        if (sharedDataWriteNode is not None) and (sharedDataWriteNode.text is not None):
+            for child in sharedDataWriteNode:
+                if (child.get("datauid") is not None) and (child.get("signalName") is not None):
+                    sharedDataWrite[child.get("datauid")] = child.get("signalName")
+            
+        if not len(sharedDataWrite):
+            sharedDataWrite = None
+        
+        sharedDataRead = {}
+        sharedDataReadNode = root.find("sharedDataRead")
+        if (sharedDataReadNode is not None) and (sharedDataReadNode.text is not None):
+            for child in sharedDataReadNode:
+                if (child.get("datauid") is not None) and (child.get("slotName") is not None):
+                    sharedDataRead[child.get("datauid")] = child.get("slotName") 
+            
+        if not len(sharedDataRead):
+            sharedDataRead = None     
 
-    
-        #@todo: extract the values of the required vars
+        modelNode = root.find("model")
+        if (modelNode is not None) and (modelNode.text is not None):
+            model = modelNode.text
+        else:
+            model = None
+        
+        
         return PanelDescription(name, classname=classname, modulename=modulename, widgetname=widgetname, 
                                 area=area, sharedDataWrite=sharedDataWrite, sharedDataRead=sharedDataRead, 
                                 model=model)
