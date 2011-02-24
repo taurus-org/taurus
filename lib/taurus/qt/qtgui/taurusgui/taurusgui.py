@@ -566,41 +566,27 @@ class TaurusGui(TaurusMainWindow):
         return instrument_dict.values()
     
     
-    def loadXmlConfigurationFile(self, fname=None):
-        if (fname is not None) and (not os.path.exists(fname)) :
-                msg = "The file %s does not exist" % fname
-                self.error(msg)
-                fname =None
-                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n'% msg, Qt.QMessageBox.Open | Qt.QMessageBox.Abort)
-                if result == Qt.QMessageBox.Abort:
-                    sys.exit()
-        
-        if (fname is None):
+    def loadXmlConfigurationFile(self, fname=None):    
+        if (fname is None) or len(fname)==0:
             fname = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),"/home", self.tr("XML (*.xml); All files (*.*)" ))
-        
-        if os.path.exists(fname):
-            try:
-                xmlFile = open(fname, 'r')
-                xml = xmlFile.read()
-
-                #??????????????????????????????????????????????????????????????
-                #
-                #      SOMETHING WRONG !!!!!!!!!!
-                #
-                self._confDirectory = os.path.dirname("pathto.xml")
-                #
-                #??????????????????????????????????????????????????????????????
-
-                self.loadXmlConfiguration(xml)
-            except:
-                msg = "Can not read the file: %s" % fname
-                self.error(msg)
-                fname =None
-                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n'% msg, Qt.QMessageBox.Abort)
-                sys.exit()
-        else:
+            if fname is None:
+                sys.exit(1)
+            else:
+                fname=unicode(fname)        
+        try:
+            xmlFile = open(fname, 'r')
+            xml = xmlFile.read()
+            xmlFile.close()
+            self._confDirectory = os.path.dirname(fname)
+        except Exception, e:
+            msg = 'Can not read the file: "%s"' % fname
+            self.error(msg)
+            self.traceback(level=taurus.Info)
+            fname =None
+            result = Qt.QMessageBox.critical(self,'Initialization error', '%s\nReason:"%s"'% (msg,repr(e)), Qt.QMessageBox.Abort)
             sys.exit()
-
+            
+        self.loadXmlConfiguration(xml)
     
     def loadXmlConfiguration(self, xml):
         
@@ -753,16 +739,16 @@ class TaurusGui(TaurusMainWindow):
         #read QSettings 
         self.loadSettings()
         #If no valid ini file is found in the standard locations, try with a fallback ini file
-        if self.getQSettings().allKeys().isEmpty(): 
-            #open the fall back file (aka "factory" settings)
-            iniFileName = os.path.join(self._confDirectory, getattr(conf, 'INIFILE', "%s.ini"%conf.__name__)) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confdir>/<confname>.ini
-            factorySettings = Qt.QSettings(iniFileName, Qt.QSettings.IniFormat)
-            #clone the perspectives found in the "factory" settings
-            for p in self.getPerspectivesList(settings=factorySettings):
-                self.loadPerspective(name=p, settings=factorySettings)
-                self.savePerspective(name=p)
-            #finally load the settings
-            self.loadSettings(settings=factorySettings)
+#        if self.getQSettings().allKeys().isEmpty(): 
+#            #open the fall back file (aka "factory" settings)
+#            iniFileName = os.path.join(self._confDirectory, getattr(conf, 'INIFILE', "%s.ini"%conf.__name__)) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confdir>/<confname>.ini
+#            factorySettings = Qt.QSettings(iniFileName, Qt.QSettings.IniFormat)
+#            #clone the perspectives found in the "factory" settings
+#            for p in self.getPerspectivesList(settings=factorySettings):
+#                self.loadPerspective(name=p, settings=factorySettings)
+#                self.savePerspective(name=p)
+#            #finally load the settings
+#            self.loadSettings(settings=factorySettings)
         
     
     def loadConfiguration(self, confname):
