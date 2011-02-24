@@ -68,24 +68,24 @@ class ExternalApp(object):
         :param xmlstring: (unicode) XML code defining the values for the
                           cmdargs, text, icon and parent variables
         
-        :return: (ExternalApp) object
+        :return: (ExternalApp) an instance of ExternalApp 
         '''
         try:
             root = etree.fromstring(xmlstring)
         except:
-            return None
+            raise ValueError('Invalid XML syntax')
         
         commandNode = root.find("command")
         if (commandNode is not None) and (commandNode.text is not None):
             command = commandNode.text
         else:
-            return None
+            raise ValueError('Invalid XML: <command> is mandatory')
         
         paramsNode = root.find("params")
         if (paramsNode is not None) and (paramsNode.text is not None):
             params = paramsNode.text
         else:
-            params = None
+            params = ''
             
         textNode = root.find("text")
         if (textNode is not None) and (textNode.text is not None):
@@ -98,14 +98,8 @@ class ExternalApp(object):
             icon = iconNode.text
         else:
             icon = None
-        
-        #???????????????????????????????????????????????????????????????????????
-        #
-        #    Strange code :/
-        #
-        return None #ExternalApp(command=command, params=params, text=text, icon=icon)
-        #
-        #?????????????????????????????????????????????????????????????????????????
+            
+        return ExternalApp(" ".join((command,params)), text=text, icon=icon)
         
 
 class PanelDescription(object):
