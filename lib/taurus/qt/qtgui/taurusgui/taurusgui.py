@@ -262,7 +262,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectReader("macroStatus", self.__macroExecutor.onMacroStatusUpdated)
         Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "??????????")#@ a signal from TaurusMacroExecutorWidget for resetting
+        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
         self.createPanel(self.__macroExecutor, 'Macros', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #put a Sequencer
@@ -273,7 +273,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("macroName", self.__sequencer.tree, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "??????????")#@ a signal from TaurusSequencerWidget for resetting
+        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
         self.createPanel(self.__sequencer, 'Sequences', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #puts a macrodescriptionviewer
@@ -303,10 +303,10 @@ class TaurusGui(TaurusMainWindow):
         #puts a TaurusTrend connected to the door for showing scan trends
         self.__scanTrend = TaurusTrend()
         self.__scanTrend.setXIsTime(False)
-#        self.__scanTrend.setScansAutoClear(False)
-#        self.__scanTrend.setScansUsePointNumber(False)
+        self.__scanTrend.setScansAutoClear(False)
+        self.__scanTrend.setScansUsePointNumber(False)
         Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
-#        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.setPlotablesFilter)
+        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
         self.createPanel(self.__scanTrend, '1D Scans', Qt.Qt.RightDockWidgetArea, registerconfig=True)
         
         #The app-wide door

@@ -433,7 +433,7 @@ class TaurusSequencerWidget(TaurusWidget):
         self.connect(self.macroComboBox,Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.tree, Qt.SIGNAL("macroChanged"), self.setMacroParametersRootIndex)
         
-        self.setContinuesSequence(False)
+        self.setContinuesSequence(True)
 
     def doorName(self):
         return self._doorName

@@ -37,7 +37,7 @@ def str2bool(text):
 def standardPlotablesFilter(column_desc_dict):
     """This is a standard plotables filter emitted with "plotablesFilter" signal.
        Its purpose is to filterout point_nr columnf from scanline"""
-    if column_desc_dict.get("label", None) == "point_nr": 
+    if column_desc_dict.get("label", None) == "point_nb": 
         return False
     return True
        

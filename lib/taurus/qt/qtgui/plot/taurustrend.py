@@ -442,6 +442,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._autoClear = autoClear
         self._usePointNumber = usePointNumber
         self._currentpoint = -1
+        self._plotablesFilter = lambda x:True
         self.clearTrends()
         self.setModel(name)
 
@@ -481,8 +482,14 @@ class ScanTrendsSet(TaurusTrendsSet):
         #reset current point counter
         self._currentpoint = -1
     
-    def setPlotablesFilter(self, f):
-        self._plotablesFilter = f
+    def onPlotablesFilterChanged(self, flt):
+        if flt is None:
+            self.clearTrends()
+        else:
+            self.setPlotablesFilter(flt) 
+    
+    def setPlotablesFilter(self, flt):
+        self._plotablesFilter = flt
         
     def _createTrends(self, datadesc):
         '''
@@ -498,7 +505,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         for dd in self.__datadesc:
             if len(stripShape(dd['shape']))== 0: #an scalar
                 label = dd["label"]
-                if label not in self._curves: #and self._plotablesFilter(dd):
+                if label not in self._curves and self._plotablesFilter(dd):
                     rawdata["title"] = label
                     curve = self._parent.attachRawData(rawdata)
                     self.addCurve(label, curve)
@@ -541,7 +548,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         #if autoclear is False we have to work directly with each curve (and cannot buffer)
         else:
             for n,v in recordData.items():
-                c = self._curves[n]
+                c = self._curves.get(n, None)
+                if c is None: continue
                 c._xValues = numpy.append(c._xValues, self._currentpoint) 
                 c._yValues = numpy.append(c._yValues, v)
                 c._updateMarkers()
@@ -638,6 +646,14 @@ class TaurusTrend(TaurusPlot):
             self.setAxisScale(self.xBottom, 0, 10) #Set a range of 10 events   
         self._useArchivingAction.setEnabled(enable)
         TaurusPlot.setXIsTime(self, enable, axis=axis)
+
+    def onScanPlotablesFilterChanged(self, flt, scanname=None):
+        if scanname is None:
+            if self.__qdoorname is None:
+                return
+            scanname = "scan://%s"%self.__qdoorname
+        tset = self.getTrendSet(scanname)
+        tset.onPlotablesFilterChanged(flt)
         
     def setScansAutoClear(self, enable):
         '''
