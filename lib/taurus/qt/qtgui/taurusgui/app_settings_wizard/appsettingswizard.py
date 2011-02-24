@@ -1139,8 +1139,7 @@ class OutroPage(BasePage):
         if self.wizard().isSaveToFile():
             self._saveButton = Qt.QPushButton("Save to file")
             self._saveButton.setMaximumWidth(120)
-            self._saveButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-            self._saveButton.setIcon(taurus.qt.qtgui.resource.getIcon(":/devices/media-floppy.svg"))     
+            self._saveButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("document-save"))     
             Qt.QObject.connect(self._saveButton, Qt.SIGNAL("clicked()"), self.saveAs)
             self._layout.addWidget(self._saveButton,3,1,1,1)
         
