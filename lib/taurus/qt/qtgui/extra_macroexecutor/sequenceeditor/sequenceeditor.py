@@ -32,7 +32,7 @@ from PyQt4 import Qt
 import PyTango
 
 from taurus.core.util import etree
-from taurus.qt.qtgui.extra_macroexecutor.common import MacroExecutionWindow, MacroComboBox
+from taurus.qt.qtgui.extra_macroexecutor.common import MacroExecutionWindow, MacroComboBox, standardPlotablesFilter
 from taurus import Device
 
 from taurus.qt.qtgui.container import TaurusMainWindow, TaurusWidget
@@ -247,7 +247,11 @@ class MacroSequenceTree(Qt.QTreeView, BaseConfigurableClass):
         self.expanded()
         
     def prepareMacroIds(self):
-        return self.model().assignIds()
+        model = self.model()
+        ids = model.assignIds()
+        firstId = model.firstMacroId()
+        lastId = model.lastMacroId()
+        return firstId, lastId, ids
         
     def prepareMacroProgresses(self):
         self._idIndexDict = self.model().createIdIndexDictionary()
@@ -428,12 +432,26 @@ class TaurusSequencerWidget(TaurusWidget):
         
         self.connect(self.macroComboBox,Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.tree, Qt.SIGNAL("macroChanged"), self.setMacroParametersRootIndex)
+        
+        self.setContinuesSequence(False)
 
     def doorName(self):
         return self._doorName
         
     def setDoorName(self, doorName):
         self._doorName = doorName
+        
+    def firstMacroId(self):
+        return self._firstMacroId
+    
+    def setFirstMacroId(self, firstMacroId):
+        self._firstMacroId = firstMacroId
+        
+    def lastMacroId(self):
+        return self._lastMacroId
+    
+    def setLastMacroId(self, lastMacroId):
+        self._lastMacroId = lastMacroId
         
     def macroIds(self):
         return self._macroIds
@@ -452,6 +470,12 @@ class TaurusSequencerWidget(TaurusWidget):
     
     def setSequencesPath(self, sequencesPath):
         self._sequencesPath = sequencesPath
+        
+    def isContinuesSequence(self):
+        return self._continuesSequence
+    
+    def setContinuesSequence(self, continuesSequnce):
+        self._continuesSequence = continuesSequnce
                 
     def onNewSequence(self):
         if Qt.QMessageBox.question(self,
@@ -532,8 +556,11 @@ class TaurusSequencerWidget(TaurusWidget):
     def onPlaySequence(self):
         door = Device(self.doorName())
         if door.getState() == PyTango.DevState.ON:
-            ids = self.tree.prepareMacroIds()
-            self.setMacroIds(ids) 
+            first, last, ids = self.tree.prepareMacroIds()
+            self.setFirstMacroId(first)
+            self.setLastMacroId(last)
+            self.setMacroIds(ids)
+            print "first ", first, " last", last, "ids", ids
             self.tree.prepareMacroProgresses()
             self.setEmitExecutionStarted(True)
             door.runMacro(self.tree.toXmlString())
@@ -575,12 +602,20 @@ class TaurusSequencerWidget(TaurusWidget):
         id = int(id)
         if not id in self.macroIds(): return
         if state == "start":
+            #@todo: Check this signal because it doesn't work, emitExecutionStarted is not set!!!
             if self.emitExecutionStarted(): 
                 self.emit(Qt.SIGNAL("macroStarted"), "DoorOutput")
             self.tree.setRangeForMacro(id, range)
             self.playSequenceAction.setEnabled(False)
             self.pauseSequenceAction.setEnabled(True)
             self.stopSequenceAction.setEnabled(True)
+            if id == self.firstMacroId():            
+                self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
+                self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
+                print id, " Cleared and set filter"
+            elif not self.isContinuesSequence():
+                self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
+                print id, " Cleared" 
         elif state == "pause":
             self.playAction2resumeAction()
             self.playSequenceAction.setEnabled(True)

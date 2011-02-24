@@ -255,6 +255,13 @@ class MacroSequenceTreeModel(Qt.QAbstractItemModel):
                 ids.append(id)
                 ids.extend(self.__assignIds(childNode))
         return ids
+    
+    def firstMacroId(self):
+        return self.root().child(0).id()
+    
+    def lastMacroId(self):
+        root = self.root()
+        return root.child(len(root.children())-1).id()
         
     def createIdIndexDictionary(self):
         parentIndex = Qt.QModelIndex()

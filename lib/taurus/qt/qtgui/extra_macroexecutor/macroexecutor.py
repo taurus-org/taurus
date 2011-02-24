@@ -37,7 +37,7 @@ from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusLed
 
 from favouriteseditor import FavouritesMacrosEditor
-from common import MacroComboBox, MacroExecutionWindow
+from common import MacroComboBox, MacroExecutionWindow, standardPlotablesFilter
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, ParamEditorModel, StandardMacroParametersEditor
 from taurus.core.tango.macroserver import macro
 
@@ -286,6 +286,9 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.playMacroAction.setEnabled(False)
             self.pauseMacroAction.setEnabled(True)
             self.stopMacroAction.setEnabled(True)
+            self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
+            self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
+            print "Cleared and set change"
         elif state == "pause":
             self.playAction2resumeAction()
             self.playMacroAction.setEnabled(True)

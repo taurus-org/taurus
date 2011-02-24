@@ -34,6 +34,14 @@ from taurus.qt.qtgui.resource import getThemeIcon
 def str2bool(text):
     return text in ("True", "1")
 
+def standardPlotablesFilter(column_desc_dict):
+    """This is a standard plotables filter emitted with "plotablesFilter" signal.
+       Its purpose is to filterout point_nr columnf from scanline"""
+    if column_desc_dict.get("label", None) == "point_nr": 
+        return False
+    return True
+       
+
 class MSAttrListComboBox(TaurusAttrListComboBox):
     
     def __init__(self, parent=None):
