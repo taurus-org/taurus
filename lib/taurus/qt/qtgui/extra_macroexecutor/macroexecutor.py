@@ -288,7 +288,6 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.stopMacroAction.setEnabled(True)
             self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
             self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
-            print "Cleared and set change"
         elif state == "pause":
             self.playAction2resumeAction()
             self.playMacroAction.setEnabled(True)

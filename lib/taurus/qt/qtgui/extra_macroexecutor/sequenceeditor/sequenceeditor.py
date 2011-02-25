@@ -364,6 +364,14 @@ class TaurusSequencerWidget(TaurusWidget):
         
         self.doorStateLed = TaurusLed(self)
         actionsLayout.addWidget(self.doorStateLed)
+        
+        #@todo this feature will be replaced by checkboxes in the sequence tree view 
+        #indicating clearing of the plot after execution 
+        self.fullSequencePlotCheckBox = Qt.QCheckBox("Full sequence plot", self)
+        self.connect(self.fullSequencePlotCheckBox, Qt.SIGNAL("toggled(bool)"), self.setFullSequencePlot)
+        self.fullSequencePlotCheckBox.setChecked(True)
+        actionsLayout.addWidget(self.fullSequencePlotCheckBox)
+        
         spacerItem = Qt.QSpacerItem(0,0,Qt.QSizePolicy.Expanding,Qt.QSizePolicy.Fixed)
         actionsLayout.addItem(spacerItem)
         
@@ -430,10 +438,8 @@ class TaurusSequencerWidget(TaurusWidget):
         self.stackedWidget.addWidget(self.standardMacroParametersEditor)
         self.customMacroParametersEditor = None
         
-        self.connect(self.macroComboBox,Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
+        self.connect(self.macroComboBox, Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.tree, Qt.SIGNAL("macroChanged"), self.setMacroParametersRootIndex)
-        
-        self.setContinuesSequence(True)
 
     def doorName(self):
         return self._doorName
@@ -471,11 +477,11 @@ class TaurusSequencerWidget(TaurusWidget):
     def setSequencesPath(self, sequencesPath):
         self._sequencesPath = sequencesPath
         
-    def isContinuesSequence(self):
-        return self._continuesSequence
+    def isFullSequencePlot(self):
+        return self._fullSequencePlot
     
-    def setContinuesSequence(self, continuesSequnce):
-        self._continuesSequence = continuesSequnce
+    def setFullSequencePlot(self, fullSequencePlot):
+        self._fullSequencePlot = fullSequencePlot
                 
     def onNewSequence(self):
         if Qt.QMessageBox.question(self,
@@ -612,10 +618,8 @@ class TaurusSequencerWidget(TaurusWidget):
             if id == self.firstMacroId():            
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
-                print id, " Cleared and set filter"
-            elif not self.isContinuesSequence():
+            elif not self.isFullSequencePlot():
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
-                print id, " Cleared" 
         elif state == "pause":
             self.playAction2resumeAction()
             self.playSequenceAction.setEnabled(True)
