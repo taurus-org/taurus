@@ -443,6 +443,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._usePointNumber = usePointNumber
         self._currentpoint = -1
         self._plotablesFilter = lambda x:True
+        self._endMarkers = []
         self.clearTrends()
         self.setModel(name)
 
@@ -460,7 +461,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         elif pcktype == "record_data": 
             self._scanLineReceived(packet["data"])
         elif pcktype == "record_end":
-            pass
+            self._addEndMarker()
         else:
             self.debug("Ignoring packet of type %s"%repr(pcktype))
             
@@ -476,6 +477,10 @@ class ScanTrendsSet(TaurusTrendsSet):
             self._parent.detachRawData(subname)
         self._curves = {}
         self._orderedCurveNames = []
+        #clean markers
+        for m in self._endMarkers:
+            m.detach()
+        self._endMarkers = []
         #clean history Buffers
         self.__xBuffer = None
         self.__yBuffer = None
@@ -490,7 +495,19 @@ class ScanTrendsSet(TaurusTrendsSet):
     
     def setPlotablesFilter(self, flt):
         self._plotablesFilter = flt
-        
+    
+    def _addEndMarker(self):
+        if not self._usePointNumber:
+            m = Qwt5.QwtPlotMarker()
+            m.setLineStyle(m.VLine)
+            m.setXValue(self._currentpoint)
+            m.attach(self._parent)
+            pen = Qt.QPen(Qt.Qt.DashLine)
+            pen.setWidth(2)
+            m.setLinePen(pen)
+            self._endMarkers.append(m)
+            self._currentpoint -= 1
+            
     def _createTrends(self, datadesc):
         '''
         Creates the needed curves using the information from the DataDesc
@@ -508,6 +525,13 @@ class ScanTrendsSet(TaurusTrendsSet):
                 if label not in self._curves and self._plotablesFilter(dd):
                     rawdata["title"] = label
                     curve = self._parent.attachRawData(rawdata)
+                    prop = curve.getAppearanceProperties()
+                    prop.sColor = prop.lColor
+                    prop.sStyle = Qwt5.QwtSymbol.Ellipse
+                    prop.sSize = 7
+                    prop.lWidth = 1
+                    prop.lStyle = Qt.Qt.DotLine
+                    curve.setAppearanceProperties(prop)
                     self.addCurve(label, curve)
         self._parent.autoShowYAxes()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
