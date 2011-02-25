@@ -1,0 +1,9 @@
+LICENSE:
+
+The logos in this directory are the property of each institute. 
+
+We have permission to distribute them with Taurus, but you should 
+check before redistributing them (or otherwise not redistribute them).
+
+They are not essential for Taurus and can be removed without affecting 
+the functionality of your distribution.
