@@ -29,6 +29,7 @@ paneldescriptionwizard.py:
 """
 
 from PyQt4 import Qt
+import sys
 import weakref
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from taurus.qt.qtgui.resource import getPixmap, getThemeIcon, getIcon
