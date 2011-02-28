@@ -106,6 +106,7 @@ packages = [
     'taurus.qt.qtgui.plot',
     'taurus.qt.qtgui.plot.ui',
     'taurus.qt.qtgui.resource',
+    'taurus.qt.qtgui.shell',
     'taurus.qt.qtgui.table',
     'taurus.qt.qtgui.taurusgui',
     'taurus.qt.qtgui.taurusgui.conf',
@@ -122,6 +123,8 @@ extra_packages = [
     'taurus.qt.qtgui.extra_macroexecutor.favouriteseditor',
     'taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor',
     'taurus.qt.qtgui.extra_macroexecutor.sequenceeditor',
+    
+    'taurus.qt.qtgui.extra_sardana',
     
     'taurus.qt.qtgui.extra_nexus',
     
@@ -145,6 +148,7 @@ requires = [
     'PyQt4.Qwt5 (>=5.2.0)',   # plotting
     'ply (>=2.3)',            # jdraw parser
     'lxml (>=2.1)',           # tau2taurus, taurusuic4
+    'spyder (>=2.0)',         # shell
 ]
 
 def get_resource_package_data():

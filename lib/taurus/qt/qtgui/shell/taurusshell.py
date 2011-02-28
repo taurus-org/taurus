@@ -152,7 +152,7 @@ class TaurusShell(ExternalPythonShell):
             # ------------------------------------------------------------------
             # IPython items
             # ------------------------------------------------------------------
-            ipy_icon = getIcon(':/ipython.png')
+            ipy_icon = getIcon(':/python-console.png')
             ipy_action = create_action(self, self.tr("IPython"),
                     icon=ipy_icon,
                     tip='Pure IPython shell',
