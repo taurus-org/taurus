@@ -65,11 +65,15 @@ __3DQS = Size(3*__DW, __DH)
 def __init_theme_members():
     global __INITIALIZED
     global __THEME_MEMBERS
+    global __THEME_CAPACITY
+    global __LOGGER
     
     if __INITIALIZED: return __THEME_MEMBERS
     
-    global __THEME_CAPACITY
-    global __LOGGER
+    app = Qt.QApplication.instance()
+    if app is None and __THEME_CAPACITY:
+        raise Exception("Cannot calculate theme without QApplication instance")
+    
     res_dir = os.path.dirname(os.path.abspath(__file__))
     Qt.QDir.addSearchPath("resource", res_dir)
     
@@ -89,10 +93,6 @@ def __init_theme_members():
             idx = elem.rfind(".svg")
             if elem[0] == "." or idx < 0 or not os.path.isfile(abs_elem):
                 continue
-            if __THEME_CAPACITY:
-                elem_name = os.path.splitext(elem)[0]
-                if not Qt.QIcon.hasThemeIcon(elem_name):
-                    continue
             elems.append(elem[:idx])
         members[d] = elems
     
@@ -155,7 +155,7 @@ def getThemePixmap(key, size=None):
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
 
     global __THEME_CAPACITY
-    if __THEME_CAPACITY:
+    if __THEME_CAPACITY and Qt.QIcon.hasThemeIcon(key):
         size = size or 48
         return Qt.QIcon.fromTheme(key).pixmap(size, size)
 
@@ -182,7 +182,7 @@ def getThemeIcon(key):
     if __THEME_CAPACITY and Qt.QIcon.hasThemeIcon(key):
         return Qt.QIcon.fromTheme(key)
 
-    for member, items in getThemeMembers.items():
+    for member, items in getThemeMembers().items():
         if not key in items: continue
         return Qt.QIcon(":/%s/%s.svg" % (member, key))
     return Qt.QIcon()
