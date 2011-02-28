@@ -34,6 +34,9 @@ the command line just execute::
     the output file **CAN** be the same as the input file. However we advise to
     use different files to be able to go back to the old .ui file if necessary
 
+You should now reopen the generated file with ``taurusdesigner`` to fix any
+problems (some widget properties may have ceased to exist).
+
 Generate the python code from the .ui files
 --------------------------------------------
 
@@ -227,7 +230,7 @@ The following table describes the replacement classes.
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauBoolLed</TD>
                 <TD ALIGN=LEFT>taurus.qt.qtgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLed</TD>
+                <TD ALIGN=LEFT>TaurusLed [2]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
@@ -263,7 +266,7 @@ The following table describes the replacement classes.
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauConfigLabel</TD>
                 <TD ALIGN=LEFT>taurus.qt.qtgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLabel</TD>
+                <TD ALIGN=LEFT>TaurusLabel [3]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
@@ -365,7 +368,7 @@ The following table describes the replacement classes.
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauLimitSwitch</TD>
                 <TD ALIGN=LEFT>taurus.qt.qgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLed</TD>
+                <TD ALIGN=LEFT>TaurusLed [2]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
@@ -431,13 +434,13 @@ The following table describes the replacement classes.
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauStateLabel</TD>
                 <TD ALIGN=LEFT>taurus.qt.qtgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLabel</TD>
+                <TD ALIGN=LEFT>TaurusLabel [4]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauStateLed</TD>
                 <TD ALIGN=LEFT>taurus.qt.qtgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLed</TD>
+                <TD ALIGN=LEFT>TaurusLed [2]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
@@ -473,7 +476,7 @@ The following table describes the replacement classes.
                 <TD  ALIGN=LEFT>tau.widget</TD>
                 <TD ALIGN=LEFT>TauValueLabel</TD>
                 <TD ALIGN=LEFT>taurus.qt.qtgui.display</TD>
-                <TD ALIGN=LEFT>TaurusLabel</TD>
+                <TD ALIGN=LEFT>TaurusLabel [4]_</TD>
             </TR>
             <TR>
                 <TD  ALIGN=LEFT>tau.widget</TD>
@@ -751,4 +754,15 @@ The following table describes the replacement classes.
        regarding the code generation for taurus widgets that don't inherit directly from
        a standard Qt widget but from another taurus widget.
 
+.. [2] **TaurusLed** no longer has the property *ledSize*. Use the widget size to 
+       set the led size.
+       The property *boolIndex* has been replaced by *modelIndex*
 
+.. [3] When **TaurusLabel** is used to display an attribute configuration, the model
+       name should remain the same (ex: 'a/b/c/attr?configuration=label') and
+       the property "bgRole" should be set to the string "None" or "" to avoid
+       having a background color related to the attribute quality.
+
+.. [4] **TaurusLabel** no longer has the property *showState*/*showQuality* features.
+       To decide the origin of the background color, set the property *bgRole* to
+       'quality' (default), 'state' or 'None'/''. 
