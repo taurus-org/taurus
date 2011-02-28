@@ -33,7 +33,7 @@ time and those customizations will also be stored, this file defines what a
 user will find when launching the GUI for the first time.
 """
 
-import os, sys
+import os, sys, shutil
 from PyQt4 import Qt
 import taurus.qt.qtgui.resource
 import taurus.qt.qtgui.extra_macroexecutor.common
@@ -174,7 +174,6 @@ class IntroPage(Qt.QWizardPage):
         self.setPixmap(Qt.QWizard.WatermarkPixmap, taurus.qt.qtgui.resource.getThemeIcon("document-properties").pixmap(120,120))
         label = Qt.QLabel(self.getIntroText())
         label.setWordWrap(True)
-        label.setAlignment(Qt.Qt.Alignment(Qt.Qt.AlignJustify))
         self._layout = Qt.QVBoxLayout()
         self._layout.addWidget(label)
         self._spacerItem1 = Qt.QSpacerItem(10, 200, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Fixed)  
@@ -182,15 +181,75 @@ class IntroPage(Qt.QWizardPage):
         self.setLayout(self._layout)
         
     def getIntroText(self):
-       return """
-       
-       
-           This wizard will guide you through the process of creation a configuration file to construct a GUI based on TaurusGUI.
-       
-       This configuration file determines the default, permanent, pre-defined contents of the GUI. While the user may add/remove more elements at run time and those customizations will also be stored, this file defines what a user will find when launching the GUI for the first time."""
+        text = 'This wizard will guide you through the process of creating a '+\
+               'GUI based on TaurusGUI.\n' +\
+               'TaurusGui-based applications are very customizable. The user can ' +\
+               'add/remove elements at run time and store those customizations. So ' +\
+               'with this wizard you will define just the default contents of the GUI.' 
+        return text
     
     def setNextPageId(self, id):
         self._nextPageId = id
+        
+class ProjectPage(BasePage):
+    
+    def __init__(self, parent = None):
+        BasePage.__init__(self, parent)
+        self.setTitle('Project')
+        self.setSubTitle('Choose a location for the application files (i.e., the "project directory")')
+        self.__setitem__('projectDir', self._getProjectDir)
+        
+
+    def _setupUI(self):
+        BasePage._setupUI(self)
+        self._projectDirLabel = Qt.QLabel("Project Directory:")
+        self._projectDirLE = Qt.QLineEdit(Qt.QDir.homePath())
+        self._projectDirLE.setMinimumSize(150, 30)
+        self._projectDirLE.setToolTip('This directory will be used to store all files needed by the application.')
+        self._projectDirBT = Qt.QPushButton(taurus.qt.qtgui.resource.getThemeIcon("document-properties"), '...')
+        self._layout.addWidget(self._projectDirLabel,1,0)
+        self._layout.addWidget(self._projectDirLE,1,1)
+        self._layout.addWidget(self._projectDirBT,1,2)
+                
+        Qt.QObject.connect(self._projectDirBT, Qt.SIGNAL("clicked()"), self.onSelectDir)       
+        
+    def onSelectDir(self):
+        dirname = Qt.QFileDialog.getExistingDirectory(self, caption='Choose the project directory', directory = self._projectDirLE.text())
+        if dirname.isNull(): return
+        self._projectDirLE.setText(dirname)
+        
+    def validatePage(self):
+        dirname = unicode(self._projectDirLE.text())
+        if not os.path.exists(dirname):
+            Qt.QDir.mkpath(dirname)
+        fname = os.path.join(dirname, self.wizard().CONFIGFILENAME)
+        if os.path.exists(fname):
+            option = Qt.QMessageBox.question(self, 'Overwrite project?', 
+                                    'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?'%(os.path.basename(fname)),
+                                     buttons=Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+            if option == Qt.QMessageBox.Yes:
+                try:
+                    self.wizard().loadXml(fname)
+                except Exception, e:
+                    Qt.QMessageBox.warning(self, 'Error loading project configuration', 
+                                    'Could not load the existing configuration.\nReason:%s'%repr(e),
+                                     buttons=Qt.QMessageBox.Cancel)
+                    return False
+            else:
+                return False
+        elif len(os.listdir(dirname)):
+            option = Qt.QMessageBox.question(self, 'Non empty project dir', 
+                                    'The project directory ("%s") is not empty.\nAre you sure you want to use it?'%(os.path.basename(dirname)),
+                                     buttons=Qt.QMessageBox.Yes|Qt.QMessageBox.No)
+            if option != Qt.QMessageBox.Yes:
+                return False
+        #if all went ok...
+        return True
+    
+    def _getProjectDir(self):
+        return unicode(self._projectDirLE.text())
+        
+  
         
         
 class GeneralSettings(BasePage):
@@ -452,11 +511,12 @@ class SynopticPage(BasePage):
         
     
     def _addSynoptic (self):
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("JDW (*.jdw );; All files (*)")  )
+        pdir = self.wizard().__getItem__('projectDir')
+        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)")  )
         for fileName in fileNames:
-            if not str(fileName) in self._synoptics:
-                self._synoptics.append(str(fileName))
-
+            fileName = unicode(fileName)
+            if not fileName in self._synoptics:
+                self._synoptics.append(fileName)
         self._refreshSynopticList()
         
     def _editSynoptic (self):
@@ -1073,7 +1133,6 @@ class OutroPage(BasePage):
         self.setTitle('Confirmation Page')
         self._label = Qt.QLabel("XML configuration file:")
         self._label.setWordWrap(True)
-        self._label.setAlignment(Qt.Qt.Alignment(Qt.Qt.AlignJustify))
         self._layout.addWidget(self._label,0,0,2,1)
         self._spacerItem1 = Qt.QSpacerItem(20, 20, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Fixed)  
         self._layout.addItem(self._spacerItem1,1,0,1,1)
@@ -1227,6 +1286,7 @@ class OutroPage(BasePage):
 
 
 class AppSettingsWizard(Qt.QWizard):
+    CONFIGFILENAME = 'config.xml'
     
     def __init__(self, parent=None, jdrawCommand='jdraw', saveToFile = None):
         Qt.QWizard.__init__(self, parent)
@@ -1239,6 +1299,18 @@ class AppSettingsWizard(Qt.QWizard):
         
     def getSaveToFile(self):
         return self._saveToFile
+    
+    def loadXml(self, fname):
+        '''
+        parses xml code and sets all pages according to its contents. It
+        raises an exception if something could not be processed
+        
+        :param fname: (unicode) path to file containing xml code
+        '''
+        projectDir, cfgfile = os.path.split(fname)
+        f = open(fname, 'r')
+        xml = f.read()
+        raise NotImplementedError('Loading previous projects is not yet implemented')
     
     def getXml(self):
         try:
@@ -1271,11 +1343,15 @@ class AppSettingsWizard(Qt.QWizard):
         return self._pages
     
     def _loadPages(self):
-        Pages = Enumeration('Pages', ('IntroPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
+        Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
         
         intro = IntroPage()
         self.setPage(Pages.IntroPage, intro)
-        intro.setNextPageId(Pages.GeneralSettings)
+        intro.setNextPageId(Pages.ProjectPage)
+        
+        project_page = ProjectPage()
+        self.setPage(Pages.ProjectPage, project_page)
+        project_page.setNextPageId(Pages.GeneralSettings)
         
         general_settings_page = GeneralSettings()
         self.setPage(Pages.GeneralSettings, general_settings_page)
