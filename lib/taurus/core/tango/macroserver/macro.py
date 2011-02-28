@@ -25,7 +25,7 @@
 
 """The macro submodule."""
 
-__all__ = ["MacroInfo", "Macro"]
+__all__ = ["MacroInfo", "Macro", "MacroNode"]
 
 __docformat__ = 'restructuredtext'
 
@@ -692,7 +692,7 @@ class MacroNode(BranchNode):
         
         :return: (int)
         
-        See Also: setId, assignId
+        .. seealso: :meth:`MacroNode.setId`, assignId
         """
         
         return self._id
