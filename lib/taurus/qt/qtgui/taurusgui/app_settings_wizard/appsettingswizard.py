@@ -267,8 +267,13 @@ class GeneralSettings(BasePage):
     def fromXml(self, guiName=None, organizationName=None):
         if guiName is not None and len(guiName):
             self._guiNameLineEdit.setText(guiName)
+        else:
+            self._guiNameLineEdit.setText("")
+            
         if organizationName is not None and len(organizationName):
             self._organizationCombo.setEditText(organizationName)
+        else:
+            self._organizationCombo.setCurrentIndex(0)
         
     def _getGUIName(self):
         return str(self._guiNameLineEdit.text())
@@ -392,9 +397,15 @@ class CustomLogoPage(BasePage):
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,6)
         self._setNoImage()
+    
+    def fromXml(self, customLogo=None):
+        if customLogo is not None and len(customLogo):
+            self._customLogoLineEdit.setText(customLogo)
+        else:
+            self._setDefaultImage()
         
     def _setDefaultImage(self):
-        self._customLogoLineEdit.setText(self._customLogoDefaultPath) 
+        self._customLogoLineEdit.setText(self._customLogoDefaultPath)
         
     def _setNoImage(self):
         self._customLogo.setPixmap(taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50,50))
@@ -466,6 +477,13 @@ class SynopticPage(BasePage):
     def __init__(self, parent = None):
         BasePage.__init__(self, parent)
         self._synoptics = []
+        
+    def fromXml(self, synoptics=None):
+        if synoptics is not None and len(synoptics):
+            self._synoptics = synoptics
+        else:
+            self._synoptics = []
+        self._refreshSynopticList()
         
     def initializePage(self):
         BasePage.initializePage(self)
@@ -1337,23 +1355,26 @@ class AppSettingsWizard(Qt.QWizard):
         self.page(self.Pages.GeneralSettings).fromXml(guiName=guiName, organizationName=organizationName)
        
 
-#        customLogo = root.find("CUSTOM_LOGO")
-#        if (customLogo is not None) and (customLogo.text is not None):
-#            CUSTOMLOGO = customLogo.text
-#        else:
-#            CUSTOMLOGO = ':/taurus.png'
-#        
-#        Qt.qApp.setApplicationName(APPNAME)
-#        Qt.qApp.setOrganizationName(ORGNAME)
-#        self.resetQSettings()
-#        
-#        self.setWindowTitle(APPNAME)
-#        self.setWindowIcon(Qt.QIcon(CUSTOMLOGO))
-#        self.jorgsBar.addAction(Qt.QIcon(":/logo.png"),ORGNAME)
-#        self.jorgsBar.addAction(Qt.QIcon(CUSTOMLOGO),APPNAME)
-#        
-#        #configure the macro infrastructure
-#        
+        customLogoNode = root.find("CUSTOM_LOGO")
+        if (customLogoNode is not None) and (customLogoNode.text is not None):
+            customLogo = customLogoNode.text
+        
+        self.page(self.Pages.CustomLogoPage).fromXml(customLogo=customLogo)
+       
+        synoptics = []
+        synopticNode = root.find("SYNOPTIC")
+        if (synopticNode is not None) and (synopticNode.text is not None):
+            for child in synopticNode:
+                if (child.get("str") is not None):
+                    if len(child.get("str")):
+                        synoptics.append(child.get("str"))
+                        
+        self.page(self.Pages.SynopticPage).fromXml(synoptics=synoptics)
+                    
+
+
+
+      
 #        macroserverName = root.find("MACROSERVER_NAME")
 #        if (macroserverName is not None) and (macroserverName.text is not None):
 #            MACROSERVER_NAME = macroserverName.text
@@ -1375,16 +1396,8 @@ class AppSettingsWizard(Qt.QWizard):
 #        if MACROSERVER_NAME is not None:
 #            self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
 #         
-#        SYNOPTIC = []
-#        synoptic = root.find("SYNOPTIC")
-#        if (synoptic is not None) and (synoptic.text is not None):
-#            for child in synoptic:
-#                if (child.get("str") is not None):
-#                    if len(child.get("str")):
-#                        SYNOPTIC.append(child.get("str"))
-#                    
-#        for s in SYNOPTIC:
-#            self.createMainSynoptic(s)
+
+
 #        
 #        
 #        instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
