@@ -152,7 +152,8 @@ class TaurusShell(ExternalPythonShell):
             # ------------------------------------------------------------------
             # IPython items
             # ------------------------------------------------------------------
-            ipy_icon = getIcon(':/python-console.png')
+            ipy_icon = getIcon(':/ipython.png')
+            pyconsole_icon = getIcon(':/python-console.png')
             ipy_action = create_action(self, self.tr("IPython"),
                     icon=ipy_icon,
                     tip='Pure IPython shell',
@@ -172,7 +173,7 @@ class TaurusShell(ExternalPythonShell):
             ipy_actions = []
             for profile in ipy_profiles:
                 action = create_action(self, self.tr(profile),
-                    icon=ipy_icon,
+                    icon=pyconsole_icon,
                     tip='IPython shell (%s profile)',
                     data=profile,
                     triggered=self.on_select_ipython_profile)
