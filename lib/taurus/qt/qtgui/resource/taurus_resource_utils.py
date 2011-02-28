@@ -62,11 +62,14 @@ __1DQS = __DQS
 __2DQS = Size(2*__DW, __DH)
 __3DQS = Size(3*__DW, __DH)
 
-def __init():
+def __init_theme_members():
     global __INITIALIZED
+    global __THEME_MEMBERS
     
-    if __INITIALIZED: return
+    if __INITIALIZED: return __THEME_MEMBERS
     
+    global __THEME_CAPACITY
+    global __LOGGER
     res_dir = os.path.dirname(os.path.abspath(__file__))
     Qt.QDir.addSearchPath("resource", res_dir)
     
@@ -93,12 +96,10 @@ def __init():
             elems.append(elem[:idx])
         members[d] = elems
     
-    global __THEME_MEMBERS
     __THEME_MEMBERS = members
 
     __INITIALIZED = True
-
-__init()
+    return __THEME_MEMBERS
 
 def getThemeMembers():
     """Returns the current icon theme elements
@@ -106,9 +107,7 @@ def getThemeMembers():
     :return: the current icon theme elements in a dictionary where each key is
              a group name and the value is a sequence of theme icon name.
     :rtype: dict<str,seq<str>>"""
-    
-    global __THEME_MEMBERS
-    return __THEME_MEMBERS
+    return __init_theme_members()
 
 def getPixmap(key, size=None):
     """Returns a PyQt4.QtGui.QPixmap object for the given key and size
@@ -160,8 +159,7 @@ def getThemePixmap(key, size=None):
         size = size or 48
         return Qt.QIcon.fromTheme(key).pixmap(size, size)
 
-    global __THEME_MEMBERS
-    for member, items in __THEME_MEMBERS.items():
+    for member, items in getThemeMembers().items():
         if not key in items: continue
         return getPixmap(":/%s/%s.svg" % (member, key), size)
     return Qt.QPixmap()
@@ -184,8 +182,7 @@ def getThemeIcon(key):
     if __THEME_CAPACITY and Qt.QIcon.hasThemeIcon(key):
         return Qt.QIcon.fromTheme(key)
 
-    global __THEME_MEMBERS
-    for member, items in __THEME_MEMBERS.items():
+    for member, items in getThemeMembers.items():
         if not key in items: continue
         return Qt.QIcon(":/%s/%s.svg" % (member, key))
     return Qt.QIcon()
