@@ -90,7 +90,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             self.module = sys.modules[modulename] #We use this because __import__('x.y') returns x instead of y !! 
             self.moduleNameLE.setStyleSheet('QLineEdit {color: green}')
         except Exception, e:
-            #print repr(e)
+            print repr(e)
             self.moduleNameLE.setStyleSheet('QLineEdit {color: red}')
             return
         #inspect the module to find the members we want (classes or widgets inheriting from QWidget)
@@ -197,10 +197,10 @@ class WidgetPage(Qt.QWizardPage):
         self.widgetDescription = {'widgetname':None, 'modulename':None, 'classname':None}
         
         #contents    
-        available = TaurusWidgetFactory().getTaurusWidgetClassNames()
+        available = TaurusWidgetFactory().getWidgetClassNames()
         candidates=['TaurusForm','TaurusTrend', 'TaurusArrayEditor',
                      'TaurusPlot', 'TaurusQubDataImageDisplay', 'TaurusNeXusBrowser',
-                     'TaurusDbTreeWidget']
+                     'TaurusDbTreeWidget', 'TaurusShell']
         choices = []
         row=[]
         pixmaps={}
