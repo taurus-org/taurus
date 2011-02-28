@@ -144,6 +144,9 @@ def get_python_version_number():
 
 def get_ipython_dir():
     """Find the ipython local directory. Usually is <home>/.ipython"""
+    if hasattr(PyTango.ipython, "get_ipython_dir"):
+        return PyTango.ipython.get_ipython_dir()
+    
     if hasattr(IPython.iplib, 'get_ipython_dir'):
         # Starting from ipython 0.9 they hadded this method
         return IPython.iplib.get_ipython_dir()
@@ -160,6 +163,48 @@ def get_ipython_dir():
     ipdir = os.path.join(home_dir, ipdir)
     ipythondir = os.path.abspath( os.environ.get('IPYTHONDIR', ipdir) )
     return ipythondir
+
+def get_ipython_profiles():
+    """Helper function to find all ipython profiles"""
+    if hasattr(PyTango.ipython, "get_ipython_profiles"):
+        return PyTango.ipython.get_ipython_profiles()
+
+    ret = []
+    ipydir = get_ipython_dir()
+    if os.path.isdir(ipydir):
+        for i in os.listdir(ipydir):
+            fullname = os.path.join(ipydir, i)
+            if i.startswith("ipy_profile_") and i.endswith(".py"):
+                if os.path.isfile(fullname):
+                    ret.append(i[len("ipy_profile_"):i.rfind(".")])
+    return ret
+
+def get_spock_profiles(ipython_profiles=None):
+    """Helper function to find all spock ipython profiles"""
+    ipydir = get_ipython_dir()
+    if ipython_profiles is None:
+        ipython_profiles = get_ipython_profiles()
+    ret = []
+    for profile in ipython_profiles:
+        profile_f = os.path.join(ipydir, "ipy_profile_%s.py" % profile)
+        if not os.path.isfile(profile_f): continue
+        try:
+            for i, l in enumerate(file(profile_f)):
+                if i > 10: break
+                if l.find("spock_creation_version") >= 0:
+                    ret.append(profile)
+                    break
+        except:
+            pass
+    return ret
+
+def get_non_spock_profiles(ipython_profiles=None):
+    """Helper function to find all non spock ipython profiles"""
+    if ipython_profiles is None:
+        ipython_profiles = get_ipython_profiles()
+    ipython_profiles = set(ipython_profiles)
+    spock_profiles = set(get_spock_profiles(ipython_profiles=ipython_profiles))
+    return ipython_profiles.difference(spock_profiles)
 
 def get_spock_user_profile_module(profile_name):
     return 'ipy_profile_%s' % profile_name
