@@ -86,6 +86,10 @@ def __init():
             idx = elem.rfind(".svg")
             if elem[0] == "." or idx < 0 or not os.path.isfile(abs_elem):
                 continue
+            if __THEME_CAPACITY:
+                elem_name = os.path.splitext(elem)[0]
+                if not Qt.QIcon.hasThemeIcon(elem_name):
+                    continue
             elems.append(elem[:idx])
         members[d] = elems
     
