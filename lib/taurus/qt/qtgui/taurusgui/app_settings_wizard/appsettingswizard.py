@@ -214,33 +214,34 @@ class ProjectPage(BasePage):
         Qt.QObject.connect(self._projectDirBT, Qt.SIGNAL("clicked()"), self.onSelectDir)       
         
     def onSelectDir(self):
-        dirname = Qt.QFileDialog.getExistingDirectory(self, caption='Choose the project directory', directory = self._projectDirLE.text())
+        dirname = Qt.QFileDialog.getExistingDirectory(self, 'Choose the project directory', self._projectDirLE.text())
         if dirname.isNull(): return
         self._projectDirLE.setText(dirname)
         
     def validatePage(self):
         dirname = unicode(self._projectDirLE.text())
+        
         if not os.path.exists(dirname):
-            Qt.QDir.mkpath(dirname)
+            Qt.QDir().mkpath(Qt.QString(dirname) )
         fname = os.path.join(dirname, self.wizard().CONFIGFILENAME)
         if os.path.exists(fname):
             option = Qt.QMessageBox.question(self, 'Overwrite project?', 
                                     'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?'%(os.path.basename(fname)),
-                                     buttons=Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                                     Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
             if option == Qt.QMessageBox.Yes:
                 try:
                     self.wizard().loadXml(fname)
                 except Exception, e:
                     Qt.QMessageBox.warning(self, 'Error loading project configuration', 
                                     'Could not load the existing configuration.\nReason:%s'%repr(e),
-                                     buttons=Qt.QMessageBox.Cancel)
+                                     Qt.QMessageBox.Cancel)
                     return False
             else:
                 return False
         elif len(os.listdir(dirname)):
             option = Qt.QMessageBox.question(self, 'Non empty project dir', 
                                     'The project directory ("%s") is not empty.\nAre you sure you want to use it?'%(os.path.basename(dirname)),
-                                     buttons=Qt.QMessageBox.Yes|Qt.QMessageBox.No)
+                                     Qt.QMessageBox.Yes|Qt.QMessageBox.No)
             if option != Qt.QMessageBox.Yes:
                 return False
         #if all went ok...
@@ -262,6 +263,12 @@ class GeneralSettings(BasePage):
         BasePage.initializePage(self)
         self.wizard().__setitem__("guiName",self._getGUIName)
         self.wizard().__setitem__("organizationName",self._getOrganizationName)
+        
+    def fromXml(self, guiName=None, organizationName=None):
+        if guiName is not None and len(guiName):
+            self._guiNameLineEdit.setText(guiName)
+        if organizationName is not None and len(organizationName):
+            self._organizationCombo.setEditText(organizationName)
         
     def _getGUIName(self):
         return str(self._guiNameLineEdit.text())
@@ -1287,6 +1294,8 @@ class OutroPage(BasePage):
 
 class AppSettingsWizard(Qt.QWizard):
     CONFIGFILENAME = 'config.xml'
+    Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
+        
     
     def __init__(self, parent=None, jdrawCommand='jdraw', saveToFile = None):
         Qt.QWizard.__init__(self, parent)
@@ -1310,7 +1319,149 @@ class AppSettingsWizard(Qt.QWizard):
         projectDir, cfgfile = os.path.split(fname)
         f = open(fname, 'r')
         xml = f.read()
-        raise NotImplementedError('Loading previous projects is not yet implemented')
+        
+        root = etree.fromstring(xml)
+                    
+        nameNode = root.find("GUI_NAME")
+        if (nameNode is not None) and (nameNode.text is not None):
+            guiName = nameNode.text
+        else:
+            guiName = None
+        
+        orgNameNode = root.find("ORGANIZATION")
+        if (orgNameNode is not None) and (orgNameNode.text is not None):
+            organizationName = orgNameNode.text
+        else:
+            organizationName = None
+        
+        self.page(self.Pages.GeneralSettings).fromXml(guiName=guiName, organizationName=organizationName)
+       
+
+#        customLogo = root.find("CUSTOM_LOGO")
+#        if (customLogo is not None) and (customLogo.text is not None):
+#            CUSTOMLOGO = customLogo.text
+#        else:
+#            CUSTOMLOGO = ':/taurus.png'
+#        
+#        Qt.qApp.setApplicationName(APPNAME)
+#        Qt.qApp.setOrganizationName(ORGNAME)
+#        self.resetQSettings()
+#        
+#        self.setWindowTitle(APPNAME)
+#        self.setWindowIcon(Qt.QIcon(CUSTOMLOGO))
+#        self.jorgsBar.addAction(Qt.QIcon(":/logo.png"),ORGNAME)
+#        self.jorgsBar.addAction(Qt.QIcon(CUSTOMLOGO),APPNAME)
+#        
+#        #configure the macro infrastructure
+#        
+#        macroserverName = root.find("MACROSERVER_NAME")
+#        if (macroserverName is not None) and (macroserverName.text is not None):
+#            MACROSERVER_NAME = macroserverName.text
+#        else:
+#            MACROSERVER_NAME = None
+#            
+#        doorName = root.find("DOOR_NAME")
+#        if (doorName is not None) and (doorName.text is not None):
+#            DOOR_NAME = doorName.text
+#        else:
+#            DOOR_NAME = ''    
+#        
+#        macroEditorsPath = root.find("MACROEDITORS_PATH")
+#        if (macroEditorsPath is not None) and (macroEditorsPath.text is not None):
+#            MACROEDITORS_PATH = macroEditorsPath.text
+#        else:
+#            MACROEDITORS_PATH = ''   
+#        
+#        if MACROSERVER_NAME is not None:
+#            self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
+#         
+#        SYNOPTIC = []
+#        synoptic = root.find("SYNOPTIC")
+#        if (synoptic is not None) and (synoptic.text is not None):
+#            for child in synoptic:
+#                if (child.get("str") is not None):
+#                    if len(child.get("str")):
+#                        SYNOPTIC.append(child.get("str"))
+#                    
+#        for s in SYNOPTIC:
+#            self.createMainSynoptic(s)
+#        
+#        
+#        instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
+#        if (instrumentsFromPool is not None) and (instrumentsFromPool.text is not None) and (str(instrumentsFromPool.text).lower() =="true"):
+#            INSTRUMENTS_FROM_POOL = True
+#        else:
+#            INSTRUMENTS_FROM_POOL = False
+#        
+#        #create instrument panels and custom panels
+#        CUSTOM_PANELS = []
+#        
+#        panelDescriptions = root.find("PanelDescriptions")
+#        if (panelDescriptions is not None):
+#            for child in panelDescriptions:
+#                    if (child.tag == "PanelDescription"):
+#                        pd = PanelDescription.fromXml(etree.tostring(child))
+#                        if pd is not None:
+#                            CUSTOM_PANELS.append(pd)
+#                        
+#        if INSTRUMENTS_FROM_POOL:
+#            POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
+#        else:
+#            POOLINSTRUMENTS = []
+#
+#        for p in CUSTOM_PANELS + POOLINSTRUMENTS:
+#            try:
+#                w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+#                if hasattr(w,'setCustomWidgetMap'):
+#                    w.setCustomWidgetMap(self.getCustomWidgetMap())
+#                if p.model is not None:
+#                    w.setModel(p.model)
+#                #create a panel
+#                self.createPanel(w, p.name, p.area)
+#                #connect the widget
+#                Qt.qApp.SDM.connectWriter("SelectedInstrument", w, "panelSelected")
+#                
+#            except Exception,e:
+#                msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
+#                self.error(msg)
+#                self.traceback(level=taurus.Info)
+#                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
+#                if result == Qt.QMessageBox.Abort:
+#                    sys.exit()
+#                    
+#        
+#        #add external applications
+#        EXTERNAL_APPS = [] 
+#        
+#        externalAppsNode = root.find("ExternalApps")
+#        if (externalAppsNode is not None):
+#            for child in externalAppsNode:
+#                    if (child.tag == "ExternalApp"):
+#                        ea = ExternalApp.fromXml(etree.tostring(child))
+#                        if ea is not None:
+#                            EXTERNAL_APPS.append(ea)
+#        
+#        #[obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
+#        for a in EXTERNAL_APPS:
+#            self.addExternalAppLauncher(a.getAction())
+#        
+#        #add a beam monitor      
+#        monitorNode = root.find("MONITOR")
+#        if (monitorNode is not None) and (monitorNode.text is not None):
+#            MONITOR = str(monitorNode.text).split(",")
+#        else:
+#            MONITOR = []
+#        
+#        if MONITOR:
+#            self.__monitor = TaurusMonitorTiny()
+#            self.__monitor.setModel(MONITOR)
+#            self.jorgsBar.addWidget(self.__monitor)
+#            self.registerConfigDelegate(self.__monitor, 'monitor')
+        
+        
+        
+        
+        #raise NotImplementedError('Loading previous projects is not yet implemented')
     
     def getXml(self):
         try:
@@ -1343,50 +1494,48 @@ class AppSettingsWizard(Qt.QWizard):
         return self._pages
     
     def _loadPages(self):
-        Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
-        
         intro = IntroPage()
-        self.setPage(Pages.IntroPage, intro)
-        intro.setNextPageId(Pages.ProjectPage)
+        self.setPage(self.Pages.IntroPage, intro)
+        intro.setNextPageId(self.Pages.ProjectPage)
         
         project_page = ProjectPage()
-        self.setPage(Pages.ProjectPage, project_page)
-        project_page.setNextPageId(Pages.GeneralSettings)
+        self.setPage(self.Pages.ProjectPage, project_page)
+        project_page.setNextPageId(self.Pages.GeneralSettings)
         
         general_settings_page = GeneralSettings()
-        self.setPage(Pages.GeneralSettings, general_settings_page)
-        general_settings_page.setNextPageId(Pages.CustomLogoPage)
+        self.setPage(self.Pages.GeneralSettings, general_settings_page)
+        general_settings_page.setNextPageId(self.Pages.CustomLogoPage)
         
         custom_logo_page = CustomLogoPage()
-        self.setPage(Pages.CustomLogoPage, custom_logo_page)
-        custom_logo_page.setNextPageId(Pages.SynopticPage)
+        self.setPage(self.Pages.CustomLogoPage, custom_logo_page)
+        custom_logo_page.setNextPageId(self.Pages.SynopticPage)
         
         synoptic_page = SynopticPage()
-        self.setPage(Pages.SynopticPage, synoptic_page)
-        synoptic_page.setNextPageId(Pages.MacroServerInfo)
+        self.setPage(self.Pages.SynopticPage, synoptic_page)
+        synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
         
         macroserver_page = MacroServerInfoPage()
-        self.setPage(Pages.MacroServerInfo, macroserver_page)
-        macroserver_page.setNextPageId(Pages.InstrumentsPage) 
+        self.setPage(self.Pages.MacroServerInfo, macroserver_page)
+        macroserver_page.setNextPageId(self.Pages.InstrumentsPage) 
         
         instruments_page = InstrumentsPage()
-        self.setPage(Pages.InstrumentsPage, instruments_page)
-        instruments_page.setNextPageId(Pages.PanelsPage)
+        self.setPage(self.Pages.InstrumentsPage, instruments_page)
+        instruments_page.setNextPageId(self.Pages.PanelsPage)
         
         panels_page = PanelsPage()
-        self.setPage(Pages.PanelsPage, panels_page)
-        panels_page.setNextPageId(Pages.ExternalAppPage)
+        self.setPage(self.Pages.PanelsPage, panels_page)
+        panels_page.setNextPageId(self.Pages.ExternalAppPage)
         
         external_app_page = ExternalAppPage()
-        self.setPage(Pages.ExternalAppPage, external_app_page)
-        external_app_page.setNextPageId(Pages.MonitorPage)
+        self.setPage(self.Pages.ExternalAppPage, external_app_page)
+        external_app_page.setNextPageId(self.Pages.MonitorPage)
           
         monitor_page = MonitorPage()
-        self.setPage(Pages.MonitorPage, monitor_page)
-        monitor_page.setNextPageId(Pages.OutroPage)   
+        self.setPage(self.Pages.MonitorPage, monitor_page)
+        monitor_page.setNextPageId(self.Pages.OutroPage)   
         
         outro_page = OutroPage()
-        self.setPage(Pages.OutroPage, outro_page)
+        self.setPage(self.Pages.OutroPage, outro_page)
         outro_page.setNextPageId(-1)
     
         self.setOption (Qt.QWizard.CancelButtonOnLeft , True)
