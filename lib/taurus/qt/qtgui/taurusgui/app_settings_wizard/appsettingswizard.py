@@ -43,6 +43,7 @@ import taurus.qt.qtgui.input
 import copy
 from taurus.core.util import etree
 from taurus.core.util import Enumeration
+from taurus.qt.qtgui.util import ExternalAppAction
         
 
         
@@ -275,6 +276,7 @@ class CustomLogoPage(BasePage):
     def initializePage(self):
         BasePage.initializePage(self)
         self.wizard().__setitem__("customLogo",self._getCustomLogo)
+        self._changeImage()
     
     def _setupUI(self):
         BasePage._setupUI(self)
@@ -313,8 +315,6 @@ class CustomLogoPage(BasePage):
         self._layout.addItem(self._spacerItem1,3,2)
         self._layout.addWidget(self._customLogo,4,1,1,1,Qt.Qt.AlignHCenter)
              
-        self._setNoImage()
-
         Qt.QObject.connect(self._customLogoButton, Qt.SIGNAL("clicked()"), self._selectImage)
         Qt.QObject.connect(self._customLogoDefaultButton, Qt.SIGNAL("clicked()"), self._setDefaultImage)
         Qt.QObject.connect(self._customLogoRemoveButton, Qt.SIGNAL("clicked()"), self._removeImage)
@@ -325,6 +325,7 @@ class CustomLogoPage(BasePage):
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,6)
+        self._setNoImage()
         
     def _setDefaultImage(self):
         self._customLogoLineEdit.setText(self._customLogoDefaultPath) 
@@ -339,10 +340,13 @@ class CustomLogoPage(BasePage):
         self._setNoImage()
     
     def _getCustomLogo(self):
-        return str(self._customLogoPath)
+        if (self._customLogoPath is not None):
+            return str(self._customLogoPath)
+        else:
+            return None
                 
     def _selectImage(self):
-            fileName = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),"/home", self.tr("Images (*.png *.xpm *.jpg *.jpeg)"))
+            fileName = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"), Qt.QDir.homePath() , self.tr("Images (*.png *.xpm *.jpg *.jpeg)"))
             self._customLogoLineEdit.setText(fileName)
             self._changeImage()
         
@@ -354,6 +358,7 @@ class CustomLogoPage(BasePage):
                 if ( pixmap.height()):
                     image = pixmap.toImage()
                     self._setImage(image)
+                    self._customLogoPath = fileName
                     self._setStatus("Press next button to continue")
                     self._customLogoRemoveButton.show()
                 else:
@@ -447,7 +452,7 @@ class SynopticPage(BasePage):
         
     
     def _addSynoptic (self):
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"),"/home", self.tr("JDW (*.jdw );; All files (*)")  )
+        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("JDW (*.jdw );; All files (*)")  )
         for fileName in fileNames:
             if not str(fileName) in self._synoptics:
                 self._synoptics.append(str(fileName))
@@ -714,6 +719,7 @@ class ExternalAppEditor(Qt.QDialog):
         self.connect(self._dlgBox,Qt.SIGNAL('accepted()'), self.accept)
         self.connect(self._dlgBox,Qt.SIGNAL('rejected()'), self.reject)
         self.checkData()
+        self._setIcon(ExternalAppAction.DEFAULT_ICON_NAME)
         
     def _getExecFile(self):
         return self._execFileLineEdit.text()
@@ -734,7 +740,7 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
         
     def _selectExecFile(self):
-            filePath = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),"/home", self.tr("All files (*)")  )
+            filePath = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("All files (*)")  )
             if len(filePath):
                 self._execFileLineEdit.setText(filePath)
                 self._setDefaultText()
@@ -774,16 +780,20 @@ class ExternalAppEditor(Qt.QDialog):
             progressBar.close()
             name,ok = taurus.qt.qtgui.input.GraphicalChoiceDlg.getChoice(parent=None, title= 'Panel chooser', msg='Choose the type of Panel:', choices=iconNameList, pixmaps=pixmapList, iconSize=60)            
             if ok:
-                if taurus.qt.qtgui.resource.getThemePixmap(name).width()!=0:
-                    self._iconLogo.setIcon(Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap(name) ) )
-                    self._iconLogo.setIconSize(Qt.QSize(60,60))
-                    self._iconLogo.setText("")
-                    self._icon = name
-                else:
-                    self._iconLogo.setText(name)
-                    self._icon = name
+                self._setIcon(name)
         else:
             progressBar.close()
+            
+    def _setIcon(self , name):
+        if taurus.qt.qtgui.resource.getThemePixmap(name).width()!=0:
+            self._iconLogo.setIcon(Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap(name) ) )
+            self._iconLogo.setIconSize(Qt.QSize(60,60))
+            self._iconLogo.setText("")
+            self._icon = name
+        else:
+            self._iconLogo.setText(name)
+            self._icon = name
+        
     
     def _getExecFile(self):
         return str(self._execFileLineEdit.text())
@@ -1073,19 +1083,41 @@ class OutroPage(BasePage):
         self._xml.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
         self._layout.addWidget(self._xml,2,0,1,2)
         
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
-        self._layout.addItem(self._spacerItem1,4,0,1,1,Qt.Qt.AlignCenter)
+        #self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        #self._layout.addItem(self._spacerItem1,4,0,1,1,Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Write it to file on Finish")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,5,0,1,2)
+
         
     def _getXml(self):
         return str(self._xml.toPlainText())
+    
+    def _setStatus(self,text):
+        self._status_label.setText(text)
+    
+    def checkData(self):
+        saveToFile = self.wizard().getSaveToFile()
+        if not self._valid and not (saveToFile is not None and len(saveToFile)):
+            self._setStatus("Please save the file before finish")
+        else:
+            self._setStatus("Click finish to exit the wizard")
+            self._valid = True
+            
+        self.emit(Qt.SIGNAL('completeChanged()'))
+#        
+#        if not self._valid:
+#            self._setStatus("Please type the name of the GUI")
+#        else:
+#            self._setStatus("Press next button to continue")   
         
     def saveAs(self):
-        defaultName = self.wizard().__getitem__("guiName") + "_config.xml"
+        saveToFile = self.wizard().getSaveToFile()
+        if saveToFile is not None and len(saveToFile):
+            defaultName = Qt.QDir.homePath() + '/' + saveToFile
+        else:
+            defaultName = Qt.QDir.homePath() + '/' + self.wizard().__getitem__("guiName") + "_config.xml"
         
-        defaultName = self.wizard().__getitem__("guiName") + "_config.xml"
         fileName = Qt.QFileDialog.getSaveFileName(self, self.tr("Save As"),
                         defaultName, self.tr("XML (*.xml );; All files (*)"))
         
@@ -1111,6 +1143,8 @@ class OutroPage(BasePage):
             return False
         
         file.write(str(self._xml.toPlainText()))
+        self._valid = True
+        self.checkData()
         file.close()
   
         return True
@@ -1136,12 +1170,14 @@ class OutroPage(BasePage):
         self.wizard().setOption (Qt.QWizard.NoCancelButton , True)
         self._xml.setText(self._toXml())
         self.wizard().__setitem__("xml",self._getXml)
-        if self.wizard().isSaveToFile():
-            self._saveButton = Qt.QPushButton("Save to file")
-            self._saveButton.setMaximumWidth(120)
-            self._saveButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("document-save"))     
-            Qt.QObject.connect(self._saveButton, Qt.SIGNAL("clicked()"), self.saveAs)
-            self._layout.addWidget(self._saveButton,3,1,1,1)
+        #if self.wizard().getSaveToFile() is not None:
+        self._saveButton = Qt.QPushButton("Save to file")
+        self._saveButton.setMaximumWidth(120)
+        self._saveButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("document-save"))     
+        Qt.QObject.connect(self._saveButton, Qt.SIGNAL("clicked()"), self.saveAs)
+        self._layout.addWidget(self._saveButton,3,1,1,1)
+        self._valid = False
+        self.checkData()
         
     def setNextPageId(self, id):
         self._nextPageId = id
@@ -1192,7 +1228,7 @@ class OutroPage(BasePage):
 
 class AppSettingsWizard(Qt.QWizard):
     
-    def __init__(self, parent=None, jdrawCommand='jdraw', saveToFile = True):
+    def __init__(self, parent=None, jdrawCommand='jdraw', saveToFile = None):
         Qt.QWizard.__init__(self, parent)
         self.installEventFilter(self)
         self._item_funcs = {}
@@ -1201,7 +1237,7 @@ class AppSettingsWizard(Qt.QWizard):
         self._saveToFile = saveToFile
         self._loadPages()
         
-    def isSaveToFile(self):
+    def getSaveToFile(self):
         return self._saveToFile
     
     def getXml(self):
@@ -1277,13 +1313,12 @@ class AppSettingsWizard(Qt.QWizard):
         self.setPage(Pages.OutroPage, outro_page)
         outro_page.setNextPageId(-1)
     
-        self.setOption (Qt.QWizard.CancelButtonOnLeft , True)  
-        
+        self.setOption (Qt.QWizard.CancelButtonOnLeft , True)
         
         
 def main():
     app = Qt.QApplication([])
-    wizard = AppSettingsWizard(saveToFile = True)
+    wizard = AppSettingsWizard(saveToFile=None)
     wizard.show()
     sys.exit(app.exec_())
   
