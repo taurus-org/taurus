@@ -1067,6 +1067,27 @@ class MacroServerInfoPage(BasePage):
         Qt.QObject.connect(self._confWidget.doorComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
         Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL("toggled(bool)"), self.checkData)
     
+    def fromXml(self, macroserverName, doorName):
+        if macroserverName is not None and len(macroserverName):
+            id = self._confWidget.macroServerComboBox.findText( macroserverName, Qt.Qt.MatchExactly)
+            if id >=0:
+                self._confWidget.macroServerComboBox.setCurrentIndex(id)
+                self._confWidget.doorComboBox.setModel(macroserverName + "/doorList")
+                self._macroGroupBox.setChecked(True)
+                
+            else:
+                self._macroGroupBox.setChecked(False)
+                return
+        if doorName is not None and len(doorName):
+            #self._confWidget.doorComboBox.addItem(doorName)
+            id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
+            print self._confWidget.doorComboBox.itemText(0)
+            print doorName
+            print id
+            if id >=0:
+                self._confWidget.doorComboBox.setCurrentIndex(id)
+            
+    
     def checkData(self):
         BasePage.checkData(self)
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
@@ -1371,35 +1392,28 @@ class AppSettingsWizard(Qt.QWizard):
                         
         self.page(self.Pages.SynopticPage).fromXml(synoptics=synoptics)
                     
-
-
-
       
-#        macroserverName = root.find("MACROSERVER_NAME")
-#        if (macroserverName is not None) and (macroserverName.text is not None):
-#            MACROSERVER_NAME = macroserverName.text
-#        else:
-#            MACROSERVER_NAME = None
-#            
-#        doorName = root.find("DOOR_NAME")
-#        if (doorName is not None) and (doorName.text is not None):
-#            DOOR_NAME = doorName.text
-#        else:
-#            DOOR_NAME = ''    
-#        
-#        macroEditorsPath = root.find("MACROEDITORS_PATH")
-#        if (macroEditorsPath is not None) and (macroEditorsPath.text is not None):
-#            MACROEDITORS_PATH = macroEditorsPath.text
-#        else:
-#            MACROEDITORS_PATH = ''   
-#        
-#        if MACROSERVER_NAME is not None:
-#            self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
-#         
+              
+        macroserverNameNode = root.find("MACROSERVER_NAME")
+        if (macroserverNameNode is not None) and (macroserverNameNode.text is not None):
+            macroserverName = macroserverNameNode.text
+        else:
+            macroserverName = None
+            
+        doorNameNode = root.find("DOOR_NAME")
+        if (doorNameNode is not None) and (doorNameNode.text is not None):
+            doorName = doorNameNode.text
+        else:
+            doorName = ''    
 
-
-#        
-#        
+        macroEditorsPathNode = root.find("MACROEDITORS_PATH")
+        if (macroEditorsPathNode is not None) and (macroEditorsPathNode.text is not None):
+            macroEditorsPath = macroEditorsPathNode.text
+        else:
+            macroEditorsPath = ''   
+        
+        self.page(self.Pages.MacroServerInfo).fromXml(macroserverName=macroserverName, doorName = doorName)
+        
 #        instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
 #        if (instrumentsFromPool is not None) and (instrumentsFromPool.text is not None) and (str(instrumentsFromPool.text).lower() =="true"):
 #            INSTRUMENTS_FROM_POOL = True
