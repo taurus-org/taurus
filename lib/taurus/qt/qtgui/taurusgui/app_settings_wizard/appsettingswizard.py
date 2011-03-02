@@ -33,7 +33,8 @@ time and those customizations will also be stored, this file defines what a
 user will find when launching the GUI for the first time.
 """
 
-import os, sys, shutil
+import os, sys, shutil,re
+import datetime
 from PyQt4 import Qt
 import taurus.qt.qtgui.resource
 import taurus.qt.qtgui.extra_macroexecutor.common
@@ -197,7 +198,6 @@ class IntroPage(BasePage):
     def setNextPageId(self, id):
         self._nextPageId = id
         
-        
 class ProjectPage(BasePage):
     
     def __init__(self, parent = None):
@@ -229,8 +229,14 @@ class ProjectPage(BasePage):
         dirname = unicode(self._projectDirLE.text())
         
         if not os.path.exists(dirname):
-            Qt.QDir().mkpath(Qt.QString(dirname) )
-        fname = os.path.join(dirname, self.wizard().CONFIGFILENAME)
+            try:
+                os.makedirs(dirname)
+            except Exception, e:
+                Qt.QMessageBox.warning(self, 'Error creating project directory', 
+                                    'Could not create the project directory.\nReason:%s'%repr(e),
+                                     Qt.QMessageBox.Cancel)
+                return False
+        fname = os.path.join(dirname, self.wizard().getConfigFileName())
         if os.path.exists(fname):
             option = Qt.QMessageBox.question(self, 'Overwrite project?', 
                                     'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?'%(os.path.basename(fname)),
@@ -269,19 +275,9 @@ class GeneralSettings(BasePage):
         self.wizard().__setitem__("guiName",self._getGUIName)
         self.wizard().__setitem__("organizationName",self._getOrganizationName)
         
-    def fromXml(self,xml):
-        guiName = AppSettingsWizard.getValueFromNode(xml, "GUI_NAME", default=None)
-        organizationName = AppSettingsWizard.getValueFromNode(xml, "ORGANIZATION", default=None)
-
-        if guiName is not None and len(guiName):
-            self._guiNameLineEdit.setText(guiName)
-        else:
-            self._guiNameLineEdit.setText("")
-            
-        if organizationName is not None and len(organizationName):
-            self._organizationCombo.setEditText(organizationName)
-        else:
-            self._organizationCombo.setCurrentIndex(0)
+    def fromXml(self, xml):
+        self._guiNameLineEdit.setText(AppSettingsWizard.getValueFromNode(xml, "GUI_NAME", ''))
+        self._organizationCombo.setEditText(AppSettingsWizard.getValueFromNode(xml, "ORGANIZATION", default='Taurus'))
         
     def _getGUIName(self):
         return str(self._guiNameLineEdit.text())
@@ -407,11 +403,11 @@ class CustomLogoPage(BasePage):
         self._setNoImage()
     
     def fromXml(self, xml):
-        customLogo = AppSettingsWizard.getValueFromNode(xml, "CUSTOM_LOGO", default=None)
-        if customLogo is not None and len(customLogo):
-            self._customLogoLineEdit.setText(customLogo)
-        else:
+        customLogo = AppSettingsWizard.getValueFromNode(xml, "CUSTOM_LOGO", None)
+        if customLogo is None:
             self._setDefaultImage()
+        else:
+            self._customLogoLineEdit.setText(customLogo)
         
     def _setDefaultImage(self):
         self._customLogoLineEdit.setText(self._customLogoDefaultPath)
@@ -546,7 +542,7 @@ class SynopticPage(BasePage):
         
     
     def _addSynoptic (self):
-        pdir = self.wizard().__getItem__('projectDir')
+        pdir = self.wizard().__getitem__('projectDir')
         fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)")  )
         for fileName in fileNames:
             fileName = unicode(fileName)
@@ -601,8 +597,7 @@ class SynopticPage(BasePage):
     
     def _setStatus(self,text):
         self._status_label.setText(text)
-
-
+        
 class MacroServerInfoPage(BasePage):
     
     def __init__(self, parent = None):
@@ -660,17 +655,11 @@ class MacroServerInfoPage(BasePage):
             else:
                 self._macroGroupBox.setChecked(False)
                 return
-        
-        #print self._confWidget.doorComboBox.itemText(1)
-        #print doorName
-        
         if doorName is not None and len(doorName):
             id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
             if id >=0:
                 self._confWidget.doorComboBox.setCurrentIndex(id)
-                
-        #print self._confWidget.doorComboBox.currentText()
-        
+
     def checkData(self):
         BasePage.checkData(self)
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
@@ -691,8 +680,7 @@ class MacroServerInfoPage(BasePage):
             return None
 
     def _setStatus(self,text):
-        self._status_label.setText(text)
-        
+        self._status_label.setText(text)        
            
 class InstrumentsPage(BasePage):
     def __init__(self, parent = None):
@@ -925,10 +913,10 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
         
     def _selectExecFile(self):
-            filePath = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("All files (*)")  )
-            if len(filePath):
-                self._execFileLineEdit.setText(filePath)
-                self._setDefaultText()
+        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("All files (*)")  )
+        if len(filePath):
+            self._execFileLineEdit.setText(filePath)
+            self._setDefaultText()
              
     def _selectIcon(self):
         iconNameList=[]
@@ -948,8 +936,11 @@ class ExternalAppEditor(Qt.QDialog):
             progressBar.setLabelText(k)
             for iconName in v:
                 if (not progressBar.wasCanceled()):
+                    p = taurus.qt.qtgui.resource.getThemePixmap(iconName)
+                    if p.isNull():
+                        continue
                     rowIconName.append(iconName)
-                    pixmapList[iconName] = taurus.qt.qtgui.resource.getThemePixmap(iconName)
+                    pixmapList[iconName] = p
                     i=i+1
                     if r == rowSize-1:
                         r=0
@@ -1123,7 +1114,6 @@ class ExternalAppPage(BasePage):
     def _setStatus(self,text):
         self._status_label.setText(text)     
         
-        
 class MonitorPage(BasePage):
     def __init__(self, parent = None):
         BasePage.__init__(self, parent)
@@ -1190,65 +1180,24 @@ class OutroPage(BasePage):
         BasePage.__init__(self, parent)
         self._valid = True
         self.setTitle('Confirmation Page')
-        self._label = Qt.QLabel("XML configuration file:")
-        self._label.setWordWrap(True)
-        self._layout.addWidget(self._label,0,0,2,1)
-        self._spacerItem1 = Qt.QSpacerItem(20, 20, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Fixed)  
-        self._layout.addItem(self._spacerItem1,1,0,1,1)
+        self._label1 = Qt.QLabel("XML configuration file:")
+        self._layout.addWidget(self._label1,0,0)
         self._xml = Qt.QTextEdit()
-        self._xml.setMinimumHeight(200)
-        self._xml.setMinimumWidth(200)
         self._xml.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
-        self._layout.addWidget(self._xml,2,0,1,2)
-        
-        #self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
-        #self._layout.addItem(self._spacerItem1,4,0,1,1,Qt.Qt.AlignCenter)
-        self._status_label = Qt.QLabel("Write it to file on Finish")
-        self.setStatusLabelPalette(self._status_label)
-        self._layout.addWidget(self._status_label,5,0,1,2)
+        self._layout.addWidget(self._xml,1,0)
+        self._label2 = Qt.QLabel("Files copied")
+        self._layout.addWidget(self._label2,2,0)
+        self._substTable = Qt.QTableWidget()
+        self._substTable.setColumnCount(2)
+        self._substTable.setEditTriggers(self._substTable.NoEditTriggers)
+        self._substTable.setHorizontalHeaderLabels (('Original file', 'File in Project dir'))
+        self._substTable.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
+        self._layout.addWidget(self._substTable,3,0)
 
         
     def _getXml(self):
         return str(self._xml.toPlainText())
-    
-    def _setStatus(self,text):
-        self._status_label.setText(text)
-    
-    def checkData(self):
-        saveToFile = self.wizard().getSaveToFile()
-        if not self._valid and not (saveToFile is not None and len(saveToFile)):
-            self._setStatus("Please save the file before finish")
-        else:
-            self._setStatus("Click finish to exit the wizard")
-            self._valid = True
-            
-        self.emit(Qt.SIGNAL('completeChanged()'))
-#        
-#        if not self._valid:
-#            self._setStatus("Please type the name of the GUI")
-#        else:
-#            self._setStatus("Press next button to continue")   
         
-    def saveAs(self):
-        saveToFile = self.wizard().getSaveToFile()
-        if saveToFile is not None and len(saveToFile):
-            defaultName = Qt.QDir.homePath() + '/' + saveToFile
-        else:
-            defaultName = Qt.QDir.homePath() + '/' + self.wizard().__getitem__("guiName") + "_config.xml"
-        
-        fileName = Qt.QFileDialog.getSaveFileName(self, self.tr("Save As"),
-                        defaultName, self.tr("XML (*.xml );; All files (*)"))
-        
-        if not len(fileName):
-            return False
-        
-#        Add extension if user did not
-#
-#        fInfo = Qt.QFileInfo(fileName)
-#        if not len(fInfo.suffix()):
-#            fileName = fileName+".xml"
-            
-        return self.saveFile(fileName)
   
     def saveFile(self, fileName):
         file = Qt.QFile(fileName)
@@ -1266,101 +1215,93 @@ class OutroPage(BasePage):
         file.close()
   
         return True
-
-#    Ask about changes
-#
-#    def cleanupPage(self):
-#        BasePage.cleanupPage(self)
-#        msgBox = Qt.QMessageBox()
-#        msgBox.setText("Warning              ")
-#        msgBox.setStandardButtons(Qt.QMessageBox().No | Qt.QMessageBox().Yes )
-#        msgBox.setInformativeText("Do you want to leave the editor of without saving the changes?")
-#        ret = msgBox.exec_()
-        
-    def _createConfigFile(self):
-        if True:
-            return True
-        else:
-            return False
         
     def initializePage(self):
-        Qt.QWizardPage.initializePage(self)
-        self.wizard().setOption (Qt.QWizard.NoCancelButton , True)
-        self._xml.setText(self._toXml())
+        xml, substitutions = self.wizard().generateXml()
+        self._xml.setText(xml)
         self.wizard().__setitem__("xml",self._getXml)
-        #if self.wizard().getSaveToFile() is not None:
-        self._saveButton = Qt.QPushButton("Save to file")
-        self._saveButton.setMaximumWidth(120)
-        self._saveButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("document-save"))     
-        Qt.QObject.connect(self._saveButton, Qt.SIGNAL("clicked()"), self.saveAs)
-        self._layout.addWidget(self._saveButton,3,1,1,1)
-        self._valid = False
-        self.checkData()
-        
-    def setNextPageId(self, id):
-        self._nextPageId = id
+        self._substTable.clearContents()
+        self._substTable.setRowCount(len(substitutions))
+        for i,(dst,src) in enumerate(substitutions.items()):
+            item0, item1 = Qt.QTableWidgetItem(src), Qt.QTableWidgetItem(dst)
+            self._substTable.setItem(i, 0, item0)
+            self._substTable.setItem(i, 1, item1)
+        self._substTable.resizeColumnsToContents()
     
-    def _toXml(self):
-        root = etree.Element("taurusgui_config")
-        guiName = etree.SubElement(root, "GUI_NAME")
-        guiName.text = self.wizard().__getitem__("guiName")
-        organizationName = etree.SubElement(root, "ORGANIZATION")
-        organizationName.text = self.wizard().__getitem__("organizationName")
-        customLogo = etree.SubElement(root, "CUSTOM_LOGO")
-        customLogo.text = self.wizard().__getitem__("customLogo")
-        synopticList = self.wizard().__getitem__("synoptics")
-        if synopticList:
-            synoptics = etree.SubElement(root, "SYNOPTIC")
-            for item in synopticList:
-                    child = etree.SubElement(synoptics, "synoptic", str = item)
-
-        if self.wizard().__getitem__("macroServerName"):
-            macroServerName = etree.SubElement(root, "MACROSERVER_NAME")
-            macroServerName.text = self.wizard().__getitem__("macroServerName")
-            doorName = etree.SubElement(root, "DOOR_NAME")
-            doorName.text = self.wizard().__getitem__("doorName")
-            instruments = etree.SubElement(root, "INSTRUMENTS_FROM_POOL")
-            instruments.text = str(self.wizard().__getitem__("instruments"))
+    def validatePage(self):
+        try:
+            self.createProject()
+        except Exception,e:
+            Qt.QMessageBox.warning(self, 'Error creating project', 
+                                    'Could not create project files. \nReason:%s'%repr(e),
+                                     Qt.QMessageBox.Cancel)
+            import traceback
+            traceback.print_exc()
+            return False
+        return True
         
-        panelList = self.wizard().__getitem__("panels")
-        if panelList:
-            panels = etree.SubElement(root, "PanelDescriptions")
-            for panel in panelList:
-                name,xml = panel
-                item = etree.fromstring(xml)
-                panels.append(item)
-            
-        externalAppList = self.wizard().__getitem__("externalApps")
-        if externalAppList:
-            externalApps = etree.SubElement(root, "ExternalApps")
-            for externalApp in externalAppList:
-                name,xml = externalApp
-                item = etree.fromstring(xml)
-                externalApps.append(item)
-       
-        monitor = etree.SubElement(root, "MONITOR")
-        monitor.text = self.wizard().__getitem__("monitor")
-        
-        return  etree.tostring(root, pretty_print=True)
+    def createProject(self):
+        #prepare a log file
+        pdir = self.wizard().__getitem__('projectDir')
+        logfilename = os.path.join(pdir, 'wizard.log')
+        logfile = open(logfilename, 'w')
+        logfile.write('Project created by AppSettingsWizard on %s\n'%datetime.datetime.now().isoformat())
+        #copy files
+        for i in range(self._substTable.rowCount()):
+            src = unicode(self._substTable.item(i,0).text())
+            dst = os.path.join(pdir, unicode(self._substTable.item(i,1).text()))
+            if os.path.normpath(src) != os.path.normpath(dst):
+                shutil.copy(src, dst)
+                logfile.write('File copied: %s --> %s\n'%(src, dst))
+        #write config file
+        cfgfilename = os.path.join(pdir, self.wizard().getConfigFileName())
+        f = open(cfgfilename, 'w')
+        f.write(unicode(self._xml.toPlainText()))
+        f.close()
+        logfile.write('Config file created: "%s"\n'%cfgfilename)
+        #write launcher script
+        launcherfilename = os.path.join(pdir, self.wizard().__getitem__("guiName"))
+        f = open(launcherfilename, 'w')
+        f.write(('#!/bin/sh\n'
+                 '#Make sure to give this file execution permisions\n'
+                 'taurusgui --config-file=%s')%self.wizard().getConfigFileName())
+        f.close()
+        logfile.write('Unix launcher created: "%s"\n'%launcherfilename)
 
+        #if all went ok...
+        msg = 'Application project was successfully created. You can find the files in: "%s"'%pdir
+        details = ''
+        warnings = self.wizard().getProjectWarnings()
+        if warnings:
+            msg += '\n\nHowever, some fine-tuning may be needed. Please check the details:\n'
+            for short,long in warnings:
+                details +='- %s: %s\n\n'%(short, long)        
+        logfile.write(msg+details)
+        logfile.close()    
+        dlg = Qt.QMessageBox(Qt.QMessageBox.Information,'Application project created', msg, Qt.QMessageBox.Ok, self)
+        dlg.setDetailedText(details)
+        dlg.exec_()
+         
 
 class AppSettingsWizard(Qt.QWizard):
-    CONFIGFILENAME = 'config.xml'
     Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
-        
-    
-    def __init__(self, parent=None, jdrawCommand='jdraw', saveToFile = None):
+    def __init__(self, parent=None, jdrawCommand='jdraw', configFileName='config.xml'):
         Qt.QWizard.__init__(self, parent)
         self.installEventFilter(self)
         self._item_funcs = {}
         self._pages = {}
         self._jdrawCommand = jdrawCommand
-        self._saveToFile = saveToFile
+        self._configFileName = configFileName
         self._loadPages()
+        self._substitutions = {}
+        self._projectWarnings = []
+    
+    def getProjectWarnings(self):
+        return self._projectWarnings
         
-    def getSaveToFile(self):
-        return self._saveToFile
-   
+    def getConfigFileName(self):
+        return self._configFileName
+     
     @staticmethod
     def getValueFromNode(rootNode, nodeName, default=None):
         '''
@@ -1390,9 +1331,7 @@ class AppSettingsWizard(Qt.QWizard):
                 array.append(child)
             return array
         else:
-            return None
-        
-    
+            return None    
     def loadXml(self, fname):
         '''
         parses xml code and sets all pages according to its contents. It
@@ -1408,109 +1347,6 @@ class AppSettingsWizard(Qt.QWizard):
         #print self.Pages
         for pageNumber in range(len(self.Pages.keys())):
             self.page(pageNumber).fromXml(root)
-        
-
-
-#                        
-#        self.page(self.Pages.SynopticPage).fromXml(synoptics=synoptics)
-#                    
-#      
-#              
-#        macroserverNameNode = root.find("MACROSERVER_NAME")
-#        if (macroserverNameNode is not None) and (macroserverNameNode.text is not None):
-#            macroserverName = macroserverNameNode.text
-#        else:
-#            macroserverName = None
-#            
-#        doorNameNode = root.find("DOOR_NAME")
-#        if (doorNameNode is not None) and (doorNameNode.text is not None):
-#            doorName = doorNameNode.text
-#        else:
-#            doorName = ''    
-#
-#        macroEditorsPathNode = root.find("MACROEDITORS_PATH")
-#        if (macroEditorsPathNode is not None) and (macroEditorsPathNode.text is not None):
-#            macroEditorsPath = macroEditorsPathNode.text
-#        else:
-#            macroEditorsPath = ''   
-#        
-#        self.page(self.Pages.MacroServerInfo).fromXml(macroserverName=macroserverName, doorName = doorName)
-        
-#        instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
-#        if (instrumentsFromPool is not None) and (instrumentsFromPool.text is not None) and (str(instrumentsFromPool.text).lower() =="true"):
-#            INSTRUMENTS_FROM_POOL = True
-#        else:
-#            INSTRUMENTS_FROM_POOL = False
-#        
-#        #create instrument panels and custom panels
-#        CUSTOM_PANELS = []
-#        
-#        panelDescriptions = root.find("PanelDescriptions")
-#        if (panelDescriptions is not None):
-#            for child in panelDescriptions:
-#                    if (child.tag == "PanelDescription"):
-#                        pd = PanelDescription.fromXml(etree.tostring(child))
-#                        if pd is not None:
-#                            CUSTOM_PANELS.append(pd)
-#                        
-#        if INSTRUMENTS_FROM_POOL:
-#            POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
-#        else:
-#            POOLINSTRUMENTS = []
-#
-#        for p in CUSTOM_PANELS + POOLINSTRUMENTS:
-#            try:
-#                w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-#                if hasattr(w,'setCustomWidgetMap'):
-#                    w.setCustomWidgetMap(self.getCustomWidgetMap())
-#                if p.model is not None:
-#                    w.setModel(p.model)
-#                #create a panel
-#                self.createPanel(w, p.name, p.area)
-#                #connect the widget
-#                Qt.qApp.SDM.connectWriter("SelectedInstrument", w, "panelSelected")
-#                
-#            except Exception,e:
-#                msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
-#                self.error(msg)
-#                self.traceback(level=taurus.Info)
-#                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
-#                if result == Qt.QMessageBox.Abort:
-#                    sys.exit()
-#                    
-#        
-#        #add external applications
-#        EXTERNAL_APPS = [] 
-#        
-#        externalAppsNode = root.find("ExternalApps")
-#        if (externalAppsNode is not None):
-#            for child in externalAppsNode:
-#                    if (child.tag == "ExternalApp"):
-#                        ea = ExternalApp.fromXml(etree.tostring(child))
-#                        if ea is not None:
-#                            EXTERNAL_APPS.append(ea)
-#        
-#        #[obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
-#        for a in EXTERNAL_APPS:
-#            self.addExternalAppLauncher(a.getAction())
-#        
-#        #add a beam monitor      
-#        monitorNode = root.find("MONITOR")
-#        if (monitorNode is not None) and (monitorNode.text is not None):
-#            MONITOR = str(monitorNode.text).split(",")
-#        else:
-#            MONITOR = []
-#        
-#        if MONITOR:
-#            self.__monitor = TaurusMonitorTiny()
-#            self.__monitor.setModel(MONITOR)
-#            self.jorgsBar.addWidget(self.__monitor)
-#            self.registerConfigDelegate(self.__monitor, 'monitor')
-        
-        
-        
-        
-        #raise NotImplementedError('Loading previous projects is not yet implemented')
     
     def getXml(self):
         try:
@@ -1589,10 +1425,97 @@ class AppSettingsWizard(Qt.QWizard):
     
         self.setOption (Qt.QWizard.CancelButtonOnLeft , True)
         
+    def generateXml(self):
+        '''returns the xml code corresponding to the options selected in the wizard
+        and a dictionary representing the paths that have been substituted.
+        
+        :return: (str, dict<str,str>) The return value is a tuple whose first element 
+                 is the xml code and the second element is a dict where the keys are the
+                 destination files and the values are the original paths.
+        '''
+        pdir = self.__getitem__('projectDir')
+        root = etree.Element("taurusgui_config")
+        #general settings page
+        guiName = etree.SubElement(root, "GUI_NAME")
+        guiName.text = self.__getitem__("guiName")
+        organizationName = etree.SubElement(root, "ORGANIZATION")
+        organizationName.text = self.__getitem__("organizationName")
+        #custom logo page
+        customLogo = etree.SubElement(root, "CUSTOM_LOGO")
+        src = self.__getitem__("customLogo")       
+        if src is None or src.startswith(":"):
+            dst = src
+        else:
+            src = os.path.join(pdir,src) #if src is absolute, it stays so, and if it is relative, we make assume pdir as the root dir
+            dst = self.substitutionName(src)
+        customLogo.text = dst
+        #synoptic page
+        synopticList = self.__getitem__("synoptics")
+        if synopticList:
+            synoptics = etree.SubElement(root, "SYNOPTIC")
+            for src in synopticList:
+                src = os.path.join(pdir,src)
+                #substitute the jdw files
+                dst = self.substitutionName(src)
+                child = etree.SubElement(synoptics, "synoptic", str = dst)
+                #substitute any referenced files within the jdrawfiles
+                f = open(src,'r')
+                contents = f.read()
+                f.close()
+                for ref in re.findall(r'file_name:\"(.+?)\"',contents):
+                    refsrc = os.path.join(src,ref) #this is ok for both relative and absolute references
+                    refdst = self.substitutionName(refsrc)
+                    if ref != refdst:
+                        short = 'Manual editing needed in "%s"'%dst
+                        long = ('The synoptic file "%s" references a file that '
+                               'has been copied to the project dir in order to make the project portable. '
+                               'Please edit "%s" and replace "%s" by "%s"')%(dst, dst, ref, refdst)
+                        self._projectWarnings.append((short,long))
+                        
+        #macroserver page        
+        if self.__getitem__("macroServerName"):
+            macroServerName = etree.SubElement(root, "MACROSERVER_NAME")
+            macroServerName.text = self.__getitem__("macroServerName")
+            doorName = etree.SubElement(root, "DOOR_NAME")
+            doorName.text = self.__getitem__("doorName")
+            instruments = etree.SubElement(root, "INSTRUMENTS_FROM_POOL")
+            instruments.text = str(self.__getitem__("instruments"))
+        #panels page
+        panelList = self.__getitem__("panels")
+        if panelList:
+            panels = etree.SubElement(root, "PanelDescriptions")
+            for panel in panelList:
+                name,xml = panel
+                item = etree.fromstring(xml)
+                panels.append(item)
+        #external apps page   
+        externalAppList = self.__getitem__("externalApps")
+        if externalAppList:
+            externalApps = etree.SubElement(root, "ExternalApps")
+            for externalApp in externalAppList:
+                name,xml = externalApp
+                item = etree.fromstring(xml)
+                externalApps.append(item)
+       #monitor page
+        monitor = etree.SubElement(root, "MONITOR")
+        monitor.text = self.__getitem__("monitor")
+        
+        return  etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
+        
+    def substitutionName(self, src):
+        name = os.path.basename(src)
+        i=2
+        while name in self._substitutions:
+            root,ext = os.path.splitext(name)
+            name = "%s_%i%s"%(root,i,ext)
+            i += 1
+        self._substitutions[name] = src
+        return name
+                    
         
 def main():
     app = Qt.QApplication([])
-    wizard = AppSettingsWizard(saveToFile=None)
+    wizard = AppSettingsWizard()
     wizard.show()
     sys.exit(app.exec_())
   
