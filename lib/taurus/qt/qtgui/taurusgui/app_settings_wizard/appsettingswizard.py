@@ -102,6 +102,12 @@ class BasePage(Qt.QWizardPage):
     def initializePage(self):
         Qt.QWizardPage.initializePage(self)
         self.checkData()
+        
+    def fromXml(self, xml):
+        """
+        :param xml: (etree.Element) root node
+        """
+        pass
     
     def _setupUI(self):
         pass
@@ -162,22 +168,22 @@ class BasePage(Qt.QWizardPage):
         return self._nextPageId
 
 
-class IntroPage(Qt.QWizardPage):
+class IntroPage(BasePage):
     """
         Introduction page
     """
     
     def __init__(self, parent = None):
-        Qt.QWizardPage.__init__(self, parent)
-    
+        BasePage.__init__(self, parent)
+        
+    def _setupUI(self): 
         self.setTitle('Introduction')
         self.setPixmap(Qt.QWizard.WatermarkPixmap, taurus.qt.qtgui.resource.getThemeIcon("document-properties").pixmap(120,120))
         label = Qt.QLabel(self.getIntroText())
         label.setWordWrap(True)
-        self._layout = Qt.QVBoxLayout()
-        self._layout.addWidget(label)
+        self._layout.addWidget(label,0,0)
         self._spacerItem1 = Qt.QSpacerItem(10, 200, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Fixed)  
-        self._layout.addItem(self._spacerItem1)
+        self._layout.addItem(self._spacerItem1,1,0)
         self.setLayout(self._layout)
         
     def getIntroText(self):
@@ -190,6 +196,7 @@ class IntroPage(Qt.QWizardPage):
     
     def setNextPageId(self, id):
         self._nextPageId = id
+        
         
 class ProjectPage(BasePage):
     
@@ -250,9 +257,7 @@ class ProjectPage(BasePage):
     def _getProjectDir(self):
         return unicode(self._projectDirLE.text())
         
-  
-        
-        
+           
 class GeneralSettings(BasePage):
     
     def __init__(self, parent = None):
@@ -264,7 +269,10 @@ class GeneralSettings(BasePage):
         self.wizard().__setitem__("guiName",self._getGUIName)
         self.wizard().__setitem__("organizationName",self._getOrganizationName)
         
-    def fromXml(self, guiName=None, organizationName=None):
+    def fromXml(self,xml):
+        guiName = AppSettingsWizard.getValueFromNode(xml, "GUI_NAME", default=None)
+        organizationName = AppSettingsWizard.getValueFromNode(xml, "ORGANIZATION", default=None)
+
         if guiName is not None and len(guiName):
             self._guiNameLineEdit.setText(guiName)
         else:
@@ -398,7 +406,8 @@ class CustomLogoPage(BasePage):
         self._layout.addWidget(self._status_label,9,0,1,6)
         self._setNoImage()
     
-    def fromXml(self, customLogo=None):
+    def fromXml(self, xml):
+        customLogo = AppSettingsWizard.getValueFromNode(xml, "CUSTOM_LOGO", default=None)
         if customLogo is not None and len(customLogo):
             self._customLogoLineEdit.setText(customLogo)
         else:
@@ -478,12 +487,13 @@ class SynopticPage(BasePage):
         BasePage.__init__(self, parent)
         self._synoptics = []
         
-    def fromXml(self, synoptics=None):
-        if synoptics is not None and len(synoptics):
-            self._synoptics = synoptics
-        else:
-            self._synoptics = []
-        self._refreshSynopticList()
+    def fromXml(self, xml):
+        self._synoptics=[]
+        synopticNodes = AppSettingsWizard.getArrayFromNode(xml, "SYNOPTIC", default=None)
+        if synopticNodes is not None:
+            for child in synopticNodes:
+                if child.get("str") is not None and len(child.get("str")):
+                        self._synoptics.append(child.get("str"))
         
     def initializePage(self):
         BasePage.initializePage(self)
@@ -591,6 +601,97 @@ class SynopticPage(BasePage):
     
     def _setStatus(self,text):
         self._status_label.setText(text)
+
+
+class MacroServerInfoPage(BasePage):
+    
+    def __init__(self, parent = None):
+        BasePage.__init__(self, parent)
+    
+    def initializePage(self):
+        BasePage.initializePage(self)
+        self._label.setText("\n <b>%s</b> can communicate with a Sardana's Macro Server and Pool.\nYou can enable and configure them here:\n" % self.wizard().__getitem__("guiName"))
+        self.wizard().__setitem__("macroServerName",self._getMacroServerName)
+        self.wizard().__setitem__("doorName",self._getDoorName)
+        
+    def _setupUI(self):
+        BasePage._setupUI(self)
+        self.setTitle('Macro Server Info')
+        self._label = Qt.QLabel()
+        self._label.setWordWrap(True)
+        self._macroGroupBox = Qt.QGroupBox()
+        self._macroGroupBox.setTitle("Enable Sardana communication")
+        self._macroGroupBox.setCheckable(True)
+        self._macroGroupBox.setChecked(False)
+        self._macroGroupBox.setAlignment(Qt.Qt.AlignLeft)
+        self._macroGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
+        self._horizontalLayout = Qt.QHBoxLayout(self._macroGroupBox)
+        self._confWidget = taurus.qt.qtgui.extra_macroexecutor.common.TaurusMacroConfigurationDialog(self)
+        self._confWidget.setWindowFlags(Qt.Qt.Widget)
+        self._confWidget.setModal(False)
+        self._confWidget.setVisible(True)
+        self._confWidget.buttonBox.setVisible(False)
+        self._horizontalLayout.addWidget(self._confWidget)
+        
+        self._layout.addWidget(self._label,0,0,1,1)
+        self._layout.addWidget(self._macroGroupBox,1,0,1,1) 
+        
+        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._layout.addItem(self._spacerItem1,8,0,1,1,Qt.Qt.AlignCenter)
+        self._status_label = Qt.QLabel("Press next button to continue")
+        self.setStatusLabelPalette(self._status_label)
+        self._layout.addWidget(self._status_label,9,0,1,1)
+        
+        Qt.QObject.connect(self._confWidget.macroServerComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._confWidget.doorComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL("toggled(bool)"), self.checkData)
+    
+    def fromXml(self, xml):
+        
+        macroserverName = AppSettingsWizard.getValueFromNode(xml, "MACROSERVER_NAME", default=None)
+        doorName = AppSettingsWizard.getValueFromNode(xml, "DOOR_NAME", default="")
+        macroEditorsPath = AppSettingsWizard.getValueFromNode(xml, "MACROEDITORS_PATH", default="")
+        
+        if macroserverName is not None and len(macroserverName):
+            id = self._confWidget.macroServerComboBox.findText( macroserverName, Qt.Qt.MatchExactly)
+            if id >=0:
+                self._confWidget.macroServerComboBox.setCurrentIndex(id)
+                self._macroGroupBox.setChecked(True)
+            else:
+                self._macroGroupBox.setChecked(False)
+                return
+        
+        #print self._confWidget.doorComboBox.itemText(1)
+        #print doorName
+        
+        if doorName is not None and len(doorName):
+            id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
+            if id >=0:
+                self._confWidget.doorComboBox.setCurrentIndex(id)
+                
+        #print self._confWidget.doorComboBox.currentText()
+        
+    def checkData(self):
+        BasePage.checkData(self)
+        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
+            self.setNextPageId(self.wizard().currentId()+1)
+        else:
+            self.setNextPageId(self.wizard().currentId()+2)
+          
+    def _getMacroServerName(self):
+        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
+            return str(self._confWidget.macroServerComboBox.currentText())
+        else:
+            return None
+    
+    def _getDoorName(self):
+        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
+            return str(self._confWidget.doorComboBox.currentText())
+        else:
+            return None
+
+    def _setStatus(self,text):
+        self._status_label.setText(text)
         
            
 class InstrumentsPage(BasePage):
@@ -685,7 +786,6 @@ class PanelsPage(BasePage):
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,1)
         
-    
     def _addPanel (self):
         paneldesc,ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(self)
         if ok:
@@ -1024,93 +1124,6 @@ class ExternalAppPage(BasePage):
         self._status_label.setText(text)     
         
         
-class MacroServerInfoPage(BasePage):
-    
-    def __init__(self, parent = None):
-        BasePage.__init__(self, parent)
-    
-    def initializePage(self):
-        BasePage.initializePage(self)
-        self._label.setText("\n <b>%s</b> can communicate with a Sardana's Macro Server and Pool.\nYou can enable and configure them here:\n" % self.wizard().__getitem__("guiName"))
-        self.wizard().__setitem__("macroServerName",self._getMacroServerName)
-        self.wizard().__setitem__("doorName",self._getDoorName)
-        
-    def _setupUI(self):
-        BasePage._setupUI(self)
-        self.setTitle('Macro Server Info')
-        self._label = Qt.QLabel()
-        self._label.setWordWrap(True)
-        self._macroGroupBox = Qt.QGroupBox()
-        self._macroGroupBox.setTitle("Enable Sardana communication")
-        self._macroGroupBox.setCheckable(True)
-        self._macroGroupBox.setChecked(False)
-        self._macroGroupBox.setAlignment(Qt.Qt.AlignLeft)
-        self._macroGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
-        self._horizontalLayout = Qt.QHBoxLayout(self._macroGroupBox)
-        self._confWidget = taurus.qt.qtgui.extra_macroexecutor.common.TaurusMacroConfigurationDialog(self)
-        self._confWidget.setWindowFlags(Qt.Qt.Widget)
-        self._confWidget.setModal(False)
-        self._confWidget.setVisible(True)
-        self._confWidget.buttonBox.setVisible(False)
-        self._horizontalLayout.addWidget(self._confWidget)
-        
-        self._layout.addWidget(self._label,0,0,1,1)
-        self._layout.addWidget(self._macroGroupBox,1,0,1,1) 
-        
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
-        self._layout.addItem(self._spacerItem1,8,0,1,1,Qt.Qt.AlignCenter)
-        self._status_label = Qt.QLabel("Press next button to continue")
-        self.setStatusLabelPalette(self._status_label)
-        self._layout.addWidget(self._status_label,9,0,1,1)
-        
-        Qt.QObject.connect(self._confWidget.macroServerComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._confWidget.doorComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL("toggled(bool)"), self.checkData)
-    
-    def fromXml(self, macroserverName, doorName):
-        if macroserverName is not None and len(macroserverName):
-            id = self._confWidget.macroServerComboBox.findText( macroserverName, Qt.Qt.MatchExactly)
-            if id >=0:
-                self._confWidget.macroServerComboBox.setCurrentIndex(id)
-                self._confWidget.doorComboBox.setModel(macroserverName + "/doorList")
-                self._macroGroupBox.setChecked(True)
-                
-            else:
-                self._macroGroupBox.setChecked(False)
-                return
-        if doorName is not None and len(doorName):
-            #self._confWidget.doorComboBox.addItem(doorName)
-            id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
-            print self._confWidget.doorComboBox.itemText(0)
-            print doorName
-            print id
-            if id >=0:
-                self._confWidget.doorComboBox.setCurrentIndex(id)
-            
-    
-    def checkData(self):
-        BasePage.checkData(self)
-        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
-            self.setNextPageId(self.wizard().currentId()+1)
-        else:
-            self.setNextPageId(self.wizard().currentId()+2)
-          
-    def _getMacroServerName(self):
-        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
-            return str(self._confWidget.macroServerComboBox.currentText())
-        else:
-            return None
-    
-    def _getDoorName(self):
-        if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
-            return str(self._confWidget.doorComboBox.currentText())
-        else:
-            return None
-
-    def _setStatus(self,text):
-        self._status_label.setText(text)
-
-
 class MonitorPage(BasePage):
     def __init__(self, parent = None):
         BasePage.__init__(self, parent)
@@ -1347,6 +1360,38 @@ class AppSettingsWizard(Qt.QWizard):
         
     def getSaveToFile(self):
         return self._saveToFile
+   
+    @staticmethod
+    def getValueFromNode(rootNode, nodeName, default=None):
+        '''
+        returns a value from given Node
+        :param rootNode: (etree.Element) root node
+        :param nodeName: the name of node to find
+        :param default: returned value if node is None or contains empty string
+        '''
+        node = rootNode.find(nodeName)
+        if (node is not None) and (node.text is not None):
+            return node.text
+        else:
+            return default
+        
+    @staticmethod
+    def getArrayFromNode(rootNode, nodeName, default=None):
+        '''
+        returns an array contained by given Node
+        :param rootNode: (etree.Element) root node
+        :param nodeName: the name of node to find
+        :param default: returned value if node is None or contains empty string
+        '''
+        array = []
+        node = rootNode.find(nodeName)
+        if (node is not None) and (node.text is not None):
+            for child in node:
+                array.append(child)
+            return array
+        else:
+            return None
+        
     
     def loadXml(self, fname):
         '''
@@ -1358,61 +1403,38 @@ class AppSettingsWizard(Qt.QWizard):
         projectDir, cfgfile = os.path.split(fname)
         f = open(fname, 'r')
         xml = f.read()
-        
         root = etree.fromstring(xml)
-                    
-        nameNode = root.find("GUI_NAME")
-        if (nameNode is not None) and (nameNode.text is not None):
-            guiName = nameNode.text
-        else:
-            guiName = None
         
-        orgNameNode = root.find("ORGANIZATION")
-        if (orgNameNode is not None) and (orgNameNode.text is not None):
-            organizationName = orgNameNode.text
-        else:
-            organizationName = None
+        #print self.Pages
+        for pageNumber in range(len(self.Pages.keys())):
+            self.page(pageNumber).fromXml(root)
         
-        self.page(self.Pages.GeneralSettings).fromXml(guiName=guiName, organizationName=organizationName)
-       
 
-        customLogoNode = root.find("CUSTOM_LOGO")
-        if (customLogoNode is not None) and (customLogoNode.text is not None):
-            customLogo = customLogoNode.text
-        
-        self.page(self.Pages.CustomLogoPage).fromXml(customLogo=customLogo)
-       
-        synoptics = []
-        synopticNode = root.find("SYNOPTIC")
-        if (synopticNode is not None) and (synopticNode.text is not None):
-            for child in synopticNode:
-                if (child.get("str") is not None):
-                    if len(child.get("str")):
-                        synoptics.append(child.get("str"))
-                        
-        self.page(self.Pages.SynopticPage).fromXml(synoptics=synoptics)
-                    
-      
-              
-        macroserverNameNode = root.find("MACROSERVER_NAME")
-        if (macroserverNameNode is not None) and (macroserverNameNode.text is not None):
-            macroserverName = macroserverNameNode.text
-        else:
-            macroserverName = None
-            
-        doorNameNode = root.find("DOOR_NAME")
-        if (doorNameNode is not None) and (doorNameNode.text is not None):
-            doorName = doorNameNode.text
-        else:
-            doorName = ''    
 
-        macroEditorsPathNode = root.find("MACROEDITORS_PATH")
-        if (macroEditorsPathNode is not None) and (macroEditorsPathNode.text is not None):
-            macroEditorsPath = macroEditorsPathNode.text
-        else:
-            macroEditorsPath = ''   
-        
-        self.page(self.Pages.MacroServerInfo).fromXml(macroserverName=macroserverName, doorName = doorName)
+#                        
+#        self.page(self.Pages.SynopticPage).fromXml(synoptics=synoptics)
+#                    
+#      
+#              
+#        macroserverNameNode = root.find("MACROSERVER_NAME")
+#        if (macroserverNameNode is not None) and (macroserverNameNode.text is not None):
+#            macroserverName = macroserverNameNode.text
+#        else:
+#            macroserverName = None
+#            
+#        doorNameNode = root.find("DOOR_NAME")
+#        if (doorNameNode is not None) and (doorNameNode.text is not None):
+#            doorName = doorNameNode.text
+#        else:
+#            doorName = ''    
+#
+#        macroEditorsPathNode = root.find("MACROEDITORS_PATH")
+#        if (macroEditorsPathNode is not None) and (macroEditorsPathNode.text is not None):
+#            macroEditorsPath = macroEditorsPathNode.text
+#        else:
+#            macroEditorsPath = ''   
+#        
+#        self.page(self.Pages.MacroServerInfo).fromXml(macroserverName=macroserverName, doorName = doorName)
         
 #        instrumentsFromPool = root.find("INSTRUMENTS_FROM_POOL")
 #        if (instrumentsFromPool is not None) and (instrumentsFromPool.text is not None) and (str(instrumentsFromPool.text).lower() =="true"):
