@@ -46,6 +46,7 @@ DevHealth = taurus.core.TaurusSWDevHealth
 Size = Qt.QSize
 
 __INITIALIZED = False
+__INITIALIZED = False
 # Theme capacity was only added in Qt 4.6
 __THEME_CAPACITY = hasattr(Qt.QIcon, "fromTheme")
 # Uncomment the following line to force NOT to use OS theme.
@@ -78,7 +79,6 @@ def __init_theme_members():
     Qt.QDir.addSearchPath("resource", res_dir)
     
     for res_file in [ f for f in os.listdir(res_dir) if f.endswith(".rcc") ]:
-        __LOGGER.warn("Loading resource %s",res_file)
         if not Qt.QResource.registerResource("resource:" + res_file):
             __LOGGER.info("Failed to load resource %s" % res_file)
     
