@@ -78,6 +78,7 @@ def __init_theme_members():
     Qt.QDir.addSearchPath("resource", res_dir)
     
     for res_file in [ f for f in os.listdir(res_dir) if f.endswith(".rcc") ]:
+        __LOGGER.warn("Loading resource %s",res_file)
         if not Qt.QResource.registerResource("resource:" + res_file):
             __LOGGER.info("Failed to load resource %s" % res_file)
     
@@ -117,6 +118,7 @@ def getPixmap(key, size=None):
                  meaning it will return the original size
     
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
+    __init_theme_members()
     
     name = key
     if size is not None:
@@ -135,6 +137,7 @@ def getIcon(key):
     :param key: (str) a string with the pixmap resource key (ex.: ':/status/folder_open.svg')
     
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
+    __init_theme_members()
     
     return Qt.QIcon(key)
 
