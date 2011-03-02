@@ -248,7 +248,7 @@ def main():
 
     print GraphicalChoiceDlg.getChoice(parent=None, title= 'Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps)
         
-    sys.exit(app.exec_())
+    sys.exit()
 
 
 if __name__ == "__main__":
