@@ -330,9 +330,15 @@ class TaurusShell(ExternalPythonShell):
             'container' : False
         }
 
-
 def demo():
-    pass
+    """Shell"""
+
+    from spyderlib.plugins.variableexplorer import VariableExplorer
+    settings = VariableExplorer.get_settings()
+    shell = TaurusShell()
+    shell.resize(768,768)
+    shell.show()
+    return shell
 
 def main():
     import sys
@@ -349,11 +355,7 @@ def main():
                           app_name="Taurus Shell demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
 
-    from spyderlib.plugins.variableexplorer import VariableExplorer
-    settings = VariableExplorer.get_settings()
-    shell = TaurusShell()
-    shell.resize(768,768)
-    shell.show()
+    shell = demo()
     
     if owns_app:
         sys.exit(app.exec_())

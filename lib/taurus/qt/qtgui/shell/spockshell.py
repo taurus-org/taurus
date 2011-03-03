@@ -64,7 +64,13 @@ class SpockShell(TaurusPythonShell):
         return ret
 
 def demo():
-    pass
+    #"""Tango shell"""
+    from spyderlib.plugins.variableexplorer import VariableExplorer
+    settings = VariableExplorer.get_settings()
+    shell = SpockShell(stand_alone=settings)
+    shell.resize(768,768)
+    shell.show()
+    return shell
 
 def main():
     import sys
@@ -81,13 +87,7 @@ def main():
                           app_name="Spock Shell demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
 
-    options = app.get_command_line_options()
-
-    from spyderlib.plugins.variableexplorer import VariableExplorer
-    settings = VariableExplorer.get_settings()
-    shell = SpockShell(stand_alone=settings)
-    shell.resize(768,768)
-    shell.show()
+    shell = demo()
     
     if owns_app:
         sys.exit(app.exec_())

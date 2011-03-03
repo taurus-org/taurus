@@ -58,9 +58,6 @@ class SardanaShell(SpockShell):
         return ret
 
 
-def demo():
-    pass
-
 def main():
     import sys
     import os.path
