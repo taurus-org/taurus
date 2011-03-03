@@ -69,6 +69,8 @@ class TaurusDemoPanel(Qt.QWidget):
             demo_func = demos[demo_name]
             parts = demo_name.split(".")
             group = parts[-2]
+            if not demo_func.__doc__:
+                continue
             try:
                 self.addDemo(demo_func.__doc__, demo_func, group)
             except Exception, e:
@@ -123,7 +125,6 @@ def main():
                                                         app_version="1.0",
                                                         org_domain="Taurus",
                                                         org_name="Tango community")
-
     gui = TaurusDemoPanel()
     gui.setWindowTitle(app.applicationName())
     gui.show()
