@@ -485,11 +485,10 @@ class SynopticPage(BasePage):
         
     def fromXml(self, xml):
         self._synoptics=[]
-        synopticNodes = AppSettingsWizard.getArrayFromNode(xml, "SYNOPTIC", default=None)
-        if synopticNodes is not None:
-            for child in synopticNodes:
-                if child.get("str") is not None and len(child.get("str")):
-                        self._synoptics.append(child.get("str"))
+        synopticNodes = AppSettingsWizard.getArrayFromNode(xml, "SYNOPTIC", default=[])
+        for child in synopticNodes:
+            if child.get("str") is not None and len(child.get("str")):
+                    self._synoptics.append(child.get("str"))
         
     def initializePage(self):
         BasePage.initializePage(self)
@@ -642,23 +641,21 @@ class MacroServerInfoPage(BasePage):
         Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL("toggled(bool)"), self.checkData)
     
     def fromXml(self, xml):
-        
-        macroserverName = AppSettingsWizard.getValueFromNode(xml, "MACROSERVER_NAME", default=None)
+        macroserverName = AppSettingsWizard.getValueFromNode(xml, "MACROSERVER_NAME", default="")
         doorName = AppSettingsWizard.getValueFromNode(xml, "DOOR_NAME", default="")
         macroEditorsPath = AppSettingsWizard.getValueFromNode(xml, "MACROEDITORS_PATH", default="")
         
-        if macroserverName is not None and len(macroserverName):
-            id = self._confWidget.macroServerComboBox.findText( macroserverName, Qt.Qt.MatchExactly)
-            if id >=0:
-                self._confWidget.macroServerComboBox.setCurrentIndex(id)
-                self._macroGroupBox.setChecked(True)
-            else:
-                self._macroGroupBox.setChecked(False)
-                return
-        if doorName is not None and len(doorName):
-            id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
-            if id >=0:
-                self._confWidget.doorComboBox.setCurrentIndex(id)
+        id = self._confWidget.macroServerComboBox.findText( macroserverName, Qt.Qt.MatchExactly)
+        if id >=0:
+            self._confWidget.macroServerComboBox.setCurrentIndex(id)
+            self._macroGroupBox.setChecked(True)
+        else:
+            self._macroGroupBox.setChecked(False)
+            return
+            
+        id = self._confWidget.doorComboBox.findText( doorName, Qt.Qt.MatchExactly)
+        if id >=0:
+            self._confWidget.doorComboBox.setCurrentIndex(id)
 
     def checkData(self):
         BasePage.checkData(self)
@@ -1331,7 +1328,8 @@ class AppSettingsWizard(Qt.QWizard):
                 array.append(child)
             return array
         else:
-            return None    
+            return default
+            
     def loadXml(self, fname):
         '''
         parses xml code and sets all pages according to its contents. It
