@@ -33,8 +33,6 @@ import sys
 from PyQt4 import Qt
 
 import taurus.core.util
-from taurus.qt.qtgui.resource import qrc_extra_icons_leds_images24
-from taurus.qt.qtgui.resource import qrc_extra_icons_leds_images48
 import taurus.qt.qtgui.resource
 import qpixmapwidget
 
