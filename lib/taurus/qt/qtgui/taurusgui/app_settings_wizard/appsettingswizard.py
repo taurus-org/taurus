@@ -66,14 +66,14 @@ class BooleanWidget(Qt.QWidget):
         self.falseButton.setText("No")
         Qt.QObject.connect(self.trueButton, Qt.SIGNAL("clicked()"), self.valueChanged)
         Qt.QObject.connect(self.falseButton, Qt.SIGNAL("clicked()"), self.valueChanged)
-        self.setValue(self.getDefaultValue(), undo=False)
+        self.setValue(self.getDefaultValue())
 
     def valueChanged(self):
         if not (self.trueButton.isChecked() == self._actualValue):
             self.emit(Qt.SIGNAL("valueChanged"),self._actualValue,not self._actualValue)
         self._actualValue = self.trueButton.isChecked()
     
-    def setValue(self, value, undo=False):
+    def setValue(self, value):
         if value is None:
             value = self.getDefaultValue()
         self.trueButton.setChecked(value)
@@ -707,6 +707,13 @@ class InstrumentsPage(BasePage):
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,3)
         
+    def fromXml(self, xml):
+        instruments = AppSettingsWizard.getValueFromNode(xml, "INSTRUMENTS_FROM_POOL", default="False")
+        if str(instruments).lower() == "true":
+            self._intstrumentsBoolean.setValue(True)
+        else:
+            self._intstrumentsBoolean.setValue(False)
+            
     def _getInstruments(self):
         return str(self._intstrumentsBoolean.getValue())
         
@@ -770,6 +777,14 @@ class PanelsPage(BasePage):
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,1)
+        
+    def fromXml(self, xml):
+        self._panels = []
+        panelNodes = AppSettingsWizard.getArrayFromNode(xml, "PanelDescriptions", default=[])
+        for child in panelNodes:
+            name = AppSettingsWizard.getValueFromNode(child, "name", default=None)
+            if name:
+                self._panels.append( ( name, etree.tostring(child) ) )
         
     def _addPanel (self):
         paneldesc,ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(self)
@@ -1054,6 +1069,13 @@ class ExternalAppPage(BasePage):
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,1)
         
+    def fromXml(self, xml):
+        self._externalApps = []
+        panelNodes = AppSettingsWizard.getArrayFromNode(xml, "ExternalApps", default=[])
+        for child in panelNodes:
+            name = AppSettingsWizard.getValueFromNode(child, "command", default=None)
+            if name:
+                self._externalApps.append( ( name, etree.tostring(child) ) )
     
     def _addApplication (self):
         name, xml, ok = ExternalAppEditor.getDialog()
@@ -1153,6 +1175,8 @@ class MonitorPage(BasePage):
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label,9,0,1,4)
         
+    def fromXml(self, xml): 
+        self._monitorLineEdit.setText(AppSettingsWizard.getValueFromNode(xml, "MONITOR", default=""))
     
     def _clearMonitor(self):
         self._monitorLineEdit.clear()
@@ -1188,6 +1212,7 @@ class OutroPage(BasePage):
         self._substTable.setColumnCount(2)
         self._substTable.setEditTriggers(self._substTable.NoEditTriggers)
         self._substTable.setHorizontalHeaderLabels (('Original file', 'File in Project dir'))
+        self._substTable.setMaximumHeight(200)
         self._substTable.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
         self._layout.addWidget(self._substTable,3,0)
 
