@@ -228,10 +228,16 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                     if self._default_tango_host is None:
                         self.dft_db = _Database()
                     else:
-                        self.dft_db = _Database(self._default_tango_host)
+                        db_name = self._default_tango_host
+                        validator = _Database.getNameValidator()
+                        params = validator.getParams(db_name)
+                        if params is None:
+                            raise TaurusException("Invalid default database name %s." % db_name)
+                        host, port = params.get('host'),params.get('port')
+                        self.dft_db = _Database(host,port)
                 except Exception, e:
                     msg = "Could not create Database: %s" % str(e)
-                    self.warning(msg)
+                    self.debug(msg)
                     raise TaurusException(msg)
                 db_name = self.dft_db.getFullName()
                 self.tango_db[db_name] = self.dft_db
@@ -329,6 +335,8 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 d = self.tango_devs.get(full_dev_name)
             except Exception, e:
                 self.debug("Error creating device %s", dev_name)
+                import traceback
+                traceback.print_exc()
                 raise e
         return d
 
