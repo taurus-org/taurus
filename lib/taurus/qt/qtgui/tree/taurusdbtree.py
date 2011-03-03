@@ -727,6 +727,7 @@ def main_TaurusTreePanel(host):
     w.setWindowTitle("A Taurus Tree Example")
     w.setModel(host)
     w.show()
+    return w
 
 def main_TaurusDbTreeWidget(host, perspective=ElemType.Device):
     w = TaurusDbTreeWidget(perspective=perspective)
@@ -734,16 +735,36 @@ def main_TaurusDbTreeWidget(host, perspective=ElemType.Device):
     w.setWindowTitle("A Taurus Tree Example")
     w.setModel(host)
     w.show()
+    return w
 
-if __name__ == "__main__":
+def demo():
+    """DB panels"""
+
+    db = taurus.Database()
+    host = db.getNormalName()
+    w =main_TaurusTreePanel(host)
+    # w = main_TaurusDbTreeWidget(host, ElemType.Device)
+    
+    return w
+
+def main():
     import sys
-    app = Qt.QApplication(sys.argv)
+    import taurus.qt.qtgui.application
+    Application = taurus.qt.qtgui.application.TaurusApplication
     
-    host = "controls02:10000"
-    if len(sys.argv) > 1:
-        host = sys.argv[1]
-
-    #main_TaurusTreePanel(host)
-    main_TaurusDbTreeWidget(host, ElemType.Device)
+    app = Application.instance()
+    owns_app = app is None
     
-    sys.exit(app.exec_())
+    if owns_app:
+        app = Application(app_name="DB model demo", app_version="1.0",
+                          org_domain="Taurus", org_name="Tango community")
+    w = demo()
+    w.show()
+    
+    if owns_app:
+        sys.exit(app.exec_())
+    else:
+        return w
+    
+if __name__ == "__main__":
+    main()
