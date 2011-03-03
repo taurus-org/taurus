@@ -46,7 +46,7 @@ DevHealth = taurus.core.TaurusSWDevHealth
 Size = Qt.QSize
 
 __INITIALIZED = False
-__INITIALIZED = False
+__INITIALIZED_THEME = False
 # Theme capacity was only added in Qt 4.6
 __THEME_CAPACITY = hasattr(Qt.QIcon, "fromTheme")
 # Uncomment the following line to force NOT to use OS theme.
@@ -63,17 +63,10 @@ __1DQS = __DQS
 __2DQS = Size(2*__DW, __DH)
 __3DQS = Size(3*__DW, __DH)
 
-def __init_theme_members():
+def __init():
     global __INITIALIZED
-    global __THEME_MEMBERS
-    global __THEME_CAPACITY
-    global __LOGGER
     
-    if __INITIALIZED: return __THEME_MEMBERS
-    
-    app = Qt.QApplication.instance()
-    if app is None and __THEME_CAPACITY:
-        raise Exception("Cannot calculate theme without QApplication instance")
+    if __INITIALIZED: return
     
     res_dir = os.path.dirname(os.path.abspath(__file__))
     Qt.QDir.addSearchPath("resource", res_dir)
@@ -82,6 +75,23 @@ def __init_theme_members():
         if not Qt.QResource.registerResource("resource:" + res_file):
             __LOGGER.info("Failed to load resource %s" % res_file)
     
+    __INITIALIZED = True
+
+__init()
+
+def __init_theme_members():
+    global __INITIALIZED_THEME
+    global __THEME_MEMBERS
+    global __THEME_CAPACITY
+    global __LOGGER
+    
+    if __INITIALIZED_THEME: return __THEME_MEMBERS
+    
+    app = Qt.QApplication.instance()
+    if app is None and __THEME_CAPACITY:
+        raise Exception("Cannot calculate theme without QApplication instance")
+    
+    res_dir = os.path.dirname(os.path.abspath(__file__))
     theme_icon_dir = os.path.join(res_dir, "tango-icons")
     members = {}
     for d in os.listdir(theme_icon_dir):
@@ -99,7 +109,7 @@ def __init_theme_members():
     
     __THEME_MEMBERS = members
 
-    __INITIALIZED = True
+    __INITIALIZED_THEME = True
     return __THEME_MEMBERS
 
 def getThemeMembers():
@@ -118,7 +128,6 @@ def getPixmap(key, size=None):
                  meaning it will return the original size
     
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
-    __init_theme_members()
     
     name = key
     if size is not None:
@@ -137,8 +146,7 @@ def getIcon(key):
     :param key: (str) a string with the pixmap resource key (ex.: ':/status/folder_open.svg')
     
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
-    __init_theme_members()
-    
+
     return Qt.QIcon(key)
 
 def getThemePixmap(key, size=None):
