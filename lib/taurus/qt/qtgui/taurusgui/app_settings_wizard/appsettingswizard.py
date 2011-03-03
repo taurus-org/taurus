@@ -949,8 +949,6 @@ class ExternalAppEditor(Qt.QDialog):
             for iconName in v:
                 if (not progressBar.wasCanceled()):
                     p = taurus.qt.qtgui.resource.getThemePixmap(iconName)
-                    if p.isNull():
-                        continue
                     rowIconName.append(iconName)
                     pixmapList[iconName] = p
                     i=i+1
@@ -1212,7 +1210,6 @@ class OutroPage(BasePage):
         self._substTable.setColumnCount(2)
         self._substTable.setEditTriggers(self._substTable.NoEditTriggers)
         self._substTable.setHorizontalHeaderLabels (('Original file', 'File in Project dir'))
-        self._substTable.setMaximumHeight(200)
         self._substTable.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
         self._layout.addWidget(self._substTable,3,0)
 
