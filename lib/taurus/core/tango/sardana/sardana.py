@@ -34,6 +34,7 @@ import socket
 
 import time
 import taurus.core.util
+import PyTango
 
 PoolElementType = taurus.core.util.Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister", 
@@ -152,7 +153,8 @@ class ControllerInfo(object):
 
 class Pool(object):
     
-    def __init__(self, name, poolpath, version, alias=None, device_name=None):
+    def __init__(self, sardana, name, poolpath, version, alias=None, device_name=None):
+        self._sardana = sardana
         self._name = name
         self._poolpath = poolpath
         self._version = version
@@ -201,16 +203,36 @@ class Pool(object):
 
 class MacroServer(object):
     
-    def __init__(self, name, macropath, version, alias=None, device_name=None):
+    def __init__(self, sardana, name, macropath, version, alias=None, device_name=None):
+        self._sardana = sardana
         self._name = name
         self._macropath = macropath
         self._version = version
         self._alias = alias
         self._device_name = device_name
-        
+        self._doors = []
+    
     def create_door(self, alias, device_name):
-        return Door(alias=alias, device_name=device_name)
-
+        try:
+            return self._create_door(alias, device_name)
+        except:
+            db = self.get_database()
+            db.delete_device(device_name)
+            raise
+        
+    def _create_door(self, alias, device_name):
+        db = self.get_database()
+        info = PyTango.DbDevInfo()
+        info.name = device_name
+        info._class = "Door"
+        info.server = "MacroServer/" + self._name
+        db.add_device(info)
+        if alias:
+            db.put_device_alias(device_name, alias)
+        door = Door(alias=alias, device_name=device_name)
+        self._doors.append(door)
+        return door
+    
     def remove_door(self, device_name):
         pass
     
@@ -221,6 +243,9 @@ class MacroServer(object):
     def local_run(self):
         time.sleep(3)
         return True
+    
+    def get_database(self):
+        return self._sardana.get_database()
 
 class Door(object):
     
@@ -231,9 +256,12 @@ class Door(object):
 
 class Sardana(object):
     
-    def __init__(self, name, device_name):
+    def __init__(self, sardana_db , name, device_name):
+        self._sardana_db = sardana_db
         self._name = name
-        self._device_namee = device_name
+        self._device_name = device_name
+        self._pools = []
+        self._macroservers = []
         
     def get_name(self):
         return self._name
@@ -243,21 +271,62 @@ class Sardana(object):
         
     def get_pools(self):
         # fake data #
-        fake_pools = []
-        for i in range(5):
-            fake_pools.append(Pool(self.get_name()+"_pool"+str(i),[],"0."+str(i),"Pool_nr"+str(i), self.get_name()+"/Pool/"+str(i)))
-        #
-        return fake_pools
+#        fake_pools = []
+#        for i in range(5):
+#            fake_pools.append(Pool(self.get_name()+"_pool"+str(i),[],"0."+str(i),"Pool_nr"+str(i), self.get_name()+"/Pool/"+str(i)))
+#        #
+
+        return self._pools
     
     def get_macro_servers(self):
         return [MacroServer("noname",[],"0.4","MS_noname", "none/MS/1")]
         
     def create_pool(self, name, poolpath, version, alias=None, device_name=None):
-        return Pool(name, poolpath, version, alias=alias, device_name=device_name)
+        try:
+            return self._create_pool(name, poolpath, version, alias=alias, device_name=device_name)
+        except:
+            db = self.get_database()
+            db.delete_device(device_name)
+            raise
         
+    def _create_pool(self, name, poolpath, version, alias=None, device_name=None):
+        db = self.get_database()
+        info = PyTango.DbDevInfo()
+        info.name = device_name
+        info._class = "Pool"
+        info.server = "Pool/" + name
+        db.add_device(info)
+        if alias:
+            db.put_device_alias(device_name, alias)
+            
+        db.put_device_property(device_name,{"PoolPath" : poolpath, "Version": version} )
+        pool = Pool(self, name, poolpath, version, alias=alias, device_name=device_name)
+        self._pools.append(pool)
+        
+        return pool
+    
     def create_macroserver(self, name, macropath, version, alias=None, device_name=None):
-        
-        return MacroServer(name, macropath, version, alias=alias, device_name=device_name)
+        try:
+            return self._create_macroserver(name, macropath, version, alias=alias, device_name=device_name)
+        except:
+            db = self.get_database()
+            db.delete_device(device_name)
+            raise
+     
+    def _create_macroserver(self, name, macropath, version, alias=None, device_name=None):
+        db = self.get_database()
+        info = PyTango.DbDevInfo()
+        info.name = device_name
+        info._class = "MacroServer"
+        info.server = "MacroServer/" + name
+        db.add_device(info)
+        if alias:
+            db.put_device_alias(device_name, alias)
+            
+        db.put_device_property(device_name,{"MacroPath" : macropath, "Version": version} )
+        ms = MacroServer(self, name, macropath, version, alias=alias, device_name=device_name)
+        self._macroservers.append(ms)
+        return ms
         
     def remove_pool(self):
         pass
@@ -265,6 +334,8 @@ class Sardana(object):
     def remove_macroserver(self):
         pass
 
+    def get_database(self):
+        return self._sardana_db.get_database()
 
 class DatabaseSardana(object):
     """A class containning all sardanas for a single database"""
@@ -279,13 +350,13 @@ class DatabaseSardana(object):
         services = self._db.get_service_list("Sardana/.*")
         for service, dev in services.items():
             service_type, service_instance = service.split("/", 1)
-            sardanas[service_instance] = Sardana(service_instance, dev)
+            sardanas[service_instance] = Sardana(self, service_instance, dev)
     
     def create_sardana(self, name, device_name):
         if self._sardanas.has_key(name):
             raise Exception("Sardana '%s' already exists" % name)
         self._db.register_service("Sardana", name, device_name)
-        sardana = Sardana(name, device_name)
+        sardana = Sardana(self, name, device_name)
         self._sardanas[name] = sardana
         return sardana
         
@@ -301,8 +372,9 @@ class DatabaseSardana(object):
     
     def get_sardana(self, name):
         return self._sardanas[name]
-
-
+    
+    def get_database(self):
+        return self._db
 
 class SardanaManager(taurus.core.util.Singleton, taurus.core.util.Logger):
     
