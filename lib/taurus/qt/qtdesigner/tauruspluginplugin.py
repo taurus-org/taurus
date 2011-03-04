@@ -50,7 +50,9 @@ def main():
     import taurus.qt.qtgui.util
     #taurus.setLogLevel(taurus.Debug)
     _log = taurus.core.util.Logger(__name__)
-
+    
+    taurus.Manager().setOperationMode(taurus.core.OperationMode.OFFLINE)
+    
     try:
         wf = taurus.qt.qtgui.util.TaurusWidgetFactory()
         klasses = wf.getWidgetClasses()

@@ -53,6 +53,9 @@ class SimulationDatabase(taurus.core.TaurusDatabase):
     def getElementFullName(self, alias):
         return "a/b/c"
     
+    def cache(self):
+        return taurus.Factory('tango').getDatabase().cache()
+        
     def __getattr__(self, name):
         return "SimulationDatabase object calling %s" % name
     
