@@ -37,7 +37,8 @@ import taurus.qt.uic
 def main():
     version = "tau2taurus %s" % (taurus.Release.version)
     usage = "usage: %prog [options] inputfile"
-    parser = optparse.OptionParser(usage=usage, version=version)
+    description = "tau to taurus ui file translator"
+    parser = optparse.OptionParser(usage=usage, version=version, description=description)
     
     parser.add_option("-o", '--output', dest="output", default="",
                       help="output FILE [default=console]", metavar="FILE")
