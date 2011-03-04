@@ -125,12 +125,10 @@ class TaurusApplication(Qt.QApplication):
         
         # if the constructor was called without a parser but with an application
         # name and/or version, then add the --version capability
-        if parser is None and (app_name or app_version):
+        if parser is None and app_version:
             v = app_version
             if app_name:
-                v = app_name
-                if app_version:
-                    v += " " + app_version
+                v = app_name + " " + app_version
             parser = optparse.OptionParser(version=v)
 
         p, opt, args = taurus.core.util.argparse.init_taurus_args(parser=parser)
