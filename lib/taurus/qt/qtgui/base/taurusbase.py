@@ -273,7 +273,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         If the event is  not to be ignored, filter must return a
         ``(evt_src, evt_type, evt_value)`` tuple which may (or not) differ from the input.
         
-        For a library of common filters, see taurus/util/eventfilters.py
+        For a library of common filters, see taurus/core/util/eventfilters.py
         
         :param filters: (sequence) a sequence of filters
         
