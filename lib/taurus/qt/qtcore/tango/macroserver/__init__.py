@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-__init__.py: 
+MacroServer extension for taurus Qt
 """
 
 __docformat__ = 'restructuredtext'

@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This package provides a set of taurus wiget utilities like logging"""
+"""This package provides a set of utilities (e.g. logging) to taurus qtcore"""
 
 __docformat__ = 'restructuredtext'
 
