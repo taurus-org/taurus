@@ -30,6 +30,8 @@ __all__ = ["TaurusApplication"]
 
 __docformat__ = 'restructuredtext'
 
+import optparse
+
 from PyQt4 import Qt
 
 import taurus.core.util.argparse
@@ -121,6 +123,16 @@ class TaurusApplication(Qt.QApplication):
         if org_domain is not None:
             self.setOrganizationDomain(org_domain)
         
+        # if the constructor was called without a parser but with an application
+        # name and/or version, then add the --version capability
+        if parser is None and (app_name or app_version):
+            v = app_version
+            if app_name:
+                v = app_name
+                if app_version:
+                    v += " " + app_version
+            parser = optparse.OptionParser(version=v)
+
         p, opt, args = taurus.core.util.argparse.init_taurus_args(parser=parser)
         
         self._cmd_line_parser = p
