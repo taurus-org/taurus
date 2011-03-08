@@ -240,7 +240,7 @@ class TaurusValueLabel(Qt.QLabel, TaurusBaseWidget):
             if newModelObj is not None:
                 s = newModelObj.getParent().getStateObj()
                 s.addListener(self._stateListener)
-
+        
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
@@ -263,12 +263,11 @@ class TaurusValueLabel(Qt.QLabel, TaurusBaseWidget):
     #: **Access functions:**
     #:
     #:     * :meth:`TaurusBaseWidget.getModel`
-    #:     * :meth:`TaurusBaseWidget.setModel`
+    #:     * :meth:`TaurusValueLabel.setModel`
     #:     * :meth:`TaurusBaseWidget.resetModel`
     #:
     #: .. seealso:: :ref:`model-concept`
-    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
-                            TaurusBaseWidget.setModel,
+    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,setModel,
                             TaurusBaseWidget.resetModel)
     
     #: This property holds whether or not this widget should search in the 

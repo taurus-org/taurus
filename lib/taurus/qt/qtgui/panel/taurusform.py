@@ -752,9 +752,11 @@ def taurusFormMain():
     import sys, os
     
     parser = argparse.get_taurus_parser()
-    parser.usage = "%prog [options] [model1 [model2 ...]]"
-    
-    app = TaurusApplication(cmd_line_parser=parser)
+    parser.set_usage("%prog [options] [model1 [model2 ...]]")
+    parser.set_description("the taurus form panel application")
+    app = TaurusApplication(cmd_line_parser=parser,
+                            app_name="taurusform",
+                            app_version=taurus.Release.version)
     args = app.get_command_line_args()
 
     dialog = TaurusForm()

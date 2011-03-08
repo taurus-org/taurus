@@ -121,7 +121,11 @@ class TaurusDemoPanel(Qt.QWidget):
         
 
 def main():
-    app = taurus.qt.qtgui.application.TaurusApplication(app_name="Taurus demo",
+    import taurus.core.util.argparse
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_description("A demo application for taurus")
+    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
+                                                        app_name="taurusdemo",
                                                         app_version="1.0",
                                                         org_domain="Taurus",
                                                         org_name="Tango community")

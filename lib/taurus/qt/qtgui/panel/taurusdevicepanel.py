@@ -156,18 +156,16 @@ def TaurusPanelMain():
     import sys
     
     parser = argparse.get_taurus_parser()
-    parser.usage = "%prog [options] [hostname]"
-    
-    app = TaurusApplication(cmd_line_parser=parser)
+    parser.set_usage("%prog [options] [hostname]")
+    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
+    app = TaurusApplication(cmd_line_parser=parser,app_name="tauruspanel",
+                            app_version=taurus.Release.version)
     args = app.get_command_line_args()
     
     if len(args)>0: 
         host=args[0]
     else: 
         host = taurus.Database().getNormalName()
-    
-    app.setApplicationName('TaurusPanel')
-    app.setOrganizationName('ALBA')
     
     dialog = TaurusDevPanel()
     

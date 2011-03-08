@@ -117,12 +117,14 @@ def ask_yes_no(prompt,default=None):
 
     return answers[ans]
 
+_ARGS = None
 
 def parse_args():
-    Version = "Taurus UI Compiler %s" % (taurus.Release.version)
-
-    parser = optparse.OptionParser(usage="taurusuic4 [options] <ui-file>", 
-                                   version=Version)
+    version = "taurusuic4 %s" % (taurus.Release.version)
+    usage = "taurusuic4 [options] <ui-file>"
+    description = "a taurus customized pyuic4"
+    parser = optparse.OptionParser(usage=usage, description=description,
+                                   version=version)
     # Default pyuic4 parameters
     parser.add_option("-p", "--preview")
     parser.add_option("-o", "--output", dest="output", default="-", metavar="FILE",
@@ -150,7 +152,8 @@ def _generate_widget():
     
     factory = taurus.qt.qtgui.util.TaurusWidgetFactory()
     
-    opts, args = parse_args()
+    global _ARGS
+    opts, args = _ARGS
     ui_filename = args[0]
     pyui_path = opts.output
     pyui_dirname, pyui_filename = os.path.split(pyui_path)
@@ -297,6 +300,8 @@ def main():
             go = generate
         else:
             go = generate_with_old_pyuic4
+        global _ARGS
+        _ARGS = parse_args()
         go()
     except Exception, e:
         print "Error running taurusuic4:"

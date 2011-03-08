@@ -3034,7 +3034,8 @@ def main():
     import taurus.core.util.argparse
     
     parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.usage = "%prog [options] [<model1> [<model2>] ...]"
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting 1D data sets")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='e', metavar="t|n",
                   help="interprete X values as either timestamps (t) or numbers (n). Accepted values: t|n (e is also accepted as a synonim of n)")
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
@@ -3043,7 +3044,9 @@ def main():
                   help="use the given file to as output instead of showing the plot")
     
     
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
+    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
+                                                        app_name="taurusplot",
+                                                        app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
     if options.x_axis_mode.lower() not in ['t', 'e', 'n']:

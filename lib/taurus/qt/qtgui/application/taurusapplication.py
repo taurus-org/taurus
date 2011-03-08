@@ -123,13 +123,18 @@ class TaurusApplication(Qt.QApplication):
         if org_domain is not None:
             self.setOrganizationDomain(org_domain)
         
-        # if the constructor was called without a parser but with an application
+        # if the constructor was called without a parser or with a parser that
+        # doesn't contain version information and with an application
         # name and/or version, then add the --version capability
-        if parser is None and app_version:
+        if (parser is None or parser.version is None) and app_version:
             v = app_version
             if app_name:
                 v = app_name + " " + app_version
-            parser = optparse.OptionParser(version=v)
+            if parser is None:
+                parser = optparse.OptionParser(version=v)
+            elif parser.version is None:
+                parser.version = v
+                parser._add_version_option()
 
         p, opt, args = taurus.core.util.argparse.init_taurus_args(parser=parser)
         

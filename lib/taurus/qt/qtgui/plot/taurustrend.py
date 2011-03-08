@@ -1155,7 +1155,8 @@ def main():
     import taurus.core.util.argparse
     
     parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.usage = "%prog [options] [<model1> [<model2>] ...]"
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting trends")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|e",
                   help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
@@ -1168,7 +1169,9 @@ def main():
 
     
     
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
+    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
+                                                        app_name="taurustrend",
+                                                        app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
     if options.x_axis_mode.lower() not in ['t', 'e']:

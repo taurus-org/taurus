@@ -61,9 +61,9 @@ Supose you want to add an option like ``--model=<model name>``::
     
     def main():
         import taurus.core.util.argparse as argparse
-        
-        parser = argparse.get_taurus_parser()
-        parser.usage = "%prog [options] <special item>"
+        parser = argparse.get_taurus_parser(parser=parser)
+        parser.set_usage("%prog [options] <special item>")
+        parser.set_description("my own GUI application")
         parser.add_option("--model")
 
         parser, options, args = argparse.init_taurus_args(parser=parser)

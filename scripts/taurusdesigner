@@ -61,9 +61,10 @@ def append_or_replace_env(env, env_name, env_value, is_path_like=True):
                 env_value += ":" + e_v
         env[i] = env_name + "=" + env_value
 
-version = "Taurus designer %s" % (taurus.Release.version)
+version = "taurusdesigner %s" % (taurus.Release.version)
 usage = "Usage: %prog [options] <ui file(s)>"
-parser = optparse.OptionParser(version=version)
+description = "The Qt designer application customized for taurus"
+parser = optparse.OptionParser(version=version, usage=usage, description=description)
 parser.add_option("--taurus-path", dest="tauruspath", default="",
                   help="additional directories to look for taurus widgets")
 parser.add_option("--qt-designer-path", dest="pyqtdesignerpath", default="",

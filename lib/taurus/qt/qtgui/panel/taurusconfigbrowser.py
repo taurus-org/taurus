@@ -134,9 +134,11 @@ def main():
     import sys
     
     parser = argparse.get_taurus_parser()
-    parser.usage = "%prog [options] [INIFILENAME]"
-    
-    app = TaurusApplication(cmd_line_parser=parser)
+    parser.set_usage("%prog [options] [INIFILENAME]")
+    parser.set_description("taurus configuration viewer")
+    app = TaurusApplication(cmd_line_parser=parser,
+                            app_name="taurusconfigbrowser",
+                            app_version=taurus.Release.version)
     args = app.get_command_line_args()
     
     w = QConfigViewer()

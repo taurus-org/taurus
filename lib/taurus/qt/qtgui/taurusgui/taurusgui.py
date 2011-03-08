@@ -973,18 +973,20 @@ def main():
     from taurus.qt.qtgui.application import TaurusApplication
         
     parser = argparse.get_taurus_parser()
-    parser.usage = "%prog [options] confname"
+    parser.set_usage("%prog [options] confname")
+    parser.set_description("The taurus GUI application")
     parser.add_option("--config-file", "--config-file", dest="config_file", default=None,
                   help="use the given XML configuration file for initialization")
     
-    app = TaurusApplication(cmd_line_parser=parser)
+    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
+                            app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
 
     if options.config_file is None:
         if len(args) != 1:
             parser.print_help(sys.stderr)
-            sys.exit(1)             
+            sys.exit(1)
         confname = args[0] 
         gui = TaurusGui(None, confname=confname)
     else:
