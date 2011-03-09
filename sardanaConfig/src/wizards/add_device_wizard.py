@@ -1,4 +1,5 @@
 import os, sys, wx, copy, taurus, settings_widget, simple_tree_model, wiz
+import taurus.qt.qtgui.resource
 from PyQt4 import QtGui, QtCore, Qt
 from types import *
 from taurus.core.util import Enumeration
