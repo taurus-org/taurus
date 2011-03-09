@@ -52,8 +52,7 @@ class SelectSardanaPoolBasePage(wiz.SardanaBasePage):
             self._poolNameCB.setEnabled(False)
         else:
             self._fillPoolNameCB()
-        
-        
+         
     def isComplete(self):
         return self._valid
 
@@ -85,6 +84,7 @@ class SelectSardanaPoolBasePage(wiz.SardanaBasePage):
             if str(self._poolNameCB.currentText()) == pool.get_name():
                 return pool
         return None
+    
     
 class SimpleTreeView(QtGui.QTreeView):
 
@@ -386,6 +386,7 @@ class NewDeviceCommitBasePage(wiz.SardanaIntroBasePage):
 
     def setNextPageId(self, id):
         self._nextPageId = id
+
 
 class DescriptionWidget(QtGui.QWidget):
     
