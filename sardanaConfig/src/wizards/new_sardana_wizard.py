@@ -227,17 +227,12 @@ class Item(object):
 class SimpleEditorBasePage(wiz.SardanaBasePage):
    
     def __init__(self, parent = None):
-        wiz.SardanaBasePage.__init__(self, parent)
-        
-        self.setSubTitle('SubTitle')
-        
+        wiz.SardanaBasePage.__init__(self, parent)  
+        self.setSubTitle('SubTitle') 
         panel = self.getPanelWidget()
         self._valid = True
-
-      
         self.horizontalLayout = QtGui.QHBoxLayout(panel)
         self.horizontalLayout.setObjectName("horizontalLayout")
-
         self.tableWidget = QtGui.QTableWidget(self)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(3)
@@ -389,7 +384,6 @@ class SimpleEditorBasePage(wiz.SardanaBasePage):
         self._fillList()
         self.checkData()
         
-    
     def setNextPageId(self, id):
         self._nextPageId = id
         
@@ -441,17 +435,12 @@ class AddPoolBasePage(SimpleEditorBasePage):
         self._editor = None
         SimpleEditorBasePage.__init__(self, parent)
         self._editor = PoolEditor(parent = self)
-        
-
         self.selectedItem=None
         self.item_id=None
-        
         self.setSubTitle('You can use this manager if you would like to Add, Edit or Delete Pool entries in the database.')
-        
         self.addButton.setText(QtGui.QApplication.translate("Form", "Add Pool", None, QtGui.QApplication.UnicodeUTF8))
         self.editButton.setText(QtGui.QApplication.translate("Form", "Edit Pool", None, QtGui.QApplication.UnicodeUTF8))
         self.removeButton.setText(QtGui.QApplication.translate("Form", "Remove Pool", None, QtGui.QApplication.UnicodeUTF8))
-        
         QtCore.QObject.connect(self.addButton, QtCore.SIGNAL("clicked()"), self.openAddEditor)
         QtCore.QObject.connect(self.editButton, QtCore.SIGNAL("clicked()"), self.openItemEditor)
         QtCore.QObject.connect(self.removeButton, QtCore.SIGNAL("clicked()"), self.delete)
@@ -479,7 +468,6 @@ class AddPoolBasePage(SimpleEditorBasePage):
         SimpleEditorBasePage.openEditor(self)
         self._editor.showEditor(item=None, item_id=None)
 
-        
     def openItemEditor (self):
         if len(self.tableWidget.selectedIndexes())>0:
             self.item_id=self.tableWidget.selectedIndexes()[0].row()
@@ -524,42 +512,33 @@ class PoolEditor(object):
         self.ui = pool_editor_UI.Ui_PoolEditor()
         self.poolEditor.setModal(True)
         self.ui.setupUi(self.poolEditor)
-
         self._regExp = QtCore.QRegExp("^[0-9a-zA-Z_/]{,50}")
         self._regValid = QtGui.QRegExpValidator(self._regExp, self.poolEditor)
-        
         self._regExp2 = QtCore.QRegExp("^[0-9.]{,50}")
         self._versionValid = QtGui.QRegExpValidator(self._regExp2, self.poolEditor)
-        
         self._regExp3 = QtCore.QRegExp("^[0-9a-zA-Z_/]{,100}")
         self._deviceNameValid = QtGui.QRegExpValidator(self._regExp3, self.poolEditor)
-        
         self.ui.instanceNameLineEdit.setValidator(self._regValid)
         self.ui.poolDeviceNameLineEdit.setValidator(self._deviceNameValid)
         self.ui.aliasLineEdit.setValidator(self._regValid)
         self.ui.poolVersionLineEdit.setValidator(self._versionValid)
-        
         self._item_id=None
         self._path_id=None
-        
         self.ui.addButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
         self.ui.removeButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
         self.ui.upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
         self.ui.downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
-        
+        #connections
         QtCore.QObject.connect(self.ui.createButton, QtCore.SIGNAL("clicked()"), self._createPool)
         QtCore.QObject.connect(self.ui.addButton, QtCore.SIGNAL("clicked()"), self._addPath)
         QtCore.QObject.connect(self.ui.removeButton, QtCore.SIGNAL("clicked()"), self._removePath)
         QtCore.QObject.connect(self.ui.upButton, QtCore.SIGNAL("clicked()"), self._moveUp)
         QtCore.QObject.connect(self.ui.downButton, QtCore.SIGNAL("clicked()"), self._moveDown)
         QtCore.QObject.connect(self.ui.instanceNameLineEdit,QtCore.SIGNAL('textEdited(const QString &)'), self._letterChanged)
-        
         QtCore.QObject.connect(self.ui.poolDeviceNameCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
         QtCore.QObject.connect(self.ui.aliasCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
         QtCore.QObject.connect(self.ui.poolVersionCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)       
-        
         QtCore.QObject.connect(self.ui.poolPathList, QtCore.SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self._editPath)       
-        
         
     def _letterChanged(self):
         if self.ui.poolDeviceNameCheckBox.isChecked():
@@ -665,9 +644,7 @@ class PoolEditor(object):
             if self._validate():
                 self._parent.editItem(item= self._pool.copy(),id=self._item_id)         
   
-    
     def showEditor(self, item=None, item_id=None):
-        
         self._pool= Pool()
         if item == None:
             self._pool.setPoolPath(SardanaManager.get_default_pool_path())
@@ -708,8 +685,8 @@ class PoolEditor(object):
             self.poolEditor.setModal(True)
             self.poolEditor.exec_()
     
-class MS(Item):
     
+class MS(Item):
     def __init__(self,instanceName="", hostName="", level=None, poolName="", msDeviceName="", msAlias="", msVersion="", msPath=[], doorName="", doorAlias=""):
         Item.__init__(self, instanceName, hostName, level)
         self._msDeviceName=str(msDeviceName)
@@ -753,10 +730,10 @@ class MS(Item):
     def copy(self):
         return MS(self._instanceName, self._hostName, self._level,self._poolName, self._msDeviceName, self._msAlias, self._msVersion, self._msPath[:], self._doorName, self._doorAlias )
         
+        
 class MSEditor(object):
     
     def __init__(self,parent = None):
-
         self._parent=parent
         #self._parent = weakref.ref(parent)
         self._isEditorOpened=False
@@ -765,46 +742,37 @@ class MSEditor(object):
         self.ui = ms_editor_UI.Ui_MSEditor()
         self.msEditor.setModal(True)
         self.ui.setupUi(self.msEditor)
-
         self._regExp = QtCore.QRegExp("^[0-9a-zA-Z]{,50}")
         self._regValid = QtGui.QRegExpValidator(self._regExp, self.msEditor)
-
         self._regExp2 = QtCore.QRegExp("^[0-9.]{,50}")
         self._versionValid = QtGui.QRegExpValidator(self._regExp2, self.msEditor)
-        
         self._regExp3 = QtCore.QRegExp("^[0-9a-zA-Z_/]{,100}")
-        self._deviceNameValid = QtGui.QRegExpValidator(self._regExp3, self.msEditor)
-        
+        self._deviceNameValid = QtGui.QRegExpValidator(self._regExp3, self.msEditor)  
         self.ui.instanceNameLineEdit.setValidator(self._regValid)
         self.ui.msDeviceNameLineEdit.setValidator(self._deviceNameValid)
         self.ui.msAliasLineEdit.setValidator(self._regValid)
         self.ui.msVersionLineEdit.setValidator(self._versionValid)
         self.ui.doorNameLineEdit.setValidator(self._regValid)
         self.ui.doorAliasLineEdit.setValidator(self._regValid)
-        
         self._item_id=None
         self._path_id=None
-        
         self.ui.addButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
         self.ui.removeButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
         self.ui.upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
         self.ui.downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
-        
+        #connections
         QtCore.QObject.connect(self.ui.createButton, QtCore.SIGNAL("clicked()"), self._createMS)
         QtCore.QObject.connect(self.ui.addButton, QtCore.SIGNAL("clicked()"), self._addPath)
         QtCore.QObject.connect(self.ui.removeButton, QtCore.SIGNAL("clicked()"), self._removePath)
         QtCore.QObject.connect(self.ui.upButton, QtCore.SIGNAL("clicked()"), self._moveUp)
         QtCore.QObject.connect(self.ui.downButton, QtCore.SIGNAL("clicked()"), self._moveDown)
         QtCore.QObject.connect(self.ui.instanceNameLineEdit,QtCore.SIGNAL('textEdited(const QString &)'), self._letterChanged)
-        
         QtCore.QObject.connect(self.ui.msDeviceNameCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
         QtCore.QObject.connect(self.ui.msAliasCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
         QtCore.QObject.connect(self.ui.msVersionCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)       
         QtCore.QObject.connect(self.ui.doorNameCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
         QtCore.QObject.connect(self.ui.doorAliasCheckBox, QtCore.SIGNAL("toggled(bool)"), self._letterChanged)
-        
         QtCore.QObject.connect(self.ui.msPathList, QtCore.SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self._editPath)       
-        
         
     def _letterChanged(self):
         if self.ui.msDeviceNameCheckBox.isChecked():
@@ -817,7 +785,6 @@ class MSEditor(object):
             self.ui.doorNameLineEdit.setText("door/"+self.ui.instanceNameLineEdit.text()+"/1")
         if self.ui.doorAliasCheckBox.isChecked():
             self.ui.doorAliasLineEdit.setText("Door_"+self.ui.instanceNameLineEdit.text())
-
     
     def getPoolServerList(self):
         return self._parent.getPoolServerList()
@@ -960,7 +927,6 @@ class MSEditor(object):
         else:
             if self._validate():
                 self._parent.editItem(item= self._ms.copy(),id=self._item_id)         
-  
     
     def showEditor(self, item=None, item_id=None):
         self._ms= MS()
@@ -1024,16 +990,13 @@ class AddMSBasePage(SimpleEditorBasePage):
         self._editor=None
         SimpleEditorBasePage.__init__(self, parent)
         self._editor = MSEditor(parent = self)
-
         self.selectedItem=None
         self.item_id=None
-        
-        self.setSubTitle('You can use this manager if you would like to Add, Edit or Delete Macro Server entries in the database.')
-        
+        self.setSubTitle('You can use this manager if you would like to Add, Edit or Delete Macro Server entries in the database.')   
         self.addButton.setText(QtGui.QApplication.translate("Form", "Add MS", None, QtGui.QApplication.UnicodeUTF8))
         self.editButton.setText(QtGui.QApplication.translate("Form", "Edit MS", None, QtGui.QApplication.UnicodeUTF8))
         self.removeButton.setText(QtGui.QApplication.translate("Form", "Remove MS", None, QtGui.QApplication.UnicodeUTF8))
-        
+        #connections
         QtCore.QObject.connect(self.addButton, QtCore.SIGNAL("clicked()"), self.openAddEditor)
         QtCore.QObject.connect(self.editButton, QtCore.SIGNAL("clicked()"), self.openItemEditor)
         QtCore.QObject.connect(self.removeButton, QtCore.SIGNAL("clicked()"), self.delete)
@@ -1210,11 +1173,9 @@ class SardanaCommitBasePage(wiz.SardanaIntroBasePage):
 class SardanaOutroBasePage(wiz.SardanaBasePage):
     def __init__(self, parent = None):
         QtGui.QWizardPage.__init__(self, parent)
-        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(":/watermark.jpg"))
-        
+        self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(":/watermark.jpg")) 
         self._valid = True
         self._layout = QtGui.QVBoxLayout()
-        
         self._spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem)
         self._horizontalLayout_1 = QtGui.QHBoxLayout()
@@ -1236,7 +1197,6 @@ class SardanaOutroBasePage(wiz.SardanaBasePage):
         self._layout.addItem(self._spacerItem3)
         self.setLayout(self._layout)
 #        self.setTitle('The new instance of Sardana has been successfully created.')
-
 
     def initializePage(self):
         self.wizard().setOption(QtGui.QWizard.NoCancelButton, True)
@@ -1297,7 +1257,6 @@ class Progress (Qt.QThread):
         # -1 - interrupted
         for msg, percentage, status in self._createSardana():
             self.emit(Qt.SIGNAL("valueUpdated"), msg, percentage, status)
-
             
     def _createSardana(self):
             err = False
