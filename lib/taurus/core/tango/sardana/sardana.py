@@ -144,7 +144,18 @@ class ControllerInfo(object):
         return self._ctrl_class_info.get_max_elements()
     
     def is_axis_free(self, axis):
-        return False
+        #fake data
+        if axis == 3:
+            return False
+        else:
+            return True
+
+    def is_name_free(self, name):
+        #fake data
+        if name == "asd":
+            return False
+        else:
+            return True
 
     def get_icon(self):
         return self._ctrl_class_info.get_icon()
@@ -162,14 +173,12 @@ class Pool(object):
         self._device_name = device_name
         
     def starter_run(self, host, level=1):
-        time.sleep(3)
         return True
     
     def get_name(self):
         return self._name
     
     def local_run(self):
-        time.sleep(3)
         return True
     
     def get_element_types(self):
@@ -203,10 +212,11 @@ class Pool(object):
 
 class MacroServer(object):
     
-    def __init__(self, sardana, name, macropath, version, alias=None, device_name=None):
+    def __init__(self, sardana, name, macropath, pool_names, version, alias=None, device_name=None):
         self._sardana = sardana
         self._name = name
         self._macropath = macropath
+        self._pool_names = pool_names
         self._version = version
         self._alias = alias
         self._device_name = device_name
@@ -237,11 +247,9 @@ class MacroServer(object):
         pass
     
     def starter_run(self, host, level=1):
-        time.sleep(3)
         return True
         
     def local_run(self):
-        time.sleep(3)
         return True
     
     def get_database(self):
@@ -252,34 +260,63 @@ class Door(object):
     def __init__(self, alias=None, device_name=None):
         self._name = alias
         self._device_name = device_name
-    
+
 
 class Sardana(object):
     
-    def __init__(self, sardana_db , name, device_name):
+    def __init__(self, sardana_db , name, device_name=None):
         self._sardana_db = sardana_db
         self._name = name
         self._device_name = device_name
         self._pools = []
         self._macroservers = []
+        self._init()
         
+    def _init(self):
+        if not self._device_name:
+            return
+        self._pools = []
+        self._macroservers = []
+        dev_name = self._device_name
+        db = self.get_database()
+        cache = db.cache()
+        dev_info = cache.devices()[dev_name]
+        dev_class_name = dev_info.klass().name()
+        if dev_class_name == "Pool":
+            pass
+        elif dev_class_name == "MacroServer":
+            ms_dev_name = dev_name
+            ms_prop_list = map(str.lower, db.get_device_property_list(ms_dev_name, "*"))
+            ms_props = db.get_device_property(ms_dev_name, ms_prop_list)
+            ms_name = dev_info.server().serverInstance()
+            ms_alias = dev_info.alias()
+            ms = MacroServer(self, ms_name, ms_props.get("macropath"), ms_props.get("poolnames"),
+                             ms_props.get("version"), ms_alias, ms_dev_name)
+            self._macroservers.append(ms)
+            for pool_dev_name in ms_props.get("poolnames",()):
+                pool_prop_list = map(str.lower, db.get_device_property_list(pool_dev_name, "*"))
+                pool_props = db.get_device_property(pool_dev_name, pool_prop_list)
+                pool_dev_info = cache.devices()[pool_dev_name]
+                pool_name = pool_dev_info.server().serverInstance()
+                pool_alias = pool_dev_info.alias()
+                pool = Pool(self, pool_name, pool_props.get("poolpath"), pool_props.get("version"), pool_alias, pool_dev_name)
+                self._pools.append(pool)
+    
     def get_name(self):
         return self._name
-        
+    
+    def set_device_name(self, device_name):
+        self._device_name = device_name
+        self._init()
+    
     def get_device_name(self):
         return self._device_name
         
     def get_pools(self):
-        # fake data #
-#        fake_pools = []
-#        for i in range(5):
-#            fake_pools.append(Pool(self.get_name()+"_pool"+str(i),[],"0."+str(i),"Pool_nr"+str(i), self.get_name()+"/Pool/"+str(i)))
-#        #
-
         return self._pools
     
     def get_macro_servers(self):
-        return [MacroServer("noname",[],"0.4","MS_noname", "none/MS/1")]
+        return self._macro_servers
         
     def create_pool(self, name, poolpath, version, alias=None, device_name=None):
         try:
@@ -302,18 +339,18 @@ class Sardana(object):
         db.put_device_property(device_name,{"PoolPath" : poolpath, "Version": version} )
         pool = Pool(self, name, poolpath, version, alias=alias, device_name=device_name)
         self._pools.append(pool)
-        
+        db.cache().refresh()
         return pool
     
-    def create_macroserver(self, name, macropath, version, alias=None, device_name=None):
+    def create_macroserver(self, name, macropath, pool_names, version, alias=None, device_name=None):
         try:
-            return self._create_macroserver(name, macropath, version, alias=alias, device_name=device_name)
+            return self._create_macroserver(name, macropath, pool_names, version, alias=alias, device_name=device_name)
         except:
             db = self.get_database()
             db.delete_device(device_name)
             raise
      
-    def _create_macroserver(self, name, macropath, version, alias=None, device_name=None):
+    def _create_macroserver(self, name, macropath, pool_names, version, alias=None, device_name=None):
         db = self.get_database()
         info = PyTango.DbDevInfo()
         info.name = device_name
@@ -323,9 +360,10 @@ class Sardana(object):
         if alias:
             db.put_device_alias(device_name, alias)
             
-        db.put_device_property(device_name,{"MacroPath" : macropath, "Version": version} )
-        ms = MacroServer(self, name, macropath, version, alias=alias, device_name=device_name)
+        db.put_device_property(device_name,{"MacroPath" : macropath, "Version": version, "PoolNames":pool_names} )
+        ms = MacroServer(self, name, macropath, pool_names, version, alias=alias, device_name=device_name)
         self._macroservers.append(ms)
+        db.cache().refresh()
         return ms
         
     def remove_pool(self):
@@ -350,13 +388,16 @@ class DatabaseSardana(object):
         services = self._db.get_service_list("Sardana/.*")
         for service, dev in services.items():
             service_type, service_instance = service.split("/", 1)
-            sardanas[service_instance] = Sardana(self, service_instance, dev)
+            try:
+                sardanas[service_instance] = Sardana(self, service_instance, dev)
+            except:
+                pass
     
     def create_sardana(self, name, device_name):
         if self._sardanas.has_key(name):
             raise Exception("Sardana '%s' already exists" % name)
         self._db.register_service("Sardana", name, device_name)
-        sardana = Sardana(self, name, device_name)
+        sardana = Sardana(self, name)
         self._sardanas[name] = sardana
         return sardana
         
