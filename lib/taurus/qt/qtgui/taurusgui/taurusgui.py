@@ -762,7 +762,7 @@ class TaurusGui(TaurusMainWindow):
         APPNAME = getattr(conf,'GUI_NAME', confname)
         ORGNAME = getattr(conf,'ORGANIZATION', 'Taurus')
         CUSTOMLOGO =  getattr(conf, 'CUSTOM_LOGO', getattr(conf,'LOGO', ":/taurus.png"))
-        if not customlogo.startswith(':'):
+        if not CUSTOMLOGO.startswith(':'):
             CUSTOMLOGO = os.path.join(self._confDirectory, CUSTOMLOGO)
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
