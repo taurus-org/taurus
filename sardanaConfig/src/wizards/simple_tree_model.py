@@ -115,6 +115,12 @@ class SimpleTreeModel(QAbstractItemModel):
         self.root = BranchNode("")
         self.headers = ["Type"]
         
+    def setHeaders(self, headers):
+        self.headers = headers
+        
+    def getHeaders(self):
+        return self.headers
+        
     def addNodes(self, fields, callReset=True):
         root = self.root
         branch = None
@@ -213,7 +219,6 @@ class SimpleTreeModel(QAbstractItemModel):
         assert branch is not None
         return self.createIndex(row, column,
                                 branch.childAtRow(row))
-
 
     def parent(self, child):
         node = self.nodeFromIndex(child)
