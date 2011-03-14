@@ -450,7 +450,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         TaurusTrendsSet.__init__(self, None, parent=parent, curves=None)
         self._xDataKey = xDataKey
         self._autoClear = autoClear
-        self._usePointNumber = usePointNumber
+        #self._usePointNumber = usePointNumber
         self._currentpoint = -1
         self._plotablesFilter = lambda x:True
         self._endMarkers = []
@@ -467,7 +467,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         if pcktype == "data_desc": 
             if self._autoClear:
                 self.clearTrends()
-            self._createTrends(packet["data"])
+            print packet["data"]
+            self._createTrends(packet["data"]["column_desc"])
         elif pcktype == "record_data": 
             self._scanLineReceived(packet["data"])
         elif pcktype == "record_end":
@@ -508,16 +509,17 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._plotablesFilter = flt
     
     def _addEndMarker(self):
-        if not self._usePointNumber:
-            m = Qwt5.QwtPlotMarker()
-            m.setLineStyle(m.VLine)
-            m.setXValue(self._currentpoint)
-            m.attach(self._parent)
-            pen = Qt.QPen(Qt.Qt.DashLine)
-            pen.setWidth(2)
-            m.setLinePen(pen)
-            self._endMarkers.append(m)
-            self._currentpoint -= 1
+        return
+#        if not self._usePointNumber:
+#            m = Qwt5.QwtPlotMarker()
+#            m.setLineStyle(m.VLine)
+#            m.setXValue(self._currentpoint)
+#            m.attach(self._parent)
+#            pen = Qt.QPen(Qt.Qt.DashLine)
+#            pen.setWidth(2)
+#            m.setLinePen(pen)
+#            self._endMarkers.append(m)
+#            self._currentpoint -= 1
     
     def getDataDesc():
         return self.__datadesc     
