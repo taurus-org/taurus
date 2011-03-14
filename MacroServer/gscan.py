@@ -96,7 +96,8 @@ class GScan(Logger):
       - 'pre-move-hooks' : (optional) a sequence of callables to be called in strict order before starting to move.
       - 'post-move-hooks': (optional) a sequence of callables to be called in strict order after finishing the move.
       - 'pre-acq-hooks'  : (optional) a sequence of callables to be called in strict order before starting to acquire.
-      - 'post-acq-hooks' : (optional) a sequence of callables to be called in strict order after finishing to move.
+      - 'post-acq-hooks' : (optional) a sequence of callables to be called in strict order after finishing acquisition but before recording the step.
+      - 'post-step-hooks' : (optional) a sequence of callables to be called in strict order after finishing recording the step.
       - 'hooks' : (deprecated, use post-acq-hooks instead)
       - 'point_id' : a hashable identifing the scan point.
       - 'check_func' : a callable object callable(moveables, counters)
@@ -104,7 +105,7 @@ class GScan(Logger):
                        field. The extra information fields must be described in
                        extradesc (passed in the constructor of the Gscan) 
     
-    The moveables must be a sequence of Motion objects.
+    The moveables must be a sequence Motion or MoveableDesc objects.
     
     The environment is a dictionary of extra environment to be added specific
     to the macro in question.
@@ -128,8 +129,13 @@ class GScan(Logger):
         - 'title' : the scan title (build from macro.getCommand)
         - 'datadesc' : a seq<ColumnDesc> describing each column of data 
                      (labels, data format, data shape, etc)
-        - 'estimatedtime' : a datetime.timedelta representing an estimation for 
-                          the duration of the scan
+        - 'estimatedtime' : a float representing an estimation for 
+                          the duration of the scan (in seconds). Negative means
+                          the time estimation is known not to be accurate. Anyway,
+                          time estimation has 'at least' semantics.
+        - 'total_scan_intervals' : total number of scan intervals. Negative means
+                                   the estimation is known not to be accurate. In
+                                   this case, estimation has 'at least' semantics.
         - 'starttime' : a datetime.datetime representing the start of the scan
         - 'instrumentlist' : a list of Instrument objects containing info
                             about the physical setup of the motors, counters,...
@@ -161,7 +167,7 @@ class GScan(Logger):
         # ----------------------------------------------------------------------
         # Setup motion objects
         # ----------------------------------------------------------------------
-        self._motion = self.macro.getMotion([ m.getName() for m in moveables])
+        self._motion = self.macro.getMotion([ m.moveable.getName() for m in moveables])
 
         # ----------------------------------------------------------------------
         # Find the measurement group
@@ -351,9 +357,19 @@ class GScan(Logger):
         data_desc = [ ColumnDesc(label='point_nb', dtype='int64') ]
         
         # add motor columns
+        ref_moveables = []
         for moveable in self.moveables:
-            instrument = moveable.getInstrument()
-            data_desc.append( ColumnDesc(label=moveable.getName(), instrument=instrument) )
+            if isinstance(moveable, MoveableDesc):
+                data_desc.append(moveable)
+                if moveable.is_reference:
+                    ref_moveables.insert(0, moveable.label)
+            else:
+                instrument = moveable.getInstrument()
+                data_desc.append( ColumnDesc(label=moveable.getName(), instrument=instrument) )
+        
+        if not ref_moveables and len(self.moveables):
+            ref_moveables.append(data_desc[-1].label)
+        env['ref_moveables'] = ref_moveables
         
         # add master column
         ch_obj = self.measurement_group.getChannelObj(self._master_name)
@@ -378,10 +394,9 @@ class GScan(Logger):
         
         env['macro_id'] = self.macro.getID()
         env['datadesc'] = data_desc
-        env['estimatedtime'] = self._calculateTotalAcquisitionTime()
+        env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         ##@TODO: (when Pool supports Instruments) uncomment following line 
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
-        
 
         env.update(additional_env)
         self._env = env
@@ -389,12 +404,37 @@ class GScan(Logger):
         # Give the environment to the ScanData
         self.data.setEnviron(env)
 
-    def _calculateTotalAcquisitionTime(self):
-        total_time = datetime.timedelta()
-        if hasattr(self.macro, "getTimeEstimation"):
-            total_time = self.macro.getTimeEstimation()
-        return total_time
+    MAX_ITER = 10000
 
+    def _estimate(self, max_iter=None):
+        with_time = hasattr(self.macro, "getTimeEstimation")
+        with_interval = hasattr(self.macro, "getIntervalEstimation")
+        if with_time and with_interval:
+            return self.macro.getTimeEstimation(), self.macro.getIntervalEstimation()
+        
+        max_iter = max_iter or self.MAX_ITER
+        iterator = self.generator()
+        total_time = 0.0
+        interval_nb = 0
+        try:
+            if not with_time:
+                while interval_nb < max_iter:
+                    step = iterator.next()
+                    integ_time = step.get("integ_time", 0.0)
+                    total_time += integ_time
+                    interval_nb += 1
+                if with_interval:
+                    interval_nb = self.macro.getIntervalEstimation()
+            else:
+                while interval_nb < max_iter:
+                    step = iterator.next()
+                    interval_nb += 1
+                total_time = self.macro.getTimeEstimation()
+        except StopIteration:
+            return total_time, interval_nb
+        # max iteration reached.
+        return -total_time, -interval_nb
+    
     @property
     def data(self):
         return self._data
@@ -527,13 +567,18 @@ class SScan(GScan):
         # Add final moveable positions
         data_line['point_nb'] = n
         for i, m in enumerate(self.moveables):
-            data_line[m.getName()] = positions[i]
+            data_line[m.moveable.getName()] = positions[i]
         
         #Add extra data coming in the step['extrainfo'] dictionary
         if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
         
         self.data.addRecord(data_line)
-
+    
+        #post-step hooks
+        for hook in step.get('post-step-hooks',[]):
+            hook()
+            try: step['extrainfo'].update(hook.getStepExtraInfo())
+            except: pass
 
 class CScan(GScan):
     
@@ -581,7 +626,7 @@ class CScan(GScan):
         motion, mg, waypoints = self.motion, self.measurement_group, self.steps
         manager = self.macro.getManager()
 
-        moveables      = self.moveables
+        moveables      = [ m.moveable for m in self.moveables ]
         period_steps   = self.period_steps
         point_nb, step = -1, None
         data           = self.data

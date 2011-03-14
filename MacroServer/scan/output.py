@@ -1,4 +1,5 @@
 import numpy
+import datetime
 
 from taurus.core.util import json, CodecFactory
 
@@ -13,9 +14,16 @@ class JsonRecorder(DataRecorder):
 
     def _startRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
-        data_desc = recordlist.getEnvironValue('datadesc')
-        self.data_desc = [ e for e in data_desc if e.shape == (1,) ]
-        data = [ d.toDict() for d in self.data_desc ]
+        column_desc = recordlist.getEnvironValue('datadesc')
+        ref_moveables = recordlist.getEnvironValue('ref_moveables')
+        estimatedtime = recordlist.getEnvironValue('estimatedtime')
+        total_scan_intervals = recordlist.getEnvironValue('total_scan_intervals')
+        self.column_desc = [ e for e in column_desc if e.shape == (1,) ]
+        column_desc = [ d.toDict() for d in self.column_desc ]
+        data = { 'column_desc' : column_desc, 
+                 'ref_moveables' : ref_moveables,
+                 'estimatedtime' : estimatedtime,
+                 'total_scan_intervals' : total_scan_intervals }
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
     
     def _endRecordList(self, recordlist):
@@ -27,7 +35,7 @@ class JsonRecorder(DataRecorder):
     def _writeRecord(self, record):
         macro_id = self.recordlist.getEnvironValue('macro_id')
         data = {} # dict(record.data)
-        for k in self.data_desc:
+        for k in self.column_desc:
             name = k.label
             data[name] = record.data[name]
         self._sendPacket(type="record_data", data=data, macro_id=macro_id)
@@ -61,7 +69,8 @@ class OutputRecorder(DataRecorder):
         
         msg = "Scan started at %s." % starttime
         if not estimatedtime is None:
-            msg += ". It will take at least %s" % estimatedtime
+            estimatedtime = datetime.timedelta(0, abs(estimatedtime))
+            msg += " It will take at least %s" % estimatedtime
         self._stream.info(msg)
 
         dh = recordlist.getDataHandler()

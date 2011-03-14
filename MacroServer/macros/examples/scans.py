@@ -16,7 +16,7 @@ from macro import *
 from scan import *
 
 class ascanr(Macro, Hookable):
-    hints = { 'scan' : 'ascanr', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'ascanr', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
     env = ('ActiveMntGrp',)
     
     """This is an example of how to handle adding extra info columns in a scan.
@@ -70,6 +70,7 @@ class ascanr(Macro, Hookable):
         step = {}
         step["integ_time"] =  self.integ_time
         step["post-acq-hooks"] = self.getHooks('post-acq') +  self.getHooks('_NOHINT_')
+        step["post-step-hooks"] = self.getHooks('post-step')
         step["check_func"] = []
         extrainfo = {"repetition":0} #!!! 
         step['extrainfo'] = extrainfo  #!!! 
@@ -142,6 +143,7 @@ class ToothedTriangle(Macro):
         step = {}
         step["integ_time"] =  self.integ_time
         step["post-acq-hooks"] = []
+        step["post-step-hooks"] = []
         step["check_func"] = []
         extrainfo = {"cycle":None, "interval":None, "sample":None, } 
         step['extrainfo'] = extrainfo
@@ -180,7 +182,7 @@ class ToothedTriangle(Macro):
 
 class ascanc(Macro, Hookable):
     
-    hints = { 'scan' : 'ascanc', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'ascanc', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
     env = ('ActiveMntGrp',)
     
     """Simplest example of continuous scan: a continuous ascan giving a compact table"""
@@ -215,6 +217,7 @@ class ascanc(Macro, Hookable):
     def _waypoint_generator(self):
         step = {}
         step["post-acq-hooks"] = []
+        step["post-step-hooks"] = []
         step["check_func"] = []
         for point_no in xrange(self.nr_waypoints):
             step["positions"] = self.starts + point_no * self.way_lengths
@@ -226,6 +229,7 @@ class ascanc(Macro, Hookable):
         step = {}
         step["acq_period"] =  self.acq_period
         step["post-acq-hooks"] = []
+        step["post-step-hooks"] = []
         step["check_func"] = []
         step['extrainfo'] = {}
         point_no = 0

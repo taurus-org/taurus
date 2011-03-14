@@ -33,7 +33,7 @@ def getCallable(repr):
 
 class aNscan(Hookable):
     
-    hints = { 'scan' : 'aNscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'aNscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
     env = ('ActiveMntGrp',)
     
     """N-dimensional scan. This is **not** meant to be called by the user,
@@ -67,7 +67,11 @@ class aNscan(Hookable):
         
         self.name = opts.get('name','a%iscan'%self.N)
         
-        moveables = self.motors
+        moveables = []
+        for m, start, final in zip(self.motors, self.starts, self.finals):
+            moveables.append(MoveableDesc(moveable=m, min_value=start, max_value=final))
+        moveables[0].is_reference = True
+        
         env = opts.get('env',{})
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
@@ -91,7 +95,9 @@ class aNscan(Hookable):
                 
         self.name = opts.get('name','a%iscan'%self.N)
         
-        moveables = self.motors
+        moveables = []
+        for m, start, final in zip(self.motors, self.starts, self.finals):
+            moveables.append(MoveableDesc(moveable=m, min_value=start, max_value=final))
         env = opts.get('env',{})
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
@@ -105,6 +111,8 @@ class aNscan(Hookable):
         step["post-move-hooks"] = self.getHooks('post-move')
         step["pre-acq-hooks"] = self.getHooks('pre-acq')
         step["post-acq-hooks"] = self.getHooks('post-acq') + self.getHooks('_NOHINTS_')
+        step["post-step-hooks"] = self.getHooks('post-step')
+        
         step["check_func"] = []
         for point_no in xrange(self.nr_points):
             step["positions"] = self.starts + point_no * self.interv_sizes
@@ -126,6 +134,7 @@ class aNscan(Hookable):
         step["acq_period"] =  self.acq_period
         step["pre-acq-hooks"] = self.getHooks('pre-acq')
         step["post-acq-hooks"] = self.getHooks('post-acq')+self.getHooks('_NOHINTS_')
+        step["post-step-hooks"] = self.getHooks('post-step')
         step["check_func"] = []
         step['extrainfo'] = {}
         point_no = 0
@@ -449,7 +458,7 @@ class mesh(Macro,Hookable):
     first motor scan is nested within the second motor scan.
     """
     
-    hints = { 'scan' : 'mesh', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'mesh', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
     env = ('ActiveMntGrp',)
     
     param_def = [
@@ -489,6 +498,7 @@ class mesh(Macro,Hookable):
         step["post-move-hooks"] = self.getHooks('post-move')
         step["pre-acq-hooks"] = self.getHooks('pre-acq')
         step["post-acq-hooks"] = self.getHooks('post-acq') +  self.getHooks('_NOHINTS_')
+        step["post-step-hooks"] = self.getHooks('post-step')
         step["check_func"] = []
         m1start,m2start=self.starts
         m1end,m2end=self.finals
@@ -533,7 +543,7 @@ class fscan(Macro,Hookable):
     EXAMPLE: fscan x=[1,3,5,7,9],y=arange(5) motor1 x**2 motor2 sqrt(y*x-3) 0.1
     '''
     
-    hints = { 'scan' : 'fscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'fscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
     env = ('ActiveMntGrp',)
     
     param_def = [
@@ -595,6 +605,8 @@ class fscan(Macro,Hookable):
         step["post-move-hooks"] = self.getHooks('post-move')
         step["pre-acq-hooks"] = self.getHooks('pre-acq')
         step["post-acq-hooks"] = self.getHooks('post-acq') + self.getHooks('_NOHINTS_')
+        step["post-step-hooks"] = self.getHooks('post-step')
+        
         step["check_func"] = []
         for i in xrange(self.nr_points):
             step["positions"] = self.paths[:,i]

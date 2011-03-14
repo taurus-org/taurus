@@ -48,6 +48,36 @@ class ColumnDesc:
             d['instrument_type'] = self.instrument.getType()
         return d
 
+
+class MoveableDesc(ColumnDesc):
+    
+    def __init__(self, **kwargs):
+        """Expected keywords are:
+            - label (str, optional): column label (defaults to moveable name)
+            - dtype (str, optional): data type. Defaults to 'float64'
+            - shape (seq, optional): data shape. Defaults to (1,)
+            - instrument (Instrument, optional): instrument object. Defaults to moveable instrument"""
+            
+        try:
+            self.moveable = kwargs.pop('moveable')
+        except KeyError:
+            raise TypeError("moveable parameter is mandatory")
+        
+        kwargs['label'] = kwargs.get('label', self.moveable.getName())
+        kwargs['instrument'] = kwargs.get('instrument', self.moveable.getInstrument())
+        
+        self.min_value = kwargs.get('min_value')
+        self.max_value = kwargs.get('max_value')
+        self.is_reference = kwargs.get('is_reference')
+        ColumnDesc.__init__(self, **kwargs)
+    
+    def toDict(self):
+        d = ColumnDesc.toDict(self)
+        d['min_value'] = self.min_value
+        d['max_value'] = self.max_value
+        d['is_reference'] = self.is_reference
+        return d
+
 class Record:
     """ One record is a set of values measured at the same time.
     
