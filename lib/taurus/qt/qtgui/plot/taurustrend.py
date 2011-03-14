@@ -399,9 +399,15 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         if self.ForcedReadingTimer is None:
             self.ForcedReadingTimer = Qt.QTimer()
             self.connect(self.ForcedReadingTimer, Qt.SIGNAL('timeout()'),self.forceReading)
+            self.insertEventFilter(self.__ONLY_OWN_EVENTS)
         self.ForcedReadingTimer.stop()
         if msec >= 0:
             self.ForcedReadingTimer.start(msec)
+    
+    def __ONLY_OWN_EVENTS(self, s ,t, v):
+        '''An event filter that rejects all events except those that originate from this object'''
+        if s is self:return s,t,v
+        else: return None
         
     def forceReading(self, cache=False):
         '''Forces a read of the attribute and generates a fake event with it. 
@@ -409,7 +415,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         :param cache: (bool) set to True to do cache'd reading (by default is False)
         '''
-        self.fireEvent(self.getModelObj(), taurus.core.TaurusEventType.Change, self.getModelValueObj(cache=cache))
+        vobj=self.getModelValueObj(cache=False)
+        self.fireEvent(self, taurus.core.TaurusEventType.Periodic, vobj)
 
 
 class ScanTrendsSet(TaurusTrendsSet):
@@ -427,18 +434,21 @@ class ScanTrendsSet(TaurusTrendsSet):
     
     .. seealso:: :class:`TaurusTrendSet`
     """
-    def __init__(self, name, parent = None, autoClear=True, usePointNumber=True):
+    def __init__(self, name, parent = None, autoClear=True, xDataKey='point_nb'):
         '''
         Creator
         
         :param autoClear: (bool) If True, (default) :meth:`clearTrends` will be
                           called every time a "data_desc" packet is received
-        :param usePointNumber: (bool) If True (default) the x associated to a 
-                               data record is obtained from the "point_nb" value
-                               of the record itself. Otherwise, an integer count 
-                               is used.
+        :param xValue: (str) a the name of the data to be used for the x value 
+                       in the scan curves (e.g., a motor name, a counter
+                       name,...) By default, "point_nb" is used. The special key
+                       "__SCAN_TREND_INDEX__" will associate an internal integer index
+                       that starts in 0, increases on each record_data received
+                       and is reset by :meth:`clearTrends`.
         '''
         TaurusTrendsSet.__init__(self, None, parent=parent, curves=None)
+        self._xDataKey = xDataKey
         self._autoClear = autoClear
         self._usePointNumber = usePointNumber
         self._currentpoint = -1
@@ -477,6 +487,7 @@ class ScanTrendsSet(TaurusTrendsSet):
             self._parent.detachRawData(subname)
         self._curves = {}
         self._orderedCurveNames = []
+        self.__datadesc = None
         #clean markers
         for m in self._endMarkers:
             m.detach()
@@ -507,7 +518,10 @@ class ScanTrendsSet(TaurusTrendsSet):
             m.setLinePen(pen)
             self._endMarkers.append(m)
             self._currentpoint -= 1
-            
+    
+    def getDataDesc():
+        return self.__datadesc     
+       
     def _createTrends(self, datadesc):
         '''
         Creates the needed curves using the information from the DataDesc
@@ -542,11 +556,18 @@ class ScanTrendsSet(TaurusTrendsSet):
         .. seealso:: <Sardana>/MacroServer/scan/scandata.py:Record.data
         
         '''
-        
-        if self._usePointNumber:
-            self._currentpoint = recordData['point_nb']
-        else:
+        #obtain the x value
+        if self._xDataKey == "__SCAN_TREND_INDEX__":
             self._currentpoint += 1
+        else:
+            try:
+                self._currentpoint = recordData[self._xDataKey]
+            except KeyError:
+                self.warning('Cannot find data "%s" in the current scan record. Ignoring'%self._xDataKey)
+                return
+            if not numpy.isscalar(self._currentpoint):
+                self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring'%(self._xDataKey, type(self._currentpoint)))
+                return
             
         #If autoclear is True, we use buffers
         if self._autoClear:
@@ -636,7 +657,7 @@ class TaurusTrend(TaurusPlot):
         self.setDefaultCurvesTitle('<label><[trend_index]>')
         self._maxDataBufferSize = 1048576 #(=2**20, i.e., 1M events))
         self.__qdoorname = None
-        self._scansUsePointNumber = True
+        self._scansXDataKey = 'point_nb'
         self._scansAutoClear = True
         self.__initActions()
         self._startingTime = time.time()
@@ -692,14 +713,33 @@ class TaurusTrend(TaurusPlot):
         
     def setScansUsePointNumber(self, enable):
         '''
+        .. note:: This method is deprecated. Please use :meth:`setScansXDataKey` instead
+        
         sets whether the trend sets associated to scans should use the point
         number from the data record for the abscissas (default).
         
         :param enable: (bool)
         
-        .. seealso:: :class:`ScanTrendsSet`
         '''
-        self._scansUsePointNumber = enable
+        self.info('setScansUsePointNumber is deprecated. Please use setScansXDataKey instead')
+        if enable:
+            key = 'point_nb'
+        else:
+            key = '__SCAN_TREND_INDEX__'
+        self.setScansXDataKey(key)
+        
+    def setScansXDataKey(self, key):
+        '''
+        selects the source for the data to be used as abscissas in the scan plot.
+        
+        :param key: (str) a string corresponding to a data label for data
+                    present in the scan. Alternatively, "__SCAN_TREND_INDEX__"
+                    can be used for an internal integer count of scan records
+        
+        .. seealso:: the constructor of :class:`ScanTrendsSet`
+        '''
+        self._scansXDataKey = key
+        
     
     def setScanDoor(self, qdoorname):
         '''
@@ -756,7 +796,7 @@ class TaurusTrend(TaurusPlot):
                 if not self.trendSets.has_key(name):
                     matchScan = re.search(r"scan:\/\/(.*)", name) #check if the model name is of scan type and provides a door
                     if matchScan:
-                        tset = ScanTrendsSet(name, parent=self, autoClear=self._scansAutoClear, usePointNumber=self._scansUsePointNumber)
+                        tset = ScanTrendsSet(name, parent=self, autoClear=self._scansAutoClear, xDataKey=self._scansXDataKey)
                         qdoor = matchScan.group(1) #the name of the door
                         tset.connectWithQDoor(qdoor)
                     else:
@@ -1123,6 +1163,29 @@ class TaurusTrend(TaurusPlot):
         menu.insertAction(self._setCurvesTitleAction, self._useArchivingAction)
         menu.insertAction(self._setCurvesTitleAction, self._usePollingBufferAction)
         return menu
+    
+    def _axisContextMenu(self,axis=None):
+        ''' see :meth:`TaurusPlot._axisContextMenu` '''
+        menu = TaurusPlot._axisContextMenu(self, axis=axis)
+        if axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop) and self.__qdoorname is not None:
+            changeXDataKeyAction = menu.addAction('Source of X values...', self.onChangeXDataKeyAction)
+        return menu
+    
+    def onChangeXDataKeyAction(self):
+        options = []
+        if self.__qdoorname is not None:
+            scanname = "scan://%s"%self.__qdoorname
+            tset = self.getTrendSet(scanname)
+            datadesc = tset.getDataDesc()
+            if datadesc is not None:
+                for dd in self.__datadesc:
+                    if len(stripShape(dd['shape']))== 0: #an scalar
+                        options.append(dd["label"])
+    
+        key, ok = Qt.QInputDialog.getItem(self, 'X data source selection', 'Which data is to be used for the abscissas in scans?',
+                                options, current=0, editable=True)
+        if ok:
+            self.setScansXDataKey(str(key))
     
     def setForcedReadingPeriod(self, msec, tsetnames=None):
         '''Sets the forced reading period for the trend sets given by tsetnames.

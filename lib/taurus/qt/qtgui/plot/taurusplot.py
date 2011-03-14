@@ -1823,7 +1823,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         elif axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop):
             if self.isXDynScaleSupported():
-                    xDynAction=menu.addAction("&Fixed-range scale for %s"%axisname)
+                    xDynAction=menu.addAction("&Auto-scroll %s"%axisname)
+                    xDynAction.setToolTip('If enabled, the scale of %s will be autoadjusted to provide a fixed window moving to show always the last value')
                     xDynAction.setCheckable(True)
                     xDynAction.setChecked(self.getXDynScale())
                     self.connect(xDynAction, Qt.SIGNAL("toggled(bool)"), self.setXDynScale)
