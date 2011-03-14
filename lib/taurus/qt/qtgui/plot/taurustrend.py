@@ -75,7 +75,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         attrname = 'a/b/c/d'       #consider this attribute is a SPECTRUM of 3 elements
         ts=TaurusTrendSet(attrname)
         ...                        # wait for a Taurus Event arriving so that the curves are created
-        n_curves = len(ts)         #ncurves will be 3 (assuming the event already arrived)
+        ncurves = len(ts)          #ncurves will be 3 (assuming the event already arrived)
         curve0 = ts[0]             #you can access the curve by index
         curve1 = ts['a/b/c/d[1]']  #and also by name
 
@@ -434,21 +434,24 @@ class ScanTrendsSet(TaurusTrendsSet):
     
     .. seealso:: :class:`TaurusTrendSet`
     """
-    def __init__(self, name, parent = None, autoClear=True, xDataKey='point_nb'):
+    DEFAULT_X_DATA_KEY = 'point_nb'
+    
+    def __init__(self, name, parent = None, autoClear=True, xDataKey=None):
         '''
         Creator
         
         :param autoClear: (bool) If True, (default) :meth:`clearTrends` will be
                           called every time a "data_desc" packet is received
-        :param xValue: (str) a the name of the data to be used for the x value 
-                       in the scan curves (e.g., a motor name, a counter
-                       name,...) By default, "point_nb" is used. The special key
-                       "__SCAN_TREND_INDEX__" will associate an internal integer index
-                       that starts in 0, increases on each record_data received
-                       and is reset by :meth:`clearTrends`.
+        :param xDataKey:  (str) a the name of the data to be used for the x value 
+                          in the scan curves (e.g., a motor name, a counter
+                          name,...) By default, "point_nb" is used. The special key
+                          "__SCAN_TREND_INDEX__" will associate an internal integer index
+                          that starts in 0, increases on each record_data received
+                          and is reset by :meth:`clearTrends`.
         '''
         TaurusTrendsSet.__init__(self, None, parent=parent, curves=None)
         self._xDataKey = xDataKey
+        self._autoXDataKey = xDataKey
         self._autoClear = autoClear
         #self._usePointNumber = usePointNumber
         self._currentpoint = -1
@@ -456,6 +459,14 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._endMarkers = []
         self.clearTrends()
         self.setModel(name)
+        self._endMacroMarkerEnabled = False
+        
+    def setEndMacroMarkerEnabled(self, enable):
+        '''Sets whether a marker should be put at the end of each macro or not
+        
+        :param enabled: (bool)
+        ''' 
+        self._endMacroMarkerEnabled = enable
 
     def scanDataReceived(self, packet):
         '''
@@ -465,10 +476,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         id,packet = packet
         pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
         if pcktype == "data_desc": 
-            if self._autoClear:
-                self.clearTrends()
-            print packet["data"]
-            self._createTrends(packet["data"]["column_desc"])
+            self._dataDescReceived(packet["data"])
         elif pcktype == "record_data": 
             self._scanLineReceived(packet["data"])
         elif pcktype == "record_end":
@@ -500,6 +508,12 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._currentpoint = -1
     
     def onPlotablesFilterChanged(self, flt):
+        '''
+        slot to be called whenever the plotables filter is changed. It will call
+        :meth:`clearTrends` if flt is None
+        
+        :param flt:  (list<method>)
+        '''
         if flt is None:
             self.clearTrends()
         else:
@@ -509,20 +523,35 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._plotablesFilter = flt
     
     def _addEndMarker(self):
-        return
-#        if not self._usePointNumber:
-#            m = Qwt5.QwtPlotMarker()
-#            m.setLineStyle(m.VLine)
-#            m.setXValue(self._currentpoint)
-#            m.attach(self._parent)
-#            pen = Qt.QPen(Qt.Qt.DashLine)
-#            pen.setWidth(2)
-#            m.setLinePen(pen)
-#            self._endMarkers.append(m)
-#            self._currentpoint -= 1
+        if self._endMacroMarkerEnabled:
+            m = Qwt5.QwtPlotMarker()
+            m.setLineStyle(m.VLine)
+            m.setXValue(self._currentpoint)
+            m.attach(self._parent)
+            pen = Qt.QPen(Qt.Qt.DashLine)
+            pen.setWidth(2)
+            m.setLinePen(pen)
+            self._endMarkers.append(m)
+            self._currentpoint -= 1
     
     def getDataDesc():
         return self.__datadesc     
+    
+    def _dataDescReceived(self, datadesc):
+        '''prepares the plot according to the info in the datadesc dictionary'''
+        #clear existing curves if required
+        if self._autoClear:
+            self.clearTrends()
+        #decide which data to use for x
+        if self._xDataKey is None:
+            try:
+                self._autoXDataKey = datadesc['ref_moveables'][0]
+            except KeyError, IndexError:
+                self._autoXDataKey = self.DEFAULT_X_DATA_KEY
+        else:
+            self._autoXDataKey = self._xDataKey
+        #create trends
+        self._createTrends(datadesc["column_desc"])
        
     def _createTrends(self, datadesc):
         '''
@@ -538,7 +567,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         for dd in self.__datadesc:
             if len(stripShape(dd['shape']))== 0: #an scalar
                 label = dd["label"]
-                if label not in self._curves and self._plotablesFilter(dd):
+                if label not in self._curves and self._plotablesFilter(dd) and label != self._autoXDataKey:
                     rawdata["title"] = label
                     curve = self._parent.attachRawData(rawdata)
                     prop = curve.getAppearanceProperties()
@@ -559,16 +588,16 @@ class ScanTrendsSet(TaurusTrendsSet):
         
         '''
         #obtain the x value
-        if self._xDataKey == "__SCAN_TREND_INDEX__":
+        if self._autoXDataKey == "__SCAN_TREND_INDEX__":
             self._currentpoint += 1
         else:
             try:
-                self._currentpoint = recordData[self._xDataKey]
+                self._currentpoint = recordData[self._autoXDataKey]
             except KeyError:
-                self.warning('Cannot find data "%s" in the current scan record. Ignoring'%self._xDataKey)
+                self.warning('Cannot find data "%s" in the current scan record. Ignoring'%self._autoXDataKey)
                 return
             if not numpy.isscalar(self._currentpoint):
-                self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring'%(self._xDataKey, type(self._currentpoint)))
+                self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring'%(self._autoXDataKey, type(self._currentpoint)))
                 return
             
         #If autoclear is True, we use buffers
@@ -659,7 +688,7 @@ class TaurusTrend(TaurusPlot):
         self.setDefaultCurvesTitle('<label><[trend_index]>')
         self._maxDataBufferSize = 1048576 #(=2**20, i.e., 1M events))
         self.__qdoorname = None
-        self._scansXDataKey = 'point_nb'
+        self._scansXDataKey = None
         self._scansAutoClear = True
         self.__initActions()
         self._startingTime = time.time()
