@@ -199,7 +199,6 @@ class StringWidget(QtGui.QLineEdit, InputWidget):
     
     def textChanged(self, string):
         QtGui.QLineEdit.textChanged(self, string)
-        print "aaaaaaa"
        
     def focusOutEvent (self, event): #QFocusEvent
         QtGui.QLineEdit.focusOutEvent(self,event)

@@ -112,17 +112,65 @@ class SimpleTreeView(QtGui.QTreeView):
             for column in range(self.model().columnCount(
                                 QtCore.QModelIndex())):
                 self.resizeColumnToContents(column)
-                
-                
-class HardwareSettings(Qt.QWidget):
+                     
+class AxisSteper(Qt.QSpinBox):
+    def __init__(self, controllerInfo=None, busyValues = [], parent = None):
+        Qt.QSpinBox.__init__(self, parent)
+        self._busyValues = busyValues
+        self._controllerInfo=controllerInfo
+        self.setControllerInfo(controllerInfo)
+        QtCore.QObject.connect(self.lineEdit(), QtCore.SIGNAL("editingFinished()"), self._textEdited)
+        
+    def _textEdited(self):
+        axis = int(self.value())
+        if not self._controllerInfo.is_axis_free(axis):
+            self._findFreeAxis()
+        
+    def getValue(self):
+        return self.value()
+                    
+    def setControllerInfo(self, controllerInfo):
+        self._controllerInfo=controllerInfo
+        if self._controllerInfo:
+            self.setMaximum(self._controllerInfo.get_max_elements()-1)
+            self._findFreeAxis()
+        
+    def _findFreeAxis(self):
+        for axis in range(self._controllerInfo.get_max_elements()):
+            if self.is_axis_free(axis):
+                self.setValue(axis)
+                break
+            
+    def is_axis_free(self, axis):
+        if self._controllerInfo.is_axis_free(axis):
+            for busyAxis in self._busyValues:
+                if axis == busyAxis:
+                    return False
+            return True
+        else:
+            return False
+        
+    def stepBy(self, step):
+        i=1
+        while True:
+            axis = self.value()+i*step
+            if self.is_axis_free(self.value()+i*step):
+                break
+            i+=1    
+        if axis >= 0 and axis < self._controllerInfo.get_max_elements():
+            self.setValue(axis)
+            
+            
+class SingleAxisWidget(Qt.QWidget):
     def __init__(self, parent = None):
         Qt.QWidget.__init__(self, parent)
         self._layout = QtGui.QGridLayout(self)
         self.setLayout(self._layout)
         self.setupUi()
-    
+        self._controllerInfo = None
+        self._edited = False
+        
     def setupUi(self):
-        self.setVisible(False)
         self._nameLabel = Qt.QLabel("Name:")
         self._nameLineEdit = Qt.QLineEdit()
         self._nameLineEdit.setMinimumSize(200, 25)
@@ -130,14 +178,349 @@ class HardwareSettings(Qt.QWidget):
         self._layout.addWidget(self._nameLineEdit,0,1,1,1)
         self._monitorLabel = Qt.QLabel("Monitor List:")
         self._axisLabel = Qt.QLabel("Axis:")
-        self._axisLineEdit = Qt.QLineEdit()
-        self._axisLineEdit.setMinimumSize(200, 25)
-        self._axisLineEdit.setValidator(QtGui.QIntValidator(self._axisLineEdit))
+        self._axisSpinBox = AxisSteper()
         self._layout.addWidget(self._axisLabel,1,0,1,1)
-        self._layout.addWidget(self._axisLineEdit,1,1,1,1)
+        self._layout.addWidget(self._axisSpinBox,1,1,1,1)
+        QtCore.QObject.connect(self._axisSpinBox.lineEdit(), QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
+        QtCore.QObject.connect(self._nameLineEdit, QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
+    
+    def _textEdited(self, str):
+        self._edited = True
+        
+    def setControllerInfo(self, controllerInfo):
+        self._nameLineEdit.setText("")
+        self._edited = False
+        self._controllerInfo = controllerInfo
+        self._axisSpinBox.setControllerInfo(self._controllerInfo)
+    
+    def isEdited(self):
+        return self._edited
+    
+    def getValue(self):
+        return None
+    
+    
+class NameEditorWidget(QtGui.QLineEdit):
+    def __init__(self, parent=None):
+        QtGui.QLineEdit.__init__(self,parent)
+        self.setValue(self.getDefaultValue())
+        
+    def setValue(self, value):
+        if value is None:
+            value = self.getDefaultValue()
+        self.setText(str(value))
+        self._actualValue = self.getValue()
+        
+    def getValue(self):
+        return str(self.text())
+    
+    def textChanged(self, string):
+        QtGui.QLineEdit.textChanged(self, string)
+       
+    def focusOutEvent (self, event): #QFocusEvent
+        QtGui.QLineEdit.focusOutEvent(self,event)
+        self.valueChanged()
+                
+    def valueChanged(self):
+        if not (self.getValue() == self._actualValue):
+            self.emit(QtCore.SIGNAL("valueChanged"),self._actualValue, self.getValue() )
+        self._actualValue = self.getValue()
+        self.setValue(self.getValue()) # if value is not valid
+    
+    @classmethod
+    def getDefaultValue(self):
+        return ""
+    
+class TableAxisDelegate(QtGui.QItemDelegate):
+    def __init__(self, parent = None):
+        QtGui.QItemDelegate.__init__(self, parent)
+        
+    def setControllerInfo(self, controllerInfo):
+        self._controllerInfo = controllerInfo
+    
+    def createEditor(self, parent, option, index):
+        if index.column()==0:
+            editor = NameEditorWidget( parent )
+            editor.installEventFilter(self)
+        if index.column()==1:
+            editor = AxisSteper( self._controllerInfo, self.parent().parent().getAxisList(), parent = parent)
+            editor.installEventFilter(self)
+        
+        return editor
+    
+    def setEditorData( self, editor, index ):
+        if index.column()==0:
+            value = index.model().data(index, QtCore.Qt.DisplayRole)
+            editor.setValue(value.toString())
+        if index.column()==1:
+            value = index.model().data(index, QtCore.Qt.DisplayRole)
+            int , bool = value.toInt()
+            editor.setValue(int)
+    
+    def setModelData(self, editor, model, index):
+        self.emit(QtCore.SIGNAL("editorValueChanged"),editor.getValue(),index.row(),index.column())
+        value = editor.getValue()
+        if index.column()==0: #name
+            model.setData( index
+                    , QtCore.QVariant( value ) )
+        if index.column()==1: #axis
+            if editor.is_axis_free(int(value)):
+                model.setData( index , QtCore.QVariant( value ) )
 
+    def updateEditorGeometry( self, editor, option, index ):
+        editor.setGeometry(option.rect)
+    
+    
+class TableAxisWidget (QtGui.QWidget):
+    
+    def __init__(self, value=None, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self._controllerInfo = None
+        self._layout = QtGui.QHBoxLayout(self)
+        self.setLayout(self._layout)
+        self._tableView = QtGui.QTableView()
+        self._tableView.mousePressEvent = self.mousePressEvent
+        self._tableView.setSelectionMode(QtGui.QTableView.SingleSelection)
+        self._layout.addWidget(self._tableView)
+        self._verticalLayout = QtGui.QVBoxLayout()
+        self._addRowButton = QtGui.QPushButton(self)
+        self._addRowButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
+        self._addRowButton.setText("Add Device       ")
+        self._verticalLayout.addWidget(self._addRowButton)
+        self._removeRowButton = QtGui.QPushButton(self)
+        self._removeRowButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
+        self._removeRowButton.setText("Remove Device    ")
+        self._verticalLayout.addWidget(self._removeRowButton)
+        self._upButton = QtGui.QPushButton(self)
+        self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
+        self._upButton.setText("Move Up   ")
+        self._verticalLayout.addWidget(self._upButton)
+        self._downButton = QtGui.QPushButton(self)
+        self._downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        self._downButton.setText("Move Down")
+        self._verticalLayout.addWidget(self._downButton)
+        spacerItem = QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self._verticalLayout.addItem(spacerItem)
+        QtCore.QObject.connect(self._addRowButton, QtCore.SIGNAL("clicked()"), self._addRow)
+        QtCore.QObject.connect(self._removeRowButton, QtCore.SIGNAL("clicked()"), self._removeRow)
+        QtCore.QObject.connect(self._upButton, QtCore.SIGNAL("clicked()"), self._moveUp)
+        QtCore.QObject.connect(self._downButton, QtCore.SIGNAL("clicked()"), self._moveDown) 
+        self._layout.addLayout(self._verticalLayout)
+        self._delegate = TableAxisDelegate(self._tableView)
+        #QtCore.QObject.connect(self._delegate, QtCore.SIGNAL("editorValueChanged"), self._valueChanged)
+        self._tableView.setItemDelegate(self._delegate)
+        #QtCore.QObject.connect(self._delegate, QtCore.SIGNAL("editorValueChanged"), self._valueChanged)
+        #self._tableView.setItemDelegate(self._delegate)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+        self._tableView.setSizePolicy(sizePolicy)
+        self._tableView.horizontalHeader().setDefaultSectionSize(80)
+        self._tableView.horizontalHeader().setVisible(True)
+        self._tableView.horizontalHeader().setStretchLastSection(True)
+        self._tableView.setMinimumSize(QtCore.QSize(150, 150))
+
+    def getAxisList(self):
+        list = []
+        for row in self.getValue():
+            list.append(row[1])
+        return list
+    
+    def _findFreeAxis(self):
+        for axis in range(self._controllerInfo.get_max_elements()):
+            if self.is_axis_free(axis):
+                return axis
+        
+        return None
+            
+    def is_axis_free(self, axis):
+        if self._controllerInfo.is_axis_free(axis):
+            for busyAxis in self.getAxisList():
+                if axis == busyAxis:
+                    return False
+            return True
+        else:
+            return False
+
+    def setControllerInfo(self, controllerInfo):
+        self.setValue([])
+        self._controllerInfo = controllerInfo
+        self._delegate.setControllerInfo(self._controllerInfo)
+
+    def _getSelectedIndex(self):
+        if len (self._tableView.selectedIndexes()):
+            row = self._tableView.selectedIndexes()[0].row()
+            column = self._tableView.selectedIndexes()[0].column()
+        else:
+            row = None
+            column = None
+        return [row,column]
+    
+    def _addRow(self):
+        value = self.getValue() # stored table
+        rows = len(value)
+        
+        if rows < self._controllerInfo.get_max_elements():
+            rowIndex = self._getSelectedIndex()[0]
+            if rowIndex is None:
+                rowIndex = rows 
+            value.insert(rowIndex, ["",self._findFreeAxis()])
+            self.setValue(value)
+        
+        if self._findFreeAxis() is None:
+            self._addRowButton.setEnabled(False)
+    
+    def _removeRow(self):
+        rowIndex = self._getSelectedIndex()[0]
+        if rowIndex is not None:
+            msgBox = QtGui.QMessageBox()
+            msgBox.setText("Confirmation              ")
+            msgBox.setStandardButtons(QtGui.QMessageBox().No | QtGui.QMessageBox().Yes )
+            msgBox.setInformativeText("Remove device {%i} ?" % (rowIndex+1) )
+            msgBox.setIcon(QtGui.QMessageBox.Question)
+            ret = msgBox.exec_()
+        if ret == QtGui.QMessageBox().Yes:
+           value = self.getValue()
+           self.setValue(value[:rowIndex] + value[rowIndex+1:])
+           self._addRowButton.setEnabled(True)
+           
+            
+    def _moveUp(self):
+        value = self.getValue() # stored table
+        rows = len(value)
+        rowIndex = self._getSelectedIndex()[0]
+        if (rows>1) and (rowIndex is not None) and (rowIndex>0) :
+            x = value.pop(rowIndex)
+            value.insert(rowIndex-1,x)
+            self.setValue(value)
+            self._tableView.setCurrentIndex(self._tableView.model().index(rowIndex-1, 0 ))
+        
+    def _moveDown(self):
+        value = self.getValue() # stored table
+        rows = len(value)
+        rowIndex = self._getSelectedIndex()[0]
+        if (rows>1) and (rowIndex is not None) and (rowIndex<rows-1) :
+            x = value.pop(rowIndex)
+            value.insert(rowIndex+1,x)
+            self.setValue(value)
+            self._tableView.setCurrentIndex(self._tableView.model().index(rowIndex+1, 0 ))
+            
+    def setValue(self, value):
+        rows = len(value)
+        columns = 2 
+        self._model = QtGui.QStandardItemModel(rows, columns)
+        for row in range(rows):
+            for column in range(columns):
+                index = self._model.index(row, column, QtCore.QModelIndex())
+                self._model.setData(index, QtCore.QVariant(value[row][column]))      
+        self._model.setHeaderData( 0, Qt.Qt.Horizontal, Qt.QVariant("Name"))
+        self._model.setHeaderData( 1, Qt.Qt.Horizontal, Qt.QVariant("Axis"))
+        self._tableView.setModel(self._model)
+        self._tableView.horizontalHeader().setVisible(True)
+        self._tableView.horizontalHeader().setStretchLastSection(True)
+       
+    def getValue(self):
+        rows = self._model.rowCount()
+        result = []
+        for row in range(rows):
+            records = []
+            index =  self._model.index(row, 0)
+            name =self._model.data(index).toString()
+            index =  self._model.index(row, 1)
+            axis, bool =self._model.data(index).toInt()
+            result.append([name,axis])
+            
+        return copy.deepcopy(result)
+    
+    
+#    def _valueChanged(self, value, row, column):
+#        if (self._format == "1D"):
+#            if not (value == self._actualValue[row]):
+#                self._actualValue[row] = value
+#                self.emit(QtCore.SIGNAL("valueChanged"),self.getValue()[:], self._actualValue[:] )
+#                
+#                
+#        if (self._format == "2D"):
+#            if not (value == self._actualValue[row][column]):
+#                self._actualValue[row][column] = value
+#                self.emit(QtCore.SIGNAL("valueChanged"),self.getValue()[:], self._actualValue[:] )
+
+    
+    
+class MultipleAxisWidget(Qt.QWidget):
+    def __init__(self, parent = None):
+        Qt.QWidget.__init__(self, parent)
+        self._layout = QtGui.QGridLayout(self)
+        self.setLayout(self._layout)
+        self.setupUi()
+        self._controllerInfo = None
+        self._edited = False
+            
+    def setupUi(self):
+        self._tableAxisWidget = TableAxisWidget()
+        self._layout.addWidget(self._tableAxisWidget,0,0,1,1)
+        
+        #QtCore.QObject.connect(self._axisSpinBox.lineEdit(), QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
+        #QtCore.QObject.connect(self._nameLineEdit, QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
+    
+    def _textEdited(self, str):
+        self._edited = True
+        
+    def setControllerInfo(self, controllerInfo):
+        self._edited = False
+        self._controllerInfo = controllerInfo
+        self._tableAxisWidget.setControllerInfo(self._controllerInfo)
+    
+    def isEdited(self):
+        return self._edited
+    
+    def getValue(self):
+        return None
+        
+                
+class HardwareSettings(Qt.QWidget):
+    def __init__(self, parent = None):
+        Qt.QWidget.__init__(self, parent)
+        self._layout = QtGui.QGridLayout(self)
+        self.setLayout(self._layout)
+        self.setupUi()
+        self._controllerInfo = None
+        self._edited = False
+        self._changeView()
+        
+    
+    def setupUi(self):
+        self.setVisible(False)
+        self._singleButton = QtGui.QRadioButton(self)
+        self._singleButton.setText("Single")
+        self._singleButton.setChecked(True)
+        self._layout.addWidget(self._singleButton,0,0)
+        self._multipleButton = QtGui.QRadioButton(self)
+        self._multipleButton.setText("Multiple")
+        self._layout.addWidget(self._multipleButton,0,1)
+        self._singleAxisWidget = SingleAxisWidget()
+        self._layout.addWidget(self._singleAxisWidget,1,0,1,2)
+        self._multipleAxisWidget = MultipleAxisWidget()
+        self._layout.addWidget(self._multipleAxisWidget,2,0,1,2)
+
+        QtCore.QObject.connect(self._singleButton, QtCore.SIGNAL("clicked()"), self._changeView)
+        QtCore.QObject.connect(self._multipleButton, QtCore.SIGNAL("clicked()"), self._changeView)
         self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1,4,0,1,1,Qt.Qt.AlignCenter)
+        
+    def _changeView(self):
+        if self._singleButton.isChecked():
+            self._singleAxisWidget.setVisible(True)
+            self._multipleAxisWidget.setVisible(False)
+        else:
+            self._singleAxisWidget.setVisible(False)
+            self._multipleAxisWidget.setVisible(True)
+        
+    def setControllerInfo(self, controllerInfo):
+        self._controllerInfo = controllerInfo
+        self._singleAxisWidget.setControllerInfo(self._controllerInfo)
+        self._multipleAxisWidget.setControllerInfo(self._controllerInfo)
+        
+    def isEdited(self):
+        return self._singleAxisWidget.isEdited() #or
         
         
 class NewDeviceBasePage(wiz.SardanaBasePage):
@@ -287,10 +670,9 @@ class NewDeviceBasePage(wiz.SardanaBasePage):
 
     def activated(self, name):
         
-
         if (self.picked() is not None) and (self.picked() !=self._currentItem):
             ret = QtGui.QMessageBox().Yes
-            if self._settings.isEdited():
+            if self._settings.isEdited() or self._hardwareSettings.isEdited():
                 msgBox = QtGui.QMessageBox()
                 msgBox.setText("Confirmation              ")
                 msgBox.setStandardButtons(QtGui.QMessageBox().No | QtGui.QMessageBox().Yes )
@@ -300,6 +682,7 @@ class NewDeviceBasePage(wiz.SardanaBasePage):
                 
             if ret == QtGui.QMessageBox().Yes:
                 self._settings.setEdited(False)
+                self._hardwareSettings.setControllerInfo(None)
                 self._currentItem = self.picked()
                 self._currentItemIndex = self._treeView.currentIndex()
                 
@@ -328,11 +711,13 @@ class NewDeviceBasePage(wiz.SardanaBasePage):
                     self._settings.setVisible(False)
                     self._gridLayout_2.addWidget(self._hardwareSettings)
                     self._hardwareSettings.setVisible(True)
+                    self._hardwareSettings.setControllerInfo(self._currentItem)
                     self._tabWidget.setTabEnabled(1,False)
                     self.setStatus("Editing: "+ self.picked().get_name())   
             else:
                 self._treeView.selectionModel().setCurrentIndex(self._currentItemIndex, QtGui.QItemSelectionModel.SelectCurrent)
-                
+            
+                    
         self.checkData()
             
     def setNextPageId(self, id):
@@ -372,7 +757,6 @@ class NewDeviceCommitBasePage(wiz.SardanaIntroBasePage):
         if (not self.wizard().isMaximized()):
             self.wizard().resize(preferedSize[0],preferedSize[1])
             self.wizard().move(center.x()-self.wizard().width()*0.5, center.y()-self.wizard().height()*0.5)
-        
             # and (self.wizard().size().height () > preferedSize[1]) and (self.wizard().size().width() > preferedSize[0]):
         
     def cleanupPage(self):
