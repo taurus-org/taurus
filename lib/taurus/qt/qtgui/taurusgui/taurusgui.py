@@ -304,7 +304,6 @@ class TaurusGui(TaurusMainWindow):
         self.__scanTrend = TaurusTrend()
         self.__scanTrend.setXIsTime(False)
         self.__scanTrend.setScansAutoClear(False)
-        self.__scanTrend.setScansUsePointNumber(False)
         Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
         Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
         self.createPanel(self.__scanTrend, '1D Scans', Qt.Qt.RightDockWidgetArea, registerconfig=True)
