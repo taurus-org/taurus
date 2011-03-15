@@ -534,7 +534,7 @@ class ScanTrendsSet(TaurusTrendsSet):
             self._endMarkers.append(m)
             self._currentpoint -= 1
     
-    def getDataDesc():
+    def getDataDesc(self):
         return self.__datadesc     
     
     def _dataDescReceived(self, datadesc):
@@ -1215,12 +1215,12 @@ class TaurusTrend(TaurusPlot):
             tset = self.getTrendSet(scanname)
             datadesc = tset.getDataDesc()
             if datadesc is not None:
-                for dd in self.__datadesc:
+                for dd in datadesc:
                     if len(stripShape(dd['shape']))== 0: #an scalar
                         options.append(dd["label"])
     
         key, ok = Qt.QInputDialog.getItem(self, 'X data source selection', 'Which data is to be used for the abscissas in scans?',
-                                options, current=0, editable=True)
+                                options, 0, True)
         if ok:
             self.setScansXDataKey(str(key))
     
