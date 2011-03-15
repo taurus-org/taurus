@@ -139,7 +139,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
         
     def getMotorControllerType(self):
         modelObj = self.getModelObj()
-        modelNornalName = modelObj.getNormalName()
+        modelNormalName = modelObj.getNormalName()
         poolDsId = modelObj.getHWObj().info().server_id
         db = taurus.Database()
         pool_devices = tuple(db.get_device_class_list(poolDsId).value_string)
@@ -147,11 +147,13 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
         pool = taurus.Device(pool_dev_name)
         poolMotorInfos = pool["MotorList"].value
         for motorInfo in poolMotorInfos:
+            # BE CAREFUL, THIS ONLY WORKS IF NOBODY CHANGES THE DEVICE NAME OF A MOTOR!!!
+            # ALSO THERE COULD BE A CASE PROBLEM, BETTER DO COMPARISONS WITH .lower()
             #to better understand following actions
             #this is an example of one motor info record
             #'dummymotor10 (motor/dummymotorctrl/10) (dummymotorctrl/10) Motor',
             motorInfos = motorInfo.split()
-            if modelNornalName == motorInfos[1][1:-1]:
+            if modelNormalName.lower() == motorInfos[1][1:-1].lower():
                 controllerName = motorInfos[2][1:-1].split("/")[0]
         
         poolControllerInfos = pool["ControllerList"].value
@@ -160,7 +162,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
             #this is an example of one controller info record
             #'dummymotorctrl (DummyMotorController.DummyMotorController/dummymotorctrl) - Motor Python ctrl (DummyMotorController.py)'
             controllerInfos = controllerInfo.split()
-            if controllerName == controllerInfos[0]:
+            if controllerName.lower() == controllerInfos[0].lower():
                 controllerType = controllerInfos[1][1:-1].split("/")[0]
         return controllerType
     
