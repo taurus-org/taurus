@@ -170,6 +170,8 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         """
         if not self.taurusMenu is None:
             self.taurusMenu.exec_(event.globalPos())
+        else:
+            event.ignore()
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory methods to be implemented in subclass implementation
