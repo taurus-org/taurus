@@ -550,6 +550,8 @@ class ScanTrendsSet(TaurusTrendsSet):
                 self._autoXDataKey = self.DEFAULT_X_DATA_KEY
         else:
             self._autoXDataKey = self._xDataKey
+        #set the x axis title
+        self._parent.setAxisTitle(self._parent.xBottom, self._xDataKey)
         #create trends
         self._createTrends(datadesc["column_desc"])
        
@@ -770,6 +772,10 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: the constructor of :class:`ScanTrendsSet`
         '''
         self._scansXDataKey = key
+        
+        #@todo: UGLY UGLY UGLY HACK. Just as a proof of concept
+        self.trendSets = CaselessDict()
+        self.updateCurves(self.getModel())
         
     
     def setScanDoor(self, qdoorname):
