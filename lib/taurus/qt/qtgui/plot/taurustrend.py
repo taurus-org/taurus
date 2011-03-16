@@ -459,7 +459,12 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._endMarkers = []
         self.clearTrends()
         self.setModel(name)
-        self._endMacroMarkerEnabled = False
+        self._endMacroMarkerEnabled = True
+        
+    def setXDataKey(self, key):
+        if key == self._xDataKey: return
+        self._xDataKey = key
+        self.clearTrends()
         
     def setEndMacroMarkerEnabled(self, enable):
         '''Sets whether a marker should be put at the end of each macro or not
@@ -506,6 +511,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         self.__yBuffer = None
         #reset current point counter
         self._currentpoint = -1
+        self._parent.replot()
     
     def onPlotablesFilterChanged(self, flt):
         '''
@@ -533,6 +539,7 @@ class ScanTrendsSet(TaurusTrendsSet):
             m.setLinePen(pen)
             self._endMarkers.append(m)
             self._currentpoint -= 1
+            self._parent.replot()
     
     def getDataDesc(self):
         return self.__datadesc     
@@ -550,8 +557,20 @@ class ScanTrendsSet(TaurusTrendsSet):
                 self._autoXDataKey = self.DEFAULT_X_DATA_KEY
         else:
             self._autoXDataKey = self._xDataKey
-        #set the x axis title
-        self._parent.setAxisTitle(self._parent.xBottom, self._xDataKey)
+        #set the x axis
+        columndesc = datadesc.get('column_desc',[])
+        xinfo = {'min_value':None, 'max_value':None}
+        for e in columndesc:
+            if e['label'] == self._autoXDataKey:
+                xinfo = e
+                break
+        self._parent.setAxisTitle(self._parent.xBottom, self._autoXDataKey)
+        xmin, xmax = xinfo.get('min_value'), xinfo.get('max_value')
+        self._parent.setXDynScale(False)
+        if xmin is None or xmax is None:
+            self._parent.setAxisAutoScale(self._parent.xBottom) #autoscale if any limit is unknown
+        else:
+            self._parent.setAxisScale(self._parent.xBottom, xmin, xmax)
         #create trends
         self._createTrends(datadesc["column_desc"])
        
@@ -761,21 +780,28 @@ class TaurusTrend(TaurusPlot):
             key = '__SCAN_TREND_INDEX__'
         self.setScansXDataKey(key)
         
-    def setScansXDataKey(self, key):
+    def setScansXDataKey(self, key, scanname=None):
         '''
         selects the source for the data to be used as abscissas in the scan plot.
         
         :param key: (str) a string corresponding to a data label for data
                     present in the scan. Alternatively, "__SCAN_TREND_INDEX__"
                     can be used for an internal integer count of scan records
+                    
+        :param scanname: (str or None) name of the model for the scan. If None,
+                         the default scan is selected
         
         .. seealso:: the constructor of :class:`ScanTrendsSet`
         '''
+        if scanname is None:
+            if self.__qdoorname is None:
+                return
+            scanname = "scan://%s"%self.__qdoorname
+        tset = self.getTrendSet(scanname)
+        tset.setXDataKey(key)
+        if key is None: key = ''
+        self.setAxisTitle(self.xBottom, key)
         self._scansXDataKey = key
-        
-        #@todo: UGLY UGLY UGLY HACK. Just as a proof of concept
-        self.trendSets = CaselessDict()
-        self.updateCurves(self.getModel())
         
     
     def setScanDoor(self, qdoorname):
@@ -969,10 +995,11 @@ class TaurusTrend(TaurusPlot):
         name=str(name)
         self.curves_lock.acquire()
         try:
+            curve = None 
             for n,curve in self.trendSets[name].getCurves():
                 curve.setData(curve._xValues,curve._yValues)
             #self._zoomer.setZoomBase()
-            if self.getXDynScale() and len(curve._xValues)>0: #keep the scale width constant, but translate it to get the last value
+            if curve is not None and self.getXDynScale() and len(curve._xValues)>0: #keep the scale width constant, but translate it to get the last value
                 max= curve._xValues[-1]
                 min=max-self.getXAxisRange() 
                 self.setAxisScale(Qwt5.QwtPlot.xBottom, min, max)
@@ -1209,7 +1236,7 @@ class TaurusTrend(TaurusPlot):
         return menu
     
     def onChangeXDataKeyAction(self):
-        options = []
+        options = ['[Auto Selection]', '[Internal Scan Index]']
         if self.__qdoorname is not None:
             scanname = "scan://%s"%self.__qdoorname
             tset = self.getTrendSet(scanname)
@@ -1219,10 +1246,15 @@ class TaurusTrend(TaurusPlot):
                     if len(stripShape(dd['shape']))== 0: #an scalar
                         options.append(dd["label"])
     
-        key, ok = Qt.QInputDialog.getItem(self, 'X data source selection', 'Which data is to be used for the abscissas in scans?',
-                                options, 0, True)
+        key, ok = Qt.QInputDialog.getItem(self, 'X data source selection', 
+                                          'Which data is to be used for the abscissas in scans?',
+                                          options, 0, True)
         if ok:
-            self.setScansXDataKey(str(key))
+            key=str(key)
+            if key == options[0]: key = None
+            elif key == options[1]: key = '__SCAN_TREND_INDEX__'
+            self.setScansXDataKey(key, scanname)
+            
     
     def setForcedReadingPeriod(self, msec, tsetnames=None):
         '''Sets the forced reading period for the trend sets given by tsetnames.
