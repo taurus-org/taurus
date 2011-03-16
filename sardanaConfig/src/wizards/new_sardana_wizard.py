@@ -1286,8 +1286,7 @@ class Progress (Qt.QThread):
             if err:
                 #msgbox = TaurusMessageBox(*sys.exc_info())
                 #msgbox.exec_()
-                
-                print mess
+               
                 yield "\nCancelled...", 100,1
                         
             else: #  Sardana has been created
