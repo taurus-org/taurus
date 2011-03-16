@@ -2358,7 +2358,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def setXDynScale(self, enabled=True):
         '''it enables/disables the Dynamic scaling feature (also known as
-        Fixed-range X scale, or "trend scaling mode"). The Dynamic scaling
+        Fixed-range X scale, or "auto-scroll mode"). The Dynamic scaling
         consists in ensuring that:
 
         - the range (=max-min) is always constant
@@ -3027,8 +3027,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     enableMagnifier = Qt.pyqtProperty("bool", isMagnifierEnabled, setMagnifierEnabled, resetMagnifierEnabled)
     defaultCurvesTitle = Qt.pyqtProperty("QString", getDefaultCurvesTitle, setDefaultCurvesTitle, resetDefaultCurvesTitle)
     enableOptimization = Qt.pyqtProperty("bool", isOptimizationEnabled, setOptimizationEnabled, resetOptimizationEnabled)
-
     
+
 def main():
     import sys
     import taurus.qt.qtgui.application
