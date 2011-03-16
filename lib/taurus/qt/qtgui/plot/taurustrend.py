@@ -723,6 +723,7 @@ class TaurusTrend(TaurusPlot):
         self.setAxisLabelAlignment(self.xBottom, alignment)
         #use dynamic scale by default
         self.setXDynScale(True)
+        self._scrollStep = 0.2
         
     
     def __initActions(self):
@@ -1000,9 +1001,12 @@ class TaurusTrend(TaurusPlot):
                 curve.setData(curve._xValues,curve._yValues)
             #self._zoomer.setZoomBase()
             if curve is not None and self.getXDynScale() and len(curve._xValues)>0: #keep the scale width constant, but translate it to get the last value
-                max= curve._xValues[-1]
-                min=max-self.getXAxisRange() 
-                self.setAxisScale(Qwt5.QwtPlot.xBottom, min, max)
+                currmax = self.axisScaleDiv(self.xBottom).upperBound()
+                max = curve._xValues[-1]
+                if max > currmax:
+                    max= max + self.getXAxisRange()*self._scrollStep
+                    min = max-self.getXAxisRange()
+                    self.setAxisScale(self.xBottom, min, max)
         finally:
             self.curves_lock.release()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
@@ -1275,10 +1279,39 @@ class TaurusTrend(TaurusPlot):
                 self.trendSets[name].setForcedReadingPeriod(msec)
         finally:
             self.curves_lock.release()
+            
+    def setScrollStep(self, scrollStep):
+        '''
+        Sets the scroll step when in Dynamic X mode. This is used to avoid
+        excessive replotting, which may be a problem when plotting a lot of points.
+        
+        :param scrollStep: (float) portion of the current range that will
+                             be added when scrolling.  For example, 0.1 means
+                             that 10% of the current range will be added when
+                             scrolling. A value of 0 means that no extra
+                             space will be added (thus the scroll is not in
+                             "steps"). Large scroll steps mean rough scrolls, 
+                             but also less CPU usage.
+                             
+        .. seealso:: :meth:`setXDynScale`
+        '''
+        self._scrollStep = scrollStep
+        
+    def getScrollStep(self, scrollStep):
+        '''returns the value of the scroll step
+        
+        :return: (float)
+        '''
+        return self._scrollStep 
+    
+    def resetScrollStep(self):
+        '''equivalent to setScrollStep(0.2)'''
+        self.setScrollStep(0.2)
     
     useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving)
     usePollingBuffer = Qt.pyqtProperty("bool", getUsePollingBuffer, setUsePollingBuffer, resetUsePollingBuffer)
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
+    scrollstep = Qt.pyqtProperty("double", getScrollStep, setScrollStep, resetScrollStep)
     
 
 def main():
