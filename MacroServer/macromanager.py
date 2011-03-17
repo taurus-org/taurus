@@ -920,14 +920,15 @@ class MacroExecutor(taurus.core.util.Logger):
     def sendMacroStatusAbort(self):
         ms = self.getLastMacroStatus()
         if ms is not None:
-            sys.stderr.write("Sending abort event %s" % str(ms))
             ms['state'] = 'abort'
+            self.debug("Sending abort event %s", ms)
             self.sendMacroStatus(ms)
 
     def sendMacroStatusException(self):
         ms = self.getLastMacroStatus()
         if ms is not None:
             ms['state'] = 'exception'
+            self.debug("Sending exception event %s", ms)
             self.sendMacroStatus(ms)
 
     def sendMacroStatusPause(self):
