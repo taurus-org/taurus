@@ -1001,12 +1001,14 @@ class TaurusTrend(TaurusPlot):
                 curve.setData(curve._xValues,curve._yValues)
             #self._zoomer.setZoomBase()
             if curve is not None and self.getXDynScale() and len(curve._xValues)>0: #keep the scale width constant, but translate it to get the last value
-                currmax = self.axisScaleDiv(self.xBottom).upperBound()
-                max = curve._xValues[-1]
-                if max > currmax:
-                    max= max + self.getXAxisRange()*self._scrollStep
-                    min = max-self.getXAxisRange()
-                    self.setAxisScale(self.xBottom, min, max)
+                sdiv = self.axisScaleDiv(self.xBottom)
+                currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
+                datamax = curve._xValues[-1]
+                if datamax > currmax or datamax < currmin:
+                    minstep = datamax - currmax #the new scale max must be above the latest point
+                    maxstep = datamax - currmin #the new scale min must be below the latest point
+                    step = min(max(self.getXAxisRange()*self._scrollStep, minstep), maxstep)
+                    self.setAxisScale(self.xBottom, currmin+step, currmax+step)
         finally:
             self.curves_lock.release()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
