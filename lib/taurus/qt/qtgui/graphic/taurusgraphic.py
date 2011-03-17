@@ -284,27 +284,9 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                         x,y = item.x(),item.y() #For some elements item position is not well mapped and rect bound must be used instead
                         if not x and not y:
                             x,y = rect.topLeft().x(),rect.topLeft().y() #If the object is in the corner it will be also 0
-                        h,w = rect.height(),rect.width()                        
+                        h,w = rect.height(),rect.width()
                         
-                        self.debug('%s has parent %s' % (item_name,getattr(item.parentItem(),'_name','ung')  if item.parentItem() else 'None'))
-                        self.debug('center and width,height are: (%d,%d),(%d,%d)' % (x,y,h,w))
-
-                        self.SelectionCircle.setRect(x-(.5*w),y-(.5*h),w*2,h*2)
-                        color = Qt.QColor(Qt.Qt.blue)
-                        color.setAlphaF(.10)
-                        self.SelectionCircle.setBrush(color)
-                        pen = Qt.QPen(Qt.Qt.CustomDashLine)
-                        pen.setWidth(4)
-                        pen.setColor(Qt.QColor(Qt.Qt.blue))
-                        self.SelectionCircle.setPen(pen)
-                        self.SelectionCircle.setZValue(9999)
-                        #self.SelectionCircle.setVisible(True)
-                        #self.update(self.SelectionCircle.rect())
-                        self.SelectionCircle.show()
-                        
-                        for v in self.views(): 
-                            v.viewport().update()
-                            #v.invalidateScene(self.SelectionCircle.boundingRect())
+                        self.drawSelectionMark(x,y,h,w)
                         
                         return True
                     except Exception,e:
@@ -313,6 +295,83 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                         return False
         self.warning('No matching object found for "%s"'%item_name)
 
+    def setSelectionMark(self,picture=None,h=10,w=10):
+        """This method allows to set a pixmap as selection mark or by default creates a blue circle."""
+        self.info('In setSelectionMark(%s)'%picture)        
+        if picture is not None:
+            try:
+                self.SelectionMark = Qt.QGraphicsPixmapItem()
+                if isinstance(picture,Qt.QPixmap):
+                    pixmap = picture
+                else:
+                    pixmap = Qt.QPixmap(os.path.realpath(picture))
+                self.SelectionMark.setPixmap(pixmap.scaled(h,w))
+            except:
+                self.info('In setSelectionMark(%s): %s'%(picture,traceback.format_exc()))
+                picture = None
+        if picture is None:
+            self.SelectionMark = Qt.QGraphicsEllipseItem()
+            color = Qt.QColor(Qt.Qt.blue)
+            color.setAlphaF(.10)
+            self.SelectionMark.setBrush(color)
+            pen = Qt.QPen(Qt.Qt.CustomDashLine)
+            pen.setWidth(4)
+            pen.setColor(Qt.QColor(Qt.Qt.blue))
+            self.SelectionMark.setPen(pen)
+        
+        self.SelectionMark.hide() #It's better to add it hidden to avoid resizings            
+        self.addItem(self.SelectionMark)
+        self.SelectionMark.setZValue(9999)  #Put on Top
+        return self.SelectionMark
+        
+    def drawSelectionMark(self,x,y,h,w,oversize=1):
+        #self.debug('%s has parent %s' % (item_name,getattr(item.parentItem(),'_name','ung')  if item.parentItem() else 'None'))
+        self.debug('drawSelectionMark(): center and width,height are: (%d,%d),(%d,%d)' % (x,y,h,w))
+
+        #self.SelectionCircle.setRect(x-(.5*w),y-(.5*h),w*oversize,h*oversize)
+        self.SelectionCircle.setRect(x,y,w*oversize,h*oversize)
+        color = Qt.QColor(Qt.Qt.blue)
+        color.setAlphaF(.10)
+        self.SelectionCircle.setBrush(color)
+        pen = Qt.QPen(Qt.Qt.CustomDashLine)
+        pen.setWidth(4)
+        pen.setColor(Qt.QColor(Qt.Qt.blue))
+        self.SelectionCircle.setPen(pen)
+        self.SelectionCircle.setZValue(9999)
+        #self.SelectionCircle.setVisible(True)
+        #self.update(self.SelectionCircle.rect())
+        self.SelectionCircle.show()
+        
+        #@TODO: This TAU code allowed to manage custom pixmaps as selection marks ... to be tested in TaurusGUI
+        #@sergi_rubio: please do not delete this code yet
+        
+        #if not hasattr(self,'SelectionMark'): self.setSelectionMark()
+        #MAX_CIRCLE_SIZE = 20,20
+        #if isinstance(self.SelectionMark,Qt.QGraphicsEllipseItem):
+            #if None not in [h,w]: 
+                #if h>MAX_CIRCLE_SIZE[0] or w>MAX_CIRCLE_SIZE[1]: 
+                    #x,y = x+w/2.-.5*MAX_CIRCLE_SIZE[1],y+h/2.-.5*MAX_CIRCLE_SIZE[0],
+                    #h,w = [.5*t for t in MAX_CIRCLE_SIZE]                
+                #x,y = x+.5*w,y+.5*h
+            #else: 
+                #h,w = [.5*t for t in MAX_CIRCLE_SIZE]
+            #self.debug('center and width,height are: (%d,%d),(%d,%d)' % (x,y,h,w))
+            #self.SelectionMark.setRect(x,y,w*2,h*2)
+        
+        #elif isinstance(self.SelectionMark,Qt.QGraphicsPixmapItem):
+            #rect = self.SelectionMark.boundingRect()
+            #if None not in [h,w]: x,y = x+.5*w,y+.5*h
+            #self.SelectionMark.setOffset(x-.5*rect.width(),y-.5*rect.height())
+            
+        #self.SelectionMark.setZValue(9999) #Put on Top
+        #self.SelectionMark.show()
+        
+        for v in self.views(): 
+            v.viewport().update()
+            #v.invalidateScene(self.SelectionCircle.boundingRect())
+            
+        return
+        
     def getExtList(self,obj):
         self.standAlone = False
         self.noPrompt = False
