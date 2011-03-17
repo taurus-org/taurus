@@ -69,7 +69,7 @@ class aNscan(Hookable):
         
         moveables = []
         for m, start, final in zip(self.motors, self.starts, self.finals):
-            moveables.append(MoveableDesc(moveable=m, min_value=start, max_value=final))
+            moveables.append(MoveableDesc(moveable=m, min_value=min(start,final), max_value=max(start,final)))
         moveables[0].is_reference = True
         
         env = opts.get('env',{})
