@@ -118,7 +118,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.call__init__(TaurusBaseContainer, name, designMode=designMode)
         
         self.__splashScreen = None
-        if splash and not designMode:      
+        if splash and not designMode:
             self.__splashScreen = Qt.QSplashScreen(Qt.QPixmap(":/logo.png"))
             self.__splashScreen.show()
             self.__splashScreen.showMessage("Initializing Main window...")
@@ -154,6 +154,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewMenu = self.menuBar().addMenu("View")
         self.viewMenu.addAction(self.__loggerDW.toggleViewAction())
         self.viewToolBarsMenu = self.viewMenu.addMenu("Tool Bars")
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.toggleFullScreenAction)
         
         #Taurus Menu
         self.taurusMenu = self.menuBar().addMenu("Taurus")
@@ -167,6 +169,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         #Help Menu
         self.helpMenu = self.menuBar().addMenu("Help")
         self.helpMenu.addAction(self.helpAboutAction)
+        
+        #View Toolbar
+        self.viewToolBar = self.addToolBar("View")
+        self.viewToolBar.setObjectName("viewToolBar")
+        self.viewToolBar.addAction(self.toggleFullScreenAction)
         
         #Perspectives Toolbar
         self.perspectivesMenu = Qt.QMenu("Load Perspectives")
@@ -242,7 +249,37 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.helpAboutAction = Qt.QAction('About ...', self)
         #self.helpUserManual = Qt.QAction('')
+        self.toggleFullScreenAction = Qt.QAction(getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
+        self.toggleFullScreenAction.setCheckable(True)
+        self.toggleFullScreenAction.setShortcut(Qt.QKeySequence(Qt.Qt.Key_F11))
+        self.toggleFullScreenAction.setShortcutContext(Qt.Qt.ApplicationShortcut)
+        self.connect(self.toggleFullScreenAction, Qt.SIGNAL("toggled(bool)"), self._onToggleFullScreen)
+
+        #self.shortcut = Qt.QShortcut(self)
+        #self.shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
+        #self.connect(self.shortcut, Qt.SIGNAL("activated()"), self._onToggleFullScreen1)
     
+    def _onToggleFullScreen1(self):
+        if self.isFullScreen():
+            self.showNormal()
+            self._toggleToolBarsAndMenu(True)
+        else:
+            self._toggleToolBarsAndMenu(False)
+            self.showFullScreen()
+    
+    def _onToggleFullScreen(self, yesno):
+        print "toggle",yesno
+        if self.isFullScreen():
+            self.showNormal()
+            self._toggleToolBarsAndMenu(True)
+        else:
+            self._toggleToolBarsAndMenu(False)
+            self.showFullScreen()
+    
+    def _toggleToolBarsAndMenu(self, visible, toolBarAreas=Qt.Qt.TopToolBarArea):
+        for toolbar in self.findChildren(Qt.QToolBar):
+            if bool(self.toolBarArea(toolbar) & toolBarAreas):
+                toolbar.setVisible(visible)
     
     def setQSettings(self, settings):
         '''sets the main window settings object
@@ -510,7 +547,7 @@ if __name__ == "__main__":
     form = TaurusMainWindow()
     form.loadSettings()
     
-    form.setCentralWidget(Qt.QMdiArea()) #just for testing
+    #form.setCentralWidget(Qt.QMdiArea()) #just for testing
     
 #    form.addExternalAppLauncher('pwd')
     
