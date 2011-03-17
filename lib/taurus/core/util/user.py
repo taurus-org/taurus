@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-"""Finds out user inf (currently just the logged user name) for Windows and 
+"""
+Finds out user inf (currently just the logged user name) for Windows and 
 Posix machines. sets a USER_NAME variable containing the logged user name
 defines a UNKNOWN_USER variable to which username falls back.
 It also provides the getSystemUserName() function"""
@@ -32,7 +33,8 @@ __all__ = ["getSystemUserName", "USER_NAME", "UNKNOWN_USER"]
 
 __docformat__ = "restructuredtext"
 
-import os
+#import os
+import getpass
 
 #fallback. The caller of this module can check if username != UNKNOWN_USER
 UNKNOWN_USER='UnknownUser' 
@@ -42,15 +44,19 @@ def getSystemUserName():
     Posix machines. sets a USER_NAME variable containing the logged user name
     defines a UNKNOWN_USER variable to which username falls back.
     
-    :return: current user name
-    :rtype: str"""
-    username=''
-    if os.name is 'posix': #this works for linux and macOSX
-        username=os.getenv('USER')
-    elif os.name is 'nt': #win NT, XP... (and Vista?)
-        username=os.getenv('USERNAME')    
-    if username is '': username=UNKNOWN_USER
-    return username
+    :return: (str) current user name
+    """
+    try:
+        return getpass.getuser()
+    except:
+        return UNKNOWN_USER
+#    username=''
+#    if os.name is 'posix': #this works for linux and macOSX
+#        username=os.getenv('USER', UNKNOWN_USER)
+#    elif os.name is 'nt': #win NT, XP... (and Vista?)
+#        username=os.getenv('USERNAME', UNKNOWN_USER)    
+#    if username == '': username=UNKNOWN_USER
+#    return username
 
 USER_NAME=getSystemUserName()
 
