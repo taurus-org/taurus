@@ -49,7 +49,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     
     def setFileName(self, filename):
         if self.fd  is not None:
-           self.fd.close()
+            self.fd.close()
    
         self.filename    = filename
         #obtain preferred nexus file mode for writing  fromthe filename extension (defaults to hdf5) 
@@ -65,7 +65,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         nxfilemode = self.getFormat()
         
         if self.filename is None:
-              return
+            return
         if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
         self.fd = nxs.open(self.filename, nxfilemode) 
         self.entryname=self._newentryname('entry')
@@ -116,7 +116,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
 
     def _writeRecord(self, record):
         if self.filename is None:
-              return
+            return
         for dd in self.datadesc:
             if record.data.has_key( dd.label ):
                 data = record.data[dd.label]
@@ -138,13 +138,13 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 self.fd.closedata()
                 self.trace("done writing %i", record.recordno)
             else:
-                self.debug("missing data for label '%s'", lbl)
+                self.debug("missing data for label '%s'", dd.label)
         self.fd.flush()
 
     def _endRecordList(self, recordlist):
 
         if self.filename is None:
-              return
+            return
         
         env=self.currentlist.getEnviron()
         self._populateInstrumentInfo()
@@ -252,7 +252,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
     def _startRecordList(self, recordlist):
 
         if self.filename is None:
-              return
+            return
 
         env = recordlist.getEnviron()
         
@@ -291,7 +291,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
 
     def _writeRecord(self, record):
         if self.filename is None:
-              return
+            return
         nan, labels, fd = float('nan'), self.labels, self.fd
         
         d = []
@@ -307,7 +307,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
 
     def _endRecordList(self, recordlist):
         if self.filename is None:
-              return
+            return
 
         env = recordlist.getEnviron()
         end_time = env['endtime'].ctime()
