@@ -147,31 +147,28 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.get_item_colors(True)
 
     def resizeEvent(self, event):
-        if isinstance(self.parent(),Qt.QScrollArea):
+        """ It has been needed to reimplent size policies """
+        if not self.scene() or isinstance(self.parent(),Qt.QScrollArea) or not self.isVisible():
+            self.info('In TauJDrawSynopticsView('+self._fileName+').resizeEvent(): Disabled')
             return
         try:
-            if self.parent(): 
-                ws = float(self.w_scene or self.width())
-                hs = float(self.h_scene or self.height())                
-                wp = float(self.parent().width())
-                hp =  float(self.parent().height())
-                #This correction is needed to avoid "cutting" the borders when the view is small
-                wp,hp = wp-min(0.1*wp,30),hp-min(0.1*hp,40)
-            else:
-                if not hasattr(self,'prevwp'): 
-                    #Size is calculated to parent ... if there's no parent or no previous size there's no resize to calcullate!
-                    return
-                ws,hs = self.prevwp
-                wp,hp = float(self.w_scene or self.width()),float(self.h_scene or self.height())
-            w =wp/ws
-            h = hp/hs
-            self.scale(w,h)
-            self.w_scene = wp
-            self.h_scene = hp
-            self.prevwp = (ws,hs)
+            self.info('In TauJDrawSynopticsView('+self._fileName+').resizeEvent()')
+                
+            self.setVerticalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
+            
+            # 2 or 3 iterations of this methods may be needed ...
+            srect = self.scene().sceneRect()
+            offset = self.mapToGlobal(Qt.QPoint(srect.x(),srect.y()))
+            #self.ensureVisible(offset.x(),offset.y(),rrect.width(),rrect.height()) # where rrect is the biggest object in the scene
+            
+            #@sergi_rubio: I disable the offset correction to show right proportions in TaurusGUI: to be tested in other applications
+            #self.fitInView(offset.x(),offset.y(),srect.width(),srect.height(),Qt.Qt.KeepAspectRatio)
+            self.fitInView(srect.x(),srect.y(),srect.width(),srect.height(),Qt.Qt.KeepAspectRatio)
+  
             self.emitColors()
         except Exception,e:
-            self.warning('Exception in JDrawView.resizeEvent: %s' % traceback.format_exc())
+            self.warning('Exception in JDrawView('+self._fileName+').resizeEvent: %s' % traceback.format_exc())
             pass
 
     def refreshModel(self):
