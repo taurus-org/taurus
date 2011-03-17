@@ -478,6 +478,9 @@ class ScanTrendsSet(TaurusTrendsSet):
         packet is a dict with {type:str, "data":object} and the accepted types are: data_desc, record_data, record_end
         and the data objects are: seq<ColumnDesc.Todict()>, record.data dict and dict , respectively
         '''
+        if packet is None:
+            self.debug('Ignoring empty scan data packet')
+            return
         id,packet = packet
         pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
         if pcktype == "data_desc": 
