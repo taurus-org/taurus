@@ -368,7 +368,9 @@ class SpockMacroServer(BaseMacroServer):
             parameters = genutils.arg_split(parameter_s, posix=True)
             door = genutils.get_door()
             ret = door.runMacro(macro_name, parameters, synch=True)
-            return door.getRunningMacro().getResult()
+            macro = door.getRunningMacro()
+            if macro is not None: # maybe none if macro was aborted
+                return door.getRunningMacro().getResult()
         
         macro_fn.func_name = macro_name
         macro_fn.__doc__ = str(macro_info.doc)
