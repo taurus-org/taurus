@@ -736,12 +736,12 @@ void Pool::send_to_ctrl(vector<ElementId> &mot_ids,
  */
 //+------------------------------------------------------------------
 
-void Pool::moving_loop(    vector<CtrlInMove> &implied_ctrls,
-                        vector<MotInMove> &implied_mots,
-                        auto_ptr<GrpInMove> &implied_group,
-                        MotorThread *th,
-                        vector<double> &back_pos,
-                        vector<bool> &obj_trigg)
+void Pool::moving_loop(vector<CtrlInMove> &implied_ctrls,
+                       vector<MotInMove> &implied_mots,
+                       auto_ptr<GrpInMove> &implied_group,
+                       MotorThread *th,
+                       vector<double> &back_pos,
+                       vector<bool> &obj_trigg)
 {
 
     long mot_nb = implied_mots.size();
@@ -1280,7 +1280,9 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
 
         Tango::Util *tg = Tango::Util::instance();
         string attr_name("Position");
-        time_t when = time(NULL);
+        //time_t when = time(NULL);
+        struct timeval when;
+        gettimeofday(&when, NULL);
         Tango::DevFailed except;
         bool read_except = false;
 
@@ -1407,19 +1409,18 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
                 if (send_event == true)
                 {
                     {
-                        Tango::DevState m_state = motor->get_state(); 
+                        Tango::DevState m_state = motor->get_state();
                         
                         Tango::AutoTangoMonitor synch(motor);
                         
-                        mot_mv.pos_att.set_value(&(pos));
-                        
+                        Tango::AttrQuality quality = Tango::ATTR_VALID;
                         if (m_state == Tango::MOVING)
-                            mot_mv.pos_att.set_quality(Tango::ATTR_CHANGING);
+                            quality = Tango::ATTR_CHANGING;
                         else if (m_state == Tango::ALARM)
-                            mot_mv.pos_att.set_quality(Tango::ATTR_ALARM);
-                        else
-                            mot_mv.pos_att.set_quality(Tango::ATTR_VALID);
-                            
+                            quality = Tango::ATTR_ALARM;
+                        
+                        mot_mv.pos_att.set_value_date_quality(&pos, when, quality);
+                        
                         mot_mv.pos_att.fire_change_event(read_except == true ? 
                                                          &except : NULL);
                     }
@@ -1476,20 +1477,28 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
 //
 // The same thing for motor
 //
-
             try
             {
-                implied_mots[0].motor->read_Position(mot_mv.pos_att);
-                if (send_event == true)
+                motor->read_Position(mot_mv.pos_att);
+            }
+            catch (Tango::DevFailed &e)
+            {
+                except = e;
+                read_except = true;
+
+            }
+            
+            if (send_event == true)
+            {
+                if (read_except == false)
                 {
                     Tango::DevState m_state = motor->get_state();
+                    Tango::AttrQuality quality = Tango::ATTR_VALID;
                     if (m_state == Tango::MOVING)
-                        mot_mv.pos_att.set_quality(Tango::ATTR_CHANGING);
+                        quality = Tango::ATTR_CHANGING;
                     else if (m_state == Tango::ALARM)
-                        mot_mv.pos_att.set_quality(Tango::ATTR_ALARM);
-                    else
-                        mot_mv.pos_att.set_quality(Tango::ATTR_VALID);
-                    
+                        quality = Tango::ATTR_ALARM;
+                    mot_mv.pos_att.set_quality(quality);
                     mot_mv.pos_att.fire_change_event();
 
                     if(has_int_listeners)
@@ -1514,14 +1523,9 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
                         }
                     }
                 }
-            }
-            catch (Tango::DevFailed &e)
-            {
-                except = e;
-                read_except = true;
-                if (send_event == true)
+                else
                 {
-                    mot_mv.pos_att.fire_change_event(&e);
+                    mot_mv.pos_att.fire_change_event(&except);
 
                     if(has_int_listeners)
                     {
@@ -1545,7 +1549,11 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
                     }
                 }
             }
-    
+
+            struct timeval when;
+            gettimeofday(&when, NULL);
+            Tango::DevFailed except;
+        
             if ((obj_trigg[0] == true) && (last_call == false))
             {
                 Tango::AttrHistoryStack<Tango::DevDouble> ahs;

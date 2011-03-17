@@ -304,21 +304,18 @@ void IndEltGrp::abort_evt(vector<Tango::DevFailed> *v_exp)
 PoolGroupBaseDev::PoolGroupBaseDev(Tango::DeviceClass *cl,string &s)
 :PoolBaseDev(cl,s.c_str())
 {
-    init_cmd = false;
     polling_thread_id = 0;
 }
 
 PoolGroupBaseDev::PoolGroupBaseDev(Tango::DeviceClass *cl,const char *s)
 :PoolBaseDev(cl,s)
 {
-    init_cmd = false;
     polling_thread_id = 0;
 }
 
 PoolGroupBaseDev::PoolGroupBaseDev(Tango::DeviceClass *cl,const char *s,const char *d)
 :PoolBaseDev(cl,s,d)
 {
-    init_cmd = false;
     polling_thread_id = 0;
 }
 

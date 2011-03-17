@@ -263,7 +263,6 @@ Motor::Motor(Tango::DeviceClass *cl,string &s)
 //:Tango::Device_4Impl(cl,s.c_str())
 :Pool_ns::PoolIndBaseDev(cl,s.c_str())
 {
-    init_cmd = false;
     init_device();
 }
 
@@ -271,7 +270,6 @@ Motor::Motor(Tango::DeviceClass *cl,const char *s)
 //:Tango::Device_4Impl(cl,s)
 :Pool_ns::PoolIndBaseDev(cl,s)
 {
-    init_cmd = false;
     init_device();
 }
 
@@ -279,7 +277,6 @@ Motor::Motor(Tango::DeviceClass *cl,const char *s,const char *d)
 //:Tango::Device_4Impl(cl,s,d)
 :Pool_ns::PoolIndBaseDev(cl,s,d)
 {
-    init_cmd = false;
     init_device();
 }
 //+----------------------------------------------------------------------------
@@ -792,7 +789,7 @@ void Motor::write_Sign(Tango::WAttribute &attr)
     Pool_ns::MotorPool &motor_element = get_motor_element();
 
     DEBUG_STREAM << "Motor::write_Sign(Tango::WAttribute &attr) entering... "<< endl;
-    double old_sign = attr_Sign_write;
+    Tango::DevLong old_sign = attr_Sign_write;
     attr.get_write_value(attr_Sign_write);
     
     if (attr_Sign_write != 1 && attr_Sign_write != -1)
@@ -804,7 +801,74 @@ void Motor::write_Sign(Tango::WAttribute &attr)
     }
     
     DEBUG_STREAM << "Motor: new Sign value = " << attr_Sign_write << endl;
-    
+
+    //
+    // Compute new limit positions for the Position attribute if we are NOT
+    // called from memorized
+    //
+    // We use a hack here: we are trusting that tango is changing the memorized
+    // attribute flag before calling this method throught the memorized feature.
+    // This may not be true in the future so this is RED code
+    if (attr.is_memorized() && attr_Sign_write == -old_sign)
+    {
+        // at least until tango 7.2.5 there is no Attribute API for setting
+        // alarm and warning ranges so we do it using the get/set properties
+        // instead of direct attr.set_min_value like API.
+        // Drawbacks are that we have to do all str<->double conversions and
+        // also we have to trigger the config event manually.
+        Tango::DeviceProxy self(this->get_name());
+        Tango::AttributeInfoEx cfg = self.attribute_query("position");
+        
+        //
+        // Compute new values
+        //
+        Tango::DevDouble old_min_value, old_max_value;
+        Tango::DevDouble old_min_alarm, old_max_alarm;
+        Tango::DevDouble old_min_warning, old_max_warning;
+        
+        String_to_double(cfg.min_value, old_min_value)
+        String_to_double(cfg.max_value, old_max_value)
+        String_to_double(cfg.alarms.min_alarm, old_min_alarm)
+        String_to_double(cfg.alarms.max_alarm, old_max_alarm)
+        String_to_double(cfg.alarms.min_warning, old_min_warning)
+        String_to_double(cfg.alarms.max_warning, old_max_warning)
+        
+        if (cfg.min_value != AlrmValueNotSpec && cfg.min_value != NotANumber)
+            double_to_String(-old_min_value, cfg.max_value)
+        else
+            cfg.max_value = AlrmValueNotSpec;
+        
+        if (cfg.max_value != AlrmValueNotSpec && cfg.max_value != NotANumber)
+            double_to_String(-old_max_value, cfg.min_value)
+        else
+            cfg.min_value = AlrmValueNotSpec;
+
+        if (cfg.alarms.min_alarm != AlrmValueNotSpec && cfg.alarms.min_alarm != NotANumber)
+            double_to_String(-old_min_alarm, cfg.alarms.max_alarm)
+        else
+            cfg.alarms.max_alarm = AlrmValueNotSpec;
+            
+        if (cfg.alarms.max_alarm != AlrmValueNotSpec && cfg.alarms.max_alarm != NotANumber)
+            double_to_String(-old_max_alarm, cfg.alarms.min_alarm)
+        else
+            cfg.alarms.min_alarm = AlrmValueNotSpec;
+        
+        
+        if (cfg.alarms.min_warning != AlrmValueNotSpec && cfg.alarms.min_warning != NotANumber)
+            double_to_String(-old_min_warning, cfg.alarms.max_warning)
+        else
+            cfg.alarms.max_warning = AlrmValueNotSpec;
+
+        if (cfg.alarms.max_warning != AlrmValueNotSpec && cfg.alarms.max_warning != NotANumber)
+            double_to_String(-old_max_warning, cfg.alarms.min_warning)
+        else
+            cfg.alarms.min_warning = AlrmValueNotSpec;
+
+        Tango::AttributeInfoListEx cfg_list;
+        cfg_list.push_back(cfg);
+        self.set_attribute_config(cfg_list);
+    }
+
 //
 // The Sign attribute is a memorized attribute. If we are in simulation mode,
 // reset the value stored in db to the value it had when the simulation mode
@@ -1157,7 +1221,7 @@ void Motor::read_Offset(Tango::Attribute &attr)
     DEBUG_STREAM << "Motor::read_Offset(Tango::Attribute &attr) entering... "<< endl;
     attr.set_value(attr_Offset_read);
 }
-
+    
 //+----------------------------------------------------------------------------
 //
 // method : 		Motor::write_Offset
@@ -1173,38 +1237,72 @@ void Motor::write_Offset(Tango::WAttribute &attr)
 
     double old_offset = attr_Offset_write;
     attr.get_write_value(attr_Offset_write);
-    DEBUG_STREAM << "Motor: new Offset value = " << attr_Offset_write << endl;
 
-//
-// Compute mew limit positions for the Position attribute
-//
-
-    Tango::WAttribute &pos = get_device_attr()->get_w_attr_by_name("Position");
-                    
-    bool min_set = pos.is_min_value();
-    bool max_set = pos.is_max_value();
-
-//
-// Compute new values
-//
-    Tango::DevDouble limit;
-
-    if (min_set == true)
+    //
+    // Compute new limit positions for the Position attribute if we are NOT
+    // called from memorized
+    //
+    // We use a hack here: we are trusting that tango is changing the memorized
+    // attribute flag before calling this method throught the memorized feature.
+    // This may not be true in the future so this is RED code
+    if (attr.is_memorized())
     {
-        pos.get_min_value(limit);
-        double min_in_dial = limit - old_offset;
-        double new_min_limit = min_in_dial + attr_Offset_write;
-        pos.set_min_value(new_min_limit);
+        // at least until tango 7.2.5 there is no Attribute API for setting
+        // alarm and warning ranges so we do it using the get/set properties
+        // instead of direct attr.set_min_value like API.
+        // Drawbacks are that we have to do all str<->double conversions and
+        // also we have to trigger the config event manually.
+        Tango::DeviceProxy self(this->get_name());
+        Tango::AttributeInfoEx cfg = self.attribute_query("position");
+        
+        //
+        // Compute new values
+        //
+        Tango::DevDouble limit;
+        Tango::DevDouble delta_offset = attr_Offset_write - old_offset;
+        if (cfg.min_value != AlrmValueNotSpec && cfg.min_value != NotANumber)
+        {   
+            String_to_double(cfg.min_value, limit);
+            limit += delta_offset;
+            double_to_String(limit, cfg.min_value);
+        }
+        if (cfg.max_value != AlrmValueNotSpec && cfg.max_value != NotANumber)
+        {   
+            String_to_double(cfg.max_value, limit);
+            limit += delta_offset;
+            double_to_String(limit, cfg.max_value)
+        }
+
+        if (cfg.alarms.min_alarm != AlrmValueNotSpec && cfg.alarms.min_alarm != NotANumber)
+        {   
+            String_to_double(cfg.alarms.min_alarm, limit);
+            limit += delta_offset;
+            double_to_CORBA_String(limit, cfg.alarms.min_alarm)
+        }
+        if (cfg.alarms.max_alarm != AlrmValueNotSpec && cfg.alarms.max_alarm != NotANumber)
+        {   
+            String_to_double(cfg.alarms.max_alarm, limit);
+            limit += delta_offset;
+            double_to_CORBA_String(limit, cfg.alarms.max_alarm)
+        }
+        
+        if (cfg.alarms.min_warning != AlrmValueNotSpec && cfg.alarms.min_warning != NotANumber)
+        {   
+            String_to_double(cfg.alarms.min_warning, limit);
+            limit += delta_offset;
+            double_to_CORBA_String(limit, cfg.alarms.min_warning)
+        }
+        if (cfg.alarms.max_warning != AlrmValueNotSpec && cfg.alarms.max_warning != NotANumber)
+        {   
+            String_to_double(cfg.alarms.max_warning, limit);
+            limit += delta_offset;
+            double_to_CORBA_String(limit, cfg.alarms.max_warning)
+        }
+        Tango::AttributeInfoListEx cfg_list;
+        cfg_list.push_back(cfg);
+        self.set_attribute_config(cfg_list);
     }
     
-    if (max_set == true)
-    {
-        pos.get_max_value(limit);
-        double max_in_dial = limit - old_offset;
-        double new_max_limit = max_in_dial + attr_Offset_write;
-        pos.set_max_value(new_max_limit);
-    }
-                                    
 //
 // The Offset attribute is a memorized attribute. If we are in simulatioin mode,
 // reset the value stored in db to the value it had when the simulation mode

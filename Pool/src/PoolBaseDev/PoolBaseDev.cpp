@@ -70,6 +70,7 @@ namespace Pool_ns
 PoolBaseDev::PoolBaseDev(Tango::DeviceClass *cl,string &s)
 :Tango::Device_4Impl(cl,s.c_str())
 {
+    init_cmd = false;
 }
 
 //------------------------------------------------------------------------------
@@ -78,6 +79,7 @@ PoolBaseDev::PoolBaseDev(Tango::DeviceClass *cl,string &s)
 PoolBaseDev::PoolBaseDev(Tango::DeviceClass *cl,const char *s)
 :Tango::Device_4Impl(cl,s)
 {
+    init_cmd = false;
 }
 
 //------------------------------------------------------------------------------
@@ -86,6 +88,7 @@ PoolBaseDev::PoolBaseDev(Tango::DeviceClass *cl,const char *s)
 PoolBaseDev::PoolBaseDev(Tango::DeviceClass *cl,const char *s,const char *d)
 :Tango::Device_4Impl(cl,s,d)
 {
+    init_cmd = false;
 }
 
 //------------------------------------------------------------------------------

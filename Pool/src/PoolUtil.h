@@ -151,6 +151,17 @@ protected:
 	Tango::DevState		d_state;
 };
 
+#define CORBA_String_to_double(s,d) \
+    { TangoSys_MemStream str; str << s; str >> d; }
+
+#define double_to_CORBA_String(d,s) \
+    { TangoSys_MemStream str; str << d; s = CORBA::string_dup(str.str().c_str()); }
+
+#define String_to_double(s,d) \
+    { TangoSys_MemStream str; str << s; str >> d; }
+
+#define double_to_String(d,s) \
+    { TangoSys_MemStream str; str << d; s = str.str(); }
 }
 
 #endif /*POOLUTIL_H_*/
