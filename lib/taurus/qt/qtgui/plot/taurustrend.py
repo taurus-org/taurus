@@ -546,6 +546,9 @@ class ScanTrendsSet(TaurusTrendsSet):
     
     def _dataDescReceived(self, datadesc):
         '''prepares the plot according to the info in the datadesc dictionary'''
+        #backwards compatibility (datadesc was a list and now is a dict)
+        if isinstance(datadesc,list):
+            datadesc={'column_desc':datadesc}
         #clear existing curves if required
         if self._autoClear:
             self.clearTrends()
