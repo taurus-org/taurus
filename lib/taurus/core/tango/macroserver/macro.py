@@ -249,6 +249,8 @@ class MacroInfo(object):
 
     def formatResult(self, res):
         if not self.hasResult():
+            if res is None:
+                return None
             raise Exception('Macro %s does not return any result' % self.name)
         result_info = self.getResult()
         rtype = result_info['type']
