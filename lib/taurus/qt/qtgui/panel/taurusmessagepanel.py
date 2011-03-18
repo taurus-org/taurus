@@ -77,6 +77,7 @@ class TaurusMessageErrorHandler(object):
 
         html_orig = """<html><head><style type="text/css">{style}</style></head><body>"""
         exc_info = "".join(traceback.format_exception(err_type, err_value, err_traceback))
+        style = ""
         if pygments is not None:
             formatter = HtmlFormatter()
             style = formatter.get_style_defs()
