@@ -5,8 +5,22 @@ from PyQt4 import QtGui, QtCore, Qt
 from taurus.core.util import Enumeration
 from taurus.core.tango.sardana import SardanaManager
 
+"""This wizard is designed for creating new Sardana.
 
+The wizard consist:
+
+- TangoPage
+- SardanaPage
+- PoolPage
+- MSPage
+- CommitPage
+- OutroPage
+
+"""
 class NewSardanaIntroPage(wiz.SardanaIntroBasePage):
+    """
+    Introduction page
+    """
 
     def __init__(self, parent = None):
         wiz.SardanaIntroBasePage.__init__(self, parent)
@@ -20,7 +34,9 @@ class NewSardanaIntroPage(wiz.SardanaIntroBasePage):
 
 
 class SelectTangoHostPage(wiz.SardanaBasePage):
-    
+    """
+    Page for selecting tango host
+    """
     def __init__(self, parent = None):
         wiz.SardanaBasePage.__init__(self, parent)
     
@@ -123,6 +139,9 @@ class SelectTangoHostPage(wiz.SardanaBasePage):
 
     
 class AddSardanaBasePage(wiz.SardanaBasePage):
+    """
+    Page for setting Sardana name
+    """
 
     def __init__(self, parent = None):
         wiz.SardanaBasePage.__init__(self, parent)
@@ -206,7 +225,9 @@ class AddSardanaBasePage(wiz.SardanaBasePage):
            
 
 class Item(object):
-
+    """
+    SuperClass of Pool and Macroservers items
+    """
     def __init__(self,instanceName="", hostName="", level=None):
         self._instanceName=str(instanceName)
         self._hostName=str(hostName)
@@ -225,7 +246,9 @@ class Item(object):
         return self._level
     
 class SimpleEditorBasePage(wiz.SardanaBasePage):
-   
+    """
+    Superclass of Pool and Macroserver editor
+    """
     def __init__(self, parent = None):
         wiz.SardanaBasePage.__init__(self, parent)  
         self.setSubTitle('SubTitle') 
@@ -398,6 +421,10 @@ class SimpleEditorBasePage(wiz.SardanaBasePage):
         
 
 class Pool(Item):
+    """
+    Represents a Pool
+    """
+    
     def __init__(self,instanceName="", hostName="", level=None, poolDeviceName="", alias="", poolVersion="", poolPath=[]):
         
         Item.__init__(self, instanceName, hostName, level)
@@ -430,7 +457,9 @@ class Pool(Item):
 
 
 class AddPoolBasePage(SimpleEditorBasePage):
-   
+    """
+    Page for editing the list of Pools
+    """
     def __init__(self, parent = None):
         self._editor = None
         SimpleEditorBasePage.__init__(self, parent)
@@ -502,7 +531,9 @@ class AddPoolBasePage(SimpleEditorBasePage):
         
         
 class PoolEditor(object):
-    
+    """
+    Pool editor
+    """
     def __init__(self,parent = None):
 
         self._parent=parent
@@ -687,6 +718,9 @@ class PoolEditor(object):
     
     
 class MS(Item):
+    """
+    Represents a Macroserver
+    """
     def __init__(self,instanceName="", hostName="", level=None, poolName="", msDeviceName="", msAlias="", msVersion="", msPath=[], doorName="", doorAlias=""):
         Item.__init__(self, instanceName, hostName, level)
         self._msDeviceName=str(msDeviceName)
@@ -732,7 +766,9 @@ class MS(Item):
         
         
 class MSEditor(object):
-    
+    """
+    Macroserver editor
+    """
     def __init__(self,parent = None):
         self._parent=parent
         #self._parent = weakref.ref(parent)
@@ -985,6 +1021,9 @@ class MSEditor(object):
         
         
 class AddMSBasePage(SimpleEditorBasePage):
+    """
+    Page for editing the list of Macroservers
+    """
    
     def __init__(self, parent = None):
         self._editor=None
@@ -1089,7 +1128,9 @@ class AddMSBasePage(SimpleEditorBasePage):
         
 
 class SardanaCommitBasePage(wiz.SardanaIntroBasePage):
-    
+    """
+    Commiting page
+    """
     def __init__(self, parent = None):
         QtGui.QWizardPage.__init__(self, parent)
         self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(":/watermark.jpg"))
@@ -1171,6 +1212,9 @@ class SardanaCommitBasePage(wiz.SardanaIntroBasePage):
         
 
 class SardanaOutroBasePage(wiz.SardanaBasePage):
+    """
+    The last page in the wizard for creation sardana and all of the pools and macroservers that it consist
+    """
     def __init__(self, parent = None):
         QtGui.QWizardPage.__init__(self, parent)
         self.setPixmap(QtGui.QWizard.WatermarkPixmap, QtGui.QPixmap(":/watermark.jpg")) 
@@ -1236,7 +1280,9 @@ class SardanaOutroBasePage(wiz.SardanaBasePage):
 
     
 class Progress (Qt.QThread):
-        
+    """
+    Indicate the percent of sardana creation process
+    """
     def __init__(self, db, sardana, poolList, msList, autoStart):
         Qt.QThread.__init__(self)
         self._sardana = sardana
