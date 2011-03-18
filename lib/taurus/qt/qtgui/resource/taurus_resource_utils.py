@@ -138,7 +138,7 @@ def getPixmap(key, size=None):
         if size is not None:
             pm = pm.scaled(size, size, Qt.Qt.KeepAspectRatio, Qt.Qt.SmoothTransformation)
         Qt.QPixmapCache.insert(key, pm)
-    return pm
+    return Qt.QPixmap(pm)
 
 def getIcon(key):
     """Returns a PyQt4.QtGui.QIcon object for the given key
