@@ -5,8 +5,24 @@ from types import *
 from taurus.core.util import Enumeration
 from taurus.core.tango.sardana import SardanaManager
 
-    
+"""This wizard is created for adding new devices. At the moment it has 4 pages:
+
+- SelectSardanaPool
+- NewDevice
+- CommitPage
+- OutroPage
+"""
+
 class SelectSardanaPoolBasePage(wiz.SardanaBasePage):
+    """Page for selecting Sardana and Pool
+    
+    Selected values are saved in
+    
+    self['sardana']
+    self['pool']
+    
+    """
+    
     def __init__(self, sardana=None, pool=None, parent = None):
         wiz.SardanaBasePage.__init__(self, parent)
         self._sardana = sardana
@@ -88,6 +104,9 @@ class SelectSardanaPoolBasePage(wiz.SardanaBasePage):
     
     
 class SimpleTreeView(QtGui.QTreeView):
+    """
+        extended version of QTreeView that is emitting signals of activation and expansion
+    """
 
     def __init__(self, parent=None):
         super(SimpleTreeView, self).__init__(parent)
@@ -114,6 +133,9 @@ class SimpleTreeView(QtGui.QTreeView):
                 self.resizeColumnToContents(column)
                      
 class AxisSteper(Qt.QSpinBox):
+    """ Object of this class is a Spin box that can jumps from 1 to the total number 
+        of axis while skipping busy values
+    """
     def __init__(self, controllerInfo=None, busyValues = [], parent = None):
         Qt.QSpinBox.__init__(self, parent)
         self._busyValues = busyValues
@@ -162,6 +184,9 @@ class AxisSteper(Qt.QSpinBox):
             
             
 class SingleAxisWidget(Qt.QWidget):
+    """
+        Widget for selecting name and axis for the device 
+    """
     def __init__(self, parent = None):
         Qt.QWidget.__init__(self, parent)
         self._layout = QtGui.QGridLayout(self)
@@ -201,6 +226,10 @@ class SingleAxisWidget(Qt.QWidget):
     
     
 class NameEditorWidget(QtGui.QLineEdit):
+    """
+        for editing the name, it has to check the name if it exist in the sardana .. but it does
+    """
+    
     def __init__(self, parent=None):
         QtGui.QLineEdit.__init__(self,parent)
         self.setValue(self.getDefaultValue())
@@ -232,6 +261,10 @@ class NameEditorWidget(QtGui.QLineEdit):
         return ""
     
 class TableAxisDelegate(QtGui.QItemDelegate):
+    """
+    Item delegate for Table Axis Widget
+    """
+    
     def __init__(self, parent = None):
         QtGui.QItemDelegate.__init__(self, parent)
         
@@ -272,7 +305,9 @@ class TableAxisDelegate(QtGui.QItemDelegate):
     
     
 class TableAxisWidget (QtGui.QWidget):
-    
+    """
+    Table for selecting multiple axis
+    """
     def __init__(self, value=None, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._controllerInfo = None
@@ -309,7 +344,7 @@ class TableAxisWidget (QtGui.QWidget):
         self._delegate = TableAxisDelegate(self._tableView)
         #QtCore.QObject.connect(self._delegate, QtCore.SIGNAL("editorValueChanged"), self._valueChanged)
         self._tableView.setItemDelegate(self._delegate)
-        #QtCore.QObject.connect(self._delegate, QtCore.SIGNAL("editorValueChanged"), self._valueChanged)
+        QtCore.QObject.connect(self._delegate, QtCore.SIGNAL("editorValueChanged"), self._textEdited)
         #self._tableView.setItemDelegate(self._delegate)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
         self._tableView.setSizePolicy(sizePolicy)
@@ -317,6 +352,13 @@ class TableAxisWidget (QtGui.QWidget):
         self._tableView.horizontalHeader().setVisible(True)
         self._tableView.horizontalHeader().setStretchLastSection(True)
         self._tableView.setMinimumSize(QtCore.QSize(150, 150))
+        self._edited = False
+        
+    def _textEdited(self, str=None):
+        self._edited = True
+        
+    def isEdited(self):
+        return self._edited
 
     def getAxisList(self):
         list = []
@@ -344,6 +386,7 @@ class TableAxisWidget (QtGui.QWidget):
         self.setValue([])
         self._controllerInfo = controllerInfo
         self._delegate.setControllerInfo(self._controllerInfo)
+        self._edited = False
 
     def _getSelectedIndex(self):
         if len (self._tableView.selectedIndexes()):
@@ -364,7 +407,8 @@ class TableAxisWidget (QtGui.QWidget):
                 rowIndex = rows 
             value.insert(rowIndex, ["",self._findFreeAxis()])
             self.setValue(value)
-        
+            self._textEdited()
+            
         if self._findFreeAxis() is None:
             self._addRowButton.setEnabled(False)
     
@@ -380,8 +424,8 @@ class TableAxisWidget (QtGui.QWidget):
         if ret == QtGui.QMessageBox().Yes:
            value = self.getValue()
            self.setValue(value[:rowIndex] + value[rowIndex+1:])
+           self._textEdited()
            self._addRowButton.setEnabled(True)
-           
             
     def _moveUp(self):
         value = self.getValue() # stored table
@@ -392,7 +436,8 @@ class TableAxisWidget (QtGui.QWidget):
             value.insert(rowIndex-1,x)
             self.setValue(value)
             self._tableView.setCurrentIndex(self._tableView.model().index(rowIndex-1, 0 ))
-        
+            self._textEdited()
+            
     def _moveDown(self):
         value = self.getValue() # stored table
         rows = len(value)
@@ -402,6 +447,7 @@ class TableAxisWidget (QtGui.QWidget):
             value.insert(rowIndex+1,x)
             self.setValue(value)
             self._tableView.setCurrentIndex(self._tableView.model().index(rowIndex+1, 0 ))
+            self._textEdited()
             
     def setValue(self, value):
         rows = len(value)
@@ -431,21 +477,13 @@ class TableAxisWidget (QtGui.QWidget):
         return copy.deepcopy(result)
     
     
-#    def _valueChanged(self, value, row, column):
-#        if (self._format == "1D"):
-#            if not (value == self._actualValue[row]):
-#                self._actualValue[row] = value
-#                self.emit(QtCore.SIGNAL("valueChanged"),self.getValue()[:], self._actualValue[:] )
-#                
-#                
-#        if (self._format == "2D"):
-#            if not (value == self._actualValue[row][column]):
-#                self._actualValue[row][column] = value
-#                self.emit(QtCore.SIGNAL("valueChanged"),self.getValue()[:], self._actualValue[:] )
-
-    
-    
 class MultipleAxisWidget(Qt.QWidget):
+    """
+    Wizard for selecting multiple axis
+    Method getValue() returns two dimensional array
+        where the first column is name and the second is axis 
+    """
+    
     def __init__(self, parent = None):
         Qt.QWidget.__init__(self, parent)
         self._layout = QtGui.QGridLayout(self)
@@ -458,25 +496,23 @@ class MultipleAxisWidget(Qt.QWidget):
         self._tableAxisWidget = TableAxisWidget()
         self._layout.addWidget(self._tableAxisWidget,0,0,1,1)
         
-        #QtCore.QObject.connect(self._axisSpinBox.lineEdit(), QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
-        #QtCore.QObject.connect(self._nameLineEdit, QtCore.SIGNAL("textEdited(QString)"), self._textEdited)
-    
-    def _textEdited(self, str):
-        self._edited = True
-        
     def setControllerInfo(self, controllerInfo):
         self._edited = False
         self._controllerInfo = controllerInfo
         self._tableAxisWidget.setControllerInfo(self._controllerInfo)
     
     def isEdited(self):
-        return self._edited
+        return self._tableAxisWidget.isEdited()
     
     def getValue(self):
-        return None
+        return self._tableAxisWidget.getValue()
         
                 
 class HardwareSettings(Qt.QWidget):
+    """
+    Page for editing single or multiple axis devices
+    """
+    
     def __init__(self, parent = None):
         Qt.QWidget.__init__(self, parent)
         self._layout = QtGui.QGridLayout(self)
@@ -485,7 +521,6 @@ class HardwareSettings(Qt.QWidget):
         self._controllerInfo = None
         self._edited = False
         self._changeView()
-        
     
     def setupUi(self):
         self.setVisible(False)
@@ -520,11 +555,14 @@ class HardwareSettings(Qt.QWidget):
         self._multipleAxisWidget.setControllerInfo(self._controllerInfo)
         
     def isEdited(self):
-        return self._singleAxisWidget.isEdited() #or
+        return self._singleAxisWidget.isEdited() or self._multipleAxisWidget.isEdited()
         
         
 class NewDeviceBasePage(wiz.SardanaBasePage):
-   
+    """
+    Base Page for selecting and editing Devices
+   """
+    
     def __init__(self, parent = None):
         wiz.SardanaBasePage.__init__(self, parent)
         self._valid = False
@@ -728,6 +766,9 @@ class NewDeviceBasePage(wiz.SardanaBasePage):
     
     
 class NewDeviceCommitBasePage(wiz.SardanaIntroBasePage):
+    """
+    The last commiting page on the wizard, doesn't work at the moment
+    """
     
     def __init__(self, parent = None):
         QtGui.QWizardPage.__init__(self, parent)
@@ -774,6 +815,9 @@ class NewDeviceCommitBasePage(wiz.SardanaIntroBasePage):
 
 
 class DescriptionWidget(QtGui.QWidget):
+    """
+    The part of the wizard that shows the object description (text + picture)
+    """
     
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self,parent)
