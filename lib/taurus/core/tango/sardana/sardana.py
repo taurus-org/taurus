@@ -68,7 +68,7 @@ class ControllerClassInfo(object):
         self._library = library
         
     def get_max_elements(self):
-        return 123
+        return 20
     
     def get_name(self):
         return self._name
@@ -102,8 +102,8 @@ class ControllerClassInfo(object):
     def get_properties(self):
         properties = []
         # fake data ######################
-        properties.append(PropertyInfo("name", "string", "0D", "deviceName"))
-        properties.append(PropertyInfo("number0", "integer", "0D", 5))
+        properties.append(PropertyInfo("my parameter", "string", "0D", "deviceName"))
+        properties.append(PropertyInfo("asdsadasd", "integer", "0D", 5))
         properties.append(PropertyInfo("boollll0", "boolean", "0D", False))
         properties.append(PropertyInfo("boollll0", "boolean", "0D", True)) 
         properties.append(PropertyInfo("boollll0", "boolean", "0D", False))     
