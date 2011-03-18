@@ -417,7 +417,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         # parent object
         self._getRealConfig().removeListener(self)
         if not self.__chg_evt_id is None and not self._dev_hw_obj is None:
-            self.debug("Unsubscribing to change events (ID=%d)" % self.__chg_evt_id)
+            self.trace("Unsubscribing to change events (ID=%d)" % self.__chg_evt_id)
             try:
                 self._dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None

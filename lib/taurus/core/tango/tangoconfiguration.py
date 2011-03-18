@@ -152,7 +152,7 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
 
     def _subscribeEvents(self):
         """ Enable subscription to the attribute configuration events."""
-        self.debug("Subscribing to configuration events...")
+        self.trace("Subscribing to configuration events...")
         dev = self._getDev()
         if dev is None:
             self.debug("failed to subscribe config events: device is None")
@@ -185,7 +185,7 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
         # so we should not access external objects from the factory, like the 
         # parent object        
         if self._cfg_evt_id and not self._dev_hw_obj is None:
-            self.debug("Unsubscribing to configuration events (ID=%s)" % str(self._cfg_evt_id))
+            self.trace("Unsubscribing to configuration events (ID=%s)" % str(self._cfg_evt_id))
             try:
                 self._dev_hw_obj.unsubscribe_event(self._cfg_evt_id)
                 self._cfg_evt_id = None
