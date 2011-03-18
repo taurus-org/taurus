@@ -119,7 +119,10 @@ class QPixmapWidget(Qt.QWidget):
         """Sets the pixmap for this widget. Setting it to None disables pixmap
         :param pixmap: the new pixmap
         :type  pixmap: PyQt4.Qt.QPixmap"""
-        self._pixmap = pixmap
+        # make sure to make a copy because of bug in PyQt 4.4. This is actually 
+        # copying the internal bitmap, just the qpixmap, so there is no performance
+        # penalty here
+        self._pixmap = Qt.QPixmap(pixmap)
         self._setDirty()
         self.update()
         
