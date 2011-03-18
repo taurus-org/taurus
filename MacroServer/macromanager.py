@@ -583,7 +583,7 @@ class MacroExecutor(taurus.core.util.Logger):
                     params.append(p.get('value'))
                 else:
                     params.extend([ p2.get('value') for p2 in p.findall(".//param")])
-            macro.set('macro_line', "%s(%s) -> [%s]" % (name, ", ".join(params), id))
+            macro.set('macro_line', "%s(%s)" % (name, ", ".join(params)))
 
     def __preprocessResult(self, result):
         """decodes the given output from a macro in order to be able to send to 
@@ -922,26 +922,28 @@ class MacroExecutor(taurus.core.util.Logger):
         if ms is not None:
             ms['state'] = 'abort'
             self.debug("Sending abort event %s", ms)
-            self.sendMacroStatus(ms)
+            self.sendMacroStatus((ms,))
 
     def sendMacroStatusException(self):
         ms = self.getLastMacroStatus()
         if ms is not None:
             ms['state'] = 'exception'
             self.debug("Sending exception event %s", ms)
-            self.sendMacroStatus(ms)
+            self.sendMacroStatus((ms,))
 
     def sendMacroStatusPause(self):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
-            ms[0]['state'] = 'pause'
-            self.sendMacroStatus(ms)
+            ms['state'] = 'pause'
+            elf.debug("Sending pause event %s", ms)
+            self.sendMacroStatus((ms,))
 
     def sendMacroStatusResume(self):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
-            ms[0]['state'] = 'resume'
-            self.sendMacroStatus(ms)
+            ms['state'] = 'resume'
+            elf.debug("Sending resume event %s", ms)
+            self.sendMacroStatus((ms,))
 
     def sendMacroStatus(self, data):
         self._last_macro_status = data
