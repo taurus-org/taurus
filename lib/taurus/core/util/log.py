@@ -31,6 +31,7 @@ __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
 
 __docformat__ = "restructuredtext"
 
+import os
 import sys
 import logging.handlers
 import weakref
@@ -38,6 +39,7 @@ import warnings
 import traceback
 import inspect
 import functools
+import threading
 
 from object import Object
 
@@ -276,6 +278,9 @@ class Logger(Object):
     #: Internal usage
     root_inited    = False
     
+    #: Internal usage
+    root_init_lock = threading.Lock()
+    
     #: Critical message level (constant)
     Critical = logging.CRITICAL
     
@@ -308,6 +313,7 @@ class Logger(Object):
     
     #: the main stream handler
     stream_handler = None
+    
     
     def __init__(self, name='', parent=None, format=None):
         """The Logger constructor
@@ -342,7 +348,7 @@ class Logger(Object):
         self.log_obj = None
         self.log_handlers = None
         self.log_parent = None
-        self.log_children = None 
+        self.log_children = None
 
     def cleanUp(self):
         """The cleanUp. Default implementation does nothing
@@ -355,16 +361,29 @@ class Logger(Object):
         """Class method to initialize the root logger. Do **NOT** call this
            method directly in your code
         """
-        root_logger = cls._getRootLog()
         if cls.root_inited:
-            return root_logger
+            return cls._getRootLog()
+        
+        try:
+            cls.root_init_lock.acquire()
+            root_logger = cls._getRootLog()
+            
+                
 
-        logging.addLevelName(cls.Trace, "TRACE")
-        cls.stream_handler = logging.StreamHandler()
-        cls.stream_handler.setFormatter(cls.log_format)
-        root_logger.addHandler(cls.stream_handler)
-        root_logger.setLevel(cls.log_level)
-        Logger.root_inited = True
+            logging.addLevelName(cls.Trace, "TRACE")
+            cls.stream_handler = logging.StreamHandler()
+            cls.stream_handler.setFormatter(cls.log_format)
+            root_logger.addHandler(cls.stream_handler)
+            
+            console_log_level = os.environ.get("TAURUSLOGLEVEL", None)
+            if console_log_level is not None:
+                console_log_level = console_log_level.capitalize()
+                if hasattr(cls, console_log_level):
+                    cls.log_level = getattr(cls, console_log_level)
+            root_logger.setLevel(cls.log_level)
+            Logger.root_inited = True
+        finally:
+            cls.root_init_lock.release()
         return root_logger
 
     @classmethod
