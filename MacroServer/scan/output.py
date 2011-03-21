@@ -18,18 +18,20 @@ class JsonRecorder(DataRecorder):
         ref_moveables = recordlist.getEnvironValue('ref_moveables')
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         total_scan_intervals = recordlist.getEnvironValue('total_scan_intervals')
+        start_time = recordlist.getEnvironValue('starttime').ctime()
         self.column_desc = [ e for e in column_desc if e.shape == (1,) ]
         column_desc = [ d.toDict() for d in self.column_desc ]
         data = { 'column_desc' : column_desc, 
                  'ref_moveables' : ref_moveables,
                  'estimatedtime' : estimatedtime,
-                 'total_scan_intervals' : total_scan_intervals }
+                 'total_scan_intervals' : total_scan_intervals,
+                 'starttime': start_time }
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
     
     def _endRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
-        data = {'starttime': recordlist.getEnvironValue('starttime').ctime(),
-                'endtime'  : recordlist.getEnvironValue('endtime').ctime() }
+        data = { 'endtime'  : recordlist.getEnvironValue('endtime').ctime(),
+                 'deadtime' : recordlist.getEnvironValue('deadtime') }
         self._sendPacket(type="record_end", data=data, macro_id=macro_id)
     
     def _writeRecord(self, record):
@@ -110,9 +112,10 @@ class OutputRecorder(DataRecorder):
         self._stream.flushOutput()
         starttime = recordlist.getEnvironValue('starttime')
         endtime   = recordlist.getEnvironValue('endtime')
+        deadtime = recordlist.getEnvironValue('deadtime')
         deltatime = endtime - starttime
         endtime = endtime.ctime()
-        self._stream.info('Scan ended at %s, taking %s' % (endtime, deltatime))
+        self._stream.info('Scan ended at %s, taking %s (dead time was %.1f%%)' % (endtime, deltatime, deadtime))
     
     def _writeRecord(self, record):
         scan_line, sep, c_nb = '', self._col_sep, self._col_size

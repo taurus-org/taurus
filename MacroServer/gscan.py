@@ -92,12 +92,14 @@ class GScan(Logger):
       - 'positions'  : In a step scan, the position where the moveables should go
       - 'integ_time' : In a step scan, a number representing the integration time for the step 
                      (in seconds)
-      - 'acq_period' : In a continuous scan, the time between acquisitions   
+      - 'acq_period' : In a continuous scan, the time between acquisitions
+      - 'pre-scan-hooks' : (optional) a sequence of callables to be called in strict order before starting the scan.
       - 'pre-move-hooks' : (optional) a sequence of callables to be called in strict order before starting to move.
       - 'post-move-hooks': (optional) a sequence of callables to be called in strict order after finishing the move.
       - 'pre-acq-hooks'  : (optional) a sequence of callables to be called in strict order before starting to acquire.
       - 'post-acq-hooks' : (optional) a sequence of callables to be called in strict order after finishing acquisition but before recording the step.
       - 'post-step-hooks' : (optional) a sequence of callables to be called in strict order after finishing recording the step.
+      - 'post-scan-hooks' : (optional) a sequence of callables to be called in strict order after finishing the scan
       - 'hooks' : (deprecated, use post-acq-hooks instead)
       - 'point_id' : a hashable identifing the scan point.
       - 'check_func' : a callable object callable(moveables, counters)
@@ -140,8 +142,9 @@ class GScan(Logger):
         - 'instrumentlist' : a list of Instrument objects containing info
                             about the physical setup of the motors, counters,...
         - <extra environment> given in the constructor
-        (at the end of the scan an extra key 'endtime' will be added 
-        representing the time at the end of the scan)
+        (at the end of the scan, extra keys 'endtime' and 'deadtime' will be added
+        representing the time at the end of the scan and the dead time)
+
         This object is passed to all recorders at the begining and at the end 
         of the scan (when startRecordList and endRecordList is called)
     
@@ -395,7 +398,6 @@ class GScan(Logger):
         env['macro_id'] = self.macro.getID()
         env['datadesc'] = data_desc
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
-        ##@TODO: (when Pool supports Instruments) uncomment following line 
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
 
         env.update(additional_env)
@@ -404,7 +406,7 @@ class GScan(Logger):
         # Give the environment to the ScanData
         self.data.setEnviron(env)
 
-    MAX_ITER = 10000
+    MAX_ITER = 100000
 
     def _estimate(self, max_iter=None):
         with_time = hasattr(self.macro, "getTimeEstimation")
@@ -470,7 +472,11 @@ class GScan(Logger):
         self.data.start()
 
     def end(self):
-        self._env['endtime'] = datetime.datetime.now()
+        self._env['endtime'] = end = datetime.datetime.now()
+        total_time = end - self._env['starttime']
+        total_time = total_time.days*24*60*60 + total_time.seconds + total_time.microseconds * 1e-6
+        estimated = self._env['estimatedtime']
+        self._env['deadtime'] = 100.0 * (total_time-estimated) / total_time
         self.data.end()
 
     def scan(self):
@@ -494,7 +500,8 @@ class GScan(Logger):
 
     
 class SScan(GScan):
-
+    """Step scan"""
+    
     def scan_loop(self):
         lstep = None
         
@@ -504,12 +511,18 @@ class SScan(GScan):
             scream = True
         else:
             yield 0.0
-            
+        
+        for hook in self.macro.pre_scan_hooks:
+            hook()
+        
         for i, step in self.steps:
             self.stepUp(i, step, lstep)
             lstep = step
             if scream: yield ((i+1) / nr_points) * 100.0
-    
+        
+        for hook in self.macro.post_scan_hooks:
+            hook()
+
         if not scream: yield 100.0
     
     def stepUp(self, n, step, lstep):
@@ -580,7 +593,9 @@ class SScan(GScan):
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
 
+
 class CScan(GScan):
+    """Continuos scan"""
     
     def __init__(self, macro, waypointGenerator=None, periodGenerator=None, moveables=[], env={}, constraints=[], extrainfodesc=[]):
         GScan.__init__(self, macro, generator=waypointGenerator, moveables=moveables, env=env, constraints=constraints, extrainfodesc=extrainfodesc)
@@ -631,6 +646,9 @@ class CScan(GScan):
         point_nb, step = -1, None
         data           = self.data
         
+        for hook in self.macro.pre_scan_hooks:
+            hook()
+        
         # synchronous move to start position
         i, first_waypoint = waypoints.next()
         motion.move(first_waypoint['positions'])
@@ -669,4 +687,9 @@ class CScan(GScan):
             if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
             data.addRecord(data_line)
             time.sleep(step['acq_period'])
+            
         mg.abort()
+
+        for hook in self.macro.post_scan_hooks:
+            hook()
+    

@@ -33,7 +33,7 @@ def getCallable(repr):
 
 class aNscan(Hookable):
     
-    hints = { 'scan' : 'aNscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
+    hints = { 'scan' : 'aNscan', 'allowsHooks': ('pre-scan', 'pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step', 'post-scan') }
     env = ('ActiveMntGrp',)
     
     """N-dimensional scan. This is **not** meant to be called by the user,
@@ -75,6 +75,9 @@ class aNscan(Hookable):
         env = opts.get('env',{})
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
+
+        self.pre_scan_hooks = self.getHooks('pre-scan')
+        self.post_scan_hooks = self.getHooks('post-scan')
         
         self._gScan = SScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
     
@@ -102,6 +105,9 @@ class aNscan(Hookable):
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
         
+        self.pre_scan_hooks = self.getHooks('pre-scan')
+        self.post_scan_hooks = self.getHooks('post-scan')
+
         self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
         
     def _stepGenerator(self):
@@ -118,7 +124,7 @@ class aNscan(Hookable):
             step["positions"] = self.starts + point_no * self.interv_sizes
             step["point_id"] = point_no
             yield step
-            
+    
     def _waypoint_generator(self):
         step = {}
         step["pre-move-hooks"] = self.getHooks('pre-move')
@@ -128,7 +134,7 @@ class aNscan(Hookable):
             step["positions"] = self.starts + point_no * self.way_lengths
             step["waypoint_id"] = point_no
             yield step
-                
+    
     def _period_generator(self):
         step = {}
         step["acq_period"] =  self.acq_period
@@ -142,7 +148,7 @@ class aNscan(Hookable):
             point_no += 1
             step["point_id"] = point_no
             yield step
-            
+    
     def run(self,*args):
         for step in self._gScan.step_scan():
             yield step
@@ -458,7 +464,7 @@ class mesh(Macro,Hookable):
     first motor scan is nested within the second motor scan.
     """
     
-    hints = { 'scan' : 'mesh', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
+    hints = { 'scan' : 'mesh', 'allowsHooks': ('pre-scan', 'pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step', 'post-scan') }
     env = ('ActiveMntGrp',)
     
     param_def = [
@@ -488,7 +494,10 @@ class mesh(Macro,Hookable):
         moveables=self.motors
         env=opts.get('env',{})
         constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
-        
+    
+        self.pre_scan_hooks = self.getHooks('pre-scan')
+        self.post_scan_hooks = self.getHooks('post-scan')
+
         self._gScan=SScan(self, generator, moveables, env, constrains)
 
     def _generator(self):
@@ -543,7 +552,7 @@ class fscan(Macro,Hookable):
     EXAMPLE: fscan x=[1,3,5,7,9],y=arange(5) motor1 x**2 motor2 sqrt(y*x-3) 0.1
     '''
     
-    hints = { 'scan' : 'fscan', 'allowsHooks': ('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
+    hints = { 'scan' : 'fscan', 'allowsHooks': ('pre-scan', 'pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step', 'post-scan') }
     env = ('ActiveMntGrp',)
     
     param_def = [
@@ -597,6 +606,8 @@ class fscan(Macro,Hookable):
         env=opts.get('env',{})
         constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         
+        self.pre_scan_hooks = self.getHooks('pre-scan')
+        self.post_scan_hooks = self.getHooks('post-scan')
         self._gScan=SScan(self, generator, moveables, env, constrains)
         
     def _generator(self):
@@ -621,3 +632,9 @@ class fscan(Macro,Hookable):
     @property
     def data(self):
         return self._gScan.data
+
+
+class hello(Macro):
+    
+    def run(self):
+        self.output("Hello")

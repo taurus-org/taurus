@@ -12,9 +12,13 @@ class loop(Macro, Hookable):
     param_def = [['start', Type.Integer, None, 'start point'],
                  ['stop', Type.Integer, None, 'end point'],
                  ['step', Type.Integer, 1, 'step']]
-    
+
+    def hook1(self):
+        self.output("En hook 1")
+        
     def run(self, start, stop, step):
         self.info("Starting loop")
+        self.hooks = [ (self.hook1, ["pre-acq"])]
         for i in xrange(start, stop, step):
             self.output("At step %d" % i)
             self.flushOutput()
@@ -83,7 +87,33 @@ class hooked_scan(Macro):
         self.info("\thook3 execution")
     
     def run(self, motor, start_pos, final_pos, nr_interv, integ_time):
-        ascan = self.createMacro("ascan",motor, start_pos, final_pos, nr_interv, integ_time)
+        ascan, pars = self.createMacro("ascan",motor, start_pos, final_pos, nr_interv, integ_time)
         ascan.hooks = [ (self.hook1, ["pre-acq"]), (self.hook2, ["pre-acq","post-acq","pre-move", "post-move","aaaa"]), self.hook3 ]
         self.runMacro(ascan)
+
+
+class hooked_dummyscan(Macro):
+    """An example on how to attach hooks to the various hook points of a scan.
+    This macro is part of the examples package. It was written for 
+    demonstration purposes"""
+    
+    param_def = [
+       ['start_pos',  Type.Float,   None, 'Scan start position'],
+       ['final_pos',  Type.Float,   None, 'Scan final position'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+    def hook1(self):
+        self.info("\thook1 execution")
+    
+    def hook2(self):
+        self.info("\thook2 execution")
+    
+    def hook3(self):
+        self.info("\thook3 execution")
+    
+    def run(self, start_pos, final_pos, nr_interv, integ_time):
+        dummyscan,pars = self.createMacro("dummyscan",start_pos, final_pos, nr_interv, integ_time)
+        dummyscan.hooks = [ (self.hook1, ["pre-scan"]), (self.hook2, ["pre-acq","post-acq","pre-move", "post-move","aaaa"]),(self.hook3, ["post-scan"])]
+        self.runMacro(dummyscan)
 

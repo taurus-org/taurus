@@ -620,7 +620,7 @@ class MacroExecutor(taurus.core.util.Logger):
         macro_obj, prepare_result = self.prepareMacroObj(macro_klass, params, init_opts)
         for macro in xml_macro.findall('macro'):
             hook = MacroExecutor.RunSubXMLHook(self, macro)
-            hook_hints = macro.findall('hook')
+            hook_hints = macro.findall('hookPlace')
             if hook_hints is None:
                 macro_obj.hooks = [ hook ]
             else:
