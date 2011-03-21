@@ -76,7 +76,30 @@ DFT_CURVE_PENS = [Qt.QPen(Qt.Qt.red, 2),
                  Qt.QPen(Qt.Qt.yellow, 2),
                  Qt.QPen(Qt.Qt.black, 2)]
 
-
+class TaurusZoomer(Qwt5.QwtPlotZoomer):
+    '''A QwtPlotZoomer that displays the label assuming that X values are timestamps'''
+    def __init__(self, *args):
+        Qwt5.QwtPlotZoomer.__init__(self, *args)
+        self._xIsTime = False
+        print self, self.trackerWidget()
+        
+    def setXIsTime(self, xistime):
+        '''If xistime is True, the x values will be interpreted as timestamps
+        
+        :param xistime: (bool)
+        '''
+        self._xIsTime = xistime
+        
+    def trackerText(self, pos):
+        '''reimplemented from :meth:`Qwt5.QwtPicker.trackerText`'''
+        pos = self.invTransform(pos)
+        if self._xIsTime:
+            x = datetime.fromtimestamp(pos.x()).isoformat(' ')
+        else:
+            x = '%g'%pos.x()
+        y = '%g'%pos.y()
+        return Qwt5.QwtText(', '.join((x,y)))
+    
 class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
     '''Taurus-enabled custom version of QwtPlotMarker
     '''
@@ -516,7 +539,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 self._minPeakMarker.setValue(*minpoint)
                 label = self._minPeakMarker.label()
                 if self.plot().getXIsTime():
-                    label.setText("Mix. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at t = ' + datetime.fromtimestamp(minpoint[0]).ctime())
+                    label.setText("Min. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at t = ' + datetime.fromtimestamp(minpoint[0]).ctime())
                 else:
                     label.setText("Min. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
                 self._minPeakMarker.setLabel(label)
@@ -845,8 +868,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         # zoom. One zoomer for Y1 and another for Y2 (but only one will be active at each time)
         self._max_zoom_stack = 15
-        self._zoomer1 = Qwt5.QwtPlotZoomer(self.canvas())
-        self._zoomer2 = Qwt5.QwtPlotZoomer(self.canvas())
+        self._zoomer1 = TaurusZoomer(self.canvas())
+        self._zoomer2 = TaurusZoomer(self.canvas())
         self._zoomer2.setRubberBandPen(Qt.Qt.blue)
         self._zoomer2.setTrackerPen(Qt.Qt.blue)
         self._zoomer2.setAxis(Qwt5.QwtPlot.xBottom,Qwt5.QwtPlot.yRight)
@@ -859,6 +882,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         # picker
         self._picker=Qwt5.QwtPicker(self.canvas())
+#        self._picker = TaurusPicker(self.canvas())
         self._picker.setSelectionFlags(Qwt5.QwtPicker.PointSelection )
 
         self._pickedMarker=TaurusCurveMarker("Picked", labelOpacity=0.8)
@@ -2870,6 +2894,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.setAxisScaleDraw(axis, FancyScaleDraw())
             self._axesnames[Qwt5.QwtPlot.xBottom] = "X"
 
+        self._zoomer1.setXIsTime(enable)
+        self._zoomer2.setXIsTime(enable)
         self._xIsTime = enable
         self.replot()
 
@@ -2885,16 +2911,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     def resetXIsTime(self):
         '''equivalent to setXIsTime(False)'''
         self.setXIsTime(False)
-
-    #def setMaxXSize(self, sz):
-    #    self._maxXSize = sz
-    #    self.replot()
-    #
-    #def getMaxXSize(self):
-    #    return self._maxXSize
-    #
-    #def resetMaxXSize(self):
-    #    self.setMaxXSize(0)
 
     @Qt.pyqtSignature("setAllowZoomers(bool)")
     def setAllowZoomers(self, allow):
