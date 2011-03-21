@@ -487,7 +487,11 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Creates the macro object and calls its prepare method.
            The return value is a tuple (MacroObject, return value of prepare)
         """
-        
+        macro = self.createMacroObj(macro_class, par_list, init_opts=init_opts)
+        prepare_result = self.prepareMacroObj(macro, par_list, prepare_opts=prepare_opts)
+        return macro, prepare_result
+    
+    def createMacroObj(self, macro_class, par_list, init_opts={}):
         macro_env = macro_class.env
         macro_name = macro_class.__name__
         
@@ -509,11 +513,12 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         }
         
         macro_opts.update(init_opts)
-        
-        macro = macro_class(*par_list, **macro_opts)
-        prepare_result = macro.prepare(*par_list, **prepare_opts)
-        return macro, prepare_result
-
+        macroObj = macro_class(*par_list, **macro_opts)
+        return macroObj
+    
+    def prepareMacroObj(self, macro, par_list, prepare_opts={}):
+        return macro.prepare(*par_list, **prepare_opts)
+    
     def getMacroExecutor(self, door):
         me = self._macro_executors.get(door)
         if me is None:
@@ -521,6 +526,7 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         return me
 
 from taurus.core.util import json, CodecFactory
+
 
 class MacroExecutor(taurus.core.util.Logger):
     """ """
@@ -617,7 +623,8 @@ class MacroExecutor(taurus.core.util.Logger):
             'macro_line'   : xml_macro.get('macro_line'),
             'parent_macro' : parent_macro,
         }
-        macro_obj, prepare_result = self.prepareMacroObj(macro_klass, params, init_opts)
+        
+        macro_obj = self._createMacroObj(macro_klass, params, init_opts)
         for macro in xml_macro.findall('macro'):
             hook = MacroExecutor.RunSubXMLHook(self, macro)
             hook_hints = macro.findall('hookPlace')
@@ -626,18 +633,10 @@ class MacroExecutor(taurus.core.util.Logger):
             else:
                 hook_places = [ h.text for h in hook_hints ]
                 macro_obj.hooks = [ (hook, hook_places) ]
+        prepare_result = self._prepareMacroObj(macro_obj, params)
         return macro_obj, prepare_result
     
-    def prepareMacroObj(self, macro_name_or_klass, pars, init_opts={}, prepare_opts={}):
-        """Prepare a new macro for execution
-        
-        :param macro_name_or_klass name: name of the macro to be prepared or 
-                                         the macro class itself
-        :param pars: list of parameter objects
-        :param init_opts: keyword parameters for the macro constructor
-        :param prepare_opts: keyword parameters for the macro prepare
-           
-        :return: a tuple of two elements: macro object, the result of preparing the macro"""
+    def _createMacroObj(self, macro_name_or_klass, pars, init_opts={}):
         macro_klass = macro_name_or_klass
         if type(macro_klass) in types.StringTypes:
             macro_klass = self.manager.getMacroClass(macro_klass)
@@ -649,11 +648,27 @@ class MacroExecutor(taurus.core.util.Logger):
         macro_opts.update(init_opts)
         if not macro_opts.has_key('id'):
             macro_opts['id'] = str(self.getNewMacroID())
-            
-        self.debug("[START] Prepare macro %s" % macro_klass.__name__)
-        ret = self.manager.prepareMacro(macro_klass, pars, macro_opts, prepare_opts)
-        self.debug("[ END ] Prepare macro %s" % macro_klass.__name__)
-        return ret
+
+        macroObj = self.manager.createMacroObj(macro_klass, pars, init_opts=macro_opts)
+        
+        return macroObj
+    
+    def _prepareMacroObj(self, macro_obj, pars, prepare_opts={}):
+        return self.manager.prepareMacroObj(macro_obj, pars, prepare_opts=prepare_opts)
+    
+    def prepareMacroObj(self, macro_name_or_klass, pars, init_opts={}, prepare_opts={}):
+        """Prepare a new macro for execution
+        
+        :param macro_name_or_klass name: name of the macro to be prepared or 
+                                         the macro class itself
+        :param pars: list of parameter objects
+        :param init_opts: keyword parameters for the macro constructor
+        :param prepare_opts: keyword parameters for the macro prepare
+           
+        :return: a tuple of two elements: macro object, the result of preparing the macro"""
+        macroObj = self._createMacroObj(macro_name_or_klass, pars, init_opts=init_opts)
+        prepare_result = self._prepareMacroObj(macroObj, pars, prepare_opts=prepare_opts)
+        return macroObj, prepare_result
     
     def prepareMacro(self, pars, init_opts={}, prepare_opts={}):
         """Prepare a new macro for execution
