@@ -434,6 +434,9 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
     def is_RunMacro_allowed(self):
         return self.get_state() in [Macro.Finished, Macro.Abort]
 
+    def SimulateMacro(self, par_str_list):
+        raise Exception("Not implemented yet")
+
 #------------------------------------------------------------------
 #    ReloadMacro command:
 #
@@ -537,6 +540,9 @@ class DoorClass(PyTango.DeviceClass):
         'RunMacro':
             [ [PyTango.DevVarStringArray, 'Macro name and parameters'],
               [PyTango.DevVarStringArray, 'Macro Result']],
+        'SimulateMacro':
+            [ [PyTango.DevVarStringArray, 'Macro name and parameters'],
+              [PyTango.DevVarStringArray, 'Macro statistics']],
         'GetMacroEnv':
             [ [ PyTango.DevVarStringArray, 'Macro name followed by an ' \
                 'optional list of environment names' ],

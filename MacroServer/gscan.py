@@ -161,8 +161,14 @@ class GScan(Logger):
 
         self._macro = macro
         self._generator = generator
-        self._moveables = moveables
         self._extrainfodesc = extrainfodesc
+        
+        self._moveables, moveable_names = [], []
+        for moveable in moveables:
+            if not isinstance(moveable, MoveableDesc):
+                moveable = MoveableDesc(moveable=moveable)
+            moveable_names.append(moveable.moveable.getName())
+            self._moveables.append(moveable)
         
         name = self.__class__.__name__
         self.call__init__(Logger, name)
@@ -170,13 +176,13 @@ class GScan(Logger):
         # ----------------------------------------------------------------------
         # Setup motion objects
         # ----------------------------------------------------------------------
-        self._motion = self.macro.getMotion([ m.moveable.getName() for m in moveables])
+        self._motion = macro.getMotion(moveable_names)
 
         # ----------------------------------------------------------------------
         # Find the measurement group
         # ----------------------------------------------------------------------
-        mnt_grp_name = self.macro.getEnv('ActiveMntGrp')
-        mnt_grp = self.macro.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
+        mnt_grp_name = macro.getEnv('ActiveMntGrp')
+        mnt_grp = macro.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
 
         if mnt_grp is None:
             raise ScanSetupError('ActiveMntGrp is not defined or has invalid value')
@@ -362,13 +368,9 @@ class GScan(Logger):
         # add motor columns
         ref_moveables = []
         for moveable in self.moveables:
-            if isinstance(moveable, MoveableDesc):
-                data_desc.append(moveable)
-                if moveable.is_reference:
-                    ref_moveables.insert(0, moveable.label)
-            else:
-                instrument = moveable.getInstrument()
-                data_desc.append( ColumnDesc(label=moveable.getName(), instrument=instrument) )
+            data_desc.append(moveable)
+            if moveable.is_reference:
+                ref_moveables.insert(0, moveable.label)
         
         if not ref_moveables and len(self.moveables):
             ref_moveables.append(data_desc[-1].label)
@@ -504,24 +506,27 @@ class SScan(GScan):
     
     def scan_loop(self):
         lstep = None
-        
+        macro = self.macro
         scream = False
-        if hasattr(self.macro, "nr_points"):
-            nr_points = float(self.macro.nr_points)
+        
+        if hasattr(macro, "nr_points"):
+            nr_points = float(macro.nr_points)
             scream = True
         else:
             yield 0.0
         
-        for hook in self.macro.pre_scan_hooks:
-            hook()
+        if hasattr(macro, "pre_scan_hooks"):
+            for hook in macro.pre_scan_hooks:
+                hook()
         
         for i, step in self.steps:
             self.stepUp(i, step, lstep)
             lstep = step
             if scream: yield ((i+1) / nr_points) * 100.0
         
-        for hook in self.macro.post_scan_hooks:
-            hook()
+        if hasattr(macro, "post_scan_hooks"):
+            for hook in macro.post_scan_hooks:
+                hook()
 
         if not scream: yield 100.0
     
@@ -639,15 +644,17 @@ class CScan(GScan):
     
     def scan_loop(self):
         motion, mg, waypoints = self.motion, self.measurement_group, self.steps
-        manager = self.macro.getManager()
-
+        macro = self.macro
+        manager = macro.getManager()
+        
         moveables      = [ m.moveable for m in self.moveables ]
         period_steps   = self.period_steps
         point_nb, step = -1, None
         data           = self.data
         
-        for hook in self.macro.pre_scan_hooks:
-            hook()
+        if hasattr(macro, "pre_scan_hooks"):
+            for hook in macro.pre_scan_hooks:
+                hook()
         
         # synchronous move to start position
         i, first_waypoint = waypoints.next()
@@ -690,6 +697,7 @@ class CScan(GScan):
             
         mg.abort()
 
-        for hook in self.macro.post_scan_hooks:
-            hook()
+        if hasattr(macro, "pre_scan_hooks"):
+            for hook in macro.post_scan_hooks:
+                hook()
     
