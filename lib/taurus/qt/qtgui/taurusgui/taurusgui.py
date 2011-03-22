@@ -623,9 +623,10 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings()
         
         self.setWindowTitle(APPNAME)
-        self.setWindowIcon(Qt.QIcon(CUSTOMLOGO))
-        self.jorgsBar.addAction(Qt.QIcon(":/logo.png"),ORGNAME)
-        self.jorgsBar.addAction(Qt.QIcon(CUSTOMLOGO),APPNAME)
+        windowIcon = taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO)
+        self.setWindowIcon(windowIcon)
+        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
+        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
         
         #configure the macro infrastructure
         MACROSERVER_NAME = self.__getVarFromXML(root,"MACROSERVER_NAME", None)
@@ -768,10 +769,10 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings() 
         
         self.setWindowTitle(APPNAME)
-        self.setWindowIcon(Qt.QIcon(CUSTOMLOGO))
-        self.jorgsBar.addAction(Qt.QIcon(":/logo.png"),ORGNAME)
-        self.jorgsBar.addAction(Qt.QIcon(CUSTOMLOGO),APPNAME)
-        
+        windowIcon = taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO)
+        self.setWindowIcon(windowIcon)
+        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
+        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
                     
         #configure the macro infrastructure
         MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', None)
