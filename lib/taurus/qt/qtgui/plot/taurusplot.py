@@ -81,7 +81,6 @@ class TaurusZoomer(Qwt5.QwtPlotZoomer):
     def __init__(self, *args):
         Qwt5.QwtPlotZoomer.__init__(self, *args)
         self._xIsTime = False
-        print self, self.trackerWidget()
         
     def setXIsTime(self, xistime):
         '''If xistime is True, the x values will be interpreted as timestamps
