@@ -635,6 +635,7 @@ class fscan(Macro,Hookable):
 
 
 class hello(Macro):
-    
-    def run(self):
-        self.output("Hello")
+    param_def = [ ['p1', Type.Boolean, None, 'p1 demo'], ]
+       
+    def run(self, p1):
+        self.output("Hello %s" % str(p1))

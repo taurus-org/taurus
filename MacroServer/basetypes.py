@@ -11,6 +11,9 @@ class Float(parameter.ParamType):
 class Boolean(parameter.ParamType):
     type_class = bool
 
+    def getObj(self, str_repr):
+        return str_repr.lower() == "true"
+    
 class String(parameter.ParamType):
     type_class = str
 
