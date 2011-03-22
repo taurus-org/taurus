@@ -680,9 +680,9 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
 class TaurusDbDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements is a 3 level tree organized
        as:
-       - <domain>
-           - <family>
-               - <member>
+           - <domain>
+               - <family>
+                   - <member>
     """
     ColumnRoles = (ElemType.Device, ElemType.Domain, ElemType.Family, ElemType.Member, ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
