@@ -31,7 +31,7 @@ Release data for the taurus project. It contains the following members:
     - version : (str) version string
     - description : (str) brief description
     - long_description : (str) a long description
-    - licence : (str) licence
+    - license : (str) license
     - authors : (dict<str, tuple<str,str>>) the list of authors
     - url : (str) the project url
     - download_url : (str) the project download url
@@ -53,7 +53,7 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (2,0,1,'dev',0)
+version_info = (2,1,0,'final',0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
