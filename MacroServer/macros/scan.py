@@ -632,10 +632,3 @@ class fscan(Macro,Hookable):
     @property
     def data(self):
         return self._gScan.data
-
-
-class hello(Macro):
-    param_def = [ ['p1', Type.Boolean, None, 'p1 demo'], ]
-       
-    def run(self, p1):
-        self.output("Hello %s" % str(p1))
