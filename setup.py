@@ -80,6 +80,9 @@ packages = [
     'taurus.qt',
 
     'taurus.qt.qtcore',
+    'taurus.qt.qtcore.communication',
+    'taurus.qt.qtcore.configuration',
+    'taurus.qt.qtcore.mimetypes',
     'taurus.qt.qtcore.model',
     'taurus.qt.qtcore.tango',
     'taurus.qt.qtcore.tango.macroserver',
