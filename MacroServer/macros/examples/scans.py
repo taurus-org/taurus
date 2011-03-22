@@ -129,7 +129,11 @@ class ToothedTriangle(Macro):
         self.name='ToothedTriangle'
         
         generator=self._generator
-        moveables=[motor]
+        moveables = []
+        moveable = MoveableDesc(moveable=motor, is_reference=True,
+                                min_value=min(start_pos,final_pos),
+                                max_value=max(start_pos,final_pos))
+        moveables=[moveable]
         env=opts.get('env',{})
         constrains=[]
         extrainfodesc=[ColumnDesc(label='cycle', dtype='int64', shape=(1,)),
