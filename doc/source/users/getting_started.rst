@@ -20,6 +20,21 @@ Installing
        
        python -c "import taurus; print taurus.Release.version"
        
+
+Working from SVN
+----------------
+
+You can checkout taurus from SVN from the following location::
+
+    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/gui/taurus/trunk taurus
+
+Afterward, if you decide to work directly from SVN code (without installing):
+
+    1. add <taurus checkout dir>/lib to PYTHONPATH
+    2. build the resources once::
+    
+        python setup.py build_resources
+
 .. _dependencies:
 
 Dependencies
@@ -93,12 +108,12 @@ Optional packages
 
       python -c 'import Qub'
     
-- The Gage widgets are only available if you have the python extension of
+- The Gauge widgets are only available if you have the python extension of
   qtcontrols. qtcontrols is part of QTango_.
 
 - The JDraw synoptics widgets are only available if you have the :mod:`ply` 
   package installed.
- 
+
 .. _qtdesigner_config:
 
 Qt Designer configuration
