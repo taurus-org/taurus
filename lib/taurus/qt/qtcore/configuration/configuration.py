@@ -177,6 +177,7 @@ class BaseConfigurableClass:
         Registers the given object as a delegate for configuration.
         Delegates are typically other objects inheriting from BaseConfigurableClass 
         (or at least they must provide the following methods:
+         
           - `createConfig` (as provided by, e.g., BaseConfigurableClass)
           - `applyConfig` (as provided by, e.g., BaseConfigurableClass)
           - `objectName` (as provided by, e.g., QObject)
