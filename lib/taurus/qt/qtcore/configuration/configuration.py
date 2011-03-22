@@ -60,6 +60,58 @@ class BaseConfigurableClass:
     .. note:: One implicit requisite is that a configurable object must also provide a
               `meth:`objectName` method which returns the object name. This is typically
               fullfilled by inheritting from QObject.
+              
+    Using objects that inherit from :class:`BaseConfigurableClass` automates
+    saving and restoring of application settings and also enables the use of
+    perspectives in Taurus GUIs. 
+    
+    The basic idea is that each object/widget in your application is responsible
+    for providing a dictionary containing information on its properties (see
+    :meth:`createConfig`). The same object/widget is also responsible for
+    restoring such properties when provided with a configuration dictionary (see
+    :meth:`applyConfig`).
+    
+    For a certain property to be saved/restored it is usually enough to
+    *register* it using :meth:`registerConfigProperty`. When the objects are
+    structured in a hierarchical way (e.g. as the widgets in a Qt application),
+    the parent widget can (should) delegate the save/restore of its children to
+    the children themselves. This delegation is done by registering the children
+    using :meth:`registerConfigDelegate`. 
+    
+    Consider the following example: I am creating a groupbox container which
+    contains a :class:`TaurusForm` and I want to save/restore the state of the
+    checkbox and the properties of the form::
+      
+        #The class looks like this:
+        class MyBox(Qt.QGroupBox, BaseConfigurableClass):
+            def __init__(self):
+                ...
+                self.form = TaurusForm()
+                ...
+                self.registerConfigProperty(self.isChecked, self.setChecked, 'checked')
+                self.registerConfigDelegate(self.form)   #the TaurusForm already handles its own configuration!
+                ...
+         
+        #and we can retrieve the configuration doing:
+        b1 = MyBox()
+        b1.setChecked(True)  #checked is a registered property of MyBox class
+        b1.form.setModifiableByUser(True)  #modifiableByUser is a registered property of a TaurusForm 
+        cfg = b1.createConfig()  #we get the configuration as a dictionary
+        ...
+        b2 = MyBox()
+        b2.applyConfig(cfg)  #now b2 has the same configuration as b1 when cfg was created
+                
+    :meth:`createConfig` and :meth:`applyConfig` methods use a dictionary for
+    passing the configuration, but :class:`BaseConfigurableClass` also provides
+    some other convenience methods for working with files
+    (:meth:`saveConfigFile` and :meth:`loadConfigFile`) or as QByteArrays
+    (:meth:`createQConfig` and :meth:`applyQConfig`)
+    
+    Finally, we reccommend to use :class:`TaurusMainWindow` for all Taurus GUIs
+    since it automates all the steps for *saving properties when closing* and
+    *restoring the settings on startup*. It also provides a mechanism for
+    implementing "perspectives" in your application.
+    
     '''
     def __init__(self):
         self._supportedConfigVersions = ["__UNVERSIONED__"] #the latest element of this list is considered the current version
