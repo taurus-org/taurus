@@ -156,7 +156,8 @@ def main():
 
     # clean build dir
     if options.all_files:
-        shutil.rmtree(options.build_dir)
+	    if os.path.isdir(options.build_dir):
+	        shutil.rmtree(options.build_dir)
     
     if not os.path.isdir(options.build_dir):
         os.makedirs(options.build_dir)
