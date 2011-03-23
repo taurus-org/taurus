@@ -266,6 +266,8 @@ class MacroInfo(object):
                 return float(res[0])
             elif rtype == 'Integer':
                 return int(res[0])
+            elif rtype == 'Boolean':
+                return res[0].lower() == 'true'
             elif rtype in ('String', 'User', 'Filename'):
                 return res[0]
             else:
