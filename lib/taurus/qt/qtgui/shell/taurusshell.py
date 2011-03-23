@@ -41,6 +41,8 @@ try:
 except ImportError: 
     raise Exception("TaurusShell needs spyderlib >= 2.0")
 
+import PyTango.ipython
+
 if PyTango.Release.version_info[:3] < (7,1,4):
     raise Exception("TaurusShell needs PyTango >= 7.1.4")
 
@@ -51,11 +53,6 @@ from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.utils.qthelpers import create_action, add_actions
 
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
-
-import PyTango.ipython
-
-if PyTango.Release.version_info[:3] < (7,1,4):
-    raise Exception("TaurusShell needs PyTango >= 7.1.4")
 
 # old PyTango (< 7.2) doesn't have get_ipython_profiles function
 if not hasattr(PyTango.ipython, "get_ipython_profiles"):
