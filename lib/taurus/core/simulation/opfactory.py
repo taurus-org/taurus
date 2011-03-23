@@ -23,18 +23,9 @@
 ##
 #############################################################################
 
-"""
-simfactory.py: 
-
-Simulation Factory uses the Taurus object naming (URI based):
-
-  foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
-  \ /   \________________/\_________/ \__/\_________/ \___/ \_/ \_________/ \_________/ \__/
-   |           |               |        |     |         |     |       |            |     |
-scheme     userinfo         hostname  port  path  filename extension parameter(s) query fragment
-        \________________________________/
-                    authority
-"""
+'''
+operation module. See __init__.py for more detailed documentation
+'''
 
 import os
 
