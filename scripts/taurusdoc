@@ -46,7 +46,11 @@ def abspath(*path):
 
 sys.path.append(abspath('..', 'doc'))
 
-import auto_rst4api
+try:
+    import auto_rst4api
+except ImportError:
+    print "taurusdoc can only be executed from a source distribution of taurus"
+    sys.exit(1)
 
 __INDEX = """
 TaurusDoc
@@ -156,8 +160,8 @@ def main():
 
     # clean build dir
     if options.all_files:
-	    if os.path.isdir(options.build_dir):
-	        shutil.rmtree(options.build_dir)
+        if os.path.isdir(options.build_dir):
+            shutil.rmtree(options.build_dir)
     
     if not os.path.isdir(options.build_dir):
         os.makedirs(options.build_dir)
