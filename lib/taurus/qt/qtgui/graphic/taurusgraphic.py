@@ -302,7 +302,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             try:
                 self.SelectionMark = Qt.QGraphicsPixmapItem()
                 if isinstance(picture,Qt.QPixmap):
-                    pixmap = picture
+                    pixmap = Qt.QPixmap(picture)
                 else:
                     pixmap = Qt.QPixmap(os.path.realpath(picture))
                 self.SelectionMark.setPixmap(pixmap.scaled(h,w))
