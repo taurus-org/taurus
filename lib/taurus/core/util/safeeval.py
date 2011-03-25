@@ -46,13 +46,14 @@ class SafeEvaluator:
     
     Note: In order to use variables defined outside, the user must explicitly declare them safe. 
     """
-    def __init__(self, safedict={}, defaultSafe=True):
+    def __init__(self, safedict=None, defaultSafe=True):
         self._default_numpy = ('abs', 'array', 'arange','arccos', 'arcsin', 'arctan', 'arctan2', 
                                'ceil', 'cos', 'cosh', 'degrees', 'dot', 'e', 'exp', 'fabs', 'floor', 'fmod', 
                                'frexp', 'hypot', 'ldexp', 'linspace', 'log', 'log10', 'logspace', 
                                'modf', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'tan', 'tanh')
         self._default_numpy_random = ('randn','rand') 
-            
+        
+        if safedict is None: safedict={}    
         self.safe_dict = safedict
         if defaultSafe:
             self.safe_dict['pow'] = pow
