@@ -2509,12 +2509,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                             picked = Qt.QPointF(data.x(i),data.y(i))
                             pickedCurveName=name
                             pickedIndex=i
+                            pickedAxes = curve.xAxis(), curve.yAxis()
         finally:
             self.curves_lock.release()
 
         if showMarker and picked is not None:
             self._pickedMarker.detach()
             self._pickedMarker.setValue(picked)
+            self._pickedMarker.setAxis(*pickedAxes)
             self._pickedMarker.attach(self)
             self._pickedCurveName=pickedCurveName
             self._pickedMarker.pickedIndex=pickedIndex
