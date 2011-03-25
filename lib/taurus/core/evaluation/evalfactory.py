@@ -28,11 +28,51 @@ from taurus.core.taurusexception import TaurusException
 operation module. See __init__.py for more detailed documentation
 '''
 
-import os
+import os, time
 
 import taurus.core
 from taurus.core import OperationMode, MatchLevel
 from taurus.core.util import SafeEvaluator
+
+
+class EvaluationAttributeNameValidator(util.Singleton):
+    evalattrname = '^((eval|evaluation):)(//([^/?#]*))?([^?#;]*)(;evaluator=([^?#;]*))(\?([^#]*))?'
+    
+    def __init__(self):
+        """ Initialization. Nothing to be done here for now."""
+        pass
+    
+    def init(self, *args, **kwargs):
+        """Singleton instance initialization."""
+        self.complete_re = re.compile("^%s$" % self.complete_name)
+        self.normal_re = re.compile("^%s$" % self.normal_name)
+        self.short_re = re.compile("^%s$" % self.short_name)
+
+    def getNames(self, str, factory=None):
+        """Returns the complete and short names"""
+        
+        elems = self.getParams(str)
+        if elems is None:
+            return None
+        
+        dev_name = elems.get('devicename')
+        attr_name = elems.get('attributename')
+        
+        if dev_name:
+            normal_name = dev_name + "/" + attr_name
+        else:
+            normal_name = attr_name
+            
+        return str, normal_name, attr_name
+    
+
+class EvaluationDatabase(taurus.core.TaurusDatabase):
+    def factory(self):
+        return EvaluationFactory()
+        
+    def __getattr__(self, name):
+        return "EvaluationDatabase object calling %s" % name
+
 
 class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     def __init__(self, name, **kw):
@@ -80,16 +120,27 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         if ok:
             self._transformation = trstring
             self.applyTransformation()
-        else:
-            print "!!!!!!!!!!!!!", self._transformation
-            return
-
+    
+    @staticmethod
+    def getId(obj, idFormat=r'_V%i_'):
+        '''returns an id string for the given object which has the following two properties:
+        
+            - It is unique for this object during all its life
+            - It is a string that can be used as a variable or method name
+        
+        :param obj: (object) the python object whose id is requested 
+        :param idFormat: (str) a format string containing a "`%i`" which, when expanded
+                         must be a valid variable name (i.e. it must match
+                         `[a-zA-Z_][a-zA-Z0-9_]*`). The default is `_V%i_`
+        '''
+        return idFormat%id(obj)
         
     def preProcessTransformation(self, trstring):
         """
         parses the transformation string and creates the necessary symbols for
         the evaluator. It also connects any referenced attributes so that the
         transformation gets re-evaluated if they change.
+        
         :param trstring: (str) a string to be pre-processed
         
         :return: (tuple<str,bool>) a tuple containing the processed string 
@@ -105,7 +156,8 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         evaluator = self.getParentObj()  
         evaluator.resetSafe()
         
-        #Find references in the string, create qAttrs if needed, connect to them and change the string to use the qAttr id
+        #Find references in the string, create references if needed, 
+        #connect to them and substitute the references by their id
         trstring = re.sub(self.cref_RegExp, self.__Match2Id, trstring)
         
         #validate the expression (look for missing symbols) 
@@ -115,38 +167,56 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
                 self.warning('Missing symbol "%s"'%s)
                 return trstring, False
         return trstring,True
-    
-                
+                    
     def __Match2Id(self, match):
         """
         receives a re.match object for cref_RegExp. Returns the id of an
         existing qAttr corresponding to the match. The qAttr is created
         if it didn't previously exist.
         """
-        return self.__createReference(match.groups()[0]).id
+        ref = match.groups()[0]
+        refobj = self.__createReference(ref)
+        return self.getId(refobj)
         
     def __createReference(self, ref):
-        '''creates a (or gets an existing) taurus attribute and connects to it and adds
-        its id to the safe evaluation symbols. It returns the qAttr.
-        Receives a taurus attribute name and creates a reference to it. 
-        It also populates the safe evaluation symbols dict with 
+        '''
+        Receives a taurus attribute name and creates/retrieves a reference to
+        the attribute object. If the object was not already referenced, it adds
+        it to the reference list and adds its id and current value to the
+        symbols dictionary of the evaluator.
+        
+        :param ref: (str) 
+        
+        :return: (TaurusAttribute) 
         
         '''
-        c = taurus.Attribute(ref)
-        self.connect(c, Qt.SIGNAL("dataChanged"), self.applyTransformation)
-        self.sev.addSafe({c.id:c.value})
-        self._references.append(c)
-        return c        
+        refobj = taurus.Attribute(ref)
+        if refobj not in self._references:
+            refobj.addListener(self.handleReferenceEvent) #listen to events from the referenced object
+            evaluator = self.getParentObj()  
+            evaluator.addSafe({self.getId(refobj) : refobj.read().value}) # add its value to the evaluator symbols
+            self._references.append(refobj) #add the object to the reference list
+        return refobj        
+    
+    def handleReferenceEvent(self, evt_src, evt_type, evt_value):
+        #update the corresponding value
+        evaluator = self.getParentObj()  
+        evaluator.addSafe({evt_src : evt_value.value})
+        #re-evaluate
+        self.applyTransformation()
+        #notify listeners that the value changed
+        self.fireEvent(evt_type, evt_value)
         
     def applyTransformation(self):
         try:
-            sender = self.sender()
-            if isinstance(sender, TaurusQAttribute):
-                self.sev.addSafe({sender.id:sender.value})
-            self.value = self.sev.eval(self._transformationString)
-            self.emit(Qt.SIGNAL("dataChanged"))
+            evaluator = self.getParentObj()  
+            self._value.read_value = evaluator.eval(self._transformation)
+            self._value.time_stamp = time.time()
+            self._value.quality = taurus.core.AttrQuality.ATTR_VALID
         except Exception, e:
-            self.warning("the function '%s' could not be evaluated. Reason: %s"%(self._transformationString, repr(e)))
+            self._value.quality = taurus.core.AttrQuality.ATTR_INVALID
+            self.warning("the function '%s' could not be evaluated. Reason: %s"%(self._transformation, repr(e)))
+            
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -154,13 +224,13 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return True
         
     def isBoolean(self):
-        return False
+        return isinstance(self._value.read_value, bool)
     
     def isState(self):
         return False
 
     def getDisplayValue(self,cache=True):
-        return str(self._value.read_value)
+        return str(self.read(cache=cache).read_value)
 
     def encode(self, value):
         return value
@@ -180,73 +250,41 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
                       
         :return: attribute value
         '''
-        if cache:
-            return self._value
-        else:
+        if not cache:
+            symbols = {}
             for ref in self._references:
-                ref.read(cache=False)
-            raise NotImplementedError()
-        
-            
+                symbols[self.getId(ref)] = ref.read(cache=False)
+            evaluator = self.getParentObj()  
+            evaluator.addSafe(symbols)
+            self.applyTransformation()
+        return self._value    
 
     def poll(self):
-        raise NotImplementedError
+        pass
             
     def _subscribeEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._subscribeEvents")
+        pass
         
     def _unsubscribeEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._unsubscribeEvents")
+        pass
 
     def isUsingEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isUsingEvents")
+        False
 #------------------------------------------------------------------------------ 
 
-
-        
     def factory(self):
         return OperationFactory()
+    
+    @classmethod
+    def getNameValidator(cls):
+        return EvaluationAttributeNameValidator()
 
-  
 
-    def read(self, cache=True):
-        return self._value
-        
-    def _subscribeEvents(self):
-        pass
-        
-    def _unSubscribeEvents(self):
-        pass
 
-    def _getRealConfig(self):
-        if self._config is None:
-            cfg_name = "%s?configuration" % self.getFullName()
-            self._config = SimulationConfiguration(cfg_name, self)
-        return self._config
-
-    def getConfig(self):
-        return self._getRealConfig()
-
-    def addListener(self, listener):
-        """ Add a TaurusListener object in the listeners list.
-            If it is the first element and Polling is enabled starts the 
-            polling mechanism.
-            If the listener is already registered nothing happens."""
-        ret = taurus.core.TaurusAttribute.addListener(self, listener)
-        if not ret:
-            return ret
-
-        #fire a first configuration event
-        cfg_val, val = self.getConfig().getValueObj(), self.read()
-        self.fireEvent(taurus.core.TaurusEventType.Config, cfg_val, listener)
-        #fire a first change event
-        self.fireEvent(taurus.core.TaurusEventType.Change, val, listener)
-        return ret
-
-class OperationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
+class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
     """A Singleton class designed to provide Operation related objects."""
 
-    schemes = ("op","operation")
+    schemes = ("eval","evaluation")
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -257,12 +295,11 @@ class OperationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
         name = self.__class__.__name__
         self.call__init__(taurus.core.util.Logger, name)
         self.call__init__(taurus.core.TaurusFactory)
-
-
         
     def findObjectClass(self, absolute_name):
         """Operation models are always OperationAttributes
         """
+        
         return OperationAttribute
 
     def getDatabase(self, db_name=None):
