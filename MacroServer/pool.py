@@ -656,6 +656,9 @@ class Motor(PoolElement, motion.Moveable):
     def getStepPerUnit(self):
         return self._getAttrValue('step_per_unit', force=True)
     
+    def getSign(self):
+        return self._getAttrValue('Sign', force=True)
+    
     def getSimulationMode(self):
         return self._getAttrValue('SimulationMode', force=True)
 
