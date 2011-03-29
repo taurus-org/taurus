@@ -25,7 +25,7 @@
 
 """This module contains the taurus base exception classes"""
 
-__all__ = ["TaurusException"]
+__all__ = ["TaurusException", "DoubleRegistration"]
 
 __docformat__ = "restructuredtext"
 
@@ -34,3 +34,5 @@ class TaurusException(Exception):
         Exception.__init__(self, description, code)
         self.code = code
         self.description = description
+        
+class DoubleRegistration(TaurusException): pass
