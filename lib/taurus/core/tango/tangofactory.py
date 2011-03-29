@@ -47,7 +47,7 @@ _StateAttribute = tangoattribute.TangoStateAttribute
 _Device = tangodevice.TangoDevice
 _Configuration = tangoconfiguration.TangoConfiguration
 
-class DoubleRegistration(Exception): pass
+from taurus.core import DoubleRegistration
 
 class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
     """A Singleton class designed to provide Tango related objects.

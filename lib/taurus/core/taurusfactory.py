@@ -37,7 +37,7 @@ scheme     userinfo         hostname  port  path  filename extension parameter(s
                     authority
 """
 
-__all__ = ["TaurusFactory"]
+__all__ = ["TaurusFactory", "DoubleRegistration"]
 
 __docformat__ = "restructuredtext"
 
@@ -46,6 +46,8 @@ import taurusdatabase
 import taurusdevice
 import taurusattribute
 import taurusconfiguration
+
+class DoubleRegistration(Exception): pass
 
 class TaurusFactory:
     """The base class for valid Factories in Taurus."""
