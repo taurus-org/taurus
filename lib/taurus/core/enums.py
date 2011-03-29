@@ -27,8 +27,7 @@
 
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode", 
            "TaurusEventType", "MatchLevel", "TaurusElementType", "DataFormat",
-           "AttrQuality", "AttrType", "DisplayLevel", "ManagerState", 
-           "TaurusAttrValue", "TaurusConfigValue"]
+           "AttrQuality", "AttrType", "DisplayLevel", "ManagerState"]
 
 __docformat__ = "restructuredtext"
 
@@ -139,28 +138,4 @@ ManagerState =  util.Enumeration(
     'CLEANED'
 )) 
 
-class TaurusAttrValue:
-    def __init__(self):
-        self.read_value = None
-        self.write_value = None
-        self.time_stamp = None
-        self.quality = AttrQuality.ATTR_VALID
-        self.format = 0
-
-class TaurusConfigValue:
-    def __init__(self):
-        self.name = None
-        self.writable = None
-        self.data_format = None
-        self.data_type = None
-        self.max_dim = 1, 1
-        self.label = None
-        self.unit = None
-        self.standard_unit = None
-        self. display_unit= None
-        self.format = None
-        self.range = float('-inf'), float('inf')
-        self.alarm = float('-inf'), float('inf')
-        self.warning = float('-inf'), float('inf')
-        self.disp_level = None
     

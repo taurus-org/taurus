@@ -29,6 +29,7 @@ __docformat__ = "restructuredtext"
 
 import release as Release
 from .enums import *
+from .taurusbasetypes import *
 from .taurusexception import *
 from .taurusmodel import *
 from .tauruslistener import *

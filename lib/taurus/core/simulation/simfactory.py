@@ -188,7 +188,7 @@ class SimulationAttribute(taurus.core.TaurusAttribute):
         return False
 
     def getDisplayValue(self,cache=True):
-        return str(self._value.read_value)
+        return str(self._value.value)
 
     def encode(self, value):
         return value
