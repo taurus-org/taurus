@@ -87,13 +87,23 @@ Some examples of valid evaluation models are:
         
         `eval://${I}*${R}`
         
-    - Referencing to an evaluator device named `foo`
+    - Referencing to an evaluator device named `foo`:
     
         `eval://evaluator=foo`
         
+    - Referencing to an evaluator device named `foo` and assigning custom symbols to it:
+    
+        `eval://evaluator=foo?bar={tango://a/b/c/d};blah=23`
         
-      
+        
+    - Multiplying a blah times bar (both `blah` and `bar` are known to evaluator `foo`):
+        
+        `eval://evaluator=foo;blah*bar`
+        
+    - Same as the previous 2, but all in one line:
+    
+        `eval://evaluator=foo;blah*bar?bar={tango://a/b/c/d};blah=23`
 
 """
 #raise NotImplementedError()
-from opfactory import *
+from evalfactory import *

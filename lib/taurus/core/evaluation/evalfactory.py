@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from taurus.core.taurusexception import TaurusException
-
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
@@ -28,43 +26,133 @@ from taurus.core.taurusexception import TaurusException
 operation module. See __init__.py for more detailed documentation
 '''
 
-import os, time
+import os, time, re, weakref
 
+from taurus.core.taurusexception import TaurusException
 import taurus.core
-from taurus.core import OperationMode, MatchLevel
+from taurus.core import OperationMode, MatchLevel, TaurusSWDevState
 from taurus.core.util import SafeEvaluator
 
-
-class EvaluationAttributeNameValidator(util.Singleton):
-    evalattrname = '^((eval|evaluation):)(//([^/?#]*))?([^?#;]*)(;evaluator=([^?#;]*))(\?([^#]*))?'
+class EvaluationAttributeNameValidator(taurus.core.util.Singleton):
+    # The groups in a match object using the regexp below are:
+    #    1: scheme; named as 'scheme'
+    #    2: 
+    #    3: evaluatorname; optional; named as 'devname'
+    #    4: transformationstring; named as 'attrname'
+    #    5:
+    #    6: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
+    #    7:
+    #    8: fragment; optional; named as 'fragment'
+    #
+    #    Reconstructing the names
+    #    attrname= $4
+    #    devname= $3 or EvaluationFactory.DEFAULT_DEVICE
+    #    fullname= "eval://evaluator=%s;%s%s%s"%(devname,attrname,$5,$7)
+    #
+    #                     1                             2          3                      4                    5  6                 7 8
+    attrname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?P<subst>[^#]*))?(#(?P<fragment>.*))?$'
     
+    # The following regexp pattern matches <variable>=<value> pairs    
+    kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
+
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
     
     def init(self, *args, **kwargs):
         """Singleton instance initialization."""
-        self.complete_re = re.compile("^%s$" % self.complete_name)
-        self.normal_re = re.compile("^%s$" % self.normal_name)
-        self.short_re = re.compile("^%s$" % self.short_name)
+        self.attrname_re = re.compile(self.attrname_pattern)
+        self.kvsymbols_re = re.compile(self.kvsymbols_pattern)
+        
+    def isValid(self,str, matchLevel = MatchLevel.ANY):
+        m = self.attrname_re.match(str)
+        if m is None: 
+            return False
+        elif matchLevel == MatchLevel.COMPLETE:
+            return m.group('devname') is not None
+        else:
+            return True
+        
+    def getParams(self, str):
+        m = self.attrname_re.match(str)
+        if m is None:
+            return None
+        return m.groupdict()
 
     def getNames(self, str, factory=None):
-        """Returns the complete and short names"""
-        
-        elems = self.getParams(str)
-        if elems is None:
+        """Returns the complete, normal and short names"""
+        m = self.attrname_re.match(str)
+        if m is None:
             return None
-        
-        dev_name = elems.get('devicename')
-        attr_name = elems.get('attributename')
-        
-        if dev_name:
-            normal_name = dev_name + "/" + attr_name
-        else:
-            normal_name = attr_name
-            
-        return str, normal_name, attr_name
+        # "bar*blah"
+        attr_name = m.group('attrname')
+        devname = m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
+        #eval://evaluator=foo;bar*blah
+        normal_name = "eval://evaluator=%s;%s"%(devname,attr_name) # ???should I put m.group(5) and m.group(7) too?
+        #eval://evaluator=foo;123*{a/b/c/d}
+        subst = m.group('subst') or ''
+        fullname = normal_name
+        for k,v in self.kvsymbols_re.findall(subst):
+            fullname = re.sub(k,v, fullname) #generate a full name that expands all explicit symbol names            
+        return fullname, normal_name, attr_name
     
+    def getDeviceName(self, str):
+        m = self.attrname_re.match(str)
+        if m is None:
+            return None
+        devname= m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
+        return "eval://evaluator=%s"%devname
+        
+        
+
+
+
+class EvaluationDeviceNameValidator(taurus.core.util.Singleton):
+    # The groups in a match object using the regexp below are:
+    #    1: scheme; named as 'scheme'
+    #    2: 
+    #    3: evaluatorname; named as 'devname'
+    #    4:
+    #    5: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
+    #    6:
+    #    7: fragment; optional; named as 'fragment'
+    #
+    #                    1                             2          3                    4  5                 6 7
+    devname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+))(\?(?P<subst>[^#]*))?(#(?P<fragment>.*))?$'
+    
+    # The following regexp pattern matches <variable>=<value> pairs    
+    kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
+
+    def __init__(self):
+        """ Initialization. Nothing to be done here for now."""
+        pass
+    
+    def init(self, *args, **kwargs):
+        """Singleton instance initialization."""
+        self.devname_re = re.compile(self.devname_pattern)
+        self.kvsymbols_re = re.compile(self.kvsymbols_pattern)
+        
+    def isValid(self,str, matchLevel = MatchLevel.ANY):
+        return self.devname_re.match(str) is not None
+
+    def getNames(self, str, factory=None):
+        """Returns the complete, normal and short names. (note: complete=normal)
+        
+        :param str: (str) input string describing the device
+        :param factory: (TaurusFactory) [Unused]
+        
+        :return: (tuple<str,str,str> or None) A tuple of complete, normal and
+                 short names, or None if str is an invalid device name
+        """
+        m = self.devname_re.match(str)
+        if m is None:
+            return None
+        gdict = m.groupdict() 
+        #The following comments are for a name of the type: eval://evaluator=foo;?bar=123;blah={a/b/c/d} 
+        devname = gdict.get('devname')  # foo
+        normal_name = "eval://evaluator=%s"%(devname) #eval://evaluator=foo
+        full_name = normal_name #eval://evaluator=foo
+        return full_name, normal_name, devname    
 
 class EvaluationDatabase(taurus.core.TaurusDatabase):
     def factory(self):
@@ -78,7 +166,7 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     def __init__(self, name, **kw):
         """Object initialization."""
         self.call__init__(taurus.core.TaurusDevice, name, **kw)
-        self.SafeEvaluator.__init__(self)
+        SafeEvaluator.__init__(self)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
@@ -102,6 +190,20 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     def getAttribute(self, attrname):
         """Returns the attribute object given its name"""
         raise TaurusException('getAttribute() cannot be called on %s'%self.__class__.__name__)
+    
+    @classmethod
+    def getNameValidator(cls):
+        return EvaluationDeviceNameValidator()
+    
+    def decode(self, event_value):
+        if isinstance(event_value, int): # TaurusSWDevState
+            new_sw_state = event_value
+        else:
+            self.info("Unexpected value to decode: %s" % str(event_value))
+            new_sw_state = TaurusSWDevState.Crash
+        value = taurus.core.TaurusAttrValue() 
+        value.value = new_sw_state
+        return value
         
                 
 
@@ -114,9 +216,14 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         
         self._value = taurus.core.TaurusAttrValue()
         self._references = [] 
-
-        name = str(name)
-        trstring, ok = self.preProcessTransformation(name)
+        self._validator= self.getNameValidator()
+        self._transformation = None
+        
+        params = self._validator.getParams(str(name)) #This should never be None because the init already ran the validator
+        trstring = params.get('attrname')
+        
+        trstring, ok = self.preProcessTransformation(trstring)
+        
         if ok:
             self._transformation = trstring
             self.applyTransformation()
@@ -192,30 +299,39 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         '''
         refobj = taurus.Attribute(ref)
         if refobj not in self._references:
-            refobj.addListener(self.handleReferenceEvent) #listen to events from the referenced object
-            evaluator = self.getParentObj()  
-            evaluator.addSafe({self.getId(refobj) : refobj.read().value}) # add its value to the evaluator symbols
+            evaluator = self.getParentObj()
+            v = refobj.read().value
+            evaluator.addSafe({self.getId(refobj) : v}) # add its value to the evaluator symbols
             self._references.append(refobj) #add the object to the reference list
+            refobj.addListener(self.handleReferenceEvent) #listen to events from the referenced object
         return refobj        
     
     def handleReferenceEvent(self, evt_src, evt_type, evt_value):
+        try:
+            v = evt_value.value
+        except AttributeError:
+            self.trace('Ignoring event from %s'%repr(evt_src))
+            return
+        #self.trace('received event from %s (%s=%s)'%(evt_src, self.getId(evt_src), v))
         #update the corresponding value
-        evaluator = self.getParentObj()  
-        evaluator.addSafe({evt_src : evt_value.value})
+        evaluator = self.getParentObj()
+        evaluator.addSafe({self.getId(evt_src) : v})
         #re-evaluate
         self.applyTransformation()
         #notify listeners that the value changed
-        self.fireEvent(evt_type, evt_value)
+        self.fireEvent(evt_type, self._value)
         
     def applyTransformation(self):
+        if self._transformation is None: return
         try:
-            evaluator = self.getParentObj()  
-            self._value.read_value = evaluator.eval(self._transformation)
-            self._value.time_stamp = time.time()
+            evaluator = self.getParentObj() 
+            self._value.value = evaluator.eval(self._transformation)
+            self._value.time = taurus.core.TaurusTimeVal.fromFloat(time.time())
             self._value.quality = taurus.core.AttrQuality.ATTR_VALID
         except Exception, e:
             self._value.quality = taurus.core.AttrQuality.ATTR_INVALID
             self.warning("the function '%s' could not be evaluated. Reason: %s"%(self._transformation, repr(e)))
+            #self.traceback(taurus.Warning)
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
@@ -224,13 +340,13 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return True
         
     def isBoolean(self):
-        return isinstance(self._value.read_value, bool)
+        return isinstance(self._value.value, bool)
     
     def isState(self):
         return False
 
     def getDisplayValue(self,cache=True):
-        return str(self.read(cache=cache).read_value)
+        return str(self.read(cache=cache).value)
 
     def encode(self, value):
         return value
@@ -239,7 +355,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return attr_value
 
     def write(self, value, with_read=True):
-        raise TaurusException('Operation attributes are read-only')
+        raise TaurusException('Evaluation attributes are read-only')
 
     def read(self, cache=True):
         '''returns the value of the attribute.
@@ -253,7 +369,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         if not cache:
             symbols = {}
             for ref in self._references:
-                symbols[self.getId(ref)] = ref.read(cache=False)
+                symbols[self.getId(ref)] = ref.read(cache=False).value
             evaluator = self.getParentObj()  
             evaluator.addSafe(symbols)
             self.applyTransformation()
@@ -273,7 +389,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
 #------------------------------------------------------------------------------ 
 
     def factory(self):
-        return OperationFactory()
+        return EvaluationFactory()
     
     @classmethod
     def getNameValidator(cls):
@@ -285,7 +401,8 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
     """A Singleton class designed to provide Operation related objects."""
 
     schemes = ("eval","evaluation")
-    
+    DEFAULT_DEVICE = '_DefaultEvaluator'
+    DEFAULT_DATABASE = '_DefaultEvalDB'
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -295,128 +412,130 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
         name = self.__class__.__name__
         self.call__init__(taurus.core.util.Logger, name)
         self.call__init__(taurus.core.TaurusFactory)
+        self.eval_attrs = weakref.WeakValueDictionary()
+        self.eval_devs = weakref.WeakValueDictionary()
         
     def findObjectClass(self, absolute_name):
         """Operation models are always OperationAttributes
         """
-        
-        return OperationAttribute
+        if EvaluationDevice.isValid(absolute_name):
+            return EvaluationDevice
+        elif EvaluationDevice.isValid(absolute_name):
+            return EvaluationAttribute
+        else:
+            self.debug("Not able to find Object class for %s" % absolute_name)
+            self.traceback()
+            return None
 
     def getDatabase(self, db_name=None):
-        """getDatabase(string db_name) -> taurus.core.TaurusDatabase
-           
-        Obtain the object corresponding to the given database name or the 
-        default database if db_name is None.
-        If the corresponding database object already exists, the existing 
-        instance is returned. Otherwise a new instance is stored and returned.
-           
-        @param[in] db_name database name string. It should be formed like: 
-                           <schema>://<authority>. If <schema> is ommited then 
-                           it will use the default schema. if db_name is None, 
-                           the default database is used
-                           
-        @return a taurus.core.TaurusDatabase object 
-        @throws TaurusException if the given name is invalid.
-        """
-        if not db_name is None:
-            validator = SimulationDatabase.getNameValidator()
-            params = validator.getParams(db_name)
-            if params is None:
-                raise taurus.core.TaurusException("Invalid database name %s." % db_name)
+        """Obtain the EvaluationDatabase object.
         
+        :param db_name: (str) this is ignored because only one database is supported
+                           
+        :return: (EvaluationDatabase)
+        """
         if not hasattr(self, "_db"):
-            self._db = SimulationDatabase("sim:01")
+            self._db = EvaluationDatabase(self.DEFAULT_DATABASE)
         return self._db
 
     def getDevice(self, dev_name):
-        """getDevice(string dev_name) -> taurus.core.TaurusDevice
-           
-        Obtain the object corresponding to the given device name. If the 
+        """Obtain the object corresponding to the given device name. If the 
         corresponding device already exists, the existing instance is returned. 
         Otherwise a new instance is stored and returned.
            
-        @param[in] dev_name the device name string. It should be formed like:
-                            <schema>://<authority>/<device name>. If <schema> 
-                            is ommited then it will use the default schema. 
-                            If authority is ommited then it will use the 
-                            default authority for the schema.
+        :param dev_name: (str) the device name string. See
+                         :mod:`taurus.core.evaluation` for valid device names
         
-        @return a taurus.core.TaurusDevice object 
+        :return: (EvaluationDevice)
+         
         @throws TaurusException if the given name is invalid.
         """
-        validator = SimulationDevice.getNameValidator()
-        params = validator.getParams(dev_name)
-        if params is None:
-            raise taurus.core.TaurusException("Invalid device name %s." % dev_name)
-
-        if not hasattr(self, "_dev"):
-            db = self.getDatabase("sim:01")
-            self._dev = SimulationDevice("sim:01/a/b/c", parent=db, storeCallback=self._storeDev)
-        return self._dev
+        d = self.eval_devs.get(dev_name, None)
+        if d is None:
+            validator = EvaluationDevice.getNameValidator()
+            names = validator.getNames(dev_name)
+            if names is None:
+                raise TaurusException("Invalid evaluator device name %s." % dev_name)
+            db = self.getDatabase()
+            d = EvaluationDevice(names[0], parent=db, storeCallback=self._storeDev) #use full name
+        return d
         
     def getAttribute(self, attr_name):
-        """getAttribute(string attr_name) -> taurus.core.TaurusAttribute
-
-        Obtain the object corresponding to the given attribute name.
-        If the corresponding attribute already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
-
-        @param[in] attr_name string attribute name
-             
-        @return a taurus.core.TaurusAttribute object 
+        """Obtain the object corresponding to the given attribute name. If the 
+        corresponding attribute already exists, the existing instance is
+        returned. Otherwise a new instance is stored and returned. The evaluator
+        device associated to this attribute will also be created if necessary.
+           
+        :param attr_name: (str) the attribute name string. See
+                          :mod:`taurus.core.evaluation` for valid attribute names
+        
+        :return: (EvaluationAttribute)
+         
         @throws TaurusException if the given name is invalid.
         """
-        validator = SimulationAttribute.getNameValidator()
-        params = validator.getParams(attr_name)
-        
-        if params is None:
-            raise taurus.core.TaurusException("Invalid attribute name %s." % attr_name)
-        
-        if not hasattr(self, "_attr"):
-            dev = self.getDevice("sim:01/a/b/c")
-            SimulationAttribute("sim:01/a/b/c/d", parent=dev, storeCallback=self._storeAttr)
-        return self._attr
+        a = self.eval_attrs.get(attr_name, None)
+        if a is None:
+            validator = EvaluationAttribute.getNameValidator()
+            names = validator.getNames(attr_name)
+            if names is None:
+                raise TaurusException("Invalid evaluator attribute name %s." % dev_name)
+            dev = self.getDevice(validator.getDeviceName(attr_name))
+            a = EvaluationAttribute(names[0], parent=dev, storeCallback=self._storeAttr) #use full name
+        return a
 
     def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.TaurusConfiguration
-
-        Obtain the object corresponding to the given attribute or full name.
-        If the corresponding configuration already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
-
-        @param[in] param taurus.core.TaurusAttribute object or full configuration name
-           
-        @return a taurus.core.TaurusAttribute object
-        @throws TaurusException if the given name is invalid.
-        """
-        if isinstance(param, str):
-            return self._getConfigurationFromName(param)
-        return self._getConfigurationFromAttribute(param)
+        return None
 
     def _getConfigurationFromName(self, name):
-        validator = SimulationConfiguration.getNameValidator()
-        params = validator.getParams(name)
-                
-        if params is None:
-            raise taurus.core.TaurusException("Invalid configuration name %s." % name)
-
-        if not hasattr(self, "_conf"):
-            name = "sim:01/a/b/c/d?configuration"
-            attr = self.getAttribute("sim:01/a/b/c/d")
-            SimulationConfiguration(name, attr, storeCallback=self._storeConfig)
-        return self._config
+        return None
     
     def _getConfigurationFromAttribute(self, attr):
-        if not hasattr(self, "_conf"):
-            name = "sim:01/a/b/c/d?configuration"
-            SimulationConfiguration(name, attr, storeCallback=self._storeConfig)
-        return self._config
+        return None
     
     def _storeDev(self, dev):
-        self._dev = dev
+        name = dev.getFullName()
+        exists = self.eval_devs.get(name)
+        if exists is not None:
+            if exists == dev: 
+                self.debug("%s has already been registered before" % name)
+                raise taurus.core.DoubleRegistration
+            else:
+                self.debug("%s has already been registered before with a different object!" % name)
+                raise taurus.core.DoubleRegistration
+        self.eval_devs[name] = dev
     
     def _storeAttr(self, attr):
-        self._attr = attr
+        name = attr.getFullName()
+        exists = self.eval_attrs.get(name)
+        if exists is not None:
+            if exists == attr: 
+                self.debug("%s has already been registered before" % name)
+                raise taurus.core.DoubleRegistration
+            else:
+                self.debug("%s has already been registered before with a different object!" % name)
+                raise taurus.core.DoubleRegistration
+        self.eval_attrs[name] = attr
         
     def _storeConfig(self, name, config):
-        self._config = config
+        pass
+    
+    
+
+#===============================================================================
+# Just for testing
+#===============================================================================
+if __name__ == "__main__":
+    f = EvaluationFactory()
+    #d = f.getDevice('eval://evaluator=foo')
+    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')
+    
+    evt_ct = 0
+    def kk(s,t,v):
+        global evt_ct
+        print evt_ct, v
+        evt_ct += 1
+
+    a.addListener(kk)
+    while evt_ct <= 10:
+        time.sleep(1)
+        
