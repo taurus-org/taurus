@@ -258,7 +258,12 @@ def _check_dependencies(forlog=False):
         yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currqtcontrolsStr, rec=r['qtcontrols'][1],**MSG)
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currqtcontrolsStr,**MSG)
-    
+
+
+def getSchemeFromName(name):
+    i=name.find('://')
+    if i == -1: return None
+    return name[:i]
 
 def Manager():
     """Returns the one and only TaurusManager
@@ -304,7 +309,7 @@ def Device(device_name):
     :type device_name: str
     :return: a taurus device
     :rtype: :class:`taurus.core.TaurusDevice`"""
-    return Factory().getDevice(device_name)
+    return Factory(scheme=getSchemeFromName(device_name)).getDevice(device_name)
 
 def Attribute(dev_or_attr_name, attr_name=None):
     """Returns the taurus attribute for either the pair (device name, attribute name) 
@@ -335,8 +340,9 @@ def Attribute(dev_or_attr_name, attr_name=None):
     :return: a taurus attribute
     :rtype: :class:`taurus.core.TaurusAttribute`"""
     import types
+    
     if attr_name is None:
-        return Factory().getAttribute(dev_or_attr_name)
+        return Factory(scheme=getSchemeFromName(dev_or_attr_name)).getAttribute(dev_or_attr_name)
     else:
         if type(dev_or_attr_name) in types.StringTypes:
             dev = Device(dev_or_attr_name)
@@ -373,7 +379,7 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :return: a taurus configuration
     :rtype: :class:`taurus.core.TaurusConfiguration`"""
     if conf_name is None:
-        return Factory().getConfiguration(attr_or_conf_name)
+        return Factory(scheme=getSchemeFromName(attr_or_conf_name)).getConfiguration(attr_or_conf_name)
     else:
         return Attribute(attr_or_conf_name).getConfig(conf_name)
 
@@ -391,7 +397,7 @@ def Database(db_name=None):
     :type db_name: str or None
     :return: a taurus database
     :rtype: :class:`taurus.core.TaurusDatabase`"""
-    return Factory().getDatabase(db_name)
+    return Factory(getSchemeFromName(db_name)).getDatabase(db_name)
 
 def Object(klass, name):
     """Returns an taurus object of given class for the given name
@@ -409,7 +415,7 @@ def Object(klass, name):
     :type name: str
     :return: a taurus object
     :rtype: :class:`taurus.core.TaurusModel`"""
-    return Factory().getObject(klass, name)
+    return Factory(getSchemeFromName(name)).getObject(klass, name)
 
 import util
 
