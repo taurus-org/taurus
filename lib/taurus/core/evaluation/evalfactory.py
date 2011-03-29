@@ -455,7 +455,7 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
             validator = EvaluationDevice.getNameValidator()
             names = validator.getNames(dev_name)
             if names is None:
-                raise TaurusException("Invalid evaluator device name %s." % dev_name)
+                raise TaurusException("Invalid evaluator device name %s" % dev_name)
             db = self.getDatabase()
             d = EvaluationDevice(names[0], parent=db, storeCallback=self._storeDev) #use full name
         return d
@@ -478,7 +478,7 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
             validator = EvaluationAttribute.getNameValidator()
             names = validator.getNames(attr_name)
             if names is None:
-                raise TaurusException("Invalid evaluator attribute name %s." % dev_name)
+                raise TaurusException("Invalid evaluator attribute name %s" % dev_name)
             dev = self.getDevice(validator.getDeviceName(attr_name))
             a = EvaluationAttribute(names[0], parent=dev, storeCallback=self._storeAttr) #use full name
         return a
@@ -525,10 +525,12 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
 # Just for testing
 #===============================================================================
 if __name__ == "__main__":
-    f = EvaluationFactory()
-    #d = f.getDevice('eval://evaluator=foo')
-    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')
-    
+#    f = EvaluationFactory()
+#    #d = f.getDevice('eval://evaluator=foo')
+#    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}')
+    import taurus.core
+    a=taurus.Attribute('eval://[{sys/tg_test/1/short_scalar},{sys/tg_test/1/double_scalar}, {sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}]')
+#    a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}')
     evt_ct = 0
     def kk(s,t,v):
         global evt_ct
