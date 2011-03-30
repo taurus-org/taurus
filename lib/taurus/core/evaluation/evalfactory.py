@@ -25,6 +25,12 @@
 '''
 operation module. See __init__.py for more detailed documentation
 '''
+__all__ = ['EvaluationFactory', 'EvaluationDatabase', 'EvaluationDevice', 
+           'EvaluationAttribute','EvaluationConfiguration', 
+           'EvaluationConfigurationNameValidator', 'EvaluationDeviceNameValidator', 
+           'EvaluationAttributeNameValidator']
+
+
 
 import os, time, re, weakref
 
@@ -50,8 +56,8 @@ class EvaluationAttributeNameValidator(taurus.core.util.Singleton):
     #    devname= $3 or EvaluationFactory.DEFAULT_DEVICE
     #    fullname= "eval://evaluator=%s;%s%s%s"%(devname,attrname,$5,$7)
     #
-    #                     1                             2          3                      4                    5  6                 7 8
-    attrname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?P<subst>[^#]*))?(#(?P<fragment>.*))?$'
+    #                     1                             2          3                      4                    5                    6                  7 8 
+    attrname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?!configuration=)(?P<subst>[^#?]*))?(#(?P<fragment>.*))?$'
     
     # The following regexp pattern matches <variable>=<value> pairs    
     kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
@@ -81,23 +87,38 @@ class EvaluationAttributeNameValidator(taurus.core.util.Singleton):
         return m.groupdict()
 
     def getNames(self, str, factory=None):
-        """Returns the complete, normal and short names"""
+        """Returns the complete, normal and short names.
+        
+        For example::
+        
+            >>> EvaluationAttributeNameValidator.getNames("eval://evaluator=foo;bar*blah?bar=123;blah={a/b/c/d}#[1:-3]")
+            >>> ("eval://evaluator=foo;123*{a/b/c/d}", "eval://evaluator=foo;bar*blah", "bar*blah")
+        
+        """
         m = self.attrname_re.match(str)
         if m is None:
             return None
-        # "bar*blah"
-        attr_name = m.group('attrname')
-        devname = m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
-        #eval://evaluator=foo;bar*blah
-        normal_name = "eval://evaluator=%s;%s"%(devname,attr_name) # ???should I put m.group(5) and m.group(7) too?
-        #eval://evaluator=foo;123*{a/b/c/d}
-        subst = m.group('subst') or ''
-        fullname = normal_name
-        for k,v in self.kvsymbols_re.findall(subst):
-            fullname = re.sub(k,v, fullname) #generate a full name that expands all explicit symbol names            
+        #The following comments are for an example name like: "eval://evaluator=foo;bar*blah?bar=123;blah={a/b/c/d}#[1:-3]"
+        attr_name = m.group('attrname') # attr_name = "bar*blah"
+        fulldevname = self.getDeviceName(str)
+        normal_name = "%s;%s"%(fulldevname,attr_name) #normal_name = "eval://evaluator=foo;bar*blah"
+        expanded_attr_name = self.getExpandedTransformation(str)
+        fullname = "%s;%s"%(fulldevname,expanded_attr_name) #fullname = "eval://evaluator=foo;123*{a/b/c/d}"
         return fullname, normal_name, attr_name
     
+    def getExpandedTransformation(self, str):
+        'expands the attribute name by substituting all symbols'
+        m = self.attrname_re.match(str)
+        if m is None:
+            return None
+        transf = m.group('attrname')
+        subst = m.group('subst') or ''
+        for k,v in self.kvsymbols_re.findall(subst):
+            transf = re.sub(k,v, transf)
+        return transf
+    
     def getDeviceName(self, str):
+        '''returns the device name for the given attribute name'''
         m = self.attrname_re.match(str)
         if m is None:
             return None
@@ -114,8 +135,8 @@ class EvaluationDeviceNameValidator(taurus.core.util.Singleton):
     #    4:
     #    5: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
     #
-    #                    1                             2          3                    4  5                 
-    devname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+))(\?(?P<subst>[^#]*))?$'
+    #                    1                             2          3                    4                    5                 
+    devname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+))(\?(?!configuration=)(?P<subst>[^#?]*))?$'
     
     # The following regexp pattern matches <variable>=<value> pairs    
     kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
@@ -145,11 +166,76 @@ class EvaluationDeviceNameValidator(taurus.core.util.Singleton):
         if m is None:
             return None
         gdict = m.groupdict() 
-        #The following comments are for a name of the type: eval://evaluator=foo;?bar=123;blah={a/b/c/d} 
+        #The following comments are for a name of the type: eval://evaluator=foo?bar=123;blah={a/b/c/d} 
         devname = gdict.get('devname')  # foo
         normal_name = "eval://evaluator=%s"%(devname) #eval://evaluator=foo
         full_name = normal_name #eval://evaluator=foo
-        return full_name, normal_name, devname    
+        return full_name, normal_name, devname
+
+
+class EvaluationConfigurationNameValidator(taurus.core.util.Singleton):
+    '''A validator of names for :class:`EvaluationConfiguration`'''
+    # The groups in a match object using the regexp below are:
+    #    1: scheme; named as 'scheme'
+    #    2: 
+    #    3: evaluatorname; optional; named as 'devname'
+    #    4: transformationstring; named as 'attrname'
+    #    5:
+    #    6: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
+    #    7:
+    #    8: configuration key; named as 'cfgkey'
+    #
+    #    Reconstructing the names
+    #                    1                             2          3                      4                    5                    6                  7                 8                    
+    cfgname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?!configuration=)(?P<subst>[^#?]*))?(\?configuration=?(?P<cfgkey>[^#?]*))$'
+
+    # The following regexp pattern matches <variable>=<value> pairs    
+    kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
+
+    def __init__(self):
+        """ Initialization. Nothing to be done here for now."""
+        pass
+    
+    def init(self, *args, **kwargs):
+        """Singleton instance initialization."""
+        self.cfgname_re = re.compile(self.cfgname_pattern)
+        self.kvsymbols_re = re.compile(self.kvsymbols_pattern)
+        
+    def isValid(self,str, matchLevel = MatchLevel.ANY):
+        m = self.cfgname_re.match(str)
+        if m is None: 
+            return False
+        elif matchLevel == MatchLevel.COMPLETE:
+            return m.group('devname') is not None
+        else:
+            return True
+        
+    def getParams(self, str):
+        m = self.cfgname_re.match(str)
+        if m is None:
+            return None
+        return m.groupdict()
+
+    def getNames(self, str, factory=None):
+        """Returns the complete, normal and short names"""
+        m = self.cfgname_re.match(str)
+        if m is None:
+            return None
+        #The following comments are for an example name like: "eval://evaluator=foo;bar*blah?bar=123;blah={a/b/c/d}?configuration=label"
+        cfg_key = m.group('cfgkey') # cfg_key = "label"
+        attr_name = m.group('attrname') 
+        devname = m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
+        normal_name = "eval://evaluator=%s;%s?configuration"%(devname,attr_name) #normal_name = "eval://evaluator=foo;bar*blah?configuration"
+        subst = m.group('subst') or ''
+        fullname = normal_name
+        for k,v in self.kvsymbols_re.findall(subst):
+            fullname = re.sub(k,v, fullname) #after the loop, we have: fullname = "eval://evaluator=foo;123*{a/b/c/d}?configuration"            
+        return fullname, normal_name, cfg_key
+    
+    def getAttrName(self, str):
+        names = self.getNames(str)
+        if names is None: return None
+        return names[0][:-len('?configuration')] #remove the "?configuration" substring from the fullname
 
 class EvaluationDatabase(taurus.core.TaurusDatabase):
     '''
@@ -217,8 +303,7 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
         value = taurus.core.TaurusAttrValue() 
         value.value = new_sw_state
         return value
-        
-                
+    
 
 class EvaluationAttribute(taurus.core.TaurusAttribute):
     '''
@@ -244,15 +329,26 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         self._references = [] 
         self._validator= self.getNameValidator()
         self._transformation = None
+        # reference to the configuration object
+        self.__attr_config = None#taurus.core.TaurusConfiguration()
         
-        params = self._validator.getParams(str(name)) #This should never be None because the init already ran the validator
-        trstring = params.get('attrname')
+        trstring = self._validator.getExpandedTransformation(str(name)) #This should never be None because the init already ran the validator
         
         trstring, ok = self.preProcessTransformation(trstring)
         
         if ok:
             self._transformation = trstring
             self.applyTransformation()
+    
+    def __getattr__(self,name):
+        return getattr(self._getRealConfig(), name)
+    
+    def _getRealConfig(self):
+        """ Returns the current configuration of the attribute."""
+        if self.__attr_config is None:
+            cfg_name = "%s?configuration" % self.getFullName()
+            self.__attr_config = EvaluationConfiguration(cfg_name, self)
+        return self.__attr_config
     
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
@@ -352,7 +448,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         try:
             evaluator = self.getParentObj() 
             self._value.value = evaluator.eval(self._transformation)
-            self._value.time = taurus.core.TaurusTimeVal.fromFloat(time.time())
+            self._value.time = taurus.core.TaurusTimeVal.now()
             self._value.quality = taurus.core.AttrQuality.ATTR_VALID
         except Exception, e:
             self._value.quality = taurus.core.AttrQuality.ATTR_INVALID
@@ -422,7 +518,47 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return EvaluationAttributeNameValidator()
 
 
-
+class EvaluationConfiguration(taurus.core.TaurusConfiguration):
+    '''
+    A :class:`TaurusConfiguration` 
+    
+    .. seealso:: :mod:`taurus.core.evaluation` 
+    
+    .. warning:: In most cases this class should not be instantiated directly.
+                 Instead it should be done via the :meth:`EvaluationFactory.getConfig`
+    '''
+    def __init__(self, name, parent, storeCallback = None):
+        self.call__init__(taurus.core.TaurusConfiguration, name, parent, storeCallback=storeCallback)
+        
+        #fill the attr info
+        i = parent.read().config
+        a=parent
+        d=self._getDev()
+        # add dev_name, dev_alias, attr_name, attr_full_name
+        i.dev_name = d.getNormalName()
+        i.dev_alias = d.getSimpleName()
+        i.attr_name = a.getSimpleName()
+        i.attr_fullname = a.getNormalName()
+        i.label = a.getSimpleName()
+        self._attr_info = i
+        
+    def __getattr__(self, name): 
+        return getattr(self._attr_info,name)
+    
+    @classmethod
+    def getNameValidator(cls):
+        return EvaluationConfigurationNameValidator()
+        
+    def _subscribeEvents(self): #@todo: This must be either implemented in TaurusConfiguration or removed from  TaurusConfiguration.__init__
+        pass
+    
+    def _unSubscribeEvents(self):
+        pass   
+    
+    def factory(self):
+        EvaluationFactory()
+        
+    
 class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
     """
     A Singleton class that provides Evaluation related objects.
@@ -442,6 +578,7 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
         self.call__init__(taurus.core.TaurusFactory)
         self.eval_attrs = weakref.WeakValueDictionary()
         self.eval_devs = weakref.WeakValueDictionary()
+        self.eval_configs = weakref.WeakValueDictionary()
         
     def findObjectClass(self, absolute_name):
         """Operation models are always OperationAttributes
@@ -506,19 +643,44 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
             validator = EvaluationAttribute.getNameValidator()
             names = validator.getNames(attr_name)
             if names is None:
-                raise TaurusException("Invalid evaluator attribute name %s" % dev_name)
+                raise TaurusException("Invalid evaluation attribute name %s" % attr_name)
             dev = self.getDevice(validator.getDeviceName(attr_name))
-            a = EvaluationAttribute(names[0], parent=dev, storeCallback=self._storeAttr) #use full name
+            #a = EvaluationAttribute(names[0], parent=dev, storeCallback=self._storeAttr) #use full name
+            a = EvaluationAttribute(attr_name, parent=dev, storeCallback=self._storeAttr) #use full name
         return a
 
     def getConfiguration(self, param):
-        return None
+        """getConfiguration(param) -> taurus.core.TaurusConfiguration
 
-    def _getConfigurationFromName(self, name):
-        return None
-    
+        Obtain the object corresponding to the given attribute or full name.
+        If the corresponding configuration already exists, the existing instance
+        is returned. Otherwise a new instance is stored and returned.
+
+        @param[in] param taurus.core.TaurusAttribute object or full configuration name
+           
+        @return a taurus.core.TaurusAttribute object
+        @throws TaurusException if the given name is invalid.
+        """
+        if isinstance(param, str):
+            return self._getConfigurationFromName(param)
+        return self._getConfigurationFromAttribute(param)
+
+    def _getConfigurationFromName(self, cfg_name):
+        cfg = self.eval_configs.get(cfg_name, None)
+        if cfg is None:
+            validator = EvaluationConfiguration.getNameValidator()
+            names = validator.getNames(cfg_name)
+            if names is None:
+                raise TaurusException("Invalid evaluation configuration name %s" % cfg_name)
+            attr = self.getAttribute(validator.getAttrName(cfg_name))
+            cfg = EvaluationConfiguration(names[0], parent=attr, storeCallback=self._storeConfig) #use full name
+        return cfg
+        
     def _getConfigurationFromAttribute(self, attr):
-        return None
+        cfg = attr.getConfig()
+        cfg_name = attrObj.getFullName() + "?configuration"
+        self.eval_configs[cfg_name] = cfg
+        return cfg
     
     def _storeDev(self, dev):
         name = dev.getFullName()
@@ -544,8 +706,19 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
                 raise taurus.core.DoubleRegistration
         self.eval_attrs[name] = attr
         
-    def _storeConfig(self, name, config):
-        pass
+    def _storeConfig(self, fullname, config):
+        #name = config.getFullName()
+        name = fullname
+        exists = self.eval_configs.get(name)
+        if exists is not None:
+            if exists == config: 
+                self.debug("%s has already been registered before" % name)
+                raise taurus.core.DoubleRegistration
+            else:
+                self.debug("%s has already been registered before with a different object!" % name)
+                raise taurus.core.DoubleRegistration
+        self.eval_configs[name] = config
+        
     
     
 
@@ -555,8 +728,17 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
 def test1():
     f = EvaluationFactory()
     d = f.getDevice('eval://evaluator=foo')
-    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}')
-    print f,d,a
+    a = f.getAttribute('eval://2*bar?bar={sys/tg_test/1/short_scalar}')
+#    c = f.getConfiguration('eval://2*{sys/tg_test/1/short_scalar}?configuration=label')
+#    cp = a.getConfig()
+    print "FACTORY:", f
+    print "DEVICE:", d
+    print "ATTRIBUTE", a
+    print "ATTRIBUTE, simple", a.getSimpleName()
+#    print "CONFIGURATION", c
+#    print "CONFIGPROXY", cp
+#    
+    
 
 def test2():
     import taurus.core
@@ -575,14 +757,17 @@ def test2():
 def test3():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.panel import TaurusForm
+#    from taurus.qt.qtgui.panel import TaurusForm
+    from taurus.qt.qtgui.plot import TaurusTrend
     app = TaurusApplication()
-    w = TaurusForm()
-    w.setModel(['eval://2*{sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar'])
+#    w = TaurusForm()
+    w=TaurusTrend()
+    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar'])
+#    w.setModel(['sys/tg_test/1/short_scalar'])
     w.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    test2()
+    test3()
     
         
