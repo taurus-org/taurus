@@ -158,11 +158,6 @@ class SimulationConfiguration(taurus.core.TaurusConfiguration):
     def decode(self, value):
         return value
 
-    def _subscribeEvents(self):
-        pass
-        
-    def _unSubscribeEvents(self):
-        pass
     
 class SimulationAttribute(taurus.core.TaurusAttribute):
 
