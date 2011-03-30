@@ -34,6 +34,7 @@ from taurus.core import OperationMode, MatchLevel, TaurusSWDevState
 from taurus.core.util import SafeEvaluator
 
 class EvaluationAttributeNameValidator(taurus.core.util.Singleton):
+    '''A validator of names for :class:`EvaluationAttribute`'''
     # The groups in a match object using the regexp below are:
     #    1: scheme; named as 'scheme'
     #    2: 
@@ -103,22 +104,18 @@ class EvaluationAttributeNameValidator(taurus.core.util.Singleton):
         devname= m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
         return "eval://evaluator=%s"%devname
         
-        
-
-
 
 class EvaluationDeviceNameValidator(taurus.core.util.Singleton):
+    '''A validator of names for :class:`EvaluationDevice`'''
     # The groups in a match object using the regexp below are:
     #    1: scheme; named as 'scheme'
     #    2: 
     #    3: evaluatorname; named as 'devname'
     #    4:
     #    5: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
-    #    6:
-    #    7: fragment; optional; named as 'fragment'
     #
-    #                    1                             2          3                    4  5                 6 7
-    devname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+))(\?(?P<subst>[^#]*))?(#(?P<fragment>.*))?$'
+    #                    1                             2          3                    4  5                 
+    devname_pattern = r'^(?P<scheme>eval|evaluation)://(evaluator=(?P<devname>[^?#;]+))(\?(?P<subst>[^#]*))?$'
     
     # The following regexp pattern matches <variable>=<value> pairs    
     kvsymbols_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*)=([^#;]+)'
@@ -155,6 +152,12 @@ class EvaluationDeviceNameValidator(taurus.core.util.Singleton):
         return full_name, normal_name, devname    
 
 class EvaluationDatabase(taurus.core.TaurusDatabase):
+    '''
+    Dummy database class for Evaluation (the Database concept is not used in the Evaluation scheme)
+    
+    .. warning:: In most cases this class should not be instantiated directly.
+                 Instead it should be done via the :meth:`EvaluationFactory.getDataBase`
+    '''
     def factory(self):
         return EvaluationFactory()
         
@@ -163,6 +166,16 @@ class EvaluationDatabase(taurus.core.TaurusDatabase):
 
 
 class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
+    '''
+    The evaluator object. It is a :class:`TaurusDevice` and is used as the
+    parent of :class:`EvaluationAttribute` objects for which it performs the
+    mathematical evaluation.
+    
+    .. seealso:: :mod:`taurus.core.evaluation`
+    
+    .. warning:: In most cases this class should not be instantiated directly.
+                 Instead it should be done via the :meth:`EvaluationFactory.getDevice`
+    '''
     def __init__(self, name, **kw):
         """Object initialization."""
         self.call__init__(taurus.core.TaurusDevice, name, **kw)
@@ -208,6 +221,19 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
                 
 
 class EvaluationAttribute(taurus.core.TaurusAttribute):
+    '''
+    A :class:`TaurusAttribute` that can be used to perform mathematical
+    operations involving other arbitrary Taurus attributes. The mathematical
+    operation is described in the attribute name itself. An Evaluation Attribute
+    will keep references to any other attributes being referenced and it will
+    update its own value whenever any of the referenced attributes change.
+    
+    .. seealso:: :mod:`taurus.core.evaluation` 
+    
+    .. warning:: In most cases this class should not be instantiated directly.
+                 Instead it should be done via the :meth:`EvaluationFactory.getAttribute`
+    '''
+    
     pyVar_RegExp = re.compile("[a-zA-Z_][a-zA-Z0-9_]*") #regexp for a variable/method name (symbol)
     cref_RegExp = re.compile("\{(.+?)\}") #regexp for references to other taurus models within operation model names
 
@@ -398,7 +424,9 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
 
 
 class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
-    """A Singleton class designed to provide Operation related objects."""
+    """
+    A Singleton class that provides Evaluation related objects.
+    """
 
     schemes = ("eval","evaluation")
     DEFAULT_DEVICE = '_DefaultEvaluator'
@@ -524,20 +552,37 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
 #===============================================================================
 # Just for testing
 #===============================================================================
-if __name__ == "__main__":
-#    f = EvaluationFactory()
-#    #d = f.getDevice('eval://evaluator=foo')
-#    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}')
+def test1():
+    f = EvaluationFactory()
+    d = f.getDevice('eval://evaluator=foo')
+    a = f.getAttribute('eval://2*{sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}')
+    print f,d,a
+
+def test2():
     import taurus.core
     a=taurus.Attribute('eval://[{sys/tg_test/1/short_scalar},{sys/tg_test/1/double_scalar}, {sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}]')
-#    a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}')
-    evt_ct = 0
-    def kk(s,t,v):
-        global evt_ct
-        print evt_ct, v
-        evt_ct += 1
-
-    a.addListener(kk)
-    while evt_ct <= 10:
+    #a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')  
+    class Dummy:
+        n=0
+        def on_evt(self, s,t,v):
+            print self.n, v
+            self.n += 1
+    kk = Dummy()
+    a.addListener(kk.on_evt)
+    while kk.n <= 10:
         time.sleep(1)
+        
+def test3():
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.qt.qtgui.panel import TaurusForm
+    app = TaurusApplication()
+    w = TaurusForm()
+    w.setModel(['eval://2*{sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar'])
+    w.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    test2()
+    
         
