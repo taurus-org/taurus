@@ -261,6 +261,7 @@ def _check_dependencies(forlog=False):
 
 
 def getSchemeFromName(name):
+    if name is None: return None
     i=name.find('://')
     if i == -1: return None
     return name[:i]
