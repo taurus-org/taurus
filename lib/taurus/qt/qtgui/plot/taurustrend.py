@@ -274,10 +274,15 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         SPECTRUM attribute with dim_x=8. Then the return value will be (X,Y)
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
+        if numpy.isscalar(value.value):
+            ntrends=1
+        else:
+            ntrends=len(value.value)
+            
         if self.__xBuffer is None:
             self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.__maxBufferSize )
         if self.__yBuffer is None:
-            self.__yBuffer = ArrayBuffer(numpy.zeros((128, value.dim_x),dtype='d'), maxSize=self.__maxBufferSize )
+            self.__yBuffer = ArrayBuffer(numpy.zeros((128, ntrends),dtype='d'), maxSize=self.__maxBufferSize )
         
         self.__yBuffer.append(value.value)
         
@@ -293,7 +298,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                         archived = getArchivedTrendValues(self,model,startdate,stopdate)
                         del(archived[:-self.__xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
                         t = numpy.zeros(len(archived), dtype=float)
-                        y = numpy.zeros((len(archived), value.dim_x), dtype=float)#self.__yBuffer.dtype)
+                        y = numpy.zeros((len(archived), ntrends), dtype=float)#self.__yBuffer.dtype)
                         for i,v in enumerate(archived):
                             t[i]=v.time.totime()
                             y[i]=v.value
@@ -327,11 +332,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         model = evt_src if evt_src is not None else self.getModelObj()
         if model is None: return
         
-        value = evt_value if isinstance(evt_value, PyTango.DeviceAttribute) else self.getModelValueObj()
+        value = evt_value if isinstance(evt_value, (taurus.core.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
         if value is None or value.value is None: return
         
         #Check that the data dimensions are consistent with what was plotted before
-        ntrends = value.dim_x
+        if numpy.isscalar(value.value):
+            ntrends=1
+        else:
+            ntrends=len(value.value)
         if ntrends != len(self._curves):
             #clean previous curves
             for subname in self.getCurveNames():
