@@ -74,14 +74,14 @@ The Evaluation Factory (:class:`EvaluationFactory`) uses the following object na
       the same `<key>` is defined both in an attribute and its device, the
       `value` defined in the attribute is used.
       
-     - The optional `#<fragment>` segment is not (strictly speaking) part of the
-       attribute name and is not processed by the Factory. It can be used to
-       inform **the client** (e.g. a Taurus widget that uses this attribute as
-       its model) that you are interested only in a given fragment (slice) of
-       the value of the attribute. Note that if the client does not support this
-       convention, this will be silently ignored. The syntax is that of python
-       slices (e.g. `[1:-3]`) and will depend on the dimensionality and type of
-       the attribute value
+    - The optional `#<fragment>` segment is not (strictly speaking) part of the
+      attribute name and is not processed by the Factory. It can be used to
+      inform *the client* (e.g. a Taurus widget that uses this attribute as
+      its model) that you are interested only in a given fragment (slice) of
+      the value of the attribute. Note that if the client does not support this
+      convention, this will be silently ignored. The syntax is that of python
+      slices (e.g. `[1:-3]`) and will depend on the dimensionality and type of
+      the attribute value
       
       
 
