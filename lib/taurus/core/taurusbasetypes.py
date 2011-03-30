@@ -27,32 +27,50 @@ a misc collection of basic types
 '''
 
 from enums import AttrQuality
+import time, datetime
 
 class TaurusTimeVal(object):
     def __init__(self):
         self.tv_sec = 0
         self.tv_usec = 0
         self.tv_nsec = 0
+    
     def __repr__(self):
         return "%s(tv_sec=%i, tv_usec=%i, tv_nsec=%i)"%(self.__class__.__name__, self.tv_sec, self.tv_usec, self.tv_nsec)
+    
     def __float__(self):
+        return self.totime()
+    
+    def totime(self):
         return self.tv_usec*1e-9 + self.tv_usec*1e-6 + self.tv_sec
+    
+    def todatetime(self):
+        return datetime.datetime.fromtimestamp(self.totime())
+    
+    def isoformat(self):
+        return todatetime().isoformat()
+    
     @staticmethod
-    def fromFloat(v):
+    def fromtimestamp(v):
         tv = TaurusTimeVal()
         tv.tv_sec = int(v)
         usec = (v - tv.tv_sec)*1000000
         tv.tv_usec = int(usec)
         tv.tv_nsec = int((usec - tv.tv_usec)*1000)
         return tv
+    
     @staticmethod
-    def fromDatetime(v):
+    def fromdatetime(v):
         import time
         tv = TaurusTimeVal()
-        tv.tv_sec = int(time.mktime(v))
-        usec = v.microseconds
+        tv.tv_sec = int(time.mktime(v.timetuple()))
+        tv.tv_usec = v.microsecond
         tv.tv_nsec = 0 #datetime does not provide ns info
         return tv
+    
+    @staticmethod
+    def now():
+        return TaurusTimeVal.fromdatetime(datetime.datetime.now())    
          
 
 class TaurusAttrValue(object):
@@ -62,7 +80,13 @@ class TaurusAttrValue(object):
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
         self.format = 0
+        self.has_failed = False
+        self.err_stack = None
+        self.config = TaurusConfigValue()
         
+    def __getattr__(self,name):
+        return getattr(self.config, name)
+    
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
         #values = ", ".join(["%s=%s"%(m,repr(getattr(self,m))) for m in self.__dict__])
@@ -73,12 +97,12 @@ class TaurusConfigValue(object):
         self.name = None
         self.writable = None
         self.data_format = None
-        self.data_type = None
+        self.type = None
         self.max_dim = 1, 1
         self.label = None
         self.unit = None
         self.standard_unit = None
-        self. display_unit= None
+        self.display_unit= None
         self.format = None
         self.range = float('-inf'), float('inf')
         self.alarm = float('-inf'), float('inf')
