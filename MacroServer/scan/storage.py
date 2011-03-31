@@ -1,4 +1,8 @@
 from datarecorder import *
+# +++
+from scan import *
+from macro import *
+# +++
 
 import numpy
 
@@ -29,6 +33,115 @@ class BaseFileRecorder(DataRecorder):
     def getFormat(self):
         return '<unknown>'
 
+#+++
+class FIO_FileRecorder(BaseFileRecorder):
+    """ Saves data to a file """
+
+    formats = { DataFormats.fio : '.fio' }
+
+    def __init__(self, filename=None, macro=None, **pars):
+        BaseFileRecorder.__init__(self)
+        if filename:
+            self.setFileName(filename)
+        if macro:
+            self.macro = macro
+    
+    def setFileName(self, filename):
+        if self.fd != None:
+            self.fd.close()
+   
+        dirname = os.path.dirname(filename)
+        
+        if not os.path.isdir(dirname):
+            try:
+                os.makedirs(dirname)
+            except:
+                self.filename = None
+                return
+        self.currentlist = None
+        #
+        # construct the filename, e.g. : /dir/subdir/etcdir/prefix_00123.fio
+        #
+        tpl = filename.rpartition('.')
+        serial = ScanFactory().getSerialNo(); 
+        self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
+
+    def getFormat(self):
+        return DataFormats.whatis(DataFormats.fio)
+    
+    def _startRecordList(self, recordlist):
+
+        if self.filename is None:
+              return
+ 
+        envRec = recordlist.getEnviron()
+
+        #datetime object
+        start_time = envRec['starttime']
+        epoch = time.mktime(start_time.timetuple())
+        serialno = envRec['serialno']
+        
+        #store labels for performace reason
+        self.labels = [ e.label for e in envRec['datadesc'] ]        
+        self.fd = open( self.filename,'w')
+        #
+        # write the comment section of the header
+        #
+        self.fd.write("!\n! Comments\n!\n%%c\n %s\nuser %s Acquisition started at %s\n" % 
+                      (envRec['title'], envRec['user'], start_time.ctime()))
+        self.fd.flush()
+        #
+        # write the parameter section, including the motor positions, if needed
+        #
+        self.fd.write("!\n! Parameter\n!\n%p\n")
+        self.fd.flush()
+        env = self.macro.getAllEnv()
+        if env.has_key( 'FlagWriteMotorPositions') and env['FlagWriteMotorPositions'] == True:
+            all_motors = self.macro.findObjs('.*', type_class=Type.Motor)
+            for mot in all_motors:
+                record = "%s = %g\n" % (mot, mot.getPosition())
+                self.fd.write( record)
+            self.fd.flush()
+        #
+        # write the data section starting with the description of the columns
+        #
+        self.fd.write("!\n! Data\n!\n%d\n")
+        self.fd.flush()
+        i = 1
+        for col in envRec[ 'datadesc']:
+            if col.label == 'point_nb':
+                continue
+            dType = 'FLOAT'
+            if col.dtype == 'float64':
+                dType = 'DOUBLE'
+            outLine = " Col %d %s %s\n" % ( i, col.label, dType)
+            self.fd.write( outLine)
+            i += 1
+        self.fd.flush()
+
+    def _writeRecord(self, record):
+        if self.filename is None:
+              return
+        nan, labels, fd = float('nan'), self.labels, self.fd
+        outstr = ''
+        for c in labels:
+            if c == 'point_nb':
+                continue
+            outstr += ' ' + str(record.data.get(c, nan))
+        outstr += '\n'
+        
+        fd.write( outstr )
+        fd.flush()
+
+    def _endRecordList(self, recordlist):
+        if self.filename is None:
+              return
+
+        envRec = recordlist.getEnviron()
+        end_time = envRec['endtime'].ctime()
+        self.fd.write("! Acquisition ended at %s\n" % end_time)
+        self.fd.flush()
+        self.fd.close()
 
 class NEXUS_FileRecorder(BaseFileRecorder):
     """saves data to a nexus file
@@ -41,7 +154,8 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 DataFormats.w4 : '.h4', 
                 DataFormats.wx : '.xml' }
         
-    def __init__(self, filename=None, overwrite=False, **pars):
+    def __init__(self, filename=None, macro=None, overwrite=False, **pars):
+#+++    def __init__(self, filename=None, overwrite=False, **pars):
         BaseFileRecorder.__init__(self, **pars)
         self.overwrite = overwrite
         if filename:
@@ -226,7 +340,8 @@ class SPEC_FileRecorder(BaseFileRecorder):
 
     formats = { DataFormats.Spec : '.spec' }
 
-    def __init__(self, filename=None, **pars):
+    def __init__(self, filename=None, macro=None, **pars):
+#+++    def __init__(self, filename=None, **pars):
         BaseFileRecorder.__init__(self)
         if filename:
             self.setFileName(filename)
@@ -316,12 +431,20 @@ class SPEC_FileRecorder(BaseFileRecorder):
         self.fd.close()
 
 
-def FileRecorder(filename, **pars):
+def FileRecorder(filename, macro, **pars):
+# +++ def FileRecorder(filename, **pars):
     ext = os.path.splitext(filename)[1].lower() or '.spec'
 
     if ext in NEXUS_FileRecorder.formats.values():
         klass = NEXUS_FileRecorder
+# +++
+    elif ext in FIO_FileRecorder.formats.values():
+        klass = FIO_FileRecorder
+# +++
     else:
         klass = SPEC_FileRecorder
         
-    return klass(filename, **pars)
+#+++        
+#    return klass(filename, **pars)
+    return klass(filename, macro, **pars)
+ 
