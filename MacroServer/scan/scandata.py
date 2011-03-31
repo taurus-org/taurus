@@ -207,9 +207,15 @@ class ScanFactory(Singleton, Logger):
         self.call__init__(Logger, name)
         self.serialno = 0
 
-    def getSerialNo(self):
+
+# +++
+    def incrSerialNo(self):
         self.serialno += 1
         return self.serialno
+# +++
+    def getSerialNo(self):
+        return self.serialno
+# +++
 
     def getDataHandler(self):
         return DataHandler()
