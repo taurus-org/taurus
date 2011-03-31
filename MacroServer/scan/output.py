@@ -14,6 +14,12 @@ class JsonRecorder(DataRecorder):
 
     def _startRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
+#+++
+        title = recordlist.getEnvironValue('title')
+        counters = recordlist.getEnvironValue('counters')
+        scanfile = recordlist.getEnvironValue('ScanFile')
+        serialno = recordlist.getEnvironValue('serialno')
+#+++
         column_desc = recordlist.getEnvironValue('datadesc')
         ref_moveables = recordlist.getEnvironValue('ref_moveables')
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
@@ -25,7 +31,11 @@ class JsonRecorder(DataRecorder):
                  'ref_moveables' : ref_moveables,
                  'estimatedtime' : estimatedtime,
                  'total_scan_intervals' : total_scan_intervals,
-                 'starttime': start_time }
+                 'starttime': start_time,
+                 'title': title,
+                 'counters': counters,
+                 'scanfile': scanfile,
+                 'serialno': serialno}
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
     
     def _endRecordList(self, recordlist):
