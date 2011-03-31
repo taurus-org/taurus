@@ -159,6 +159,11 @@ class GScan(Logger):
     
     def __init__(self, macro, generator=None, moveables=[], env={}, constraints=[], extrainfodesc=[]):
 
+        #+++
+        # placed incrSerialNo here because we need the serialNo in the FIO 
+        # filerecorder which is initialized before _setupEnvironment is called
+        #
+        ScanFactory().incrSerialNo()        
         self._macro = macro
         self._generator = generator
         self._extrainfodesc = extrainfodesc
@@ -294,7 +299,8 @@ class GScan(Logger):
             self.macro.info('ScanFile is not defined. This operation will not be stored persistently')
             return
             
-        return FileRecorder( filename=os.path.join(p, f) )
+        return FileRecorder( filename=os.path.join(p, f), macro=self.macro )
+#+++        return FileRecorder( filename=os.path.join(p, f) )
     
     def _getSharedMemoryRecorder(self, id):
         macro, mg, shm = self.macro, self.measurement_group, False
@@ -383,7 +389,10 @@ class GScan(Logger):
         #TODO: maybe we want to include the nxpath in the instrument as well????
         
         # add counters
+        # +++
+        counters = []
         for ch_name in self.measurement_group.getCounterNames():
+            counters.append( ch_name)
             ch_attr = self.measurement_group.getAttrObj("%s_value" % ch_name)
             type = FROM_TANGO_TO_STR_TYPE[ch_attr.getType()]
             shape = ch_attr.getShape()
@@ -399,6 +408,10 @@ class GScan(Logger):
         
         env['macro_id'] = self.macro.getID()
         env['datadesc'] = data_desc
+# +++
+        env['counters'] = counters
+        env['ScanFile'] = self.macro.getEnv('ScanFile')
+# +++
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
 
