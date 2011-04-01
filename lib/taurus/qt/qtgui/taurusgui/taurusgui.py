@@ -717,14 +717,7 @@ class TaurusGui(TaurusMainWindow):
             #open the fall back file (aka "factory" settings)
             rname,ext = os.path.splitext(self._confFileName)
             iniFileName = self.__getVarFromXML(root,"INIFILENAME", '%s.ini'%rname) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confname>.ini
-            factorySettings = Qt.QSettings(iniFileName, Qt.QSettings.IniFormat)
-            #clone the perspectives found in the "factory" settings
-            for p in self.getPerspectivesList(settings=factorySettings):
-                self.loadPerspective(name=p, settings=factorySettings)
-                self.savePerspective(name=p)
-            #finally load the settings
-            self.loadSettings(settings=factorySettings)
-        
+            self.importSettingsFile(iniFileName)        
     
     def loadConfiguration(self, confname):
         '''Reads a configuration file
@@ -836,13 +829,7 @@ class TaurusGui(TaurusMainWindow):
         if self.getQSettings().allKeys().isEmpty(): 
             #open the fall back file (aka "factory" settings)
             iniFileName = os.path.join(self._confDirectory, getattr(conf, 'INIFILE', "%s.ini"%conf.__name__)) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confdir>/<confname>.ini
-            factorySettings = Qt.QSettings(iniFileName, Qt.QSettings.IniFormat)
-            #clone the perspectives found in the "factory" settings
-            for p in self.getPerspectivesList(settings=factorySettings):
-                self.loadPerspective(name=p, settings=factorySettings)
-                self.savePerspective(name=p)
-            #finally load the settings
-            self.loadSettings(settings=factorySettings)
+            self.importSettingsFile(iniFileName)
             
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)

@@ -148,6 +148,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         #Create Menus
         #File menu
         self.fileMenu = self.menuBar().addMenu("File")
+        self.fileMenu.addAction(self.importSettingsFileAction)
+        self.fileMenu.addAction(self.exportSettingsFileAction)
+        #self.fileMenu.addAction(self.resetSettingsAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitApplicationAction)
         
         #View menu
@@ -232,7 +236,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
     def __createActions(self):
         '''initializes the application-wide actions'''
-        self.quitApplicationAction =  Qt.QAction(getThemeIcon("process-stop"),'Exit Application', self)
+        self.quitApplicationAction =  Qt.QAction(getThemeIcon("system-log-out"),'Exit Application', self)
         self.connect(self.quitApplicationAction, Qt.SIGNAL("triggered()"), self.close)
         self.changeTangoHostAction =  Qt.QAction(getThemeIcon("network-server"),'Change Tango Host ...', self)
         self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
@@ -243,6 +247,15 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.savePerspectiveAction = Qt.QAction(getThemeIcon("document-save"),'Save Perspective ...', self)
         self.connect(self.savePerspectiveAction, Qt.SIGNAL("triggered()"), self.savePerspective)
+        
+        self.exportSettingsFileAction = Qt.QAction(getThemeIcon("document-save"),'Export Settings ...', self)
+        self.connect(self.exportSettingsFileAction, Qt.SIGNAL("triggered()"), self.exportSettingsFile)
+        
+        self.importSettingsFileAction = Qt.QAction(getThemeIcon("document-open"),'Import Settings ...', self)
+        self.connect(self.importSettingsFileAction, Qt.SIGNAL("triggered()"), self.importSettingsFile)
+        
+        #self.resetSettingsAction = Qt.QAction(getThemeIcon("edit-undo"),'Reset Settings', self)
+        #self.connect(self.resetSettingsAction, Qt.SIGNAL("triggered()"), self.resetSettings)
         
         self.configurationAction = Qt.QAction(getThemeIcon("preferences-system"), 'Configurations ...', self)
         self.connect(self.configurationAction, Qt.SIGNAL("triggered()"), self.configurationDialog.show)
@@ -268,7 +281,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.showFullScreen()
     
     def _onToggleFullScreen(self, yesno):
-        print "toggle",yesno
         if self.isFullScreen():
             self.showNormal()
             self._toggleToolBarsAndMenu(True)
@@ -428,6 +440,49 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         names = settings.childGroups()
         settings.endGroup()
         return names
+    
+    def exportSettingsFile(self, fname=None):
+        '''copies the current settings file into the given file name.
+        
+        :param fname: (str) name of output file. If None given, a file dialog will be shown.
+        '''
+        if fname is None:
+            fname = Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved', 
+                                                   '', "Ini files (*.ini);;All files (*)")
+            if fname.isNull():
+                return
+        self.saveSettings()
+        ok = Qt.QFile.copy(self.getQSettings().fileName(), fname)
+        if ok:
+            self.info('MainWindow settings saved in "%s"'%unicode(fname))
+        else:
+            msg = 'Settings could not be exported to %s'%unicode(fname)
+            Qt.QMessageBox.warning(self, 'Export error', msg)
+    
+    def importSettingsFile(self, fname=None):
+        '''
+        loads settings (including importing all perspectives) from a given ini
+        file. It warns before overwriting an existing perspective.
+        
+        :param fname: (str) name of ini file. If None given, a file dialog will be shown.
+        '''
+        if fname is None:
+            fname = Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
+                                                   '', "Ini files (*.ini);;All files (*)")
+            if fname.isNull():
+                return
+        s = Qt.QSettings(fname, Qt.QSettings.IniFormat)
+        #clone the perspectives found in the "factory" settings
+        for p in self.getPerspectivesList(settings=s):
+            self.loadPerspective(name=p, settings=s)
+            self.savePerspective(name=p)
+        #finally load the settings
+        self.loadSettings(settings=s)
+        
+#    def resetSettings(self):
+#        '''deletes current settings file and clears all settings'''
+#        self.__settings = self.newQSettings()
+#        self.saveSettings()
 
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
