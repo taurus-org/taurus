@@ -236,7 +236,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
     def __createActions(self):
         '''initializes the application-wide actions'''
-        self.quitApplicationAction =  Qt.QAction(getThemeIcon("system-log-out"),'Exit Application', self)
+        self.quitApplicationAction =  Qt.QAction(getThemeIcon("process-stop"),'Exit Application', self)
         self.connect(self.quitApplicationAction, Qt.SIGNAL("triggered()"), self.close)
         self.changeTangoHostAction =  Qt.QAction(getThemeIcon("network-server"),'Change Tango Host ...', self)
         self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
