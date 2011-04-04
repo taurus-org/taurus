@@ -95,9 +95,6 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
         the attribute data type
         value must be a valid """
         return value
-    
-    def decode(self, value):
-        return value
 
     def getValueObj(self, cache=True):
         """ Returns the current configuration for the attribute.
