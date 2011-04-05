@@ -37,9 +37,7 @@ import weakref
 
 from PyQt4 import Qt
 
-# shame on me for importing PyTango!!!
-import PyTango
-AttrDataFormat = PyTango.AttrDataFormat
+from taurus.core import DataFormat
 
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.util import QT_DEVICE_STATE_PALETTE
@@ -172,7 +170,7 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
             return widget.getDisplayValue()
 
         format, value = valueObj.data_format, valueObj.value
-        if format == AttrDataFormat.SCALAR:
+        if format == DataFormat._0D:
             return self._getDisplayValue(widget, valueObj, None, write)
         
         idx = widget.getModelIndexValue()
@@ -209,7 +207,7 @@ class TaurusConfigurationControllerHelper(object):
         if self._configParam is None:
             model = self.widget().model
             try:
-                self._configParam = model[model.rfind('=')+1:].lower()
+                self._configParam = model[model.rfind('=')+1:].lower() #@todo: !!This is assuming tango names.A regexp or a call to a validator should be used
             except:
                 self._configParam = ''
         return self._configParam
