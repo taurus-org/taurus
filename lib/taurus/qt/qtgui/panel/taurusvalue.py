@@ -33,6 +33,7 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "De
 
 __docformat__ = 'restructuredtext'
 
+import weakref
 from PyQt4 import Qt
 import PyTango
 import taurus.core
@@ -67,10 +68,10 @@ class DefaultLabelWidget(TaurusConfigLabel):
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
         self.setStyleSheet('border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;')
     def setModel(self, model):
-        try: config = self.taurusValueBuddy.getLabelConfig()
+        try: config = self.taurusValueBuddy().getLabelConfig()
         except Exception: config = 'label'
-        if self.taurusValueBuddy.getModelClass() == taurus.core.TaurusAttribute:
-            config = self.taurusValueBuddy.getLabelConfig()
+        if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
+            config = self.taurusValueBuddy().getLabelConfig()
             TaurusConfigLabel.setModel(self, model + "?configuration=%s"%config)
         else:
             TaurusConfigLabel.setModel(self, model + "/state?configuration=dev_alias")
@@ -81,11 +82,11 @@ class DefaultLabelWidget(TaurusConfigLabel):
         
         see :meth:`QWidget.contextMenuEvent`"""
         menu = Qt.QMenu(self)  
-        menu.addMenu(taurus.qt.qtgui.util.ConfigurationMenu(self.taurusValueBuddy)) #@todo: This should be done more Taurus-ish 
-        if self.taurusValueBuddy.isModifiableByUser():
-            cr_action = menu.addAction("Change Read Widget",self.taurusValueBuddy.onChangeReadWidget)
-            cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy.onChangeWriteWidget)
-            cw_action.setEnabled(not self.taurusValueBuddy.isReadOnly()) #disable the action if the taurusValue is readonly
+        menu.addMenu(taurus.qt.qtgui.util.ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
+        if self.taurusValueBuddy().isModifiableByUser():
+            cr_action = menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
+            cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
+            cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
         menu.exec_(event.globalPos())
         event.accept()
     def mousePressEvent(self, event):
@@ -98,10 +99,10 @@ class DefaultLabelWidget(TaurusConfigLabel):
         if not event.buttons() & Qt.Qt.LeftButton:
             return
         mimeData = Qt.QMimeData()
-        if self.taurusValueBuddy.getModelClass() == taurus.core.TaurusDevice:
-            mimeData.setData(TAURUS_DEV_MIME_TYPE, self.taurusValueBuddy.getModelName())
-        elif self.taurusValueBuddy.getModelClass() == taurus.core.TaurusAttribute:
-            mimeData.setData(TAURUS_ATTR_MIME_TYPE, self.taurusValueBuddy.getModelName())
+        if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
+            mimeData.setData(TAURUS_DEV_MIME_TYPE, self.taurusValueBuddy().getModelName())
+        elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
+            mimeData.setData(TAURUS_ATTR_MIME_TYPE, self.taurusValueBuddy().getModelName())
         mimeData.setText(self.text())
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
@@ -197,9 +198,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         self.__modelClass = None
         self._designMode=designMode
-        self._customWidget = None
-        
-        self._customWidgetMap = {}
         
         #This is a hack to show something usable when in designMode
         if self._designMode:
@@ -213,13 +211,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         else:    
             self.setVisible(False)
             self.setFixedSize(1,1)
-
-        self._parentLayout=None
         
         self._labelWidget = None
         self._readWidget = None
         self._writeWidget = None
         self._unitsWidget = None
+        self._customWidget = None
+        
+        self._customWidgetMap = {}
         
         self.labelWidgetClassID = 'Auto'
         self.readWidgetClassID = 'Auto'
@@ -260,16 +259,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             pl = Qt.QGridLayout(parent) #creates AND sets the parent layout
         if not isinstance(pl, Qt.QGridLayout):
             raise ValueError('layout must be a QGridLayout (got %s)'%type(pl))
-        self._parentLayout = pl
         
         if self._row is None:
-            self._row = self.getPreferredRow()  #@TODO we should check that the Preferred row is empty in self._parentLayout
+            self._row = self.getPreferredRow()  #@TODO we should check that the Preferred row is empty in pl
             if self._row < 0:
-                self._row = self._parentLayout.rowCount()
+                self._row = pl.rowCount()
         #print 'ROW:',self, self.getRow()
         
         #insert self into the 0-column
-        self._parentLayout.addWidget(self, self._row, 0) #this widget is invisible (except in design mode)
+        pl.addWidget(self, self._row, 0) #this widget is invisible (except in design mode)
         
         #Create/update the subwidgets (this also inserts them in the layout)
         if not self._designMode:  #in design mode, no subwidgets are created
@@ -510,7 +508,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if self._labelWidget is not None:
             #give the new widget a reference to its buddy TaurusValue object
-            self._labelWidget.taurusValueBuddy = self
+            self._labelWidget.taurusValueBuddy = weakref.ref(self) 
             
             #tweak the new widget
             if self.minimumHeight() is not None:
@@ -529,7 +527,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if self._readWidget is not None:
             #give the new widget a reference to its buddy TaurusValue object
-            self._readWidget.taurusValueBuddy = self
+            self._readWidget.taurusValueBuddy = weakref.ref(self)
             
             #tweak the new widget
             if self.minimumHeight() is not None:
@@ -550,7 +548,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if self._writeWidget is not None:
             #give the new widget a reference to its buddy TaurusValue object
-            self._writeWidget.taurusValueBuddy = self
+            self._writeWidget.taurusValueBuddy = weakref.ref(self)
             
             #tweak the new widget
             ##hide getPendingOperations of the writeWidget so that containers don't get duplicate lists
@@ -576,7 +574,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if self._unitsWidget is not None:
             #give the new widget a reference to its buddy TaurusValue object
-            self._unitsWidget.taurusValueBuddy = self
+            self._unitsWidget.taurusValueBuddy = weakref.ref(self)
             #tweak the new widget
             if self.minimumHeight() is not None:
                 self._unitsWidget.setMinimumHeight(self.minimumHeight())
@@ -601,26 +599,26 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 
     def addLabelWidgetToLayout(self):
         if self._labelWidget is not None:
-            self._parentLayout.addWidget(self._labelWidget, self._row, 1)
+            self.parent().layout().addWidget(self._labelWidget, self._row, 1)
     
     def addReadWidgetToLayout(self):
         if self._readWidget is not None: 
             if self._writeWidget is None:
-                self._parentLayout.addWidget(self._readWidget, self._row, 2,1,2)
+                self.parent().layout().addWidget(self._readWidget, self._row, 2,1,2)
             else:
-                self._parentLayout.addWidget(self._readWidget, self._row, 2)
+                self.parent().layout().addWidget(self._readWidget, self._row, 2)
     
     def addWriteWidgetToLayout(self):
         if self._writeWidget is not None:
-            self._parentLayout.addWidget(self._writeWidget, self._row, 3)
+            self.parent().layout().addWidget(self._writeWidget, self._row, 3)
     
     def addUnitsWidgetToLayout(self):
         if self._unitsWidget is not None:
-            self._parentLayout.addWidget(self._unitsWidget, self._row, 4)
+            self.parent().layout().addWidget(self._unitsWidget, self._row, 4)
             
     def addCustomWidgetToLayout(self):
         if self._customWidget is not None:
-            self._parentLayout.addWidget(self._customWidget, self._row, 1,1,-1)
+            self.parent().layout().addWidget(self._customWidget, self._row, 1,1,-1)
 
     @Qt.pyqtSignature("parentModelChanged(const QString &)")
     def parentModelChanged(self, parentmodel_name):
