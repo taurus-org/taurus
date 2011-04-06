@@ -434,7 +434,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText,
                                  resetSuffixText, doc="suffix text")
 
-    #: This property holds the foreground role.
+    #: This property holds the foreground role (the text).
     #: Valid values are:
     #:  
     #:     #. ''/'None' - no value is displayed
