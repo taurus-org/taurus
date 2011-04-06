@@ -114,7 +114,16 @@ class DefaultLabelWidget(TaurusLabel):
     def getQtDesignerPluginInfo(cls):
         return None
 
-
+class ExpandingLabel(TaurusLabel):
+    '''just a expanding TaurusLabel'''
+    def __init__(self,*args):
+        TaurusLabel.__init__(self,*args)
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Preferred)
+        
+class CenteredLed(TaurusLed):
+    '''just a centered TaurusLed'''
+    DefaultAlignment = Qt.Qt.AlignHCenter | Qt.Qt.AlignVCenter
+        
 class DefaultUnitsWidget(TaurusLabel):
     def __init__(self,*args):
         TaurusLabel.__init__(self,*args)
@@ -122,7 +131,7 @@ class DefaultUnitsWidget(TaurusLabel):
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
         self.setBgRole(None)
     def setModel(self, model):
-        TaurusLabel.setModel(self, model + "?configuration=unit")
+        TaurusLabel.setModel(self, model + "?configuration=unit") #@todo: tango-centric!
     def sizeHint(self):
         #print "UNITSSIZEHINT:",Qt.QLabel.sizeHint(self).width(), self.minimumSizeHint().width(), Qt.QLabel.minimumSizeHint(self).width()
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 24)
@@ -138,6 +147,7 @@ class TaurusPlotButton(TaurusLauncherButton):
         import taurus.qt.qtgui.plot
         TaurusPlot = taurus.qt.qtgui.plot.TaurusPlot
         TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusPlot(), icon=getIcon(':/designer/qwtplot.png'), text = 'Show')
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -150,7 +160,8 @@ class TaurusArrayEditorButton(TaurusLauncherButton):
         import taurus.qt.qtgui.plot
         TaurusArrayEditor = taurus.qt.qtgui.plot.TaurusArrayEditor
         TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusArrayEditor(), icon=getIcon(':/designer/arrayedit.png'), text = 'Edit')
-
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
+        
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
@@ -162,6 +173,7 @@ class TaurusValuesTableButton(TaurusLauncherButton):
         import taurus.qt.qtgui.table
         TaurusValuesTable = taurus.qt.qtgui.table.TaurusValuesTable
         TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusValuesTable(), icon=getIcon(':/designer/table.png'), text = 'Show')
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -173,6 +185,7 @@ class TaurusDevButton(TaurusLauncherButton):
     def __init__(self, parent = None, designMode = False):
         from taurus.qt.qtgui.panel.taurusform import TaurusAttrForm 
         TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusAttrForm(), icon=getIcon(':/places/folder-remote.svg'), text = 'Show Device')
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -184,6 +197,7 @@ class TaurusStatusLabel(TaurusLabel):
     def __init__(self, parent = None, designMode = False):
         TaurusLabel.__init__(self, parent = parent, designMode = designMode)
         self.setBgRole('state')
+        self.setSizePolicy(Qt.QSizePolicy.Expanding,Qt.QSizePolicy.Maximum)
         
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -205,7 +219,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         #This is a hack to show something usable when in designMode
         if self._designMode:
             layout = Qt.QHBoxLayout(self)
-            dummy = TaurusLabel()
+            dummy = ExpandingLabel()
             layout.addWidget(dummy)
             dummy.setUseParentModel(True)
             dummy.setModel("?configuration=attr_fullname") 
@@ -333,8 +347,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 #        if self._customWidget is not None: return None
         modelobj = self.getModelObj()
         if modelobj is None: 
-            if returnAll: return [TaurusLabel]
-            else: return TaurusLabel
+            if returnAll: return [ExpandingLabel]
+            else: return ExpandingLabel
         
         if self.getModelClass() == taurus.core.TaurusAttribute:
             ##The model is an attribute
@@ -343,23 +357,23 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             try: configType = config.getType()
             except: configType = None
             if config.isBoolean():
-                result = [TaurusLed, TaurusLabel]
+                result = [CenteredLed, ExpandingLabel]
             if config.isScalar():
                 if  configType == PyTango.ArgType.DevBoolean:
-                    result = [TaurusLed, TaurusLabel]
+                    result = [CenteredLed, ExpandingLabel]
                 elif configType == PyTango.ArgType.DevState:
-                    result = [TaurusLed, TaurusLabel]
+                    result = [CenteredLed, ExpandingLabel]
                 elif str(self.getModel()).lower().endswith('/status'): #@todo: tango-centric!!
-                    result = [TaurusStatusLabel, TaurusLabel]
+                    result = [TaurusStatusLabel, ExpandingLabel]
                 else:
-                    result = [TaurusLabel]
+                    result = [ExpandingLabel]
             elif config.isSpectrum():
                 if PyTango.is_numerical_type(configType):
-                    result = [TaurusPlotButton, TaurusLabel]
+                    result = [TaurusPlotButton, ExpandingLabel]
                 else:
-                    result = [TaurusValuesTableButton, TaurusLabel]
+                    result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
-                result = [TaurusValuesTableButton, TaurusLabel]
+                result = [TaurusValuesTableButton, ExpandingLabel]
             else:
                 self.warning('Unsupported attribute type %s'%configType)
                 result = None
@@ -411,9 +425,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         else: return result[0]
     
     def getDefaultUnitsWidgetClass(self):
-#        if self._customWidget is not None: return None
-        if self.getModelClass() != taurus.core.TaurusAttribute:
-            return None
+##        if self._customWidget is not None: return None
+#        if self.getModelClass() != taurus.core.TaurusAttribute:
+#            return DefaultUnitsWidget
         return DefaultUnitsWidget
     
     def getDefaultCustomWidgetClass(self):
@@ -942,8 +956,8 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/Current']
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/Current','bl97/pc/dummy-02/RemoteMode','bl97/pysignalsimulator/1/value1']
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
-    models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
-    container.setModel(models)
+    #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
+    #container.setModel(models)
     
     #container.getTaurusValueByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
     #container.getTaurusValueByIndex(0).readWidget().setShowState(True)
