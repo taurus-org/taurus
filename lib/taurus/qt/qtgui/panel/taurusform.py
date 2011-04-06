@@ -290,6 +290,7 @@ class TaurusForm(TaurusWidget):
                 widget.setParent(frame)
             except: 
                 self.warning('an error occurred while adding the child "%s". Skipping'%model)
+                self.traceback(level=taurus.Debug)
             try: widget.setModifiableByUser(self.isModifiableByUser())
             except: pass
             widget.setObjectName("__item%i"%i)
