@@ -41,7 +41,7 @@ class QPixmapWidget(Qt.QWidget):
     The default alignment of the pixmap inside the widget space is horizontal
     left, vertical center."""
     
-    DefaultAlignment          = Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
+    DefaultAlignment          = Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter
     DefaultAspectRatioMode    = Qt.Qt.KeepAspectRatio
     DefaultTransformationMode = Qt.Qt.SmoothTransformation
     
