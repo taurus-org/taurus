@@ -389,7 +389,10 @@ class BaseDoor(MacroServerDevice):
         
     def _processEnvironmentData(self, data):
         if data is None: return
-        data = data.value
+        # make sure we get it as string since PyTango 7.1.4 returns a buffer
+        # object and json.loads doesn't support buffer objects (only str)
+        data = map(str, data.value)
+        
         size = len(data[1])
         if size == 0: return
         format = data[0]
@@ -406,7 +409,10 @@ class BaseDoor(MacroServerDevice):
     
     def _processRecordData(self, data):
         if data is None: return
-        data = data.value
+        # make sure we get it as string since PyTango 7.1.4 returns a buffer
+        # object and json.loads doesn't support buffer objects (only str)
+        data = map(str, data.value)
+
         size = len(data[1])
         if size == 0: return
         format = data[0]
@@ -418,12 +424,17 @@ class BaseDoor(MacroServerDevice):
             return
         if t not in CHANGE_EVTS: return
 
-        v = v.value
+        # make sure we get it as string since PyTango 7.1.4 returns a buffer
+        # object and json.loads doesn't support buffer objects (only str)
+        v = map(str, v.value)
         if not len(v[1]):
             return
         format = v[0]
         codec = taurus.core.util.CodecFactory().getCodec(format)
         
+        # make sure we get it as string since PyTango 7.1.4 returns a buffer
+        # object and json.loads doesn't support buffer objects (only str)
+        v[1] = str(v[1])
         fmt, data = codec.decode(v)
         for macro_status in data:
             id = macro_status.get('id')
