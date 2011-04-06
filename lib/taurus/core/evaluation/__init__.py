@@ -34,22 +34,29 @@ objects. The official scheme name is 'eval', but 'evaluation' can be used as a s
 The main usage for this extension is to provide a way of performing mathematical
 evaluations with data from other sources.
 
-The Evaluation Factory (:class:`EvaluationFactory`) uses the following object naming:
+The Evaluation Factory (:class:`EvaluationFactory`) uses the following object naming for referring to attributes (:class:`EvaluationAttribute`):
 
-    `eval://[evaluator=<evaluatorname>;]<math_expression>[?<symbols>][#<fragment>]`
+    `eval://[db=<databasename>][dev=<devicename>;]<math_expression>[?<symbols>][#<fragment>]`
     
-    or:
+    or the following for referring to evaluation devices (:class:`EvaluationDevice`):
     
-    `eval://evaluator=<evaluatorname>[?<symbols>]`
+    `eval://[db=<databasename>]dev=<devicename>[?<symbols>]`
+    
+    or the following for referring to an evaluation database (:class:`EvaluationDatabase`):
+    
+    `eval://db=<databasename>`
+    
+    or, finally, the following for referring to an attribute configuration (:class:`EvaluationConfiguration`) item:
+    
+    `eval://[db=<databasename>][dev=<devicename>;]<math_expression>[?<symbols>]?configuration=<configkey>` 
   
     where:
     
-    - The first form of the naming refers to a :class:`EvaluationAttribute` and
-      the second form refers a :class:`EvaluationDevice`
-  
-    - in the first form of the naming, the `evaluator=<evaluatorname>;` is an
-      optional segment which defaults to `evaluator=_DefaultEvaluator;` if
-      not present.
+    - The `db=<databasename>;` segment is optional (except when referring to an
+      EvaluationDatabase). If not given it defaults to `db=_DefaultEvalDB;`.
+    
+    - The `dev=<devicename>;` is optional (except when referring to an
+      EvaluationDevice). If not given, it defaults to `dev=_DefaultEvaluator;`
       
     - `<math_expression>` is a mathematical expression (using python syntax)
       that may have references to other taurus **attributes** by enclosing them
@@ -60,7 +67,7 @@ The Evaluation Factory (:class:`EvaluationFactory`) uses the following object na
       includes a large subset of mathematical functions from the :mod:`numpy`
       module. 
       
-    - `<evaluatorname>` is a unique identification name for the evaluator device.
+    - `<devicename>` is a unique identification name for the evaluator device.
       This allows to use different evaluator objects which may have different
       symbols available for evaluation.
       
@@ -82,6 +89,9 @@ The Evaluation Factory (:class:`EvaluationFactory`) uses the following object na
       convention, this will be silently ignored. The syntax is that of python
       slices (e.g. `[1:-3]`) and will depend on the dimensionality and type of
       the attribute value
+      
+    - `<configkey>` is a configuration item key (e.g., `label, `unit`,...) used
+      to identify a given item from the `:class:EvaluationConfiguration` object
       
       
 
@@ -110,24 +120,24 @@ Some examples of valid evaluation models are:
         
     - An evaluator device named `foo`:
     
-        `eval://evaluator=foo`
+        `eval://dev=foo`
         
     - An evaluator device named `foo` to which 2 custom symbols are assigned 
       (which can be used by any attribute of this device):
     
-        `eval://evaluator=foo?bar={tango://a/b/c/d};blah=23`
+        `eval://dev=foo?bar={tango://a/b/c/d};blah=23`
           
     - An attribute that multiplies `blah` times `bar` (assuming that both `blah`
-      and `bar` are known to evaluator `foo`):
+      and `bar` are known to device `foo`):
         
-        `eval://evaluator=foo;blah*bar`
+        `eval://dev=foo;blah*bar`
         
     - Same as the previous 2 examples together, but all in one line (the only
       difference is that the symbols defined in this example affect only to this
       attribute, whereas in the example above the symbols were permanently stored
       by the device and thus could be used for other attributes as well):
     
-        `eval://evaluator=foo;blah*bar?bar={tango://a/b/c/d};blah=23`
+        `eval://dev=foo;blah*bar?bar={tango://a/b/c/d};blah=23`
 
 """
 #raise NotImplementedError()
