@@ -237,4 +237,150 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
     #def _push_event(self, event):
     #    """ Notify listeners when event received"""
     #    self.fireEvent(taurus.core.TaurusEventType.Config, self._attr_info)
+    
+    #===========================================================================
+    # Some methods reimplemented from TaurusConfiguration
+    #===========================================================================
+    
+    def getMaxDimX(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.max_dim_x
+        return None
+
+    def getMaxDimY(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.max_dim_y
+        return None
+    
+    def getType(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.data_type
+        return None
+    
+    def getRange(self, cache=True):
+        return self.getLimits(cache=cache)
+    
+    def getLimits(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.climits
+        return None
+    
+    def getRanges(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return list(c.cranges)
+        return None
+    
+    def getMinAlarm(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.min_alarm
+        return None
+
+    def getMaxAlarm(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.max_alarm
+        return None
         
+    def getAlarms(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return list(c.calarms)
+        return None
+    
+    def getMinWarning(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.alarms.min_warning
+        return None
+
+    def getMaxWarning(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.alarms.max_warning
+        return None
+        
+    def getWarnings(self, cache=True):
+        c = self.getValueObj(cache=cache)
+        if c:
+            return list(c.cwarnings)
+        return None
+    
+    def setParam(self, param_name, value):
+        config = self.getValueObj()
+        if config and self.getParam(param_name):
+            setattr(config, param_name, value)
+            self._applyConfig()
+    
+    def setDescription(self,descr):
+        config = self.getValueObj()
+        if config:
+            config.description = description
+            self._applyConfig()
+
+    def setLabel(self,lbl):
+        config = self.getValueObj()
+        if config:
+            config.label = lbl
+            self._applyConfig()
+
+    def setUnit(self,unit):
+        config = self.getValueObj()
+        if config:
+            config.unit = unit
+            self._applyConfig()
+
+    def setStandardUnit(self,standard_unit):
+        config = self.getValueObj()
+        if config:
+            config.standard_unit = standard_unit
+            self._applyConfig()
+        
+    def setDisplayUnit(self,display_unit):
+        config = self.getValueObj()
+        if config:
+            config.display_unit = display_unit
+            self._applyConfig()
+    
+    def setFormat(self,fmt):
+        config = self.getValueObj()
+        if config:
+            config.format = fmt
+            self._applyConfig()
+        
+    def setLimits(self,low, high):
+        config = self.getValueObj()
+        if config:
+            l_str, h_str = str(low), str(high)
+            config.cranges[0] = config.min_value = l_str
+            config.cranges[5] = config.max_value = h_str
+            config.climits = [l_str, h_str]
+            self._applyConfig()
+
+    def setWarnings(self,low, high):
+        config = self.getValueObj()
+        if config:
+            l_str, h_str = str(low), str(high)
+            config.cranges[2] = config.alarms.min_warning = l_str
+            config.cranges[3] = config.alarms.max_warning = h_str
+            config.cwarnings = [l_str, h_str]
+            self._applyConfig()
+
+    def setAlarms(self,low, high):
+        config = self.getValueObj()
+        if config:
+            l_str, h_str = str(low), str(high)
+            config.cranges[1] = config.min_alarm = config.alarms.min_alarm = l_str
+            config.cranges[4] = config.max_alarm = config.alarms.max_alarm = h_str
+            config.calarms = [l_str, h_str]
+            self._applyConfig()
+    
+    def _applyConfig(self):
+        config = self.getValueObj()
+        if config:
+            self.getParentObj().setConfigEx(config)

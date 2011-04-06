@@ -108,5 +108,6 @@ class TaurusConfigValue(object):
         self.alarm = float('-inf'), float('inf')
         self.warning = float('-inf'), float('inf')
         self.disp_level = None
+        self.description = None
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))

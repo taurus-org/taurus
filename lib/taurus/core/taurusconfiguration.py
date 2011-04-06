@@ -32,8 +32,9 @@ __docformat__ = "restructuredtext"
 # -*- coding: utf-8 -*-
 import time
 import weakref
+import numpy
 
-from enums import TaurusEventType
+from enums import TaurusEventType, AttrType
 import taurusmodel
 
 class TaurusConfigurationProxy(object):
@@ -225,7 +226,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
     def getType(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.data_type
+            return c.type
         return None
 
     def getDataFormat(self, cache=True):
@@ -234,16 +235,28 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
             return c.data_format
         return None
 
-    def getMaxDimX(self, cache=True):
+    def getMaxDim(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.max_dim_x
+            return c.max_dim
+        return None
+
+    def getMaxDimX(self, cache=True):
+        '''.. warning: Deprecated. Use :meth:`getMaxDim`
+        '''
+        self.info('Deprecation warning: TaurusConfiguration.getMaxDimX is deprecated. Use getMaxDim')
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.max_dim[0]
         return None
 
     def getMaxDimY(self, cache=True):
+        '''.. warning: Deprecated. Use :meth:`getMaxDim`
+        '''
+        self.info('Deprecation warning: TaurusConfiguration.getMaxDimX is deprecated. Use getMaxDim')
         c = self.getValueObj(cache=cache)
         if c:
-            return c.max_dim_y
+            return c.max_dim[1]
         return None
         
     def getShape(self, cache=True):
@@ -297,61 +310,70 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
     def getMinValue(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.min_value
+            return c.range[0]
         return None
 
     def getMaxValue(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.max_value
+            return c.range[1]
         return None
         
     def getLimits(self, cache=True):
+        '''.. warning: Deprecated. Use :meth:`getRange`
+        '''
+        self.info('Deprecation warning: TaurusConfiguration.getLimits is deprecated. Use getRange')
+        self.getRange(cache=cache)
+    
+    def getRange(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.climits
+            return c.range
         return None
     
     def getRanges(self, cache=True):
+        '''.. warning: Deprecated. Use :meth:`getRange`
+        '''
+        self.info('Deprecation warning: TaurusConfiguration.getRanges is deprecated. Use getRange')
         c = self.getValueObj(cache=cache)
         if c:
-            return list(c.cranges)
+            return [c.range[0], c.alarm[0], c.warning[0], c.warning[1], c.alarm[1], c.range[1]]
         return None
     
     def getMinAlarm(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.min_alarm
+            return c.alarm[0]
         return None
 
     def getMaxAlarm(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.max_alarm
+            return c.alarm[1]
         return None
-        
+    
     def getAlarms(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return list(c.calarms)
+            return list(c.alarm)
         return None
     
     def getMinWarning(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.alarms.min_warning
+            return c.warning[0]
         return None
 
     def getMaxWarning(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return c.alarms.max_warning
+            return c.warning[1]
         return None
         
     def getWarnings(self, cache=True):
         c = self.getValueObj(cache=cache)
         if c:
-            return list(c.cwarnings)
+            return list(c.warning)
         return None        
     
     def getParam(self, param_name):
@@ -404,36 +426,50 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
             config.format = fmt
             self._applyConfig()
         
-    def setLimits(self,low, high):
+    def setLimits(self, low, high):
+        '''.. warning: Deprecated. Use :meth:`setRange`
+        '''
+        self.info('Deprecation warning: TaurusConfiguration.setLimits is deprecated. Use setRange')
+        self.setRange(low, high)
+            
+    def setRange(self,low, high):
         config = self.getValueObj()
         if config:
-            l_str, h_str = str(low), str(high)
-            config.cranges[0] = config.min_value = l_str
-            config.cranges[5] = config.max_value = h_str
-            config.climits = [l_str, h_str]
+            config.range = [low, high]
             self._applyConfig()
 
     def setWarnings(self,low, high):
         config = self.getValueObj()
         if config:
-            l_str, h_str = str(low), str(high)
-            config.cranges[2] = config.alarms.min_warning = l_str
-            config.cranges[3] = config.alarms.max_warning = h_str
-            config.cwarnings = [l_str, h_str]
+            config.warning = [low, high]
             self._applyConfig()
 
     def setAlarms(self,low, high):
         config = self.getValueObj()
         if config:
-            l_str, h_str = str(low), str(high)
-            config.cranges[1] = config.min_alarm = config.alarms.min_alarm = l_str
-            config.cranges[4] = config.max_alarm = config.alarms.max_alarm = h_str
-            config.calarms = [l_str, h_str]
+            config.alarm = [low, high]
             self._applyConfig()
 
     def _applyConfig(self):
-        config = self.getValueObj()
-        if config:
-            self.getParentObj().setConfigEx(config)
+        pass
 
+    def isBoolean(self, cache=True):
+        attr = self.getParentObj()
+        if attr is None: return False
+        v = attr.read(cache=cache)
+        return isinstance(v.value, bool)
 
+    def isScalar(self, cache=True):
+        attr = self.getParentObj()
+        if attr is None: return False
+        v = attr.read(cache=cache)
+        return numpy.isscalar(v.value)
+    
+    def isWrite(self, cache=True):
+        return self.getWritable(cache) == AttrType.WRITE
+    
+    def isReadOnly(self, cache=True):
+        return self.getWritable(cache) == AttrType.READ
+
+    def isReadWrite(self, cache=True):
+        return self.getWritable(cache) == AttrType.READ_WRITE

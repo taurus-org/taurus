@@ -178,7 +178,7 @@ class TaurusAttribute(taurusmodel.TaurusModel):
         if unit and unit != self.no_unit:
             obj.append(('unit', unit))
             
-        limits = self.getLimits(cache=cache)
+        limits = self.getRange(cache=cache)
         if limits and (limits[0] != self.no_min_value or \
                        limits[1] != self.no_max_value):
             if limits[0] == self.no_min_value: limits[0] = self.no_cfg_value
@@ -226,7 +226,9 @@ class TaurusAttribute(taurusmodel.TaurusModel):
         ret = None
         try:
             if self.isScalar():
-                if self.isNumeric():
+                format = self.getFormat()
+                if self.isNumeric() and format is not None:
+                    format = self.getFormat()
                     ret = self.getFormat() % value
                 else:
                     ret = str(value)
