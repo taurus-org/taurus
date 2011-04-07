@@ -348,7 +348,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         ret = taurus.core.TaurusAttribute.removeListener(self, listener)
 
         cfg = self._getRealConfig()
-        cfg.addListener(listener)
+        cfg.removeListener(listener)
         
         if not ret:
             return ret
