@@ -104,6 +104,7 @@ def print_DevFailed(df):
     """Prints the contents of the given :class:`PyTango.DevFailed`.
     
     :param df: (PyTango.DevFailed) the PyTango exception object"""
+    import PyTango
     PyTango.Except.print_exception(df)
 
 def dictFromSequence(seq):
