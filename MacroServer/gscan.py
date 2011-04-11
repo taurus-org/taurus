@@ -410,7 +410,10 @@ class GScan(Logger):
         env['datadesc'] = data_desc
 # +++
         env['counters'] = counters
-        env['ScanFile'] = self.macro.getEnv('ScanFile')
+        try:
+            env['ScanFile'] = self.macro.getEnv('ScanFile')
+        except:
+            env['ScanFile'] = None
 # +++
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
