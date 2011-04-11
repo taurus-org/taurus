@@ -721,7 +721,8 @@ class Motor(PoolElement, motion.Moveable):
             # moving event doesn't arrive do to an unknow tango/pytango error at the time
             evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp, timeout=0.1, retries=1)
         except Exception,e:
-            sys.stderr.write("%s\n" % str(e))
+            evt_wait.disconnect()
+            raise e
         finally:
             evt_wait.unlock()
         return (time_stamp,)
@@ -857,6 +858,9 @@ class PseudoMotor(PoolElement, motion.Moveable):
                         raise
             self.final_pos = new_pos
             evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp)
+        except Exception, e:
+            evt_wait.disconnect()
+            raise e
         finally:
             evt_wait.unlock()
         return (time_stamp,)
@@ -960,6 +964,9 @@ class MotorGroup(PoolElement, motion.Moveable):
                         raise
             self.final_pos = new_pos
             evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp)
+        except Exception, e:
+            evt_wait.disconnect()
+            raise e
         finally:
             evt_wait.unlock()
         return (time_stamp,)
