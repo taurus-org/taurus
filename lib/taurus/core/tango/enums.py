@@ -25,7 +25,7 @@
 
 """This module contains all basic tango enumerations"""
 
-__all__ = ["TangoObjectType", "SubscriptionState", "EVENT_TO_POLLING_EXCEPTIONS",
+__all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
            "FROM_TANGO_TO_NUMPY_TYPE", "FROM_TANGO_TO_STR_TYPE"]
 
 __docformat__ = "restructuredtext"
@@ -37,9 +37,7 @@ TangoObjectType = taurus.core.util.Enumeration("TangoObjectType",
                                "Attribute","Property","Configuration",
                                "Object"])
 
-SubscriptionState = taurus.core.util.Enumeration("SubscriptionState",
-                              ["Unsubscribed", "Subscribing", "Subscribed", 
-                               "PendingSubscribe"])
+SubscriptionState = taurus.core.SubscriptionState #moved from here to taurus.core. Copied here for backwards compatibility
 
 import numpy
 import PyTango

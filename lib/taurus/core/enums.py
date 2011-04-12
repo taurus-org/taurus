@@ -25,7 +25,7 @@
 
 """This module contains all basic taurus enumerations"""
 
-__all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode", 
+__all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode", "SubscriptionState",
            "TaurusEventType", "MatchLevel", "TaurusElementType", "DataFormat",
            "AttrQuality", "AttrType", "DisplayLevel", "ManagerState"]
 
@@ -99,15 +99,23 @@ TaurusElementType = util.Enumeration(
     'Database',
 ))
 
-#################
-# Not in use yet:
-
 DataFormat = util.Enumeration(
 'DataFormat', (
     '_0D', 
     '_1D', 
     '_2D'
 ))
+
+SubscriptionState = util.Enumeration(
+"SubscriptionState", (
+    "Unsubscribed",
+    "Subscribing",
+    "Subscribed", 
+    "PendingSubscribe"
+))
+
+#################
+# Not in use yet:
 
 AttrQuality = util.Enumeration(
 'AttrQuality', (

@@ -36,9 +36,9 @@ import threading
 import PyTango
 
 import taurus.core
-from taurus.core import TaurusEventType
+from taurus.core import TaurusEventType, SubscriptionState
 from taurus.core.util import EventListener
-from enums import SubscriptionState, EVENT_TO_POLLING_EXCEPTIONS
+from enums import EVENT_TO_POLLING_EXCEPTIONS
 
 DataType = PyTango.CmdArgType
 
@@ -320,14 +320,12 @@ class TangoAttribute(taurus.core.TaurusAttribute):
             If it is the first element and Polling is enabled starts the 
             polling mechanism.
             If the listener is already registered nothing happens."""
-        
         cfg = self._getRealConfig()
         cfg.addListener(listener)
         
         initial_subscription_state = self.__subscription_state
 
         ret = taurus.core.TaurusAttribute.addListener(self, listener)
-
         if not ret:
             return ret
         
