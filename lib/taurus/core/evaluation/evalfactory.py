@@ -37,7 +37,7 @@ import numpy
 
 from taurus.core.taurusexception import TaurusException
 import taurus.core
-from taurus.core import OperationMode, MatchLevel, TaurusSWDevState
+from taurus.core import OperationMode, MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
 from taurus.core.util import SafeEvaluator
 
 class AbstractEvaluationNameValidator(taurus.core.util.Singleton):
@@ -338,6 +338,8 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         self._transformation = None
         # reference to the configuration object
         self.__attr_config = None#taurus.core.TaurusConfiguration()
+        self.__subscription_state = SubscriptionState.Unsubscribed
+
         
         trstring = self._validator.getExpandedTransformation(str(name)) #This should never be None because the init already ran the validator
         
@@ -383,7 +385,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
                  and a boolean indicating if the preprocessing was successful.
                  if ok==True, the string is ready to be evaluated
         """
-        #disconnect previously referenced qAttrs and clean the list
+        #disconnect previously referenced attributes and clean the list
         for ref in self._references:
             ref.removeListener(self)
         self._references = []  
@@ -407,7 +409,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
     def __Match2Id(self, match):
         """
         receives a re.match object for cref_RegExp. Returns the id of an
-        existing qAttr corresponding to the match. The qAttr is created
+        existing taurus attribute corresponding to the match. The attribute is created
         if it didn't previously exist.
         """
         ref = match.groups()[0]
@@ -431,11 +433,10 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
             evaluator = self.getParentObj()
             v = refobj.read().value
             evaluator.addSafe({self.getId(refobj) : v}) # add its value to the evaluator symbols
-            self._references.append(refobj) #add the object to the reference list
-            refobj.addListener(self.handleReferenceEvent) #listen to events from the referenced object
+            self._references.append(refobj) #add the object to the reference list            
         return refobj        
     
-    def handleReferenceEvent(self, evt_src, evt_type, evt_value):
+    def eventReceived(self, evt_src, evt_type, evt_value):
         try:
             v = evt_value.value
         except AttributeError:
@@ -448,7 +449,9 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         #re-evaluate
         self.applyTransformation()
         #notify listeners that the value changed
-        self.fireEvent(evt_type, self._value) #@todo: when we implement polling, we may do this conditionally
+
+        if self.isUsingEvents():
+            self.fireEvent(evt_type, self._value)
         
     def applyTransformation(self):
         if self._transformation is None: return
@@ -506,16 +509,18 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return self._value    
 
     def poll(self):
-        pass
+        self.read(cache=False)
             
-    def _subscribeEvents(self):
+    def _subscribeEvents(self): 
         pass
         
     def _unsubscribeEvents(self):
         pass
 
     def isUsingEvents(self):
-        False
+        return True #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return bool(len(self._references)) #if this attributes depends from others, then we consider it uses events
+        
 #------------------------------------------------------------------------------ 
 
     def factory(self):
@@ -524,6 +529,61 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
     @classmethod
     def getNameValidator(cls):
         return EvaluationAttributeNameValidator()
+
+    def __fireRegisterEvent(self, listener):
+        #fire a first change event
+        try:
+            v = self.read()
+            self.fireEvent(TaurusEventType.Change, v, listener)
+        except:
+            self.fireEvent(TaurusEventType.Error, None, listener)
+    
+    def addListener(self, listener):
+        """ Add a TaurusListener object in the listeners list.
+            If it is the first listener, it triggers the subscription to the referenced attributes.
+            If the listener is already registered nothing happens."""
+        
+        #subscribe to configuration events for this attribute
+        cfg = self.getConfig()
+        cfg.addListener(listener)
+        
+        initial_subscription_state = self.__subscription_state
+        
+        ret = taurus.core.TaurusAttribute.addListener(self, listener)
+
+        if not ret:
+            return ret
+        
+        if self.__subscription_state == SubscriptionState.Unsubscribed:
+            for refobj in self._references:
+                refobj.addListener(self) #subscribe to the referenced attributes
+            self.__subscription_state = SubscriptionState.Subscribed
+
+        assert len(self._listeners) >= 1        
+        #if initial_subscription_state == SubscriptionState.Subscribed:
+        if len(self._listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
+            taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+        return ret
+        
+    def removeListener(self, listener):
+        """ Remove a TaurusListener from the listeners list. If polling enabled 
+            and it is the last element the stop the polling timer.
+            If the listener is not registered nothing happens."""
+        ret = taurus.core.TaurusAttribute.removeListener(self, listener)
+
+        cfg = self._getRealConfig()
+        cfg.removeListener(listener)
+        
+        if not ret:
+            return ret
+    
+        if self.hasListeners():
+            return ret
+        
+        if self.__subscription_state != SubscriptionState.Unsubscribed:
+            self._unsubscribeEvents()
+            
+        return ret
 
 
 class EvaluationConfiguration(taurus.core.TaurusConfiguration):
