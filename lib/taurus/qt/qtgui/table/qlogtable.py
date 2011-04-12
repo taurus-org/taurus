@@ -116,9 +116,10 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
                 return Qt.QVariant(t)
             elif column == TIME:
                 dt = datetime.datetime.fromtimestamp(record.created)
-                return Qt.QVariant(dt.strftime("%H:%M:%S"))
+                return Qt.QVariant(str(dt))
+                #return Qt.QVariant(dt.strftime("%H:%M:%S"))
             elif column == MSG:
-                return Qt.QVariant(record.msg)
+                return Qt.QVariant(record.getMessage())
             elif column == NAME:
                 return Qt.QVariant(record.name)
             elif column == THREAD:
