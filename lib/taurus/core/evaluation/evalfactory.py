@@ -348,7 +348,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         if ok:
             self._transformation = trstring
             self.applyTransformation()
-    
+
     def __getattr__(self,name):
         return getattr(self._getRealConfig(), name)
     
@@ -404,6 +404,16 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
             if s not in safesymbols:
                 self.warning('Missing symbol "%s"'%s)
                 return trstring, False
+            
+        #If all went ok, enable/disable polling based on whether there are references or not
+        wantpolling = not self.isUsingEvents()
+        haspolling = self.isPollingEnabled()
+        if wantpolling:
+            self._activatePolling()
+        elif haspolling and not wantpolling:
+            self.disablePolling()
+            
+        
         return trstring,True
                     
     def __Match2Id(self, match):
@@ -509,7 +519,8 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return self._value    
 
     def poll(self):
-        self.read(cache=False)
+        v = self.read(cache=False)
+        self.fireEvent(TaurusEventType.Periodic, v)
             
     def _subscribeEvents(self): 
         pass
@@ -518,7 +529,6 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         pass
 
     def isUsingEvents(self):
-        return True #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return bool(len(self._references)) #if this attributes depends from others, then we consider it uses events
         
 #------------------------------------------------------------------------------ 
@@ -574,17 +584,10 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         cfg = self._getRealConfig()
         cfg.removeListener(listener)
         
-        if not ret:
-            return ret
-    
-        if self.hasListeners():
-            return ret
-        
-        if self.__subscription_state != SubscriptionState.Unsubscribed:
-            self._unsubscribeEvents()
-            
+        if ret and not self.hasListeners():
+            self.__subscription_state = SubscriptionState.Unsubscribed
         return ret
-
+    
 
 class EvaluationConfiguration(taurus.core.TaurusConfiguration):
     '''
@@ -802,7 +805,35 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
                 raise taurus.core.DoubleRegistration
         self.eval_configs[name] = config
         
-    
+    def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
+        """Activates the polling (client side) for the given attribute with the
+           given period (seconds).
+
+           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
+           :param period: (float) polling period (in seconds)
+           :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
+        """
+        tmr = self.polling_timers.get(period,taurus.core.TaurusPollingTimer(period))
+        self.polling_timers[period] = tmr
+        tmr.addAttribute(attribute, self.isPollingEnabled())
+        
+    def removeAttributeFromPolling(self, attribute):
+        """Deactivate the polling (client side) for the given attribute. If the
+           polling of the attribute was not previously enabled, nothing happens.
+
+           :param attribute: (str) attribute name.
+        """
+        p = None
+        for period,timer in self.polling_timers.iteritems():
+            if timer.containsAttribute(attribute):
+                timer.removeAttribute(attribute)
+                if timer.getAttributeCount() == 0:
+                    p = period
+                break
+        if p:
+            del self.polling_timers[period]
+            
+
     
 
 #===============================================================================
@@ -830,14 +861,17 @@ def test2():
     #a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')  
     class Dummy:
         n=0
-        def on_evt(self, s,t,v):
+        def eventReceived(self, s,t,v):
             print self.n, v
             self.n += 1
     kk = Dummy()
-    a.addListener(kk.on_evt)
-    while kk.n <= 10:
+    a.addListener(kk)
+    while kk.n <= 2:
         time.sleep(1)
-        
+    a.removeListener(kk)
+#    while kk.n <= 20:
+#        time.sleep(1)        
+    
 def test3():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
@@ -850,7 +884,7 @@ def test3():
 #    w=TaurusTrend()
 #    w=TaurusLabel()
 
-    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar', 'eval://a<100?a={sys/tg_test/1/short_scalar}'])
+    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar', 'eval://a<100?a={sys/tg_test/1/short_scalar}', 'eval://10*rand()'])
 #    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}'])
 #    w.setModel(['sys/tg_test/1/short_scalar'])
 #    w.setModel('eval://2*{sys/tg_test/1/short_scalar}?configuration=label')
