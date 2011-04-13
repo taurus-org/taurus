@@ -229,7 +229,11 @@ class TaurusDevice(taurusmodel.TaurusModel):
             self._deviceSwState = value
             self.fireEvent(TaurusEventType.Change, value)
 
-
     def _getDefaultDescription(self):
         return DFT_DEVICE_DESCRIPTION
 
+    def poll(self, attrs):
+        '''Polling certain attributes of the device. This default 
+        implementation simply polls each attribute one by one'''
+        for attr in attrs.values():
+            attr.poll()

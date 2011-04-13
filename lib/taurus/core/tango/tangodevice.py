@@ -139,19 +139,20 @@ class TangoDevice(taurus.core.TaurusDevice):
         return DFT_TANGO_DEVICE_DESCRIPTION
 
     def poll(self, attrs):
-        attr_names = [ a.getSimpleName() for a in attrs ]
+        '''optimized by reading of multiple attributes in one go'''
         t = time.time()
         try:
-            result = self.read_attributes(attr_names)
+            result = self.read_attributes(attrs.keys())
         except PyTango.DevFailed, e:
-            for attr in attrs:
+            for attr in attrs.values():
                 attr.poll(single=False, value=None, error=e, time=t)
             return
         
         for i, da in enumerate(result):
-            attr = attrs[i]
             if da.has_failed:
                 v, err = None, PyTango.DevFailed(*da.get_err_stack())
             else:
                 v, err = da, None
+            attr = attrs[da.name]
             attr.poll(single=False, value=v, error=err, time=t)
+            

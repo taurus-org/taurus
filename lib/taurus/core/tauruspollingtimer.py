@@ -31,7 +31,6 @@ __docformat__ = "restructuredtext"
 
 import time
 import threading
-import PyTango
 
 import util
 from util import DebugIt
@@ -138,28 +137,9 @@ class TaurusPollingTimer(util.Logger):
         try:
             for dev, attrs in self.dev_dict.items():
                 try:
-                    #dev.poll(attrs.values())
-                    self._pollDevice(dev, attrs)
+                    dev.poll(attrs)
                 except Exception, e:
                     print e
                     pass
         finally:
             self.lock.release()
-
-    def _pollDevice(self, dev, attrs):
-        t = time.time()
-        try:
-            result = dev.read_attributes(attrs.keys())
-        except PyTango.DevFailed, e:
-            for attr in attrs.values():
-                attr.poll(single=False, value=None, error=e, time=t)
-            return
-        
-        for i, da in enumerate(result):
-            if da.has_failed:
-                v, err = None, PyTango.DevFailed(*da.get_err_stack())
-            else:
-                v, err = da, None
-            attr = attrs[da.name]
-            attr.poll(single=False, value=v, error=err, time=t)
-        

@@ -57,6 +57,8 @@ class TaurusFactory:
     def __init__(self):
         self._polling_period = self.DefaultPollingPeriod
         self.operation_mode = OperationMode.ONLINE
+        self.polling_timers = {}
+        self._polling_enabled = True
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Methods that must be implemented by the specific Factory
@@ -206,3 +208,46 @@ class TaurusFactory:
 
     def getDefaultPollingPeriod(self):
         return self._polling_period
+    
+    def isPollingEnabled(self):
+        """Tells if the local tango polling is enabled
+        
+           :return: (bool) wheter or not the polling is enabled
+        """
+        return self._polling_enabled
+        
+    def disablePolling(self):
+        """Disable the application tango polling"""
+        if not self.isPollingEnabled():
+            return
+        self._polling_enabled = False
+        for period,timer in self.polling_timers.iteritems():
+            timer.stop()
+            
+    def enablePolling(self):
+        """Enable the application tango polling"""
+        if self.isPollingEnabled():
+            return
+        for period,timer in self.polling_timers.iteritems():
+            timer.start()
+        self._polling_enabled = True
+        
+    def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
+        """Activates the polling (client side) for the given attribute with the
+           given period (seconds).
+
+           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
+           :param period: (float) polling period (in seconds)
+           :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
+        """
+        raise RuntimeError("addAttributeToPolling cannot be called for abstract" \
+                           " TaurusFactory")
+        
+    def removeAttributeFromPolling(self, attribute):
+        """Deactivate the polling (client side) for the given attribute. If the
+           polling of the attribute was not previously enabled, nothing happens.
+
+           :param attribute: (str) attribute name.
+        """
+        raise RuntimeError("removeAttributeFromPolling cannot be called for abstract" \
+                           " TaurusFactory")
