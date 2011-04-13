@@ -130,6 +130,34 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         for k,v in self.tango_db.items():          v.cleanUp()
         self.reInit()
 
+    def getExistingAttributes(self):
+        """Returns a new dictionary will all registered attributes on this factory
+           
+           :return:  dictionary will all registered attributes on this factory
+           :rtype: dict"""
+        return dict(self.tango_attrs)
+
+    def getExistingDevices(self):
+        """Returns a new dictionary will all registered devices on this factory
+           
+           :return:  dictionary will all registered devices on this factory
+           :rtype: dict"""
+        return dict(self.tango_devs)
+
+    def getExistingDatabases(self):
+        """Returns a new dictionary will all registered databases on this factory
+           
+           :return:  dictionary will all registered databases on this factory
+           :rtype: dict"""
+        return dict(self.tango_db)
+
+    def getExistingConfigurations(self):
+        """Returns a new dictionary will all registered configurations on this factory
+           
+           :return:  dictionary will all registered configurations on this factory
+           :rtype: dict"""
+        return dict(self.tango_configs)
+
     def set_default_tango_host(self, tango_host):
         """Sets the new default tango host.
         
