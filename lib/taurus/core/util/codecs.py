@@ -348,6 +348,37 @@ class CodecFactory(Singleton, Logger):
     
         from taurus.core.util import CodecFactory
         f = CodecFactory()
+        
+    The :class:`CodecFactory` class allows you to get a codec object for a given 
+    format and also to register new codecs.
+    The :class:`CodecPipeline` is a special codec that is able to code/decode a
+    sequence of codecs. This way you can have codecs 'inside' codecs.
+
+    Example::
+
+        >>> from taurus.core.util import CodecFactory
+        >>> cf = CodecFactory()
+        >>> json_codec = cf.getCodec('json')
+        >>> bz2_json_codec = cf.getCodec('bz2_json')
+        >>> data = range(100000)
+        >>> f1, enc_d1 = json_codec.encode(('', data))
+        >>> f2, enc_d2 = bz2_json_codec.encode(('', data))
+        >>> print len(enc_d1), len(enc_d2)
+        688890 123511
+        >>> 
+        >>> f1, dec_d1 = json_codec.decode((f1, enc_d1))
+        >>> f2, dec_d2 = bz2_json_codec.decode((f2, enc_d2))
+
+    A Taurus related example::
+
+        >>> # this example shows how to automatically get the data from a DEV_ENCODED attribute
+        >>> import taurus
+        >>> from taurus.core.util import CodecFactory
+        >>> cf = CodecFactory()
+        >>> devenc_attr = taurus.Attribute('a/b/c/devenc_attr')
+        >>> v = devenc_attr.read()
+        >>> codec = CodecFactory().getCodec(v.format)
+        >>> f, d = codec.decode((v.format, v.value))
     """
     
     #: Default minimum map of registered codecs
