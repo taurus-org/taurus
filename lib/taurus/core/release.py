@@ -65,7 +65,9 @@ It is build on top of PyTango and PyQt."""
 
 license = 'LGPL'
 
-authors = {'Tiago'     : ('Tiago Coutinho','tcoutinho@cells.es'), }
+authors = {'Tiago'          : ('Tiago Coutinho','tcoutinho@cells.es'),
+           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es') }
+            
 
 url = 'http://packages.python.org/taurus'
 
