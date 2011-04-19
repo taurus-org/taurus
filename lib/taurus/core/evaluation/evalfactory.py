@@ -23,7 +23,7 @@
 #############################################################################
 
 '''
-operation module. See __init__.py for more detailed documentation
+evaluation module. See __init__.py for more detailed documentation
 '''
 __all__ = ['EvaluationFactory', 'EvaluationDatabase', 'EvaluationDevice', 
            'EvaluationAttribute','EvaluationConfiguration', 
@@ -268,10 +268,16 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     .. warning:: In most cases this class should not be instantiated directly.
                  Instead it should be done via the :meth:`EvaluationFactory.getDevice`
     '''
+    _symbols = []
+    
     def __init__(self, name, **kw):
         """Object initialization."""
         self.call__init__(taurus.core.TaurusDevice, name, **kw)
-        SafeEvaluator.__init__(self)
+        safedict = {}
+        for s in self._symbols:
+            if hasattr(self,s):
+                safedict[s] = getattr(self,s)
+        SafeEvaluator.__init__(self, safedict=safedict)        
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
@@ -699,11 +705,22 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
             names = validator.getNames(dev_name)
             if names is None:
                 raise TaurusException("Invalid evaluator device name %s" % dev_name)
-            fullname = names[0]
+            fullname, normalname, devname = names
             d = self.eval_devs.get(fullname, None)
             if d is None:
+                tmp = devname.rsplit('.', 1)
+                if len(tmp)==2:
+                    modulename, classname = tmp
+                    try:
+                        m = __import__(modulename, globals(), locals(), [classname], -1)
+                        DevClass = getattr(m, classname)
+                    except:
+                        self.warning('Problem importing "%s"'%devname)
+                        raise
+                elif len(tmp)==1:
+                    DevClass = EvaluationDevice 
                 db = self.getDatabase()
-                d = EvaluationDevice(fullname, parent=db, storeCallback=self._storeDev) #use full name
+                d = DevClass(fullname, parent=db, storeCallback=self._storeDev) #use full name
         return d
         
     def getAttribute(self, attr_name):
@@ -884,7 +901,9 @@ def test3():
 #    w=TaurusTrend()
 #    w=TaurusLabel()
 
-    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}','sys/tg_test/1/short_scalar', 'eval://a<100?a={sys/tg_test/1/short_scalar}', 'eval://10*rand()'])
+    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}',
+                'sys/tg_test/1/short_scalar', 'eval://a<100?a={sys/tg_test/1/short_scalar}', 
+                'eval://10*rand()', 'eval://dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024'])
 #    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}'])
 #    w.setModel(['sys/tg_test/1/short_scalar'])
 #    w.setModel('eval://2*{sys/tg_test/1/short_scalar}?configuration=label')

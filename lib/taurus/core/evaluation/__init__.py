@@ -56,7 +56,7 @@ The Evaluation Factory (:class:`EvaluationFactory`) uses the following object na
       EvaluationDatabase). If not given it defaults to `db=_DefaultEvalDB;`.
     
     - The `dev=<devicename>;` is optional (except when referring to an
-      EvaluationDevice). If not given, it defaults to `dev=_DefaultEvaluator;`
+      EvaluationDevice). If not given, it defaults to `dev=_DefaultEvaluator;`.
       
     - `<math_expression>` is a mathematical expression (using python syntax)
       that may have references to other taurus **attributes** by enclosing them
@@ -69,8 +69,19 @@ The Evaluation Factory (:class:`EvaluationFactory`) uses the following object na
       
     - `<devicename>` is a unique identification name for the evaluator device.
       This allows to use different evaluator objects which may have different
-      symbols available for evaluation.
+      symbols available for evaluation. As an alternative approach, it is also
+      possible to use custom-made evaluator devices as long as they inherit from
+      :class:`EvaluationDevice`. To use a custom-made evaluator, you should
+      construct the `<devicename>` as `<modulename>.<classname>` where:
       
+          - `<modulename>` is a python module name and 
+    
+          - `<classname>` is the name of a class in `<modulename>` that derives 
+            from :class:`EvaluationDevice`
+      
+      See :file:`<taurus>/core/evaluation/dev_example.py` for an example of a
+      custom Evaluator
+        
     - The optional `?<symbols>` segment is used to provide substitution symbols. 
       `<symbols>` is a semicolon-separated string of `<key>=<value>` strings.
       Before evaluation, the `<math_expression>` string will be searched for
