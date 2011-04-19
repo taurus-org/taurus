@@ -330,7 +330,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
     .. warning:: In most cases this class should not be instantiated directly.
                  Instead it should be done via the :meth:`EvaluationFactory.getAttribute`
     '''
-    
+    pyStr_RegExp = re.compile(r'(?:\"[^\"]+?\")|(?:\'[^\']+?\')') #matches a single or double-quoted string
     pyVar_RegExp = re.compile("[a-zA-Z_][a-zA-Z0-9_]*") #regexp for a variable/method name (symbol)
     cref_RegExp = re.compile("\{(.+?)\}") #regexp for references to other taurus models within operation model names
 
@@ -406,7 +406,8 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         
         #validate the expression (look for missing symbols) 
         safesymbols = evaluator.getSafe().keys()
-        for s in set(re.findall(self.pyVar_RegExp, trstring)):
+        trimmedstring = re.sub(self.pyStr_RegExp, '', trstring) #remove literal text strings from the validation
+        for s in set(re.findall(self.pyVar_RegExp, trimmedstring)):
             if s not in safesymbols:
                 self.warning('Missing symbol "%s"'%s)
                 return trstring, False
@@ -583,7 +584,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         
     def removeListener(self, listener):
         """ Remove a TaurusListener from the listeners list. If polling enabled 
-            and it is the last element the stop the polling timer.
+            and it is the last element then stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = taurus.core.TaurusAttribute.removeListener(self, listener)
 
@@ -591,6 +592,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         cfg.removeListener(listener)
         
         if ret and not self.hasListeners():
+            self._deactivatePolling()
             self.__subscription_state = SubscriptionState.Unsubscribed
         return ret
     
