@@ -418,20 +418,24 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     # Overwrite from TaurusBaseComponent
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def preAttach(self):
-        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-        See :meth:`TaurusBaseComponent.preAttach`"""
-        self._signalGen.connect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+#    def preAttach(self):
+#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
+#        See :meth:`TaurusBaseComponent.preAttach`"""
+#        self._signalGen.connect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+#
+#    def preDetach(self):
+#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
+#        See :meth:`TaurusBaseComponent.preDetach`"""
+#        self._signalGen.disconnect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+#
+#    def fireEvent(self,  evt_src, evt_type, evt_value):
+#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
+#        See :meth:`TaurusBaseComponent.fireEvent`"""
+#        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
 
-    def preDetach(self):
-        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-        See :meth:`TaurusBaseComponent.preDetach`"""
-        self._signalGen.disconnect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
-
-    def fireEvent(self,  evt_src, evt_type, evt_value):
-        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-        See :meth:`TaurusBaseComponent.fireEvent`"""
-        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
+    def getSignaller(self):
+        '''See :meth:`TaurusBaseComponent.getSignaller'''
+        return self._signalGen   
 
     def getModelClass(self):
         '''See :meth:`TaurusBaseComponent.getModelClass`'''

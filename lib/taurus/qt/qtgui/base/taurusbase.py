@@ -81,7 +81,10 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
        
        .. note:: 
            Any class which inherits from TaurusBaseComponent is expected to also
-           inherit from QObject (or from a QObject derived class) 
+           inherit from QObject (or from a QObject derived class) If this is not
+           fullfilled, at least the class should reimplement the :meth:`getSignaller`
+           method to return a QObject to be used for emitting and connecting
+           signals.
     """
     
     def __init__(self, name, parent=None, designMode=False):
@@ -121,7 +124,14 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self.registerConfigProperty(self.isModifiableByUser, self.setModifiableByUser, "modifiableByUser")
         self.registerConfigProperty(self.getModelInConfig, self.setModelInConfig, "ModelInConfig")
         self.resetModelInConfig()
-        
+
+    def getSignaller(self):
+        '''
+        Reimplement this method if your derived class does not inherit from
+        QObject. The return value should be a permanent object capable of
+        emitting Qt signals. See :class:`TaurusImageItem` as an example
+        '''
+        return self      
 
     def deleteLater(self):
         '''Reimplements the Qt.QObject deleteLater method to ensure that the
@@ -228,7 +238,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         :param evt_type: (taurus.core.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
-        try: self.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
+        try: self.getSignaller().emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
         except: pass #self.error('%s.fireEvent(...) failed!'%type(self))
         
     #@Qt.pyqtSignature("taurusEvent")
@@ -586,7 +596,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
            
         Override when necessary.
         """
-        try: Qt.QObject.connect(self, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+        try: Qt.QObject.connect(self.getSignaller(), Qt.SIGNAL('taurusEvent'), self.filterEvent)
         except: pass #self.error("In %s.preAttach() ... failed!" % str(type(self)))
 
     def postAttach(self):
@@ -603,7 +613,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
            
         Override when necessary.
         """
-        try: Qt.QObject.disconnect(self, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+        try: Qt.QObject.disconnect(self.getSignaller(), Qt.SIGNAL('taurusEvent'), self.filterEvent)
         except: pass #self.error("In %s.preDetach() ... failed!" % str(type(self)))
 
         
