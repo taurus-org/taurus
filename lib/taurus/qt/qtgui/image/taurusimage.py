@@ -27,37 +27,32 @@
 Generic Image widget for Taurus. Based on guiqwt.plot.ImagePlotWidget: 
 """
 from PyQt4 import Qt
-from taurus.qt.qtgui.base import taurusQAttributeFactory
+from taurus.qt.qtgui.base import TaurusBaseComponent
 from guiqwt.image import ImageItem
 import numpy
 
-
-class TaurusImageItem(ImageItem):
-    '''A CurveItem that autoupdates its values & params when x or y components change'''
+class TaurusImageItem(ImageItem, TaurusBaseComponent):
+    '''A ImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
         ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
-        self._dataObj = None
+        TaurusBaseComponent.__init__(self, self.__class__.__name__)
+        self._signalGen = Qt.QObject()
+
+    def getSignaller(self):
+        '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
+        not (and cannot be) a QObject'''
+        return self._signalGen   
         
-    def setExtendedModel(self, xmodel):
-        print xmodel
-        #disconnect previous component
-        if self._dataObj is not None: Qt.QObject.disconnect(self._dataObj, Qt.SIGNAL('dataChanged'), self.onDataChanged)
-        #create/get new components
-        self._dataObj = taurusQAttributeFactory.getQAttr(xmodel=xmodel)
-        #connect the new components to the notification
-        Qt.QObject.connect(self._dataObj, Qt.SIGNAL('dataChanged'), self.onDataChanged)
-        self.onDataChanged()
-        
-    def onDataChanged(self):
-        if self._dataObj.value is None:
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        if evt_value is None or getattr(evt_value,'value', None) is None:
+            self.warning('Ignoring event from %s'%repr(evt_src))
             return
-        self.set_data(self._dataObj.value)
+        self.set_data(evt_value.value)
+        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
         if p is not None: 
             p.replot()
         
-
-
 def main():
     '''launch'''
     from guiqwt.plot import ImagePlotWidget,ImagePlotDialog
@@ -70,10 +65,9 @@ def main():
     if len (args)==1:
         model = args[0]
     else:
-        #model = 'sys/tg_test/1/short_image_ro'
-        ##we can do math on images and reference tango attributes! 
-        model = '=${sys/tg_test/1/short_image_ro}+10*rand(251,251)'
-        #model = '=${sys/tg_test/1/short_image_ro}+10*rand(*shape(${sys/tg_test/1/short_image_ro}))' #we can iven do this!!
+        model = 'sys/tg_test/1/short_image_ro'
+        #model = 'eval://{sys/tg_test/1/short_image_ro}+10*rand(251,251)'
+        #model = 'eval://{sys/tg_test/1/short_image_ro}+10*rand(*shape({sys/tg_test/1/short_image_ro}))' #we can iven do this!!
 
     w = ImagePlotDialog(toolbar=True)
     #w = ImagePlotWidget()
@@ -81,20 +75,21 @@ def main():
     plot = w.get_plot()
     
     param = ImageParam()
-    
+   
     param.label = model
     img = TaurusImageItem(param)
-    img.setExtendedModel(model)
+    img.setModel(model)
     
+       
     plot.add_item(img)
-    
+    plot.do_autoscale(replot=True)
     #connect the cross section plots so that they are updated on signal changes
-    w.connect(img._dataObj, Qt.SIGNAL("dataChanged"), w.update_cross_sections)
+    w.connect(img.getSignaller(), Qt.SIGNAL("dataChanged"), w.update_cross_sections)
 
     #show the widget
     w.show()
     
-    sys.exit(app.exec_())  
+    sys.exit(app.exec_()) 
 
 if __name__ == "__main__":
     main()    
