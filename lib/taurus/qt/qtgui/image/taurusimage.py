@@ -28,6 +28,7 @@ Generic Image widget for Taurus. Based on guiqwt.plot.ImagePlotWidget:
 """
 from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
+import taurus.core
 from guiqwt.image import ImageItem
 import numpy
 
@@ -41,8 +42,18 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
     def getSignaller(self):
         '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
         not (and cannot be) a QObject'''
-        return self._signalGen   
-        
+        return self._signalGen  
+    
+    def setModel(self, model):
+        #do the standard stuff
+        TaurusBaseComponent.setModel(self, model)
+        #... and fire a fake event for initialization
+        try:
+            value = self.getModelObj().read()
+            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+        except:
+            pass
+
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.warning('Ignoring event from %s'%repr(evt_src))
@@ -72,17 +83,16 @@ def main():
     w = ImagePlotDialog(toolbar=True)
     #w = ImagePlotWidget()
     #w.register_all_image_tools()
-    plot = w.get_plot()
     
     param = ImageParam()
-   
     param.label = model
+    
     img = TaurusImageItem(param)
     img.setModel(model)
     
-       
+    plot = w.get_plot()
     plot.add_item(img)
-    plot.do_autoscale(replot=True)
+    
     #connect the cross section plots so that they are updated on signal changes
     w.connect(img.getSignaller(), Qt.SIGNAL("dataChanged"), w.update_cross_sections)
 
