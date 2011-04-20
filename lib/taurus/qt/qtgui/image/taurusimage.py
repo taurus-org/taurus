@@ -56,7 +56,7 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_value is None or getattr(evt_value,'value', None) is None:
-            self.warning('Ignoring event from %s'%repr(evt_src))
+            self.debug('Ignoring event from %s'%repr(evt_src))
             return
         self.set_data(evt_value.value)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
