@@ -24,45 +24,19 @@
 #############################################################################
 
 """
-.. currentmodule:: taurus.core.operation
+.. currentmodule:: taurus.core.simulation
 
-Operation extension for taurus core model.
-The operation extension is a special extension that provides operation
-objects. The official scheme name is 'op'.
+Simulation extension for taurus core mode.
+The simulation extension is a special extension that provides simulation
+objects. The official scheme name is 'simulation'.
 
-The main usage for this extension is to provide a way of performing mathematical
-operations with data from other sources.
-
-Operation Factory uses the following object naming (**not** a strict URI!):
-
-    op://math_expression
-  
-    where `math_expression` is a mathematical expression (using python syntax)
-    that may have references to other taurus objects by enclosing them between
-    `{` and `}`. Expressions will be evaluated using :class:`SafeEvaluator`
-    which includes a large subset of mathematical functions from the
-    :mod:`numpy` module.
-
-Some examples of valid operation models are:
-
-    - Multiplying a tango attribute by 2:
-        
-        `op://2*{tango://a/b/c/d}`
-        
-    - Adding two tango attributes together (note we can omit the `tango://` part
-      because tango is the default schema in taurus)
-      
-        `op://{a/b/c/d}+{f/g/h/i}`
-    
-    - Generating an array of random values:
-    
-        `op://rand(256)`
-        
-    - Adding noise to a tango image attribute:
-    
-        `op://{sys/tg_test/1/short_image_ro}+10*rand(*shape({sys/tg_test/1/short_image_ro}))`
-      
-
+The main usage for this extension is to provide a useful value when using the
+Qt designer to design the GUI.
+The widgets have in their constructor a 'designMode' parameter that inside
+the designer is set to True by the different plugins that export the different
+taurus widgets to the designer. This way the developer can have a better idea
+of what the GUI will look like in the end without connecting to the actual device
+in design time (which could be dangerous at times) even if the values don't make 
+much sence.
 """
-raise NotImplementedError()
-from opfactory import *
+from simfactory import *
