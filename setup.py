@@ -72,6 +72,7 @@ packages = [
     'taurus.core.util.argparse',
     'taurus.core.resource',
     'taurus.core.simulation',
+    'taurus.core.evaluation',
     'taurus.core.tango',
     'taurus.core.tango.sardana', 
     'taurus.core.tango.img',
