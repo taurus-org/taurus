@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-Generic Image widget for Taurus. Based on guiqwt.plot.ImagePlotWidget: 
+Extension of :mod:`guiqwt.image`
 """
 from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
