@@ -434,7 +434,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 #        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
 
     def getSignaller(self):
-        '''See :meth:`TaurusBaseComponent.getSignaller'''
+        '''See :meth:`TaurusBaseComponent.getSignaller`'''
         return self._signalGen   
 
     def getModelClass(self):
