@@ -1894,7 +1894,7 @@ void MeasurementGroup::remove_unwanted_dyn_attr_from_device()
         for(vector<string>::size_type rem_idx = 0; 
             rem_idx < remove_attr_list.size(); rem_idx++)
         {
-            dev_attr->remove_attribute(remove_attr_list[rem_idx]);
+            dev_attr->remove_attribute(remove_attr_list[rem_idx], true);
         }
     }
 

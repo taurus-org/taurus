@@ -61,9 +61,10 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/AC_HAVE_GCC_VERSION.m4 \
 	$(top_srcdir)/m4/RSSH_CHECK_SUNPRO_CC.m4 \
 	$(top_srcdir)/m4/ac_pkg_swig.m4 \
 	$(top_srcdir)/m4/ac_python_devel.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/ac_tango_devel.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -254,6 +255,8 @@ STRIP = @STRIP@
 SWIG = @SWIG@
 SWIG_LIB = @SWIG_LIB@
 TANGO_ROOT = @TANGO_ROOT@
+TANGO_VERSION = @TANGO_VERSION@
+TANGO_VERSION_HEX = @TANGO_VERSION_HEX@
 VERSION = @VERSION@
 VERSION_INFO = @VERSION_INFO@
 abs_builddir = @abs_builddir@
@@ -318,7 +321,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libPool.la
-libPool_la_CPPFLAGS = -I@TANGO_ROOT@/include \
+libPool_la_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     $(PYTHON_CPPFLAGS) \
     -I$(srcdir)/../include \
@@ -352,7 +357,9 @@ libPool_la_CPPFLAGS = -I@TANGO_ROOT@/include \
     -I$(srcdir)/../lib/IORegister \
     -I$(srcdir)/../lib/Instrument
 
-Pool_CPPFLAGS = -I@TANGO_ROOT@/include \
+Pool_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     $(PYTHON_CPPFLAGS) \
     -I$(srcdir)/../include \

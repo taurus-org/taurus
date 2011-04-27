@@ -7,7 +7,7 @@
 # packagename, the second is the version used for the tar file,
 # the third is an email address for bug reports (shouldn't be necessary)
 #-------------------------------------------------------------------------------
-AC_INIT([PoolControllers],[0.2.0],[tcoutinho@cells.es])
+AC_INIT([PoolControllers],[0.3.0],[tcoutinho@cells.es])
 
 #-------------------------------------------------------------------------------
 # -version-info CURRENT[:REVISION[:AGE]]
@@ -33,6 +33,7 @@ AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AM_PATH_PYTHON
 AC_PYTHON_DEVEL([>='2.4'])
+AC_TANGO_DEVEL
 
 AC_LIBTOOL_DLOPEN
 AC_ENABLE_SHARED(yes)
@@ -131,7 +132,13 @@ then
 	# make $TANGO_ROOT available for the Makefiles
 	AC_SUBST([TANGO_ROOT], [$TANGO_ROOT])
 else
-	AC_MSG_ERROR([Cannot find the tango.h include file under $TANGO_ROOT/include], -1)
+	if test -f $TANGO_ROOT/include/tango/tango.h
+	then
+		# make $TANGO_ROOT available for the Makefiles
+		AC_SUBST([TANGO_ROOT], [$TANGO_ROOT])
+	else
+		AC_MSG_ERROR([Cannot find the tango.h include file under $TANGO_ROOT/include/tango], -1)
+	fi
 fi
 
 #-------------------------------------------------------------------------------
@@ -214,7 +221,7 @@ AC_CONFIG_FILES([Makefile
                  lib/cpp/zerod/Makefile
                  lib/cpp/oned/Makefile
                  lib/cpp/ioregister/Makefile
-		         lib/cpp/ioregister/fake/Makefile
+                 lib/cpp/ioregister/fake/Makefile
                  lib/cpp/twod/Makefile
                  lib/python/Makefile])
 
@@ -222,19 +229,22 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Configuration ($PACKAGE):
-	
-	Source code location:       ${srcdir}
-	Version:                    ${VERSION}
-	Compiler:                   ${ac_ct_CC},${ac_ct_CXX}
-        Python:
-            Version:                ${PYTHON_VERSION}
-            CPP flags:              ${PYTHON_CPPFLAGS}
-            LD flags:               ${PYTHON_LDFLAGS}
-            site-packages:          ${PYTHON_SITE_PKG}
-            
 
-	OMNIORB PATH:               ${OMNI_ROOT} 
-	TANGO PATH:                 ${TANGO_ROOT}
-	POOL PATH:                  ${POOL_ROOT}
-	HKL PATH:                   ${HKL_ROOT}
+  Source code location: ${srcdir}
+  Version:              ${VERSION}
+  Compiler:             ${ac_ct_CC},${ac_ct_CXX}
+  Python:
+    version:            ${PYTHON_VERSION}
+    CPP flags:          ${PYTHON_CPPFLAGS}
+    LD flags:           ${PYTHON_LDFLAGS}
+    site-packages:      ${PYTHON_SITE_PKG}
+  omniORB:
+    path:               ${OMNI_ROOT}
+  Tango:
+    version             ${TANGO_VERSION} (${TANGO_VERSION_HEX})
+    path                ${TANGO_ROOT}
+  Pool:
+    path:               ${POOL_ROOT}
+  hkl:
+    path                ${HKL_ROOT}
 ])

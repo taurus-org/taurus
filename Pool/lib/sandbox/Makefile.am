@@ -19,29 +19,32 @@
 pkgpyexec_LTLIBRARIES = libpypool.la
 
 libpypool_la_LIBADD = -L@TANGO_ROOT@/lib \
-		-L@OMNI_ROOT@/lib \
-		$(PYTHON_LDFLAGS) \
-		-ltango \
-		-llog4tango \
-		-lomniORB4 \
-		-lomniDynamic4 \
-		-lomnithread \
-		-lCOS4 \
-		-lltdl \
-		-lpthread
+    -L@OMNI_ROOT@/lib \
+    $(PYTHON_LDFLAGS) \
+    -ltango \
+    -llog4tango \
+    -lomniORB4 \
+    -lomniDynamic4 \
+    -lomnithread \
+    -lCOS4 \
+    -lltdl \
+    -lpthread
 
 libpypool_la_LDFLAGS = -module -avoid-version
 libpypool_la_CXXFLAGS = -Wall -ansi -Wno-invalid-offsetof
-libpypool_la_CPPFLAGS = -I@TANGO_ROOT@/include \
-			-I@OMNI_ROOT@/include \
-			$(PYTHON_CPPFLAGS) \
-			-I$(srcdir)/../../include \
-			-DREENTRANT 
+libpypool_la_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
+    -I@OMNI_ROOT@/include \
+    $(PYTHON_CPPFLAGS) \
+    -I$(srcdir)/../../include \
+    -DREENTRANT 
 
 libpypool_ladir = $(pkgincludedir)
 
-libpypool_la_SOURCES =  $(srcdir)/PoolAPI.cpp \
-				$(srcdir)/PyPoolAPI.cpp
+libpypool_la_SOURCES = \
+    $(srcdir)/PoolAPI.cpp \
+    $(srcdir)/PyPoolAPI.cpp
 
 install-data-local:
 	ln -sf $(pkgpythondir)/libpypool.so $(pkgpythondir)/pool.so

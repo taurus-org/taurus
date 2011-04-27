@@ -32,6 +32,7 @@ libpool_la_CXXFLAGS = -Wall -ansi -DREENTRANT -Wno-invalid-offsetof
 
 libpool_la_CPPFLAGS = $(PYTHON_CPPFLAGS) \
     -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     -I$(srcdir)/../include \
     -I$(srcdir) \

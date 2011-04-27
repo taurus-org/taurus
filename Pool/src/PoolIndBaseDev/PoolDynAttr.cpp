@@ -352,7 +352,11 @@ void PoolIndBaseDev::remove_unwanted_dyn_attr_from_device()
 	for (unsigned long lp = 0;lp < att_to_remove.size();lp++)
 	{
 		DEBUG_STREAM << "Removing dynamic attribute " << att_to_remove[lp] << endl;
+#if TANGO_VERSION_HEX < 0x07020000
 		dev_attr->remove_attribute(att_to_remove[lp]);
+#else
+		dev_attr->remove_attribute(att_to_remove[lp], true);
+#endif
 	}
 	
 //
@@ -364,7 +368,11 @@ void PoolIndBaseDev::remove_unwanted_dyn_attr_from_device()
 		DEBUG_STREAM << "Adding dynamic attribute (because bad data or write type) " << endl;
 		
 		Tango::Attr &att = device_class->get_class_attr()->get_attr(extra[att_to_add[lp]].ExtraAttr_name);
-		device_class->get_class_attr()->remove_attr(extra[att_to_add[lp]].ExtraAttr_name);
+#if TANGO_VERSION_HEX < 0x07020000
+		device_class->get_class_attr()->remove_attr(att.get_name());
+#else
+		device_class->get_class_attr()->remove_attr(att.get_name(), att.get_cl_name());
+#endif
 		delete &att;
 		
 		create_one_extra_attr(extra[att_to_add[lp]]);

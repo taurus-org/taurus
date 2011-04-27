@@ -38,9 +38,10 @@ subdir = lib/cpp/countertimer/uxtimer
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_python_devel.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/ac_tango_devel.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -177,6 +178,8 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 TANGO_ROOT = @TANGO_ROOT@
+TANGO_VERSION = @TANGO_VERSION@
+TANGO_VERSION_HEX = @TANGO_VERSION_HEX@
 VERSION = @VERSION@
 VERSION_INFO = @VERSION_INFO@
 abs_builddir = @abs_builddir@
@@ -240,15 +243,18 @@ RSYNC_OPTS = -r --cvs-exclude
 @USE_PARENT_AS_POOL_PATH_FALSE@CTRL_ROOT = @POOL_ROOT@
 @USE_PARENT_AS_POOL_PATH_TRUE@CTRL_ROOT = $(top_srcdir)/..
 pkglib_LTLIBRARIES = UxTimerCtrl.la 
-AM_CPPFLAGS = -I@TANGO_ROOT@/include \
-			-I@OMNI_ROOT@/include \
-			$(PYTHON_CPPFLAGS) \
-			-I$(CTRL_ROOT)/include		
+AM_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
+    -I@OMNI_ROOT@/include \
+    $(PYTHON_CPPFLAGS) \
+    -I$(CTRL_ROOT)/include
 
 AM_CXXFLAGS = -DREENTRANT 
 AM_LDFLAGS = -module -avoid-version
-UxTimerCtrl_la_SOURCES = $(srcdir)/UxTimerCtrl.cpp \
-					$(srcdir)/UxTimerCtrl.h
+UxTimerCtrl_la_SOURCES = \
+    $(srcdir)/UxTimerCtrl.cpp \
+    $(srcdir)/UxTimerCtrl.h
 
 all: all-am
 

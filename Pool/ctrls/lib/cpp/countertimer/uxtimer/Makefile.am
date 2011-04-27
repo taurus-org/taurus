@@ -11,16 +11,19 @@ endif
 
 pkglib_LTLIBRARIES = UxTimerCtrl.la 
 
-AM_CPPFLAGS = -I@TANGO_ROOT@/include \
-			-I@OMNI_ROOT@/include \
-			$(PYTHON_CPPFLAGS) \
-			-I$(CTRL_ROOT)/include		
-				 
+AM_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
+    -I@OMNI_ROOT@/include \
+    $(PYTHON_CPPFLAGS) \
+    -I$(CTRL_ROOT)/include
+
 AM_CXXFLAGS = -DREENTRANT 
 AM_LDFLAGS = -module -avoid-version
 
-UxTimerCtrl_la_SOURCES = $(srcdir)/UxTimerCtrl.cpp \
-					$(srcdir)/UxTimerCtrl.h
+UxTimerCtrl_la_SOURCES = \
+    $(srcdir)/UxTimerCtrl.cpp \
+    $(srcdir)/UxTimerCtrl.h
 
 dist-hook:
 	cp $(srcdir)/*.png $(distdir)

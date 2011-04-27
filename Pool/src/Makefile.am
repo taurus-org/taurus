@@ -19,7 +19,9 @@ lib_LTLIBRARIES = libPool.la
 
 bin_PROGRAMS = Pool
 
-libPool_la_CPPFLAGS = -I@TANGO_ROOT@/include \
+libPool_la_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     $(PYTHON_CPPFLAGS) \
     -I$(srcdir)/../include \
@@ -53,7 +55,9 @@ libPool_la_CPPFLAGS = -I@TANGO_ROOT@/include \
     -I$(srcdir)/../lib/IORegister \
     -I$(srcdir)/../lib/Instrument
 
-Pool_CPPFLAGS = -I@TANGO_ROOT@/include \
+Pool_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     $(PYTHON_CPPFLAGS) \
     -I$(srcdir)/../include \

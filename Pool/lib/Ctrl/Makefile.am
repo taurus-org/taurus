@@ -27,7 +27,9 @@ pkglib_LTLIBRARIES = PyConstraint.la \
     PyCommunicationCtrl.la \
     PyIORegisterCtrl.la
 
-AM_CPPFLAGS = -I@TANGO_ROOT@/include \
+AM_CPPFLAGS = \
+    -I@TANGO_ROOT@/include \
+    -I@TANGO_ROOT@/include/tango \
     -I@OMNI_ROOT@/include \
     $(PYTHON_CPPFLAGS) \
     -I$(top_srcdir)/include \
@@ -62,31 +64,31 @@ PyIORegisterCtrl_ladir = $(pkgincludedir)
 PyCommunicationCtrl_ladir = $(pkgincludedir)
 
 PyConstraint_la_SOURCES = $(srcdir)/PyConstraint.cpp \
-					$(srcdir)/PyConstraint.h 
+        	$(srcdir)/PyConstraint.h 
 
 PyMotorCtrl_la_SOURCES = $(srcdir)/PyMotCtrl.cpp \
-					$(srcdir)/PyMotCtrl.h
-					
+        	$(srcdir)/PyMotCtrl.h
+        	
 PyPseudoMotorCtrl_la_SOURCES = $(srcdir)/PyPseudoMotCtrl.cpp \
-					$(srcdir)/PyPseudoMotCtrl.h
-					
+        	$(srcdir)/PyPseudoMotCtrl.h
+        	
 PyCounterTimerCtrl_la_SOURCES = $(srcdir)/PyCoTiCtrl.cpp \
-					$(srcdir)/PyCoTiCtrl.h
-					
+        	$(srcdir)/PyCoTiCtrl.h
+        	
 PyZeroDExpChannelCtrl_la_SOURCES = $(srcdir)/PyZeroDCtrl.cpp \
-					$(srcdir)/PyZeroDCtrl.h
-					
+        	$(srcdir)/PyZeroDCtrl.h
+        	
 PyOneDExpChannelCtrl_la_SOURCES = $(srcdir)/PyOneDCtrl.cpp \
-					$(srcdir)/PyOneDCtrl.h
-					
+        	$(srcdir)/PyOneDCtrl.h
+        	
 PyTwoDExpChannelCtrl_la_SOURCES = $(srcdir)/PyTwoDCtrl.cpp \
-					$(srcdir)/PyTwoDCtrl.h
-					
+        	$(srcdir)/PyTwoDCtrl.h
+        	
 PyPseudoCounterCtrl_la_SOURCES = $(srcdir)/PyPseudoCoCtrl.cpp \
-					$(srcdir)/PyPseudoCoCtrl.h
-					
+        	$(srcdir)/PyPseudoCoCtrl.h
+        	
 PyCommunicationCtrl_la_SOURCES = $(srcdir)/PyComCtrl.cpp \
-					$(srcdir)/PyComCtrl.h
+        	$(srcdir)/PyComCtrl.h
 
 PyIORegisterCtrl_la_SOURCES = $(srcdir)/PyIORegisterCtrl.cpp \
-					$(srcdir)/PyIORegisterCtrl.h
+        	$(srcdir)/PyIORegisterCtrl.h

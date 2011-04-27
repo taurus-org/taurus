@@ -29,6 +29,8 @@ endif
 
 ACLOCAL_AMFLAGS = -I m4
 
+CXXFLAGS = -DTANGO_VERSION_HEX=$(AC_TANGO_VER)
+
 SUBDIRS = include lib src python $(DO_DOC) $(EXTRA_CONTROLLERS)
 DIST_SUBDIRS = include lib src python doc ctrls
 
