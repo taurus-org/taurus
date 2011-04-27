@@ -26,17 +26,3 @@
 """This module provides the glue between taurus and guiqwt. It essentially provides taurus extensions to qwtgui"""
 
 __docformat__ = 'restructuredtext'
-
-try:
-    import guiqwt
-    HAS_GUIQWT = True
-except Exception,e:
-    HAS_GUIQWT = False
-    import taurus.core.util
-    _logger = taurus.core.util.Logger(__name__)
-    _logger.debug("guiqwt is not supported. ")
-    _logger.traceback()
-    
-if HAS_GUIQWT:
-    import builder
-    import curve

@@ -26,10 +26,13 @@
 """
 Extension of :mod:`guiqwt.image`
 """
+__all__=["TaurusImageItem"]
+
 from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from guiqwt.image import ImageItem
+
 import numpy
 
 class TaurusImageItem(ImageItem, TaurusBaseComponent):
@@ -64,43 +67,37 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
         if p is not None: 
             p.replot()
         
-def main():
-    '''launch'''
-    from guiqwt.plot import ImagePlotWidget,ImagePlotDialog
-    import sys
-    from guiqwt.image import  ImageParam
+
+
+def test1():
+    """Adapted from guiqwt cross_section.py example"""
+    from guiqwt.plot import ImageDialog
+    from taurus.qt.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
-    
     app = TaurusApplication()
-    args = app.get_command_line_args()
-    if len (args)==1:
-        model = args[0]
-    else:
-        model = 'sys/tg_test/1/short_image_ro'
-        #model = 'eval://{sys/tg_test/1/short_image_ro}+10*rand(251,251)'
-        #model = 'eval://{sys/tg_test/1/short_image_ro}+10*rand(*shape({sys/tg_test/1/short_image_ro}))' #we can iven do this!!
+        
+    #define a taurus image
+    model1 = 'sys/tg_test/1/short_image_ro'
+    taurusimage = make.image(taurusmodel= model1)
+    
+    #adefine normal image (guiqwt standard)
+    data = numpy.random.rand(100,100)
+    image = make.image(data=data)
+    
+    #create a dialog with a plot and add the images
+    win = ImageDialog(edit=False, toolbar=True, wintitle="Taurus Cross sections test",
+                      options=dict(show_xsection=True, show_ysection=True))
+    plot = win.get_plot()
+    plot.add_item(taurusimage)
+    plot.add_item(image)
+    win.get_itemlist_panel().show()
+    
+    #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
+    win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
+    
+    win.exec_()
 
-    w = ImagePlotDialog(toolbar=True)
-    #w = ImagePlotWidget()
-    #w.register_all_image_tools()
-    
-    param = ImageParam()
-    param.label = model
-    
-    img = TaurusImageItem(param)
-    img.setModel(model)
-    
-    plot = w.get_plot()
-    plot.add_item(img)
-    
-    #connect the cross section plots so that they are updated on signal changes
-    w.connect(img.getSignaller(), Qt.SIGNAL("dataChanged"), w.update_cross_sections)
-
-    #show the widget
-    w.show()
-    
-    sys.exit(app.exec_()) 
 
 if __name__ == "__main__":
-    main()    
+    test1()    
 
