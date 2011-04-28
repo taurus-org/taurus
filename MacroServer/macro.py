@@ -788,14 +788,14 @@ class Macro(taurus.core.util.Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     @mAPI
-    def addObj(self, obj):
+    def addObj(self, obj, priority=0):
         """Adds the given object to the list of controlled objects of this macro.
            In practice it means that if an abort is executed the abort method of
            the given object will be called
            
            @param[in] obj the object to be controlled
         """
-        self.getExecutor().reserveObj(obj, self)
+        self.getExecutor().reserveObj(obj, self, priority=priority)
     
     @mAPI
     def addObjs(self, obj_list):
@@ -932,8 +932,11 @@ class Macro(taurus.core.util.Logger):
            @param[in] cache not used. Reserved for future use
            
            @return a Motion object """
-        return self.getManager().getMotion(elems, motion_source=motion_source,
-                                           read_only=read_only, cache=cache)
+        motion = self.getManager().getMotion(elems, motion_source=motion_source,
+                                             read_only=read_only, cache=cache)
+        if motion is not None:
+            self.addObj(motion, priority=1)
+        return motion
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Handle macro environment

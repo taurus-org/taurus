@@ -466,12 +466,12 @@ class PoolElement(BaseElement, taurus.core.tango.TangoDevice):
     def getReserved(self):
         if self._reserved is None: return None
         return self._reserved()
-
+    
     def _getAttrValue(self, name, force=False):
         attrExObj = self._getAttrEx(name)
         if attrExObj is None: return None
         return attrExObj.readValue(force=force)
-
+    
     def _getAttrEx(self, name):
         attrExObj = self.getAttrExObj(name)
         if attrExObj is None:
@@ -489,15 +489,14 @@ class PoolElement(BaseElement, taurus.core.tango.TangoDevice):
         attrExObj = TangoAttributeEG(attrObj)
         self._attr_obj_ex[name] = attrExObj
         return attrObj, attrExObj
-
+    
     def _getEventWait(self):
         if not hasattr(self, '_evt_wait'):
             # create an object that waits for attribute events.
             # each time we use it we have to connect and disconnect to an attribute
             self._evt_wait = taurus.core.util.AttributeEventWait()
         return self._evt_wait
-
-
+    
     def getStateExObj(self):
         return self._getAttrEx('state')
     
@@ -707,25 +706,27 @@ class Motor(PoolElement, motion.Moveable):
         evt_wait.lock()
         try:
             evt_wait.waitEvent(PyTango.DevState.MOVING, equal=False)
-            time_stamp = time.time()
+            ts1 = time.time()
             try:
                 self.getPositionObj().write(new_pos)
-            except PyTango.DevFailed, err_traceback:
-                for err in err_traceback:
+            except PyTango.DevFailed, df:
+                for err in df:
                     if err.reason == 'API_AttrNotAllowed':
-                        raise RuntimeError, '%s is already moving' % self
+                        raise RuntimeError('%s is already moving' % self)
                     else:
                         raise
             self.final_pos = new_pos
+            ts2 = time.time()
             # putting timeout=0.1 and retries=1 is a patch for the case the when the initial
-            # moving event doesn't arrive do to an unknow tango/pytango error at the time
-            evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp, timeout=0.1, retries=1)
+            # moving event doesn't arrive due to an unknow tango/pytango error at the time
+            evt_wait.waitEvent(PyTango.DevState.MOVING, after=ts1, timeout=0.1, retries=1)
         except Exception,e:
             evt_wait.disconnect()
             raise e
         finally:
             evt_wait.unlock()
-        return (time_stamp,)
+        ts2 = evt_wait.getRecordedEvents().get(PyTango.DevState.MOVING, ts2)
+        return (ts2,)
     
     @reservedOperation
     def waitMove(self, timeout=None, id=None):
@@ -734,7 +735,7 @@ class Motor(PoolElement, motion.Moveable):
         evt_wait = self._getEventWait()
         evt_wait.lock()
         try:
-            evt_wait.waitEvent(PyTango.DevState.MOVING, id, equal=False, timeout=timeout)
+            evt_wait.waitEvent(PyTango.DevState.MOVING, after=id, equal=False, timeout=timeout)
         finally:
             evt_wait.unlock()
             evt_wait.disconnect()
@@ -838,7 +839,7 @@ class PseudoMotor(PoolElement, motion.Moveable):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
     #
-    
+
     @reservedOperation
     def startMove(self, new_pos, timeout=None):
         new_pos = new_pos[0]
@@ -847,23 +848,27 @@ class PseudoMotor(PoolElement, motion.Moveable):
         evt_wait.lock()
         try:
             evt_wait.waitEvent(PyTango.DevState.MOVING, equal=False)
-            time_stamp = time.time()
+            ts1 = time.time()
             try:
                 self.getPositionObj().write(new_pos)
-            except PyTango.DevFailed, err_traceback:
-                for err in err_traceback:
+            except PyTango.DevFailed, df:
+                for err in df:
                     if err.reason == 'API_AttrNotAllowed':
-                        raise RuntimeError, '%s is already moving' % self
+                        raise RuntimeError('%s is already moving' % self)
                     else:
                         raise
             self.final_pos = new_pos
-            evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp)
-        except Exception, e:
+            ts2 = time.time()
+            # putting timeout=0.1 and retries=1 is a patch for the case the when the initial
+            # moving event doesn't arrive due to an unknow tango/pytango error at the time
+            evt_wait.waitEvent(PyTango.DevState.MOVING, after=ts1, timeout=0.1, retries=1)
+        except Exception,e:
             evt_wait.disconnect()
             raise e
         finally:
             evt_wait.unlock()
-        return (time_stamp,)
+        ts2 = evt_wait.getRecordedEvents().get(PyTango.DevState.MOVING, ts2)
+        return (ts2,)
     
     @reservedOperation
     def waitMove(self, timeout=None, id=None):
@@ -945,7 +950,7 @@ class MotorGroup(PoolElement, motion.Moveable):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
     #
-    
+
     @reservedOperation
     def startMove(self, new_pos, timeout=None):
         evt_wait = self._getEventWait()
@@ -953,23 +958,28 @@ class MotorGroup(PoolElement, motion.Moveable):
         evt_wait.lock()
         try:
             evt_wait.waitEvent(PyTango.DevState.MOVING, equal=False)
-            time_stamp = time.time()
+            ts1 = time.time()
             try:
                 self.getPositionObj().write(new_pos)
-            except PyTango.DevFailed, err_traceback:
-                for err in err_traceback:
+            except PyTango.DevFailed, df:
+                for err in df:
                     if err.reason == 'API_AttrNotAllowed':
-                        raise RuntimeError, '%s is already moving' % self
+                        raise RuntimeError('%s is already moving' % self)
                     else:
                         raise
             self.final_pos = new_pos
-            evt_wait.waitEvent(PyTango.DevState.MOVING, time_stamp)
-        except Exception, e:
+            ts2 = time.time()
+            # putting timeout=0.1 and retries=1 is a patch for the case the when the initial
+            # moving event doesn't arrive due to an unknow tango/pytango error at the time
+            evt_wait.waitEvent(PyTango.DevState.MOVING, after=ts1, timeout=0.1, retries=1)
+        except Exception,e:
             evt_wait.disconnect()
             raise e
         finally:
             evt_wait.unlock()
-        return (time_stamp,)
+        ts2 = evt_wait.getRecordedEvents().get(PyTango.DevState.MOVING, ts2)
+        return (ts2,)
+    
     
     @reservedOperation
     def waitMove(self, timeout=None, id=None):

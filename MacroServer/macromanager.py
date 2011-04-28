@@ -726,15 +726,15 @@ class MacroExecutor(taurus.core.util.Logger):
 
     def __abortObjects(self):
         """Aborts all the reserved objects in the executor"""
-        objs = copy.copy(self._reserved_objs.keys())
-        for obj in objs:
-            try:
-                obj.abort()
-            except AttributeError:
-                pass
-            except Exception as e:
-                self.warning("Unable to abort %s" % obj)
-                self.debug(str(e))
+        for objs in self._reserved_macro_objs.values():
+            for obj in objs:
+                try:
+                    obj.abort()
+                except AttributeError:
+                    pass
+                except Exception as e:
+                    self.warning("Unable to abort %s" % obj)
+                    self.debug(str(e))
 
     def abort(self):
         self._aborted, m = True, self.getRunningMacro()
@@ -768,7 +768,6 @@ class MacroExecutor(taurus.core.util.Logger):
         ejecution after being paused"""
         self.sendMacroStatusResume()
         self.sendState(MacroManager.Running)
-        
     
     def run(self, params):
         """Runs the given macro(s)
@@ -779,9 +778,9 @@ class MacroExecutor(taurus.core.util.Logger):
         :return: (lxml.etree.Element) the xml representation of the running macro
         """
         
-        # dict<PoolElement, int>
+        # dict<PoolElement, set<Macro>>
         # key PoolElement - reserved object
-        # value - int - reference count on the number of macros that reserved the object
+        # value set<Macro> macros that reserved the object
         self._reserved_objs = {}
         
         # dict<Macro, seq<PoolElement>>
@@ -817,11 +816,11 @@ class MacroExecutor(taurus.core.util.Logger):
         except Exception as e:
             pass
         finally:
-            self.debug("Start cleanup")
+            self.debug("Starting cleanup")
             self._macro_stack = None
             self._xml_stack = None
             self.sendState(MacroManager.Finished)
-            self.debug("Finish cleanup")
+            self.debug("Finished cleanup")
     
     def __runStatelessXML(self, xml=None):
         if xml is None:
@@ -969,16 +968,24 @@ class MacroExecutor(taurus.core.util.Logger):
         door = self.getDoor()
         return door.sendRecordData(*data)
     
-    def reserveObj(self, obj, macro_obj):
+    def reserveObj(self, obj, macro_obj, priority=0):
         if obj is None or macro_obj is None: return
         
-        objs = self._reserved_macro_objs.get(macro_obj, set())
-        objs.add(obj)
-        if hasattr(obj, 'reserve'): obj.reserve(macro_obj)
-        self._reserved_macro_objs[macro_obj] = objs
+        # Fill _reserved_macro_objs
+        objs = self._reserved_macro_objs[macro_obj] = \
+            self._reserved_macro_objs.get(macro_obj, list())
+        if not obj in objs:
+            if priority:
+                objs.insert(0, obj)
+            else:
+                objs.append(obj)
         
-        refcount = self._reserved_objs.get(obj, 0)
-        self._reserved_objs[obj] = refcount + 1
+        # Fill _reserved_objs
+        macros = self._reserved_objs[obj] = self._reserved_objs.get(obj, set())
+        macros.add(macro_obj)
+        
+        # Tell the object that it is reserved by a new macro
+        if hasattr(obj, 'reserve'): obj.reserve(macro_obj)
     
     def returnObjs(self, macro_obj):
         """Free the macro reserved objects"""
@@ -986,6 +993,7 @@ class MacroExecutor(taurus.core.util.Logger):
         objs = self._reserved_macro_objs.get(macro_obj)
         if objs is None: return
         
+        # inside returnObj we change the list so we have to iterate with a copy
         for obj in copy.copy(objs):
             self.returnObj(obj, macro_obj)
     
@@ -1002,8 +1010,9 @@ class MacroExecutor(taurus.core.util.Logger):
             del self._reserved_macro_objs[macro_obj]
         
         try:
-            refcount = self._reserved_objs[obj]
-            if refcount == 1:
+            macros = self._reserved_objs[obj]
+            macros.remove(macro_obj)
+            if not len(macros):
                 del self._reserved_objs[obj]
         except KeyError:
-            self.debug("Unexpected key error trying to remove reserved object")
+            self.debug("Unexpected KeyError trying to remove reserved object")
