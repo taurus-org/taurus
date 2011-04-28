@@ -324,12 +324,7 @@ class EventGenerator(Object):
         
         :return: the last event value
         :rtype: object"""
-        try:
-            self.lock()
-            val = self.last_val
-        finally:
-            self.unlock()
-        return val
+        return self.last_val
 
 
 class EventListener(object):
@@ -516,6 +511,7 @@ class AttributeEventWait(object):
     def clearEventSet(self):
         "Clears the internal event buffer"
         self._event_set.clear()
+        self._last_val = None
 
     def eventReceived(self, s, t, v):
         """Event listener method for the underlying attribute. Do not call this
@@ -543,7 +539,33 @@ class AttributeEventWait(object):
             self._cond.notifyAll()
         finally:
             self.unlock()
-
+    
+    def getLastRecordedEvent(self):
+        """returns the value of the last recorded event or None if no event has
+        been received or the last event was an error event
+        
+        :return: the last event value to be recorded
+        :rtype: object"""
+        return self._last_val
+    
+    def getRecordedEvents(self):
+        """Returns a reference to the internal dictionary used to store the internal
+        events. Modify the return dictionary at your own risk!
+        
+        :return: reference to the internal event dictionary
+        :rtype: dict"""
+        return self._event_set
+    
+    def getRecordedEvent(self, v):
+        """Returns the the recorded local timestamp for the event with the given
+        value or None if no event with the given value has been recorded.
+        
+        :param v: event value
+        :type  v: object
+        :return: local timestamp for the event or None if no event has been recorded
+        :rtype: float"""
+        return self._event_set.get(v)
+    
     def waitEvent(self, val, after=0, equal=True, timeout=None, retries=-1):
         """Wait for an event with the given value.
         
@@ -562,14 +584,24 @@ class AttributeEventWait(object):
                         Default is -1 meaning infinite number of retries.
                         0 means no wait. Positive number is obvious.
         """
-        if after is None: after = 0
+        if retries == 0:
+            return
+        if timeout is None:
+            # if waitting forever doesn't make sense to retry
+            retries = 1
+        if after is None:
+            after = 0
         s = self._event_set
         self.lock()
         try:
+            # increase the retries by one just because of how the loop is done
+            if retries > 0:
+                retries += 1
             while retries != 0:
                 if equal:
                     t = s.get(val)
-                    if t and t >= after: return
+                    if (t is not None) and (t >= after):
+                        return
                 else:
                     for v, t in s.items():
                         if v == val: continue
@@ -577,7 +609,7 @@ class AttributeEventWait(object):
                 self._cond.wait(timeout)
                 retries -= 1
         except Exception, e:
-            print "INFO: Caught exception while waiting:", str(e)
+            sys.stderr.write("AttributeEventWait: Caught exception while waitting: %s\n" % str(e))
             raise e
         finally:
             self.unlock()
