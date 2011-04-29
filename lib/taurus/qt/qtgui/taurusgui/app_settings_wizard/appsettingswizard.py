@@ -24,10 +24,10 @@
 ###########################################################################
 
 """
-This Wizard provide functionality of creation of configuration file 
-for constructing a GUI based on TaurusGUI  
+This Wizard provide functionality for creating from scratch a configuration
+directory for a TaurusGUI based application.
 
-The configuration file determines the default, permanent, pre-defined
+The files in the configuration dir determine the default, permanent, pre-defined
 contents of the GUI. While the user may add/remove more elements at run
 time and those customizations will also be stored, this file defines what a
 user will find when launching the GUI for the first time.
@@ -50,9 +50,9 @@ from taurus.qt.qtgui.util import ExternalAppAction
         
 class BooleanWidget(Qt.QWidget):
     """
-        This class represents the simple boolean widget with two RadioButtons
-        true and false. The default value of the widget is true.
-        It change the value by using getValue and setValue methods
+    This class represents the simple boolean widget with two RadioButtons
+    true and false. The default value of the widget is true.
+    It change the value by using getValue and setValue methods
     """
     
     def __init__(self, parent=None):
@@ -1303,6 +1303,15 @@ class OutroPage(BasePage):
          
 
 class AppSettingsWizard(Qt.QWizard):
+    """
+    This Wizard provide functionality for creating from scratch a configuration
+    directory for a TaurusGUI based application.
+    
+    The files in the configuration dir determine the default, permanent, pre-defined
+    contents of the GUI. While the user may add/remove more elements at run
+    time and those customizations will also be stored, this file defines what a
+    user will find when launching the GUI for the first time.
+    """
     Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
     def __init__(self, parent=None, jdrawCommand='jdraw', configFileName='config.xml'):
         Qt.QWizard.__init__(self, parent)
