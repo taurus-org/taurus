@@ -238,7 +238,7 @@ class ProjectPage(BasePage):
                                     'Could not create the project directory.\nReason:%s'%repr(e),
                                      Qt.QMessageBox.Cancel)
                 return False
-        fname = os.path.join(dirname, self.wizard().getConfigFileName())
+        fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
         if os.path.exists(fname):
             option = Qt.QMessageBox.question(self, 'Overwrite project?', 
                                     'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?'%(os.path.basename(fname)),
@@ -1278,18 +1278,30 @@ class OutroPage(BasePage):
             if os.path.normpath(src) != os.path.normpath(dst):
                 shutil.copy(src, dst)
                 logfile.write('File copied: %s --> %s\n'%(src, dst))
-        #write config file
-        cfgfilename = os.path.join(pdir, self.wizard().getConfigFileName())
-        f = open(cfgfilename, 'w')
+        #write xml config file
+        xmlcfgfilename = os.path.join(pdir, self.wizard().getXmlConfigFileName())
+        f = open(xmlcfgfilename, 'w')
         f.write(unicode(self._xml.toPlainText()))
         f.close()
-        logfile.write('Config file created: "%s"\n'%cfgfilename)
+        logfile.write('XML Config file created: "%s"\n'%xmlcfgfilename)
+        #write python config file
+        pycfgfilename = os.path.join(pdir, '%s.py'%self.wizard().getConfigFilePrefix())
+        f = open(pycfgfilename, 'w')
+        f.write("XML_CONFIG = '%s'"%self.wizard().getXmlConfigFileName())
+        f.close()
+        logfile.write('Python config file created: "%s"\n'%pycfgfilename)        
+        #write __init__.py config file
+        initfilename = os.path.join(pdir, '__init__.py')
+        f = open(initfilename, 'w')
+        f.write('from config import *')
+        f.close()
+        logfile.write('python init file created: "%s"\n'%initfilename)
         #write launcher script
         launcherfilename = os.path.join(pdir, self.wizard().__getitem__("guiName"))
         f = open(launcherfilename, 'w')
         f.write(('#!/bin/sh\n'
                  '#Make sure to give this file execution permisions\n'
-                 'taurusgui --config-file=%s')%self.wizard().getConfigFileName())
+                 'taurusgui %s')%os.path.basename(pdir.rstrip('/')))
         f.close()
         logfile.write('Unix launcher created: "%s"\n'%launcherfilename)
 
@@ -1319,22 +1331,25 @@ class AppSettingsWizard(Qt.QWizard):
     user will find when launching the GUI for the first time.
     """
     Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage','SynopticPage','MacroServerInfo','InstrumentsPage', 'PanelsPage','ExternalAppPage','MonitorPage','OutroPage'))
-    def __init__(self, parent=None, jdrawCommand='jdraw', configFileName='config.xml'):
+    def __init__(self, parent=None, jdrawCommand='jdraw', configFilePrefix='config'):
         Qt.QWizard.__init__(self, parent)
         self.installEventFilter(self)
         self._item_funcs = {}
         self._pages = {}
         self._jdrawCommand = jdrawCommand
-        self._configFileName = configFileName
+        self._configFilePrefix = configFilePrefix
         self._loadPages()
         self._substitutions = {}
         self._projectWarnings = []
     
     def getProjectWarnings(self):
         return self._projectWarnings
+    
+    def getConfigFilePrefix(self):
+        return self._configFilePrefix
         
-    def getConfigFileName(self):
-        return self._configFileName
+    def getXmlConfigFileName(self):
+        return "%s.xml"%self._configFilePrefix
      
     @staticmethod
     def getValueFromNode(rootNode, nodeName, default=None):
@@ -1481,7 +1496,7 @@ class AppSettingsWizard(Qt.QWizard):
         if src is None or src.startswith(":"):
             dst = src
         else:
-            src = os.path.join(pdir,src) #if src is absolute, it stays so, and if it is relative, we make assume pdir as the root dir
+            src = os.path.join(pdir,src) #if src is absolute, it stays so, and if it is relative, we assume pdir as the root dir
             dst = self.substitutionName(src)
         customLogo.text = dst
         #synoptic page
@@ -1498,7 +1513,7 @@ class AppSettingsWizard(Qt.QWizard):
                 contents = f.read()
                 f.close()
                 for ref in re.findall(r'file_name:\"(.+?)\"',contents):
-                    refsrc = os.path.join(src,ref) #this is ok for both relative and absolute references
+                    refsrc = os.path.join(os.path.dirname(src),ref) #this is ok for both relative and absolute references
                     refdst = self.substitutionName(refsrc)
                     if ref != refdst:
                         short = 'Manual editing needed in "%s"'%dst

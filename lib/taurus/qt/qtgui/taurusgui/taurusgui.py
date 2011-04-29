@@ -149,7 +149,7 @@ class TaurusGui(TaurusMainWindow):
         be added in the near future.
     '''
     
-    def __init__(self, parent=None, confname=None, xmlconffile=None):
+    def __init__(self, parent=None, confname=None):
         TaurusMainWindow.__init__(self, parent, False, True)
         
         self.__panels = {}   
@@ -182,10 +182,7 @@ class TaurusGui(TaurusMainWindow):
         self.__initSharedDataConnections()
         self.__initToolsMenu()
                 
-        if confname is not None:
-            self.loadConfiguration(confname)
-        if xmlconffile is not None:            
-            self.loadXmlConfigurationFile(xmlconffile)
+        self.loadConfiguration(confname)
         
         self.updatePerspectivesMenu()
         self.splashScreen().finish(self)
@@ -572,189 +569,73 @@ class TaurusGui(TaurusMainWindow):
         else:
             return name.text
     
-    def loadXmlConfigurationFile(self, fname=None):    
-        if (fname is None) or len(fname)==0:
-            fname = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"),Qt.QDir.homePath(), self.tr("XML (*.xml); All files (*.*)" ))
-            if fname is None:
-                sys.exit(1)
-            else:
-                fname=unicode(fname)        
-        try:
-            xmlFile = open(fname, 'r')
-            xml = xmlFile.read()
-            xmlFile.close()
-            self._confDirectory = os.path.dirname(fname)
-            self._confFileName = os.path.basename(fname)
-        except Exception, e:
-            msg = 'Cannot read the file: "%s"' % fname
-            self.error(msg)
-            self.traceback(level=taurus.Info)
-            fname =None
-            result = Qt.QMessageBox.critical(self,'Initialization error', '%s\nReason:"%s"'% (msg,repr(e)), Qt.QMessageBox.Abort)
-            sys.exit()
-            
-        self.loadXmlConfiguration(xml)
-    
-
-    
-    def loadXmlConfiguration(self, xml):
-        #
-        try:
-            root = etree.fromstring(xml)
-        except:
-            msg = 'XML Syntax Error'
-            self.error(msg)
-            self.traceback(level=taurus.Info)
-            Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
-            sys.exit()
-            
-        APPNAME = self.__getVarFromXML(root,"GUI_NAME", None)
-        if APPNAME is None:
-            msg = 'Could not find the GUI_NAME'
-            self.error(msg)
-            Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
-            sys.exit()
-       
-        ORGNAME = self.__getVarFromXML(root,"ORGANIZATION", 'Taurus')
-        CUSTOMLOGO = self.__getVarFromXML(root,"CUSTOM_LOGO", ':/taurus.png')
-        
-        Qt.qApp.setApplicationName(APPNAME)
-        Qt.qApp.setOrganizationName(ORGNAME)
-        self.resetQSettings()
-        
-        self.setWindowTitle(APPNAME)
-        windowIcon = taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO)
-        self.setWindowIcon(windowIcon)
-        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
-        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
-        
-        #configure the macro infrastructure
-        MACROSERVER_NAME = self.__getVarFromXML(root,"MACROSERVER_NAME", None)
-        DOOR_NAME = self.__getVarFromXML(root,"DOOR_NAME", '')
-        MACROEDITORS_PATH = self.__getVarFromXML(root,"MACROEDITORS_PATH", '')
-        if MACROSERVER_NAME is not None:
-            self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
-         
-        SYNOPTIC = []
-        synoptic = root.find("SYNOPTIC")
-        if (synoptic is not None) and (synoptic.text is not None):
-            for child in synoptic:
-                if (child.get("str") is not None):
-                    if len(child.get("str")):
-                        SYNOPTIC.append(child.get("str"))
-                    
-        for s in SYNOPTIC:
-            self.createMainSynoptic(s)
-        
-             
-        #create instrument panels and custom panels
-        CUSTOM_PANELS = []
-        
-        panelDescriptions = root.find("PanelDescriptions")
-        if (panelDescriptions is not None):
-            for child in panelDescriptions:
-                    if (child.tag == "PanelDescription"):
-                        pd = PanelDescription.fromXml(etree.tostring(child))
-                        if pd is not None:
-                            CUSTOM_PANELS.append(pd)
-                            
-        INSTRUMENTS_FROM_POOL = (self.__getVarFromXML(root,"INSTRUMENTS_FROM_POOL", 'False').lower() == 'true')                   
-        if INSTRUMENTS_FROM_POOL:
-            POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
-        else:
-            POOLINSTRUMENTS = []
-
-        for p in CUSTOM_PANELS + POOLINSTRUMENTS:
-            try:
-                w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                if hasattr(w,'setCustomWidgetMap'):
-                    w.setCustomWidgetMap(self.getCustomWidgetMap())
-                if p.model is not None:
-                    w.setModel(p.model)
-                #create a panel
-                self.createPanel(w, p.name, p.area)
-                #connect the widget
-                Qt.qApp.SDM.connectWriter("SelectedInstrument", w, "panelSelected")
-                
-            except Exception,e:
-                msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
-                self.error(msg)
-                self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
-                if result == Qt.QMessageBox.Abort:
-                    sys.exit()
-                    
-        
-        #add external applications
-        EXTERNAL_APPS = [] 
-        
-        externalAppsNode = root.find("ExternalApps")
-        if (externalAppsNode is not None):
-            for child in externalAppsNode:
-                    if (child.tag == "ExternalApp"):
-                        ea = ExternalApp.fromXml(etree.tostring(child))
-                        if ea is not None:
-                            EXTERNAL_APPS.append(ea)
-        
-        for a in EXTERNAL_APPS:
-            self.addExternalAppLauncher(a.getAction())
-        
-        #add a beam monitor  
-            
-        MONITOR = self.__getVarFromXML(root,"MONITOR", '')
-        monitorNode = root.find("MONITOR")
-        
-        if MONITOR:
-            self.__monitor = TaurusMonitorTiny()
-            self.__monitor.setModel(MONITOR)
-            self.jorgsBar.addWidget(self.__monitor)
-            self.registerConfigDelegate(self.__monitor, 'monitor')
-        
-        #read QSettings 
-        self.loadSettings()
-        #If no valid ini file is found in the standard locations, try with a fallback ini file
-        if self.getQSettings().allKeys().isEmpty(): 
-            #open the fall back file (aka "factory" settings)
-            rname,ext = os.path.splitext(self._confFileName)
-            iniFileName = self.__getVarFromXML(root,"INIFILENAME", '%s.ini'%rname) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confname>.ini
-            self.importSettingsFile(iniFileName)        
-    
     def loadConfiguration(self, confname):
         '''Reads a configuration file
         
-        :param confname: (str) the  name of a conf module located in the PYTHONPATH
+        :param confname: (str) the  name of module located in the PYTHONPATH
                          or in the conf subdirectory of the directory in which 
                          taurusgui.py file is installed.
                          This method will try to import <confname>.  If that fails, 
-                         it will try to import "TaurusGUI_conf_<confname>".
+                         it will try to import "tgconf_<confname>.
+                         Alternatively, confname can be the path to the configuration 
+                         directory (not necessarily in the python path).
         '''
-        altconfname = "tgconf_%s"%confname
         
-        confsubdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf') #the path to a conf subdirectory
-        oldpath = sys.path
-        sys.path = [confsubdir] + sys.path #add the config dir to the pythonpath
+        #import the python config file
         try:
-            try: 
-                conf = __import__(confname)
-            except ImportError:
-                try:
-                    conf = __import__(altconfname)
+            if os.path.isdir(confname): #if confname is a dir name
+                import imp
+                path, name = os.path.split(confname)
+                name, ext = os.path.splitext(name) 
+                file, filename, data = imp.find_module(name, [path])
+                conf = imp.load_module(name, file, filename, data)
+            else: #if confname is not a dir name, we assume it is a module name in the python path
+                confsubdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf') #the path to a conf subdirectory of the place where taurusgui.py is
+                oldpath = sys.path
+                sys.path = [confsubdir] + sys.path #add the conf subdirectory dir to the pythonpath
+                try: 
+                    conf = __import__(confname)
                 except ImportError:
-                    msg = 'Could not find %s or %s in %s or the Python path'%(confname, altconfname, confsubdir)
-                    self.error(msg)
-                    Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
-                    sys.exit()
+                    altconfname = "tgconf_%s"%confname
+                    try:
+                        conf = __import__(altconfname)
+                    except ImportError:
+                        msg = 'cannot import %s or %s'%(confname, altconfname)
+                        self.error(msg)
+                        Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
+                        sys.exit()
+                sys.path = oldpath #restore the previous sys.path
         except Exception, e:
-            msg = 'Error loading configuration file: %s'%repr(e)
+            msg = 'Error loading configuration: %s'%repr(e)
             self.error(msg)
             Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
-        sys.path = oldpath #restore the previous sys.path
+            
+        #In any case, once we have imported it we can get the configuration directory:
         self._confDirectory = os.path.dirname(conf.__file__)
         
-        APPNAME = getattr(conf,'GUI_NAME', confname)
-        ORGNAME = getattr(conf,'ORGANIZATION', 'Taurus')
-        CUSTOMLOGO =  getattr(conf, 'CUSTOM_LOGO', getattr(conf,'LOGO', ":/taurus.png"))
+        #Get the xml root node from the xml configuration file 
+        XML_CONFIG = getattr(conf,'XML_CONFIG', None)
+        xmlroot = etree.fromstring('<root></root>') #default fallback (in case of I/O or parse errors)
+        if XML_CONFIG is not None:
+            try:
+                xmlfname = os.path.join(self._confDirectory, XML_CONFIG) # If a relative name was given, the conf directory will be used as base path
+                xmlFile = open(xmlfname, 'r')
+                xmlstring = xmlFile.read()
+                xmlFile.close()
+                xmlroot = etree.fromstring(xmlstring)
+            except Exception, e:
+                msg = 'Error reading the XML file: "%s"' % xmlfname
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\nReason:"%s"'% (msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+                    
+        #General Qt application settings and jorgs bar logos
+        APPNAME = getattr(conf,'GUI_NAME', self.__getVarFromXML(xmlroot,"GUI_NAME", confname))
+        ORGNAME = getattr(conf,'ORGANIZATION', self.__getVarFromXML(xmlroot,"ORGANIZATION", 'Taurus'))
+        CUSTOMLOGO =  getattr(conf, 'CUSTOM_LOGO', getattr(conf,'LOGO', self.__getVarFromXML(xmlroot,"CUSTOM_LOGO", ':/taurus.png')))
         if not CUSTOMLOGO.startswith(':'):
             CUSTOMLOGO = os.path.join(self._confDirectory, CUSTOMLOGO)
         Qt.qApp.setApplicationName(APPNAME)
@@ -767,28 +648,49 @@ class TaurusGui(TaurusMainWindow):
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
                     
-        #configure the macro infrastructure
-        MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', None)
-        DOOR_NAME = getattr(conf,'DOOR_NAME','')
-        MACROEDITORS_PATH = getattr(conf,'MACROEDITORS_PATH','')
+        #configure the macro infrastructure       
+        MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', self.__getVarFromXML(xmlroot,"MACROSERVER_NAME", None))
+        DOOR_NAME = getattr(conf,'DOOR_NAME', self.__getVarFromXML(xmlroot,"DOOR_NAME", ''))
+        MACROEDITORS_PATH = getattr(conf,'MACROEDITORS_PATH', self.__getVarFromXML(xmlroot,"MACROEDITORS_PATH", ''))
         if MACROSERVER_NAME is not None:
             self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
             
-        #Synoptic  
-        SYNOPTIC = getattr(conf, 'SYNOPTIC', [])
-        if isinstance(SYNOPTIC, basestring):
+        #Synoptics          
+        SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
+        if isinstance(SYNOPTIC, basestring): #old config file style
             self.warning('Deprecated usage of SYNOPTIC keyword (now it expects a list of paths). Please update your configuration file to: "SYNOPTIC=[\'%s\']".'%SYNOPTIC)
             SYNOPTIC = [SYNOPTIC]
+        if SYNOPTIC is None: #we look in the xml config file if not present in the python config
+            SYNOPTIC = []
+            node = xmlroot.find("SYNOPTIC")
+            if (node is not None) and (node.text is not None):
+                for child in node:
+                    str = child.get("str")
+                    if str is not None and len(str): #we do not append empty strings
+                        SYNOPTIC.append(str)
         for s in SYNOPTIC:
             self.createMainSynoptic(s)
             
-        #create instrument panels and custom panels
-        CUSTOM_PANELS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, PanelDescription)]
-        if getattr(conf,'INSTRUMENTS_FROM_POOL',False):
+        #Get panel descriptions from pool if required                         
+        INSTRUMENTS_FROM_POOL = getattr(conf,'INSTRUMENTS_FROM_POOL', (self.__getVarFromXML(xmlroot,"INSTRUMENTS_FROM_POOL", 'False').lower() == 'true') )                   
+        if INSTRUMENTS_FROM_POOL:
             POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
         else:
             POOLINSTRUMENTS = []
-
+        
+        #get custom panel descriptions from the python config file      
+        CUSTOM_PANELS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, PanelDescription)]
+        
+        #add custom panel descriptions from xml config
+        panelDescriptions = xmlroot.find("PanelDescriptions")
+        if (panelDescriptions is not None):
+            for child in panelDescriptions:
+                if (child.tag == "PanelDescription"):
+                    pd = PanelDescription.fromXml(etree.tostring(child))
+                    if pd is not None:
+                        CUSTOM_PANELS.append(pd)
+        
+        #create panels based on the panel descriptions gathered before
         for p in CUSTOM_PANELS + POOLINSTRUMENTS:
             try:
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
@@ -808,15 +710,24 @@ class TaurusGui(TaurusMainWindow):
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
-                
         
-        #add external applications
+                
+        #add external applications from both the python and the xml config files
         EXTERNAL_APPS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
+                
+        externalAppsNode = xmlroot.find("ExternalApps")
+        if (externalAppsNode is not None):
+            for child in externalAppsNode:
+                if (child.tag == "ExternalApp"):
+                    ea = ExternalApp.fromXml(etree.tostring(child))
+                    if ea is not None:
+                        EXTERNAL_APPS.append(ea)
+        
         for a in EXTERNAL_APPS:
             self.addExternalAppLauncher(a.getAction())
         
-        #add a beam monitor
-        MONITOR = getattr(conf, 'MONITOR', [])
+        #add a beam monitor        
+        MONITOR = getattr(conf, 'MONITOR', self.__getVarFromXML(xmlroot,"MONITOR", []))
         if MONITOR:
             self.__monitor = TaurusMonitorTiny()
             self.__monitor.setModel(MONITOR)
@@ -825,11 +736,15 @@ class TaurusGui(TaurusMainWindow):
         
         #read QSettings 
         self.loadSettings()
-        #If no valid ini file is found in the standard locations, try with a fallback ini file
+        #If no valid ini file is found in the standard locations, try with a fallback ini file (aka "factory" settings)
         if self.getQSettings().allKeys().isEmpty(): 
-            #open the fall back file (aka "factory" settings)
-            iniFileName = os.path.join(self._confDirectory, getattr(conf, 'INIFILE', "%s.ini"%conf.__name__)) #the name of the fallback file can be specified in the conf file using "INIFILE". It defaults to <confdir>/<confname>.ini
+            #open the fallback file. By default, it is called "default.ini" and resides in the configuration dir
+            INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
+            iniFileName = os.path.join(self._confDirectory, INIFILE) #if a relative name is given, the conf dir is used as the root path
             self.importSettingsFile(iniFileName)
+
+
+
             
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
@@ -962,10 +877,10 @@ def main():
     from taurus.qt.qtgui.application import TaurusApplication
         
     parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [confname]")
+    parser.set_usage("%prog [options] confname")
     parser.set_description("The taurus GUI application")
-    parser.add_option("", "--config-file", dest="config_file", default=None,
-                  help="use the given XML configuration file for initialization")
+    parser.add_option("", "--config-dir", dest="config_dir", default=None,
+                  help="use the given configuration directory for initialization")
     parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
                   help="launch a wizard for creating a new TaurusGUI application")
 
@@ -976,18 +891,22 @@ def main():
     
     if options.new_gui: #launch app settings wizard instead of taurusgui
         from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+        Qt.QMessageBox.information(None, 'Alpha-quality warning', 
+                                   'The Applications settings wizard is still under heavy development.\n Use it at your own risk and report any problems',
+                                   Qt.QMessageBox.Ok)
         wizard = AppSettingsWizard()
         wizard.show()
         sys.exit(app.exec_())
-
-    if options.config_file is None:
-        if len(args) != 1:
-            parser.print_help(sys.stderr)
-            sys.exit(1)
-        confname = args[0] 
-        gui = TaurusGui(None, confname=confname)
+        
+    confname = options.config_dir
+    if confname is None and len(args) == 1: #for backwards compat, we allow to specify the confname without the "--config-file" parameter
+        confname = args[0]
     else:
-        gui = TaurusGui(None, xmlconffile=options.config_file)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+        
+    gui = TaurusGui(None, confname=confname)
+    
     gui.show()
     sys.exit(app.exec_())
    
