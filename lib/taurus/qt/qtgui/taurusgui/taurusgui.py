@@ -962,15 +962,23 @@ def main():
     from taurus.qt.qtgui.application import TaurusApplication
         
     parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] confname")
+    parser.set_usage("%prog [options] [confname]")
     parser.set_description("The taurus GUI application")
-    parser.add_option("--config-file", "--config-file", dest="config_file", default=None,
+    parser.add_option("", "--config-file", dest="config_file", default=None,
                   help="use the given XML configuration file for initialization")
-    
+    parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
+                  help="launch a wizard for creating a new TaurusGUI application")
+
     app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
+    
+    if options.new_gui: #launch app settings wizard instead of taurusgui
+        from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+        wizard = AppSettingsWizard()
+        wizard.show()
+        sys.exit(app.exec_())
 
     if options.config_file is None:
         if len(args) != 1:

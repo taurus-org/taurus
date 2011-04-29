@@ -41,3 +41,4 @@ __docformat__ = 'restructuredtext'
 import utils 
 from paneldescriptionwizard import *
 from taurusgui import *
+from appsettingswizard import *

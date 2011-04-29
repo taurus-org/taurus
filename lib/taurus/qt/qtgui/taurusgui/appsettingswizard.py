@@ -33,6 +33,8 @@ time and those customizations will also be stored, this file defines what a
 user will find when launching the GUI for the first time.
 """
 
+__all__=["AppSettingsWizard", "ExternalAppEditor"]
+
 import os, sys, shutil,re
 import datetime
 from PyQt4 import Qt
@@ -844,7 +846,11 @@ class PanelsPage(BasePage):
         self._status_label.setText(text)
         
         
-class ExternalAppEditor(Qt.QDialog):
+class ExternalAppEditor(Qt.QDialog): 
+    '''
+    A dialog for configuring an external appaction for a TaurusMainWindow.
+    '''
+    #@todo: this class should be made more generic (e.g. provide a getter for an ExternalAppAction) and then moved elsewhere
     def __init__(self, parent = None):
         Qt.QDialog.__init__(self, parent)
         self.setModal(True)
