@@ -127,12 +127,10 @@ class TaurusPlotConfDlg(Qt.QWidget):
     
     def onApply(self):
         print "APPLY!!! (todo)"
-        curveConfs = self.model().dumpData()
-#    
-#        for c in curveConfs:
-#            if m == "":
-#                pass
-#            m = ""str(c.ydisplay)
+        curveConfs = self.model.dumpData()
+    
+        for c in curveConfs:
+            print repr(c)
         
         
     def onReload(self):

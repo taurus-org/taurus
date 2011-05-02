@@ -27,7 +27,7 @@
 curveprops: Model and view for curve properties
 """
 __all__=['CurveConf','CurvesTableModel','ExtendedSelectionModel','CurvePropertiesView']
-#raise UnimplementedError('Under Construction!')
+raise UnimplementedError('Under Construction!')
 
 import copy, re
 
@@ -130,6 +130,10 @@ class CurveConf(object):
         self.x = Component(xsrc)
         self.y = Component(ysrc)
         
+    def __repr__(self):
+        ret = "CurveConf(xsrc='%s', ysrc='%s', title='%s')"%(self.x.src, self.y.src, self.title)
+        return ret
+        
 
 
 class CurvesTableModel(Qt.QAbstractTableModel):
@@ -146,7 +150,9 @@ class CurvesTableModel(Qt.QAbstractTableModel):
         self.curves.append(curveconf)
         
     def dumpData(self):
-        return copy.deepcopy(self.curves)
+#        return copy.deepcopy(self.curves)
+        return copy.copy(self.curves)
+#        return self.curves
     
     def rowCount(self,index=Qt.QModelIndex()):
         return len(self.curves)
