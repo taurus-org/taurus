@@ -78,7 +78,7 @@ ATTR_IPAP_POS = 'eval://db=icepap06:5000;dev=taurus.core.evaluation.ipap_example
 def test1():
     import taurus.core
     a = taurus.Attribute(ATTR_IPAP_POS)
-    print "axis 8 pos:", a.read().value
+    print "axis pos:", a.read().value
     
 def test2():
     import sys
