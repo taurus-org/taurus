@@ -199,6 +199,9 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
         i.cwarnings = [i.alarms.min_warning, i.alarms.max_warning]
         i.cranges = [i.min_value, i.min_alarm, i.alarms.min_warning,
                     i.alarms.max_warning, i.max_alarm, i.max_value]
+        i.range = [i.min_value, i.max_value]
+        i.alarm = [i.min_alarm, i.max_alarm]
+        i.warning = [i.alarms.min_warning, i.alarms.max_warning]
         # add dev_name, dev_alias, attr_name, attr_full_name
         i.dev_name = self._getDev().getNormalName()
         i.dev_alias = self._getDev().getSimpleName()
