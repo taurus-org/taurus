@@ -537,21 +537,22 @@ public:
     
     void init_from_db();
     
-    void save_att_values() {save_atts = new Simu_data(this);}
-    void restore_att_values() {if (save_atts!=NULL){delete save_atts;save_atts=NULL;}}
+    inline void save_att_values() {save_atts = new Simu_data(this);}
+    inline void restore_att_values() {if (save_atts!=NULL){delete save_atts;save_atts=NULL;}}
     
-    void set_group_movement(bool val) { grp_mov = val; }
-    double get_dial_pos() { return dial_pos; }
-    double get_back_pos() { return back_pos; }
+    inline void set_group_movement(bool val) { grp_mov = val; }
+    inline double get_dial_pos() { return dial_pos; }
+    inline double get_back_pos() { return back_pos; }
     
     /** Determines if for the current motion a backlash should be performed */
-    bool has_backlash_enabled()      { return back_enabled; }
+    inline bool has_backlash_enabled()      { return back_enabled; }
     
     /** Enables/disables backlash for the current motion */
-    void set_backlash_enabled(bool v) { back_enabled = v; }
+    inline void set_backlash_enabled(bool v) { back_enabled = v; }
     
-    double get_writed_pos() { return writed_pos; }
-    double get_offset()     { return attr_Offset_write; }
+    inline double get_writed_pos()   { return writed_pos; }
+    inline double get_offset()       { return attr_Offset_write; }
+    inline Tango::DevLong get_sign() { return attr_Sign_write; }
     void set_motor_state_from_group(MotorController::MotorState &);
     
     bool                   th_failed;

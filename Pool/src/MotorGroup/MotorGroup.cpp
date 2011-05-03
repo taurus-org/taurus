@@ -896,7 +896,8 @@ void MotorGroup::read_Position(Tango::Attribute &attr)
             }
 
             double mot_offset = m->get_offset();
-            double mot_pos = mot_dial_pos + mot_offset;
+            int mot_sign = m->get_sign();
+            double mot_pos = mot_sign*mot_dial_pos + mot_offset;
 
             DEBUG_STREAM << "Position for motor " << ind_mov->id << " is "
                          << mot_pos << endl;
