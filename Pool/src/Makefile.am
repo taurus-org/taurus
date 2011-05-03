@@ -109,8 +109,8 @@ libPool_la_LIBADD = -L../lib -L../lib/sandbox \
     -lpypool \
     -lpool
 
-libPool_la_CXXFLAGS = -D_REENTRANT -Wall -ansi 
-Pool_CXXFLAGS = -D_REENTRANT -Wall -ansi 
+libPool_la_CXXFLAGS = -D_REENTRANT -DTANGO_VERSION_HEX=$(TANGO_VERSION_HEX) -Wall -ansi 
+Pool_CXXFLAGS = -D_REENTRANT -DTANGO_VERSION_HEX=$(TANGO_VERSION_HEX) -Wall -ansi 
 
 libPool_la_LDFLAGS = -export-dynamic
 Pool_LDFLAGS = -export-dynamic

@@ -28,7 +28,7 @@ libpool_ladir = $(pkgincludedir)
 
 libpool_la_LDFLAGS = -module -export-dynamic
 
-libpool_la_CXXFLAGS = -Wall -ansi -DREENTRANT -Wno-invalid-offsetof
+libpool_la_CXXFLAGS = -Wall -ansi -DREENTRANT -DTANGO_VERSION_HEX=$(TANGO_VERSION_HEX) -Wno-invalid-offsetof
 
 libpool_la_CPPFLAGS = $(PYTHON_CPPFLAGS) \
     -I@TANGO_ROOT@/include \
