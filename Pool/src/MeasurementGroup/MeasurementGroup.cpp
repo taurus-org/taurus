@@ -1895,7 +1895,7 @@ void MeasurementGroup::remove_unwanted_dyn_attr_from_device()
             rem_idx < remove_attr_list.size(); rem_idx++)
         {
 #if TANGO_VERSION_HEX < 0x07020000
-            dev_attr->remove_attribute(remove_attr_list[rem_idx], true);
+            dev_attr->remove_attribute(remove_attr_list[rem_idx]);
 #else
             dev_attr->remove_attribute(remove_attr_list[rem_idx], true);
 #endif
