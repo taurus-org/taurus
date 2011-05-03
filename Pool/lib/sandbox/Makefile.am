@@ -47,4 +47,6 @@ libpypool_la_SOURCES = \
     $(srcdir)/PyPoolAPI.cpp
 
 install-data-local:
-	ln -sf $(pkgpythondir)/libpypool.so $(pkgpythondir)/pool.so
+	pushd $(pkgpythondir)
+	ln -sf libpypool.so pool.so
+	popd
