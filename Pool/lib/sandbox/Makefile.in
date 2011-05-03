@@ -612,9 +612,8 @@ uninstall-am: uninstall-pkgpyexecLTLIBRARIES
 
 
 install-data-local:
-	pushd $(pkgpythondir)
+	cd $(pkgpythondir)
 	ln -sf libpypool.so pool.so
-	popd
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
