@@ -300,7 +300,8 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def getAttribute(self, attrname):
         """Returns the attribute object given its name"""
-        raise TaurusException('getAttribute() cannot be called on %s'%self.__class__.__name__)
+        full_attrname = "%s;%s"%(self.getFullName(), attrname)
+        return self.factory().getAttribute(full_attrname)
     
     @classmethod
     def getNameValidator(cls):
