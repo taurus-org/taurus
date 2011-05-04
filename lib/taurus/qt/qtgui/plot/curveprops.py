@@ -27,7 +27,7 @@
 curveprops: Model and view for curve properties
 """
 __all__=['CurveConf','CurvesTableModel','ExtendedSelectionModel','CurvePropertiesView']
-raise UnimplementedError('Under Construction!')
+#raise NotImplementedError('Under Construction!')
 
 import copy, re
 
