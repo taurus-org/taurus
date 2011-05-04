@@ -131,9 +131,9 @@ class wm(Macro):
             name = motor.getName()
             motor_names.append([name] * 2)
             posObj = motor.getPositionObj()
-            upos = map(str, [posObj.getMinValue(), motor.getPosition(force=True), posObj.getMaxValue()])
+            upos = map(str, [posObj.getMaxValue(), motor.getPosition(force=True), posObj.getMinValue()])
             dPosObj = motor.getDialPositionObj()
-            dpos = map(str, [dPosObj.getMinValue(), motor.getDialPosition(), dPosObj.getMaxValue()])
+            dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(), dPosObj.getMinValue()])
             pos_data = [''] + upos + [''] + dpos
             
             motor_pos.append(pos_data)
@@ -310,7 +310,7 @@ class mvr(Macro):
                 pos += disp
             motor_pos_list.extend([motor, pos])
         self.execMacro('mv', *motor_pos_list)
-                
+
 class umvr(Macro):
     """Move motor(s) relative to the current position(s) and update"""
 
