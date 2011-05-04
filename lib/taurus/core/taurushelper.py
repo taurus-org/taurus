@@ -296,7 +296,8 @@ def Factory(scheme=None):
     :rtype: :class:`taurus.core.TaurusFactory`"""
     f = Manager().getFactory(scheme=scheme)
     if f is None:
-        raise ValueError('Cannot create Factory for scheme %s'%repr(scheme))
+        import taurusexception
+        raise taurusexception.TaurusException('Cannot create Factory for scheme %s'%repr(scheme))
     return f()
 
 def Device(device_name):
