@@ -42,7 +42,6 @@ class TaurusModelSelectorTree(TaurusWidget):
         TaurusWidget.__init__(self, parent)
         if selectables is None: selectables = [taurus.core.TaurusElementType.Attribute, taurus.core.TaurusElementType.Member]
         self._selectables = selectables
-        if buttonsPos is None: buttonsPos = Qt.Qt.BottomToolBarArea
                         
         #tree
         self._deviceTree = TaurusDbTreeWidget(perspective=taurus.core.TaurusElementType.Device)
@@ -55,12 +54,29 @@ class TaurusModelSelectorTree(TaurusWidget):
         self._toolbar.setFloatable(False)
         self._addSelectedAction = self._toolbar.addAction(taurus.qt.qtgui.resource.getThemeIcon("list-add"), "Add selected", self.onAddSelected)
         
+        #defines the layout
+        self.setButtonsPos(buttonsPos)
+        
+        self._deviceTree.recheckTaurusParent()  ##NOT WORKING????
+        self.connect(self, Qt.SIGNAL(self.ModelChangedSignal), self._deviceTree.setModel)  ##@todo: This is Workaround because UseSetParentModel is giving trouble again!
+    
+    def setButtonsPos(self, buttonsPos):
+        #we must delete the previous layout before we can set a new one
+        currlayout = self.layout()
+        if currlayout is not None:
+            currlayout.deleteLater()
+            Qt.QCoreApplication.sendPostedEvents(currlayout, Qt.QEvent.DeferredDelete)
         #add to layout
-        if buttonsPos == Qt.Qt.BottomToolBarArea:
+        if buttonsPos is None:
+            self.setLayout(Qt.QVBoxLayout())
+            self.layout().addWidget(self._deviceTree)
+        elif buttonsPos == Qt.Qt.BottomToolBarArea:
+            self._toolbar.setOrientation(Qt.Qt.Horizontal)
             self.setLayout(Qt.QVBoxLayout())
             self.layout().addWidget(self._deviceTree)
             self.layout().addWidget(self._toolbar)
         elif buttonsPos == Qt.Qt.TopToolBarArea:
+            self._toolbar.setOrientation(Qt.Qt.Horizontal)
             self.setLayout(Qt.QVBoxLayout())
             self.layout().addWidget(self._toolbar)
             self.layout().addWidget(self._deviceTree)
@@ -76,9 +92,6 @@ class TaurusModelSelectorTree(TaurusWidget):
             self.layout().addWidget(self._toolbar)
         else:
             raise ValueError("Invalid buttons position")
-        
-        self._deviceTree.recheckTaurusParent()  ##NOT WORKING????
-        self.connect(self, Qt.SIGNAL(self.ModelChangedSignal), self._deviceTree.setModel)  ##@todo: This is Workaround because UseSetParentModel is giving trouble again!
     
     def getSelectedModels(self):
         selected = []
@@ -97,7 +110,12 @@ class TaurusModelSelectorTree(TaurusWidget):
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        None
+        ret = TaurusWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.panel'
+        ret['icon'] = ":/designer/listview.png"
+        ret['container'] = False
+        ret['group'] = 'Taurus Composite Widgets'
+        return ret
 
 class TaurusModelChooser(TaurusWidget):
     '''A widget that allows the user to select a list of models from a tree representing
@@ -126,7 +144,7 @@ class TaurusModelChooser(TaurusWidget):
         
         self.setLayout(Qt.QVBoxLayout())
         
-        self.tree =  TaurusModelSelectorTree(selectables = selectables)
+        self.tree =  TaurusModelSelectorTree(selectables = selectables, buttonsPos = Qt.Qt.BottomToolBarArea)
         self.tree.setModel(host)
         self.list = Qt.QListWidget()
         self.list.setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
