@@ -294,7 +294,10 @@ def Factory(scheme=None):
     :type scheme: str
     :return: a taurus factory
     :rtype: :class:`taurus.core.TaurusFactory`"""
-    return Manager().getFactory(scheme=scheme)()
+    f = Manager().getFactory(scheme=scheme)
+    if f is None:
+        raise ValueError('Cannot create Factory for scheme %s'%repr(scheme))
+    return f()
 
 def Device(device_name):
     """Returns the taurus device for the given device name
