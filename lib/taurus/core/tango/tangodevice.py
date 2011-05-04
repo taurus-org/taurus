@@ -64,6 +64,10 @@ class TangoDevice(taurus.core.TaurusDevice):
         except PyTango.DevFailed, e:
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
+            
+    def isValid(self):
+        '''see: :meth:`TaurusDevice.isValid`'''
+        return self._deviceObj is not None
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Protected implementation

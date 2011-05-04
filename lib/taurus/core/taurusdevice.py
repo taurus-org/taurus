@@ -121,6 +121,18 @@ class TaurusDevice(taurusmodel.TaurusModel):
             attrname = "%s%s" % (self.getFullName(), attrname)
         import taurusattribute
         return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
+    
+    def isValid(self):
+        """returns True if the device is in "working conditions
+        
+        The default implementation always returns True. Reimplement it in
+        subclasses if there are cases in which the device cannot be queried
+        (e.g. in Tango, the TangoDevice object may exist even if there is not a real
+        hardware device associated, in which case this method should return False)
+        """
+        return True
+
+
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory implementation in sub class
