@@ -260,7 +260,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                         validator = _Database.getNameValidator()
                         params = validator.getParams(db_name)
                         if params is None:
-                            raise TaurusException("Invalid default database name %s" % db_name)
+                            raise TaurusException("Invalid default Tango database name %s" % db_name)
                         host, port = params.get('host'),params.get('port')
                         self.dft_db = _Database(host,port)
                 except Exception, e:
@@ -277,7 +277,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
             validator = _Database.getNameValidator()
             params = validator.getParams(db_name)
             if params is None:
-                raise TaurusException("Invalid database name %s" % db_name)
+                raise TaurusException("Invalid Tango database name %s" % db_name)
             host, port = params.get('host'),params.get('port')
             try:
                 ret = _Database(host,port)
@@ -318,7 +318,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         params = validator.getParams(dev_name)
         
         if params is None:
-            raise TaurusException("Invalid device name %s" % dev_name)
+            raise TaurusException("Invalid Tango device name %s" % dev_name)
         
         host,port = params.get('host'),params.get('port')
         db = None
@@ -390,7 +390,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         params = validator.getParams(attr_name)
         
         if params is None:
-            raise TaurusException("Invalid attribute name %s" % attr_name)
+            raise TaurusException("Invalid Tango attribute name %s" % attr_name)
         
         host,port = params.get('host'),params.get('port')
         
@@ -494,7 +494,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         params = validator.getParams(cfg_name)
                 
         if params is None:
-            raise taurus.core.TaurusException("Invalid configuration name %s" % cfg_name)
+            raise taurus.core.TaurusException("Invalid Tango configuration name %s" % cfg_name)
         
         host,port = params.get('host'),params.get('port')
         db = None
