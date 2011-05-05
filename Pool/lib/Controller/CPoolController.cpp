@@ -7,8 +7,15 @@ ControllerPool::~ControllerPool()
 {
     if (ctrl != NULL) 
     {
-        AutoPoolLock lo(get_ctrl_class_mon());
-        SAFE_DELETE(controller);
+        if (ctrl_class_built)
+        {
+            AutoPoolLock lo(get_ctrl_class_mon());
+            SAFE_DELETE(controller);
+        }
+        else
+        {
+            SAFE_DELETE(controller);
+        }
     }
     SAFE_DELETE(cpp_ctrl_prop);
 }

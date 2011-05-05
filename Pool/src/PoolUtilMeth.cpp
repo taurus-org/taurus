@@ -1017,9 +1017,14 @@ void Pool::post_init_device()
 // and subscribe to events coming from the motor group.
 // Also fill information about siblings
 //
-    map<ElementId, vector<PseudoMotor_ns::PseudoMotor*> > ctrl_pseudos;
+    typedef map<ElementId, PseudoMotor_ns::PseudoMotor*> PseudoMap;
+    typedef map<int32_t, PseudoMap > PseudoCtrlMap;
+    typedef PseudoMap::iterator PseudoCtrlMapIt;
 
+    PseudoCtrlMap ctrl_pseudos;
+    
     // First initialize the necessary temporary map
+    /*
     for (PoolElementTypeIt ctrl_it = element_types.lower_bound(CTRL_ELEM);
          ctrl_it != element_types.upper_bound(CTRL_ELEM); ++ctrl_it)
     {
@@ -1029,12 +1034,13 @@ void Pool::post_init_device()
         {
             if(ctrlpool.get_ctrl_obj_type() == PSEUDO_MOTOR_CTRL)
             {
-                vector<PseudoMotor_ns::PseudoMotor*>::size_type n = ctrlpool.MaxDevice;
-                vector<PseudoMotor_ns::PseudoMotor*> v(n, NULL);
+                PseudoVector::size_type n = ctrlpool.MaxDevice;
+                PseudoVector v(n, NULL);
                 ctrl_pseudos.insert(make_pair(ctrlpool.get_id(), v));
             }
         }
     }
+    */
 
     for (PoolElementTypeIt pm_it = element_types.lower_bound(PSEUDO_MOTOR_ELEM);
          pm_it != element_types.upper_bound(PSEUDO_MOTOR_ELEM); ++pm_it)

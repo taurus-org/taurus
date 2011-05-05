@@ -274,6 +274,7 @@ public :
     
     inline void set_siblings(vector<PseudoMotor*> &s)
     { siblings = s; }
+    void set_siblings(map<int32_t, PseudoMotor*> &s);
     
     void sibling_died(int32_t role);
     

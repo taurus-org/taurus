@@ -286,6 +286,16 @@ void PseudoMotor::init_pool_element(Pool_ns::PoolElement *pe)
     pmp->update_info();
 }
 
+void PseudoMotor::set_siblings(map<int32_t, PseudoMotor*> &s)
+{
+    siblings.resize(s.size(), NULL);
+    map<int32_t, PseudoMotor*>::iterator it = s.begin();
+    for(; it != s.end(); ++it)
+    {
+        siblings[it->first] = it->second;
+    }
+}
+
 void PseudoMotor::fix_pending_elements(Pool_ns::PseudoMotorPool *pmp)
 {
     Pool_ns::MotorGroupPool &mg_pool = pool_dev->get_motor_group(motor_group_id);
