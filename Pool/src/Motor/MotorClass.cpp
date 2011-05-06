@@ -508,7 +508,7 @@ void MotorClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	//	Attribute : Limit_switches
 	Limit_switchesAttrib	*limit_switches = new Limit_switchesAttrib();
 	Tango::UserDefaultAttrProp	limit_switches_prop;
-	limit_switches_prop.set_label("Motor limit switches (Home - Lower - Upper)");
+	limit_switches_prop.set_label("Motor limit switches (Home - Upper - Lower)");
 	limit_switches_prop.set_description("This attribute is the motor limit switches state. It's an array with 3 \nelements which are:\n0 - The home switch\n1 - The upper limit switch\n2 - The lower limit switch\nFalse means not active. True means active");
 	limit_switches->set_default_properties(limit_switches_prop);
 	att_list.push_back(limit_switches);

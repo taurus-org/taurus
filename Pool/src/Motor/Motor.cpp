@@ -680,6 +680,11 @@ void Motor::always_executed_hook()
                         
                         set_state((Tango::DevState)mi.state);
                         ctrl_str = mi.status;
+                        
+                        if (attr_Sign_write < 0)
+                        {
+                            flip_switches(mi.switches);
+                        }
                         store_switches(mi.switches);
 
                         if (mov_th_id != 0)
@@ -923,10 +928,13 @@ void Motor::write_Sign(Tango::WAttribute &attr)
         motor_element.fire_pool_elem_change(&evt);
     }
 
-
     // if sign changed then the limit switches might have changed.
-    store_switches(old_switches);
-
+    if (old_sign != attr_Sign_write)
+    {
+        int32_t s = old_switches;
+        flip_switches(s);
+        store_switches(s);
+    }
 }
 
 //+----------------------------------------------------------------------------
@@ -2445,6 +2453,18 @@ Tango::ConstDevString Motor::dev_status()
     return argout;
 }
 
+void Motor::flip_switches(int32_t &switch_val)
+{
+    int32_t tmp_switch = 0;
+    if (switch_val & 0x1)
+        tmp_switch |= 0x1;
+    if (switch_val & 0x2)
+        tmp_switch |= 0x4;
+    if (switch_val & 0x4)
+        tmp_switch |= 0x2;
+    switch_val = tmp_switch;
+}
+
 //+------------------------------------------------------------------
 /**
  *	method:	Motor::store_switches
@@ -2458,40 +2478,21 @@ Tango::ConstDevString Motor::dev_status()
 //+------------------------------------------------------------------
 void Motor::store_switches(int32_t switch_val)
 {
-//
-// if motor sign is negative invert the upper and lower limit switches coming
-// from the controller
-//
-    if (attr_Sign_write < 0)
-    {
-        int32_t tmp_switch = 0;
-        if (switch_val & 0x1)
-            tmp_switch |= 0x1;
-        if (switch_val & 0x2)
-            tmp_switch |= 0x4;
-        if (switch_val & 0x4)
-            tmp_switch |= 0x2;
-        switch_val = tmp_switch;
-    }
-
     if (old_switches != switch_val)
     {
-            
 //
 // Store the new value
 //
-
         switches[0] = switch_val & 0x1;
         switches[1] = switch_val & 0x2;
         switches[2] = switch_val & 0x4;
-        
 //
 // Fire the event
 //
 
         Tango::Attribute &l_switch = dev_attr->get_attr_by_name("Limit_Switches");
         l_switch.set_value(attr_Limit_switches_read,3);
-        l_switch.fire_change_event();	
+        l_switch.fire_change_event();
             
 //
 // Store the new value

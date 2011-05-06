@@ -527,7 +527,9 @@ protected :
     
     Simu_data            *save_atts;
     double read_position_from_ctrl();
+    void flip_switches(int32_t &);
     void store_switches(int32_t);
+    
 
     void inform_ghost(Tango::DevState,Tango::DevState);
     
