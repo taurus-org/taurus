@@ -31,17 +31,22 @@ from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus
 from guiqwt.curve import CurveItem
+from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
 import numpy
         
 class TaurusCurveItem(CurveItem, TaurusBaseComponent):
     '''A CurveItem that autoupdates its values & params when x or y components change'''
-    def __init__(self, curveparam=None):
+    def __init__(self, curveparam=None, taurusparam=None):
         CurveItem.__init__(self, curveparam=curveparam)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
         self._signalGen = Qt.QObject()
         self._signalGen.connect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent) #I need to do this because I am not using the standard model attach mechanism
         self._xcomp = None
         self._ycomp = None
+        if taurusparam is None:
+            taurusparam = TaurusCurveParam()
+        self.taurusparam = taurusparam
+        
 
     def getSignaller(self):
         '''reimplemented from TaurusBaseComponent because TaurusCurveItem is 
@@ -49,23 +54,31 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
         return self._signalGen  
         
     def setModels(self, x, y):
-        #stop listenening to previous components
-        if self._xcomp is not None:
-            self._xcomp.removeListener(self)
-            
-        if self._ycomp is not None:
-            self._ycomp.removeListener(self)
         #create/get new components
         if x is None:
-            self._xcomp = None
+            newX = None
         else:
-            self._xcomp = taurus.Attribute(x)
-        self._ycomp = taurus.Attribute(y)
+            newX = taurus.Attribute(x)
+        newY = taurus.Attribute(y)
+        
+        #stop listening to previous components (if they are not the same as the new)
+        if self._xcomp is not None and self._xcomp is not newX:
+            self._xcomp.removeListener(self)
+        self._xcomp = newX
+        if self._ycomp is not None and self._ycomp is not newY:
+            self._ycomp.removeListener(self)
+        self._ycomp = newY
+        
         #start listening to new components
         if self._xcomp is not None:
             self._xcomp.addListener(self)
         self._ycomp.addListener(self)
         self.onCurveDataChanged()
+        self.taurusparam.xModel = x
+        self.taurusparam.yModel = y
+        
+    def getModels(self):
+        return self.taurusparam.xModel, self.taurusparam.yModel
         
     def handleEvent(self, evt_src, ect_type, evt_value):
         if evt_value is None or getattr(evt_value,'value', None) is None:
@@ -74,7 +87,6 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
         if evt_src is self._xcomp or evt_src is self._ycomp:
             self.onCurveDataChanged()
             self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
-        
         
     def onCurveDataChanged(self):
         try: yvalue = self._ycomp.read().value
@@ -93,43 +105,18 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
         p = self.plot()
         if p is not None: 
             p.replot()
+            
+    def get_item_parameters(self, itemparams):
+        CurveItem.get_item_parameters(self, itemparams)
+        itemparams.add("TaurusParam", self, self.taurusparam)
         
+    def updateTaurusParams(self):
+        self.taurusparam.update_curve(self)
 
-#def main():
-#    from guiqwt.plot import CurvePlotWidget,CurvePlotDialog
-#    from guiqwt.curve import  CurveParam
-#    import sys
-#    from taurus.qt.qtgui.application import TaurusApplication
-#    app = TaurusApplication()
-#    args = app.get_command_line_args()
-#    if len (args)==2:
-#        model1,model2 = args
-#    else: 
-##        model1 = None
-#        model1 = 'eval://linspace(0,1,len({sys/tg_test/1/wave}))'
-##        model2 = '=arange(10)**2'
-##        model2 = 'sys/tg_test/1/float_spectrum_ro'
-#        model2 = 'eval://{sys/tg_test/1/wave}*10+{sys/tg_test/1/float_spectrum_ro}/50'
-#    
-#    #w = CurvePlotDialog()
-#    w = CurvePlotWidget()
-#    w.register_all_curve_tools()
-#    plot = w.get_plot()
-##    w = CurvePlot()
-#    
-#    param = CurveParam()
-#    param.label = 'My curve'
-#    curve = TaurusCurveItem(param)
-#    curve.setModels(model1,model2)
-#    
-#    plot.add_item(curve)
-#    plot.set_items_readonly(False)
-#    
-#    #show the widget
-#    w.show()
-#    
-#    sys.exit(app.exec_())
-
+    def set_item_parameters(self, itemparams):
+        CurveItem.set_item_parameters(self, itemparams)
+        self.updateTaurusParams()
+        
 
 def plot(*items):
     '''from guiqwt plot.py example'''
@@ -139,6 +126,8 @@ def plot(*items):
                       options=dict(title="Title", xlabel="xlabel",
                                    ylabel="ylabel"))
     win.add_tool(HRangeTool)
+    from taurus.qt.extra_guiqwt.tools import TaurusModelChooserTool
+    win.add_tool(TaurusModelChooserTool)
     plot = win.get_plot()
     for item in items:
         plot.add_item(item)

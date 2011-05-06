@@ -23,30 +23,42 @@
 ##
 #############################################################################
 
-"""Extension of :mod:`guiqwt.builder`"""
+"""Extension of :mod:`guiqwt.tools`"""
 
-__all__=["TaurusPlotItemBuilder", "make"]
+
 
 __docformat__ = 'restructuredtext'
 
-import guiqwt.builder
 
-from guiqwt.tools import CommandTool, DefaultToolbarID, SaveAsTool, get_std_icon
+from guiqwt.tools import CommandTool, DefaultToolbarID
 from PyQt4 import Qt
-
+from taurus.qt.qtgui.resource import getIcon
+from taurus.qt.extra_guiqwt.builder import make
+from taurus.qt.extra_guiqwt.curve import TaurusCurveItem
+from taurus.qt.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
 
 class TaurusModelChooserTool(CommandTool):
     """
     A tool that shows the Taurus Model Chooser and creates curves/images associated with it
     """
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
-        super(TaurusModelChooserTool,self).__init__(manager, "Taurus Models...", get_std_icon("DialogSaveButton", 16), toolbar_id=toolbar_id)
+        super(TaurusModelChooserTool,self).__init__(manager, "Taurus Models...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
-        Qt.QMessageBox.information(plot, 'DUMMY','THIS SHOULD BE A MODELCHOOSER')
+        #retrieve current Taurus Curves
+        tauruscurves = [item for item in plot.get_public_items() if isinstance(item, TaurusCurveItem)]
+        #show a dialog
+        confs, ok = CurveItemConfDlg.showDlg(parent=plot, curves=tauruscurves)
+        if ok:
+            #remove previous taurus curves
+            plot.del_items(tauruscurves)
+            #create curve items and add them to the plots 
+            for c in confs:
+                if c.taurusparam.yModel:
+                    item = make.pcurve(c.taurusparam.xModel or None, c.taurusparam.yModel, c.curveparam)
+                    plot.add_item(item)
+                    if c.axesparam is not None:
+                        c.axesparam.update_axes(item)
 
-#    def update_status(self, plot):
-#        status = plot.get_plot_parameters_status(self.key)
-#        self.action.setEnabled(status)
 
