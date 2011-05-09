@@ -122,7 +122,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         import taurusattribute
         return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
     
-    def isValid(self):
+    def isValidDev(self):
         """returns True if the device is in "working conditions
         
         The default implementation always returns True. Reimplement it in

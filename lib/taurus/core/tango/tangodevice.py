@@ -65,7 +65,7 @@ class TangoDevice(taurus.core.TaurusDevice):
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
             
-    def isValid(self):
+    def isValidDev(self):
         '''see: :meth:`TaurusDevice.isValid`'''
         return self._deviceObj is not None
 

@@ -78,7 +78,7 @@ class Component(object):
         except TaurusException:
             self.display, self.icon, self.ok = src, getThemeIcon('dialog-warning'), False
             return
-        if not dev.isValid():
+        if not dev.isValidDev():
             self.display, self.icon, self.ok = src, getThemeIcon('network-error'),False
             return
         self.display, self.icon, self.ok = attr.getSimpleName(), getIcon(':/taurus.png'),True
