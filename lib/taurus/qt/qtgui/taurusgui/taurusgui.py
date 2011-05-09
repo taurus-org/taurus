@@ -548,9 +548,11 @@ class TaurusGui(TaurusMainWindow):
             i_view = PanelDescription(i_name,classname='TaurusForm', area=Qt.Qt.LeftDockWidgetArea, model=[])
             instrument_dict[i_name] = i_view
         
-        motors = ms.getElementNamesOfType('Motor')
-        channels = ms.getElementNamesOfType('ExpChannel')
-        pool_elements = motors + channels
+        motors = sorted(ms.getElementNamesOfType('Motor'))
+        channels = sorted(ms.getElementNamesOfType('ExpChannel'))
+        ioregisters = sorted(ms.getElementNamesOfType('IORegisters'))
+        
+        pool_elements = motors + channels + ioregisters
         for e_name in pool_elements:
             e = taurus.Device(e_name)
             instrument = e['Instrument'].value
