@@ -2056,9 +2056,7 @@ void Motor::set_motor_state_from_group(MotorController::MotorState &mi)
     int32_t s = mi.switches;
     if (attr_Sign_write < 0)
         flip_switches(s);
-    switches[0] = s & 0x1;
-    switches[1] = s & 0x2;
-    switches[2] = s & 0x4;
+    store_switches(s);
     
     if ((mi.switches >= 2) && ((Tango::DevState)mi.state != Tango::MOVING))
         set_state(Tango::ALARM);
