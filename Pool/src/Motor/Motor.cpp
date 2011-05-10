@@ -2053,10 +2053,13 @@ void Motor::set_motor_state_from_group(MotorController::MotorState &mi)
 {
     set_state((Tango::DevState)mi.state);
     ctrl_str = mi.status;
-    switches[0] = mi.switches & 0x1;
-    switches[1] = mi.switches & 0x2;
-    switches[2] = mi.switches & 0x4;
-                            
+    int32_t s = mi.switches;
+    if (attr_Sign_write < 0)
+        flip_switches(s);
+    switches[0] = s & 0x1;
+    switches[1] = s & 0x2;
+    switches[2] = s & 0x4;
+    
     if ((mi.switches >= 2) && ((Tango::DevState)mi.state != Tango::MOVING))
         set_state(Tango::ALARM);
 }
@@ -2478,28 +2481,35 @@ void Motor::flip_switches(int32_t &switch_val)
 //+------------------------------------------------------------------
 void Motor::store_switches(int32_t switch_val)
 {
-    if (old_switches != switch_val)
-    {
+    bool send_evt = false;
+    bool bit = false;
 //
 // Store the new value
 //
-        switches[0] = switch_val & 0x1;
-        switches[1] = switch_val & 0x2;
-        switches[2] = switch_val & 0x4;
+    bit = switch_val & 0x1;
+    send_evt = send_evt || bit != switches[0];
+    switches[0] = bit;
+
+    bit = switch_val & 0x2;
+    send_evt = send_evt || bit != switches[1];
+    switches[1] = bit;
+
+    bit = switch_val & 0x4;
+    send_evt = send_evt || bit != switches[2];
+    switches[2] = bit;
 //
 // Fire the event
 //
-
+    if (send_evt)
+    {
         Tango::Attribute &l_switch = dev_attr->get_attr_by_name("Limit_Switches");
         l_switch.set_value(attr_Limit_switches_read,3);
         l_switch.fire_change_event();
-            
+    }
 //
 // Store the new value
 //
-
-        old_switches = switch_val;
-    }
+    old_switches = switch_val;
 }
 
 
