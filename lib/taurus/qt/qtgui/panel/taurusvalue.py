@@ -785,7 +785,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.__modelClass = taurus.core.TaurusAttribute
         except:
             self.__modelClass = taurus.core.TaurusDevice
-        model = str(model)
         TaurusBaseWidget.setModel(self,model)
         if not self._designMode:     #in design mode, no subwidgets are created
             self.updateCustomWidget()
