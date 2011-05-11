@@ -616,26 +616,27 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 
                 
     def addLabelWidgetToLayout(self):
-        if self._labelWidget is not None:
+        
+        if self._labelWidget is not None and self.parent() is not None:
             self.parent().layout().addWidget(self._labelWidget, self._row, 1)
     
     def addReadWidgetToLayout(self):
-        if self._readWidget is not None: 
+        if self._readWidget is not None and self.parent() is not None: 
             if self._writeWidget is None:
                 self.parent().layout().addWidget(self._readWidget, self._row, 2,1,2)
             else:
                 self.parent().layout().addWidget(self._readWidget, self._row, 2)
     
     def addWriteWidgetToLayout(self):
-        if self._writeWidget is not None:
+        if self._writeWidget is not None and self.parent() is not None:
             self.parent().layout().addWidget(self._writeWidget, self._row, 3)
     
     def addUnitsWidgetToLayout(self):
-        if self._unitsWidget is not None:
+        if self._unitsWidget is not None and self.parent() is not None:
             self.parent().layout().addWidget(self._unitsWidget, self._row, 4)
             
     def addCustomWidgetToLayout(self):
-        if self._customWidget is not None:
+        if self._customWidget is not None and self.parent() is not None:
             self.parent().layout().addWidget(self._customWidget, self._row, 1,1,-1)
 
     @Qt.pyqtSignature("parentModelChanged(const QString &)")
