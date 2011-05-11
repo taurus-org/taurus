@@ -50,7 +50,8 @@ class SafeEvaluator:
         self._default_numpy = ('abs', 'array', 'arange','arccos', 'arcsin', 'arctan', 'arctan2', 
                                'ceil', 'cos', 'cosh', 'degrees', 'dot', 'e', 'exp', 'fabs', 'floor', 'fmod', 
                                'frexp', 'hypot', 'ldexp', 'linspace', 'log', 'log10', 'logspace', 
-                               'modf', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'tan', 'tanh')
+                               'modf', 'ones', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'tan', 
+                               'tanh','zeros')
         self._default_numpy_random = ('randn','rand') 
         
         if safedict is None: safedict={}    
