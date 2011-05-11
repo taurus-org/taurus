@@ -676,8 +676,8 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             self.ui.btnMax.setVisible(limits_visible)
         except Exception,e:
             self.ui.motorGroupBox.setEnabled(False)
-            print 'Some exception while setting model',model
-            print 'Exception was:',e
+            self.info('Error setting model "%s". Reason: %s'%(model, repr(e)))
+            self.traceback()
         
     @QtCore.pyqtSignature("resetModel()")
     def resetModel(self):
