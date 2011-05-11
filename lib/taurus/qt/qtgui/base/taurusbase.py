@@ -813,6 +813,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         
         :param model: (str) the new model name
         :param check: (bool) whether or not to check against the actual model name""" 
+        if model is None: model = ''
         model = str(model)
         if check == True and model == self._localModelName:
             return
@@ -1064,6 +1065,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :param model: (str) the new model name
         :param check: (bool) whether or not to check against the actual model name
         """ 
+        if model is None: model = ''
         model = str(model)
         send_signal = (model != self._localModelName)
         TaurusBaseComponent.setModelCheck(self, model, check)
