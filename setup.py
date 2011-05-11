@@ -137,6 +137,8 @@ extra_packages = [
     'taurus.qt.qtgui.extra_taurusservers',
     
     'taurus.qt.qtgui.extra_xterm',
+    
+    'taurus.qt.extra_guiqwt',
 ]
 
 provides = [
