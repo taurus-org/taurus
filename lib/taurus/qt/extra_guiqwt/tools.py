@@ -36,24 +36,26 @@ from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.extra_guiqwt.builder import make
 from taurus.qt.extra_guiqwt.curve import TaurusCurveItem
 from taurus.qt.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
+from taurus.qt.qtgui.panel import TaurusModelChooser
+from taurus.core import TaurusElementType
 
-class TaurusModelChooserTool(CommandTool):
+class TaurusCurveChooserTool(CommandTool):
     """
-    A tool that shows the Taurus Model Chooser and creates curves/images associated with it
+    A tool that shows the Taurus Model Chooser to create/edit the taurus curves of a plot
     """
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
-        super(TaurusModelChooserTool,self).__init__(manager, "Taurus Models...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+        super(TaurusCurveChooserTool,self).__init__(manager, "Taurus Models...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
-        #retrieve current Taurus Curves
+        #retrieve current Taurus curves
         tauruscurves = [item for item in plot.get_public_items() if isinstance(item, TaurusCurveItem)]
         #show a dialog
         confs, ok = CurveItemConfDlg.showDlg(parent=plot, curves=tauruscurves)
         if ok:
             #remove previous taurus curves
             plot.del_items(tauruscurves)
-            #create curve items and add them to the plots 
+            #create curve items and add them to the plot 
             for c in confs:
                 if c.taurusparam.yModel:
                     item = make.pcurve(c.taurusparam.xModel or None, c.taurusparam.yModel, c.curveparam)
@@ -61,4 +63,19 @@ class TaurusModelChooserTool(CommandTool):
                     if c.axesparam is not None:
                         c.axesparam.update_axes(item)
 
+class TaurusImageChooserTool(CommandTool):
+    """
+    A tool that shows the Taurus Model Chooser and adds new taurus image items to a plot
+    """
+    def __init__(self, manager, toolbar_id=DefaultToolbarID):
+        super(TaurusImageChooserTool,self).__init__(manager, "Add Taurus images...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
 
+    def activate_command(self, plot, checked):
+        """Activate tool"""
+        #show a dialog
+        models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[TaurusElementType.Attribute])
+        if ok:
+            #create image items and add them to the plot 
+            for m in models:
+                item = make.image(taurusmodel=m)
+                plot.add_item(item)

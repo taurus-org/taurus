@@ -126,8 +126,8 @@ def plot(*items):
                       options=dict(title="Title", xlabel="xlabel",
                                    ylabel="ylabel"))
     win.add_tool(HRangeTool)
-    from taurus.qt.extra_guiqwt.tools import TaurusModelChooserTool
-    win.add_tool(TaurusModelChooserTool)
+    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool
+    win.add_tool(TaurusCurveChooserTool)
     plot = win.get_plot()
     for item in items:
         plot.add_item(item)

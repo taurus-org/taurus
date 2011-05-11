@@ -38,6 +38,7 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from ui.ui_CurveItemConfDlg import Ui_CurveItemConfDlg    
 from guiqwt.styles import CurveParam, AxesParam
+from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
 
 
 AXIS_ID2NAME = {Qwt5.QwtPlot.yLeft:'left', Qwt5.QwtPlot.yRight:'right',
@@ -294,8 +295,10 @@ class CurveItemConfDlg(Qt.QWidget):
     and title of data
     '''
     
-    def __init__(self, parent=None, curves=None):
+    def __init__(self, parent=None, curves=None, showXcol=True):
         super(CurveItemConfDlg,self).__init__(parent)
+        
+        self._showXcol = showXcol
         
         if curves is None:
             curves = [CurveItemConf()]
@@ -308,6 +311,7 @@ class CurveItemConfDlg(Qt.QWidget):
         
         table = self.ui.curvesTable
         table.setModel(self.model)
+        table.setColumnHidden(X, not self._showXcol)
         
 #        #adjust the column widths
 #        table.resizeColumnsToContents()

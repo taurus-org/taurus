@@ -86,11 +86,13 @@ def test1():
     
     #create a dialog with a plot and add the images
     win = ImageDialog(edit=False, toolbar=True, wintitle="Taurus Cross sections test",
-                      options=dict(show_xsection=True, show_ysection=True))
+                      options=dict(show_xsection=False, show_ysection=False))
+    from taurus.qt.extra_guiqwt.tools import TaurusImageChooserTool
+    win.add_tool(TaurusImageChooserTool)
     plot = win.get_plot()
     plot.add_item(taurusimage)
     plot.add_item(image)
-    win.get_itemlist_panel().show()
+#    win.get_itemlist_panel().show()
     
     #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
     win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
