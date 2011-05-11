@@ -34,6 +34,7 @@ import taurus.core
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util import CaselessList
+from taurusmodellist import TaurusModelList
 import taurus.qt.qtgui.resource
 
 
@@ -116,7 +117,8 @@ class TaurusModelSelectorTree(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Composite Widgets'
         return ret
-
+        
+        
 class TaurusModelChooser(TaurusWidget):
     '''A widget that allows the user to select a list of models from a tree representing
     devices and attributes from a Tango server.
@@ -137,8 +139,7 @@ class TaurusModelChooser(TaurusWidget):
         :param host: (QObject) Tango host to be explored by the chooser
         '''
         TaurusWidget.__init__(self, parent)
-        if host is None: host = taurus.Database().getNormalName() 
-        self._listedModels = CaselessList([])
+        if host is None: host = taurus.Database().getNormalName()
         self._singleAttrMode = False
         self._allowDuplicates = False
         
@@ -146,7 +147,7 @@ class TaurusModelChooser(TaurusWidget):
         
         self.tree =  TaurusModelSelectorTree(selectables = selectables, buttonsPos = Qt.Qt.BottomToolBarArea)
         self.tree.setModel(host)
-        self.list = Qt.QListWidget()
+        self.list = TaurusModelList()
         self.list.setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
         applyBT = Qt.QToolButton()
         applyBT.setToolButtonStyle(Qt.Qt.ToolButtonTextBesideIcon)
@@ -155,8 +156,10 @@ class TaurusModelChooser(TaurusWidget):
         
         #toolbar 
         self._toolbar = self.tree._toolbar
-        self._removeSelectedAction = self._toolbar.addAction(taurus.qt.qtgui.resource.getThemeIcon("list-remove"), "Remove selected", self.onRemoveSelected)
-        self._clearSelectedAction = self._toolbar.addAction(taurus.qt.qtgui.resource.getThemeIcon("edit-clear"), "Remove all", self.resetListedModels)
+        self._toolbar.addAction(self.list.removeSelectedAction)
+        self._toolbar.addAction(self.list.removeAllAction)
+        self._toolbar.addAction(self.list.moveUpAction)
+        self._toolbar.addAction(self.list.moveDownAction)
         self._toolbar.addSeparator()
         self._toolbar.addWidget(applyBT)
         self.layout().addWidget(self.tree)
@@ -186,24 +189,22 @@ class TaurusModelChooser(TaurusWidget):
         :return: (list<str> or QMimeData) the type of return depends on the value of `asMimeData`'''
         if asMimeData:
             md =  Qt.QMimeData()
-            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(self._listedModels))
-            md.setText(", ".join(self._listedModels))
-            if len(self._listedModels) == 1:
-                md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(self._listedModels[0]))
+            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(self.list.getModelList()))
+            md.setText(", ".join(self.list.getModelList()))
+            if len(self.list.getModelList()) == 1:
+                md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(self.list.getModelList()[0]))
             return md
-        return self._listedModels
+        return self.list.getModelList()
     
     def setListedModels(self, models):
         '''adds the given list of models to the widget list
         '''
-        self._listedModels = CaselessList(models)
-        self.list.clear()
-        self.list.addItems(models)
+        self.list.model().clearAll()
+        self.list.addModels(models)
         
     def resetListedModels(self):
         '''equivalent to setListedModels([])'''
-        self._listedModels = CaselessList([])
-        self.list.clear()
+        self.list.model().clearAll()
         
     def updateList(self, attrList ): 
         '''for backwards compatibility with AttributeChooser only. Use :meth:`setListedModels` instead'''
@@ -212,23 +213,28 @@ class TaurusModelChooser(TaurusWidget):
     
     def addModels(self, models):
         ''' Add given models to the selected models list'''
-        for m in models:
-            if self._allowDuplicates or m not in self._listedModels:
-                self._listedModels.append(m)
-                self.list.addItem(m)
-    
+        if  len(models) == 0:
+            models= ['']
+        if self._allowDuplicates:
+            self.list.addModels(models)
+        else:
+            listedmodels = CaselessList(self.getListedModels()) 
+            for m in models:
+                if m not in listedmodels:
+                    listedmodels.append(m)
+                    self.list.addModels([m])
+           
     def onRemoveSelected(self):
         '''
         Remove the list-selected models from the list
         '''
-        toremove = [str(item.text()).lower() for item in self.list.selectedItems()]
-        newlist = [model for model in self._listedModels if model.lower() not in toremove]
-        self.setListedModels(newlist)
+        self.list.removeSelected()
         
     def _onUpdateModels(self):
-        self.emit(Qt.SIGNAL("updateModels"), self._listedModels)
+        models = self.getListedModels()
+        self.emit(Qt.SIGNAL("updateModels"), models)
         if taurus.core.TaurusElementType.Attribute in self.tree._selectables:
-            self.emit(Qt.SIGNAL("UpdateAttrs"), self._listedModels) #for backwards compatibility with the old AttributeChooser
+            self.emit(Qt.SIGNAL("UpdateAttrs"), models) #for backwards compatibility with the old AttributeChooser
     
     def setSingleAttrMode(self, single):
         '''sets whether the selection should be limited to just one model
@@ -285,7 +291,7 @@ class TaurusModelChooser(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Composite Widgets'
         return ret
-        
+         
         
 def main(args):
     if len(sys.argv)>1: 

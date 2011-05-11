@@ -37,4 +37,5 @@ from .taurusdevicepanel import *
 from .taurusvalue import *
 from .taurusform import *
 from .taurusmessagepanel import *
+from .taurusmodellist import *
 
