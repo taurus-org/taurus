@@ -157,5 +157,52 @@ def test1():
          make.legend('TR'))
 
 
+def taurusCurveMain():
+    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.application import TaurusApplication
+    from guiqwt.plot import CurveDialog
+    from guiqwt.tools import HRangeTool
+    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool
+    import taurus.core.util.argparse
+    import sys
+    
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting 1D data sets")
+    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusplot2", app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+    
+    win = CurveDialog(edit=False, toolbar=True, wintitle="TaurusPlot2",
+                      options=dict(title="", xlabel="xlabel", ylabel="ylabel"))
+    win.add_tool(HRangeTool)
+    win.add_tool(TaurusCurveChooserTool)
+    
+    plot = win.get_plot()
+      
+    for a in args:
+        mx_my = a.split('|')
+        n = len(mx_my)
+        if n == 1: 
+            mx, my = None, mx_my[0]
+        elif n == 2:
+            mx, my = mx_my
+        else:
+            print "Invalid model: %s\n"%mx_my
+            parser.print_help(sys.stderr)
+            sys.exit(1)
+        #cycle colors
+        style = make.style.next()
+        color=style[0]
+        linestyle = style[1:]
+        plot.add_item(make.curve(mx,my, color=color, linestyle=linestyle, linewidth=2))
+        
+    win.get_itemlist_panel().show()
+    plot.set_items_readonly(False)
+    win.show()
+    win.exec_()    
+    
+    
+
 if __name__ == "__main__":
-    test1()    
+#    test1()
+    taurusCurveMain()    

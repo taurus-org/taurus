@@ -37,9 +37,9 @@ from taurus.core import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from ui.ui_CurveItemConfDlg import Ui_CurveItemConfDlg    
-from guiqwt.styles import CurveParam, AxesParam
+from guiqwt.styles import CurveParam, AxesParam, update_style_attr
 from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
-
+from guiqwt.builder import make
 
 AXIS_ID2NAME = {Qwt5.QwtPlot.yLeft:'left', Qwt5.QwtPlot.yRight:'right',
                 Qwt5.QwtPlot.xBottom:'bottom', Qwt5.QwtPlot.xTop:'top'}
@@ -60,12 +60,12 @@ class Component(object):
     def processSrc(self, src):
         '''processes the src and sets the values of display, icon and ok attributes'''
         if src is None:
-            self.display, self.icon, self.ok = '', Qt.QIcon(),True
+            self.display, self.icon, self.ok = '(Use indices)', Qt.QIcon(),True
             return
         src = str(src).strip()
         #empty
         if src == '':
-            self.display, self.icon, self.ok = '', Qt.QIcon(),True
+            self.display, self.icon, self.ok = '(Use indices)', Qt.QIcon(),True
             return
         #for formulas
         if src.startswith('='):
@@ -93,12 +93,15 @@ class CurveItemConf(object):
         self.taurusparam = taurusparam
         if curveparam is None:
             curveparam = CurveParam()
+            style = make.style.next() #cycle through colors and linestyles
+            update_style_attr(style, curveparam)
+            curveparam.line.width = 2
         self.curveparam = curveparam
-        if axesparam is None:
-            axesparam = AxesParam()
         self.axesparam = axesparam
         self.x = Component(taurusparam.xModel)
         self.y = Component(taurusparam.yModel)
+        if not self.curveparam.label:
+            self.curveparam.label = taurusparam.xModel
         
     def __repr__(self):
         ret = "CurveItemConf(xModel='%s', yModel='%s')"%(taurusparam.xModel, taurusparam.yModel)
@@ -135,9 +138,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         super(TaurusCurveItemTableModel,self).__init__()
         self.ncolumns = NUMCOLS
         self.curves = curves
-    
-    def addCurve(self, curveconf ):
-        self.curves.append(curveconf)
         
     def dumpData(self):
         return copy.deepcopy(self.curves)
@@ -214,7 +214,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             row = index.row()
             curve = self.curves[row]
             column = index.column()
-            value = unicode(value.toString())
+            value = str(value.toString())
             if column == X: 
                 curve.taurusparam.xModel = value
                 curve.x.processSrc(value)
@@ -372,7 +372,8 @@ class CurveItemConfDlg(Qt.QWidget):
         self.model.insertRows(rowcount,nmodels)
         for i,m in enumerate(models):
             self.model.setData(self.model.index(rowcount+i, Y), value=Qt.QVariant(m))
-            
+            title = self.model.data(self.model.index(rowcount+i, Y)) # the display data
+            self.model.setData(self.model.index(rowcount+i, TITLE), value=title)
     
     def getCurveItemConfs(self):
         return self.model.dumpData()
