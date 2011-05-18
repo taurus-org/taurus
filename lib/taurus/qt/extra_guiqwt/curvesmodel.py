@@ -307,6 +307,8 @@ class CurveItemConfDlg(Qt.QWidget):
         
         self.ui.tangoTree.setButtonsPos(Qt.Qt.RightToolBarArea)
         
+        self.ui.reloadBT.setEnabled(False)#@todo: The action for this button is not yet implemented 
+        
         self.model = TaurusCurveItemTableModel(curves)
         
         table = self.ui.curvesTable
