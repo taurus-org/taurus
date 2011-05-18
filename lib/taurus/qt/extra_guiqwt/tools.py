@@ -30,14 +30,15 @@
 __docformat__ = 'restructuredtext'
 
 
-from guiqwt.tools import CommandTool, DefaultToolbarID
-from PyQt4 import Qt
+from guiqwt.tools import CommandTool, DefaultToolbarID, QActionGroup, add_actions
+from PyQt4 import Qt, Qwt5
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.extra_guiqwt.builder import make
 from taurus.qt.extra_guiqwt.curve import TaurusCurveItem
 from taurus.qt.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core import TaurusElementType
+from taurus.qt.qtgui.plot import FancyScaleDraw, TaurusTimeScaleDraw, DateTimeScaleEngine
 
 class TaurusCurveChooserTool(CommandTool):
     """
@@ -79,3 +80,106 @@ class TaurusImageChooserTool(CommandTool):
             for m in models:
                 item = make.image(taurusmodel=m)
                 plot.add_item(item)
+
+          
+class TimeAxisTool(CommandTool):
+    def __init__(self, manager):
+        super(TimeAxisTool, self).__init__(manager, "Time Scale",
+                                            icon=getIcon(":/status/awaiting.svg"),
+                                            tip=None, toolbar_id=None)
+        self.action.setEnabled(True)
+                                 
+    def create_action_menu(self, manager):
+        """Create and return menu for the tool's action"""
+        menu = Qt.QMenu()
+        group = QActionGroup(manager.get_main())
+        y_x = manager.create_action("y(x)", toggled=self.set_scale_y_x)
+        y_t = manager.create_action("y(t)", toggled=self.set_scale_y_t)
+        t_x = manager.create_action("t(x)", toggled=self.set_scale_t_x)
+        t_t = manager.create_action("t(t)", toggled=self.set_scale_t_t)
+        self.scale_menu = {(False, False): y_x, (False, True): y_t,
+                           (True, False): t_x, (True, True): t_t}
+        for obj in (group, menu):
+           add_actions(obj, (y_x, y_t, t_x, t_t))
+        return menu
+    
+    def _getAxesUseTime(self, item):
+        """
+        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the item's x
+        axis uses a TimeScale. yIsTime is True if the item's y axis uses a Time
+        Scale. Otherwise they are False.
+        """
+        plot = item.plot()
+        xEngine = plot.axisScaleEngine(item.xAxis())
+        yEngine = plot.axisScaleEngine(item.yAxis())
+        return isinstance(xEngine, TaurusTimeScaleDraw), isinstance(yEngine, TaurusTimeScaleDraw)
+         
+    def update_status(self, plot):
+        item = plot.get_active_item()
+        active_scale = (False, False)
+        if item is not None:
+            active_scale = self._getAxesUseTime(item)
+        for scale_type, scale_action in self.scale_menu.items():
+            if item is None:
+                scale_action.setEnabled(True)
+            else:
+                scale_action.setEnabled(True)
+                if active_scale == scale_type:
+                    scale_action.setChecked(True)
+                else:
+                    scale_action.setChecked(False)
+                    
+    def _setPlotTimeScales(self, xIsTime, yIsTime):
+        plot = self.get_active_plot()
+        if plot is not None:
+            for axis,isTime in zip(plot.get_active_axes(), (xIsTime, yIsTime)):
+                if isTime:
+                    sd = TaurusTimeScaleDraw()
+                    plot.setAxisScaleDraw(axis, sd)
+                    plot.setAxisScaleEngine(axis,DateTimeScaleEngine(sd))
+                else:
+                    plot.set_axis_scale(axis, 'lin' )
+                    plot.setAxisScaleDraw(axis, FancyScaleDraw())
+        plot.replot()
+            
+        
+    def set_scale_y_x(self, checked):
+        if not checked:
+            return
+        self._setPlotTimeScales(False, False)
+        
+    def set_scale_t_x(self, checked):
+        if not checked:
+            return
+        self._setPlotTimeScales(False, True)
+    
+    def set_scale_y_t(self, checked):
+        if not checked:
+            return
+        self._setPlotTimeScales(True, False)
+    
+    def set_scale_t_t(self, checked):
+        if not checked:
+            return
+        self._setPlotTimeScales(True, True)
+
+
+def testTool(tool):
+    from taurus.qt.qtgui.application import TaurusApplication
+    from guiqwt.plot import CurveDialog
+    import sys
+    
+    app = TaurusApplication()
+    win = CurveDialog(edit=False, toolbar=True)
+    win.add_tool(tool)
+    win.show()
+    win.exec_()
+    
+        
+def test_timeAxis():
+    testTool(TimeAxisTool)
+#    testTool(TaurusCurveChooserTool)
+
+
+if __name__ == "__main__":
+    test_timeAxis()    

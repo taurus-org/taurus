@@ -162,7 +162,7 @@ def taurusCurveMain():
     from taurus.qt.qtgui.application import TaurusApplication
     from guiqwt.plot import CurveDialog
     from guiqwt.tools import HRangeTool
-    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool
+    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool, TimeAxisTool
     import taurus.core.util.argparse
     import sys
     
@@ -176,6 +176,7 @@ def taurusCurveMain():
                       options=dict(title="", xlabel="xlabel", ylabel="ylabel"))
     win.add_tool(HRangeTool)
     win.add_tool(TaurusCurveChooserTool)
+    win.add_tool(TimeAxisTool)
     
     plot = win.get_plot()
       
