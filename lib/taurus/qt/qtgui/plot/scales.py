@@ -193,6 +193,43 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         
         return scaleDiv
     
+    @staticmethod        
+    def enableInAxis(plot, axis, scaleDraw =None):
+        '''convenience method that will enable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change 
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          the current ScaleDraw for the plot will be used if 
+                          possible, and a :class:`TaurusTimeScaleDraw` will be set if not
+        '''
+        if scaleDraw is None:
+            scaleDraw = plot.axisScaleDraw(axis)
+            if not isinstance(scaleDraw, TaurusTimeScaleDraw):
+                scaleDraw = TaurusTimeScaleDraw()
+        plot.setAxisScaleDraw(axis, scaleDraw)
+        plot.setAxisScaleEngine(axis, DateTimeScaleEngine(scaleDraw))
+        
+    @staticmethod 
+    def disableInAxis(plot, axis, scaleDraw=None, scaleEngine=None):
+        '''convenience method that will disable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          a :class:`FancyScaleDraw` will be set
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+        '''
+        if scaleDraw is None:
+            scaleDraw=FancyScaleDraw()
+        if scaleEngine is None:
+            scaleEngine = Qwt5.QwtLinearScaleEngine()
+        plot.setAxisScaleEngine(axis, scaleEngine)
+        plot.setAxisScaleDraw(axis, scaleDraw) 
+    
   
 class TaurusTimeScaleDraw(FancyScaleDraw):
     
@@ -216,6 +253,7 @@ class TaurusTimeScaleDraw(FancyScaleDraw):
             s = t.isoformat(' ')
         return Qwt5.QwtText(s)
     
+    
 class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
     def __init__(self, positions):
         '''labels is a sequence of (pos,label) tuples where pos is the point
@@ -228,6 +266,44 @@ class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
         div = Qwt5.QwtScaleDiv(x1, x2, self._positions, [], [])
         div.setTicks(Qwt5.QwtScaleDiv.MajorTick, self._positions)
         return div
+    
+    @staticmethod        
+    def enableInAxis(plot, axis, scaleDraw =None):
+        '''convenience method that will enable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change 
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          the current ScaleDraw for the plot will be used if 
+                          possible, and a :class:`FixedLabelsScaleDraw` will be set if not
+        '''
+        if scaleDraw is None:
+            scaleDraw = plot.axisScaleDraw(axis)
+            if not isinstance(scaleDraw, FixedLabelsScaleDraw):
+                scaleDraw = FixedLabelsScaleDraw()
+        plot.setAxisScaleDraw(axis, scaleDraw)
+        plot.setAxisScaleEngine(axis, FixedLabelsScaleEngine(scaleDraw))
+        
+    @staticmethod 
+    def disableInAxis(plot, axis, scaleDraw=None, scaleEngine=None):
+        '''convenience method that will disable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          a :class:`FancyScaleDraw` will be set
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+        '''
+        if scaleDraw is None:
+            scaleDraw=FancyScaleDraw()
+        if scaleEngine is None:
+            scaleEngine = Qwt5.QwtLinearScaleEngine()
+        plot.setAxisScaleEngine(axis, scaleEngine)
+        plot.setAxisScaleDraw(axis, scaleDraw) 
+
 
 class FixedLabelsScaleDraw(FancyScaleDraw):
     def __init__(self, positions, labels):
@@ -254,4 +330,5 @@ class FixedLabelsScaleDraw(FancyScaleDraw):
         if index is not None:
             return Qwt5.QwtText(self._labels[index])
         else: Qwt5.QwtText()
+        
 

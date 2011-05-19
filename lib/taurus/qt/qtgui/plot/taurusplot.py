@@ -42,8 +42,7 @@ from taurus.core.util import SafeEvaluator, LoopList, CaselessDict, CaselessList
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
-                           DateTimeScaleEngine, TaurusTimeScaleDraw,\
-                           FixedLabelsScaleEngine, FixedLabelsScaleDraw
+                           DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
 from taurus.qt.qtgui.panel import QDataExportDialog, QRawDataWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from curvesAppearanceChooserDlg import CurveAppearanceProperties
@@ -2890,13 +2889,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if enable == self._xIsTime:
             return
         if enable:
-            sd = TaurusTimeScaleDraw()
-            self.setAxisScaleDraw(axis, sd)
-            self.setAxisScaleEngine(axis,DateTimeScaleEngine(sd))
+            DateTimeScaleEngine.enableInAxis(plot, axis)
             self._axesnames[Qwt5.QwtPlot.xBottom] = "T"
         else:
-            self.setAxisScaleEngine(axis, Qwt5.QwtLinearScaleEngine())
-            self.setAxisScaleDraw(axis, FancyScaleDraw())
+            DateTimeScaleEngine.disableInAxis(plot, axis)
             self._axesnames[Qwt5.QwtPlot.xBottom] = "X"
 
         self._zoomer1.setXIsTime(enable)

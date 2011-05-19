@@ -38,7 +38,7 @@ from taurus.qt.extra_guiqwt.curve import TaurusCurveItem
 from taurus.qt.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core import TaurusElementType
-from taurus.qt.qtgui.plot import FancyScaleDraw, TaurusTimeScaleDraw, DateTimeScaleEngine
+from taurus.qt.qtgui.plot import DateTimeScaleEngine
 
 class TaurusCurveChooserTool(CommandTool):
     """
@@ -112,7 +112,7 @@ class TimeAxisTool(CommandTool):
         plot = item.plot()
         xEngine = plot.axisScaleEngine(item.xAxis())
         yEngine = plot.axisScaleEngine(item.yAxis())
-        return isinstance(xEngine, TaurusTimeScaleDraw), isinstance(yEngine, TaurusTimeScaleDraw)
+        return isinstance(xEngine, DateTimeScaleEngine), isinstance(yEngine, DateTimeScaleEngine)
          
     def update_status(self, plot):
         item = plot.get_active_item()
@@ -134,13 +134,10 @@ class TimeAxisTool(CommandTool):
         if plot is not None:
             for axis,isTime in zip(plot.get_active_axes(), (xIsTime, yIsTime)):
                 if isTime:
-                    sd = TaurusTimeScaleDraw()
-                    plot.setAxisScaleDraw(axis, sd)
-                    plot.setAxisScaleEngine(axis,DateTimeScaleEngine(sd))
+                    DateTimeScaleEngine.enableInAxis(plot, axis)
                 else:
-                    plot.set_axis_scale(axis, 'lin' )
-                    plot.setAxisScaleDraw(axis, FancyScaleDraw())
-        plot.replot()
+                    DateTimeScaleEngine.disableInAxis(plot, axis)
+            plot.replot()
             
         
     def set_scale_y_x(self, checked):
