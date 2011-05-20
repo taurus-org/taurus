@@ -2889,10 +2889,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if enable == self._xIsTime:
             return
         if enable:
-            DateTimeScaleEngine.enableInAxis(plot, axis)
+            DateTimeScaleEngine.enableInAxis(self, axis)
             self._axesnames[Qwt5.QwtPlot.xBottom] = "T"
         else:
-            DateTimeScaleEngine.disableInAxis(plot, axis)
+            DateTimeScaleEngine.disableInAxis(self, axis)
             self._axesnames[Qwt5.QwtPlot.xBottom] = "X"
 
         self._zoomer1.setXIsTime(enable)
