@@ -189,7 +189,7 @@ class TaurusModelChooser(TaurusWidget):
         :return: (list<str> or QMimeData) the type of return depends on the value of `asMimeData`'''
         if asMimeData:
             md =  Qt.QMimeData()
-            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(self.list.getModelList()))
+            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, str("\r\n".join(self.list.getModelList())))
             md.setText(", ".join(self.list.getModelList()))
             if len(self.list.getModelList()) == 1:
                 md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(self.list.getModelList()[0]))
