@@ -112,6 +112,7 @@ class ImageCounterDevice(ImageDevice):
 PyImageViewer = ImageCounterDevice
 ImgGrabber = ImageCounterDevice
 CCDPVCAM = ImageCounterDevice
+Falcon = ImageCounterDevice
 
 class ImgBeamAnalyzer(ImageCounterDevice):
     

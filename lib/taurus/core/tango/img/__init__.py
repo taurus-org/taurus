@@ -38,3 +38,4 @@ def registerExtensions():
     factory.registerDeviceClass('ImgGrabber', ImgGrabber)
     factory.registerDeviceClass('ImgBeamAnalyzer', ImgBeamAnalyzer)
     factory.registerDeviceClass('CCDPVCAM', CCDPVCAM)
+    factory.registerDeviceClass('Falcon', Falcon)
