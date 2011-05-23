@@ -433,6 +433,8 @@ Trace    = util.Logger.Trace
     
 setLogLevel = util.Logger.setLogLevel
 setLogFormat = util.Logger.setLogFormat
+getLogLevel = util.Logger.getLogLevel
+getLogFormat = util.Logger.getLogFormat
 resetLogLevel = util.Logger.resetLogLevel
 resetLogFormat = util.Logger.resetLogFormat
 
