@@ -125,17 +125,21 @@ class LogIt(object):
             log_obj.log(self._level, in_msg)
             ret = None
             raise_ex = None
+            exc_info = False
             try:
                 ret = f(*args, **kwargs)
             except Exception,e:
+                exc_info = sys.exc_info()
                 raise_ex = e
             out_msg = "<-"
-            if not raise_ex is None: out_msg += " (with %s)" % raise_ex.__class__.__name__
+            if raise_ex is not None:
+                out_msg += " (with %s)" % raise_ex.__class__.__name__
             out_msg += " %s" % fname
             if not ret is None and self._showret:
                 out_msg += " = %s" % str(ret)
-            if self._col_limit and len(out_msg) > self._col_limit: out_msg = "%s [...]" % out_msg[:self._col_limit-6]
-            log_obj.log(self._level, out_msg)
+            if self._col_limit and len(out_msg) > self._col_limit:
+                out_msg = "%s [...]" % out_msg[:self._col_limit-6]
+            log_obj.log(self._level, out_msg, exc_info=exc_info)
             if not raise_ex is None: raise raise_ex
             return ret
         return wrapper
@@ -344,12 +348,6 @@ class Logger(Object):
             self.log_parent = weakref.ref(parent)
             parent.addChild(self)
 
-    def __del__(self):
-        self.log_obj = None
-        self.log_handlers = None
-        self.log_parent = None
-        self.log_children = None
-
     def cleanUp(self):
         """The cleanUp. Default implementation does nothing
            Overwrite when necessary
@@ -524,9 +522,6 @@ class Logger(Object):
         if not self.log_children.get(id(child)):
             self.log_children[id(child)]=weakref.ref(child)
 
-    def __eq__(self, other):
-        return self is other
-
     def addLogHandler(self, handler):
         """Registers a new handler in this object's logger
         
@@ -690,7 +685,16 @@ class Logger(Object):
            :param kw: list of keyword arguments
         """
         self.log_obj.critical(msg, *args, **kw)
-
+    
+    def exception(self, msg, *args):
+        """Log a message with severity 'ERROR' on the root logger, with 
+           exception information.
+        
+           :param msg: (str) the message to be recorded
+           :param args: list of arguments
+        """
+        self.log_obj.exception(msg, *args)
+    
     def flushOutput(self):
         """Flushes the log output"""
         self.syncLog()
