@@ -25,9 +25,10 @@
 
 """This module contains all basic taurus enumerations"""
 
-__all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode", "SubscriptionState",
-           "TaurusEventType", "MatchLevel", "TaurusElementType", "DataFormat",
-           "AttrQuality", "AttrType", "DisplayLevel", "ManagerState"]
+__all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
+           "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
+           "MatchLevel", "TaurusElementType", "DataFormat", "AttrQuality",
+           "AttrType", "DisplayLevel", "ManagerState"]
 
 __docformat__ = "restructuredtext"
 
@@ -56,6 +57,12 @@ OperationMode = util.Enumeration(
 'OperationMode', (
     'OFFLINE',
     'ONLINE'
+))
+
+TaurusSerializationMode = util.Enumeration(
+'TaurusSerializationMode', (
+    'Serial',
+    'Concurrent'
 ))
 
 TaurusEventType = util.Enumeration(
