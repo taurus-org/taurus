@@ -149,10 +149,10 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def resizeEvent(self, event):
         """ It has been needed to reimplent size policies """
         if not self.scene() or isinstance(self.parent(),Qt.QScrollArea) or not self.isVisible():
-            self.info('In TauJDrawSynopticsView('+self._fileName+').resizeEvent(): Disabled')
+            self.debug('In TauJDrawSynopticsView('+self._fileName+').resizeEvent(): Disabled')
             return
         try:
-            self.info('In TauJDrawSynopticsView('+self._fileName+').resizeEvent()')
+            self.debug('In TauJDrawSynopticsView('+self._fileName+').resizeEvent()')
                 
             self.setVerticalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
             self.setHorizontalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)

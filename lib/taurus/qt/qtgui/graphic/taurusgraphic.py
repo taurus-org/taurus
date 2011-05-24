@@ -293,7 +293,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                         self.warning('selectGraphicsItem(%s) failed! %s' % (item_name,str(e)))
                         print traceback.format_exc()
                         return False
-        self.warning('No matching object found for "%s"'%item_name)
+        self.debug('No matching object found for "%s"'%item_name)
 
     def setSelectionMark(self,picture=None,h=10,w=10):
         """This method allows to set a pixmap as selection mark or by default creates a blue circle."""
