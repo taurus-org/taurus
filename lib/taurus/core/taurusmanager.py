@@ -33,7 +33,7 @@ import os, imp, atexit
 
 import util
 import taurus.core
-from enums import OperationMode, ManagerState
+from enums import OperationMode, ManagerState, TaurusSerializationMode
 from taurus.core.taurusexception import TaurusException
 
 class TaurusManager(util.Singleton, util.Logger):
@@ -46,7 +46,8 @@ class TaurusManager(util.Singleton, util.Logger):
            >>> print manager == taurus.core.TaurusManager()
            True
     """
-
+    
+    DefaultSerializationMode = TaurusSerializationMode.Concurrent
     default_scheme = "tango"
 
     def __init__(self):
@@ -70,18 +71,20 @@ class TaurusManager(util.Singleton, util.Logger):
         self.trace("reInit()")
         this_path = os.path.abspath(__file__)
         self._this_path = os.path.dirname(this_path)
-    
-        self._thread_pool = util.ThreadPool(name="TaurusTP",
-                                            parent=self,
-                                            Psize=5,
-                                            Qsize=1000)
-
+        self._operation_mode = OperationMode.ONLINE
+        self._serialization_mode = self.DefaultSerializationMode
+        if self._serialization_mode == TaurusSerializationMode.Concurrent:
+            self._thread_pool = util.ThreadPool(name="TaurusTP",
+                                                parent=self,
+                                                Psize=5,
+                                                Qsize=1000)
+        else:
+            self._thread_pool = None
         self._plugins = self._build_plugins()
         
         self._initial_default_scheme = self.default_scheme
         self._default_factory = self._plugins.get(self.default_scheme, None)
         
-        self._operation_mode = OperationMode.ONLINE
         self._state = ManagerState.INITED
 
     def cleanUp(self):
@@ -111,15 +114,29 @@ class TaurusManager(util.Singleton, util.Logger):
         :param args: (list) list of arguments passed to the job
         :param kw: (dict) keyword arguments passed to the job
         """
-        if not hasattr(self, "_thread_pool") or self._thread_pool is None:
-            self.info("Job cannot be processed.")
-            self.debug("The requested job cannot be processed. Make sure this manager is initialized")
-            return
-        self._thread_pool.add(job, callback, *args, **kw)
-        #job(*args, **kw)
+        if self._serialization_mode == TaurusSerializationMode.Concurrent:
+            if not hasattr(self, "_thread_pool") or self._thread_pool is None:
+                self.info("Job cannot be processed.")
+                self.debug("The requested job cannot be processed. Make sure this manager is initialized")
+                return
+            self._thread_pool.add(job, callback, *args, **kw)
+        else:
+            job(*args, **kw)
+    
+    def setSerializationMode(self, mode):
+        """Sets the serialization mode for the system.
         
+        :param mode: (TaurusSerializationMode) the new serialization mode"""
+        self._serialization_mode = mode
+    
+    def getSerializationMode(self):
+        """Gives the serialization operation mode.
+        
+        :return: (TaurusSerializationMode) the current serialization mode"""
+        return self._serialization_mode
+    
     def setOperationMode(self, mode):
-        """Sets the operation mode for the Tango system.
+        """Sets the operation mode for the system.
         
         :param mode: (OperationMode) the new operation mode"""
         self.debug("Setting operation mode to %s" % OperationMode.whatis(mode))
