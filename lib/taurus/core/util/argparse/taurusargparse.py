@@ -55,6 +55,7 @@ Currently, the known options are:
     #. ``--taurus-log-level`` sets the taurus log level
     #. ``--tango-host`` sets the default tango host
     #. ``--taurus-polling-period`` sets the default taurus global polling period (milliseconds)
+    #. ``--taurus-serialization-mode`` sets the default taurus serialization mode
    
 You can easily extend the taurus options with your application specific options.
 Supose you want to add an option like ``--model=<model name>``::
@@ -101,10 +102,14 @@ def get_taurus_parser(parser=None):
                          "error, warning/warn, info, debug, trace"
         help_tangohost = "Tango host name"
         help_tauruspolling = "taurus global polling period in milliseconds"
+        help_taurusserial= "taurus serialization mode. Allowed values are (case insensitive): "\
+                           "serial, concurrent (default)"
         group.add_option("--taurus-log-level", dest="taurus_log_level", metavar="LEVEL",
                          help=help_tauruslog, type="str", default="info")
         group.add_option("--taurus-polling-period", dest="taurus_polling_period", metavar="MILLISEC",
                          help=help_tauruspolling, type="int", default=None)
+        group.add_option("--taurus-serialization-mode", dest="taurus_serialization_mode", metavar="SERIAL",
+                         help=help_taurusserial, type="str", default="Concurrent")
         group.add_option("--tango-host", dest="tango_host", metavar="TANGO_HOST",
                          help=help_tangohost, type="str", default=None)
         parser.add_option_group(group)
@@ -159,9 +164,17 @@ def init_taurus_args(parser=None, args=None, values=None):
         tango_factory = taurus.Factory("tango")
         tango_factory.set_default_tango_host(options.tango_host)
 
-    # initialize tango host
+    # initialize taurus polling period
     if options.taurus_polling_period is not None:
         taurus.Manager().changeDefaultPollingPeriod(options.taurus_polling_period)
 
-    return parser, options, args
+    # initialize taurus serialization mode
+    if options.taurus_serialization_mode is not None:
+        import taurus.core
+        m = options.taurus_serialization_mode.capitalize()
+        if hasattr(taurus.core.TaurusSerializationMode, m):
+            m = getattr(taurus.core.TaurusSerializationMode, m)
+            taurus.Manager().setSerializationMode(m)
         
+    return parser, options, args
+    
