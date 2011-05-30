@@ -80,7 +80,7 @@ def test1():
     model1 = 'sys/tg_test/1/short_image_ro'
     taurusimage = make.image(taurusmodel= model1)
     
-    #adefine normal image (guiqwt standard)
+    #define normal image (guiqwt standard)
     data = numpy.random.rand(100,100)
     image = make.image(data=data)
     
@@ -98,8 +98,51 @@ def test1():
     win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
     
     win.exec_()
-
+    
+def taurusImageMain():
+    from guiqwt.tools import (RectangleTool, EllipseTool, HRangeTool, PlaceAxesTool,
+                          MultiLineTool, FreeFormTool, SegmentTool, CircleTool,
+                          AnnotatedRectangleTool, AnnotatedEllipseTool,
+                          AnnotatedSegmentTool, AnnotatedCircleTool, LabelTool,
+                          AnnotatedPointTool, VCursorTool, HCursorTool,
+                          AnnotatedVCursorTool, AnnotatedHCursorTool,
+                          ObliqueRectangleTool, AnnotatedObliqueRectangleTool)
+    from taurus.qt.extra_guiqwt.tools import TaurusImageChooserTool
+    from guiqwt.plot import ImageDialog
+    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.application import TaurusApplication
+    import taurus.core.util.argparse
+    import sys
+    
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting 2D data sets")
+    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusimage", app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+    
+    #create a dialog with a plot and add the images
+    win = ImageDialog(edit=False, toolbar=True, wintitle="Taurus Image",
+                      options=dict(show_xsection=False, show_ysection=False))
+    
+    #add tools
+    for toolklass in (TaurusImageChooserTool,
+                      LabelTool, HRangeTool, 
+                      MultiLineTool, FreeFormTool, PlaceAxesTool,
+                      AnnotatedObliqueRectangleTool,
+                      AnnotatedEllipseTool, AnnotatedSegmentTool,
+                      AnnotatedPointTool, AnnotatedVCursorTool,
+                      AnnotatedHCursorTool):
+        win.add_tool(toolklass)
+    
+    #add images from given models
+    plot = win.get_plot()
+    for m in args:
+        img = make.image(taurusmodel= m)
+        plot.add_item(img)
+        win.connect(img.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections) #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
+        
+    win.exec_()
 
 if __name__ == "__main__":
-    test1()    
+    taurusImageMain()   
 
