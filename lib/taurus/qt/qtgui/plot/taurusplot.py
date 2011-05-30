@@ -605,6 +605,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 b.setStyle(Qt.Qt.NoBrush)
             self.setBrush(b)            
         if prop.yAxis is not None: self.setYAxis(prop.yAxis)
+        if getattr(prop,"visible",None) is not None: self.setVisible(prop.visible)
         if prop.title is not None: self.setTitle(Qwt5.QwtText(prop.title))
         self.setSymbol(s)
         self.setPen(p)
@@ -628,6 +629,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         prop.cStyle=self.style()
         prop.cFill= (self.brush().style() != Qt.Qt.NoBrush)
         prop.yAxis=self.yAxis()
+        prop.visible = self.isVisible()
         prop.title=self.title().text() #We are forced to save only the text (and not the QwtText) because Pickle chokes with the QwtText
         return copy.deepcopy(prop)
 
@@ -1895,7 +1897,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             for name,prop in propDict.iteritems():
-                self.curves[name].setAppearanceProperties(copy.deepcopy(prop))
+                c = self.curves[name]
+                c.setAppearanceProperties(copy.deepcopy(prop))
+                visible = getattr(prop,'visible',True)
+                if visible is not None: 
+                    self.showCurve(c, visible)
         finally:
             self.curves_lock.release()
         self.autoShowYAxes()
