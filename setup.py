@@ -139,6 +139,10 @@ extra_packages = [
     'taurus.qt.qtgui.extra_xterm',
     
     'taurus.qt.extra_guiqwt',
+    
+    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01',
+    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01.images',
+    'taurus.qt.qtgui.taurusgui.conf.tgconf_macrogui',
 ]
 
 provides = [
