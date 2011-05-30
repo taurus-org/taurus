@@ -332,7 +332,7 @@ class CurveAppearanceProperties(object):
     
     def __init__(self, sStyle=None, sSize=None, sColor=None, sFill=None,
                  lStyle=None, lWidth=None, lColor=None, cStyle=None,
-                 yAxis=None, cFill=None, title=None):
+                 yAxis=None, cFill=None, title=None, visible=None):
         """
         Creator of :class:`CurveAppearanceProperties`
         Possible keyword arguments are:
@@ -346,6 +346,7 @@ class CurveAppearanceProperties(object):
             - cStyle= curvestyle
             - cFill= bool
             - yAxis= axis
+            - visible = bool
             - title= title
             
         Where: 
@@ -369,8 +370,9 @@ class CurveAppearanceProperties(object):
         self.cFill = cFill
         self.yAxis = yAxis
         self.title = title
+        self.visible = visible
         self.propertyList = ["sStyle","sSize","sColor","sFill","lStyle","lWidth",
-                             "lColor","cStyle","cFill","yAxis", "title"]
+                             "lColor","cStyle","cFill","yAxis", "title", "visible"]
         
     def _print(self):
         """Just for debug"""
