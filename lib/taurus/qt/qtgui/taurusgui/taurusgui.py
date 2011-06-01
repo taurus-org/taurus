@@ -186,7 +186,14 @@ class TaurusGui(TaurusMainWindow):
         
         self.updatePerspectivesMenu()
         self.splashScreen().finish(self)
-        self.statusBar().showMessage('%s is ready'%Qt.qApp.applicationName())
+        
+        #connect the main window itself as a reader/writer of "short messages"
+        Qt.qApp.SDM.connectReader("shortMessage", self.onShortMessage) 
+        Qt.qApp.SDM.connectWriter("shortMessage", self, 'newShortMessage')
+        
+        #emit a short message informing that we are ready to go
+        msg = '%s is ready'%Qt.qApp.applicationName()
+        self.emit(Qt.SIGNAL('newShortMessage'), msg)
             
     def __initViewMenu(self):        
         #Panels view menu
@@ -403,7 +410,6 @@ class TaurusGui(TaurusMainWindow):
 #        #connect the "relocationRequested" signal
 #        self.connect(panel, Qt.SIGNAL('relocationRequested'), self.movePanel)
         return panel
-
    
     def getPanelNames(self):
         '''returns the names of existing panels
@@ -484,7 +490,8 @@ class TaurusGui(TaurusMainWindow):
         
 
         self.createPanel(w, paneldesc.name, paneldesc.area, custom=True, registerconfig=False)
-        self.statusBar().showMessage('Panel %s created. Drag items to it or use the context menu to customize it'%w.name)
+        msg = 'Panel %s created. Drag items to it or use the context menu to customize it'%w.name
+        self.emit(Qt.SIGNAL('newShortMessage'), msg)
         
     def createMainSynoptic(self, synopticname):
         '''
@@ -562,8 +569,7 @@ class TaurusGui(TaurusMainWindow):
                 instrument_dict[i_name].model.append(e_name)
                 
         return instrument_dict.values()
-    
-    
+      
     def __getVarFromXML(self, root, nodename, default=None):
         name = root.find(nodename)
         if name is None or name.text is None:
@@ -744,9 +750,6 @@ class TaurusGui(TaurusMainWindow):
             INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
             iniFileName = os.path.join(self._confDirectory, INIFILE) #if a relative name is given, the conf dir is used as the root path
             self.importSettingsFile(iniFileName)
-
-
-
             
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
@@ -763,9 +766,15 @@ class TaurusGui(TaurusMainWindow):
             action.setEnabled(modifiable)
         
         self._lockviewAction.setChecked(not modifiable)
-        TaurusMainWindow.setModifiableByUser(self, modifiable)
+        TaurusMainWindow.setModifiableByUser(self, modifiable)                      
+
+    def onShortMessage(self, msg):
+        ''' Slot to be called when there is a new short message. Currently, the only action 
+        taken when there is a new message is to display it in the main window status bar.
         
-                          
+        :param msg: (str) the short descriptive message to be handled 
+        '''
+        self.statusBar().showMessage(msg)
     
     def onDoorNameChanged(self, doorname):
         ''' Slot to be called when the door name has changed
