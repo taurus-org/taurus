@@ -46,7 +46,7 @@ from model import MacroSequenceTreeModel, MacroSequenceProxyModel, MacroParamete
 from delegate import SequenceEditorDelegate
 from taurus.qt.qtgui.extra_macroexecutor import globals
 
-from taurus.qt.qtgui.resource import getThemeIcon
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
 
 class HookAction(Qt.QAction):
@@ -341,21 +341,21 @@ class TaurusSequencerWidget(TaurusWidget):
         saveSequenceButton.setDefaultAction(self.saveSequenceAction)
         actionsLayout.addWidget(saveSequenceButton)
         
-        self.stopSequenceAction = Qt.QAction(getThemeIcon("media-playback-stop"), "Stop", self)
+        self.stopSequenceAction = Qt.QAction(getIcon(":/actions/media_playback_stop.svg"), "Stop", self)
         self.connect(self.stopSequenceAction, Qt.SIGNAL("triggered()"), self.onStopSequence)
         self.stopSequenceAction.setToolTip("Stop sequence")
         stopSequenceButton = Qt.QToolButton()
         stopSequenceButton.setDefaultAction(self.stopSequenceAction)
         actionsLayout.addWidget(stopSequenceButton)
         
-        self.pauseSequenceAction = Qt.QAction(getThemeIcon("media-playback-pause"), "Pause", self)
+        self.pauseSequenceAction = Qt.QAction(getIcon(":/actions/media_playback_pause.svg"), "Pause", self)
         self.connect(self.pauseSequenceAction, Qt.SIGNAL("triggered()"), self.onPauseSequence)
         self.pauseSequenceAction.setToolTip("Pause sequence")
         pauseSequenceButton = Qt.QToolButton()
         pauseSequenceButton.setDefaultAction(self.pauseSequenceAction)
         actionsLayout.addWidget(pauseSequenceButton)
         
-        self.playSequenceAction = Qt.QAction(getThemeIcon("media-playback-start"), "Play", self)
+        self.playSequenceAction = Qt.QAction(getIcon(":/actions/media_playback_start.svg"), "Play", self)
         self.connect(self.playSequenceAction, Qt.SIGNAL("triggered()"), self.onPlaySequence)
         self.playSequenceAction.setToolTip("Play sequence")
         playSequenceButton = Qt.QToolButton()
@@ -496,7 +496,6 @@ class TaurusSequencerWidget(TaurusWidget):
         self.emit(Qt.SIGNAL("currentMacroChanged"), None)
     
     def onOpenSequence(self):
-
         if not self._sequenceModel.isEmpty():
             if Qt.QMessageBox.question(self,
                                        "Open sequence", 
@@ -527,6 +526,7 @@ class TaurusSequencerWidget(TaurusWidget):
             if not self._sequenceModel.isEmpty():
                 self.newSequenceAction.setEnabled(True)
                 self.saveSequenceAction.setEnabled(True)
+                self.playSequenceAction.setEnabled(True)
         except IOError:
             Qt.QMessageBox.warning(self,"Error while loading macros sequence", "There was a problem while reading from file: %s" % fileName)
             self.tree.clearTree()
@@ -561,7 +561,8 @@ class TaurusSequencerWidget(TaurusWidget):
             
     def onPlaySequence(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.ON:
+        doorState = door.state()
+        if doorState == PyTango.DevState.ON:
             first, last, ids = self.tree.prepareMacroIds()
             self.setFirstMacroId(first)
             self.setLastMacroId(last)
@@ -570,21 +571,16 @@ class TaurusSequencerWidget(TaurusWidget):
             self.tree.prepareMacroProgresses()
             self.setEmitExecutionStarted(True)
             door.runMacro(self.tree.toXmlString())
-        else:
-            Qt.QMessageBox.warning(self,"Error while starting sequence", 
-                                   "It was not possible to start sequence, because state of the door was different than ON")
-    
-    def onResumeSequence(self):
-        door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.STANDBY:
+        elif doorState == PyTango.DevState.STANDBY:
             door.command_inout("ResumeMacro")
         else:
-            Qt.QMessageBox.warning(self,"Error while resuming sequence", 
-                                   "It was not possible to resume sequence, because state of the door was different than STANDBY")
+            Qt.QMessageBox.warning(self,"Error while starting/resuming sequence", 
+                                   "It was not possible to start/resume sequence, because state of the door was different than ON/STANDBY")
     
     def onStopSequence(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.RUNNING or door.getState() == PyTango.DevState.STANDBY:
+        doorState = door.state() 
+        if doorState in (PyTango.DevState.RUNNING,PyTango.DevState.STANDBY):
             door.command_inout("Abort")
         else:
             Qt.QMessageBox.warning(self,"Error while stopping sequence", 
@@ -592,7 +588,8 @@ class TaurusSequencerWidget(TaurusWidget):
     
     def onPauseSequence(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.RUNNING:
+        doorState = door.state()
+        if doorState == PyTango.DevState.RUNNING:
             door.command_inout("PauseMacro")
         else:
             Qt.QMessageBox.warning(self,"Error while pausing sequence", 
@@ -600,13 +597,13 @@ class TaurusSequencerWidget(TaurusWidget):
         
     def onMacroStatusUpdated(self, data):
         macro = data[0]
-        data = data[1]
-        if macro is None:
-            return
-        data = data[0]
+        if macro is None: return
+        data = data[1][0]
         state, range, step, id = str(data["state"]), data["range"], data["step"], data["id"]
         id = int(id)
         if not id in self.macroIds(): return
+        macroName = macro.name
+        shortMessage = ""
         if state == "start":
             #@todo: Check this signal because it doesn't work, emitExecutionStarted is not set!!!
             if self.emitExecutionStarted(): 
@@ -618,20 +615,42 @@ class TaurusSequencerWidget(TaurusWidget):
             if id == self.firstMacroId():            
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
+                shortMessage = "Sequence started."
             elif not self.isFullSequencePlot():
                 self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
+            shortMessage += " Macro %s started." % macroName
         elif state == "pause":
-            self.playAction2resumeAction()
+            self.playSequenceAction.setText("Resume sequence")
+            self.playSequenceAction.setToolTip("Resume sequence")
             self.playSequenceAction.setEnabled(True)
             self.pauseSequenceAction.setEnabled(False)
+            shortMessage = "Macro %s paused." % macroName
         elif state == "resume":
-            self.resumeAction2playAction()
+            self.playSequenceAction.setText("Start sequence")
+            self.playSequenceAction.setToolTip("Start sequence")
             self.playSequenceAction.setEnabled(False)
             self.pauseSequenceAction.setEnabled(True)
+            shortMessage = "Macro %s resumed." % macroName
         elif state == "stop":
+            shortMessage = "Macro %s finished." % macroName
+            if id == self.lastMacroId():
+                self.playSequenceAction.setEnabled(True)
+                self.pauseSequenceAction.setEnabled(False)
+                self.stopSequenceAction.setEnabled(False)
+                shortMessage += " Sequence finished."
+        elif state == 'exception':
             self.playSequenceAction.setEnabled(True)
             self.pauseSequenceAction.setEnabled(False)
             self.stopSequenceAction.setEnabled(False)
+            shortMessage = "Macro %s error." % macroName
+        elif state == 'abort':
+            self.playSequenceAction.setText("Start sequence")
+            self.playSequenceAction.setToolTip("Start sequence")
+            self.playSequenceAction.setEnabled(True)
+            self.pauseSequenceAction.setEnabled(False)
+            self.stopSequenceAction.setEnabled(False)
+            shortMessage = "Macro %s stopped." % macroName 
+        self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
         self.tree.setProgressForMacro(id, step)
 
     def onDoorChanged(self, doorName):
@@ -640,6 +659,19 @@ class TaurusSequencerWidget(TaurusWidget):
             self.doorStateLed.setModel(None)
             return
         self.doorStateLed.setModel(self.doorName() + "/State")
+        doorState = Device(doorName).state()
+        if doorState == PyTango.DevState.ON:
+            self.playSequenceAction.setText("Start sequence")
+            self.playSequenceAction.setToolTip("Start sequence")
+            self.playSequenceAction.setEnabled(False)
+            self.pauseSequenceAction.setEnabled(False)
+            self.stopSequenceAction.setEnabled(False)
+        elif doorState == PyTango.DevState.STANDBY:
+            self.playSequenceAction.setText("Resume sequence")
+            self.playSequenceAction.setToolTip("Resume sequence")
+            self.playSequenceAction.setEnabled(True)
+            self.pauseSequenceAction.setEnabled(False)
+            self.stopSequenceAction.setEnabled(True)
         
     def setMacroParametersRootIndex(self, sourceIndex):
         parametersModel = self.standardMacroParametersEditor.tree.model()
@@ -696,28 +728,6 @@ class TaurusSequencerWidget(TaurusWidget):
             macroServerObj.fillMacroNodeAdditionalInfos(macroNode)
         return newRoot
     
-    def playAction2resumeAction(self):
-        Qt.QObject.disconnect(self.playSequenceAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onPlaySequence)
-        Qt.QObject.connect(self.playSequenceAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onResumeSequence)
-        self.playSequenceAction.setToolTip("Resume sequence")
-        self.playSequenceAction.setStatusTip("Resume sequence")
-        self.playSequenceAction.setText("Resume sequence")
-            
-    def resumeAction2playAction(self):
-        Qt.QObject.disconnect(self.playSequenceAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onResumeSequence)
-        Qt.QObject.connect(self.playSequenceAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onPlaySequence)
-        self.playSequenceAction.setToolTip("Play sequence")
-        self.playSequenceAction.setStatusTip("Play sequence")
-        self.playSequenceAction.setText("Play sequence")
-
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
@@ -738,6 +748,8 @@ class TaurusSequencer(MacroExecutionWindow):
         self.taurusSequencerWidget.setUseParentModel(True)
         self.registerConfigDelegate(self.taurusSequencerWidget)
         self.setCentralWidget(self.taurusSequencerWidget)
+        self.connect(self.taurusSequencerWidget, Qt.SIGNAL('shortMessageEmitted'), self.onShortMessage)
+        self.statusBar().showMessage("Sequencer ready")
         
     def setCustomMacroEditorPaths(self, customMacroEditorPaths):
         MacroExecutionWindow.setCustomMacroEditorPaths(self, customMacroEditorPaths)

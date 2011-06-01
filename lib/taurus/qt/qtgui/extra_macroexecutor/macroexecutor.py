@@ -280,13 +280,13 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     #@Qt.pyqtSignature("macroStatusUpdated")
     def onMacroStatusUpdated(self, data):
         macro = data[0]
-        if macro is None: return
-        macroName = macro.name
+        if macro is None: return        
         data = data[1][0]
         state, range, step, id = data["state"], data["range"], data["step"], data["id"]
         id = int(id)
         if id != self.macroId(): return
-        shortMessage = None
+        macroName = macro.name
+        shortMessage = ""
         if state == "start":
             self.emit(Qt.SIGNAL("macroStarted"), "DoorOutput")
             self.macroProgressBar.setRange(range[0], range[1])
@@ -324,9 +324,8 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
-            shortMessage = "Macro %s stopped." % macroName
-        if isinstance(shortMessage,str): 
-            self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
+            shortMessage = "Macro %s stopped." % macroName 
+        self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
         self.macroProgressBar.setValue(step)
 
     def disableControlActions(self):
