@@ -25,6 +25,8 @@
 
 """This package provides the TaurusGui class"""
 
+__all__=["DockWidgetPanel", "TaurusGui"]
+
 __docformat__ = 'restructuredtext'
 
 
@@ -338,9 +340,29 @@ class TaurusGui(TaurusMainWindow):
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"select panel Configuration", self.updatePermanentCustomPanels)
         
     def setCustomWidgetMap(self, map):
+        '''
+        Sets the widget map that is used application-wide. This widget map will
+        be used by default in all TaurusForm Panels belonging to this gui.
+        
+        :param map: (dict<str,Qt.QWidget>) a dictionary whose keys are device
+                    type strings (e.g. see :class:`PyTango.DeviceInfo`) and
+                    whose values are widgets to be used
+                    
+        .. seealso:: :meth:`TaurusForm.setCustomWidgetMap`, :meth:`getCustomWidgetMap`
+        '''
         self._customWidgetMap = map
         
     def getCustomWidgetMap(self):
+        '''
+        Returns the default map used to create custom widgets by the TaurusForms
+        belonging to this GUI
+        
+        :return: (dict<str,Qt.QWidget>) a dictionary whose keys are device
+                 type strings (i.e. see :class:`PyTango.DeviceInfo`) and whose
+                 values are widgets to be used
+        
+        .. seealso:: :meth:`setCustomWidgetMap`
+        '''
         return self._customWidgetMap   
        
     def createConfig(self, *args, **kwargs):
