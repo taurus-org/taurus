@@ -949,14 +949,14 @@ class MacroExecutor(taurus.core.util.Logger):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
             ms['state'] = 'pause'
-            elf.debug("Sending pause event %s", ms)
+            self.debug("Sending pause event %s", ms)
             self.sendMacroStatus((ms,))
 
     def sendMacroStatusResume(self):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
             ms['state'] = 'resume'
-            elf.debug("Sending resume event %s", ms)
+            self.debug("Sending resume event %s", ms)
             self.sendMacroStatus((ms,))
 
     def sendMacroStatus(self, data):
