@@ -42,7 +42,7 @@ from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEdito
 from taurus.core.tango.macroserver import macro
 
 
-from taurus.qt.qtgui.resource import getThemeIcon
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
         
 class MacroProgressBar(Qt.QProgressBar):
@@ -87,15 +87,15 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.addToFavouritesAction = Qt.QAction(getThemeIcon("software-update-available"), "Add to favourites", self)
         self.connect(self.addToFavouritesAction, Qt.SIGNAL("triggered()"), self.onAddToFavourites)
         self.addToFavouritesAction.setToolTip("Add to favourites")
-        self.stopMacroAction = Qt.QAction(getThemeIcon("media-playback-stop"), "Stop", self)
+        self.stopMacroAction = Qt.QAction(getIcon(":/actions/media_playback_stop.svg"), "Stop macro", self)
         self.connect(self.stopMacroAction, Qt.SIGNAL("triggered()"), self.onStopMacro)
-        self.stopMacroAction.setToolTip("Stop")
-        self.pauseMacroAction = Qt.QAction(getThemeIcon("media-playback-pause"), "Pause", self)
+        self.stopMacroAction.setToolTip("Stop macro")
+        self.pauseMacroAction = Qt.QAction(getIcon(":/actions/media_playback_pause.svg"), "Pause macro", self)
         self.connect(self.pauseMacroAction, Qt.SIGNAL("triggered()"), self.onPauseMacro)
-        self.pauseMacroAction.setToolTip("Pause")
-        self.playMacroAction = Qt.QAction(getThemeIcon("media-playback-start"), "Play", self)
+        self.pauseMacroAction.setToolTip("Pause macro")
+        self.playMacroAction = Qt.QAction(getIcon(":/actions/media_playback_start.svg"), "Start macro", self)
         self.connect(self.playMacroAction, Qt.SIGNAL("triggered()"), self.onPlayMacro)
-        self.playMacroAction.setToolTip("Play")
+        self.playMacroAction.setToolTip("Start macro")
         
         actionsLayout = Qt.QHBoxLayout()
         actionsLayout.setContentsMargins(0,0,0,0)
@@ -228,10 +228,18 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.doorStateLed.setModel(None)
             return
         self.doorStateLed.setModel(self.doorName() + "/State")
+        doorState = Device(doorName).state()
+        if doorState == PyTango.DevState.ON:
+            self.playMacroAction.setText("Start macro")
+            self.playMacroAction.setToolTip("Start macro")
+        elif doorState == PyTango.DevState.STANDBY:
+            self.playMacroAction.setText("Resume macro")
+            self.playMacroAction.setToolTip("Resume macro")
         
     def onPlayMacro(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.ON:
+        doorState = door.state()
+        if doorState == PyTango.DevState.ON:
             paramEditorModel = self.paramEditorModel() 
             macroNode = paramEditorModel.root()
             id = macroNode.assignId()
@@ -243,21 +251,17 @@ class TaurusMacroExecutorWidget(TaurusWidget):
                 return
             door.runMacro(xmlString)
 #            door.runMacro(str(macroNode.name()), params)
-        else:
-            Qt.QMessageBox.warning(self,"Error while starting macro", 
-                                   "It was not possible to start macro, because state of the door was different than ON")
-    
-    def onResumeMacro(self):
-        door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.STANDBY:
+        elif doorState == PyTango.DevState.STANDBY:
             door.command_inout("ResumeMacro")
         else:
-            Qt.QMessageBox.warning(self,"Error while resuming macro", 
-                                   "It was not possible to resume macro, because state of the door was different than STANDBY") 
+            Qt.QMessageBox.warning(self,"Error while starting/resuming macro", 
+                                   "It was not possible to start/resume macro, because state of the door was different than ON/STANDBY") 
             
     def onStopMacro(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.RUNNING or door.getState() == PyTango.DevState.STANDBY:
+        doorState = door.state()
+        
+        if doorState in (PyTango.DevState.RUNNING, PyTango.DevState.STANDBY):
             door.command_inout("Abort")
         else:
             Qt.QMessageBox.warning(self,"Error while stopping macro", 
@@ -265,7 +269,9 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     
     def onPauseMacro(self):
         door = Device(self.doorName())
-        if door.getState() == PyTango.DevState.RUNNING:
+        doorState = door.state()
+        
+        if doorState == PyTango.DevState.RUNNING:
             door.command_inout("PauseMacro")
         else:
             Qt.QMessageBox.warning(self,"Error while pausing macro", 
@@ -274,13 +280,14 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     #@Qt.pyqtSignature("macroStatusUpdated")
     def onMacroStatusUpdated(self, data):
         macro = data[0]
-        data = data[1]
         if macro is None: return
-        data = data[0]
+        macroName = macro.name
+        data = data[1][0]
         state, range, step, id = data["state"], data["range"], data["step"], data["id"]
         id = int(id)
         if id != self.macroId(): return
-        elif state == "start":
+        shortMessage = None
+        if state == "start":
             self.emit(Qt.SIGNAL("macroStarted"), "DoorOutput")
             self.macroProgressBar.setRange(range[0], range[1])
             self.playMacroAction.setEnabled(False)
@@ -288,46 +295,44 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.stopMacroAction.setEnabled(True)
             self.emit(Qt.SIGNAL("plotablesFilterChanged"), None)
             self.emit(Qt.SIGNAL("plotablesFilterChanged"), standardPlotablesFilter)
+            shortMessage = "Macro %s started." % macroName
         elif state == "pause":
-            self.playAction2resumeAction()
+            self.playMacroAction.setText("Resume macro")
+            self.playMacroAction.setToolTip("Resume macro")
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
+            shortMessage = "Macro %s paused." % macroName
         elif state == "resume":
-            self.resumeAction2playAction()
+            self.playMacroAction.setText("Start macro")
+            self.playMacroAction.setToolTip("Start macro")
             self.playMacroAction.setEnabled(False)
             self.pauseMacroAction.setEnabled(True)
+            shortMessage = "Macro %s resumed." % macroName
         elif state == "stop":
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
+            shortMessage = "Macro %s finished." % macroName
+        elif state == "exception":
+            self.playMacroAction.setEnabled(True)
+            self.pauseMacroAction.setEnabled(False)
+            self.stopMacroAction.setEnabled(False)
+            shortMessage = "Macro %s error." % macroName
+        elif state == "abort":
+            self.playMacroAction.setText("Start macro")
+            self.playMacroAction.setToolTip("Start macro")
+            self.playMacroAction.setEnabled(True)
+            self.pauseMacroAction.setEnabled(False)
+            self.stopMacroAction.setEnabled(False)
+            shortMessage = "Macro %s stopped." % macroName
+        if isinstance(shortMessage,str): 
+            self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
         self.macroProgressBar.setValue(step)
 
     def disableControlActions(self):
         self.pauseMacroAction.setEnabled(False)
         self.stopMacroAction.setEnabled(False)
         self.playMacroAction.setEnabled(False)
-        
-    def playAction2resumeAction(self):
-        Qt.QObject.disconnect(self.playMacroAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onPlayMacro)
-        Qt.QObject.connect(self.playMacroAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onResumeMacro)
-        self.playMacroAction.setToolTip("Resume macro")
-        self.playMacroAction.setStatusTip("Resume macro")
-        self.playMacroAction.setText("Resume macro")
-            
-    def resumeAction2playAction(self):
-        Qt.QObject.disconnect(self.playMacroAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onResumeMacro)
-        Qt.QObject.connect(self.playMacroAction,
-                                      Qt.SIGNAL("triggered()"),
-                                      self.onPlayMacro)
-        self.playMacroAction.setToolTip("Play macro")
-        self.playMacroAction.setStatusTip("Play macro")
-        self.playMacroAction.setText("Play macro")
 
     def setModel(self, model):
         TaurusWidget.setModel(self, model)
@@ -350,6 +355,8 @@ class TaurusMacroExecutor(MacroExecutionWindow):
         self.registerConfigDelegate(self.taurusMacroExecutorWidget)
         self.taurusMacroExecutorWidget.setUseParentModel(True)
         self.setCentralWidget(self.taurusMacroExecutorWidget)
+        self.connect(self.taurusMacroExecutorWidget, Qt.SIGNAL('shortMessageEmitted'), self.onShortMessage)
+        self.statusBar().showMessage("MacroExecutor ready")
                 
     def setCustomMacroEditorPaths(self, customMacroEditorPaths):
         MacroExecutionWindow.setCustomMacroEditorPaths(self, customMacroEditorPaths)

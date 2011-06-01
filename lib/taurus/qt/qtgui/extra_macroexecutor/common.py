@@ -225,6 +225,7 @@ class MacroExecutionWindow(TaurusMainWindow):
     
     def __init__(self, parent=None, designMode=False):
         TaurusMainWindow.__init__(self, parent, designMode)
+        self.statusBar().showMessage("")
         self.setModelInConfig(True)
         self._doorName = ""
         self.registerConfigProperty("doorName", "setDoorName", "doorName")
@@ -300,6 +301,14 @@ class MacroExecutionWindow(TaurusMainWindow):
             self.emit(Qt.SIGNAL("doorChanged"), str(dialog.doorComboBox.currentText()))
         else:
             return
+        
+    def onShortMessage(self, msg):
+        ''' Slot to be called when there is a new short message. Currently, the only action 
+        taken when there is a new message is to display it in the main window status bar.
+        
+        :param msg: (str) the short descriptive message to be handled 
+        '''
+        self.statusBar().showMessage(msg)
                     
 if __name__ == "__main__": 
     import sys    
