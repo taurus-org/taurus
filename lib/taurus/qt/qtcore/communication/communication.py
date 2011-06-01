@@ -122,6 +122,7 @@ class DataModel(QtCore.QObject):
         self.connect(writer, QtCore.SIGNAL(signalname),self.setData)
         self.__writers += 1
         self.__writerSignals.append((weakref.ref(writer),signalname))
+        
     def disconnectWriter(self, writer, signalname):
         '''unregister a writer from this data model
                         
