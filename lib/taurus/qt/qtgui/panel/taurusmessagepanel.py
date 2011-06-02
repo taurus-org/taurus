@@ -26,7 +26,7 @@
 """This module provides a panel to display taurus messages"""
 
 __all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
-           "TangoMessageErrorHandler"]
+           "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
 
 __docformat__ = 'restructuredtext'
 
@@ -49,6 +49,7 @@ import PyTango
 from PyQt4 import Qt
 
 import taurus.core.util
+import taurus.core.tango.macroserver
 import taurus.qt.qtgui.resource
 import ui.ui_TaurusMessagePanel
 
@@ -92,7 +93,7 @@ class TaurusMessageErrorHandler(object):
 
 
 class TangoMessageErrorHandler(TaurusMessageErrorHandler):
-    """This class is designed to handle :class:`PyTangoDevFailed` error into 
+    """This class is designed to handle :class:`PyTango.DevFailed` error into 
     a :class:`TaurusMessagePanel`"""
     
     def setError(self, err_type=None, err_value=None, err_traceback=None):
@@ -129,6 +130,37 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
             html += highlight(exc_info, PythonTracebackLexer(), formatter)
         html += "</body></html>"
         msgbox.setOriginHtml(html)
+
+
+class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
+    
+    def setError(self, err_type=None, err_value=None, err_traceback=None):
+        """Translates the given error object into an HTML string and places it
+        in the message panel
+        
+        :param error: an error object (typically an exception object)
+        :type error: object"""
+        
+        msgbox = self._msgbox
+        msgbox.setText(err_value)
+        msg = "<html><body><pre>%s</pre></body></html>" % err_value
+        msgbox.setDetailedHtml(msg)
+
+        html_orig = """<html><head><style type="text/css">{style}</style></head><body>"""
+        exc_info = "".join(err_traceback)
+        style = ""
+        if pygments is not None:
+            formatter = HtmlFormatter()
+            style = formatter.get_style_defs()
+        html = html_orig.format(style=style)
+        if pygments is None:
+            html += "<pre>%s</pre>" % exc_info
+        else:
+            formatter = HtmlFormatter()
+            html += highlight(exc_info, PythonTracebackLexer(), formatter)
+        html += "</body></html>"
+        msgbox.setOriginHtml(html)
+
 
 _REPORT = """-- Description -----------------------------------------------------------------
 An error occured in {appName} {appVersion} on {time}
@@ -338,6 +370,10 @@ class TaurusMessagePanel(Qt.QWidget):
         return self._exc_info
 
     ErrorHandlers = { PyTango.DevFailed : TangoMessageErrorHandler }
+    
+    @classmethod
+    def registerErrorHandler(klass, err_type, err_handler):
+        klass.ErrorHandlers[err_type] = err_handler
     
     @classmethod
     def findErrorHandler(klass, err_type):

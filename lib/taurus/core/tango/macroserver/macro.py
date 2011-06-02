@@ -25,7 +25,7 @@
 
 """The macro submodule."""
 
-__all__ = ["MacroInfo", "Macro", "MacroNode"]
+__all__ = ["MacroInfo", "Macro", "MacroNode", "MacroRunException"]
 
 __docformat__ = 'restructuredtext'
 
@@ -38,6 +38,9 @@ import threading
 import PyTango
 
 from taurus.core.util import etree, USER_NAME, CodecFactory
+
+class MacroRunException(Exception):
+    pass
 
 class MacroInfo(object):
     """Contains all information about a macro: name, documentation, parameters, 

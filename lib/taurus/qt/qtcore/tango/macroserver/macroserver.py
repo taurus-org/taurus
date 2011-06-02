@@ -25,7 +25,7 @@
 
 """MacroServer extension for taurus Qt"""
 
-__all__ = ["QDoor", "QMacroServer"]
+__all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler"]
 
 import taurus.core
 from taurus.core.tango.macroserver import BaseMacroServer, BaseDoor
@@ -90,4 +90,45 @@ class QMacroServer(Qt.QObject, BaseMacroServer):
         res = BaseMacroServer.macrosChanged(self, s, t, v)
         self.emit(Qt.SIGNAL("macrosUpdated"))
         return res
+    
+# ugly access to qtgui level: in future find a better way to register error
+# handlers, maybe in TangoFactory & TaurusManager
+
+from taurus.qt.qtgui.panel import TaurusMessageErrorHandler
+class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
+
+    def setError(self, err_type=None, err_value=None, err_traceback=None):
+        """Translates the given error object into an HTML string and places it
+        in the message panel
+        
+        :param error: an error object (typically an exception object)
+        :type error: object"""
+        
+        msgbox = self._msgbox
+        msgbox.setText(err_value)
+        msg = "<html><body><pre>%s</pre></body></html>" % err_value
+        msgbox.setDetailedHtml(msg)
+
+        html_orig = """<html><head><style type="text/css">{style}</style></head><body>"""
+        exc_info = "".join(err_traceback)
+        style = ""
+        try:
+            import pygments
+            import pygments.highlight
+            import pygments.formatters
+            import pygments.lexers
+
+        except:
+            pygments = None
+        if pygments is not None:
+            formatter = pygments.formatters.HtmlFormatter()
+            style = formatter.get_style_defs()
+        html = html_orig.format(style=style)
+        if pygments is None:
+            html += "<pre>%s</pre>" % exc_info
+        else:
+            formatter = pygments.formatters.HtmlFormatter()
+            html += pygments.highlight(exc_info, pygments.lexers.PythonTracebackLexer(), formatter)
+        html += "</body></html>"
+        msgbox.setOriginHtml(html)
     

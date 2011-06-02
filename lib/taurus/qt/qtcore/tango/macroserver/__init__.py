@@ -38,3 +38,11 @@ def registerExtensions():
     factory.registerDeviceClass('MacroServer', QMacroServer)
     factory.registerDeviceClass('Door', QDoor)
     
+    # ugly access to qtgui level: in future find a better way to register error
+    # handlers, maybe in TangoFactory & TaurusManager
+    import taurus.core.tango.macroserver
+    import taurus.qt.qtgui.panel
+    MacroRunException = taurus.core.tango.macroserver.MacroRunException
+    TaurusMessagePanel = taurus.qt.qtgui.panel.TaurusMessagePanel
+    
+    TaurusMessagePanel.registerErrorHandler(MacroRunException, MacroServerMessageErrorHandler)
