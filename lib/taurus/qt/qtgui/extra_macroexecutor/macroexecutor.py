@@ -35,11 +35,12 @@ import PyTango
 from taurus import Device
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusLed
+from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 from favouriteseditor import FavouritesMacrosEditor
 from common import MacroComboBox, MacroExecutionWindow, standardPlotablesFilter
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, ParamEditorModel, StandardMacroParametersEditor
-from taurus.core.tango.macroserver import macro
+from taurus.core.tango.macroserver import macro, MacroRunException
 
 
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
@@ -318,13 +319,18 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
             shortMessage = "Macro %s error." % macroName
+            exc_value, exc_stack = data['exc_value'], data['exc_stack']
+            exceptionDialog = TaurusMessageBox(MacroRunException, exc_value, exc_stack)
+            exceptionDialog.exec_()
         elif state == "abort":
             self.playMacroAction.setText("Start macro")
             self.playMacroAction.setToolTip("Start macro")
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
-            shortMessage = "Macro %s stopped." % macroName 
+            shortMessage = "Macro %s stopped." % macroName
+        elif state == "step":
+            shortMessage = "Macro %s at %d %% of progress." % (macroName, step) 
         self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
         self.macroProgressBar.setValue(step)
 

@@ -38,10 +38,11 @@ from taurus import Device
 from taurus.qt.qtgui.container import TaurusMainWindow, TaurusWidget
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.display import TaurusLed
+from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, StandardMacroParametersEditor
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.delegate import ParamEditorDelegate
-from taurus.core.tango.macroserver import macro
+from taurus.core.tango.macroserver import macro, MacroRunException
 from model import MacroSequenceTreeModel, MacroSequenceProxyModel, MacroParametersProxyModel
 from delegate import SequenceEditorDelegate
 from taurus.qt.qtgui.extra_macroexecutor import globals
@@ -643,6 +644,9 @@ class TaurusSequencerWidget(TaurusWidget):
             self.pauseSequenceAction.setEnabled(False)
             self.stopSequenceAction.setEnabled(False)
             shortMessage = "Macro %s error." % macroName
+            exc_value, exc_stack = data['exc_value'], data['exc_stack']
+            exceptionDialog = TaurusMessageBox(MacroRunException, exc_value, exc_stack)
+            exceptionDialog.exec_()
         elif state == 'abort':
             self.playSequenceAction.setText("Start sequence")
             self.playSequenceAction.setToolTip("Start sequence")
@@ -650,6 +654,8 @@ class TaurusSequencerWidget(TaurusWidget):
             self.pauseSequenceAction.setEnabled(False)
             self.stopSequenceAction.setEnabled(False)
             shortMessage = "Macro %s stopped." % macroName 
+        elif state == "step":
+            shortMessage = "Macro %s at %d %% of progress." % (macroName, step) 
         self.emit(Qt.SIGNAL("shortMessageEmitted"), shortMessage)    
         self.tree.setProgressForMacro(id, step)
 
