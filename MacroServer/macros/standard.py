@@ -468,3 +468,8 @@ class twice(Macro):
         
     def run(self, n):
         return 2*n
+
+class th_exc(Macro):
+    
+    def run(self):
+        raise Exception("An exception in a macro!")

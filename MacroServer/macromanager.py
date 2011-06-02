@@ -873,16 +873,19 @@ class MacroExecutor(taurus.core.util.Logger):
         except AbortException as ae:
             macro_exp = ae
         except MacroServerException as mse:
+            exc_info = sys.exc_info()
             macro_exp = mse
             if not mse.traceback:
                 mse.traceback = traceback.format_exc()
         except PyTango.DevFailed as df:
+            exc_info = sys.exc_info()
             exp_pars = {'type'      : df[0].reason,
                         'msg'       : df[0].desc,
                         'args'      : df.args,
                         'traceback' : traceback.format_exc() }
             macro_exp = MacroServerException(exp_pars)
         except Exception, err:
+            exc_info = sys.exc_info()
             exp_pars = {'type'      : err.__class__.__name__,
                         'msg'       : err.args[0],
                         'args'      : err.args,
@@ -902,7 +905,7 @@ class MacroExecutor(taurus.core.util.Logger):
         # AbortException if an Abort has been performed.
         if macro_exp is not None:
             if not self._aborted:
-                self.sendMacroStatusException()
+                self.sendMacroStatusException(exc_info)
             self.debug("[ENDEX] (%s) runMacro %s" % (macro_exp.__class__.__name__, name))
             if isinstance(macro_exp, MacroServerException) and macro_obj.parent_macro is None:
                 door = self.getDoor()
@@ -935,13 +938,17 @@ class MacroExecutor(taurus.core.util.Logger):
         ms = self.getLastMacroStatus()
         if ms is not None:
             ms['state'] = 'abort'
+            
             self.debug("Sending abort event %s", ms)
             self.sendMacroStatus((ms,))
 
-    def sendMacroStatusException(self):
+    def sendMacroStatusException(self, exc_info):
         ms = self.getLastMacroStatus()
         if ms is not None:
             ms['state'] = 'exception'
+            ms['exc_type'] = str(exc_info[0])
+            ms['exc_value'] = str(exc_info[1])
+            ms['exc_stack'] = traceback.format_exception(*exc_info)
             self.debug("Sending exception event %s", ms)
             self.sendMacroStatus((ms,))
 
