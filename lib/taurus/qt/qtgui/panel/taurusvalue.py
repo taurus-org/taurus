@@ -225,9 +225,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             dummy.setModel("?configuration=attr_fullname") 
             dummy.setPrefixText("< TaurusValue: ")
             dummy.setSuffixText(" >")
-        else:    
-            self.setVisible(False)
-            self.setFixedSize(1,1)
+        else:
+            self.setFixedSize(0,0)
         
         self._labelWidget = None
         self._readWidget = None
@@ -252,6 +251,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if parent is not None:
             self.setParent(parent)
+            
+    def setVisible(self, visible):
+        for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(),self.customWidget()):
+            if w is not None: w.setVisible(visible)
+        Qt.QWidget.setVisible(self, visible)
     
     def labelWidget(self):
         return self._labelWidget

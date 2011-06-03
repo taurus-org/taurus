@@ -118,7 +118,7 @@ class PoolMotorClient():
 class LabelWidgetDragsDeviceAndAttribute(DefaultLabelWidget):
     """ Offer richer mime data with taurus-device, taurus-attribute, and plain-text. """
     def mouseMoveEvent(self, event):
-        model = self.taurusValueBuddy.getModelName()
+        model = self.taurusValueBuddy().getModelName()
         mimeData = Qt.QMimeData()
         mimeData.setText(self.text())
         attr_name = model
@@ -302,7 +302,6 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.taurus_value.setLabelConfig('dev_alias')
 
         self.taurus_value_enc = TaurusValue(self.ui.taurusValueContainer)
-        self.taurus_value_enc.readWidget().setShowQuality(False)
 
         # THIS WILL BE DONE IN THE DESIGNER
         # Config Button will launch a PoolMotorConfigurationForm
@@ -475,7 +474,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         action_encoder = Qt.QAction(self)
         action_encoder.setText('Encoder Read')
         action_encoder.setCheckable(True)
-        action_encoder.setChecked(self.taurus_value_enc.labelWidget().isVisible())
+        action_encoder.setChecked(self.taurus_value_enc.isVisible())
         if self.has_encoder:
             menu.addAction(action_encoder)
 
@@ -552,12 +551,8 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.ui.btnGoToPos.setVisible(visible)
 
     def toggleEncoder(self, visible):
-        if self.has_encoder and visible:
-            self.taurus_value_enc.setModel(self.motor_dev.getSimpleName()+'/Encoder')
-        else:
-            # NOT SURE ENOUGH THAT THIS IS SAFE
-            self.taurus_value_enc.destroy()
-
+        self.taurus_value_enc.setVisible(visible)
+        
     def toggleStopMove(self, visible):
         self.ui.btnStop.setVisible(visible)
 
@@ -644,6 +639,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             if self.has_encoder:
                 self.taurus_value_enc.setModel(model+'/Encoder')
                 self.taurus_value_enc.setUseParentModel(False)
+                self.taurus_value_enc.readWidget().setBgRole('none')
             else:
                 self.taurus_value_enc.setModel(None)
                 show_enc = False
@@ -656,7 +652,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             except:
                 pass
             self.registerConfigProperty(self.taurus_value.writeWidget().isVisible, self.toggleMoveAbsolute, 'MoveAbsolute')
-            self.registerConfigProperty(self.taurus_value_enc.labelWidget().isVisible, self.toggleEncoder, 'Encoder')
+            self.registerConfigProperty(self.taurus_value_enc.isVisible, self.toggleEncoder, 'Encoder')
 
             
             # SINCE TAURUSLAUNCHERBUTTON HAS NOT THIS PROPERTY IN THE
