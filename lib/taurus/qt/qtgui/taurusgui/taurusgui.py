@@ -269,6 +269,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
+        Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
         self.createPanel(self.__macroExecutor, 'Macros', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #put a Sequencer
@@ -280,6 +281,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
         Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
+        Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
         self.createPanel(self.__sequencer, 'Sequences', Qt.Qt.TopDockWidgetArea, registerconfig=True)
         
         #puts a macrodescriptionviewer
