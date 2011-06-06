@@ -59,6 +59,8 @@ class SafeEvaluator:
         if defaultSafe:
             self.safe_dict['pow'] = pow
             self.safe_dict['len'] = len
+            self.safe_dict['int'] = int
+            self.safe_dict['float'] = float
             for n in self._default_numpy:
                 self.safe_dict[n] = getattr(numpy, n)
             for n in self._default_numpy_random:
