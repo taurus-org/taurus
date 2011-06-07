@@ -29,7 +29,8 @@ from PyQt4 import Qt
 
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
-from taurus.core import TaurusElementType
+from taurus import Database
+from taurus.core import TaurusElementType, TaurusAttrInfo
 from taurus.qt.qtgui.resource import getThemeIcon
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import MacroParametersEditor
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.parameditors import LineEditParam, ParamBase, ComboBoxParam, CheckBoxParam, DirPathParam, MSAttrListComboBoxParam
@@ -198,9 +199,20 @@ class ExtraColumnsDelegate(Qt.QItemDelegate):
         
     def __init__(self, parent=None):
         Qt.QItemDelegate.__init__(self, parent)
+        db = Database()
+        self.host = db.getNormalName()
     
     def createEditor(self, parent, option, index):
-        if index.column() == 2:
+        if index.column() == 1:
+            self.combo_attr_tree_widget = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
+            self.combo_attr_tree_widget.setModel(self.host)
+            treeView = self.combo_attr_tree_widget.treeView()
+            qmodel = self.combo_attr_tree_widget.getQModel()
+            editor = Qt.QComboBox(parent)
+            editor.setModel(qmodel)
+            editor.setMaxVisibleItems(20)
+            editor.setView(treeView)
+        elif index.column() == 2:
             editor = MSAttrListComboBox(parent)
             editor.setUseParentModel(True)
             editor.setModel("/InstrumentList")
@@ -216,7 +228,15 @@ class ExtraColumnsDelegate(Qt.QItemDelegate):
             Qt.QItemDelegate.setEditorData(self, editor, index)
             
     def setModelData(self, editor, model, index):
-        if index.column() == 2:
+        column = index.column()
+        if column == 1:
+            selectedItems = self.combo_attr_tree_widget.selectedItems()
+            if not len(selectedItems) == 1: return
+            taurusTreeAttributeItem = selectedItems[0]
+            itemData = taurusTreeAttributeItem.itemData()
+            if isinstance(itemData, TaurusAttrInfo):                
+                model.setData(index, Qt.QVariant(itemData.fullName()))
+        elif column == 2:
             model.setData(index, Qt.QVariant(editor.currentText()))
         else:
             Qt.QItemDelegate.setModelData(self, editor, model, index)
