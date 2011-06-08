@@ -27,5 +27,8 @@
 
 __docformat__ = 'restructuredtext'
 
-from .taurusshell import *
-from .spockshell import *
+try:
+    from .taurusshell import *
+    from .spockshell import *
+except:
+    pass
