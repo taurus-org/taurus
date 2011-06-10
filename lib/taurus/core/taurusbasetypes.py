@@ -48,7 +48,7 @@ class TaurusTimeVal(object):
         return datetime.datetime.fromtimestamp(self.totime())
     
     def isoformat(self):
-        return todatetime().isoformat()
+        return self.todatetime().isoformat()
     
     @staticmethod
     def fromtimestamp(v):
