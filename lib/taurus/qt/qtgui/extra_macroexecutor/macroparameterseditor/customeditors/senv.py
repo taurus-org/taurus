@@ -324,9 +324,9 @@ class ExtraColumnsModel(Qt.QAbstractTableModel):
             row = index.row()
             column = index.column()
             value = unicode(value.toString())  
-            if column == 0: self.__columns[row]['label'] = value
-            elif column == 1: self.__columns[row]['model'] = value
-            elif column == 2: self.__columns[row]['instrument'] = value                
+            if column == 0: self.__columns[row]['label'] = str(value)
+            elif column == 1: self.__columns[row]['model'] = str(value)
+            elif column == 2: self.__columns[row]['instrument'] = str(value)                
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
             return True
         return False
