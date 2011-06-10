@@ -397,7 +397,7 @@ def createMacroExecutorWidget(args):
 
 def createMacroExecutor(args):
     macroExecutor = TaurusMacroExecutor()
-    macroExecutor.setCustomMacroEditorPaths("/home/zreszela/workspace/Taurus/lib/taurus/qt/qtgui/extra_macroexecutor/macroparameterseditor/customeditors")
+    macroExecutor.setCustomMacroEditorPaths("/home/zreszela/workspace/taurus/lib/taurus/qt/qtgui/extra_macroexecutor/macroparameterseditor/customeditors")
     macroExecutor.setModelInConfig(True)
     Qt.QObject.connect(macroExecutor, Qt.SIGNAL("doorChanged"), macroExecutor.onDoorChanged)
     if len(args) == 2:
