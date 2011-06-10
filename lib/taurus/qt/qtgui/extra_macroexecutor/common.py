@@ -57,25 +57,32 @@ class MSAttrListComboBox(TaurusAttrListComboBox):
         
     def setModel(self, model):
         TaurusAttrListComboBox.setModel(self, model)
-        valueObj = self.getModelObj().getValueObj()
-        #@todo: remove this condition when MS is fixed to return empty list as a value in case of empty attribute
+#        valueObj = self.getModelObj().getValueObj(cache=False)
+#        #@todo: remove this condition when MS is fixed to return empty list as a value in case of empty attribute
+#        if valueObj.is_empty:
+#            value = []
+#        else:
+#            value = getattr(valueObj, "value", [])
+#        items = self.prepareAttrList(value)
+#        self.addItems(items) 
+    
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        text = self.currentText()
+        self.clear()
+        valueObj = self.getModelObj().getValueObj(cache=False)
         if valueObj.is_empty:
             value = []
         else:
             value = getattr(valueObj, "value", [])
         items = self.prepareAttrList(value)
-        self.addItems(items) 
-    
-    def handleEvent(self, evt_src, evt_type, evt_value):
-        text = self.currentText()
-        self.clear()
-        if evt_src and evt_value:
-            value = evt_value.value
-            if value is None: 
-                return
-            items = self.prepareAttrList(value)
-            items.sort()       
-            self.addItems(items)
+        self.addItems(items)
+#        if evt_src and evt_value:
+#            value = evt_value.value
+#            if value is None: 
+#                return
+#            items = self.prepareAttrList(value)
+#            items.sort()       
+#            self.addItems(items)
         self.setCurrentText(text)
     
     def setCurrentText(self, text):
