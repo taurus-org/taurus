@@ -30,7 +30,7 @@ scales.py: Custom scales used by taurus.widget.qwt module
 import numpy
 from datetime import datetime, timedelta
 from time import mktime
-from PyQt4 import Qwt5
+from PyQt4 import Qt, Qwt5
 
 class FancyScaleDraw(Qwt5.QwtScaleDraw):
     
@@ -193,8 +193,35 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         
         return scaleDiv
     
+    @staticmethod
+    def getDefaultAxisLabelsAlignment(axis, rotation):
+        '''return a "smart" alignment for the axis labels depending on the axis
+        and the label rotation
+
+        :param axis: (Qwt5.QwtPlot.Axis) the axis
+        :param rotation: (float) The rotation (in degrees, clockwise-positive)
+
+        :return: (Qt.Alignment) an alignment
+        '''
+        if axis == Qwt5.QwtPlot.xBottom:
+            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignBottom
+            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
+            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+        elif axis == Qwt5.QwtPlot.yLeft:
+            if rotation == 0 : return Qt.Qt.AlignLeft|Qt.Qt.AlignVCenter
+            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
+            else:              return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
+        elif axis == Qwt5.QwtPlot.yRight:
+            if rotation == 0 : return Qt.Qt.AlignRight|Qt.Qt.AlignVCenter
+            elif rotation < 0: return Qt.Qt.AlignRight|Qt.Qt.AlignTop
+            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+        elif axis == Qwt5.QwtPlot.xTop:
+            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignTop
+            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
+            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignTop
+
     @staticmethod        
-    def enableInAxis(plot, axis, scaleDraw =None):
+    def enableInAxis(plot, axis, scaleDraw =None, rotation=None):
         '''convenience method that will enable this engine in the given
         axis. Note that it changes the ScaleDraw as well.
          
@@ -203,6 +230,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
                           the current ScaleDraw for the plot will be used if 
                           possible, and a :class:`TaurusTimeScaleDraw` will be set if not
+        :param rotation: (float or None) The rotation of the labels (in degrees, clockwise-positive)
         '''
         if scaleDraw is None:
             scaleDraw = plot.axisScaleDraw(axis)
@@ -210,6 +238,10 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
                 scaleDraw = TaurusTimeScaleDraw()
         plot.setAxisScaleDraw(axis, scaleDraw)
         plot.setAxisScaleEngine(axis, DateTimeScaleEngine(scaleDraw))
+        if rotation is not None:
+            alignment = DateTimeScaleEngine.getDefaultAxisLabelsAlignment(axis, rotation)
+            plot.setAxisLabelRotation(axis, rotation)
+            plot.setAxisLabelAlignment(axis, alignment)
         
     @staticmethod 
     def disableInAxis(plot, axis, scaleDraw=None, scaleEngine=None):
