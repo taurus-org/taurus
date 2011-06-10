@@ -81,6 +81,21 @@ class TaurusImageChooserTool(CommandTool):
                 item = make.image(taurusmodel=m)
                 plot.add_item(item)
 
+
+class TaurusModelChooserTool(CommandTool):
+    """
+    A tool that shows the Taurus Model Chooser and adds new taurus image items to a plot
+    """
+    def __init__(self, manager, toolbar_id=DefaultToolbarID):
+        super(TaurusModelChooserTool,self).__init__(manager, "Add Taurus images...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+
+    def activate_command(self, plot, checked):
+        """Activate tool"""
+        #show a dialog
+        models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[TaurusElementType.Attribute])
+        if ok and len(models)==1:
+            self.manager.setModel(models[0])
+            
           
 class TimeAxisTool(CommandTool):
     def __init__(self, manager):
@@ -110,6 +125,8 @@ class TimeAxisTool(CommandTool):
         Scale. Otherwise they are False.
         """
         plot = item.plot()
+        if plot is None:
+            return (False,False)
         xEngine = plot.axisScaleEngine(item.xAxis())
         yEngine = plot.axisScaleEngine(item.yAxis())
         return isinstance(xEngine, DateTimeScaleEngine), isinstance(yEngine, DateTimeScaleEngine)
@@ -134,7 +151,7 @@ class TimeAxisTool(CommandTool):
         if plot is not None:
             for axis,isTime in zip(plot.get_active_axes(), (xIsTime, yIsTime)):
                 if isTime:
-                    DateTimeScaleEngine.enableInAxis(plot, axis)
+                    DateTimeScaleEngine.enableInAxis(plot, axis, rotation=-45)
                 else:
                     DateTimeScaleEngine.disableInAxis(plot, axis)
             plot.replot()
