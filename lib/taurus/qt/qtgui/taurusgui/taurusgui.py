@@ -172,6 +172,7 @@ class TaurusGui(TaurusMainWindow):
                                     'OneDExpChannel':PoolChannel,
                                     'TwoDExpChannel':PoolChannel}
         else:
+            self._customWidgetMap = {}
             self.info('extra_pool not available: using generic widgets for motors and channels')
         
         #Create a global SharedDataManager
