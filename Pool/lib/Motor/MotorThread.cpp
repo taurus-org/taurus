@@ -836,7 +836,7 @@ void Pool::moving_loop(vector<CtrlInMove> &implied_ctrls,
 // the second motor (if they have the same velocity). In this case send the 
 // state event for the first motor now!
 //
-
+            bool do_any_backlash = false;
             if ((th->group_id != -1) && (abort_cmd_executed == false))
             {
                 vector<Tango::DevState> &sta_array = 
@@ -868,6 +868,7 @@ void Pool::moving_loop(vector<CtrlInMove> &implied_ctrls,
                                 {
                                     back_id.push_back(mot_mv.mot_id);
                                     ba.push_back(back_pos[loop]);
+                                    do_any_backlash = true;
                                 }
                                 // clear the backlash flag so the second forward_move 
                                 // for doing the backlash doesn't try to redo it again
@@ -913,6 +914,7 @@ void Pool::moving_loop(vector<CtrlInMove> &implied_ctrls,
                     try
                     {    
                         forward_move(back_id, ba, th, false);
+                        continue;
                     }
                     catch (Tango::DevFailed &e)
                     {
@@ -982,14 +984,19 @@ void Pool::moving_loop(vector<CtrlInMove> &implied_ctrls,
                     // implied_group->state_att.fire_change_event();
                     end_mot_ext_evts.push_back(implied_group.get());
                     
-                    if(implied_group->mgp.has_listeners())
+                    // Only send event if not doing backlash to avoid ON - MOVING - ON - MOVING - ON
+                    // sequence of events
+                    if (!do_any_backlash)
                     {
-                        DelayedEvt delayed_evt(StateChange, 
-                                               &implied_group->mgp);
-                        delayed_evt.evt.old.state = MOVING;
-                        delayed_evt.evt.curr.state = PoolTango::toPool(d_state);
-                        delayed_evt.exception = &implied_group->mgp;
-                        end_mot_int_evts.push_back(delayed_evt);
+                        if(implied_group->mgp.has_listeners())
+                        {
+                            DelayedEvt delayed_evt(StateChange, 
+                                                   &implied_group->mgp);
+                            delayed_evt.evt.old.state = MOVING;
+                            delayed_evt.evt.curr.state = PoolTango::toPool(d_state);
+                            delayed_evt.exception = &implied_group->mgp;
+                            end_mot_int_evts.push_back(delayed_evt);
+                        }
                     }
                     break;
                 }
