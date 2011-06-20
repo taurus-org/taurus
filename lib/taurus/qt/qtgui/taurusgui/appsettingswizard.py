@@ -430,7 +430,7 @@ class CustomLogoPage(BasePage):
             return None
                 
     def _selectImage(self):
-            fileName = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"), Qt.QDir.homePath() , self.tr("Images (*.png *.xpm *.jpg *.jpeg)"))
+            fileName = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"), Qt.QDir.homePath() , self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
             self._customLogoLineEdit.setText(fileName)
             self._changeImage()
         
@@ -1301,12 +1301,13 @@ class OutroPage(BasePage):
         f = open(launcherfilename, 'w')
         f.write(('#!/bin/sh\n'
                  '#Make sure to give this file execution permisions\n'
-                 'taurusgui %s')%os.path.basename(pdir.rstrip('/')))
+                 'taurusgui %s $*')%os.path.basename(pdir.rstrip('/')))
         f.close()
         logfile.write('Unix launcher created: "%s"\n'%launcherfilename)
 
         #if all went ok...
         msg = 'Application project was successfully created. You can find the files in: "%s"'%pdir
+        msg += '\nTip: copy this directory into a directory that is in your Python path.'
         details = ''
         warnings = self.wizard().getProjectWarnings()
         if warnings:
