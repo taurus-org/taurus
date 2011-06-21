@@ -178,6 +178,7 @@ package_data = {
     'taurus.qt.qtgui.util'     : ['tauruswidget_template', 
                                   'tauruswidget_qtdesignerplugin_template'],
     'taurus.qt.uic'            : ['pyuic4/*'],
+    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
 }
 
 def get_script_files():
