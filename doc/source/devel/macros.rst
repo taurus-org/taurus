@@ -1,0 +1,222 @@
+
+.. currentmodule:: MacroServer.macro
+
+.. _macros:
+
+======
+Macros
+======
+
+This chapter provides the necessary information to write macros in sardana.
+The complete macro API can be found :ref:`here <macro-api>`.
+
+Concept
+----------------
+
+A macro in sardana describes a specific procedure that can be executed at any
+time. Macros run inside the *sardana sanbox*. This simply means that each time
+the user runs a Macro, the system makes sure the necessary environment for it to
+run safely is ready.
+Macros can only be written in Python_. Each macro is implemented by writting 
+a Python_ class which must inherit from a :class:`Macro` super-class.
+Macros are case sensitive. This means that *helloworld* is a different macro than
+*HelloWorld*
+
+.. _macro_writting:
+
+Writting a macro
+----------------
+
+The simplest macro that you can write **MUST** obey the following rules:
+
+    * A Macro is a Python_ class
+    * Inherit from :class:`Macro`
+    * Implement the :meth:`Macro.run` method
+
+The :meth:`Macro.run` method is the place where you write the code of your macro.
+So, without further delay, here is the *Hello, World!* example::
+
+    from macro import *
+    
+    class HelloWorld(Macro):
+        """Hello, World! macro"""
+        
+        def run(self):
+            print "Hello, World!"
+
+.. _macro_add_parameters:
+
+Adding parameters to your macro
+--------------------------------
+
+The macro API enforces you to properly specify the macro parameters. This way,
+client applications like Spock or a graphical user interfaces can dynammicaly
+adapt to your macro definition.
+
+Let's say you want to pass an integer parameter to your macro. All you have to
+do is declare the parameter by using the :attr:`Macro.param_def` Macro member::
+
+    from macro import *
+    
+    class twice(Macro):
+        """Macro twice. Prints the double of the given value"""
+
+        param_def = [ [ "value", Type.Float, None, "value to be doubled" ] ]
+            
+        def run(self, value):
+            print 2*value
+
+.. note::
+    As soon as you add a :attr:`Macro.param_def` you also need to
+    modify the :meth:`Macro.run` method to support the new paramter(s).
+
+A set of macro parameter examples can be found :ref:`here <devel-macro-parameter-examples>`.
+
+.. _macro_preparing:
+
+Preparing your macro for execution
+------------------------------------------------
+
+Additionaly to the :meth:`Macro.run` method, you may write a :meth:`Macro.prepare`
+method where you may put code to prepare the macro for execution (for example, checking pre-conditions for running
+the macro).
+By default, the prepare method is an empty method.
+Here is an example on how to prepare HelloWorld to run only after year 1989::
+
+    import datetime
+    from macro import *
+
+    class HelloWorld(Macro):
+        """Hello, World! macro"""
+        
+        def prepare(self):
+            if datetime.datetime.now() < datetime.datetime(1990,01,01):
+                raise Exception("HelloWorld can only run after year 1989")
+    
+        def run(self):
+            print "Hello, World!"
+
+.. _macro_documentation:
+
+Writting macro documentation
+------------------------------
+
+.. todo:: document how to write macro documentation
+
+.. _macro_calling:
+
+Calling other macros from inside your macro
+------------------------------------------------
+
+The Macro API makes it possible to call other macros from inside your macro code.
+The simplest way to execute a macro from inside your macro is through the :meth:`Macro.macros`
+member. This is the macro container for all existing macros.
+Here is an example on how to call a macro for the *call_wa* macro::
+
+    class call_wa(Macro):
+        """call_wa macro"""
+    
+        def run(self):
+            self.macros.wa()
+            
+Another example calling a macro with parameters (the wm macro which receives a list
+of motors as parameters)::
+
+    class call_wm(Macro):
+        """call_wm macro"""
+        
+        param_def = [
+            ['motors', [ ['motor', Type.Motor, None, 'a motor'] ], None, 'motors to show'],
+        ]
+
+        def run(self, *m):
+            self.macros.wm(*m)
+
+An explicit call to :meth:`Macro.execMacro` would have the same effect::
+
+    class call_scan1(Macro):
+        """call_scan1 macro"""
+        
+        param_def = [ [ "motor", Type.Motor, None, "a motor" ] ]
+        
+        def run(self, motor):
+            self.execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')
+    
+:meth:`Macro.execMacro` supports passing parameters as different *flavors*:
+    
+    * parameters as strings: ``execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')``
+    * parameters as concrete types: ``self.execMacro(['ascan', motor, 0, 100, 10, 0.2])``
+    * parameters as space separated string: ``self.execMacro('ascan %s 0 100 10 0.2' % motor.getName())``
+
+Let's say that now you need access to the data generated by the sub-macro. In this
+case you need to use a lower level macro call API::
+
+    from scan import ascan
+    
+    class call_ascan(Macro):
+        """call_wm macro"""
+        
+        param_def = ascan.param_def
+
+        def run(self, *args):
+            my_scan = self.createMacro('ascan', *args)
+            self.runMacro(my_scan)
+            print len(my_scan.data)
+
+A set of macro call examples can be found :ref:`here <devel-macro-call-examples>`.
+
+.. _macro_logging:
+
+Logging
+----------------
+
+The Macro API includes a set of methods that allow you to write log messages with
+different levels:
+
+    * :meth:`Macro.debug`
+    * :meth:`Macro.info`
+    * :meth:`Macro.warning`
+    * :meth:`Macro.error`
+    * :meth:`Macro.critical`
+    * :meth:`Macro.log`
+    * :meth:`Macro.output`
+    
+The special :meth:`Macro.output` has the same effect as the print statement.
+
+Here is an example on how to write a logging information message::
+
+    from macro import *
+
+    class HelloWorld(Macro):
+        """Hello, World! macro"""
+        
+        def run(self):
+            self.info("Starting to execute %s", self.__class__.__name__)
+            print "Hello, World!"
+            self.info("Finished to executing %s", self.__class__.__name__)
+
+
+.. _ALBA: http://www.cells.es/
+.. _ANKA: http://http://ankaweb.fzk.de/
+.. _ELETTRA: http://http://www.elettra.trieste.it/
+.. _ESRF: http://www.esrf.eu/
+.. _FRMII: http://www.frm2.tum.de/en/index.html
+.. _HASYLAB: http://hasylab.desy.de/
+.. _MAX-lab: http://www.maxlab.lu.se/maxlab/max4/index.html
+.. _SOLEIL: http://www.synchrotron-soleil.fr/
+
+
+.. _Tango: http://www.tango-controls.org/
+.. _PyTango: http://packages.python.org/PyTango/
+.. _Taurus: http://packages.python.org/taurus/
+.. _QTango: http://www.tango-controls.org/download/index_html#qtango3
+.. _Qt: http://qt.nokia.com/products/
+.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
+.. _PyQwt: http://pyqwt.sourceforge.net/
+.. _Python: http://www.python.org/
+.. _IPython: http://ipython.scipy.org/
+.. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
+.. _Qub: http://www.blissgarden.org/projects/qub/
+.. _numpy: http://numpy.scipy.org/
+.. _SPEC: http://www.certif.com/
+.. _EPICS: http://www.aps.anl.gov/epics/

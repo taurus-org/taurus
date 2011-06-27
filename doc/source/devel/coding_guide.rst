@@ -1,7 +1,7 @@
 .. _coding-guide:
 
 ==============================
-Taurus development guidelines
+Sardana development guidelines
 ==============================
 
 Overview
@@ -9,26 +9,26 @@ Overview
 
 This document describes taurus from the perspective of developers. Most 
 importantly, it gives information for people who want to contribute to the 
-development of taurus. So if you want to help out, read on!
+development of sardana. So if you want to help out, read on!
 
-How to contribute to taurus
+How to contribute to sardana
 ----------------------------
 
-Taurus development is done using SVN. Because taurus is part of Tango_, it uses
+Sardana development is done using SVN. Because sardana is part of Tango_, it uses
 its `tango-cs sourceforge project <https://sourceforge.net/projects/tango-cs/>`_
 to host the source code. This makes it easy for people to contribute to the 
-development of taurus.
+development of sardana.
 
-How to checkout taurus from SVN
--------------------------------
+How to checkout sardana from SVN
+--------------------------------
 
 **For read-only**::
 
-    svn co https://tango-cs.svn.sourceforge.net/svnroot/tango-cs/taurus/trunk taurus
+    svn co https://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
 
 **To being able to commit**::
 
-    svn co https://<user name>@tango-cs.svn.sourceforge.net/svnroot/tango-cs/taurus/trunk taurus
+    svn co https://<user name>@tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
 
 .. note::
     
@@ -71,44 +71,45 @@ Coding conventions
 * document all code using Sphinx_ extension to reStructuredText_
 
 The following code can serve as a template for writting new python modules to
-taurus::
+sardana::
 
     #!/usr/bin/env python
+    # -*- coding: utf-8 -*-
 
-    #############################################################################
+    ##############################################################################
     ##
-    ## This file is part of Taurus, a Tango User Interface Library
+    ## This file is part of Sardana
     ## 
-    ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+    ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
     ##
     ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
     ## 
-    ## Taurus is free software: you can redistribute it and/or modify
+    ## Sardana is free software: you can redistribute it and/or modify
     ## it under the terms of the GNU Lesser General Public License as published by
     ## the Free Software Foundation, either version 3 of the License, or
     ## (at your option) any later version.
     ## 
-    ## Taurus is distributed in the hope that it will be useful,
+    ## Sardana is distributed in the hope that it will be useful,
     ## but WITHOUT ANY WARRANTY; without even the implied warranty of
     ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     ## GNU Lesser General Public License for more details.
     ## 
     ## You should have received a copy of the GNU Lesser General Public License
-    ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+    ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
     ##
-    #############################################################################
+    ##############################################################################
 
-    """A :mod:`taurus` module written for template purposes only"""
+    """A :mod:`sardana` module written for template purposes only"""
 
-    __all__ = ["TaurusDemo"]
+    __all__ = ["SardanaDemo"]
     
     __docformat__ = "restructuredtext"
     
-    class TaurusDemo(object):
+    class SardanaDemo(object):
         """This class is written for template purposes only"""
         
     def main():
-        print "TaurusDemo"
+        print "SardanaDemo"
     
     if __name__ == "__main__":
         main()

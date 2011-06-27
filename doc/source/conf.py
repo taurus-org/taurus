@@ -47,7 +47,8 @@ extensions = ['sphinx.ext.pngmath',
               'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
               'sphinx.ext.viewcode',
-              'sardanaextension']
+#              'sardanaextension',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -142,7 +143,7 @@ html_theme_path = []
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -227,6 +228,8 @@ latex_documents = [
 
 todo_include_todos = True
 
+autodoc_member_order = "bysource"
+
 # -- Options for Graphviz  -----------------------------------------------------
 
 inheritance_node_attrs = dict(shape='box', fontcolor='black', 
@@ -245,6 +248,7 @@ intersphinx_mapping = {
     'http://docs.scipy.org/doc/scipy/reference' : None,
     'http://docs.scipy.org/doc/numpy' : None,
     'http://www.tango-controls.org/static/PyTango/latest/doc/html' : None,
+    'http://www.tango-controls.org/static/taurus/latest/doc/html' : None,
     'http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html' : None,
 }
 

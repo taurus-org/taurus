@@ -10,8 +10,9 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   users/index.rst
-   devel/index.rst
+   users/index
+   devel/index
+   To do <todo>
    History of changes <revision>
    
 * :ref:`genindex`

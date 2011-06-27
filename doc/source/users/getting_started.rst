@@ -15,18 +15,19 @@ Installing
 #. type::
        
        python setup.py build
-       python setup.py install 
+       python setup.py install
+       
 #. test the installation::
        
        python -c "import sardana; print sardana.Release.version"
-       
+
 
 Working from SVN
 ----------------
 
-You can checkout taurus from SVN from the following location::
+You can checkout sardana from SVN from the following location::
 
-    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/sardana/trunk sardana
+    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk sardana
 
 Afterward, if you decide to work directly from SVN code (without installing):
 

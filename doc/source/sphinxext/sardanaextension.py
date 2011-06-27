@@ -79,7 +79,7 @@ def process_return(line):
                 new_lines.append('%s:rtype: %s' % (prefix, klass))
         new_lines.append('%s:return: %s' % (prefix, desc))
     except Exception, e:
-        print "TaurusExtension: Not able to process 'return': '%s'" % line
+        print "Sardana sphinx extension: Not able to process 'return': '%s'" % line
         print "      Reason:",str(e)
         new_lines.append(line)
     return new_lines
@@ -98,7 +98,7 @@ def process_raise(line):
                 desc = desc[pos+1:]
         new_lines.append('%s:raise: %s %s' % (prefix, klass, desc))
     except Exception, e:
-        print "TaurusExtension: Not able to process 'raise': '%s'" % line
+        print "Sardana sphinx extension: Not able to process 'raise': '%s'" % line
         print "      Reason:", str(e)
         new_lines.append(line)
     return new_lines

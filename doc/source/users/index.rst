@@ -8,7 +8,7 @@ User's Guide
     :maxdepth: 3
     
     Introduction <introduction>
-    FAQ <faq>
     Getting started <getting_started>
     Screenshots <screenshots>
-    
+    FAQ <faq>
+
