@@ -23,27 +23,8 @@
 ##
 #############################################################################
 
-"""
-Taurus Widget Plot module
-==========================
-
-This module is part of Taurus Widgets. It contains specialized widgets for 2D plotting
-in Taurus. It depends on the `PyQwt module <http://pyqwt.sourceforge.net/>`_
-"""
-
-from .qwtdialog import *
-from .scales import *
-from .taurusplot import *
-from .taurustrend import *
-from .arrayedit import ArrayEditor
-from .taurusarrayedit import TaurusArrayEditor
-from .curvesAppearanceChooserDlg import CurveAppearanceProperties, CurvesAppearanceChooser
-from .curveprops import CurvePropertiesView
-from .monitor import TaurusMonitorTiny
 try:
-    from .taurustrend2d import TaurusTrend2D
-except ImportError:
-    import taurus.core.util
-    _logger = taurus.core.util.Logger(__name__)
-    _logger.debug("TaurusTrend2D could not be imported")
-    _logger.traceback()
+	from taurus.qt.qtgui.plot.taurustrend2d import taurusTrend2DMain
+	taurusTrend2DMain()
+except Exception, e:
+	print 'TaurusTrend2D cannot be launched.\n Reason: %s\n\n'%repr(e)

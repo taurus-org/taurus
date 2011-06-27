@@ -87,6 +87,22 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         not (and cannot be) a QObject'''
         return self._signalGen  
     
+    def setBufferSize(self, buffersize):
+        '''sets the size of the stack
+        
+        :param buffersize: (int) size of the stack
+        '''
+        self.maxBufferSize = buffersize
+        try:
+            if self.__xBuffer is not None:
+                self.__xBuffer.setMaxSize(buffersize)
+            if self.__zBuffer is not None:
+                self.__zBuffer.setMaxSize(buffersize)
+        except ValueError:
+            self.info('buffer downsizing  requested. Current contents will be discarded')
+            self.__xBuffer = None
+            self.__zBuffer = None
+        
     def setModel(self, model):
         #do the standard stuff
         TaurusBaseComponent.setModel(self, model)
@@ -109,9 +125,9 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         if self.__yValues is None:
             self.__yValues = numpy.arange(ySize,dtype='d')
         if self.__xBuffer is None:
-            self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxBufferSize )
+            self.__xBuffer = ArrayBuffer(numpy.zeros(min(128,self.maxBufferSize), dtype='d'), maxSize=self.maxBufferSize )
         if self.__zBuffer is None:
-            self.__zBuffer = ArrayBuffer(numpy.zeros((128, ySize),dtype='d'), maxSize=self.maxBufferSize )
+            self.__zBuffer = ArrayBuffer(numpy.zeros((min(128,self.maxBufferSize), ySize),dtype='d'), maxSize=self.maxBufferSize )
             return
         
         #check that new data is compatible with previous data    
@@ -233,6 +249,7 @@ def test1():
     win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
     
     win.exec_()
+
 
 if __name__ == "__main__":
     taurusImageMain()   
