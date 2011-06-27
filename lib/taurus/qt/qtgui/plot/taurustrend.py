@@ -153,10 +153,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             - <label> the attribute label (default)
             - <model> the model name
             - <attr_name> attribute name
-            - <attr_full_name> full attribute name
+            - <attr_fullname> full attribute name (for backwards compatibility, <attr_full_name> is also accepted)
             - <dev_alias> device alias
             - <dev_name> device name
-            - <dev_full_name> full device name
+            - <dev_fullname> full device name (for backwards compatibility, <dev_full_name> is also accepted)
             - <current_title> The current title
             - <trend_index> The index of the trend in the trendset
             - <[trend_index]> Same as: `"[<trend_index>]" if Ntrends>1 else ""`
@@ -184,10 +184,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             - <label> the attribute label (default)
             - <model> the model name
             - <attr_name> attribute name
-            - <attr_full_name> full attribute name
+            - <attr_fullname> full attribute name (for backwards compatibility, <attr_full_name> is also accepted)
             - <dev_alias> device alias
             - <dev_name> device name
-            - <dev_full_name> full device name
+            - <dev_fullname> full device name (for backwards compatibility, <dev_full_name> is also accepted)
             - <current_title> The current title
             - <[trend_index]> Same as: `"[<trend_index>]" if Ntrends>1 else ""`
         
@@ -203,12 +203,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         if isinstance(attr, taurus.core.TaurusAttribute):
             basetitle = basetitle.replace('<label>',attr.label or '---')
             basetitle = basetitle.replace('<attr_name>',attr.name or '---')
+            basetitle = basetitle.replace('<attr_fullname>',attr.getFullName() or '---')
             basetitle = basetitle.replace('<attr_full_name>',attr.getFullName() or '---')
             basetitle = basetitle.replace('<dev_alias>',attr.dev_alias or '---')
             basetitle = basetitle.replace('<dev_name>',attr.dev_name or '---')
         
         dev = attr.getParentObj()
         if dev is not None:
+            basetitle = basetitle.replace('<dev_fullname>',dev.getFullName() or '---')
             basetitle = basetitle.replace('<dev_full_name>',dev.getFullName() or '---')
 
         if len(self._curves)==1: basetitle = basetitle.replace('<[trend_index]>','')
@@ -951,8 +953,8 @@ class TaurusTrend(TaurusPlot):
                                                 'New Title for Curves',
                                                 'New text to be used for the curves.'\
                                                 'You can use any of the following placeholders:\n'\
-                                                '<label>, <model>, <attr_name>, <attr_full_name>,'\
-                                                '<dev_alias>, <dev_name>, <dev_full_name>,' \
+                                                '<label>, <model>, <attr_name>, <attr_fullname>,'\
+                                                '<dev_alias>, <dev_name>, <dev_fullname>,' \
                                                 '<current_title>, <trend_index>, <[trend_index]>',
                                                 Qt.QLineEdit.Normal,
                                                 self._defaultCurvesTitle)

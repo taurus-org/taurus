@@ -337,10 +337,10 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                             - <label> the attribute label (default)
                             - <model> the model name
                             - <attr_name> attribute name
-                            - <attr_full_name> full attribute name
+                            - <attr_fullname> full attribute name (for backwards compatibility, <attr_full_name> is also accepted)
                             - <dev_alias> device alias
                             - <dev_name> device name
-                            - <dev_full_name> full device name
+                            - <dev_fullname> full device name (for backwards compatibility, <dev_full_name> is also accepted)
                             - <current_title> The current title
 
         :return: (str) a title string where the placeholders have been
@@ -355,6 +355,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         #TaurusCurves for which we can get the Attribute...
         titletext = titletext.replace('<label>',attr.label or '---')
         titletext = titletext.replace('<attr_name>',attr.name or '---')
+        titletext = titletext.replace('<attr_fullname>',attr.getFullName() or '---')
         titletext = titletext.replace('<attr_full_name>',attr.getFullName() or '---')
         titletext = titletext.replace('<dev_alias>',attr.dev_alias or '---')
         titletext = titletext.replace('<dev_name>',attr.dev_name or '---')
@@ -363,6 +364,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if dev is None:
             return titletext
         #TaurusCurves for which we can get the Device object...
+        titletext = titletext.replace('<dev_fullname>',dev.getFullName() or '---')
         titletext = titletext.replace('<dev_full_name>',dev.getFullName() or '---')
         return titletext
 
@@ -2869,8 +2871,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                                                 'New Title for Curves',
                                                 'New text to be used for the curves.'\
                                                 'You can use any of the following placeholders:\n'\
-                                                '<label>, <model>, <attr_name>, <attr_full_name>,'\
-                                                '<dev_alias>, <dev_name>, <dev_full_name>, <current_title>',
+                                                '<label>, <model>, <attr_name>, <attr_fullname>,'\
+                                                '<dev_alias>, <dev_name>, <dev_fullname>, <current_title>',
                                                 Qt.QLineEdit.Normal,
                                                 self._defaultCurvesTitle)
         if ok:
