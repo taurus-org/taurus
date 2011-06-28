@@ -1,7 +1,7 @@
 
 .. currentmodule:: MacroServer.macro
 
-.. _macro-api:
+.. _macroserver-macro-api:
 
 ==================
 Macro API

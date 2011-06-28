@@ -1,4 +1,4 @@
-.. _introduction:
+.. _sardana-introduction:
 
 ============
 Introduction
@@ -179,6 +179,10 @@ You can add one of these pseudo motors with the configuration editor. It is
 easily possible to add new types of pseudo motors. This has only to be done
 once and the Sardana system already provides a large variety of these types.
 
+.. figure:: /_static/snapshot09.png
+  :align: center
+  :width: 750
+
 Please find in the following an example for adding a completely new type in the
 case of a *slit*.
 
@@ -190,17 +194,21 @@ and right blade.
 Once again the information in the beginning allows the graphical user interface
 to be created automatically once it is loaded into the system.
 
-.. figure:: /_static/snapshot09.png
+.. figure:: /_static/snapshot10.png
   :align: center
-  :width: 750 
+  :width: 750
   
 Symbolic Sketch
 ===============
 
-I would like to end this summery with a symbolic  sketch of the different
+I would like to end this summary with a symbolic sketch of the different
 subsystems in Sardana. The user will normally not be concerned with these
 implementation details. It is presented here to allow appreciating the
 modularity of the system.
+
+.. figure:: /_static/snapshot11.png
+  :align: center
+  :width: 750
 
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/

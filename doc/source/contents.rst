@@ -12,6 +12,7 @@ Contents
 
    users/index
    devel/index
+   Glossary <glossary>
    To do <todo>
    History of changes <revision>
    

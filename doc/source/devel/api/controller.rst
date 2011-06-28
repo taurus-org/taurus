@@ -1,14 +1,14 @@
 
 .. currentmodule:: sardana.pool
 
-.. _controller-api:
+.. _pool-controller-api:
 
 ==================
 Controller API
 ==================
 
-.. _controller-data-type:
-       
+.. _pool-controller-data-type:
+
 Data Type definition
 ----------------------
 
@@ -22,7 +22,7 @@ are ordered by preference (example: usage of int is prefered to "int" or "PyTang
 - for 0D data types:
    - **integer**: int   | DataType.Integer | "int"    | "integer" | "long" | long | [ "PyTango." ] "DevLong"
    - **double**:  float | DataType.Double  | "double" | "float"   | [ "PyTango." ] "DevDouble"
-   - string**:  str   | DataType.String  | "str"    | "string"  | [ "PyTango." ] "DevString"
+   - **string**:  str   | DataType.String  | "str"    | "string"  | [ "PyTango." ] "DevString"
    - **boolean**: bool  | DataType.Boolean | "bool"   | "boolean" | [ "PyTango." ] "DevBoolean"
 - for 1D data types:
    - **integer**: (int,)   | (DataType.Integer,) | ("int",)    | ("integer",) | (long,) | ("long",) | [ "PyTango." ] "DevVarLongArray" | ([ "PyTango." ] "DevLong",)

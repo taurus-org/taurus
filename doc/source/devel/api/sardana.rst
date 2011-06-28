@@ -12,7 +12,7 @@
 
     Macro API <macro>
     Controller API <controller>
-    Device Pool <device_pool>
+    Pool Tango API <device_pool>
 
 .. rubric:: Modules
 

@@ -5,18 +5,18 @@
 FAQ
 ===
 
-What is the Sardana SCADA system and how do I get an overview over the different components?
---------------------------------------------------------------------------------------------
+What is the Sardana SCADA_ system and how do I get an overview over the different components?
+--------------------------------------------------------------------------------------------------------
 An overview over the different Sardana components can be found here **<LINK>**. 
-The basic Sardana SCADA philosophy can be found :ref:`here <introduction>`.
+The basic Sardana SCADA_ philosophy can be found :ref:`here <sardana-introduction>`.
 
 How do I install Sardana?
 -------------------------
-The Sardana SCADA system consists of different components which have to be installed:
+The Sardan SCADA_ system consists of different components which have to be installed:
     
     * Tango_: The control system middleware and tools
     * PyTango_: The Python_ language binding for Tango_
-    * Taurus_: The GUI toolkit which is part of Sardana SCADA
+    * Taurus_: The GUI toolkit which is part of Sardana SCADA_
     * The Sardana device pool, macro server and tools
 
 The complete sardana installation instructions can be found
@@ -29,7 +29,6 @@ A user documentation for the Taurus_ GUI application can be found
 
 How to produce your own Taurus_ GUI panel?
 -------------------------------------------
-
 The basic philosophy of Taurus_ GUI is to provide automatic GUIs which are
 automatically replaced by more and more specific GUIs if these are found.
 The documentation how to create a generic panel which can be filled via
@@ -39,7 +38,7 @@ application. Documentation for this approach can be found here **<LINK>**.
 
 How to call procedures?
 -----------------------
-The central idea of the Sardana SCADA system is to execute procedures centrally.
+The central idea of the Sardana SCADA_ system is to execute procedures centrally.
 The execution can be started from either:
 
     * SPOCK offers a command line interface with commands very similar to SPEC.
@@ -54,8 +53,8 @@ The execution can be started from either:
 
 How to write procedures?
 ------------------------
-User written procedures are central to the Sardana SCADA system. 
-Documentation how to write macros can be found :ref:`here <macros>`. 
+User written procedures are central to the Sardana SCADA_ system. 
+Documentation how to write macros can be found :ref:`here <macroserver-macros>`. 
 Macro writers might also find the following documentation interesting:
 
     * Documentation on how to debug macros  can be found here **<LINK>**
@@ -163,7 +162,7 @@ The configuration files for the Taurus_ GUI are defined here **<LINK>**.
 .. _MAX-lab: http://www.maxlab.lu.se/maxlab/max4/index.html
 .. _SOLEIL: http://www.synchrotron-soleil.fr/
 
-
+.. _SCADA: http://en.wikipedia.org/wiki/SCADA
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
 .. _Taurus: http://packages.python.org/taurus/
