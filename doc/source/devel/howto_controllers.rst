@@ -1,9 +1,9 @@
 
 .. _pool-controllers:
 
-===============
-Controllers
-===============
+=====================
+Writting Controllers
+=====================
 
 This chapter provides the necessary information to write controllers in sardana.
 The complete controller :term:`API` can be found :ref:`here <pool-controller-api>`.

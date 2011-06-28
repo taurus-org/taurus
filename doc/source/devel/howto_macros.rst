@@ -3,9 +3,9 @@
 
 .. _macroserver-macros:
 
-======
-Macros
-======
+================
+Writting macros
+================
 
 This chapter provides the necessary information to write macros in sardana.
 The complete macro :term:`API` can be found :ref:`here <macroserver-macro-api>`.
