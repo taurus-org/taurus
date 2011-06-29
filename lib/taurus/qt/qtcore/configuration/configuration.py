@@ -59,7 +59,7 @@ class BaseConfigurableClass:
     
     .. note:: One implicit requisite is that a configurable object must also provide a
               `meth:`objectName` method which returns the object name. This is typically
-              fullfilled by inheritting from QObject.
+              fulfilled by inheriting from QObject.
               
     Using objects that inherit from :class:`BaseConfigurableClass` automates
     saving and restoring of application settings and also enables the use of
