@@ -420,8 +420,13 @@ class TangoAttribute(taurus.core.TaurusAttribute):
                 self._dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None
             except PyTango.DevFailed, df:
-                self.debug("Failed: %s" % df[0].desc)
-                self.trace(str(df))
+                if len(df.args) and df[0].reason == 'API_EventNotFound':
+                    # probably tango shutdown as been initiated before and it
+                    # unsubscribed from events itself
+                    pass
+                else:
+                    self.debug("Failed: %s" % df[0].desc)
+                    self.trace(str(df))
         self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
     
