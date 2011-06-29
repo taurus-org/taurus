@@ -152,21 +152,30 @@ def resolve_inheritance(xml_source):
         class_name = class_node.text
         if not class_name in widget_klasses:
             continue
-        
         extends_node = custom_widget.find("extends")
         super_name = extends_node.text
         if super_name in custom_widget_list:
             continue
         if not super_name in widget_klasses:
-            continue
-    
-        module_name, widget_klass = widget_klasses[super_name]
-        xml = _build_widget(module_name, widget_klass, widget_klasses, custom_widget_list)
+            xml = _build_plain_widget(super_name)
+        else:
+            module_name, widget_klass = widget_klasses[super_name]
+            xml = _build_widget(module_name, widget_klass, widget_klasses, custom_widget_list)
         new_custom_widgets.extend(xml)
     
     custom_widgets_node = xml_source.find(".//customwidgets")
     custom_widgets_node.extend(new_custom_widgets)
     return xml_source
+
+def _build_plain_widget(widget_klass_name):
+    custom_widget_node = lxml.etree.Element("customwidget")
+    ret = [ custom_widget_node ]
+    class_node = lxml.etree.SubElement(custom_widget_node, "class")
+    header_node = lxml.etree.SubElement(custom_widget_node, "header")
+    
+    class_node.text = widget_klass_name
+    header_node.text = ""
+    return ret
 
 def _build_widget(module_name, widget_klass, widget_klasses, existing_widgets):
     """Builds a set of "customwidget" xml nodes necessary for the given widget"""
