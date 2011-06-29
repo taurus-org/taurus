@@ -97,7 +97,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
 class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     '''A Taurus-aware QMainWindow with several customizations:
     
-        - It takes care of (re)storing its geometry and state
+        - It takes care of (re)storing its geometry and state (see :meth:`loadSettings`)
         - It provides a splashScreen (which can be disabled)
         - It provides a statusBar (@TODO)
         - It provides basic Taurus menus and actions:
@@ -335,10 +335,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         #self.__settings.setDefaultFormat(Qt.QSettings.IniFormat)
             
     def loadSettings(self, settings=None, group=None, ignoreGeometry=False):
-        '''restores the application settings previously saved with saveSettings.
+        '''restores the application settings previously saved with :meth:`saveSettings`.
         
-        This method should be called explicitly from derived classes after all
-        initialization is done
+        .. note:: This method should be called explicitly from derived classes after all
+                  initialization is done
         
         :param settings: (QSettings or None) a QSettings object. If None given,
                          the default one returned by :meth:`getQSettings` will
@@ -371,7 +371,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
     
     def saveSettings(self, group=None):
-        '''saves the application settings (so that they can be restored with loadSettings)
+        '''saves the application settings (so that they can be restored with :meth:`loadSettings`)
+        
+        .. note:: this method is automatically called by default when closing the
+                  window, so in general there is no need to call it from derived classes 
         
         :param group: (str) a prefix that will be added to the keys to be
                        saved (no prefix by default)
@@ -505,7 +508,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param toMenu: (bool) If True (default) an entry will be added in the 
                           Tools Menu, under the "External Applications" submenu
                           
-        ..seealso:: :class:`ExternalAppAction`
+        .. seealso:: :class:`ExternalAppAction`
         '''
         if not isinstance(extapp, ExternalAppAction):
             extapp = ExternalAppAction(extapp, parent = self)
