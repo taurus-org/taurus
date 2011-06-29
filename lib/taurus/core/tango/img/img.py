@@ -108,11 +108,33 @@ class ImageCounterDevice(ImageDevice):
             pass
         return self._image_data
 
-
 PyImageViewer = ImageCounterDevice
 ImgGrabber = ImageCounterDevice
 CCDPVCAM = ImageCounterDevice
-Falcon = ImageCounterDevice
+
+class Falcon(ImageCounterDevice):
+
+    def __init__(self, name, image_name='image', **kw):
+        self._color = False
+        self.call__init__(ImageCounterDevice, name, image_name=image_name, **kw)
+        self.imgFormat_Attr = self.getAttribute("imageformat")
+        self.imgFormat_Attr.addListener(self)
+    
+    def eventReceived(self, evt_src, evt_type, evt_value):
+        if evt_src == self.getAttribute("imageformat"):
+            if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+                self._color = evt_value.value.lower() == "rgb24"
+                return
+        ImageCounterDevice.eventReceived(self, evt_src, evt_type, evt_value)
+
+    def getImageData(self, names=None):
+        data = ImageCounterDevice.getImageData(self, names=names)
+        if self._color:
+            for k, v in data.items():
+                s = v[1].value.shape
+                v[1].value = v[1].value.reshape((s[0], s[1]/3, 3))
+        return data
+
 
 class ImgBeamAnalyzer(ImageCounterDevice):
     
