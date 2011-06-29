@@ -162,7 +162,7 @@ class _TaurusLedControllerState(_TaurusLedController):
     #                key      status,       color, inTrouble
     LedMap = {    State.ON : (   True,    "green",    False),
                  State.OFF : (  False,    "black",    False),
-               State.CLOSE : (   True,    "green",    False),
+               State.CLOSE : (   True,    "white",    False),
                 State.OPEN : (   True,    "green",    False),
               State.INSERT : (   True,    "green",    False),
              State.EXTRACT : (   True,    "green",    False),
