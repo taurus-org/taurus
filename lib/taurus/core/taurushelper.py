@@ -141,6 +141,18 @@ def __get_qtcontrols_version_number():
     if qtcontrols_str is None: return None
     return __translate_version_str2int(qtcontrols_str)
 
+def __get_spyderlib_version():
+    try:
+        import spyderlib
+        return spyderlib.__version__
+    except:
+        pass
+
+def __get_spyderlib_version_number():
+    spyderlibver_str = __get_spyderlib_version()
+    if spyderlibver_str is None: return None
+    return __translate_version_str2int(spyderlibver_str)
+    
 def __w(msg):
     sys.stdout.write(msg)
     sys.stdout.flush()
@@ -188,6 +200,7 @@ def _check_dependencies(forlog=False):
     #    module       minimum  recommended 
         "Qub"       : ("1.0.0", "1.0.0"),
         "qtcontrols": ("1.0.0", "1.0.0"),
+        "spyderlib" : ("2.0.0", "2.0.0"),
     }
     
     yield -1, "Checking required dependencies of taurus.core..."
@@ -248,6 +261,16 @@ def _check_dependencies(forlog=False):
         yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currQubStr, rec=r['Qub'][1],**MSG)
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr,**MSG)
+
+    m = "Checking for spyderlib >=%s..." % r["spyderlib"][0]
+    minspyderlib, recspyderlib = map(__translate_version_str2int, r["spyderlib"])
+    currspyderlib, currspyderlibStr = __get_spyderlib_version_number(), __get_spyderlib_version()
+    if currspyderlib is None:
+        yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
+    elif currspyderlib < minspyderlib:
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderlibStr, rec=r['spyderlib'][1],**MSG)
+    else:
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderlibStr,**MSG)
     
     m = "Checking for qtcontrols >=%s..." % r["qtcontrols"][0]
     minqtcontrols, recqtcontrols = map(__translate_version_str2int, r["qtcontrols"])
