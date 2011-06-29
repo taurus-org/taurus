@@ -31,24 +31,33 @@ __all__ = ["configurableProperty", "BaseConfigurableClass"]
 __docformat__ = 'restructuredtext'
 
 class configurableProperty:
-    '''A dummy class used to handle properties with the configuration API'''
+    '''A dummy class used to handle properties with the configuration API
+    
+    .. warning:: this class is intended for internal use by the configuration
+                 package. Do not instantiate it directly in your code. Use
+                 :meth:`BaseConfigurableClass.registerConfigProperty` instead.
+    '''
     def __init__(self, name, fget, fset, obj=None):
         self.name = name
         self.fget = fget #this may either be a method or a method name
         self.fset = fset #this may either be a method or a method name
         self._obj = obj  #obj is only needed if fset or fget are method names
+        
     def createConfig(self, allowUnpickable=False):
+        '''returns value returned by the fget function of this property. the allowUnpickable parameter is ignored'''
         if isinstance(self.fget, basestring):# fget is not a method but a method name...
             result = getattr(self._obj, self.fget)()
         else:
             result = self.fget() 
         return result
     def applyConfig(self, value, depth=-1):
+        '''calls the fset function for this property with the given value. The depth parameter is ignored'''
         if isinstance(self.fget, basestring):# fget is not a method but a method name...
             getattr(self._obj, self.fset)(value)
         else:
             self.fset(value)
     def objectName(self):
+        '''returns the name of this property'''
         return self.name
 
 
@@ -143,7 +152,7 @@ class BaseConfigurableClass:
         this method, although it can be reimplemented in children classes to support
         very specific configurations.
         
-        By default, meth:`createQConfig` and `saveConfigFile` call to this
+        By default, meth:`createQConfig` and meth:`saveConfigFile` call to this
         method for obtaining the data.
         
         Hint: The following code allows you to serialize the configuration
@@ -164,7 +173,7 @@ class BaseConfigurableClass:
         
         :return: (dict<str,object>) configurations (which can be loaded with :meth:`applyConfig`).
         
-        .. seealso: :meth:`applyConfig` , :meth:`registerConfigurableItem`
+        .. seealso: :meth:`applyConfig` , :meth:`registerConfigurableItem`,  meth:`createQConfig`, meth:`saveConfigFile`
         '''
         configdict = {"ConfigVersion":self._supportedConfigVersions[-1],
                       "__pickable__": True}
