@@ -564,20 +564,81 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
             return None
         return attr
     
-    def getExistingDevice(self,full_device_name):
+    def getExistingDevice(self, dev_name):
         """Returns a registered device or None if the corresponding device
            as not been registered. This is used mainly to avoid recursion between 
            two objects supplied by this factory which can ask for the other object 
            in the constructor.
         
-           :param full_device_name: (str) full device name
+           :param dev_name: (str) tango device name or tango alias for the device.
+                            It should be formed like: <host>:<port>/<tango device name>
+                            - If <host>:<port> is ommited then it will use the 
+                            default database.
+                            - <tango device name> can be full tango device name 
+                            (_/_/_) or a device alias.
            :return: (taurus.core.tango.TangoDevice or None) device object or None
         """
+
+        d = self.tango_devs.get(dev_name)
+        if d is None:
+            d = self.tango_alias_devs.get(dev_name)
+        if d is not None:
+            return d
         
-        dev = self.tango_devs.get(full_device_name)
+        # Simple approach did not work. Lets build a proper device name
+        if dev_name.lower().startswith("tango://"):
+            dev_name = dev_name[8:]
+        
+        validator = _Device.getNameValidator()
+        params = validator.getParams(dev_name)
+        
+        if params is None:
+            raise TaurusException("Invalid Tango device name %s" % dev_name)
+        
+        host,port = params.get('host'),params.get('port')
+        db = None
+        if host is None or port is None:
+            db = self.getDatabase()
+            host, port = db.get_db_host(), db.get_db_port()
+        else:
+            db_name = "%s:%s" % (host,port)
+            db = self.getDatabase(db_name)
+            
+        dev_name = params.get('devicename')
+        alias = params.get('devalias')
+        
+        if dev_name:
+            try:
+                alias = db.get_alias(dev_name)
+                if alias and alias.lower() == taurus.core.InvalidAlias:
+                    alias = None 
+            except Exception:
+                alias = None
+        else:
+            try:
+                dev_name = db.get_device_alias(alias)
+            except Exception:
+                raise TaurusException("Device %s is not defined in %s." % (alias,db.getFullName()))
+
+        full_dev_name = db.getFullName() + "/" + dev_name
+        if not alias is None:
+            alias = db.getFullName() + "/" + alias
+        
+        return self.tango_devs.get(full_dev_name)
+        
+    def removeExistingDevice(self, dev_or_dev_name):
+        """Removes a device from a previously registered device
+           
+           :param dev_or_dev_name: (str or TangoDevice) device name or device object
+        """
+        if isinstance(dev_or_dev_name, _Device):
+            dev = dev_or_dev_name
+        else:
+            dev = self.getExistingDevice(dev_or_dev_name)
         if dev is None:
-            return None
-        return dev
+            raise KeyError("Device not found")
+        del self.tango_devs[dev.getFullName()]
+        del self.tango_alias_devs[dev.getSimpleName()]
         
     def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
         """Activates the polling (client side) for the given attribute with the
