@@ -107,7 +107,7 @@ class BaseConfigurableClass:
     (:meth:`saveConfigFile` and :meth:`loadConfigFile`) or as QByteArrays
     (:meth:`createQConfig` and :meth:`applyQConfig`)
     
-    Finally, we reccommend to use :class:`TaurusMainWindow` for all Taurus GUIs
+    Finally, we recommend to use :class:`TaurusMainWindow` for all Taurus GUIs
     since it automates all the steps for *saving properties when closing* and
     *restoring the settings on startup*. It also provides a mechanism for
     implementing "perspectives" in your application.
