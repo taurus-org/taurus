@@ -75,6 +75,7 @@ class MacroClassJSONEncoder(json.JSONEncoder):
         klass = obj.getMacroClass()
         ret = { 'name' : obj.getName(),
           'module_name' : obj.getModuleName(),
+          'filename' : obj.getFileName(),
           'description' : obj.getDescription(),
           'hints' : obj.klass.hints }
         param, result = obj.getParamObj(), obj.getResultObj()
@@ -109,6 +110,7 @@ class MacroClass:
         klass = obj.getMacroClass()
         ret = { 'name' : obj.getName(),
           'module' : obj.getModuleName(),
+          'filename' : obj.getFileName(),
           'description' : obj.getDescription(),
           'hints' : obj.klass.hints }
         param, result = obj.getParamObj(), obj.getResultObj()
