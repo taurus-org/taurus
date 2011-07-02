@@ -55,6 +55,7 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         
         taurus_manager = taurus.core.TaurusManager()
         taurus_manager.reInit()
+        #taurus_manager.setSerializationMode(taurus.core.TaurusSerializationMode.Serial)
         factory = taurus_manager.getFactory("tango")()
         factory.registerDeviceClass("Pool", pool.Pool)
         for klass_name, klass in zip(pool.HardwareObjTypes, pool.HardwareObjTypeClasses):
