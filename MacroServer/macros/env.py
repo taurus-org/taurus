@@ -93,7 +93,12 @@ class lsenv(Macro):
 class senv(Macro):
     """Sets the given environment variable to the given value"""
 
-    param_def = [['name', Type.Env, None, 'Environment variable name'],
+    param_def = [['name', Type.Env, None,
+                  'Environment variable name. Can be one of the following:\n' \
+                  ' - <name> - global variable\n' \
+                  ' - <full door name>.<name> - variable value for a specific door\n' \
+                  ' - <macro name>.<name> - variable value for a specific macro\n' \
+                  ' - <full door name>.<macro name>.<name> - variable value for a specific macro running on a specific door'],
                  ['value_list',
                   ParamRepeat(['value', Type.String, None, 'environment value item'], min=1),
                   None, 'value(s). one item will eval to a single element. More than one item will eval to a tuple of elements'],
