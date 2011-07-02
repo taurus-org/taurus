@@ -301,9 +301,8 @@ class HardwareObjList(BaseObjList):
             return
         
         if evt_value is None or evt_value.value is None:
-            self.debug('Received empty Change event')
-            return
-
+            return 
+        
         elems_str = evt_value.value
         
         pool = self.getPoolObj()
@@ -320,7 +319,7 @@ class HardwareObjList(BaseObjList):
                 self.warning("String '%s' could not match %s" % (elem_str, self.getElementREStr()))
                 continue
             info_dict['_full_pool_name'] = elem_str
-            id, name = info_dict['_id'], info_dict['_alias']
+            id, name = info_dict['_id'].lower(), info_dict['_alias']
             all_elem_ids.append(id)
             if self._obj_dict.has_key(id):
                 name = info_dict['_alias']
@@ -333,8 +332,8 @@ class HardwareObjList(BaseObjList):
         # find deleted elements
         for id, elem in self._obj_dict.items():
             if not id.lower() in all_elem_ids:
-                del_elems.append({'_id':id, '_id':elem.getName()})
-
+                del_elems.append({ '_id':id })
+        
         # create the new elements
         f = taurus.Factory()
         for new_elem_data in new_elems:
@@ -343,6 +342,9 @@ class HardwareObjList(BaseObjList):
             axis = int(new_elem_data.get('_axis', '0'))
             type = new_elem_data.get('_type')
             full_pool_name = new_elem_data.get('_full_pool_name')
+            elem = f.getExistingDevice(id)
+            if elem is not None:
+                f.removeExistingDevice(id)
             elem = f.getDevice(id, _pool=pool, _ctrl_name=ctrl_name, 
                                _ctrl_axis=axis, _type=type,
                                _full_pool_name=full_pool_name)
@@ -356,8 +358,10 @@ class HardwareObjList(BaseObjList):
         
         # remove the deleted elements
         for del_elem_data in del_elems:
-            self._obj_dict.pop(del_elem_data['_id'])
-        
+            id = del_elem_data['_id']
+            self._obj_dict.pop(id)
+            f.removeExistingDevice(id)
+            
         self._obj_alias_dict = taurus.core.util.CaselessDict()
         for elem in self._obj_dict.values():
             self._obj_alias_dict[elem.getName()] = elem
@@ -447,7 +451,7 @@ class PoolElement(BaseElement, taurus.core.tango.TangoDevice):
             return
         self._reserved = weakref.ref(obj, self._unreserveCB)
     
-    def _unreserveCB(self):
+    def _unreserveCB(self, obj):
         self.unreserve()
     
     def unreserve(self):
@@ -1392,7 +1396,6 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
             return
         return list_obj.getObjByName(name)
     
-    
     def __repr__(self):
         return self.getNormalName()
 
@@ -1411,7 +1414,7 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
         # if simple motor just return it (if the pool has it)
         if len(names) == 1:
             name = names[0]
-            return self.getObj('Motor',name) or getObj('MotorGroup',name)
+            return self.getObj('Motor',name) or self.getObj('MotorGroup',name)
         
         # find a motor group that contains elements
         moveable = self.__findMotorGroupWithElems(names)
