@@ -81,8 +81,8 @@ def check_requirements():
     except:
         print "Could not find any suitable XML library"
         sys.exit(-1)
-    
-check_requirements()
+
+
 
 def get_main_log():
     global _main_log
@@ -148,7 +148,9 @@ def get_main_log():
     
     return _main_log
 
-get_main_log()
+if __name__ == "__main__":
+    check_requirements()
+    get_main_log()
 
 class GenericListAttribute(PyTango.SpectrumAttr):
     pass
@@ -159,8 +161,6 @@ class GenericListAttribute(PyTango.SpectrumAttr):
 #         A device server that handles execution of macros written by users as plugins.
 #
 #==================================================================
-
-
 
 class MacroServer(PyTango.Device_4Impl, Logger):
 
@@ -179,7 +179,6 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         except:
             self._alias = name
         Logger.__init__(self, self._alias)
-                
         MacroServer.init_device(self)
 
     def __getManager(self, *args):
@@ -225,6 +224,13 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         dl = ms_manager.getDoorListObj()
         if not dl.isSubscribed(self.doorsChanged):
             dl.subscribeEvent(self.doorsChanged)
+        
+        if self.RConsolePort:
+            try:
+                import rfoo.utils.rconsole
+                rfoo.utils.rconsole.spawn_server(port=self.RConsolePort)
+            except Exception,e:
+                print e
 
     def _calculate_environment_name(self, name):
         u = PyTango.Util.instance()
@@ -287,8 +293,6 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         ms_manager = self.__getManager()
         type_list_obj = ms_manager.getTypeListObj()
         attr.set_value(type_list_obj.read())
-
-
 
 #==================================================================
 #
@@ -436,11 +440,6 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         item_list = type_obj.read()
         attr.set_value(item_list)
 
-#    def __str__(self):
-#        return repr(self)
-
-#    def __repr__(self):
-#        return self._alias
 
 #==================================================================
 #
@@ -472,6 +471,10 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
             [PyTango.DevString,
             "The environment database (usualy a plain file).",
             ["/tmp/tango/%(ds_name)s/macroserver.properties"] ],
+        'RConsolePort':
+            [PyTango.DevLong,
+            "The rconsole port number",
+            None ],
         }
 
     #    Command definitions
