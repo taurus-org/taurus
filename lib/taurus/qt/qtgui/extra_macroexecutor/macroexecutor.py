@@ -123,23 +123,23 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         actionsLayout.addWidget(self.doorStateLed)
         self.layout().addLayout(actionsLayout)
         
+        splitter = Qt.QSplitter(self)
+        self.layout().addWidget(splitter)
+        splitter.setOrientation(Qt.Qt.Vertical)
+        
         self._paramEditorModel = ParamEditorModel()
-        self.stackedWidget = Qt.QStackedWidget(self)
+        self.stackedWidget = Qt.QStackedWidget()
         self.standardMacroParametersEditor = StandardMacroParametersEditor(self.stackedWidget)
         self.stackedWidget.addWidget(self.standardMacroParametersEditor)
         self.customMacroParametersEditor = None
+        splitter.addWidget(self.stackedWidget)
         
         self._favouritesBuffer = None
         self.favouritesMacrosEditor = FavouritesMacrosEditor(self)
         self.registerConfigDelegate(self.favouritesMacrosEditor)
         self.favouritesMacrosEditor.setUseParentModel(True)
         self.favouritesMacrosEditor.setFocusPolicy(Qt.Qt.NoFocus)
-        
-        splitter = Qt.QSplitter(self)
-        splitter.setOrientation(Qt.Qt.Vertical)
-        splitter.addWidget(self.stackedWidget)
         splitter.addWidget(self.favouritesMacrosEditor) 
-        self.layout().addWidget(splitter)
         
         self.macroProgressBar = MacroProgressBar(self)
         self.layout().addWidget(self.macroProgressBar)
@@ -406,8 +406,7 @@ def createMacroExecutor(args):
     macroExecutor.loadSettings()
     return macroExecutor
     
-        
-if __name__ == "__main__": 
+def main():
     from taurus.qt.qtgui.application import TaurusApplication  
     
     app = TaurusApplication(sys.argv)
@@ -418,3 +417,6 @@ if __name__ == "__main__":
     macroExecutor = createMacroExecutor(args)
     macroExecutor.show()
     sys.exit(app.exec_())
+        
+if __name__ == "__main__": 
+    main()
