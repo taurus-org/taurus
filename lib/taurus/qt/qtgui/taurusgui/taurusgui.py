@@ -64,8 +64,10 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         Qt.QDockWidget.__init__(self, None)
         TaurusBaseWidget.__init__(self, name, parent=parent)
         
+        self.setAllowedAreas(Qt.Qt.TopDockWidgetArea)
+        
         self.setWidget(widget)
-        self._widget = self.widget()  #keep a pointer that may change if the widget changes
+        #self._widget = self.widget()  #keep a pointer that may change if the widget changes
         name = unicode(name)
         self.setWindowTitle(name)
         self.setObjectName(name)
@@ -271,7 +273,7 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
         Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
-        self.createPanel(self.__macroExecutor, 'Macros', Qt.Qt.TopDockWidgetArea, registerconfig=True)
+        self.createPanel(self.__macroExecutor, 'Macros', registerconfig=True)
         
         #put a Sequencer
         self.__sequencer = TaurusSequencerWidget()
@@ -283,13 +285,13 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
         Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
-        self.createPanel(self.__sequencer, 'Sequences', Qt.Qt.TopDockWidgetArea, registerconfig=True)
+        self.createPanel(self.__sequencer, 'Sequences', registerconfig=True)
         
         #puts a macrodescriptionviewer
         self.__macroDescriptionViewer = TaurusMacroDescriptionViewer(self)
         Qt.qApp.SDM.connectReader("macroserverName", self.__macroDescriptionViewer.setModel)
         Qt.qApp.SDM.connectReader("macroName", self.__macroDescriptionViewer.onMacroNameChanged)
-        self.createPanel(self.__macroDescriptionViewer, 'MacroDescription', Qt.Qt.BottomDockWidgetArea, registerconfig=True)
+        self.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True)
         
         #puts a doorOutput
         self.__doorOutput = DoorOutput(self)
@@ -297,17 +299,17 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectReader("doorInfoChanged", self.__doorOutput.onDoorInfoChanged)
         Qt.qApp.SDM.connectReader("doorWarningChanged", self.__doorOutput.onDoorWarningChanged)
         Qt.qApp.SDM.connectReader("doorErrorChanged", self.__doorOutput.onDoorErrorChanged)
-        self.createPanel(self.__doorOutput, 'DoorOutput', Qt.Qt.BottomDockWidgetArea, registerconfig=False)
+        self.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False)
         
         #puts doorDebug
         self.__doorDebug = DoorDebug(self)
         Qt.qApp.SDM.connectReader("doorDebugChanged", self.__doorDebug.onDoorDebugChanged)
-        self.createPanel(self.__doorDebug, 'DoorDebug', Qt.Qt.BottomDockWidgetArea, registerconfig=False)
+        self.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False)
         
         #puts doorResult
         self.__doorResult = DoorResult(self)
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
-        self.createPanel(self.__doorResult, 'DoorResult', Qt.Qt.BottomDockWidgetArea, registerconfig=False)
+        self.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
         
         #puts a TaurusTrend connected to the door for showing scan trends
         self.__scanTrend = TaurusTrend()
@@ -315,7 +317,7 @@ class TaurusGui(TaurusMainWindow):
         self.__scanTrend.setScansAutoClear(False)
         Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
         Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
-        self.createPanel(self.__scanTrend, '1D Scans', Qt.Qt.RightDockWidgetArea, registerconfig=True)
+        self.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
         
         #The app-wide door
         self.__qdoor = None
@@ -385,38 +387,45 @@ class TaurusGui(TaurusMainWindow):
         panel.setParent(None)
         panel.destroy()
     
-    def createPanel(self, widget, name, area, registerconfig=True, custom=False, permanent=False):
+    def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, permanent=False):
         '''
-        Creates a panel in the given area containing the given widget.
+        Creates a panel containing the given widget.
         
         :param wiget: (QWidget) the widget to be contained in the panel
         :param name: (str) the name of the panel. It will be used in tabs as well as for configuration
-        :param area: (QDockWidgetArea or None) the area in which the panel is to be created. If None, The TopDockWidgetArea will be used and the panel will be floating
+        :param floating: (bool) whether the panel should be docked or floating. (see note below)
         :param registerconfig: (bool) if True, the panel will be registered as a delegate for configuration
         :param custom: (bool) if True the panel is to be considered a "custom panel"
         :param permanent: (bool) set this to True for custom panels that need to be recreated when restoring the app  
         
         :return: (DockWidgetPanel) the created panel
-         
+        
+        .. note:: On a previous version, there was a mandatory parameter called
+                  `area` (which accepted a Qt.DockWidgetArea or None as values)
+                  this parameter has now been substituted by the keyword
+                  argument `floating`. In order to provide backwards
+                  compatibility, the "floating" keyword argument stays at the
+                  same position as the old `area` argument and if a Qt.DockWidgetArea
+                  value is given, it will be interpreted as floating=True (while if
+                  the `None` is passed, it will be interpreted as floating=False.
         '''
+        
+        #backwards compatibility:
+        if not isinstance(floating, bool):
+            self.info('Deprecation warning: please note that the "area" argument is deprecated. See TaurusGui.createPanel doc')
+            floating = not(floating)
+        
         name = unicode(name)
         if name in self.__panels:
             self.info('Panel with name "%s" already exists. Reusing.'%name)
             return self.__panels[name]  
         
-        if area is None:
-            area = Qt.Qt.RightDockWidgetArea
-            floating = True
-        else: 
-            floating = False
-        
         # create a panel
-        otherpanels = self.findPanelsInArea(area)
         panel = DockWidgetPanel(None, widget, name, self)
-        if len(otherpanels)== 0:
-            self.addDockWidget(area, panel)
+        if len(self.__panels)== 0:
+            self.addDockWidget(Qt.Qt.TopDockWidgetArea, panel) #we will only place panels in this area
         else:
-            self.tabifyDockWidget(otherpanels[-1], panel)
+            self.tabifyDockWidget(self.__panels.values()[-1], panel)
             
         panel.setFloating(floating)
 
@@ -431,9 +440,7 @@ class TaurusGui(TaurusMainWindow):
         if registerconfig: 
             self.registerConfigDelegate(panel, name=name)
         self.__panels[name] = panel
-            
-#        #connect the "relocationRequested" signal
-#        self.connect(panel, Qt.SIGNAL('relocationRequested'), self.movePanel)
+
         return panel
    
     def getPanelNames(self):
@@ -451,7 +458,7 @@ class TaurusGui(TaurusMainWindow):
         #first create the panels if they don't actually exist
         for name in permCustomPanels:
             if name not in self.__panels:
-                self.createPanel(None, name, None, custom=True, permanent=True) #at this point we still don't know where to put the widget... 
+                self.createPanel(None, name, custom=True, permanent=True) 
         
     def _getPermanentCustomPanels(self):
         ''' 
@@ -514,7 +521,7 @@ class TaurusGui(TaurusMainWindow):
             w.setModelInConfig(True)
         
 
-        self.createPanel(w, paneldesc.name, paneldesc.area, custom=True, registerconfig=False)
+        self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True, registerconfig=False)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it'%w.name
         self.emit(Qt.SIGNAL('newShortMessage'), msg)
         
@@ -551,7 +558,7 @@ class TaurusGui(TaurusMainWindow):
             name = '%s_%i'%(prefix, i)
             i+=1
             
-        synopticpanel = self.createPanel(synoptic, name, Qt.Qt.BottomDockWidgetArea)
+        synopticpanel = self.createPanel(synoptic, name)
         toggleSynopticAction = synopticpanel.toggleViewAction()
         toggleSynopticAction.setIcon(taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
         self.quickAccessToolBar.addAction(toggleSynopticAction)
@@ -577,7 +584,7 @@ class TaurusGui(TaurusMainWindow):
             return []
         for i in instruments:
             i_name, i_unknown, i_type, i_pools = i.split()
-            i_view = PanelDescription(i_name,classname='TaurusForm', area=Qt.Qt.LeftDockWidgetArea, model=[])
+            i_view = PanelDescription(i_name,classname='TaurusForm', floating=False, model=[])
             instrument_dict[i_name] = i_view
         
         motors = sorted(ms.getElementNamesOfType('Motor'))
@@ -732,7 +739,7 @@ class TaurusGui(TaurusMainWindow):
                 if p.model is not None:
                     w.setModel(p.model)
                 #create a panel
-                self.createPanel(w, p.name, p.area)
+                self.createPanel(w, p.name, floating=p.floating)
                 #connect the widget
                 Qt.qApp.SDM.connectWriter("SelectedInstrument", w, "panelSelected")
                 
@@ -878,7 +885,10 @@ class TaurusGui(TaurusMainWindow):
         ''' tabifies all panels in a given area.
         
         :param area: (Qt.DockWidgetArea)
+        
+        .. warning:: This method is deprecated
         '''
+        raise DeprecationWarning('tabifyArea is no longer supported (now all panels reside in the same DockWidget Area)')
         panels = self.findPanelsInArea(area)
         if len(panels)<2: return
         p0 = panels[0]
@@ -893,8 +903,9 @@ class TaurusGui(TaurusMainWindow):
                      returned.
         :param area:  (Qt.DockWidgetArea or str )
         
-        
+        .. warning:: This method is deprecated
         '''
+        raise DeprecationWarning('findPanelsInArea is no longer supported (now all panels reside in the same DockWidget Area)')
         if area == 'FLOATING':
             return [p for p in self.__panels.values() if p.isFloating()]
         else:

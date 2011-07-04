@@ -109,15 +109,15 @@ class PanelDescription(object):
     build a panel.
     '''
     def __init__(self,name, classname=None, modulename=None, widgetname=None, 
-                 area=None, sharedDataWrite=None, sharedDataRead=None, 
-                 model=None):
+                 sharedDataWrite=None, sharedDataRead=None, 
+                 model=None, floating=True, **kwargs):
         if classname is None and (modulename is None or widgetname is None) :
             raise ValueError('Either classname or both modulename and widgetname must be given')
         self._name = name
         self._classname = classname
         self._modulename = modulename
         self._widgetname = widgetname
-        self._area = area
+        self._floating = floating
         if sharedDataWrite is None: sharedDataWrite = {}
         self._sharedDataWrite = sharedDataWrite
         if sharedDataRead is None: sharedDataRead = {}
@@ -149,10 +149,18 @@ class PanelDescription(object):
         self._widgetname = widgetname
         
     def getArea(self):
+        raise DeprecationWarning('getArea is deprecated')
         return self._area
     
     def setArea(self, area):
-        self._area = area
+        raise DeprecationWarning('setArea is deprecated')
+        self._area = area        
+        
+    def isFloating(self):
+        return self._floating
+    
+    def setFloating(self, floating):
+        self._floating = floating
         
     def getSharedDataWrite(self):
         return self._sharedDataWrite
@@ -220,8 +228,8 @@ class PanelDescription(object):
         modulename.text = self._modulename
         widgetname = etree.SubElement(root, "widgetname")
         widgetname.text = self._widgetname
-        area = etree.SubElement(root, "area")
-        area.text = self._area
+        floating = etree.SubElement(root, "floating")
+        floating.text = str(self._floating)
 
         sharedDataWrite = etree.SubElement(root, "sharedDataWrite")
         for k,v in self._sharedDataWrite.iteritems():
@@ -275,11 +283,11 @@ class PanelDescription(object):
         else:
             widgetname = None
         
-        areaNode = root.find("area")
-        if (areaNode is not None) and (areaNode.text is not None):
-            area = areaNode.text
+        floatingNode = root.find("floating")
+        if (floatingNode is not None) and (floatingNode.text is not None):
+            floating = floatingNode.text == str(True)
         else:
-            area = None
+            floating = True
         
         sharedDataWrite = {}
         sharedDataWriteNode = root.find("sharedDataWrite")
@@ -309,7 +317,7 @@ class PanelDescription(object):
         
         
         return PanelDescription(name, classname=classname, modulename=modulename, widgetname=widgetname, 
-                                area=area, sharedDataWrite=sharedDataWrite, sharedDataRead=sharedDataRead, 
+                                floating=floating, sharedDataWrite=sharedDataWrite, sharedDataRead=sharedDataRead, 
                                 model=model)
         
     #===============================================================================
@@ -319,7 +327,7 @@ class PanelDescription(object):
     classname = property(fget=getClassname, fset=setClassname)
     modulename = property(fget=getModulename, fset=setModulename)
     widgetname = property(fget=getWidgetname, fset=setWidgetname)
-    area = property(fget=getArea, fset=setArea)
+    floating = property(fget=isFloating, fset=setFloating)
     sharedDataWrite = property(fget=getSharedDataWrite, fset=setSharedDataWrite)
     sharedDataRead = property(fget=getSharedDataRead, fset=setSharedDataRead) 
     model = property(fget=getModel, fset=setModel) 
