@@ -17,6 +17,7 @@ User's Interface
     Images <taurusimage>
     Array Editor <arrayeditor>
     Synoptics <synoptics>
+    Macros <macros/index>
     
 
 This section explains some features that are common to most applications built
