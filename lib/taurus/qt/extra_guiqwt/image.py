@@ -71,7 +71,7 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
         
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
-    def __init__(self, param=None, buffersize=512, xIsTime=False):
+    def __init__(self, param=None, buffersize=512, stackMode='datetime'):
         XYImageItem.__init__(self, numpy.arange(2), numpy.arange(2), numpy.zeros((2,2)), param=param)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
         self._signalGen = Qt.QObject()
@@ -79,8 +79,9 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.__yValues = None
         self.__xBuffer = None
         self.__zBuffer = None
-        self.xIsTime = xIsTime
+        self.stackMode = stackMode
         self.set_interpolation(INTERP_NEAREST)
+        self.__timeOffset = None
 
     def getSignaller(self):
         '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
@@ -136,15 +137,29 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             return
         
         #update x values
-        if self.xIsTime:
+        if self.stackMode == 'datetime':
+            if self.__timeOffset is None:
+                self.__timeOffset = evt_value.time.totime()
+                plot.set_axis_title('bottom', 'Time')
+                plot.set_axis_unit('bottom', '')
             self.__xBuffer.append(evt_value.time.totime())
-            print "!!!", evt_value.time.totime(), evt_value.time.isoformat()
+        
+        elif self.stackMode == 'deltatime':
+            try:
+                self.__xBuffer.append(evt_value.time.totime() - self.__timeOffset)
+            except TypeError: #this will happen if self.__timeOffset has not been initialized
+                self.__timeOffset = evt_value.time.totime()
+                self.__xBuffer.append(0)
+                plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat(' '))
+                plot.set_axis_unit('bottom', '')
         else:  
             try:
                 step = 1 # +numpy.random.randint(0,4) #for debugging we can put a variable step
                 self.__xBuffer.append(self.__xBuffer[-1]+step) 
             except IndexError: #this will happen when the x buffer is empty
                 self.__xBuffer.append(0) 
+                plot.set_axis_title('bottom', 'Event #')
+                plot.set_axis_unit('bottom', '')
         
         #update z
         self.__zBuffer.append(evt_value.value)

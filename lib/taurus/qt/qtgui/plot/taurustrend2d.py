@@ -45,7 +45,7 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
     The widget shows a 3D plot (Z represented with colors) where the values in
     the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
-    def __init__(self, parent=None, designMode=False, toolbar=True, xIsTime=True, buffersize=512, options=None, **kwargs):
+    def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
         '''see :class:`guiqwt.plot.ImageWidget` for other valid initialization parameters'''
         name = "TaurusTrend2D"
         if options is None:
@@ -54,12 +54,19 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
         TaurusBaseWidget.__init__(self, name)
         self.trendItem = None
         #add some tools
-        for toolklass in (TaurusModelChooserTool, TimeAxisTool):
+        for toolklass in (TaurusModelChooserTool,):
             self.add_tool(toolklass)   
         #manage time mode
-        self.xIsTime = xIsTime
-        timetool = self.get_tool(TimeAxisTool)
-        timetool.set_scale_y_t(self.xIsTime)
+        self.stackMode = stackMode
+        if self.stackMode == 'datetime':
+            self.add_tool(TimeAxisTool)
+            timetool = self.get_tool(TimeAxisTool)
+            timetool.set_scale_y_t(True)
+        elif self.stackMode == 'deltatime':
+            from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
+            plot = self.get_plot()
+            DeltaTimeScaleEngine.enableInAxis(plot, plot.xBottom, rotation=-45)
+        #...
         self.buffersize = buffersize
         self._useArchiving = False
     
@@ -72,7 +79,7 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
         plot = self.get_plot()
         if self.trendItem is not None:
             plot.del_item(self.trendItem)
-        self.trendItem = TaurusTrend2DItem(xIsTime=self.xIsTime, buffersize = self.buffersize)
+        self.trendItem = TaurusTrend2DItem(stackMode=self.stackMode, buffersize = self.buffersize)
         self.trendItem.setModel(model)
         plot.add_item(self.trendItem)
         try:
@@ -81,7 +88,8 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
             self.debug('cannot set title for left axis')
             sef.traceback()
         try:
-            plot.set_axis_unit('left', self.trendItem.getModelObj().getConfig().getUnit())
+            unit = self.trendItem.getModelObj().getConfig().getUnit() or ''
+            plot.set_axis_unit('left', unit)
         except:
             self.debug('cannot set units for left axis')
             self.traceback(level = taurus.Info)
@@ -151,7 +159,7 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
         self.setMaxDataBufferSize(512) 
     
     model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
-    useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving)
+    useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving) #@todo uncomment this when archiving is supported
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)   
         
         
@@ -164,8 +172,8 @@ def taurusTrend2DMain():
     parser = taurus.core.util.argparse.get_taurus_parser()
     parser.set_usage("%prog [options] <model>")
     parser.set_description('a Taurus application for plotting trends of arrays (aka "spectrograms")')
-    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='e', metavar="t|e",
-                  help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")    
+    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='d', metavar="t|d|e",
+                  help="interpret X values as timestamps (t), time deltas (d) or event numbers (e). Accepted values: t|d|e")    
     parser.add_option("-b", "--buffer", dest="max_buffer_size", default='512', 
                       help="maximum number of values to be stacked (when reached, the oldest values will be discarded)")
     parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
@@ -175,15 +183,17 @@ def taurusTrend2DMain():
     options = app.get_command_line_options()
     
     #check & process options
-    if options.x_axis_mode.lower() not in ['t', 'e']:
+    stackModeMap = dict(t='datetime', d='deltatime', e='event')  
+    if options.x_axis_mode.lower() not in stackModeMap:
         parser.print_help(sys.stderr)
         sys.exit(1)
-    xIsTime = options.x_axis_mode.lower() == 't'
+    
+    stackMode = stackModeMap[options.x_axis_mode.lower()]
       
     if options.demo:
         args.append('eval://sin(x+t)?x=linspace(0,3,40);t=rand()')
         
-    w = TaurusTrend2D(xIsTime=xIsTime, wintitle="Taurus Trend 2D", buffersize=int(options.max_buffer_size))
+    w = TaurusTrend2D(stackMode=stackMode, wintitle="Taurus Trend 2D", buffersize=int(options.max_buffer_size))
     
     #set archiving
     if options.use_archiving:
