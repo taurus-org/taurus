@@ -26,11 +26,41 @@
 """
 scales.py: Custom scales used by taurus.widget.qwt module
 """
+__all__=["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine", 
+         "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw", 
+         "FixedLabelsScaleDraw"]
 
 import numpy
 from datetime import datetime, timedelta
 from time import mktime
 from PyQt4 import Qt, Qwt5
+
+    
+def _getDefaultAxisLabelsAlignment(axis, rotation):
+    '''return a "smart" alignment for the axis labels depending on the axis
+    and the label rotation
+
+    :param axis: (Qwt5.QwtPlot.Axis) the axis
+    :param rotation: (float) The rotation (in degrees, clockwise-positive)
+
+    :return: (Qt.Alignment) an alignment
+    '''
+    if axis == Qwt5.QwtPlot.xBottom:
+        if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignBottom
+        elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
+        else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+    elif axis == Qwt5.QwtPlot.yLeft:
+        if rotation == 0 : return Qt.Qt.AlignLeft|Qt.Qt.AlignVCenter
+        elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
+        else:              return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
+    elif axis == Qwt5.QwtPlot.yRight:
+        if rotation == 0 : return Qt.Qt.AlignRight|Qt.Qt.AlignVCenter
+        elif rotation < 0: return Qt.Qt.AlignRight|Qt.Qt.AlignTop
+        else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+    elif axis == Qwt5.QwtPlot.xTop:
+        if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignTop
+        elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
+        else:              return Qt.Qt.AlignRight|Qt.Qt.AlignTop
 
 class FancyScaleDraw(Qwt5.QwtScaleDraw):
     
@@ -203,22 +233,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         :return: (Qt.Alignment) an alignment
         '''
-        if axis == Qwt5.QwtPlot.xBottom:
-            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignBottom
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
-        elif axis == Qwt5.QwtPlot.yLeft:
-            if rotation == 0 : return Qt.Qt.AlignLeft|Qt.Qt.AlignVCenter
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
-            else:              return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
-        elif axis == Qwt5.QwtPlot.yRight:
-            if rotation == 0 : return Qt.Qt.AlignRight|Qt.Qt.AlignVCenter
-            elif rotation < 0: return Qt.Qt.AlignRight|Qt.Qt.AlignTop
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
-        elif axis == Qwt5.QwtPlot.xTop:
-            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignTop
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignTop
+        return _getDefaultAxisLabelsAlignment(axis, rotation)
 
     @staticmethod        
     def enableInAxis(plot, axis, scaleDraw =None, rotation=None):
@@ -285,6 +300,113 @@ class TaurusTimeScaleDraw(FancyScaleDraw):
             s = t.isoformat(' ')
         return Qwt5.QwtText(s)
     
+
+class DeltaTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
+    def __init__(self, scaleDraw=None):
+        Qwt5.QwtLinearScaleEngine.__init__(self)
+        self.setScaleDraw(scaleDraw)
+        
+    def setScaleDraw(self, scaleDraw):
+        self._scaleDraw = scaleDraw
+        
+    def scaleDraw(self):
+        return self._scaleDraw
+
+    def divideScale(self, x1, x2, maxMajSteps, maxMinSteps, stepSize):
+        ''' Reimplements Qwt5.QwtLinearScaleEngine.divideScale
+                
+        :return: (Qwt5.QwtScaleDiv) a scale division whose ticks are aligned with
+                 the natural delta time units '''
+        interval = Qwt5.QwtDoubleInterval(x1, x2).normalized()
+        if interval.width() <= 0:
+            return Qwt5.QwtScaleDiv()
+        d_range = interval.width()
+        if d_range < 2: # 2s
+            return Qwt5.QwtLinearScaleEngine.divideScale(self, x1, x2, maxMajSteps, maxMinSteps, stepSize)
+        elif d_range < 20: # 20 s
+            s = 1
+        elif d_range < 120: # =60s*2 = 2 minutes
+            s = 10
+        elif d_range < 1200: # 60s*20 =20 minutes
+            s = 60
+        elif d_range < 7200: # 3600s*2 = 2 hours
+            s = 600
+        elif d_range < 172800: # 3600s24*2 = 2 days
+            s = 3600
+        else: 
+            s = 86400 #1 day
+        #calculate a step size that respects the base step (s) and also enforces the maxMajSteps
+        stepSize = s * int(numpy.ceil(float(d_range//s)/maxMajSteps))
+        return Qwt5.QwtLinearScaleEngine.divideScale(self, x1, x2, maxMajSteps, maxMinSteps, stepSize)
+    
+    @staticmethod
+    def getDefaultAxisLabelsAlignment(axis, rotation):
+        '''return a "smart" alignment for the axis labels depending on the axis
+        and the label rotation
+
+        :param axis: (Qwt5.QwtPlot.Axis) the axis
+        :param rotation: (float) The rotation (in degrees, clockwise-positive)
+
+        :return: (Qt.Alignment) an alignment
+        '''
+        return _getDefaultAxisLabelsAlignment(axis, rotation)
+        
+    @staticmethod        
+    def enableInAxis(plot, axis, scaleDraw =None, rotation=None):
+        '''convenience method that will enable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change 
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          the current ScaleDraw for the plot will be used if 
+                          possible, and a :class:`TaurusTimeScaleDraw` will be set if not
+        :param rotation: (float or None) The rotation of the labels (in degrees, clockwise-positive)
+        '''
+        if scaleDraw is None:
+            scaleDraw = plot.axisScaleDraw(axis)
+            if not isinstance(scaleDraw, DeltaTimeScaleDraw):
+                scaleDraw = DeltaTimeScaleDraw()
+        plot.setAxisScaleDraw(axis, scaleDraw)
+        plot.setAxisScaleEngine(axis, DeltaTimeScaleEngine(scaleDraw))
+        if rotation is not None:
+            alignment = DeltaTimeScaleEngine.getDefaultAxisLabelsAlignment(axis, rotation)
+            plot.setAxisLabelRotation(axis, rotation)
+            plot.setAxisLabelAlignment(axis, alignment)
+        
+    @staticmethod 
+    def disableInAxis(plot, axis, scaleDraw=None, scaleEngine=None):
+        '''convenience method that will disable this engine in the given
+        axis. Note that it changes the ScaleDraw as well.
+         
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+                          a :class:`FancyScaleDraw` will be set
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+        '''
+        if scaleDraw is None:
+            scaleDraw=FancyScaleDraw()
+        if scaleEngine is None:
+            scaleEngine = Qwt5.QwtLinearScaleEngine()
+        plot.setAxisScaleEngine(axis, scaleEngine)
+        plot.setAxisScaleDraw(axis, scaleDraw) 
+    
+  
+class DeltaTimeScaleDraw(FancyScaleDraw):
+    
+    def __init__(self, *args):
+        FancyScaleDraw.__init__(self, *args)
+    
+    def label(self, val):
+        if val >= 0:
+            s = "+%s"%str(timedelta(seconds=val))
+        else:
+            s = "-%s"%str(timedelta(seconds=-val))
+        return Qwt5.QwtText(s)
+    
+ 
     
 class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
     def __init__(self, positions):
