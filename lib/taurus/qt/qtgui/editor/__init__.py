@@ -23,12 +23,8 @@
 ##
 #############################################################################
 
-"""This package provides a set of taurus wiget utilities like color management, 
-configuration, actions."""
+"""This package contains a collection of taurus text editor widgets"""
 
 __docformat__ = 'restructuredtext'
 
-from .taurusactionfactory import *
-from .taurusaction import *
-from .tauruscolor import *
-from .tauruswidgetfactory import *
+from .tauruseditor import *

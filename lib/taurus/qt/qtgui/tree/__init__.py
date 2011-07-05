@@ -27,5 +27,6 @@
 
 __docformat__ = 'restructuredtext'
 
+from .taurustree import *
 from .taurusdbtree import *
 from .taurusdevicetree import *

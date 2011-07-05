@@ -26,7 +26,8 @@
 """This module provides widgets that display the database in a tree format"""
 
 __all__ = ['getPixmap', 'getThemePixmap', 'getIcon', 'getThemeIcon', 'getStandardIcon',
-           'getElementTypeToolTip', 'getElementTypeIcon', 'getElementTypePixmap', 'getElementTypeSize',
+           'getElementTypeToolTip', 'getElementTypeIconName', 'getElementTypeIcon',
+           'getElementTypePixmap', 'getElementTypeSize',
            'getSWDevHealthToolTip', 'getSWDevHealthIcon', 'getSWDevHealthPixmap',
            'getThemeMembers' ]
 
@@ -146,8 +147,9 @@ def getIcon(key):
     :param key: (str) a string with the pixmap resource key (ex.: ':/status/folder_open.svg')
     
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
-
-    return Qt.QIcon(key)
+    if key.startswith(':'):
+        return Qt.QIcon(key)
+    return getThemeIcon(key)
 
 def getThemePixmap(key, size=None):
     """Returns a PyQt4.QtGui.QPixmap object for the given key and size. Key should be a valid theme
@@ -245,6 +247,23 @@ def getElementTypeSize(elemType):
         return
     return data[__IDX_ELEM_TYPE_SIZE]
 
+def getElementTypeIconName(elemType):
+    """Gets an icon name string for the given :class:`taurus.core.TaurusElementType`.
+    
+    If an icon name cannot be found for the given :class:`taurus.core.TaurusElementType`,
+    None is returned.
+    
+    :param elemType: (TaurusElementType) the taurus element type
+    
+    :return: (str) a string representing the icon name for the given 
+             :class:`taurus.core.TaurusElementType`"""
+    if elemType is None:
+        return
+    data = _ELEM_TYPE_MAP.get(elemType)
+    if data is None:
+        return
+    return data[__IDX_ELEM_TYPE_ICON]
+
 def getElementTypeIcon(elemType, fallback=None):
     """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.TaurusElementType`.
     
@@ -255,14 +274,8 @@ def getElementTypeIcon(elemType, fallback=None):
     :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
     
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.TaurusElementType`"""
-    
-    if elemType is None:
-        return
-    data = _ELEM_TYPE_MAP.get(elemType)
-    if data is None:
-        return
-    themeIconName = data[__IDX_ELEM_TYPE_ICON]
-    
+
+    themeIconName = getElementTypeIconName(elemType)
     icon = getThemeIcon(themeIconName)
     if icon.isNull() and fallback is not None:
         icon = fallback

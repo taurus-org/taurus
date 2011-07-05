@@ -962,10 +962,10 @@ class TaurusBaseWidget(TaurusBaseComponent):
     
     ModelChangedSignal = 'modelChanged(const QString &)'
     
-    def __init__(self, name, parent=None, designMode = False):
+    def __init__(self, name, parent=None, designMode=False):
         self._disconnect_on_hide = False
-        
         self._supportedMimeTypes = None
+        self._autoTooltip = True
         self.call__init__(TaurusBaseComponent, name, parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
     
@@ -1136,7 +1136,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
             self._setText(text)
         
         #update tooltip
-        self.setToolTip(self.getFormatedToolTip())
+        if self._autoTooltip:
+            self.setToolTip(self.getFormatedToolTip())
         
         #TODO: update whatsThis
         
@@ -1393,11 +1394,27 @@ class TaurusBaseWidget(TaurusBaseComponent):
             if result != Qt.QMessageBox.Ok:
                 return
         self.applyPendingOperations(ops)
+
+    def setAutoTooltip(self, yesno):
+        """Determines if the widget should automatically generate a tooltip
+        based on the current widget model.
+        
+        :param yesno: (bool) True to automatically generate tooltip or False otherwise
+        """
+        self._autoTooltip = yesno
+        
+    def getAutoTooltip(self):
+        """Returns if the widget is automatically generating a tooltip based
+        on the current widget model.
+        
+        :return: (bool)  True if automatically generating tooltip or False otherwise
+        """
+        return self._autoTooltip
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """Returns pertinent information in order to be able to build a valid
-        QtDesigner widget plugin
+        QtDesigner widget plugin.
         
         The dictionary returned by this method should contain *at least* the 
         following keys and values:
@@ -1560,12 +1577,13 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         raise RuntimeError("Not allowed to call TaurusBaseWritableWidget.setValue()")
 
     def updateStyle(self):
-        toolTip = self.getFormatedToolTip()
-        if self.hasPendingOperations():
-            v_str = str(self.getValue())
-            model_v_str = getattr(self.getModelValueObj(),'w_value', '-----')
-            toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (v_str, model_v_str)
-        self.setToolTip(toolTip)
+        if self._autoTooltip:
+            toolTip = self.getFormatedToolTip()
+            if self.hasPendingOperations():
+                v_str = str(self.getValue())
+                model_v_str = getattr(self.getModelValueObj(),'w_value', '-----')
+                toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (v_str, model_v_str)
+            self.setToolTip(toolTip)
 
     def _updateValidator(self, evt_value):
         #re-set the validator ranges if applicable
@@ -1586,7 +1604,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             v.setBottom(bottom)
             v.setTop(top)
             self.debug("Validator range set to %f-%f"%(bottom,top))
-            
+    
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()

@@ -34,7 +34,7 @@ import xml.dom.minidom
 
 from PyQt4 import Qt
 import taurus.core.util
-
+import taurus.qt.qtgui.resource
 import taurusaction
 
 class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
@@ -117,4 +117,30 @@ class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
             menu = taurusaction.TaurusMenu(widget)
             menu.buildFromXML(m_node)
         return menu
-            
+    
+    def createAction(self, parent, text, shortcut=None, icon=None, tip=None,
+                     toggled=None, triggered=None, data=None,
+                     context=Qt.Qt.WindowShortcut):
+        """Create a QAction"""
+        action = Qt.QAction(text, parent)
+        if triggered is not None:
+            parent.connect(action, Qt.SIGNAL("triggered()"), triggered)
+        if toggled is not None:
+            parent.connect(action, Qt.SIGNAL("toggled(bool)"), toggled)
+            action.setCheckable(True)
+        if icon is not None:
+            if isinstance(icon, (str, unicode)):
+                icon = taurus.qt.qtgui.resource.getThemeIcon(icon)
+            action.setIcon( icon )
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if tip is not None:
+            action.setToolTip(tip)
+            action.setStatusTip(tip)
+        if data is not None:
+            action.setData(data)
+        #TODO: Hard-code all shortcuts and choose context=Qt.WidgetShortcut
+        # (this will avoid calling shortcuts from another dockwidget
+        #  since the context thing doesn't work quite well with these widgets)
+        action.setShortcutContext(context)
+        return action

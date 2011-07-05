@@ -25,9 +25,12 @@
 
 """This module provides a set of dialog based widgets"""
 
-__all__ = ["TaurusMessageBox"]
+__all__ = ["TaurusMessageBox", "protectTaurusMessageBox", "ProtectTaurusMessageBox"]
 
 __docformat__ = 'restructuredtext'
+
+import sys
+import functools
 
 from PyQt4 import Qt
 
@@ -137,6 +140,35 @@ class TaurusMessageBox(Qt.QDialog):
                               occurred
         :type err_traceback: traceback"""
         self._panel.setError(err_type, err_value, err_traceback)
+
+def protectTaurusMessageBox(fn):
+    @functools.wraps(fn)
+    def wrapped(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except:
+            msgbox = TaurusMessageBox(*sys.exc_info())
+            msgbox.exec_()
+    return wrapped
+
+class ProtectTaurusMessageBox(object):
+    
+    def __init__(self, msg=None):
+        self._msg = msg
+    
+    def __call__(self, fn):
+        @functools.wraps(fn)
+        def wrapped(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except:
+                msgbox = TaurusMessageBox(*sys.exc_info())
+                if self._msg is not None:
+                    msgbox.setText(self._msg)
+                msgbox.exec_()
+        return wrapped
+    
+    
 
 class DemoException(Exception):
     pass

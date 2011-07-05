@@ -38,7 +38,7 @@ import operator
 import threading
 import time
 import uuid
-
+import os.path as osp
 import PyTango
 
 import taurus
@@ -622,6 +622,18 @@ class MacroServerElementContainer:
         return self._name_elems_dict.get(elem_name)
 
 
+class MacroPath(object):
+    
+    def __init__(self, ms):
+        self._ms = weakref.ref(ms)
+        self.refresh()
+
+    def refresh(self):
+        self.macro_path = self._ms().get_property("MacroPath")["MacroPath"]
+        self.base_macro_path = osp.commonprefix(self.macro_path)
+        self.rel_macro_path = [ osp.relpath for p in self.macro_path, self.base_macro_path ]
+
+
 class BaseMacroServer(MacroServerDevice):
     """Class encapsulating Macro Server device functionality."""
     
@@ -761,7 +773,10 @@ class BaseMacroServer(MacroServerDevice):
         json_macros = self.GetMacroInfo(macro_names)
         for json_macro in json_macros:
             self.addMacro(json_macro)
-            
+    
+    def getMacros(self):
+        return self._macro_dict
+    
     def removeMacros(self, macro_names=None):
         if macro_names is None:
             macro_names = self._macro_dict.keys()
@@ -834,7 +849,6 @@ class BaseMacroServer(MacroServerDevice):
             paramList = macroInfoObj.getParamList()
             for paramNode, paramInfo in zip(macroNode.params(), paramList):
                 self.__fillParamNodeAdditionalInfos(paramNode, paramInfo)
-                                
     
     def __fillParamNodeAdditionalInfos(self, paramNode, paramInfo):
         """
@@ -854,7 +868,13 @@ class BaseMacroServer(MacroServerDevice):
         else:
             paramNode.setType(str(type))
             paramNode.setDefValue(str(paramInfo.get("default_value")))
-
+    
+    def getMacroPathObj(self, cache=False):
+        if not hasattr(self, "_macro_path"):
+            self._macro_path = MacroPath(self)
+        elif not cache:
+            self._macro_path.refresh()
+        return self._macro_path
 
 def registerExtensions():
     factory = taurus.Factory()
