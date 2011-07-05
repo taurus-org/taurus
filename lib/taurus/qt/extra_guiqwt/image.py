@@ -196,9 +196,14 @@ def taurusImageMain():
                           MultiLineTool, FreeFormTool, SegmentTool, CircleTool,
                           AnnotatedRectangleTool, AnnotatedEllipseTool,
                           AnnotatedSegmentTool, AnnotatedCircleTool, LabelTool,
-                          AnnotatedPointTool, VCursorTool, HCursorTool,
-                          AnnotatedVCursorTool, AnnotatedHCursorTool,
-                          ObliqueRectangleTool, AnnotatedObliqueRectangleTool)
+                          AnnotatedPointTool, ObliqueRectangleTool, 
+                          AnnotatedObliqueRectangleTool)
+    try: #In newer guiqwt versions, Annotated*CursorTool have been replaced by *CursorTool
+        from guiqwt.tools import AnnotatedVCursorTool, AnnotatedHCursorTool
+        VCursorTool, HCursorTool = AnnotatedVCursorTool, AnnotatedHCursorTool
+    except ImportError:
+        from guiqwt.tools import VCursorTool, HCursorTool 
+        
     from taurus.qt.extra_guiqwt.tools import TaurusImageChooserTool
     from guiqwt.plot import ImageDialog
     from taurus.qt.extra_guiqwt.builder import make
@@ -222,8 +227,8 @@ def taurusImageMain():
                       MultiLineTool, FreeFormTool, PlaceAxesTool,
                       AnnotatedObliqueRectangleTool,
                       AnnotatedEllipseTool, AnnotatedSegmentTool,
-                      AnnotatedPointTool, AnnotatedVCursorTool,
-                      AnnotatedHCursorTool):
+                      AnnotatedPointTool, VCursorTool,
+                      HCursorTool):
         win.add_tool(toolklass)
     
     #add images from given models
