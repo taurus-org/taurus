@@ -77,8 +77,8 @@ class TaurusForm(TaurusWidget):
         self._customWidgetMap = {}
         self._model = []
         self._children = []
-        if formWidget is None: formWidget = TaurusValue
-        self._formWidget = formWidget
+        self._defaultFormWidget = TaurusValue
+        self.setFormWidget(formWidget)
         self._withButtons = withButtons
         
         self.setLayout(Qt.QVBoxLayout())
@@ -209,14 +209,37 @@ class TaurusForm(TaurusWidget):
         self.destroyChildren()
         self._model = Qt.QStringList()
         
-    def getFormWidget(self):
-        return self._formWidget
+    def getFormWidget(self, model=None):
+        if model is None:
+            return self._defaultFormWidget
+        #If a model is given, check if is in the custom widget map
+        try: 
+            obj=taurus.Attribute(model) #if it is not an attribute, it will get an exception here
+            return self._defaultFormWidget 
+        except:
+            obj=taurus.Device(model)
+            try:
+                key = obj.getHWObj().info().dev_class
+            except:
+                return self._defaultFormWidget
+            return self._formWidgetsMap.get(key, self._defaultFormWidget)
+            
         
     def setFormWidget(self, formWidget):
-        self._formWidget = formWidget
+        if formWidget is None: 
+            self._defaultFormWidget = TaurusValue
+            self._formWidgetsMap = {}
+        elif isinstance(formWidget,dict):
+            self._defaultFormWidget = TaurusValue
+            self._formWidgetsMap = formWidget
+        elif isinstance(formWidget,Qt.QWidget):
+            self._defaultFormWidget = formWidget
+            self._formWidgetsMap = {}
+        else:
+            raise TypeError('formWidget must be one of None, dict or QWidget. %s passed'%repr(type(formWidget)))
         
     def resetFormWidget(self):
-        self._formWidget = TaurusValue
+        self.setFormWidget(self, None)
         
     def isWithButtons(self):
         return self._withButtons
@@ -280,8 +303,8 @@ class TaurusForm(TaurusWidget):
         
         for i,model in enumerate(self.getModel()): 
             model = str(model)
-            if parent_name: model = "%s/%s" % (parent_name, model)
-            widget = self.getFormWidget()(frame)
+            if parent_name: model = "%s/%s" % (parent_name, model) #@todo: Change this (it assumes tango model naming!)
+            widget = self.getFormWidget(model=model)(frame)
             widget.setMinimumHeight(20)
             try: widget.setCustomWidgetMap(self.getCustomWidgetMap())
             except: pass
@@ -742,6 +765,26 @@ def test3():
 #    dialog.getSplitter().setSizes([10,220])
 
     sys.exit(app.exec_()) 
+    
+def test4():
+    '''tests customwidgetma in taurusforms'''
+    import sys
+    from taurus.qt.qtgui.display import TaurusLabel
+    app = Qt.QApplication(sys.argv)
+    
+    class DummyCW(TaurusValue):
+        def setModel(self,model):
+            print "!!!!! IN DUMMYCW.SETMODEL", model
+            TaurusValue.setModel(self, model+'/double_scalar')
+    
+    models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum', 'sys/tg_test/1/state','sys/tg_test/1/short_scalar_ro']
+    dialog = TaurusForm()
+    dialog.setCustomWidgetMap({'DataBase':TaurusLabel}) #this is still valid for "regular" custom widgets
+    dialog.setFormWidget({'TangoTest':DummyCW}) #this is for "TaurusValue-like" custom widgets
+    dialog.setModel(models)
+    dialog.show()
+    sys.exit(app.exec_())
+            
 
 def taurusFormMain():
     '''A launcher for TaurusForm.'''
@@ -774,7 +817,8 @@ def taurusFormMain():
                                 'CTExpChannel':PoolChannel,
                                 'ZeroDExpChannel':PoolChannel,
                                 'OneDExpChannel':PoolChannel,
-                                'TwoDExpChannel':PoolChannel})
+                                'TwoDExpChannel':PoolChannel,
+                                'TangoTest':DummyCW})
     except:
         pass  
     
@@ -793,7 +837,8 @@ def main():
     #test1()
     #test2()
     #test3()
-    taurusFormMain()
+    test4()
+#    taurusFormMain()
     
 if __name__ == "__main__":
     main() 
