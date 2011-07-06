@@ -66,7 +66,8 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
         self.set_data(evt_value.value)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
-        if p is not None: 
+        if p is not None:
+            p.update_colormap_axis(self)
             p.replot()
         
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
@@ -150,7 +151,7 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             except TypeError: #this will happen if self.__timeOffset has not been initialized
                 self.__timeOffset = evt_value.time.totime()
                 self.__xBuffer.append(0)
-                plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat(' '))
+                plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat())
                 plot.set_axis_unit('bottom', '')
         else:  
             try:
@@ -186,7 +187,9 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         
         if plot is not None: 
+            plot.update_colormap_axis(self)
             plot.replot()
+            
             
 
 
