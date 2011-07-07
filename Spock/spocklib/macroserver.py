@@ -18,9 +18,9 @@ import genutils
 import exception
 
 if genutils.get_gui_mode() == 'qt4':
-    import taurus.qt.qtcore.tango.macroserver
-    BaseDoor = taurus.qt.qtcore.tango.macroserver.QDoor
-    BaseMacroServer = taurus.qt.qtcore.tango.macroserver.QMacroServer
+    import taurus.qt.qtcore.tango.sardana.macroserver
+    BaseDoor = taurus.qt.qtcore.tango.sardana.macroserver.QDoor
+    BaseMacroServer = taurus.qt.qtcore.tango.sardana.macroserver.QMacroServer
 else:
     from taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
 
