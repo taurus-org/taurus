@@ -24,25 +24,7 @@
 #############################################################################
 
 """
-MacroServer extension for taurus Qt
+Sardana extension for taurus Qt
 """
 
 __docformat__ = 'restructuredtext'
-
-from .macroserver import *
-
-def registerExtensions():
-    """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
-    import taurus
-    factory = taurus.Factory()
-    factory.registerDeviceClass('MacroServer', QMacroServer)
-    factory.registerDeviceClass('Door', QDoor)
-    
-    # ugly access to qtgui level: in future find a better way to register error
-    # handlers, maybe in TangoFactory & TaurusManager
-    import taurus.core.tango.macroserver
-    import taurus.qt.qtgui.panel
-    MacroRunException = taurus.core.tango.macroserver.MacroRunException
-    TaurusMessagePanel = taurus.qt.qtgui.panel.TaurusMessagePanel
-    
-    TaurusMessagePanel.registerErrorHandler(MacroRunException, MacroServerMessageErrorHandler)

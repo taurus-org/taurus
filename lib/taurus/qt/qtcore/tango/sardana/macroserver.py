@@ -25,10 +25,10 @@
 
 """MacroServer extension for taurus Qt"""
 
-__all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler"]
+__all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler", "registerExtensions"]
 
 import taurus.core
-from taurus.core.tango.macroserver import BaseMacroServer, BaseDoor
+from taurus.core.tango.sardana.macroserver import BaseMacroServer, BaseDoor
 
 from PyQt4 import Qt
 
@@ -131,4 +131,19 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
             html += pygments.highlight(exc_info, pygments.lexers.PythonTracebackLexer(), formatter)
         html += "</body></html>"
         msgbox.setOriginHtml(html)
+
+def registerExtensions():
+    """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
+    import taurus
+    factory = taurus.Factory()
+    factory.registerDeviceClass('MacroServer', QMacroServer)
+    factory.registerDeviceClass('Door', QDoor)
     
+    # ugly access to qtgui level: in future find a better way to register error
+    # handlers, maybe in TangoFactory & TaurusManager
+    import taurus.core.tango.sardana.macro
+    import taurus.qt.qtgui.panel
+    MacroRunException = taurus.core.tango.sardana.macro.MacroRunException
+    TaurusMessagePanel = taurus.qt.qtgui.panel.TaurusMessagePanel
+    
+    TaurusMessagePanel.registerErrorHandler(MacroRunException, MacroServerMessageErrorHandler)

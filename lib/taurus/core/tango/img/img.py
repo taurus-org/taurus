@@ -26,7 +26,7 @@
 """The macroserver submodule. It contains specific part of macroserver"""
 
 __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
-           'CCDPVCAM', 'ImgBeamAnalyzer']
+           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon']
 
 __docformat__ = 'restructuredtext'
 

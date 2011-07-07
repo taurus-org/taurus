@@ -42,7 +42,7 @@ from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, StandardMacroParametersEditor
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.delegate import ParamEditorDelegate
-from taurus.core.tango.macroserver import macro, MacroRunException
+from taurus.core.tango.sardana.macro import MacroRunException
 from model import MacroSequenceTreeModel, MacroSequenceProxyModel, MacroParametersProxyModel
 from delegate import SequenceEditorDelegate
 from taurus.qt.qtgui.extra_macroexecutor import globals

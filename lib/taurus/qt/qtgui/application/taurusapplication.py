@@ -34,9 +34,12 @@ import optparse
 
 from PyQt4 import Qt
 
+import taurus.core.util.log
 import taurus.core.util.argparse
 
-class TaurusApplication(Qt.QApplication):
+Logger = taurus.core.util.log.Logger
+
+class TaurusApplication(Qt.QApplication, Logger):
     """A QApplication that additionally parses the command line looking
     for taurus options. This is done using the :mod:`taurus.core.util.argparse`.
     To create a TaurusApplication object you should use the same parameters
@@ -114,6 +117,8 @@ class TaurusApplication(Qt.QApplication):
         except TypeError:
             Qt.QApplication.__init__(self, *args)
 
+        Logger.__init__(self)
+
         if app_name is not None:
             self.setApplicationName(app_name)
         if app_version is not None:
@@ -151,15 +156,15 @@ class TaurusApplication(Qt.QApplication):
     def __registerExtensions(self):
         """Registers taurus Qt extensions"""
         try:
-            import taurus.qt.qtcore.tango.macroserver
-            taurus.qt.qtcore.tango.macroserver.registerExtensions()
+            import taurus.qt.qtcore.tango.sardana.macroserver
+            taurus.qt.qtcore.tango.sardana.macroserver.registerExtensions()
         except:
-            pass
+            self.info("Failed to load sardana extensions", exc_info=1)
         try:
             import taurus.core.tango.img
             taurus.core.tango.img.registerExtensions()
         except:
-            pass
+            self.info("Failed to load image extensions", exc_info=1)
         
     def get_command_line_parser(self):
         """Returns the :class:`optparse.OptionParser` used to parse the command

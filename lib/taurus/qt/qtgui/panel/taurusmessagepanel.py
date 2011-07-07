@@ -49,7 +49,6 @@ import PyTango
 from PyQt4 import Qt
 
 import taurus.core.util
-import taurus.core.tango.macroserver
 import taurus.qt.qtgui.resource
 import ui.ui_TaurusMessagePanel
 

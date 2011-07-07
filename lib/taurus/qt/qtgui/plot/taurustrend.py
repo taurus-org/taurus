@@ -48,7 +48,7 @@ def getArchivedTrendValues(*args, **kwargs):
     except:
         return []
 
-from taurus.qt.qtcore.tango.macroserver import QDoor
+from taurus.qt.qtcore.tango.sardana.macroserver import QDoor
 
 def stripShape(s):
     '''
