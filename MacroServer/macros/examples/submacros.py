@@ -1,7 +1,7 @@
 """
 A macro package to show examples on how to run a macro from inside another macro
 """
-from macro import Macro, Type
+from macro import Macro, Type, ParamRepeat
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # First example:
@@ -9,6 +9,22 @@ from macro import Macro, Type
 # The 'subsubm' macro itself calls a short ascan macro
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~--~-~-
 
+class call_wa(Macro):
+    
+    def run(self):
+        self.macros.wa()
+        
+class call_wm(Macro):
+
+    param_def = [
+        ['motor_list',
+         ParamRepeat(['motor', Type.Motor, None, 'Motor to move']),
+         None, 'List of motor to show'],
+    ]
+
+    def run(self, *m):
+        self.macros.wm(*m)
+        
 class subsubm(Macro):
     """this macro just calls the 'subm' macro
     This macro is part of the examples package. It was written for demonstration purposes"""
@@ -54,7 +70,7 @@ class runsubs(Macro):
     2 - m.ascan(motor, 0, 10, 4, 0.2)
     3 - self.execMacro('ascan', motor.getName(), '0', '10', '4', '0.2')
     4 - self.execMacro(['ascan', motor, 0, 10, 4, 0.2])
-    5 - params 'ascan', motor, 0, 10, 4, 0.2
+    5 - params = 'ascan', motor, 0, 10, 4, 0.2
         self.execMacro(params)
     6 - self.execMacro("ascan %s 0 10 4 0.2" % motor.getName())
     7 - macro = self.createMacro("ascan %s 0 10 4 0.2" % motor.getName())

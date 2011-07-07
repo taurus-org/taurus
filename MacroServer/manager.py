@@ -5,9 +5,9 @@ import operator, types
 
 from taurus.core import ManagerState
 import taurus.core.util
+from taurus.core.tango.sardana import pool
+from taurus.core.tango.sardana import motion
 
-import pool
-import motion
 from modulemanager import ModuleManager
 from macromanager import MacroManager
 from typemanager import TypeManager
@@ -56,10 +56,7 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         taurus_manager = taurus.core.TaurusManager()
         taurus_manager.reInit()
         #taurus_manager.setSerializationMode(taurus.core.TaurusSerializationMode.Serial)
-        factory = taurus_manager.getFactory("tango")()
-        factory.registerDeviceClass("Pool", pool.Pool)
-        for klass_name, klass in zip(pool.HardwareObjTypes, pool.HardwareObjTypeClasses):
-            factory.registerDeviceClass(klass_name, klass)
+        pool.registerExtensions()
         
         if not pools is None:
             self.setPools(pools)

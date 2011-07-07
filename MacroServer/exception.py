@@ -1,6 +1,5 @@
 
-class AbortException(Exception):
-    pass
+from taurus.core.tango.sardana.pool import AbortException
 
 class MacroServerException(Exception):
     

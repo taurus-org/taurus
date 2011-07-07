@@ -229,8 +229,8 @@ class MacroServer(PyTango.Device_4Impl, Logger):
             try:
                 import rfoo.utils.rconsole
                 rfoo.utils.rconsole.spawn_server(port=self.RConsolePort)
-            except Exception,e:
-                print e
+            except:
+                self.warning(exc_info=1)
 
     def _calculate_environment_name(self, name):
         u = PyTango.Util.instance()
@@ -571,6 +571,7 @@ def main(argv):
         u.server_init()
     except PyTango.DevFailed, e1:
         l.critical("Critical error during server initialization: %s" % e1[0].desc)
+        l.error("Error detail",exc_info=1)
         l.trace(str(e1))
         sys.exit(-1)
     except Exception, e:

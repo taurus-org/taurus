@@ -10,8 +10,7 @@ import functools
 
 import PyTango
 import taurus.core.util
-
-import pool
+from taurus.core.tango.sardana.pool import PoolElement
 
 from parameter import Type, ParamType, ParamRepeat
 from exception import MacroServerException, AbortException, MacroWrongParameterType
@@ -1239,7 +1238,7 @@ class Macro(taurus.core.util.Logger):
             #if not operator.isSequenceType(obj) or type(obj) in types.StringTypes:
                 obj = (obj,)
             for sub_obj in obj:
-                if isinstance(sub_obj, pool.PoolElement):
+                if isinstance(sub_obj, PoolElement):
                     self.addObj(sub_obj)
 
     def exec_(self):
