@@ -22,7 +22,7 @@ if genutils.get_gui_mode() == 'qt4':
     BaseDoor = taurus.qt.qtcore.tango.macroserver.QDoor
     BaseMacroServer = taurus.qt.qtcore.tango.macroserver.QMacroServer
 else:
-    from taurus.core.tango.macroserver import BaseDoor, BaseMacroServer
+    from taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
 
 class Plotter:
     
@@ -360,8 +360,8 @@ class SpockMacroServer(BaseMacroServer):
         self._local_magic = {}
         self.call__init__(BaseMacroServer, name, **kw)
         
-    def addMacro(self, json_macro):
-        macro_info = BaseMacroServer.addMacro(self, json_macro)
+    def _addMacro(self, json_macro):
+        macro_info = BaseMacroServer._addMacro(self, json_macro)
         macro_name = str(macro_info.name)
         
         def macro_fn(self, parameter_s='', name=macro_name):
@@ -381,15 +381,15 @@ class SpockMacroServer(BaseMacroServer):
         
         return macro_info
     
-    def removeMacro(self, macro_name):
-        BaseMacroServer.removeMacro(self, macro_name)
+    def _removeMacro(self, macro_name):
+        BaseMacroServer._removeMacro(self, macro_name)
         #genutils.unexpose_magic(macro_name)
         del self._local_magic[macro_name]
 
     _SKIP_ELEMENTS = ('controller', 'controllerclass', 'motorgroup', 'instrument')
 
-    def addElement(self, family, elem_str):
-        elem = BaseMacroServer.addElement(self, family, elem_str)
+    def _addElement(self, family, elem_str):
+        elem = BaseMacroServer._addElement(self, family, elem_str)
         elem_name = elem.getName()
         family_lower = family.lower()
         if family_lower in self._SKIP_ELEMENTS: return
