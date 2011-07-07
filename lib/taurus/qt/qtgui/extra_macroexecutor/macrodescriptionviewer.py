@@ -81,7 +81,7 @@ class TaurusMacroDescriptionViewer(Qt.QTextEdit, TaurusBaseWidget):
                                          TaurusBaseWidget.resetUseParentModel)
     
 def test():
-    from taurus.core.tango.macroserver import registerExtensions
+    from taurus.core.tango.sardana.macroserver import registerExtensions
     import sys    
     registerExtensions()
     app = Qt.QApplication(sys.argv)

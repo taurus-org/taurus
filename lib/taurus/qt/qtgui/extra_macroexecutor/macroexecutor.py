@@ -40,7 +40,7 @@ from taurus.qt.qtgui.dialog import TaurusMessageBox
 from favouriteseditor import FavouritesMacrosEditor
 from common import MacroComboBox, MacroExecutionWindow, standardPlotablesFilter
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, ParamEditorModel, StandardMacroParametersEditor
-from taurus.core.tango.macroserver import macro, MacroRunException
+from taurus.core.tango.sardana.macro import MacroRunException
 
 
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon

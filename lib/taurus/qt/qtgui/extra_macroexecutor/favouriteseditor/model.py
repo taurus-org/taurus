@@ -31,7 +31,7 @@ from PyQt4 import Qt
 
 from taurus.core.util import etree
 
-from taurus.core.tango.macroserver import macro
+from taurus.core.tango.sardana import macro
         
 class MacrosListModel(Qt.QAbstractListModel):
         

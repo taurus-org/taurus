@@ -32,7 +32,7 @@ from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.parameditors impo
     DoubleSpinBoxParam, LineEditParam, FileDialogParam
 
 from taurus.qt.qtgui.extra_macroexecutor import globals
-from taurus.core.tango.macroserver import macro  
+from taurus.core.tango.sardana import macro  
 
 class SequenceEditorDelegate(Qt.QItemDelegate):
     

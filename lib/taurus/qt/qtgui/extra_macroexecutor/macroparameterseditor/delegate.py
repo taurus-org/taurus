@@ -32,7 +32,7 @@ from PyQt4 import Qt
 from parameditors import MSAttrListComboBoxParam, SpinBoxParam, \
     DoubleSpinBoxParam, LineEditParam, FileDialogParam
 from taurus.qt.qtgui.extra_macroexecutor import globals
-from taurus.core.tango.macroserver import macro
+from taurus.core.tango.sardana import macro
 
 class ParamEditorDelegate(Qt.QStyledItemDelegate):
         
