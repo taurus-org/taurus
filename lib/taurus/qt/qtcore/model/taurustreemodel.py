@@ -25,13 +25,15 @@
 
 """This module provides base taurus tree item and a base tree model"""
 
-__all__ = ["TaurusTreeBaseItem", "TaurusBaseModel"]
+__all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
 from PyQt4 import Qt
 
-class TaurusTreeBaseItem(object):
+from taurus.core.util import Logger
+
+class TaurusBaseTreeItem(object):
     """A generic node"""
     
     DisplayFunc = str
@@ -155,8 +157,10 @@ class TaurusTreeBaseItem(object):
         :return: (taurus.core.TaurusElementType) the role in form of element type"""
         return ElemType.Unknown
 
+    def __str__(self):
+        return self.display()
 
-class TaurusBaseModel(Qt.QAbstractItemModel):
+class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     """The base class for all Taurus Qt models."""
     
     ColumnNames = ()
@@ -166,7 +170,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel):
     
     def __init__(self, parent=None, data=None):
         Qt.QAbstractItemModel.__init__(self, parent)
-
+        Logger.__init__(self)
         # if qt < 4.6, beginResetModel and endResetModel don't exist. In this
         # case we set beginResetModel to be an empty function and endResetModel
         # to be reset.
@@ -178,26 +182,34 @@ class TaurusBaseModel(Qt.QAbstractItemModel):
         self._filters = []
         self._selectables = [ self.ColumnRoles[0][-1] ]
         self.setDataSource(data)
-
+    
     def __getattr__(self, name):
         return getattr(self.dataSource(), name)
-
+    
     def createNewRootItem(self):
         return TaurusTreeBaseItem(self, self.ColumnNames)
-
+    
     def refresh(self, refresh_source=False):
         self.beginResetModel()
         self._rootItem = self.createNewRootItem()
         self.setupModelData(self.dataSource())
         self.endResetModel()
-
+    
+    def setupModelData(self, data):
+        raise NotImplementedError("setupModelData must be implemented "
+                                  "in %s" % self.__class__.__name__)
+    
+    def pyData(self, index, role):
+        raise NotImplementedError("pyData must be implemented "
+                                  "in %s" % self.__class__.__name__)
+    
     def setDataSource(self, data_src):
         self._data_src = data_src
         self.refresh()
-
+    
     def dataSource(self):
         return self._data_src
-
+    
     def setSelectables(self, seq_elem_types):
         self._selectables = seq_elem_types
     
@@ -213,7 +225,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel):
     def columnCount(self, parent = Qt.QModelIndex()):
         return len(self.ColumnRoles)
     
-    def data(self, index, role):
+    def data(self, index, role=Qt.Qt.DisplayRole):
         ret = self.pyData(index, role)
         if ret is None:
             ret = Qt.QVariant()
@@ -299,3 +311,25 @@ class TaurusBaseModel(Qt.QAbstractItemModel):
         if parentItem is None:
             return False
         return parentItem.hasChildren()
+
+
+class TaurusBaseProxyModel(Qt.QSortFilterProxyModel):
+    """A taurus database base Qt filter & sort model"""
+     
+    def __init__(self, parent=None):
+        Qt.QSortFilterProxyModel.__init__(self, parent)
+        
+        # filter configuration
+        self.setFilterCaseSensitivity(Qt.Qt.CaseInsensitive)
+        self.setFilterKeyColumn(0)
+        self.setFilterRole(Qt.Qt.DisplayRole)
+        
+        # sort configuration
+        self.setSortCaseSensitivity(Qt.Qt.CaseInsensitive)
+        self.setSortRole(Qt.Qt.DisplayRole)
+        
+        # general configuration
+        self.sort(0, Qt.Qt.AscendingOrder)
+        
+    def __getattr__(self, name):
+        return getattr(self.sourceModel(), name)

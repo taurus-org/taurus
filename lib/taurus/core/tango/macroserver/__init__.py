@@ -26,12 +26,5 @@
 """The macroserver package. It contains specific part of tango devices dedicated
 macroserver"""
 
-from macroserver import *
-from macro import *
-
-def registerExtensions():
-    """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
-    import taurus
-    factory = taurus.Factory('tango')
-    factory.registerDeviceClass('MacroServer', BaseMacroServer)
-    factory.registerDeviceClass('Door', BaseDoor)
+from taurus.core.tango.sardana.macroserver import *
+from taurus.core.tango.sardana.macro import *

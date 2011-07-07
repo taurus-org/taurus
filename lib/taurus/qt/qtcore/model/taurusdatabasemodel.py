@@ -40,7 +40,7 @@ from PyQt4 import Qt
 import taurus.core
 import taurus.qt.qtcore.mimetypes
 
-from taurustreemodel import TaurusTreeBaseItem, TaurusBaseModel
+from taurustreemodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
 ElemType = taurus.core.TaurusElementType
 DevHealth = taurus.core.TaurusSWDevHealth
@@ -71,7 +71,7 @@ def getSWDevHealthToolTip(*args, **kwargs):
     return taurus.qt.qtgui.resource.getSWDevHealthToolTip(*args, **kwargs)
 
 
-class TaurusTreeDbBaseItem(TaurusTreeBaseItem):
+class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
     DisplayFunc = taurus.core.TaurusInfo.name
 
 
@@ -544,27 +544,8 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
             rootItem.appendChild(klassItem)
 
 
-class TaurusDbBaseProxyModel(Qt.QSortFilterProxyModel):
-    """A taurus database base Qt filter & sort model"""
-     
-    def __init__(self, parent=None):
-        super(TaurusDbBaseProxyModel, self).__init__(parent)
-        
-        # filter configuration
-        self.setFilterCaseSensitivity(Qt.Qt.CaseInsensitive)
-        self.setFilterKeyColumn(0)
-        self.setFilterRole(Qt.Qt.DisplayRole)
-        
-        # sort configuration
-        self.setSortCaseSensitivity(Qt.Qt.CaseInsensitive)
-        self.setSortRole(Qt.Qt.DisplayRole)
-        
-        # general configuration
-        self.setDynamicSortFilter(True)
-        self.sort(0, Qt.Qt.AscendingOrder)
-        
-    def __getattr__(self, name):
-        return getattr(self.sourceModel(), name)
+class TaurusDbBaseProxyModel(TaurusBaseProxyModel):
+    pass
 
 
 class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):

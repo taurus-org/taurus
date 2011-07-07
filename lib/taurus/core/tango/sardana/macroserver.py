@@ -649,46 +649,30 @@ class BaseMacroServer(MacroServerDevice):
         self._obj_dict = taurus.core.util.CaselessDict()
         self._elems = MacroServerElementContainer()
         
+        self._type_dict_lock = threading.Lock()
         self._type_dict = {}
         
+        self._macro_dict_lock = threading.Lock()
         self._macro_dict = {}
         
         self.call__init__(taurus.core.tango.TangoDevice, name, **kw)
 
         macro_list = self.getAttribute("MacroList")
-        #self._attr_dict["MacroList"] = macro_list
-        macro_list.addListener(self.macrosChanged)
+        macro_list.addListener(self._macrosChanged)
 
         type_list = self.getAttribute("TypeList")
-        #self._attr_dict["TypeList"] = type_list
-        type_list.addListener(self.typesChanged)
+        type_list.addListener(self._typesChanged)
 
-    def typesChanged(self, s, t, v):
+    def _typesChanged(self, s, t, v):
         if t not in CHANGE_EVTS: return
-        self.removeTypes()
-        self.addTypes(v.value)
-            
-    def addTypes(self, type_names):
-        dev = self.getHWObj()
-        dev_attr_names = map(str.lower, dev.get_attribute_list())
+        self._type_dict_lock.acquire()
+        try:
+            self._removeTypes()
+            self._addTypes(v.value)
+        finally:
+            self._type_dict_lock.release()
 
-        for name in type_names:
-            if self._type_dict.has_key(name):
-                continue
-            
-            self._type_dict[name] = []
-            
-            name = name[:-1]
-            attr_name = '%sList' % name
-            
-            if attr_name.lower() in dev_attr_names:
-                attr = self._createAttribute(attr_name)
-                self._attr_dict[attr_name] = attr
-                attr_list = AttrList(self, name, None, attr)
-                self._obj_dict[name] = attr_list
-                attr_list.subscribeEvent(self.elementsChanged, name)
-
-    def addTypes(self, type_names):
+    def _addTypes(self, type_names):
         dev = self.getHWObj()
         dev_attr_names = map(str.lower, dev.get_attribute_list())
 
@@ -704,9 +688,9 @@ class BaseMacroServer(MacroServerDevice):
             if attr_name.lower() in dev_attr_names:
                 attr = self.getAttribute(attr_name)
                 self._attr_dict[attr_name] = attr
-                attr.addListener(self.elementsChanged)
+                attr.addListener(self._elementsChanged)
 
-    def removeTypes(self, type_names=None):
+    def _removeTypes(self, type_names=None):
         type_names = type_names or self._type_dict.keys()
         for type_name in type_names:
             
@@ -722,80 +706,97 @@ class BaseMacroServer(MacroServerDevice):
             
             del_obj = self._attr_dict.pop(name, None)
             if not del_obj is None:
-                del_obj.removeListener(self.elementsChanged)
+                del_obj.removeListener(self._elementsChanged)
 
-    def elementsChanged(self, s, t, v):
+    def _elementsChanged(self, s, t, v):
         """Executed when the list of elements of a certain type as changed"""
         if t not in CHANGE_EVTS: return
         family = v.name[:-4] # Take the 'List' suffix out
         self._elems.removeElementsOfType(family)
         if v.value:
             for elem_str in v.value:
-                self.addElement(family, elem_str)
+                self._addElement(family, elem_str)
 
-    def addElement(self, family, elem_str):
+    def _addElement(self, family, elem_str):
         elem = MacroServerElement(family, elem_str)
         self._elems.addElement(elem)
         return elem
-        
-    def macrosChanged(self, s, t, v):
+    
+    def _macrosChanged(self, s, t, v):
         if t == taurus.core.TaurusEventType.Config:
             return
-        
         try:
             old_macro_names = set(self.getMacroStrList())
         except AttributeError:
             old_macro_names = set()
 
-        # remove information about all macros. some macros may just have
-        # changed their description, for example, so everything needs to be rebuild
-        self.removeMacros()
-        
-        if t ==  taurus.core.TaurusEventType.Error:
-            return
-        
-        all_macros = v.value
-        self.addMacros(all_macros)
+        self._macro_dict_lock.acquire()
+        try:
+            # remove information about all macros. some macros may just have
+            # changed their description, for example, so everything needs to be rebuild
+            self._removeMacros()
+            
+            if t ==  taurus.core.TaurusEventType.Error:
+                return
+
+            all_macros = v.value
+            self._addMacros(all_macros)
+        finally:
+            self._macro_dict_lock.release()
 
         all_macro_names = set(all_macros)
         deleted_macro_names = old_macro_names.difference(all_macro_names)
         new_macro_names = all_macro_names.difference(old_macro_names)
 
-        deleted_macro_nb = len(deleted_macro_names)
-        new_macro_nb = len(new_macro_names)
-
+        deleted_macro_nb, new_macro_nb = len(deleted_macro_names), len(new_macro_names)
         if deleted_macro_nb != 0:
-            self.debug('%d macro(s) deleted' % deleted_macro_nb)
+            self.debug('%d macro(s) deleted', deleted_macro_nb)
         if new_macro_nb != 0:
-            self.debug('%d new macro(s) available' % new_macro_nb)
+            self.debug('%d new macro(s) available', new_macro_nb)
+
+        return deleted_macro_names, new_macro_names
     
-    def addMacros(self, macro_names):
+    def _addMacros(self, macro_names):
         json_macros = self.GetMacroInfo(macro_names)
         for json_macro in json_macros:
-            self.addMacro(json_macro)
-    
-    def getMacros(self):
-        return self._macro_dict
-    
-    def removeMacros(self, macro_names=None):
+            self._addMacro(json_macro)
+
+    def _removeMacros(self, macro_names=None):
         if macro_names is None:
             macro_names = self._macro_dict.keys()
         
         for macro_name in macro_names:
-            self.removeMacro(macro_name)
+            self._removeMacro(macro_name)
 
-    def addMacro(self, json_macro):
+    def _addMacro(self, json_macro):
         macro_info = macro.MacroInfo(from_json_str=json_macro)
         self._macro_dict[macro_info.name] = macro_info
         return macro_info
         
-    def removeMacro(self, macro_name):
+    def _removeMacro(self, macro_name):
         if self._macro_dict.has_key(macro_name):
             del self._macro_dict[macro_name]
     
-    def getMacroInfoObj(self, macro_name):
-        return self._macro_dict.get(macro_name)
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Macro API
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
+    def getMacros(self):
+        self._macro_dict_lock.acquire()
+        ret = None
+        try:
+            return dict(self._macro_dict)
+        finally:
+            self._macro_dict_lock.release()
+
+    def getMacroInfoObj(self, macro_name):
+        self._macro_dict_lock.acquire()
+        ret = None
+        try:
+            return self._macro_dict.get(macro_name)
+        finally:
+            self._macro_dict_lock.release()
+
     def getMacroStrList(self):
         return self._macro_dict.keys()
     
@@ -807,7 +808,7 @@ class BaseMacroServer(MacroServerDevice):
         This method retrieves information about macro from MacroServer
         and creates MacroNode object, filled with all information about parameters.
         
-        :param macro_name: (str) macro name 
+        :param macro_name: (str) macro name
         
         :return: (MacroNode)
         
@@ -815,7 +816,7 @@ class BaseMacroServer(MacroServerDevice):
         """
         
         macroNode = macro.MacroNode(name=macro_name)
-        macroInfoObj = self._macro_dict.get(macro_name)
+        macroInfoObj = self.getMacroInfoObj(macro_name)
         if macroInfoObj is None: return
         allowedHookPlaces = []
         for hook in macroInfoObj.hints.get('allowsHooks', []):
@@ -828,7 +829,7 @@ class BaseMacroServer(MacroServerDevice):
             macroNode.addParam(param)
         return macroNode
     
-    def fillMacroNodeAdditionalInfos(self, macroNode):        
+    def fillMacroNodeAdditionalInfos(self, macroNode):
         """
         This method filles macroNode information which couldn't be stored 
         in XML file.
@@ -837,7 +838,7 @@ class BaseMacroServer(MacroServerDevice):
         
         See Also: getMacroNodeObj
         """
-        macroInfoObj = self._macro_dict.get(macroNode.name())
+        macroInfoObj = self.getMacroInfoObj(macroNode.name())
         if macroInfoObj is None: return
         allowedHookPlaces = []
         for hook in macroInfoObj.hints.get("allowsHooks", []):
@@ -859,7 +860,7 @@ class BaseMacroServer(MacroServerDevice):
         min = paramInfo.get("min")
         paramNode.setMin(min)
         max = paramInfo.get("max")
-        paramNode.setMax(max)    
+        paramNode.setMax(max)
         if isinstance(type,list):
             paramNode.setParamsInfo(type)
             for repeatNode in paramNode.children():
@@ -876,8 +877,10 @@ class BaseMacroServer(MacroServerDevice):
             self._macro_path.refresh()
         return self._macro_path
 
+
 def registerExtensions():
-    factory = taurus.Factory()
+    """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
+    import taurus
+    factory = taurus.Factory('tango')
     factory.registerDeviceClass('MacroServer', BaseMacroServer)
     factory.registerDeviceClass('Door', BaseDoor)
-

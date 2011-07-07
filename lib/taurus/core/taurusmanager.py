@@ -57,9 +57,8 @@ class TaurusManager(util.Singleton, util.Logger):
     def init(self, *args, **kwargs):
         """Singleton instance initialization. 
            For internal usage only. Do **NOT** call this method directly"""
-        name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(util.Logger, name)
+        self.call__init__(util.Logger)
         self.reInit()
         atexit.register(self.cleanUp)
 

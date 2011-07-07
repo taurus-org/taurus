@@ -278,6 +278,8 @@ class MacroInfo(object):
         else:
             return None
 
+    def __str__(self):
+        return self.name
 
 class Macro(object):
 

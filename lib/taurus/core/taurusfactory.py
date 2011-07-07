@@ -47,7 +47,7 @@ import taurusdevice
 import taurusattribute
 import taurusconfiguration
 
-class TaurusFactory:
+class TaurusFactory(object):
     """The base class for valid Factories in Taurus."""
     
     schemes = ()

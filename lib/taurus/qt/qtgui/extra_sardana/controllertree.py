@@ -25,7 +25,7 @@
 
 """This module contains a taurus text editor widget."""
 
-__all__ = ["MacroTreeWidget", "MacroSelectionDialog"]
+__all__ = ["ControllerClassTreeWidget", "ControllerClassSelectionDialog"]
 
 __docformat__ = 'restructuredtext'
 
@@ -37,18 +37,17 @@ from PyQt4 import Qt
 import taurus.core
 
 from taurus.core.util import Enumeration
-from taurus.core.tango.macroserver import MacroInfo
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 
-MacroView = Enumeration("MacroView", ("MacroModule", "Macro", "Unknown"))
+PoolControllerView = Enumeration("PoolControllerView", ("ControllerModule", "ControllerClass", "Unknown"))
 
 def getElementTypeIcon(t):
-    if t == MacroView.MacroModule:
+    if t == PoolControllerView.ControllerModule:
         return getIcon(":/python-file.png")
-    elif t == MacroView.Macro:
+    elif t == PoolControllerView.ControllerClass:
         return getIcon(":/python.png")
     return getIcon(":/tango.png")
     
@@ -57,14 +56,13 @@ def getElementTypeSize(t):
 
 def getElementTypeToolTip(t):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    if t == MacroView.MacroModule:
-        return "Macro module"
-    elif t == MacroView.Macro:
-        return "Macro item"
-    return "Unknown"
+    if t == PoolControllerView.ControllerModule:
+        return "Controller module"
+    elif t == PoolControllerView.ControllerClass:
+        return "Controller class"
 
 
-class MacroTreeBaseItem(TaurusBaseTreeItem):
+class ControllerBaseTreeItem(TaurusBaseTreeItem):
     """A generic node"""
 
     def data(self, index):
@@ -81,23 +79,23 @@ class MacroTreeBaseItem(TaurusBaseTreeItem):
         This method should be able to return any kind of python object as long
         as the model that is used is compatible.
         
-        :return: (MacroView) the role in form of element type"""
-        return MacroView.Unknown
+        :return: (PoolControllerView) the role in form of element type"""
+        return PoolControllerView.Unknown
 
 
-class MacroModuleTreeItem(MacroTreeBaseItem):
+class ControllerModuleTreeItem(ControllerBaseTreeItem):
 
     def role(self):
-        return MacroView.MacroModule
+        return PoolControllerView.ControllerModule
 
     def toolTip(self):
-        return "The macro module '%s'" % self.display()
+        return "The controller module '%s'" % self.display()
     
     def icon(self):
         return getIcon(":/python-file.png")
     
     
-class MacroTreeItem(MacroTreeBaseItem):
+class ControllerTreeItem(ControllerBaseTreeItem):
 
     def data(self, index):
         """Returns the data of this node for the given index
@@ -107,7 +105,7 @@ class MacroTreeItem(MacroTreeBaseItem):
         return self._itemData.name
 
     def role(self):
-        return MacroView.Macro
+        return PoolControllerView.ControllerClass
 
     def toolTip(self):
         return self._itemData.doc
@@ -116,23 +114,23 @@ class MacroTreeItem(MacroTreeBaseItem):
         return getIcon(":/python.png")
 
 
-class MacroBaseModel(TaurusBaseModel):
+class ControllerBaseModel(TaurusBaseModel):
     
-    ColumnNames = "Macros",
-    ColumnRoles = (MacroView.MacroModule, MacroView.MacroModule, MacroView.Macro),
+    ColumnNames = "Controllers",
+    ColumnRoles = (PoolControllerView.ControllerModule, PoolControllerView.ControllerModule, PoolControllerView.ControllerClass),
     
-    def setDataSource(self, ms):
+    def setDataSource(self, pool):
         if self._data_src is not None:
-            Qt.QObject.disconnect(self._data_src, Qt.SIGNAL('macrosUpdated'), self.macrosUpdated)
-        if ms is not None:
-            Qt.QObject.connect(ms, Qt.SIGNAL('macrosUpdated'), self.macrosUpdated)
-        TaurusBaseModel.setDataSource(self, ms)
+            Qt.QObject.disconnect(self._data_src, Qt.SIGNAL('controllerClassesUpdated'), self.controllerClassesUpdated)
+        if pool is not None:
+            Qt.QObject.connect(pool, Qt.SIGNAL('controllerClassesUpdated'), self.controllerClassesUpdated)
+        TaurusBaseModel.setDataSource(self, pool)
 
-    def macrosUpdated(self):
+    def controllerClassesUpdated(self):
         self.refresh()
 
     def createNewRootItem(self):
-        return MacroTreeBaseItem(self, self.ColumnNames)
+        return ControllerBaseTreeItem(self, self.ColumnNames)
     
     def roleIcon(self, role):
         return getElementTypeIcon(role)
@@ -195,93 +193,96 @@ class MacroBaseModel(TaurusBaseModel):
         return ret
 
     def setupModelData(self, data):
-        ms = self.dataSource()
-        if ms is None:
+        pool = self.dataSource()
+        if pool is None:
             return
         root = self._rootItem
-        macro_modules = {}
-        macro_dict = ms.getMacros()
-        for macro_name, macro in macro_dict.items():
-            module_name = macro.module_name
-            moduleNode = macro_modules.get(module_name)
-            if moduleNode is None:
-                moduleNode = MacroModuleTreeItem(self, module_name, root)
-                root.appendChild(moduleNode)
-                macro_modules[module_name] = moduleNode
-            macroNode = MacroTreeItem(self, macro, moduleNode)
-            moduleNode.appendChild(macroNode)
+        ctrl_modules = {}
+        # TODO
+        #ctrl_class_dict = pool.getControllerClasses()
+        #for ctrl_class_name, ctrl_class in ctrl_class_dict.items():
+        #    module_name = ctrl_class.module_name
+        #    moduleNode = ctrl_modules.get(module_name)
+        #    if moduleNode is None:
+        #        moduleNode = ControllerModuleTreeItem(self, module_name, root)
+        #        root.appendChild(moduleNode)
+        #        ctrl_modules[module_name] = moduleNode
+        #    ctrlNode = ControllerTreeItem(self, ctrl_class, moduleNode)
+        #    moduleNode.appendChild(ctrlNode)
     
 
-class MacroModuleModel(MacroBaseModel):
+class ControllerModuleModel(ControllerBaseModel):
     pass
 
 
-class MacroPlainMacroModel(MacroBaseModel):
+class PlainControllerModel(ControllerBaseModel):
 
-    ColumnNames = "Macros",
-    ColumnRoles = (MacroView.Macro, MacroView.Macro),
+    ColumnNames = "Controller classes",
+    ColumnRoles = (PoolControllerView.ControllerClass, PoolControllerView.ControllerClass),
 
     def setupModelData(self, data):
-        ms = self.dataSource()
-        if ms is None:
+        pool = self.dataSource()
+        if pool is None:
             return
         root = self._rootItem
-        macro_dict = ms.getMacros()
-        macros = macro_dict.keys()
-        macros.sort()
-        self.debug("Found %d macros", len(macros))
-        for macro_name in macros:
-            macro = macro_dict[macro_name]
-            macroNode = MacroTreeItem(self, macro, root)
-            root.appendChild(macroNode)
+        # TODO
+        #ctrl_class_dict = pool.getControllerClasses()
+        #ctrl_classes = ctrl_class_dict.keys()
+        #ctrl_classes.sort()
+        #self.debug("Found %d controller classes", len(ctrl_classes))
+        #for ctrl_class_name in ctrl_classes:
+        #    ctrl_class = ctrl_class_dict[ctrl_class_name]
+        #    ctrlNode = ControllerTreeItem(self, ctrl_class, root)
+        #    root.appendChild(ctrlNode)
 
 
-class MacroBaseModelProxy(TaurusBaseProxyModel):
+class ControllerBaseModelProxy(TaurusBaseProxyModel):
     pass
 
 
-class MacroModuleModelProxy(MacroBaseModelProxy):
+class ControllerModuleModelProxy(ControllerBaseModelProxy):
     pass
 
 
-class MacroPlainMacroModelProxy(MacroBaseModelProxy):
+class PlainControllerModelProxy(ControllerBaseModelProxy):
     pass
 
 
-class MacroTreeWidget(TaurusBaseTreeWidget):
+class ControllerClassTreeWidget(TaurusBaseTreeWidget):
     
-    KnownPerspectives = { MacroView.MacroModule : {
+    KnownPerspectives = { PoolControllerView.ControllerModule : {
                             "label" : "By module",
                             "icon" : ":/python-file.png",
-                            "tooltip" : "View by macro module",
-                            "model" : [MacroModuleModelProxy, MacroModuleModel],
+                            "tooltip" : "View by controller module",
+                            "model" : [ControllerModuleModelProxy, ControllerModuleModel],
                           },
-                          MacroView.Macro : {
-                            "label" : "By macro",
+                          PoolControllerView.ControllerClass : {
+                            "label" : "By controller",
                             "icon" : ":/python.png",
-                            "tooltip" : "View by macro",
-                            "model" : [MacroPlainMacroModelProxy, MacroPlainMacroModel], 
+                            "tooltip" : "View by controller class",
+                            "model" : [PlainControllerModelProxy, PlainControllerModel], 
                           }
     }
-    DftPerspective = MacroView.MacroModule
+    DftPerspective = PoolControllerView.ControllerModule
         
     def getModelClass(self):
         return taurus.core.TaurusDevice
 
 
-class MacroSelectionDialog(Qt.QDialog):
+class ControllerClassSelectionDialog(Qt.QDialog):
     
     def __init__(self, parent=None, designMode=False, model_name=None, perspective=None):
         Qt.QDialog.__init__(self, parent)
         
-        self.setWindowTitle("Macro Selection Dialog")
+        self.setWindowTitle("Controller Class Selection Dialog")
         
         layout = Qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-        self._panel = MacroTreeWidget(parent=self, perspective=perspective, 
-                                      designMode=designMode,
-                                      with_navigation_bar=False)
+        self._panel = ControllerClassTreeWidget(parent=self,
+                                                perspective=perspective,
+                                                designMode=designMode,
+                                                with_navigation_bar=False)
         self._panel.setModel(model_name)
         self.setWindowIcon(getElementTypeIcon(self._panel.perspective()))
         self._buttonBox = Qt.QDialogButtonBox(self)
@@ -299,22 +300,22 @@ class MacroSelectionDialog(Qt.QDialog):
         return [ i.itemData() for i in self.selectedItems() ]
 
 
-def main_MacroSelecionDialog(ms, perspective=MacroView.MacroModule):
-    w = MacroSelectionDialog(model_name=ms, perspective=perspective)
+def main_ControllerClassSelecionDialog(pool, perspective=PoolControllerView.ControllerClass):
+    w = ControllerClassSelectionDialog(model_name=pool, perspective=perspective)
     
     if w.result() == Qt.QDialog.Accepted:
         print w.getSelectedMacros()
     return w
     
-def main_MacroTreeWidget(ms, perspective=MacroView.MacroModule):
-    w = MacroTreeWidget(perspective=perspective,with_navigation_bar=False)
-    w.setModel(ms)
+def main_ControllerClassTreeWidget(pool, perspective=PoolControllerView.ControllerClass):
+    w = ControllerClassTreeWidget(perspective=perspective,with_navigation_bar=False)
+    w.setModel(pool)
     w.show()
     return w
 
 def demo():
-    """MacroTreeWidget"""
-    w = main_MacroSelecionDialog("MS_BL98", MacroView.Macro)
+    """ControllerClassTreeWidget"""
+    w = main_ControllerClassSelecionDialog("Pool_BL98", PoolControllerView.ControllerClass)
     return w
 
 def main():
@@ -326,7 +327,7 @@ def main():
     owns_app = app is None
     
     if owns_app:
-        app = Application(app_name="MacroServer macro tree demo", app_version="1.0",
+        app = Application(app_name="Pool controller class tree demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
     w = demo()
     w.show()
