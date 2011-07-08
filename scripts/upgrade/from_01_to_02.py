@@ -22,7 +22,7 @@ class Up01To02(Upgrade):
     def get_pool_controllers(self, db, serv):
         """Gets the list of Pool controllers from pool version 0.1.x"""
         pool_serv_name = "Pool/%s" % serv
-        pool_dev_name = get_pool_device_from_server(serv)
+        pool_dev_name = get_pool_device_from_server(serv,db=db)
         ctrls = db.get_device_property(pool_dev_name, ["Controller"])["Controller"]
         i = 0
         ret = []
@@ -68,7 +68,7 @@ class Up01To02(Upgrade):
         elem_map, reverse_elem_map = {}, {}
     
         pool_serv_name = "Pool/%s" % serv
-        pool_dev_name = get_pool_device_from_server(serv)
+        pool_dev_name = get_pool_device_from_server(serv,db=db)
         
         # 1 - Update the controller property with unique id
         yield "Updating the controller property with unique id...", 5

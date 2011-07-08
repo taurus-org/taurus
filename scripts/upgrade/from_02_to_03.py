@@ -21,11 +21,11 @@ class Controller:
 
 class Up02To03(Upgrade):
 
-    def get_pool_controllers(self, serv):
+    def get_pool_controllers(self, serv, db=None):
         """Gets the list of Pool controllers from pool version 0.1.x"""
         pool_serv_name = "Pool/%s" % serv
         pool_dev_name = get_pool_device_from_server(serv)
-        db = PyTango.Database()
+        db = db or get_db()
         ctrls = db.get_device_property(pool_dev_name, ["Controller"])["Controller"]
         i = 0
         ret = []
@@ -70,7 +70,7 @@ class Up02To03(Upgrade):
         elem_map, reverse_elem_map = {}, {}
 
         pool_serv_name = "Pool/%s" % serv
-        pool_dev_name = get_pool_device_from_server(serv)
+        pool_dev_name = get_pool_device_from_server(serv,db=db)
 
         # 1 - get controllers
 

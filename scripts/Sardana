@@ -43,8 +43,8 @@ except ImportError:
     import sardana
 
 def main():
-    import sardana.tango.pool
-    sardana.tango.pool.main_pool()
+    import sardana.tango
+    sardana.tango.main_sardana()
 
 if __name__ == '__main__':
     main()
