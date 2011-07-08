@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
@@ -24,13 +23,19 @@
 ##
 ##############################################################################
 
-import release as __release
-import requirements as __requirements
+""" """
 
-__requirements.check_requirements()
+__docformat__ = 'restructuredtext'
 
-class Release:
-    pass
+import util
 
-Release.__dict__.update(__release.__dict__)
-Release.__doc__ = __release.__doc__
+def prepare_sardana(util):
+    import pool
+    import macroserver
+    pool.prepare_pool(util)
+    macroserver.prepare_macroserver(util)
+
+def main_sardana():
+    util.run(prepare_sardana)
+
+

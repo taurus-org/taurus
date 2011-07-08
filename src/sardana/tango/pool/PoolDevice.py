@@ -42,11 +42,14 @@ from PyTango import DispLevel
 from PyTango import Attr, SpectrumAttr, ImageAttr
 from taurus.core.util.log import Logger, InfoIt
 
-import pool
+import sardana.pool
 
-DataType = pool.DataType
-DataFormat = pool.DataFormat
-DataAccess = pool.DataAccess
+InvalidId = sardana.pool.InvalidId
+InvalidAxis = sardana.pool.InvalidAxis
+ElementType = sardana.pool.ElementType
+DataType = sardana.pool.DataType
+DataFormat = sardana.pool.DataFormat
+DataAccess = sardana.pool.DataAccess
 
 def to_tango_state(state):
     return DevState(state)
@@ -177,7 +180,7 @@ class PoolDeviceClass(DeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'Id': [DevLong64, "Internal ID", [ pool.InvalidId ] ],
+        'Id': [DevLong64, "Internal ID", [ InvalidId ] ],
     }
 
     #    Command definitions
@@ -204,14 +207,14 @@ class PoolElementDevice(PoolDevice):
         self.ctrl = None
         try:
             instrument_id = int(self.Instrument_id)
-            if instrument_id != pool.InvalidId:
+            if instrument_id != InvalidId:
                 instrument = self.pool.get_element_by_id(instrument_id)
                 self.instrument = instrument
         except ValueError:
             pass
         try:
             ctrl_id = int(self.Ctrl_id)
-            if ctrl_id != pool.InvalidId:
+            if ctrl_id != InvalidId:
                 ctrl = self.pool.get_element_by_id(ctrl_id)
                 self.ctrl = ctrl
         except ValueError:
@@ -230,7 +233,7 @@ class PoolElementDevice(PoolDevice):
         instrument = None
         if name:
             instrument = self.pool.get_element(full_name=name)
-            if instrument.get_type() != pool.ElementType.Instrument:
+            if instrument.get_type() != ElementType.Instrument:
                 raise Exception("%s is not an instrument" % name)
         self.element.instrument = instrument
         db = PyTango.Util.instance().get_database()
@@ -302,9 +305,9 @@ class PoolElementDeviceClass(PoolDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        "Axis"          : [ DevLong64, "Axis in the controller", [ pool.InvalidAxis ] ],
-        "Ctrl_id"       : [ DevLong64, "Controller ID", [ pool.InvalidId ] ],
-        "Instrument_id" : [ DevLong64, "Controller ID", [ pool.InvalidId ] ],
+        "Axis"          : [ DevLong64, "Axis in the controller", [ InvalidAxis ] ],
+        "Ctrl_id"       : [ DevLong64, "Controller ID", [ InvalidId ] ],
+        "Instrument_id" : [ DevLong64, "Controller ID", [ InvalidId ] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
     

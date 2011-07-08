@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec python -d @pkgpythondir@/MacroServer.py $* 

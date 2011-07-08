@@ -28,7 +28,7 @@ import sys
 import time
 import PyTango
 from math import pow,sqrt
-from pool import MotorController
+from sardana.pool import MotorController
 
 
 class Motion:

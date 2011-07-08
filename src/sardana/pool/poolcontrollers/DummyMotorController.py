@@ -1,6 +1,6 @@
 import PyTango
-import pool
-from pool import MotorController
+import sardana.pool
+from sardana.pool import MotorController
 import array
 import sys
 
@@ -113,7 +113,7 @@ class DummyMotorControllerExtra(MotorController):
         if not self.m[idx]:
             self.m[idx] = Motor()
             self.m[idx].comch_name = self.CommunicationChannel[idx]
-            self.m[idx].comch = pool.PoolUtil().get_com_channel(self.inst_name,self.m[idx].comch_name)
+            self.m[idx].comch = sardana.pool.PoolUtil().get_com_channel(self.inst_name,self.m[idx].comch_name)
             
     def DeleteDevice(self,axis):
         idx = axis - 1

@@ -41,7 +41,9 @@ import PyTango
 from taurus.core.util import CaselessDict
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
-import pool
+import sardana.pool
+
+ElementType = sardana.pool.ElementType
 
 class Pool(PyTango.Device_4Impl, Logger):
     
@@ -64,7 +66,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         if alias is None:
             alias = PyTango.Util.instance().get_ds_inst_name()
             
-        self._pool = pool.Pool(full_name, alias)
+        self._pool = sardana.pool.Pool(full_name, alias)
         self._pool.add_listener(self.elements_changed)
 
     @property
@@ -90,7 +92,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)
         p = self.pool
-        instruments = p.get_element_type_map().get(pool.ElementType.Instrument, {})
+        instruments = p.get_element_type_map().get(ElementType.Instrument, {})
         ids = set()
         for i in range(0, len(il), 3):
             iklass, iname, iid = il[i:i+3]
@@ -112,24 +114,24 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
-        ctrl_names = self.pool.get_element_names_by_type(pool.ElementType.Ctrl)
+        ctrl_names = self.pool.get_element_names_by_type(ElementType.Ctrl)
         attr.set_value(ctrl_names)
 
     def read_InstrumentList(self, attr):
-        instruments = self._pool.get_elements_by_type(pool.ElementType.Instrument)
-        instrument_names = map(pool.PoolInstrument.get_name, instruments)
+        instruments = self._pool.get_elements_by_type(ElementType.Instrument)
+        instrument_names = map(sardana.pool.PoolInstrument.get_name, instruments)
         attr.set_value(instrument_names)
 
     #@PyTango.DebugIt()
     def read_ExpChannelList(self, attr):
-        cts = self._pool.get_elements_by_type(pool.ElementType.CTExpChannel)
-        ct_names = map(pool.PoolCounterTimer.get_name, cts)
+        cts = self._pool.get_elements_by_type(ElementType.CTExpChannel)
+        ct_names = map(sardana.pool.PoolCounterTimer.get_name, cts)
         attr.set_value(cts)
     
     #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
-        mgs = self._pool.get_elements_by_type(pool.ElementType.MotorGroup)
-        mg_names = map(pool.PoolMotorGroup.get_name, mgs)
+        mgs = self._pool.get_elements_by_type(ElementType.MotorGroup)
+        mg_names = map(sardana.pool.PoolMotorGroup.get_name, mgs)
         attr.set_value(mg_names)
 
     #@PyTango.DebugIt()
@@ -142,14 +144,14 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def read_MotorList(self, attr):
-        motors = self._pool.get_elements_by_type(pool.ElementType.Motor)
-        motor_names = map(pool.PoolMotor.get_name, motors)
+        motors = self._pool.get_elements_by_type(ElementType.Motor)
+        motor_names = map(sardana.pool.PoolMotor.get_name, motors)
         attr.set_value(motor_names)
 
     #@PyTango.DebugIt()
     def read_MeasurementGroupList(self, attr):
-        mgs = self._pool.get_elements_by_type(pool.ElementType.MeasurementGroup)
-        mg_names = map(pool.PoolMeasurementGroup.get_name, mgs)
+        mgs = self._pool.get_elements_by_type(ElementType.MeasurementGroup)
+        mg_names = map(sardana.pool.PoolMeasurementGroup.get_name, mgs)
         attr.set_value(mg_names)
 
     #@PyTango.DebugIt()
@@ -173,10 +175,10 @@ class Pool(PyTango.Device_4Impl, Logger):
         class_name = kwargs['klass']
         name = kwargs['name']
         properties = kwargs['properties']
-        elem_type = pool.ElementType[type_str]
+        elem_type = ElementType[type_str]
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
-        fn, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[pool.ElementType.Ctrl]
+        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.Ctrl]
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         util = PyTango.Util.instance()
         
@@ -237,22 +239,22 @@ class Pool(PyTango.Device_4Impl, Logger):
         axis = kwargs['axis']
 
         try:
-            elem_type = pool.ElementType[elem_type_str]
+            elem_type = ElementType[elem_type_str]
         except KeyError:
             raise Exception("Unknown element type '%s'" % elem_type_str)
         name = kwargs['name']
-        fn, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[elem_type]
+        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         ctrl = self.pool.get_element(name=ctrl_name)
         
-        if ctrl.get_type() != pool.ElementType.Ctrl:
+        if ctrl.get_type() != ElementType.Ctrl:
             type_str = ElementType.whatis(ctrl.get_type())
             raise Exception("'%s' is not a controller (It is a %s)" % (ctrl_name, type_str))
         
         ctrl_types, ctrl_id = ctrl.get_ctrl_types(), ctrl.get_id()
         if elem_type not in ctrl_types:
-            ctrl_type_str = pool.ElementType.whatis(ctrl_types[0])
+            ctrl_type_str = ElementType.whatis(ctrl_types[0])
             raise Exception("Cannot create %s in %s controller" % (type, ctrl_type_str))
 
         elem_axis = ctrl.get_element(axis=axis)
@@ -270,11 +272,11 @@ class Pool(PyTango.Device_4Impl, Logger):
             db.put_device_property(device_name, data)
 
             data = {}
-            if elem_type == pool.ElementType.Motor:
+            if elem_type == ElementType.Motor:
                 data["position"] = { "abs_change" : "1.0"}
                 data["dialposition"] = { "abs_change" : "1.0"}
                 data["limit_switches"] = { "abs_change" : "1.0"}
-            elif elem_type == pool.ElementType.CTExpChannel:
+            elif elem_type == ElementType.CTExpChannel:
                 data["value"] = { "abs_change" : "1.0"}
             
             db.put_device_attribute_property(device_name, data)
@@ -291,7 +293,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         name = kwargs['name']
         kwargs['pool_name'] = self.pool.name
-        fn, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[pool.ElementType.MotorGroup]
+        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.MotorGroup]
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         self._check_element(name, full_name)
@@ -299,7 +301,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         elem_ids = []
         for elem_name in kwargs["elements"]:
             elem = self.pool.get_element(name=elem_name)
-            if elem.get_type() not in (pool.ElementType.Motor, pool.ElementType.PseudoMotor):
+            if elem.get_type() not in (ElementType.Motor, ElementType.PseudoMotor):
                 raise Exception("%s is not a motor" % elem.name)
             elem_ids.append(elem.id)
         
@@ -326,7 +328,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         name = kwargs['name']
         kwargs['pool_name'] = self.pool.name
-        fn, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[pool.ElementType.MeasurementGroup]
+        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.MeasurementGroup]
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         self._check_element(name, full_name)
@@ -368,7 +370,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     def elements_changed(self, evt_src, evt_type, evt_value):
         elem_type = evt_value["type"]
-        fn, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[elem_type]
+        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
         attribute_list_name = fn + "List"
         elem_names = self.pool.get_element_names_by_type(elem_type)
         self.push_change_event(attribute_list_name, elem_names)
@@ -439,16 +441,16 @@ class Pool(PyTango.Device_4Impl, Logger):
             elem = self.pool.get_element(name=name)
             
         elem_type = elem.get_type()
-        if elem_type == pool.ElementType.Ctrl:
+        if elem_type == ElementType.Ctrl:
             if len(elem.get_elements()) > 0:
                 raise Exception("Cannot delete controller with elements. " \
                                 "Delete elements first")
         
-        type_name, klass, auto_full_name, ctrl_class = pool.TYPE_MAP[elem_type]
+        type_name, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
 
         full_name = elem.get_full_name()
         
-        if elem_type == pool.ElementType.Instrument:
+        if elem_type == ElementType.Instrument:
             self.pool.delete_element(name)
 
             # update database property
@@ -472,7 +474,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         manager = p.ctrl_manager
         
         ctrl_infos = manager.getControllerLib(lib_name).getControllers()
-        pool_ctrls = p.get_elements_by_type(pool.ElementType.Ctrl)
+        pool_ctrls = p.get_elements_by_type(ElementType.Ctrl)
         init_pool_ctrls = []
         for pool_ctrl in pool_ctrls:
             if pool_ctrl.get_ctrl_info() in ctrl_infos:

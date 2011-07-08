@@ -1,6 +1,6 @@
 import time,sys
 import PyTango
-from pool import CounterTimerController
+from sardana.pool import CounterTimerController
 
 class Channel:
     

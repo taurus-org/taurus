@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
@@ -24,13 +23,28 @@
 ##
 ##############################################################################
 
-import release as __release
-import requirements as __requirements
+""" """
 
-__requirements.check_requirements()
+__docformat__ = 'restructuredtext'
 
-class Release:
-    pass
+from .PoolDevice import *
+from .Controller import *
+from .Motor import *
+from .MotorGroup import *
+from .CTExpChannel import *
+from .MeasurementGroup import *
+from .Pool import *
 
-Release.__dict__.update(__release.__dict__)
-Release.__doc__ = __release.__doc__
+def prepare_pool(util):
+    util.add_class(PoolClass, Pool)
+    util.add_class(ControllerClass, Controller)
+    util.add_class(MotorClass, Motor)
+    util.add_class(CTExpChannelClass, CTExpChannel)
+    util.add_class(MotorGroupClass, MotorGroup)
+    util.add_class(MeasurementGroupClass, MeasurementGroup)
+
+def main_pool():
+    import sardana.tango.util
+    sardana.tango.util.run(prepare_pool)
+
+

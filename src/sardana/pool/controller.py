@@ -54,7 +54,7 @@ class Controller:
     #: - key : (:class:`str`) controller property name
     #: - value : :class:`dict` with with three :class:`str` keys ("type", "description" and "defaultvalue" case insensitive):
     #:
-    #:     - for key="type", value is one of the values described in :ref:`controller-data-type`
+    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
     #:     - for key="description", value is a :class:`str` description of the property.
     #:       if is not given it defaults to empty string.
     #:     - for key="defaultvalue", value is a python object or None if no default value exists for the property
@@ -65,7 +65,7 @@ class Controller:
     #:
     #: - key : (:class:`str`) controller attribute name
     #: - value : :class:`dict` with :class:`str` possible keys: "type", "r/w type", "description", "fget" and "fset" (case insensitive):
-    #:     - for key="type", value is one of the values described in :ref:`controller-data-type`
+    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write" (case insensitive)
     #:     - for key="description", value is a :class:`str` description of the attribute
     #:     - for key="fget", value is a :class:`str` with the method name for the attribute getter
@@ -80,7 +80,7 @@ class Controller:
     #:
     #: - key : (:class:`str`) axis attribute name
     #: - value : :class:`dict` with three :class:`str` keys ("type", "r/w type", "description" case insensitive):
-    #:     - for key="type", value is one of the values described in :ref:`controller-data-type`
+    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write" (case insensitive)
     #:     - for key="description", value is a :class:`str` description of the attribute
     #:
