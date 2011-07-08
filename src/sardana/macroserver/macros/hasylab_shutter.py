@@ -4,7 +4,7 @@
     
 """
 import time
-from macro import *
+from sardana.macroserver.macro import *
 
 class _shutter:
     """Internal class used as a base class for the shutter macros"""

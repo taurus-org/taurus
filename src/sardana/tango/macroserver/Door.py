@@ -44,12 +44,10 @@ import taurus
 import taurus.core.util
 from taurus.core.util import etree
 
-from exception import MacroServerException
-import manager, macromanager
+from sardana.macroserver.exception import MacroServerException
+from sardana.macroserver.attributehandler import AttributeLogHandler
+from sardana.macroserver.macro import Macro
 
-import attributehandler
-from macro import Macro, AbortException
-import parameter
 
 class DoorSimulation(taurus.core.util.Logger):
     
@@ -200,7 +198,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         
         for level in levels:
             level_val = getattr(Door, level)
-            handler_klass = attributehandler.AttributeLogHandler
+            handler_klass = AttributeLogHandler
             handler = handler_klass(self, level, max_buff_size=self.MaxMsgBufferSize)
             filter = taurus.core.util.LogFilter(level=level_val)
             handler.addFilter(filter)
@@ -210,7 +208,8 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         
     @property
     def manager(self):
-        return manager.MacroServerManager()
+        import sardana.macroserver.manager
+        return sardana.macroserver.manager.MacroServerManager()
     
     @property
     def macro_executor(self):

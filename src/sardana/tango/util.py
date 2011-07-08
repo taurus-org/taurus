@@ -67,9 +67,17 @@ def prepare_cmdline(parser=None, args=None):
     res = parser.parse_args(args)
     global __CMD_LINE
     __CMD_LINE = res
+    
+    prepare_taurus(*res)
     prepare_logging(*res)
     prepare_rconsole(*res)
 
+def prepare_taurus(options, args):
+    # make sure the polling is not active
+    import taurus
+    factory = taurus.Factory()
+    factory.disablePolling()
+    
 def prepare_logging(options, args):
     import os.path
     import logging

@@ -39,118 +39,8 @@ import PyTango
 import taurus
 from taurus.core.util import Logger
 
-from exception import MacroServerException
+from sardana.macroserver.exception import MacroServerException
 
-_main_log = None
-
-__requires__ = {
-#     module     minimum  recommended 
-    "Python"      : (2,4,0),
-    "PyTango"     : (7,1,0),
-    "taurus.core" : (2,0,0)
-}
-
-def check_requirements():
-    
-    pyver_ = __requires__['Python']
-    pytangover_ = __requires__['PyTango']
-    taurusver_ = __requires__['taurus.core']
-    
-    pyver = sys.version_info[:3]
-    
-    try:    pytangover = PyTango.__version_info__[:3]
-    except: pytangover = tuple(map(int, PyTango.__version__.split('.', 3)))
-    
-    try:    taurusver = taurus.Release.version_info[:3]
-    except: taurusver = tuple(map(int, taurus.Release.version.split('.', 3)))
-    
-    if pyver < pyver_:
-        print "MacroServer requires python %s. Installed version is %s" % (pyver_, pyver)
-        sys.exit(-1)
-
-    if pytangover < pytangover_:
-        print "MacroServer requires PyTango %s. Installed version is %s" % (pytangover_, pytangover)
-        sys.exit(-1)
-
-    if taurusver < taurusver_:
-        print "MacroServer requires taurus %s. Installed version is %s" % (taurusver_, taurusver)
-        sys.exit(-1)
-    
-    try:
-        taurus.core.util.etree
-    except:
-        print "Could not find any suitable XML library"
-        sys.exit(-1)
-
-
-
-def get_main_log():
-    global _main_log
-    if not _main_log is None:
-        return _main_log
-    
-    # set the log level
-    taurus.setLogLevel(taurus.Trace)
-    
-    _main_log = Logger("Main")
-        
-    # Two additional log levels: 
-    # output of a macro
-    Logger.addLevelName(15, "OUTPUT")
-
-    def output(slf, msg, *args, **kw):
-        slf.getLogObj().log(Logger.Output, msg, *args, **kw)
-
-    Logger.output = output
-
-    # result of a macro
-    Logger.addLevelName(18, "RESULT")
-    
-    root = Logger.getRootLog()
-    
-    log_level_map = { '5' : taurus.Trace,
-                      '4' : taurus.Debug,
-                      '3' : taurus.Info,
-                      '2' : taurus.Warning,
-                      '1' : taurus.Error }
-    
-    output_log_level = Logger.Info
-    for arg in sys.argv[1:]:
-        if arg.startswith('-log'):
-            output_log_level = log_level_map.get(arg[-1], output_log_level)
-            break
-
-    #Stream handler (output) should be filtered for output or higher messages
-    root.handlers[0].setLevel(output_log_level)
-    #for h in handlers:
-    #    root.removeHandler(h)
-    
-    # Create a file handler
-    app = os.path.split(sys.argv[0])[1]
-    app = os.path.splitext(app)[0]
-    path = os.path.join("/tmp/tango", app, sys.argv[1])
-    filename = os.path.join(path, 'log.txt')
-    try:
-        if not os.path.exists(path):
-            os.makedirs(path, 0777)
-        
-        fmt = Logger.getLogFormat()
-        f_h = logging.handlers.RotatingFileHandler(filename, maxBytes=5E8, backupCount=5)
-        f_h.setFormatter(fmt)
-        
-        # Create a memory handler and set the target to the file handler
-        m_h = logging.handlers.MemoryHandler(10, flushLevel=logging.INFO)
-        m_h.setTarget(f_h)
-        root.addHandler(m_h)
-    except Exception, e:
-        _main_log.warning("'%s' could not be created. Logs will not be stored" % filename)
-        _main_log.debug("reason: %s" % str(e))
-    
-    return _main_log
-
-if __name__ == "__main__":
-    check_requirements()
-    get_main_log()
 
 class GenericListAttribute(PyTango.SpectrumAttr):
     pass
@@ -182,8 +72,8 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         MacroServer.init_device(self)
 
     def __getManager(self, *args):
-        import manager
-        return manager.MacroServerManager(*args)
+        import sardana.macroserver.manager
+        return sardana.macroserver.manager.MacroServerManager(*args)
     
 #------------------------------------------------------------------
 #    Device destructor

@@ -4,7 +4,7 @@
     
 """
 
-from macro    import *
+from sardana.macroserver.macro import *
 
 class _scanserver:
     """Internal class used as a base class for the scanserver macros"""

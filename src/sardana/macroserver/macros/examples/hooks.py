@@ -1,6 +1,6 @@
 """This module contains macros that demonstrate the usage of hooks"""
 
-from macro import *
+from sardana.macroserver.macro import *
         
 class loop(Macro, Hookable):
     """A macro that executes a for loop. It accepts hooks.

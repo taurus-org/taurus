@@ -4,7 +4,7 @@
     
 """
 
-from macro    import *
+from sardana.macroserver.macro import *
 
 #import PyTango
 

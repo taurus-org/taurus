@@ -1,7 +1,7 @@
 import time
 import array
 import os
-from macro import *
+from sardana.macroserver.macro import *
 
 ################################################################################
 #

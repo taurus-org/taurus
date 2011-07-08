@@ -50,20 +50,16 @@ class ModuleManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         m, trace, file = None, None, None
         try:
             file, pathname, desc = imp.find_module(module_name, path)
-            self.info("(re)loading module %s", pathname)
+            self.info("(re)loading module %s...", pathname)
             m = imp.load_module(module_name, file, pathname, desc)
         except Exception, e:
-            m = None
-            trace = e
- 
-        if file: file.close()
+            self.info("failed to (re)load module %s", module_name)
+            self.debug("Error detail:", exc_info=1)
+            raise e
+        finally:
+            if file:
+                file.close()
         
-        if m is None:
-            self.warning("failed to (re)load module %s" % module_name)
-            if trace: 
-                self.traceback(level=taurus.core.util.Logger.Info)
-                raise trace
-            return
         
         self._modules[module_name] = m
         

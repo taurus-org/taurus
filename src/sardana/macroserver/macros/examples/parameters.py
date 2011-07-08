@@ -1,6 +1,6 @@
 """This module contains macros that demonstrate the usage of macro parameters"""
 
-from macro import *
+from sardana.macroserver.macro import *
 
 class pt0(Macro):
     """Macro without parameters. Pretty dull"""

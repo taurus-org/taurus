@@ -345,7 +345,7 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             m = ModuleManager().reloadModule(module_name, path)
         except Exception, e:
             exp_pars = { 'type' : e.__class__.__name__,
-                         'msg' :  e.message,
+                         'msg' :  str(e),
                          'args' : e.args }
             raise LibError(exp_pars)
         

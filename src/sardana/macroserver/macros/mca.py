@@ -1,7 +1,6 @@
-from macro import *
+from sardana.macroserver.macro import *
 
 import array
-
 
 class mca_start(Macro):
     """Starts an mca"""

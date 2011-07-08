@@ -24,35 +24,3 @@
 ##############################################################################
 
 """ """
-
-__docformat__ = 'restructuredtext'
-
-from .MacroServer import *
-from .Door import *
-
-def prepare_macroserver(util):
-    import taurus.core.util.log
-    Logger = taurus.core.util.log.Logger
-
-    # Two additional log levels: 
-    # output of a macro
-    Logger.addLevelName(15, "OUTPUT")
-
-    def output(loggable, msg, *args, **kw):
-        loggable.getLogObj().log(Logger.Output, msg, *args, **kw)
-
-    Logger.output = output
-
-    # result of a macro
-    Logger.addLevelName(18, "RESULT")
-
-    util.add_class(MacroServerClass, MacroServer)
-    util.add_class(DoorClass, Door)
-    
-
-
-def main_macroserver():
-    import sardana.tango.util
-    sardana.tango.util.run(prepare_macroserver)
-
-

@@ -12,8 +12,8 @@
 import os
 import numpy
 
-from macro import *
-from scan import *
+from sardana.macroserver.macro import *
+from sardana.macroserver.scan import *
 
 class ascanr(Macro, Hookable):
     hints = { 'scan' : 'ascanr', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }

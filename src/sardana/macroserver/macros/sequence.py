@@ -1,7 +1,7 @@
 import os
 import xml.dom.minidom
 
-from macro import *
+from sardana.macroserver.macro import *
 
 TAG_MACRO       = 'macro'
 TAG_PARAM       = 'param' 

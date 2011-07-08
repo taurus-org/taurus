@@ -1,6 +1,6 @@
 import sys
 
-from macro import *
+from sardana.macroserver.macro import *
 
 ################################################################################
 #

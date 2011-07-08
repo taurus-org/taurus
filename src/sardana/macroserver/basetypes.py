@@ -1,4 +1,4 @@
-import parameter
+from sardana.macroserver import parameter
 
 # Basic types
 

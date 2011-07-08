@@ -1,7 +1,7 @@
 """
 A macro package to show examples on how to run a macro from inside another macro
 """
-from macro import Macro, Type, ParamRepeat
+from sardana.macroserver.macro import Macro, Type, ParamRepeat
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # First example:

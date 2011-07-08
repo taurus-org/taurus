@@ -1,6 +1,6 @@
 """This module contains the class definition for the MacroServer main manager"""
 
-import os, re, copy
+import sys, os, re, copy
 import operator, types
 
 from taurus.core import ManagerState
@@ -69,6 +69,10 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
 
         if max_parallel > 0:
             self.setMaxParallelMacros(max_parallel)
+        
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        if curr_dir not in sys.path:
+            sys.path.append(curr_dir)
         
         ModuleManager().reInit()
         TypeManager().reInit()

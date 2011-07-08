@@ -13,8 +13,8 @@
 import os, copy
 import numpy
 
-from macro import *
-from scan import *
+from sardana.macroserver.macro import *
+from sardana.macroserver.scan import *
 
 UNCONSTRAINED="unconstrained"
 
