@@ -181,7 +181,6 @@ once and the Sardana system already provides a large variety of these types.
 
 .. figure:: /_static/snapshot09.png
   :align: center
-  :width: 750
 
 Please find in the following an example for adding a completely new type in the
 case of a *slit*.
@@ -196,7 +195,7 @@ to be created automatically once it is loaded into the system.
 
 .. figure:: /_static/snapshot10.png
   :align: center
-  :width: 750
+  :width: 650
   
 Symbolic Sketch
 ===============
@@ -208,7 +207,6 @@ modularity of the system.
 
 .. figure:: /_static/snapshot11.png
   :align: center
-  :width: 750
 
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/

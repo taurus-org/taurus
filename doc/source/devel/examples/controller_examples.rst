@@ -3,3 +3,6 @@
 =========================
 Controller examples
 =========================
+
+.. todo::
+    write pool controller examples

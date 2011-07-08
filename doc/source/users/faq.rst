@@ -29,8 +29,10 @@ A user documentation for the Taurus_ GUI application can be found
 
 How to produce your own Taurus_ GUI panel?
 -------------------------------------------
-The basic philosophy of Taurus_ GUI is to provide automatic GUIs which are
-automatically replaced by more and more specific GUIs if these are found.
+
+The basic philosophy of Taurus_ :term:`GUI` is to provide automatic
+:term:`GUI` s which are automatically replaced by more and more specific
+:term:`GUI` s if these are found.
 The documentation how to create a generic panel which can be filled via
 selection and cut and paste can be found here **<LINK>**.
 A more advanced usage is to create a Taurus_ widget and ingrate it into the
@@ -41,15 +43,15 @@ How to call procedures?
 The central idea of the Sardana SCADA_ system is to execute procedures centrally.
 The execution can be started from either:
 
-    * SPOCK offers a command line interface with commands very similar to SPEC.
-      It is documented here **<LINK>**.
-    * Procedures can also be executed with a GUI interface the macro executor.
-      This GUI interface offering input from the keyboard and the generic
+    * *spock* offers a command line interface with commands very similar to SPEC_.
+      It is documented :ref:`here <sardana-spock>`.
+    * Procedures can also be executed with a  macro executor :term:`GUI`.
+      This :term:`GUI` interface offering input from the keyboard and the generic
       widgets is documented here **<LINK>**. A macro can be associated with a
-      specific GUI interface. This mechanism is documented here **<LINK>**.
-    * Procedures can also be executed in specific GUIs and specific Taurus_
-      widgets. The API to execute macros from this python code is documented
-      here **<LINK>**
+      specific :term:`GUI` interface. This mechanism is documented here **<LINK>**.
+    * Procedures can also be executed in specific :term:`GUI` s and specific Taurus_
+      widgets. The :term:`API` to execute macros from this python code is documented
+      here **<LINK>**.
 
 How to write procedures?
 ------------------------
@@ -60,24 +62,27 @@ Macro writers might also find the following documentation interesting:
     * Documentation on how to debug macros  can be found here **<LINK>**
     * In addition of the strength of the python language macro writers can
       interface with common elements (motors, counters) , call other macros
-      and use many utilities provided. The macro API can be found :class:`here <MacroServer.macro.Macro>`.
-    * Documentation how to document your macros can be found :ref:`here <macro_documentation>`
+      and use many utilities provided. The macro :term:`API` can be found 
+      :class:`here <MacroServer.macro.Macro>`.
+    * Documentation how to document your macros can be found 
+      :ref:`here <macro_documentation>`
 
 How to write scan procedures?
 -----------------------------
 A very common type of procedure is the *ascan* where some quantity is 
 varied while recording some other quantities. Many common types of 
 general-purpose scans procedures are already available in Sardana **<LINK>**,
-and a simple API is provided for writing more specific ones.
+and a simple :term:`API` is provided for writing more specific ones.
 
 How to adapt SARDANA to your own hardware?
 ------------------------------------------
 Sardana is meant to be interfaced to all types of different hardware with all
 types of control systems. For every new hardware item the specific behavior
 has to be programmed by writing a controller code. The documentation how to
-write Sardana controllers and pseudo controllers can be found here **<LINK>**.
-This documentation also includes the API which can be used to interface to
-the specific hardware item.
+write Sardana controllers and pseudo controllers can be found
+:ref:`here <pool-controllers>`.
+This documentation also includes the :term:`API` which can be used to interface
+to the specific hardware item.
 
 How to add your own file format?
 --------------------------------
