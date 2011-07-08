@@ -23,8 +23,5 @@
 ##
 #############################################################################
 
-"""
-__init__.py: 
-"""
-
-from sequenceeditor import TaurusSequencer, TaurusSequencerWidget, main
+from taurus.qt.qtgui.extra_macroexecutor.sequenceeditor import main
+main()

@@ -128,10 +128,10 @@ class MacroSequenceTree(Qt.QTreeView, BaseConfigurableClass):
         if not isinstance(parentNode, macro.MacroNode): return
         allowedHooks = parentNode.allowedHookPlaces()
         if allowedHooks:
-            hooksSubmenu = contextMenu.addMenu("Hooks")
+            hookPlacesSubmenu = contextMenu.addMenu("Hook places")
             for allowedHook in allowedHooks:
                 action = HookAction(allowedHook, self, node)
-                hooksSubmenu.addAction(action)
+                hookPlacesSubmenu.addAction(action)
         contextMenu.exec_(event.globalPos())
 
 #    def setHint(self, add):
@@ -800,8 +800,11 @@ def createSequencer(args):
     sequencer.loadSettings()
     return sequencer
       
-if __name__ == "__main__":
+def main():      
     from taurus.qt.qtgui.application import TaurusApplication
+#    from rfoo.utils import rconsole
+#    rconsole.spawn_server()
+    
     app = TaurusApplication(sys.argv)
     args = app.get_command_line_args()
 
@@ -809,4 +812,7 @@ if __name__ == "__main__":
     app.setApplicationName(globals.SEQUENCER_APPLICATION_NAME)
     sequencer = createSequencer(args)
     sequencer.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_())  
+    
+if __name__ == "__main__":
+    main()
