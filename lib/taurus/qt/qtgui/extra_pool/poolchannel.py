@@ -26,16 +26,53 @@
 """
 channelWidgets.py: 
 """
-
+__all__=["PoolChannel","PoolChannelTV"]
 from PyQt4 import Qt
 
 from taurus.qt.qtgui.panel import TaurusValue, TaurusDevButton
 from taurus.qt.qtgui.container import TaurusWidget
 from poolmotor import LabelWidgetDragsDeviceAndAttribute
+import taurus
+
+       
+class _ParentDevButton(TaurusDevButton):
+    '''A TaurusDevButton that receives an attribute name but sets 
+    the corresponding device as model. **For internal use only** '''
+    def __init__(self, **kwargs):
+        TaurusDevButton.__init__(self, **kwargs)
+        self.setText('')
+        self.setSizePolicy(Qt.QSizePolicy.Preferred, Qt.QSizePolicy.Maximum)
+        
+    def setModel(self, model):
+        try: attr = taurus.Attribute(model)
+        except: return
+        dev = attr.getParentObj()
+        devname = dev.getFullName()
+        TaurusDevButton.setModel(self, devname)
+        
+        
+class PoolChannelTV(TaurusValue):
+    ''' A widget that displays and controls a pool channel device.
+    It differs from :class:`PoolChannel` in that it behaves as a TaurusValue and
+    therefore it can be used with :meth:`TaurusForm.setFormWidget`
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusValue.__init__(self, parent = parent, designMode = designMode)
+        self.setLabelWidgetClass(LabelWidgetDragsDeviceAndAttribute)
+        self.setLabelConfig('dev_alias')
+    
+    def getDefaultExtraWidgetClass(self):
+        return _ParentDevButton
+        
+    def setModel(self,model):
+        TaurusValue.setModel(self, "%s/value"%model) #@todo: change this (it assumes tango naming!)
 
 
 class PoolChannel(TaurusWidget):
-    ''' A widget that displays and controls a pool channel device'''
+    ''' A widget that displays and controls a pool channel device
+    
+    .. seealso:: :class:`PoolChannelTV`
+    '''
     def __init__(self, parent = None, designMode = False):
         TaurusWidget.__init__(self, parent)
         

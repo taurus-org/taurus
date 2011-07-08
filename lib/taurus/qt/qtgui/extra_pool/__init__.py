@@ -29,4 +29,4 @@ __init__.py:
 
 from motor import TaurusMotorH, TaurusMotorH2, TaurusMotorV, TaurusMotorV2
 from poolmotor import PoolMotorSlim
-from poolchannel import PoolChannel
+from poolchannel import PoolChannel, PoolChannelTV

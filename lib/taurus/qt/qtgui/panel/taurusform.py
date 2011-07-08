@@ -778,9 +778,20 @@ def test4():
             TaurusValue.setModel(self, model+'/double_scalar')
     
     models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum', 'sys/tg_test/1/state','sys/tg_test/1/short_scalar_ro']
+    models.append('tango://controls02:10000/expchan/bl97_simucotictrl_1/1')
+    
+    from taurus.qt.qtgui.extra_pool import PoolChannelTV
+    map={
+        'PseudoCounter':PoolChannelTV,
+        'CTExpChannel':PoolChannelTV,
+        'ZeroDExpChannel':PoolChannelTV,
+        'OneDExpChannel':PoolChannelTV,
+        'TwoDExpChannel':PoolChannelTV,
+        'TangoTest':DummyCW}
+    
     dialog = TaurusForm()
     dialog.setCustomWidgetMap({'DataBase':TaurusLabel}) #this is still valid for "regular" custom widgets
-    dialog.setFormWidget({'TangoTest':DummyCW}) #this is for "TaurusValue-like" custom widgets
+    dialog.setFormWidget(map) #this is for "TaurusValue-like" custom widgets
     dialog.setModel(models)
     dialog.show()
     sys.exit(app.exec_())
@@ -809,16 +820,16 @@ def taurusFormMain():
     
     #map motor widgets if extra_pool is available
     try:
-        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannel
+        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannelTV
         dialog.setCustomWidgetMap({'SimuMotor':PoolMotorSlim,
                                 'Motor':PoolMotorSlim,
-                                'PseudoMotor':PoolMotorSlim,
-                                'PseudoCounter':PoolChannel,
-                                'CTExpChannel':PoolChannel,
-                                'ZeroDExpChannel':PoolChannel,
-                                'OneDExpChannel':PoolChannel,
-                                'TwoDExpChannel':PoolChannel,
-                                'TangoTest':DummyCW})
+                                'PseudoMotor':PoolMotorSlim})
+        dialog.setFormWidget({
+                                'PseudoCounter':PoolChannelTV,
+                                'CTExpChannel':PoolChannelTV,
+                                'ZeroDExpChannel':PoolChannelTV,
+                                'OneDExpChannel':PoolChannelTV,
+                                'TwoDExpChannel':PoolChannelTV})
     except:
         pass  
     
@@ -837,8 +848,8 @@ def main():
     #test1()
     #test2()
     #test3()
-    test4()
-#    taurusFormMain()
+    #test4()
+    taurusFormMain()
     
 if __name__ == "__main__":
     main() 
