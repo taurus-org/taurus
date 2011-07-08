@@ -181,7 +181,7 @@ class TaurusValuesTableButton(TaurusLauncherButton):
 
 
 class TaurusDevButton(TaurusLauncherButton):
-    '''A button that launches a TaurusPlot'''
+    '''A button that launches a TaurusAttrForm'''
     def __init__(self, parent = None, designMode = False):
         from taurus.qt.qtgui.panel.taurusform import TaurusAttrForm 
         TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusAttrForm(), icon=getIcon(':/places/folder-remote.svg'), text = 'Show Device')
@@ -233,6 +233,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._writeWidget = None
         self._unitsWidget = None
         self._customWidget = None
+        self._extraWidget = None
         
         self._customWidgetMap = {}
         
@@ -241,6 +242,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.writeWidgetClassID = 'Auto'
         self.unitsWidgetClassID = 'Auto'
         self.customWidgetClassID = 'Auto'
+        self.extraWidgetClassID = 'Auto'
         self.setPreferredRow(-1)
         self._row = None
         
@@ -253,7 +255,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.setParent(parent)
             
     def setVisible(self, visible):
-        for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(),self.customWidget()):
+        for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(), self.customWidget(), self.extraWidget()):
             if w is not None: w.setVisible(visible)
         Qt.QWidget.setVisible(self, visible)
     
@@ -271,6 +273,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def customWidget(self):
         return self._customWidget
+    
+    def extraWidget(self):
+        return self._extraWidget
     
     def setParent(self, parent):
    
@@ -296,6 +301,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateReadWidget()
             self.updateWriteWidget()
             self.updateUnitsWidget()
+            self.updateExtraWidget()
         
 #        self.updateCustomWidget()
         
@@ -442,7 +448,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         except:
             return None
         return self.getCustomWidgetMap().get(key, None)
-            
+    
+    def getDefaultExtraWidgetClass(self):
+        return None
+    
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
         
@@ -518,6 +527,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if classID is None or classID is 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
+        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        
+    def extraWidgetClassFactory(self, classID):
+        if self._customWidget is not None: return None
+        if classID is None or classID is 'None': return None
+        if isinstance(classID, type): return classID
+        elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
         
     def updateLabelWidget(self):
@@ -618,6 +634,22 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if hasattr(self._customWidget,'setModel'):
                 self._customWidget.setModel(self.getModelName())
                 
+    def updateExtraWidget(self):
+        #get the class for the widget and replace it if necessary
+        klass = self.extraWidgetClassFactory(self.extraWidgetClassID)
+        self._extraWidget = self._newSubwidget(self._extraWidget, klass)
+        
+        #take care of the layout
+        self.addExtraWidgetToLayout() 
+        
+        if self._extraWidget is not None:
+            #give the new widget a reference to its buddy TaurusValue object
+            self._extraWidget.taurusValueBuddy = weakref.ref(self)
+                        
+            #set the model for the subwidget
+            if hasattr(self._extraWidget,'setModel'):
+                self._extraWidget.setModel(self.getModelName())
+                
                 
     def addLabelWidgetToLayout(self):
         
@@ -642,6 +674,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def addCustomWidgetToLayout(self):
         if self._customWidget is not None and self.parent() is not None:
             self.parent().layout().addWidget(self._customWidget, self._row, 1,1,-1)
+    
+    def addExtraWidgetToLayout(self):
+        if self._extraWidget is not None and self.parent() is not None:
+            self.parent().layout().addWidget(self._extraWidget, self._row, 5)
 
     @Qt.pyqtSignature("parentModelChanged(const QString &)")
     def parentModelChanged(self, parentmodel_name):
@@ -651,10 +687,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         TaurusBaseWidget.parentModelChanged(self, parentmodel_name)
         if not self._designMode:     #in design mode, no subwidgets are created
+            self.updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()
             self.updateWriteWidget()
             self.updateUnitsWidget()
+            self.updateExtraWidget()
 
     @Qt.pyqtSignature("setLabelWidget(QString)")
     def setLabelWidgetClass(self,classID):
@@ -721,6 +759,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetCustomWidgetClass(self):
         self.customWidgetClassID = 'Auto'
         
+    @Qt.pyqtSignature("setExtraWidget(QString)")
+    def setExtraWidgetClass(self,classID):
+        '''substitutes the current widget by a new one. classID can be one of:
+        None, 'Auto', a TaurusWidget class name, or any class'''
+        self.extraWidgetClassID = classID
+        self.updateExtraWidget()
+    
+    def getExtraWidgetClass(self):
+        return self.extraWidgetClassID
+    
+    def resetExtraWidgetClass(self):
+        self.extraWidgetClassID = 'Auto'
+        
     def isReadOnly(self):
         if not self.getAllowWrite(): return True 
         modelObj = self.getModelObj()
@@ -732,7 +783,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def destroy(self):
         if not self._designMode:
-            for w in [self._labelWidget, self._readWidget, self._writeWidget, self._unitsWidget]:
+            for w in [self._labelWidget, self._readWidget, self._writeWidget, self._unitsWidget, self._extraWidget]:
                 if isinstance(w,Qt.QWidget):
                     w.setParent(self)   #reclaim the parental rights over subwidgets before destruction
         Qt.QWidget.setParent(self,None)
@@ -750,7 +801,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         '''
         configdict = TaurusBaseWidget.createConfig(self, allowUnpickable=allowUnpickable)
         #store the subwidgets classIDs and configs
-        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget'):
+        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             classID = getattr(self, 'get%sClass'%key)() # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             if isinstance(classID, (str, Qt.QString)) or allowUnpickable:
                 #configdict[key] = classID
@@ -773,7 +824,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         #first do the basic stuff...
         TaurusBaseWidget.applyConfig(self, configdict, **kwargs)
         #restore the subwidgets classIDs
-        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget'):
+        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             if key in configdict:
                 widget_configdict = configdict[key]
                 getattr(self, 'set%sClass'%key)(widget_configdict.get('classid', None))
@@ -796,6 +847,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateReadWidget()
             self.updateWriteWidget()
             self.updateUnitsWidget()
+            self.updateExtraWidget()
             
     def handleEvent(self, evt_src, evt_type, evt_value):
         """Reimplemented from :meth:`TaurusBaseWidget.handleEvent` 
@@ -807,6 +859,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateReadWidget()
             self.updateWriteWidget()
             self.updateUnitsWidget()
+            self.updateExtraWidget()
             
     def isValueChangedByUser(self):
         try:
@@ -874,6 +927,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     readWidgetClass = Qt.pyqtProperty("QString", getReadWidgetClass, setReadWidgetClass, resetReadWidgetClass)
     writeWidgetClass = Qt.pyqtProperty("QString", getWriteWidgetClass, setWriteWidgetClass, resetWriteWidgetClass)
     unitsWidgetClass = Qt.pyqtProperty("QString", getUnitsWidgetClass, setUnitsWidgetClass, resetUnitsWidgetClass)
+    extraWidgetClass = Qt.pyqtProperty("QString", getExtraWidgetClass, setExtraWidgetClass, resetExtraWidgetClass)
     labelConfig = Qt.pyqtProperty("QString", getLabelConfig, setLabelConfig, resetLabelConfig)
     allowWrite = Qt.pyqtProperty("bool", getAllowWrite, setAllowWrite, resetAllowWrite)
     modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, TaurusBaseWidget.setModifiableByUser, TaurusBaseWidget.resetModifiableByUser)
