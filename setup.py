@@ -62,11 +62,16 @@ def get_release_info():
 Release = get_release_info()
 
 author = Release.authors['Tiago']
+package_name = Release.name
 
 package_dir = { 'sardana' : abspath('src', 'sardana') }
 
 packages = [
     'sardana',
+    'sardana.pool',
+    'sardana.pool.poolcontrollers',
+    'sardana.macroserver',
+    'sardana.tango',
 ]
 
 extra_packages = [
@@ -74,16 +79,13 @@ extra_packages = [
 
 provides = [
     'sardana',
+    'sardana.pool',
+    'sardana.macroserver',
 ]
 
 requires = [ 
-    'numpy (>=1.1)',
     'PyTango (>=7.1)',
-    'PyQt4 (>=4.4)',
-    'PyQt4.Qwt5 (>=5.2.0)',   # plotting
-    'ply (>=2.3)',            # jdraw parser
-    'lxml (>=2.1)',           # tau2taurus, taurusuic4
-    'spyder (>=2.0)',         # shell
+    'taurus (>= 2.1)',
 ]
  
 package_data = { 
@@ -113,9 +115,9 @@ data_files = [
 ]
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Environment :: Console',
-    'Environment :: X11 Applications :: Qt',
+    'Environment :: No Input/Output (Daemon)',
     'Environment :: Win32 (MS Windows)',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
@@ -128,12 +130,22 @@ classifiers = [
     'Programming Language :: Python',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
-    'Topic :: Software Development :: User Interfaces',
-    'Topic :: Software Development :: Widget Sets',
 ]
 
 
 class build(dftbuild):
+
+    user_options = dftbuild.user_options + \
+        [ ('no-doc', None, "do not build documentation") ]
+
+    boolean_options = dftbuild.boolean_options + ['no-doc']
+
+    def initialize_options (self):
+        dftbuild.initialize_options(self)
+        self.no_doc = None
+
+    def finalize_options(self):
+        dftbuild.finalize_options(self)
 
     def run(self):
         dftbuild.run(self)
