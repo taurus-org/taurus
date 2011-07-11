@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-"""The macroserver submodule. It contains specific part of macroserver"""
+"""The img submodule. It contains specific device implementation for CCDs and
+2D detectors"""
 
 __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
            'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon']
