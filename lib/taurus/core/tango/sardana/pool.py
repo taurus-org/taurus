@@ -164,9 +164,9 @@ class ControllerClass(BaseElement):
         
     def _buildInfo(self):
         
-        info = self.getPoolObj().getControllerInfo([self.getType(), 
-                                                    self.getLib(), 
-                                                    self.getClassName()])
+        params = self.getType(), self.getLib(), self.getClassName()
+        pool = self.getPoolObj()
+        info = pool.command_inout("getControllerInfo", params)
         self._descr = info[0]
         self._gender = info[1]
         self._model = info[2]
@@ -1363,26 +1363,27 @@ class Instrument(BaseElement):
     def getType(self):
         return self._type
     
+
 HardwareObjNames   = [
     'ExpChannel', 'ComChannel', 'Motor',
     'IORegister', 'MotorGroup', 'MeasurementGroup']
-HardwareObjClasses = [globals()[x] for x in HardwareObjNames]
 
-
-HardwareObjTypes   = [
+HardwareObjTypeNames   = [
     'ComChannel', 'Motor', 'PseudoMotor',  
     'CTExpChannel','ZeroDExpChannel','OneDExpChannel', 'TwoDExpChannel', 
     'PseudoCounter', 'IORegister', 'MotorGroup', 'MeasurementGroup']
-HardwareObjTypeClasses = [globals()[x] for x in HardwareObjTypes]
-
+HardwareObjTypeClasses = [globals()[x] for x in HardwareObjTypeNames]
 
 SoftwareObjNames   = ['ControllerClass', 'Controller', 'Instrument']
-SoftwareObjClasses = [globals()[x] for x in SoftwareObjNames]
 
 
 class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
     """ Class encapsulating device Pool functionality."""
 
+    SoftwareObjMap = [ (name, globals()[name]) for name in SoftwareObjNames ]
+    HardwareObjMap = [ (name, globals()[name]) for name in HardwareObjNames ]
+    HardwareObjTypeMap = [ (name, globals()[name]) for name in HardwareObjTypeNames ]
+    
     def __init__(self, name, **kw):
         # dict<TangoAttribute, string>
         # key : A tango attribute object
@@ -1397,21 +1398,20 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
         self.call__init__(taurus.core.tango.TangoDevice, name, **kw)
         self.call__init__(motion.MoveableSource)
         
-        for name, obj_class in zip(SoftwareObjNames, SoftwareObjClasses):
+        for name, obj_class in self.SoftwareObjMap:
             attr_name = "%sList" % name
             attr = self._createAttribute(attr_name)
             self._attr_dict[attr] = attr_name
             sw_obj_list = SoftwareObjList(self, name, obj_class, attr)
             self._obj_dict[name] = sw_obj_list
 
-        for name, obj_class in zip(HardwareObjNames, HardwareObjClasses):
+        for name, obj_class in self.HardwareObjMap:
             attr_name = "%sList" % name
             attr = self._createAttribute(attr_name)
             self._attr_dict[attr] = attr_name
             hw_obj_list = HardwareObjList(self, name, obj_class, attr)
             self._obj_dict[name] = hw_obj_list
 
-            
     def _createAttribute(self, attr_name):
         attr_name = "%s/%s" % (self.getFullName(), attr_name)
         return self.factory().getAttribute(attr_name)
@@ -1478,14 +1478,14 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
     
     def createMotorGroup(self, name, elements):
         params = [name,] + map(str, elements)
-        self.debug('trying to create motor group: %s' % str(params))
+        self.debug('trying to create motor group: %s', params)
         self.command_inout('CreateMotorGroup', params)
         mg_list = self.getListObj('MotorGroup')
         mg_list.waitEvent(any=True)
     
     def createMeasurementGroup(self, name, elements):
         params = [name,] + map(str,elements)
-        self.debug('trying to create measurement group: %s' % str(params))
+        self.debug('trying to create measurement group: %s', params)
         self.command_inout('CreateMeasurementGroup', params)
 
 
@@ -1493,5 +1493,5 @@ def registerExtensions():
     import taurus
     factory = taurus.Factory()
     factory.registerDeviceClass("Pool", Pool)
-    for klass_name, klass in zip(HardwareObjTypes, HardwareObjTypeClasses):
+    for klass_name, klass in Pool.HardwareObjTypeMap:
         factory.registerDeviceClass(klass_name, klass)
