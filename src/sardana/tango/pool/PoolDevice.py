@@ -42,14 +42,8 @@ from PyTango import DispLevel
 from PyTango import Attr, SpectrumAttr, ImageAttr
 from taurus.core.util.log import Logger, InfoIt
 
-import sardana.pool
-
-InvalidId = sardana.pool.InvalidId
-InvalidAxis = sardana.pool.InvalidAxis
-ElementType = sardana.pool.ElementType
-DataType = sardana.pool.DataType
-DataFormat = sardana.pool.DataFormat
-DataAccess = sardana.pool.DataAccess
+from sardana.pool import InvalidId, InvalidAxis, ElementType, DataType
+from sardana.pool import DataFormat, DataAccess
 
 def to_tango_state(state):
     return DevState(state)

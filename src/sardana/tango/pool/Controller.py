@@ -34,7 +34,7 @@ import PyTango
 
 from taurus.core.util.log import InfoIt, DebugIt
 
-import pool
+from sardana.pool import DataType, DataFormat
 from PoolDevice import PoolDevice, PoolDeviceClass
 from PoolDevice import to_tango_type_format, to_tango_access
 
@@ -62,7 +62,7 @@ class Controller(PoolDevice):
     def delete_device(self):
         self.pool.delete_element(self.ctrl.get_name())
     
-    @DebugIt()
+    #@DebugIt()
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
@@ -103,14 +103,14 @@ class Controller(PoolDevice):
             dtype, dformat = prop_info.dtype, prop_info.dformat
             
             op = str
-            if dtype == pool.DataType.Integer:
+            if dtype == DataType.Integer:
                 op = int
-            elif dtype == pool.DataType.Double:
+            elif dtype == DataType.Double:
                 op = float
-            elif dtype == pool.DataType.Boolean:
+            elif dtype == DataType.Boolean:
                 op = to_bool
             prop_value = map(op, prop_value)
-            if dformat == pool.DataFormat.Scalar:
+            if dformat == DataFormat.Scalar:
                 prop_value = prop_value[0]
             ret[prop_name] = prop_value
         

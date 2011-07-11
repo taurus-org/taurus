@@ -38,7 +38,6 @@ from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 
 from taurus.core.util.log import InfoIt, DebugIt
 
-import pool
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 from PoolDevice import to_tango_state
 
