@@ -28,6 +28,12 @@
 __all__ = ["Pool", "MacroServer", "Door", "Sardana", "SardanaManager",
            "PoolElementType", "ControllerClassInfo", "ControllerInfo"]
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
 __docformat__ = 'restructuredtext'
 
 import socket
@@ -40,6 +46,12 @@ PoolElementType = taurus.core.util.Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister", 
       "Motor","PseudoCounter", "PseudoMotor"))
 
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class PropertyInfo():
     def __init__(self, name, type, format, default_value=None):
         self._name = name
@@ -59,7 +71,12 @@ class PropertyInfo():
     def get_default_value(self):
         return self._default_value
     
-        
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class ControllerClassInfo(object):
     
     def __init__(self, name, type, library):
@@ -125,6 +142,11 @@ class ControllerClassInfo(object):
         return self._type
 
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class ControllerInfo(object):
     
     def __init__(self, name, ctrl_class_info):
@@ -162,6 +184,11 @@ class ControllerInfo(object):
     
         return properties
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class Pool(object):
     
     def __init__(self, sardana, name, poolpath, version, alias=None, device_name=None):
@@ -210,6 +237,11 @@ class Pool(object):
         pass
 
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class MacroServer(object):
     
     def __init__(self, sardana, name, macropath, pool_names, version, alias=None, device_name=None):
@@ -255,6 +287,11 @@ class MacroServer(object):
     def get_database(self):
         return self._sardana.get_database()
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class Door(object):
     
     def __init__(self, alias=None, device_name=None):
@@ -262,6 +299,11 @@ class Door(object):
         self._device_name = device_name
 
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class Sardana(object):
     
     def __init__(self, sardana_db , name, device_name=None):
@@ -375,6 +417,11 @@ class Sardana(object):
     def get_database(self):
         return self._sardana_db.get_database()
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class DatabaseSardana(object):
     """A class containning all sardanas for a single database"""
     
@@ -417,6 +464,11 @@ class DatabaseSardana(object):
     def get_database(self):
         return self._db
 
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# T E M P O R A R Y   I M P L E M E N T A T I O N
+#
+# THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 class SardanaManager(taurus.core.util.Singleton, taurus.core.util.Logger):
     
     def __init__(self):
