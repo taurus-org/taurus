@@ -736,9 +736,9 @@ class BaseMacroServer(MacroServerDevice):
             # changed their description, for example, so everything needs to be rebuild
             self._removeMacros()
             
-            if t ==  taurus.core.TaurusEventType.Error:
+            if t ==  taurus.core.TaurusEventType.Error or v.value is None:
                 return
-
+            
             all_macros = v.value
             self._addMacros(all_macros)
         finally:
@@ -753,7 +753,7 @@ class BaseMacroServer(MacroServerDevice):
             self.debug('%d macro(s) deleted', deleted_macro_nb)
         if new_macro_nb != 0:
             self.debug('%d new macro(s) available', new_macro_nb)
-
+        
         return deleted_macro_names, new_macro_names
     
     def _addMacros(self, macro_names):

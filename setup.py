@@ -74,9 +74,9 @@ packages = [
     'taurus.core.simulation',
     'taurus.core.evaluation',
     'taurus.core.tango',
-    'taurus.core.tango.sardana', 
+    'taurus.core.tango.sardana',
     'taurus.core.tango.img',
-    'taurus.core.tango.macroserver',
+    'taurus.core.tango.sardana',
     
     'taurus.qt',
 
@@ -86,7 +86,7 @@ packages = [
     'taurus.qt.qtcore.mimetypes',
     'taurus.qt.qtcore.model',
     'taurus.qt.qtcore.tango',
-    'taurus.qt.qtcore.tango.macroserver',
+    'taurus.qt.qtcore.tango.sardana',
     'taurus.qt.qtcore.util',
 
     'taurus.qt.qtdesigner',
