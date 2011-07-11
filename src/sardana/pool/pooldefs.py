@@ -25,13 +25,16 @@
 
 """This file contains the basic pool definitions"""
 
+__all__ = ["InvalidId", "InvalidAxis", "ElementType", "TYPE_ELEMENTS",
+           "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
+           "AcquisitionTerminationMode"]
+
 __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Enumeration
 
 InvalidId = 0
 InvalidAxis = 0
-EpsilonError = 1E-9
 
 ElementType = Enumeration("ElementType", ( \
     "Undef",
@@ -59,38 +62,6 @@ TYPE_ELEMENTS = ElementType.Motor, ElementType.CTExpChannel, ElementType.ZeroDEx
 TYPE_GROUP_ELEMENTS = ElementType.MotorGroup, ElementType.MeasurementGroup
 
 TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType.MotorGroup
-
-State = Enumeration("State", ( \
-    "On",
-    "Off",
-    "Close",
-    "Open",
-    "Insert",
-    "Extract",
-    "Moving",
-    "Standby",
-    "Fault",
-    "Init",
-    "Running",
-    "Alarm",
-    "Disable",
-    "Unknown") )
-
-DataType = Enumeration("DataType", ( \
-    "Integer",
-    "Double",
-    "String",
-    "Boolean",
-    "Encoded") )
-    
-DataFormat = Enumeration("DataFormat", ( \
-    "Scalar",
-    "OneD",
-    "TwoD") )
-    
-DataAccess = Enumeration("DataAccess", ( \
-    "ReadOnly",
-    "ReadWrite") )
 
 AcquisitionTerminationMode = Enumeration("AcquisitionTerminationMode", ( \
     "TerminateOnMaster",

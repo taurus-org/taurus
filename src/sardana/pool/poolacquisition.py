@@ -35,7 +35,8 @@ import weakref
 
 import taurus.core.util
 
-from pooldefs import State, AcquisitionTerminationMode
+from sardana import State
+from pooldefs import AcquisitionTerminationMode
 from poolaction import *
 
 class PoolAcquirableItem(PoolActionItem):

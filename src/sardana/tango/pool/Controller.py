@@ -34,9 +34,9 @@ import PyTango
 
 from taurus.core.util.log import InfoIt, DebugIt
 
-from sardana.pool import DataType, DataFormat
+from sardana import DataType, DataFormat
 from PoolDevice import PoolDevice, PoolDeviceClass
-from PoolDevice import to_tango_type_format, to_tango_access
+from sardana.tango.core import to_tango_type_format, to_tango_access
 
 def to_bool(s):
     return s.lower() == "true"

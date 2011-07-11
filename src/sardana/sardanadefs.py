@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
@@ -24,15 +23,44 @@
 ##
 ##############################################################################
 
-import release as __release
-import requirements as __requirements
+""" """
 
-__requirements.check_requirements()
+__all__ = ["EpsilonError", "State", "DataType", "DataFormat", "DataAccess" ]
 
-class Release:
-    pass
+__docformat__ = 'restructuredtext'
 
-Release.__dict__.update(__release.__dict__)
-Release.__doc__ = __release.__doc__
+from taurus.core.util import Enumeration
 
-from .sardanadefs import *
+EpsilonError = 1E-9
+
+State = Enumeration("State", ( \
+    "On",
+    "Off",
+    "Close",
+    "Open",
+    "Insert",
+    "Extract",
+    "Moving",
+    "Standby",
+    "Fault",
+    "Init",
+    "Running",
+    "Alarm",
+    "Disable",
+    "Unknown") )
+
+DataType = Enumeration("DataType", ( \
+    "Integer",
+    "Double",
+    "String",
+    "Boolean",
+    "Encoded") )
+    
+DataFormat = Enumeration("DataFormat", ( \
+    "Scalar",
+    "OneD",
+    "TwoD") )
+    
+DataAccess = Enumeration("DataAccess", ( \
+    "ReadOnly",
+    "ReadWrite") )

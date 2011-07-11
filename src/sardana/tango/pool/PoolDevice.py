@@ -27,94 +27,32 @@
 
 __all__ = ["PoolDevice", "PoolDeviceClass",
            "PoolElementDevice", "PoolElementDeviceClass",
-           "PoolGroupDevice", "PoolGroupDeviceClass",
-           "to_tango_state", "to_tango_type_format", "to_tango_access"]
+           "PoolGroupDevice", "PoolGroupDeviceClass"]
 
 __docformat__ = 'restructuredtext'
 
-from PyTango import Device_4Impl, DeviceClass, Util, DevFailed
+from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
 from PyTango import DevVarLong64Array
 from PyTango import DispLevel, DevState
 from PyTango import SCALAR, SPECTRUM, IMAGE
 from PyTango import READ_WRITE, READ
-from PyTango import DispLevel
 from PyTango import Attr, SpectrumAttr, ImageAttr
 from taurus.core.util.log import Logger, InfoIt
 
-from sardana.pool import InvalidId, InvalidAxis, ElementType, DataType
-from sardana.pool import DataFormat, DataAccess
+from sardana.tango.core import SardanaDevice, SardanaDeviceClass
+from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, GenericImageAttr
+from sardana.tango.core import to_tango_state, to_tango_type_format, to_tango_access
+from sardana.pool import InvalidId, InvalidAxis
 
-def to_tango_state(state):
-    return DevState(state)
-
-def to_tango_type_format(dtype, dformat):
-    t = DevLong
-    f = SCALAR
-    if dtype == DataType.Double:
-        t = DevDouble
-    elif dtype == DataType.String:
-        t = DevString
-    elif dtype == DataType.Boolean:
-        t = DevBoolean
-    if dformat == DataFormat.OneD:
-        f = SPECTRUM
-    elif dformat == DataFormat.TwoD:
-        f = IMAGE
-    return t, f
-
-def to_tango_type(dtype):
-    t = DevLong
-    if dtype == DataType.Double:
-        t = DevDouble
-    elif dtype == DataType.String:
-        t = DevString
-    elif dtype == DataType.Boolean:
-        t = DevBoolean
-    return t
-
-def to_tango_access(access):
-    a = READ_WRITE
-    if access == DataAccess.ReadOnly:
-        a = READ
-    return a
-
-
-class GenericScalarAttr(Attr):
-    pass
-
-
-class GenericSpectrumAttr(SpectrumAttr):
-    
-    def __init__(self, name, tg_type, tg_access):
-        SpectrumAttr.__init__(self, name, tg_type, tg_access, 2048)
-
-
-class GenericImageAttr(ImageAttr):
-
-    def __init__(self, name, tg_type, tg_access):
-        ImageAttr.__init__(self, name, tg_type, tg_access, 2048, 2048)
-
-
-class PoolDevice(Device_4Impl, Logger):
+class PoolDevice(SardanaDevice):
     
     def __init__(self, dclass, name):
-        Device_4Impl.__init__(self, dclass, name)
-        self.init(name)
-        if self._alias:
-            name = "Tango_%s" % self.alias
-        Logger.__init__(self, name)
-        
+        SardanaDevice.__init__(self, dclass, name)
+    
     def init(self, name):
+        SardanaDevice.init(self, name)
         util = Util.instance()
-        db = util.get_database()
-        try:
-            
-            self._alias = db.get_alias(name)
-            if self._alias.lower() == 'nada':
-                self._alias = None
-        except:
-            self._alias = None
         self._pool_device = util.get_device_list_by_class("Pool")[0]
         self._element = None
         
@@ -126,10 +64,6 @@ class PoolDevice(Device_4Impl, Logger):
     def pool(self):
         return self.pool_device.pool
     
-    @property
-    def alias(self):
-        return self._alias
-
     def get_element(self):
         return self._element
     
@@ -139,12 +73,14 @@ class PoolDevice(Device_4Impl, Logger):
     element = property(get_element, set_element)
     
     def init_device(self):
+        SardanaDevice.init_device(self)
         self.set_state(DevState.ON)
         self.get_device_properties(self.get_device_class())
         
         self.set_change_event("state", True)
     
     def delete_device(self):
+        SardanaDevice.delete_device(self)
         self.pool.delete_element(self.element.get_name())
     
     def read_SimulationMode(self, attr):
@@ -163,34 +99,30 @@ class PoolDevice(Device_4Impl, Logger):
             return False
         return True
     
-    def initialize_dynamic_attributes(self):
-        pass
-    
 
-class PoolDeviceClass(DeviceClass):
+class PoolDeviceClass(SardanaDeviceClass):
 
     #    Class Properties
-    class_property_list = {}
+    class_property_list = SardanaDeviceClass.class_property_list
 
     #    Device Properties
     device_property_list = {
         'Id': [DevLong64, "Internal ID", [ InvalidId ] ],
     }
-
+    device_property_list.update(SardanaDeviceClass.device_property_list)
+    
     #    Command definitions
     cmd_list = {
         'Abort': [ [DevVoid, ""], [DevVoid, ""] ]
     }
+    cmd_list.update(SardanaDeviceClass.cmd_list)
 
     #    Attribute definitions
     attr_list = {
         'SimulationMode': [ [DevBoolean, SCALAR, READ_WRITE],
                           { 'label'         : "Simulation mode" } ],
     }
-
-    def dyn_attr(self, dev_list):
-        for dev in dev_list:
-            dev.initialize_dynamic_attributes()
+    attr_list.update(SardanaDeviceClass.attr_list)
 
 
 class PoolElementDevice(PoolDevice):

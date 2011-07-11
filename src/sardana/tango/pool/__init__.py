@@ -44,7 +44,7 @@ def prepare_pool(util):
     util.add_class(MeasurementGroupClass, MeasurementGroup)
 
 def main_pool():
-    import sardana.tango.util
-    sardana.tango.util.run(prepare_pool)
+    import sardana.tango.core.util
+    sardana.tango.core.util.run(prepare_pool)
 
 

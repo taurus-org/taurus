@@ -34,7 +34,7 @@ import time
 
 import taurus.core.util
 
-from pooldefs import State
+from sardana import State
 from poolaction import *
 
 class PoolMotionItem(PoolActionItem):

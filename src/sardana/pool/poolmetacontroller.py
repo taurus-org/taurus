@@ -38,6 +38,7 @@ import types
 
 from taurus.core.util import CaselessDict, CodecFactory
 
+from sardana import DataType, DataFormat, DataAccess
 from pooldefs import *
 
 class ControllerLib(object):

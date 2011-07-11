@@ -52,7 +52,7 @@ def prepare_macroserver(util):
 
 
 def main_macroserver():
-    import sardana.tango.util
-    sardana.tango.util.run(prepare_macroserver)
+    import sardana.tango.core.util
+    sardana.tango.core.util.run(prepare_macroserver)
 
 
