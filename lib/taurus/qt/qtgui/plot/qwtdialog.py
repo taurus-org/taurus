@@ -177,12 +177,12 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         self.connect(self.ui.xAutoGroupBox,  Qt.SIGNAL("toggled (bool)"),self.toggledAutoScale)
         self.connect(self.ui.y1AutoGroupBox, Qt.SIGNAL("toggled (bool)"),self.toggledAutoScale)
         self.connect(self.ui.y2AutoGroupBox, Qt.SIGNAL("toggled (bool)"),self.toggledAutoScale)
-        self.connect(self.ui.xEditMin,  Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.xEditMax,  Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.y1EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.y1EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.y2EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.y2EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.xEditMin,  Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.xEditMax,  Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.y1EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.y1EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.y2EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
+#        self.connect(self.ui.y2EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
         self.connect(self.ui.xModeComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.modeComboChanged)
         self.connect(self.ui.xDynScaleCheckBox, Qt.SIGNAL("toggled (bool)"),self.setXDynScale)
         self.connect(self.ui.xRangeCB, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.apply)
@@ -356,7 +356,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         return (xMin,xMax,y1Min,y1Max,y2Min,y2Max)
 
     def apply(self):
-        """This will apply the values set in the dialog. Note that some of them (i.e. mode combo)
+        """This will apply the values set in the dialog. Note that some of them
         are not necessary to be set, since they're already are set when changing the item selected"""
         
         #Apply the changes from the curves Appearance widget (they are already validated).
