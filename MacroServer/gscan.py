@@ -11,7 +11,8 @@ from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from scan import *
 from exception import MacroServerException
 from parameter import Type
-from pool import Ready, Standby, Counting, Acquiring, Moving, Alarm, Fault
+from taurus.core.tango.sardana.pool import Ready, Standby, Counting, Acquiring, \
+                                           Moving, Alarm, Fault
 
 class ScanSetupError(Exception): pass
 
