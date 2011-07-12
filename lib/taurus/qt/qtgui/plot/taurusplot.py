@@ -1842,9 +1842,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         autoscaleAction= menu.addAction("AutoScale %s"%axisname)
         self.connect(autoscaleAction, Qt.SIGNAL("triggered()"), autoScaleThisAxis)
 
-        switchThisAxis = lambda : self.setAxisScaleType(axis=axis, scale=None)
-        switchThisAxisAction= menu.addAction("Togle linear/log for %s"%axisname)
-        self.connect(switchThisAxisAction, Qt.SIGNAL("triggered()"), switchThisAxis)
+        if not self.getXIsTime():
+            switchThisAxis = lambda : self.setAxisScaleType(axis=axis, scale=None)
+            switchThisAxisAction= menu.addAction("Togle linear/log for %s"%axisname)
+            self.connect(switchThisAxisAction, Qt.SIGNAL("triggered()"), switchThisAxis)
 
         if axis in (Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
             zoomOnThisAxis = lambda : self.toggleZoomer(axis=axis)
@@ -2057,17 +2058,18 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     def applyAxesConfig(self, axes):
         '''sets the axes according to settings stored in the axes dict,
         which can be generated with _createAxesDict()
-
+        
         :param axes: (dict) contains axes properties
         '''
+        self.setXIsTime(axes["xIsTime"])
+        self.setXDynScale(axes["xDyn"])
         self.setAxisScale(Qwt5.QwtPlot.xBottom, axes["xMin"], axes["xMax"])
         self.setAxisScale(Qwt5.QwtPlot.yLeft, axes["y1Min"], axes["y1Max"])
         self.setAxisScale(Qwt5.QwtPlot.yRight, axes["y2Min"], axes["y2Max"])
-        self.setAxisScaleType(Qwt5.QwtPlot.xBottom, axes["xMode"])
+        if not self.getXIsTime():
+            self.setAxisScaleType(Qwt5.QwtPlot.xBottom, axes["xMode"])
         self.setAxisScaleType(Qwt5.QwtPlot.yLeft, axes["y1Mode"])
         self.setAxisScaleType(Qwt5.QwtPlot.yRight, axes["y2Mode"])
-        self.setXDynScale(axes["xDyn"])
-        self.setXIsTime(axes["xIsTime"])
 
     def saveConfig(self, ofile=None, curvenames=None):
         """Stores the current curves and their display properties in a file for
@@ -2189,7 +2191,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param scale: (Qwt5.QwtScaleTransformation.Type) the scale
                       transformation. For convenience, the strings "Linear"
                       and "Log" can be used as well'''
-
+                      
+        if self.getXIsTime() and isinstance(self.axisScaleEngine(axis), DateTimeScaleEngine):
+            raise ValueError('TaurusPlot.setAxisScaleType cannot be called with time scales') 
         if not Qwt5.QwtPlot.axisValid(axis):
             self.error("TaurusPlot.setScale() invalid axis: " + axis)
         if scale is None:
@@ -2894,8 +2898,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :ref:`TaurusPlot user manual <taurusplottime>`
         '''
-        if enable == self._xIsTime:
-            return
         if enable:
             DateTimeScaleEngine.enableInAxis(self, axis)
             self._axesnames[Qwt5.QwtPlot.xBottom] = "T"

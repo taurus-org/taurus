@@ -156,6 +156,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
                 axes[axis].setCurrentIndex(1)
             else:
                 raise TypeError, "TaurusPlotConfigDialog::__init__(): unexpected axis scale type (linear or logarihtmic expected)"
+        self.ui.xModeComboBox.setEnabled(not self.parent.getXIsTime())
 
         #determine which axes are visible
         if not self.parent.axisEnabled(Qwt5.QwtPlot.xBottom):
@@ -401,13 +402,14 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         else:
                 #set the scale for the corresponding axis
                 if comboBox.objectName() == "xModeComboBox":
+                    if not self.parent.getXIsTime():
                         self.parent.setAxisScaleType(Qwt5.QwtPlot.xBottom,itemSelected)
                 elif comboBox.objectName() == "y1ModeComboBox":
-                        self.parent.setAxisScaleType(Qwt5.QwtPlot.yLeft,itemSelected)
+                    self.parent.setAxisScaleType(Qwt5.QwtPlot.yLeft,itemSelected)
                 elif comboBox.objectName() == "y2ModeComboBox":
-                        self.parent.setAxisScaleType(Qwt5.QwtPlot.yRight,itemSelected)
+                    self.parent.setAxisScaleType(Qwt5.QwtPlot.yRight,itemSelected)
                 else:
-                        self.error("TaurusPlotConfig::modeComboChanged() invalid axis: " + comboBox.objectName())
+                    self.error("TaurusPlotConfig::modeComboChanged() invalid axis: " + comboBox.objectName())
     
     def setXDynScale(self,checked):
         if checked:
