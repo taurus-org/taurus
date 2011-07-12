@@ -29,7 +29,7 @@ __all__ = ["QPool",
            "registerExtensions"]
 
 import taurus.core
-from taurus.core.tango.sardana.poolv3 import Pool
+from taurus.core.tango.sardana.pool import Pool
 
 from PyQt4 import Qt
 
@@ -46,7 +46,7 @@ class QPool(Qt.QObject, Pool):
 def registerExtensions():
     """Registers the pool extensions in the :class:`taurus.core.tango.TangoFactory`"""
     import taurus
-    import taurus.core.tango.sardana.poolv3
-    taurus.core.tango.sardana.poolv3.registerExtensions()
+    import taurus.core.tango.sardana.pool
+    taurus.core.tango.sardana.pool.registerExtensions()
     factory = taurus.Factory()
     factory.registerDeviceClass('Pool', QPool)
