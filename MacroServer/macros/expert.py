@@ -50,11 +50,10 @@ class defmeas(Macro):
         channels = []
         for c in channel_list:
             channels.append(c.getName())
-        pool.createMeasurementGroup(name, channels)
-
+        mg = pool.createMeasurementGroup(name, channels)
 
 class udefmeas(Macro):
-    """Delete an existing measurement group"""
+    """Deletes an existing measurement group"""
 
     param_def = [ ['name',  Type.MeasurementGroup, None, 'Measurement group name'],]
 
@@ -64,8 +63,33 @@ class udefmeas(Macro):
             self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
         pool = pools[0]
 
-        pool.DeleteMeasurementGroup(mntgrp.getName())
+        pool.deleteMeasurementGroup(mntgrp.getName())
 
+class defelem(Macro):
+    """Creates an element on a controller with an axis"""
+    
+    param_def = [ ['name',  Type.String, None, 'new element name'],
+                  ['ctrl',  Type.Controller, None, 'existing controller'],
+                  ['axis',  Type.Integer, None, 'axis in the controller'],]
+    
+    def run(self, name, ctrl, axis):
+        pool = ctrl.getPoolObj()
+        elem = pool.createElement(name, ctrl, axis)
+
+class udefelem(Macro):
+    """Deletes an existing element"""
+    
+    param_def = [ ['name', Type.String, None, 'element name'],]
+    
+    def run(self, name):
+        manager = self.getManager()
+        obj = manager.getObj(name)
+        if obj is None:
+            raise Exception("No element named %s found" % name)
+        ctrl = manager.getObj(obj.getControllerName())
+        pool = obj.getPoolObj()
+        pool.deleteElement(name)
+    
 ################################################################################
 #
 # Controller related macros
@@ -83,7 +107,7 @@ class send2ctrl(Macro):
     
     def run(self, controller, *data):
         name = controller.getName()
-        pool = controller.getPool()
+        pool = controller.getPoolObj()
         str_data = " ".join(data)
         res = pool.SendToController([name,str_data])
         self.output(res)
