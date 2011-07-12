@@ -44,9 +44,7 @@ pkgpython_PYTHON = $(top_srcdir)/__init__.py \
 		$(top_srcdir)/manager.py \
 		$(top_srcdir)/metamacro.py \
 		$(top_srcdir)/modulemanager.py \
-		$(top_srcdir)/motion.py \
 		$(top_srcdir)/parameter.py \
-		$(top_srcdir)/pool.py \
 		$(top_srcdir)/typemanager.py
 
 RSYNC_OPTS = -r --cvs-exclude

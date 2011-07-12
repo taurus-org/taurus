@@ -95,8 +95,7 @@ am__pkgpython_PYTHON_DIST = $(top_srcdir)/__init__.py \
 	$(top_srcdir)/macro.py $(top_srcdir)/macromanager.py \
 	$(top_srcdir)/MacroServer.py $(top_srcdir)/manager.py \
 	$(top_srcdir)/metamacro.py $(top_srcdir)/modulemanager.py \
-	$(top_srcdir)/motion.py $(top_srcdir)/parameter.py \
-	$(top_srcdir)/pool.py $(top_srcdir)/typemanager.py
+	$(top_srcdir)/parameter.py $(top_srcdir)/typemanager.py
 py_compile = $(top_srcdir)/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -212,9 +211,7 @@ top_srcdir = @top_srcdir@
 @MACRO_SERVER_TRUE@		$(top_srcdir)/manager.py \
 @MACRO_SERVER_TRUE@		$(top_srcdir)/metamacro.py \
 @MACRO_SERVER_TRUE@		$(top_srcdir)/modulemanager.py \
-@MACRO_SERVER_TRUE@		$(top_srcdir)/motion.py \
 @MACRO_SERVER_TRUE@		$(top_srcdir)/parameter.py \
-@MACRO_SERVER_TRUE@		$(top_srcdir)/pool.py \
 @MACRO_SERVER_TRUE@		$(top_srcdir)/typemanager.py
 
 @MACRO_SERVER_TRUE@RSYNC_OPTS = -r --cvs-exclude
