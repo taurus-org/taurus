@@ -26,9 +26,9 @@
 """The device pool submodule. It contains specific part of sardana device pool"""
 
 __all__ = ["AbortException", "BaseElement", "ControllerClassProp",
-           "ControllerClassPropInstance", "ControllerClass", "PoolElement",
-           "Controller", "ComChannel", "ExpChannel", "CTExpChannel",
-           "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel",
+           "ControllerClassPropInstance", "ControllerClass",
+           "PoolElement", "Controller", "ComChannel", "ExpChannel",
+           "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel",
            "PseudoCounter", "Motor", "PseudoMotor", "MotorGroup",
            "MeasurementGroup", "IORegister", "Instrument", "Pool",
            "registerExtensions"]
@@ -123,7 +123,7 @@ class BaseElement(object):
         return self._pool
 
 
-class ControllerClassProp(taurus.core.util.Object):
+class ControllerClassProp(object):
     
     def __init__(self,name,type,desc,dftv):
         self.name = name
@@ -316,6 +316,52 @@ class SoftwareObjList(BaseObjList):
         # fire the event to the listeners ( a list of id )
         self.fireEvent(res)
 
+
+class ControllerClassObjList(BaseObjList):
+    
+    def __init__(self, pool, name, obj_class, attr):
+        self._obj_dict = {}
+        self.call__init__(BaseObjList, pool, name, obj_class, attr)
+    
+    def _buildCache(self, elems):
+        self._obj_dict = {}
+        pool = self.getPoolObj()
+        for elem in elems:
+            info_dict = self.match(elem)
+            key = info_dict['_alias']
+            info_dict.update({ '_pool' : pool, '_full_pool_name' : elem })
+            self._obj_dict[key] = self._obj_class(**info_dict)
+        return self._obj_dict.keys()
+
+#    def read(self, cache=False):
+#        if not cache or self._obj_dict is None:
+#            return self._buildCache(self.attr.read(cache=False).value)
+#        return self._obj_dict.keys()
+    
+    def eventReceived(self, evt_src, evt_type, evt_value):
+        """Event handler from Taurus"""
+        self._obj_dict = {}
+        if evt_type == taurus.core.TaurusEventType.Error:
+            v = []
+        else:
+            if evt_value is None or evt_value.value is None:
+                v = []
+            else:
+                v = evt_value.value
+        
+        if len(v):
+            pool = self.getPoolObj()
+            jv = json.dumps(v)
+            res = pool.command_inout("getControllerClassInfo", jv)
+            elems = json.loads(v)
+            assert(len(v) == len(elems))
+            for elem in elems:
+                name = elem['name']
+                self._obj_dict[name] = self._obj_class(**elem)
+        
+        self.fireEvent(self._obj_dict.keys())
+
+
 class HardwareObjList(BaseObjList):
     """An event generator for a 'List' type attribute in the Pool 
     (MotorList, ExpChannelList, ComChannelList, etc)"""
@@ -386,6 +432,9 @@ class HardwareObjList(BaseObjList):
                                _ctrl_axis=axis, _type=type,
                                _full_pool_name=full_pool_name)
             self._obj_dict[id] = elem
+            if ctrl_name is not None:
+                ctrl = pool.getListObj("Controller").getObjByName(ctrl_name)
+                ctrl.addElement(elem)
         
         # modify the existing ones
         for modif_elem_data in modif_elems:
@@ -396,7 +445,9 @@ class HardwareObjList(BaseObjList):
         # remove the deleted elements
         for del_elem_data in del_elems:
             id = del_elem_data['_id']
-            self._obj_dict.pop(id)
+            elem = self._obj_dict.pop(id)
+            ctrl = elem.getControllerObj()
+            ctrl.removeElement(elem)
             f.removeExistingDevice(id)
             
         self._obj_alias_dict = taurus.core.util.CaselessDict()
@@ -545,6 +596,9 @@ class PoolElement(BaseElement, taurus.core.tango.TangoDevice):
     def getControllerName(self):
         return self._ctrl_name
     
+    def getControllerObj(self):
+        return self.getPoolObj().getObj("Controller", self._ctrl_name)
+    
     def getAxis(self):
         return self._ctrl_axis
 
@@ -592,6 +646,8 @@ class Controller(BaseElement):
     
     def __init__(self, **kw):
         self.__dict__.update(kw)
+        self._elems = {}
+        self._last_axis = 0
         self._str_tuple = self.getName(), self.getType(), self.getClassName(), self.getModuleName()
         
     @classmethod
@@ -616,6 +672,29 @@ class Controller(BaseElement):
     
     def getType(self):
         return self._type
+    
+    def addElement(self, elem):
+        axis = elem.getAxis()
+        self._elems[axis] = elem
+        self._last_axis = max(self._last_axis, axis)
+        
+    def removeElement(self, elem):
+        axis = elem.getAxis()
+        del self._elems[elem.getAxis()]
+        if axis == self._last_axis:
+            self._last_axis = max(self._elems)
+    
+    def getElementByAxis(self, axis):
+        return self._elems.get(axis)
+    
+    def getElementByName(self, name):
+        name = name.lower()
+        for e in self._elems.values():
+            if e.getName().lower() == name:
+                return e
+    
+    def getLastUsedAxis(self):
+        return self._last_axis
     
     def __cmp__(self, o):
         return cmp(self._id, o._id)
@@ -1479,15 +1558,54 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
     def createMotorGroup(self, name, elements):
         params = [name,] + map(str, elements)
         self.debug('trying to create motor group: %s', params)
-        self.command_inout('CreateMotorGroup', params)
         mg_list = self.getListObj('MotorGroup')
-        mg_list.waitEvent(any=True)
+        self.command_inout('CreateMotorGroup', params)
+        mg_list.waitEvent(any=True, timeout=0.5)
+        return mg_list.getObjByName(name)
     
     def createMeasurementGroup(self, name, elements):
         params = [name,] + map(str,elements)
         self.debug('trying to create measurement group: %s', params)
+        mg_list = self.getListObj('MeasurementGroup')
         self.command_inout('CreateMeasurementGroup', params)
+        mg_list.waitEvent(any=True, timeout=0.5)
+        return mg_list.getObjByName(name)
+        
+    def deleteMeasurementGroup(self, name):
+        mg_list = self.getListObj('MeasurementGroup')
+        self.command_inout('DeleteMeasurementGroup', name)
+        mg_list.waitEvent(any=True, timeout=0.5)
+    
+    def createElement(self, name, ctrl, axis=None):
+        ctrl_type = ctrl.getType()
+        if axis is None:
+            axis = ctrl.getLastUsedAxis() + 1
+        else:
+            axis = int(axis)
+        elem_type = ctrl_type
+        if elem_type not in ("Motor", "IORegister", "ComChannel"):
+            elem_type = "ExpChannel"
+        cmd = "Create" + elem_type
+        lst = self.getListObj(elem_type)
+        self.command_inout(cmd, [[axis], [name, ctrl.getName()]])
+        lst.waitEvent(any=True, timeout=0.5)
+        return lst.getObjByName(name)
 
+    def deleteElement(self, name):
+        obj = None
+        for obj_list in self._obj_dict.values():
+            obj = obj_list.getObjByName(name)
+            if obj is not None:
+                break
+        if obj is None:
+            raise Exception("Element %s not found" % name)
+        elem_type = obj.getType()
+        if elem_type not in ("Motor", "IORegister", "ComChannel"):
+            elem_type = "ExpChannel"
+        cmd = "Delete" + elem_type
+        lst = self.getListObj(elem_type)
+        self.command_inout(cmd, name)
+        lst.waitEvent(any=True, timeout=0.5)
 
 def registerExtensions():
     import taurus

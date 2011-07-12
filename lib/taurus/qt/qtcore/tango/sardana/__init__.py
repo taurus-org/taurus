@@ -28,3 +28,11 @@ Sardana extension for taurus Qt
 """
 
 __docformat__ = 'restructuredtext'
+
+def registerExtensions():
+    import pool
+    import macroserver
+    
+    pool.registerExtensions()
+    macroserver.registerExtensions()
+    

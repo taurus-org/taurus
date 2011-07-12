@@ -28,3 +28,10 @@
 __docformat__ = 'restructuredtext'
 
 from .sardana import *
+
+def registerExtensions(self):
+    import pool
+    import macroserver
+    
+    pool.registerExtensions()
+    macroserver.registerExtensions()

@@ -158,14 +158,12 @@ class BaseDoor(MacroServerDevice):
         self._writeLock = threading.Lock()
         self._env = {}
 
-        self.call__init__(taurus.core.tango.TangoDevice, name, **kw)
+        self.call__init__(MacroServerDevice, name, **kw)
         
         self._old_door_state = PyTango.DevState.UNKNOWN
         self._old_sw_door_state = taurus.core.TaurusSWDevState.Uninitialized
         
         self.getStateObj().addListener(self.stateChanged)
-        #self._state_attr = Attr(self, "state", None, self.getStateObj())
-        #self._state_attr.subscribeEvent(self.stateChanged)
 
         for log_name in self.log_streams:
             tg_attr = self._createAttribute(log_name)
@@ -655,7 +653,7 @@ class BaseMacroServer(MacroServerDevice):
         self._macro_dict_lock = threading.Lock()
         self._macro_dict = {}
         
-        self.call__init__(taurus.core.tango.TangoDevice, name, **kw)
+        self.call__init__(MacroServerDevice, name, **kw)
 
         macro_list = self.getAttribute("MacroList")
         macro_list.addListener(self._macrosChanged)
