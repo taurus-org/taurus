@@ -203,6 +203,9 @@ class ControllerClass(BaseElement):
                 self._counter_roles.append(info[i])
                 i = i + 1 
 
+    def getSimpleFileName(self):
+        return self._fname
+
     def getFileName(self):
         return self._filename
 
@@ -317,49 +320,49 @@ class SoftwareObjList(BaseObjList):
         self.fireEvent(res)
 
 
-class ControllerClassObjList(BaseObjList):
+#class ControllerClassObjList(BaseObjList):
     
-    def __init__(self, pool, name, obj_class, attr):
-        self._obj_dict = {}
-        self.call__init__(BaseObjList, pool, name, obj_class, attr)
+#    def __init__(self, pool, name, obj_class, attr):
+#        self._obj_dict = {}
+#        self.call__init__(BaseObjList, pool, name, obj_class, attr)
     
-    def _buildCache(self, elems):
-        self._obj_dict = {}
-        pool = self.getPoolObj()
-        for elem in elems:
-            info_dict = self.match(elem)
-            key = info_dict['_alias']
-            info_dict.update({ '_pool' : pool, '_full_pool_name' : elem })
-            self._obj_dict[key] = self._obj_class(**info_dict)
-        return self._obj_dict.keys()
-
-#    def read(self, cache=False):
-#        if not cache or self._obj_dict is None:
-#            return self._buildCache(self.attr.read(cache=False).value)
+#    def _buildCache(self, elems):
+#        self._obj_dict = {}
+#        pool = self.getPoolObj()
+#        for elem in elems:
+#            info_dict = self.match(elem)
+#            key = info_dict['_alias']
+#            info_dict.update({ '_pool' : pool, '_full_pool_name' : elem })
+#            self._obj_dict[key] = self._obj_class(**info_dict)
 #        return self._obj_dict.keys()
+
+##    def read(self, cache=False):
+##        if not cache or self._obj_dict is None:
+##            return self._buildCache(self.attr.read(cache=False).value)
+##        return self._obj_dict.keys()
     
-    def eventReceived(self, evt_src, evt_type, evt_value):
-        """Event handler from Taurus"""
-        self._obj_dict = {}
-        if evt_type == taurus.core.TaurusEventType.Error:
-            v = []
-        else:
-            if evt_value is None or evt_value.value is None:
-                v = []
-            else:
-                v = evt_value.value
+#    def eventReceived(self, evt_src, evt_type, evt_value):
+#        """Event handler from Taurus"""
+#        self._obj_dict = {}
+#        if evt_type == taurus.core.TaurusEventType.Error:
+#            v = []
+#        else:
+#            if evt_value is None or evt_value.value is None:
+#                v = []
+#            else:
+#                v = evt_value.value
         
-        if len(v):
-            pool = self.getPoolObj()
-            jv = json.dumps(v)
-            res = pool.command_inout("getControllerClassInfo", jv)
-            elems = json.loads(v)
-            assert(len(v) == len(elems))
-            for elem in elems:
-                name = elem['name']
-                self._obj_dict[name] = self._obj_class(**elem)
+#        if len(v):
+#            pool = self.getPoolObj()
+#            jv = json.dumps(v)
+#            res = pool.command_inout("getControllerClassInfo", jv)
+#            elems = json.loads(v)
+#            assert(len(v) == len(elems))
+#            for elem in elems:
+#                name = elem['name']
+#                self._obj_dict[name] = self._obj_class(**elem)
         
-        self.fireEvent(self._obj_dict.keys())
+#        self.fireEvent(self._obj_dict.keys())
 
 
 class HardwareObjList(BaseObjList):
@@ -432,9 +435,6 @@ class HardwareObjList(BaseObjList):
                                _ctrl_axis=axis, _type=type,
                                _full_pool_name=full_pool_name)
             self._obj_dict[id] = elem
-            if ctrl_name is not None:
-                ctrl = pool.getListObj("Controller").getObjByName(ctrl_name)
-                ctrl.addElement(elem)
         
         # modify the existing ones
         for modif_elem_data in modif_elems:
@@ -447,7 +447,6 @@ class HardwareObjList(BaseObjList):
             id = del_elem_data['_id']
             elem = self._obj_dict.pop(id)
             ctrl = elem.getControllerObj()
-            ctrl.removeElement(elem)
             f.removeExistingDevice(id)
             
         self._obj_alias_dict = taurus.core.util.CaselessDict()
@@ -533,6 +532,17 @@ class PoolElement(BaseElement, taurus.core.tango.TangoDevice):
         # force the creation of a state attribute
         self.getStateExObj()
 
+    def cleanUp(self):
+        taurus.core.tango.TangoDevice.cleanUp(self)
+        self._reserved = None
+        f = self.factory()
+        for name, attr in self._attr_obj.items():
+            f.removeExistingAttribute(attr)
+            del self._attr_obj[name]
+            
+        self._attr_obj = taurus.core.util.CaselessDict()
+        self._attr_obj_ex = taurus.core.util.CaselessDict()
+        
     def reserve(self, obj):
         if obj is None:
             self._reserved = None
@@ -646,10 +656,8 @@ class Controller(BaseElement):
     
     def __init__(self, **kw):
         self.__dict__.update(kw)
-        self._elems = {}
-        self._last_axis = 0
         self._str_tuple = self.getName(), self.getType(), self.getClassName(), self.getModuleName()
-        
+    
     @classmethod
     def match(cls, s):
         r = cls.BaseRe.match(s)
@@ -685,16 +693,37 @@ class Controller(BaseElement):
             self._last_axis = max(self._elems)
     
     def getElementByAxis(self, axis):
-        return self._elems.get(axis)
+        pool = self.getPoolObj()
+        lst = pool.getObjList(self.getType())
+        for name, elem in lst.getObjNameDict().items():
+            if elem.getAxis() != axis:
+                continue
+            if elem.getControllerName() != self.getName():
+                continue
+            return elem
     
     def getElementByName(self, name):
-        name = name.lower()
-        for e in self._elems.values():
-            if e.getName().lower() == name:
-                return e
+        pool = self.getPoolObj()
+        lst = pool.getObjList(self.getType())
+        for name, elem in lst.getObjNameDict().items():
+            if elem.getName() != name:
+                continue
+            if elem.getControllerName() != self.getName():
+                continue
+            return elem
+    
+    def getUsedAxis(self):
+        pool = self.getPoolObj()
+        lst = pool.getObjList(self.getType())
+        axis = []
+        for name, elem in lst.getObjNameDict().items():
+            if elem.getControllerName() != self.getName():
+                continue
+            axis.append(elem.getAxis())
+        return sorted(axis)
     
     def getLastUsedAxis(self):
-        return self._last_axis
+        return max(self.getUsedAxis())
     
     def __cmp__(self, o):
         return cmp(self._id, o._id)
@@ -1299,8 +1328,7 @@ class MeasurementGroup(PoolElement):
         return self._getAttrEx('integration_time')
 
     def setIntegrationTime(self, ctime):
-        if self.getIntegrationTime() != ctime:
-            self.getIntegrationTimeObj().write(ctime)
+        self.getIntegrationTimeObj().write(ctime)
     
     @reservedOperation
     def startCount(self, timeout=None):
@@ -1323,9 +1351,7 @@ class MeasurementGroup(PoolElement):
     def count(self, duration=None, timeout=None):
         if duration is None or duration == 0:
             return self.getStateExObj().readValue(), self.getValues(force=True)
-        
         self.setIntegrationTime(duration)
-
         evt_wait = self._getEventWait()
         evt_wait.connect(self.getAttribute("state"))
         try:
@@ -1333,7 +1359,9 @@ class MeasurementGroup(PoolElement):
             evt_wait.waitEvent(Counting, equal=False)
             time_stamp = time.time()
             self.Start()
+            self.debug("wait for counting")
             evt_wait.waitEvent(Counting, time_stamp)
+            self.debug("wait for counting stop")
             evt_wait.waitEvent(Counting, time_stamp, equal=False)
         finally:
             evt_wait.unlock()
@@ -1573,6 +1601,7 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
         
     def deleteMeasurementGroup(self, name):
         mg_list = self.getListObj('MeasurementGroup')
+        mg = mg_list.getObjByName(name)
         self.command_inout('DeleteMeasurementGroup', name)
         mg_list.waitEvent(any=True, timeout=0.5)
     
@@ -1607,6 +1636,24 @@ class Pool(taurus.core.tango.TangoDevice, motion.MoveableSource):
         self.command_inout(cmd, name)
         lst.waitEvent(any=True, timeout=0.5)
 
+    def createController(self, class_name, name, *props):
+        ctrl_class = self.getObj('ControllerClass', class_name)
+        if ctrl_class is None:
+            raise Exception("Controller class %s not found" % class_name)
+        cmd = "CreateController"
+        pars = [ctrl_class.getType(), ctrl_class.getSimpleFileName(), class_name, name]
+        pars.extend(map(str, props))
+        ctrl_list = self.getListObj('Controller')
+        self.command_inout(cmd, pars)
+        ctrl_list.waitEvent(any=True, timeout=0.5)
+        return ctrl_list.getObjByName(name)
+
+    def deleteController(self, name):
+        ctrl_list = self.getListObj('Controller')
+        ctrl = ctrl_list.getObjByName(name)
+        self.command_inout('DeleteController', name)
+        ctrl_list.waitEvent(any=True, timeout=0.5)
+        
 def registerExtensions():
     import taurus
     factory = taurus.Factory()
