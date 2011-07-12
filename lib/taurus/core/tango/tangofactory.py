@@ -29,7 +29,9 @@ __all__ = ["TangoFactory"]
 
 __docformat__ = "restructuredtext"
 
-import os, threading
+import sys
+import os
+import threading
 import PyTango
 
 import taurus.core
@@ -550,18 +552,51 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 raise DoubleRegistration
         self.tango_attrs[name] = attr
         
-    def getExistingAttribute(self,full_attr_name):
+    def getExistingAttribute(self, attr_name):
         """Returns a registered attribute or None if the corresponding attribute
            as not been registered. This is used mainly to avoid recursion between 
            two objects supplied by this factory which can ask for the other object 
            in the constructor.
         
-           :param full_attr_name: (str) full attribute name
+           :param attr_name: (str) attribute name
            :return: (taurus.core.tango.TangoAttribute or None) attribute object or None
            """
+        attr = self.tango_attrs.get(attr_name)
+
+        if attr is not None:
+            return attr
+        
+        # Simple approach did not work. Lets build a proper device name
+        if attr_name.lower().startswith("tango://"):
+            attr_name = attr_name[8:]
+        validator = _Attribute.getNameValidator()
+        params = validator.getParams(attr_name)
+        
+        if params is None:
+            raise TaurusException("Invalid Tango attribute name %s" % attr_name)
+        
+        host,port = params.get('host'),params.get('port')
+        
+        db = None
+        if host is None or port is None:
+            db = self.getDatabase()
+            host, port = db.get_db_host(), db.get_db_port()
+        else:
+            db_name = "%s:%s" % (host,port)
+            db = self.getDatabase(db_name)
+        
+        dev_name = params.get('devicename')
+        
+        if dev_name is None:
+            dev = self.getDevice(params.get('devalias'))
+            dev_name = dev.getFullName()
+        else:
+            dev_name = db.getFullName() + "/" + dev_name
+
+        attr_name = params.get('attributename')
+        full_attr_name = dev_name + "/" + attr_name
+         
         attr = self.tango_attrs.get(full_attr_name)
-        if attr is None:
-            return None
         return attr
     
     def getExistingDevice(self, dev_name):
@@ -627,7 +662,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         return self.tango_devs.get(full_dev_name)
         
     def removeExistingDevice(self, dev_or_dev_name):
-        """Removes a device from a previously registered device
+        """Removes a previously registered device.
            
            :param dev_or_dev_name: (str or TangoDevice) device name or device object
         """
@@ -636,10 +671,31 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         else:
             dev = self.getExistingDevice(dev_or_dev_name)
         if dev is None:
-            raise KeyError("Device not found")
-        del self.tango_devs[dev.getFullName()]
-        del self.tango_alias_devs[dev.getSimpleName()]
-        
+            raise KeyError("Device %s not found" % dev_or_dev_name)
+        dev.cleanUp()
+        full_name = dev.getFullName()
+        if self.tango_devs.has_key(full_name):
+            del self.tango_devs[full_name]
+        simp_name = dev.getSimpleName()
+        if self.tango_alias_devs.has_key(simp_name):
+            del self.tango_alias_devs[simp_name]
+    
+    def removeExistingAttribute(self, attr_or_attr_name):
+        """Removes a previously registered attribute.
+           
+           :param attr_or_attr_name: (str or TangoAttribute) attribute name or attribute object
+        """
+        if isinstance(attr_or_attr_name, _Attribute):
+            attr = attr_or_attr_name
+        else:
+            attr = self.getExistingAttribute(attr_or_attr_name)
+        if attr is None:
+            raise KeyError("Attribute %s not found" % attr_or_attr_name)
+        attr.cleanUp()
+        full_name = attr.getFullName()
+        if self.tango_attrs.has_key(full_name):
+            del self.tango_attrs[full_name]
+    
     def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
         """Activates the polling (client side) for the given attribute with the
            given period (seconds).
