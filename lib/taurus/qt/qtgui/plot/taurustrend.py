@@ -164,9 +164,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :return: (string_list) a list of title strings that correspond to the
                  list of trends in the set. 
         
-        .. seealso:: :meth:`compileBaseTile`
+        .. seealso:: :meth:`compileBaseTitle`
         '''
-        basetitle = self.compileBaseTile(basetitle)
+        basetitle = self.compileBaseTitle(basetitle)
         ntrends = len(self._curves)
         if '<trend_index>' in basetitle:
             ret = [basetitle.replace('<trend_index>', "%i"%i) for i in xrange(ntrends)]
@@ -174,7 +174,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             ret = [basetitle]*ntrends
         return ret
     
-    def compileBaseTile(self, basetitle):
+    def compileBaseTitle(self, basetitle):
         '''Return a base tile for a trend in whichs substitution of known
         placeholders has been performed.
         
@@ -971,7 +971,7 @@ class TaurusTrend(TaurusPlot):
                         curvetitle = titletext
                         for ts in self.trendSets.itervalues():
                             if curveName in ts:
-                                curvetitle = ts.compileBaseTile(curvetitle)
+                                curvetitle = ts.compileBaseTitle(curvetitle)
                                 curvetitle = curvetitle.replace('<trend_index>', "%i"%ts.index(curveName))
                                 break
                         curve = self.curves.get(curveName)
