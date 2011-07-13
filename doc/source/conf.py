@@ -25,7 +25,19 @@
 ##############################################################################
 
 import sys, os
-import sardana
+
+def set_src():
+    import sys
+    import os.path as osp
+    sar_dir = osp.join(osp.dirname(osp.abspath(__file__)), osp.pardir, osp.pardir, 'src')
+    sys.path.append(osp.abspath(sar_dir))
+
+try:
+    import sardana
+except ImportError:
+    # try to use code from src distribution
+    set_src()
+    import sardana
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
