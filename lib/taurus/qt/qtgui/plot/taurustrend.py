@@ -102,6 +102,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._curves = curves
             self._orderedCurveNames = curves.keys()
         self.setModel(name)
+        self._titleText = None
         
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -325,7 +326,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         For documentation about the parameters of this method, see
         :meth:`TaurusBaseComponent.handleEvent`'''
         if evt_type == taurus.core.TaurusEventType.Config:
-            self.setTitleText(self._parent.getDefaultCurvesTitle())
+            #self.setTitleText(self._titleText or self._parent.getDefaultCurvesTitle()) #this did not work well (it overwrites custom titles!)
             return
         
         if evt_type == taurus.core.TaurusEventType.Error:
@@ -358,7 +359,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 subname = "%s[%i]"%(name,i)
                 self._parent.attachRawData(rawdata,id=subname)
                 self.addCurve(subname, self._parent.curves[subname])
-            self.setTitleText(self._parent.getDefaultCurvesTitle())
+            self.setTitleText(self._titleText or self._parent.getDefaultCurvesTitle())
             self._parent.autoShowYAxes()
 
         #get the data from the event

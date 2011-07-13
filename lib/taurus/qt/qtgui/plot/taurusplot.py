@@ -608,7 +608,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             self.setBrush(b)            
         if prop.yAxis is not None: self.setYAxis(prop.yAxis)
         if getattr(prop,"visible",None) is not None: self.setVisible(prop.visible)
-        if prop.title is not None: self.setTitle(Qwt5.QwtText(prop.title))
+        if prop.title is not None: self.setTitleText(prop.title)
         self.setSymbol(s)
         self.setPen(p)
         
