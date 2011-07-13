@@ -34,10 +34,19 @@ import sys
 import weakref
 import StringIO
 import traceback
+import functools
 from taurus.core.util import CaselessDict
 
 from poolbase import *
 from pooldefs import *
+
+def check_ctrl(fn):
+    @functools.wraps(fn)
+    def wrapper(pool_ctrl, *args, **kwargs):
+        if not pool_ctrl.is_online():
+            raise Exception("Cannot execute '%s' because '%s' is offline" % (fn.__name__, pool_ctrl.name))
+        return fn(pool_ctrl, *args, **kwargs)
+    return wrapper
 
 class PoolController(PoolObject):
     
@@ -58,7 +67,16 @@ class PoolController(PoolObject):
         super(PoolController, self).__init__(**kwargs)
         
         self.init()
-    
+
+    def __repr__(self):
+        ctrl_info = self._ctrl_info
+        data = {'name' : self.name, 'module': ctrl_info.getModuleName(),
+                'class' : ctrl_info.getName(), 'language' : 'Python',
+                'type' : self.get_ctrl_type_names()[0],
+                'filename' : ctrl_info.getSimpleFileName() }
+        r = "{name} ({module}.{class}/{name}) - {type} {language} ctrl ({filename})".format(**data)
+        return r
+
     def init(self):
         if self._ctrl_info is None:
             if self._lib_info is not None:
@@ -101,6 +119,9 @@ class PoolController(PoolObject):
     def get_ctrl_types(self):
         return self._ctrl_info.getTypes()
 
+    def get_ctrl_type_names(self):
+        return map(ElementType.whatis, self.get_ctrl_types())
+
     def get_ctrl_error(self):
         return self._ctrl_error
     
@@ -130,9 +151,11 @@ class PoolController(PoolObject):
     
     ctrl_info = property(fget=get_ctrl_info, doc="controller information object")
     
+    @check_ctrl
     def set_log_level(self, level):
         self.ctrl._log.log_obj.setLevel(level)
     
+    @check_ctrl
     def get_log_level(self):
         return self.ctrl._log.log_obj.level
     
@@ -211,22 +234,26 @@ class PoolController(PoolObject):
         if elem is None:
             elem = pd.get(k)
         return elem
-
+    
+    @check_ctrl
     def get_standard_axis_attributes(self, axis):
         return self.ctrl.getStandardAxisAttributes(axis)
-
+    
+    @check_ctrl
     def get_ctrl_attr(self, name):
         ctrl_info = self.ctrl_info
         attr_info = ctrl_info.getControllerAttributes()[name]
         fget = getattr(self.ctrl, attr_info.fget)
         return fget()
-
+    
+    @check_ctrl
     def set_ctrl_attr(self, name, value):
         ctrl_info = self.ctrl_info
         attr_info = ctrl_info.getControllerAttributes()[name]
         fset = getattr(self.ctrl, attr_info.fset)
         fset(value)
-
+    
+    @check_ctrl
     def get_axis_attr(self, axis, name):
         ctrl_info = self.ctrl_info
         axis_attr_info = ctrl_info.getAxisAttributes()[name]
@@ -236,6 +263,7 @@ class PoolController(PoolObject):
             ret = self.ctrl.GetExtraPar(axis, name)
         return ret
     
+    @check_ctrl
     def set_axis_attr(self, axis, name, value):
         ctrl_info = self.ctrl_info
         axis_attr_info = ctrl_info.getAxisAttributes()[name]
@@ -243,7 +271,64 @@ class PoolController(PoolObject):
             return getattr(self.ctrl, axis_attr_info.fset)(axis, value)
         except AttributeError:
             return self.ctrl.SetExtraPar(axis, name, value)
+    
+    # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
+    
+    @check_ctrl
+    def read_axis_states(self, axises=None):
+        """Reads the state for the given axises. If axises is None, reads the
+        state of all active axises.
+        
+        :param axises: the list of axis to get the state. Default is None meaning
+                       all active axis in this controller
+        :type axises: seq<int> or None
+        :return: a map containing the controller state information for each axis
+        :rtype: dict<PoolElement, state info>
+        """
+        if axises is None:
+            axises = sorted(self._element_axis)
+        
+        ctrl = self.ctrl
+        ctrl.PreStateAll()
+        
+        for axis in axises:
+            ctrl.PreStateOne(axis)
+        
+        ctrl.StateAll()
+        
+        ctrl_states = {}
+        for axis in axises:
+            ctrl_states[self.get_element(axis=axis)] = ctrl.StateOne(axis)
+        return ctrl_states
+    
+    @check_ctrl
+    def read_axis_values(self, axises=None):
+        """Reads the value for the given axises. If axises is None, reads the
+        value of all active axises.
+        
+        :param axises: the list of axis to get the value. Default is None meaning
+                       all active axis in this controller
+        :type axises: seq<int> or None
+        :return: a map containing the controller value information for each axis
+        :rtype: dict<PoolElement, value>
+        """
+        if axises is None:
+            axises = sorted(self._element_axis)
+        
+        ctrl = self.ctrl
+        ctrl.PreReadAll()
+        
+        for axis in axises:
+            ctrl.PreReadOne(axis)
+        
+        ctrl.ReadAll()
+        
+        ctrl_values = {}
+        for axis in axises:
+            ctrl_values[self.get_element(axis=axis)] = ctrl.ReadOne(axis)
+        return ctrl_values
 
+    # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------
     

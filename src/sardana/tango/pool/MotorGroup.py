@@ -66,11 +66,12 @@ class MotorGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
+        self.Elements = map(int, self.Elements)
         if self.motor_group is None:
             try:
                 motor_group = self.pool.create_motor_group(name=self.alias, 
                     full_name=self.get_name(), id=self.Id,
-                    user_elements=self.Element_ids)
+                    user_elements=self.Elements)
                 motor_group.add_listener(self.on_motor_group_changed)
                 self.motor_group = motor_group
             except Exception,e:

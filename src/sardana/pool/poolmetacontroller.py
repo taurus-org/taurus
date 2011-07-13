@@ -35,6 +35,7 @@ import inspect
 import os
 import operator
 import types
+import json
 
 from taurus.core.util import CaselessDict, CodecFactory
 
@@ -54,16 +55,16 @@ class ControllerLib(object):
                         the module
     """
     
-    def __init__(self, module=None, exc_info=None):
-        if module is None:
-            self.module = None
-            self.f_path = None
+    def __init__(self, module=None, f_path=None, exc_info=None):
+        self.module = module
+        if module is not None:
+            f_path = os.path.abspath(module.__file__)
+        self.f_path = f_path
+        if f_path is None:
             self.path= None
             self.f_name = None
             self.name = None
         else:
-            self.module = module
-            self.f_path = os.path.abspath(module.__file__)
             if self.f_path.endswith(".pyc"):
                 self.f_path = self.f_path[:-1]
             self.path, self.f_name = os.path.split(self.f_path)
@@ -118,6 +119,9 @@ class ControllerLib(object):
             return self.f_path[:-1]
         return self.f_path
     
+    def getSimpleFileName(self):
+        return self.f_name
+    
     def hasErrors(self):
         return self.exc_info != None
     
@@ -129,7 +133,6 @@ class ControllerLib(object):
     def getError(self):
         return self.exc_info
 
-import json
 
 class ControllerClassJSONEncoder(json.JSONEncoder):
     
@@ -301,7 +304,8 @@ class ControllerClass(object):
 
     def toDict(self):
         ret = { 'name' : self.getName(),
-          'module_name' : self.getModuleName(),
+          'module' : self.getModuleName(),
+          'filename' : self.getFileName(),
           'description' : self.getDescription(),
           'gender' : self.getGender(),
           'model' : self.getModel(),
@@ -351,6 +355,9 @@ class ControllerClass(object):
 
     def getFileName(self):
         return self.getControllerLib().getFileName()
+    
+    def getSimpleFileName(self):
+        return self.getControllerLib().getSimpleFileName()
     
     def getDescription(self):
         return self.getControllerClass().__doc__ or ControllerClass.NoDoc

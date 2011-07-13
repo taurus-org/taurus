@@ -38,6 +38,26 @@ from poolelement import *
 from poolacquisition import *
 
 
+class PoolMeasurementGroupElementItem(object):
+    
+    def __init__(self, ctrl):
+        self.value = None
+        self.ctrl = ctrl
+
+class PMGEIMotor(PoolMeasurementGroupElementItem):
+    pass
+
+class PMGEICounterTimer(PoolMeasurementGroupElementItem):
+    pass
+
+class PMGEITangoAttribute(PoolMeasurementGroupElementItem):
+    pass
+
+class PGCtrl(object):
+    
+    pass
+
+
 class PoolMeasurementGroup(PoolGroupElement):
 
     def __init__(self, **kwargs):

@@ -27,7 +27,7 @@
 
 __all__ = ["InvalidId", "InvalidAxis", "ElementType", "TYPE_ELEMENTS",
            "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
-           "AcquisitionTerminationMode"]
+           "AcqTriggerMode"]
 
 __docformat__ = 'restructuredtext'
 
@@ -63,7 +63,7 @@ TYPE_GROUP_ELEMENTS = ElementType.MotorGroup, ElementType.MeasurementGroup
 
 TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType.MotorGroup
 
-AcquisitionTerminationMode = Enumeration("AcquisitionTerminationMode", ( \
-    "TerminateOnMaster",
-    "TerminateOnAll") )
+AcqTriggerMode = Enumeration("AcqTriggerMode", ( \
+    "TriggerOnMaster",
+    "TriggerOnAll") )
     

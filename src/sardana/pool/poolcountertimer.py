@@ -87,8 +87,10 @@ class PoolCounterTimer(PoolElement):
     def start_acquisition(self, value=None):
         self._aborted = False
         value = value or self._wvalue
+        if value is None:
+            raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
         if not self._simulation_mode:
             self.acquisition.run(items=(self,), integration_time=value, master=self,
-                termination_mode=AcquisitionTerminationMode.TerminateOnMaster)
+                termination_mode=AcqTriggerMode.TriggerOnMaster)
 
     

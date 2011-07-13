@@ -26,6 +26,9 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
+__all__ = ["CONTROLLER_TEMPLATE", "CTRL_TYPE_MAP", "TYPE_MAP", "TYPE_MAP_OBJ",
+           "TypeData", "ControllerManager" ]
+
 __docformat__ = 'restructuredtext'
 
 import sys
@@ -72,17 +75,26 @@ CTRL_TYPE_MAP = {
 }
 
 # key - element type
-# value - type string representation, internal pool class, automatic full name, controller class
+# value - type string representation, family, internal pool class, automatic full name, controller class
 TYPE_MAP = {
-    ET.Ctrl             : ("Controller",       CTRL_TYPE_MAP,          "controller/{module}.{klass}/{name}", controller.Controller),
-    ET.Instrument       : ("Instrument",       PoolInstrument,         "{full_name}",                        None),
-    ET.Motor            : ("Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",           controller.MotorController),
-    ET.CTExpChannel     : ("ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}",         controller.CounterTimerController),
-    ET.PseudoMotor      : ("PseudoMotor",      PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",              controller.PseudoMotorController),
-    ET.MotorGroup       : ("MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",              None),
-    ET.MeasurementGroup : ("MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",          None),
+    ET.Ctrl             : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{module}.{klass}/{name}", controller.Controller),
+    ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                        None),
+    ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",           controller.MotorController),
+    ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}",         controller.CounterTimerController),
+    ET.PseudoMotor      : ("PseudoMotor",      "PseudoMotor",      PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",              controller.PseudoMotorController),
+    ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",              None),
+    ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",          None),
 }
 
+class TypeData(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+TYPE_MAP_OBJ = {}
+for t, d in TYPE_MAP.items():
+    o = TypeData(type=t,name=d[0],family=d[1],klass=d[2],auto_full_name=d[3],ctrl_klass=d[4])
+    TYPE_MAP_OBJ[t] = o
+    
 class ControllerManager(Singleton, Logger):
 
     # States
@@ -437,11 +449,10 @@ class ControllerManager(Singleton, Logger):
 
     def _setControllerTypes(self, klass, info):
         types = []
-        for _type, type_data in TYPE_MAP.items():
+        for _type, type_data in TYPE_MAP_OBJ.items():
             if not _type in TYPE_ELEMENTS:
                 continue
-            s_klass = type_data[3]
-            if issubclass(klass, s_klass):
+            if issubclass(klass, type_data.ctrl_klass):
                 types.append(_type)
         info.setTypes(types)
         
@@ -497,6 +508,12 @@ class ControllerManager(Singleton, Logger):
             raise UnknownController("Unknown controller %s" % controller_name)
         return ret
     
+    def getControllerMetaClasses(self, controller_names):
+        ret = {}
+        for name in controller_names:
+            ret[name] = self._controller_dict.get(name)
+        return ret
+        
     def getControllerLib(self, name):
         if os.path.isabs(name):
             abs_file_name = name

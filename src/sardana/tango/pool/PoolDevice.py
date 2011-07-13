@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
-from PyTango import DevVarLong64Array
+from PyTango import DevVarStringArray
 from PyTango import DispLevel, DevState
 from PyTango import SCALAR, SPECTRUM, IMAGE
 from PyTango import READ_WRITE, READ
@@ -272,7 +272,7 @@ class PoolGroupDeviceClass(PoolDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        "Element_ids" :    [ DevVarLong64Array, "elements in the group", [ ] ],
+        "Elements" :    [ DevVarStringArray, "elements in the group", [ ] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
 

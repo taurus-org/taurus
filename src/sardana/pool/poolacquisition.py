@@ -36,7 +36,7 @@ import weakref
 import taurus.core.util
 
 from sardana import State
-from pooldefs import AcquisitionTerminationMode
+from pooldefs import AcqTriggerMode
 from poolaction import *
 
 class PoolAcquirableItem(PoolActionItem):
@@ -109,7 +109,7 @@ class PoolAcquisition(PoolAction):
             pool_ctrl.ctrl.StartAllCT()
     
     def in_acquisition(self, states, master):
-        if self._terminate_on == AcquisitionTerminationMode.TerminateOnMaster:
+        if self._terminate_on == AcqTriggerMode.TriggerOnMaster:
             return self._is_in_action(states[master][0])
         for state in states:
             if self._is_in_action(state[0]):
@@ -126,7 +126,7 @@ class PoolAcquisition(PoolAction):
             states[k] = None
             values[k] = None
 
-        # read positions to send a first event when starting to move
+        # read values to send a first event when starting to acquire
         self.read_value(ret=values)
         for acquirable, value in values.items():
             acquirable.put_value(value, propagate=2)
@@ -136,7 +136,7 @@ class PoolAcquisition(PoolAction):
             acquiring = self.in_acquisition(states, self._master)
             
             if not acquiring:
-                if self._terminate_on == AcquisitionTerminationMode.TerminateOnMaster:
+                if self._terminate_on == AcqTriggerMode.TriggerOnMaster:
                     self.abort()
                 break
             
@@ -150,9 +150,9 @@ class PoolAcquisition(PoolAction):
             time.sleep(0.01)
         
         self.read_state_info(ret=states)
+
         # first update the element state so that value calculation
         # that is done after takes the updated state into account
-        
         for acquirable, state_info in states.items():
             acquirable.set_state_info(state_info, propagate=0)
         

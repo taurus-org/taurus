@@ -29,12 +29,38 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["prepare_tango_logging", "prepare_rconsole", "run_tango_server", "run"]
 
-__CMD_LINE = None, None
 
+def clean_tango_args(args):
+    ret, ret_for_tango = [], []
+    for i in range(len(args)):
+        arg = args[i]
+        try:
+            if arg.startswith("-v") and int(arg[2:]):
+                ret_for_tango.append(arg)
+                continue
+        except:
+            pass
+        if arg.startswith("-file="):
+            ret_for_tango.append(arg)
+            continue
+        if arg == "-nodb":
+            ret_for_tango.append(arg)
+            continue
+        if arg == "-dlist":
+            ret_for_tango.append(arg)
+            i += 1
+            while i < len(args) and args[i][0] != "-":
+                ret_for_tango.append(arg)
+            continue
+        ret.append(arg)
+    return ret, ret_for_tango
+        
 def prepare_cmdline(parser=None, args=None):
     import optparse
     if args is None:
         args = []
+    
+    proc_args, tango_args = clean_tango_args(args)
     
     if parser is None:
         parser = optparse.OptionParser()
@@ -50,6 +76,8 @@ def prepare_cmdline(parser=None, args=None):
     help_fnlog = "file log name. When given, MUST be absolute file name. " \
                 "Defaults to /tmp/tango/<DS name>/<DS instance name lower case>/log.txt" \
                 "(unless --without-log-file is True). "
+    help_tango_v = "tango trace level"
+    help_tango_f = "tango db file name"
     help_wflog = "When set to True disables logging into a file. Default is False"
     help_rfoo = "rconsole port number. Default is 0 meaning rconsole NOT active"
     parser.add_option("--log-level", dest="log_level", metavar="LOG_LEVEL",
@@ -60,25 +88,25 @@ def prepare_cmdline(parser=None, args=None):
                       help=help_fnlog, type="str", default=None)
     parser.add_option("--without-log-file", dest="without_log_file",
                       help=help_wflog, default=False)
-
+    
     parser.add_option("--rconsole-port", dest="rconsole_port",
                       metavar="RCONSOLE_PORT", help=help_rfoo, type="int", default=0)
 
-    res = parser.parse_args(args)
-    global __CMD_LINE
-    __CMD_LINE = res
-    
+    res = list( parser.parse_args(proc_args) )
+    tango_args = res[1][:2] + tango_args
+    res.append(tango_args)
     prepare_taurus(*res)
     prepare_logging(*res)
     prepare_rconsole(*res)
+    return res
 
-def prepare_taurus(options, args):
+def prepare_taurus(options, args, tango_args):
     # make sure the polling is not active
     import taurus
     factory = taurus.Factory()
     factory.disablePolling()
     
-def prepare_logging(options, args):
+def prepare_logging(options, args, tango_args):
     import os.path
     import logging
     import taurus
@@ -138,7 +166,7 @@ def prepare_logging(options, args):
     taurus.debug("Start args=%s", args)
     taurus.debug("Start options=%s", options)
 
-def prepare_rconsole(options, args):
+def prepare_rconsole(options, args, tango_args):
     port = options.rconsole_port
     if port is None or port is 0:
         return
@@ -150,7 +178,7 @@ def prepare_rconsole(options, args):
     except:
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
-def run_tango_server():
+def run_tango_server(tango_args):
     import PyTango
     try:
         tango_util = PyTango.Util.instance()
@@ -169,11 +197,11 @@ def run(prepare_func, args=None, tango_util=None):
         import sys
         args = sys.argv
 
-    prepare_cmdline(args=args)
+    options, args, tango_args = prepare_cmdline(args=args)
 
     if tango_util == None:
         import PyTango
-        tango_util = PyTango.Util(args)
+        tango_util = PyTango.Util(tango_args)
 
     prepare_func(tango_util)
-    run_tango_server()
+    run_tango_server(tango_args)

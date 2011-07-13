@@ -46,7 +46,7 @@ class PoolMotor(PoolElement):
         self._wposition = None
         self._dial_position = None
         self._offset = 0.0
-        self._sign = 1.0
+        self._sign = 1
         self._backlash = 0
         self._step_per_unit = 1.0
         self._limit_switches = None

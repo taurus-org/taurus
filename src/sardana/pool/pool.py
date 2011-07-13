@@ -34,7 +34,7 @@ import logging.handlers
 
 import taurus.core.util
 
-from poolcontrollermanager import ControllerManager, TYPE_MAP
+from poolcontrollermanager import ControllerManager, TYPE_MAP_OBJ
 
 from poolbase import *
 from pooldefs import *
@@ -314,6 +314,9 @@ class Pool(PoolContainer, PoolObject):
     def get_controller_class_info(self, name):
         return self.ctrl_manager.getControllerMetaClass(name)
     
+    def get_controller_classes_info(self, names):
+        return self.ctrl_manager.getControllerMetaClasses(names)
+        
     def get_controller_libs_summary_info(self):
         libs = self.get_controller_libs()
         ret = []
@@ -327,7 +330,7 @@ class Pool(PoolContainer, PoolObject):
         ret = []
         for ctrl_class_info in ctrl_classes:
             types = ctrl_class_info.getTypes()
-            types_str = [ TYPE_MAP[t][0] for t in types if t != ElementType.Ctrl ]
+            types_str = [ TYPE_MAP_OBJ[t].name for t in types if t != ElementType.Ctrl ]
             types_str = ", ".join(types_str)
             elem = "%s (%s) %s" % (ctrl_class_info.getName(), ctrl_class_info.getFileName(), types_str)
             ret.append(elem)
@@ -358,7 +361,11 @@ class Pool(PoolContainer, PoolObject):
         elem_type = ElementType[ctrl_type]
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
-        fn, klass_map, auto_full_name, ctrl_class = TYPE_MAP[ElementType.Ctrl]
+        
+        td = TYPE_MAP_OBJ[ElementType.Ctrl]
+        klass_map = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
         kwargs['full_name'] = full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         self.check_element(name, full_name)
         
@@ -416,7 +423,10 @@ class Pool(PoolContainer, PoolObject):
         kwargs['ctrl'] = ctrl
         kwargs['ctrl_name'] = ctrl.get_name()
         
-        fn, klass, auto_full_name, ctrl_class = TYPE_MAP[elem_type]
+        td = TYPE_MAP_OBJ[elem_type]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
 
         self.check_element(name, full_name)
@@ -449,7 +459,9 @@ class Pool(PoolContainer, PoolObject):
         
         kwargs['pool'] = self
         kwargs["pool_name"] = self.name
-        fn, klass, auto_full_name, ctrl_class = TYPE_MAP[ElementType.MotorGroup]
+        td = TYPE_MAP_OBJ[ElementType.MotorGroup]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         kwargs.pop('pool_name')
         
@@ -473,7 +485,12 @@ class Pool(PoolContainer, PoolObject):
         
         kwargs['pool'] = self
         kwargs["pool_name"] = self.name
-        fn, klass, auto_full_name, ctrl_class = TYPE_MAP[ElementType.MeasurementGroup]
+        
+        td = TYPE_MAP_OBJ[ElementType.MeasurementGroup]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         kwargs.pop('pool_name')
         
@@ -540,7 +557,11 @@ class Pool(PoolContainer, PoolObject):
             
         self.check_element(name, full_name)
         
-        fn, klass, auto_full_name, ctrl_class = TYPE_MAP[ElementType.Instrument]
+        td = TYPE_MAP_OBJ[ElementType.Instrument]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+
         if id is None:
             id = self.get_new_id()
         else:

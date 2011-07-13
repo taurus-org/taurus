@@ -35,7 +35,7 @@ import time
 
 import taurus.core.util
 
-from poolcontrollermanager import ControllerManager, TYPE_MAP
+from poolcontrollermanager import ControllerManager
 
 from poolbase import *
 from pooldefs import *
@@ -65,13 +65,26 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
         elif evt_name == 'ElementDeleted':
             pass
     
-    def read_state_info(self):
+    def update_state_info(self):
         """"""
         pool = self._pool
         pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
         pool_ctrls = [ ctrl for ctrl in pool_ctrls if ctrl.is_online() ]
+
+        for pool_ctrl in pool_ctrls:
+            state_infos = pool_ctrl.read_axis_states()
+            for elem, state_info in state_infos.items():
+                state_info = elem._from_ctrl_state_info(state_info)
+                elem.set_state_info(state_info)
         
-        # PreReadAll on all controllers
+    
+    # old read_state_info 
+    def read_state_info_old(self, pool_ctrls):
+        pool = self._pool
+        pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
+        pool_ctrls = [ ctrl for ctrl in pool_ctrls if ctrl.is_online() ]
+
+        # PreStateAll on all controllers
         for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreStateAll()
         
         # PreReadOne on all elements
@@ -80,10 +93,10 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
             for axis in elems_axis:
                 pool_ctrl.ctrl.PreStateOne(axis)
 
-        # ReadAll on all controllers
+        # StateAll on all controllers
         for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.StateAll()
         
-        # PreReadOne on all elements
+        # for StateOne on all elements
         for pool_ctrl in pool_ctrls:
             elems_axis = pool_ctrl.get_element_axis()
             for axis, elem in elems_axis.items():
@@ -94,11 +107,10 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
     def stop(self):
         self._stop = True
 
-    @taurus.core.util.DebugIt()
     def monitor(self):
         start = time.time()
         
-        ret = self.read_state_info()
+        ret = self.update_state_info()
         
         finish = time.time()
         sleep_time = self._period

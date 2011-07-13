@@ -42,6 +42,7 @@ from taurus.core.util import CaselessDict
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
 import sardana.pool
+from sardana.pool.poolcontrollermanager import TYPE_MAP_OBJ
 
 ElementType = sardana.pool.ElementType
 
@@ -53,7 +54,6 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.init(name)
         self.init_device()
 
-    #@PyTango.DebugIt()
     def init(self, full_name):
         try:
             db = taurus.Factory().getDatabase()
@@ -73,11 +73,11 @@ class Pool(PyTango.Device_4Impl, Logger):
     def pool(self):
         return self._pool
     
-    @DebugIt()
+    @InfoIt()
     def delete_device(self):
         pass
 
-    @DebugIt()
+    @InfoIt()
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
@@ -86,6 +86,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self._recalculate_instruments()
         self.set_change_event("State", True, False)
         self.set_change_event("ControllerList", True, False)
+        self.set_change_event("ControllerLibList", True, False)
         self.set_change_event("MotorList", True, False)
         self.set_change_event("InstrumentList", True, False)
     
@@ -114,7 +115,8 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
-        ctrl_names = self.pool.get_element_names_by_type(ElementType.Ctrl)
+        ctrls = self.pool.get_elements_by_type(ElementType.Ctrl)
+        ctrl_names = [ repr(ctrl) for ctrl in ctrls ]
         attr.set_value(ctrl_names)
 
     def read_InstrumentList(self, attr):
@@ -125,8 +127,8 @@ class Pool(PyTango.Device_4Impl, Logger):
     #@PyTango.DebugIt()
     def read_ExpChannelList(self, attr):
         cts = self._pool.get_elements_by_type(ElementType.CTExpChannel)
-        ct_names = map(sardana.pool.PoolCounterTimer.get_name, cts)
-        attr.set_value(cts)
+        ct_names = [ repr(ct) for ct in cts ]
+        attr.set_value(ct_names)
     
     #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
@@ -145,7 +147,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     #@PyTango.DebugIt()
     def read_MotorList(self, attr):
         motors = self._pool.get_elements_by_type(ElementType.Motor)
-        motor_names = map(sardana.pool.PoolMotor.get_name, motors)
+        motor_names = [ repr(motor) for motor in motors ]
         attr.set_value(motor_names)
 
     #@PyTango.DebugIt()
@@ -178,7 +180,12 @@ class Pool(PyTango.Device_4Impl, Logger):
         elem_type = ElementType[type_str]
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
-        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.Ctrl]
+        
+        td = TYPE_MAP_OBJ[ElementType.Ctrl]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         util = PyTango.Util.instance()
         
@@ -243,7 +250,12 @@ class Pool(PyTango.Device_4Impl, Logger):
         except KeyError:
             raise Exception("Unknown element type '%s'" % elem_type_str)
         name = kwargs['name']
-        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
+
+        td = TYPE_MAP_OBJ[elem_type]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+        
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         ctrl = self.pool.get_element(name=ctrl_name)
@@ -285,7 +297,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def CreateMotorGroup(self, argin):
-        kwargs = self._format_CreateGroup_arguments(argin)
+        kwargs = self._format_CreateMotorGroup_arguments(argin)
         # TODO: Support in future sequence of elements
         kwargs = kwargs[0]
         
@@ -293,7 +305,12 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         name = kwargs['name']
         kwargs['pool_name'] = self.pool.name
-        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.MotorGroup]
+
+        td = TYPE_MAP_OBJ[ElementType.MotorGroup]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         self._check_element(name, full_name)
@@ -305,10 +322,10 @@ class Pool(PyTango.Device_4Impl, Logger):
                 raise Exception("%s is not a motor" % elem.name)
             elem_ids.append(elem.id)
         
-        def create_mg_cb(device_name):
+        def create_motgrp_cb(device_name):
             db = util.get_database()
             data = { "id" : self.pool.get_new_id(),
-                     "element_ids" : elem_ids }
+                     "elements" : elem_ids }
             db.put_device_property(device_name, data)
 
             data = {}
@@ -316,11 +333,11 @@ class Pool(PyTango.Device_4Impl, Logger):
             
             db.put_device_attribute_property(device_name, data)
             
-        util.create_device("MotorGroup", full_name, name, cb=create_mg_cb)
+        util.create_device("MotorGroup", full_name, name, cb=create_motgrp_cb)
         
     #@PyTango.DebugIt()
     def CreateMeasurementGroup(self, argin):
-        kwargs = self._format_CreateGroup_arguments(argin)
+        kwargs = self._format_CreateMeasurementGroup_arguments(argin)
         # TODO: Support in future sequence of elements
         kwargs = kwargs[0]
         
@@ -328,27 +345,37 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         name = kwargs['name']
         kwargs['pool_name'] = self.pool.name
-        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[ElementType.MeasurementGroup]
+
+        td = TYPE_MAP_OBJ[ElementType.MeasurementGroup]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
         self._check_element(name, full_name)
         
         elem_ids = []
         for elem_name in kwargs["elements"]:
-            elem = self.pool.get_element(name=elem_name)
-            elem_ids.append(elem.id)
+            # if internal pool element (channel, motor, ioregister, etc) store it's id
+            try:
+                elem = self.pool.get_element(name=elem_name)
+                elem_ids.append(elem.id)
+            except:
+                # otherwise assume a tango attribute/command
+                elem_ids.append(elem_name)
         
-        def create_mg_cb(device_name):
+        def create_mntgrp_cb(device_name):
             db = util.get_database()
             data = { "id" : self.pool.get_new_id(),
-                     "element_ids" : elem_ids }
+                     "elements" : elem_ids }
             db.put_device_property(device_name, data)
 
             data = {}
             
             db.put_device_attribute_property(device_name, data)
             
-        util.create_device("MeasurementGroup", full_name, name, cb=create_mg_cb)
+        util.create_device("MeasurementGroup", full_name, name, cb=create_mntgrp_cb)
         
     def _check_element(self, name, full_name):
         self.pool.check_element(name, full_name)
@@ -370,8 +397,14 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     def elements_changed(self, evt_src, evt_type, evt_value):
         elem_type = evt_value["type"]
-        fn, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
-        attribute_list_name = fn + "List"
+        
+        td = TYPE_MAP_OBJ[elem_type]
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+        family = td.family
+        
+        attribute_list_name = family + "List"
         elem_names = self.pool.get_element_names_by_type(elem_type)
         self.push_change_event(attribute_list_name, elem_names)
 
@@ -387,8 +420,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         return ret
     
     def _format_CreateElement_arguments(self, argin):
+        if len(argin) == 0:
+            msg = PoolClass.cmd_list["CreateElement"][0][1]
+            raise Exception(msg)
         if len(argin) == 1:
-            return self._format_json_arguments(argin)
+            return self._format_create_json_arguments(argin)
             
         ret = { 'type' : argin[0], 'ctrl_name' : argin[1], 'axis': int(argin[2]), 
                 'name' : argin[3] }
@@ -397,8 +433,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         return [ret]
         
     def _format_CreateController_arguments(self, argin):
+        if len(argin) == 0:
+            msg = PoolClass.cmd_list["CreateController"][0][1]
+            raise Exception(msg)
         if len(argin) == 1:
-            return self._format_json_arguments(argin)
+            return self._format_create_json_arguments(argin)
         
         ret = { 'type' : argin[0], 'library' : argin[1], 'klass' : argin[2], 
                 'name' : argin[3] }
@@ -411,7 +450,10 @@ class Pool(PyTango.Device_4Impl, Logger):
         ret['properties'] = props
         return [ret]
             
-    def _format_CreateGroup_arguments(self, argin):
+    def _format_CreateMotorGroup_arguments(self, argin):
+        if len(argin) == 0:
+            msg = PoolClass.cmd_list["CreateMotorGroup"][0][1]
+            raise Exception(msg)
         if len(argin) == 1:
             ret = []
             try:
@@ -432,7 +474,32 @@ class Pool(PyTango.Device_4Impl, Logger):
             del argin[-1]
         ret['elements'] = argin[1:]
         return [ret]
-
+    
+    def _format_CreateMeasurementGroup_arguments(self, argin):
+        if len(argin) == 0:
+            msg = PoolClass.cmd_list["CreateMeasurementGroup"][0][1]
+            raise Exception(msg)
+        if len(argin) == 1:
+            ret = []
+            try:
+                elems = json.loads(argin[0])
+            except:
+                elems = argin
+            if operator.isMappingType(elems):
+                elems = [elems]
+            for elem in elems:
+                d = {}
+                for k,v in elem.items():
+                    d[str(k)] = str(v)
+                ret.append(d)
+            return ret
+        ret = { 'name' : argin[0] }
+        if argin[-1].count('/') == 2:
+            ret['full_name'] = argin[-1]
+            del argin[-1]
+        ret['elements'] = argin[1:]
+        return [ret]
+        
     #@PyTango.DebugIt()
     def DeleteElement(self, name):
         try:
@@ -445,9 +512,13 @@ class Pool(PyTango.Device_4Impl, Logger):
             if len(elem.get_elements()) > 0:
                 raise Exception("Cannot delete controller with elements. " \
                                 "Delete elements first")
-        
-        type_name, klass, auto_full_name, ctrl_class = sardana.pool.TYPE_MAP[elem_type]
 
+        td = TYPE_MAP_OBJ[elem_type]
+        type_name = td.name
+        klass = td.klass
+        auto_full_name = td.auto_full_name
+        ctrl_class = td.ctrl_klass
+        
         full_name = elem.get_full_name()
         
         if elem_type == ElementType.Instrument:
@@ -465,8 +536,20 @@ class Pool(PyTango.Device_4Impl, Logger):
             util.delete_device(type_name, full_name)
     
     #@PyTango.DebugIt()
-    def GetControllerClassInfo(self, name):
-        return self.pool.get_controller_class_info(name).getJSON()
+    def GetControllerClassInfo(self, names):
+        if names.startswith('['):
+            names = json.loads(names)
+        else:
+            names = (names,)
+        ctrl_classes = self.pool.get_controller_classes_info(names)
+        ret = []
+        for name in names:
+            ctrl_class = ctrl_classes[name]
+            data = None
+            if ctrl_class is not None:
+                data = ctrl_class.toDict()
+            ret.append(data)
+        return json.dumps(ret)
 
     #@PyTango.DebugIt()
     def ReloadControllerLib(self, lib_name):
@@ -499,7 +582,9 @@ class Pool(PyTango.Device_4Impl, Logger):
         return lib.f_path, "".join(lib.getCode())
     
     def PutFile(self, file_data):
-        setControllerLib(*file_data)
+        p = self.pool
+        manager = p.ctrl_manager
+        manager.setControllerLib(*file_data)
     
 
 class PoolClass(PyTango.DeviceClass):
@@ -529,11 +614,16 @@ class PoolClass(PyTango.DeviceClass):
     #    Command definitions
     cmd_list = {
         'CreateController':
-            [[PyTango.DevVarStringArray, ""],
+            [[PyTango.DevVarStringArray, "Must give either:\n"
+              " * A JSON encoded dict as first string with keys : 'type', "
+              "'library', 'class' and 'name';\n"
+              " * a sequence of strings: <type>, <library>, <class>, <name>"],
             [PyTango.DevVoid, ""]],
         'CreateElement':
-            [[PyTango.DevVarStringArray,
-              "<type>, <ctrl_name>, <axis>, <name> or JSON dictionary in first string"],
+            [[PyTango.DevVarStringArray, "Must give either:\n"
+              " * A JSON encoded dict as first string with keys : 'type', "
+              "'ctrl_name', 'axis', 'name';\n"
+              " * a sequence of strings: <type>, <ctrl_name>, <axis>, <name>"],
             [PyTango.DevVoid, ""]],
         'CreateInstrument':
             [[PyTango.DevVarStringArray, ""],
@@ -556,6 +646,12 @@ class PoolClass(PyTango.DeviceClass):
         'ReloadControllerClass':
             [[PyTango.DevString, ""],
             [PyTango.DevVoid, ""]],
+#        'GetControllerInfo':
+#            [[PyTango.DevVarStringArray, "Must give either:\n"
+#              " - A JSON dictionary in first string with keys : "
+#              "'filename', 'class' [, 'ctrl_name']"
+#              " - a sequence of strings: <file name>, <class name> [, <controller name>]"],
+#            [PyTango.DevVarStringArray, "Controller class data"]],
         'GetFile':
             [[PyTango.DevString, "name (may be module name, file name or full (with absolute path) file name"],
             [PyTango.DevVarStringArray, "[complete(with absolute path) file name, file contents]"]],

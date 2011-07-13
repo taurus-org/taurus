@@ -41,6 +41,7 @@ from taurus.core.util.log import InfoIt, DebugIt
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 from PoolDevice import to_tango_state
 
+
 class MeasurementGroup(PoolGroupDevice):
     
     def __init__(self, dclass, name):
@@ -68,11 +69,11 @@ class MeasurementGroup(PoolGroupDevice):
         PoolGroupDevice.init_device(self)
         if self.measurement_group is None:
             try:
-                measurement_group = self.pool.create_measurement_group(name=self.alias, 
+                mg = self.pool.create_measurement_group(name=self.alias,
                     full_name=self.get_name(), id=self.Id,
-                    user_elements=self.Element_ids)
-                measurement_group.add_listener(self.on_measurement_group_changed)
-                self.measurement_group = measurement_group
+                    user_elements=self.Elements)
+                mg.add_listener(self.on_measurement_group_changed)
+                self.measurement_group = mg
             except Exception,e:
                 import traceback
                 traceback.print_exc()

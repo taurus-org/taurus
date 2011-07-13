@@ -39,11 +39,10 @@ import PyTango
 import taurus
 from taurus.core.util import Logger
 
+from sardana.tango.core import SardanaDevice, SardanaDeviceClass
+from sardana.tango.core import GenericSpectrumAttr
 from sardana.macroserver.exception import MacroServerException
 
-
-class GenericListAttribute(PyTango.SpectrumAttr):
-    pass
 
 #==================================================================
 #   MacroServer Class Description:
@@ -52,7 +51,7 @@ class GenericListAttribute(PyTango.SpectrumAttr):
 #
 #==================================================================
 
-class MacroServer(PyTango.Device_4Impl, Logger):
+class MacroServer(SardanaDevice):
 
 #--------- Add you global variables here --------------------------
 
@@ -60,15 +59,7 @@ class MacroServer(PyTango.Device_4Impl, Logger):
 #    Device constructor
 #------------------------------------------------------------------
     def __init__(self,cl, name):
-        PyTango.Device_4Impl.__init__(self,cl,name)
-        try:
-            db = taurus.Factory().getDatabase()
-            self._alias = db.get_alias(name)
-            if self._alias.lower() == 'nada':
-                self._alias = name
-        except:
-            self._alias = name
-        Logger.__init__(self, self._alias)
+        SardanaDevice.__init__(self,cl, name)
         MacroServer.init_device(self)
 
     def __getManager(self, *args):
@@ -79,12 +70,14 @@ class MacroServer(PyTango.Device_4Impl, Logger):
 #    Device destructor
 #------------------------------------------------------------------
     def delete_device(self):
+        SardanaDevice.delete_device(self)
         self.__getManager().cleanUp()
         
 #------------------------------------------------------------------
 #    Device initialization
 #------------------------------------------------------------------
     def init_device(self):
+        SardanaDevice.init_device(self)
         self.set_state(PyTango.DevState.ON)
         self.set_change_event('State', True, False)
         self.set_change_event('Status', True, False)
@@ -297,8 +290,7 @@ class MacroServer(PyTango.Device_4Impl, Logger):
         self.trace("Adding dynamic attribute %s" % name)
         attr_name = "%sList" % name
         attr_data = (name, attr_name)
-        attr = GenericListAttribute(attr_name, PyTango.DevString,
-                                    PyTango.READ, 2048)
+        attr = GenericSpectrumAttr(attr_name, PyTango.DevString, PyTango.READ)
         self.add_attribute(attr, MacroServer.read_GenericList)
         
         self.set_change_event(attr_name, True, False) 

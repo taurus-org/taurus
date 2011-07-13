@@ -92,7 +92,7 @@ class CTExpChannel(PoolElementDevice):
         quality = AttrQuality.ATTR_VALID
         
         recover = False
-        if event_type.priority:
+        if event_type.priority > 1:
             attr.set_change_event(True, False)
             recover = True
         
@@ -118,11 +118,7 @@ class CTExpChannel(PoolElementDevice):
         pass
 
     def read_Value(self, attr):
-        try:
-            attr.set_value(self.ct.get_value(cache=False))
-        except:
-            import traceback
-            traceback.print_exc()
+        attr.set_value(self.ct.get_value(cache=False))
     
     def write_Value(self, attr):
         value = attr.get_write_value()
@@ -145,7 +141,6 @@ class CTExpChannelClass(PoolElementDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'Sleep_bef_last_read' : [DevLong, "Number of mS to sleep before the last read during a motor movement", [ 0 ] ],
     }
     device_property_list.update(PoolElementDeviceClass.device_property_list)
 
@@ -157,7 +152,8 @@ class CTExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ],
+                        { 'Memorized'     : "true", } ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

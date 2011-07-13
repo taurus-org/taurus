@@ -92,31 +92,31 @@ class PoolAction(taurus.core.util.Logger):
     def action_loop(self):
         raise RuntimeError("action_loop must be implemented in subclass")
     
-    def read_state_info(self, ret=None):
+    def read_state_info_old(self, ret=None):
         """"""
         pool_ctrls = self._pool_ctrls.keys()
         elements = ret or [ element() for element in self._elements ]
         
-        # PreReadAll on all controllers
+        # PreStateAll on all controllers
         for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreStateAll()
         
-        # PreReadOne on all elements
+        # PreStateOne on all elements
         for element in elements:
             element.controller.ctrl.PreStateOne(element.axis)
         
-        # ReadAll on all controllers
+        # StateAll on all controllers
         for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.StateAll()
         
         ret = ret or {}
         
-        # PreReadOne on all elements
+        # StateOne on all elements
         for element in elements:
             info = element.controller.ctrl.StateOne(element.axis)
             ret[element] = info
         
         return ret
     
-    def read_value(self, ret=None):
+    def read_value_old(self, ret=None):
         """"""
         pool_ctrls = self._pool_ctrls.keys()
         elements = [ element() for element in self._elements ]
@@ -137,6 +137,26 @@ class PoolAction(taurus.core.util.Logger):
         for element in elements:
             ret[element] = element.controller.ctrl.ReadOne(element.axis)
         
+        return ret
+    
+    def read_state_info(self, ret=None):
+        elements = ret or [ element() for element in self._elements ]
+        ret = ret or {}
+        
+        for pool_ctrl, elems in self._pool_ctrls.items():
+            axises = [ elem().axis for elem in elems ]
+            state_infos = pool_ctrl.read_axis_states(axises)
+            ret.update( state_infos )
+        return ret
+    
+    def read_value(self, ret=None):
+        elements = [ element() for element in self._elements ]
+        ret = ret or {}
+        
+        for pool_ctrl, elems in self._pool_ctrls.items():
+            axises = [ elem().axis for elem in elems ]
+            value_infos = pool_ctrl.read_axis_values(axises)
+            ret.update( value_infos )
         return ret
     
     def abort(self, element=None):

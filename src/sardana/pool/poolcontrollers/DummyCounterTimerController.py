@@ -46,25 +46,23 @@ class DummyCounterTimerController(CounterTimerController):
         self.channels[idx].active = False
 
     def StateOne(self,ind):
+        self._log.info("StateOne(%d)", ind)
         idx = ind - 1
-        try:
-            sta = None
-            status = None
-            channel = self.channels[idx]
-            m = self.mode
-            if not m is self.StoppedMode:
-                now = time.time()
-                elapsed_time = now - self.start_time
-                self._checkState(elapsed_time)
-    
-            if self.mode == self.StoppedMode and not channel.is_started:
-                sta = PyTango.DevState.ON
-                status = "Stopped"
-            else:
-                sta = PyTango.DevState.MOVING
-                status = "Acquiring"
-        except Exception,e:
-            raise e
+        sta = None
+        status = None
+        channel = self.channels[idx]
+        m = self.mode
+        if not m is self.StoppedMode:
+            now = time.time()
+            elapsed_time = now - self.start_time
+            self._checkState(elapsed_time)
+
+        if self.mode == self.StoppedMode and not channel.is_started:
+            sta = PyTango.DevState.ON
+            status = "Stopped"
+        else:
+            sta = PyTango.DevState.MOVING
+            status = "Acquiring"
         return (sta,status)
         
     def _setChannelValue(self, channel, elapsed_time):
@@ -117,6 +115,7 @@ class DummyCounterTimerController(CounterTimerController):
                     self._setChannelValue(channel, elapsed_time)
 
     def ReadOne(self,ind):
+        self._log.info("ReadOne(%d)", ind)
         v = self.read_channels[ind].value
         return v
 

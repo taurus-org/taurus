@@ -84,14 +84,14 @@ class GenericScalarAttr(Attr):
 
 class GenericSpectrumAttr(SpectrumAttr):
     
-    def __init__(self, name, tg_type, tg_access):
-        SpectrumAttr.__init__(self, name, tg_type, tg_access, 2048)
+    def __init__(self, name, tg_type, tg_access, dim_x=2048):
+        SpectrumAttr.__init__(self, name, tg_type, tg_access, dim_x)
 
 
 class GenericImageAttr(ImageAttr):
 
-    def __init__(self, name, tg_type, tg_access):
-        ImageAttr.__init__(self, name, tg_type, tg_access, 2048, 2048)
+    def __init__(self, name, tg_type, tg_access, dim_x=2048, dim_y=2048):
+        ImageAttr.__init__(self, name, tg_type, tg_access, dim_x, dim_y)
 
 
 class SardanaDevice(Device_4Impl, Logger):

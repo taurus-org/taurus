@@ -159,7 +159,14 @@ class PoolElement(PoolBaseElement):
         except KeyError:
             self._instrument = None
         super(PoolElement, self).__init__(**kwargs)
-    
+
+    def __repr__(self):
+        data = {'name' : self.name, 'full_name': self.full_name,
+                'ctrl_name' : self.controller.name, 'axis' : self.axis,
+                'type' : self.controller.get_ctrl_type_names()[0] }
+        r = "{name} ({full_name}) ({ctrl_name}/{axis}) {type}".format(**data)
+        return r
+
     def get_controller(self):
         if self._ctrl is None:
             return None
@@ -209,7 +216,7 @@ class PoolElement(PoolBaseElement):
     
     instrument = property(get_instrument, set_instrument, doc="element instrument")
     
-    
+
 class PoolGroupElement(PoolBaseElement):
 
     def __init__(self, **kwargs):

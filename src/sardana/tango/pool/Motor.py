@@ -226,7 +226,8 @@ class Motor(PoolElementDevice):
         return True
     
     def read_Sign(self, attr):
-        attr.set_value(self.motor.get_sign(cache=False))
+        sign = self.motor.get_sign(cache=False)
+        attr.set_value(sign)
     
     def write_Sign(self, attr):
         self.motor.sign = attr.get_write_value()
