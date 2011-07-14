@@ -26,6 +26,7 @@
 """
 nexusWidget.py: 
 """
+__all__=["TaurusNexusBrowser"]
 
 from PyMca import HDF5Widget, HDF5Info, HDF5DatasetTable
 from PyQt4 import Qt
