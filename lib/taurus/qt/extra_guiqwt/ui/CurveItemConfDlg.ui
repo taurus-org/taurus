@@ -38,16 +38,6 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="nexusTab" >
-          <attribute name="title" >
-           <string>Nexus</string>
-          </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout" >
-           <item>
-            <widget class="TaurusNeXusBrowser" name="taurusNeXusBrowser" />
-           </item>
-          </layout>
-         </widget>
         </widget>
        </item>
       </layout>
@@ -159,12 +149,6 @@
    <class>TaurusModelSelectorTree</class>
    <extends>TaurusWidget</extends>
    <header>taurus.qt.qtgui.panel</header>
-  </customwidget>
-  <customwidget>
-   <class>TaurusNeXusBrowser</class>
-   <extends>TaurusWidget</extends>
-   <header>taurus.qt.qtgui.extra_nexus</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

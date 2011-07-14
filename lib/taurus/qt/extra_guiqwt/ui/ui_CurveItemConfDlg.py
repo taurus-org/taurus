@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmp8Lg2lM.ui'
+# Form implementation generated from reading ui file '/tmp/tmpjOVn8C.ui'
 #
-# Created: Fri May  6 09:20:31 2011
+# Created: Thu Jul 14 17:28:55 2011
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -32,14 +32,6 @@ class Ui_CurveItemConfDlg(object):
         self.tangoTree.setObjectName("tangoTree")
         self.horizontalLayout_4.addWidget(self.tangoTree)
         self.tabWidget.addTab(self.tangoTab, "")
-        self.nexusTab = QtGui.QWidget()
-        self.nexusTab.setObjectName("nexusTab")
-        self.horizontalLayout = QtGui.QHBoxLayout(self.nexusTab)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.taurusNeXusBrowser = TaurusNeXusBrowser(self.nexusTab)
-        self.taurusNeXusBrowser.setObjectName("taurusNeXusBrowser")
-        self.horizontalLayout.addWidget(self.taurusNeXusBrowser)
-        self.tabWidget.addTab(self.nexusTab, "")
         self.verticalLayout_5.addWidget(self.tabWidget)
         self.groupBox_3 = QtGui.QGroupBox(self.splitter)
         self.groupBox_3.setObjectName("groupBox_3")
@@ -89,7 +81,6 @@ class Ui_CurveItemConfDlg(object):
         CurveItemConfDlg.setWindowTitle(QtGui.QApplication.translate("CurveItemConfDlg", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("CurveItemConfDlg", "Sources of data", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tangoTab), QtGui.QApplication.translate("CurveItemConfDlg", "Tango", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.nexusTab), QtGui.QApplication.translate("CurveItemConfDlg", "Nexus", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_3.setTitle(QtGui.QApplication.translate("CurveItemConfDlg", "Contents & appearance", None, QtGui.QApplication.UnicodeUTF8))
         self.removeCurvesBT.setText(QtGui.QApplication.translate("CurveItemConfDlg", " Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.reloadBT.setText(QtGui.QApplication.translate("CurveItemConfDlg", "Reload", None, QtGui.QApplication.UnicodeUTF8))
@@ -97,7 +88,6 @@ class Ui_CurveItemConfDlg(object):
         self.applyBT.setText(QtGui.QApplication.translate("CurveItemConfDlg", "Apply", None, QtGui.QApplication.UnicodeUTF8))
 
 from taurus.qt.qtgui.panel import TaurusModelSelectorTree
-from taurus.qt.qtgui.extra_nexus import TaurusNeXusBrowser
 
 if __name__ == "__main__":
     import sys

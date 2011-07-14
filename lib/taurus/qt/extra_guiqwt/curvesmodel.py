@@ -41,6 +41,7 @@ from guiqwt.styles import CurveParam, AxesParam, update_style_attr
 from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
 from guiqwt.builder import make
 
+
 AXIS_ID2NAME = {Qwt5.QwtPlot.yLeft:'left', Qwt5.QwtPlot.yRight:'right',
                 Qwt5.QwtPlot.xBottom:'bottom', Qwt5.QwtPlot.xTop:'top'}
 
@@ -305,6 +306,17 @@ class CurveItemConfDlg(Qt.QWidget):
         self.ui = Ui_CurveItemConfDlg()
         self.ui.setupUi(self)
         
+        #add the NeXusWidget if extra_nexus is available
+        try:
+            from taurus.qt.qtgui.extra_nexus import TaurusNeXusBrowser
+            nexusWidget = TaurusNeXusBrowser()
+            self.ui.tabWidget.addTab(nexusWidget,'NeXus')
+        except:
+            import taurus.core.util
+            _logger = taurus.core.util.Logger('CurveItemConfDlg')
+            _logger.warning('TaurusNeXusBrowser not available')
+            self.traceback()
+        
         self.ui.tangoTree.setButtonsPos(Qt.Qt.RightToolBarArea)
         
         self.ui.reloadBT.setEnabled(False)#@todo: The action for this button is not yet implemented 
@@ -326,6 +338,8 @@ class CurveItemConfDlg(Qt.QWidget):
 #                table.setColumnWidth(col, table.columnWidth(col)+extraSpace)       
         
         #host
+        
+        import taurus #@todo: I get "UnboundLocalError: local variable 'taurus' referenced before assignment" if I don't import taurus again here ????
         host = taurus.Database().getNormalName()
         self.ui.tangoTree.setModel(host)
         
