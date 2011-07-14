@@ -43,8 +43,14 @@ from poolelement import *
 from poolcontroller import *
 from poolmotor import *
 
-
+def ThreadPool():
+    import pool
+    return pool.ThreadPool()
+    
 class PoolMonitor(taurus.core.util.Logger, threading.Thread):
+    
+    MIN_THREADS =  1
+    MAX_THREADS = 10
     
     def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0, auto_start=True):
         taurus.core.util.Logger.__init__(self, name)
@@ -54,6 +60,7 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
         self._min_sleep = min_sleep
         self._pool = pool
         self._stop = False
+        self._thread_pool = None
         if auto_start:
             self.start()
     
@@ -65,56 +72,78 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
         elif evt_name == 'ElementDeleted':
             pass
     
-    def update_state_info(self):
-        """"""
+    def _readjust_thread_pool(self, pool_ctrls):
+        nb_ctrls = len(pool_ctrls)
+        tp = self._thread_pool
+        if tp is None:
+            nb_threads = 0
+        else:
+            nb_threads = tp.size
+        n = min(self.MAX_THREADS, nb_ctrls)
+        n = max(self.MIN_THREADS, n)
+        if nb_threads == n:
+            return
+        else:
+            if tp is None:
+                self.info("Creating monitor pool of threads %d", n)
+                tp = taurus.core.util.ThreadPool(name=self.name, Psize=n)
+                self._thread_pool = tp
+            else:
+                self.info("Readjusting monitor pool of threads from %d to %d", nb_threads, n)
+                self._thread_pool.size = n
+    
+    @taurus.core.util.DebugIt()
+    def update_state_info(self, serial=False, wait=True):
+        """Update state information of every element.
+        
+        :param serial: serialize or not controller access. Default is False meaning
+                       use concurrent access to all controllers
+        :type serial: bool
+        :param wait: wheater or not to wait for end of procedure. Ignored when
+                     serial==True. Default is True.
+        :type wait: bool
+        """
         pool = self._pool
         pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
         pool_ctrls = [ ctrl for ctrl in pool_ctrls if ctrl.is_online() ]
 
+        update = self._update_state_info_concurrent
+        if serial:
+            update = self._update_state_info_serial
+        
+        self._state_count = len(pool_ctrls)
+        update(pool_ctrls)
+        while self._state_count > 0:
+            self.debug("waiting for all controllers to finish")
+            time.sleep(0.01)
+            
+    def _update_state_info_serial(self, pool_ctrls):
         for pool_ctrl in pool_ctrls:
+            self._update_ctrl_state_info(pool_ctrl)
+
+    def _update_state_info_concurrent(self, pool_ctrls):
+        self._readjust_thread_pool(pool_ctrls)
+        for pool_ctrl in pool_ctrls:
+            self._thread_pool.add(self._update_ctrl_state_info, None, pool_ctrl)
+    
+    def _update_ctrl_state_info(self, pool_ctrl):
+        try:
             state_infos = pool_ctrl.read_axis_states()
             for elem, state_info in state_infos.items():
                 state_info = elem._from_ctrl_state_info(state_info)
                 elem.set_state_info(state_info)
-        
-    
-    # old read_state_info 
-    def read_state_info_old(self, pool_ctrls):
-        pool = self._pool
-        pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
-        pool_ctrls = [ ctrl for ctrl in pool_ctrls if ctrl.is_online() ]
-
-        # PreStateAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreStateAll()
-        
-        # PreReadOne on all elements
-        for pool_ctrl in pool_ctrls:
-            elems_axis = pool_ctrl.get_element_axis()
-            for axis in elems_axis:
-                pool_ctrl.ctrl.PreStateOne(axis)
-
-        # StateAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.StateAll()
-        
-        # for StateOne on all elements
-        for pool_ctrl in pool_ctrls:
-            elems_axis = pool_ctrl.get_element_axis()
-            for axis, elem in elems_axis.items():
-                state_info = pool_ctrl.ctrl.StateOne(axis)
-                state_info = elem._from_ctrl_state_info(state_info)
-                elem.set_state_info(state_info)
-        
+        finally:
+            self._state_count = max(0, self._state_count-1)
+            
     def stop(self):
         self._stop = True
 
     def monitor(self):
         start = time.time()
-        
         ret = self.update_state_info()
-        
         finish = time.time()
-        sleep_time = self._period
-        # sleep_time = max(self._period - (finish-start), self._min_sleep)
+        #sleep_time = self._period
+        sleep_time = max(self._period - (finish-start), self._min_sleep)
         time.sleep(sleep_time)
 
     def run(self):

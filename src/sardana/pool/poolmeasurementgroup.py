@@ -62,7 +62,9 @@ class PoolMeasurementGroup(PoolGroupElement):
 
     def __init__(self, **kwargs):
         PoolGroupElement.__init__(self, **kwargs)
-        self.set_action_cache(PoolAcquisition("%s.Acquisition" % self._name))
+        self._master = None
+        self._trigger_mode = AcqTriggerMode.TriggerUnknown
+        self.set_action_cache(PoolCTAcquisition("%s.CTAcquisition" % self._name))
     
     def get_type(self):
         return ElementType.MeasurementGroup
@@ -71,11 +73,40 @@ class PoolMeasurementGroup(PoolGroupElement):
         pass
     
     # --------------------------------------------------------------------------
-    # acquisition
+    # master
     # --------------------------------------------------------------------------
     
-    def acquire(self):
-        pass
+    def get_master(self):
+        return self._master
+    
+    def set_master(self, master, propagate=1):
+        self._master = master
+        if not propagate:
+            return
+        self.fire_event(EventType("master", priority=propagate), master)
+    
+    master = property(get_master, set_master,
+                      doc="master channel")
+
+    def get_trigger_mode(self):
+        return self._trigger_mode
+    
+    def set_trigger_mode(self, trigger_mode, propagate=1):
+        self._trigger_mode = trigger_mode
+        if not propagate:
+            return
+        self.fire_event(EventType("trigger_mode", priority=propagate), trigger_mode)
+    
+    trigger_mode = property(get_trigger_mode, set_trigger_mode,
+                            doc="active trigger mode")
+    
+    # --------------------------------------------------------------------------
+    # acquisition
+    # --------------------------------------------------------------------------
+    def start_acquisition(self, value=None):
+        self._aborted = False
+        if not self._simulation_mode:
+            self.acquisition.run(head=self)
     
     def get_acquisition(self):
         return self.get_action_cache()

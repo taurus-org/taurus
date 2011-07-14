@@ -164,7 +164,7 @@ class PoolObject(PoolBaseObject):
         return self._id
 
     def get_type(self):
-        raise Exception("Base class 'PoolObject' does not implement get_type")
+        raise NotImplementedError
 
     full_name = property(get_full_name)
     id = property(get_id)

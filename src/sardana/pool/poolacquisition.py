@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the class for an
 acquisition"""
 
-__all__ = [ "PoolAcquisition" ]
+__all__ = [ "PoolCTAcquisition" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -39,17 +39,30 @@ from sardana import State
 from pooldefs import AcqTriggerMode
 from poolaction import *
 
+class PoolAcquisition(PoolAction):
+    
+    def __init__(self, name="Acquisition"):
+        PoolAction.__init__(self, name)
+        ctname = name + ".CTAcquisition"
+        zerodname = name + ".0DAcquisition"
+        self._ct_acq = PoolCTAcquisition(name=ctname)
+        self._0d_acq = Pool0DAcquisition(name=zerodname)
+    
+    def start_action(self, *args, **kwargs):
+        pass
+    
 class PoolAcquirableItem(PoolActionItem):
     
     def __init__(self, acquirable):
         PoolActionItem.__init__(self, acquirable)
         
-class PoolAcquisition(PoolAction):
+class PoolCTAcquisition(PoolAction):
     
-    def __init__(self, name="GlobalAcquisition"):
+    def __init__(self, name="CTAcquisition"):
         PoolAction.__init__(self, name)
     
-    def load(self, master, integ_time):
+    def load(self):
+        master, integ_time = self._master, self._integ_time
         master_axis = master.axis
         master_ctrl = master.controller.ctrl
         master_ctrl.PreLoadAll()
@@ -60,25 +73,64 @@ class PoolAcquisition(PoolAction):
         master_ctrl.LoadAll()
     
     def start_action(self, *args, **kwargs):
-        """items -> countables; integration_time; master"""
+        """Prepares everything for acquisition and starts it.
         
-        items = kwargs["items"]
-        integ_time = kwargs["integration_time"]
-        master = kwargs["master"]
-        master_axis = master.axis
-        master_controller = master.controller
+           :param head: head pool element (when used by measurement group, head
+                        should be the measurement group itself). Default is None,
+                        meaning no head is used.
+           :type head: PoolElement
+           :param items: sequence of CounterTimers. Default is None meaning use all
+                         current elements
+           :type items: seq<PoolCounterTimer>
+           :param master: master channel. Default is None meaning:
+                          if head is given, use head.master. Otherwise use the first
+                          item in items or first item in current elements
+           :type master: PoolCounterTimer
+           :param integration_time: integration time. Default is None meaning
+                                    use master write value
+           :type integration_time: float
+           :param trigger_mode: trigger mode. Default is AcqTriggerMode.TriggerOnMaster
+           :type trigger_mode: AcqTriggerMode"""
+        
+        self._head = kwargs.get("head")
+        items = kwargs.get("items")
+        if items is None:
+            items = self.get_elements()
+        self._master = kwargs.get("master")
+        if self._master is None:
+            if self._head is None:
+                self._master = items[0]
+            else:
+                self._master = head.master
+        if self._master is None:
+            raise Exception("master channel not given")
+        master_axis = self._master.axis
+        master_controller = self._master.controller
+        self._integ_time = kwargs.get("integration_time", self._master.get_value_w())
+        if self._integ_time is None:
+            raise Exception("integration time not given")
+        
+        self._terminate_on = kwargs.get("trigger_mode")
+        if self._terminate_on is None:
+            if self._head is None:
+                self._terminate_on = AcqTriggerMode.TriggerOnMaster
+            else:
+                self._terminate_on = self._head.trigger_mode
+        
+        if self._terminate_on is None or self._terminate_on == AcqTriggerMode.TriggerUnknown:
+            raise Exception("trigger mode not defined")
         
         # prepare data structures
         self._aborted = False
-        self._master = master
-        self._terminate_on = kwargs["termination_mode"]
-        acquisition_info = {}
-        for item in items:
-            acquisition_info[item] = PoolAcquirableItem(item)
+        
+        acquisition_info = kwargs.get('acquisition_info')
+        if acquisition_info is None:
+            acquisition_info = {}
+            for item in items:
+                acquisition_info[item] = PoolAcquirableItem(item)
         self._acquisition_info = acquisition_info
         
         pool_ctrls = self._pool_ctrls.keys()
-        acquirables = [ acquirable() for acquirable in self._elements ]
         
         # make sure the controller which has the master channel is the last to
         # be called
@@ -86,23 +138,26 @@ class PoolAcquisition(PoolAction):
         pool_ctrls.append(master_controller)
         
         # Load the master timer/monitor with the proper value
-        self.load(master, integ_time)
+        self.load()
         
         # PreStartAll on all controllers
         for pool_ctrl in pool_ctrls:
             pool_ctrl.ctrl.PreStartAllCT()
         
         # PreStartOne on all elements
-        for acq in acquirables:
-            ctrl, axis = acq.controller.ctrl, acq.axis
+        for item in items:
+            ctrl, axis = item.controller.ctrl, item.axis
             ret = ctrl.PreStartOneCT(axis)
             if not ret:
-                raise Exception("PreStartOneCT(%d) returns False" % (axis,))
+                raise Exception("%s.PreStartOneCT(%d) returns False" % (ctrl.name, axis,))
             ctrl.StartOneCT(axis)
         
+        if self._head:
+            self._head.set_state(State.Moving)
+        
         # set the state of all elements to  and inform their listeners
-        for acq in acquirables:
-            acq.set_state(State.Moving)
+        for item in items:
+            item.set_state(State.Moving)
         
         # StartAllCT on all controllers
         for pool_ctrl in pool_ctrls:

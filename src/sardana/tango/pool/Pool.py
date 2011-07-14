@@ -75,7 +75,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     @InfoIt()
     def delete_device(self):
-        pass
+        self.pool.monitor.stop()
 
     @InfoIt()
     def init_device(self):
@@ -89,6 +89,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.set_change_event("ControllerLibList", True, False)
         self.set_change_event("MotorList", True, False)
         self.set_change_event("InstrumentList", True, False)
+        self.pool.monitor.start()
     
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)
@@ -748,32 +749,3 @@ class PoolClass(PyTango.DeviceClass):
     def __init__(self, name):
         PyTango.DeviceClass.__init__(self, name)
         self.set_type(name)
-
-def main():
-    import Controller
-    import Motor
-    import MotorGroup
-    import CTExpChannel
-    import MeasurementGroup
-    
-    try:
-        py = PyTango.Util(sys.argv)
-        py.add_class(PoolClass, Pool)
-        py.add_class(Controller.ControllerClass, Controller.Controller)
-        py.add_class(Motor.MotorClass, Motor.Motor)
-        py.add_class(CTExpChannel.CTExpChannelClass, CTExpChannel.CTExpChannel)
-        py.add_class(MotorGroup.MotorGroupClass, MotorGroup.MotorGroup)
-        py.add_class(MeasurementGroup.MeasurementGroupClass, 
-                     MeasurementGroup.MeasurementGroup)
-        U = PyTango.Util.instance()
-        U.server_init()
-        print "Ready to accept request"
-        U.server_run()
-
-    except PyTango.DevFailed,e:
-        print '-------> Received a DevFailed exception:',e
-    except Exception,e:
-        print '-------> An unforeseen exception occured....',e
-
-if __name__ == '__main__':
-    main()

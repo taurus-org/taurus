@@ -1,4 +1,4 @@
-import time,sys
+import time
 import PyTango
 from sardana.pool import CounterTimerController
 
@@ -100,7 +100,7 @@ class DummyCounterTimerController(CounterTimerController):
                 
     def PreReadAll(self):
         self.read_channels = {}
-
+    
     def PreReadOne(self,ind):
         channel = self.channels[ind-1]
         self.read_channels[ind] = channel
@@ -113,12 +113,12 @@ class DummyCounterTimerController(CounterTimerController):
             for channel in self.read_channels.values():
                 if channel.is_started:
                     self._setChannelValue(channel, elapsed_time)
-
+    
     def ReadOne(self,ind):
         self._log.info("ReadOne(%d)", ind)
         v = self.read_channels[ind].value
         return v
-
+    
     def PreStartAllCT(self):
         # if it is first pass in PreStartAllCT or if this ctrl will not have the
         # master...
@@ -141,10 +141,10 @@ class DummyCounterTimerController(CounterTimerController):
         channel.value = 0.0
         self.counting_channels[ind] = channel
         return True
-        
+    
     def StartOneCT(self,ind):
         self.counting_channels[ind].is_started = True
-            
+    
     def StartAllCT(self):
         self.start_time = time.time()
     
@@ -157,7 +157,7 @@ class DummyCounterTimerController(CounterTimerController):
         else:
             self.mode = self.MonitorMode
             self.master_stop_at = -value
-
+    
     def AbortOne(self,ind):
         if not self.mode is self.StoppedMode:
             now = time.time()

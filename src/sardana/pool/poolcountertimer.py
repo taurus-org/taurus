@@ -41,7 +41,7 @@ class PoolCounterTimer(PoolElement):
         PoolElement.__init__(self, **kwargs)
         self._value = None
         self._wvalue = None
-        self.set_action_cache(PoolAcquisition("%s.Acquisition" % self._name))
+        self.set_action_cache(PoolCTAcquisition("%s.Acquisition" % self._name))
         self._aborted = False
     
     def get_type(self):
@@ -62,6 +62,9 @@ class PoolCounterTimer(PoolElement):
             value = self.read_value()
             self._set_value(value, propagate=propagate)
         return self._value
+    
+    def get_value_w(self):
+        return self._wvalue
     
     def set_value(self, value, propagate=1):
         self._wvalue = value
@@ -86,11 +89,8 @@ class PoolCounterTimer(PoolElement):
     
     def start_acquisition(self, value=None):
         self._aborted = False
-        value = value or self._wvalue
+        value = value or self.get_value_w()
         if value is None:
             raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
         if not self._simulation_mode:
-            self.acquisition.run(items=(self,), integration_time=value, master=self,
-                termination_mode=AcqTriggerMode.TriggerOnMaster)
-
-    
+            acq = self.acquisition.run()

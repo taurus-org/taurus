@@ -67,6 +67,13 @@ class MeasurementGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
+        
+        self.Elements = list(self.Elements)
+        for i in range(len(self.Elements)):
+            try:
+                self.Elements[i] = int(self.Elements[i])
+            except:
+                pass
         if self.measurement_group is None:
             try:
                 mg = self.pool.create_measurement_group(name=self.alias,
@@ -90,8 +97,8 @@ class MeasurementGroup(PoolGroupDevice):
     def read_attr_hardware(self,data):
         pass
     
-    def Start(self, attr):
-        pass
+    def Start(self):
+        self.measurement_group.start_acquisition()
     
     
 class MeasurementGroupClass(PoolGroupDeviceClass):
@@ -113,25 +120,10 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Attribute definitions
     attr_list = {
+        'master': [ [DevLong, SCALAR, READ_WRITE] ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 
     def __init__(self, name):
         PoolGroupDeviceClass.__init__(self, name)
         self.set_type(name)
-
-
-if __name__ == '__main__':
-    import sys
-    try:
-        py = Util(sys.argv)
-        py.add_class(MeasurementGroupClass, MeasurementGroup, 'MeasurementGroup')
-
-        U = Util.instance()
-        U.server_init()
-        U.server_run()
-
-    except PyTango.DevFailed,e:
-        print '-------> Received a DevFailed exception:',e
-    except Exception,e:
-        print '-------> An unforeseen exception occured....',e

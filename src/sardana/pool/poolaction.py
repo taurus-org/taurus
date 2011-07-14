@@ -26,24 +26,27 @@
 """This module is part of the Python Pool libray. It defines the class for an
 abstract action over a set of pool elements"""
 
-__all__ = [ "PoolAction", "PoolActionItem" ]
+__all__ = [ "PoolAction", "PoolActionItem", "get_thread_pool" ]
 
 __docformat__ = 'restructuredtext'
 
+import time
 import weakref
 
 import taurus.core.util
 
 from sardana import State
 
-def ThreadPool():
+def get_thread_pool():
     import pool
     return pool.ThreadPool()
+
 
 class PoolActionItem(object):
     
     def __init__(self, element):
         pass
+
 
 class PoolAction(taurus.core.util.Logger):
     
@@ -75,6 +78,9 @@ class PoolAction(taurus.core.util.Logger):
         if not len(ctrl_items):
             del self._pool_ctrls[ctrl]
     
+    def get_elements(self):
+        return [ e() for e in self._elements ]
+    
     def _is_in_action(self, state):
         return state == State.Moving or state == State.Running
     
@@ -84,80 +90,78 @@ class PoolAction(taurus.core.util.Logger):
         if synch:
             self.action_loop()
         else:
-            ThreadPool().add(self.action_loop)
-
+            get_thread_pool().add(self.action_loop)
+    
     def start_action(self, *args, **kwargs):
-        raise RuntimeError("start_action must be implemented in subclass")
+        raise NotImplementedError("start_action must be implemented in subclass")
     
     def action_loop(self):
-        raise RuntimeError("action_loop must be implemented in subclass")
+        raise NotImplementedError("action_loop must be implemented in subclass")
     
-    def read_state_info_old(self, ret=None):
-        """"""
-        pool_ctrls = self._pool_ctrls.keys()
-        elements = ret or [ element() for element in self._elements ]
+    def read_state_info(self, ret=None, serial=False):
+        if ret is None: ret = {}
+        self._state_count = len(self._pool_ctrls)
+        read = self._read_state_info_concurrent
+        if serial:
+            read = self._read_state_info_serial
+
+        return read(ret)
+
+    def _read_state_info_serial(self, ret):
+        for pool_ctrl in self._pool_ctrls:
+            self._read_ctrl_state_info(ret, pool_ctrl)
+        return ret
+
+    def _read_state_info_concurrent(self, ret):
+        tp = get_thread_pool()
+        for pool_ctrl in self._pool_ctrls:
+            tp.add(self._read_ctrl_state_info, None, ret, pool_ctrl)
         
-        # PreStateAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreStateAll()
-        
-        # PreStateOne on all elements
-        for element in elements:
-            element.controller.ctrl.PreStateOne(element.axis)
-        
-        # StateAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.StateAll()
-        
-        ret = ret or {}
-        
-        # StateOne on all elements
-        for element in elements:
-            info = element.controller.ctrl.StateOne(element.axis)
-            ret[element] = info
-        
+        while self._state_count > 0:
+            self.debug("waiting for all controllers to finish")
+            time.sleep(0.01)
         return ret
     
-    def read_value_old(self, ret=None):
-        """"""
-        pool_ctrls = self._pool_ctrls.keys()
-        elements = [ element() for element in self._elements ]
-        
-        # PreReadAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreReadAll()
-        
-        # PreReadOne on all elements
-        for element in elements:
-            element.controller.ctrl.PreReadOne(element.axis)
-
-        # ReadAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.ReadAll()
-
-        ret = ret or {}
-        
-        # PreReadOne on all elements
-        for element in elements:
-            ret[element] = element.controller.ctrl.ReadOne(element.axis)
-        
-        return ret
-    
-    def read_state_info(self, ret=None):
-        elements = ret or [ element() for element in self._elements ]
-        ret = ret or {}
-        
-        for pool_ctrl, elems in self._pool_ctrls.items():
-            axises = [ elem().axis for elem in elems ]
+    def _read_ctrl_state_info(self, ret, pool_ctrl):
+        try:
+            axises = [ elem().axis for elem in self._pool_ctrls[pool_ctrl] ]
             state_infos = pool_ctrl.read_axis_states(axises)
             ret.update( state_infos )
+        finally:
+            self._state_count = max(0, self._state_count-1)
+
+    def read_value(self, ret=None, serial=False):
+        if ret is None: ret = {}
+        self._value_count = len(self._pool_ctrls)
+        read = self._read_value_concurrent
+        if serial:
+            read = self._read_value_serial
+
+        return read(ret)
+
+    def _read_value_serial(self, ret):
+        for pool_ctrl in self._pool_ctrls:
+            self._read_ctrl_value(ret, pool_ctrl)
+        return ret
+
+    def _read_value_concurrent(self, ret):
+        tp = get_thread_pool()
+        for pool_ctrl in self._pool_ctrls:
+            tp.add(self._read_ctrl_value, None, ret, pool_ctrl)
+        
+        while self._value_count > 0:
+            self.debug("waiting for all controllers to finish")
+            time.sleep(0.01)
         return ret
     
-    def read_value(self, ret=None):
-        elements = [ element() for element in self._elements ]
-        ret = ret or {}
-        
-        for pool_ctrl, elems in self._pool_ctrls.items():
-            axises = [ elem().axis for elem in elems ]
+    def _read_ctrl_value(self, ret, pool_ctrl):
+        try:
+            axises = [ elem().axis for elem in self._pool_ctrls[pool_ctrl] ]
             value_infos = pool_ctrl.read_axis_values(axises)
             ret.update( value_infos )
-        return ret
+        finally:
+            self._value_count = max(0, self._value_count-1)
+    
     
     def abort(self, element=None):
         self._aborted = True

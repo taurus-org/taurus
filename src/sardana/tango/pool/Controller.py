@@ -263,18 +263,3 @@ class ControllerClass(PoolDeviceClass):
     def __init__(self, name):
         PoolDeviceClass.__init__(self, name)
         self.set_type(name)
-    
-
-if __name__ == '__main__':
-    try:
-        py = PyTango.Util(sys.argv)
-        py.add_class(ControllerClass,Controller,'Controller')
-
-        U = PyTango.Util.instance()
-        U.server_init()
-        U.server_run()
-
-    except PyTango.DevFailed,e:
-        print '-------> Received a DevFailed exception:',e
-    except Exception,e:
-        print '-------> An unforeseen exception occured....',e

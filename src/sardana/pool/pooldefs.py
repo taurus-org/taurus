@@ -65,5 +65,6 @@ TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType
 
 AcqTriggerMode = Enumeration("AcqTriggerMode", ( \
     "TriggerOnMaster",
-    "TriggerOnAll") )
+    "TriggerOnAll",
+    "TriggerUnknown") )
     

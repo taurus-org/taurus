@@ -48,7 +48,7 @@ __thread_pool = None
 def ThreadPool():
     global __thread_pool
     if __thread_pool is None:
-        __thread_pool = taurus.core.util.ThreadPool()
+        __thread_pool = taurus.core.util.ThreadPool(Psize=10)
     return __thread_pool
 
 class PoolContainer(object):
@@ -261,7 +261,7 @@ class Pool(PoolContainer, PoolObject):
         PoolContainer.__init__(self)
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId, pool=self)
         self._last_id = InvalidId
-        self._monitor = PoolMonitor(self, "PoolMonitor")
+        self._monitor = PoolMonitor(self, "PoolMonitor", auto_start=False)
     
     def init_remote_logging(self, host=None, port=None):
         log = logging.getLogger("Controller")
@@ -277,6 +277,10 @@ class Pool(PoolContainer, PoolObject):
             port = logging.handlers.DEFAULT_TCP_LOGGING_PORT
         handler = logging.handlers.SocketHandler(host, port)
         log.addHandler(handler)
+    
+    @property
+    def monitor(self):
+        return self._monitor
     
     def get_type(self):
         return ElementType.Pool

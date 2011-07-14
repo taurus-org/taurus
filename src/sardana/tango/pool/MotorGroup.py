@@ -66,6 +66,7 @@ class MotorGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
+        
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
             try:
@@ -163,17 +164,3 @@ class MotorGroupClass(PoolGroupDeviceClass):
         self.set_type(name)
 
 
-if __name__ == '__main__':
-    import sys
-    try:
-        py = Util(sys.argv)
-        py.add_class(MotorGroupClass, MotorGroup, 'MotorGroup')
-
-        U = Util.instance()
-        U.server_init()
-        U.server_run()
-
-    except PyTango.DevFailed,e:
-        print '-------> Received a DevFailed exception:',e
-    except Exception,e:
-        print '-------> An unforeseen exception occured....',e

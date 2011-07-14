@@ -188,6 +188,9 @@ def run_tango_server(tango_args):
     except PyTango.DevFailed, e:
         import taurus
         taurus.critical("Server exited with DevFailed",exc_info=1)
+    except KeyboardInterrupt:
+        import taurus
+        taurus.critical("Interrupted by keyboard")
     except Exception,e:
         import taurus
         taurus.critical("Server exited with unforeseen exception",exc_info=1)

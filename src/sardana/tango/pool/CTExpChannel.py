@@ -161,17 +161,3 @@ class CTExpChannelClass(PoolElementDeviceClass):
         PoolElementDeviceClass.__init__(self, name)
         self.set_type(name);
 
-
-if __name__ == '__main__':
-    try:
-        py = Util(sys.argv)
-        py.add_class(CTExpChannelClass, CTExpChannel, 'CTExpChannel')
-
-        U = Util.instance()
-        U.server_init()
-        U.server_run()
-
-    except PyTango.DevFailed,e:
-        print '-------> Received a DevFailed exception:',e
-    except Exception,e:
-        print '-------> An unforeseen exception occured....',e
