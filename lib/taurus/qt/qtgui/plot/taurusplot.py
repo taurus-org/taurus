@@ -1400,7 +1400,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 widget.setText(title)
         self.replot()
 
-    @Qt.pyqtSignature("legendClicked(QwtPlotItem*)")
     def toggleCurveState(self, curve):
         '''cycles through 3 possible states for a curve:
             -invisible
