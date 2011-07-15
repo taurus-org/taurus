@@ -182,7 +182,10 @@ class TangoAttribute(taurus.core.TaurusAttribute):
             elif PyTango.is_int_type(type):
                 attrvalue = int(value)
             elif type == DataType.DevBoolean:
-                attrvalue = bool(value)
+                try:
+                    attrvalue = bool(int(value))
+                except:
+                    attrvalue = str(value).lower() == 'true'
             elif type == DataType.DevUChar:
                 attrvalue = chr(value)
             elif type == DataType.DevState:
