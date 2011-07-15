@@ -148,39 +148,39 @@ class BlackListValidator(Qt.QValidator):
             self._previousState = state
         return state, pos
 
-class NamePage(Qt.QWizardPage):
-    
-    def __init__(self, parent = None):
-        Qt.QWizardPage.__init__(self, parent)
-        
-        self.setTitle('Name')
-        self.setSubTitle('Choose a name for the new panel (it must not exist already)')
-        
-        #contents    
-        self.nameLE = Qt.QLineEdit()
-        self.registerField("panelname*",self.nameLE)
-        self.diagnosticLabel = Qt.QLabel('')
-        
-        layout = Qt.QHBoxLayout()
-        layout.addWidget(Qt.QLabel("Panel Name"))
-        layout.addWidget(self.nameLE)
-        layout.addWidget(self.diagnosticLabel)
-        self.setLayout(layout)
-    
-    def initializePage(self):
-        gui = self.wizard().getGui()
-        if hasattr(gui, 'getPanelNames'):
-            pnames = gui.getPanelNames()
-            v = BlackListValidator(blackList=pnames, parent=self.nameLE)
-            self.nameLE.setValidator(v)
-            self.connect(v, Qt.SIGNAL('stateChanged'),self._onValidatorStateChanged)
-    
-    def _onValidatorStateChanged(self, state, previous):
-        if state == Qt.QValidator.Acceptable:
-            self.diagnosticLabel.setText('')
-        else:
-            self.diagnosticLabel.setText('<b>(Name already exists)</b>')
-        
+#class NamePage(Qt.QWizardPage):
+#    
+#    def __init__(self, parent = None):
+#        Qt.QWizardPage.__init__(self, parent)
+#        
+#        self.setTitle('Name')
+#        self.setSubTitle('Choose a name for the new panel (it must not exist already)')
+#        
+#        #contents    
+#        self.nameLE = Qt.QLineEdit()
+#        self.registerField("panelname*",self.nameLE)
+#        self.diagnosticLabel = Qt.QLabel('')
+#        
+#        layout = Qt.QHBoxLayout()
+#        layout.addWidget(Qt.QLabel("Panel Name"))
+#        layout.addWidget(self.nameLE)
+#        layout.addWidget(self.diagnosticLabel)
+#        self.setLayout(layout)
+#    
+#    def initializePage(self):
+#        gui = self.wizard().getGui()
+#        if hasattr(gui, 'getPanelNames'):
+#            pnames = gui.getPanelNames()
+#            v = BlackListValidator(blackList=pnames, parent=self.nameLE)
+#            self.nameLE.setValidator(v)
+#            self.connect(v, Qt.SIGNAL('stateChanged'),self._onValidatorStateChanged)
+#    
+#    def _onValidatorStateChanged(self, state, previous):
+#        if state == Qt.QValidator.Acceptable:
+#            self.diagnosticLabel.setText('')
+#        else:
+#            self.diagnosticLabel.setText('<b>(Name already exists)</b>')
+#        
     
         
 class WidgetPage(Qt.QWizardPage):
@@ -191,10 +191,19 @@ class WidgetPage(Qt.QWizardPage):
         
         self.setFinalPage(True)
         self.setTitle('Panel type')
-        self.setSubTitle('Click on the type of panel you want')
+        self.setSubTitle('Choose a name and type for the new panel')
         self.setButtonText(Qt.QWizard.NextButton, 'Advanced settings...')
         
         self.widgetDescription = {'widgetname':None, 'modulename':None, 'classname':None}
+        
+        #name part
+        self.nameLE = Qt.QLineEdit()
+        self.registerField("panelname*",self.nameLE)
+        self.diagnosticLabel = Qt.QLabel('')
+        nameLayout = Qt.QHBoxLayout()
+        nameLayout.addWidget(Qt.QLabel("Panel Name"))
+        nameLayout.addWidget(self.nameLE)
+        nameLayout.addWidget(self.diagnosticLabel)
         
         #contents    
         available = TaurusWidgetFactory().getWidgetClassNames()
@@ -219,12 +228,21 @@ class WidgetPage(Qt.QWizardPage):
         
         self.widgetTypeLB = Qt.QLabel("<b>Widget Type:</b>")
         
-        self.connect(self.choiceWidget, Qt.SIGNAL('choiceMade'),self.onChoiceMade)
+        self.connect(self.choiceWidget, Qt.SIGNAL('choiceMade'),self.onChoiceMade)        
         
         layout = Qt.QVBoxLayout()
+        layout.addLayout(nameLayout)
         layout.addWidget(self.choiceWidget)
         layout.addWidget(self.widgetTypeLB)
         self.setLayout(layout)
+    
+    def initializePage(self):
+        gui = self.wizard().getGui()
+        if hasattr(gui, 'getPanelNames'):
+            pnames = gui.getPanelNames()
+            v = BlackListValidator(blackList=pnames, parent=self.nameLE)
+            self.nameLE.setValidator(v)
+            self.connect(v, Qt.SIGNAL('stateChanged'),self._onValidatorStateChanged)
     
     def validatePage(self):
         if self.wizard().getPanelDescription() is None:
@@ -238,6 +256,12 @@ class WidgetPage(Qt.QWizardPage):
         except Exception,e:
             Qt.QMessageBox.warning(self, 'Invalid panel', 'The requested panel cannot be created. \nReason:\n%s'%repr(e))
             return False
+    
+    def _onValidatorStateChanged(self, state, previous):
+        if state == Qt.QValidator.Acceptable:
+            self.diagnosticLabel.setText('')
+        else:
+            self.diagnosticLabel.setText('<b>(Name already exists)</b>')
     
     def onChoiceMade(self, choice):
         if choice == self.OTHER_TXT:
@@ -494,12 +518,12 @@ class PanelDescriptionWizard(Qt.QWizard):
         if gui is None: gui = parent
         if gui is not None:
             self._gui = weakref.proxy(gui)
-        #self.setOption(self.HaveFinishButtonOnEarlyPages, True)
-        self.namePG = NamePage()
+        ###self.setOption(self.HaveFinishButtonOnEarlyPages, True)
+        #self.namePG = NamePage()
         self.widgetPG = WidgetPage()
         self.advSettingsPG = AdvSettingsPage()
         
-        self.addPage(self.namePG)
+        ###self.addPage(self.namePG)
         self.addPage(self.widgetPG)
         self.addPage(self.advSettingsPG)
         
