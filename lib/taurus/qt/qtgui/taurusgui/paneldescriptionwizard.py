@@ -509,7 +509,9 @@ class CommItemDelegate(Qt.QStyledItemDelegate):
         model.setData(index, Qt.QVariant(editor.currentText()))        
 
 class PanelDescriptionWizard(Qt.QWizard):
-    
+    '''A wizard-style dialog for configuring a new TaurusGui panel. 
+    Use :meth:`getDialog` for launching it
+    '''
     def __init__(self, parent=None, gui=None):
         Qt.QWizard.__init__(self, parent)
 #        self.setPixmap(Qt.QWizard.LogoPixmap, getPixmap(":/logo.png"))
@@ -528,16 +530,33 @@ class PanelDescriptionWizard(Qt.QWizard):
         self.addPage(self.advSettingsPG)
         
     def getGui(self):
+        '''returns a reference to the GUI to which the dialog is associated'''
         return self._gui
         
     def getPanelDescription(self):
+        '''Returns the panel description with the choices made so far
+        
+        :return: (PanelDescription) the panel description
+        '''
         return self._panelDescription
     
     def setPanelDescription(self, desc):
+        '''Sets the Panel description
+        
+        :param desc: (PanelDescription)
+        '''
         self._panelDescription = desc
         
     @staticmethod    
     def getDialog(parent):
+        """Static method for launching a new Dialog.
+        
+        :param parent: parent widget for the new dialog
+        
+        :return: (tuple<PanelDescription,bool>) tuple of a description object 
+                 and a state flag. The state is True if the dialog was accepted
+                 and False otherwise
+        """
         dlg = PanelDescriptionWizard(parent)
         dlg.exec_()
         return dlg.getPanelDescription(), (dlg.result() == dlg.Accepted)   
