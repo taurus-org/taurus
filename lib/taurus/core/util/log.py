@@ -123,24 +123,20 @@ class LogIt(object):
                 if len(kwargs):   in_msg += str(kwargs)
             if self._col_limit and len(in_msg) > self._col_limit: in_msg = "%s [...]" % in_msg[:self._col_limit-6]
             log_obj.log(self._level, in_msg)
-            ret = None
-            raise_ex = None
-            exc_info = False
+            out_msg = "<-"
             try:
                 ret = f(*args, **kwargs)
-            except Exception,e:
+            except Exception, e:
                 exc_info = sys.exc_info()
-                raise_ex = e
-            out_msg = "<-"
-            if raise_ex is not None:
-                out_msg += " (with %s)" % raise_ex.__class__.__name__
+                out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
+                log_obj.log(self._level, out_msg, exc_info=exc_info)
+                raise
             out_msg += " %s" % fname
             if not ret is None and self._showret:
                 out_msg += " = %s" % str(ret)
             if self._col_limit and len(out_msg) > self._col_limit:
                 out_msg = "%s [...]" % out_msg[:self._col_limit-6]
-            log_obj.log(self._level, out_msg, exc_info=exc_info)
-            if not raise_ex is None: raise raise_ex
+            log_obj.log(self._level, out_msg)
             return ret
         return wrapper
 
