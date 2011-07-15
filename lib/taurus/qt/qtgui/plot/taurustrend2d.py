@@ -28,12 +28,12 @@ taurustrend.py: Generic trend widget for Taurus
 """
 __all__=["TaurusTrend2D"]
 
-from guiqwt.plot import ImageWidget, ImageDialog
+from guiqwt.plot import ImageDialog
 from PyQt4 import Qt
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from taurus.qt.extra_guiqwt.image import TaurusTrend2DItem
-from taurus.qt.extra_guiqwt.tools import TaurusModelChooserTool, TimeAxisTool
+from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
+from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool, TimeAxisTool
 
 
 class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
@@ -46,7 +46,7 @@ class TaurusTrend2D(ImageDialog, TaurusBaseWidget):
     the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
     def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
-        '''see :class:`guiqwt.plot.ImageWidget` for other valid initialization parameters'''
+        '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
         name = "TaurusTrend2D"
         if options is None:
             options = dict(lock_aspect_ratio=False)

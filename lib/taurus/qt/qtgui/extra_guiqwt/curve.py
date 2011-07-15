@@ -31,7 +31,7 @@ from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus
 from guiqwt.curve import CurveItem
-from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
+from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 import numpy
         
 class TaurusCurveItem(CurveItem, TaurusBaseComponent):
@@ -126,7 +126,7 @@ def plot(*items):
                       options=dict(title="Title", xlabel="xlabel",
                                    ylabel="ylabel"))
     win.add_tool(HRangeTool)
-    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool
+    from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
     win.add_tool(TaurusCurveChooserTool)
     plot = win.get_plot()
     for item in items:
@@ -138,7 +138,7 @@ def plot(*items):
 
 
 def test1():
-    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
     app = TaurusApplication()
     
@@ -158,11 +158,11 @@ def test1():
 
 
 def taurusCurveMain():
-    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
     from guiqwt.plot import CurveDialog
     from guiqwt.tools import HRangeTool
-    from taurus.qt.extra_guiqwt.tools import TaurusCurveChooserTool, TimeAxisTool
+    from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool, TimeAxisTool
     import taurus.core.util.argparse
     import sys
     

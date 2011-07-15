@@ -207,9 +207,9 @@ def taurusImageMain():
     except ImportError:
         from guiqwt.tools import VCursorTool, HCursorTool 
         
-    from taurus.qt.extra_guiqwt.tools import TaurusImageChooserTool
+    from taurus.qt.qtgui.extra_guiqwt.tools import TaurusImageChooserTool
     from guiqwt.plot import ImageDialog
-    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
     import taurus.core.util.argparse
     import sys
@@ -246,7 +246,7 @@ def taurusImageMain():
 def test1():
     """Adapted from guiqwt cross_section.py example"""
     from guiqwt.plot import ImageDialog
-    from taurus.qt.extra_guiqwt.builder import make
+    from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
     app = TaurusApplication()
         
@@ -261,7 +261,7 @@ def test1():
     #create a dialog with a plot and add the images
     win = ImageDialog(edit=False, toolbar=True, wintitle="Taurus Cross sections test",
                       options=dict(show_xsection=False, show_ysection=False))
-    from taurus.qt.extra_guiqwt.tools import TaurusImageChooserTool
+    from taurus.qt.qtgui.extra_guiqwt.tools import TaurusImageChooserTool
     win.add_tool(TaurusImageChooserTool)
     plot = win.get_plot()
     plot.add_item(taurusimage)

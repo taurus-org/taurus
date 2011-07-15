@@ -33,9 +33,9 @@ __docformat__ = 'restructuredtext'
 from guiqwt.tools import CommandTool, DefaultToolbarID, QActionGroup, add_actions
 from PyQt4 import Qt, Qwt5
 from taurus.qt.qtgui.resource import getIcon
-from taurus.qt.extra_guiqwt.builder import make
-from taurus.qt.extra_guiqwt.curve import TaurusCurveItem
-from taurus.qt.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
+from taurus.qt.qtgui.extra_guiqwt.builder import make
+from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem
+from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core import TaurusElementType
 from taurus.qt.qtgui.plot import DateTimeScaleEngine

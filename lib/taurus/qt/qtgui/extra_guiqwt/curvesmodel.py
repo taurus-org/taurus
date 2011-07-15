@@ -38,7 +38,7 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from ui.ui_CurveItemConfDlg import Ui_CurveItemConfDlg    
 from guiqwt.styles import CurveParam, AxesParam, update_style_attr
-from taurus.qt.extra_guiqwt.styles import TaurusCurveParam
+from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 from guiqwt.builder import make
 
 
