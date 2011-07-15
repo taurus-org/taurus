@@ -1,0 +1,156 @@
+<ui version="4.0" >
+ <class>CurveItemConfDlg</class>
+ <widget class="QWidget" name="CurveItemConfDlg" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>812</width>
+    <height>495</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" >
+   <item row="0" column="0" >
+    <widget class="QSplitter" name="splitter" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QGroupBox" name="groupBox_2" >
+      <property name="title" >
+       <string>Sources of data</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5" >
+       <item>
+        <widget class="QTabWidget" name="tabWidget" >
+         <property name="currentIndex" >
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tangoTab" >
+          <attribute name="title" >
+           <string>Tango</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_4" >
+           <item>
+            <widget class="TaurusModelSelectorTree" name="tangoTree" />
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_3" >
+      <property name="title" >
+       <string>Contents &amp; appearance</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_7" >
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_4" >
+         <item>
+          <widget class="QTableView" name="curvesTable" >
+           <property name="minimumSize" >
+            <size>
+             <width>400</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="contextMenuPolicy" >
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+           <property name="dragDropMode" >
+            <enum>QAbstractItemView::DragDrop</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2" >
+           <item>
+            <spacer name="horizontalSpacer" >
+             <property name="orientation" >
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0" >
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QToolButton" name="removeCurvesBT" >
+             <property name="contextMenuPolicy" >
+              <enum>Qt::NoContextMenu</enum>
+             </property>
+             <property name="text" >
+              <string> Remove</string>
+             </property>
+             <property name="popupMode" >
+              <enum>QToolButton::MenuButtonPopup</enum>
+             </property>
+             <property name="toolButtonStyle" >
+              <enum>Qt::ToolButtonTextBesideIcon</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="0" >
+    <layout class="QHBoxLayout" name="horizontalLayout_3" >
+     <item>
+      <spacer name="horizontalSpacer_2" >
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="reloadBT" >
+       <property name="text" >
+        <string>Reload</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelBT" >
+       <property name="text" >
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="applyBT" >
+       <property name="text" >
+        <string>Apply</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TaurusModelSelectorTree</class>
+   <extends>TaurusWidget</extends>
+   <header>taurus.qt.qtgui.panel</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
