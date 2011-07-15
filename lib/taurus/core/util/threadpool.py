@@ -41,7 +41,6 @@ class ThreadPool(Logger):
     threadId = 0
     
     def __init__(self, name=None, parent=None, Psize=20, Qsize=20, daemons=True):
-        name = name or self.__class__.__name__
         Logger.__init__(self, name, parent)
         self._daemons = daemons
         self.workers = []
@@ -53,15 +52,21 @@ class ThreadPool(Logger):
     def size():
         def set(self, newSize):
             """set method for the size property"""
-            for i in xrange(newSize-len(self.workers)):
+            nb_workers = len(self.workers)
+            if newSize == nb_workers:
+                return
+            
+            for i in range(newSize - nb_workers):
                 ThreadPool.threadId += 1
                 name = "%s.W%03i" % (self.log_name, ThreadPool.threadId)
                 new = Worker(self, name, self._daemons)
                 self.workers.append(new)
                 self.debug("Starting %s" % name)
                 new.start()
+            
             # remove the old worker threads
-            for i in xrange(len(self.workers)-newSize):
+            nb_workers = len(self.workers)
+            for i in range(nb_workers - newSize):
                 self.jobs.put((None, None, None, None))
                 
         def get(self):
