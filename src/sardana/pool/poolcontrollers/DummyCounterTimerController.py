@@ -50,19 +50,23 @@ class DummyCounterTimerController(CounterTimerController):
         idx = ind - 1
         sta = None
         status = None
-        channel = self.channels[idx]
-        m = self.mode
-        if not m is self.StoppedMode:
-            now = time.time()
-            elapsed_time = now - self.start_time
-            self._checkState(elapsed_time)
-
-        if self.mode == self.StoppedMode and not channel.is_started:
+        if ind not in self.counting_channels:
             sta = PyTango.DevState.ON
             status = "Stopped"
         else:
-            sta = PyTango.DevState.MOVING
-            status = "Acquiring"
+            channel = self.channels[idx]
+            m = self.mode
+            if m != self.StoppedMode:
+                now = time.time()
+                elapsed_time = now - self.start_time
+                self._checkState(elapsed_time)
+
+            if self.mode == self.StoppedMode and not channel.is_started:
+                sta = PyTango.DevState.ON
+                status = "Stopped"
+            else:
+                sta = PyTango.DevState.MOVING
+                status = "Acquiring"
         return (sta,status)
         
     def _setChannelValue(self, channel, elapsed_time):
@@ -81,7 +85,7 @@ class DummyCounterTimerController(CounterTimerController):
     def _finished(self, elapsed_time):
         m = self.mode
         if m == self.TimerMode:
-            self.master_channel.value = elapsed_time
+            self.master_channel.value = self.master_stop_at
         
         if not self.master_channel is None:
             self.master_channel.is_started = False

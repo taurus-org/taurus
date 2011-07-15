@@ -119,10 +119,7 @@ class SardanaDevice(Device_4Impl, Logger):
         return self._alias
 
     def init_device(self):
-        self.set_state(DevState.ON)
         self.get_device_properties(self.get_device_class())
-        
-        self.set_change_event("state", True)
     
     def initialize_dynamic_attributes(self):
         pass

@@ -33,7 +33,7 @@ import os.path
 import threading
 import time
 
-import taurus.core.util
+from taurus.core.util import Logger, ThreadPool, DebugIt, InfoIt
 
 from poolcontrollermanager import ControllerManager
 
@@ -43,17 +43,14 @@ from poolelement import *
 from poolcontroller import *
 from poolmotor import *
 
-def ThreadPool():
-    import pool
-    return pool.ThreadPool()
-    
-class PoolMonitor(taurus.core.util.Logger, threading.Thread):
+
+class PoolMonitor(Logger, threading.Thread):
     
     MIN_THREADS =  1
     MAX_THREADS = 10
     
     def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0, auto_start=True):
-        taurus.core.util.Logger.__init__(self, name)
+        Logger.__init__(self, name)
         threading.Thread.__init__(self, name=name)
         self.daemon = True
         self._period = period
@@ -86,13 +83,12 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
         else:
             if tp is None:
                 self.info("Creating monitor pool of threads %d", n)
-                tp = taurus.core.util.ThreadPool(name=self.name, Psize=n)
+                tp = ThreadPool(name=self.name, Psize=n)
                 self._thread_pool = tp
             else:
                 self.info("Readjusting monitor pool of threads from %d to %d", nb_threads, n)
                 self._thread_pool.size = n
     
-    @taurus.core.util.DebugIt()
     def update_state_info(self, serial=False, wait=True):
         """Update state information of every element.
         
@@ -139,14 +135,16 @@ class PoolMonitor(taurus.core.util.Logger, threading.Thread):
         self._stop = True
 
     def monitor(self):
-        start = time.time()
         ret = self.update_state_info()
-        finish = time.time()
-        #sleep_time = self._period
-        sleep_time = max(self._period - (finish-start), self._min_sleep)
-        time.sleep(sleep_time)
-
-    def run(self):
-        while not self._stop:
-            self.monitor()
     
+    def run(self):
+        nap_time = period = self._period
+        i, startup = 0, time.time()
+        while not self._stop:
+            time.sleep(nap_time)
+            self.monitor()
+            finish = time.time()
+            nap_time = -1
+            while nap_time < 0:
+                i += 1
+                nap_time = (startup + i*period) - finish

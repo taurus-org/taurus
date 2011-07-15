@@ -101,7 +101,7 @@ class PoolCTAcquisition(PoolAction):
             if self._head is None:
                 self._master = items[0]
             else:
-                self._master = head.master
+                self._master = self._head.master
         if self._master is None:
             raise Exception("master channel not given")
         master_axis = self._master.axis
@@ -137,6 +137,14 @@ class PoolCTAcquisition(PoolAction):
         pool_ctrls.remove(master_controller)
         pool_ctrls.append(master_controller)
         
+        self.info("Start acquisition with master=%s, head=%s, integ_time=%s, trigger=%s, channels=%s",
+                  self._master, self._head, self._integ_time, self._terminate_on, items)
+        ##########
+        
+        ##########
+        
+        
+        
         # Load the master timer/monitor with the proper value
         self.load()
         
@@ -153,11 +161,11 @@ class PoolCTAcquisition(PoolAction):
             ctrl.StartOneCT(axis)
         
         if self._head:
-            self._head.set_state(State.Moving)
+            self._head.set_state(State.Moving, propagate=2)
         
         # set the state of all elements to  and inform their listeners
         for item in items:
-            item.set_state(State.Moving)
+            item.set_state(State.Moving, propagate=2)
         
         # StartAllCT on all controllers
         for pool_ctrl in pool_ctrls:
@@ -216,5 +224,7 @@ class PoolCTAcquisition(PoolAction):
             acquirable.put_value(value, propagate=2)
         
         for acquirable, state_info in states.items():
-            acquirable.set_state_info(state_info, propagate=1)
+            acquirable.set_state_info(state_info, propagate=2)
+        if self._head:
+            self._head.set_state(State.On, propagate=2)
 

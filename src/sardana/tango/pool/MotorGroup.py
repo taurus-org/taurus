@@ -66,7 +66,11 @@ class MotorGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
-        
+    
+        detect_evts = "state", "status", "position"
+        non_detect_evts = "elementlist",
+        self.set_change_events(detect_evts, non_detect_evts)
+
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
             try:
@@ -78,13 +82,9 @@ class MotorGroup(PoolGroupDevice):
             except Exception,e:
                 import traceback
                 traceback.print_exc()
-            
-        attr_evts = "state", "position",
-        
-        for attr_name in attr_evts:
-            self.set_change_event(attr_name, True, True)
-        self.set_change_event("ElementList", True, False)
-        
+        # force a state read to initialize the state attribute
+        state = self.ct.state
+
     def on_motor_group_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name

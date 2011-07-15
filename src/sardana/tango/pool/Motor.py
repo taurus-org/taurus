@@ -66,6 +66,12 @@ class Motor(PoolElementDevice):
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
+
+        detect_evts = "state", "status", "position", "dialposition", "limit_switches"
+        non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
+            "acceleration", "deceleration", "base_rate", "backlash"
+        self.set_change_events(detect_evts, non_detect_evts)
+
         if self.motor is None:
             motor = self.pool.create_element(type="Motor",
                 name=self.alias, full_name=self.get_name(), id=self.Id,
@@ -74,17 +80,8 @@ class Motor(PoolElementDevice):
                 motor.set_instrument(self.instrument)
             motor.add_listener(self.on_motor_changed)
             self.motor = motor
-            
-        attr_evts = "state", "status", "position", "dialposition", "limit_switches"
-        
-        for attr_name in attr_evts:
-            self.set_change_event(attr_name, True, True)
-            
-        attr_evts = "step_per_unit", "offset", "sign", "velocity", \
-            "acceleration", "deceleration", "base_rate", "backlash"
-
-        for attr_name in attr_evts:
-            self.set_change_event(attr_name, True, False)
+        # force a state read to initialize the state attribute
+        state = self.motor.state
         
     def on_motor_changed(self, event_source, event_type, event_value):
         t = time.time()
@@ -120,7 +117,8 @@ class Motor(PoolElementDevice):
                 attr.set_change_event(True, True)
 
     def always_executed_hook(self):
-        state = to_tango_state(self.motor.get_state(cache=False))
+        #state = to_tango_state(self.motor.get_state(cache=False))
+        pass
 
     def read_attr_hardware(self,data):
         pass
@@ -309,7 +307,7 @@ class MotorClass(PoolElementDeviceClass):
                            { 'label'         : "Dial position",
                              'Display level' : DispLevel.EXPERT } ],
         'Step_per_unit': [ [ DevDouble, SCALAR, READ_WRITE],
-                           { 'Memorized'     : "true_without_hard_applied",
+                           { 'Memorized'     : "true",
                              'label'         : "Steps p/ unit",
                              'Display level' : DispLevel.EXPERT } ],
         'Backlash'     : [ [ DevLong, SCALAR, READ_WRITE],

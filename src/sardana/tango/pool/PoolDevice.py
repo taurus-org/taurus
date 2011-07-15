@@ -72,12 +72,14 @@ class PoolDevice(SardanaDevice):
     
     element = property(get_element, set_element)
     
+    def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
+        for e in evts_checked_by_tango:
+            self.set_change_event(e, True, True)
+        for e in evts_not_checked_by_tango:
+            self.set_change_event(e, True, False)
+    
     def init_device(self):
         SardanaDevice.init_device(self)
-        self.set_state(DevState.ON)
-        self.get_device_properties(self.get_device_class())
-        
-        self.set_change_event("state", True)
     
     def delete_device(self):
         SardanaDevice.delete_device(self)
@@ -258,7 +260,7 @@ class PoolGroupDevice(PoolDevice):
 
     def get_element_names(self):
         elements = self.element.get_user_elements()
-        return [ element.get_name() for element in elements ]
+        return [ element.name for element in elements ]
     
     def elements_changed(self, evt_src, evt_type, evt_value):
         self.push_change_event("ElementList", self.get_element_names())
@@ -290,4 +292,6 @@ class PoolGroupDeviceClass(PoolDeviceClass):
     def __init__(self, name):
         PoolDeviceClass.__init__(self, name)
         self.set_type(name)
-    
+
+    def init_device(self):
+        PoolDevice.init_device(self)

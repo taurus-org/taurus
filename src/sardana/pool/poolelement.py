@@ -217,14 +217,16 @@ class PoolElement(PoolBaseElement):
     instrument = property(get_instrument, set_instrument, doc="element instrument")
     
 
-class PoolGroupElement(PoolBaseElement):
+class PoolGroupElement(PoolContainer, PoolBaseElement):
 
     def __init__(self, **kwargs):
         user_elem_ids = kwargs.pop('user_elements')
-        super(PoolGroupElement, self).__init__(**kwargs)
+        PoolContainer.__init__(self)
+        PoolBaseElement.__init__(self, **kwargs)
         
-        pool = self.pool
         self._user_elements = []
+
+        pool = self.pool
         for id in user_elem_ids:
             self.add_user_element(pool.get_element(id=id))
 
@@ -250,6 +252,7 @@ class PoolGroupElement(PoolBaseElement):
         if index is None:
             index = len(self._user_elements)
         self._user_elements.insert(index, element)
+        self.add_element(element)
         if self._action_cache:
             self._action_cache.add_element(element)
         element.add_listener(self.on_element_changed)
@@ -261,3 +264,4 @@ class PoolGroupElement(PoolBaseElement):
             raise Exception("Group doesn't contain %s" % element.name)
         element.remove_listener(self.on_element_changed)
         del self._user_elements[idx]
+        self.remove_element(element)

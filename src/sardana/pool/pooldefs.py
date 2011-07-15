@@ -64,7 +64,12 @@ TYPE_GROUP_ELEMENTS = ElementType.MotorGroup, ElementType.MeasurementGroup
 TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType.MotorGroup
 
 AcqTriggerMode = Enumeration("AcqTriggerMode", ( \
-    "TriggerOnMaster",
-    "TriggerOnAll",
-    "TriggerUnknown") )
+    "OnMaster",
+    "OnAll",
+    "Unknown") )
+
+AcqTriggerType = Enumeration("AcqTriggerType", ( \
+    "Software", # channel triggered by software - start and stop by software
+    "Gate",     # channel triggered by HW - start and stop by external 
+    "Unknwon") )
     

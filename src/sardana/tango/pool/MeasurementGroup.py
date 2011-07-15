@@ -35,12 +35,14 @@ from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango.constants import DescNotSet
 
 from taurus.core.util.log import InfoIt, DebugIt
 
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 from PoolDevice import to_tango_state
 
+from sardana.pool import AcqTriggerMode
 
 class MeasurementGroup(PoolGroupDevice):
     
@@ -67,6 +69,10 @@ class MeasurementGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
+
+        detect_evts = "state", "status"
+        non_detect_evts = "master", "triggermode", "elementlist"
+        self.set_change_events(detect_evts, non_detect_evts)
         
         self.Elements = list(self.Elements)
         for i in range(len(self.Elements)):
@@ -84,18 +90,72 @@ class MeasurementGroup(PoolGroupDevice):
             except Exception,e:
                 import traceback
                 traceback.print_exc()
-
-        self.set_change_event("ElementList", True, False)
+        # force a state read to initialize the state attribute
+        self.set_state(DevState.ON)
+        #state = self.measurement_group.state
         
     def on_measurement_group_changed(self, event_source, event_type, event_value):
-        pass
-    
+        t = time.time()
+        name = event_type.name
+        if name == "trigger_mode":
+            name = "triggermode"
+        multi_attr = self.get_device_attr()
+        attr = multi_attr.get_attr_by_name(name)
+        quality = AttrQuality.ATTR_VALID
+        
+        recover = False
+        if event_type.priority > 1:
+            self.debug("priority event %s",name)
+            attr.set_change_event(True, False)
+            recover = True
+        
+        try:
+            if name == "state":
+                event_value = to_tango_state(event_value)
+                self.set_state(event_value)
+                self.push_change_event(name, event_value)
+            elif name == "status":
+                self.set_status(event_value)
+                self.push_change_event(name, event_value)
+            elif name == "master":
+                event_value = event_value.name
+                self.push_change_event(name, event_value)
+            elif name == "triggermode":
+                event_value = AcqTriggerMode.whatis(event_value)
+                self.push_change_event(name, event_value)
+            else:
+                self.push_change_event(name, event_value, t, quality)
+        finally:
+            if recover:
+                attr.set_change_event(True, True)
+                
     def always_executed_hook(self):
         pass 
         #state = to_tango_state(self.motor_group.get_state(cache=False))
     
     def read_attr_hardware(self,data):
         pass
+    
+    def read_Master(self, attr):
+        master = self.measurement_group.master
+        v = DescNotSet
+        if master is not None:
+            v = master.name
+        attr.set_value(v)
+    
+    def write_Master(self, attr):
+        self.measurement_group.set_master_name(attr.get_write_value())
+    
+    def read_TriggerMode(self, attr):
+        tm = self.measurement_group.trigger_mode
+        attr.set_value(AcqTriggerMode.whatis(tm))
+    
+    def write_TriggerMode(self, attr):
+        v = attr.get_write_value()
+        if not AcqTriggerMode.has_key(v):
+            raise Exception("Invalid trigger mode '%s'. Possible modes are %s" % \
+                            (v, ", ".join(AcqTriggerMode.keys())))
+        self.measurement_group.trigger_mode = AcqTriggerMode.lookup[v]
     
     def Start(self):
         self.measurement_group.start_acquisition()
@@ -120,7 +180,12 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'master': [ [DevLong, SCALAR, READ_WRITE] ],
+        'Master'     : [ [DevString, SCALAR, READ_WRITE],
+                         { 'Memorized'     : "true",
+                           'Display level' : DispLevel.EXPERT } ],
+        'TriggerMode': [ [DevString, SCALAR, READ_WRITE],
+                         { 'Memorized'     : "true",
+                           'Display level' : DispLevel.EXPERT } ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 

@@ -33,13 +33,13 @@ __docformat__ = 'restructuredtext'
 import time
 import weakref
 
-import taurus.core.util
+from taurus.core.util import Logger, DebugIt, InfoIt
 
 from sardana import State
 
 def get_thread_pool():
     import pool
-    return pool.ThreadPool()
+    return pool.get_thread_pool()
 
 
 class PoolActionItem(object):
@@ -48,10 +48,10 @@ class PoolActionItem(object):
         pass
 
 
-class PoolAction(taurus.core.util.Logger):
+class PoolAction(Logger):
     
     def __init__(self, name="GlobalAction"):
-        taurus.core.util.Logger.__init__(self, name)
+        Logger.__init__(self, name)
         self._elements = []
         self._pool_ctrls = {}
 

@@ -25,14 +25,14 @@
 
 """This file contains the main pool class"""
 
-__all__ = ["PoolContainer", "Pool", "ThreadPool"]
+__all__ = ["Pool", "ThreadPool"]
 
 __docformat__ = 'restructuredtext'
 
 import os.path
 import logging.handlers
 
-import taurus.core.util
+from taurus.core.util import ThreadPool, InfoIt, DebugIt
 
 from poolcontrollermanager import ControllerManager, TYPE_MAP_OBJ
 
@@ -45,223 +45,23 @@ from poolmonitor import *
 
 __thread_pool = None
 
-def ThreadPool():
+def get_thread_pool():
     global __thread_pool
     if __thread_pool is None:
-        __thread_pool = taurus.core.util.ThreadPool(Psize=10)
+        __thread_pool = ThreadPool(Psize=10)
     return __thread_pool
 
-class PoolContainer(object):
-    
-    def __init__(self):
-        
-        # map of all elements
-        # key - element ID
-        # value - pointer to the element object
-        self._element_ids = {}
-
-        # map of all elements by name
-        # key - element name
-        # value - pointer to the element object
-        self._element_names = taurus.core.util.CaselessDict()
-
-        # map of all elements by name
-        # key - element full name
-        # value - pointer to the element object
-        self._element_full_names = taurus.core.util.CaselessDict()
-    
-        # map of all elements by type
-        # key - element type
-        # value - map where:
-        #    key - element ID
-        #    value - pointer to the element object
-        self._element_types = {}
-        
-        ControllerManager().reInit()
-
-    def add_element(self, e):
-        """Adds a new :class:`pool.PoolObject` to this container
-           
-           :param e: the pool element to be added
-           :type e: :class:`pool.PoolObject`
-        """
-        name, full_name, id = e.get_name(), e.get_full_name(), e.get_id()
-        elem_type = e.get_type()
-        self._element_ids[id] = e
-        self._element_names[name] = e
-        self._element_full_names[full_name] = e
-        type_elems = self._element_types.get(elem_type)
-        if type_elems is None:
-            self._element_types[elem_type] = type_elems = {}
-        type_elems[id] = e
-        return e
-    
-    def remove_element(self, e):
-        """Removes the :class:`pool.PoolObject` from this container
-           
-           :param e: the pool object to be removed
-           :type e: :class:`pool.PoolObject`
-           
-           :throw: KeyError
-        """
-        name, full_name, id = e.get_name(), e.get_full_name(), e.get_id()
-        elem_type = e.get_type()
-        del self._element_ids[id]
-        del self._element_names[name]
-        del self._element_full_names[full_name]
-        type_elems = self._element_types.get(elem_type)
-        del type_elems[id]
-        
-    def get_element_id_map(self):
-        """Returns a reference to the internal pool object ID map
-           
-           :return: the internal pool object ID map
-           :rtype: dict<id, pool.PoolObject>
-        """
-        return self._element_ids
-    
-    def get_element_name_map(self):
-        """Returns a reference to the internal pool object name map
-           
-           :return: the internal pool object name map
-           :rtype: dict<str, pool.PoolObject>
-        """
-        return self._element_names
-    
-    def get_element_type_map(self):
-        """Returns a reference to the internal pool object type map
-           
-           :return: the internal pool object type map
-           :rtype: dict<pool.ElementType, dict<id, pool.PoolObject>>
-        """
-        return self._element_types
-    
-    def get_element(self, **kwargs):
-        """Returns a reference to the requested pool object
-           
-           :param kwargs: if key 'id' given: search by ID
-                          else if key 'full_name' given: search by full name
-                          else if key 'name' given: search by name
-           
-           :return: the pool object 
-           :rtype: pool.PoolObject
-           
-           :throw: KeyError
-        """
-        if kwargs.has_key("id"):
-            id = kwargs.pop("id")
-            return self.get_element_by_id(id, **kwargs)
-        
-        if kwargs.has_key("full_name"):
-            full_name = kwargs.pop("full_name")
-            return self.get_element_by_full_name(full_name, **kwargs)
-        
-        name = kwargs.pop("name")
-        return self.get_element_by_name(name, **kwargs)
-    
-    def get_element_by_name(self, name, **kwargs):
-        """Returns a reference to the requested pool object
-           
-           :param name: pool object name
-           :type name: str
-           
-           :return: the pool object 
-           :rtype: pool.PoolObject
-           
-           :throw: KeyError
-        """
-        ret = self._element_names.get(name)
-        if ret is None:
-            raise Exception("There is no element with name '%s'" % name)
-        return ret
-    
-    def get_element_by_full_name(self, full_name, **kwargs):
-        """Returns a reference to the requested pool object
-           
-           :param name: pool object full name
-           :type name: str
-           
-           :return: the pool object 
-           :rtype: pool.PoolObject
-           
-           :throw: KeyError
-        """
-        ret = self._element_full_names[full_name]
-        if ret is None: 
-            raise Exception("There is no element with full name '%s'" % full_name)
-        return ret
-        
-    def get_element_by_id(self, id, **kwargs):
-        """Returns a reference to the requested pool object
-           
-           :param id: pool object ID
-           :type id: int
-           
-           :return: the pool object 
-           :rtype: pool.PoolObject
-           
-           :throw: KeyError
-        """
-        return self._element_ids[id]
-    
-    def get_elements_by_type(self, t):
-        """Returns a list of all pool objects of the given type
-           
-           :param t: element type
-           :type t: pool.ElementType
-           
-           :return: list of pool objects
-           :rtype: seq<pool.PoolObject>
-        """
-        elem_types_dict = self._element_types.get(t)
-        if elem_types_dict is None:
-            return  []
-        return elem_types_dict.values()
-
-    def get_element_names_by_type(self, t):
-        """Returns a list of all pool object names of the given type
-           
-           :param t: element type
-           :type t: pool.ElementType
-           
-           :return: list of pool object names
-           :rtype: seq<str>
-        """
-        return [ elem.get_name() for elem in self.get_elements_by_type(t) ]
-        
-    def rename_element(self, old_name, new_name):
-        """Rename a pool object
-           
-           :param old_name: old pool object name
-           :type old_name: str
-           :param new_name: new pool object name
-           :type new_name: str
-        """
-        raise RuntimeError("not implemented")
-    
-    def get_controller_class(self, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            return self.get_controller_class_by_id(id, **kwargs)
-        
-        name = kwargs.pop("name")
-        self.get_controller_class_by_name(name, **kwargs)
-    
-    def get_controller_class_by_id(self, id, **kwargs):
-        raise RuntimeError("not implemented")
-    
-    def get_controller_class_by_name(self, name, **kwargs):
-        raise RuntimeError("not implemented")
-    
 
 class Pool(PoolContainer, PoolObject):
     """ """
     
     def __init__(self, full_name, name=None):
-        PoolContainer.__init__(self)
-        PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId, pool=self)
         self._last_id = InvalidId
+        PoolContainer.__init__(self)
+        PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
+                            pool=self)
         self._monitor = PoolMonitor(self, "PoolMonitor", auto_start=False)
+        ControllerManager()
     
     def init_remote_logging(self, host=None, port=None):
         log = logging.getLogger("Controller")
@@ -503,7 +303,7 @@ class Pool(PoolContainer, PoolObject):
         for elem_id in elem_ids:
             elem = self.pool.get_element(id=elem_id)
             # Do any check here if necessary
-            
+        
         elem = klass(**kwargs)
 
         ret = self.add_element(elem)

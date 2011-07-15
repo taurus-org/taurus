@@ -38,32 +38,60 @@ from poolelement import *
 from poolacquisition import *
 
 
-class PoolMeasurementGroupElementItem(object):
-    
-    def __init__(self, ctrl):
-        self.value = None
-        self.ctrl = ctrl
+MeasurementGroupConfiguration = \
+{ 'master' : '<master name> (=<master id>)',
+  'groups' : { '<group name> (=<ctrl name>) (=<ctrl id>)+' : { 'channels' : {} }
+             }
+}
 
-class PMGEIMotor(PoolMeasurementGroupElementItem):
-    pass
+#dict <str, obj> with (at least) keys:
+#    - 'timer' : the timer channel name / timer channel id
+#    - 'monitor' : the monitor channel name / monitor channel id
+#    - 'units' : dict<str/int, dict> where:
+#        - key: the unit name / ctrl name / ctrl id
+#        - value: dict<str, dict> with (at least) keys:
+#            - 'master' : the master channel name / master channel id
+#            - 'trigger_mode' : 'Gate'/'Software'
+#            - 'channels' where value is a dict<str, obj> with (at least) keys:
+#                - 'id' : the channel name ( channel id )
+#                optional keys:
+#                - 'enabled' : True/False (default is True)
+#                any hints:
+#                - 'output' : True/False (default is True)
+#                - 'plotable' : 'False'/'x'/'y1'/'y2' (default is 'y1')
+#                - 'label' : prefered label (default is channel name)
+#                - 'scale' : <float, float> with min/max (defaults to channel
+#                            range if it is defined
+#                - 'color' : int representing RGB
+#    optional keys:
+#    - 'label' : measurement group label (defaults to measurement group name)
+#    - 'description' : measurement group description
 
-class PMGEICounterTimer(PoolMeasurementGroupElementItem):
-    pass
+# Example: 2 NI cards, where channel 1 of card 1 is wired to channel 1 of card 2
+# at configuration time we should set:
+# ctrl.setPar( <unit>, <parameter name>, <parameter value> )
+# ni0ctrl.setPar(0, 'trigger_mode', AcqTriggerMode.Software)
+# ni0ctrl.setPar(0, 'timer', 1) # channel 1 is the timer
+# ni0ctrl.setPar(0, 'monitor', 4) # channel 4 is the monitor
+# ni1ctrl.setPar(0, 'trigger_mode', AcqTriggerMode.ExternalTrigger)
+# ni1ctrl.setPar(0, 'master', 0)
 
-class PMGEITangoAttribute(PoolMeasurementGroupElementItem):
-    pass
+# when we count for 1.5 seconds:
+# ni1ctrl.Load(1.5)
+# ni0ctrl.Load(1.5)
+# ni1ctrl.Start()
+# ni0ctrl.Start()
 
-class PGCtrl(object):
-    
-    pass
+"""
 
+"""
 
 class PoolMeasurementGroup(PoolGroupElement):
 
     def __init__(self, **kwargs):
-        PoolGroupElement.__init__(self, **kwargs)
         self._master = None
-        self._trigger_mode = AcqTriggerMode.TriggerUnknown
+        PoolGroupElement.__init__(self, **kwargs)
+        self.set_configuration(kwargs.get('config'))
         self.set_action_cache(PoolCTAcquisition("%s.CTAcquisition" % self._name))
     
     def get_type(self):
@@ -73,6 +101,16 @@ class PoolMeasurementGroup(PoolGroupElement):
         pass
     
     # --------------------------------------------------------------------------
+    # configuration
+    # --------------------------------------------------------------------------
+    
+    def set_configuration(self, config=None):
+        if config is None:
+            config = {}
+            config['master'] = self.get_user_elements()[0].id
+            
+    
+    # --------------------------------------------------------------------------
     # master
     # --------------------------------------------------------------------------
     
@@ -80,13 +118,15 @@ class PoolMeasurementGroup(PoolGroupElement):
         return self._master
     
     def set_master(self, master, propagate=1):
-        self._master = master
+        self._master = self.get_element_by_id(master.id)
         if not propagate:
             return
         self.fire_event(EventType("master", priority=propagate), master)
     
-    master = property(get_master, set_master,
-                      doc="master channel")
+    def set_master_name(self, name, propagate=1):
+        self.set_master( self.get_element_by_name(name), propagate=propagate )
+    
+    master = property(get_master, set_master, doc="master channel")
 
     def get_trigger_mode(self):
         return self._trigger_mode

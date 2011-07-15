@@ -68,6 +68,11 @@ class CTExpChannel(PoolElementDevice):
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
+
+        detect_evts = "state", "value"
+        non_detect_evts = ()
+        self.set_change_events(detect_evts, non_detect_evts)
+
         try:
             if self.ct is None:
                 ct = self.pool.create_element(type="CTExpChannel",
@@ -78,11 +83,9 @@ class CTExpChannel(PoolElementDevice):
         except Exception, e:
             print e
             raise e
-        attr_evts = "state", "value"
-        
-        for attr_name in attr_evts:
-            self.set_change_event(attr_name, True, True)
-        
+        # force a state read to initialize the state attribute
+        state = self.ct.state
+    
     def on_ct_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name
@@ -100,7 +103,7 @@ class CTExpChannel(PoolElementDevice):
             if name == "state":
                 event_value = to_tango_state(event_value)
                 self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                self.push_change_event(name)
             else:
                 state = to_tango_state(self.ct.get_state())
                 if name == "value":
@@ -112,7 +115,8 @@ class CTExpChannel(PoolElementDevice):
                 attr.set_change_event(True, True)
 
     def always_executed_hook(self):
-        state = to_tango_state(self.ct.get_state(cache=False))
+        #state = to_tango_state(self.ct.get_state(cache=False))
+        pass
 
     def read_attr_hardware(self,data):
         pass

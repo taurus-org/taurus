@@ -64,10 +64,12 @@ class Controller(PoolDevice):
     
     #@DebugIt()
     def init_device(self):
-        self.set_state(PyTango.DevState.ON)
-        self.get_device_properties(self.get_device_class())
-        self.set_change_event("ElementList", True, False)
-        
+        PoolDevice.init_device(self)
+
+        detect_evts = "state", "status"
+        non_detect_evts = "elementlist",
+        self.set_change_events(detect_evts, non_detect_evts)
+
         if self.ctrl is None:
             props = self._get_ctrl_properties()
             ctrl = self.pool.create_controller(type=self.Type,
@@ -75,7 +77,7 @@ class Controller(PoolDevice):
                 library=self.Library, klass=self.Klass, id=self.Id, properties=props)
             ctrl.add_listener(self.elements_changed)
             self.ctrl = ctrl
-    
+        
     def _get_ctrl_properties(self):
         try:
             ctrl_info = self.pool.get_controller_class_info(self.Klass)
