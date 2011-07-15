@@ -367,7 +367,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
     def setConfigEx(self,config):
-        self.getParentObj().set_attribute_config_ex([config])
+        self.getParentObj().set_attribute_config([config])
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # PyTango event handling (private) 
