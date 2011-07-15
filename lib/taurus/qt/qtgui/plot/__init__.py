@@ -40,10 +40,3 @@ from .taurusarrayedit import TaurusArrayEditor
 from .curvesAppearanceChooserDlg import CurveAppearanceProperties, CurvesAppearanceChooser
 from .curveprops import CurvePropertiesView
 from .monitor import TaurusMonitorTiny
-try:
-    from .taurustrend2d import TaurusTrend2D
-except ImportError:
-    import taurus.core.util
-    _logger = taurus.core.util.Logger(__name__)
-    _logger.debug("TaurusTrend2D could not be imported")
-    _logger.traceback()

@@ -24,7 +24,7 @@
 #############################################################################
 
 try:
-	from taurus.qt.qtgui.plot.taurustrend2d import taurusTrend2DMain
+	from taurus.qt.qtgui.extra_guiqwt.taurustrend2d import taurusTrend2DMain
 	taurusTrend2DMain()
 except Exception, e:
 	print 'TaurusTrend2D cannot be launched.\n Reason: %s\n\n'%repr(e)
