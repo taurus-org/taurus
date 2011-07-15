@@ -156,8 +156,8 @@ class TaurusApplication(Qt.QApplication, Logger):
     def __registerExtensions(self):
         """Registers taurus Qt extensions"""
         try:
-            import taurus.qt.qtcore.tango.sardana.macroserver
-            taurus.qt.qtcore.tango.sardana.macroserver.registerExtensions()
+            import taurus.qt.qtcore.tango.sardana
+            taurus.qt.qtcore.tango.sardana.registerExtensions()
         except:
             self.info("Failed to load sardana extensions", exc_info=1)
         try:
