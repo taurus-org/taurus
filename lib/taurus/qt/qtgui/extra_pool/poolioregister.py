@@ -24,9 +24,9 @@
 #############################################################################
 
 """
-ioregisterWidgets.py: 
+poolioregister.py: 
 """
-__all__=["PoolIORegister","PoolIORegisterTV"]
+__all__=["PoolIORegister"]
 from PyQt4 import Qt
 
 from taurus.qt.qtgui.display import TaurusLabel
@@ -62,7 +62,6 @@ class PoolIORegister(TaurusWidget):
         self._TaurusValue.setModel("%s/value" % model)
 
         # Get the labels from the device
-        labels = 'VERY_BAD:10 BAD:30 NORMAL:50 GOOD:70 VERY_GOOD:90'
         labels = self.getModelObj().getAttribute('Labels').read().value
         labels_list = labels.split(' ')
 
@@ -76,23 +75,21 @@ class PoolIORegister(TaurusWidget):
             self.writeValueNames.append((label, value))
         
         self._TaurusValue.readWidget().setEventFilters([self.readEventValueMap])
+
         self._TaurusValue.writeWidget().clear()
         self._TaurusValue.writeWidget().addValueNames(self.writeValueNames)
-
-        # Make sure AutoApply is set
         self._TaurusValue.writeWidget().setAutoApply(True)
 
 if __name__ == '__main__':
     import sys
     app = Qt.QApplication(sys.argv)
-    
+
     form = PoolIORegister()
 
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
     if len(sys.argv)>1:
         model = sys.argv[1]
     form.setModel(model)
-    
      
     form.show()
     sys.exit(app.exec_())
