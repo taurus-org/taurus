@@ -72,17 +72,13 @@ class CTExpChannel(PoolElementDevice):
         detect_evts = "state", "value"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-
-        try:
-            if self.ct is None:
-                ct = self.pool.create_element(type="CTExpChannel",
-                    name=self.alias, full_name=self.get_name(), id=self.Id,
-                    axis=self.Axis, ctrl_id=self.Ctrl_id)
-                ct.add_listener(self.on_ct_changed)
-                self.ct = ct
-        except Exception, e:
-            print e
-            raise e
+        
+        if self.ct is None:
+            ct = self.pool.create_element(type="CTExpChannel",
+                name=self.alias, full_name=self.get_name(), id=self.Id,
+                axis=self.Axis, ctrl_id=self.Ctrl_id)
+            ct.add_listener(self.on_ct_changed)
+            self.ct = ct
         # force a state read to initialize the state attribute
         state = self.ct.state
     

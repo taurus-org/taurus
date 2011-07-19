@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolBaseElement", "PoolElement", "PoolGroupElement" ]
+__all__ = [ "PoolBaseElement", "PoolElement" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -217,51 +217,3 @@ class PoolElement(PoolBaseElement):
     instrument = property(get_instrument, set_instrument, doc="element instrument")
     
 
-class PoolGroupElement(PoolContainer, PoolBaseElement):
-
-    def __init__(self, **kwargs):
-        user_elem_ids = kwargs.pop('user_elements')
-        PoolContainer.__init__(self)
-        PoolBaseElement.__init__(self, **kwargs)
-        
-        self._user_elements = []
-
-        pool = self.pool
-        for id in user_elem_ids:
-            self.add_user_element(pool.get_element(id=id))
-
-    def get_action_cache(self):
-        return self._action_cache
-    
-    def set_action_cache(self, action_cache):
-        if self._action_cache is not None:
-            for element in self._user_elements:
-                action_cache.remove_element(element)
-            
-        self._action_cache = action_cache
-        
-        for element in self._user_elements:
-            action_cache.add_element(element)
-    
-    def get_user_elements(self):
-        return self._user_elements
-    
-    def add_user_element(self, element, index=None):
-        if element in self._user_elements:
-            raise Exception("Group already contains %s" % element.name)
-        if index is None:
-            index = len(self._user_elements)
-        self._user_elements.insert(index, element)
-        self.add_element(element)
-        if self._action_cache:
-            self._action_cache.add_element(element)
-        element.add_listener(self.on_element_changed)
-        
-    def remove_user_element(self, element):
-        try:
-            idx = self._user_elements.index(element)
-        except ValueError:
-            raise Exception("Group doesn't contain %s" % element.name)
-        element.remove_listener(self.on_element_changed)
-        del self._user_elements[idx]
-        self.remove_element(element)

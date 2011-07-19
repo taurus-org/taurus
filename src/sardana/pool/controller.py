@@ -131,6 +131,46 @@ class Controller:
         Default implementation does nothing."""
         pass
     
+    #def SetCtrlPar(self, unit, parameter, value):
+    def SetCtrlPar(self, parameter, value):
+        """**Controller API**. Overwrite as necessary.
+        Called to set a parameter with a value.
+        Default implementation raises NotImplementedError."""
+        raise NotImplementedError
+
+    #def GetCtrlPar(self, unit, parameter):
+    def GetCtrlPar(self, parameter):
+        """**Controller API**. Overwrite as necessary.
+        Called to set a parameter with a value.
+        Default implementation raises NotImplementedError."""
+        raise NotImplementedError
+    
+    #def SetAxisPar(self, unit, axis, parameter, value):
+    def SetAxisPar(self, axis, parameter, value):
+        """**Controller API**. Overwrite as necessary.
+        Called to set a parameter with a value on the given axis.
+        Default implementation calls deprecated SetPar."""
+        return self.setPar(axis, parameter, value)
+    
+    #def GetAxisPar(self, unit, axis, parameter):
+    def getAxisPar(self, axis, parameter):
+        """**Controller API**. Overwrite as necessary.
+        Called to get a parameter value on the given axis.
+        Default implementation calls deprecated GetPar."""
+        return self.getPar(axis, parameter)
+    
+    def SetPar(self, axis, parameter, value):
+        """**Controller API**. *Dreprecated: use setAxisPar instead.*.
+        Called to set a parameter with a value on the given axis.
+        Default implementation raises NotImplementedError."""
+        raise NotImplementedError
+
+    def GetPar(self, axis, parameter):
+        """**Controller API**. *Dreprecated: use setAxisPar instead.*.
+        Called to get a parameter value on the given axis.
+        Default implementation raises NotImplementedError."""
+        raise NotImplementedError
+    
     @classmethod
     def getStandardAxisAttributes(self, axis):
         """**Controller API**. Overwrite as necessary.
@@ -211,8 +251,9 @@ class MotorController(Controller):
         
         :param int axis: axis number
         :return: sequence of standard attributes"""
-        return "acceleration", "deceleration", "base_rate", "velocity", "step_per_unit", \
-            "offset", "dialposition", "backlash", "sign", "limit_switches"
+        return "acceleration", "deceleration", "base_rate", "velocity", \
+            "step_per_unit", "offset", "dialposition", "backlash", "sign", \
+            "limit_switches"
 
 
 class CounterTimerController(Controller):

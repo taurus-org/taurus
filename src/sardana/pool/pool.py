@@ -39,6 +39,7 @@ from poolcontrollermanager import ControllerManager, TYPE_MAP_OBJ
 from poolbase import *
 from pooldefs import *
 from poolelement import *
+from poolcontainer import *
 from poolcontroller import *
 from poolmotor import *
 from poolmonitor import *
@@ -218,7 +219,7 @@ class Pool(PoolContainer, PoolObject):
         
         #if not ctrl.is_online():
         #    raise Exception("Controller is offline. It is not possible to add %s" % name)
-
+        
         elem_axis = ctrl.get_element(axis=axis)
         if elem_axis is not None:
             raise Exception("Controller already contains axis %d (%s)" % (axis, elem_axis.get_name()))

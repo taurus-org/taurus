@@ -27,7 +27,7 @@
 
 __all__ = ["InvalidId", "InvalidAxis", "ElementType", "TYPE_ELEMENTS",
            "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
-           "AcqTriggerMode"]
+           "AcqTriggerMode", "AcqTriggerType"]
 
 __docformat__ = 'restructuredtext'
 

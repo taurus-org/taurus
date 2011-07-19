@@ -314,7 +314,7 @@ class PoolMotor(PoolElement):
         self._set_dial_position(dial_position, propagate=propagate)
         
     def read_dial_position(self):
-        return self.motion.read_dial_position()[self]
+        return self.motion.read_dial_position(serial=True)[self]
     
     def put_dial_position(self, dial_position, propagate=1):
         self._set_dial_position(dial_position, propagate=propagate)

@@ -45,8 +45,13 @@ def get_thread_pool():
 class PoolActionItem(object):
     
     def __init__(self, element):
-        pass
+        self._element = weakref.ref(element)
 
+    def get_element(self):
+        return self._element()
+    
+    element = property(get_element)
+    
 
 class PoolAction(Logger):
     
@@ -61,13 +66,13 @@ class PoolAction(Logger):
             ctrl_items = []
             self._pool_ctrls[element.controller] = ctrl_items
         
-        element = weakref.ref(element)
+        #element = weakref.ref(element)
         self._elements.append(element)
         ctrl_items.append(element)
     
     def remove_element(self, element):
         ctrl = element.controller
-        element = weakref.ref(element)
+        #element = weakref.ref(element)
         try:
             idx = self._elements.index(element)
         except ValueError:
@@ -79,7 +84,10 @@ class PoolAction(Logger):
             del self._pool_ctrls[ctrl]
     
     def get_elements(self):
-        return [ e() for e in self._elements ]
+        return self._elements
+    
+    def get_pool_controllers(self):
+        return self._pool_ctrls
     
     def _is_in_action(self, state):
         return state == State.Moving or state == State.Running
@@ -124,7 +132,7 @@ class PoolAction(Logger):
     
     def _read_ctrl_state_info(self, ret, pool_ctrl):
         try:
-            axises = [ elem().axis for elem in self._pool_ctrls[pool_ctrl] ]
+            axises = [ elem.axis for elem in self._pool_ctrls[pool_ctrl] ]
             state_infos = pool_ctrl.read_axis_states(axises)
             ret.update( state_infos )
         finally:
@@ -156,7 +164,7 @@ class PoolAction(Logger):
     
     def _read_ctrl_value(self, ret, pool_ctrl):
         try:
-            axises = [ elem().axis for elem in self._pool_ctrls[pool_ctrl] ]
+            axises = [ elem.axis for elem in self._pool_ctrls[pool_ctrl] ]
             value_infos = pool_ctrl.read_axis_values(axises)
             ret.update( value_infos )
         finally:

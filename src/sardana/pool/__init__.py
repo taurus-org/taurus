@@ -32,6 +32,8 @@ from .controller import *
 from .pooldefs import *
 from .poolbase import *
 from .poolelement import *
+from .poolgroupelement import *
+from .poolcontainer import *
 from .poolcontroller import *
 from .poolmotor import *
 from .poolmoveable import *

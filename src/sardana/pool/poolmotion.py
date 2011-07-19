@@ -39,10 +39,11 @@ from poolaction import *
 
 class PoolMotionItem(PoolActionItem):
     
-    def __init__(self, moveable, position, do_backlash, backlash):
+    def __init__(self, moveable, position, dial_position, do_backlash, backlash):
         PoolActionItem.__init__(self, moveable)
         self.moveable = moveable
         self.position = position
+        self.dial_position = dial_position
         self.do_backlash = do_backlash
         self.backlash = backlash
 
@@ -61,11 +62,12 @@ class PoolMotion(PoolAction):
         self._aborted = False
         motion_info = {}
         for k, v in items.items():
-            motion_info[k] = PoolMotionItem(*v)
+            print k,v
+            motion_info[k] = PoolMotionItem(k, *v)
         self._motion_info = motion_info
         
         pool_ctrls = self._pool_ctrls.keys()
-        moveables = [ moveable() for moveable in self._elements ]
+        moveables = self.get_elements()
         
         # PreStartAll on all controllers
         for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.PreStartAll()
@@ -94,8 +96,7 @@ class PoolMotion(PoolAction):
         i = 0
         
         states, positions = {}, {}
-        for k in self._elements:
-            k = k()
+        for k in self.get_elements():
             states[k] = None
             positions[k] = None
 
@@ -147,8 +148,8 @@ class PoolMotion(PoolAction):
             i += 1
             time.sleep(0.01)
     
-    def read_value(self, ret=None):
-        return PoolAction.read_value(self, ret=ret)
-        
+    def read_value(self, ret=None, serial=False):
+        return PoolAction.read_value(self, ret=ret, serial=serial)
+    
     read_dial_position = read_value
     

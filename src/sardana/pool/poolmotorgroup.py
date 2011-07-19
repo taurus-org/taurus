@@ -34,7 +34,7 @@ import math
 
 from poolbase import *
 from pooldefs import *
-from poolelement import *
+from poolgroupelement import *
 from poolmotion import *
 from poolmotor import *
 from poolmoveable import *

@@ -71,7 +71,8 @@ class MeasurementGroup(PoolGroupDevice):
         PoolGroupDevice.init_device(self)
 
         detect_evts = "state", "status"
-        non_detect_evts = "master", "triggermode", "elementlist"
+        #non_detect_evts = "master", "triggermode", "elementlist"
+        non_detect_evts = "integration_time", "elementlist"
         self.set_change_events(detect_evts, non_detect_evts)
         
         self.Elements = list(self.Elements)
@@ -97,8 +98,6 @@ class MeasurementGroup(PoolGroupDevice):
     def on_measurement_group_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name
-        if name == "trigger_mode":
-            name = "triggermode"
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
@@ -117,12 +116,6 @@ class MeasurementGroup(PoolGroupDevice):
             elif name == "status":
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
-            elif name == "master":
-                event_value = event_value.name
-                self.push_change_event(name, event_value)
-            elif name == "triggermode":
-                event_value = AcqTriggerMode.whatis(event_value)
-                self.push_change_event(name, event_value)
             else:
                 self.push_change_event(name, event_value, t, quality)
         finally:
@@ -136,27 +129,42 @@ class MeasurementGroup(PoolGroupDevice):
     def read_attr_hardware(self,data):
         pass
     
-    def read_Master(self, attr):
-        master = self.measurement_group.master
-        v = DescNotSet
-        if master is not None:
-            v = master.name
-        attr.set_value(v)
+#    def read_Master(self, attr):
+#        master = self.measurement_group.master
+#        v = DescNotSet
+#        if master is not None:
+#            v = master.name
+#        attr.set_value(v)
     
-    def write_Master(self, attr):
-        self.measurement_group.set_master_name(attr.get_write_value())
+#    def write_Master(self, attr):
+#        self.measurement_group.set_master_name(attr.get_write_value())
     
-    def read_TriggerMode(self, attr):
-        tm = self.measurement_group.trigger_mode
-        attr.set_value(AcqTriggerMode.whatis(tm))
+#    def read_TriggerMode(self, attr):
+#        tm = self.measurement_group.trigger_mode
+#        attr.set_value(AcqTriggerMode.whatis(tm))
     
-    def write_TriggerMode(self, attr):
-        v = attr.get_write_value()
-        if not AcqTriggerMode.has_key(v):
-            raise Exception("Invalid trigger mode '%s'. Possible modes are %s" % \
-                            (v, ", ".join(AcqTriggerMode.keys())))
-        self.measurement_group.trigger_mode = AcqTriggerMode.lookup[v]
+#    def write_TriggerMode(self, attr):
+#        v = attr.get_write_value()
+#        if not AcqTriggerMode.has_key(v):
+#            raise Exception("Invalid trigger mode '%s'. Possible modes are %s" % \
+#                            (v, ", ".join(AcqTriggerMode.keys())))
+#        self.measurement_group.trigger_mode = AcqTriggerMode.lookup[v]
+
+    def read_Integration_Time(self, attr):
+        it = self.measurement_group.integration_time
+        if it is None:
+            it = float('nan')
+        attr.set_value(it)
     
+    def write_Integration_Time(self, attr):
+        self.measurement_group.set_integration_time(attr.get_write_value())
+
+    def read_Configuration(self, attr):
+        raise NotImplementedError
+    
+    def write_Configuration(self, attr):
+        raise NotImplementedError
+
     def Start(self):
         self.measurement_group.start_acquisition()
     
@@ -180,12 +188,15 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Master'     : [ [DevString, SCALAR, READ_WRITE],
-                         { 'Memorized'     : "true",
-                           'Display level' : DispLevel.EXPERT } ],
-        'TriggerMode': [ [DevString, SCALAR, READ_WRITE],
-                         { 'Memorized'     : "true",
-                           'Display level' : DispLevel.EXPERT } ],
+#        'Master'     : [ [DevString, SCALAR, READ_WRITE],
+#                         { 'Memorized'     : "true",
+#                           'Display level' : DispLevel.EXPERT } ],
+#        'TriggerMode': [ [DevString, SCALAR, READ_WRITE],
+#                         { 'Memorized'     : "true",
+#                           'Display level' : DispLevel.EXPERT } ],
+        'Integration_Time': [ [DevDouble, SCALAR, READ_WRITE],
+                              { 'Memorized'     : "true",
+                                'Display level' : DispLevel.OPERATOR } ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 

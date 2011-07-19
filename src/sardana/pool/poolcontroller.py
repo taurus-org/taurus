@@ -51,6 +51,7 @@ class PoolBaseController(PoolObject):
         self._pending_element_axis = {}
         self._element_names = CaselessDict()
         self._pending_element_names = CaselessDict()
+        self._operator = None
         super(PoolBaseController, self).__init__(**kwargs)
 
     def __repr__(self):
@@ -267,6 +268,22 @@ class PoolController(PoolBaseController):
     
     ctrl_info = property(fget=get_ctrl_info, doc="controller information object")
     
+    def set_operator(self, operator):
+        """Defines the current operator object for this controller.
+           For example, in acquisition, it should be a :class:`PoolMeasurementGroup`
+           object.
+           
+           :param operator: the new operator object
+           :type operator: object"""
+        self._operator = operator
+    
+    def get_operator(self):
+        return self._operator
+    
+    operator = property(fget=get_operator, fset=set_operator, doc="current controller operator")
+    
+    # START API WHICH ACCESSES CONTROLLER API ----------------------------------
+    
     @check_ctrl
     def set_log_level(self, level):
         self.ctrl._log.log_obj.setLevel(level)
@@ -317,6 +334,28 @@ class PoolController(PoolBaseController):
             return getattr(self.ctrl, axis_attr_info.fset)(axis, value)
         except AttributeError:
             return self.ctrl.SetExtraPar(axis, name, value)
+    
+    @check_ctrl
+    def set_ctrl_par(self, name, value):
+        #return self.ctrl.setCtrlPar(unit, name, value)
+        return self.ctrl.SetCtrlPar(name, value)
+    
+    @check_ctrl
+    def get_ctrl_par(self, name):
+        #return self.ctrl.getCtrlPar(unit, name, value)
+        return self.ctrl.GetCtrlPar(name, value)
+    
+    @check_ctrl
+    def set_axis_par(self, axis, name, value):
+        #return self.ctrl.setCtrlPar(unit, axis, name, value)
+        return self.ctrl.SetAxisPar(axis, name, value)
+
+    @check_ctrl
+    def get_ctrl_par(self, axis, name):
+        #return self.ctrl.getCtrlPar(unit, axis, name, value)
+        return self.ctrl.GetAxisPar(axis, name, value)
+    
+    # END API WHICH ACCESSES CONTROLLER API ------------------------------------
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
     

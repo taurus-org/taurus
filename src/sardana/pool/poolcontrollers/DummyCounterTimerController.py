@@ -1,6 +1,7 @@
 import time
-import PyTango
+from sardana import State
 from sardana.pool import CounterTimerController
+from sardana.pool import AcqTriggerType
 
 class Channel:
     
@@ -51,7 +52,7 @@ class DummyCounterTimerController(CounterTimerController):
         sta = None
         status = None
         if ind not in self.counting_channels:
-            sta = PyTango.DevState.ON
+            sta = State.On
             status = "Stopped"
         else:
             channel = self.channels[idx]
@@ -62,11 +63,12 @@ class DummyCounterTimerController(CounterTimerController):
                 self._checkState(elapsed_time)
 
             if self.mode == self.StoppedMode and not channel.is_started:
-                sta = PyTango.DevState.ON
+                sta = State.On
                 status = "Stopped"
             else:
-                sta = PyTango.DevState.MOVING
+                sta = State.Moving
                 status = "Acquiring"
+        self._log.info("StateOne(%d) returns %s", ind, sta)
         return (sta,status)
         
     def _setChannelValue(self, channel, elapsed_time):
@@ -153,7 +155,7 @@ class DummyCounterTimerController(CounterTimerController):
         self.start_time = time.time()
     
     def LoadOne(self,ind,value):
-        idx = ind - 1 
+        idx = ind - 1
         self.master_channel = self.channels[idx]
         if value > 0:
             self.mode = self.TimerMode
@@ -167,3 +169,10 @@ class DummyCounterTimerController(CounterTimerController):
             now = time.time()
             elapsed_time = now - self.start_time
             self._finished(elapsed_time)
+    
+    def SetCtrlPar(self, par, value):
+        self._log.info("SetCtrlPar(%s, %s)", par, value)
+        setattr(self, par, value)
+    
+    def GetCtrlPar(self, par):
+        return getattr(self, par)
