@@ -241,7 +241,7 @@ class QBaseMeter(QPixmapWidget):
         self.update()
 
     def resetDigitFont(self):
-        self.setValue(self.DefaultDigitFont)
+        self.setDigitFont(self.DefaultDigitFont)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
