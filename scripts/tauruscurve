@@ -23,9 +23,8 @@
 ##
 #############################################################################
 
-"""This module provides the glue between taurus and guiqwt. It essentially provides taurus extensions to qwtgui"""
-
-__docformat__ = 'restructuredtext'
-
-from .plot import TaurusImageDialog, TaurusImageWidget, TaurusCurveWidget, TaurusCurveDialog
-from .taurustrend2d import TaurusTrend2DDialog, TaurusTrend2DWidget
+try:
+	from taurus.qt.qtgui.extra_guiqwt.plot import taurusCurveDlgMain
+	taurusCurveDlgMain()
+except Exception, e:
+	print 'taurusCurveDlgMain cannot be launched.\n Reason: %s\n\n'%repr(e)
