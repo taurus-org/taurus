@@ -213,7 +213,6 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             return '---'
         return self._command
     
-    @Qt.pyqtSignature("clicked()")
     def onClicked(self):
         '''Slot called when the button is clicked. It executes the command with
         parameters. It may issue a warning if the command is flagged as
@@ -225,6 +224,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         
         .. seealso:: :meth:`setCommand`, :meth:`setParameters`, :meth:`TaurusBaseComponent.isDangerous`
         '''
+        
         self.debug("launch command %s"%str(self._command))
         if len(self._command) == 0:
             return
@@ -248,7 +248,6 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             raise
             self.traceback()
         self.emit(Qt.SIGNAL('commandExecuted'), result)
-        self.info('Execution of command %s returned: %s'%(self._command, str(result)))
         return result
     
     
