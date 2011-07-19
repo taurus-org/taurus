@@ -64,7 +64,6 @@ class PoolIORegister(TaurusWidget):
         # Get the labels from the device
         labels = 'VERY_BAD:10 BAD:30 NORMAL:50 GOOD:70 VERY_GOOD:90'
         labels = self.getModelObj().getAttribute('Labels').read().value
-        print labels
         labels_list = labels.split(' ')
 
         # Update the mappings for the read and write widgets
@@ -80,11 +79,8 @@ class PoolIORegister(TaurusWidget):
         self._TaurusValue.writeWidget().clear()
         self._TaurusValue.writeWidget().addValueNames(self.writeValueNames)
 
-        # Make sure autoapply is set
+        # Make sure AutoApply is set
         self._TaurusValue.writeWidget().setAutoApply(True)
-
-        print type(self.getModelObj())
-        print type(self.getModelObj().getHWObj())
 
 if __name__ == '__main__':
     import sys
