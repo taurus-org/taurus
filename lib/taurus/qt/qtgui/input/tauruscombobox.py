@@ -148,6 +148,12 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     # TaurusValueComboBox own interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
+    def setValueNames(self, names):
+        bs = self.blockSignals(True)
+        self.clear()
+        self.blockSignals(bs)
+        self.addValueNames(names)
+        
     def addValueNames(self, names):
         bs = self.blockSignals(True)
         try:
