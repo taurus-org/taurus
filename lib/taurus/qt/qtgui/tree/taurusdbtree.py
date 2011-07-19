@@ -86,6 +86,14 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     def sizeHint(self):
         return Qt.QSize(1024, 512)
 
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.tree'
+        ret['group'] = 'Taurus Item Widgets'
+        ret['icon'] = ":/designer/listview.png"
+        return ret
+
 
 class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     """A demonstration panel to show how :class:`taurus.qt.qtcore.TaurusDbBaseModel`

@@ -462,32 +462,6 @@ class QBaseTreeWidget(Qt.QWidget):
     def refresh(self):
         self.getQModel().refresh()
 
-    def getShowToolbar(self):
-        return self._showToolbar
-    
-    def setShowToolbar(self, visible):
-        self._showToolbar = bool(visible)
-        self._toolbar.setVisible(visible)
-        
-    def resetShowToolbarWidget(self):
-        self.setShowFilterWidget(True)
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT property definition
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    #: This property defines if the toolbar filter widget is visible or not
-    #:
-    #: **Access functions:**
-    #:
-    #:     * :meth:`getShowToolbar`
-    #:     * :meth:`setShowToolbar`
-    #:     * :meth:`resetShowToolbarWidget`
-    showToolbar = Qt.pyqtProperty("bool", getShowToolbar, setShowToolbar,
-                                  resetShowToolbarWidget)
-
-
-
 
 class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
     """A class:`taurus.qt.qtgui.tree.QBaseTreeWidget` that connects to a
@@ -588,14 +562,6 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
         model = tree.model()
         if model is None: return
         model.setDataSource(modelObj)
-
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.tree'
-        ret['group'] = 'Taurus Item Widgets'
-        ret['icon'] = ":/designer/listview.png"
-        return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition
