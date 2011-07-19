@@ -820,16 +820,16 @@ def taurusFormMain():
     
     #map motor widgets if extra_pool is available
     try:
-        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannelTV
+        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannelTV, PoolIORegister
         dialog.setCustomWidgetMap({'SimuMotor':PoolMotorSlim,
-                                'Motor':PoolMotorSlim,
-                                'PseudoMotor':PoolMotorSlim})
-        dialog.setFormWidget({
-                                'PseudoCounter':PoolChannelTV,
-                                'CTExpChannel':PoolChannelTV,
-                                'ZeroDExpChannel':PoolChannelTV,
-                                'OneDExpChannel':PoolChannelTV,
-                                'TwoDExpChannel':PoolChannelTV})
+                                   'Motor':PoolMotorSlim,
+                                   'PseudoMotor':PoolMotorSlim})
+        dialog.setFormWidget({'PseudoCounter':PoolChannelTV,
+                              'CTExpChannel':PoolChannelTV,
+                              'ZeroDExpChannel':PoolChannelTV,
+                              'OneDExpChannel':PoolChannelTV,
+                              'TwoDExpChannel':PoolChannelTV,
+                              'IORegister':PoolIORegister})
     except:
         pass  
     
