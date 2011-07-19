@@ -38,58 +38,79 @@ from taurus.qt.qtgui.container import TaurusWidget
 from poolmotor import LabelWidgetDragsDeviceAndAttribute
 import taurus
 
-class PoolIORegister(TaurusWidget):
-    ''' A widget that displays and controls a pool IORegister device
+class PoolIORegisterReadWidget(TaurusLabel):
+    ''' This class is intended to be used as a read widget of a TaurusValue with IORegister devices.
+    After setting the model, it gets the Labels and creates a filter to show them instead of the values.
     '''
-    def __init__(self, parent = None, designMode = False):
-        TaurusWidget.__init__(self, parent)
-        
-        self.setLayout(Qt.QHBoxLayout())
-        
-        #put a widget with a TaurusValue
-        w = Qt.QWidget()
-        w.setLayout(Qt.QGridLayout())
-        self._TaurusValue = TaurusValue(parent = w, designMode = designMode)
-        self._TaurusValue.setLabelWidgetClass(LabelWidgetDragsDeviceAndAttribute)
-        self._TaurusValue.setLabelConfig('dev_alias')
-        self._TaurusValue.setWriteWidgetClass(TaurusValueComboBox)        
-        self.layout().addWidget(w)
-        
-        self.connect(self, Qt.SIGNAL('modelChanged(const QString &)'),self._updateTaurusValue )
-        
-    def _updateTaurusValue(self):
-        model = self.getModelName()
-        self._TaurusValue.setModel("%s/value" % model)
+    def __init__(self, parent=None, designMode=False):
+        TaurusLabel.__init__(self, parent, designMode)
 
-        # Get the labels from the device
-        labels = self.getModelObj().getAttribute('Labels').read().value
+    def setModel(self, model):
+        TaurusLabel.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
+
+        try: ior_dev = taurus.Device(model)
+        except: return
+        labels = ior_dev.getAttribute('Labels').read().value
         labels_list = labels.split(' ')
 
-        # Update the mappings for the read and write widgets
+        # Update the mapping
         self.readEventValueMap = EventValueMap()
-        self.writeValueNames = []
-        
         for label_and_value in labels_list:
             label, value = label_and_value.split(':')
             self.readEventValueMap[value] = label
-            self.writeValueNames.append((label, value))
-        
-        self._TaurusValue.readWidget().setEventFilters([self.readEventValueMap])
+        self.setEventFilters([self.readEventValueMap])
 
-        self._TaurusValue.writeWidget().clear()
-        self._TaurusValue.writeWidget().addValueNames(self.writeValueNames)
-        self._TaurusValue.writeWidget().setAutoApply(True)
+class PoolIORegisterWriteWidget(TaurusValueComboBox):
+    ''' This class is intended to be used as a write widget of a TaurusValue with IORegister devices.
+    After setting the model, it gets the Labels and populates the combobox. It has AutoApply set to True.
+    '''
+    def __init__(self, parent=None, designMode=False):
+        TaurusValueComboBox.__init__(self, parent, designMode)
+        self.setAutoApply(True)
+
+    def setModel(self, model):
+        TaurusValueComboBox.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
+
+        try: ior_dev = taurus.Device(model)
+        except: return
+
+        labels = ior_dev.getAttribute('Labels').read().value
+        labels_list = labels.split(' ')
+            
+        # Update the mapping
+        self.writeValueNames = []
+        for label_and_value in labels_list:
+            label, value = label_and_value.split(':')
+            self.writeValueNames.append((label, value))
+
+        self.setValueNames(self.writeValueNames)
+
+class PoolIORegister(TaurusValue):
+    ''' A widget that displays and controls a pool channel device.  It
+    behaves as a TaurusValue and therefore it can be used with
+    :meth:`TaurusForm.setFormWidget`
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusValue.__init__(self, parent = parent, designMode = designMode)
+        self.setLabelWidgetClass(LabelWidgetDragsDeviceAndAttribute)
+        self.setLabelConfig('dev_alias')
+        self.setReadWidgetClass(PoolIORegisterReadWidget)
+        self.setWriteWidgetClass(PoolIORegisterWriteWidget)
+
 
 if __name__ == '__main__':
     import sys
     app = Qt.QApplication(sys.argv)
-
-    form = PoolIORegister()
-
+    
+    from taurus.qt.qtgui.panel import TaurusForm
+    tgclass_map = {'IORegister':PoolIORegister}
+    form = TaurusForm()
+    form.setFormWidget(tgclass_map)
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
     if len(sys.argv)>1:
         model = sys.argv[1]
-    form.setModel(model)
-     
+
+    form.setModel([model])
     form.show()
+
     sys.exit(app.exec_())
