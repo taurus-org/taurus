@@ -9,3 +9,4 @@
 .. autoclass:: {{ classname }}
     :members:
     :undoc-members:
+    :show-inheritance:

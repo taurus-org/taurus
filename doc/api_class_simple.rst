@@ -10,3 +10,4 @@ It may differ from the final documentation.
 .. autoclass:: {{ classname }}
     :members:
     :undoc-members:
+    :show-inheritance:
