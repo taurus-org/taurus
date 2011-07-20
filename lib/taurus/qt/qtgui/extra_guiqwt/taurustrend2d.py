@@ -94,6 +94,8 @@ class _BaseTaurusTrend2D(TaurusBaseWidget):
         self.trendItem = TaurusTrend2DItem(stackMode=self.getStackMode(), buffersize = self.buffersize)
         self.trendItem.setModel(model)
         plot.add_item(self.trendItem)
+        plot.set_axis_title(plot.colormap_axis, 'value')
+        plot.set_axis_unit('left', 'index')
         try:
             plot.set_axis_title('left', self.trendItem.getModelObj().getSimpleName())
         except:
@@ -101,10 +103,10 @@ class _BaseTaurusTrend2D(TaurusBaseWidget):
             sef.traceback()
         try:
             unit = self.trendItem.getModelObj().getConfig().getUnit() or ''
-            plot.set_axis_unit('left', unit)
+            plot.set_axis_unit(plot.colormap_axis, unit)
         except:
-            self.debug('cannot set units for left axis')
-            self.traceback(level = taurus.Info)
+            self.debug('cannot set units for colormap axis')
+            self.traceback()
         
         self.connect(self.trendItem.getSignaller(), Qt.SIGNAL("dataChanged"), self.update_cross_sections)
         
