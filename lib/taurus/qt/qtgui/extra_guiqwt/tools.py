@@ -84,10 +84,10 @@ class TaurusImageChooserTool(CommandTool):
 
 class TaurusModelChooserTool(CommandTool):
     """
-    A tool that shows the Taurus Model Chooser and adds new taurus image items to a plot
+    A tool that shows the Taurus Model Chooser and sets the chosen model on the manager
     """
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
-        super(TaurusModelChooserTool,self).__init__(manager, "Add Taurus images...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+        super(TaurusModelChooserTool,self).__init__(manager, "Change Taurus Model...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
@@ -98,6 +98,9 @@ class TaurusModelChooserTool(CommandTool):
             
           
 class TimeAxisTool(CommandTool):
+    """
+    A tool that allows the user to change the type of scales to/from time mode
+    """
     def __init__(self, manager):
         super(TimeAxisTool, self).__init__(manager, "Time Scale",
                                             icon=getIcon(":/status/awaiting.svg"),
