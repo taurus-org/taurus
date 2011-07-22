@@ -36,7 +36,6 @@ from PyQt4 import Qt
 
 import taurus.core.util
 import taurus.qt.qtgui.resource
-from taurus.qt.qtgui.panel import TaurusMessagePanel
 
 
 class TaurusMessageBox(Qt.QDialog):
@@ -69,7 +68,11 @@ class TaurusMessageBox(Qt.QDialog):
         Qt.QDialog.__init__(self, parent)
         layout = Qt.QVBoxLayout()
         self.setLayout(layout)
-        self._panel = TaurusMessagePanel(err_type, err_value, err_traceback, self, designMode)
+        import taurus.qt.qtgui.panel
+        self._panel = taurus.qt.qtgui.panel.TaurusMessagePanel(err_type,
+                                                               err_value,
+                                                               err_traceback,
+                                                               self, designMode)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._panel)
         self.connect(self.panel().buttonBox(), Qt.SIGNAL("accepted()"), self.accept)
@@ -142,6 +145,16 @@ class TaurusMessageBox(Qt.QDialog):
         self._panel.setError(err_type, err_value, err_traceback)
 
 def protectTaurusMessageBox(fn):
+    """The idea of this function is to be used as a decorator on any method 
+    you which to protect against exceptions. The handle of the exception is to
+    display a :class:`TaurusMessageBox` with the exception information. Example::
+    
+        @protectTaurusMessgeBox
+        def turnBeamOn(device_name):
+            d = taurus.Device(device_name)
+            d.TurnOn()
+    """
+       
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         try:
@@ -152,8 +165,21 @@ def protectTaurusMessageBox(fn):
     return wrapped
 
 class ProtectTaurusMessageBox(object):
+    """The idea of this class is to be used as a decorator on any method 
+    you which to protect against exceptions. The handle of the exception is to
+    display a :class:`TaurusMessageBox` with the exception information. The
+    optional parameter title gives the window bar a customized title. The
+    optional parameter msg allows you to give a customized message in the
+    dialog. Example::
     
-    def __init__(self, msg=None):
+        @ProtectTaurusMessgeBox(title="An error occured trying to turn the beam on")
+        def turnBeamOn(device_name):
+            d = taurus.Device(device_name)
+            d.TurnOn()
+    """
+    
+    def __init__(self, title=None, msg=None):
+        self._title = title
         self._msg = msg
     
     def __call__(self, fn):
@@ -163,6 +189,8 @@ class ProtectTaurusMessageBox(object):
                 return fn(*args, **kwargs)
             except:
                 msgbox = TaurusMessageBox(*sys.exc_info())
+                if self._title is not None:
+                    msgbox.setWindowTitle(self._title)
                 if self._msg is not None:
                     msgbox.setText(self._msg)
                 msgbox.exec_()

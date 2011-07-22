@@ -28,6 +28,7 @@
 __docformat__ = 'restructuredtext'
 
 from .qlogtable import *
+from .taurustable import *
 from .taurusvaluestable import *
 from .taurusdevicepropertytable import *
 from .taurusgrid import *

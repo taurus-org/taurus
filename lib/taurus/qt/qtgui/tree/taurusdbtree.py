@@ -45,9 +45,9 @@ getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
 getElementTypeIconName = taurus.qt.qtgui.resource.getElementTypeIconName
 
 class TaurusDbTreeWidget(TaurusBaseTreeWidget):
-    """A class:`taurus.qt.qtgui.tree.TaurusTreeWidget` that connects to a
-    :class:`taurus.core.TaurusDatabase` model. It can show the list of database elements
-    in four different perspectives:
+    """A class:`taurus.qt.qtgui.tree.TaurusBaseTreeWidget` that connects to a
+    :class:`taurus.core.TaurusDatabase` model. It can show the list of database
+    elements in four different perspectives:
     
     - device : a three level hierarchy of devices (domain/family/name)
     - server : a server based perspective

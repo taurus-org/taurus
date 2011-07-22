@@ -162,6 +162,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     UseParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, TaurusBaseWidget.setUseParentModel, TaurusBaseWidget.resetUseParentModel)
 
 
+
 class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     '''This class provides a button that executes a tango command on its device.
     
@@ -213,6 +214,9 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             return '---'
         return self._command
     
+    import taurus.qt.qtgui.dialog
+    
+    @taurus.qt.qtgui.dialog.ProtectTaurusMessageBox(title="Unexpected error when executing command")
     def onClicked(self):
         '''Slot called when the button is clicked. It executes the command with
         parameters. It may issue a warning if the command is flagged as
@@ -246,7 +250,6 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         except Exception, e:
             self.error('Unexpected error when executing command %s of %s: %s'%(self._command, modelobj.getNormalName(), str(e)))
             raise
-            self.traceback()
         self.emit(Qt.SIGNAL('commandExecuted'), result)
         return result
     

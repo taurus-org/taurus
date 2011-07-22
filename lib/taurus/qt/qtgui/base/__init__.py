@@ -28,6 +28,7 @@ should inherit to be considered valid taurus widgets."""
 
 __docformat__ = 'restructuredtext'
 
+from .qbasemodel import *
 from .taurusbase import *
 from .tauruscontroller import *
 from .taurusqattribute import *

@@ -32,11 +32,10 @@ __docformat__ = 'restructuredtext'
 import PyQt4.Qt as Qt
 
 from taurus.qt.qtcore.model import *
-import taurus.qt.qtgui.base
-import taurus.qt.qtgui.resource
+from taurus.qt.qtgui.base import TaurusBaseWidget, QBaseModelWidget, TaurusBaseModelWidget
 from taurus.qt.qtgui.util import ActionFactory
+import taurus.qt.qtgui.resource
 
-TaurusBaseWidget = taurus.qt.qtgui.base.TaurusBaseWidget
 getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
 getIcon = taurus.qt.qtgui.resource.getIcon
 
@@ -82,7 +81,7 @@ class _NavigationWidget(Qt.QFrame):
         return self._tree
 
     def viewWidget(self):
-        return self.treeWidget().treeView()
+        return self.treeWidget().viewWidget()
 
     def toolBarWidget(self):
         return self._toolbar
@@ -99,7 +98,7 @@ class _NavigationWidget(Qt.QFrame):
     def updateSelection(self, index):
         self.clean()
         treeWidget = self.treeWidget()
-        viewWidget = treeWidget.treeView()
+        viewWidget = treeWidget.viewWidget()
         model = viewWidget.model()
         src_model = treeWidget.getBaseQModel()
         toolbar = self.toolBarWidget()
@@ -144,112 +143,23 @@ class _NavigationWidget(Qt.QFrame):
         tree.setCurrentIndex(index.child(0, 0))
 
 
-class _FilterWidget(Qt.QWidget):
-    """Internal widget providing quick filter to be placed in a toolbar"""
-    
-    def __init__(self, parent = None, designMode = False):
-        name = self.__class__.__name__
-        super(_FilterWidget, self).__init__(parent)
-        self.init()
-        
-    def init(self):
-        l = Qt.QHBoxLayout()
-        l.setContentsMargins(0,0,0,0)
-        self.setLayout(l)
-        
-        filterLineEdit = self._filterLineEdit = Qt.QLineEdit()
-        filterLineEdit.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Preferred, Qt.QSizePolicy.Preferred))
-        filterLineEdit.setToolTip("Quick filter")
-        Qt.QObject.connect(filterLineEdit, Qt.SIGNAL("textChanged(const QString &)"), self._filterChanged)
-        l.addWidget(filterLineEdit)
-
-        clearFilterButton = self._clearFilterButton = Qt.QPushButton(getThemeIcon("edit-clear"), "")
-        clearFilterButton.setToolTip("Clear filter")
-        Qt.QObject.connect(clearFilterButton, Qt.SIGNAL("clicked()"), self._clearFilter)
-        l.addWidget(clearFilterButton)
-
-    def filterLineEdit(self):
-        return self._filterLineEdit
-    
-    def _clearFilter(self):
-        self.filterLineEdit().setText("")
-
-    def _filterChanged(self, text=None):
-        text = text or self.filterLineEdit().text()
-        self.emit(Qt.SIGNAL("filterChanged"), text)
-
-
-class QBaseTreeWidget(Qt.QWidget):
-    """A pure Qt widget implementing a tree with a navigation toolbar"""
+class QBaseTreeWidget(QBaseModelWidget):
+    """A pure Qt tree widget implementing a tree with a navigation toolbar"""
     
     def __init__(self, parent=None, designMode=False, with_navigation_bar=True,
                  with_filter_widget=True):
-        Qt.QWidget.__init__(self, parent)
-        self._baseQModel = None
         self._with_navigation_bar = with_navigation_bar
-        self._with_filter_widget = with_filter_widget
-        self.__init()
-        
-    def __init(self):
-        l = Qt.QGridLayout()
-        l.setContentsMargins(0,0,0,0)
-        self.setLayout(l)
-
-        tb = self._toolbar = Qt.QToolBar("Taurus tree toolbar")
-        tb.setIconSize(Qt.QSize(16,16))
-        tb.setFloatable(False)
-        
-        tb_actions = self._toolbar_actions = []
-        tree = self._tree = Qt.QTreeView()
-
-        sb = self._statusbar = Qt.QStatusBar()
-        sb.setSizeGripEnabled(False)
-
-        if self._with_filter_widget:
-            filterWidget = self._filterWidget = _FilterWidget()
-            Qt.QObject.connect(filterWidget, Qt.SIGNAL("filterChanged"), self.setFilter)
-            action = tb.addWidget(filterWidget)
-            tb_actions.append(action)
-            tb.addSeparator()
-        else:
-            self._filterWidget = None
-        
-        self._selectAllAction = tb.addAction(getThemeIcon("edit-select-all"), "Select All", self.selectAllTree)
-        tb_actions.append(self._selectAllAction)
-        tb.addSeparator()
-        self._expandAllAction = tb.addAction(getIcon(":/actions/expand-all.svg"), "Expand All", self.expandAllTree)
-        tb_actions.append(self._expandAllAction)
-        self._collapseAllAction = tb.addAction(getIcon(":/actions/collapse-all.svg"), "Collapse All", tree.collapseAll)
-        tb_actions.append(self._collapseAllAction)
-        tb.addSeparator()
-        self._refreshAction = tb.addAction(getThemeIcon("view-refresh"), "Refresh", self.refreshTree)
-        tb_actions.append(self._refreshAction)
-        
+        QBaseModelWidget.__init__(self, parent, with_filter_widget=with_filter_widget)
+    
+    def createToolBar(self):
+        tb = QBaseModelWidget.createToolBar(self)
         if self._with_navigation_bar:
-            tb.addSeparator()
-            self._goIntoAction = tb.addAction(getThemeIcon("go-down"), "Go Into", self.goIntoTree)
-            tb_actions.append(self._goIntoAction)
-            self._goUpAction = tb.addAction(getThemeIcon("go-up"), "Go Up", self.goUpTree)
-            tb_actions.append(self._goUpAction)
-            self._goTopAction = tb.addAction(getThemeIcon("go-top"), "Go Top", self.goTopTree)
-            tb_actions.append(self._goTopAction)
-            
-            self._goIntoAction.setToolTip("Go into the selected item")
-            self._goUpAction.setToolTip("Go up one level")
-            self._goTopAction.setToolTip("Go to top level")
-
-            tb.addSeparator()
             self._navigationBar = _NavigationWidget(self, tb)
             action = tb.addWidget(self._navigationBar )
-            tb_actions.append(action)
-        else:
-            self._goIntoAction = None
-            self._goUpAction = None
-            self._goTopAction = None
-            self._navigationBar = None
-            
-        l.setMenuBar(tb)
-
+        return tb
+    
+    def createViewWidget(self):
+        tree = Qt.QTreeView()
         tree.setSortingEnabled(True)
         tree.setUniformRowHeights(True)
         tree.setAlternatingRowColors(True)
@@ -257,58 +167,56 @@ class QBaseTreeWidget(Qt.QWidget):
         tree.setSelectionMode(Qt.QTreeView.ExtendedSelection)
         tree.setDragEnabled(True)
         tree.setDropIndicatorShown(True)
-        
-        Qt.QObject.connect(tree, Qt.SIGNAL("expanded(QModelIndex)"), self.onExpanded)
-        Qt.QObject.connect(tree, Qt.SIGNAL("clicked(QModelIndex)"), self._onClicked)
-        Qt.QObject.connect(tree, Qt.SIGNAL("doubleClicked(QModelIndex)"), self._onDoubleClicked)
+
+        self.connect(tree, Qt.SIGNAL("expanded(QModelIndex)"), self.onExpanded)
+        self.connect(tree, Qt.SIGNAL("clicked(QModelIndex)"), self._onClicked)
+        self.connect(tree, Qt.SIGNAL("doubleClicked(QModelIndex)"), self._onDoubleClicked)
         h = tree.header()
         h.setResizeMode(0, Qt.QHeaderView.Stretch)
-        l.addWidget(tree, 0, 0)
-        l.addWidget(sb, 1 ,0)
-
-    def resizeColumns(self):
-        tree = self.treeView()
-        model = tree.model()
-        if model is None:
-            return
-        for c in range(model.columnCount()):
-            tree.resizeColumnToContents(c)
-
-    def refreshTree(self):
-        self.getQModel().refresh(True)
-
-    def selectAllTree(self):
-        tree = self.treeView()
-        tree.selectAll()
-
-    def expandAllTree(self):
-        self._statusbar.showMessage("Expanding all nodes... (it may take a few seconds)")
-        tree = self.treeView()
-        Qt.QTimer.singleShot(0, self._expandTree)
-
-    def _expandTree(self):
-        tree = self.treeView()
-        tree.expandAll()
-        self._statusbar.showMessage("All nodes expanded!", 3000)
-
-    def onExpanded(self):
-        self.resizeColumns()
-        
-    def _onClicked (self, index):
-        '''Emits an "itemClicked" signal with with the clicked item and column as arguments'''
-        item = self._mapToSource(index).internalPointer()
-        self.emit(Qt.SIGNAL('itemClicked'),item, index.column())
-        
-    def _onDoubleClicked (self, index):
-        '''Emits an "itemDoubleClicked" signal with the clicked item and column as arguments'''
-        item = self._mapToSource(index).internalPointer()
-        self.emit(Qt.SIGNAL('itemDoubleClicked'),item, index.column())
+        return tree
+    
+    def createToolBarActions(self):
+        tb_actions = QBaseModelWidget.createToolBarActions(self)
+        af = ActionFactory()
+        self._expandAllAction = af.createAction(self, "Expand All",
+                                                icon=getIcon(":/actions/expand-all.svg"),
+                                                tip="Expand all items",
+                                                triggered=self.expandAllTree)
+        self._collapseAllAction = af.createAction(self, "Collapse All",
+                                                  icon=getIcon(":/actions/collapse-all.svg"),
+                                                  tip="Collapse all items",
+                                                  triggered=self.collapseAllTree)
+        tb_actions.append([ self._expandAllAction, self._collapseAllAction ])
+    
+        if self._with_navigation_bar:
+            self._goIntoAction = af.createAction(self, "Go Into",
+                                                icon=getThemeIcon("go-down"),
+                                                tip="Go into the selected item",
+                                                triggered=self.goIntoTree)
+            self._goUpAction = af.createAction(self, "Go Up",
+                                                icon=getThemeIcon("go-up"),
+                                                tip="Go up one level",
+                                                triggered=self.goUpTree)
+            self._goTopAction = af.createAction(self, "Go Top",
+                                                icon=getThemeIcon("go-top"),
+                                                tip="Go to top level",
+                                                triggered=self.goTopTree)
+            tb_actions.append([self._goIntoAction, self._goUpAction, self._goTopAction])
+            
+            tb = self.toolBar()
+            self._navigationBar = _NavigationWidget(self, tb)
+            action = tb.addWidget(self._navigationBar )
+            #tb_actions.append([action])
+        else:
+            self._goIntoAction = None
+            self._goUpAction = None
+            self._goTopAction = None
+            self._navigationBar = None
+            
+        return tb_actions
 
     def treeView(self):
-        return self._tree
-    
-    def toolBar(self):
-        return self._toolbar
+        return self.viewWidget()
 
     def goIntoAction(self):
         return self._goIntoAction
@@ -318,71 +226,31 @@ class QBaseTreeWidget(Qt.QWidget):
     
     def goUpAction(self):
         return self._goUpAction
-
-    def getQModel(self):
-        return self.treeView().model()
-
-    def getBaseQModel(self):
-        return self._baseQModel
-
-    def usesProxyQModel(self):
-        return isinstance(self.getQModel(), Qt.QAbstractProxyModel)
-
-    def _mapToSource(self, index):
-        if not self.usesProxyQModel():
-            return index
-        model = self.getQModel()
-        while isinstance(model, Qt.QAbstractProxyModel):
-            index = model.mapToSource(index)
-            model = model.sourceModel()
-        return index
-
-    def setQModel(self, qmodel):
-        
-        self._baseQModel = qmodel
-        while isinstance(self._baseQModel, Qt.QAbstractProxyModel):
-            self._baseQModel = self._baseQModel.sourceModel()
-        
-        tree = self.treeView()
-        old_selection_model = tree.selectionModel()
-        CC = 'currentChanged(const QModelIndex &,const QModelIndex &)'
-        SC = 'selectionChanged(QItemSelection &, QItemSelection &)'
-        if old_selection_model is not None:
-            Qt.QObject.disconnect(old_selection_model, Qt.SIGNAL(CC),
-                                  self.treeCurrentIndexChanged)
-            Qt.QObject.disconnect(old_selection_model, Qt.SIGNAL(SC),
-                                  self.treeSelectionChanged)
-        tree.setModel(qmodel)
-        new_selection_model = tree.selectionModel()
-        if new_selection_model is not None:
-            Qt.QObject.connect(new_selection_model, Qt.SIGNAL(CC),
-                               self.treeCurrentIndexChanged)
-            Qt.QObject.connect(new_selection_model, Qt.SIGNAL(SC),
-                               self.treeSelectionChanged)
-        tree.setCurrentIndex(tree.rootIndex())
-        self._updateToolBar()
     
-    def treeSelectionChanged(self, selected, deselected):
-        self.emit(Qt.SIGNAL("itemSelectionChanged"))
+    def expandAllTree(self):
+        self._statusbar.showMessage("Expanding all items... (it may take a few seconds)")
+        tree = self.viewWidget()
+        Qt.QTimer.singleShot(0, self._expandTree)
     
-    def treeCurrentIndexChanged(self, current, previous):
-        # if there is a proxy model we have to translate the selection
-        base_current = self._mapToSource(current)
-        base_previous = self._mapToSource(previous)
-        
-        self._updateToolBar(current)
-        
-        if base_current.isValid():
-            currentTaurusTreeItem = base_current.internalPointer()
-        else:
-            currentTaurusTreeItem = None
-            
-        if base_previous.isValid():
-            previousTaurusTreeItem = base_previous.internalPointer()
-        else:
-            previousTaurusTreeItem = None
-        self.emit(Qt.SIGNAL("currentItemChanged"), currentTaurusTreeItem, previousTaurusTreeItem)
-
+    def _expandTree(self):
+        tree = self.viewWidget()
+        tree.expandAll()
+        self._statusbar.showMessage("All nodes expanded!", 3000)
+    
+    def onExpanded(self):
+        self.resizeColumns()
+    
+    def collapseAllTree(self):
+        self.viewWidget().collapseAll()
+    
+    def resizeColumns(self):
+        tree = self.viewWidget()
+        model = tree.model()
+        if model is None:
+            return
+        for c in range(model.columnCount()):
+            tree.resizeColumnToContents(c)
+    
     def goIntoTree(self):
         index = self._tree.currentIndex()
         base_index = self._mapToSource(index)
@@ -393,13 +261,13 @@ class QBaseTreeWidget(Qt.QWidget):
         # do not enter if the item doesn't have any children
         if base_index.internalPointer().childCount() == 0:
             return
-
+    
         self._tree.setRootIndex(index)
         self._tree.setCurrentIndex(index.child(0, 0))
         self._updateToolBar()
     
     def goUpTree(self):
-        tree = self.treeView()
+        tree = self.viewWidget()
         index = tree.rootIndex()
         if not index.isValid():
             return
@@ -408,9 +276,9 @@ class QBaseTreeWidget(Qt.QWidget):
         tree.setRootIndex(index_parent)
         tree.setCurrentIndex(index)
         self._updateToolBar()
-
+    
     def goTopTree(self):
-        tree = self.treeView()
+        tree = self.viewWidget()
         current_root = tree.rootIndex()
         p = current_root.parent()
         while p.isValid():
@@ -418,11 +286,11 @@ class QBaseTreeWidget(Qt.QWidget):
         tree.setRootIndex(p)
         tree.setCurrentIndex(p)
         self._updateToolBar()
-            
+    
     def _updateToolBar(self, current=None, previous=None):
         if not self._with_navigation_bar:
             return
-        tree = self.treeView()
+        tree = self.viewWidget()
         if current is None:
             current = tree.currentIndex()
         goInto = False
@@ -440,28 +308,7 @@ class QBaseTreeWidget(Qt.QWidget):
         
         index = tree.rootIndex()
         self._navigationBar.updateSelection(index)
-    
-    def selectedItems(self):
-        """Returns a list of all selected non-hidden items
         
-        :return: (list<TaurusTreeItem>)
-        """
-        return [self._mapToSource(index).internalPointer() for index in self._tree.selectedIndexes()]
-    
-    def setFilter(self, filter):
-        if not self.usesProxyQModel():
-            return
-        proxy_model = self.getQModel()
-        if len(filter) > 0 and filter[0] != '^':
-            filter = '^' + filter
-        proxy_model.setFilterRegExp(filter)
-        #proxy_model.setFilterFixedString(filter)
-        #proxy_model.setFilterWildcard(filter)
-        #self.update()
-    
-    def refresh(self):
-        self.getQModel().refresh()
-
 
 class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
     """A class:`taurus.qt.qtgui.tree.QBaseTreeWidget` that connects to a
@@ -476,7 +323,7 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
     def __init__(self, parent=None, designMode=False, with_navigation_bar=True,
                  with_filter_widget=True, perspective=None, proxy=None):
         name = self.__class__.__name__
-        self._perspective = None
+        self._perspective = perspective
         self._proxyModel = proxy
         self.call__init__(QBaseTreeWidget, parent, designMode=designMode,
                           with_navigation_bar=with_navigation_bar,
@@ -508,7 +355,7 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
             if persp == perspective:
                 b.setDefaultAction(action)
         
-        toolBar.insertWidget(self._toolbar_actions[0], b)
+        toolBar.insertWidget(self._toolbar_actions[0][0], b)
         self.setPerspective(perspective)
     
     def switchPerspectiveButton(self):
@@ -558,7 +405,7 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
     def setModel(self, m):
         TaurusBaseWidget.setModel(self, m)
 
-        tree, modelObj = self.treeView(), self.getModelObj()
+        tree, modelObj = self.viewWidget(), self.getModelObj()
         model = tree.model()
         if model is None: return
         model.setDataSource(modelObj)
@@ -583,3 +430,13 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseWidget):
     #: .. seealso:: :ref:`model-concept`
     model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, setModel,
                             TaurusBaseWidget.resetModel)
+    
+class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseModelWidget):
+    
+    def __init__(self, parent=None, designMode=False, with_navigation_bar=True,
+                 with_filter_widget=True, perspective=None, proxy=None):
+        self.call__init__(QBaseTreeWidget, parent, designMode=designMode,
+                          with_navigation_bar=with_navigation_bar,
+                          with_filter_widget=with_filter_widget)
+        self.call__init__(TaurusBaseModelWidget, designMode=designMode,
+                          perspective=perspective, proxy=proxy)

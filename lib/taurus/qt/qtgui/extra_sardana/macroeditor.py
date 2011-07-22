@@ -101,7 +101,7 @@ class MacroEditor(TaurusBaseEditor, TaurusBaseWidget):
         macro_info = item.itemData()
         self.openMacros([macro_info])
     
-    @ProtectTaurusMessageBox("A error occured trying to create a macro")
+    @ProtectTaurusMessageBox(msg="A error occured trying to create a macro")
     def newMacro(self):
         ms = self.getModelObj()
         ms_path = ms.getMacroPathObj()
@@ -136,7 +136,7 @@ class MacroEditor(TaurusBaseEditor, TaurusBaseWidget):
         f.close()
         self.editorStack().load(local_filename)
     
-    @ProtectTaurusMessageBox("A error occured trying to open a macro")
+    @ProtectTaurusMessageBox(msg="A error occured trying to open a macro")
     def openMacro(self):
         ms = self.getModelObj()
         ms_tree = MacroSelectionDialog(self, model_name=ms.getNormalName())
@@ -184,7 +184,7 @@ class MacroEditor(TaurusBaseEditor, TaurusBaseWidget):
                     self.debug("Reloading local file %s...", local_filename)
                     self.reload(idx,goto=line)
 
-    @ProtectTaurusMessageBox("A error occured trying to save macro")
+    @ProtectTaurusMessageBox(msg="A error occured trying to save macro")
     def saveMacro(self, apply=False):
         editorstack = self.editorStack()
         # Save the currently edited file

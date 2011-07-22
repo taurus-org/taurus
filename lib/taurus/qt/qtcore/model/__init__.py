@@ -56,5 +56,5 @@ And now inside a :class:`PyQt4.QtGui.QComboBox`::
 
 __docformat__ = 'restructuredtext'
 
-from taurustreemodel import *
+from taurusmodel import *
 from taurusdatabasemodel import *

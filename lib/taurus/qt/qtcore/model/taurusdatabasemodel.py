@@ -40,7 +40,7 @@ from PyQt4 import Qt
 import taurus.core
 import taurus.qt.qtcore.mimetypes
 
-from taurustreemodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
+from taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
 ElemType = taurus.core.TaurusElementType
 DevHealth = taurus.core.TaurusSWDevHealth

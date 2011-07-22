@@ -37,7 +37,7 @@ from PyQt4 import Qt
 import taurus.core
 
 from taurus.core.util import Enumeration
-from taurus.core.tango.macroserver import MacroInfo
+from taurus.core.tango.sardana.macro import MacroInfo
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget

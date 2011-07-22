@@ -162,7 +162,7 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
 
 
 _REPORT = """-- Description -----------------------------------------------------------------
-An error occured in {appName} {appVersion} on {time}
+An error occured in '{appName} {appVersion}' on {time}
 {text}
 
 -- Details ---------------------------------------------------------------------
