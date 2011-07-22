@@ -23,28 +23,23 @@
 ##
 #############################################################################
 
-"""This module provides widgets that display the database in a table format"""
+"""This module provides a base widget that can be used to display a taurus 
+model in a table widget"""
 
-__all__ = ["TaurusBaseTableWidget"]
+__all__ = ["QBaseTableWidget", "TaurusBaseTableWidget"]
 
 __docformat__ = 'restructuredtext'
 
-import PyQt4.Qt as Qt
+from PyQt4 import Qt
 
 import taurus
 from taurus.core import TaurusElementType
 from taurus.qt.qtcore.model import *
-from taurus.qt.qtgui.base import TaurusBaseWidget, QBaseModelWidget
+from taurus.qt.qtgui.base import TaurusBaseWidget, QBaseModelWidget, TaurusBaseModelWidget
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon, \
     getElementTypeIcon, getElementTypeIconName
 from taurus.qt.qtgui.util import ActionFactory
-
-
-class QBaseTableWidget(QBaseModelWidget):
-
-    def createViewWidget(self):
-        table = Qt.QTableView(self)
-        return table
+from qtable import QBaseTableWidget
 
 
 class TaurusBaseTableWidget(QBaseTableWidget, TaurusBaseWidget):
@@ -171,34 +166,27 @@ class TaurusBaseTableWidget(QBaseTableWidget, TaurusBaseWidget):
 class TaurusDbTableWidget(TaurusBaseTableWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTableWidget` that connects to a
     :class:`taurus.core.TaurusDatabase` model. It can show the list of database
-    elements in four different perspectives:
+    elements in two different perspectives:
     
-    - device : a three level hierarchy of devices (domain/family/name)
-    - server : a server based perspective
-    - class : a class based perspective
+    - device : a device list based perspective
+    - server : a server list based perspective
     
-    Filters can be inserted into this widget to restrict the tree nodes that are
+    Filters can be inserted into this widget to restrict the items that are
     seen.
     """
     
     KnownPerspectives = {
         TaurusElementType.Device : {
-            "label"   : "By device",
+            "label"   : "Devices",
             "icon"    : getElementTypeIconName(TaurusElementType.Device),
             "tooltip" : "View by device",
             "model"   : [TaurusDbDeviceProxyModel, TaurusDbBaseModel,],
         },
         TaurusElementType.Server : {
-            "label" : "By server",
+            "label" : "Servers",
             "icon" : getElementTypeIconName(TaurusElementType.Server),
             "tooltip" : "View by server",
-            "model" : [TaurusDbServerProxyModel, TaurusDbServerModel,],
-        },
-        TaurusElementType.DeviceClass : {
-            "label" : "By class",
-            "icon" : getElementTypeIconName(TaurusElementType.DeviceClass),
-            "tooltip" : "View by class",
-            "model" : [TaurusDbDeviceClassProxyModel, TaurusDbDeviceClassModel,], 
+            "model" : [TaurusDbServerProxyModel, TaurusDbPlainServerModel,],
         },
     }
 

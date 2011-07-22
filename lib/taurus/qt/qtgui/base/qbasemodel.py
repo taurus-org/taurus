@@ -30,7 +30,7 @@ __all__ = ["QBaseModelWidget", "TaurusBaseModelWidget"]
 
 __docformat__ = 'restructuredtext'
 
-import PyQt4.Qt as Qt
+from PyQt4 import Qt
 
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.util import ActionFactory
@@ -114,10 +114,11 @@ class QBaseModelWidget(Qt.QWidget):
         if self._with_filter_widget:
             filterWidget = self._filterWidget = _FilterWidget()
             Qt.QObject.connect(filterWidget, Qt.SIGNAL("filterChanged"), self.setFilter)
-            filter_action = tb.addWidget(filterWidget)
+            filter_action = self._filterAction = tb.addWidget(filterWidget)
             tb.addSeparator()
         else:
             self._filterWidget = None
+            self._filterAction = None
 
         action_groups = self.createToolBarActions()
         #action_groups.insert(0, [filter_action])
@@ -139,6 +140,9 @@ class QBaseModelWidget(Qt.QWidget):
         
         l.addWidget(self._viewWidget, 0, 0)
         l.addWidget(sb, 1 ,0)
+
+    def toolBarActions(self):
+        return self._toolbar_actions
 
     def refreshModel(self):
         self.getQModel().refresh(True)
@@ -263,10 +267,10 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
 
     def __init__(self, designMode=False, perspective=None, proxy=None):
         name = self.__class__.__name__
-        self._perspective = perspective
+        self._perspective = None
         self._proxyModel = proxy
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
-        if perspective is None: 
+        if perspective is None:
             perspective = self.DftPerspective
         self.__init(perspective)
 
@@ -292,7 +296,12 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
             if persp == perspective:
                 b.setDefaultAction(action)
         
-        toolBar.insertWidget(self._toolbar_actions[0][0], b)
+        if self._filterAction is None:
+            first_action = self._toolbar_actions[0][0]
+        else:
+            first_action = self._filterAction
+        a = toolBar.insertSeparator(first_action)
+        self._perspectiveAction = toolBar.insertWidget(a, b)
         self.setPerspective(perspective)
     
     def switchPerspectiveButton(self):

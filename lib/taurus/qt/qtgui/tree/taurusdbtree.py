@@ -29,7 +29,7 @@ __all__ = ["TaurusDbTreeWidget"]
 
 __docformat__ = 'restructuredtext'
 
-import PyQt4.Qt as Qt
+from PyQt4 import Qt
 
 import taurus.core
 

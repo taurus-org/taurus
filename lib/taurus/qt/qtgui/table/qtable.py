@@ -23,23 +23,18 @@
 ##
 #############################################################################
 
-"""This module provides a base widget that can be used to display a taurus 
-model in a tree widget"""
+"""This module provides base table widget"""
 
-__all__ = ["TaurusBaseTreeWidget"]
+__all__ = ["QBaseTableWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt.qtgui.base import TaurusBaseModelWidget
-from qtree import QBaseTreeWidget
+from PyQt4 import Qt
+
+from taurus.qt.qtgui.base import QBaseModelWidget
 
 
-class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseModelWidget):
+class QBaseTableWidget(QBaseModelWidget):
 
-    def __init__(self, parent=None, designMode=False, with_navigation_bar=True,
-                 with_filter_widget=True, perspective=None, proxy=None):
-        self.call__init__(QBaseTreeWidget, parent, designMode=designMode,
-                          with_navigation_bar=with_navigation_bar,
-                          with_filter_widget=with_filter_widget)
-        self.call__init__(TaurusBaseModelWidget, designMode=designMode,
-                          perspective=perspective, proxy=proxy)
+    def createViewWidget(self):
+        return Qt.QTableView(self)
