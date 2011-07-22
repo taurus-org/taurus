@@ -36,7 +36,6 @@ import weakref
 import taurus.core.util
 
 from sardana import State
-from pooldefs import AcqTriggerMode
 from poolaction import *
 
 class PoolAcquisition(PoolAction):
@@ -99,8 +98,8 @@ class PoolCTAcquisition(PoolAction):
         units = cfg['units']
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
-            master = units[pool_ctrl]['master']
-            axis = master.axis
+            timer = units[pool_ctrl]['timer']
+            axis = timer.axis
             ctrl.PreLoadAll()
             res = ctrl.PreLoadOne(axis, integ_time)
             if not res:

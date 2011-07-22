@@ -31,18 +31,21 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
-from PyTango import DispLevel, DevState, AttrQuality
-from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import Util, DevFailed, \
+    DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, \
+    DevString, DevEncoded, \
+    DispLevel, DevState, AttrQuality, \
+    READ, READ_WRITE, SCALAR, SPECTRUM
 from PyTango.constants import DescNotSet
 
+from taurus.core.util import CodecFactory
 from taurus.core.util.log import InfoIt, DebugIt
+
+from sardana.pool import AcqMode
 
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 from PoolDevice import to_tango_state
 
-from sardana.pool import AcqTriggerMode
 
 class MeasurementGroup(PoolGroupDevice):
     
@@ -70,9 +73,8 @@ class MeasurementGroup(PoolGroupDevice):
     def init_device(self):
         PoolGroupDevice.init_device(self)
 
-        detect_evts = "state", "status"
-        #non_detect_evts = "master", "triggermode", "elementlist"
-        non_detect_evts = "integration_time", "elementlist"
+        detect_evts = "state", "status", "configuration"
+        non_detect_evts = "integrationtime", "monitorcount", "acquisitionmode", "elementlist"
         self.set_change_events(detect_evts, non_detect_evts)
         
         self.Elements = list(self.Elements)
@@ -98,6 +100,7 @@ class MeasurementGroup(PoolGroupDevice):
     def on_measurement_group_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name
+        name = name.replace('_','')
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
@@ -116,6 +119,14 @@ class MeasurementGroup(PoolGroupDevice):
             elif name == "status":
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
+            elif name == "acquisitionmode":
+                event_value = AcqMode.whatis(event_value)
+                self.push_change_event(name, event_value, t, quality)
+            elif name == "configuration":
+                cfg = self.measurement_group.get_user_configuration()
+                codec = CodecFactory().getCodec('json')
+                _, event_value = codec.encode(('', cfg))
+                self.push_change_event(name, event_value)
             else:
                 self.push_change_event(name, event_value, t, quality)
         finally:
@@ -128,42 +139,46 @@ class MeasurementGroup(PoolGroupDevice):
     
     def read_attr_hardware(self,data):
         pass
-    
-#    def read_Master(self, attr):
-#        master = self.measurement_group.master
-#        v = DescNotSet
-#        if master is not None:
-#            v = master.name
-#        attr.set_value(v)
-    
-#    def write_Master(self, attr):
-#        self.measurement_group.set_master_name(attr.get_write_value())
-    
-#    def read_TriggerMode(self, attr):
-#        tm = self.measurement_group.trigger_mode
-#        attr.set_value(AcqTriggerMode.whatis(tm))
-    
-#    def write_TriggerMode(self, attr):
-#        v = attr.get_write_value()
-#        if not AcqTriggerMode.has_key(v):
-#            raise Exception("Invalid trigger mode '%s'. Possible modes are %s" % \
-#                            (v, ", ".join(AcqTriggerMode.keys())))
-#        self.measurement_group.trigger_mode = AcqTriggerMode.lookup[v]
 
-    def read_Integration_Time(self, attr):
+    def read_IntegrationTime(self, attr):
         it = self.measurement_group.integration_time
         if it is None:
             it = float('nan')
         attr.set_value(it)
     
-    def write_Integration_Time(self, attr):
-        self.measurement_group.set_integration_time(attr.get_write_value())
+    def write_IntegrationTime(self, attr):
+        self.measurement_group.integration_time = attr.get_write_value()
 
+    def read_MonitorCount(self, attr):
+        it = self.measurement_group.monitor_count
+        if it is None:
+            it = 0
+        attr.set_value(it)
+    
+    def write_MonitorCount(self, attr):
+        self.measurement_group.monitor_count = attr.get_write_value()
+        
+    def read_AcquisitionMode(self, attr):
+        acq_mode = self.measurement_group.acquisition_mode
+        acq_mode_str = AcqMode.whatis(acq_mode)
+        attr.set_value(acq_mode_str)
+    
+    def write_AcquisitionMode(self, attr):
+        acq_mode_str = attr.get_write_value()
+        acq_mode = AcqMode.lookup[acq_mode_str]
+        self.measurement_group.acquisition_mode = acq_mode
+        
     def read_Configuration(self, attr):
-        raise NotImplementedError
+        cfg = self.measurement_group.get_user_configuration()
+        codec = CodecFactory().getCodec('json')
+        data = codec.encode(('', cfg))
+        attr.set_value(data[1])
     
     def write_Configuration(self, attr):
-        raise NotImplementedError
+        data = attr.get_write_value()
+        codec = CodecFactory().getCodec('json')
+        _, cfg = codec.decode(('json', data))
+        self.measurement_group.set_configuration_from_user(cfg)
 
     def Start(self):
         self.measurement_group.start_acquisition()
@@ -188,15 +203,18 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-#        'Master'     : [ [DevString, SCALAR, READ_WRITE],
-#                         { 'Memorized'     : "true",
-#                           'Display level' : DispLevel.EXPERT } ],
-#        'TriggerMode': [ [DevString, SCALAR, READ_WRITE],
-#                         { 'Memorized'     : "true",
-#                           'Display level' : DispLevel.EXPERT } ],
-        'Integration_Time': [ [DevDouble, SCALAR, READ_WRITE],
+        'IntegrationTime': [ [DevDouble, SCALAR, READ_WRITE],
                               { 'Memorized'     : "true",
                                 'Display level' : DispLevel.OPERATOR } ],
+        'MonitorCount': [ [DevLong, SCALAR, READ_WRITE],
+                              { 'Memorized'     : "true",
+                                'Display level' : DispLevel.OPERATOR } ],
+        'AcquisitionMode': [ [DevString, SCALAR, READ_WRITE],
+                              { 'Memorized'     : "true",
+                                'Display level' : DispLevel.OPERATOR } ],
+        'Configuration': [ [DevString, SCALAR, READ_WRITE],
+                              { 'Memorized'     : "true",
+                                'Display level' : DispLevel.EXPERT } ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 

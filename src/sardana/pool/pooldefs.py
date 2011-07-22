@@ -27,7 +27,8 @@
 
 __all__ = ["InvalidId", "InvalidAxis", "ElementType", "TYPE_ELEMENTS",
            "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
-           "AcqTriggerMode", "AcqTriggerType"]
+           "AcqMode", "AcqTriggerType",
+           "ControllerOfflineException"]
 
 __docformat__ = 'restructuredtext'
 
@@ -63,13 +64,15 @@ TYPE_GROUP_ELEMENTS = ElementType.MotorGroup, ElementType.MeasurementGroup
 
 TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType.MotorGroup
 
-AcqTriggerMode = Enumeration("AcqTriggerMode", ( \
-    "OnMaster",
-    "OnAll",
-    "Unknown") )
-
 AcqTriggerType = Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
     "Gate",     # channel triggered by HW - start and stop by external 
-    "Unknwon") )
-    
+    "Unknown") )
+
+AcqMode = Enumeration("AcqMode", ( \
+    "Timer",
+    "Monitor",
+    "Unknown") )
+
+class ControllerOfflineException(Exception):
+    pass

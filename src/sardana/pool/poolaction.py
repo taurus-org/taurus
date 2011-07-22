@@ -30,12 +30,15 @@ __all__ = [ "PoolAction", "PoolActionItem", "get_thread_pool" ]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 import weakref
+import traceback
 
 from taurus.core.util import Logger, DebugIt, InfoIt
 
 from sardana import State
+from pooldefs import ControllerOfflineException
 
 def get_thread_pool():
     import pool
@@ -130,11 +133,26 @@ class PoolAction(Logger):
             time.sleep(0.01)
         return ret
     
+    def _get_ctrl_error_state_info(self, pool_ctrl):
+        exc_type, exc_value, tb = sys.exc_info()
+        if exc_type is None:
+            if pool_ctrl.is_online():
+                return State.Fault, "Unknown controller error"
+        else:
+            if pool_ctrl.is_online():
+                s = "".join(traceback.format_exception(exc_type, exc_value, tb))
+                return State.Fault, "Unexpected controller error:\n" + s
+        return State.Fault, pool_ctrl.get_ctrl_error_str()
+    
     def _read_ctrl_state_info(self, ret, pool_ctrl):
         try:
             axises = [ elem.axis for elem in self._pool_ctrls[pool_ctrl] ]
             state_infos = pool_ctrl.read_axis_states(axises)
             ret.update( state_infos )
+        except:
+            state_info = self._get_ctrl_error_state_info(pool_ctrl)
+            for elem in self._pool_ctrls[pool_ctrl]:
+                ret[elem] = state_info
         finally:
             self._state_count = max(0, self._state_count-1)
 

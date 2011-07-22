@@ -8,8 +8,8 @@ class Channel:
     def __init__(self,idx):
         self.idx = idx            # 1 based index
         self.value = 0.0
-        self.is_started = False
-        self.active = False
+        self.is_counting = False
+        self.active = True
         
 class DummyCounterTimerController(CounterTimerController):
     "This class is the Tango Sardana CounterTimer controller for tests"
@@ -29,80 +29,82 @@ class DummyCounterTimerController(CounterTimerController):
 
     def __init__(self,inst,props):
         CounterTimerController.__init__(self,inst,props)
-
-        self.mode = self.StoppedMode
-        self.master_channel = None
-        self.master_stop_at = None
-        self.channels = [ Channel(i+1) for i in xrange(self.MaxDevice) ]
+        self.channels = self.MaxDevice*[None,]
+        self.reset()
+        
+    def reset(self):
         self.start_time = None
+        self.integ_time = None
+        self.monitor_count = None
         self.read_channels = {}
         self.counting_channels = {}
         
     def AddDevice(self,ind):
         idx = ind - 1
-        self.channels[idx].active = True
+        self.channels[idx] = Channel(ind)
         
     def DeleteDevice(self,ind):
         idx = ind - 1
-        self.channels[idx].active = False
+        self.channels[idx] = None
 
-    def StateOne(self,ind):
+    def PreStateAll(self):
+        pass
+    
+    def PreStateOne(self, ind):
+        pass
+    
+    def StateAll(self):
+        pass
+    
+    def StateOne(self, ind):
         self._log.info("StateOne(%d)", ind)
         idx = ind - 1
-        sta = None
-        status = None
-        if ind not in self.counting_channels:
-            sta = State.On
-            status = "Stopped"
-        else:
+        sta = State.On
+        status = "Stopped"
+        if ind in self.counting_channels:
             channel = self.channels[idx]
-            m = self.mode
-            if m != self.StoppedMode:
-                now = time.time()
-                elapsed_time = now - self.start_time
-                self._checkState(elapsed_time)
-
-            if self.mode == self.StoppedMode and not channel.is_started:
-                sta = State.On
-                status = "Stopped"
-            else:
+            now = time.time()
+            elapsed_time = now - self.start_time
+            self._updateChannelState(ind, elapsed_time)
+            if channel.is_counting:
                 sta = State.Moving
                 status = "Acquiring"
         self._log.info("StateOne(%d) returns %s", ind, sta)
-        return (sta,status)
+        return sta, status
         
-    def _setChannelValue(self, channel, elapsed_time):
-        channel.value = elapsed_time * channel.idx
-
-    def _checkState(self, elapsed_time):
-        m = self.mode
-        if m == self.TimerMode:
-            if elapsed_time >= self.master_stop_at:
-                self._finished(elapsed_time)
-        elif m == self.MonitorMode:
-            self._setChannelValue(self.master_channel, elapsed_time)
-            if self.master_channel.value >= self.master_stop_at:
-                self._finished(elapsed_time)
-
-    def _finished(self, elapsed_time):
-        m = self.mode
-        if m == self.TimerMode:
-            self.master_channel.value = self.master_stop_at
-        
-        if not self.master_channel is None:
-            self.master_channel.is_started = False
-
-        for channel in self.counting_channels.values():
-            if m is self.TimerMode and channel.idx == self.master_channel.idx:
-                continue
-            # the counting formula (very simple so far...)
-            self._setChannelValue(channel, elapsed_time)
-            channel.is_started = False
-        
-        self.start_time = None
-        self.master_channel = None
-        self.master_stop_at = None
-        self.mode = self.StoppedMode
+    def _updateChannelState(self, ind, elapsed_time):
+        channel = self.channels[ind-1]
+        if self.integ_time is not None:
+            # counting in time
+            if elapsed_time >= self.integ_time:
+                self._finish(elapsed_time)
+        elif self.monitor_count is not None:
+            # monitor counts
+            v = int(elapsed_time*100*ind)
+            if v >= self.monitor_count:
+                self.finish(elapsed_time)
+    
+    def _updateChannelValue(self, ind, elapsed_time):
+        channel = self.channels[ind-1]
+        if self.integ_time is not None:
+            t = elapsed_time
+            if not channel.is_counting:
+                t = self.integ_time
+            if ind == self._timer:
+                channel.value = t
+            else:
+                channel.value = t * channel.idx
+        elif self.monitor_count is not None:
+            channel.value = int(elapsed_time*100*ind)
+            if ind == self._monitor:
+                if not channel.is_counting:
+                    channel.value = self.monitor_count
+    
+    def _finish(self, elapsed_time):
+        for ind, channel in self.counting_channels.items():
+            channel.is_counting = False
+            self._updateChannelValue(ind, elapsed_time)
+        self.counting_channels = {}
                 
     def PreReadAll(self):
         self.read_channels = {}
@@ -113,12 +115,13 @@ class DummyCounterTimerController(CounterTimerController):
 
     def ReadAll(self):
         # if in acquisition then calculate the values to return
-        if not self.mode is self.StoppedMode:
+        if self.counting_channels:
             now = time.time()
             elapsed_time = now - self.start_time
-            for channel in self.read_channels.values():
-                if channel.is_started:
-                    self._setChannelValue(channel, elapsed_time)
+            for ind, channel in self.read_channels.items():
+                self._updateChannelState(ind, elapsed_time)
+                if channel.is_counting:
+                    self._updateChannelValue(ind, elapsed_time)
     
     def ReadOne(self,ind):
         self._log.info("ReadOne(%d)", ind)
@@ -126,20 +129,7 @@ class DummyCounterTimerController(CounterTimerController):
         return v
     
     def PreStartAllCT(self):
-        # if it is first pass in PreStartAllCT or if this ctrl will not have the
-        # master...
-        if self.master_channel is None: 
-            # Clean up data from last acquisition
-            for channel in self.counting_channels.values():
-                channel.value = 0.0
-                channel.is_started = False
-            
-            self.counting_channels = {}
-        
-        # if the timer/monitor was not loaded this means this controller is
-        # just a simple counter without master channel
-        if self.mode == self.StoppedMode:
-            self.mode = self.CounterMode
+        self.counting_channels = {}
     
     def PreStartOneCT(self,ind):
         idx = ind - 1
@@ -149,30 +139,22 @@ class DummyCounterTimerController(CounterTimerController):
         return True
     
     def StartOneCT(self,ind):
-        self.counting_channels[ind].is_started = True
+        self.counting_channels[ind].is_counting = True
     
     def StartAllCT(self):
         self.start_time = time.time()
     
     def LoadOne(self,ind,value):
         idx = ind - 1
-        self.master_channel = self.channels[idx]
         if value > 0:
-            self.mode = self.TimerMode
-            self.master_stop_at = value
+            self.integ_time = value
+            self.monitor_count = None
         else:
-            self.mode = self.MonitorMode
-            self.master_stop_at = -value
+            self.integ_time = None
+            self.monitor_count = -value
     
     def AbortOne(self,ind):
-        if not self.mode is self.StoppedMode:
+        if self.counting_channels:
             now = time.time()
             elapsed_time = now - self.start_time
-            self._finished(elapsed_time)
-    
-    def SetCtrlPar(self, par, value):
-        self._log.info("SetCtrlPar(%s, %s)", par, value)
-        setattr(self, par, value)
-    
-    def GetCtrlPar(self, par):
-        return getattr(self, par)
+            self.finish(elapsed_time)

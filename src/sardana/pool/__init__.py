@@ -42,4 +42,5 @@ from .poolinstrument import *
 from .poolcontrollermanager import *
 from .poolmetacontroller import *
 from .poolmodulemanager import *
+from .poolmeasurementgroup import *
 from .pool import *

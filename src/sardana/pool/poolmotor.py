@@ -31,6 +31,7 @@ __all__ = [ "PoolMotor" ]
 __docformat__ = 'restructuredtext'
 
 import math
+import operator
 
 from poolbase import *
 from pooldefs import *
@@ -68,8 +69,11 @@ class PoolMotor(PoolElement):
         if len(state_info) > 2:
             state, status, ls = state_info[:3]
         else:
-            state, ls = state_info[:2]
-            status = ''
+            state, other = state_info[:2]
+            if operator.isNumberType(other):
+                ls, status = other, ''
+            else:
+                ls, status = 0, other
         state, ls = int(state), tuple(map(bool, (ls&4,ls&2,ls&1)))
         return state, status, ls
     

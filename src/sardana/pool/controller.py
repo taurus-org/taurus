@@ -35,6 +35,7 @@ import datetime
 import weakref
 import taurus.core.util.log
 
+from pooldefs import AcqTriggerType
 
 class Controller:
     """Base controller class. Do **NOT** inherit from this class directly"""
@@ -135,40 +136,56 @@ class Controller:
     def SetCtrlPar(self, parameter, value):
         """**Controller API**. Overwrite as necessary.
         Called to set a parameter with a value.
-        Default implementation raises NotImplementedError."""
-        raise NotImplementedError
+        Default implementation sets this object member named '_'+parameter with
+        the given value.
+        
+        .. versionadded:: 1.0"""
+        setattr(self, '_'+parameter, value)
 
     #def GetCtrlPar(self, unit, parameter):
     def GetCtrlPar(self, parameter):
         """**Controller API**. Overwrite as necessary.
         Called to set a parameter with a value.
-        Default implementation raises NotImplementedError."""
-        raise NotImplementedError
+        Default implementation returns the value contained in this object's
+        member named '_'+parameter.
+        
+        .. versionadded:: 1.0"""
+        return getattr(self, '_'+parameter)
     
     #def SetAxisPar(self, unit, axis, parameter, value):
     def SetAxisPar(self, axis, parameter, value):
         """**Controller API**. Overwrite as necessary.
         Called to set a parameter with a value on the given axis.
-        Default implementation calls deprecated SetPar."""
+        Default implementation calls deprecated :meth:`Controller.SetPar`.
+        
+        .. versionadded:: 1.0"""
         return self.setPar(axis, parameter, value)
     
     #def GetAxisPar(self, unit, axis, parameter):
     def getAxisPar(self, axis, parameter):
         """**Controller API**. Overwrite as necessary.
         Called to get a parameter value on the given axis.
-        Default implementation calls deprecated GetPar."""
+        Default implementation calls deprecated :meth:`Controller.GetPar`.
+        
+        .. versionadded:: 1.0"""
         return self.getPar(axis, parameter)
     
     def SetPar(self, axis, parameter, value):
         """**Controller API**. *Dreprecated: use setAxisPar instead.*.
         Called to set a parameter with a value on the given axis.
-        Default implementation raises NotImplementedError."""
+        Default implementation raises NotImplementedError.
+
+        .. deprecated:: 1.0
+            Deprecated: use :meth:`Controller.SetAxisPar` instead"""
         raise NotImplementedError
 
     def GetPar(self, axis, parameter):
         """**Controller API**. *Dreprecated: use setAxisPar instead.*.
         Called to get a parameter value on the given axis.
-        Default implementation raises NotImplementedError."""
+        Default implementation raises NotImplementedError.
+
+        .. deprecated:: 1.0
+            Deprecated: use :meth:`Controller.GetAxisPar` instead"""
         raise NotImplementedError
     
     @classmethod
@@ -178,13 +195,28 @@ class Controller:
         Default implementation returns empty :class:`tuple`.
         
         :param int axis: axis number
-        :return: sequence of standard attributes"""
+        :return: sequence of standard attributes
+        
+        .. versionadded:: 1.0"""
         return ()
 
 
 class MotorController(Controller):
     """Base class for a motor controller. Inherit from this class to implement
-    your own motor controller for the device pool."""
+    your own motor controller for the device pool.
+    
+    A motor controller should support these axis parameters:
+    
+        - acceleration
+        - deceleration
+        - velocity
+        - base_rate
+        - step_per_unit
+    
+    These parameters are configured through the GetAxisPar/SetAxisPar API (in
+    version <1.0 the methods were called GetPar/SetPar. Default GetAxisPar and
+    SetAxisPar still call these methods to maintain backward compatibility).
+    """
     
     def PreReadAll(self):
         """**Motor Controller API**. Overwrite as necessary.
@@ -250,7 +282,9 @@ class MotorController(Controller):
         - limit_switches
         
         :param int axis: axis number
-        :return: sequence of standard attributes"""
+        :return: sequence of standard attributes
+        
+        .. versionadded:: 1.0"""
         return "acceleration", "deceleration", "base_rate", "velocity", \
             "step_per_unit", "offset", "dialposition", "backlash", "sign", \
             "limit_switches"
@@ -258,7 +292,20 @@ class MotorController(Controller):
 
 class CounterTimerController(Controller):
     """Base class for a counter/timer controller. Inherit from this class to 
-    implement your own counter/timer controller for the device pool."""
+    implement your own counter/timer controller for the device pool.
+    
+    A counter timer controller should support these controller parameters:
+    
+        - timer
+        - monitor
+        - trigger_type"""
+    
+    def __init__(self, inst, props):
+        Controller.__init__(self, inst, props)
+        self._timer = None
+        self._monitor = None
+        self._master = None
+        self._trigger_type = AcqTriggerType.Unknown
     
     def PreReadAll(self):
         """**Counter/Timer Controller API**. Overwrite as necessary.
