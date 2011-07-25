@@ -30,7 +30,9 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
     "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
     "TaurusTreeServerItem", "TaurusTreeDeviceClassItem", "TaurusDbBaseModel",
     "TaurusDbSimpleDeviceModel", "TaurusDbPlainDeviceModel", "TaurusDbDeviceModel",
-    "TaurusDbServerModel", "TaurusDbDeviceClassModel", "TaurusDbBaseProxyModel",
+    "TaurusDbPlainServerModel", "TaurusDbServerModel",
+    "TaurusDbDeviceClassModel",
+    "TaurusDbBaseProxyModel",
     "TaurusDbDeviceProxyModel", "TaurusDbServerProxyModel", "TaurusDbDeviceClassProxyModel"]
 
 __docformat__ = 'restructuredtext'
@@ -283,6 +285,31 @@ class TaurusTreeServerItem(TaurusTreeDbBaseItem):
         return ElemType.Server
 
 
+class TaurusTreeFullServerItem(TaurusTreeDbBaseItem):
+    """A node designed to represent a server"""
+    
+    def data(self, index):
+        column, model = index.column(), index.model()
+        role = model.role(column, self.depth())
+        
+        if role == ElemType.Server or role == ElemType.Name:
+            return self._itemData.fullName()
+        elif role == ElemType.ServerName:
+            return self._itemData.serverName()
+        elif role == ElemType.ServerInstance:
+            return self._itemData.fullName()
+        elif role == ElemType.Exported:
+            return self._itemData.health()
+        elif role == ElemType.Host:
+            return self._itemData.host()
+
+    def mimeData(self, index):
+        return self.itemData().fullName()
+
+    def role(self):
+        return ElemType.Server
+
+
 class TaurusTreeDeviceClassItem(TaurusTreeDbBaseItem):
     """A node designed to represent a device class"""
     
@@ -463,6 +490,25 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             rootItem.appendChild(domainItem)
 
 
+class TaurusDbPlainServerModel(TaurusDbBaseModel):
+    ColumnNames = "Server", "Alive", "Host"
+    ColumnRoles = (ElemType.Server, ElemType.ServerInstance), ElemType.Exported, ElemType.Host
+    
+    def setupModelData(self, data):
+        if data is None:
+            return
+
+        if isinstance(data, taurus.core.TaurusDatabase):
+            data = data.cache()
+        
+        servers = data.servers()
+        rootItem = self._rootItem
+        
+        for server_name, server in servers.items():
+            serverInstanceItem = TaurusTreeFullServerItem(self, server, rootItem)
+            rootItem.appendChild(serverInstanceItem)
+    
+    
 class TaurusDbServerModel(TaurusDbBaseModel):
     """A Qt model that structures server elements in a tree organized as:
        - <Server name>

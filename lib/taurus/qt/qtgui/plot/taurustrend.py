@@ -1316,7 +1316,7 @@ class TaurusTrend(TaurusPlot):
         '''
         self._scrollStep = scrollStep
         
-    def getScrollStep(self, scrollStep):
+    def getScrollStep(self):
         '''returns the value of the scroll step
         
         :return: (float)

@@ -43,3 +43,12 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseModelWidget):
                           with_filter_widget=with_filter_widget)
         self.call__init__(TaurusBaseModelWidget, designMode=designMode,
                           perspective=perspective, proxy=proxy)
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # TaurusBaseWidget overwriting
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    def updateStyle(self):
+        """overwritten from class:`taurus.qt.qtgui.base.TaurusBaseWidget`. It is called when
+        the taurus model changes."""
+        self.resizeColumns()

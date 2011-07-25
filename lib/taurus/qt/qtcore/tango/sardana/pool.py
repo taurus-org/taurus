@@ -25,22 +25,40 @@
 
 """Device pool extension for taurus Qt"""
 
-__all__ = ["QPool",
+__all__ = ["QPool", "QMeasurementGroup",
            "registerExtensions"]
 
-import taurus.core
-from taurus.core.tango.sardana.pool import Pool
+import json
 
 from PyQt4 import Qt
 
-CHANGE_EVTS = (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic)
+from taurus.core import TaurusEventType
+from taurus.core.tango import TangoDevice
 
-class QPool(Qt.QObject, Pool):
+CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
+
+
+class QPool(Qt.QObject, TangoDevice):
     
     def __init__(self, name, qt_parent=None, **kw):
         self.call__init__wo_kw(Qt.QObject, qt_parent)
-        self.call__init__(Pool, name, **kw)
+        self.call__init__(TangoDevice, name, **kw)
 
+
+class QMeasurementGroup(Qt.QObject, TangoDevice):
+    
+    def __init__(self, name, qt_parent=None, **kw):
+        self.call__init__wo_kw(Qt.QObject, qt_parent)
+        self.call__init__(TangoDevice, name, **kw)
+
+        self._config = None
+        configuration = self.getAttribute("Configuration")
+        configuration.addListener(self._configurationChanged)
+
+    def _configurationChanged(self, s, t, v):
+        if t not in CHANGE_EVTS: return
+        self._config = json.loads(v.value)
+        self.emit(Qt.SIGNAL("configurationChanged"))
 
 
 def registerExtensions():
@@ -50,3 +68,4 @@ def registerExtensions():
     taurus.core.tango.sardana.pool.registerExtensions()
     factory = taurus.Factory()
     factory.registerDeviceClass('Pool', QPool)
+    factory.registerDeviceClass('MeasurementGroup', QMeasurementGroup)

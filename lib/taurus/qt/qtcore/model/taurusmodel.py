@@ -89,6 +89,12 @@ class TaurusBaseTreeItem(object):
         """
         return self._itemData[index.column()]
     
+    def icon(self, index):
+        return None
+    
+    def toolTip(self, index):
+        return self.data(index)
+    
     def setData(self, data):
         """Sets the node data
         
@@ -120,9 +126,6 @@ class TaurusBaseTreeItem(object):
             d += 1
         return d
     
-    def toolTip(self):
-        return ""
-
     def display(self):
         """Returns the display string for this node
         
@@ -159,6 +162,7 @@ class TaurusBaseTreeItem(object):
 
     def __str__(self):
         return self.display()
+
 
 class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     """The base class for all Taurus Qt models."""
@@ -199,10 +203,18 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         raise NotImplementedError("setupModelData must be implemented "
                                   "in %s" % self.__class__.__name__)
     
-    def pyData(self, index, role):
-        raise NotImplementedError("pyData must be implemented "
+    def roleIcon(self, role):
+        raise NotImplementedError("roleIcon must be implemented "
                                   "in %s" % self.__class__.__name__)
-    
+
+    def roleSize(self, role):
+        raise NotImplementedError("roleSize must be implemented "
+                                  "in %s" % self.__class__.__name__)
+
+    def roleToolTip(self, role):
+        raise NotImplementedError("roleToolTip must be implemented "
+                                  "in %s" % self.__class__.__name__)
+
     def setDataSource(self, data_src):
         self._data_src = data_src
         self.refresh()
@@ -224,6 +236,36 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     
     def columnCount(self, parent = Qt.QModelIndex()):
         return len(self.ColumnRoles)
+    
+    def columnIcon(self, column):
+        return self.roleIcon(self.role(column))
+
+    def columnToolTip(self, column):
+        return self.roleToolTip(self.role(column))
+
+    def columnSize(self, column):
+        role = self.role(column)
+        s = self.roleSize(role)
+        return s
+
+    def pyData(self, index, role):
+        if not index.isValid():
+            return None
+        
+        item = index.internalPointer()
+        
+        ret = None
+        if role == Qt.Qt.DisplayRole:
+            ret = item.data(index)
+        elif role == Qt.Qt.DecorationRole:
+            ret = item.icon(index)
+        elif role == Qt.Qt.ToolTipRole:
+            ret = item.toolTip(index)
+        #elif role == Qt.Qt.SizeHintRole:
+        #    ret = self.columnSize(column)
+        elif role == Qt.Qt.FontRole:
+            ret = self.DftFont
+        return ret
     
     def data(self, index, role=Qt.Qt.DisplayRole):
         ret = self.pyData(index, role)

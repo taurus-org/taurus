@@ -90,10 +90,10 @@ class MacroModuleTreeItem(MacroTreeBaseItem):
     def role(self):
         return MacroView.MacroModule
 
-    def toolTip(self):
+    def toolTip(self, index):
         return "The macro module '%s'" % self.display()
     
-    def icon(self):
+    def icon(self, index):
         return getIcon(":/python-file.png")
     
     
@@ -109,10 +109,10 @@ class MacroTreeItem(MacroTreeBaseItem):
     def role(self):
         return MacroView.Macro
 
-    def toolTip(self):
+    def toolTip(self, index):
         return self._itemData.doc
 
-    def icon(self):
+    def icon(self, index):
         return getIcon(":/python.png")
 
 
@@ -173,26 +173,7 @@ class MacroBaseModel(TaurusBaseModel):
             ret.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
         return ret
 
-    def pyData(self, index, role):
-        if not index.isValid():
-            return None
-        
-        item = index.internalPointer()
-        row, column, depth = index.row(), index.column(), item.depth()
-        item_role = self.role(column, depth)
-        
-        ret = None
-        if role == Qt.Qt.DisplayRole:
-            ret = Qt.QString(item.data(index))
-        elif role == Qt.Qt.DecorationRole:
-            ret = item.icon()
-        elif role == Qt.Qt.ToolTipRole:
-            ret = item.toolTip()
-        #elif role == Qt.Qt.SizeHintRole:
-        #    ret = self.columnSize(column)
-        elif role == Qt.Qt.FontRole:
-            ret = self.DftFont
-        return ret
+
 
     def setupModelData(self, data):
         ms = self.dataSource()

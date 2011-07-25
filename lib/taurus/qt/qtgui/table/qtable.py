@@ -37,4 +37,6 @@ from taurus.qt.qtgui.base import QBaseModelWidget
 class QBaseTableWidget(QBaseModelWidget):
 
     def createViewWidget(self):
-        return Qt.QTableView(self)
+        table = Qt.QTableView(self)
+        table.setSortingEnabled(True)
+        return table

@@ -28,4 +28,5 @@ to sardana"""
 
 __docformat__ = 'restructuredtext'
 
-from .sardanashell import *
+#from .sardanashell import *
+from .measurementgroup import *

@@ -72,6 +72,44 @@ class _FilterWidget(Qt.QWidget):
         self.emit(Qt.SIGNAL("filterChanged"), text)
 
 
+class _QToolArea(Qt.QWidget):
+    
+    def __init__(self, parent=None):
+        Qt.QWidget.__init__(self, parent=parent)
+        l0 = Qt.QHBoxLayout(self)
+        l1 = Qt.QHBoxLayout(self)
+        l0.setContentsMargins(0, 0, 0, 0)
+        l1.setContentsMargins(0, 0, 0, 0)
+        l0.addLayout(l1, 0)
+        l0.addStretch(1)
+        self.setLayout(l0)
+        self._layout = l1
+        self._iconSize = Qt.QSize(16,16)
+    
+    def addToolBar(self, toolbar):
+        toolbar.setIconSize(self._iconSize)
+        self._layout.addWidget(toolbar)
+
+    def insertToolBar(self, before, toolbar):
+        idx = before
+        toolbar.setIconSize(self._iconSize)
+        if isinstance(before, Qt.QWidget):
+            idx = self._layout.indexOf(before)
+        self._layout.insertWidget(idx, toolbar)
+    
+    def setIconSize(self, qsize):
+        self._iconSize = qsize
+        l = self._layout
+        for i in range(l.count()):
+            l.itemAt(i).widget().setIconSize(qsize)
+    
+    def iconSize(self):
+        return self._iconSize
+
+    def toolBar(self, index=0):
+        return self._layout.itemAt(index).widget()
+
+
 class QBaseModelWidget(Qt.QWidget):
     """A pure Qt widget designed to display a Qt view widget (QTreeView for example),
     envolved by optional toolbar and statusbar.
@@ -87,45 +125,45 @@ class QBaseModelWidget(Qt.QWidget):
     def createViewWidget(self):
         raise NotImplementedError
     
-    def createToolBarActions(self):
-        af = ActionFactory()
-        self._selectAllAction = af.createAction(self, "Select All",
-                                                icon=getThemeIcon("edit-select-all"),
-                                                tip="Select all items",
-                                                triggered=self.selectAllTree)
-        self._refreshAction = af.createAction(self, "Refresh",
-                                              icon=getThemeIcon("view-refresh"),
-                                              tip="Refresh",
-                                              triggered=self.refreshModel)
-        tb_actions = [ [ self._selectAllAction, self._refreshAction ] ]
-        self._toolbar_actions = tb_actions
-        return tb_actions
-
     def createStatusBar(self):
         sb = self._statusbar = Qt.QStatusBar()
         sb.setSizeGripEnabled(False)
         return sb
     
-    def createToolBar(self):
-        tb = self._toolbar = Qt.QToolBar("Taurus view toolbar")
-        tb.setIconSize(Qt.QSize(16,16))
-        tb.setFloatable(False)
+    def createToolArea(self):
+        tb = self._toolArea = _QToolArea(self)
+        v_bar = self._viewBar = Qt.QToolBar("Taurus view toolbar")
+        v_bar.setFloatable(True)
+        tb.addToolBar(v_bar)
         filter_action = None
         if self._with_filter_widget:
+            f_bar = self._filterBar = Qt.QToolBar("Taurus filter toolbar")
             filterWidget = self._filterWidget = _FilterWidget()
             Qt.QObject.connect(filterWidget, Qt.SIGNAL("filterChanged"), self.setFilter)
-            filter_action = self._filterAction = tb.addWidget(filterWidget)
-            tb.addSeparator()
+            filter_action = self._filterAction = f_bar.addWidget(filterWidget)
+            tb.addToolBar(f_bar)
         else:
+            self._filterBar = None
             self._filterWidget = None
             self._filterAction = None
 
-        action_groups = self.createToolBarActions()
-        #action_groups.insert(0, [filter_action])
-        for action_group in action_groups:
-            for action in action_group:
-                tb.addAction(action)
-            tb.addSeparator()
+        s_bar = self._selectionBar = Qt.QToolBar("Taurus selection toolbar")
+        r_bar = self._refreshBar = Qt.QToolBar("Taurus refresh toolbar")
+        
+        af = ActionFactory()
+        self._selectAllAction = af.createAction(self, "Select All",
+                                                icon=getThemeIcon("edit-select-all"),
+                                                tip="Select all items",
+                                                triggered=self.selectAllTree)
+        s_bar.addAction(self._selectAllAction)
+        tb.addToolBar(s_bar)
+        self._refreshAction = af.createAction(self, "Refresh",
+                                              icon=getThemeIcon("view-refresh"),
+                                              tip="Refresh",
+                                              triggered=self.refreshModel)
+        r_bar.addAction(self._refreshAction)
+        tb.addToolBar(r_bar)
+
         return tb
     
     def __init(self):
@@ -133,16 +171,12 @@ class QBaseModelWidget(Qt.QWidget):
         l.setContentsMargins(0,0,0,0)
         self.setLayout(l)
         
-        sb = self.createStatusBar()
+        toolarea = self.createToolArea()
         self._viewWidget = self.createViewWidget()
-        tb = self.createToolBar()
-        l.setMenuBar(tb)
-        
+        statusbar = self.createStatusBar()
+        l.setMenuBar(toolarea)
         l.addWidget(self._viewWidget, 0, 0)
-        l.addWidget(sb, 1 ,0)
-
-    def toolBarActions(self):
-        return self._toolbar_actions
+        l.addWidget(statusbar, 1 ,0)
 
     def refreshModel(self):
         self.getQModel().refresh(True)
@@ -164,8 +198,8 @@ class QBaseModelWidget(Qt.QWidget):
     def viewWidget(self):
         return self._viewWidget
     
-    def toolBar(self):
-        return self._toolbar
+    def toolArea(self):
+        return self._toolArea
 
     def getQModel(self):
         return self.viewWidget().model()
@@ -275,9 +309,10 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
         self.__init(perspective)
 
     def __init(self, perspective):
-        toolBar = self.toolBar()
+        toolArea = self.toolArea()
+        p_bar = self._perspectiveBar = Qt.QToolBar("Perspective toolbar")
         
-        b = self._perspective_button = Qt.QToolButton(toolBar)
+        b = self._perspective_button = Qt.QToolButton(p_bar)
         b.setToolTip("Perspective selection")
         b.setPopupMode(Qt.QToolButton.InstantPopup)
         b.setToolButtonStyle(Qt.Qt.ToolButtonTextBesideIcon)
@@ -296,12 +331,8 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
             if persp == perspective:
                 b.setDefaultAction(action)
         
-        if self._filterAction is None:
-            first_action = self._toolbar_actions[0][0]
-        else:
-            first_action = self._filterAction
-        a = toolBar.insertSeparator(first_action)
-        self._perspectiveAction = toolBar.insertWidget(a, b)
+        self._perspectiveAction = self._perspectiveBar.addWidget(b)
+        toolArea.insertToolBar(0, p_bar)
         self.setPerspective(perspective)
     
     def switchPerspectiveButton(self):
@@ -343,11 +374,6 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def updateStyle(self):
-        """overwritten from class:`taurus.qt.qtgui.base.TaurusBaseWidget`. It is called when
-        the taurus model changes."""
-        self.resizeColumns()
-    
     def setModel(self, m):
         TaurusBaseWidget.setModel(self, m)
 
