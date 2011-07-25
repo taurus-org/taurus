@@ -123,7 +123,7 @@ class _BaseTaurusTrend2D(TaurusBaseWidget):
         
         :param enable: (bool) if True, archiving values will be used if available
         '''
-        if not self.xIsTime:
+        if not self._stackMode=='datetime':
             self.info('ignoring setUseArchiving. Reason: not in X time scale')
         self._useArchiving = enable
         
