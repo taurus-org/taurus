@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 
 from guidata.dataset.datatypes import DataSet
-from guidata.dataset.dataitems import StringItem
+from guidata.dataset.dataitems import StringItem, IntItem, ChoiceItem, BoolItem
 
 
 # ===================================================
@@ -49,4 +49,24 @@ class TaurusCurveParam(DataSet):
     def update_curve(self, curve):
         curve.setModels(self.xModel or None, self.yModel)
 #        DataSet.update_curve(self, curve)
+
+class TaurusTrendParam(DataSet):
+    model = StringItem("Model", default="")
+    maxBufferSize = IntItem("Buffer Size", default=16384)
+    useArchiving = BoolItem("Use Archiving", default=False)
+    stackMode = ChoiceItem("Stack Mode",
+                       [("datetime",  "Absolute Time"),
+                        ("timedelta", "Relative Time"),
+                        ("event", "Event")],
+                       default="datetime")
+
+    def update_param(self, curve):
+        self.model.update_param(curve.taurusparam.model)
+        self.maxBufferSize.update_param(curve.taurusparam.maxBufferSize)
+        self.stackMode.update_param(curve.taurusparam.stackMode)
+    
+    def update_curve(self, curve):
+        curve.setModel(self.model)
+        curve.setBufferSize(self.maxBufferSize)
+        #the stackMode is directly used from the param, so there is no need to update
         
