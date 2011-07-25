@@ -108,6 +108,9 @@ class TaurusModelSelectorTree(TaurusWidget):
         
     def onAddSelected(self):
         self.emit(Qt.SIGNAL("addModels"), self.getSelectedModels())
+        
+    def treeView(self):
+        return self._deviceTree.treeView()
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -130,17 +133,21 @@ class TaurusModelChooser(TaurusWidget):
       - "updateModels"  emitted when the user clicks on the update button. It
         passes a list<str> of models that have been selected.
     ''' 
-    def __init__(self, parent = None, selectables=None, host=None, designMode = None):
+    def __init__(self, parent = None, selectables=None, host=None, designMode=None, singleModel=False):
         '''Creator of TaurusModelChooser
         
         :param parent: (QObject) parent for the dialog 
         :param selectables: (list<TaurusElementType>) if passed, only elements of the tree whose
                             type is in the list will be selectable. 
         :param host: (QObject) Tango host to be explored by the chooser
+        :param designMode: (bool) needed for taurusdesigner but ignored here
+        :param singleModel: (bool) If True, the selection will be of just one
+                            model. Otherwise (default) a list of models can be selected
         '''
         TaurusWidget.__init__(self, parent)
         if host is None: host = taurus.Database().getNormalName()
-        self._singleAttrMode = False
+        
+        
         self._allowDuplicates = False
         
         self.setLayout(Qt.QVBoxLayout())
@@ -153,6 +160,8 @@ class TaurusModelChooser(TaurusWidget):
         applyBT.setToolButtonStyle(Qt.Qt.ToolButtonTextBesideIcon)
         applyBT.setText('Apply')
         applyBT.setIcon(taurus.qt.qtgui.resource.getIcon(":/status/available.svg"))
+        
+        self.setSingleModelMode(singleModel)
         
         #toolbar 
         self._toolbar = self.tree._toolbar
@@ -187,14 +196,17 @@ class TaurusModelChooser(TaurusWidget):
                            the mime data also contains a TAURUS_MODEL_MIME_TYPE.
         
         :return: (list<str> or QMimeData) the type of return depends on the value of `asMimeData`'''
+        models = self.list.getModelList()
+        if self.isSingleModelMode():
+            models=models[:1]
         if asMimeData:
             md =  Qt.QMimeData()
-            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, str("\r\n".join(self.list.getModelList())))
-            md.setText(", ".join(self.list.getModelList()))
-            if len(self.list.getModelList()) == 1:
-                md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(self.list.getModelList()[0]))
+            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, str("\r\n".join(models)))
+            md.setText(", ".join(models))
+            if len(models) == 1:
+                md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(models[0]))
             return md
-        return self.list.getModelList()
+        return models
     
     def setListedModels(self, models):
         '''adds the given list of models to the widget list
@@ -215,6 +227,8 @@ class TaurusModelChooser(TaurusWidget):
         ''' Add given models to the selected models list'''
         if  len(models) == 0:
             models= ['']
+        if self.isSingleModelMode():
+            self.resetListedModels()
         if self._allowDuplicates:
             self.list.addModels(models)
         else:
@@ -236,28 +250,27 @@ class TaurusModelChooser(TaurusWidget):
         if taurus.core.TaurusElementType.Attribute in self.tree._selectables:
             self.emit(Qt.SIGNAL("UpdateAttrs"), models) #for backwards compatibility with the old AttributeChooser
     
-    def setSingleAttrMode(self, single):
+    def setSingleModelMode(self, single):
         '''sets whether the selection should be limited to just one model
-        (single=True) or not (single=False)'''
-        if single == self._singleAttrMode: return        
+        (single=True) or not (single=False)'''        
         if single:
             self.tree.treeView().setSelectionMode(Qt.QAbstractItemView.SingleSelection)
         else:
             self.tree.treeView().setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
-        self._singleAttrMode = single
+        self._singleModelMode = single
         
-    def isSingleAttrMode(self):
+    def isSingleModelMode(self):
         '''returns True if the selection is limited to just one model. Returns False otherwise.
         
         :return: (bool)'''
-        return self._singleAttrMode
+        return self._singleModelMode
     
-    def resetSingleAttrMode(self):
-        '''equivalent to setSingleAttrMode(False)'''
-        self.setSingleAttrMode(self, False)
+    def resetSingleModelMode(self):
+        '''equivalent to setSingleModelMode(False)'''
+        self.setSingleModelMode(self, False)
     
     @staticmethod
-    def modelChooserDlg(parent = None, selectables=None, host=None, asMimeData=False):
+    def modelChooserDlg(parent = None, selectables=None, host=None, asMimeData=False, singleModel=False):
         '''Static method that launches a modal dialog containing a TaurusModelChooser
         
         :param parent: (QObject) parent for the dialog 
@@ -268,6 +281,8 @@ class TaurusModelChooser(TaurusWidget):
                            returned. If True, a `QMimeData` object will be
                            returned instead. See :meth:`getListedModels` for a
                            detailed description of this QMimeData object.
+        :param singleModel: (bool) If True, the selection will be of just one
+                            model. Otherwise (default) a list of models can be selected
         
         :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be 
                  either a list of models or a QMimeData object, depending on
@@ -276,7 +291,7 @@ class TaurusModelChooser(TaurusWidget):
         '''
         dlg = Qt.QDialog(parent)
         layout = Qt.QVBoxLayout()
-        w = TaurusModelChooser(parent = parent, selectables=selectables, host=host)
+        w = TaurusModelChooser(parent = parent, selectables=selectables, host=host, singleModel=singleModel)
         layout.addWidget(w)
         dlg.setLayout(layout)
         dlg.connect(w,Qt.SIGNAL('updateModels'), dlg.accept)
