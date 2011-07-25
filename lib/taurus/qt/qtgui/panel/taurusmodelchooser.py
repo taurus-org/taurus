@@ -306,7 +306,8 @@ class TaurusModelChooser(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Composite Widgets'
         return ret
-         
+    
+    singleModelMode = Qt.pyqtProperty("bool", isSingleModelMode, setSingleModelMode, resetSingleModelMode)
         
 def main(args):
     if len(sys.argv)>1: 
