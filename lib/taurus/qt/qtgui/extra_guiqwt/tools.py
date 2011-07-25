@@ -188,6 +188,9 @@ class TimeAxisTool(CommandTool):
 
 
 class AutoScrollTool(ToggleTool):
+    """A tool that puts the plot in "AutoScroll" mode. 
+    This makes sense in trend plots where we want to keep the last value 
+    always visible"""
     def __init__(self, manager, scrollFactor=0.2, toolbar_id=None):
         super(AutoScrollTool, self).__init__(manager, title='Auto Scroll', icon=None, tip='Force X scale to always show the last value', toolbar_id=toolbar_id)
         self.scrollFactor = scrollFactor
