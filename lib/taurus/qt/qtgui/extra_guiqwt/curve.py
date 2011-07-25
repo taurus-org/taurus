@@ -217,12 +217,18 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
         self.__yBuffer.append(evt_value.value)
         
         #update the plot data
-        self.set_data(self.__xBuffer.contents(), self.__yBuffer.contents())
+        x,y = self.__xBuffer.contents(), self.__yBuffer.contents()
+        self.set_data(x,y)
         
         #signal data changed and replot
-        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        self.getSignaller().emit(Qt.SIGNAL('dataChanged'), self)
         
-        if plot is not None: 
+        if plot is not None:
+            value=x[-1]
+            axis = self.xAxis()
+            xmin, xmax = plot.get_axis_limits(axis)
+            if value>xmax or value<xmin:
+                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value )
             plot.replot()
             
     def get_item_parameters(self, itemparams):

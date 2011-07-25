@@ -319,8 +319,10 @@ class _BaseTaurusTrendWidget(_BaseTaurusCurveWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TimeAxisTool
         mode = str(mode)
         if mode == 'datetime':
-            self.add_tool(TimeAxisTool)
             timetool = self.get_tool(TimeAxisTool)
+            if timetool is None:
+                self.add_tool(TimeAxisTool)
+                timetool = self.get_tool(TimeAxisTool)
             timetool.set_scale_y_t(True)
         elif mode == 'deltatime':
             from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
@@ -365,9 +367,10 @@ class TaurusTrendWidget(CurveWidget, _BaseTaurusTrendWidget):
         '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
         CurveWidget.__init__(self, parent=parent, **kwargs)
         _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendWidget', taurusparam)
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
         self.register_all_curve_tools()
-        self.add_tool(TaurusModelChooserTool)
+        self.add_tool(TaurusModelChooserTool, singleModel=False)
+        self.add_tool(AutoScrollTool)
         self.setModifiableByUser(True)
         self._designMode = designMode
             
@@ -398,8 +401,9 @@ class TaurusTrendDialog(CurveDialog, _BaseTaurusTrendWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendDialog', taurusparam)
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
-        self.add_tool(TaurusModelChooserTool)
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
+        self.add_tool(TaurusModelChooserTool, singleModel=False)
+        self.add_tool(AutoScrollTool)
         self.setModifiableByUser(True)
         self._designMode = designMode
             
@@ -408,7 +412,6 @@ class TaurusTrendDialog(CurveDialog, _BaseTaurusTrendWidget):
     maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrendWidget.getMaxDataBufferSize, _BaseTaurusTrendWidget.setMaxDataBufferSize, _BaseTaurusTrendWidget.resetMaxDataBufferSize)
     stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrendWidget.getStackMode, _BaseTaurusTrendWidget.setStackMode, _BaseTaurusTrendWidget.resetStackMode)
     
-
 
 class _BaseTaurusImageWidget(TaurusBaseWidget):
     def __init__(self, name):
@@ -458,7 +461,7 @@ class TaurusImageWidget(ImageWidget, _BaseTaurusImageWidget):
         _BaseTaurusImageWidget.__init__(self, 'TaurusImageDialog')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.register_all_image_tools()
-        self.add_tool(TaurusModelChooserTool)
+        self.add_tool(TaurusModelChooserTool, singleModel=True)
         self.setModifiableByUser(True)
         
     def get_context_menu(self, plot=None): #@todo: This is a workaround because the CrossSectionTool is not shown in the context menu by default
@@ -494,7 +497,7 @@ class TaurusImageDialog(ImageDialog, _BaseTaurusImageWidget):
         ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=options, **kwargs)
         _BaseTaurusImageWidget.__init__(self, 'TaurusImageDialog')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
-        self.add_tool(TaurusModelChooserTool)
+        self.add_tool(TaurusModelChooserTool, singleModel=True)
         self.setModifiableByUser(True)
          
     model = Qt.pyqtProperty("QString", _BaseTaurusImageWidget.getModel, _BaseTaurusImageWidget.setModel, TaurusBaseWidget.resetModel)

@@ -33,7 +33,7 @@ from PyQt4 import Qt
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
-from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool, TimeAxisTool
+from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool, TimeAxisTool, AutoScrollTool
 
 class _BaseTaurusTrend2D(TaurusBaseWidget):
     '''
@@ -181,7 +181,7 @@ class TaurusTrend2DWidget(ImageWidget, _BaseTaurusTrend2D):
         self.setStackMode(stackMode)
         #add some tools
         self.register_all_image_tools()
-        for toolklass in (TaurusModelChooserTool,):
+        for toolklass in (TaurusModelChooserTool,AutoScrollTool):
             self.add_tool(toolklass)   
             
     def get_context_menu(self, plot=None): #@todo: This is a workaround because the CrossSectionTool is not shown in the context menu by default
@@ -226,7 +226,7 @@ class TaurusTrend2DDialog(ImageDialog, _BaseTaurusTrend2D):
         #manage time mode
         self.setStackMode(stackMode)
         #add some tools
-        for toolklass in (TaurusModelChooserTool,):
+        for toolklass in (TaurusModelChooserTool,AutoScrollTool):
             self.add_tool(toolklass)   
 
         

@@ -187,6 +187,11 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         
         if plot is not None: 
+            value=x[-1]
+            axis = self.xAxis()
+            xmin, xmax = plot.get_axis_limits(axis)
+            if value>xmax or value<xmin:
+                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value )
             plot.update_colormap_axis(self)
             plot.replot()
             

@@ -30,11 +30,13 @@
 __docformat__ = 'restructuredtext'
 
 
-from guiqwt.tools import CommandTool, DefaultToolbarID, QActionGroup, add_actions
+from guiqwt.tools import CommandTool, ToggleTool, DefaultToolbarID, QActionGroup, add_actions
+from guiqwt.signals import SIG_ITEMS_CHANGED
 from PyQt4 import Qt, Qwt5
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
-from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem
+from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem,TaurusTrendItem
+from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core import TaurusElementType
@@ -86,15 +88,19 @@ class TaurusModelChooserTool(CommandTool):
     """
     A tool that shows the Taurus Model Chooser and sets the chosen model on the manager
     """
-    def __init__(self, manager, toolbar_id=DefaultToolbarID):
+    def __init__(self, manager, toolbar_id=DefaultToolbarID, singleModel=False):
         super(TaurusModelChooserTool,self).__init__(manager, "Change Taurus Model...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
-
+        self.singleModel = singleModel
+        
     def activate_command(self, plot, checked):
         """Activate tool"""
         #show a dialog
-        models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[TaurusElementType.Attribute])
-        if ok and len(models)==1:
-            self.manager.setModel(models[0])
+        models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[TaurusElementType.Attribute], singleModel=self.singleModel)
+        if ok: 
+            if self.singleModel:
+                self.manager.setModel(models[0])
+            else:
+                self.manager.setModel(models)
             
           
 class TimeAxisTool(CommandTool):
@@ -179,6 +185,40 @@ class TimeAxisTool(CommandTool):
         if not checked:
             return
         self._setPlotTimeScales(True, True)
+
+
+class AutoScrollTool(ToggleTool):
+    def __init__(self, manager, scrollFactor=0.2, toolbar_id=None):
+        super(AutoScrollTool, self).__init__(manager, title='Auto Scroll', icon=None, tip='Force X scale to always show the last value', toolbar_id=toolbar_id)
+        self.scrollFactor = scrollFactor
+        
+    def register_plot(self, baseplot):
+        ToggleTool.register_plot(self,baseplot)
+        self.connect(baseplot, SIG_ITEMS_CHANGED, self.items_changed)
+        
+    def activate_command(self, plot, checked):
+        """Activate tool"""
+        #retrieve current Taurus curves
+        for item in self.getScrollItems(plot):
+            if checked:
+                self.connect(item.getSignaller(), Qt.SIGNAL('scrollRequested'), self.onScrollRequested)
+            else:
+                self.disconnect(item.getSignaller(), Qt.SIGNAL('scrollRequested'), self.onScrollRequested)
+        
+    def getScrollItems(self,plot):
+        return [item for item in plot.get_items() if isinstance(item, (TaurusTrendItem,TaurusTrend2DItem))]
+    
+    def onScrollRequested(self, plot, axis, value):
+        scalemin,scalemax = plot.get_axis_limits(axis)
+        scaleRange=abs(scalemax-scalemin)
+        xmin = value - scaleRange*(1.-self.scrollFactor)
+        xmax = value + scaleRange*self.scrollFactor
+        plot.set_axis_limits(axis, xmin, xmax)
+        
+    def items_changed(self,plot):
+        self.activate_command(plot, self.action.isChecked())
+          
+        
 
 
 def testTool(tool):
