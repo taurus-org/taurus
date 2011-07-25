@@ -75,7 +75,7 @@ class _FilterWidget(Qt.QWidget):
 class _QToolArea(Qt.QWidget):
     
     def __init__(self, parent=None):
-        Qt.QWidget.__init__(self, parent=parent)
+        Qt.QWidget.__init__(self, parent)
         l0 = Qt.QHBoxLayout(self)
         l1 = Qt.QHBoxLayout(self)
         l0.setContentsMargins(0, 0, 0, 0)
