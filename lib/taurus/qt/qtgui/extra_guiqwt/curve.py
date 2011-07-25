@@ -31,8 +31,11 @@ from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus
 from guiqwt.curve import CurveItem
-from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
+from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam, TaurusTrendParam
+
+from taurus.core.util import ArrayBuffer
 import numpy
+
         
 class TaurusCurveItem(CurveItem, TaurusBaseComponent):
     '''A CurveItem that autoupdates its values & params when x or y components change'''
@@ -116,46 +119,180 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
     def set_item_parameters(self, itemparams):
         CurveItem.set_item_parameters(self, itemparams)
         self.updateTaurusParams()
+
+     
+class TaurusTrendItem(CurveItem, TaurusBaseComponent):
+    '''A CurveItem that listens to events from a Taurus scalar attribute and appends new values to it'''
+    def __init__(self, curveparam=None, taurusparam=None):
+        CurveItem.__init__(self, curveparam=curveparam)
+        TaurusBaseComponent.__init__(self, self.__class__.__name__)
+        self._signalGen = Qt.QObject()
+        
+        self.__xBuffer = None
+        self.__yBuffer = None
+        
+        self.__timeOffset = None
+
+        if taurusparam is None:
+            taurusparam = TaurusTrendParam()
+        self.taurusparam = taurusparam
+        self.updateTaurusParams()
         
 
-def plot(*items):
-    '''from guiqwt plot.py example'''
-    from guiqwt.plot import CurveDialog
-    from guiqwt.tools import HRangeTool
-    win = CurveDialog(edit=False, toolbar=True, wintitle="CurveDialog test",
-                      options=dict(title="Title", xlabel="xlabel",
-                                   ylabel="ylabel"))
-    win.add_tool(HRangeTool)
-    from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
-    win.add_tool(TaurusCurveChooserTool)
-    plot = win.get_plot()
-    for item in items:
-        plot.add_item(item)
-    win.get_itemlist_panel().show()
-    plot.set_items_readonly(False)
-    win.show()
-    win.exec_()
+    def getSignaller(self):
+        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is 
+        not (and cannot be) a QObject'''
+        return self._signalGen  
+        
+    def setBufferSize(self, buffersize):
+        '''sets the size of the stack.
+        
+        :param buffersize: (int) size of the stack
+        '''
+        self.taurusparam.maxBufferSize = buffersize
+        try:
+            if self.__xBuffer is not None:
+                self.__xBuffer.setMaxSize(buffersize)
+            if self.__yBuffer is not None:
+                self.__yBuffer.setMaxSize(buffersize)
+        except ValueError:
+            self.info('buffer downsizing  requested. Current contents will be discarded')
+            self.__xBuffer = None
+            self.__yBuffer = None
+        
+    def setModel(self, model):
+        #do the standard stuff
+        TaurusBaseComponent.setModel(self, model)
+        #update the taurusparam
+        self.taurusparam.model=self.getModelName()
+        #... and fire a fake event for initialization
+        try:
+            value = self.getModelObj().read()
+            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+        except:
+            pass
 
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        if evt_value is None or getattr(evt_value,'value', None) is None:
+            self.debug('Ignoring event from %s'%repr(evt_src))
+            return
+        
+        plot = self.plot()
+            
+        #initialization\
+        if self.__xBuffer is None:
+            self.__xBuffer = ArrayBuffer(numpy.zeros(min(128,self.taurusparam.maxBufferSize), dtype='d'), maxSize=self.taurusparam.maxBufferSize )
+        if self.__yBuffer is None:
+            self.__yBuffer = ArrayBuffer(numpy.zeros(min(128,self.taurusparam.maxBufferSize), dtype='d'), maxSize=self.taurusparam.maxBufferSize )
+        
+        #update x values
+        if self.taurusparam.stackMode == 'datetime':
+            if self.__timeOffset is None:
+                self.__timeOffset = evt_value.time.totime()
+                if plot is not None:
+                    plot.set_axis_title('bottom', 'Time')
+                    plot.set_axis_unit('bottom', '')
+            self.__xBuffer.append(evt_value.time.totime())
+        
+        elif self.taurusparam.stackMode == 'deltatime':
+            try:
+                self.__xBuffer.append(evt_value.time.totime() - self.__timeOffset)
+            except TypeError: #this will happen if self.__timeOffset has not been initialized
+                self.__timeOffset = evt_value.time.totime()
+                self.__xBuffer.append(0)
+                if plot is not None:
+                    plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat())
+                    plot.set_axis_unit('bottom', '')
+        else:  
+            try:
+                step = 1 # +numpy.random.randint(0,4) #for debugging we can put a variable step
+                self.__xBuffer.append(self.__xBuffer[-1]+step) 
+            except IndexError: #this will happen when the x buffer is empty
+                self.__xBuffer.append(0) 
+                if plot is not None:
+                    plot.set_axis_title('bottom', 'Event #')
+                    plot.set_axis_unit('bottom', '')
+        
+        #update y
+        self.__yBuffer.append(evt_value.value)
+        
+        #update the plot data
+        self.set_data(self.__xBuffer.contents(), self.__yBuffer.contents())
+        
+        #signal data changed and replot
+        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        
+        if plot is not None: 
+            plot.replot()
+            
+    def get_item_parameters(self, itemparams):
+        CurveItem.get_item_parameters(self, itemparams)
+        itemparams.add("TaurusParam", self, self.taurusparam)
+        
+    def updateTaurusParams(self):
+        self.taurusparam.update_curve(self)
 
-def test1():
+    def set_item_parameters(self, itemparams):
+        CurveItem.set_item_parameters(self, itemparams)
+        self.updateTaurusParams()
+          
+          
+def taurusTrendMain():
     from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication()
+    from guiqwt.plot import CurveDialog
+    from guiqwt.tools import HRangeTool
+    import taurus.core.util.argparse
+    import sys
     
-    x = numpy.linspace(0, 1, 100)
-    y = numpy.sqrt(x)
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting 1D data sets")
+    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='d', metavar="t|d|e",
+                      help="interpret X values as timestamps (t), time deltas (d) or event numbers (e). Accepted values: t|d|e")    
+    parser.add_option("-b", "--buffer", dest="max_buffer_size", default='16384', 
+                      help="maximum number of values to be plotted (when reached, the oldest values will be discarded)")
+    parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
+    parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusplot2", app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+    options = app.get_command_line_options()
     
-    model1 = None
-    model2 = 'eval://linspace(0,1,len({sys/tg_test/1/wave}))'
-    model3 = 'eval://rand((100,))'
-    model4 = 'sys/tg_test/1/float_spectrum_ro'
-    model5 = 'tango://sys/tg_test/1/wave'
-    model6 = 'eval://{sys/tg_test/1/wave}*10+{sys/tg_test/1/float_spectrum_ro}/50'
+    #check & process options
+    stackModeMap = dict(t='datetime', d='deltatime', e='event')  
+    if options.x_axis_mode.lower() not in stackModeMap:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     
-    plot(make.curve(x, y, color='b'),
-         make.curve(model2, model6, color='g', title='taurus curve'),
-         make.legend('TR'))
+    stackMode = stackModeMap[options.x_axis_mode.lower()]
+      
+    if options.demo:
+        args.append('eval://rand()')
+        
+    w = CurveDialog(edit=False, toolbar=True, wintitle="Taurus Trend")
 
+    #set archiving
+    if options.use_archiving:
+        raise NotImplementedError('Archiving support is not yet implemented')
+        w.setUseArchiving(True)
+    
+    w.add_tool(HRangeTool)
+    #w.add_tool(TaurusCurveChooserTool)
+    #w.add_tool(TimeAxisTool)
+    
+    if len(args) == 0:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    
+    plot = w.get_plot()
+    for a in args:
+        item = TaurusTrendItem(stackMode=stackMode, buffersize=int(options.max_buffer_size))
+        plot.add_item(item)
+        item.setModel(a)  
+    
+    w.show()
+    sys.exit(app.exec_())  
+    
 
 def taurusCurveMain():
     from taurus.qt.qtgui.extra_guiqwt.builder import make
@@ -206,4 +343,5 @@ def taurusCurveMain():
 
 if __name__ == "__main__":
 #    test1()
-    taurusCurveMain()    
+#    taurusCurveMain()    
+    taurusTrendMain() 

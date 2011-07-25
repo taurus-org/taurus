@@ -31,8 +31,9 @@ __docformat__ = 'restructuredtext'
 
 import guiqwt.builder
 
-from curve import TaurusCurveItem
+from curve import TaurusCurveItem, TaurusTrendItem
 from image import TaurusImageItem
+from guiqwt.curve import CurveParam
 from guiqwt.image import ImageParam
 from guiqwt.config import _
 from guiqwt.baseplot import BasePlot
@@ -44,33 +45,17 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
     def __init__(self, *args, **kwargs):
         guiqwt.builder.PlotItemBuilder.__init__(self, *args, **kwargs)
         
-    def __set_curve_axes(self, curve, xaxis, yaxis):
-        """Copied from guiqwt.builder.PlotItemBuilder.__set_curve_axes because it is a private method"""
-        for axis in (xaxis, yaxis):
-            if axis not in BasePlot.AXIS_NAMES:
-                raise RuntimeError("Unknown axis %s" % axis)
-        curve.setXAxis(BasePlot.AXIS_NAMES[xaxis])
-        curve.setYAxis(BasePlot.AXIS_NAMES[yaxis])
+    def set_curve_axes(self, *args, **kwargs):
+        #ugly hack: I need to redefine this here because it is a private method in PlotItemBuilder
+        guiqwt.builder.PlotItemBuilder._PlotItemBuilder__set_curve_axes(self, *args, **kwargs)
         
-    def __set_image_param(self, param, title, alpha_mask, alpha, interpolation,
-                          **kwargs):
-        """Copied from guiqwt.builder.PlotItemBuilder.__set_curve_axes because it is a private method"""
-        if title:
-            param.label = title
-        else:
-            guiqwt.builder.IMAGE_COUNT += 1
-            param.label = make_title(_("Image"), guiqwt.builder.IMAGE_COUNT)
-        if alpha_mask is not None:
-            assert isinstance(alpha_mask, bool)
-            param.alpha_mask = alpha_mask
-        if alpha is not None:
-            assert (0.0 <= alpha <= 1.0)
-            param.alpha = alpha
-        interp_methods = {'nearest': 0, 'linear': 1, 'antialiasing': 5}
-        param.interpolation = interp_methods[interpolation]
-        for key, val in kwargs.items():
-            if val is not None:
-                setattr(param, key, val)
+    def set_image_param(self, *args, **kwargs):
+        #ugly hack: I need to redefine this here because it is a private method in PlotItemBuilder
+        guiqwt.builder.PlotItemBuilder._PlotItemBuilder__set_image_param(self, *args, **kwargs)
+        
+    def set_param(self, *args, **kwargs):
+        #ugly hack: I need to redefine this here because it is a private method in PlotItemBuilder
+        guiqwt.builder.PlotItemBuilder._PlotItemBuilder__set_param(self, *args, **kwargs)
         
     def pcurve(self, x, y, param, xaxis="bottom", yaxis="left"):
         """
@@ -84,7 +69,7 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
             curve = TaurusCurveItem(param)
             curve.setModels(x,y)
             curve.update_params()
-            self.__set_curve_axes(curve, xaxis, yaxis)
+            self.set_curve_axes(curve, xaxis, yaxis)
         else:     
             curve = guiqwt.builder.PlotItemBuilder.pcurve(self, x, y, param, xaxis="bottom", yaxis="left")
         return curve
@@ -130,7 +115,7 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 attrdata = getattr(valueobj, 'value', numpy.zeros((1,1))) 
                 xmin, xmax, ymin, ymax = self.compute_bounds(attrdata, pixel_size)
                 
-            self.__set_image_param(param, title, alpha_mask, alpha, interpolation,
+            self.set_image_param(param, title, alpha_mask, alpha, interpolation,
                                    background=background_color,
                                    colormap=colormap,
                                    xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
@@ -142,6 +127,30 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 image.set_lut_range(lut_range_threshold(image, 256, eliminate_outliers))
                 
         return image
+    
+    def ttrend(self, model, taurusparam =None, title=u"",
+              color=None, linestyle=None, linewidth=None,
+              marker=None, markersize=None, markerfacecolor=None,
+              markeredgecolor=None, shade=None, fitted=None,
+              curvestyle=None, curvetype=None, baseline=None):
+        """
+        Make a taurus trend item
+        
+        :return (TaurusTrendItem): 
+        """
+        curveparam = CurveParam(icon='curve.png')
+        if not title:
+            title = model
+        self.set_param(curveparam, title, color, linestyle, linewidth, marker,
+                         markersize, markerfacecolor, markeredgecolor,
+                         shade, fitted, curvestyle, curvetype, baseline)
+        
+        item = TaurusTrendItem(curveparam=curveparam, taurusparam = taurusparam)
+        item.setModel(model)
+        item.update_params()
+        return item
+    
+    
 
 #"make" is an instance of the builder (this mimics the structure of guiqwt.builder.make)
 make = TaurusPlotItemBuilder()

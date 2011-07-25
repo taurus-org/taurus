@@ -30,12 +30,14 @@ __all__=["TaurusCurveWidget", "TaurusImageDialog", "TaurusImageWidget", "TaurusI
 
 from guiqwt.plot import ImageDialog, ImageWidget, CurveWidget, CurveDialog
 from PyQt4 import Qt
+import copy
 import taurus.core
+from guiqwt.curve import CurveParam
 from taurus.core.util import CaselessList
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.extra_guiqwt.builder import make
-from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem
+from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
 
 
 class _BaseTaurusCurveWidget(TaurusBaseWidget):
@@ -63,7 +65,7 @@ class _BaseTaurusCurveWidget(TaurusBaseWidget):
         '''Removes current TaurusCurveItems and adds new ones.
 
         :param modelNames: (sequence<str> or str) the names of the models to be
-                           plotted. For convenience, strings are also accepted
+                           plotted. For convenience, a string is also accepted
                            (instead of a sequence of strings), in which case the
                            string will be internally converted to a sequence by
                            splitting it on whitespace and commas. Each model can
@@ -92,7 +94,7 @@ class _BaseTaurusCurveWidget(TaurusBaseWidget):
                   gives you more control.
 
         :param modelNames: (sequence<str> or str) the names of the models to be
-                           plotted. For convenience, strings are also accepted
+                           plotted. For convenience, string is also accepted
                            (instead of a sequence of strings), in which case the
                            string will be internally converted to a sequence by
                            splitting it on whitespace and commas. Each model can
@@ -125,7 +127,7 @@ class _BaseTaurusCurveWidget(TaurusBaseWidget):
             style = self.style.next()
             color=style[0]
             linestyle = style[1:]
-            #add the item and connect it
+            #add the item 
             item = make.curve(mx,my, color=color, linestyle=linestyle, linewidth=2)
             item.set_readonly(not self.isModifiableByUser())
             plot.add_item(item)
@@ -154,7 +156,7 @@ class TaurusCurveWidget(CurveWidget, _BaseTaurusCurveWidget):
     def __init__(self, parent=None, designMode=False, **kwargs):
         '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
         CurveWidget.__init__(self, parent=parent, **kwargs)
-        _BaseTaurusCurveWidget.__init__(self, 'TaurusImageWidget')
+        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveWidget')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.register_all_curve_tools()
         self.add_tool(TaurusCurveChooserTool)
@@ -182,15 +184,231 @@ class TaurusCurveDialog(CurveDialog, _BaseTaurusCurveWidget):
     .. seealso:: :class:`TaurusCurveWidget`
     '''
     def __init__(self, parent=None, designMode=False, **kwargs):
-        '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
+        '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, **kwargs)
-        _BaseTaurusCurveWidget.__init__(self, 'TaurusImageDialog')
+        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveDialog')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.add_tool(TaurusCurveChooserTool)
         self.setModifiableByUser(True)
     
     model = Qt.pyqtProperty("QStringList", _BaseTaurusCurveWidget.getModel, _BaseTaurusCurveWidget.setModel, TaurusBaseWidget.resetModel)
     
+
+class _BaseTaurusTrendWidget(_BaseTaurusCurveWidget):
+    def __init__(self, name, taurusparam=None):
+        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveWidget')
+        #...
+        if taurusparam is None:
+            taurusparam = TaurusTrendParam()
+        self.defaultTaurusparam = taurusparam
+    
+    def getTaurusTrendItems(self):
+        return [item for item in self.get_plot().get_public_items() if isinstance(item, TaurusTrendItem)]
+        
+    @Qt.pyqtSignature("setModel(QStringList)")
+    def setModel(self, modelNames):
+        '''Removes current TaurusCurveItems and adds new ones.
+
+        :param modelNames: (sequence<str> or str) the names of the models to be
+                           plotted. For convenience, a string is also accepted
+                           (instead of a sequence of strings), in which case the
+                           string will be internally converted to a sequence by
+                           splitting it on whitespace and commas.
+
+        .. seealso:: :meth:`addModels`
+        '''
+        
+        plot = self.get_plot()
+        #delete current TaurusCurveItems
+        taurusTrendItems = self.getTaurusTrendItems()
+        plot.del_items(taurusTrendItems)
+        self._modelNames = CaselessList()
+        #add new TaurusCurveItems
+        self.addModels(modelNames)
+        
+    def addModels(self, modelNames):
+        '''Creates TaurusCurveItems (one for each model in modelNames) and attaches 
+        them to the plot.
+        
+        .. note:: you can also add curves using :meth:`add_items`. :meth:`addModels` 
+                  is only a more Taurus-oriented interface. :meth:`add_items`
+                  gives you more control.
+
+        :param modelNames: (sequence<str> or str) the names of the models to be
+                           plotted. For convenience, a string is also accepted
+                           (instead of a sequence of strings), in which case the
+                           string will be internally converted to a sequence by
+                           splitting it on whitespace and commas. 
+
+        .. seealso:: :meth:`add_item`
+        '''
+        plot = self.get_plot()
+         
+        #pre-process the model names
+        modelNames = self._splitModel(modelNames)
+        self._modelNames.extend([str(n) for n in modelNames])
+        if self._designMode:
+            return
+        #create and attach new TaurusCurveItems
+        for m in modelNames:
+            #cycle styles
+            style = self.style.next()
+            #add the item
+            item = make.ttrend(m, color=style[0], linestyle=style[1:], linewidth=2, taurusparam=copy.deepcopy(self.defaultTaurusparam))
+            item.set_readonly(not self.isModifiableByUser())
+            plot.add_item(item)
+            item.update_params()
+        
+        self.setStackMode(self.defaultTaurusparam.stackMode)
+        self.emit(Qt.SIGNAL("modelChanged()"))
+
+    def setUseArchiving(self, enable):
+        '''enables/disables looking up in the archiver for data stored before
+        the Trend was started
+        
+        :param enable: (bool) if True, archiving values will be used if available
+        '''
+        if not self.defaultTaurusparam.stackMode=='datetime':
+            self.info('ignoring setUseArchiving. Reason: not in X time scale')
+        self.defaultTaurusparam.useArchiving = enable
+        
+    def getUseArchiving(self):
+        '''whether TaurusTrend is looking for data in the archiver when needed
+        
+        :return: (bool)
+        
+        .. seealso:: :meth:`setUseArchiving`
+        '''
+        return self.defaultTaurusparam.useArchiving
+
+    def resetUseArchiving(self):
+        '''Same as setUseArchiving(False)'''
+        self.setUseArchiving(False)
+        
+    def setMaxDataBufferSize(self, maxSize):
+        '''sets the maximum number of events that will be stacked
+        
+        :param maxSize: (int) the maximum limit
+        
+        .. seealso:: :class:`TaurusTrendSet`
+        '''
+        for item in self.getTaurusTrendItems():
+            item.setBufferSize(maxSize)
+    
+        self.defaultTaurusparam.maxBufferSize = maxSize
+        
+    def getMaxDataBufferSize(self):
+        '''returns the maximum number of events that can be plotted in the trend
+        
+        :return: (int)
+        '''
+        return self.defaultTaurusparam.maxBufferSize
+            
+    def resetMaxDataBufferSize(self):
+        '''Same as setMaxDataBufferSize(16384)'''
+        self.setMaxDataBufferSize(16384) 
+
+    def setStackMode(self, mode):
+        '''set the type of stack to be used. This determines how X values are interpreted:
+          - as timestamps ('datetime')
+          - as time deltas ('timedelta')
+          - as event numbers ('event')
+        
+        :param mode:(one of 'datetime', 'timedelta' or 'event')
+        '''
+        from taurus.qt.qtgui.extra_guiqwt.tools import TimeAxisTool
+        mode = str(mode)
+        if mode == 'datetime':
+            self.add_tool(TimeAxisTool)
+            timetool = self.get_tool(TimeAxisTool)
+            timetool.set_scale_y_t(True)
+        elif mode == 'deltatime':
+            from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
+            plot = self.get_plot()
+            DeltaTimeScaleEngine.enableInAxis(plot, plot.xBottom, rotation=-45)
+        elif mode == 'event':
+            plot = self.get_plot()
+            scaleEngine = plot.axisScaleEngine(plot.xBottom)
+            if hasattr(scaleEngine, 'disableInAxis'):
+                scaleEngine.disableInAxis(plot, plot.xBottom)
+        else:
+            self.error('Unknown stack mode "%s"'%repr(mode))
+            return
+        
+        self.defaultTaurusparam.stackMode = mode
+        
+        for item in self.getTaurusTrendItems():
+            item.taurusparam.stackMode = mode
+ 
+    def getStackMode(self):
+        return self.defaultTaurusparam.stackMode
+        
+    def resetStackMode(self):
+        self.setStackMode('datetime')
+        
+    def setModifiableByUser(self, modifiable):
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
+        self.get_tool(TaurusModelChooserTool).action.setEnabled(modifiable)
+        self.get_plot().set_items_readonly(not modifiable)
+        TaurusBaseWidget.setModifiableByUser(self, modifiable) 
+        
+class TaurusTrendWidget(CurveWidget, _BaseTaurusTrendWidget):
+    '''A taurus widget for showing trends of scalar data.
+    It is an specialization of :class:`guiqwt.plot.CurveWidget`, for displaying
+    trends and offering the expected Taurus interface (e.g. setting models,
+    save/apply configs, drag&drops,...)
+    
+    .. seealso:: :class:`TaurusTrendDialog`
+    '''
+    def __init__(self, parent=None, designMode=False, taurusparam=None, **kwargs):
+        '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
+        CurveWidget.__init__(self, parent=parent, **kwargs)
+        _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendWidget', taurusparam)
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
+        self.register_all_curve_tools()
+        self.add_tool(TaurusModelChooserTool)
+        self.setModifiableByUser(True)
+        self._designMode = designMode
+            
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['group'] = 'Taurus Display Widgets'
+        ret['icon'] =':/designer/qwtplot.png'
+        return ret
+    
+    model = Qt.pyqtProperty("QStringList", _BaseTaurusTrendWidget.getModel, _BaseTaurusTrendWidget.setModel, TaurusBaseWidget.resetModel)
+    useArchiving = Qt.pyqtProperty("bool", _BaseTaurusTrendWidget.getUseArchiving, _BaseTaurusTrendWidget.setUseArchiving, _BaseTaurusTrendWidget.resetUseArchiving)
+    maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrendWidget.getMaxDataBufferSize, _BaseTaurusTrendWidget.setMaxDataBufferSize, _BaseTaurusTrendWidget.resetMaxDataBufferSize)
+    stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrendWidget.getStackMode, _BaseTaurusTrendWidget.setStackMode, _BaseTaurusTrendWidget.resetStackMode)
+    
+
+class TaurusTrendDialog(CurveDialog, _BaseTaurusTrendWidget):
+    '''A taurus widget for showing trends of scalar data.
+    It is an specialization of :class:`guiqwt.plot.CurveWidget`, for displaying
+    trends and offering the expected Taurus interface (e.g. setting models,
+    save/apply configs, drag&drops,...)
+    
+    .. seealso:: :class:`TaurusTrendDialog`
+    '''
+    def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
+        '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
+        CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
+        _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendDialog', taurusparam)
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
+        self.add_tool(TaurusModelChooserTool)
+        self.setModifiableByUser(True)
+        self._designMode = designMode
+            
+    model = Qt.pyqtProperty("QStringList", _BaseTaurusTrendWidget.getModel, _BaseTaurusTrendWidget.setModel, TaurusBaseWidget.resetModel)
+    useArchiving = Qt.pyqtProperty("bool", _BaseTaurusTrendWidget.getUseArchiving, _BaseTaurusTrendWidget.setUseArchiving, _BaseTaurusTrendWidget.resetUseArchiving)
+    maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrendWidget.getMaxDataBufferSize, _BaseTaurusTrendWidget.setMaxDataBufferSize, _BaseTaurusTrendWidget.resetMaxDataBufferSize)
+    stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrendWidget.getStackMode, _BaseTaurusTrendWidget.setStackMode, _BaseTaurusTrendWidget.resetStackMode)
+    
+
 
 class _BaseTaurusImageWidget(TaurusBaseWidget):
     def __init__(self, name):
@@ -356,7 +574,58 @@ def taurusCurveDlgMain():
     
     w.show()
     sys.exit(app.exec_())   
+ 
+
+def taurusTrendDlgMain():
+    from taurus.qt.qtgui.application import TaurusApplication
+    import taurus.core
+    import sys
     
+    #prepare options
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] <model>")
+    parser.set_description('a Taurus application for plotting trends of scalars')
+    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|d|e",
+                  help="interpret X values as timestamps (t), time deltas (d) or event numbers (e). Accepted values: t|d|e")    
+    parser.add_option("-b", "--buffer", dest="max_buffer_size", default='10000', 
+                      help="maximum number of values to be plotted (when reached, the oldest values will be discarded)")
+    parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
+    parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Trend", app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+    options = app.get_command_line_options()
+    
+    #check & process options
+    stackModeMap = dict(t='datetime', d='deltatime', e='event')  
+    if options.x_axis_mode.lower() not in stackModeMap:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    
+    stackMode = stackModeMap[options.x_axis_mode.lower()]
+
+    if options.use_archiving:
+        raise NotImplementedError('Archiving support is not yet implemented')
+      
+    if options.demo:
+        args.append('eval://rand()')
+    
+    taurusparam = TaurusTrendParam()
+    taurusparam.stackMode = stackMode
+    taurusparam.maxBufferSize = int(options.max_buffer_size)
+    taurusparam.useArchiving = options.use_archiving
+    
+    w = TaurusTrendDialog(wintitle="Taurus Trend", taurusparam=taurusparam)
+    #w = TaurusTrendWidget(taurusparam=taurusparam)
+    
+    #set model
+    if len(args) > 0:
+        w.setModel(args)
+    else:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    
+    w.show()
+    sys.exit(app.exec_())      
     
 def taurusImageDlgMain():
     from taurus.qt.qtgui.application import TaurusApplication
@@ -393,4 +662,6 @@ def taurusImageDlgMain():
 if __name__ == "__main__":
 #    test2()
 #    taurusCurveDlgMain()
-    taurusImageDlgMain()    
+    taurusTrendDlgMain()
+#    taurusImageDlgMain()    
+    
