@@ -42,7 +42,7 @@ from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, StandardMacroParametersEditor
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.delegate import ParamEditorDelegate
-from taurus.core.tango.sardana.macro import MacroRunException
+from taurus.core.tango.sardana.macro import MacroRunException, MacroNode
 from model import MacroSequenceTreeModel, MacroSequenceProxyModel, MacroParametersProxyModel
 from delegate import SequenceEditorDelegate
 from taurus.qt.qtgui.extra_macroexecutor import globals
@@ -122,10 +122,10 @@ class MacroSequenceTree(Qt.QTreeView, BaseConfigurableClass):
         proxyIndex = self.indexAt(event.pos())
         node = self.model().nodeFromIndex(proxyIndex)
         #this is in case if we right click on an empty field of tree
-        if not isinstance(node, macro.MacroNode): return
+        if not isinstance(node, MacroNode): return
         parentNode = node.parent()
         #this is in case if we right click on a top level macro
-        if not isinstance(parentNode, macro.MacroNode): return
+        if not isinstance(parentNode, MacroNode): return
         allowedHooks = parentNode.allowedHookPlaces()
         if allowedHooks:
             hookPlacesSubmenu = contextMenu.addMenu("Hook places")
