@@ -75,7 +75,7 @@ def check_requirements(exec_name=None):
         import taurus
         taurusver = taurus.Release.version_info[:3]
     except ImportError:
-        print "%s requires taurus %s. No version installed" % (exec_namem, taurusver_str_,)
+        print "%s requires taurus %s. No version installed" % (exec_name, taurusver_str_,)
     except:
         taurusver = tuple(map(int, taurus.Release.version.split('.', 3)))
     taurusver_str = ".".join(map(str,taurusver))
