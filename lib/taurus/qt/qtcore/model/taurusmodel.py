@@ -95,7 +95,7 @@ class TaurusBaseTreeItem(object):
     def toolTip(self, index):
         return self.data(index)
     
-    def setData(self, data):
+    def setData(self, index, data):
         """Sets the node data
         
         :param data: (object) the data to be associated with this node
@@ -248,15 +248,22 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         s = self.roleSize(role)
         return s
 
-    def pyData(self, index, role):
+    def pyData(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid():
             return None
         
         item = index.internalPointer()
         
         ret = None
-        if role == Qt.Qt.DisplayRole:
+        if role == Qt.Qt.DisplayRole or role == Qt.Qt.EditRole:
             ret = item.data(index)
+#        elif role == Qt.Qt.CheckStateRole:
+#            data = item.data(index)
+#            if type(data) != bool:
+#                data = str(data).lower() == 'true'
+#            ret = Qt.Qt.Unchecked
+#            if data == True:
+#                ret = Qt.Qt.Checked
         elif role == Qt.Qt.DecorationRole:
             ret = item.icon(index)
         elif role == Qt.Qt.ToolTipRole:
@@ -274,7 +281,12 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         else:
             ret = Qt.QVariant(ret)
         return ret
-    
+
+    def setData(self, index, qvalue, role=Qt.Qt.EditRole):
+        item = index.internalPointer()
+        item.setData(index, qvalue.toPyObject())
+        return True
+
     def flags(self, index):
         if not index.isValid():
             return 0

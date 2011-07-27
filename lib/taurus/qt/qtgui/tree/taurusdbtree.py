@@ -31,18 +31,11 @@ __docformat__ = 'restructuredtext'
 
 from PyQt4 import Qt
 
-import taurus.core
-
+from taurus.core import TaurusElementType, TaurusDatabase
 from taurus.qt.qtcore.model import *
-import taurus.qt.qtgui.base
-import taurus.qt.qtgui.resource
+from taurus.qt.qtgui.base import TaurusBaseWidget
+from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getElementTypeIconName
 from taurustree import TaurusBaseTreeWidget
-
-ElemType = taurus.core.TaurusElementType
-TaurusBaseWidget = taurus.qt.qtgui.base.TaurusBaseWidget
-getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
-getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
-getElementTypeIconName = taurus.qt.qtgui.resource.getElementTypeIconName
 
 class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTreeWidget` that connects to a
@@ -58,30 +51,30 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     """
     
     KnownPerspectives = {
-        ElemType.Device : {
+        TaurusElementType.Device : {
             "label"   : "By device",
-            "icon"    : getElementTypeIconName(ElemType.Device),
+            "icon"    : getElementTypeIconName(TaurusElementType.Device),
             "tooltip" : "View by device tree",
             "model"   : [TaurusDbDeviceProxyModel, TaurusDbDeviceModel,],
         },
-        ElemType.Server : {
+        TaurusElementType.Server : {
             "label" : "By server",
-            "icon" : getElementTypeIconName(ElemType.Server),
+            "icon" : getElementTypeIconName(TaurusElementType.Server),
             "tooltip" : "View by server tree",
             "model" : [TaurusDbServerProxyModel, TaurusDbServerModel,],
         },
-        ElemType.DeviceClass : {
+        TaurusElementType.DeviceClass : {
             "label" : "By class",
-            "icon" : getElementTypeIconName(ElemType.DeviceClass),
+            "icon" : getElementTypeIconName(TaurusElementType.DeviceClass),
             "tooltip" : "View by class tree",
             "model" : [TaurusDbDeviceClassProxyModel, TaurusDbDeviceClassModel,], 
         },
     }
 
-    DftPerspective = ElemType.Device
+    DftPerspective = TaurusElementType.Device
 
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return TaurusDatabase
     
     def sizeHint(self):
         return Qt.QSize(1024, 512)
@@ -119,28 +112,28 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
 #        l.addWidget(tb, 0, 0)
         
         main_panel = Qt.QTabWidget()
-        self._device_tree_view = TaurusDbTreeWidget(perspective=ElemType.Device)
+        self._device_tree_view = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
         self._device_table_view = Qt.QTableView()
         self._device_table_view.setModel(TaurusDbBaseModel())
         self._device_list_view = Qt.QListView()
         self._device_list_view.setModel(TaurusDbSimpleDeviceModel())
-        self._server_tree_view = TaurusDbTreeWidget(perspective=ElemType.Server)
-        self._class_tree_view = TaurusDbTreeWidget(perspective=ElemType.DeviceClass)
+        self._server_tree_view = TaurusDbTreeWidget(perspective=TaurusElementType.Server)
+        self._class_tree_view = TaurusDbTreeWidget(perspective=TaurusElementType.DeviceClass)
         
         self._device_combo_view = Qt.QWidget()
         combo_form = Qt.QFormLayout()
         self._device_combo_view.setLayout(combo_form)
         
-        self._combo_dev_tree_widget = TaurusDbTreeWidget(perspective=ElemType.Device)
+        self._combo_dev_tree_widget = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
         qmodel = self._combo_dev_tree_widget.getQModel()
-        qmodel.setSelectables([ElemType.Member])
+        qmodel.setSelectables([TaurusElementType.Member])
         device_combo = Qt.QComboBox()
         device_combo.setModel(qmodel)
         device_combo.setMaxVisibleItems(20)
         device_combo.setView(self._combo_dev_tree_widget.treeView())
         combo_form.addRow("Device selector (by device hierarchy):", device_combo)
         
-        self._combo_attr_tree_widget = TaurusDbTreeWidget(perspective=ElemType.Device)
+        self._combo_attr_tree_widget = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
         qmodel = self._combo_attr_tree_widget.getQModel()
         device_combo = Qt.QComboBox()
         device_combo.setModel(qmodel)
@@ -151,7 +144,7 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
         self._combo_dev_table_view = Qt.QTableView()
         self._combo_dev_table_view.setModel(TaurusDbBaseModel())
         qmodel = self._combo_dev_table_view.model()
-        qmodel.setSelectables([ElemType.Device])
+        qmodel.setSelectables([TaurusElementType.Device])
         device_combo = Qt.QComboBox()
         device_combo.setModel(qmodel)
         device_combo.setMaxVisibleItems(20)
@@ -243,7 +236,7 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return TaurusDatabase
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self, model):
@@ -277,13 +270,13 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
 
 def main_TaurusTreePanel(host):
     w = _TaurusTreePanel()
-    w.setWindowIcon(getElementTypeIcon(ElemType.Device))
+    w.setWindowIcon(getElementTypeIcon(TaurusElementType.Device))
     w.setWindowTitle("A Taurus Tree Example")
     w.setModel(host)
     w.show()
     return w
 
-def main_TaurusDbTreeWidget(host, perspective=ElemType.Device):
+def main_TaurusDbTreeWidget(host, perspective=TaurusElementType.Device):
     w = TaurusDbTreeWidget(perspective=perspective)
     w.setWindowIcon(getElementTypeIcon(perspective))
     w.setWindowTitle("A Taurus Tree Example")
@@ -293,11 +286,11 @@ def main_TaurusDbTreeWidget(host, perspective=ElemType.Device):
 
 def demo():
     """DB panels"""
-
+    import taurus
     db = taurus.Database()
     host = db.getNormalName()
     w =main_TaurusTreePanel(host)
-    # w = main_TaurusDbTreeWidget(host, ElemType.Device)
+    # w = main_TaurusDbTreeWidget(host, TaurusElementType.Device)
     
     return w
 

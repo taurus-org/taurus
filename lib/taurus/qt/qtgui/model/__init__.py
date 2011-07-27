@@ -23,20 +23,8 @@
 ##
 #############################################################################
 
-"""This module provides base table widget"""
-
-__all__ = ["QBaseTableWidget"]
+"""This package provides the set of base model widget classes."""
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
-from taurus.qt.qtgui.model import QBaseModelWidget
-
-
-class QBaseTableWidget(QBaseModelWidget):
-
-    def createViewWidget(self):
-        table = Qt.QTableView(self)
-        table.setSortingEnabled(True)
-        return table
+from .qbasemodel import *

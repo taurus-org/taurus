@@ -34,7 +34,6 @@ from PyQt4 import Qt
 
 from taurus.core import TaurusElementType, TaurusDatabase
 from taurus.qt.qtcore.model import *
-from taurus.qt.qtgui.base import TaurusBaseModelWidget
 from taurus.qt.qtgui.resource import getElementTypeIcon, getElementTypeIconName
 from taurustable import TaurusBaseTableWidget
 

@@ -30,7 +30,7 @@ __all__ = ["TaurusBaseTableWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt.qtgui.base import TaurusBaseModelWidget
+from taurus.qt.qtgui.model import TaurusBaseModelWidget
 from qtable import QBaseTableWidget
 
 
@@ -41,7 +41,6 @@ class TaurusBaseTableWidget(QBaseTableWidget, TaurusBaseModelWidget):
     Filters can be inserted into this widget to restrict the items that are
     seen."""
     
-
     def __init__(self, parent=None, designMode=False, with_filter_widget=True,
                  perspective=None, proxy=None):
         self.call__init__(QBaseTableWidget, parent, designMode=designMode,

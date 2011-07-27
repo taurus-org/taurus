@@ -26,7 +26,7 @@
 """This module provides base widget that displays a Qt view widget envolved
 by a toolbar and a status bar (optional)"""
 
-__all__ = ["QBaseModelWidget", "TaurusBaseModelWidget"]
+__all__ = ["QBaseModelWidget", "TaurusBaseModelWidget", "EditorToolBar"]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,31 +35,33 @@ from PyQt4 import Qt
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
-from taurusbase import TaurusBaseWidget
+from taurus.qt.qtgui.base import TaurusBaseWidget
 
-class _FilterWidget(Qt.QWidget):
-    """Internal widget providing quick filter to be placed in a toolbar"""
+class BaseToolBar(Qt.QToolBar):
+
+    def __init__(self, name=None, view=None, parent=None, designMode=False):
+        if name is None:
+            name = "Base toolbar"
+        self._viewWidget = view or parent
+        Qt.QToolBar.__init__(self, name, parent)
+
+
+class _FilterToolBar(BaseToolBar):
+    """Internal widget providing quick filter to be placed in a _QToolArea"""
     
-    def __init__(self, parent = None, designMode = False):
-        name = self.__class__.__name__
-        super(_FilterWidget, self).__init__(parent)
-        self.init()
-        
-    def init(self):
-        l = Qt.QHBoxLayout()
-        l.setContentsMargins(0,0,0,0)
-        self.setLayout(l)
-        
-        filterLineEdit = self._filterLineEdit = Qt.QLineEdit()
+    def __init__(self, view=None, parent=None, designMode=False):
+        BaseToolBar.__init__(self, name="Taurus filter toolbar", view=view,
+                             parent=parent, designMode=designMode)
+        filterLineEdit = self._filterLineEdit = Qt.QLineEdit(self)
         filterLineEdit.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Preferred, Qt.QSizePolicy.Preferred))
         filterLineEdit.setToolTip("Quick filter")
         Qt.QObject.connect(filterLineEdit, Qt.SIGNAL("textChanged(const QString &)"), self._filterChanged)
-        l.addWidget(filterLineEdit)
+        self.addWidget(filterLineEdit)
 
-        clearFilterButton = self._clearFilterButton = Qt.QPushButton(getThemeIcon("edit-clear"), "")
+        clearFilterButton = self._clearFilterButton = Qt.QPushButton(getThemeIcon("edit-clear"), "", self)
         clearFilterButton.setToolTip("Clear filter")
         Qt.QObject.connect(clearFilterButton, Qt.SIGNAL("clicked()"), self._clearFilter)
-        l.addWidget(clearFilterButton)
+        self.addWidget(clearFilterButton)
 
     def filterLineEdit(self):
         return self._filterLineEdit
@@ -71,6 +73,55 @@ class _FilterWidget(Qt.QWidget):
         text = text or self.filterLineEdit().text()
         self.emit(Qt.SIGNAL("filterChanged"), text)
 
+
+class EditorToolBar(BaseToolBar):
+    """Internal widget to be placed in a _QToolArea providing buttons for
+    moving, adding and removing items from a view based widget"""
+    
+    def __init__(self, view=None, parent=None, designMode=False):
+        BaseToolBar.__init__(self, name="Taurus editor toolbar", view=view,
+                             parent=parent, designMode=designMode)
+        
+        af = ActionFactory()
+        self._addAction = af.createAction(self, "New item",
+                                          icon=getThemeIcon("list-add"),
+                                          tip="Add new item")
+        self._removeAction = af.createAction(self, "Remove item",
+                                             icon=getThemeIcon("list-remove"),
+                                             tip="Remove item")
+        self._moveTopAction = af.createAction(self, "To top",
+                                              icon=getThemeIcon("go-top"),
+                                              tip="Move selected item to top")
+        self._moveUpAction = af.createAction(self, "Move up",
+                                             icon=getThemeIcon("go-up"),
+                                             tip="Move selected item up one level")
+        self._moveDownAction = af.createAction(self, "Move down",
+                                               icon=getThemeIcon("go-down"),
+                                               tip="Move selected item down one level")
+        self._moveBottomAction = af.createAction(self, "To bottom",
+                                                 icon=getThemeIcon("go-bottom"),
+                                                 tip="Move selected item to bottom")
+        self.addAction(self._addAction)
+        self.addAction(self._removeAction)
+        self.addAction(self._moveTopAction)
+        self.addAction(self._moveUpAction)
+        self.addAction(self._moveDownAction)
+        self.addAction(self._moveBottomAction)
+        #self.setStyleSheet("QWidget {background : red; }")
+
+
+class SelectionToolBar(BaseToolBar):
+    
+    def __init__(self, view=None, parent=None, designMode=False):
+        BaseToolBar.__init__(self, name="Taurus selection toolbar", view=view,
+                             parent=parent, designMode=designMode)
+
+        af = ActionFactory()
+        self._selectAllAction = af.createAction(self, "Select All",
+                                                icon=getThemeIcon("edit-select-all"),
+                                                tip="Select all items")
+        self.addAction(self._selectAllAction)
+        
 
 class _QToolArea(Qt.QWidget):
     
@@ -137,15 +188,11 @@ class QBaseModelWidget(Qt.QWidget):
         tb.addToolBar(v_bar)
         filter_action = None
         if self._with_filter_widget:
-            f_bar = self._filterBar = Qt.QToolBar("Taurus filter toolbar")
-            filterWidget = self._filterWidget = _FilterWidget()
-            Qt.QObject.connect(filterWidget, Qt.SIGNAL("filterChanged"), self.setFilter)
-            filter_action = self._filterAction = f_bar.addWidget(filterWidget)
+            f_bar = self._filterBar = _FilterToolBar(self)
+            Qt.QObject.connect(f_bar, Qt.SIGNAL("filterChanged"), self.setFilter)
             tb.addToolBar(f_bar)
         else:
             self._filterBar = None
-            self._filterWidget = None
-            self._filterAction = None
 
         s_bar = self._selectionBar = Qt.QToolBar("Taurus selection toolbar")
         r_bar = self._refreshBar = Qt.QToolBar("Taurus refresh toolbar")
