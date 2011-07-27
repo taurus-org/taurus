@@ -41,24 +41,25 @@ from sardana import State
 # dict <str, obj> with (at least) keys:
 #    - 'timer' : the timer channel name / timer channel id
 #    - 'monitor' : the monitor channel name / monitor channel id
-#    - 'units' : dict<str/int, dict> where:
-#        - key: the unit name / ctrl name / ctrl id
+#    - 'controllers' : dict<str/int, dict> where:
+#        - key: ctrl name / ctrl id
 #        - value: dict<str, dict> with (at least) keys:
-#            - 'controller' : the controller where this unit is located
-#            - 'id' : the unit ID inside the controller
-#            - 'master' : the master channel name / master channel id
-#            - 'trigger_type' : 'Gate'/'Software'
-#            - 'channels' where value is a dict<str, obj> with (at least) keys:
-#                - 'id' : the channel name ( channel id )
-#                optional keys:
-#                - 'enabled' : True/False (default is True)
-#                any hints:
-#                - 'output' : True/False (default is True)
-#                - 'plottable' : 'False'/'x'/'y1'/'y2' (default is 'y1')
-#                - 'label' : prefered label (default is channel name)
-#                - 'scale' : <float, float> with min/max (defaults to channel
-#                            range if it is defined
-#                - 'color' : int representing RGB
+#            - 'units': dict<str, dict> with (at least) keys:
+#                - 'id' : the unit ID inside the controller
+#                - 'master' : the master channel name / master channel id
+#                - 'trigger_type' : 'Gate'/'Software'
+#                - 'channels' where value is a dict<str, obj> with (at least) keys:
+#                    - 'id' : the channel name ( channel id )
+#                    optional keys:
+#                    - 'enabled' : True/False (default is True)
+#                    any hints:
+#                    - 'output' : True/False (default is True)
+#                    - 'plottable' : True/False (default is True)
+#                    - 'plot_axis' : 'x'/'y1'/'y2' (default is 'y1')
+#                    - 'label' : prefered label (default is channel name)
+#                    - 'scale' : <float, float> with min/max (defaults to channel
+#                                range if it is defined
+#                    - 'plot_color' : int representing RGB
 #    optional keys:
 #    - 'label' : measurement group label (defaults to measurement group name)
 #    - 'description' : measurement group description
@@ -148,15 +149,20 @@ class PoolMeasurementGroup(PoolGroupElement):
     def set_configuration(self, config=None, propagate=1):
         if config is None:
             config = {}
-            config['timer'] = g_timer = self.get_user_elements()[0]
-            config['monitor'] = g_monitor = self.get_user_elements()[0]
-            config['units'] = units = {}
+            user_elements = self.get_user_elements()
             ctrls = self.get_pool_controllers()
+            
+            config['timer'] = g_timer = user_elements[0]
+            config['monitor'] = g_monitor = user_elements[0]
+            config['controllers'] = controllers = {}
+            
             # by default set 1 unit per controller
             for ctrl, elements in ctrls.items():
-                units[ctrl] = unit_data = {}
-                unit_data['controller'] = ctrl
-                unit_data['id'] = 0
+                controllers[ctrl] = ctrl_data = {}
+                ctrl_data['units'] = units = {}
+                unit_id = 0
+                units[unit_id] = unit_data = {}
+                unit_data['id'] = unit_id
                 if g_timer in elements:
                     unit_data['timer'] = g_timer
                 else:
@@ -169,20 +175,26 @@ class PoolMeasurementGroup(PoolGroupElement):
                 unit_data['channels'] = channels = {}
                 for element in elements:
                     channels[element] = channel_data = {}
+                    channel_data['index'] = user_elements.index(element)
                     channel_data['enabled'] = True
                     channel_data['label'] = element.name
                     channel_data['output'] = True
-                    channel_data['plottable'] = 'y1'
+                    channel_data['plottable'] = True
+                    channel_data['plot_axis'] = 'y1'
             config['label'] = self.name
             config['description'] = self.DFT_DESC
         
         # checks
         g_timer, g_monitor = config['timer'], config['monitor']
-        timer_ctrl_data = config['units'][g_timer.controller]
+        
+        # attention: following line only prepared for 1 unit per controller
+        timer_ctrl_data = config['controllers'][g_timer.controller]['units'][0]
         if timer_ctrl_data['timer'] != g_timer:
             self.warning('unit timer and global timer mismatch. Using global timer')
             timer_ctrl_data['timer'] = g_timer
-        monitor_ctrl_data = config['units'][g_monitor.controller]
+        
+        # attention: following line only prepared for 1 unit per controller
+        monitor_ctrl_data = config['controllers'][g_monitor.controller]['units'][0]
         if monitor_ctrl_data['monitor'] != g_monitor:
             self.warning('unit monitor and global monitor mismatch. Using global monitor')
             monitor_ctrl_data['monitor'] != g_monitor
@@ -202,18 +214,20 @@ class PoolMeasurementGroup(PoolGroupElement):
         
         config['timer'] = cfg['timer'].name
         config['monitor'] = cfg['monitor'].name
-        config['units'] = units = {}
+        config['controllers'] = controllers = {}
         
-        for u, u_data in cfg['units'].items():
-            units[u.name] = unit_data = {}
-            unit_data['controller'] = u_data['controller'].name
-            unit_data['id'] = u_data['id']
-            unit_data['timer'] = u_data['timer'].name
-            unit_data['monitor'] = u_data['monitor'].name
-            unit_data['trigger_type'] = u_data['trigger_type']
-            unit_data['channels'] = channels = {}
-            for ch, ch_data in u_data['channels'].items():
-                channels[ch.name] = channel_data = dict(ch_data)
+        for c, c_data in cfg['controllers'].items():
+            controllers[c.name] = ctrl_data = {}
+            ctrl_data['units'] = units = {}
+            for u_id, u_data in c_data['units'].items():
+                units[u_id] = unit_data = {}
+                unit_data['id'] = u_data['id']
+                unit_data['timer'] = u_data['timer'].name
+                unit_data['monitor'] = u_data['monitor'].name
+                unit_data['trigger_type'] = u_data['trigger_type']
+                unit_data['channels'] = channels = {}
+                for ch, ch_data in u_data['channels'].items():
+                    channels[ch.name] = channel_data = dict(ch_data)
 
         config['label'] = cfg['label']
         config['description'] = cfg['description']
@@ -221,25 +235,29 @@ class PoolMeasurementGroup(PoolGroupElement):
     
     def set_configuration_from_user(self, cfg, propagate=1):
         config = {}
-        timer_name = cfg.get('timer', self.get_user_elements()[0].name)
-        monitor_name = cfg.get('monitor', self.get_user_elements()[0].name)
+        user_elements = self.get_user_elements()
+        ctrls = self.get_pool_controllers()
+        
+        timer_name = cfg.get('timer', user_elements[0].name)
+        monitor_name = cfg.get('monitor', user_elements[0].name)
         config['timer'] = self.get_element_by_name(timer_name)
         config['monitor'] = self.get_element_by_name(monitor_name)
-        config['units'] = units = {}
-        ctrls = self.get_pool_controllers()
-        for u_name, u_data in cfg['units'].items():
-            unit = self.get_pool_controller_by_name(u_name)
-            units[unit] = unit_data = dict(u_data)
-            ctrl = self.get_pool_controller_by_name(u_data.get('controller', u_name))
-            unit_data['controller'] = ctrl
-            unit_data['id'] = u_data.get('id', 0)
-            unit_data['timer'] = self.get_element_by_name(u_data['timer'])
-            unit_data['monitor'] = self.get_element_by_name(u_data['monitor'])
-            unit_data['trigger_type'] = u_data['trigger_type']
-            unit_data['channels'] = channels = {}
-            for ch_name, ch_data in u_data['channels'].items():
-                channel = self.get_element_by_name(ch_name)
-                channels[channel] = channel_data = dict(ch_data)
+        config['controllers'] = controllers = {}
+        
+        for c_name, c_data in cfg['controllers'].items():
+            ctrl = self.get_pool_controller_by_name(c_name)
+            controllers[ctrl] = ctrl_data = {}
+            ctrl_data['units'] = units = {}
+            for u_id, u_data in c_data['units'].items():
+                units[u_id] = unit_data = dict(u_data)
+                unit_data['id'] = u_data.get('id', u_id)
+                unit_data['timer'] = self.get_element_by_name(u_data['timer'])
+                unit_data['monitor'] = self.get_element_by_name(u_data['monitor'])
+                unit_data['trigger_type'] = u_data['trigger_type']
+                unit_data['channels'] = channels = {}
+                for ch_name, ch_data in u_data['channels'].items():
+                    channel = self.get_element_by_name(ch_name)
+                    channels[channel] = channel_data = dict(ch_data)
         
         config['label'] = cfg.get('label', self.name)
         config['description'] = cfg.get('description', self.DFT_DESC)
