@@ -166,6 +166,16 @@ class TaurusArrayEditorButton(TaurusLauncherButton):
     def getQtDesignerPluginInfo(cls):
         return None
 
+class TaurusImageButton(TaurusLauncherButton):
+    '''A button that launches a TaurusPlot'''
+    def __init__(self, parent = None, designMode = False):
+        from taurus.qt.qtgui.extra_guiqwt.plot import TaurusImageDialog
+        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusImageDialog(), icon=getIcon(':/mimetypes/image-x-generic.svg'), text = 'Show')
+        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
+
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return None
 
 class TaurusValuesTableButton(TaurusLauncherButton):
     '''A button that launches a TaurusValuesTable'''
@@ -383,7 +393,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
-                result = [TaurusValuesTableButton, ExpandingLabel]
+                try: 
+                    from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog
+                    result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
+                except ImportError:
+                    result = [TaurusValuesTableButton, ExpandingLabel]
             else:
                 self.warning('Unsupported attribute type %s'%configType)
                 result = None
