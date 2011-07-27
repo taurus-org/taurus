@@ -183,9 +183,9 @@ class TaurusCurveDialog(CurveDialog, _BaseTaurusCurveWidget):
     
     .. seealso:: :class:`TaurusCurveWidget`
     '''
-    def __init__(self, parent=None, designMode=False, **kwargs):
+    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
-        CurveDialog.__init__(self, parent=parent, **kwargs)
+        CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveDialog')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.add_tool(TaurusCurveChooserTool)
@@ -492,9 +492,9 @@ class TaurusImageDialog(ImageDialog, _BaseTaurusImageWidget):
     
     .. seealso:: :class:`TaurusImageWidget`
     '''
-    def __init__(self, parent=None, designMode=False, toolbar=True, options=None, **kwargs):
+    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
-        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=options, **kwargs)
+        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         _BaseTaurusImageWidget.__init__(self, 'TaurusImageDialog')
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.add_tool(TaurusModelChooserTool, singleModel=True)
