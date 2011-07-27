@@ -27,7 +27,7 @@
 
 __docformat__ = 'restructuredtext'
 
-import util
+import core.util
 
 def prepare_sardana(util):
     import pool
@@ -36,6 +36,6 @@ def prepare_sardana(util):
     macroserver.prepare_macroserver(util)
 
 def main_sardana():
-    util.run(prepare_sardana)
+    core.util.run(prepare_sardana)
 
 
