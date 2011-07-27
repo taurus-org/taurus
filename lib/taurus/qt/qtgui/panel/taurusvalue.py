@@ -109,7 +109,7 @@ class DefaultLabelWidget(TaurusLabel):
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
         dropAction = drag.start(Qt.Qt.CopyAction)
-
+    
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
@@ -119,7 +119,8 @@ class ExpandingLabel(TaurusLabel):
     def __init__(self,*args):
         TaurusLabel.__init__(self,*args)
         self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Preferred)
-        
+
+
 class CenteredLed(TaurusLed):
     '''just a centered TaurusLed'''
     DefaultAlignment = Qt.Qt.AlignHCenter | Qt.Qt.AlignVCenter
@@ -795,13 +796,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def getModelClass(self):
         return self.__modelClass
     
-    def destroy(self):
-        if not self._designMode:
-            for w in [self._labelWidget, self._readWidget, self._writeWidget, self._unitsWidget, self._extraWidget]:
-                if isinstance(w,Qt.QWidget):
-                    w.setParent(self)   #reclaim the parental rights over subwidgets before destruction
-        Qt.QWidget.setParent(self,None)
-        Qt.QWidget.destroy(self)
+#    def destroy(self):
+#        if not self._designMode:
+#            for w in [self._labelWidget, self._readWidget, self._writeWidget, self._unitsWidget, self._extraWidget]:
+#                if isinstance(w,Qt.QWidget):
+#                    w.setParent(self)   #reclaim the parental rights over subwidgets before destruction
+#        Qt.QWidget.setParent(self,None)
+#        Qt.QWidget.destroy(self)
 
     def createConfig(self, allowUnpickable=False):
         '''

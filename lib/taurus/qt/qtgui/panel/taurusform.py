@@ -287,7 +287,8 @@ class TaurusForm(TaurusWidget):
     def destroyChildren(self):
         for child in self._children:
             self.unregisterConfigurableItem(child)
-            child.destroy()
+            #child.destroy()
+            child.deleteLater()
         self._children = []
                 
     def fillWithChildren(self):
