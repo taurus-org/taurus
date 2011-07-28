@@ -160,9 +160,8 @@ class PoolMeasurementGroup(PoolGroupElement):
             for ctrl, elements in ctrls.items():
                 controllers[ctrl] = ctrl_data = {}
                 ctrl_data['units'] = units = {}
-                unit_id = 0
-                units[unit_id] = unit_data = {}
-                unit_data['id'] = unit_id
+                units['0'] = unit_data = {}
+                unit_data['id'] = 0
                 if g_timer in elements:
                     unit_data['timer'] = g_timer
                 else:
@@ -183,18 +182,17 @@ class PoolMeasurementGroup(PoolGroupElement):
                     channel_data['plot_axis'] = 'y1'
             config['label'] = self.name
             config['description'] = self.DFT_DESC
-        
         # checks
         g_timer, g_monitor = config['timer'], config['monitor']
         
         # attention: following line only prepared for 1 unit per controller
-        timer_ctrl_data = config['controllers'][g_timer.controller]['units'][0]
+        timer_ctrl_data = config['controllers'][g_timer.controller]['units']['0']
         if timer_ctrl_data['timer'] != g_timer:
             self.warning('unit timer and global timer mismatch. Using global timer')
             timer_ctrl_data['timer'] = g_timer
         
         # attention: following line only prepared for 1 unit per controller
-        monitor_ctrl_data = config['controllers'][g_monitor.controller]['units'][0]
+        monitor_ctrl_data = config['controllers'][g_monitor.controller]['units']['0']
         if monitor_ctrl_data['monitor'] != g_monitor:
             self.warning('unit monitor and global monitor mismatch. Using global monitor')
             monitor_ctrl_data['monitor'] != g_monitor
