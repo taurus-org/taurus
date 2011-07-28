@@ -36,7 +36,13 @@ from taurus.qt.qtgui.model import QBaseModelWidget
 
 class QBaseTableWidget(QBaseModelWidget):
 
+    def tableView(self):
+        return self.viewWidget()
+        
     def createViewWidget(self):
         table = Qt.QTableView(self)
         table.setSortingEnabled(True)
+        table.setAlternatingRowColors(True)
+        table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
+        table.setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
         return table

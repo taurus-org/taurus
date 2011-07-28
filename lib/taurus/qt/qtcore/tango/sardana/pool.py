@@ -56,9 +56,25 @@ class QMeasurementGroup(Qt.QObject, TangoDevice):
         configuration.addListener(self._configurationChanged)
 
     def _configurationChanged(self, s, t, v):
-        if t not in CHANGE_EVTS: return
-        self._config = json.loads(v.value)
+        if t == TaurusEventType.Config:
+            return
+        if TaurusEventType.Error:
+            self._config = None
+        else:
+            self._config = json.loads(v.value)
         self.emit(Qt.SIGNAL("configurationChanged"))
+    
+    def getConfiguration(self, cache=True):
+        if self._config is None or not cache:
+            try:
+                v = self.read_attribute("configuration")
+                self._config = json.loads(v.value)
+            except:
+                self._config = None
+        return self._config
+    
+    def setConfiguration(self, config):
+        self.write_attribute("configuration", json.dumps(config))
 
 
 def registerExtensions():

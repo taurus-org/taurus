@@ -48,5 +48,4 @@ class TaurusBaseTableWidget(QBaseTableWidget, TaurusBaseModelWidget):
         self.call__init__(TaurusBaseModelWidget, designMode=designMode,
                           perspective=perspective, proxy=proxy)
 
-    def tableView(self):
-        return self.viewWidget()
+

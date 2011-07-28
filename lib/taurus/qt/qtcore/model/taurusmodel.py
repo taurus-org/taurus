@@ -282,7 +282,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
             ret = Qt.QVariant(ret)
         return ret
 
-    def setData(self, index, qvalue, role=Qt.Qt.EditRole):
+    def _setData(self, index, qvalue, role=Qt.Qt.EditRole):
         item = index.internalPointer()
         item.setData(index, qvalue.toPyObject())
         return True

@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from PyQt4 import Qt
 
-from taurus.qt.qtgui.model import QBaseModelWidget
+from taurus.qt.qtgui.model import QBaseModelWidget, BaseToolBar
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
@@ -139,6 +139,75 @@ class _NavigationWidget(Qt.QFrame):
         tree.setCurrentIndex(index.child(0, 0))
 
 
+class NavigationToolBar(BaseToolBar):
+    
+    def __init__(self, view=None, parent=None, designMode=False):
+        BaseToolBar.__init__(self, name="Taurus selection toolbar", view=view,
+                             parent=parent, designMode=designMode)
+        
+        af = ActionFactory()
+        self._goIntoAction = af.createAction(self, "Go Into",
+                                             icon=getThemeIcon("go-down"),
+                                             tip="Go into the selected item",
+                                             triggered=self.goInto)
+        self._goUpAction = af.createAction(self, "Go Up",
+                                            icon=getThemeIcon("go-up"),
+                                            tip="Go up one level",
+                                            triggered=self.goUp)
+        self._goTopAction = af.createAction(self, "Go Top",
+                                            icon=getThemeIcon("go-top"),
+                                            tip="Go to top level",
+                                            triggered=self.goTop)
+        self.addAction(self._goIntoAction)
+        self.addAction(self._goUpAction)
+        self.addAction(self._goTopAction)
+        self._navigationWidget = _NavigationWidget(view, self, parent=self)
+        self._navigationAction = self.addWidget(self._navigationWidget)
+
+    def goIntoAction(self):
+        return self._goIntoAction
+    
+    def goTopAction(self):
+        return self._goTopAction
+    
+    def goUpAction(self):
+        return self._goUpAction
+    
+    def goInto(self):
+        self.emit(Qt.SIGNAL("goIntoTriggered"))
+
+    def goUp(self):
+        self.emit(Qt.SIGNAL("goUpTriggered"))
+
+    def goTop(self):
+        self.emit(Qt.SIGNAL("goTopTriggered"))
+
+
+class ExpansionBar(BaseToolBar):
+    
+    def __init__(self, view=None, parent=None, designMode=False):
+        BaseToolBar.__init__(self, name="Taurus selection toolbar", view=view,
+                             parent=parent, designMode=designMode)
+
+        af = ActionFactory()
+        self._expandAllAction = af.createAction(self, "Expand All",
+                                                icon=getIcon(":/actions/expand-all.svg"),
+                                                tip="Expand all items",
+                                                triggered=self.onExpand)
+        self._collapseAllAction = af.createAction(self, "Collapse All",
+                                                  icon=getIcon(":/actions/collapse-all.svg"),
+                                                  tip="Collapse all items",
+                                                  triggered=self.onCollapse)
+        self.addAction(self._expandAllAction)
+        self.addAction(self._collapseAllAction)
+    
+    def onExpand(self):
+        self.emit(Qt.SIGNAL("expandTriggered"))
+
+    def onCollapse(self):
+        self.emit(Qt.SIGNAL("collapseTriggered"))
+
+
 class QBaseTreeWidget(QBaseModelWidget):
     """A pure Qt tree widget implementing a tree with a navigation toolbar"""
     
@@ -150,50 +219,19 @@ class QBaseTreeWidget(QBaseModelWidget):
     def createToolArea(self):
         ta = QBaseModelWidget.createToolArea(self)
         
-        e_bar = self._expandBar = Qt.QToolBar("Expansion toolbar")
-        
-        af = ActionFactory()
-        self._expandAllAction = af.createAction(self, "Expand All",
-                                                icon=getIcon(":/actions/expand-all.svg"),
-                                                tip="Expand all items",
-                                                triggered=self.expandAllTree)
-        self._collapseAllAction = af.createAction(self, "Collapse All",
-                                                  icon=getIcon(":/actions/collapse-all.svg"),
-                                                  tip="Collapse all items",
-                                                  triggered=self.collapseAllTree)
-        self._expandBar.addAction(self._expandAllAction)
-        self._expandBar.addAction(self._collapseAllAction)
-        ta.addToolBar(e_bar)
+        e_bar = self._expandBar = ExpansionBar(view=self, parent=self)
+        self.connect(e_bar, Qt.SIGNAL("expandTriggered"), self.expandAllTree)
+        self.connect(e_bar, Qt.SIGNAL("collapseTriggered"), self.collapseAllTree)
+        ta.append(e_bar)
         
         if self._with_navigation_bar:
-            self._navigationToolBar = Qt.QToolBar("Taurus navigation toolbar")
-
-            self._goIntoAction = af.createAction(self, "Go Into",
-                                                icon=getThemeIcon("go-down"),
-                                                tip="Go into the selected item",
-                                                triggered=self.goIntoTree)
-            self._goUpAction = af.createAction(self, "Go Up",
-                                                icon=getThemeIcon("go-up"),
-                                                tip="Go up one level",
-                                                triggered=self.goUpTree)
-            self._goTopAction = af.createAction(self, "Go Top",
-                                                icon=getThemeIcon("go-top"),
-                                                tip="Go to top level",
-                                                triggered=self.goTopTree)
-            self._navigationToolBar.addAction(self._goIntoAction)
-            self._navigationToolBar.addAction(self._goUpAction)
-            self._navigationToolBar.addAction(self._goTopAction)
-            self._navigationWidget = _NavigationWidget(self, ta)
-            self._navigationAction = self._navigationToolBar.addWidget(self._navigationWidget)
-            ta.addToolBar(self._navigationToolBar)
+            n_bar = self._navigationToolBar = NavigationToolBar(view=self, parent=self)
+            self.connect(n_bar, Qt.SIGNAL("goIntoTriggered"), self.goIntoTree)
+            self.connect(n_bar, Qt.SIGNAL("goTopTriggered"), self.goTopTree)
+            self.connect(n_bar, Qt.SIGNAL("goUpTriggered"), self.goUpTree)
+            ta.append(n_bar)
         else:
             self._navigationToolBar = None
-            self._goIntoAction = None
-            self._goUpAction = None
-            self._goTopAction = None
-            self._navigationWidget = None
-            self._navigationAction = None
-
         return ta
     
     def createViewWidget(self):
@@ -201,8 +239,8 @@ class QBaseTreeWidget(QBaseModelWidget):
         tree.setSortingEnabled(True)
         tree.setUniformRowHeights(True)
         tree.setAlternatingRowColors(True)
-        tree.setSelectionBehavior(Qt.QTreeView.SelectRows)
-        tree.setSelectionMode(Qt.QTreeView.ExtendedSelection)
+        tree.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
+        tree.setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
         tree.setDragEnabled(True)
         tree.setDropIndicatorShown(True)
 
@@ -217,23 +255,23 @@ class QBaseTreeWidget(QBaseModelWidget):
         return self.viewWidget()
 
     def goIntoAction(self):
-        return self._goIntoAction
+        return self._navigationToolBar.goIntoAction()
     
     def goTopAction(self):
-        return self._goTopAction
+        return self._navigationToolBar.goTopAction()
     
     def goUpAction(self):
-        return self._goUpAction
+        return self._navigationToolBar.goUpAction()
     
     def expandAllTree(self):
-        self._statusbar.showMessage("Expanding all items... (it may take a few seconds)")
+        self.statusBar().showMessage("Expanding all items... (it may take a few seconds)")
         tree = self.viewWidget()
         Qt.QTimer.singleShot(0, self._expandTree)
     
     def _expandTree(self):
         tree = self.viewWidget()
         tree.expandAll()
-        self._statusbar.showMessage("All items expanded!", 3000)
+        self.statusBar().showMessage("All items expanded!", 3000)
     
     def onExpanded(self):
         self.resizeColumns()
@@ -299,12 +337,12 @@ class QBaseTreeWidget(QBaseModelWidget):
             ip = base_current.internalPointer()
             if ip is not None:
                 goInto = ip.childCount() > 0
-        self._goIntoAction.setEnabled(goInto)
+        self._navigationToolBar._goIntoAction.setEnabled(goInto)
         
         goUp = tree.rootIndex().isValid()
-        self._goUpAction.setEnabled(goUp)
-        self._goTopAction.setEnabled(goUp)
+        self._navigationToolBar._goUpAction.setEnabled(goUp)
+        self._navigationToolBar._goTopAction.setEnabled(goUp)
         
         index = tree.rootIndex()
-        self._navigationWidget.updateSelection(index)
+        self._navigationToolBar._navigationWidget.updateSelection(index)
     

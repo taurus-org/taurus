@@ -33,6 +33,6 @@ def registerExtensions():
     import pool
     import macroserver
     
-    #pool.registerExtensions()
+    pool.registerExtensions()
     macroserver.registerExtensions()
     
