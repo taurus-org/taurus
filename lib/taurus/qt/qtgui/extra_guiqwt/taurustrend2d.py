@@ -26,27 +26,43 @@
 """
 taurustrend.py: Generic trend widget for Taurus
 """
-__all__=["TaurusTrend2DDialog","TaurusTrend2DWidget"]
+__all__=["TaurusTrend2DDialog"]
 
-from guiqwt.plot import ImageDialog, ImageWidget
+from guiqwt.plot import ImageDialog
 from PyQt4 import Qt
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool, TimeAxisTool, AutoScrollTool
 
-class _BaseTaurusTrend2D(TaurusBaseWidget):
+
+
+
+class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     '''
-    Base class for both the Dialog and the Widget versions of TaurusTrend2D
+    This is a widget for displaying trends from 1D Taurus attributes (i.e.,
+    representing the variation over time of a 1D array). Sometimes this kind of
+    plots are also known as "spectrograms".
+    
+    The widget shows a 3D plot (Z represented with colors) where the values in
+    the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
-    def __init__(self, name, buffersize=512):
-        TaurusBaseWidget.__init__(self, name)
+    def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
+        '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
+        if options is None:
+            options = dict(lock_aspect_ratio=False)
+        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=options, **kwargs)
+        TaurusBaseWidget.__init__(self, "TaurusTrend2DDialog")
         self.trendItem = None  
-        #...
         self.buffersize = buffersize
         self._useArchiving = False
-        self._stackMode = 'datetime'     
-     
+        self._stackMode = stackMode
+        self.setStackMode(stackMode)
+        self.setWindowFlags(Qt.Qt.Widget)
+        #add some tools
+        for toolklass in (TaurusModelChooserTool,AutoScrollTool):
+            self.add_tool(toolklass)   
+            
     def setStackMode(self, mode):
         '''set the type of stack to be used. This determines how X values are interpreted:
           - as timestamps ('datetime')
@@ -162,35 +178,6 @@ class _BaseTaurusTrend2D(TaurusBaseWidget):
     def resetMaxDataBufferSize(self):
         '''Same as setMaxDataBufferSize(512)  (i.e. 512 events)'''
         self.setMaxDataBufferSize(512) 
-        
-
-class TaurusTrend2DWidget(ImageWidget, _BaseTaurusTrend2D):
-    '''
-    This is a widget for displaying trends from 1D Taurus attributes (i.e.,
-    representing the variation over time of a 1D array). Sometimes this kind of
-    plots are also known as "spectrograms".
-    
-    The widget shows a 3D plot (Z represented with colors) where the values in
-    the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
-    '''
-    def __init__(self, parent=None, designMode=False, stackMode='datetime', buffersize=512, lock_aspect_ratio=False, **kwargs):
-        '''see :class:`guiqwt.plot.ImageWidget` for other valid initialization parameters'''
-        ImageWidget.__init__(self, parent=parent, lock_aspect_ratio=lock_aspect_ratio, **kwargs)
-        _BaseTaurusTrend2D.__init__(self, "TaurusTrend2DWidget", buffersize=buffersize)
-        #manage time mode
-        self.setStackMode(stackMode)
-        #add some tools
-        self.register_all_image_tools()
-        for toolklass in (TaurusModelChooserTool,AutoScrollTool):
-            self.add_tool(toolklass)   
-            
-    def get_context_menu(self, plot=None): #@todo: This is a workaround because the CrossSectionTool is not shown in the context menu by default
-        ret = ImageWidget.get_context_menu(self, plot=plot)
-        from guiqwt.tools import CrossSectionTool, AverageCrossSectionTool
-        for toolklass in CrossSectionTool, AverageCrossSectionTool:
-            tool = self.get_tool(toolklass)
-            ret.addAction(tool.action)
-        return ret
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -201,33 +188,10 @@ class TaurusTrend2DWidget(ImageWidget, _BaseTaurusTrend2D):
         ret['icon'] =':/designer/qwtplot.png'
         return ret  
     
-    model = Qt.pyqtProperty("QString", _BaseTaurusTrend2D.getModel, _BaseTaurusTrend2D.setModel, TaurusBaseWidget.resetModel)
-    useArchiving = Qt.pyqtProperty("bool", _BaseTaurusTrend2D.getUseArchiving, _BaseTaurusTrend2D.setUseArchiving, _BaseTaurusTrend2D.resetUseArchiving) #@todo uncomment this when archiving is supported
-    maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrend2D.getMaxDataBufferSize, _BaseTaurusTrend2D.setMaxDataBufferSize, _BaseTaurusTrend2D.resetMaxDataBufferSize)
-    stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrend2D.getStackMode, _BaseTaurusTrend2D.setStackMode, _BaseTaurusTrend2D.resetStackMode)
-        
-
-
-class TaurusTrend2DDialog(ImageDialog, _BaseTaurusTrend2D):
-    '''
-    This is a widget for displaying trends from 1D Taurus attributes (i.e.,
-    representing the variation over time of a 1D array). Sometimes this kind of
-    plots are also known as "spectrograms".
-    
-    The widget shows a 3D plot (Z represented with colors) where the values in
-    the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
-    '''
-    def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
-        '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
-        if options is None:
-            options = dict(lock_aspect_ratio=False)
-        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=options, **kwargs)
-        _BaseTaurusTrend2D.__init__(self, "TaurusTrend2DDialog", buffersize=buffersize)
-        #manage time mode
-        self.setStackMode(stackMode)
-        #add some tools
-        for toolklass in (TaurusModelChooserTool,AutoScrollTool):
-            self.add_tool(toolklass)   
+    model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
+    useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving) #@todo uncomment this when archiving is supported
+    maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
+    stackMode = Qt.pyqtProperty("QString", getStackMode, setStackMode, resetStackMode)
 
         
 def taurusTrend2DMain():
@@ -261,7 +225,6 @@ def taurusTrend2DMain():
         args.append('eval://sin(x+t)?x=linspace(0,3,40);t=rand()')
         
     w = TaurusTrend2DDialog(stackMode=stackMode, wintitle="Taurus Trend 2D", buffersize=int(options.max_buffer_size))
-#    w = TaurusTrend2DWidget(stackMode=stackMode, buffersize=int(options.max_buffer_size))
     
     #set archiving
     if options.use_archiving:

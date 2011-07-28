@@ -26,9 +26,9 @@
 """
 Extension of :mod:`guiqwt.plot`
 """
-__all__=["TaurusCurveWidget", "TaurusImageDialog", "TaurusImageWidget", "TaurusImageDialog"]
+__all__=["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
-from guiqwt.plot import ImageDialog, ImageWidget, CurveWidget, CurveDialog
+from guiqwt.plot import ImageDialog, CurveDialog
 from PyQt4 import Qt
 import copy
 import taurus.core
@@ -39,16 +39,28 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
 
-
-class _BaseTaurusCurveWidget(TaurusBaseWidget):
-    def __init__(self, name):
-        TaurusBaseWidget.__init__(self, name)
+class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
+    '''A taurus dialog for showing 1D data.
+    It behaves as a regular :class:`guiqwt.plot.CurveDialog` but it also offers
+    the expected Taurus interface (e.g. setting models, save/apply configs,
+    drag&drops,...)
+    
+    .. seealso:: :class:`TaurusCurveWidget`
+    '''
+    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
+        '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
+        CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
+        TaurusBaseWidget.__init__(self, 'TaurusCurveDialog')
+        self.setWindowFlags(Qt.Qt.Widget)
+        self._designMode = designMode
         self._modelNames = CaselessList()
         from guiqwt.styles import style_generator
         self.style = style_generator()
-        #for drag&drop
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE])
-    
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
+        self.add_tool(TaurusCurveChooserTool)
+        self.setModifiableByUser(True)
+  
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.TaurusAttribute
@@ -143,26 +155,7 @@ class _BaseTaurusCurveWidget(TaurusBaseWidget):
         self.get_tool(TaurusCurveChooserTool).action.setEnabled(modifiable)
         self.get_plot().set_items_readonly(not modifiable)
         TaurusBaseWidget.setModifiableByUser(self, modifiable)    
-    
 
-class TaurusCurveWidget(CurveWidget, _BaseTaurusCurveWidget):
-    '''A taurus widget for showing 1D data.
-    It behaves as a regular :class:`guiqwt.plot.CurveWidget` but it also offers
-    the expected Taurus interface (e.g. setting models, save/apply configs,
-    drag&drops,...)
-    
-    .. seealso:: :class:`TaurusCurveDialog`
-    '''
-    def __init__(self, parent=None, designMode=False, **kwargs):
-        '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
-        CurveWidget.__init__(self, parent=parent, **kwargs)
-        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveWidget')
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
-        self.register_all_curve_tools()
-        self.add_tool(TaurusCurveChooserTool)
-        self.setModifiableByUser(True)
-        self._designMode = designMode
-            
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -172,39 +165,49 @@ class TaurusCurveWidget(CurveWidget, _BaseTaurusCurveWidget):
         ret['icon'] =':/designer/qwtplot.png'
         return ret
     
-    model = Qt.pyqtProperty("QStringList", _BaseTaurusCurveWidget.getModel, _BaseTaurusCurveWidget.setModel, TaurusBaseWidget.resetModel)
+    model = Qt.pyqtProperty("QStringList", getModel, setModel, TaurusBaseWidget.resetModel)
 
 
-class TaurusCurveDialog(CurveDialog, _BaseTaurusCurveWidget):
-    '''A taurus dialog for showing 1D data.
-    It behaves as a regular :class:`guiqwt.plot.CurveDialog` but it also offers
-    the expected Taurus interface (e.g. setting models, save/apply configs,
-    drag&drops,...)
+class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
+    '''A taurus widget for showing trends of scalar data.
+    It is an specialization of :class:`guiqwt.plot.CurveWidget`, for displaying
+    trends and offering the expected Taurus interface (e.g. setting models,
+    save/apply configs, drag&drops,...)
     
-    .. seealso:: :class:`TaurusCurveWidget`
+    .. seealso:: :class:`TaurusTrendDialog`
     '''
-    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
+    def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
-        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveDialog')
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
-        self.add_tool(TaurusCurveChooserTool)
+        TaurusBaseWidget.__init__(self, 'TaurusTrendDialog')
+        self.setWindowFlags(Qt.Qt.Widget)
+        self._designMode = designMode
+        self._modelNames = CaselessList()
+        from guiqwt.styles import style_generator
+        self.style = style_generator()
+        self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE])
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
+        self.add_tool(TaurusModelChooserTool, singleModel=False)
+        self.add_tool(AutoScrollTool)        
         self.setModifiableByUser(True)
-    
-    model = Qt.pyqtProperty("QStringList", _BaseTaurusCurveWidget.getModel, _BaseTaurusCurveWidget.setModel, TaurusBaseWidget.resetModel)
-    
-
-class _BaseTaurusTrendWidget(_BaseTaurusCurveWidget):
-    def __init__(self, name, taurusparam=None):
-        _BaseTaurusCurveWidget.__init__(self, 'TaurusCurveWidget')
-        #...
         if taurusparam is None:
             taurusparam = TaurusTrendParam()
         self.defaultTaurusparam = taurusparam
+        
+    def getModelClass(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
+        return taurus.core.TaurusAttribute
     
     def getTaurusTrendItems(self):
         return [item for item in self.get_plot().get_public_items() if isinstance(item, TaurusTrendItem)]
-        
+         
+    def _splitModel(self, modelNames):
+        '''convert str to list if needed (commas and whitespace are considered as separators)'''
+        if isinstance(modelNames,(basestring,Qt.QString)): 
+            modelNames = str(modelNames).replace(',',' ')
+            modelNames = modelNames.split()
+        return modelNames
+       
     @Qt.pyqtSignature("setModel(QStringList)")
     def setModel(self, modelNames):
         '''Removes current TaurusCurveItems and adds new ones.
@@ -261,7 +264,11 @@ class _BaseTaurusTrendWidget(_BaseTaurusCurveWidget):
         
         self.setStackMode(self.defaultTaurusparam.stackMode)
         self.emit(Qt.SIGNAL("modelChanged()"))
-
+        
+    def getModel(self):
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        return self._modelNames
+    
     def setUseArchiving(self, enable):
         '''enables/disables looking up in the archiver for data stored before
         the Trend was started
@@ -355,25 +362,6 @@ class _BaseTaurusTrendWidget(_BaseTaurusCurveWidget):
         self.get_plot().set_items_readonly(not modifiable)
         TaurusBaseWidget.setModifiableByUser(self, modifiable) 
         
-class TaurusTrendWidget(CurveWidget, _BaseTaurusTrendWidget):
-    '''A taurus widget for showing trends of scalar data.
-    It is an specialization of :class:`guiqwt.plot.CurveWidget`, for displaying
-    trends and offering the expected Taurus interface (e.g. setting models,
-    save/apply configs, drag&drops,...)
-    
-    .. seealso:: :class:`TaurusTrendDialog`
-    '''
-    def __init__(self, parent=None, designMode=False, taurusparam=None, **kwargs):
-        '''see :class:`guiqwt.plot.CurveWidget` for other valid initialization parameters'''
-        CurveWidget.__init__(self, parent=parent, **kwargs)
-        _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendWidget', taurusparam)
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
-        self.register_all_curve_tools()
-        self.add_tool(TaurusModelChooserTool, singleModel=False)
-        self.add_tool(AutoScrollTool)
-        self.setModifiableByUser(True)
-        self._designMode = designMode
-            
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -383,40 +371,29 @@ class TaurusTrendWidget(CurveWidget, _BaseTaurusTrendWidget):
         ret['icon'] =':/designer/qwtplot.png'
         return ret
     
-    model = Qt.pyqtProperty("QStringList", _BaseTaurusTrendWidget.getModel, _BaseTaurusTrendWidget.setModel, TaurusBaseWidget.resetModel)
-    useArchiving = Qt.pyqtProperty("bool", _BaseTaurusTrendWidget.getUseArchiving, _BaseTaurusTrendWidget.setUseArchiving, _BaseTaurusTrendWidget.resetUseArchiving)
-    maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrendWidget.getMaxDataBufferSize, _BaseTaurusTrendWidget.setMaxDataBufferSize, _BaseTaurusTrendWidget.resetMaxDataBufferSize)
-    stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrendWidget.getStackMode, _BaseTaurusTrendWidget.setStackMode, _BaseTaurusTrendWidget.resetStackMode)
+    model = Qt.pyqtProperty("QStringList", getModel, setModel, TaurusBaseWidget.resetModel)
+    useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving)
+    maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
+    stackMode = Qt.pyqtProperty("QString", getStackMode, setStackMode, resetStackMode)
     
-
-class TaurusTrendDialog(CurveDialog, _BaseTaurusTrendWidget):
-    '''A taurus widget for showing trends of scalar data.
-    It is an specialization of :class:`guiqwt.plot.CurveWidget`, for displaying
-    trends and offering the expected Taurus interface (e.g. setting models,
-    save/apply configs, drag&drops,...)
     
-    .. seealso:: :class:`TaurusTrendDialog`
+class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
+    '''A taurus dialog for showing 2D data.
+    It behaves as a regular :class:`guiqwt.plot.ImageDialog` but it also offers
+    the expected Taurus interface (e.g. setting models, save/apply configs,
+    drag&drops,...)
+    
+    .. seealso:: :class:`TaurusImageWidget`
     '''
-    def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
-        '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
-        CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
-        _BaseTaurusTrendWidget.__init__(self, 'TaurusTrendDialog', taurusparam)
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
-        self.add_tool(TaurusModelChooserTool, singleModel=False)
-        self.add_tool(AutoScrollTool)
-        self.setModifiableByUser(True)
-        self._designMode = designMode
-            
-    model = Qt.pyqtProperty("QStringList", _BaseTaurusTrendWidget.getModel, _BaseTaurusTrendWidget.setModel, TaurusBaseWidget.resetModel)
-    useArchiving = Qt.pyqtProperty("bool", _BaseTaurusTrendWidget.getUseArchiving, _BaseTaurusTrendWidget.setUseArchiving, _BaseTaurusTrendWidget.resetUseArchiving)
-    maxDataBufferSize = Qt.pyqtProperty("int", _BaseTaurusTrendWidget.getMaxDataBufferSize, _BaseTaurusTrendWidget.setMaxDataBufferSize, _BaseTaurusTrendWidget.resetMaxDataBufferSize)
-    stackMode = Qt.pyqtProperty("QString", _BaseTaurusTrendWidget.getStackMode, _BaseTaurusTrendWidget.setStackMode, _BaseTaurusTrendWidget.resetStackMode)
-    
-
-class _BaseTaurusImageWidget(TaurusBaseWidget):
-    def __init__(self, name):
-        TaurusBaseWidget.__init__(self, name)
+    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
+        '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
+        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
+        TaurusBaseWidget.__init__(self, 'TaurusImageDialog')
+        self.setWindowFlags(Qt.Qt.Widget)
         self.imgItem = None
+        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
+        self.add_tool(TaurusModelChooserTool, singleModel=True)
+        self.setModifiableByUser(True)    
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -446,32 +423,6 @@ class _BaseTaurusImageWidget(TaurusBaseWidget):
         self.get_plot().set_items_readonly(not modifiable)
         TaurusBaseWidget.setModifiableByUser(self, modifiable)
    
-    
-class TaurusImageWidget(ImageWidget, _BaseTaurusImageWidget):
-    '''A taurus widget for showing 2D data.
-    It behaves as a regular :class:`guiqwt.plot.ImageWidget` but it also offers
-    the expected Taurus interface (e.g. setting models, save/apply configs,
-    drag&drops,...)
-    
-    .. seealso:: :class:`TaurusImageDialog`
-    '''
-    def __init__(self, parent=None, designMode=False, **kwargs):
-        '''see :class:`guiqwt.plot.ImageWidget` for other valid initialization parameters'''
-        ImageWidget.__init__(self, parent=parent, **kwargs)
-        _BaseTaurusImageWidget.__init__(self, 'TaurusImageDialog')
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
-        self.register_all_image_tools()
-        self.add_tool(TaurusModelChooserTool, singleModel=True)
-        self.setModifiableByUser(True)
-        
-    def get_context_menu(self, plot=None): #@todo: This is a workaround because the CrossSectionTool is not shown in the context menu by default
-        ret = ImageWidget.get_context_menu(self, plot=plot)
-        from guiqwt.tools import CrossSectionTool, AverageCrossSectionTool
-        for toolklass in CrossSectionTool, AverageCrossSectionTool:
-            tool = self.get_tool(toolklass)
-            ret.addAction(tool.action)
-        return ret
-    
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -481,68 +432,10 @@ class TaurusImageWidget(ImageWidget, _BaseTaurusImageWidget):
         ret['icon'] =':/designer/qwtplot.png'
         return ret
     
-    model = Qt.pyqtProperty("QString", _BaseTaurusImageWidget.getModel, _BaseTaurusImageWidget.setModel, TaurusBaseWidget.resetModel)
-    
-
-class TaurusImageDialog(ImageDialog, _BaseTaurusImageWidget):
-    '''A taurus dialog for showing 2D data.
-    It behaves as a regular :class:`guiqwt.plot.ImageDialog` but it also offers
-    the expected Taurus interface (e.g. setting models, save/apply configs,
-    drag&drops,...)
-    
-    .. seealso:: :class:`TaurusImageWidget`
-    '''
-    def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
-        '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
-        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
-        _BaseTaurusImageWidget.__init__(self, 'TaurusImageDialog')
-        from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
-        self.add_tool(TaurusModelChooserTool, singleModel=True)
-        self.setModifiableByUser(True)
-         
-    model = Qt.pyqtProperty("QString", _BaseTaurusImageWidget.getModel, _BaseTaurusImageWidget.setModel, TaurusBaseWidget.resetModel)
-
-
-def test1():
-    from taurus.qt.qtgui.application import TaurusApplication
-    import sys
-    
-    #prepare options
-    app = TaurusApplication()
-    args = app.get_command_line_args()
-
-    w = TaurusImageWidget()
-        
-    #set model
-    if len(args) == 1:
-        w.setModel(args[0])
-    else:
-        w.setModel('eval://rand(256,128)')
-    
-    w.show()
-    sys.exit(app.exec_())      
+    model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
     
     
-def test2():
-    from taurus.qt.qtgui.application import TaurusApplication
-    import sys
     
-    #prepare options
-    app = TaurusApplication()
-    args = app.get_command_line_args()
-
-    w = TaurusCurveWidget()
-        
-    #set model
-    if len(args) != 0:
-        w.setModel(args)
-    else:
-        w.setModel('eval://rand(128)')
-    
-    w.show()
-    sys.exit(app.exec_())    
-    
-
 def taurusCurveDlgMain():
     from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
@@ -564,7 +457,6 @@ def taurusCurveDlgMain():
         args.append('eval://rand(128)')
         
     w = TaurusCurveDialog(edit=False, wintitle="Taurus Curve Dialog")
-    #w = TaurusCurveWidget()
     
     w.add_tool(TimeAxisTool)
      
@@ -618,7 +510,6 @@ def taurusTrendDlgMain():
     taurusparam.useArchiving = options.use_archiving
     
     w = TaurusTrendDialog(wintitle="Taurus Trend", taurusparam=taurusparam)
-    #w = TaurusTrendWidget(taurusparam=taurusparam)
     
     #set model
     if len(args) > 0:
@@ -649,7 +540,6 @@ def taurusImageDlgMain():
         args.append('eval://rand(256,128)')
         
     w = TaurusImageDialog()
-    #w = TaurusImageWidget()
         
     #set model
     if len(args) == 1:
@@ -663,8 +553,7 @@ def taurusImageDlgMain():
         
 
 if __name__ == "__main__":
-#    test2()
-#    taurusCurveDlgMain()
-    taurusTrendDlgMain()
+    taurusCurveDlgMain()
+#    taurusTrendDlgMain()
 #    taurusImageDlgMain()    
     

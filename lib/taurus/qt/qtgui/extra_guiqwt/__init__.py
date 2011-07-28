@@ -27,5 +27,5 @@
 
 __docformat__ = 'restructuredtext'
 
-from .plot import TaurusImageDialog, TaurusImageWidget, TaurusCurveWidget, TaurusCurveDialog, TaurusTrendWidget, TaurusTrendDialog
-from .taurustrend2d import TaurusTrend2DDialog, TaurusTrend2DWidget
+from .plot import TaurusImageDialog, TaurusCurveDialog, TaurusTrendDialog
+from .taurustrend2d import TaurusTrend2DDialog
