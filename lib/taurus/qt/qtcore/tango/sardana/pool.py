@@ -55,6 +55,12 @@ class QMeasurementGroup(Qt.QObject, TangoDevice):
         configuration = self.getAttribute("Configuration")
         configuration.addListener(self._configurationChanged)
 
+    def __getattr__(self, name):
+        try:
+            return Qt.QObject.__getattr__(self, name)
+        except AttributeError:
+            return TangoDevice.__getattr__(self, name)
+
     def _configurationChanged(self, s, t, v):
         if t == TaurusEventType.Config:
             return
@@ -80,8 +86,8 @@ class QMeasurementGroup(Qt.QObject, TangoDevice):
 def registerExtensions():
     """Registers the pool extensions in the :class:`taurus.core.tango.TangoFactory`"""
     import taurus
-    import taurus.core.tango.sardana.pool
-    taurus.core.tango.sardana.pool.registerExtensions()
+    #import taurus.core.tango.sardana.pool
+    #taurus.core.tango.sardana.pool.registerExtensions()
     factory = taurus.Factory()
     factory.registerDeviceClass('Pool', QPool)
     factory.registerDeviceClass('MeasurementGroup', QMeasurementGroup)

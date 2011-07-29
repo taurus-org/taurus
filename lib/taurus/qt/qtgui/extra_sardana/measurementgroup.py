@@ -26,7 +26,7 @@
 """This module provides a base widget that can be used to display a taurus 
 model in a table widget"""
 
-__all__ = ["MntGrpChannelEditor"]
+__all__ = ["MntGrpChannelEditor", "MntGrpChannelPanel"]
 
 __docformat__ = 'restructuredtext'
 
