@@ -42,7 +42,7 @@ from pooldefs import *
 from poolelement import *
 from poolcontroller import *
 from poolmotor import *
-
+from poolaction import OperationInfo
 
 class PoolMonitor(Logger, threading.Thread):
     
@@ -58,6 +58,8 @@ class PoolMonitor(Logger, threading.Thread):
         self._pool = pool
         self._stop = False
         self._thread_pool = None
+        self._state_info = OperationInfo()
+        self._value_info = OperationInfo()
         if auto_start:
             self.start()
     
@@ -107,11 +109,9 @@ class PoolMonitor(Logger, threading.Thread):
         if serial:
             update = self._update_state_info_serial
         
-        self._state_count = len(pool_ctrls)
+        self._state_info.init(len(pool_ctrls))
         update(pool_ctrls)
-        while self._state_count > 0:
-            self.debug("waiting for all controllers to finish")
-            time.sleep(0.01)
+        self._state_info.wait()
             
     def _update_state_info_serial(self, pool_ctrls):
         for pool_ctrl in pool_ctrls:
@@ -129,7 +129,7 @@ class PoolMonitor(Logger, threading.Thread):
                 state_info = elem._from_ctrl_state_info(state_info)
                 elem.set_state_info(state_info)
         finally:
-            self._state_count = max(0, self._state_count-1)
+            self._state_info.finishOne()
             
     def stop(self):
         self._stop = True

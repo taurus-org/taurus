@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the class for an
 abstract action over a set of pool elements"""
 
-__all__ = [ "PoolAction", "PoolActionItem", "get_thread_pool" ]
+__all__ = [ "OperationInfo", "PoolAction", "PoolActionItem", "get_thread_pool" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -34,6 +34,7 @@ import sys
 import time
 import weakref
 import traceback
+import threading
 
 from taurus.core.util import Logger, DebugIt, InfoIt
 
@@ -56,12 +57,39 @@ class PoolActionItem(object):
     element = property(get_element)
     
 
+class OperationInfo(object):
+    
+    def __init__(self):
+        self.state_count = 0
+        self.state_lock = threading.Lock()
+        self.state_event = threading.Event()
+        
+    def init(self, count):
+        self.state_count = count
+        self.state_event.clear()
+    
+    def wait(self, timeout=None):
+        return self.state_event.wait(timeout)
+        
+    def finishOne(self):
+        self.state_lock.acquire()
+        try:
+            self.state_count = self.state_count - 1
+            if self.state_count < 1:
+                self.state_count = 0
+                self.state_event.set()
+        finally:
+            self.state_lock.release()
+
+
 class PoolAction(Logger):
     
     def __init__(self, name="GlobalAction"):
         Logger.__init__(self, name)
         self._elements = []
         self._pool_ctrls = {}
+        self._state_info = OperationInfo()
+        self._value_info = OperationInfo()
 
     def add_element(self, element):
         ctrl_items = self._pool_ctrls.get(element.controller)
@@ -111,12 +139,14 @@ class PoolAction(Logger):
     
     def read_state_info(self, ret=None, serial=False):
         if ret is None: ret = {}
-        self._state_count = len(self._pool_ctrls)
         read = self._read_state_info_concurrent
         if serial:
             read = self._read_state_info_serial
 
-        return read(ret)
+        self._state_info.init(len(self._pool_ctrls))
+        read(ret)
+        self._state_info.wait()
+        return ret
 
     def _read_state_info_serial(self, ret):
         for pool_ctrl in self._pool_ctrls:
@@ -127,10 +157,6 @@ class PoolAction(Logger):
         tp = get_thread_pool()
         for pool_ctrl in self._pool_ctrls:
             tp.add(self._read_ctrl_state_info, None, ret, pool_ctrl)
-        
-        while self._state_count > 0:
-            self.debug("waiting for all controllers to finish")
-            time.sleep(0.01)
         return ret
     
     def _get_ctrl_error_state_info(self, pool_ctrl):
@@ -154,16 +180,19 @@ class PoolAction(Logger):
             for elem in self._pool_ctrls[pool_ctrl]:
                 ret[elem] = state_info
         finally:
-            self._state_count = max(0, self._state_count-1)
+            self._state_info.finishOne()
 
     def read_value(self, ret=None, serial=False):
         if ret is None: ret = {}
-        self._value_count = len(self._pool_ctrls)
+        
         read = self._read_value_concurrent
         if serial:
             read = self._read_value_serial
-
-        return read(ret)
+        
+        self._value_info.init(len(self._pool_ctrls))
+        read(ret)
+        self._value_info.wait()
+        return ret
 
     def _read_value_serial(self, ret):
         for pool_ctrl in self._pool_ctrls:
@@ -174,10 +203,6 @@ class PoolAction(Logger):
         tp = get_thread_pool()
         for pool_ctrl in self._pool_ctrls:
             tp.add(self._read_ctrl_value, None, ret, pool_ctrl)
-        
-        while self._value_count > 0:
-            self.debug("waiting for all controllers to finish")
-            time.sleep(0.01)
         return ret
     
     def _read_ctrl_value(self, ret, pool_ctrl):
@@ -186,7 +211,7 @@ class PoolAction(Logger):
             value_infos = pool_ctrl.read_axis_values(axises)
             ret.update( value_infos )
         finally:
-            self._value_count = max(0, self._value_count-1)
+            self._value_info.finishOne()
     
     
     def abort(self, element=None):

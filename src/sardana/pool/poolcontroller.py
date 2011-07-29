@@ -300,7 +300,7 @@ class PoolController(PoolBaseController):
     
     @check_ctrl
     def get_standard_axis_attributes(self, axis):
-        return self.ctrl.getStandardAxisAttributes(axis)
+        return self.ctrl.GetStandardAxisAttributes(axis)
     
     @check_ctrl
     def get_ctrl_attr(self, name):
@@ -323,7 +323,7 @@ class PoolController(PoolBaseController):
         if hasattr(self.ctrl, axis_attr_info.fget):
             ret = getattr(self.ctrl, axis_attr_info.fget)(axis)
         else:
-            ret = self.ctrl.GetExtraPar(axis, name)
+            ret = self.ctrl.GetAxisExtraPar(axis, name)
         return ret
     
     @check_ctrl
@@ -333,7 +333,7 @@ class PoolController(PoolBaseController):
         try:
             return getattr(self.ctrl, axis_attr_info.fset)(axis, value)
         except AttributeError:
-            return self.ctrl.SetExtraPar(axis, name, value)
+            return self.ctrl.SetAxisExtraPar(axis, name, value)
     
     @check_ctrl
     def set_ctrl_par(self, name, value):

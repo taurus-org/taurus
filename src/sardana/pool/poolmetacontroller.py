@@ -167,6 +167,7 @@ DTYPE_MAP = { 'int'            : DataType.Integer,
 DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
                 DataAccess.ReadOnly  : DataAccess.ReadOnly,
                 'readwrite'          : DataAccess.ReadWrite,
+                'read_write'         : DataAccess.ReadWrite,
                 DataAccess.ReadWrite : DataAccess.ReadWrite,}
 
 def from_dtype_str(dtype):
@@ -184,6 +185,13 @@ def from_dtype_str(dtype):
             dformat = DataFormat.OneD
     return dtype, dformat
 
+def from_access_str(access):
+    if type(access) == str:
+        access = access.lower()
+        if access.startswith("pytango."):
+            access = access[len("pytango."):]
+    return access
+        
 class DataInfo(object):
     
     def __init__(self, name, dtype, dformat=DataFormat.Scalar,
@@ -221,6 +229,8 @@ class DataInfo(object):
         default_value = info.get('defaultvalue')
         description = info.get('description', '')
         access = info.get('r/w type', DataAccess.ReadWrite)
+        if type(access) == str:
+            access = from_access_str(access)
         access = DACCESS_MAP[access]
         fget = info.get('fget')
         fset = info.get('fset')
@@ -312,14 +322,14 @@ class ControllerClass(object):
           'organization' : self.getOrganization(),}
         
         ctrl_props = {}
-        for name, ctrl_prop in self.getControllerProperties().items():
-            ctrl_props[name] = ctrl_prop.toDict()
+        for ctrl_prop in self.getControllerProperties().values():
+            ctrl_props[ctrl_prop.name] = ctrl_prop.toDict()
         ctrl_attrs = {}
-        for name, ctrl_attr in self.getControllerAttributes().items():
-            ctrl_attrs[name] = ctrl_attr.toDict()
+        for ctrl_attr in self.getControllerAttributes().values():
+            ctrl_attrs[ctrl_attr.name] = ctrl_attr.toDict()
         axis_attrs = {}
-        for name, axis_attr in self.getAxisAttributes().items():
-            axis_attrs[name] = axis_attr.toDict()
+        for axis_attr in self.getAxisAttributes().values():
+            axis_attrs[ctrl_attr.name] = axis_attr.toDict()
         
         ret['ctrl_properties'] = ctrl_props
         ret['ctrl_attributes'] = ctrl_attrs

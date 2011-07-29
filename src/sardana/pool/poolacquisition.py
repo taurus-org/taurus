@@ -77,34 +77,40 @@ class PoolCTAcquisition(PoolAction):
         if integ_time is not None and mon_count is not None:
             raise Exception("must give either integration time or monitor counts (not both)")
         
-        self._head = head = kwargs.get("head")
         items = kwargs.get("items")
         if items is None:
             items = self.get_elements()
         cfg = kwargs['config']
         
-        # determine which is the controller which olds the timer
-        if integ_time is not None:
-            timer = cfg['timer']
-            timer_ctrl = timer.controller
+        # determine which is the controller which olds the master channel
+        master_key, master_value = 'timer', integ_time
 
-        pool_ctrls = self._pool_ctrls.keys()
+        if mon_count is not None:
+            master_key = 'monitor'
+            master_value = - mon_count
+        
+        master = cfg[master_key]
+        master_ctrl = master.controller
+
+        pool_ctrls_dict = cfg['controllers']
+        pool_ctrls = pool_ctrls_dict.keys()
         
         # make sure the controller which has the master channel is the last to
         # be called
-        pool_ctrls.remove(timer_ctrl)
-        pool_ctrls.append(timer_ctrl)
+        pool_ctrls.remove(master_ctrl)
+        pool_ctrls.append(master_ctrl)
         
-        units = cfg['units']
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
-            timer = units[pool_ctrl]['timer']
-            axis = timer.axis
+            pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
+            main_unit_data = pool_ctrl_data['units']['0']
             ctrl.PreLoadAll()
-            res = ctrl.PreLoadOne(axis, integ_time)
+            master = main_unit_data[master_key]
+            axis = master.axis
+            res = ctrl.PreLoadOne(axis, master_value)
             if not res:
                 raise Exception("%s.PreLoadOne(%d) returns False" % (pool_ctrl.name, axis,))
-            ctrl.LoadOne(axis, integ_time)
+            ctrl.LoadOne(axis, master_value)
             ctrl.LoadAll()
 
         # PreStartAllCT on all controllers
@@ -114,14 +120,14 @@ class PoolCTAcquisition(PoolAction):
         # PreStartOneCT & StartOneCT on all elements
         enabled_channels = []
         for pool_ctrl in pool_ctrls:
-            elements = self._pool_ctrls[pool_ctrl]
-            unit = units[pool_ctrl]
-            channels = unit['channels']
             ctrl = pool_ctrl.ctrl
-            for element in elements:
+            pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
+            main_unit_data = pool_ctrl_data['units']['0']
+            elements = main_unit_data['channels']
+            
+            for element, element_info in elements.items():
                 axis = element.axis
-                info = channels[element]
-                channel = Channel(element, info=info)
+                channel = Channel(element, info=element_info)
                 if channel.enabled:
                     ret = ctrl.PreStartOneCT(axis)
                     if not ret:
@@ -129,9 +135,6 @@ class PoolCTAcquisition(PoolAction):
                                         % (ctrl.name, axis))
                     ctrl.StartOneCT(axis)
                     enabled_channels.append(channel)
-        
-        #if head is not None:
-        #    head.set_state(State.Moving, propagate=2)
         
         # set the state of all elements to  and inform their listeners
         for channel in enabled_channels:

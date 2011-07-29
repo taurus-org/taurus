@@ -199,6 +199,18 @@ class Pool(PoolContainer, PoolObject):
                     pseudo_motor_ids = [ self.get_new_id() for i in range(pm_nb) ]
                 kwargs['pseudo_motor_ids'] = pseudo_motor_ids
         
+        # make sure the properties (that may have come from a case insensitive
+        # environment like tango) are made case sensitive
+        props = {}
+        ctrl_prop_info = ctrl_class_info.getControllerProperties()
+        for k, v in kwargs['properties'].items():
+            info = ctrl_prop_info.get(k)
+            if k is None:
+                props[k] = v
+            else:
+                props[info.name] = v
+        kwargs['properties'] = props
+        
         ctrl = klass(**kwargs)
         ret = self.add_element(ctrl)
         self.fire_event(EventType("ElementCreated"),
@@ -219,7 +231,6 @@ class Pool(PoolContainer, PoolObject):
         
         #if not ctrl.is_online():
         #    raise Exception("Controller is offline. It is not possible to add %s" % name)
-        
         elem_axis = ctrl.get_element(axis=axis)
         if elem_axis is not None:
             raise Exception("Controller already contains axis %d (%s)" % (axis, elem_axis.get_name()))
@@ -277,6 +288,12 @@ class Pool(PoolContainer, PoolObject):
             if elem.get_type() not in (ElementType.Motor, ElementType.PseudoMotor):
                 raise Exception("%s is not a motor" % elem.name)
 
+        id = kwargs.get('id')
+        if id is None:
+            kwargs['id'] = id = self.get_new_id()
+        else:
+            self.reserve_id(id)
+            
         elem = klass(**kwargs)
 
         ret = self.add_element(elem)
@@ -304,7 +321,13 @@ class Pool(PoolContainer, PoolObject):
         for elem_id in elem_ids:
             elem = self.pool.get_element(id=elem_id)
             # Do any check here if necessary
-        
+
+        id = kwargs.get('id')
+        if id is None:
+            kwargs['id'] = id = self.get_new_id()
+        else:
+            self.reserve_id(id)
+            
         elem = klass(**kwargs)
 
         ret = self.add_element(elem)

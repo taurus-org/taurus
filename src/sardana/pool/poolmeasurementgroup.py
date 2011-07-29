@@ -41,12 +41,13 @@ from sardana import State
 # dict <str, obj> with (at least) keys:
 #    - 'timer' : the timer channel name / timer channel id
 #    - 'monitor' : the monitor channel name / monitor channel id
-#    - 'controllers' : dict<str/int, dict> where:
-#        - key: ctrl name / ctrl id
+#    - 'controllers' : dict<Controller, dict> where:
+#        - key: ctrl
 #        - value: dict<str, dict> with (at least) keys:
 #            - 'units': dict<str, dict> with (at least) keys:
 #                - 'id' : the unit ID inside the controller
-#                - 'master' : the master channel name / master channel id
+#                - 'timer' : the timer channel name / timer channel id
+#                - 'monitor' : the monitor channel name / monitor channel id
 #                - 'trigger_type' : 'Gate'/'Software'
 #                - 'channels' where value is a dict<str, obj> with (at least) keys:
 #                    - 'id' : the channel name ( channel id )
@@ -87,8 +88,6 @@ from sardana import State
 """
 
 """
-
-_S_DICT = { State.Fault: 0, State.Alarm : 0, State.On : 0, State.Moving : 0, State.Running : 0 }
 
 class PoolMeasurementGroup(PoolGroupElement):
 
@@ -265,21 +264,21 @@ class PoolMeasurementGroup(PoolGroupElement):
         """Loads the current configuration to all involved controllers"""
         cfg = self.get_configuration()
         g_timer, g_monitor = cfg['timer'], cfg['monitor']
-        for unit, unit_data in cfg['units'].items():
-            ctrl = unit
+        
+        for ctrl, ctrl_data in cfg['controllers'].items():
             if ctrl.operator == self and not force and not self._config_dirty:
                 continue
             ctrl.operator = self
-            
-            #if ctrl == g_timer.controller:
-            #    ctrl.set_ctrl_par('timer', g_timer.axis)
-            #if ctrl == g_monitor.controller:
-            #    ctrl.set_ctrl_par('monitor', g_monitor.axis)
-            ctrl.set_ctrl_par('timer', unit_data['timer'].axis)
-            ctrl.set_ctrl_par('monitor', unit_data['monitor'].axis)
-            ctrl.set_ctrl_par('trigger_type', unit_data['trigger_type'])
+            for unit, unit_data in ctrl_data['units'].items():
+                #if ctrl == g_timer.controller:
+                #    ctrl.set_ctrl_par('timer', g_timer.axis)
+                #if ctrl == g_monitor.controller:
+                #    ctrl.set_ctrl_par('monitor', g_monitor.axis)
+                ctrl.set_ctrl_par('timer', unit_data['timer'].axis)
+                ctrl.set_ctrl_par('monitor', unit_data['monitor'].axis)
+                ctrl.set_ctrl_par('trigger_type', unit_data['trigger_type'])
 
-            self._config_dirty = False
+                self._config_dirty = False
             
     def get_timer(self):
         return self.get_configuration()['timer']

@@ -162,7 +162,7 @@ class Controller:
         return self.setPar(axis, parameter, value)
     
     #def GetAxisPar(self, unit, axis, parameter):
-    def getAxisPar(self, axis, parameter):
+    def GetAxisPar(self, axis, parameter):
         """**Controller API**. Overwrite as necessary.
         Called to get a parameter value on the given axis.
         Default implementation calls deprecated :meth:`Controller.GetPar`.
@@ -170,6 +170,22 @@ class Controller:
         .. versionadded:: 1.0"""
         return self.getPar(axis, parameter)
     
+    def SetExtraAxisPar(self, axis, parameter, value):
+        """**Controller API**. Overwrite as necessary.
+        Called to set a parameter with a value on the given axis.
+        Default implementation calls deprecated :meth:`Controller.SetExtraAttributePar`.
+        
+        .. versionadded:: 1.0"""
+        return self.SetExtraAttributePar(axis, parameter, value)
+    
+    def GetAxisExtraPar(self, axis, parameter):
+        """**Controller API**. Overwrite as necessary.
+        Called to get a parameter value on the given axis.
+        Default implementation calls deprecated :meth:`Controller.GetExtraAttributePar`.
+        
+        .. versionadded:: 1.0"""
+        return self.GetExtraAttributePar(axis, parameter)
+
     def SetPar(self, axis, parameter, value):
         """**Controller API**. *Dreprecated: use setAxisPar instead.*.
         Called to set a parameter with a value on the given axis.
@@ -187,9 +203,27 @@ class Controller:
         .. deprecated:: 1.0
             Deprecated: use :meth:`Controller.GetAxisPar` instead"""
         raise NotImplementedError
-    
+
+    def SetExtraAttributePar(self, axis, parameter, value):
+        """**Controller API**. *Dreprecated: use setAxisExtraPar instead.*.
+        Called to set a parameter with a value on the given axis.
+        Default implementation raises NotImplementedError.
+
+        .. deprecated:: 1.0
+            Deprecated: use :meth:`Controller.SetAxisExtraPar` instead"""
+        raise NotImplementedError
+
+    def GetExtraAttributePar(self, axis, parameter):
+        """**Controller API**. *Dreprecated: use setAxisExtraPar instead.*.
+        Called to get a parameter value on the given axis.
+        Default implementation raises NotImplementedError.
+
+        .. deprecated:: 1.0
+            Deprecated: use :meth:`Controller.GetAxisExtraPar` instead"""
+        raise NotImplementedError
+        
     @classmethod
-    def getStandardAxisAttributes(self, axis):
+    def GetStandardAxisAttributes(self, axis):
         """**Controller API**. Overwrite as necessary.
         Returns a sequence of standard attributes per axis.
         Default implementation returns empty :class:`tuple`.
@@ -265,7 +299,7 @@ class MotorController(Controller):
         pass
     
     @classmethod
-    def getStandardAxisAttributes(self, axis):
+    def GetStandardAxisAttributes(self, axis):
         """**Motor Controller API**. Overwrite as necessary.
         Returns a sequence of standard attributes per axis.
         Default implementation returns a :class:`tuple` containning:

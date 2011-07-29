@@ -380,7 +380,8 @@ class ControllerManager(Singleton, Logger):
                 m = self.reloadControllerLib(module_name, path, fire_event=False)
                 if m: ret.append(m)
             except:
-                pass
+                self.info("Failed to reload controller lib %s", module_name)
+                self.debug("Failed to reload controller lib %s details", module_name, exc_info=1)
         
         if fire_event:
             new_modules = self.getControllerLibNames()
@@ -458,18 +459,32 @@ class ControllerManager(Singleton, Logger):
         
     def addController(self, controller_lib, klass, fire_event=False):
         controller_name = klass.__name__
-        action = (controller_lib.hasController(controller_name) and "Updating") or "Adding"
+        exists = controller_lib.hasController(controller_name)
+        if exists:
+            action = "Updating"
+        else:
+            action = "Adding"
+
         self.debug("%s controller %s" % (action, controller_name))
         
-        controller_class = ControllerClass(controller_lib, klass)
-        
-        self._setControllerTypes(klass, controller_class)
-        
-        controller_lib.addController(controller_class)
-        self._controller_dict[controller_name] = controller_class
-        
-        if fire_event:
-            self._fireControllerEvent()
+        try:
+            controller_class = ControllerClass(controller_lib, klass)
+            
+            self._setControllerTypes(klass, controller_class)
+            
+            controller_lib.addController(controller_class)
+            self._controller_dict[controller_name] = controller_class
+            
+            if fire_event:
+                self._fireControllerEvent()
+        except:
+            self.debug("Faild to add controller class %s", controller_name, exc_info=1)
+
+        if exists:
+            action = "Updated"
+        else:
+            action = "Added"
+        self.debug("%s controller %s" % (action, controller_name))
    
     def getControllerNames(self):
         return sorted(self._controller_dict.keys())

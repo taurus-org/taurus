@@ -23,25 +23,36 @@
 ##
 ##############################################################################
 
-""" """
+"""Pool utils"""
+
+__all__ = ["PoolUtil"]
 
 __docformat__ = 'restructuredtext'
 
-from .controller import *
+from PyTango import DeviceProxy, Database
+from taurus.core.util import CaselessDict
 
-from .pooldefs import *
-from .poolbase import *
-from .poolelement import *
-from .poolgroupelement import *
-from .poolcontainer import *
-from .poolcontroller import *
-from .poolmotor import *
-from .poolmoveable import *
-from .poolpseudomotor import *
-from .poolinstrument import *
-from .poolcontrollermanager import *
-from .poolmetacontroller import *
-from .poolmodulemanager import *
-from .poolmeasurementgroup import *
-from .pool import *
-from .poolutil import *
+class _PoolUtil(object):
+    
+    def __init__(self):
+        self._ctrl_proxies = CaselessDict()
+    
+    def get_device(self, *args, **kwargs):
+        ctrl_name = args[0]
+        device_name = args[1]
+        ctrl_devs = self._ctrl_proxies.get(ctrl_name)
+        if ctrl_devs is None:
+            self._ctrl_proxies[ctrl_name] = ctrl_devs = CaselessDict()
+        dev = ctrl_devs.get(device_name)
+        if dev is None:
+            ctrl_devs[device_name] = dev = DeviceProxy(device_name)
+        return dev
+    
+    get_motor = get_phy_motor = get_pseudo_motor = get_motor_group = \
+        get_exp_channel = get_ct_channel = get_zerod_channel = get_oned_channel = \
+        get_twod_channel = get_pseudo_counter_channel = get_measurement_group = \
+        get_com_channel = get_ioregister = get_device
+        
+
+
+PoolUtil = _PoolUtil()

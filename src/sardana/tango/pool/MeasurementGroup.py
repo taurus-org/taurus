@@ -165,7 +165,11 @@ class MeasurementGroup(PoolGroupDevice):
     
     def write_AcquisitionMode(self, attr):
         acq_mode_str = attr.get_write_value()
-        acq_mode = AcqMode.lookup[acq_mode_str]
+        try:
+            acq_mode = AcqMode.lookup[acq_mode_str]
+        except KeyError:
+            raise Exception("Invalid acquisition mode. Must be one of " + \
+                            ", ".join(AcqMode.keys()))
         self.measurement_group.acquisition_mode = acq_mode
         
     def read_Configuration(self, attr):

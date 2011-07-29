@@ -32,6 +32,8 @@ __all__ = ["prepare_tango_logging", "prepare_rconsole", "run_tango_server", "run
 
 def clean_tango_args(args):
     ret, ret_for_tango = [], []
+    
+    tango_args = "-?", "-nodb", "-file="
     for i in range(len(args)):
         arg = args[i]
         try:
@@ -40,11 +42,8 @@ def clean_tango_args(args):
                 continue
         except:
             pass
-        if arg.startswith("-file="):
-            ret_for_tango.append(arg)
-            continue
-        if arg == "-nodb":
-            ret_for_tango.append(arg)
+        if arg.startswith(tango_args):
+            ret_for_tango.append(arg) 
             continue
         if arg == "-dlist":
             ret_for_tango.append(arg)
@@ -65,21 +64,23 @@ def prepare_cmdline(parser=None, args=None):
     if parser is None:
         parser = optparse.OptionParser()
     
+    parser.usage = "usage: %prog instance_name [options]"
     log_level_choices = "critical", "error", "warning", "info", "debug", "trace", \
                         "0", "1", "2", "3", "4", "5"
     help_olog = "log output level. Possible values are (case sensitive): " \
                 "critical (or 0), error (1), warning (2), info (3) " \
-                "debug (4), trace (5). Default is warning."
+                "debug (4), trace (5) [default: %default]"
     help_flog = "log file level. Possible values are (case sensitive): " \
                 "critical (or 0), error (1), warning (2), info (3) " \
-                "debug (4), trace (5). Default is debug."
-    help_fnlog = "file log name. When given, MUST be absolute file name. " \
-                "Defaults to /tmp/tango/<DS name>/<DS instance name lower case>/log.txt" \
-                "(unless --without-log-file is True). "
+                "debug (4), trace (5) [default: %default]. " \
+                "Ignored if --without-log-file is True"
+    help_fnlog = "log file name. When given, MUST be absolute file name. " \
+                "[default: /tmp/tango/<DS name>/<DS instance name lower case>/log.txt]. " \
+                "Ignored if --without-log-file is True"
     help_tango_v = "tango trace level"
     help_tango_f = "tango db file name"
-    help_wflog = "When set to True disables logging into a file. Default is False"
-    help_rfoo = "rconsole port number. Default is 0 meaning rconsole NOT active"
+    help_wflog = "When set to True disables logging into a file [default: %default]"
+    help_rfoo = "rconsole port number. [default: %default meaning rconsole NOT active]"
     parser.add_option("--log-level", dest="log_level", metavar="LOG_LEVEL",
                       help=help_olog, type="choice", choices=log_level_choices, default="warning")
     parser.add_option("--log-file-level", dest="log_file_level", metavar="LOG_FILE_LEVEL",
