@@ -233,9 +233,8 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 objType = _Attribute
             elif _Configuration.isValid(absolute_name, MatchLevel.SHORT):
                 objType = _Configuration
-        except Exception, e:
-            self.debug("Not able to find Object class for %s" % absolute_name)
-            self.traceback()
+        except:
+            self.debug("Not able to find Object class for %s" % absolute_name, exc_info=1)
         return objType
 
     def getDatabase(self, db_name = None):
@@ -265,10 +264,9 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                             raise TaurusException("Invalid default Tango database name %s" % db_name)
                         host, port = params.get('host'),params.get('port')
                         self.dft_db = _Database(host,port)
-                except Exception, e:
-                    msg = "Could not create Database: %s" % str(e)
-                    self.debug(msg)
-                    raise TaurusException(msg)
+                except:
+                    self.debug("Could not create Database", exc_info=1)
+                    raise
                 db_name = self.dft_db.getFullName()
                 self.tango_db[db_name] = self.dft_db
             ret = self.dft_db
@@ -283,10 +281,8 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
             host, port = params.get('host'),params.get('port')
             try:
                 ret = _Database(host,port)
-            except Exception:
-                msg = "Could not create Database %s:%s" % (host,port)
-                self.debug(msg)
-                raise TaurusException(msg)
+            except:
+                self.debug("Could not create Database %s:%s", host, port, exc_info=1)
             
             self.tango_db[db_name] = ret
         return ret 
@@ -339,12 +335,12 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 alias = db.get_alias(dev_name)
                 if alias and alias.lower() == taurus.core.InvalidAlias:
                     alias = None 
-            except Exception:
+            except:
                 alias = None
         else:
             try:
                 dev_name = db.get_device_alias(alias)
-            except Exception:
+            except:
                 raise TaurusException("Device %s is not defined in %s." % (alias,db.getFullName()))
 
         full_dev_name = db.getFullName() + "/" + dev_name
@@ -363,11 +359,9 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 # so there is no need to do it here
             except DoubleRegistration:
                 d = self.tango_devs.get(full_dev_name)
-            except Exception, e:
-                self.debug("Error creating device %s", dev_name)
-                import traceback
-                traceback.print_exc()
-                raise e
+            except:
+                self.debug("Error creating device %s", dev_name, exc_info=1)
+                raise
         return d
 
     def getAttribute(self,attr_name, **kwargs):
@@ -436,9 +430,9 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                         # so there is no need to do it here
                     except DoubleRegistration:
                          attr = self.tango_attrs.get(full_attr_name)
-            except Exception, e:
-                self.debug("Error creating attribute %s", attr_name)
-                raise e
+            except:
+                self.debug("Error creating attribute %s", attr_name, exc_info=1)
+                raise
         return attr
 
     def getAttributeInfo(self,full_attr_name):
@@ -647,12 +641,12 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
                 alias = db.get_alias(dev_name)
                 if alias and alias.lower() == taurus.core.InvalidAlias:
                     alias = None 
-            except Exception:
+            except:
                 alias = None
         else:
             try:
                 dev_name = db.get_device_alias(alias)
-            except Exception:
+            except:
                 raise TaurusException("Device %s is not defined in %s." % (alias,db.getFullName()))
 
         full_dev_name = db.getFullName() + "/" + dev_name
