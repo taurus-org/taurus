@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-""" """
+"""Generic Tango Pool Device base classes"""
 
 __all__ = ["PoolDevice", "PoolDeviceClass",
            "PoolElementDevice", "PoolElementDeviceClass",
@@ -31,21 +31,18 @@ __all__ = ["PoolDevice", "PoolDeviceClass",
 
 __docformat__ = 'restructuredtext'
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
-from PyTango import DevVarStringArray
-from PyTango import DispLevel, DevState
-from PyTango import SCALAR, SPECTRUM, IMAGE
-from PyTango import READ_WRITE, READ
-from PyTango import Attr, SpectrumAttr, ImageAttr
-from taurus.core.util.log import Logger, InfoIt
+from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
+    DevDouble, DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
+    IMAGE, READ_WRITE, READ
+#from taurus.core.util.log import Logger, InfoIt
 
 from sardana.tango.core import SardanaDevice, SardanaDeviceClass
-from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, GenericImageAttr
-from sardana.tango.core import to_tango_state, to_tango_type_format, to_tango_access
+from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, \
+    GenericImageAttr, to_tango_type_format, to_tango_access
 from sardana.pool import InvalidId, InvalidAxis
 
 class PoolDevice(SardanaDevice):
+    """Base Tango Pool Device class"""
     
     def __init__(self, dclass, name):
         SardanaDevice.__init__(self, dclass, name)
@@ -73,10 +70,10 @@ class PoolDevice(SardanaDevice):
     element = property(get_element, set_element)
     
     def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
-        for e in evts_checked_by_tango:
-            self.set_change_event(e, True, True)
-        for e in evts_not_checked_by_tango:
-            self.set_change_event(e, True, False)
+        for evt in evts_checked_by_tango:
+            self.set_change_event(evt, True, True)
+        for evt in evts_not_checked_by_tango:
+            self.set_change_event(evt, True, False)
     
     def init_device(self):
         SardanaDevice.init_device(self)
@@ -103,7 +100,8 @@ class PoolDevice(SardanaDevice):
     
 
 class PoolDeviceClass(SardanaDeviceClass):
-
+    """Base Tango Pool Device Class class"""
+    
     #    Class Properties
     class_property_list = SardanaDeviceClass.class_property_list
 
@@ -128,7 +126,8 @@ class PoolDeviceClass(SardanaDeviceClass):
 
 
 class PoolElementDevice(PoolDevice):
-
+    """Base Tango Pool Element Device class"""
+    
     def init_device(self):
         PoolDevice.init_device(self)
         self.instrument = None
@@ -216,7 +215,10 @@ class PoolElementDevice(PoolDevice):
         ctrl = self.ctrl
         if ctrl is None:
             raise Exception("Cannot read %s. Controller not build!" % name)
-        attr.set_value(ctrl.get_axis_attr(self.element.axis, name))
+        v = ctrl.get_axis_attr(self.element.axis, name)
+        if v is None:
+            raise Exception("Cannot read %s. Controller returns %s" % (name, v))
+        attr.set_value(v)
     
     def write_DynammicAttribute(self, attr):
         name = attr.get_name()
@@ -227,7 +229,8 @@ class PoolElementDevice(PoolDevice):
 
 
 class PoolElementDeviceClass(PoolDeviceClass):
-
+    """Base Tango Pool Element Device Class class"""
+    
     #    Class Properties
     class_property_list = PoolDeviceClass.class_property_list
 
@@ -254,7 +257,8 @@ class PoolElementDeviceClass(PoolDeviceClass):
     
 
 class PoolGroupDevice(PoolDevice):
-
+    """Base Tango Pool Group Device class"""
+    
     def read_ElementList(self, attr):
         attr.set_value(self.get_element_names())
 
@@ -267,6 +271,7 @@ class PoolGroupDevice(PoolDevice):
     
 
 class PoolGroupDeviceClass(PoolDeviceClass):
+    """Base Tango Pool Group Device Class class"""
     
     #    Class Properties
     class_property_list = {

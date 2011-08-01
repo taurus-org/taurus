@@ -29,14 +29,21 @@ __all__ = ["Controller", "ControllerClass"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import PyTango
+from PyTango import Util, DevFailed
+from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
+from PyTango import DevVarStringArray
+from PyTango import DispLevel, DevState
+from PyTango import SCALAR, SPECTRUM, IMAGE
+from PyTango import READ_WRITE, READ
+from PyTango import Attr, SpectrumAttr, ImageAttr
 
 from taurus.core.util.log import InfoIt, DebugIt
 
 from sardana import DataType, DataFormat
+from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, \
+    GenericImageAttr, to_tango_type_format, to_tango_access
+
 from PoolDevice import PoolDevice, PoolDeviceClass
-from sardana.tango.core import to_tango_type_format, to_tango_access
 
 def to_bool(s):
     return s.lower() == "true"
@@ -84,7 +91,7 @@ class Controller(PoolDevice):
             prop_infos = ctrl_info.getControllerProperties()
         except:
             return {}
-        db = PyTango.Util.instance().get_database()
+        db = Util.instance().get_database()
         
         props = {}
         if prop_infos:
@@ -117,7 +124,7 @@ class Controller(PoolDevice):
             ret[prop_name] = prop_value
         
         if missing_props:
-            self.set_state(PyTango.DevState.ALARM)
+            self.set_state(DevState.ALARM)
             missing_props = ", ".join(missing_props)
             self.set_status("Controller has missing properties: %s" % missing_props)
         
@@ -131,8 +138,8 @@ class Controller(PoolDevice):
     
     def dev_state(self):
         if self.ctrl is None or not self.ctrl.is_online():
-            return PyTango.DevState.FAULT
-        return PyTango.DevState.ON
+            return DevState.FAULT
+        return DevState.ON
     
     def dev_status(self):
         if self.ctrl is None or not self.ctrl.is_online():
@@ -166,16 +173,16 @@ class Controller(PoolDevice):
             tg_type, tg_format = to_tango_type_format(attr_info.dtype, attr_info.dformat)
             tg_access = to_tango_access(attr_info.access)
             read, write = Controller.read_DynammicAttribute, None
-            if tg_access == PyTango.READ_WRITE:
+            if tg_access == READ_WRITE:
                 write = Controller.write_DynammicAttribute
             klass = GenericScalarAttr
-            if tg_format == PyTango.SPECTRUM:
+            if tg_format == SPECTRUM:
                 klass = GenericSpectrumAttr
-            elif tg_format == PyTango.IMAGE:
+            elif tg_format == IMAGE:
                 klass = GenericImageAttr
                 
             attr = klass(name, tg_type, tg_access)
-            if tg_access == PyTango.READ_WRITE:
+            if tg_access == READ_WRITE:
                 attr.set_memorized()
                 attr.set_memorized_init(True)
             self.add_attribute(attr, read, write)
@@ -196,69 +203,37 @@ class Controller(PoolDevice):
     
     def write_LogLevel(self, attr):
         self.ctrl.set_log_level(attr.get_write_value())
-    
-
-class GenericScalarAttr(PyTango.Attr):
-    pass
-
-
-class GenericSpectrumAttr(PyTango.SpectrumAttr):
-    
-    def __init__(self, name, tg_type, tg_access):
-        PyTango.SpectrumAttr.__init__(self, name, tg_type, tg_access, 2048)
-
-
-class GenericImageAttr(PyTango.ImageAttr):
-
-    def __init__(self, name, tg_type, tg_access):
-        PyTango.ImageAttr.__init__(self, name, tg_type, tg_access, 2048, 2048)
 
 
 class ControllerClass(PoolDeviceClass):
 
     #    Class Properties
     class_property_list = {
-        }
+    }
     class_property_list.update(PoolDeviceClass.class_property_list)
 
     #    Device Properties
     device_property_list = {
-        'Type':
-            [PyTango.DevString,
-            "",
-            [] ],
-        'Library':
-            [PyTango.DevString,
-            "",
-            [] ],
-        'Klass':
-            [PyTango.DevString,
-            "",
-            [] ],
-        }
+        'Type':           [DevString, "", [] ],
+        'Library':        [DevString, "", [] ],
+        'Klass':          [DevString, "", [] ],
+    }
     device_property_list.update(PoolDeviceClass.device_property_list)
 
     #    Command definitions
     cmd_list = {
-        'CreateElement':
-            [[PyTango.DevVarStringArray, ""],
-            [PyTango.DevVoid, ""]],
-        'DeleteElement':
-            [[PyTango.DevString, ""],
-            [PyTango.DevVoid, ""]],
-        }
+        'CreateElement': [ [DevVarStringArray, ""], [DevVoid, ""] ],
+        'DeleteElement': [ [DevString, ""], [DevVoid, ""] ],
+    }
     cmd_list.update(PoolDeviceClass.cmd_list)
 
     #    Attribute definitions
     attr_list = {
-        'ElementList':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 4096]],
-        'LogLevel':
-            [[PyTango.DevLong,
-            PyTango.SCALAR,
-            PyTango.READ_WRITE]],
+        'ElementList':   [ [DevString, SPECTRUM, READ, 4096] ],
+        'LogLevel':      [ [DevLong, SCALAR, READ_WRITE],
+                           { 'Memorized'     : "true",
+                             'label'         : "Log level",
+                             'Display level' : DispLevel.EXPERT } ],
         }
     attr_list.update(PoolDeviceClass.attr_list)
 

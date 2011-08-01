@@ -39,7 +39,7 @@ from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
-from PoolDevice import to_tango_state
+from sardana.tango.core import to_tango_state
 
 class Motor(PoolElementDevice):
 

@@ -55,6 +55,11 @@ def clean_tango_args(args):
     return ret, ret_for_tango
         
 def prepare_cmdline(parser=None, args=None):
+    """Prepares the command line separating tango options from server specific
+    options.
+    
+    :return: a sequence of options, arguments, tango arguments
+    :rtype: seq<opt, list<str>, list<str>>"""
     import optparse
     if args is None:
         args = []
@@ -96,9 +101,7 @@ def prepare_cmdline(parser=None, args=None):
     res = list( parser.parse_args(proc_args) )
     tango_args = res[1][:2] + tango_args
     res.append(tango_args)
-    prepare_taurus(*res)
-    prepare_logging(*res)
-    prepare_rconsole(*res)
+    
     return res
 
 def prepare_taurus(options, args, tango_args):
@@ -171,6 +174,7 @@ def prepare_rconsole(options, args, tango_args):
     port = options.rconsole_port
     if port is None or port is 0:
         return
+    import taurus
     taurus.debug("Setting up rconsole on port %d...", port)
     try:
         import rfoo.utils.rconsole
@@ -179,7 +183,7 @@ def prepare_rconsole(options, args, tango_args):
     except:
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
-def run_tango_server(tango_args):
+def run_tango_server():
     import PyTango
     try:
         tango_util = PyTango.Util.instance()
@@ -202,10 +206,13 @@ def run(prepare_func, args=None, tango_util=None):
         args = sys.argv
 
     options, args, tango_args = prepare_cmdline(args=args)
-
     if tango_util == None:
         import PyTango
         tango_util = PyTango.Util(tango_args)
 
+    prepare_taurus(options, args, tango_args)
+    prepare_logging(options, args, tango_args)
+    prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
-    run_tango_server(tango_args)
+
+    run_tango_server()

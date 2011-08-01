@@ -32,13 +32,10 @@ __all__ = ["SardanaDevice", "SardanaDeviceClass",
 
 __docformat__ = 'restructuredtext'
 
-from PyTango import Device_4Impl, DeviceClass, Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
-from PyTango import DevVarLong64Array
-from PyTango import DispLevel, DevState
-from PyTango import SCALAR, SPECTRUM, IMAGE
-from PyTango import READ_WRITE, READ
-from PyTango import Attr, SpectrumAttr, ImageAttr
+from PyTango import Device_4Impl, DeviceClass, Util, DevFailed, \
+    DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
+    DevVarLong64Array, DispLevel, DevState, SCALAR, SPECTRUM, IMAGE, \
+    READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 from taurus.core.util.log import Logger, InfoIt
 
 from sardana import DataType, DataFormat, DataAccess
