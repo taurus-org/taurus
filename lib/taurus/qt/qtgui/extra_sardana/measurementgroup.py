@@ -395,7 +395,6 @@ def main():
     
     args = app.get_command_line_args()
     if len(args)==1:
-        print args
         w = demo(model=args[0])
     else:
         w = demo()
