@@ -392,7 +392,13 @@ def main():
     if owns_app:
         app = Application(app_name="Meas. group channel demo", app_version="1.0",
                           org_domain="Sardana", org_name="Tango community")
-    w = demo()
+    
+    args = app.get_command_line_args()
+    if len(args)==1:
+        print args
+        w = demo(model=args[0])
+    else:
+        w = demo()
     w.show()
     
     if owns_app:
