@@ -364,7 +364,6 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWidget):
     # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
    
-    @Qt.pyqtSignature("setModel(QString)")
     def setModel(self, model):
         model = str(model)
         try:
@@ -384,11 +383,9 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWidget):
     # QT signal handlers
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("textChanged(QString)")
     def userChangedValue(self,qstr):
         self.updateStyle()
     
-    @Qt.pyqtSignature("returnPressed(QString)")
     def writeTextValue(self):
         model = self.getModelObj()
         if not self.isReadOnly() and model:
