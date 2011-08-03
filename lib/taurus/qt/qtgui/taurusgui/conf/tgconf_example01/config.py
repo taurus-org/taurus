@@ -48,6 +48,12 @@ ORGANIZATION = 'Taurus'
 #CUSTOM_LOGO = <full path to GUI-specific logo>
 
 #===============================================================================
+# You can provide an URI for a manual in html format
+# (comment out or make MANUAL_URI=None to skip creating a Manual panel) 
+#===============================================================================
+MANUAL_URI = 'http://packages.python.org/taurus'
+
+#===============================================================================
 # If you want to have a main synoptic panel, set the SYNOPTIC variable
 # to the file name of a jdraw file. If a relative path is given, the directory
 # containing this configuration file will be used as root

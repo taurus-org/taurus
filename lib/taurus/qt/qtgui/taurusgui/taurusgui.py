@@ -387,7 +387,7 @@ class TaurusGui(TaurusMainWindow):
         panel.setParent(None)
         panel.destroy()
     
-    def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, permanent=False):
+    def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, permanent=False, icon=None):
         '''
         Creates a panel containing the given widget.
         
@@ -431,6 +431,8 @@ class TaurusGui(TaurusMainWindow):
 
         #add toggle view action for this panel to the panels menu  
         self.__panelsMenu.addAction(panel.toggleViewAction())
+        if icon is not None:
+            panel.toggleViewAction().setIcon(icon)
         
         #set flags
         panel.setCustom(custom)
@@ -558,9 +560,8 @@ class TaurusGui(TaurusMainWindow):
             name = '%s_%i'%(prefix, i)
             i+=1
             
-        synopticpanel = self.createPanel(synoptic, name)
+        synopticpanel = self.createPanel(synoptic, name, icon=taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
         toggleSynopticAction = synopticpanel.toggleViewAction()
-        toggleSynopticAction.setIcon(taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
         self.quickAccessToolBar.addAction(toggleSynopticAction)
                 
     def createInstrumentsFromPool(self, macroservername):
@@ -687,6 +688,12 @@ class TaurusGui(TaurusMainWindow):
         self.setWindowIcon(windowIcon)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
+        
+        #manual panel
+        MANUAL_URI = getattr(conf,'MANUAL_URI', self.__getVarFromXML(xmlroot,"MANUAL_URI", None))
+        if MANUAL_URI is not None:
+            self.setHelpManualURI(MANUAL_URI)
+            self.createPanel(self.helpManualBrowser, 'Manual', icon = taurus.qt.qtgui.resource.getThemeIcon('help-browser'))
                     
         #configure the macro infrastructure       
         MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', self.__getVarFromXML(xmlroot,"MACROSERVER_NAME", None))
@@ -916,6 +923,9 @@ class TaurusGui(TaurusMainWindow):
         '''TaurusGui is not to be in designer '''
         return None
     
+    def onShowManual(self, anchor=None):
+        '''reimplemented from :class:`TaurusMainWindow` to show the manual in a panel (not just a dockwidget)'''
+        self.setFocusToPanel('Manual')
 
 #------------------------------------------------------------------------------ 
 def main():    
