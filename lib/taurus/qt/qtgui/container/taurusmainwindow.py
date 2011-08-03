@@ -128,7 +128,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.extAppsBar = None
         
-                
+        self.helpManualDW = None
+        self.helpManualBrowser = None
+        self.resetHelpManualURI()
+        
         #The configuration Dialog (which is launched with the configurationAction)
         self.configurationDialog = ConfigurationDialog(self)
         
@@ -172,7 +175,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         #Help Menu
         self.helpMenu = self.menuBar().addMenu("Help")
-        self.helpMenu.addAction(self.helpAboutAction)
+        self.helpMenu.addAction("About ...", self.showHelpAbout)
+        self.helpMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("help-browser"),"Manual", self.onShowManual)
         
         #View Toolbar
         self.viewToolBar = self.addToolBar("View")
@@ -260,8 +264,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.configurationAction = Qt.QAction(getThemeIcon("preferences-system"), 'Configurations ...', self)
         self.connect(self.configurationAction, Qt.SIGNAL("triggered()"), self.configurationDialog.show)
         
-        self.helpAboutAction = Qt.QAction('About ...', self)
-        #self.helpUserManual = Qt.QAction('')
         self.toggleFullScreenAction = Qt.QAction(getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
         self.toggleFullScreenAction.setCheckable(True)
         self.toggleFullScreenAction.setShortcut(Qt.QKeySequence(Qt.Qt.Key_F11))
@@ -565,7 +567,45 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         # widgets. Therefore until this is solved, the widget will not appear
         # in the designer
         return None
+    
+    def setHelpManualURI(self,uri):
+        self.__helpManualURI = uri
+        if self.helpManualBrowser is None:
+            from PyQt4.QtWebKit import QWebView
+            self.helpManualBrowser = QWebView()
+        try: url = Qt.QUrl.fromUserInput(uri) 
+        except: url = Qt.QUrl(uri) #fallback for Qt<4.6
+        self.helpManualBrowser.load(url)
         
+    def getHelpManualURI(self):
+        return self.__helpManualURI
+    
+    def resetHelpManualURI(self):
+        from taurus.core import Release
+        uri = getattr(self, 'MANUAL_URI',Release.url)
+        self.setHelpManualURI(uri)
+    
+    def showHelpAbout(self):
+        appname = unicode(Qt.qApp.applicationName())
+        appversion = unicode(Qt.qApp.applicationVersion())
+        from taurus.core import Release
+        abouttext = "%s %s\n\nUsing %s %s"%(appname, appversion, Release.name, Release.version)
+        Qt.QMessageBox.about(self, 'About', abouttext)
+            
+    def onShowManual(self, anchor=None):
+        '''Shows the User Manual in a dockwidget'''
+        if self.helpManualDW is None:
+            self.helpManualDW = Qt.QDockWidget("Manual", self)
+            self.helpManualDW.setWidget(self.helpManualBrowser)
+            self.helpManualDW.setObjectName("helpManualDW")
+            self.addDockWidget(Qt.Qt.BottomDockWidgetArea, self.helpManualDW)
+        else:
+            self.helpManualDW.show()
+            
+        
+        
+
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -598,6 +638,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     tangoHost = Qt.pyqtProperty("QString", getTangoHost, 
                                         setTangoHost, 
                                         resetTangoHost)
+    
+    helpManualURI = Qt.pyqtProperty("QString", getHelpManualURI, 
+                                        setHelpManualURI, 
+                                        resetHelpManualURI)
 
 #---------
 
@@ -609,6 +653,9 @@ if __name__ == "__main__":
     app.setOrganizationName('ALBA')
     
     form = TaurusMainWindow()
+    
+    #form.setHelpManualURI('http://google.com')
+
     form.loadSettings()
     
     #form.setCentralWidget(Qt.QMdiArea()) #just for testing
