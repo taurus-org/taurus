@@ -57,7 +57,7 @@ class PoolIORegisterReadWidget(TaurusLabel):
         self.readEventValueMap = EventValueMap()
         for label_and_value in labels_list:
             label, value = label_and_value.split(':')
-            self.readEventValueMap[value] = label
+            self.readEventValueMap[int(value)] = label
         self.setEventFilters([self.readEventValueMap])
 
 class PoolIORegisterWriteWidget(TaurusValueComboBox):
