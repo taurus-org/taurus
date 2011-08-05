@@ -125,8 +125,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def _outOfRange(self, v):
         validator = self.validator()
         if validator:
-            return validator.validate(Qt.QString(str(v)),0)[0] != validator.Acceptable
-        else: #fallback, only for numeric types (returns False for other types)
+            return validator.validate(str(v), 0)[0] != validator.Acceptable
+        else: #fallback, only for numeric typess (returns False for other types)
             try: return not(self.__minLimit <= float(v) <=  self.__maxLimit)
             except: return False 
         
@@ -308,8 +308,7 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWidget):
         if self.isAttached() and not self.isReadOnly():
             value_str = self.getDisplayValue()
             self._lastValueByUser = value_str
-            self.emit(Qt.SIGNAL('valueChangedDueToEvent(QString)'), 
-                      Qt.QString(value_str))
+            self.emit(Qt.SIGNAL('valueChangedDueToEvent(QString)'), value_str)
 
     def postDetach(self):
         TaurusBaseWidget.postDetach(self)
