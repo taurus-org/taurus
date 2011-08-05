@@ -29,20 +29,24 @@ __all__ = ["ThreadPool", "Worker"]
 
 __docformat__ = "restructuredtext"
 
-from threading import Thread
+from threading import Thread, currentThread
 from Queue import Queue
 from time import sleep
+from traceback import extract_stack, format_list
 
 from prop import propertx
 from log import Logger, DebugIt, TraceIt
 
+
 class ThreadPool(Logger):
     """"""
-    threadId = 0
+    
+    NoJob = 6*(None,)
     
     def __init__(self, name=None, parent=None, Psize=20, Qsize=20, daemons=True):
         Logger.__init__(self, name, parent)
         self._daemons = daemons
+        self.localThreadId = 0
         self.workers = []
         self.jobs = Queue(Qsize)
         self.size = Psize
@@ -57,8 +61,8 @@ class ThreadPool(Logger):
                 return
             
             for i in range(newSize - nb_workers):
-                ThreadPool.threadId += 1
-                name = "%s.W%03i" % (self.log_name, ThreadPool.threadId)
+                self.localThreadId += 1
+                name = "%s.W%03i" % (self.log_name, self.localThreadId)
                 new = Worker(self, name, self._daemons)
                 self.workers.append(new)
                 self.debug("Starting %s" % name)
@@ -67,7 +71,7 @@ class ThreadPool(Logger):
             # remove the old worker threads
             nb_workers = len(self.workers)
             for i in range(nb_workers - newSize):
-                self.jobs.put((None, None, None, None))
+                self.jobs.put(self.NoJob)
                 
         def get(self):
             """get method for the size property"""
@@ -77,20 +81,24 @@ class ThreadPool(Logger):
     
     def add(self, job, callback=None, *args, **kw):
         if self.accept:
-            self.jobs.put((job, args, kw, callback))
+            # first gather some information on the object which requested the
+            # job in case the job throws an exception
+            th_id, stack = currentThread().name, extract_stack()[:-1]
+            self.jobs.put((job, args, kw, callback, th_id, stack))
             
     def join(self):
         self.accept=False
         while True:
             for w in self.workers:
                 if w.isAlive() :
-                    self.jobs.put((None, None, None, None))
+                    self.jobs.put(self.NoJob)
                     break
             else:
                 break
 
     @property
     def qsize(self): return self.jobs.qsize()
+
 
 class Worker(Thread, Logger):
     
@@ -102,18 +110,24 @@ class Worker(Thread, Logger):
         self.pool = pool
         self.cmd=''
     
-    #@TraceIt()
     def run(self):
         get = self.pool.jobs.get
         while True:
-            cmd, args, kw, callback = get()
+            cmd, args, kw, callback, th_id, stack = get()
             if cmd:
                 self.cmd = cmd.__name__
-                if callback:
-                    callback(cmd(*args, **kw))
-                else:
-                    cmd(*args, **kw)
-                self.cmd = ''
+                try:
+                    if callback:
+                        callback(cmd(*args, **kw))
+                    else:
+                        cmd(*args, **kw)
+                except:
+                    orig_stack = "".join(format_list(stack))
+                    self.error("Uncaught exception running job '%s' called "
+                               "from thread %s:\n%s",
+                               self.cmd, th_id, orig_stack, exc_info=1)
+                finally:
+                    self.cmd = ''
             else:
                 self.pool.workers.remove(self)
                 return
