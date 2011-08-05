@@ -189,4 +189,7 @@ class TaurusApplication(Qt.QApplication, Logger):
         :return: the command line arguments
         :rtype: list of strings"""
         return self._cmd_line_args
-        
+    
+    def setTaurusStyle(self, styleName):
+        import taurus.qt.qtgui.style
+        taurus.qt.qtgui.style.setTaurusStyle(styleName)
