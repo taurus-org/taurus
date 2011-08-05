@@ -951,7 +951,7 @@ class TaurusValuesFrame(TaurusFrame):
     '''This is a container specialiced into containing TaurusValue widgets.
     It should be used Only for TaurusValues'''
     
-    _model = Qt.QStringList()
+    _model = []
     @Qt.pyqtSignature("setModel(QStringList)")    
     def setModel(self, model):
         self._model = model
@@ -966,7 +966,7 @@ class TaurusValuesFrame(TaurusFrame):
         return self._model
                 
     def resetModel(self):
-        self.setModel(Qt.QStringList())
+        self.setModel([])
     
     def getTaurusValueByIndex(self, index):
         '''returns the TaurusValue item at the given index position'''
