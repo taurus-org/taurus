@@ -306,7 +306,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 install-dist_docDATA: $(dist_doc_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(docdir)" || $(MKDIR_P) "$(DESTDIR)$(docdir)"
+	test -z "$(DESTDIR)$(docdir)" || $(MKDIR_P) "$(DESTDIR)$(docdir)"
 	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \

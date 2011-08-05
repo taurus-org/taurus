@@ -326,7 +326,7 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 install-pkgpyexecLTLIBRARIES: $(pkgpyexec_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkgpyexecdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpyexecdir)"
+	test -z "$(DESTDIR)$(pkgpyexecdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpyexecdir)"
 	@list='$(pkgpyexec_LTLIBRARIES)'; test -n "$(pkgpyexecdir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
@@ -612,7 +612,7 @@ uninstall-am: uninstall-pkgpyexecLTLIBRARIES
 
 
 install-data-local:
-	cd $(pkgpythondir) && ln -sf libpypool.so pool.so
+	cd $(DESTDIR)$(pkgpythondir) && ln -sf libpypool.so pool.so
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -282,7 +282,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 install-pool_includeHEADERS: $(pool_include_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(pool_includedir)" || $(MKDIR_P) "$(DESTDIR)$(pool_includedir)"
+	test -z "$(DESTDIR)$(pool_includedir)" || $(MKDIR_P) "$(DESTDIR)$(pool_includedir)"
 	@list='$(pool_include_HEADERS)'; test -n "$(pool_includedir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \

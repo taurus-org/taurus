@@ -293,7 +293,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 install-pkgpythonPYTHON: $(pkgpython_PYTHON)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkgpythondir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpythondir)"
+	test -z "$(DESTDIR)$(pkgpythondir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpythondir)"
 	@list='$(pkgpython_PYTHON)'; dlist=; list2=; test -n "$(pkgpythondir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \

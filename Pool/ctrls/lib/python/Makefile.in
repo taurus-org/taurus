@@ -378,16 +378,16 @@ uninstall-am:
 
 
 install-data-local:
-	mkdir -p $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/communication/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/countertimer/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/motor/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/pseudomotor/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/pseudocounter/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/zerod/* $(pythondir)/poolcontrollers
-#	rsync $(RSYNC_OPTS) $(srcdir)/oned/* $(pythondir)/poolcontrollers
-#	rsync $(RSYNC_OPTS) $(srcdir)/twod/* $(pythondir)/poolcontrollers
-	rsync $(RSYNC_OPTS) $(srcdir)/ioregister/* $(pythondir)/poolcontrollers
+	mkdir -p $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/communication/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/countertimer/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/motor/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/pseudomotor/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/pseudocounter/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/zerod/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+#	rsync $(RSYNC_OPTS) $(srcdir)/oned/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+#	rsync $(RSYNC_OPTS) $(srcdir)/twod/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
+	rsync $(RSYNC_OPTS) $(srcdir)/ioregister/* $(DESTDIR)$(pkgpythondir)/poolcontrollers
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

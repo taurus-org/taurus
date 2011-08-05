@@ -599,13 +599,13 @@ html/api/index.html: Doxyfile
 	@DOXYGEN@
 
 install-data-local:
-	$(mkinstalldirs) $(docdir)
-	cp -r html/. $(docdir)
-	$(RM) -r -f $(docdir)/CVS \
-		$(docdir)/.svn \
-		$(docdir)/Makefile.am \
-		$(docdir)/Makefile.in \
-		$(docdir)/Makefile
+	$(mkinstalldirs) $(DESTDIR)$(docdir)
+	cp -r html/. $(DESTDIR)$(docdir)
+	$(RM) -r -f $(DESTDIR)$(docdir)/CVS \
+		$(DESTDIR)$(docdir)/.svn \
+		$(DESTDIR)$(docdir)/Makefile.am \
+		$(DESTDIR)$(docdir)/Makefile.in \
+		$(DESTDIR)$(docdir)/Makefile
 
 uninstall-local:
 	$(RM) -r -f $(docdir)

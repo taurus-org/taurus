@@ -221,7 +221,7 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	test -z "$(DESTDIR)$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
@@ -528,15 +528,15 @@ uninstall-am: uninstall-binSCRIPTS
 
 
 @SPOCK_TRUE@install-data-local:
-@SPOCK_TRUE@	mkdir -p $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/__init__.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/colors.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/exception.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/genutils.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/macroserver.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/magic.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/parameter.py $(pythondir)/spocklib
-@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/release.py $(pythondir)/spocklib
+@SPOCK_TRUE@	mkdir -p $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/__init__.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/colors.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/exception.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/genutils.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/macroserver.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/magic.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/parameter.py $(DESTDIR)$(pythondir)/spocklib
+@SPOCK_TRUE@	rsync $(top_srcdir)/spocklib/release.py $(DESTDIR)$(pythondir)/spocklib
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

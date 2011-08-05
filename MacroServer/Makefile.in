@@ -254,7 +254,7 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	test -z "$(DESTDIR)$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
@@ -288,7 +288,7 @@ uninstall-binSCRIPTS:
 	cd "$(DESTDIR)$(bindir)" && rm -f $$files
 install-pkgpythonPYTHON: $(pkgpython_PYTHON)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkgpythondir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpythondir)"
+	test -z "$(DESTDIR)$(pkgpythondir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpythondir)"
 	@list='$(pkgpython_PYTHON)'; dlist=; list2=; test -n "$(pkgpythondir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
@@ -608,9 +608,9 @@ uninstall-am: uninstall-binSCRIPTS uninstall-pkgpythonPYTHON
 @MACRO_SERVER_TRUE@	chmod +x MacroServer
 
 @MACRO_SERVER_TRUE@install-data-local:
-@MACRO_SERVER_TRUE@	rsync $(RSYNC_OPTS) --exclude=*.pyc $(top_srcdir)/scan $(pkgpythondir)
-@MACRO_SERVER_TRUE@	rsync $(RSYNC_OPTS) --exclude=*.pyc $(top_srcdir)/macros $(pkgpythondir)
-@MACRO_SERVER_TRUE@	rsync $(top_srcdir)/macro_template.txt $(pkgpythondir)
+@MACRO_SERVER_TRUE@	rsync $(RSYNC_OPTS) --exclude=*.pyc $(top_srcdir)/scan $(DESTDIR)$(pkgpythondir)
+@MACRO_SERVER_TRUE@	rsync $(RSYNC_OPTS) --exclude=*.pyc $(top_srcdir)/macros $(DESTDIR)$(pkgpythondir)
+@MACRO_SERVER_TRUE@	rsync $(top_srcdir)/macro_template.txt $(DESTDIR)$(pkgpythondir)
 
 @MACRO_SERVER_TRUE@dist-hook:
 @MACRO_SERVER_TRUE@	rsync $(RSYNC_OPTS) --exclude=*.pyc $(top_srcdir)/scan $(pkgpythondir)

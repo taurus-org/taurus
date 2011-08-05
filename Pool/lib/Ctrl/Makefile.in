@@ -420,7 +420,7 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkglibdir)" || $(MKDIR_P) "$(DESTDIR)$(pkglibdir)"
+	test -z "$(DESTDIR)$(pkglibdir)" || $(MKDIR_P) "$(DESTDIR)$(pkglibdir)"
 	@list='$(pkglib_LTLIBRARIES)'; test -n "$(pkglibdir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
