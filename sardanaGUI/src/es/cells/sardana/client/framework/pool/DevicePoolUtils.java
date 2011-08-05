@@ -17,9 +17,6 @@ import es.cells.sardana.client.framework.IPreferences;
 import es.cells.sardana.client.framework.SardanaManager;
 import es.cells.sardana.client.framework.ServerUtils;
 import es.cells.sardana.client.framework.gui.IImageResource;
-import es.cells.sardana.client.framework.macroserver.Door;
-import es.cells.sardana.client.framework.macroserver.MacroServer;
-import es.cells.sardana.client.framework.macroserver.MacroServerCreationInfo;
 import es.cells.sardana.client.gui.swing.SwingResource;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.DevFailed;
@@ -30,12 +27,9 @@ import fr.esrf.TangoApi.DbDatum;
 import fr.esrf.TangoApi.DbDevImportInfo;
 import fr.esrf.TangoApi.DeviceAttribute;
 import fr.esrf.TangoApi.DeviceData;
-import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoDs.TangoConst;
-import fr.esrf.tangoatk.core.ConnectionException;
 import fr.esrf.tangoatk.core.Device;
-import fr.esrf.tangoatk.core.DeviceFactory;
 import fr.esrf.tangoatk.core.DeviceProperty;
 
 public class DevicePoolUtils extends ServerUtils{

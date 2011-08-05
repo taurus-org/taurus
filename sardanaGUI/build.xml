@@ -2,7 +2,7 @@
 	
 	<taskdef name="xmlbean" classname="org.apache.xmlbeans.impl.tool.XMLBean" classpath="lib/xmlbeans/xbean.jar:lib/xmlbeans/jsr173_1.0_api.jar"/>
 	
-	<property name="tango.lib" value="lib/tango" />
+	pa
 	<property name="jgraph.lib" value="lib/jgraph" />
 	<property name="substance.lib" value="lib/substance" />
 	<property name="jgoodies.lib" value="lib/JGoodies" />

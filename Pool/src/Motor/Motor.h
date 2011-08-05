@@ -543,6 +543,7 @@ public:
     inline void restore_att_values() {if (save_atts!=NULL){delete save_atts;save_atts=NULL;}}
     
     inline void set_group_movement(bool val) { grp_mov = val; }
+    inline bool is_group_movement() { return grp_mov; }
     inline double get_dial_pos() { return dial_pos; }
     inline double get_back_pos() { return back_pos; }
     

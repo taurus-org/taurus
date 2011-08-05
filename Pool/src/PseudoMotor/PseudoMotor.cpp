@@ -705,6 +705,7 @@ void PseudoMotor::pool_elem_changed(Pool_ns::PoolElemEventList &evt_lst,
             Tango::DevState old_state = get_state();
 
             Tango::DevState new_state = static_cast<Tango::DevState>(evt->curr.state);
+
             update_state(&new_state);
 
             new_state = get_state();

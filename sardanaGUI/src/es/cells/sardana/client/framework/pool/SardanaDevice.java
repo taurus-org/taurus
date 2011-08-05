@@ -174,6 +174,7 @@ public class SardanaDevice implements IDevStateScalarListener, IStringScalarList
 		for(String polledAttr : polledAttributeList)
 			polledAttributes.add(getDeviceName() + "/" + polledAttr);
 
+		long t = System.currentTimeMillis();
 		for(String nonPolledAttr : nonPolledAttributeList)
 		{
 			IEntity entity = nonPolledAttributes.add(getDeviceName() + "/" + nonPolledAttr);
@@ -185,7 +186,6 @@ public class SardanaDevice implements IDevStateScalarListener, IStringScalarList
 				status.addStringScalarListener(this);
 			}
 		}
-		
 	}
 	
 	public void start()
@@ -401,9 +401,12 @@ public class SardanaDevice implements IDevStateScalarListener, IStringScalarList
 
 	public void setDevice(Device device, boolean keep_beacon)
 	{
+		System.out.println("1" + device);
 		unregisterFromDevice(keep_beacon);
+		System.out.println("2" + device);
 		this.device = device;
 		init();
+		System.out.println("3" + device);
 	}
 	
 	public void cleanup(boolean keep_beacon)

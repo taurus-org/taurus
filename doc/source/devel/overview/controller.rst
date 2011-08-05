@@ -84,15 +84,6 @@ is able to talk to a Newport motor controller::
             elif upper == 1: switchstate = 2
             return status, "OK", switchstate
 
-        def PreReadAll(self):
-            pass
-
-        def PreReadOne(self,axis):
-            pass
-
-        def ReadAll(self):
-            pass
-
         def ReadOne(self,axis):
             try:
                 if self.SwitchBox:
@@ -100,9 +91,6 @@ is able to talk to a Newport motor controller::
                 return float(self._queryCommand("TP"))
             except:
                 raise Exception("Error reading position, axis not available")
-
-        def PreStartAll(self):
-            pass
 
         def PreStartOne(self,axis,pos):
             return True

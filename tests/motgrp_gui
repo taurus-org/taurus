@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+
+import sys
+
+import taurus
+from taurus.qt import Qt
+from taurus.qt.qtgui.application import TaurusApplication
+from taurus.qt.qtgui.container import QGroupWidget
+from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
+from taurus.qt.qtgui.input import TaurusValueSpinBox
+from taurus.qt.qtgui.button import TaurusCommandButton
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
+from taurus.qt.qtgui.console import TaurusConsole
+
+class CmdButton(TaurusCommandButton):
+    
+    def getDisplayValue(self):
+        return ""
+
+def createMotorPanel(*names):
+    m_panel = QGroupWidget()
+    m_panel.titleIcon = getIcon(":/designer/extra_motor.png")
+    m_panel_l = Qt.QGridLayout()
+    m_panel_l.setMargin(4)
+    m_panel_l.setHorizontalSpacing(4)
+    m_panel_l.setVerticalSpacing(4)
+    content = m_panel.content()
+    content.setLayout(m_panel_l)
+    
+    for i, name in enumerate(names):
+        state = TaurusLed(content)
+        label = TaurusLabel(content)
+        r_value = TaurusLabel(content)
+        #r_value.setFont(Qt.QFont("Monospace",10))
+        w_value = TaurusValueSpinBox(content)
+        unit = TaurusLabel(content)
+        abort = CmdButton(parent=content, command='abort')
+        abort.setIcon(getIcon(":/actions/media_playback_stop.svg"))
+        #abort.setIconSize(Qt.QSize(24,24))
+        #abort.setMaximumSize(Qt.QSize(26,26))
+        abort.setStyleSheet('* { border: 0px; }')
+        m_panel_l.addWidget(  state, i, 0)
+        m_panel_l.addWidget(  label, i, 1)
+        m_panel_l.addWidget(r_value, i, 2)
+        m_panel_l.addWidget(w_value, i, 3)
+        m_panel_l.addWidget(   unit, i, 4)
+        m_panel_l.addWidget(  abort, i, 5)
+        m_panel_l.setRowStretch(i, 0)
+        state.model = name + "/state"
+        label.model = name + "/position?configuration=dev_alias"
+        label.bgRole = None
+        r_value.model = name + "/position"
+        w_value.model = name + "/position"
+        unit.model = name + "/position?configuration=unit"
+        unit.bgRole = None
+        abort.Model = name
+    m_panel_l.setRowStretch(i+1, 1)
+    m_panel_l.setColumnStretch(0, 0)
+    m_panel_l.setColumnStretch(1, 0)
+    m_panel_l.setColumnStretch(2, 1)
+    m_panel_l.setColumnStretch(3, 0)
+    m_panel_l.setColumnStretch(4, 0)
+    m_panel_l.setColumnStretch(5, 0)
+    
+    return m_panel
+
+def createMotorToolBox(*page_names):
+    panel = Qt.QToolBox()
+    for i, page_name in enumerate(page_names):
+        page = Qt.QWidget(panel)
+        panel.addItem(page, getIcon(":/designer/extra_motor.png"), page_name)
+    return panel
+
+def createMotorGroupPanel(*names):
+    m_panel = QGroupWidget()
+    m_panel.titleIcon = getIcon(":/designer/extra_motor.png")
+    m_panel_l = Qt.QGridLayout()
+    content = m_panel.content()
+    content.setLayout(m_panel_l)
+    
+    name = names[0]
+    mg = taurus.Device(name)
+    elements = mg.elementlist
+    state = TaurusLed(content)
+    state.setMinimumSize(24,24)
+    label = TaurusLabel(content)
+    m_panel_l.addWidget(state, 0, 0)
+    m_panel_l.addWidget(label, 0, 1)
+    m_panel_l.setRowStretch(0, 0)
+    for i, element in enumerate(elements):
+        row = i+1
+        m_label = Qt.QLabel(element, content)
+        m_panel_l.addWidget(m_label, row, 0)
+        r_value = TaurusLabel(content)
+        r_value.model = name + "/position"
+        r_value.modelIndex = str(i)
+        m_panel_l.addWidget(r_value, row, 1)
+        m_panel_l.setRowStretch(row, 0)
+    state.model = name + "/state"
+    label.model = name + "/position?configuration=dev_alias"
+    label.bgRole = None
+    m_panel_l.setRowStretch(i+2, 1)
+    m_panel_l.setColumnStretch(0, 0)
+    m_panel_l.setColumnStretch(1, 0)
+    m_panel_l.setColumnStretch(2, 1)
+    m_panel_l.setColumnStretch(3, 1)
+    return m_panel
+
+app = TaurusApplication()
+app.setTaurusStyle("nebula")
+panel = Qt.QMainWindow()
+panel.setWindowTitle("Pool Motor Test GUI")
+
+dock1 = Qt.QDockWidget("Motors Panel")
+panel.addDockWidget(Qt.Qt.LeftDockWidgetArea, dock1)
+dock1_w = Qt.QWidget()
+dock1.setWidget(dock1_w)
+
+dock2 = Qt.QDockWidget("Motor Groups Panel")
+panel.addDockWidget(Qt.Qt.TopDockWidgetArea, dock2)
+dock2_w = Qt.QWidget()
+dock2.setWidget(dock2_w)
+
+dock3 = Qt.QDockWidget("Consoles")
+panel.addDockWidget(Qt.Qt.RightDockWidgetArea, dock3)
+dock3_w = Qt.QWidget()
+dock3.setWidget(dock3_w)
+
+# MOTOR PANEL ------------------------------------------------------------------
+
+panel1_l = Qt.QGridLayout()
+panel1_l.setContentsMargins(4,4,4,4)
+panel1_l.setSpacing(4)
+dock1_w.setLayout(panel1_l)
+
+m1_panel = createMotorPanel("M1","M2", "M3", "M4")
+m1_panel.title = "Motors on DummyMotorCtrl1"
+panel1_l.addWidget(m1_panel, 0, 0)
+
+m2_panel = createMotorPanel("M101","M102", "M103", "M104", "M105", "M106")
+m2_panel.title = "Motors on DummyMotorCtrl2"
+panel1_l.addWidget(m2_panel, 0, 1)
+
+m3_panel = createMotorPanel("ICE_M1", "ICE_M8")
+m3_panel.title = "Motors on IcepapMotorCtrl2"
+panel1_l.addWidget(m3_panel, 1, 0)
+
+tool_box1 = createMotorToolBox("M1 Configuration", "page 2", "page 3")
+panel1_l.addWidget(tool_box1, 2, 0)
+tool_box1_w = tool_box1.widget(0)
+tool_box1_l = Qt.QGridLayout()
+tool_box1_w.setLayout(tool_box1_l)
+m1_backlash_label = TaurusLabel(tool_box1_w)
+tool_box1_l.addWidget(m1_backlash_label, 0, 0)
+r_backlash_value = TaurusLabel(tool_box1_w)
+tool_box1_l.addWidget(r_backlash_value, 0, 1)
+w_backlash_value = TaurusValueSpinBox(tool_box1_w)
+tool_box1_l.addWidget(w_backlash_value, 0, 2)
+m1_backlash_label.bgRole = None
+m1_backlash_label.model = "M1/backlash?configuration=label"
+r_backlash_value.model = "M1/backlash"
+w_backlash_value.model = "M1/backlash"
+
+group_box1 = Qt.QGroupBox("Demo group box")
+panel1_l.addWidget(group_box1, 1, 1,2,1)
+
+panel1_l.setRowStretch(0, 0)
+panel1_l.setRowStretch(1, 0)
+panel1_l.setRowStretch(2, 0)
+panel1_l.setRowStretch(3, 1)
+
+# MOTOR GROUP PANEL ------------------------------------------------------------
+
+mg_panel_style = {
+    'start_color' : 'rgb(255, 60, 60)',
+    'stop_color'  : 'rgb(200, 0, 0)',
+    'font_color'  : 'rgb(0, 0, 0)',
+    #'border_radius': '10px',
+}
+
+panel2_l = Qt.QGridLayout()
+panel2_l.setContentsMargins(4,4,4,4)
+panel2_l.setSpacing(4)
+dock2_w.setLayout(panel2_l)
+
+mg1_panel = createMotorGroupPanel("MotorGroup1")
+mg1_panel.title = "Motor Group 1"
+mg1_panel.setTitleStyle(mg_panel_style)
+panel2_l.addWidget(mg1_panel, 0, 0)
+
+mg2_panel = createMotorGroupPanel("MotorGroup2")
+mg2_panel.title = "Motor Group 2"
+mg2_panel.setTitleStyle(mg_panel_style)
+panel2_l.addWidget(mg2_panel, 0, 1)
+
+mg3_panel = createMotorGroupPanel("MotorGroup3")
+mg3_panel.title = "Motor Group 3"
+mg3_panel.setTitleStyle(mg_panel_style)
+panel2_l.addWidget(mg3_panel, 0, 2)
+
+panel2_l.setRowStretch(0, 0)
+panel2_l.setRowStretch(1, 1)
+#panel2_l.setRowStretch(2, 0)
+#panel2_l.setRowStretch(3, 1)
+
+# CONSOLE PANEL ----------------------------------------------------------------
+
+panel3_l = Qt.QGridLayout()
+panel3_l.setContentsMargins(4,4,4,4)
+panel3_l.setSpacing(4)
+dock3_w.setLayout(panel3_l)
+
+tab1 = Qt.QTabWidget(dock3_w)
+panel3_l.addWidget(tab1)
+tab1_page1 = Qt.QWidget()
+tab1.addTab(tab1_page1, "IPython")
+tab1_page1_l = Qt.QGridLayout()
+tab1_page1_l.setContentsMargins(4,4,4,4)
+tab1_page1_l.setSpacing(4)
+tab1_page1.setLayout(tab1_page1_l)
+tab1_page2 = Qt.QWidget()
+tab1.addTab(tab1_page2, "Page 1")
+tab1_page3 = Qt.QWidget()
+tab1.addTab(tab1_page3, "Page 2")
+
+console = TaurusConsole()
+tab1_page1_l.addWidget(console)
+
+# MAIN -------------------------------------------------------------------------
+
+panel.show()
+sys.exit(app.exec_())
+
+

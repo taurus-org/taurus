@@ -9,7 +9,7 @@ from tau.core.utils import Enumeration
 
 PoolSelectionMode = Enumeration('PoolSelectionMode', ('FromSardana', 'FromDatabase'))
     
-class SelectPoolPage(wiz.SardanaBasePage):
+class SelectPoolBasePage(wiz.SardanaBasePage):
     
     def __init__(self, parent = None, selectionMode=PoolSelectionMode.FromDatabase):
         wiz.SardanaBasePage.__init__(self, parent)
@@ -123,7 +123,7 @@ def t1(tg_host=None, sardana=None):
         w.setPage(PoolExamplePages.TangoPage, tg_host_page)
         curr_page = tg_host_page
     else:
-        w['db'] = lambda : tg_host
+        w['db'] = lambda : tau.Database(tg_host)
 
     if sardana is None:
         curr_page.setNextPageId(PoolExamplePages.SardanaPage)
@@ -135,7 +135,7 @@ def t1(tg_host=None, sardana=None):
 
     curr_page.setNextPageId(PoolExamplePages.PoolPage)
     
-    pool_page = SelectPoolPage(selectionMode=PoolSelectionMode.FromSardana)
+    pool_page = SelectPoolBasePage(selectionMode=PoolSelectionMode.FromSardana)
 
     w.setPage(PoolExamplePages.PoolPage, pool_page)
     

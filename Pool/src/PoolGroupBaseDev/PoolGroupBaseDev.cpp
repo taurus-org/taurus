@@ -294,6 +294,17 @@ void IndEltGrp::abort_evt(vector<Tango::DevFailed> *v_exp)
         v_exp->push_back(e);
     }
 }
+
+bool ielt_id_cmp(IndEltGrp *e1, IndEltGrp *e2)
+{
+    return e1->id < e2->id;
+}
+
+bool ictrl_id_cmp(CtrlGrp *c1, CtrlGrp *c2)
+{
+    return c1->ctrl_id < c2->ctrl_id;
+}
+
 //+----------------------------------------------------------------------------
 //
 // method : 		PoolGroupBaseDev::PoolGroupBaseDev
@@ -332,10 +343,12 @@ void PoolGroupBaseDev::delete_device()
     for(vector<IndEltGrp*>::size_type l = 0; l < ind_elts.size(); l++)
         delete ind_elts[l];
     ind_elts.clear();
+    ind_elts_sorted.clear();
 
     for(vector<CtrlGrp*>::size_type l = 0; l < implied_ctrls.size(); l++)
         delete implied_ctrls[l];
     implied_ctrls.clear();
+    implied_ctrls_sorted.clear();
     
     PoolBaseDev::delete_device();
 }

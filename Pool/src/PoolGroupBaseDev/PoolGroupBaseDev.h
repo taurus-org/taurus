@@ -180,6 +180,8 @@ protected :
     int32_t                         usr_elt_nb;
     std::vector<CtrlGrp*>           implied_ctrls;
     std::vector<IndEltGrp*>         ind_elts;
+    std::vector<CtrlGrp*>           implied_ctrls_sorted;
+    std::vector<IndEltGrp*>         ind_elts_sorted;
     std::vector<Tango::DevState>    state_array;
     std::vector<bool>               event_fired_array;
 
@@ -248,6 +250,10 @@ public:
 
     int get_polling_thread_id();
 };
+
+bool ielt_id_cmp(IndEltGrp *, IndEltGrp *);
+
+bool ictrl_id_cmp(CtrlGrp *, CtrlGrp *);
 
 }	// namespace_ns
 

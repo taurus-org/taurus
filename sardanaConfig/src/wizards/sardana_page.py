@@ -63,25 +63,28 @@ class SelectSardanaBasePage(wiz.SardanaBasePage):
         wiz.SardanaBasePage.initializePage(self)
         self._fillCB()
 
-SardanaExamplePages = Enumeration('SardanaExamplePages', ('IntroPage', 'TangoPage', 'SardanaPage'))
-
-class SardanaExampleIntroPage(wiz.SardanaIntroBasePage):
-
-    def __init__(self, parent = None):
-        wiz.SardanaBaseIntroPage.__init__(self, parent)
-        self._chooseTangoHost = True
-        
-    def setChooseTangoHost(self, yesno):
-        self._chooseTangoHost = yesno
-    
-    def nextId(self):
-        if self._chooseTangoHost:
-            return SardanaExamplePages.TangoPage
-        else:
-            return SardanaExamplePages.SardanaPage
-
 def t1(tg_host=None):
 
+    SardanaExamplePages = Enumeration('SardanaExamplePages', ('IntroPage', 'TangoPage', 'SardanaPage'))
+
+    class SardanaExampleIntroPage(wiz.SardanaIntroBasePage):
+
+        def setNextPageId(self, id):
+            self._nextPageId = id
+        
+        def nextId(self):
+            return self._nextPageId
+
+    from tango_host_page import SelectTangoHostBasePage
+
+    class SelectTangoHostExamplePage(SelectTangoHostBasePage):
+
+        def setNextPageId(self, id):
+            self._nextPageId = id
+        
+        def nextId(self):
+            return self._nextPageId
+        
     app = QtGui.QApplication([])
     QtCore.QResource.registerResource(wiz.get_resources())
     
@@ -89,21 +92,27 @@ def t1(tg_host=None):
 
     intro = SardanaExampleIntroPage()
     w.setPage(SardanaExamplePages.IntroPage, intro)
-
+    
+    curr_page = intro
     if tg_host is None:
+        curr_page.setNextPageId(SardanaExamplePages.TangoPage)
         from tango_host_page import SelectTangoHostBasePage
         tg_host_page = SelectTangoHostBasePage()
         w.setPage(SardanaExamplePages.TangoPage, tg_host_page)
+        curr_page = tg_host_page
     else:
-        w['db'] = lambda : tg_host
+        w['db'] = lambda : tau.Database(tg_host)
 
-    sardana_page = SelectSardanaPage()
+    curr_page.setNextPageId(SardanaExamplePages.SardanaPage)
+    sardana_page = SelectSardanaBasePage()
     w.setPage(SardanaExamplePages.SardanaPage, sardana_page)
     
     w.show()
     sys.exit(app.exec_())
     
 def main():
+    import tau
+    tau.setLogLevel(tau.Warning)
     tg_host=None
     if len(sys.argv) >1:
         tg_host = sys.argv[1]

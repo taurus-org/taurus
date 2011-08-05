@@ -121,7 +121,6 @@ public class SardanaUtils extends ServerUtils{
 				e.printStackTrace();
 			}			
 		}
-		
 		return ret;
 	}
 	

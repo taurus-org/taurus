@@ -510,9 +510,14 @@ class DummyMotorControllerV2(MotorController):
     
     def StateOne(self,axis):
         idx = axis - 1
+        m = self.m[idx]
         state = PyTango.DevState.ON
         switchstate = 0
-        if self.m[idx].isInMotion(time.time()):
+        if m.getCurrentPosition(time.time())>100:
+            switchstate |= 0x2 # upper limit switch active
+        if m.getCurrentPosition(time.time())<-100:
+            switchstate |= 0x4 # lower limit switch active
+        if m.isInMotion(time.time()):
             state = PyTango.DevState.MOVING
         return (int(state), switchstate)
 

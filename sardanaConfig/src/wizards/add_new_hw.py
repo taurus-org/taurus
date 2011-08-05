@@ -3,6 +3,10 @@ from PyQt4 import QtGui, QtCore, Qt
 
 import wiz
 
+from tango_host_page import SelectTangoHostBasePage
+from sardana_page import SelectSardanaBasePage
+from pool_page import SelectPoolBasePage
+
 
 
 def main():

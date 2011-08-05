@@ -1,9 +1,5 @@
-from datarecorder import *
-# +++
-from scan import *
-from macro import *
-# +++
 
+from datarecorder import *
 import numpy
 
 try:
@@ -14,7 +10,6 @@ except:
     log = Logger("ScanStorage")
     log.info("NEXUS is not available. NEXUS_FileRecorder won't work")
     NEXUS_AVAILABLE=False
-    
 
 
 class BaseFileRecorder(DataRecorder):
@@ -33,7 +28,6 @@ class BaseFileRecorder(DataRecorder):
     def getFormat(self):
         return '<unknown>'
 
-#+++
 class FIO_FileRecorder(BaseFileRecorder):
     """ Saves data to a file """
 
@@ -70,7 +64,9 @@ class FIO_FileRecorder(BaseFileRecorder):
         return DataFormats.whatis(DataFormats.fio)
     
     def _startRecordList(self, recordlist):
-
+        from scan import *
+        from macro import *
+        
         if self.filename is None:
               return
  
@@ -82,7 +78,7 @@ class FIO_FileRecorder(BaseFileRecorder):
         serialno = envRec['serialno']
         
         #store labels for performace reason
-        self.labels = [ e.label for e in envRec['datadesc'] ]        
+        self.labels = [ e.label for e in envRec['datadesc'] ]
         self.fd = open( self.filename,'w')
         #
         # write the comment section of the header
@@ -143,6 +139,7 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.fd.flush()
         self.fd.close()
 
+
 class NEXUS_FileRecorder(BaseFileRecorder):
     """saves data to a nexus file
     This is a proof of concept, with the following limitations:
@@ -155,7 +152,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 DataFormats.wx : '.xml' }
         
     def __init__(self, filename=None, macro=None, overwrite=False, **pars):
-#+++    def __init__(self, filename=None, overwrite=False, **pars):
         BaseFileRecorder.__init__(self, **pars)
         self.overwrite = overwrite
         if filename:
@@ -341,7 +337,6 @@ class SPEC_FileRecorder(BaseFileRecorder):
     formats = { DataFormats.Spec : '.spec' }
 
     def __init__(self, filename=None, macro=None, **pars):
-#+++    def __init__(self, filename=None, **pars):
         BaseFileRecorder.__init__(self)
         if filename:
             self.setFileName(filename)
@@ -432,19 +427,12 @@ class SPEC_FileRecorder(BaseFileRecorder):
 
 
 def FileRecorder(filename, macro, **pars):
-# +++ def FileRecorder(filename, **pars):
     ext = os.path.splitext(filename)[1].lower() or '.spec'
 
     if ext in NEXUS_FileRecorder.formats.values():
         klass = NEXUS_FileRecorder
-# +++
     elif ext in FIO_FileRecorder.formats.values():
         klass = FIO_FileRecorder
-# +++
     else:
         klass = SPEC_FileRecorder
-        
-#+++        
-#    return klass(filename, **pars)
-    return klass(filename, macro, **pars)
- 
+    return klass(filename=filename, macro=macro, **pars)

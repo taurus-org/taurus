@@ -1764,7 +1764,6 @@ void MotorGroup::pool_elem_changed(Pool_ns::PoolElemEventList &evt_lst,
 // State events coming from underlying motor groups are discarted because the
 // motor group already register for state changes on the underlying motors
 //
-
             Tango::DevState old_state = get_state();
 
             // Warning: This method needs a lock on the Controller. Therefore, the element which
@@ -2304,6 +2303,8 @@ MotorGroup::IndMov* MotorGroup::build_motor(Pool_ns::MotorPool &m_ref)
         ctrl_grp = build_mot_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_ctrls.size();
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     Motor_ns::Motor *mot_dev = pool_dev->get_motor_device(m_ref);
@@ -2346,6 +2347,8 @@ void MotorGroup::build_grp()
             {
                 Pool_ns::MotorPool &motor = pool_dev->get_physical_motor(it->second);
                 ind_elts.push_back(build_motor(motor));
+                ind_elts_sorted = ind_elts;
+                sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
             }
             return;
         }
@@ -2376,6 +2379,8 @@ void MotorGroup::build_grp()
             {
                 ctrl_ptr = new Pool_ns::CtrlGrp(ctrl_ref, this);
                 implied_ctrls.push_back(ctrl_ptr);
+                implied_ctrls_sorted = implied_ctrls;
+                sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
             }
             else
             {
@@ -2393,6 +2398,8 @@ void MotorGroup::build_grp()
                 {
                     ctrl_ptr = new Pool_ns::CtrlGrp(ctrl_ref, this);
                     implied_ctrls.push_back(ctrl_ptr);
+                    implied_ctrls_sorted = implied_ctrls;
+                    sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
                 }
             }
 
@@ -2420,6 +2427,8 @@ void MotorGroup::build_grp()
                 im->idx_in_usr = -1;
 
             ind_elts.push_back(im);
+            ind_elts_sorted = ind_elts;
+            sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
         }
     }
 
@@ -2918,6 +2927,8 @@ void MotorGroup::add_motor_to_ghost_group(Pool_ns::ElementId mot_id)
         {
             ctrl_ptr = new Pool_ns::CtrlGrp(ctrl_ref, this);
             implied_ctrls.push_back(ctrl_ptr);
+            implied_ctrls_sorted = implied_ctrls;
+            sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
         }
         else
         {
@@ -2933,9 +2944,10 @@ void MotorGroup::add_motor_to_ghost_group(Pool_ns::ElementId mot_id)
             {
                 ctrl_ptr = new Pool_ns::CtrlGrp(ctrl_ref, this);
                 implied_ctrls.push_back(ctrl_ptr);
+                implied_ctrls_sorted = implied_ctrls;
+                sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
             }
         }
-
 //
 // Build motor info for group
 //
@@ -2951,6 +2963,8 @@ void MotorGroup::add_motor_to_ghost_group(Pool_ns::ElementId mot_id)
 
         phys_group_elt.push_back(im->id);
         ind_elts.push_back(im);
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     }
 
 //
@@ -3483,8 +3497,8 @@ MotorGroup::GrpInGrp::GrpInGrp(Pool_ns::MotorGroupPool &ref, MotorGroup *mg):
     pos_len = mg->pos_spectrum_dim_x;
 }
 
-MotorGroup::GrpInGrp::GrpInGrp &
-MotorGroup::GrpInGrp::operator=(const MotorGroup::GrpInGrp::GrpInGrp &rhs)
+MotorGroup::GrpInGrp &
+MotorGroup::GrpInGrp::operator=(const MotorGroup::GrpInGrp &rhs)
 {
     grp_id=rhs.grp_id;
     pool_grp=rhs.pool_grp;
@@ -3496,13 +3510,13 @@ MotorGroup::GrpInGrp::operator=(const MotorGroup::GrpInGrp::GrpInGrp &rhs)
     return *this;
 }
 
-MotorGroup::PsmInGrp::PsmInGrp(Pool_ns::PseudoMotorPool &ref,
-                               PseudoMotor_ns::PseudoMotor *pm_dev):
+MotorGroup::PsmInGrp(Pool_ns::PseudoMotorPool &ref,
+                     PseudoMotor_ns::PseudoMotor *pm_dev):
     pool_psm(ref),dev(pm_dev),psm_alias(ref.name)
 {}
 
-MotorGroup::PsmInGrp::PsmInGrp &
-MotorGroup::PsmInGrp::operator=(const MotorGroup::PsmInGrp::PsmInGrp &rhs)
+MotorGroup::PsmInGrp &
+MotorGroup::PsmInGrp::operator=(const MotorGroup::PsmInGrp &rhs)
 {
     mot_nb=rhs.mot_nb;
     start_idx=rhs.start_idx;

@@ -1167,6 +1167,8 @@ void MeasurementGroup::build_grp()
             Pool_ns::TwoDExpChannelPool &twod_pool = pool_dev->get_twod(elem_it->second);
             ind_elts.push_back(build_twod(twod_pool));
         }
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
         return;
     }
 
@@ -1237,7 +1239,9 @@ void MeasurementGroup::build_grp()
             PseudoMotorInGrp *ptr = build_pm(pm_ref);
             ind_elts.push_back(ptr);
         }
-    }    
+    }
+    ind_elts_sorted = ind_elts;
+    sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
 }
 
 MeasurementGroup::CTCtrlInGrp *
@@ -1299,6 +1303,8 @@ MeasurementGroup::build_ct(CTExpChannelPool &ct_ref)
         ctrl_grp = build_ct_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_ctrls.size();
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     CTInGrp *ct_grp = new CTInGrp(ct_ref, ctrl_grp, ct_dev, get_id(), this);
@@ -1328,6 +1334,8 @@ MeasurementGroup::build_zerod(ZeroDExpChannelPool &zeroD_ref)
         ctrl_grp = build_zerod_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_ctrls.size();
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     ZeroDInGrp *zerod_grp = new ZeroDInGrp(zeroD_ref, ctrl_grp, zerod_dev, get_id(), this);
@@ -1356,6 +1364,8 @@ MeasurementGroup::build_oned(OneDExpChannelPool &oneD_ref)
     {
         ctrl_grp = build_oned_ctrl(ctrl_ref);
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
     
     OneDInGrp *oned_grp = new OneDInGrp(oneD_ref,ctrl_grp,oned_dev,get_id(),this);
@@ -1364,7 +1374,7 @@ MeasurementGroup::build_oned(OneDExpChannelPool &oneD_ref)
     oned_grp->obj_proxy = new Tango::DeviceProxy(oneD_ref.get_full_name().c_str());
     oned_grp->obj_proxy->set_transparency_reconnection(true);
     
-    return oned_grp;	
+    return oned_grp;
 }
 
 MeasurementGroup::TwoDInGrp *
@@ -1384,6 +1394,8 @@ MeasurementGroup::build_twod(TwoDExpChannelPool &twoD_ref)
     {
         ctrl_grp = build_twod_ctrl(ctrl_ref);
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
     
     TwoDInGrp *twod_grp = new TwoDInGrp(twoD_ref,ctrl_grp,twod_dev,get_id(),this);
@@ -1413,6 +1425,8 @@ MeasurementGroup::build_pc(PseudoCounterPool &pc_ref)
         ctrl_grp = build_pc_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_pseudo_ctrls.size();
         implied_pseudo_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     PseudoCoInGrp *pc_grp = new PseudoCoInGrp(pc_ref,ctrl_grp,pc_dev,get_id(),this);
@@ -1522,6 +1536,8 @@ MeasurementGroup::build_pc(PseudoCounterPool &pc_ref)
             }
         }
     }
+    ind_elts_sorted = ind_elts;
+    sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     return pc_grp;
 }
 
@@ -1542,6 +1558,8 @@ MeasurementGroup::build_motor(MotorPool &motor_ref)
         ctrl_grp = build_motor_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_ctrls.size();
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     MotorInGrp *motor_grp = new MotorInGrp(motor_ref, ctrl_grp, motor_dev, get_id(), this);
@@ -1570,6 +1588,8 @@ MeasurementGroup::build_pm(PseudoMotorPool &motor_ref)
         ctrl_grp = build_pm_ctrl(ctrl_ref);
         ctrlgrp_idx = implied_ctrls.size();
         implied_ctrls.push_back(ctrl_grp);
+        implied_ctrls_sorted = implied_ctrls;
+        sort(implied_ctrls_sorted.begin(), implied_ctrls_sorted.end(), Pool_ns::ictrl_id_cmp);
     }
 
     PseudoMotorInGrp *motor_grp = new PseudoMotorInGrp(motor_ref, ctrl_grp, pm_dev, get_id(), this);
@@ -4622,6 +4642,8 @@ void MeasurementGroup::add_ct_to_ghost_group(Pool_ns::ElementId ch_id)
         //user_group_elt.push_back(ct_ref.name);
         //phys_group_elt.push_back(ct_ref.name);
         ind_elts.push_back(ct_grp);
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     }
 
 //
@@ -4685,6 +4707,8 @@ void MeasurementGroup::add_zerod_to_ghost_group(Pool_ns::ElementId ch_id)
         //user_group_elt.push_back(zerod_ref.name);
         //phys_group_elt.push_back(zerod_ref.name);
         ind_elts.push_back(zerod_grp);
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     }
 
 //	SAFE_DELETE_ARRAY(attr_ZeroDExpChannels_read);
@@ -4745,6 +4769,8 @@ void MeasurementGroup::add_oned_to_ghost_group(Pool_ns::ElementId ch_id)
         //user_group_elt.push_back(zerod_ref.name);
         //phys_group_elt.push_back(zerod_ref.name);
         ind_elts.push_back(oned_grp);
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     }
 
 //	SAFE_DELETE_ARRAY(attr_ZeroDExpChannels_read);
@@ -4805,6 +4831,8 @@ void MeasurementGroup::add_twod_to_ghost_group(Pool_ns::ElementId ch_id)
         //user_group_elt.push_back(zerod_ref.name);
         //phys_group_elt.push_back(zerod_ref.name);
         ind_elts.push_back(twod_grp);
+        ind_elts_sorted = ind_elts;
+        sort(ind_elts.begin(), ind_elts.end(), Pool_ns::ielt_id_cmp);
     }
 
 //	SAFE_DELETE_ARRAY(attr_ZeroDExpChannels_read);

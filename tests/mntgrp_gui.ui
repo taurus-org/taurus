@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>501</width>
+    <height>414</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="2">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>CTs of CTRL1</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="TaurusLabel" name="taurusLabel">
+        <property name="model">
+         <string>expchan/dummyctctrl1/1/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_2">
+        <property name="model">
+         <string>expchan/dummyctctrl1/1/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="TaurusLed" name="taurusLed_2">
+        <property name="model">
+         <string>expchan/dummyctctrl1/1/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_3">
+        <property name="model">
+         <string>expchan/dummyctctrl1/2/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_4">
+        <property name="model">
+         <string>expchan/dummyctctrl1/2/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="TaurusLed" name="taurusLed_3">
+        <property name="model">
+         <string>expchan/dummyctctrl1/2/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_5">
+        <property name="model">
+         <string>expchan/dummyctctrl1/3/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_6">
+        <property name="model">
+         <string>expchan/dummyctctrl1/3/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="TaurusLed" name="taurusLed_4">
+        <property name="model">
+         <string>expchan/dummyctctrl1/3/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_7">
+        <property name="model">
+         <string>expchan/dummyctctrl1/4/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_8">
+        <property name="model">
+         <string>expchan/dummyctctrl1/4/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="TaurusLed" name="taurusLed_5">
+        <property name="model">
+         <string>expchan/dummyctctrl1/4/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_9">
+        <property name="model">
+         <string>expchan/dummyctctrl1/5/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_10">
+        <property name="model">
+         <string>expchan/dummyctctrl1/5/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="TaurusLed" name="taurusLed_6">
+        <property name="model">
+         <string>expchan/dummyctctrl1/5/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_11">
+        <property name="model">
+         <string>expchan/dummyctctrl1/6/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_12">
+        <property name="model">
+         <string>expchan/dummyctctrl1/6/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="TaurusLed" name="taurusLed_7">
+        <property name="model">
+         <string>expchan/dummyctctrl1/6/state</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>CTs of CTRL2</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,0,0,0">
+      <item row="0" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_13">
+        <property name="model">
+         <string>expchan/dummyctctrl2/1/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_14">
+        <property name="model">
+         <string>expchan/dummyctctrl2/1/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="TaurusLed" name="taurusLed_8">
+        <property name="model">
+         <string>expchan/dummyctctrl2/1/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_15">
+        <property name="model">
+         <string>expchan/dummyctctrl2/2/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_16">
+        <property name="model">
+         <string>expchan/dummyctctrl2/2/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="TaurusLed" name="taurusLed_9">
+        <property name="model">
+         <string>expchan/dummyctctrl2/2/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_17">
+        <property name="model">
+         <string>expchan/dummyctctrl2/3/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_18">
+        <property name="model">
+         <string>expchan/dummyctctrl2/3/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="TaurusLed" name="taurusLed_10">
+        <property name="model">
+         <string>expchan/dummyctctrl2/3/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_19">
+        <property name="model">
+         <string>expchan/dummyctctrl2/4/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_20">
+        <property name="model">
+         <string>expchan/dummyctctrl2/4/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="TaurusLed" name="taurusLed_11">
+        <property name="model">
+         <string>expchan/dummyctctrl2/4/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_21">
+        <property name="model">
+         <string>expchan/dummyctctrl2/5/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_22">
+        <property name="model">
+         <string>expchan/dummyctctrl2/5/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="TaurusLed" name="taurusLed_12">
+        <property name="model">
+         <string>expchan/dummyctctrl2/5/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_23">
+        <property name="model">
+         <string>expchan/dummyctctrl2/6/value?configuration=dev_alias</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="TaurusLabel" name="taurusLabel_24">
+        <property name="model">
+         <string>expchan/dummyctctrl2/6/value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="TaurusLed" name="taurusLed_13">
+        <property name="model">
+         <string>expchan/dummyctctrl2/6/state</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>MG2</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="0" colspan="3">
+       <widget class="TaurusLabel" name="taurusLabel_26">
+        <property name="model">
+         <string>mntgrp/v3/mg2/elementlist</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="TaurusLed" name="taurusLed_14">
+        <property name="model">
+         <string>mntgrp/v3/mg2/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_29">
+        <property name="model">
+         <string>mntgrp/v3/mg2/integrationtime?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_30">
+        <property name="model">
+         <string>mntgrp/v3/mg2/integrationtime</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit_2">
+        <property name="model">
+         <string>mntgrp/v3/mg2/integrationtime</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_33">
+        <property name="model">
+         <string>mntgrp/v3/mg2/monitorcount?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_34">
+        <property name="model">
+         <string>mntgrp/v3/mg2/monitorcount</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit_4">
+        <property name="model">
+         <string>mntgrp/v3/mg2/monitorcount</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_37">
+        <property name="model">
+         <string>mntgrp/v3/mg2/acquisitionmode?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_38">
+        <property name="model">
+         <string>mntgrp/v3/mg2/acquisitionmode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit_6">
+        <property name="model">
+         <string>mntgrp/v3/mg2/acquisitionmode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+        <item>
+         <widget class="TaurusCommandButton" name="taurusCommandButton_2">
+          <property name="Model">
+           <string>mntgrp/v3/mg2</string>
+          </property>
+          <property name="Command">
+           <string>start</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="cfgMg2">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>MG1</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0" colspan="3">
+       <widget class="TaurusLabel" name="taurusLabel_25">
+        <property name="model">
+         <string>mntgrp/v3/mg1/elementlist</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_27">
+        <property name="model">
+         <string>mntgrp/v3/mg1/integrationtime</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_28">
+        <property name="model">
+         <string>mntgrp/v3/mg1/integrationtime?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit">
+        <property name="model">
+         <string>mntgrp/v3/mg1/integrationtime</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="TaurusLed" name="taurusLed">
+        <property name="model">
+         <string>mntgrp/v3/mg1/state</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_31">
+        <property name="model">
+         <string>mntgrp/v3/mg1/monitorcount?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_32">
+        <property name="model">
+         <string>mntgrp/v3/mg1/monitorcount</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit_3">
+        <property name="model">
+         <string>mntgrp/v3/mg1/monitorcount</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="TaurusLabel" name="taurusLabel_35">
+        <property name="model">
+         <string>mntgrp/v3/mg1/acquisitionmode?configuration=label</string>
+        </property>
+        <property name="bgRole">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="TaurusLabel" name="taurusLabel_36">
+        <property name="model">
+         <string>mntgrp/v3/mg1/acquisitionmode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="TaurusValueLineEdit" name="taurusValueLineEdit_5">
+        <property name="model">
+         <string>mntgrp/v3/mg1/acquisitionmode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="TaurusCommandButton" name="taurusCommandButton">
+          <property name="Model">
+           <string>mntgrp/v3/mg1</string>
+          </property>
+          <property name="Command">
+           <string>start</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="cfgMg1">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TaurusLabel</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusValueLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>taurus.qt.qtgui.input</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusCommandButton</class>
+   <extends>QPushButton</extends>
+   <header>taurus.qt.qtgui.button</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusLed</class>
+   <extends>QLed</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>QLed</class>
+   <extends>QPixmapWidget</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>QPixmapWidget</class>
+   <extends>QWidget</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
