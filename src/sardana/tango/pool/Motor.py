@@ -81,7 +81,7 @@ class Motor(PoolElementDevice):
             motor.add_listener(self.on_motor_changed)
             self.motor = motor
         # force a state read to initialize the state attribute
-        state = self.motor.state
+        self.set_state(DevState.ON)
         
     def on_motor_changed(self, event_source, event_type, event_value):
         t = time.time()
@@ -111,6 +111,7 @@ class Motor(PoolElementDevice):
                 if name == "position" or name == "dialposition":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING
+                    print "POSITION EVENT", event_value
                 self.push_change_event(name, event_value, t, quality)
         finally:
             if recover:

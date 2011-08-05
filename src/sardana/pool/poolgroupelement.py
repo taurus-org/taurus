@@ -76,6 +76,7 @@ class PoolGroupElement(PoolContainer, PoolBaseElement):
         if self._action_cache:
             self._action_cache.add_element(element)
         element.add_listener(self.on_element_changed)
+        return index
         
     def remove_user_element(self, element):
         try:

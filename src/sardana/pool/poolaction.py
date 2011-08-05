@@ -35,6 +35,7 @@ import time
 import weakref
 import traceback
 import threading
+import copy
 
 from taurus.core.util import Logger, DebugIt, InfoIt
 
@@ -96,8 +97,7 @@ class PoolAction(Logger):
         if ctrl_items is None:
             ctrl_items = []
             self._pool_ctrls[element.controller] = ctrl_items
-        
-        #element = weakref.ref(element)
+
         self._elements.append(element)
         ctrl_items.append(element)
     
@@ -117,8 +117,11 @@ class PoolAction(Logger):
     def get_elements(self):
         return self._elements
     
-    def get_pool_controllers(self):
-        return self._pool_ctrls
+    def get_pool_controllers(self, copy_of=False):
+        pool_ctrls = self._pool_ctrls
+        if copy_of:
+            pool_ctrls = copy.deepcopy(pool_ctrls)
+        return pool_ctrls
     
     def _is_in_action(self, state):
         return state == State.Moving or state == State.Running
@@ -138,7 +141,8 @@ class PoolAction(Logger):
         raise NotImplementedError("action_loop must be implemented in subclass")
     
     def read_state_info(self, ret=None, serial=False):
-        if ret is None: ret = {}
+        if ret is None:
+            ret = {}
         read = self._read_state_info_concurrent
         if serial:
             read = self._read_state_info_serial
@@ -176,6 +180,8 @@ class PoolAction(Logger):
             state_infos = pool_ctrl.read_axis_states(axises)
             ret.update( state_infos )
         except:
+            self.error("Something wrong happend: Error should have been caught"
+                       "by ctrl.read_axis_states", exc_info=1)
             state_info = self._get_ctrl_error_state_info(pool_ctrl)
             for elem in self._pool_ctrls[pool_ctrl]:
                 ret[elem] = state_info
@@ -183,7 +189,8 @@ class PoolAction(Logger):
             self._state_info.finishOne()
 
     def read_value(self, ret=None, serial=False):
-        if ret is None: ret = {}
+        if ret is None:
+            ret = {}
         
         read = self._read_value_concurrent
         if serial:
@@ -212,7 +219,6 @@ class PoolAction(Logger):
             ret.update( value_infos )
         finally:
             self._value_info.finishOne()
-    
     
     def abort(self, element=None):
         self._aborted = True

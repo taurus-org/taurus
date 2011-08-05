@@ -43,6 +43,7 @@ from taurus.core.util.log import InfoIt, DebugIt
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 from sardana.tango.core import to_tango_state
 
+
 class CTExpChannel(PoolElementDevice):
 
     def __init__(self, dclass, name):

@@ -25,7 +25,7 @@
 
 """This file contains the main pool class"""
 
-__all__ = ["Pool", "ThreadPool"]
+__all__ = ["Pool", "get_thread_pool"]
 
 __docformat__ = 'restructuredtext'
 
@@ -37,6 +37,7 @@ from taurus.core.util import ThreadPool, InfoIt, DebugIt
 from poolcontrollermanager import ControllerManager, TYPE_MAP_OBJ
 
 from poolbase import *
+from poolevent import EventType
 from pooldefs import *
 from poolelement import *
 from poolcontainer import *
@@ -49,7 +50,7 @@ __thread_pool = None
 def get_thread_pool():
     global __thread_pool
     if __thread_pool is None:
-        __thread_pool = ThreadPool(Psize=10)
+        __thread_pool = ThreadPool(name="PoolTP", Psize=10)
     return __thread_pool
 
 
@@ -61,7 +62,7 @@ class Pool(PoolContainer, PoolObject):
         PoolContainer.__init__(self)
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                             pool=self)
-        self._monitor = PoolMonitor(self, "PoolMonitor", auto_start=False)
+        self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
         ControllerManager()
     
     def init_remote_logging(self, host=None, port=None):

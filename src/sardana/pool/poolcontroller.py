@@ -35,7 +35,11 @@ import weakref
 import StringIO
 import traceback
 import functools
+import threading
+
 from taurus.core.util import CaselessDict
+
+from sardana import State
 
 from poolbase import *
 from pooldefs import *
@@ -190,7 +194,23 @@ def check_ctrl(fn):
         if not pool_ctrl.is_online():
             raise Exception("Cannot execute '%s' because '%s' is offline" % \
                             (fn.__name__, pool_ctrl.name))
-        return fn(pool_ctrl, *args, **kwargs)
+        lock = pool_ctrl.ctrl_lock
+        lock.acquire()
+        try:
+            return fn(pool_ctrl, *args, **kwargs)
+        finally:
+            lock.release()
+    return wrapper
+
+def ctrl_access(fn):
+    @functools.wraps(fn)
+    def wrapper(pool_ctrl, *args, **kwargs):
+        lock = pool_ctrl.ctrl_lock
+        lock.acquire()
+        try:
+            return fn(pool_ctrl, *args, **kwargs)
+        finally:
+            lock.release()
     return wrapper
 
 
@@ -204,6 +224,7 @@ class PoolController(PoolBaseController):
         self._class_name = kwargs.pop('klass')
         self._properties = kwargs.pop('properties')
         self._ctrl = None
+        self._ctrl_lock = threading.Lock()
         super(PoolController, self).__init__(**kwargs)
         self.init()
 
@@ -359,8 +380,13 @@ class PoolController(PoolBaseController):
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
     
+    def get_ctrl_lock(self):
+        return self._ctrl_lock
+    
+    ctrl_lock = property(fget=get_ctrl_lock)
+    
     @check_ctrl
-    def read_axis_states(self, axises=None):
+    def raw_read_axis_states(self, axises=None, ctrl_states=None):
         """Reads the state for the given axises. If axises is None, reads the
         state of all active axises.
         
@@ -381,13 +407,43 @@ class PoolController(PoolBaseController):
         
         ctrl.StateAll()
         
-        ctrl_states = {}
+        if ctrl_states is None:
+            ctrl_states = {}
         for axis in axises:
-            ctrl_states[self.get_element(axis=axis)] = ctrl.StateOne(axis)
+            element = self.get_element(axis=axis)
+            state_info = ctrl.StateOne(axis)
+            if state_info is None:
+                msg = "%s.StateOne(%s) returns 'None'" % (self.name, element.name)
+                state_info = State.Fault, msg
+            ctrl_states[element] = state_info
+        return ctrl_states
+
+    def read_axis_states(self, axises=None):
+        """Reads the state for the given axises. If axises is None, reads the
+        state of all active axises.
+        
+        :param axises: the list of axis to get the state. Default is None meaning
+                       all active axis in this controller
+        :type axises: seq<int> or None
+        :return: a map containing the controller state information for each axis
+        :rtype: dict<PoolElement, state info>
+        """
+        if axises is None:
+            axises = sorted(self._element_axis)
+        ctrl_states = {}
+        try:
+            ctrl_states = self.raw_read_axis_states(axises=axises, ctrl_states=ctrl_states)
+        except:
+            status = s = "".join(traceback.format_exception(*sys.exc_info()))
+            state_info = State.Fault, status
+            for axis in axises:
+                element = self.get_element(axis=axis)
+                if not ctrl_states.has_key(element):
+                    ctrl_states[element] = state_info
         return ctrl_states
     
     @check_ctrl
-    def read_axis_values(self, axises=None):
+    def read_axis_values(self, axises=None, ctrl_values=None):
         """Reads the value for the given axises. If axises is None, reads the
         value of all active axises.
         
@@ -408,10 +464,34 @@ class PoolController(PoolBaseController):
         
         ctrl.ReadAll()
         
-        ctrl_values = {}
+        if ctrl_values is None:
+            ctrl_values = {}
         for axis in axises:
-            ctrl_values[self.get_element(axis=axis)] = ctrl.ReadOne(axis)
+            element = self.get_element(axis=axis)
+            value = ctrl.ReadOne(axis)
+            if value is None:
+                raise Exception("Controller returns 'None' for ReadOne")
+            ctrl_values[element] = value
         return ctrl_values
+
+    @check_ctrl
+    def abort(self, axises=None):
+        """Aborts the given axises. If axises is None, aborts all active axises.
+        
+        :param axises: the list of axis to get the value. Default is None meaning
+                       all active axis in this controller
+        :type axises: seq<int> or None
+        """
+        ctrl = self.ctrl
+        
+        if axises is None:
+            try:
+                return ctrl.AbortAll()
+            except NotImplementedError:
+                axises = self._element_axis
+        
+        for axis in axises:
+            ctrl.PreReadOne(axis)
 
     # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     

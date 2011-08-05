@@ -32,18 +32,24 @@ __docformat__ = 'restructuredtext'
 
 import math
 
-from poolbase import *
+from sardana import State
+
 from pooldefs import *
+from poolevent import EventType
+from poolbase import *
 from poolgroupelement import *
 from poolmotion import *
 from poolmotor import *
 from poolmoveable import *
+
+from taurus.core.util import DebugIt
 
 class PhyElement(object):
     
     def __init__(self, pe, user_elem_indexes):
         self.pe = pe
         self.user_elem_indexes = user_elem_indexes
+
 
 class UserElement(object):
     
@@ -55,80 +61,104 @@ class UserElement(object):
 class PoolMotorGroup(PoolGroupElement):
 
     def __init__(self, **kwargs):
+        self._positions = {}
+        self._states = {}
+        self._state_statistics = {}
+        self._physical_elements = []
         PoolGroupElement.__init__(self, **kwargs)
-        self._position = None
         self.set_action_cache(PoolMotion("%s.Motion" % self._name))
     
     def get_type(self):
         return ElementType.MotorGroup
     
+    def _update_states(self):
+        user_elements = self.get_user_elements()
+        fault, alarm, on, moving = 0, 0, 0, 0
+        status = []
+        for elem in user_elements:
+            s = elem.inspect_state()
+            if s == State.Moving:
+                moving += 1
+                status.append(elem.name + " is in MOVING")
+            elif s == State.On: 
+                on += 1
+                status.append(elem.name + " is in ON")
+            elif s == State.Fault:
+                fault += 1
+                status.append(elem.name + " is in FAULT")
+            elif s == State.Alarm:
+                alarm += 1
+                status.append(elem.name + " is in ALARM")
+        state = State.On
+        if fault:
+            state = State.Fault
+        elif alarm:
+            state = State.Alarm
+        elif moving:
+            state = State.Moving
+        self._state_statistics = { State.On : on, State.Fault : fault,
+                                   State.Alarm : alarm, State.Moving : moving }
+        return state, status
+    
     def on_element_changed(self, evt_src, evt_type, evt_value):
-        pass
+        name = evt_type.name
+        state = self._state
+        if name in ('state', 'position'):
+            state, status = self._update_states()
+            propagate_state = name == 'state'
+            self.set_state(state, propagate=propagate_state)
+            self.set_status("\n".join(status), propagate=propagate_state)
+            if name == 'position':
+                self.put_element_position(evt_src, evt_value, propagate=1)
     
     def add_user_element(self, element, index=None):
-        if not element.get_type() in (ElementType.Motor, ElementType.PseudoMotor):
+        elem_type = element.get_type()
+        if elem_type == ElementType.Motor:
+            pass
+        elif elem_type == ElementType.PseudoMotor:
+            #TODO: make this happen
+            pass
+        else:
             raise Exception("element %s is not a motor" % element.name)
+            
         PoolGroupElement.add_user_element(self, element, index=index)
-    
-    # --------------------------------------------------------------------------
-    # state information
-    # --------------------------------------------------------------------------
-
-    def _from_ctrl_state_info(self, state_info):
-        state, ls = state_info[:2]
-        state, ls = int(state), map(bool, (ls&4,ls&2,ls&1))
-        if len(state_info) > 2:
-            return state, state_info[2], ls
-        return state, '', ls
-    
-    def _set_state_info(self, state_info, propagate=1):
-        PoolElement._set_state_info(self, state_info[:2], propagate=propagate)
-        ls = state_info[-1]
-        self._set_limit_switches(ls, propagate=propagate)
     
     # --------------------------------------------------------------------------
     # position
     # --------------------------------------------------------------------------
     
     def get_position(self, cache=True, propagate=1):
-        if not cache or self._position is None:
-            dial_position = self.read_dial_position()
-            self._set_dial_position(dial_position, propagate=propagate)
-        return self._position
-    
-    def set_position(self, position):
-        self.start_move(position)
-    
-    def put_position(self, position, propagate=1):
-        self._set_position(position, propagate=propagate)
-    
-    def _set_position(self, position, propagate=1):
-        dial_position = (position - self._offset) / self._sign
-        self._set_dial_position(dial_position, propagate=propagate)
-        
-    def read_dial_position(self):
-        return self.motion.read_dial_position()[self]
-    
-    def put_dial_position(self, dial_position, propagate=1):
-        self._set_dial_position(dial_position, propagate=propagate)
-    
-    def get_dial_position(self, cache=True, propagate=1):
-        if not cache or self._dial_position is None:
-            dial_position = self.read_dial_position()
-            self._set_dial_position(dial_position, propagate=propagate)
-        return self._dial_position
+        positions = self._positions
+        if not cache or positions is None:
+            dial_positions = self.motion.read_dial_position(serial=True)
+            for motion_obj, position in dial_positions.items():
+                motion_obj.put_dial_position(position, propagate=propagate)
+            positions = {}
+            for motion_obj in self.get_user_elements():
+                positions[motion_obj] = motion_obj.get_position(propagate=0)
+            self._set_position(positions, propagate=propagate)
+        return positions
 
-    def _set_dial_position(self, dial_position, propagate=1):
-        self._dial_position = dial_position
-        self._position = self.sign * dial_position + self.offset
-
+    def set_position(self, positions):
+        self.start_move(positions)
+    
+    def put_position(self, positions, propagate=1):
+        self._set_position(positions, propagate=propagate)
+    
+    def _set_position(self, positions, propagate=1):
+        self._positions = positions
         if not propagate:
             return
-        self.fire_event(EventType("dial_position", priority=propagate), dial_position)
-        self.fire_event(EventType("position", priority=propagate), self._position)
+        self.fire_event(EventType("position", priority=propagate), positions)
+
+    def put_element_position(self, element, position, propagate=1):
+        self._positions[element] = position
+        if not propagate or len(self._positions) < len(self.get_user_elements()):
+            return
+        self.fire_event(EventType("position", priority=propagate), self._positions)
+        
     
-    position = property(get_position, set_position, doc="motor user position")
-    dial_position = property(get_dial_position, doc="motor dial position")
+    position = property(get_position, set_position, doc="motor group positions")
     
     # --------------------------------------------------------------------------
     # motion
@@ -143,45 +173,13 @@ class PoolMotorGroup(PoolGroupElement):
     # motion calculation
     # --------------------------------------------------------------------------
     
-    def _calculate_move(self, new_position):
-        old_position = self.position
-        old_dial = self.dial_position
-        
-        ctrl = self.controller
-        
-        # compute dial position
-        dial_pos = (new_position - self.offset) / self.sign
-        
-        # add backlash if necessary
-        do_backlash = False
-        displacement = dial_pos - old_dial
-        if self.has_backlash() and \
-           math.fabs(displacement) > pool.EpsilonError and \
-           not ctrl.has_backlash():
-           
-            positive_displacement = displacement > 0
-            positive_backlash = self.is_backlash_positive()
-            do_backlash = (positive_backlash and not positive_displacement) or \
-                          (not positive_backlash and positive_displacement)
-            if do_backlash:
-                dial_pos = dial_pos - self._backlash / self._step_per_unit
-        
-        # compute a rounding value if necessary
-        if ctrl.wants_rounding():
-            nb_step  = round(dial_pos * self._step_per_unit)
-            dial_pos = nb_step / self._step_per_unit
-        
-        backlash_position = dial_pos
-        if do_backlash:
-            backlash_position = dial_pos + self._backlash / self._step_per_unit
-        
-        return new_position, dial_pos, do_backlash, backlash_position
-    
-    def start_move(self, new_position):
+    def start_move(self, new_positions):
         self._aborted = False
-        pos, dial, do_backlash, dial_backlash = self._calculate_move(new_position)
         if not self._simulation_mode:
-            items = { self : (pos, dial, do_backlash, dial_backlash) }
-            self.motion.run(items)
+            user_elements = self.get_user_elements()
+            items = {}
+            for new_position, element in zip(new_positions, user_elements):
+                items[element] = element._calculate_move(new_position)
+            self.motion.run(items=items)
     
 

@@ -73,17 +73,15 @@ class MotorGroup(PoolGroupDevice):
 
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
-            try:
-                motor_group = self.pool.create_motor_group(name=self.alias, 
-                    full_name=self.get_name(), id=self.Id,
-                    user_elements=self.Elements)
-                motor_group.add_listener(self.on_motor_group_changed)
-                self.motor_group = motor_group
-            except Exception,e:
-                import traceback
-                traceback.print_exc()
+            motor_group = self.pool.create_motor_group(name=self.alias, 
+                full_name=self.get_name(), id=self.Id,
+                user_elements=self.Elements)
+            motor_group.add_listener(self.on_motor_group_changed)
+            self.motor_group = motor_group
         # force a state read to initialize the state attribute
-        state = self.ct.state
+        #state = self.motor_group.state
+        #self.set_state(to_tango_state(state))
+        self.set_state(DevState.ON)
 
     def on_motor_group_changed(self, event_source, event_type, event_value):
         t = time.time()
@@ -103,13 +101,17 @@ class MotorGroup(PoolGroupDevice):
                 event_value = to_tango_state(event_value)
                 self.set_state(event_value)
                 self.push_change_event(name, event_value)
+            elif name == "status":
+                self.set_status(event_value)
+                self.push_change_event(name, event_value)
             else:
                 state = to_tango_state(self.motor_group.get_state())
                 if name == "position":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING
-                attr.set_value_date_quality(event_value, t, quality)
-                self.push_change_event(name, event_value, t, quality)
+                    positions = self._to_motor_positions(event_value)
+                attr.set_value_date_quality(positions, t, quality)
+                self.push_change_event(name, positions, t, quality)
         finally:
             if recover:
                 attr.set_change_event(True, True)
@@ -121,12 +123,17 @@ class MotorGroup(PoolGroupDevice):
     def read_attr_hardware(self,data):
         pass
     
+    def _to_motor_positions(self, pos):
+        return [ pos[elem] for elem in self.motor_group.get_user_elements() ]
+    
     def read_Position(self, attr):
-        try:
-            attr.set_value(self.motor_group.get_position(cache=False))
-        except:
-            import traceback
-            traceback.print_exc()
+        # if motors are moving their position is already being updated with a
+        # high frequency so don't bother overloading and just get the cached
+        # values
+        cache = self.get_state() == DevState.MOVING
+        positions = self.motor_group.get_position(cache=cache)
+        positions = self._to_motor_positions(positions)
+        attr.set_value(positions)
     
     def write_Position(self, attr):
         self.motor_group.position = attr.get_write_value()

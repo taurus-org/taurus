@@ -33,8 +33,11 @@ __docformat__ = 'restructuredtext'
 import math
 import operator
 
+from sardana import EpsilonError
 from poolbase import *
+
 from pooldefs import *
+from poolevent import EventType
 from poolelement import *
 from poolmotion import *
 from poolmoveable import *
@@ -137,10 +140,12 @@ class PoolMotor(PoolElement):
     
     def set_offset(self, offset, propagate=1):
         self._offset = offset
-        self.fire_event(EventType("offset", priority=propagate), offset)
+        if propagate:
+            self.fire_event(EventType("offset", priority=propagate), offset)
         # recalculate position and send event
-        self._position = self.sign * self.dial_position + offset
-        self.fire_event(EventType("position", priority=propagate), self._position)
+        self._position = self.to_user_position(offset=offset)
+        if propagate:
+            self.fire_event(EventType("position", priority=propagate), self._position)
     
     offset = property(get_offset, set_offset, doc="motor offset")
     
@@ -156,7 +161,7 @@ class PoolMotor(PoolElement):
         if propagate:
             self.fire_event(EventType("sign", priority=propagate), sign)
         # recalculate position and send event
-        self._position = sign * self.dial_position + self.offset
+        self._position = self.to_user_position(sign=sign)
         if propagate:
             self.fire_event(EventType("position", priority=propagate), self._position)
         # invert lower with upper limit switches and send event in case of change
@@ -300,6 +305,30 @@ class PoolMotor(PoolElement):
     # position & dial position
     # --------------------------------------------------------------------------
     
+    def to_user_position(self, dial_position=None, sign=None, offset=None):
+        """utility method to calculate user position from dial position, sign
+        and offset"""
+        if dial_position is None:
+            dial_position = self.get_dial_position(propagate=0)
+        if sign is None:
+            sign = self.sign
+        if offset is None:
+            offset = self.offset
+        position = sign * dial_position + offset
+        return position
+
+    def to_dial_position(self, position=None, sign=None, offset=None):
+        """utility method to calculate dial position from user position, sign
+        and offset"""
+        if position is None:
+            position = self.get_position(propagate=0)
+        if sign is None:
+            sign = self.sign
+        if offset is None:
+            offset = self.offset
+        dial_position = (position - offset) / sign
+        return dial_position
+    
     def get_position(self, cache=True, propagate=1):
         if not cache or self._position is None:
             dial_position = self.read_dial_position()
@@ -314,7 +343,7 @@ class PoolMotor(PoolElement):
         self._set_position(position, propagate=propagate)
     
     def _set_position(self, position, propagate=1):
-        dial_position = (position - self._offset) / self._sign
+        dial_position = self.to_dial_position(position=position)
         self._set_dial_position(dial_position, propagate=propagate)
         
     def read_dial_position(self):
@@ -331,7 +360,7 @@ class PoolMotor(PoolElement):
 
     def _set_dial_position(self, dial_position, propagate=1):
         self._dial_position = dial_position
-        self._position = self.sign * dial_position + self.offset
+        self._position = self.to_user_position(dial_position=dial_position)
 
         if not propagate:
             return
@@ -358,39 +387,44 @@ class PoolMotor(PoolElement):
         old_position = self.position
         old_dial = self.dial_position
         
+        step_per_unit, backlash = self._step_per_unit, self._backlash
+        
         ctrl = self.controller
         
         # compute dial position
-        dial_pos = (new_position - self.offset) / self.sign
+        new_dial = self.to_dial_position(position=new_position)
         
         # add backlash if necessary
         do_backlash = False
-        displacement = dial_pos - old_dial
+        displacement = new_dial - old_dial
         if self.has_backlash() and \
-           math.fabs(displacement) > pool.EpsilonError and \
+           math.fabs(displacement) > EpsilonError and \
            not ctrl.has_backlash():
            
             positive_displacement = displacement > 0
             positive_backlash = self.is_backlash_positive()
             do_backlash = positive_backlash != positive_displacement
             if do_backlash:
-                dial_pos = dial_pos - self._backlash / self._step_per_unit
+                new_dial = new_dial - backlash / step_per_unit
         
         # compute a rounding value if necessary
         if ctrl.wants_rounding():
-            nb_step  = round(dial_pos * self._step_per_unit)
-            dial_pos = nb_step / self._step_per_unit
+            nb_step  = round(new_dial * step_per_unit)
+            new_dial = nb_step / step_per_unit
         
-        backlash_position = dial_pos
+        backlash_position = new_dial
         if do_backlash:
-            backlash_position = dial_pos + self._backlash / self._step_per_unit
+            backlash_position = new_dial + backlash / step_per_unit
         
-        return new_position, dial_pos, do_backlash, backlash_position
+        return new_position, new_dial, do_backlash, backlash_position
     
     def start_move(self, new_position):
-        self._aborted = False
         pos, dial, do_backlash, dial_backlash = self._calculate_move(new_position)
         if not self._simulation_mode:
-            items = { self : (pos, dial, do_backlash, dial_backlash) }
-            self.motion.run(items=items)
+            item = pos, dial, do_backlash, dial_backlash
+            self.warning("Start motion pos=%f, dial=%f, do_backlash=%s, "
+                         "dial_backlash=%f", *item)
+            self.motion.run(items={ self : item })
     
+    def prepare_to_move(self):
+        self._aborted = False

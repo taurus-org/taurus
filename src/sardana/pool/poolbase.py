@@ -26,98 +26,15 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = ["EventGenerator", "EventType",
-           "PoolBaseObject", "PoolObject"]
+__all__ = ["PoolBaseObject", "PoolObject"]
 
 __docformat__ = 'restructuredtext'
 
 import weakref
-import operator
 
-from taurus.core.util import CallableRef, BoundMethodWeakref, Logger, CaselessDict
+from taurus.core.util import Logger
 
-from pooldefs import *
-
-
-class EventGenerator(object):
-
-    def __init__(self):
-        self._listeners = []
-    
-    def _listener_died(self, weak_listener):
-        if self._listeners is None: 
-            return
-        try:
-            self._listeners.remove(weak_listener)
-        except Exception,e:
-            pass
-        
-    def _get_callable_ref(self, listener, cb = None):
-        meth = getattr(listener, 'event_received', None)
-        if meth is not None and operator.isCallable(meth):
-            return weakref.ref(listener, cb)
-        else:
-            return CallableRef(listener, cb)
-    
-    def add_listener(self, listener):
-        if self._listeners is None or listener is None: 
-            return False
-        
-        weak_listener = self._get_callable_ref(listener, self._listener_died)
-        if weak_listener in self._listeners:
-            return False
-        self._listeners.append(weak_listener)
-        return True
-    
-    def remove_listener(self, listener):
-        if self._listeners is None: 
-            return
-        weak_listener = self._getCallableRef(listener)
-        try:
-            self._listeners.remove(weak_listener)
-        except Exception,e:
-            return False
-        return True
-        
-    def has_listeners(self):
-        """ returns True if anybody is listening to events from this attribute """
-        if self._listeners is None: 
-            return False
-        return len(self._listeners) > 0
-        
-    def fire_event(self, event_type, event_value, listeners=None):
-        """sends an event to all listeners or a specific one"""
-        if listeners is None:
-            listeners = self._listeners
-        if listeners is None:
-            return
-        if not operator.isSequenceType(listeners):
-            listeners = listeners,
-        for listener in listeners:
-            if isinstance(listener, weakref.ref) or \
-               isinstance(listener, BoundMethodWeakref):
-                l = listener()
-            else:
-                l = listener
-            if l is None: continue
-            meth = getattr(l, 'event_received', None)
-            if meth is not None and operator.isCallable(meth):
-                l.event_received(self, event_type, event_value)
-            elif operator.isCallable(l):
-                l(self, event_type, event_value)
-
-
-class EventType(object):
-    
-    def __init__(self, name, priority=0):
-        self.name = name
-        self.priority = priority
-    
-    def __str__(self):
-        return "EventType(name=%s, priority=%s)" % (self.name, self.priority)
-
-    def __repr__(self):
-        return "EventType(name=%s, priority=%s)" % (self.name, self.priority)
+from poolevent import EventGenerator
 
 
 class PoolBaseObject(EventGenerator, Logger):
@@ -132,9 +49,17 @@ class PoolBaseObject(EventGenerator, Logger):
         self._pool = weakref.ref(kwargs['pool'])
     
     def get_pool(self):
+        """Return the :class:`sardana.pool.Pool` which *owns* this pool object.
+        
+        :return: the pool which *owns* this pool object.
+        :rtype: :class:`sardana.pool.Pool`"""
         return self._pool()
     
     def get_name(self):
+        """Returns this pool object name
+        
+        :return: this pool object name
+        :rtype: str"""
         return self._name
     
     def __str__(self):
@@ -149,22 +74,38 @@ class PoolBaseObject(EventGenerator, Logger):
 
 class PoolObject(PoolBaseObject):
     """A Pool object that besides the name and reference to the pool has:
-       - _id : the internal identifier
-       - _full_name : the name (usually a tango device name, but can be anything else.)
-       - _user_full_name : [alias] '('[full_name]')' [class-of_device] [extra_info]"""
+       
+           - _id : the internal identifier
+           - _full_name : the name (usually a tango device name, but can be 
+             anything else.)
+           - _user_full_name : "[alias] '('[full_name]')' [class-of_device] \
+             [extra_info]" """
        
     def __init__(self, **kwargs):
         self._full_name = kwargs.pop('full_name')
         self._id = kwargs.pop('id')
-        super(PoolObject, self).__init__(**kwargs)
+        PoolBaseObject.__init__(self, **kwargs)
 
     def get_full_name(self):
+        """Returns this pool object full name
+        
+        :return: this pool object full name
+        :rtype: str"""
         return self._full_name
 
     def get_id(self):
+        """Returns this pool object ID
+        
+        :return: this pool object ID
+        :rtype: int"""
         return self._id
 
     def get_type(self):
+        """Returns this pool object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:'"""
         raise NotImplementedError
 
     full_name = property(get_full_name)

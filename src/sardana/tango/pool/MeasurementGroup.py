@@ -84,15 +84,11 @@ class MeasurementGroup(PoolGroupDevice):
             except:
                 pass
         if self.measurement_group is None:
-            try:
-                mg = self.pool.create_measurement_group(name=self.alias,
-                    full_name=self.get_name(), id=self.Id,
-                    user_elements=self.Elements)
-                mg.add_listener(self.on_measurement_group_changed)
-                self.measurement_group = mg
-            except Exception,e:
-                import traceback
-                traceback.print_exc()
+            mg = self.pool.create_measurement_group(name=self.alias,
+                full_name=self.get_name(), id=self.Id,
+                user_elements=self.Elements)
+            mg.add_listener(self.on_measurement_group_changed)
+            self.measurement_group = mg
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
         #state = self.measurement_group.state
@@ -107,7 +103,6 @@ class MeasurementGroup(PoolGroupDevice):
         
         recover = False
         if event_type.priority > 1:
-            self.debug("priority event %s",name)
             attr.set_change_event(True, False)
             recover = True
         

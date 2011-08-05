@@ -30,8 +30,9 @@ __all__ = [ "PoolCounterTimer" ]
 
 __docformat__ = 'restructuredtext'
 
-from poolbase import *
 from pooldefs import *
+from poolevent import EventType
+from poolbase import *
 from poolelement import *
 from poolacquisition import *
 

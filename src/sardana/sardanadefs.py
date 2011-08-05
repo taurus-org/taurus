@@ -47,20 +47,24 @@ State = Enumeration("State", ( \
     "Running",
     "Alarm",
     "Disable",
-    "Unknown") )
+    "Unknown",
+    "Invalid") )
 
 DataType = Enumeration("DataType", ( \
     "Integer",
     "Double",
     "String",
     "Boolean",
-    "Encoded") )
+    "Encoded",
+    "Invalid") )
     
 DataFormat = Enumeration("DataFormat", ( \
     "Scalar",
     "OneD",
-    "TwoD") )
+    "TwoD",
+    "Invalid") )
     
 DataAccess = Enumeration("DataAccess", ( \
     "ReadOnly",
-    "ReadWrite") )
+    "ReadWrite",
+    "Invalid") )

@@ -140,7 +140,7 @@ class Controller:
         the given value.
         
         .. versionadded:: 1.0"""
-        setattr(self, '_'+parameter, value)
+        setattr(self, '_' + parameter, value)
 
     #def GetCtrlPar(self, unit, parameter):
     def GetCtrlPar(self, parameter):
@@ -150,7 +150,7 @@ class Controller:
         member named '_'+parameter.
         
         .. versionadded:: 1.0"""
-        return getattr(self, '_'+parameter)
+        return getattr(self, '_' + parameter)
     
     #def SetAxisPar(self, unit, axis, parameter, value):
     def SetAxisPar(self, axis, parameter, value):
@@ -233,6 +233,9 @@ class Controller:
         
         .. versionadded:: 1.0"""
         return ()
+
+    def AbortAll(self):
+        raise NotImplementedError
 
 
 class MotorController(Controller):

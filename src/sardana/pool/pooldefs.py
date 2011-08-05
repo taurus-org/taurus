@@ -55,14 +55,15 @@ ElementType = Enumeration("ElementType", ( \
     "MeasurementGroup",
     "Instrument") )
 
-TYPE_ELEMENTS = ElementType.Motor, ElementType.CTExpChannel, ElementType.ZeroDExpChannel, \
-    ElementType.OneDExpChannel, ElementType.TwoDExpChannel, ElementType.ZeroDExpChannel, \
-    ElementType.Communication, ElementType.IORegister, ElementType.PseudoMotor, \
-    ElementType.PseudoCounter, ElementType.Constraint
+ET = ElementType
+TYPE_ELEMENTS = ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, ET.ZeroDExpChannel, \
+    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.PseudoCounter, ET.Constraint
     
-TYPE_GROUP_ELEMENTS = ElementType.MotorGroup, ElementType.MeasurementGroup
+TYPE_GROUP_ELEMENTS = ET.MotorGroup, ET.MeasurementGroup
 
-TYPE_MOVEABLE_ELEMENTS = ElementType.Motor, ElementType.PseudoMotor, ElementType.MotorGroup
+TYPE_MOVEABLE_ELEMENTS = ET.Motor, ET.PseudoMotor, ET.MotorGroup
 
 AcqTriggerType = Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
@@ -75,4 +76,6 @@ AcqMode = Enumeration("AcqMode", ( \
     "Unknown") )
 
 class ControllerOfflineException(Exception):
+    """An exception to be thrown when an operation is requested on a controller
+    which is offline"""
     pass

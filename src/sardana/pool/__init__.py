@@ -30,12 +30,14 @@ __docformat__ = 'restructuredtext'
 from .controller import *
 
 from .pooldefs import *
+from .poolevent import *
 from .poolbase import *
 from .poolelement import *
 from .poolgroupelement import *
 from .poolcontainer import *
 from .poolcontroller import *
 from .poolmotor import *
+from .poolmotorgroup import *
 from .poolmoveable import *
 from .poolpseudomotor import *
 from .poolinstrument import *

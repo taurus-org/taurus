@@ -31,24 +31,31 @@ __all__ = [ "PoolBaseElement", "PoolElement" ]
 __docformat__ = 'restructuredtext'
 
 import weakref
+import functools
 
-from poolbase import *
-from pooldefs import *
+from poolevent import EventType
+from poolbase import PoolObject
 
 
 class PoolBaseElement(PoolObject):
-    
+    """A Pool object that besides the name, reference to the pool, ID, full_name
+    and user_full_name has:
+       
+       - _simulation_mode : boolean telling if in simulation mode
+       - _state : element state
+       - _status : element status"""
+
     def __init__(self, **kwargs):
         self._simulation_mode = False
         self._state = None
         self._state_event = None
         self._status = None
         self._status_event = None
-        self._aborted = False
         self._action_cache = None
         super(PoolBaseElement, self).__init__(**kwargs)
     
     def get_action_cache(self):
+        """Returns the internal action cache object"""
         return self._action_cache
     
     # --------------------------------------------------------------------------
@@ -56,9 +63,27 @@ class PoolBaseElement(PoolObject):
     # --------------------------------------------------------------------------
     
     def get_state(self, cache=True, propagate=1):
+        """Returns the state for this object. If cache is True (default) it
+        returns the current state stored in cache (it will force an update if
+        cache is empty). If propagate > 0 and if the state changed since last
+        read, it will propagate the state event to all listeners.
+        
+            :param cache: tells if return value from local cache or update
+                          from HW read [default: True]
+            :type cache: bool
+            :param propagate: if > 0 propagates the event in case it changed
+                              since last HW read. Values bigger that mean the
+                              event if sent should be a priority event
+                              [default: 1]
+            :type propagate: int
+            :return: the current object state
+            :rtype: :obj:`sardana.State`"""
         if not cache or self._state is None:
             state_info = self.read_state_info()
             self._set_state_info(state_info, propagate=propagate)
+        return self._state
+    
+    def inspect_state(self):
         return self._state
     
     def set_state(self, state, propagate=1):
@@ -77,6 +102,8 @@ class PoolBaseElement(PoolObject):
     def put_state(self, state):
         self._state = state
 
+    state = property(get_state, set_state, doc="element state")
+    
     # --------------------------------------------------------------------------
     # status
     # --------------------------------------------------------------------------
@@ -104,6 +131,8 @@ class PoolBaseElement(PoolObject):
     def put_status(self, status):
         self._status = status
     
+    status = property(get_status, set_status, doc="element status")
+    
     # --------------------------------------------------------------------------
     # state information
     # --------------------------------------------------------------------------
@@ -117,7 +146,7 @@ class PoolBaseElement(PoolObject):
         self._set_status(status, propagate=propagate)
     
     def read_state_info(self):
-        ctrl_state_info = self._action_cache.read_state_info()[self]
+        ctrl_state_info = self._action_cache.read_state_info(serial=True)[self]
         return self._from_ctrl_state_info(ctrl_state_info)
     
     def put_state_info(self, state_info):
@@ -129,19 +158,6 @@ class PoolBaseElement(PoolObject):
         state = int(state)
         return state, status
 
-    # --------------------------------------------------------------------------
-    # abort
-    # --------------------------------------------------------------------------
-    
-    def abort(self):
-        self.controller.ctrl.AbortOne(self.axis)
-        self._aborted = True
-    
-    def was_aborted(self):
-        return self._aborted
-    
-    state = property(get_state, set_state, doc="element state")
-    
 
 class PoolElement(PoolBaseElement):
     """A Pool element is an Pool object which is controlled by a controller.
@@ -149,6 +165,7 @@ class PoolElement(PoolBaseElement):
        the controller)."""
     
     def __init__(self, **kwargs):
+        self._aborted = False
         ctrl = kwargs.pop('ctrl')
         self._ctrl = weakref.ref(ctrl)
         self._axis = kwargs.pop('axis')
@@ -164,8 +181,8 @@ class PoolElement(PoolBaseElement):
         data = {'name' : self.name, 'full_name': self.full_name,
                 'ctrl_name' : self.controller.name, 'axis' : self.axis,
                 'type' : self.controller.get_ctrl_type_names()[0] }
-        r = "{name} ({full_name}) ({ctrl_name}/{axis}) {type}".format(**data)
-        return r
+        res = "{name} ({full_name}) ({ctrl_name}/{axis}) {type}".format(**data)
+        return res
 
     def get_controller(self):
         if self._ctrl is None:
@@ -208,6 +225,17 @@ class PoolElement(PoolBaseElement):
             return
         self.fire_event(EventType("instrument", priority=propagate),
                         new_instrument_name)
+
+    # --------------------------------------------------------------------------
+    # abort
+    # --------------------------------------------------------------------------
+    
+    def abort(self):
+        self.controller.ctrl.AbortOne(self.axis)
+        self._aborted = True
+    
+    def was_aborted(self):
+        return self._aborted
     
     axis = property(get_axis, doc="element axis")
     
