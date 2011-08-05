@@ -494,9 +494,9 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         :return: (str) a tooltip
         """
         if self.modelObj is None:
-            return Qt.QString.fromLatin1(self.getNoneValue())
+            return self.getNoneValue()
         obj = self.modelObj.getDisplayDescrObj()
-        return Qt.QString.fromLatin1(self.toolTipObjToStr(obj))
+        return self.toolTipObjToStr(obj)
     
     def toolTipObjToStr(self, toolTipObj):
         """Converts a python dict to a tooltip string.
@@ -797,7 +797,6 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         """
         return self._localModelName
     
-    @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model):
         """Sets/unsets the model name for this component
         
@@ -913,7 +912,6 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         """Resets the showing of the display value to True"""
         self.setShowText(True)
         
-    @Qt.pyqtSignature("setTaurusPopupMenu(QString)")
     def setTaurusPopupMenu(self, menuData):
         """Sets/unsets the taurus popup menu
         
@@ -1095,7 +1093,6 @@ class TaurusBaseWidget(TaurusBaseComponent):
                 self.setModelCheck(self.getModel(), False)
         self.getQtClass().changeEvent(self, evt)
     
-    @Qt.pyqtSignature("parentModelChanged(const QString &)")
     def parentModelChanged(self, parentmodel_name):
         """Invoked when the Taurus parent model changes
         
