@@ -89,5 +89,5 @@ def registerExtensions():
     #import taurus.core.tango.sardana.pool
     #taurus.core.tango.sardana.pool.registerExtensions()
     factory = taurus.Factory()
-    factory.registerDeviceClass('Pool', QPool)
+    #factory.registerDeviceClass('Pool', QPool)
     factory.registerDeviceClass('MeasurementGroup', QMeasurementGroup)
