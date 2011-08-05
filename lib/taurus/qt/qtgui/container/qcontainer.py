@@ -37,7 +37,7 @@ from PyQt4 import Qt
 from taurus.qt.qtgui.resource import getThemePixmap, getThemeIcon, getStandardIcon
 
 _TitleBarStyleExpanded = """.QFrame {{
-border-width: 1px;
+border-width: 0px;
 border-style: solid;
 border-color: {stop_color};
 border-top-left-radius: {border_radius};
@@ -49,7 +49,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 }}"""
 
 _TitleBarStyleCollapsed = """.QFrame {{
-border-width: 1px;
+border-width: 0px;
 border-style: solid;
 border-color: {stop_color};
 border-top-left-radius: {border_radius};
@@ -75,6 +75,9 @@ border-bottom-left-radius: {border_radius};
 border-bottom-right-radius: {border_radius};
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0,
                                   stop: 0 {start_color}, stop: 1 {stop_color});
+/*
+  background-position: center center;
+*/
 }}"""
 
 _ContentBarStyleWithoutTitle = """.QFrame {{
@@ -87,6 +90,9 @@ border-bottom-left-radius: {border_radius};
 border-bottom-right-radius: {border_radius};
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0,
                                   stop: 0 {start_color}, stop: 1 {stop_color});
+/*
+  background-position: center center;
+*/
 }}"""
 
 
@@ -99,7 +105,7 @@ class QGroupWidget(Qt.QWidget):
         'start_color'  : 'rgb(60, 150, 255)',
         'stop_color'   : 'rgb(0, 65, 200)',
         'font_color'   : 'white',
-        'border_radius': '5px',
+        'border_radius': '4px',
     }
 
     DefaultContentVisible = True
@@ -107,7 +113,7 @@ class QGroupWidget(Qt.QWidget):
         'start_color' : 'rgb(224, 224, 224)',
         'stop_color'  : 'rgb(255, 255, 255)',
         'border_color' : 'rgb(0, 85, 227)',
-        'border_radius': '5px',
+        'border_radius': '4px',
     }
 
     def __init__(self, parent=None, designMode=False):
