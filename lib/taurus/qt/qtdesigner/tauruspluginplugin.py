@@ -98,7 +98,10 @@ def main():
             ok_nb += 1
             _log.debug("DONE processing %s" % name)
         _log.info("Inpected %d widgets. %d (OK), %d (Skipped), %d (E1), %d (E2), %d (E3), %d(E4)" % (len(klasses), ok_nb, skipped_nb, e1_nb, e2_nb, e3_nb, e4_nb))
-        
+        _log.info("E1: getQtDesignerPluginInfo() returns None")
+        _log.info("E2: widget doesn't implement getQtDesignerPluginInfo()")
+        _log.info("E3: getQtDesignerPluginInfo() throws exception")
+        _log.info("E4: getQtDesignerPluginInfo() returns dictionary with missing key (probably 'module' key)")
     except Exception, e:
         print e
 
