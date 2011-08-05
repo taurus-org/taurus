@@ -36,7 +36,6 @@ from PyQt4 import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import CaselessList
-from taurus.qt.qtgui.resource import qrc_tango_icons_actions
 
 from ui.ui_AttributeChooser import *
 

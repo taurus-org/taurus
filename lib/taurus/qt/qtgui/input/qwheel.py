@@ -34,7 +34,7 @@ import math
 
 from PyQt4 import Qt
 
-from taurus.qt.qtgui.resource.qrc_extra_icons import *
+#from taurus.qt.qtgui.resource.qrc_extra_icons import *
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
