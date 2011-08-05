@@ -36,8 +36,7 @@ import datetime
 from PyQt4 import Qt
 
 import taurus.core.util
-
-from taurus.qt.qtgui.resource.qrc_extra_icons import *
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
 def getBrushForLevel(level):
     if level <= taurus.Trace      : return Qt.QBrush(Qt.Qt.lightGray), Qt.QBrush(Qt.Qt.black)
@@ -336,7 +335,7 @@ class QLoggingWidget(Qt.QWidget):
         tb = self._toolbar = Qt.QToolBar("Taurus logger toolbar")
         tb.setFloatable(False)
         
-        self._scrollLockButton = Qt.QPushButton(Qt.QIcon(":/scroll_lock.png"),"")
+        self._scrollLockButton = Qt.QPushButton(getIcon(":/scroll_lock.png"),"")
         self._scrollLockButton.setCheckable(True)
         self._scrollLockButton.setChecked(table.getScrollLock())
         self._scrollLockButton.setFlat(True)
