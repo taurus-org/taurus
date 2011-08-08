@@ -56,8 +56,8 @@ from sardana import State
 #                    - 'enabled' : True/False (default is True)
 #                    any hints:
 #                    - 'output' : True/False (default is True)
-#                    - 'plottable' : True/False (default is True)
-#                    - 'plot_axis' : 'x'/'y1'/'y2' (default is 'y1')
+#                    - 'plot_type' : 'No'/'1D'/'2D' (default is 'No')
+#                    - 'plot_axes' : list<str> 'where str is channel name/'step#/'index#' (default is [])
 #                    - 'label' : prefered label (default is channel name)
 #                    - 'scale' : <float, float> with min/max (defaults to channel
 #                                range if it is defined
@@ -178,8 +178,8 @@ class PoolMeasurementGroup(PoolGroupElement):
                     channel_data['enabled'] = True
                     channel_data['label'] = element.name
                     channel_data['output'] = True
-                    channel_data['plottable'] = True
-                    channel_data['plot_axis'] = 'y1'
+                    channel_data['plot_type'] = 'No'
+                    channel_data['plot_axes'] = []
             config['label'] = self.name
             config['description'] = self.DFT_DESC
         # checks
