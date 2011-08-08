@@ -74,8 +74,11 @@ class DefaultLabelWidget(TaurusLabel):
         if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, model + "?configuration=%s"%config)
-        else:
+        elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
             TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
+        else:
+            # model could be 'None' and could be be concatenated with a string...
+            pass
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
     def contextMenuEvent(self,event):   
@@ -505,7 +508,18 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if oldWidget is not None:
             oldWidget.hide()
             oldWidget.setParent(None)
-            oldWidget.destroy()
+            # THIS HACK REDUCES THE STARTUP-HANGING RATE
+            oldWidget.setModel(None)
+            
+            # COULD NOT INVESTIGATE DEEPER, BUT THE STARTUP-HANGING
+            # HAPPENS WITH SOME SIGNALS RELATED WITH THE LINEEDIT...
+            # MAYBE OTHER 'WRITE WIDGETS' HAVE THE SAME PROBLEM ?!?!?!
+            if isinstance(oldWidget, Qt.QLineEdit):
+                oldWidget.blockSignals(True)
+                
+            # THIS HACK REDUCES THE STARTUP-HANGING RATE
+            oldWidget.deleteLater()
+
         if newClass is None: result = None
         else: result = newClass()
         return result
@@ -795,7 +809,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     def getModelClass(self):
         return self.__modelClass
-    
+
 #    def destroy(self):
 #        if not self._designMode:
 #            for w in [self._labelWidget, self._readWidget, self._writeWidget, self._unitsWidget, self._extraWidget]:
