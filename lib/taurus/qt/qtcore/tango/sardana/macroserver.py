@@ -68,6 +68,16 @@ class QDoor(Qt.QObject, BaseDoor):
         res = BaseDoor.logReceived(self, log_name, output)
         self.emit(Qt.SIGNAL("%sUpdated" % log_name.lower()), output)
         return res
+    
+    def getExperimentConfiguration(self, cache=False):
+        '''
+        Returns the ExperimentConfiguration dictionary. 
+        This implementation is a dummy one returning a hardcoded dictionary. 
+        The real implementation should be able to read the info from the
+        ExperimentConfiguration envvar stored in the environment attribute.
+        '''
+        from taurus.qt.qtgui.extra_sardana.expdescription import DUMMY_EXP_CONF
+        return DUMMY_EXP_CONF
 
 
 class QMacroServer(Qt.QObject, BaseMacroServer):
