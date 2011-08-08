@@ -313,9 +313,9 @@ def main_ControllerClassTreeWidget(pool, perspective=PoolControllerView.Controll
     w.show()
     return w
 
-def demo():
+def demo(poolname="Pool_BL98"):
     """ControllerClassTreeWidget"""
-    w = main_ControllerClassSelecionDialog("Pool_BL98", PoolControllerView.ControllerClass)
+    w = main_ControllerClassSelecionDialog(poolname, PoolControllerView.ControllerClass)
     return w
 
 def main():
@@ -329,7 +329,13 @@ def main():
     if owns_app:
         app = Application(app_name="Pool controller class tree demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
-    w = demo()
+    
+    args = app.get_command_line_args()
+    if len(args)==1:
+        w = demo(poolname=args[0])
+    else:
+        w = demo()
+        
     w.show()
     if owns_app:
         sys.exit(app.exec_())
