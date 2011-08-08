@@ -86,8 +86,10 @@ if QT_API == QT_API_PYQT:
     from PyQt4 import QtCore, QtGui, QtSvg, Qt
 
     # Alias PyQt-specific functions for PySide compatibility.
-    QtCore.Signal = QtCore.pyqtSignal
-    QtCore.Slot = QtCore.pyqtSlot
+    if hasattr(QtCore, "pyqtSignal"):
+        QtCore.Signal = QtCore.pyqtSignal
+    if hasattr(QtCore, "pyqtSlot"):
+        QtCore.Slot = QtCore.pyqtSlot
 
 elif QT_API == QT_API_PYSIDE:
     from PySide import QtCore, QtGui, QtSvg, Qt
