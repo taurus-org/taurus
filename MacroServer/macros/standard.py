@@ -473,3 +473,123 @@ class th_exc(Macro):
     
     def run(self):
         raise Exception("An exception in a macro!")
+
+
+################################################################################
+#
+# Tango getters and setters for different pool elements
+#
+################################################################################
+
+class get_attr(Macro):
+    """get_attr.
+    For a given pool element, get values for it's corresponding attributes.
+    EXAMPLE: get_attr my_motor Sign Offset
+    NOTE: At some point the 'elem' param type should be changed to the not
+    available yet: Type.PoolElem(ent)
+    """
+    param_def = [
+        ['element', Type.String, None, 'Pool element to read.'],
+        ['attributes',
+         ParamRepeat(['attribute', Type.String, None, 'Attribute to be read']),
+         None, 'List of attributes']
+    ]
+
+    def run(self, element, *attributes):
+        for attribute in attributes:
+            # Get the element
+            # Get the attribute
+            # Get the display value
+            element_obj = self.getObj(element)
+            element_obj_attr = element_obj.getAttribute(attribute)
+            display_value = element_obj_attr.getDisplayValue(cache=False)
+            
+            get_info = element+'.'+attribute+' -> '+display_value
+            print(get_info)
+            
+class set_attr(Macro):
+    """set_attr.
+    For a given pool element, set values to it's corresponding attributes.
+    EXAMPLE: set_attr my_motor Sign -1 Offset 10.4
+    NOTE: At some point the 'elem' param type should be changed to the not
+    available yet: Type.PoolElem(ent)
+    NOTE2: Right now, Boolean attributes can only be set to False by ''.
+    """
+    param_def = [
+        ['element', Type.String, None, 'Pool element to operate.'],
+        ['attributes_and_values',
+         ParamRepeat(['attribute', Type.String, None, 'Attribute to be written'],
+                     ['value', Type.String, None, 'Value to set']),
+         None, 'List of pairs: attribute, value']
+    ]
+
+    def run(self, element, *attributes_and_values):
+        for attribute, value in attributes_and_values:
+            # If attribute is Position (dangerous) -> bypass
+            # Get the element
+            # Get the attribute
+            # Write the value
+            if attribute.lower() == 'position':
+                self.warning(set_info+': This is a dangerous operation, use a macro to move')
+                continue
+            element_obj = self.getObj(element)
+            element_obj_attr = element_obj.getAttribute(attribute)
+            element_obj_attr.write(value)
+            
+            set_info = element+'.'+attribute+' <- '+value
+            print(set_info)
+            
+class get_attr_cfg(Macro):
+    """get_attr_cfg.
+    For a given pool element, get values for it's corresponding attribute configurations.
+    EXAMPLE: get_attr my_motor Position unit Position min_value Position max_value
+    NOTE: At some point the 'elem' param type should be changed to the not
+    available yet: Type.PoolElem(ent)
+    """
+    param_def = [
+        ['element', Type.String, None, 'Pool element to read.'],
+        ['attributes_and_configs',
+         ParamRepeat(['attribute', Type.String, None, 'Attribute to be read'],
+                     ['config', Type.String, None, 'Configuration parameter to be read']),
+         None, 'List of attributes and configs']
+    ]
+
+    def run(self, element, *attributes_and_configs):
+        for attribute, config in attributes_and_configs:
+            # Get the element
+            # Get the attribute
+            # Get the attribute config value
+            element_obj = self.getObj(element)
+            element_obj_attr = element_obj.getAttribute(attribute)
+            attr_cfg_value = element_obj_attr.getParam(config)
+
+            get_cfg_info = element+'.'+attribute+'.'+config+' -> '+attr_cfg_value
+            print(get_cfg_info)
+            
+class set_attr_cfg(Macro):
+    """set_attr.
+    For a given pool element, set values to it's corresponding attribute configurations.
+    EXAMPLE: get_attr my_motor Position unit Position min_value Position max_value
+    NOTE: At some point the 'elem' param type should be changed to the not
+    available yet: Type.PoolElem(ent)
+    """
+    param_def = [
+        ['element', Type.String, None, 'Pool element to operate.'],
+        ['attributes_and_configs_values',
+         ParamRepeat(['attribute', Type.String, None, 'Attribute to be written'],
+                     ['config', Type.String, None, 'Configuration parameter to be written'],
+                     ['value', Type.String, None, 'Value to set']),
+         None, 'List of pairs: attribute, value']
+    ]
+
+    def run(self, element, *attributes_and_configs_and_values):
+        for attribute, config, value in attributes_and_configs_and_values:
+            # Get the element
+            # Get the attribute
+            # Write the attribute's config value
+            element_obj = self.getObj(element)
+            element_obj_attr = element_obj.getAttribute(attribute)
+            element_obj_attr.setParam(config, value)
+
+            set_info = element+'.'+attribute+'.'+config+' <- '+value
+            print(set_info)
