@@ -166,6 +166,7 @@ class PoolElement(PoolBaseElement):
     
     def __init__(self, **kwargs):
         self._aborted = False
+        self._operation = None
         ctrl = kwargs.pop('ctrl')
         self._ctrl = weakref.ref(ctrl)
         self._axis = kwargs.pop('axis')
@@ -236,6 +237,29 @@ class PoolElement(PoolBaseElement):
     
     def was_aborted(self):
         return self._aborted
+    
+    # --------------------------------------------------------------------------
+    # involved in an operation
+    # --------------------------------------------------------------------------
+    
+    def is_in_operation(self):
+        """Returns True if this element is involved in any operation"""
+        return self._operation is not None
+    
+    def get_operation(self):
+        return self._operation
+    
+    def set_operation(self, operation):
+        if self.is_in_operation() and operation is not None:
+            raise Exception("%s is already involed in an operation" % self.name)
+        self.info("In operation")
+        self._operation = operation
+    
+    def clear_operation(self):
+        return self.set_operation(None)
+    
+    operation = property(get_operation, set_operation,
+                         doc="operation in which the element is involved")
     
     axis = property(get_axis, doc="element axis")
     

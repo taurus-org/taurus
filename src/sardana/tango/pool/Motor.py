@@ -71,13 +71,15 @@ class Motor(PoolElementDevice):
         non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
             "acceleration", "deceleration", "base_rate", "backlash"
         self.set_change_events(detect_evts, non_detect_evts)
-
+        
         if self.motor is None:
             motor = self.pool.create_element(type="Motor",
                 name=self.alias, full_name=self.get_name(), id=self.Id,
                 axis=self.Axis, ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 motor.set_instrument(self.instrument)
+            if self.Sleep_bef_last_read > 0:
+                motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
             motor.add_listener(self.on_motor_changed)
             self.motor = motor
         # force a state read to initialize the state attribute
@@ -111,7 +113,6 @@ class Motor(PoolElementDevice):
                 if name == "position" or name == "dialposition":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING
-                    print "POSITION EVENT", event_value
                 self.push_change_event(name, event_value, t, quality)
         finally:
             if recover:
@@ -125,8 +126,10 @@ class Motor(PoolElementDevice):
         pass
 
     def read_Position(self, attr):
-        attr.set_value(self.motor.get_position(cache=False))
-        if self.get_state() == DevState.MOVING:
+        moving = self.get_state() == DevState.MOVING
+        position = self.motor.get_position(cache=moving)
+        attr.set_value(position)
+        if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
 
     def write_Position(self, attr):
@@ -277,11 +280,11 @@ class MotorClass(PoolElementDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'Sleep_bef_last_read' : [DevLong, "Number of mS to sleep before the last read during a motor movement", [ 0 ] ],
-        '_Acceleration' : [DevDouble, "", [ -1 ] ],
-        '_Deceleration' : [DevDouble, "", [ -1 ] ],
-        '_Velocity'     : [DevDouble, "", [ -1 ] ],
-        '_Base_rate'    : [DevDouble, "", [ -1 ] ],
+        'Sleep_bef_last_read' : [DevLong, "Number of mS to sleep before the last read during a motor movement", 0],
+        '_Acceleration' : [DevDouble, "", -1],
+        '_Deceleration' : [DevDouble, "", -1],
+        '_Velocity'     : [DevDouble, "", -1],
+        '_Base_rate'    : [DevDouble, "", -1],
     }
     device_property_list.update(PoolElementDeviceClass.device_property_list)
 

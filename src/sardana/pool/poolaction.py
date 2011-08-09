@@ -63,6 +63,7 @@ class OperationInfo(object):
     def __init__(self):
         self.state_count = 0
         self.state_lock = threading.Lock()
+        self.state_event_lock = threading.Lock()
         self.state_event = threading.Event()
         
     def init(self, count):
@@ -73,15 +74,46 @@ class OperationInfo(object):
         return self.state_event.wait(timeout)
         
     def finishOne(self):
-        self.state_lock.acquire()
-        try:
+        with self.state_event_lock:
             self.state_count = self.state_count - 1
             if self.state_count < 1:
                 self.state_count = 0
                 self.state_event.set()
-        finally:
-            self.state_lock.release()
+    
+    def acquire(self):
+        self.state_lock.acquire()
+    
+    def release(self):
+        self.state_lock.release()
+    
+    def __enter__(self):
+        return self.acquire()
+    
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return self.release()
 
+
+class OperationContext(object):
+    
+    def __init__(self, pool_action):
+        self._pool_action = pool_action
+    
+    def enter(self):
+        pa = self._pool_action
+        for element in pa.get_elements():
+            element.set_operation(pa)
+    
+    def exit(self):
+        pa = self._pool_action
+        for element in pa.get_elements():
+            element.clear_operation()
+    
+    def __enter__(self):
+        return self.enter()
+        
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return self.exit()
+    
 
 class PoolAction(Logger):
     
@@ -128,14 +160,29 @@ class PoolAction(Logger):
     
     def run(self, *args, **kwargs):
         synch = kwargs.pop("synch", False)
-        self.start_action(*args, **kwargs)
+        
         if synch:
-            self.action_loop()
+            with OperationContext(self):
+                self.start_action(*args, **kwargs)
+                self.action_loop()
         else:
-            get_thread_pool().add(self.action_loop)
+            context = OperationContext(self)
+            context.enter()
+            try:
+                self.start_action(*args, **kwargs)
+            except:
+                context.exit()
+                raise
+            get_thread_pool().add(self.asynch_action_loop, None, context)
     
     def start_action(self, *args, **kwargs):
         raise NotImplementedError("start_action must be implemented in subclass")
+    
+    def asynch_action_loop(self, context):
+        try:
+            self.action_loop()
+        finally:
+            context.exit()
     
     def action_loop(self):
         raise NotImplementedError("action_loop must be implemented in subclass")
@@ -146,10 +193,11 @@ class PoolAction(Logger):
         read = self._read_state_info_concurrent
         if serial:
             read = self._read_state_info_serial
-
-        self._state_info.init(len(self._pool_ctrls))
-        read(ret)
-        self._state_info.wait()
+        si = self._state_info
+        with si:
+            si.init(len(self._pool_ctrls))
+            read(ret)
+            si.wait()
         return ret
 
     def _read_state_info_serial(self, ret):
@@ -196,9 +244,12 @@ class PoolAction(Logger):
         if serial:
             read = self._read_value_serial
         
-        self._value_info.init(len(self._pool_ctrls))
-        read(ret)
-        self._value_info.wait()
+        vi = self._value_info
+        
+        with vi:
+            vi.init(len(self._pool_ctrls))
+            read(ret)
+            vi.wait()
         return ret
 
     def _read_value_serial(self, ret):

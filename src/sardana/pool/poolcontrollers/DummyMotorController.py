@@ -547,7 +547,7 @@ class DummyMotorController(MotorController):
         #self.m[idx] = None
     
     def StateOne(self,axis):
-        self._log.info("StateOne(%d)", axis)
+        self._log.debug("StateOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
         state = PyTango.DevState.ON
@@ -568,7 +568,7 @@ class DummyMotorController(MotorController):
         return int(state), status, switchstate
 
     def ReadOne(self,axis):
-        self._log.info("ReadOne(%d)", axis)
+        self._log.debug("ReadOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
         return m.getCurrentUserPosition()

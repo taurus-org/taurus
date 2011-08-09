@@ -59,6 +59,7 @@ class PoolMotor(PoolElement):
         self._deceleration = None
         self._velocity = None
         self._base_rate = None
+        self._instability_time = None
         self.set_action_cache(PoolMotion("%s.Motion" % self._name))
 
     def get_type(self):
@@ -110,6 +111,25 @@ class PoolMotor(PoolElement):
                               doc="motor limit_switches")
     
     # --------------------------------------------------------------------------
+    # instability time
+    # --------------------------------------------------------------------------
+    def has_instability_time(self, cache=True):
+        it = self._instability_time
+        return it is not None and it > 0.0
+    
+    def get_instability_time(self, cache=True):
+        return self._instability_time
+    
+    def set_instability_time(self, instability_time, propagate=1):
+        self._instability_time = instability_time
+        if propagate > 0:
+            self.fire_event(EventType("instability_time", priority=propagate),
+                            instability_time)
+        
+    instability_time = property(get_instability_time, set_instability_time,
+                                doc="motor instability_time")
+    
+    # --------------------------------------------------------------------------
     # backlash
     # --------------------------------------------------------------------------
     
@@ -127,7 +147,8 @@ class PoolMotor(PoolElement):
     
     def set_backlash(self, backlash, propagate=1):
         self._backlash = backlash
-        self.fire_event(EventType("backlash", priority=propagate), backlash)
+        if propagate > 0:
+            self.fire_event(EventType("backlash", priority=propagate), backlash)
     
     backlash = property(get_backlash, set_backlash, doc="motor backlash")
     
@@ -422,8 +443,8 @@ class PoolMotor(PoolElement):
         pos, dial, do_backlash, dial_backlash = self._calculate_move(new_position)
         if not self._simulation_mode:
             item = pos, dial, do_backlash, dial_backlash
-            self.warning("Start motion pos=%f, dial=%f, do_backlash=%s, "
-                         "dial_backlash=%f", *item)
+            self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
+                       "dial_backlash=%f", *item)
             self.motion.run(items={ self : item })
     
     def prepare_to_move(self):

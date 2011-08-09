@@ -377,13 +377,22 @@ class PoolController(PoolBaseController):
         return self.ctrl.GetAxisPar(axis, name, value)
     
     # END API WHICH ACCESSES CONTROLLER API ------------------------------------
-    
-    # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
-    
+
     def get_ctrl_lock(self):
         return self._ctrl_lock
     
     ctrl_lock = property(fget=get_ctrl_lock)
+
+    def _get_free_axis(self):
+        ret = {}
+        for axis, element in self._element_axis.items():
+            if element.is_in_operation():
+                continue
+            ret[axis] = element
+        return ret
+    
+    # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
+    
     
     @check_ctrl
     def raw_read_axis_states(self, axises=None, ctrl_states=None):
@@ -397,7 +406,7 @@ class PoolController(PoolBaseController):
         :rtype: dict<PoolElement, state info>
         """
         if axises is None:
-            axises = sorted(self._element_axis)
+            axises = sorted(self._get_free_axis())
         
         ctrl = self.ctrl
         ctrl.PreStateAll()
@@ -429,7 +438,7 @@ class PoolController(PoolBaseController):
         :rtype: dict<PoolElement, state info>
         """
         if axises is None:
-            axises = sorted(self._element_axis)
+            axises = sorted(self._get_free_axis())
         ctrl_states = {}
         try:
             ctrl_states = self.raw_read_axis_states(axises=axises, ctrl_states=ctrl_states)
@@ -454,7 +463,7 @@ class PoolController(PoolBaseController):
         :rtype: dict<PoolElement, value>
         """
         if axises is None:
-            axises = sorted(self._element_axis)
+            axises = sorted(self._get_free_axis())
         
         ctrl = self.ctrl
         ctrl.PreReadAll()
@@ -491,12 +500,33 @@ class PoolController(PoolBaseController):
                 axises = self._element_axis
         
         for axis in axises:
-            ctrl.PreReadOne(axis)
+            try:
+                ctrl.AbortOne(axis)
+            except:
+                try:
+                    ctrl.warning("AbortOne(%d) raises exception", axis, exc_info=1)
+                except:
+                    pass
 
     # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------
     
+    @check_ctrl
+    def move(self, axis_pos):
+        ctrl = self.ctrl
+        ctrl.PreStartAll()
+        for axis, dial_position in axis_pos.items():
+            ret = ctrl.PreStartOne(axis, dial_position)
+            if not ret:
+                raise Exception("%s.PreStartOne(%d, %f) returns False" \
+                                % (self.name, axis, dial_position))
+        
+        for axis, dial_position in axis_pos.items():
+            ctrl.StartOne(axis, dial_position)
+        
+        ctrl.StartAll()
+        
     def has_backlash(self):
         return "Backlash" in self._ctrl.ctrl_features
     

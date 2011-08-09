@@ -57,7 +57,7 @@ class DummyCounterTimerController(CounterTimerController):
         pass
     
     def StateOne(self, ind):
-        self._log.info("StateOne(%d)", ind)
+        self._log.debug("StateOne(%d)", ind)
         idx = ind - 1
         sta = State.On
         status = "Stopped"
@@ -69,7 +69,7 @@ class DummyCounterTimerController(CounterTimerController):
             if channel.is_counting:
                 sta = State.Moving
                 status = "Acquiring"
-        self._log.info("StateOne(%d) returns %s", ind, sta)
+        self._log.debug("StateOne(%d) returns %s", ind, sta)
         return sta, status
         
     def _updateChannelState(self, ind, elapsed_time):
@@ -124,7 +124,7 @@ class DummyCounterTimerController(CounterTimerController):
                     self._updateChannelValue(ind, elapsed_time)
     
     def ReadOne(self,ind):
-        self._log.info("ReadOne(%d)", ind)
+        self._log.debug("ReadOne(%d)", ind)
         v = self.read_channels[ind].value
         return v
     

@@ -86,7 +86,9 @@ class PoolMotionItem(PoolActionItem):
         self.old_state = self.state
         self.state = state
         new_ms = ms = self.motion_state
-        self.aborted = self.moveable.was_aborted()
+        moveable = self.moveable
+        self.aborted = moveable.was_aborted()
+        instability_time = self.instability_time
         
         if self.aborted:
             new_ms = MS.Aborted
@@ -100,13 +102,13 @@ class PoolMotionItem(PoolActionItem):
                     if state == State.On:
                         new_ms = MS.MovingBacklash
                     else:
-                        if self.instability_time is None:
+                        if instability_time is None:
                             new_ms = MS.StoppedOnError
                         else:
                             new_ms = MS.MovingInstability
                 else:
                     self.stop_time = timestamp
-                    if self.instability_time is None:
+                    if instability_time is None:
                         self.stop_final_time = timestamp
                         if state == State.On:
                             new_ms = MS.Stopped
@@ -117,7 +119,7 @@ class PoolMotionItem(PoolActionItem):
         elif ms == MS.MovingBacklash:
             if state != State.Moving:
                 self.stop_time = timestamp
-                if self.instability_time is None:
+                if instability_time is None:
                     self.stop_final_time = timestamp
                     if state == State.On:
                         new_ms = MS.Stopped
@@ -127,7 +129,7 @@ class PoolMotionItem(PoolActionItem):
                     new_ms = MS.MovingInstability
         elif ms == MS.MovingInstability:
             dt = timestamp - self.stop_time
-            if dt >= self.instability_time:
+            if dt >= instability_time:
                 self.stop_final_time = timestamp
                 if state == State.On:
                     new_ms = MS.Stopped
@@ -153,7 +155,9 @@ class PoolMotion(PoolAction):
         motion_info = {}
         for moveable, motion_data in items.items():
             moveable.prepare_to_move()
-            motion_info[moveable] = PoolMotionItem(moveable, *motion_data)
+            it = moveable.instability_time
+            motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
+                                                   instability_time=it)
             
         self._motion_info = motion_info
         
@@ -171,7 +175,8 @@ class PoolMotion(PoolAction):
             dial_position = items[moveable][1]
             ret = ctrl.PreStartOne(axis, dial_position)
             if not ret:
-                raise Exception("%s.PreStartOne(%s, %f) returns False" % (controller.name, moveable.name, dial_position))
+                raise Exception("%s.PreStartOne(%d, %f) returns False" \
+                                % (controller.name, axis, dial_position))
 
         # StartOne on all elements
         for moveable in moveables:
@@ -191,7 +196,19 @@ class PoolMotion(PoolAction):
             motion_item.on_state_switch(state)
         
         # StartAll on all controllers
-        for pool_ctrl in pool_ctrls: pool_ctrl.ctrl.StartAll()
+        for pool_ctrl in pool_ctrls:
+            pool_ctrl.ctrl.StartAll()
+    
+    def backlash_item(self, motion_item):
+        moveable = motion_item.moveable
+        controller = moveable.controller
+        axis = moveable.axis
+        position = motion_item.backlash
+        try:
+            controller.move({axis:position})
+        except:
+            self.warning("could not start backlash on %s", moveable.name,
+                         exc_info=1)
     
     @DebugIt()
     def action_loop(self):
@@ -211,23 +228,32 @@ class PoolMotion(PoolAction):
             timestamp = time.time()
             in_motion = False
             for moveable, state_info in states.items():
-                motion_info = self._motion_info[moveable]
+                motion_item = self._motion_info[moveable]
                 state_info = moveable._from_ctrl_state_info(state_info)
                 state = state_info[0]
                 old_motion_state, motion_state = \
-                    motion_info.on_state_switch(state, timestamp=timestamp)
+                    motion_item.on_state_switch(state, timestamp=timestamp)
                 
                 aborted = moveable.was_aborted()
                 well_stopped = state == State.On and not aborted
-                moving = motion_info.in_motion()
+                moving = motion_item.in_motion()
                 
                 start_backlash = motion_state == MS.MovingBacklash and \
                     old_motion_state != MS.MovingBacklash
-                
+                start_instability = motion_state == MS.MovingInstability and \
+                    old_motion_state != MS.MovingInstability
+                    
                 # if motor stopped 'well' and there is a backlash to do...
                 if start_backlash:
-                    pass
-                    # TODO: Do backlash
+                    # make sure the last position after the first motion is
+                    # sent before starting the backlash motion
+                    moveable.get_position(cache=False, propagate=2)
+                    self.backlash_item(motion_item)
+                    moving = motion_item.in_motion()
+                elif start_instability:
+                    # make sure the last position after the first motion is
+                    # sent before starting the backlash motion
+                    moveable.get_position(cache=False, propagate=2)
                 elif not moving:
                     # first update the motor state so that position calculation
                     # that is done after takes the updated state into account

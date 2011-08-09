@@ -108,10 +108,11 @@ class PoolMonitor(Logger, threading.Thread):
         update = self._update_state_info_concurrent
         if serial:
             update = self._update_state_info_serial
-        
-        self._state_info.init(len(pool_ctrls))
-        update(pool_ctrls)
-        self._state_info.wait()
+        si = self._state_info
+        with si:
+            si.init(len(pool_ctrls))
+            update(pool_ctrls)
+            si.wait()
             
     def _update_state_info_serial(self, pool_ctrls):
         for pool_ctrl in pool_ctrls:
