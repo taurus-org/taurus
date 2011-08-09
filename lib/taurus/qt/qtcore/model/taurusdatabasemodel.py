@@ -30,6 +30,7 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
     "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
     "TaurusTreeServerItem", "TaurusTreeDeviceClassItem", "TaurusDbBaseModel",
     "TaurusDbSimpleDeviceModel", "TaurusDbPlainDeviceModel", "TaurusDbDeviceModel",
+    "TaurusDbSimpleDeviceAliasModel",
     "TaurusDbPlainServerModel", "TaurusDbServerModel",
     "TaurusDbDeviceClassModel",
     "TaurusDbBaseProxyModel",
@@ -438,7 +439,29 @@ class TaurusDbSimpleDeviceModel(TaurusDbBaseModel):
     ColumnNames = "Device",
     ColumnRoles = (ElemType.Device, ElemType.Device),
     
+
+class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
+    """A Qt model that structures device elements in 1 level tree with
+    device alias as node leafs. This model contains only 1 column."""
     
+    ColumnNames = "Alias",
+    ColumnRoles = (ElemType.DeviceAlias, ElemType.DeviceAlias),
+    
+    def setupModelData(self, data):
+        if data is None:
+            return
+        if isinstance(data, taurus.core.TaurusDatabase):
+            data = data.cache()
+        devices = data.devices()
+        
+        rootItem = self._rootItem
+        for dev_name in data.getDeviceNames():
+            dev = devices[dev_name]
+            if dev.alias() is not None:
+                devItem = TaurusTreeSimpleDeviceItem(self, dev, rootItem)
+                rootItem.appendChild(devItem)
+
+
 class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements in 1 level tree. Device
     nodes will have attribute child nodes if the device is running."""
