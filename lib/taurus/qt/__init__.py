@@ -40,12 +40,15 @@ import os
 # Available APIs.
 QT_API_PYQT = 'pyqt'
 QT_API_PYSIDE = 'pyside'
+QT_USE_API2 = False
 
 def __get_logger():
     import taurus.core.util
     return taurus.core.util.Logger(__name__)
 
 def __prepare_pyqt4():
+    if not QT_USE_API2:
+        return
     # For PySide compatibility, use the new-style string API that automatically
     # converts QStrings to Unicode Python strings. Also, automatically unpack
     # QVariants to their underlying objects.
