@@ -29,8 +29,9 @@ __docformat__ = 'restructuredtext'
 
 try:
     from .taurusqub import *
-except Exception,e:
+except:
+    from taurus.qt.qtgui.display import create_fallback as __create
+    TaurusQubDataImageDisplay = __create("TaurusQubDataImageDisplay")
     import taurus.core.util
     _logger = taurus.core.util.Logger(__name__)
-    _logger.debug("Qub widgets could not be initialized")
-    _logger.traceback()
+    _logger.debug("Qub widgets could not be initialized", exc_info=1)

@@ -27,4 +27,8 @@
 
 __docformat__ = 'restructuredtext'
 
-from .taurusconsole import *
+try:
+    from .taurusconsole import *
+except:
+    from taurus.qt.qtgui.display import create_fallback as __create
+    TaurusConsole = __create("TaurusConsole")

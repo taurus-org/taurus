@@ -137,10 +137,6 @@ QTabWidget::pane {{
 }}
 
 QTabBar::tab {{
-    border-top-left-radius: {border_radius};
-    border-top-right-radius: {border_radius};
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
     color:white;
     border-bottom-color: rgb(0, 65, 200);
     background-color: {titlebar_background_color};
@@ -148,34 +144,21 @@ QTabBar::tab {{
     padding: 2px;
 }}
 
+QTabBar::tab:top {{
+    border-top-left-radius: {border_radius};
+    border-top-right-radius: {border_radius};
+}}
+
+QTabBar::tab:bottom {{
+    border-bottom-left-radius: {border_radius};
+    border-bottom-right-radius: {border_radius};
+}}
+
 QTabBar::tab:selected {{
     background-color: {selected_titlebar_background_color};
 }}
 
-QTabBar::tab:!selected {{
-    margin-top: 1px; /* make non-selected tabs look smaller */
-}}
 
-/* make use of negative margins for overlapping tabs */
- QTabBar::tab:selected {{
-    /* expand/overlap to the left and right by 2px */
-    margin-left: -2px;
-    margin-right: -2px;
-}}
-
- QTabBar::tab:first:selected {{
-    margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
- }}
-
- QTabBar::tab:last:selected {{
-    margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
- }}
-
- QTabBar::tab:only-one {{
-    margin: 0; /* if there is only one tab, we don't want overlapping margins */
-    background-color: {single_titlebar_background_color};
- }}
- 
 /*
  QMainWindow::separator {{
     background: yellow;

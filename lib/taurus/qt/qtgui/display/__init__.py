@@ -29,6 +29,7 @@ Examples of widgets that suite this rule are labels, leds and LCDs"""
 
 __docformat__ = 'restructuredtext'
 
+from .qfallback import *
 from .qpixmapwidget import *
 from .qled import *
 from .qlogo import *

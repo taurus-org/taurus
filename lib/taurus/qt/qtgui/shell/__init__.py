@@ -27,5 +27,10 @@
 
 __docformat__ = 'restructuredtext'
 
-from .taurusshell import *
-from .spockshell import *
+try:
+    from .taurusshell import *
+except:
+    from taurus.qt.qtgui.display import create_fallback as __create
+    TaurusShell = __create("TaurusShell")
+    
+#from .spockshell import *

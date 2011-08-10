@@ -31,8 +31,10 @@ import os
 import signal
 import sys
 
-# System library imports
-from IPython.external.qt import QtGui
+from taurus.qt import Qt, QtGui
+if hasattr(Qt, 'QString'):
+    raise Exception, "Using Qt SIP API v1. IPython requires Qt SIP API v2"
+
 from pygments.styles import get_all_styles
 
 # Local imports

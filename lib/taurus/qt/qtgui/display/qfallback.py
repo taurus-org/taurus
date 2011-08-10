@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+## 
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+"""A pure Qt widget designed to be displayed when a real widget cannot be
+loaded for any reason (example: a dependency library is not installed)"""
+
+__all__ = ["create_fallback", "QFallBackWidget"]
+
+__docformat__ = 'restructuredtext'
+
+import sys
+import functools
+from PyQt4 import Qt
+
+def create_fallback(widget_klass_name):
+    return functools.partial(QFallBackWidget, replaces=widget_klass_name,
+                             exc_info=sys.exc_info())
+
+
+class QFallBackWidget(Qt.QWidget):
+    """A FallBack widget to be used when a real widget cannot be loaded for any
+    reason (example: a dependency library is not installed)"""
+    
+    def __init__(self, replaces="UnknownWidget", parent=None, *args, **kwargs):
+        Qt.QWidget.__init__(self, parent)
+        self.replaces = replaces
+        self.exc_info = exc_info = kwargs.get("exc_info")
+        layout = Qt.QVBoxLayout(self)
+        layout.setMargin(2)
+        layout.setSpacing(2)
+        self.setLayout(layout)
+        self.label = Qt.QLabel(self)
+        self.label.setText("'{0}' could not be displayed".format(replaces))
+        layout.addWidget(self.label, 0, Qt.Qt.AlignVCenter)
+        if exc_info is not None and exc_info[0] is not None:
+            self.details_button = Qt.QPushButton("Details...", self)
+            layout.addWidget(self.details_button, 0, Qt.Qt.AlignTop)
+            Qt.QObject.connect(self.details_button, Qt.SIGNAL("clicked()"),
+                               self.onShowDetails)
+        layout.addStretch(1)
+        
+    def onShowDetails(self):
+        import taurus.qt.qtgui.dialog
+        msgbox = taurus.qt.qtgui.dialog.TaurusMessageBox(*self.exc_info, parent=self)
+        msgbox.setWindowTitle("{0} Error".format(self.replaces))
+        msgbox.setText(self.label.text())
+        msgbox.exec_()
