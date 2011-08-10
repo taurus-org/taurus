@@ -37,6 +37,12 @@ import PyTango
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
 
+_String = str
+try:
+    _String = Qt.QString
+except AttributeError:
+    _String = str
+    
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -125,7 +131,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def _outOfRange(self, v):
         validator = self.validator()
         if validator:
-            return validator.validate(str(v), 0)[0] != validator.Acceptable
+            return validator.validate(_String(v), 0)[0] != validator.Acceptable
         else: #fallback, only for numeric typess (returns False for other types)
             try: return not(self.__minLimit <= float(v) <=  self.__maxLimit)
             except: return False 
