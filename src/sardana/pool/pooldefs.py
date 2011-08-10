@@ -25,17 +25,19 @@
 
 """This file contains the basic pool definitions"""
 
-__all__ = ["InvalidId", "InvalidAxis", "ElementType", "TYPE_ELEMENTS",
-           "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
-           "AcqMode", "AcqTriggerType",
-           "ControllerOfflineException"]
+__all__ = ["InvalidId", "InvalidAxis", "ControllerAPI", "ElementType",
+           "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
+           "AcqMode", "AcqTriggerType"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Enumeration
 
 InvalidId = 0
+
 InvalidAxis = 0
+
+ControllerAPI = 1
 
 ElementType = Enumeration("ElementType", ( \
     "Undef",
@@ -75,7 +77,4 @@ AcqMode = Enumeration("AcqMode", ( \
     "Monitor",
     "Unknown") )
 
-class ControllerOfflineException(Exception):
-    """An exception to be thrown when an operation is requested on a controller
-    which is offline"""
-    pass
+

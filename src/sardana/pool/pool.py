@@ -34,16 +34,16 @@ import logging.handlers
 
 from taurus.core.util import ThreadPool, InfoIt, DebugIt
 
-from poolcontrollermanager import ControllerManager, TYPE_MAP_OBJ
 
-from poolbase import *
-from poolevent import EventType
 from pooldefs import *
-from poolelement import *
-from poolcontainer import *
-from poolcontroller import *
-from poolmotor import *
-from poolmonitor import *
+from poolbase import PoolObject
+from poolevent import EventType
+from poolcontainer import PoolContainer
+from poolcontroller import PoolController
+from poolmonitor import PoolMonitor
+
+from poolmetacontroller import TYPE_MAP_OBJ
+from poolcontrollermanager import ControllerManager
 
 __thread_pool = None
 
@@ -55,10 +55,16 @@ def get_thread_pool():
 
 
 class Pool(PoolContainer, PoolObject):
-    """ """
+    """The central pool class."""
+    
+    Default_MotionLoop_StatesPerPosition = 5
+    Default_MotionLoop_SleepTime = 0.01
     
     def __init__(self, full_name, name=None):
         self._last_id = InvalidId
+        self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
+        self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
+        
         PoolContainer.__init__(self)
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                             pool=self)
@@ -67,6 +73,10 @@ class Pool(PoolContainer, PoolObject):
     
     def init_remote_logging(self, host=None, port=None):
         log = logging.getLogger("Controller")
+        
+        # port 0 means no remote logging
+        if port == 0:
+            return
         
         # first check that the handler has not been initialized yet
         for handler in log.handlers:
@@ -80,6 +90,27 @@ class Pool(PoolContainer, PoolObject):
         handler = logging.handlers.SocketHandler(host, port)
         log.addHandler(handler)
     
+    def set_motion_loop_sleep_time(self, motion_loop_sleep_time):
+        self._motion_loop_sleep_time = motion_loop_sleep_time
+    
+    def get_motion_loop_sleep_time(self):
+        return self._motion_loop_sleep_time
+    
+    motion_loop_sleep_time = property(get_motion_loop_sleep_time,
+                                      set_motion_loop_sleep_time,
+                                      doc="motion sleep time (s)")
+    
+    def set_motion_loop_states_per_position(self, motion_loop_states_per_position):
+        self._motion_loop_states_per_position = motion_loop_states_per_position
+        
+    def get_motion_loop_states_per_position(self):
+        return self._motion_loop_states_per_position
+
+    motion_loop_states_per_position = property(get_motion_loop_states_per_position,
+        set_motion_loop_states_per_position,
+        doc="Number of State reads done before doing a position read in the "
+            "motion loop")
+
     @property
     def monitor(self):
         return self._monitor
@@ -191,14 +222,7 @@ class Pool(PoolContainer, PoolObject):
         
         klass = klass_map.get(elem_type, PoolController)
         if elem_type == ElementType.PseudoMotor:
-            motor_roles = kwargs['motor_ids']
-            pseudo_motor_ids = kwargs.get('pseudo_motor_ids')
-            if pseudo_motor_ids is None:
-                if ctrl_class_info is not None:
-                    ctrl_klass = ctrl_class_info.getControllerClass()
-                    pm_nb = len(ctrl_klass.pseudo_motor_roles)
-                    pseudo_motor_ids = [ self.get_new_id() for i in range(pm_nb) ]
-                kwargs['pseudo_motor_ids'] = pseudo_motor_ids
+            motor_roles = kwargs['role_ids']
         
         # make sure the properties (that may have come from a case insensitive
         # environment like tango) are made case sensitive

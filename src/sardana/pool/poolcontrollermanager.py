@@ -26,8 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = ["CONTROLLER_TEMPLATE", "CTRL_TYPE_MAP", "TYPE_MAP", "TYPE_MAP_OBJ",
-           "TypeData", "ControllerManager" ]
+__all__ = ["ControllerManager" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,78 +34,21 @@ import sys
 import os
 import inspect
 import copy
-import traceback
-import operator
+
 import types
 import re
-import time
-import threading
-import PyTango
 
 from taurus.core import ManagerState
 from taurus.core.utils import Singleton, Logger, InfoIt, ListEventGenerator
 
 import controller
-from poolmetacontroller import *
-
-from pooldefs import *
-from poolbase import *
-from poolcontroller import *
-from poolmotor import *
-from poolpseudomotor import *
-from poolmotorgroup import *
-from poolmeasurementgroup import *
-from poolcountertimer import *
-from poolinstrument import *
-from poolexception import *
+from pooldefs import ElementType
+from poolexception import UnknownController
 from poolmodulemanager import ModuleManager
+from poolmetacontroller import ControllerLib, ControllerClass
 
-CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
-    \"\"\"@controller_name@ description.\"\"\"
-    
-"""
-
-ET = ElementType
-
-CTRL_TYPE_MAP = {
-    ET.Motor        : PoolController,
-    ET.CTExpChannel : PoolController,
-    ET.PseudoMotor  : PoolPseudoMotorController,
-}
-
-# key - element type
-# value - type string representation, family, internal pool class, automatic full name, controller class
-TYPE_MAP = {
-    ET.Ctrl             : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{module}.{klass}/{name}", controller.Controller),
-    ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                        None),
-    ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",           controller.MotorController),
-    ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}",         controller.CounterTimerController),
-    ET.PseudoMotor      : ("PseudoMotor",      "PseudoMotor",      PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",              controller.PseudoMotorController),
-    ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",              None),
-    ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",          None),
-}
-
-class TypeData(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-TYPE_MAP_OBJ = {}
-for t, d in TYPE_MAP.items():
-    o = TypeData(type=t,name=d[0],family=d[1],klass=d[2],auto_full_name=d[3],ctrl_klass=d[4])
-    TYPE_MAP_OBJ[t] = o
-    
 class ControllerManager(Singleton, Logger):
 
-    # States
-    Init     = PyTango.DevState.INIT
-    Running  = PyTango.DevState.RUNNING
-    Pause    = PyTango.DevState.STANDBY
-    Stop     = PyTango.DevState.STANDBY
-    Fault    = PyTango.DevState.FAULT
-    Finished = PyTango.DevState.ON
-    Ready    = PyTango.DevState.ON
-    Abort    = PyTango.DevState.ALARM
-    
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -191,6 +133,8 @@ class ControllerManager(Singleton, Logger):
                 elems = os.listdir(p)
                 for f in os.listdir(p):
                     name,ext = os.path.splitext(f)
+                    if name.startswith("_"):
+                        continue
                     if ext.endswith('py'):
                         ret.append(name)
             except:
@@ -326,7 +270,7 @@ class ControllerManager(Singleton, Logger):
         :raises: ControllerServerExceptionList in case the controller is unknown or the
         reload process is not successfull
         
-        :param controller_name: controller name
+        :param controller_name: controller class name
         :param path: a list of absolute path to search for libraries 
                      (optional, default=None, means the current ControllerPath 
                      will be used)
@@ -340,7 +284,7 @@ class ControllerManager(Singleton, Logger):
         :raises: ControllerServerExceptionList in case the controller(s) are unknown or the
         reload process is not successfull
         
-        :param controller_names: a list of controller names
+        :param controller_names: a list of controller class names
         :param path: a list of absolute path to search for libraries (optional, 
                      default=None, means the current ControllerPath will be used)
         :param fire_event: fire events in case something (controller list or
@@ -448,14 +392,14 @@ class ControllerManager(Singleton, Logger):
         
         return controller_lib
 
-    def _setControllerTypes(self, klass, info):
-        types = []
-        for _type, type_data in TYPE_MAP_OBJ.items():
-            if not _type in TYPE_ELEMENTS:
-                continue
-            if issubclass(klass, type_data.ctrl_klass):
-                types.append(_type)
-        info.setTypes(types)
+#    def _setControllerTypes(self, klass, info):
+#        types = []
+#        for _type, type_data in TYPE_MAP_OBJ.items():
+#            if not _type in TYPE_ELEMENTS:
+#                continue
+#            if issubclass(klass, type_data.ctrl_klass):
+#                types.append(_type)
+#        info.setTypes(types)
         
     def addController(self, controller_lib, klass, fire_event=False):
         controller_name = klass.__name__
@@ -469,8 +413,7 @@ class ControllerManager(Singleton, Logger):
         
         try:
             controller_class = ControllerClass(controller_lib, klass)
-            
-            self._setControllerTypes(klass, controller_class)
+            #self._setControllerTypes(klass, controller_class)
             
             controller_lib.addController(controller_class)
             self._controller_dict[controller_name] = controller_class

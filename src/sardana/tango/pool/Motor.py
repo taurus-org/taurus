@@ -36,7 +36,7 @@ from PyTango import DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 
-from taurus.core.util.log import Logger, InfoIt, DebugIt
+from taurus.core.util.log import InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 from sardana.tango.core import to_tango_state
@@ -49,6 +49,9 @@ class Motor(PoolElementDevice):
 
     def init(self, name):
         PoolElementDevice.init(self, name)
+
+    def _is_allowed(self, req_type):
+        return PoolElementDevice._is_allowed(self, req_type)
 
     def get_motor(self):
         return self.element
@@ -124,32 +127,22 @@ class Motor(PoolElementDevice):
 
     def read_attr_hardware(self,data):
         pass
-
+    
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
         position = self.motor.get_position(cache=moving)
         attr.set_value(position)
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
-
+    
     def write_Position(self, attr):
         self.motor.position = attr.get_write_value()
-        
-    def is_Position_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-
+    
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
     
     def write_Acceleration(self, attr):
         self.motor.acceleration = attr.get_write_value()
-    
-    def is_Acceleration_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
     
     def read_Deceleration(self, attr):
         attr.set_value(self.motor.get_deceleration(cache=False))
@@ -157,75 +150,42 @@ class Motor(PoolElementDevice):
     def write_Deceleration(self, attr):
         self.motor.deceleration = attr.get_write_value()
     
-    def is_Deceleration_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-    
     def read_Base_rate(self, attr):
         attr.set_value(self.motor.get_base_rate(cache=False))
     
     def write_Base_rate(self, attr):
         self.motor.base_rate = attr.get_write_value()
     
-    def is_Base_rate_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-    
     def read_Velocity(self, attr):
         attr.set_value(self.motor.get_velocity(cache=False))
     
     def write_Velocity(self, attr):
         self.motor.velocity = attr.get_write_value()
-    
-    def is_Velocity_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-    
+
     def read_Offset(self, attr):
         attr.set_value(self.motor.get_offset(cache=False))
     
     def write_Offset(self, attr):
         self.motor.offset = attr.get_write_value()
     
-    def is_Offset_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-    
     def read_DialPosition(self, attr):
-        attr.set_value(self.motor.get_dial_position(cache=False))
-        if self.get_state() == DevState.MOVING:
-            attr.set_qualitity(AttrQuality.ATTR_CHANGING)
-    
-    def is_DialPosition_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
+        moving = self.get_state() == DevState.MOVING
+        dial_position = self.motor.get_dial_position(cache=moving)
+        attr.set_value(dial_position)
+        if moving:
+            attr.set_quality(AttrQuality.ATTR_CHANGING)
     
     def read_Step_per_unit(self, attr):
         attr.set_value(self.motor.get_step_per_unit(cache=False))
     
     def write_Step_per_unit(self, attr):
         self.motor.step_per_unit = attr.get_write_value()
-
-    def is_Step_per_unit_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
     
     def read_Backlash(self, attr):
         attr.set_value(self.motor.get_backlash(cache=False))
     
     def write_Backlash(self, attr):
         self.motor.backlash = attr.get_write_value()
-    
-    def is_Backlash_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
     
     def read_Sign(self, attr):
         sign = self.motor.get_sign(cache=False)
@@ -234,18 +194,8 @@ class Motor(PoolElementDevice):
     def write_Sign(self, attr):
         self.motor.sign = attr.get_write_value()
     
-    def is_Sign_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-    
     def read_Limit_switches(self, attr):
         attr.set_value(self.motor.get_limit_switches(cache=False))
-    
-    def is_Limit_switches_allowed(self, req_type):
-        if self.get_state() in [DevState.UNKNOWN]:
-            return False
-        return True
     
     def DefinePosition(self, argin):
         pass
@@ -271,6 +221,18 @@ class Motor(PoolElementDevice):
             return False
         return True
     
+    is_Position_allowed = _is_allowed
+    is_Acceleration_allowed = _is_allowed
+    is_Deceleration_allowed = _is_allowed
+    is_Base_rate_allowed = _is_allowed
+    is_Velocity_allowed = _is_allowed
+    is_Offset_allowed = _is_allowed
+    is_DialPosition_allowed = _is_allowed
+    is_Step_per_unit_allowed = _is_allowed
+    is_Backlash_allowed = _is_allowed
+    is_Sign_allowed = _is_allowed
+    is_Limit_switches_allowed = _is_allowed
+
 
 class MotorClass(PoolElementDeviceClass):
 

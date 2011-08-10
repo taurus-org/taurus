@@ -23,10 +23,26 @@
 ##
 ##############################################################################
 
-""" """
+"""This module is part of the Python Pool libray. It defines the base classes
+for ZeroDExpChannel"""
+
+__all__ = [ "Pool0DExpChannel" ]
 
 __docformat__ = 'restructuredtext'
 
-from .pooldefs import *
-from .controller import *
-from .poolutil import *
+from pooldefs import ElementType
+from poolevent import EventType
+from poolelement import PoolElement
+#from poolacquisition import PoolCTAcquisition
+
+class Pool0DExpChannel(PoolElement):
+
+    def __init__(self, **kwargs):
+        PoolElement.__init__(self, **kwargs)
+        self._value = None
+        self._wvalue = None
+        #self.set_action_cache(PoolCTAcquisition("%s.Acquisition" % self._name))
+        self._aborted = False
+    
+    def get_type(self):
+        return ElementType.ZeroDExpChannel

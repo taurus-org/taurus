@@ -35,9 +35,9 @@ import datetime
 import weakref
 import taurus.core.util.log
 
-from pooldefs import AcqTriggerType
+from pooldefs import AcqTriggerType, ControllerAPI
 
-class Controller:
+class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""
 
     #: .. deprecated:: 1.0
@@ -103,7 +103,7 @@ class Controller:
     #: A :class:`str` containning the path to the image logo file
     logo = None
     
-    def __init__(self, inst, props):
+    def __init__(self, inst, props, *args, **kwargs):
         self.inst_name = inst
         self._log = taurus.core.util.log.Logger("Controller.%s" % inst)
         self._log.log_obj.setLevel(taurus.getLogLevel())
@@ -111,6 +111,18 @@ class Controller:
             if k.startswith("__"):
                 v = weakref.ref(v)
             setattr(self, k, v)
+        self._args = args
+        self._kwargs = kwargs
+        self._api_version = self._findAPIVersion()
+    
+    def _findAPIVersion(self):
+        """*Internal API*. By default return the Pool Controller API 
+        version of the pool where the controller is running"""
+        return ControllerAPI
+    
+    def _getPoolController(self):
+        """*Internal API*."""
+        return self._kwargs['pool_controller']()
     
     def PreStateAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -337,8 +349,8 @@ class CounterTimerController(Controller):
         - monitor
         - trigger_type"""
     
-    def __init__(self, inst, props):
-        Controller.__init__(self, inst, props)
+    def __init__(self, inst, props, *args, **kwargs):
+        Controller.__init__(self, inst, props, *args, **kwargs)
         self._timer = None
         self._monitor = None
         self._master = None
@@ -427,14 +439,132 @@ class PseudoMotorController(Controller):
     - optional: write :meth:`PseudoMotorController.calc_all_pseudo` 
                 and :meth:`PseudoMotorController.calc_all_physical` if great
                 performance gain can be achived"""
-
+    
     #: a sequence of strings describing the role of each pseudo motor axis in
     #: this controller
     pseudo_motor_roles = ()
-
+    
     #: a sequence of strings describing the role of each motor 
     motor_roles = ()
 
+    def __init__(self, inst, props, *args, **kwargs):
+        self.__motor_role_elements = {}
+        self.__pseudo_role_motor_elements = {}
+        Controller.__init__(self, inst, props, *args, **kwargs)
+    
+    def _getElem(self, index_or_role, roles, local_cache, ids):
+        elem = local_cache.get(index_or_role)
+        if elem is None:
+            pool = self._getPoolController().pool
+            if type(index_or_role) == int:
+                index = axis_or_role
+                role = roles[index]
+            else:
+                role = index_or_role
+                index = roles.index(role)
+            motor_id = ids[index]
+            elem = pool.get_element_by_id(motor_id)
+            elems[index] = elems[role] = weakref.ref(elem)
+        else:
+            elem = elem()
+        return elem
+    
+    def getMotor(self, index_or_role):
+        """Returns the motor for a given role/index.
+        
+        .. warning::
+            Use with care: Executing motor methods can be dangerous!
+        
+        .. warning::
+            Since any controller is built before any element (including motors),
+            this method will **FAIL** when called from the controller
+            constructor
+        
+        :param index_or_role: index number or role name
+        :type index_or_role: int or str
+        :return: Motor object for the given role/index
+        :rtype: PoolMotor"""
+        return self._getElem(index_or_role, self.motor_roles,
+                             self.__motor_role_elements,
+                             self._kwargs['motor_ids'])
+
+    def getPseudoMotor(self, index_or_role):
+        """Returns the pseudo motor for a given role/index.
+        
+        .. warning::
+            Use with care: Executing pseudo motor methods can be dangerous!
+        
+        .. warning::
+            Since any controller is built before any element (including pseudo
+            motors), this method will **FAIL** when called from the controller
+            constructor
+        
+        :param index_or_role: index number or role name
+        :type index_or_role: int or str
+        :return: PseudoMotor object for the given role/index
+        :rtype: PoolPseudoMotor"""
+        return self._getElem(index_or_role, self.pseudo_motor_roles,
+                             self.__pseudo_motor_role_elements,
+                             self._kwargs['pseudo_motor_roles'])
+    
+    def CalcAllPseudo(self, physical_pos, curr_pseudo_pos):
+        """**Pseudo Motor Controller API**. Overwrite as necessary.
+           Calculates the positions of all pseudo motors that belong to the
+           pseudo motor system from the positions of the physical motors.
+           Default implementation does a loop calling :meth:`PseudoMotorController.calc_pseudo`
+           for each pseudo motor role.
+           
+           :param physical_pos: a sequence of physical motor positions
+           :type physical_pos: sequence<float>
+           :return: a sequece of pseudo motor positions (one for each pseudo motor role)
+           :rtype: sequence<float>
+           
+           .. versionadded:: 1.0"""
+        return self.calc_all_pseudo(physical_pos)
+    
+    def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
+        """**Pseudo Motor Controller API**. Overwrite as necessary.
+           Calculates the positions of all motors that belong to the pseudo 
+           motor system from the positions of the pseudo motors.
+           Default implementation does a loop calling :meth:`PseudoMotorController.calc_physical`
+           for each motor role.
+           
+           :param pseudo_pos: a sequence of pseudo motor positions
+           :type pseudo_pos: sequence<float>
+           :return: a sequece of motor positions (one for each motor role)
+           :rtype: sequence<float>
+           
+           .. versionadded:: 1.0"""
+        return self.calc_all_physical(pseudo_pos)
+    
+    def CalcPseudo(self, axis, physical_pos):
+        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+           Calculate pseudo motor position given the physical motor positions
+           
+           :param axis: the pseudo motor role axis
+           :type axis: int
+           :param physical_pos: a sequence of motor positions
+           :type physical_pos: sequence<float>
+           :return: a pseudo motor position corresponding to the given axis pseudo motor role
+           :rtype: float
+           
+           .. versionadded:: 1.0"""
+        raise NotImplementedError("calc_pseudo must be redefined")
+    
+    def CalcPhysical(self, axis, pseudo_pos):
+        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+           Calculate physical motor position given the pseudo motor positions.
+           
+           :param axis: the motor role axis
+           :type axis: int
+           :param pseudo_pos: a sequence of pseudo motor positions
+           :type pseudo_pos: sequence<float>
+           :return: a motor position corresponding to the given axis motor role
+           :rtype: float
+           
+           .. versionadded:: 1.0"""
+        return self.calc_physical(axis, pseudo_pos)
+    
     def calc_all_pseudo(self, physical_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
            Calculates the positions of all pseudo motors that belong to the
@@ -445,11 +575,15 @@ class PseudoMotorController(Controller):
            :param physical_pos: a sequence of physical motor positions
            :type physical_pos: sequence<float>
            :return: a sequece of pseudo motor positions (one for each pseudo motor role)
-           :rtype: sequence<float>"""
+           :rtype: sequence<float>
+           
+           .. deprecated:: 1.0
+               Deprecated: implement :meth:`PseudoMotorController.CalcAllPseudo` instead"""
         ret = []
         for i in xrange(self.get_pseudo_motor_nb()):
             ret.append(self.calc_pseudo(i+1, physical_pos))
         return ret
+
     
     def calc_all_physical(self, pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
@@ -461,27 +595,15 @@ class PseudoMotorController(Controller):
            :param pseudo_pos: a sequence of pseudo motor positions
            :type pseudo_pos: sequence<float>
            :return: a sequece of motor positions (one for each motor role)
-           :rtype: sequence<float>"""
-
-        """Calculates the positions of all motors that belong to the pseudo 
-           motor system from the positions of the pseudo motors."""
+           :rtype: sequence<float>
+           
+           .. deprecated:: 1.0
+               Deprecated: implement :meth:`PseudoMotorController.CalcAllPhysical` instead"""
         ret = []
         for i in xrange(len(self.motor_roles)):
             pos = self.calc_physical(i+1, pseudo_pos)
             ret.append(pos)
         return ret
-    
-    def calc_physical(self, axis, pseudo_pos):
-        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
-           Calculate physical motor position given the pseudo motor positions.
-           
-           :param axis: the motor role axis
-           :type axis: int
-           :param pseudo_pos: a sequence of pseudo motor positions
-           :type pseudo_pos: sequence<float>
-           :return: a motor position corresponding to the given axis motor role
-           :rtype: float"""
-        raise Exception("calc_physical must be redefined")
     
     def calc_pseudo(self, axis, physical_pos):
         """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
@@ -492,5 +614,24 @@ class PseudoMotorController(Controller):
            :param physical_pos: a sequence of motor positions
            :type physical_pos: sequence<float>
            :return: a pseudo motor position corresponding to the given axis pseudo motor role
-           :rtype: float"""
-        raise Exception("calc_pseudo must be redefined")
+           :rtype: float
+           
+           .. deprecated:: 1.0
+               Deprecated: implement :meth:`PseudoMotorController.CalcPseudo` instead"""
+        raise NotImplementedError("CalcPseudo must be redefined")
+    
+    def calc_physical(self, axis, pseudo_pos):
+        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+           Calculate physical motor position given the pseudo motor positions.
+           
+           :param axis: the motor role axis
+           :type axis: int
+           :param pseudo_pos: a sequence of pseudo motor positions
+           :type pseudo_pos: sequence<float>
+           :return: a motor position corresponding to the given axis motor role
+           :rtype: float
+           
+           .. deprecated:: 1.0
+               Deprecated: implement :meth:`PseudoMotorController.CalcPhysical` instead"""
+        raise NotImplementedError("CalcPhysical must be redefined")
+

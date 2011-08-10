@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
-from PyTango import DevVarStringArray
+from PyTango import DevVarStringArray, DevVarLongArray
 from PyTango import DispLevel, DevState
 from PyTango import SCALAR, SPECTRUM, IMAGE
 from PyTango import READ_WRITE, READ
@@ -69,7 +69,7 @@ class Controller(PoolDevice):
     def delete_device(self):
         self.pool.delete_element(self.ctrl.get_name())
     
-    #@DebugIt()
+    @InfoIt()
     def init_device(self):
         PoolDevice.init_device(self)
 
@@ -78,10 +78,12 @@ class Controller(PoolDevice):
         self.set_change_events(detect_evts, non_detect_evts)
 
         if self.ctrl is None:
-            props = self._get_ctrl_properties()
-            ctrl = self.pool.create_controller(type=self.Type,
-                name=self.alias, full_name=self.get_name(),
-                library=self.Library, klass=self.Klass, id=self.Id, properties=props)
+            args = dict(type=self.Type, name=self.alias,
+                        full_name=self.get_name(),
+                        library=self.Library, klass=self.Klass,
+                        id=self.Id, role_ids=self.Role_ids,
+                        properties=self._get_ctrl_properties())
+            ctrl = self.pool.create_controller(**args)
             ctrl.add_listener(self.elements_changed)
             self.ctrl = ctrl
         
@@ -217,6 +219,7 @@ class ControllerClass(PoolDeviceClass):
         'Type':           [DevString, "", [] ],
         'Library':        [DevString, "", [] ],
         'Klass':          [DevString, "", [] ],
+        'Role_ids':       [DevVarLongArray, "", [] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
 

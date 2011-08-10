@@ -33,8 +33,9 @@ __docformat__ = 'restructuredtext'
 
 from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
     DevDouble, DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ
-#from taurus.core.util.log import Logger, InfoIt
+    IMAGE, READ_WRITE, READ, AttReqType
+    
+#from taurus.core.util.log import DebugIt, InfoIt
 
 from sardana.tango.core import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, \
@@ -43,7 +44,10 @@ from sardana.pool import InvalidId, InvalidAxis
 
 class PoolDevice(SardanaDevice):
     """Base Tango Pool Device class"""
-    
+
+    ExtremeErrorStates = DevState.FAULT, DevState.UNKNOWN
+    BusyStates = DevState.MOVING, DevState.RUNNING
+
     def __init__(self, dclass, name):
         SardanaDevice.__init__(self, dclass, name)
     
@@ -98,6 +102,15 @@ class PoolDevice(SardanaDevice):
             return False
         return True
     
+    def _is_allowed(self, req_type):
+        state = self.get_state()
+        if state in self.ExtremeErrorStates:
+            return False
+        if req_type == AttReqType.WRITE_REQ:
+            if state in self.BusyStates:
+                return False
+        return True
+
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""

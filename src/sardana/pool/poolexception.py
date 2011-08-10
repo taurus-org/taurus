@@ -26,7 +26,8 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for pool exceptions"""
 
-__all__ = [ "AbortException", "PoolException", "PoolExceptionList", "UnknownController"]
+__all__ = [ "AbortException", "PoolException", "PoolExceptionList", 
+           "UnknownController", "ControllerOfflineException"]
 
 __docformat__ = 'restructuredtext'
 
@@ -67,4 +68,9 @@ class UnknownLib(PoolException):
 
 
 class LibError(Exception):
+    pass
+
+class ControllerOfflineException(Exception):
+    """An exception to be thrown when an operation is requested on a controller
+    which is offline"""
     pass

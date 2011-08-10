@@ -36,11 +36,11 @@ import operator
 from sardana import EpsilonError
 from poolbase import *
 
-from pooldefs import *
+from pooldefs import ElementType
 from poolevent import EventType
-from poolelement import *
-from poolmotion import *
-from poolmoveable import *
+from poolelement import PoolElement
+from poolmotion import PoolMotion
+
 
 class PoolMotor(PoolElement):
 
@@ -442,10 +442,14 @@ class PoolMotor(PoolElement):
     def start_move(self, new_position):
         pos, dial, do_backlash, dial_backlash = self._calculate_move(new_position)
         if not self._simulation_mode:
-            item = pos, dial, do_backlash, dial_backlash
+            pool = self.pool
+            pos_info = pos, dial, do_backlash, dial_backlash
+            pars = dict(items = {self : pos_info},
+                        motion_sleep_time = pool.motion_loop_sleep_time,
+                        nb_states_per_position = pool.motion_loop_states_per_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
-                       "dial_backlash=%f", *item)
-            self.motion.run(items={ self : item })
+                       "dial_backlash=%f", *pos_info)
+            self.motion.run(**pars)
     
     def prepare_to_move(self):
         self._aborted = False

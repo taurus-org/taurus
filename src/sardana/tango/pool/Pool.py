@@ -38,13 +38,16 @@ import os.path
 import logging.handlers
 import PyTango
 
+from taurus import Factory
 from taurus.core.util import CaselessDict
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
-import sardana.pool
-from sardana.pool.poolcontrollermanager import TYPE_MAP_OBJ
-
-ElementType = sardana.pool.ElementType
+from sardana.pool import ElementType, TYPE_MOVEABLE_ELEMENTS
+from sardana.pool.pool import Pool as POOL
+from sardana.pool.poolinstrument import PoolInstrument
+from sardana.pool.poolmotorgroup import PoolMotorGroup
+from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
+from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
 
 class Pool(PyTango.Device_4Impl, Logger):
     
@@ -56,7 +59,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     def init(self, full_name):
         try:
-            db = taurus.Factory().getDatabase()
+            db = Factory().getDatabase()
             alias = db.get_alias(full_name)
             if alias.lower() == 'nada':
                 alias = None
@@ -66,7 +69,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         if alias is None:
             alias = PyTango.Util.instance().get_ds_inst_name()
             
-        self._pool = sardana.pool.Pool(full_name, alias)
+        self._pool = POOL(full_name, alias)
         self._pool.add_listener(self.elements_changed)
 
     @property
@@ -75,21 +78,24 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     @InfoIt()
     def delete_device(self):
-        self.pool.monitor.stop()
+        self.pool.monitor.pause()
 
     @InfoIt()
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
-        self.pool.set_path(self.PoolPath)
-        self.pool.init_remote_logging(port=self.LogPort)
+        p = self.pool
+        p.set_path(self.PoolPath)
+        p.set_motion_loop_sleep_time(self.MotionLoop_SleepTime / 1000.0)
+        p.set_motion_loop_states_per_position(self.MotionLoop_StatesPerPosition)
+        p.init_remote_logging(port=self.LogPort)
         self._recalculate_instruments()
         self.set_change_event("State", True, False)
         self.set_change_event("ControllerList", True, False)
         self.set_change_event("ControllerLibList", True, False)
         self.set_change_event("MotorList", True, False)
         self.set_change_event("InstrumentList", True, False)
-        self.pool.monitor.start()
+        self.pool.monitor.resume()
     
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)
@@ -122,7 +128,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     def read_InstrumentList(self, attr):
         instruments = self._pool.get_elements_by_type(ElementType.Instrument)
-        instrument_names = map(sardana.pool.PoolInstrument.get_name, instruments)
+        instrument_names = map(PoolInstrument.get_name, instruments)
         attr.set_value(instrument_names)
 
     #@PyTango.DebugIt()
@@ -134,7 +140,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
         mgs = self._pool.get_elements_by_type(ElementType.MotorGroup)
-        mg_names = map(sardana.pool.PoolMotorGroup.get_name, mgs)
+        mg_names = map(PoolMotorGroup.get_name, mgs)
         attr.set_value(mg_names)
 
     #@PyTango.DebugIt()
@@ -154,7 +160,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     #@PyTango.DebugIt()
     def read_MeasurementGroupList(self, attr):
         mgs = self._pool.get_elements_by_type(ElementType.MeasurementGroup)
-        mg_names = map(sardana.pool.PoolMeasurementGroup.get_name, mgs)
+        mg_names = map(PoolMeasurementGroup.get_name, mgs)
         attr.set_value(mg_names)
 
     #@PyTango.DebugIt()
@@ -166,6 +172,20 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_CommunicationChannelList(self, attr):
         attr_CommunicationChannelList_read = ["Hello Tango world"]
         attr.set_value(attr_CommunicationChannelList_read, 1)
+
+    def _get_moveable_ids(self, *elem_names):
+        _pool, motor_ids = self.pool, []
+        for elem_name in elem_names:
+            try:
+                element = _pool.get_element_by_name(elem_name)
+            except:
+                element = _pool.get_element_by_full_name(elem_name)
+            elem_type = element.get_type()
+            if elem_type not in TYPE_MOVEABLE_ELEMENTS:
+                raise Exception("%s is a %s. It MUST be a moveable"
+                                % (element.name, ElementType.whatis(elem_type)))
+            motor_ids.append(element.id)
+        return motor_ids
 
     #@PyTango.DebugIt()
     def CreateController(self, argin):
@@ -190,6 +210,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         util = PyTango.Util.instance()
         
+        # check that element doesn't exist yet
         self._check_element(name, full_name)
         
         # check library exists
@@ -198,23 +219,49 @@ class Pool(PyTango.Device_4Impl, Logger):
         ctrl_lib = ctrl_manager.getControllerLib(mod_name)
         if ctrl_lib is None:
             raise Exception("Controller library '%s' not found" % lib)
+        
         # check class exists
         ctrl_class = ctrl_lib.getController(class_name)
         if ctrl_class is None:
-            raise Exception("Controller class '%s' not found in '%s'" % (class_name, lib))
+            raise Exception("Controller class '%s' not found in '%s'"
+                            % (class_name, lib))
         
+        # check that class type matches the required type
+        if not elem_type in ctrl_class.getTypes():
+            raise Exception("Controller class '%s' does not implement '%s' "
+                            "interface" % (class_name, type_str))
+        
+        # check that necessary property values are set
         for prop_name, prop_info in ctrl_class.getControllerProperties().items():
             prop_value = properties.get(prop_name)
             if prop_value is None:
                 if prop_info.default_value is None:
-                    raise Exception("Controller class '%s' needs property '%s'" % (class_name, prop_name))
+                    raise Exception("Controller class '%s' needs property '%s'"
+                                    % (class_name, prop_name))
                 properties[prop_name] = prop_info.default_value
             else:
                 properties[prop_name] = prop_value
-            
+        
+        # for pseudo motor check that motors are given
+        if elem_type == ElementType.PseudoMotor:
+            klass_roles = ctrl_class.motor_roles
+            motor_roles = kwargs.get('roles')
+            if motor_roles is None:
+                raise Exception("Pseudo motor controller class %s needs motors "
+                                "for roles: %s" % (class_name, ", ".join(klass_roles)))
+            motor_ids = []
+            for klass_role in klass_roles:
+                if not klass_role in motor_roles:
+                    raise Exception("Pseudo motor controller class %s needs motor"
+                                    "for role %s" % (class_name, klass_role))
+                motor_name = motor_roles[klass_role]
+                motor_ids.extend(self._get_moveable_ids(motor_name))
+            properties['role_ids'] = motor_ids
+        
         properties['type'] = type_str
         properties['library'] = lib
         properties['klass'] = class_name
+        
         def create_controller_cb(device_name):
             try:
                 db = util.get_database()
@@ -224,6 +271,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 self.warning("Unexpected error in controller creation callback", exc_info=True)
                 raise
+
         util.create_device('Controller', full_name, name, cb=create_controller_cb)
     
     #@PyTango.DebugIt()
@@ -316,12 +364,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         self._check_element(name, full_name)
         
-        elem_ids = []
-        for elem_name in kwargs["elements"]:
-            elem = self.pool.get_element(name=elem_name)
-            if elem.get_type() not in (ElementType.Motor, ElementType.PseudoMotor):
-                raise Exception("%s is not a motor" % elem.name)
-            elem_ids.append(elem.id)
+        elem_ids = self._get_moveable_ids(kwargs["elements"])
         
         def create_motgrp_cb(device_name):
             db = util.get_database()
@@ -442,7 +485,21 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         ret = { 'type' : argin[0], 'library' : argin[1], 'klass' : argin[2], 
                 'name' : argin[3] }
-        p = argin[4:]
+        
+        i = 4
+        roles = {}
+        for arg in argin[4:]:
+            role_data = arg.split('=', 1)
+            if len(role_data) < 2:
+                break
+            role_name, role_element = role_data
+            roles[role_name] = role_element
+            i += 1
+        
+        if len(roles) > 0:
+            ret['roles'] = roles
+        
+        p = argin[i:]
         if len(p) % 2:
             raise Exception("must give pair of property name, property value")
         props = CaselessDict()
@@ -588,57 +645,79 @@ class Pool(PyTango.Device_4Impl, Logger):
         manager.setControllerLib(*file_data)
     
 
+CREATE_CTRL_DESC = \
+"""Must give either:
+
+    * A JSON encoded dict as first string with:
+        * mandatory keys: 'type', 'library', 'class' and 'name' (values are
+          strings).
+        * optional keys:
+            * 'properties': a dict with keys being property names and values
+              the property values
+            * 'roles': a dict with keys being controller roles and values being
+              element names. (example: { 'gap' : 'motor21', 'offset' : 'motor55' }).
+              Only applicable of pseudo controllers
+    * a sequence of strings: <type>, <library>, <class>, <name>
+      [, <role_name>'='<element name>] [, <property name>, <property value>]"""
+
 class PoolClass(PyTango.DeviceClass):
 
     #    Class Properties
     class_property_list = {
         }
 
-
     #    Device Properties
     device_property_list = {
         'PoolPath':
             [PyTango.DevVarStringArray,
-            "",
+            "list of directories to search for controllers (path separators "
+            "can be '\n' or ':')",
             [] ],
-        'InstrumentList':
-            [PyTango.DevVarStringArray,
-            "",
-            [] ],
+        'MotionLoop_SleepTime':
+            [PyTango.DevLong,
+            "Sleep time in the motion loop in mS [default: %dms]" %
+            int(POOL.Default_MotionLoop_SleepTime*1000),
+            int(POOL.Default_MotionLoop_SleepTime*1000) ],
+        'MotionLoop_StatesPerPosition':
+            [PyTango.DevLong,
+            "Number of State reads done before doing a position read in the "
+            "motion loop [default: %d]" % POOL.Default_MotionLoop_StatesPerPosition,
+            POOL.Default_MotionLoop_StatesPerPosition ],
         'LogPort':
             [PyTango.DevLong,
-            "",
+            "Logging (python logging) port [default: %d]" % 
+            logging.handlers.DEFAULT_TCP_LOGGING_PORT,
             logging.handlers.DEFAULT_TCP_LOGGING_PORT ],
+        'InstrumentList':
+            [PyTango.DevVarStringArray,
+            "List of instruments (internal property)",
+            [] ],
     }
-
 
     #    Command definitions
     cmd_list = {
         'CreateController':
-            [[PyTango.DevVarStringArray, "Must give either:\n"
-              " * A JSON encoded dict as first string with keys : 'type', "
-              "'library', 'class' and 'name';\n"
-              " * a sequence of strings: <type>, <library>, <class>, <name>"],
-            [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_CTRL_DESC],
+             [PyTango.DevVoid, ""]],
         'CreateElement':
             [[PyTango.DevVarStringArray, "Must give either:\n"
               " * A JSON encoded dict as first string with keys : 'type', "
               "'ctrl_name', 'axis', 'name';\n"
               " * a sequence of strings: <type>, <ctrl_name>, <axis>, <name>"],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
         'CreateInstrument':
             [[PyTango.DevVarStringArray, ""],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
         'CreateMotorGroup':
             [[PyTango.DevVarStringArray, ""],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
         'CreateMeasurementGroup':
             [[PyTango.DevVarStringArray, "Must give either:\n"
                " * A JSON encoded dict as first string with keys : 'name', "
                "'elements' (with value being a list of channels) and optional "
                "'full_name' (with value being a full tango device name a/b/c);\n"
                " * a sequence of strings: <mg name> [, <element> ]"],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
         'DeleteElement':
             [[PyTango.DevString, ""],
             [PyTango.DevVoid, ""]],
@@ -646,13 +725,13 @@ class PoolClass(PyTango.DeviceClass):
             [[PyTango.DevString, "Must give either:\n"
               " * A JSON encoded list of controller class names;\n"
               " * a controller class name"],
-            [PyTango.DevString, ""]],
+             [PyTango.DevString, ""]],
         'ReloadControllerLib':
             [[PyTango.DevString, ""],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
         'ReloadControllerClass':
             [[PyTango.DevString, ""],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
 #        'GetControllerInfo':
 #            [[PyTango.DevVarStringArray, "Must give either:\n"
 #              " - A JSON dictionary in first string with keys : "
@@ -661,10 +740,10 @@ class PoolClass(PyTango.DeviceClass):
 #            [PyTango.DevVarStringArray, "Controller class data"]],
         'GetFile':
             [[PyTango.DevString, "name (may be module name, file name or full (with absolute path) file name"],
-            [PyTango.DevVarStringArray, "[complete(with absolute path) file name, file contents]"]],
+             [PyTango.DevVarStringArray, "[complete(with absolute path) file name, file contents]"]],
         'PutFile':
             [[PyTango.DevVarStringArray, "[name (may be module name, file name or full (with absolute path) file name, file contents]"],
-            [PyTango.DevVoid, ""]],
+             [PyTango.DevVoid, ""]],
     }
 
 

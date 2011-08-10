@@ -30,11 +30,10 @@ __all__ = [ "PoolCounterTimer" ]
 
 __docformat__ = 'restructuredtext'
 
-from pooldefs import *
+from pooldefs import ElementType
 from poolevent import EventType
-from poolbase import *
-from poolelement import *
-from poolacquisition import *
+from poolelement import PoolElement
+from poolacquisition import PoolCTAcquisition
 
 class PoolCounterTimer(PoolElement):
 

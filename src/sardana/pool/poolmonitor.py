@@ -44,6 +44,7 @@ from poolcontroller import *
 from poolmotor import *
 from poolaction import OperationInfo
 
+
 class PoolMonitor(Logger, threading.Thread):
     
     MIN_THREADS =  1
@@ -57,11 +58,13 @@ class PoolMonitor(Logger, threading.Thread):
         self._min_sleep = min_sleep
         self._pool = pool
         self._stop = False
+        self._pause = threading.Event()
         self._thread_pool = None
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
-        if auto_start:
-            self.start()
+        if not auto_start:
+            self.pause()
+        self.start()
     
     def on_pool_changed(self, evt_src, evt_type, evt_value):
         evt_name = evt_type.name
@@ -130,19 +133,29 @@ class PoolMonitor(Logger, threading.Thread):
                 state_info = elem._from_ctrl_state_info(state_info)
                 elem.set_state_info(state_info)
         finally:
-            self._state_info.finishOne()
+            self._state_info.finish_one()
             
     def stop(self):
+        self.resume()
         self._stop = True
-
+    
+    def pause(self):
+        self._pause.clear()
+    
+    def resume(self):
+        self._pause.set()
+    
     def monitor(self):
         ret = self.update_state_info()
     
     def run(self):
         nap_time = period = self._period
         i, startup = 0, time.time()
-        while not self._stop:
+        while True:
+            if self._stop:
+                break
             time.sleep(nap_time)
+            self._pause.wait()
             self.monitor()
             finish = time.time()
             nap_time = -1

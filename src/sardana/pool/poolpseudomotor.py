@@ -30,11 +30,10 @@ __all__ = [ "PoolPseudoMotor" ]
 
 __docformat__ = 'restructuredtext'
 
-from poolbase import *
-from pooldefs import *
-from poolelement import *
-from poolmotion import *
-from poolmoveable import *
+from pooldefs import ElementType
+from poolelement import PoolElement
+from poolmotion import PoolMotion
+
 
 class PoolPseudoMotor(PoolElement):
     

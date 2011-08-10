@@ -252,7 +252,6 @@ class PoolElement(PoolBaseElement):
     def set_operation(self, operation):
         if self.is_in_operation() and operation is not None:
             raise Exception("%s is already involed in an operation" % self.name)
-        self.info("In operation")
         self._operation = operation
     
     def clear_operation(self):

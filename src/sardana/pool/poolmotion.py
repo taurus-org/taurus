@@ -151,6 +151,8 @@ class PoolMotion(PoolAction):
         
         # prepare data structures
         self._aborted = False
+        self._motion_sleep_time = kwargs.pop("motion_sleep_time")
+        self._nb_states_per_position = kwargs.pop("nb_states_per_position")
         
         motion_info = {}
         for moveable, motion_data in items.items():
@@ -219,6 +221,9 @@ class PoolMotion(PoolAction):
             states[k] = None
             positions[k] = None
 
+        nap = self._motion_sleep_time
+        nb_states_per_pos = self._nb_states_per_position
+        
         # read positions to send a first event when starting to move
         self.read_dial_position(ret=positions)
         for moveable, position in positions.items():
@@ -272,13 +277,13 @@ class PoolMotion(PoolAction):
                 break
             
             # read position every n times
-            if not i % 5:
+            if not i % nb_states_per_pos:
                 self.read_dial_position(ret=positions)
                 for moveable, position in positions.items():
                     moveable.put_dial_position(position)
 
             i += 1
-            time.sleep(0.01)
+            time.sleep(nap)
     
     def read_value(self, ret=None, serial=False):
         return PoolAction.read_value(self, ret=ret, serial=serial)

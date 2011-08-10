@@ -49,6 +49,9 @@ class MotorGroup(PoolGroupDevice):
 
     def init(self, name):
         PoolGroupDevice.init(self, name)
+
+    def _is_allowed(self, req_type):
+        return PoolGroupDevice._is_allowed(self, req_type)
     
     def get_motor_group(self):
         return self.element
@@ -138,11 +141,8 @@ class MotorGroup(PoolGroupDevice):
     def write_Position(self, attr):
         self.motor_group.position = attr.get_write_value()
         
-    def is_Position_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
-
+    is_Position_allowed = _is_allowed
+    
 
 class MotorGroupClass(PoolGroupDeviceClass):
 

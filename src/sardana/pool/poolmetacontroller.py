@@ -26,8 +26,9 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = ["ControllerLib", "DTYPE_MAP", "DACCESS_MAP", "DataInfo",
-           "ControllerClass"]
+__all__ = ["CONTROLLER_TEMPLATE", "CTRL_TYPE_MAP", "TYPE_MAP", "TYPE_MAP_OBJ",
+           "TypeData", "DTYPE_MAP", "DACCESS_MAP", "DataInfo",
+           "ControllerLib", "ControllerClass"]
 
 __docformat__ = 'restructuredtext'
 
@@ -40,7 +41,81 @@ import json
 from taurus.core.util import CaselessDict, CodecFactory
 
 from sardana import DataType, DataFormat, DataAccess
-from pooldefs import *
+from pooldefs import ElementType, TYPE_ELEMENTS
+
+from poolcontroller import PoolController, PoolPseudoMotorController
+from poolmotor import PoolMotor
+from poolpseudomotor import PoolPseudoMotor
+from poolmotorgroup import PoolMotorGroup
+from poolmeasurementgroup import PoolMeasurementGroup
+from poolcountertimer import PoolCounterTimer
+from poolinstrument import PoolInstrument
+from controller import Controller, MotorController, CounterTimerController, \
+    PseudoMotorController
+
+CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
+    \"\"\"@controller_name@ description.\"\"\"
+    
+"""
+
+ET = ElementType
+
+CTRL_TYPE_MAP = {
+    ET.Motor        : PoolController,
+    ET.CTExpChannel : PoolController,
+    ET.PseudoMotor  : PoolPseudoMotorController,
+}
+
+# key - element type
+# value - type string representation, family, internal pool class, automatic full name, controller class
+TYPE_MAP = {
+    ET.Ctrl             : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{klass}/{name}",  Controller),
+    ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                None),
+    ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",   MotorController),
+    ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
+    ET.PseudoMotor      : ("PseudoMotor",      "PseudoMotor",      PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
+    ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
+    ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),
+}
+
+class TypeData(object):
+    """Information for a specific Element type"""
+    
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+TYPE_MAP_OBJ = {}
+for t, d in TYPE_MAP.items():
+    o = TypeData(type=t, name=d[0], family=d[1], klass=d[2] ,
+                 auto_full_name=d[3], ctrl_klass=d[4])
+    TYPE_MAP_OBJ[t] = o
+
+
+DTYPE_MAP = { 'int'            : DataType.Integer,
+              'integer'        : DataType.Integer,
+              int              : DataType.Integer,
+              long             : DataType.Integer,
+              'long'           : DataType.Integer,
+              DataType.Integer : DataType.Integer,
+              'float'          : DataType.Double,
+              'double'         : DataType.Double,
+              float            : DataType.Double,
+              DataType.Double  : DataType.Double,
+              'str'            : DataType.String,
+              'string'         : DataType.String,
+              str              : DataType.String,
+              DataType.String  : DataType.String,
+              'bool'           : DataType.Boolean,
+              'boolean'        : DataType.Boolean,
+              bool             : DataType.Boolean,
+              DataType.Boolean : DataType.Boolean, }
+
+DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
+                DataAccess.ReadOnly  : DataAccess.ReadOnly,
+                'readwrite'          : DataAccess.ReadWrite,
+                'read_write'         : DataAccess.ReadWrite,
+                DataAccess.ReadWrite : DataAccess.ReadWrite,}
+
 
 class ControllerLib(object):
     """Object representing a python module containning controller classes.
@@ -145,30 +220,6 @@ class ControllerClassJSONEncoder(json.JSONEncoder):
     def controllerClass(self, obj):
         return obj.toDict()
 
-DTYPE_MAP = { 'int'            : DataType.Integer,
-              'integer'        : DataType.Integer,
-              int              : DataType.Integer,
-              long             : DataType.Integer,
-              'long'           : DataType.Integer,
-              DataType.Integer : DataType.Integer,
-              'float'          : DataType.Double,
-              'double'         : DataType.Double,
-              float            : DataType.Double,
-              DataType.Double  : DataType.Double,
-              'str'            : DataType.String,
-              'string'         : DataType.String,
-              str              : DataType.String,
-              DataType.String  : DataType.String,
-              'bool'           : DataType.Boolean,
-              'boolean'        : DataType.Boolean,
-              bool             : DataType.Boolean,
-              DataType.Boolean : DataType.Boolean, }
-
-DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
-                DataAccess.ReadOnly  : DataAccess.ReadOnly,
-                'readwrite'          : DataAccess.ReadWrite,
-                'read_write'         : DataAccess.ReadWrite,
-                DataAccess.ReadWrite : DataAccess.ReadWrite,}
 
 def from_dtype_str(dtype):
     dformat = DataFormat.Scalar
@@ -191,7 +242,8 @@ def from_access_str(access):
         if access.startswith("pytango."):
             access = access[len("pytango."):]
     return access
-        
+
+
 class DataInfo(object):
     
     def __init__(self, name, dtype, dformat=DataFormat.Scalar,
@@ -283,10 +335,10 @@ class ControllerClass(object):
         self.lib = lib
         self.types = []
         self.errors = []
-        self.__init()
+        self.dict_extra = {}
+        self.api_version = 1
         
-    def __init(self):
-        klass = self.klass
+        # Generic controller information
         self._ctrl_features = tuple(klass.ctrl_features)
         
         self._ctrl_properties = props = CaselessDict()
@@ -305,6 +357,28 @@ class ControllerClass(object):
         for k, v in klass.axis_attributes.items():
             axis_attrs[k] = DataInfo.toDataInfo(k, v)
         
+        self.types = types = self.__build_types()
+        
+        if ElementType.PseudoMotor in types:
+            self.motor_roles = tuple(klass.motor_roles)
+            self.pseudo_motor_roles = tuple(klass.pseudo_motor_roles)
+            self.dict_extra['motor_roles'] = self.motor_roles
+            self.dict_extra['pseudo_motor_roles'] = self.pseudo_motor_roles
+        
+        init_args = inspect.getargspec(klass.__init__)
+        if init_args.varargs is None or init_args.keywords is None:
+            self.api_version = 0
+        
+    def __build_types(self):
+        types = []
+        klass = self.klass
+        for _type, type_data in TYPE_MAP_OBJ.items():
+            if not _type in TYPE_ELEMENTS:
+                continue
+            if issubclass(klass, type_data.ctrl_klass):
+                types.append(_type)
+        return types
+    
     def __cmp__(self, o):
         if o is None: return cmp(self.getName(), None)
         return cmp(self.getName(), o.getName())
@@ -313,13 +387,18 @@ class ControllerClass(object):
         return self.getName()
 
     def toDict(self):
-        ret = { 'name' : self.getName(),
-          'module' : self.getModuleName(),
-          'filename' : self.getFileName(),
-          'description' : self.getDescription(),
-          'gender' : self.getGender(),
-          'model' : self.getModel(),
-          'organization' : self.getOrganization(),}
+        ret = dict(name=self.getName(),
+                   module=self.getModuleName(),
+                   filename=self.getFileName(),
+                   description=self.getDescription(),
+                   gender=self.getGender(),
+                   model=self.getModel(),
+                   organization=self.getOrganization(),
+                   api_version=self.api_version,)
+        
+        ctrl_types = map(ElementType.whatis, self.getTypes())
+        
+        ret['type'] = ctrl_types
         
         ctrl_props = {}
         for ctrl_prop in self.getControllerProperties().values():
@@ -335,6 +414,8 @@ class ControllerClass(object):
         ret['ctrl_attributes'] = ctrl_attrs
         ret['axis_attributes'] = axis_attrs
         ret['ctrl_features'] = self.getControllerFeatures()
+        
+        ret.update(self.dict_extra)
         return ret
 
     def getJSON(self):
@@ -411,3 +492,5 @@ class ControllerClass(object):
     
     def getControllerFeatures(self):
         return self._ctrl_features
+    
+    

@@ -243,12 +243,28 @@ class PoolController(PoolBaseController):
                 self._ctrl_error = self._lib_info.getError()
             return
         try:
-            klass = self._ctrl_info.getControllerClass()
-            props = dict(self._properties)
-            props["__pool_controller"] = self
-            self._ctrl = klass(self.get_name(), self._properties)
+            self._ctrl = self._create_controller()
         except:
+            self._ctrl = None
             self._ctrl_error = sys.exc_info()
+    
+    def _create_ctrl_args(self):
+        name = self.name
+        klass = self._ctrl_info.getControllerClass()
+        props = dict(self._properties)
+        args, kwargs = [], dict(pool_controller=weakref.ref(self))
+        return name, klass, props, args, kwargs
+    
+    def _create_controller(self):
+        name, klass, props, args, kwargs = self._create_ctrl_args()
+        api = self._ctrl_info.api_version
+        if api == 0:
+            ctrl = klass(name, props)
+            ctrl._args = args
+            ctrl._kwargs = kwargs
+        elif api == 1:
+            ctrl = klass(name, props, *args, **kwargs)
+        return ctrl
     
     def reInit(self):
         self.info("reInit")
@@ -539,11 +555,16 @@ class PoolController(PoolBaseController):
 class PoolPseudoMotorController(PoolController):
     
     def __init__(self, **kwargs):
-        motor_ids = kwargs.pop('motor_ids')
-        pseudo_motor_ids = kwargs.pop('pseudo_motor_ids')
+        self._motor_ids = kwargs.pop('role_ids')
         super(PoolPseudoMotorController, self).__init__(**kwargs)
-        
-    
+
+    def _create_ctrl_args(self):
+        pars = PoolController._create_ctrl_args(self)
+        name, klass, props, args, kwargs = pars
+        kwargs['motor_ids'] = tuple(self._motor_ids)
+        return pars
+
+
 class PoolGenericTangoController(PoolBaseController):
     """Controller class mediator for tango based items"""
     
