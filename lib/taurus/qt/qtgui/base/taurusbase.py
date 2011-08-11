@@ -114,7 +114,8 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self._operations = []
         self._modifiableByUser = False
         self._modelInConfig = False
-
+        self._autoProtectOperation = True
+        
         if parent != None and hasattr(parent, "_exception_listener"):
             self._exception_listener = parent._exception_listener
         else:
@@ -131,7 +132,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         QObject. The return value should be a permanent object capable of
         emitting Qt signals. See :class:`TaurusImageItem` as an example
         '''
-        return self      
+        return self
 
     def deleteLater(self):
         '''Reimplements the Qt.QObject deleteLater method to ensure that the
@@ -706,6 +707,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
     
     def resetModelInConfig(self):
         return self.setModelInConfig(False)
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Pending operations related methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -719,8 +721,18 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
                     If None is given (default) the component fetches the pending operations
         """
         self.debug("Apply changes")
-        if ops is None: ops = self.getPendingOperations()
-        self.getTaurusManager().applyPendingOperations(ops)
+        if ops is None:
+            ops = self.getPendingOperations()
+        
+        app = Qt.QApplication.instance()
+        if self.isAutoProtectOperation():
+            import taurus.qt.qtgui.dialog
+            @taurus.qt.qtgui.dialog.protectTaurusMessageBox
+            def go():
+                self.getTaurusManager().applyPendingOperations(ops)
+            go()
+        else:
+            self.getTaurusManager().applyPendingOperations(ops)
         
     def hasPendingOperations(self):
         """Returns if the component has pending operations
@@ -934,7 +946,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
     def isModifiableByUser(self):
         '''whether the user can change the contents of the form
         
-        :return: (bool) True is the user is allowed to modify the look&feel'''
+        :return: (bool) True if the user is allowed to modify the look&feel'''
         return self._modifiableByUser
     
     def setModifiableByUser(self, modifiable):
@@ -944,13 +956,30 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         :param modifiable: (bool)
         '''
         self._modifiableByUser = modifiable
-            
-        
+    
     def resetModifiableByUser(self):
         '''Equivalent to setModifiableByUser(True)'''
         self.setModifiableByUser(False)
-        
     
+    def resetAutoProtectOperation(self):
+        """Resets protecting operations"""
+        self.setAutoProtectOperation(True)
+        
+    def isAutoProtectOperation(self):
+        """Tells if this widget's operations are protected against exceptions
+        
+        :return: (bool) True if operations are protected against exceptions or
+                 False otherwise"""
+        return self._autoProtectOperation
+    
+    def setAutoProtectOperation(self, protect):
+        """Sets/unsets this widget's operations are protected against exceptions
+        
+        :param protect: wheater or not to protect widget operations
+        :type protect: bool"""
+        self._autoProtectOperation = protect
+
+
 class TaurusBaseWidget(TaurusBaseComponent):
     """The base class for all Qt Taurus widgets.
     
