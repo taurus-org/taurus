@@ -723,8 +723,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self.debug("Apply changes")
         if ops is None:
             ops = self.getPendingOperations()
-        
-        app = Qt.QApplication.instance()
+
         if self.isAutoProtectOperation():
             import taurus.qt.qtgui.dialog
             @taurus.qt.qtgui.dialog.protectTaurusMessageBox
