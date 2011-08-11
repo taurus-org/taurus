@@ -256,7 +256,7 @@ class QGroupWidget(Qt.QWidget):
     def setContentVisible(self, show):
         """Sets this widget's contents visibility
         
-        :param icon: (bool) the new widget contents visibility"""
+        :param show: (bool) the new widget contents visibility"""
         self._contentVisible = show
         self._updateStyle()
         
