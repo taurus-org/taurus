@@ -87,8 +87,7 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
 
 class PoolIORegister(TaurusValue):
     ''' A widget that displays and controls a pool channel device.  It
-    behaves as a TaurusValue and therefore it can be used with
-    :meth:`TaurusForm.setFormWidget`
+    behaves as a TaurusValue.
     '''
     def __init__(self, parent = None, designMode = False):
         TaurusValue.__init__(self, parent = parent, designMode = designMode)
@@ -105,7 +104,7 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.panel import TaurusForm
     tgclass_map = {'IORegister':PoolIORegister}
     form = TaurusForm()
-    form.setFormWidget(tgclass_map)
+    form.setCustomWidgetMap(tgclass_map)
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
     if len(sys.argv)>1:
         model = sys.argv[1]

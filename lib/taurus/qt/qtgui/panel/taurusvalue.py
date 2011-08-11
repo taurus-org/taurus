@@ -69,16 +69,15 @@ class DefaultLabelWidget(TaurusLabel):
         self.setBgRole(None)
         self.setStyleSheet('border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;')
     def setModel(self, model):
+        if model is None or model=='': 
+            return TaurusLabel.setModel(self, None)
         try: config = self.taurusValueBuddy().getLabelConfig()
         except Exception: config = 'label'
         if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, model + "?configuration=%s"%config)
         elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
-            TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
-        else:
-            # model could be 'None' and could be be concatenated with a string...
-            pass
+             TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
     def contextMenuEvent(self,event):   
@@ -135,6 +134,8 @@ class DefaultUnitsWidget(TaurusLabel):
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
         self.setBgRole(None)
     def setModel(self, model):
+        if model is None or model=='': 
+            return TaurusLabel.setModel(self, None)
         TaurusLabel.setModel(self, model + "?configuration=unit") #@todo: tango-centric!
     def sizeHint(self):
         #print "UNITSSIZEHINT:",Qt.QLabel.sizeHint(self).width(), self.minimumSizeHint().width(), Qt.QLabel.minimumSizeHint(self).width()
@@ -222,7 +223,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     __pyqtSignals__ = ("modelChanged(const QString &)",)
     
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent = None, designMode = False, customWidgetMap=None):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
@@ -249,7 +250,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._customWidget = None
         self._extraWidget = None
         
-        self._customWidgetMap = {}
+        if customWidgetMap is None:
+            customWidgetMap = {}
+        self.setCustomWidgetMap(customWidgetMap)
         
         self.labelWidgetClassID = 'Auto'
         self.readWidgetClassID = 'Auto'

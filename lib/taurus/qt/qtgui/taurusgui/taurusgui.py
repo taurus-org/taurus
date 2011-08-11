@@ -163,19 +163,21 @@ class TaurusGui(TaurusMainWindow):
         
         self.registerConfigProperty(self._getPermanentCustomPanels, self._setPermanentCustomPanels, 'permanentCustomPanels')
         
-        if HAS_EXTRA_POOL:
-            self.info('extra_pool available: using PoolMotorSlim and PoolChannel widgets')
-            self._customWidgetMap ={'SimuMotor':PoolMotorSlim,
-                                    'Motor':PoolMotorSlim,
-                                    'PseudoMotor':PoolMotorSlim,
-                                    'PseudoCounter':PoolChannel,
-                                    'CTExpChannel':PoolChannel,
-                                    'ZeroDExpChannel':PoolChannel,
-                                    'OneDExpChannel':PoolChannel,
-                                    'TwoDExpChannel':PoolChannel}
-        else:
-            self._customWidgetMap = {}
-            self.info('extra_pool not available: using generic widgets for motors and channels')
+        from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
+        self.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
+#        if HAS_EXTRA_POOL:
+#            self.info('extra_pool available: using PoolMotorSlim and PoolChannel widgets')
+#            self._customWidgetMap ={'SimuMotor':PoolMotorSlim,
+#                                    'Motor':PoolMotorSlim,
+#                                    'PseudoMotor':PoolMotorSlim,
+#                                    'PseudoCounter':PoolChannel,
+#                                    'CTExpChannel':PoolChannel,
+#                                    'ZeroDExpChannel':PoolChannel,
+#                                    'OneDExpChannel':PoolChannel,
+#                                    'TwoDExpChannel':PoolChannel}
+#        else:
+#            self._customWidgetMap = {}
+#            self.info('extra_pool not available: using generic widgets for motors and channels')
         
         #Create a global SharedDataManager
         Qt.qApp.SDM =  SharedDataManager(self)

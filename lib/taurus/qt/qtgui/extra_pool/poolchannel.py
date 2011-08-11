@@ -53,8 +53,8 @@ class _ParentDevButton(TaurusDevButton):
         
 class PoolChannelTV(TaurusValue):
     ''' A widget that displays and controls a pool channel device.
-    It differs from :class:`PoolChannel` in that it behaves as a TaurusValue and
-    therefore it can be used with :meth:`TaurusForm.setFormWidget`
+    It differs from :class:`PoolChannel` in that it behaves as a TaurusValue 
+    (i.e., it allows its subwidgets to be aligned in columns in a TaurusForm)`
     '''
     def __init__(self, parent = None, designMode = False):
         TaurusValue.__init__(self, parent = parent, designMode = designMode)

@@ -40,7 +40,6 @@ from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TY
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from taurusmodelchooser import TaurusModelChooser
-from taurusvalue import TaurusValue
 
 
 class ParameterCB(Qt.QComboBox):
@@ -57,9 +56,19 @@ class ParameterCB(Qt.QComboBox):
 
 
 class TaurusForm(TaurusWidget):
-    '''A form widget that gets a list of attributes as a model and displays
-    a :class:`TaurusValue` for each of them. By default it automatically shows
-    scrollbars if needed and global Apply and Cancel buttons.
+    '''A form containing specific widgets for interacting with
+    a given list of taurus attributes and/or devices.
+    
+    Its model is a list of attribute and/or device names to be shown. Each item
+    is represented in a row consisting of a label, a read widget, a write
+    widget, a units widget and an "extra" widget (some of them may not be shown)
+    which are vertically aligned with their counterparts from other items.
+    
+    By default a :class:`TaurusValue` object is used for each item, but this
+    can be changed and specific mappings can be defined using the
+    :meth:`setCustomWidgetMap` method.
+    
+    By default, the form provides global Apply and Cancel buttons.
     
     You can also see some code that exemplifies the use of TaurusForm in :ref:`Taurus
     coding examples <examples>` '''
@@ -67,8 +76,7 @@ class TaurusForm(TaurusWidget):
     def __init__(self, parent = None,
                  formWidget = None,
                  buttons = None,
-                 withButtons = True,
-#                 withScrolls = True,  
+                 withButtons = True, 
                  designMode = False):
         TaurusWidget.__init__(self, parent, designMode)
         
@@ -77,7 +85,6 @@ class TaurusForm(TaurusWidget):
         self._customWidgetMap = {}
         self._model = []
         self._children = []
-        self._defaultFormWidget = TaurusValue
         self.setFormWidget(formWidget)
         self._withButtons = withButtons
         
@@ -119,18 +126,18 @@ class TaurusForm(TaurusWidget):
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
         
-        :param cwmap: (dict<str,Qt.QWidget>) a dictionary whose keys are device
+        :param cwmap: (dict<str,tuple>) a dictionary whose keys are device
                       type strings (i.e. see :class:`PyTango.DeviceInfo`) and
-                      whose values are widgets to be used
+                      whose values are tuples of classname,args,kwargs
         '''
         self._customWidgetMap = cwmap
         
     def getCustomWidgetMap(self):
         '''Returns the map used to create custom widgets.
         
-        :return: (dict<str,Qt.QWidget>) a dictionary whose keys are device
+        :return: (dict<str,tuple>) a dictionary whose keys are device
                  type strings (i.e. see :class:`PyTango.DeviceInfo`) and whose
-                 values are widgets to be used
+                 values are tuples of classname,args,kwargs
         '''
         return self._customWidgetMap
       
@@ -210,33 +217,59 @@ class TaurusForm(TaurusWidget):
         self._model = Qt.QStringList()
         
     def getFormWidget(self, model=None):
+        '''Returns a tuple that can be used for creating a widget for a given model.
+        
+        :param model: (str) a taurus model name for which the new item of the
+                      form will be created
+        
+        :return: (tuple<type,list,dict>) a tuple containing a class, a list of
+                 args and a dict of keyword args. The args and the keyword args
+                 can be passed to the class constructor
+        '''
         if model is None:
-            return self._defaultFormWidget
+            return self._defaultFormWidget,(),{}
         #If a model is given, check if is in the custom widget map
         try: 
             obj=taurus.Attribute(model) #if it is not an attribute, it will get an exception here
-            return self._defaultFormWidget 
+            return self._defaultFormWidget,(),{}
         except:
             obj=taurus.Device(model)
             try:
                 key = obj.getHWObj().info().dev_class
             except:
-                return self._defaultFormWidget
-            return self._formWidgetsMap.get(key, self._defaultFormWidget)
-            
-        
+                return self._defaultFormWidget,(),{}
+            #value = self._formWidgetsMap.get(key, self._defaultFormWidget)
+            cwmap = self.getCustomWidgetMap()
+            value = cwmap.get(key, self._defaultFormWidget)
+            if isinstance(value, type): #for backwards compatibility
+                if issubclass(value, self._defaultFormWidget):
+                    return value,(),{}
+                else:
+                    return self._defaultFormWidget,(), {'customWidgetMap':{key:value}}
+            #we expect a tuple of str,list,dict --> (classname_including_full_module, args, kwargs)
+            name,args,kwargs = value
+            pkgname,klassname = name.rsplit('.',1)
+            try:
+                pkg = __import__(pkgname, fromlist=[klassname])
+                klass = getattr(pkg,klassname)
+            except:
+                self.warning('Cannot import "%s". Using default widget for "%s".'%(name, model))
+                return self._defaultFormWidget,(),{}
+            if not issubclass(klass, self._defaultFormWidget):
+                cwmap = kwargs.get('customWidgetMap',{})
+                cwmap.update({key:klass})
+                kwargs['customWidgetMap'] = cwmap
+                klass = self._defaultFormWidget
+            return klass,args,kwargs    
+                
     def setFormWidget(self, formWidget):
-        if formWidget is None: 
+        if formWidget is None:
+            from taurus.qt.qtgui.panel import TaurusValue
             self._defaultFormWidget = TaurusValue
-            self._formWidgetsMap = {}
-        elif isinstance(formWidget,dict):
-            self._defaultFormWidget = TaurusValue
-            self._formWidgetsMap = formWidget
         elif isinstance(formWidget,Qt.QWidget):
             self._defaultFormWidget = formWidget
-            self._formWidgetsMap = {}
         else:
-            raise TypeError('formWidget must be one of None, dict or QWidget. %s passed'%repr(type(formWidget)))
+            raise TypeError('formWidget must be one of None, QWidget. %s passed'%repr(type(formWidget)))
         
     def resetFormWidget(self):
         self.setFormWidget(self, None)
@@ -305,14 +338,14 @@ class TaurusForm(TaurusWidget):
         for i,model in enumerate(self.getModel()): 
             model = str(model)
             if parent_name: model = "%s/%s" % (parent_name, model) #@todo: Change this (it assumes tango model naming!)
-            widget = self.getFormWidget(model=model)(frame)
+            klass, args, kwargs = self.getFormWidget(model=model)
+            widget = klass(frame,*args,**kwargs)
             widget.setMinimumHeight(20)
-            try: widget.setCustomWidgetMap(self.getCustomWidgetMap())
-            except: pass
             try: 
                 widget.setModel(model)
                 widget.setParent(frame)
             except: 
+                #raise
                 self.warning('an error occurred while adding the child "%s". Skipping'%model)
                 self.traceback(level=taurus.Debug)
             try: widget.setModifiableByUser(self.isModifiableByUser())
@@ -629,7 +662,7 @@ class TaurusAttrForm(TaurusWidget):
         return taurus.core.TaurusDevice
     
     def _updateAttrWidgets(self):
-        '''Populates the form with TaurusValues for each of the attributes shown
+        '''Populates the form with an item for each of the attributes shown
         '''
         dev = self.getModelObj()
         if dev is None or dev.getSWState() != taurus.core.TaurusSWDevState.Running:
@@ -773,6 +806,7 @@ def test4():
     from taurus.qt.qtgui.display import TaurusLabel
     app = Qt.QApplication(sys.argv)
     
+    from taurus.qt.qtgui.panel import TaurusValue
     class DummyCW(TaurusValue):
         def setModel(self,model):
             print "!!!!! IN DUMMYCW.SETMODEL", model
@@ -780,19 +814,17 @@ def test4():
     
     models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum', 'sys/tg_test/1/state','sys/tg_test/1/short_scalar_ro']
     models.append('tango://controls02:10000/expchan/bl97_simucotictrl_1/1')
-    
-    from taurus.qt.qtgui.extra_pool import PoolChannelTV
     map={
-        'PseudoCounter':PoolChannelTV,
-        'CTExpChannel':PoolChannelTV,
-        'ZeroDExpChannel':PoolChannelTV,
-        'OneDExpChannel':PoolChannelTV,
-        'TwoDExpChannel':PoolChannelTV,
-        'TangoTest':DummyCW}
+        'PseudoCounter':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (),{}), #taurusvalue-like classes given as strings
+        'CTExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (),{}),
+        'ZeroDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (),{}),
+        'OneDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (),{}),
+        'TwoDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (),{}),
+        'TangoTest':DummyCW,    #a TaurusValue-like class given as a class (old way)
+        'DataBase':TaurusLabel} #a non-TaurusValue-like class given as a class (old way)
     
     dialog = TaurusForm()
-    dialog.setCustomWidgetMap({'DataBase':TaurusLabel}) #this is still valid for "regular" custom widgets
-    dialog.setFormWidget(map) #this is for "TaurusValue-like" custom widgets
+    dialog.setCustomWidgetMap(map)
     dialog.setModel(models)
     dialog.show()
     sys.exit(app.exec_())
@@ -819,20 +851,10 @@ def taurusFormMain():
     dialog.setModifiableByUser(True)
     dialog.setWindowTitle(os.path.basename(sys.argv[0]))
     
-    #map motor widgets if extra_pool is available
-    try:
-        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannelTV, PoolIORegister
-        dialog.setCustomWidgetMap({'SimuMotor':PoolMotorSlim,
-                                   'Motor':PoolMotorSlim,
-                                   'PseudoMotor':PoolMotorSlim})
-        dialog.setFormWidget({'PseudoCounter':PoolChannelTV,
-                              'CTExpChannel':PoolChannelTV,
-                              'ZeroDExpChannel':PoolChannelTV,
-                              'OneDExpChannel':PoolChannelTV,
-                              'TwoDExpChannel':PoolChannelTV,
-                              'IORegister':PoolIORegister})
-    except:
-        pass  
+    
+    #set the default map for this installation
+    from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
+    dialog.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
     
     #set a model list from the command line or launch the chooser  
     if len(args)>0:
@@ -849,8 +871,8 @@ def main():
     #test1()
     #test2()
     #test3()
-    #test4()
-    taurusFormMain()
+    test4()
+    #taurusFormMain()
     
 if __name__ == "__main__":
     main() 
