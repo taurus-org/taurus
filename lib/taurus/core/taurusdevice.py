@@ -66,7 +66,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         self.trace("[TaurusDevice] cleanUp")
         self._deviceObj = None
         self._descr = None
-        self._deviceSwObj
+        #self._deviceSwObj
         if not self._deviceStateObj is None:
             self._deviceStateObj.removeListener(self)
         self._deviceStateObj = None
