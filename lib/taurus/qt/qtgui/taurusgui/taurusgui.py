@@ -760,7 +760,8 @@ class TaurusGui(TaurusMainWindow):
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
-        
+        #add a separator in the panels view submenu (it separates the panels created from the config file from the user-created panels)
+        self.__panelsMenu.addSeparator()
                 
         #add external applications from both the python and the xml config files
         EXTERNAL_APPS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
