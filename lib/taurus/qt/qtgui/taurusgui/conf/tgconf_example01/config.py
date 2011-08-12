@@ -84,12 +84,10 @@ nxbrowser = PanelDescription('NeXus Browser',
 
 i0 = PanelDescription('BigInstrument',
                        classname = 'TaurusAttrForm',
-                       area = Qt_Qt.TopDockWidgetArea,
                        model = 'sys/tg_test/1')
 
 i1 = PanelDescription('instrument1',
                        classname = 'TaurusForm',
-                       area = Qt_Qt.TopDockWidgetArea,
                        model = ['sys/tg_test/1/double_scalar',
                                 'sys/tg_test/1/short_scalar_ro',
                                 'sys/tg_test/1/float_spectrum_ro',
@@ -97,13 +95,11 @@ i1 = PanelDescription('instrument1',
 
 i2 = PanelDescription('instrument2',
                        classname = 'TaurusForm',
-                       area = Qt_Qt.TopDockWidgetArea,
                        model = ['sys/tg_test/1/wave',
                                 'sys/tg_test/1/boolean_scalar'])
 
 trend = PanelDescription('Trend',
                         classname = 'TaurusTrend',
-                        area = Qt_Qt.TopDockWidgetArea,
                         model = ['sys/tg_test/1/double_scalar'])
 
 #===============================================================================
