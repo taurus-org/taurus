@@ -245,13 +245,17 @@ class WidgetPage(Qt.QWizardPage):
             self.connect(v, Qt.SIGNAL('stateChanged'),self._onValidatorStateChanged)
     
     def validatePage(self):
-        if self.wizard().getPanelDescription() is None:
+        paneldesc = self.wizard().getPanelDescription()
+        if paneldesc is None:
             Qt.QMessageBox.information(self, 'You must choose a panel type', 'Choose a panel type by clicking on one of the proposed types')
             return False
         try:
-            w = self.wizard().getPanelDescription().getWidget()
+            w = paneldesc.getWidget()
             if not isinstance(w, Qt.QWidget): 
                 raise ValueError
+            #set the name now because it might have changed since the PanelDescription was created
+            paneldesc.name = str(self.field('panelname').toString())
+            #allow the wizard to proceed
             return True
         except Exception,e:
             Qt.QMessageBox.warning(self, 'Invalid panel', 'The requested panel cannot be created. \nReason:\n%s'%repr(e))
@@ -273,8 +277,7 @@ class WidgetPage(Qt.QWizardPage):
         else:
             self.widgetDescription['classname'] = choice
         
-        panelname = str(self.field('panelname').toString())
-        self.wizard().setPanelDescription( PanelDescription(panelname, **self.widgetDescription))      
+        self.wizard().setPanelDescription( PanelDescription('', **self.widgetDescription))   #the name will be set in self.validatePage   
         paneltype = str(self.widgetDescription['widgetname'] or self.widgetDescription['classname'])
         self.widgetTypeLB.setText("<b>Widget Type:</b> %s"%paneltype)
         
