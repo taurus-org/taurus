@@ -3510,8 +3510,8 @@ MotorGroup::GrpInGrp::operator=(const MotorGroup::GrpInGrp &rhs)
     return *this;
 }
 
-MotorGroup::PsmInGrp(Pool_ns::PseudoMotorPool &ref,
-                     PseudoMotor_ns::PseudoMotor *pm_dev):
+MotorGroup::PsmInGrp::PsmInGrp(Pool_ns::PseudoMotorPool &ref,
+                               PseudoMotor_ns::PseudoMotor *pm_dev):
     pool_psm(ref),dev(pm_dev),psm_alias(ref.name)
 {}
 
