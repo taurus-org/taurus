@@ -8,10 +8,12 @@ from taurus.qt import Qt
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.container import QGroupWidget
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
-from taurus.qt.qtgui.input import TaurusValueSpinBox
+from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueSpinBoxEx
 from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.console import TaurusConsole
+
+Spin = TaurusValueSpinBox
 
 class CmdButton(TaurusCommandButton):
     
@@ -33,7 +35,7 @@ def createMotorPanel(*names):
         label = TaurusLabel(content)
         r_value = TaurusLabel(content)
         #r_value.setFont(Qt.QFont("Monospace",10))
-        w_value = TaurusValueSpinBox(content)
+        w_value = Spin(content)
         unit = TaurusLabel(content)
         abort = CmdButton(parent=content, command='abort')
         abort.setIcon(getIcon(":/actions/media_playback_stop.svg"))
@@ -59,7 +61,7 @@ def createMotorPanel(*names):
     m_panel_l.setColumnStretch(0, 0)
     m_panel_l.setColumnStretch(1, 0)
     m_panel_l.setColumnStretch(2, 1)
-    m_panel_l.setColumnStretch(3, 0)
+    m_panel_l.setColumnStretch(3, 1)
     m_panel_l.setColumnStretch(4, 0)
     m_panel_l.setColumnStretch(5, 0)
     
@@ -140,7 +142,7 @@ dock1_w = Qt.QWidget()
 dock1.setWidget(dock1_w)
 
 dock2 = Qt.QDockWidget("Motor Groups Panel")
-panel.addDockWidget(Qt.Qt.TopDockWidgetArea, dock2)
+panel.addDockWidget(Qt.Qt.LeftDockWidgetArea, dock2)
 dock2_w = Qt.QWidget()
 dock2.setWidget(dock2_w)
 
@@ -172,7 +174,7 @@ m1_backlash_label = TaurusLabel(tool_box1_w)
 tool_box1_l.addWidget(m1_backlash_label, 0, 0)
 r_backlash_value = TaurusLabel(tool_box1_w)
 tool_box1_l.addWidget(r_backlash_value, 0, 1)
-w_backlash_value = TaurusValueSpinBox(tool_box1_w)
+w_backlash_value = Spin(tool_box1_w)
 tool_box1_l.addWidget(w_backlash_value, 0, 2)
 m1_backlash_label.bgRole = None
 m1_backlash_label.model = "M1/backlash?configuration=label"
@@ -187,7 +189,7 @@ ice8_backlash_label = TaurusLabel(group_box1)
 group_box1_l.addWidget(ice8_backlash_label, 0, 0)
 ice8_r_backlash_value = TaurusLabel(group_box1)
 group_box1_l.addWidget(ice8_r_backlash_value, 0, 1)
-ice8_w_backlash_value = TaurusValueSpinBox(group_box1)
+ice8_w_backlash_value = Spin(group_box1)
 group_box1_l.addWidget(ice8_w_backlash_value, 0, 2)
 ice8_backlash_label.bgRole = None
 ice8_backlash_label.model = "ICE_M8/backlash?configuration=label"
@@ -224,10 +226,10 @@ mg2_panel.title = "Motor Group 2"
 mg2_panel.setTitleStyle(mg_panel_style)
 panel2_l.addWidget(mg2_panel, 0, 1)
 
-mg3_panel = createMotorGroupPanel("MotorGroup3")
-mg3_panel.title = "Motor Group 3"
-mg3_panel.setTitleStyle(mg_panel_style)
-panel2_l.addWidget(mg3_panel, 0, 2)
+#mg3_panel = createMotorGroupPanel("MotorGroup3")
+#mg3_panel.title = "Motor Group 3"
+#mg3_panel.setTitleStyle(mg_panel_style)
+#panel2_l.addWidget(mg3_panel, 0, 2)
 
 panel2_l.setRowStretch(0, 0)
 panel2_l.setRowStretch(1, 1)

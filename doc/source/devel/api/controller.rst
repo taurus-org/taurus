@@ -35,21 +35,65 @@ are ordered by preference (example: usage of int is prefered to "int" or "PyTang
   
 .. note:: when string, types are case insensitive. This means "long" is the same as "LONG"
 
+Example on how to define extra attributes per axis:
+
+    1. EncoderSource: a scalar r/w string
+    2. ReflectionMatrix: a 2D readable float with customized getter method
+    
+::
+
+    from sardana.pool import MotorController
+
+    class MyMotorCtrl(MotorController):
+
+        axis_attributes = {
+            'EncoderSource' : { 'type' : str,
+                                'description' : 'motor encoder source', },
+            'ReflectionMatrix' : { 'type' : str,
+                                   'r/w type' : 'read',
+                                   'fget' : 'getReflectionMatrix', },
+        }
+        
+        def getAxisPar(self, axis, name):
+            name = name.lower()
+            if name == 'encodersource':
+                return self._encodersource
+        
+        def setAxisPar(self, axis, name, value):
+            name = name.lower()
+            if name == 'encodersource':
+                self._encodersource = value
+        
+        def getReflectionMatrix(self, axis):
+            return ( (1.0, 0.0), (0.0, 1.0) )
+
+Base Controller API
+-----------------------
+
 .. autoclass:: Controller
     :inherited-members:
     :members:
     :undoc-members:
     
+Motor Controller API
+----------------------
+
 .. autoclass:: MotorController
     :inherited-members:
     :members:
     :undoc-members:
     
+Counter Timer Controller API
+-----------------------------
+
 .. autoclass:: CounterTimerController
     :inherited-members:
     :members:
     :undoc-members:
-    
+
+Pseudo Motor Controller API
+-----------------------------
+
 .. autoclass:: PseudoMotorController
     :members:
     :undoc-members:

@@ -39,16 +39,25 @@ from poolaction import PoolAction, PoolActionItem
 
 MotionState = Enumeration("MotionSate", ( \
     "Stopped",
-    "StoppedOnError",
-    "Aborted",
+#    "StoppedOnError",
+#    "StoppedOnAbort",
     "Moving",
     "MovingBacklash",
     "MovingInstability",
-    "Unknown",
     "Invalid") )
 
 MS = MotionState
 MovingStates = MS.Moving, MS.MovingBacklash, MS.MovingInstability
+StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
+
+MotionAction = Enumeration("MotionAction", ( \
+    "StartMotion",
+    "Finish",
+    "Abort",
+    "NoAction",
+    "Invalid") )
+
+MA = MotionAction
 
 class PoolMotionItem(PoolActionItem):
     
@@ -61,13 +70,13 @@ class PoolMotionItem(PoolActionItem):
         self.do_backlash = do_backlash
         self.backlash = backlash
         self.instability_time = instability_time
-        self.old_motion_state = MS.Unknown
+        self.old_motion_state = MS.Invalid
         self.motion_state = MS.Stopped
         self.start_time = None
         self.stop_time = None
         self.stop_final_time = None
-        self.old_state = State.Unknown
-        self.state = State.Unknown
+        self.old_state = State.Invalid
+        self.state = State.On
         
     def has_instability_time(self):
         return self.instability_time is not None
@@ -79,62 +88,74 @@ class PoolMotionItem(PoolActionItem):
         return self.element
     
     moveable = property(fget=get_moveable)
+
+#    def action(self, state, timestamp):
+#        action = MA.NoAction
+#        self.old_state = old_state = self.state
+#        self.state = state
+        
+#        if old_state == State.Moving:
+#            if state == State.On:
+#                action = MA.Finished
+#        else:
+#            if state == State.Moving:
+#                action = MA.Start
+#            else:
+                
+    
+#    def on_state_switch(self, state, timestamp=None):
+#        if timestamp is None:
+#            timestamp = time.time()
+#        action = self.action(state)
+        
+    def stopped(self, timestamp):
+        self.stop_time = timestamp
+        if self.instability_time is None:
+            self.stop_final_time = timestamp
+            new_ms = MS.Stopped
+        else:
+            new_ms = MS.MovingInstability
+        return new_ms
+    
+    def handle_instability(self, timestamp):
+        new_ms = MS.MovingInstability
+        dt = timestamp - self.stop_time
+        if dt >= self.instability_time:
+            self.stop_final_time = timestamp
+            new_ms = MS.Stopped
+        return new_ms
     
     def on_state_switch(self, state, timestamp=None):
         if timestamp is None:
             timestamp = time.time()
-        self.old_state = self.state
+        self.old_state = old_state = self.state
         self.state = state
         new_ms = ms = self.motion_state
         moveable = self.moveable
         self.aborted = moveable.was_aborted()
-        instability_time = self.instability_time
         
         if self.aborted:
-            new_ms = MS.Aborted
+            if ms == MS.MovingInstability:
+                new_ms = self.handle_instability(timestamp)
+            elif state == State.Moving:
+                new_ms = MS.Moving
+            elif old_state == State.Moving:
+                new_ms = self.stopped(timestamp)
         elif ms == MS.Stopped:
             if state == State.Moving:
                 self.start_time = timestamp
                 new_ms = MS.Moving
         elif ms == MS.Moving:
             if state != State.Moving:
-                if self.do_backlash:
-                    if state == State.On:
-                        new_ms = MS.MovingBacklash
-                    else:
-                        if instability_time is None:
-                            new_ms = MS.StoppedOnError
-                        else:
-                            new_ms = MS.MovingInstability
+                if self.do_backlash and state == State.On:
+                    new_ms = MS.MovingBacklash
                 else:
-                    self.stop_time = timestamp
-                    if instability_time is None:
-                        self.stop_final_time = timestamp
-                        if state == State.On:
-                            new_ms = MS.Stopped
-                        else:
-                            new_ms = MS.StoppedOnError
-                    else:
-                        new_ms = MS.MovingInstability
+                    new_ms = self.stopped(timestamp)
         elif ms == MS.MovingBacklash:
             if state != State.Moving:
-                self.stop_time = timestamp
-                if instability_time is None:
-                    self.stop_final_time = timestamp
-                    if state == State.On:
-                        new_ms = MS.Stopped
-                    else:
-                        new_ms = MS.StoppedOnError
-                else:
-                    new_ms = MS.MovingInstability
+                new_ms = self.stopped(timestamp)
         elif ms == MS.MovingInstability:
-            dt = timestamp - self.stop_time
-            if dt >= instability_time:
-                self.stop_final_time = timestamp
-                if state == State.On:
-                    new_ms = MS.Stopped
-                else:
-                    new_ms = MS.StoppedOnError
+            new_ms = self.handle_instability(timestamp)
         self.old_motion_state, self.motion_state = ms, new_ms
         return ms, new_ms
     
@@ -259,7 +280,10 @@ class PoolMotion(PoolAction):
                     # make sure the last position after the first motion is
                     # sent before starting the backlash motion
                     moveable.get_position(cache=False, propagate=2)
-                elif not moving:
+                
+                if moving:
+                    in_motion = True
+                else:
                     # first update the motor state so that position calculation
                     # that is done after takes the updated state into account
                     moveable.set_state_info(state_info, propagate=0)
@@ -269,9 +293,6 @@ class PoolMotion(PoolAction):
                     
                     # Then update the state
                     moveable.set_state_info(state_info, propagate=2)
-                    
-                if moving:
-                    in_motion = True
             
             if not in_motion:
                 break

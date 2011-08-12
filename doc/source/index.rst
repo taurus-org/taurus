@@ -3,7 +3,7 @@
 Welcome to Sardana's |version| documentation!
 =============================================
 
-.. figure:: /_static/sardana.png
+.. figure:: /_static/sardana_screenshot.png
     
 Sardana is the control program initially developed at ALBA_. Our mission statement:
 

@@ -21,13 +21,10 @@
 ##
 ##############################################################################
 
-
-
-import array
-import sys
 import time
-import PyTango
-from math import pow,sqrt
+from math import pow, sqrt
+
+from sardana import State
 from sardana.pool import MotorController
 
 
@@ -521,7 +518,7 @@ class DummyMotorController(MotorController):
 
     MaxDevice = 1024
     
-    def __init__(self,inst,props):
+    def __init__(self, inst, props):
         MotorController.__init__(self,inst,props)
         self.m = self.MaxDevice*[None,]
         self._lowerLS = float("-inf")
@@ -540,34 +537,34 @@ class DummyMotorController(MotorController):
             m.setCurrentPosition(0)
             self.m[idx] = m
             
-    def DeleteDevice(self,axis):
+    def DeleteDevice(self, axis):
         idx = axis - 1
         if len(self.m) < axis or not self.m[idx]:
             self._log.error("Invalid axis %d" % axis)
         #self.m[idx] = None
     
-    def StateOne(self,axis):
+    def StateOne(self, axis):
         self._log.debug("StateOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
-        state = PyTango.DevState.ON
+        state = State.On
         status = "Motor is ON"
         if m.isInMotion():
-            state = PyTango.DevState.MOVING
+            state = State.Moving
             status = "Motor is MOVING"
         p = m.getCurrentUserPosition()
         switchstate = 0
         if m.hitLowerLimit():
             switchstate |= 4
-            state = PyTango.DevState.ALARM
+            state = State.Alarm
             status = "Motor is in ALARM. Hit hardware lower limit switch"
         if m.hitUpperLimit():
             switchstate |= 2
-            state = PyTango.DevState.ALARM
+            state = State.Alarm
             status = "Motor is in ALARM. Hit hardware upper limit switch"
         return int(state), status, switchstate
 
-    def ReadOne(self,axis):
+    def ReadOne(self, axis):
         self._log.debug("ReadOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
@@ -576,10 +573,10 @@ class DummyMotorController(MotorController):
     def PreStartAll(self):
         self.motions = {}
         
-    def PreStartOne(self,axis,pos):
+    def PreStartOne(self, axis, pos):
         return True
 
-    def StartOne(self,axis,pos):
+    def StartOne(self, axis, pos):
         idx = axis - 1
         self.motions[self.m[idx]] = pos
         
@@ -588,11 +585,11 @@ class DummyMotorController(MotorController):
         for motion, pos in self.motions.items():
             motion.startMotion(motion.getCurrentUserPosition(t), pos, t)
         
-    def AbortOne(self,axis):
+    def AbortOne(self, axis):
         idx = axis - 1
         self.m[idx].abortMotion()
 
-    def SetPar(self,axis,name,value):
+    def SetAxisPar(self, axis, name, value):
         idx = axis - 1
         m = self.m[idx]
         name = name.lower()
@@ -607,7 +604,7 @@ class DummyMotorController(MotorController):
         elif name == "step_per_unit":
             m.setStepPerUnit(value)
             
-    def GetPar(self,axis,name):
+    def GetAxisPar(self, axis, name):
         idx = axis - 1
         m = self.m[idx]
         name = name.lower()

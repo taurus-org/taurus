@@ -41,14 +41,14 @@ class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""
 
     #: .. deprecated:: 1.0
-    #:     use :attr:`Controller.ctrl_properties` instead
+    #:     use :attr:`~Controller.ctrl_properties` instead
     class_prop = {}
     
-    #: A sequence of :class:`str` representing the controller features
+    #: A sequence of :obj:`str` representing the controller features
     ctrl_features = []
     
     #: .. deprecated:: 1.0
-    #:     Deprecated: use :attr:`Controller.axis_attributes` instead
+    #:     Deprecated: use :attr:`~Controller.axis_attributes` instead
     ctrl_extra_attributes = {}
     
     #: A :class:`dict` containning controller properties where:
@@ -107,22 +107,37 @@ class Controller(object):
         self.inst_name = inst
         self._log = taurus.core.util.log.Logger("Controller.%s" % inst)
         self._log.log_obj.setLevel(taurus.getLogLevel())
-        for k, v in props.items():
-            if k.startswith("__"):
-                v = weakref.ref(v)
-            setattr(self, k, v)
         self._args = args
         self._kwargs = kwargs
         self._api_version = self._findAPIVersion()
+        self._axis = set()
+        for prop_name, prop_value in props.items():
+            if prop_name.startswith("__"):
+                prop_value = weakref.ref(prop_value)
+            setattr(self, prop_name, prop_value)
     
     def _findAPIVersion(self):
-        """*Internal API*. By default return the Pool Controller API 
+        """*Internal*. By default return the Pool Controller API 
         version of the pool where the controller is running"""
         return ControllerAPI
     
     def _getPoolController(self):
-        """*Internal API*."""
+        """*Internal*."""
         return self._kwargs['pool_controller']()
+    
+    def AddDevice(self, axis):
+        """**Controller API**. Overwrite as necessary.
+        When overwritting do not forget to call the super class AddDevice
+        method. Not doing so will prevent the default implementation of
+        :meth:`~Controller.AbortAll` from working properly."""
+        self._axis.add(axis)
+    
+    def DeleteDevice(self, axis):
+        """**Controller API**. Overwrite as necessary.
+        When overwritting do not forget to call the super class DeleteDevice
+        method. Not doing so will prevent the default implementation of
+        :meth:`~Controller.AbortAll` from working properly."""
+        self._axis.remove(axis)
     
     def PreStateAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -143,13 +158,18 @@ class Controller(object):
         Called to read the state of all selected axis.
         Default implementation does nothing."""
         pass
+
+    def StateOne(self, axis):
+        """**Controller API**. Overwrite is MANDATORY.
+        Called to read the state of one axis.
+        Default implementation raises NotImplementedError."""
+        raise NotImplementedError("StateOne must be defined in the controller")
     
     #def SetCtrlPar(self, unit, parameter, value):
     def SetCtrlPar(self, parameter, value):
         """**Controller API**. Overwrite as necessary.
-        Called to set a parameter with a value.
-        Default implementation sets this object member named '_'+parameter with
-        the given value.
+        Called to set a parameter with a value. Default implementation sets
+        this object member named '_'+parameter with the given value.
         
         .. versionadded:: 1.0"""
         setattr(self, '_' + parameter, value)
@@ -157,43 +177,46 @@ class Controller(object):
     #def GetCtrlPar(self, unit, parameter):
     def GetCtrlPar(self, parameter):
         """**Controller API**. Overwrite as necessary.
-        Called to set a parameter with a value.
-        Default implementation returns the value contained in this object's
-        member named '_'+parameter.
+        Called to set a parameter with a value. Default implementation returns
+        the value contained in this object's member named '_'+parameter.
         
         .. versionadded:: 1.0"""
         return getattr(self, '_' + parameter)
     
     #def SetAxisPar(self, unit, axis, parameter, value):
     def SetAxisPar(self, axis, parameter, value):
-        """**Controller API**. Overwrite as necessary.
-        Called to set a parameter with a value on the given axis.
-        Default implementation calls deprecated :meth:`Controller.SetPar`.
+        """**Controller API**. Overwrite is MANDATORY.
+        Called to set a parameter with a value on the given axis. Default
+        implementation calls deprecated :meth:`~Controller.SetPar` which raises
+        NotImplementedError.
         
         .. versionadded:: 1.0"""
-        return self.setPar(axis, parameter, value)
+        return self.SetPar(axis, parameter, value)
     
     #def GetAxisPar(self, unit, axis, parameter):
     def GetAxisPar(self, axis, parameter):
-        """**Controller API**. Overwrite as necessary.
-        Called to get a parameter value on the given axis.
-        Default implementation calls deprecated :meth:`Controller.GetPar`.
+        """**Controller API**. Overwrite is MANDATORY.
+        Called to get a parameter value on the given axis. Default
+        implementation calls deprecated :meth:`~Controller.GetPar` which raises
+        NotImplementedError.
         
         .. versionadded:: 1.0"""
-        return self.getPar(axis, parameter)
+        return self.GetPar(axis, parameter)
     
     def SetExtraAxisPar(self, axis, parameter, value):
         """**Controller API**. Overwrite as necessary.
-        Called to set a parameter with a value on the given axis.
-        Default implementation calls deprecated :meth:`Controller.SetExtraAttributePar`.
+        Called to set a parameter with a value on the given axis. Default
+        implementation calls deprecated :meth:`~Controller.SetExtraAttributePar`
+        which raises NotImplementedError.
         
         .. versionadded:: 1.0"""
         return self.SetExtraAttributePar(axis, parameter, value)
     
     def GetAxisExtraPar(self, axis, parameter):
         """**Controller API**. Overwrite as necessary.
-        Called to get a parameter value on the given axis.
-        Default implementation calls deprecated :meth:`Controller.GetExtraAttributePar`.
+        Called to get a parameter value on the given axis. Default
+        implementation calls deprecated :meth:`~Controller.GetExtraAttributePar`
+        which raises NotImplementedError.
         
         .. versionadded:: 1.0"""
         return self.GetExtraAttributePar(axis, parameter)
@@ -204,8 +227,8 @@ class Controller(object):
         Default implementation raises NotImplementedError.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`Controller.SetAxisPar` instead"""
-        raise NotImplementedError
+            Deprecated: use :meth:`~Controller.SetAxisPar` instead"""
+        raise NotImplementedError("SetPar must be defined in the controller")
 
     def GetPar(self, axis, parameter):
         """**Controller API**. *Dreprecated: use setAxisPar instead.*.
@@ -213,8 +236,8 @@ class Controller(object):
         Default implementation raises NotImplementedError.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`Controller.GetAxisPar` instead"""
-        raise NotImplementedError
+            Deprecated: use :meth:`~Controller.GetAxisPar` instead"""
+        raise NotImplementedError("GetPar must be defined in the controller")
 
     def SetExtraAttributePar(self, axis, parameter, value):
         """**Controller API**. *Dreprecated: use setAxisExtraPar instead.*.
@@ -222,8 +245,9 @@ class Controller(object):
         Default implementation raises NotImplementedError.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`Controller.SetAxisExtraPar` instead"""
-        raise NotImplementedError
+            Deprecated: use :meth:`~Controller.SetAxisExtraPar` instead"""
+        raise NotImplementedError("SetExtraAttributePar must be defined in the "
+                                  "controller")
 
     def GetExtraAttributePar(self, axis, parameter):
         """**Controller API**. *Dreprecated: use setAxisExtraPar instead.*.
@@ -231,9 +255,10 @@ class Controller(object):
         Default implementation raises NotImplementedError.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`Controller.GetAxisExtraPar` instead"""
-        raise NotImplementedError
-        
+            Deprecated: use :meth:`~Controller.GetAxisExtraPar` instead"""
+        raise NotImplementedError("GetExtraAttributePar must be defined in the "
+                                  "controller")
+    
     @classmethod
     def GetStandardAxisAttributes(self, axis):
         """**Controller API**. Overwrite as necessary.
@@ -245,12 +270,130 @@ class Controller(object):
         
         .. versionadded:: 1.0"""
         return ()
-
+    
+    def AbortOne(self, axis):
+        """**Controller API**. Overwrite is MANDATORY!
+        Aborts one of the axis
+        
+        :param int axis: axis number"""
+        raise NotImplementedError("AbortOne must be defined in te controller")
+    
     def AbortAll(self):
-        raise NotImplementedError
+        """**Controller API**. Overwrite as necessary.
+        Aborts all active axis of this controller. Default implementation
+        calls :meth:`~Controller.AbortOne` on each active axis.
+        
+        .. versionadded:: 1.0"""
+        exceptions = []
+        for axis in self._axis:
+            try:
+                self.AbortOne(axis)
+            except:
+                exceptions.append(sys.exc_info())
+        if len(exceptions) > 0:
+            raise Exception(exceptions)
+
+    def StopOne(self, axis):
+        """**Controller API**. Overwrite as necessary.
+        Stops one of the axis.
+        *This method is reserved for future implementation.*
+        Default implementation calls :meth:`~Controller.AbortOne`.
+        
+        :param int axis: axis number
+        
+        .. versionadded:: 1.0"""
+        self.AbortOne(axis)
+    
+    def StopAll(self):
+        """**Controller API**. Overwrite as necessary.
+        Stops all active axis of this controller.
+        *This method is reserved for future implementation.*
+        Default implementation calls :meth:`~Controller.StopOne` on each
+        active axis.
+        
+        .. versionadded:: 1.0"""
+        exceptions = []
+        for axis in self._axis:
+            try:
+                self.StopOne(axis)
+            except:
+                exceptions.append(sys.exc_info())
+        if len(exceptions) > 0:
+            raise Exception(exceptions)
 
 
-class MotorController(Controller):
+class Startable(object):
+    """A Startable interface. A controller for which it's axis are 'startable'
+    (like a motor, for example) should implement this interface"""
+    
+    def PreStartAll(self):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a write of the position of all axis.
+        Default implementation does nothing."""
+        pass
+    
+    def PreStartOne(self, axis, position):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a write of the position of a single axis.
+        Default implementation returns True.
+        
+        :param int axis: axis number
+        :param float position: new position
+        :return: True means a successfull PreStart or False for a failure
+        :rtype: bool"""
+        return True
+    
+    def StartOne(self, axis, position):
+        """**Controller API**. Overwrite as necessary.
+        Called to write the position of a selected axis
+        Default implementation does nothing.
+        
+        :param int axis: axis number
+        :param float position: new position"""
+        pass
+    
+    def StartAll(self):
+        """**Controller API**. Overwrite is MANDATORY!
+        Default implementation raises NotImplementedError"""
+        raise NotImplementedError("StartAll must be defined in the controller")
+
+
+class Readable(object):
+    """A Readable interface. A controller for which it's axis are 'readable'
+    (like a motor, counter or 1D for example) should implement this interface"""
+    
+    def PreReadAll(self):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a read of the value of all axis.
+        Default implementation does nothing."""
+        pass
+    
+    def PreReadOne(self, axis):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a read of the value of a single axis.
+        Default implementation does nothing.
+        
+        :param int axis: axis number"""
+        pass
+    
+    def ReadAll(self):
+        """**Controller API**. Overwrite as necessary.
+        Called to read the value of all selected axis
+        Default implementation does nothing."""
+        pass
+
+    def ReadOne(self, axis):
+        """**Controller API**. Overwrite is MANDATORY!
+        Default implementation raises NotImplementedError
+        
+        :param int axis: axis number
+        :return: the axis value
+        :rtype: object
+        """
+        raise NotImplementedError("ReadOne must be defined in the controller")
+
+
+class MotorController(Controller, Startable, Readable):
     """Base class for a motor controller. Inherit from this class to implement
     your own motor controller for the device pool.
     
@@ -266,52 +409,6 @@ class MotorController(Controller):
     version <1.0 the methods were called GetPar/SetPar. Default GetAxisPar and
     SetAxisPar still call these methods to maintain backward compatibility).
     """
-    
-    def PreReadAll(self):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to prepare a read of the position of all axis.
-        Default implementation does nothing."""
-        pass
-    
-    def PreReadOne(self, axis):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to prepare a read of the position of a single axis.
-        Default implementation does nothing.
-        
-        :param int axis: axis number"""
-        pass
-    
-    def ReadAll(self):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to read the position of all selected axis.
-        Default implementation does nothing."""
-        pass
-    
-    def PreStartAll(self):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of all axis.
-        Default implementation does nothing."""
-        pass
-    
-    def PreStartOne(self, axis, position):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of a single axis.
-        Default implementation returns True.
-        
-        :param int axis: axis number
-        :param float position: new position
-        :return: True means a successfull PreStart or False for a failure
-        :rtype: bool"""
-        return True
-    
-    def StartOne(self, axis, position):
-        """**Motor Controller API**. Overwrite as necessary.
-        Called to write the position of a selected axis
-        Default implementation does nothing.
-        
-        :param int axis: axis number
-        :param float position: new position"""
-        pass
     
     @classmethod
     def GetStandardAxisAttributes(self, axis):
@@ -339,7 +436,7 @@ class MotorController(Controller):
             "limit_switches"
 
 
-class CounterTimerController(Controller):
+class CounterTimerController(Controller, Readable):
     """Base class for a counter/timer controller. Inherit from this class to 
     implement your own counter/timer controller for the device pool.
     
@@ -355,26 +452,6 @@ class CounterTimerController(Controller):
         self._monitor = None
         self._master = None
         self._trigger_type = AcqTriggerType.Unknown
-    
-    def PreReadAll(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
-        Called to prepare a read of the value of all axis.
-        Default implementation does nothing."""
-        pass
-    
-    def PreReadOne(self, axis):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
-        Called to prepare a read of the value of a single axis.
-        Default implementation does nothing.
-        
-        :param int axis: axis number"""
-        pass
-    
-    def ReadAll(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
-        Called to read the value of all selected axis
-        Default implementation does nothing."""
-        pass
     
     def PreStartAllCT(self):
         """**Counter/Timer Controller API**. Overwrite as necessary.
@@ -431,81 +508,27 @@ class PseudoMotorController(Controller):
     Every Pseudo Motor implementation must be a subclass of this class.
     Current procedure for a correct implementation of a Pseudo Motor class:
     
-    - mandatory: define the class level attributes :attr:`PseudoMotorController.pseudo_motor_roles`,
-                 :attr:`PseudoMotorController.motor_roles` and
-                 :attr:`Controller.class_prop` (if any).
-    - mandatory: write :meth:`PseudoMotorController.calc_pseudo` method
-    - mandatory: write :meth:`PseudoMotorController.calc_physical` method.
-    - optional: write :meth:`PseudoMotorController.calc_all_pseudo` 
-                and :meth:`PseudoMotorController.calc_all_physical` if great
-                performance gain can be achived"""
+    - mandatory:
+        - define the class level attributes :attr:`~PseudoMotorController.pseudo_motor_roles`,
+          :attr:`~PseudoMotorController.motor_roles`
+        - write :meth:`~PseudoMotorController.CalcPseudo` method
+        - write :meth:`~PseudoMotorController.CalcPhysical` method.
+    - optional:
+        - write :meth:`~PseudoMotorController.CalcAllPseudo` and
+          :meth:`~PseudoMotorController.CalcAllPhysical` if great performance
+          gain can be achived"""
     
     #: a sequence of strings describing the role of each pseudo motor axis in
     #: this controller
     pseudo_motor_roles = ()
     
-    #: a sequence of strings describing the role of each motor 
+    #: a sequence of strings describing the role of each motor in  this controller
     motor_roles = ()
 
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
         self.__pseudo_role_motor_elements = {}
         Controller.__init__(self, inst, props, *args, **kwargs)
-    
-    def _getElem(self, index_or_role, roles, local_cache, ids):
-        elem = local_cache.get(index_or_role)
-        if elem is None:
-            pool = self._getPoolController().pool
-            if type(index_or_role) == int:
-                index = axis_or_role
-                role = roles[index]
-            else:
-                role = index_or_role
-                index = roles.index(role)
-            motor_id = ids[index]
-            elem = pool.get_element_by_id(motor_id)
-            elems[index] = elems[role] = weakref.ref(elem)
-        else:
-            elem = elem()
-        return elem
-    
-    def getMotor(self, index_or_role):
-        """Returns the motor for a given role/index.
-        
-        .. warning::
-            Use with care: Executing motor methods can be dangerous!
-        
-        .. warning::
-            Since any controller is built before any element (including motors),
-            this method will **FAIL** when called from the controller
-            constructor
-        
-        :param index_or_role: index number or role name
-        :type index_or_role: int or str
-        :return: Motor object for the given role/index
-        :rtype: PoolMotor"""
-        return self._getElem(index_or_role, self.motor_roles,
-                             self.__motor_role_elements,
-                             self._kwargs['motor_ids'])
-
-    def getPseudoMotor(self, index_or_role):
-        """Returns the pseudo motor for a given role/index.
-        
-        .. warning::
-            Use with care: Executing pseudo motor methods can be dangerous!
-        
-        .. warning::
-            Since any controller is built before any element (including pseudo
-            motors), this method will **FAIL** when called from the controller
-            constructor
-        
-        :param index_or_role: index number or role name
-        :type index_or_role: int or str
-        :return: PseudoMotor object for the given role/index
-        :rtype: PoolPseudoMotor"""
-        return self._getElem(index_or_role, self.pseudo_motor_roles,
-                             self.__pseudo_motor_role_elements,
-                             self._kwargs['pseudo_motor_roles'])
     
     def CalcAllPseudo(self, physical_pos, curr_pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
@@ -514,13 +537,20 @@ class PseudoMotorController(Controller):
            Default implementation does a loop calling :meth:`PseudoMotorController.calc_pseudo`
            for each pseudo motor role.
            
-           :param physical_pos: a sequence of physical motor positions
+           :param physical_pos: a sequence containing physical motor positions
            :type physical_pos: sequence<float>
+           :param curr_pseudo_pos: a sequence containing the current pseudo
+                                     motor positions
+           :type curr_pseudo_pos: sequence<float>
            :return: a sequece of pseudo motor positions (one for each pseudo motor role)
            :rtype: sequence<float>
            
            .. versionadded:: 1.0"""
-        return self.calc_all_pseudo(physical_pos)
+        ret = []
+        for i in xrange(self.get_pseudo_motor_nb()):
+            ret.append(self.CalcPseudo(i+1, physical_pos, curr_pseudo_pos))
+        return ret
+
     
     def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
@@ -529,36 +559,49 @@ class PseudoMotorController(Controller):
            Default implementation does a loop calling :meth:`PseudoMotorController.calc_physical`
            for each motor role.
            
-           :param pseudo_pos: a sequence of pseudo motor positions
+           :param pseudo_pos: a sequence containing pseudo motor positions
            :type pseudo_pos: sequence<float>
+           :param curr_physical_pos: a sequence containing the current physical
+                                     motor positions
+           :type curr_physical_pos: sequence<float>
            :return: a sequece of motor positions (one for each motor role)
            :rtype: sequence<float>
            
            .. versionadded:: 1.0"""
-        return self.calc_all_physical(pseudo_pos)
+        ret = []
+        for i in xrange(len(self.motor_roles)):
+            pos = self.CalcPhysical(i+1, pseudo_pos, curr_physical_pos)
+            ret.append(pos)
+        return ret
     
-    def CalcPseudo(self, axis, physical_pos):
+    def CalcPseudo(self, axis, physical_pos, curr_pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
            Calculate pseudo motor position given the physical motor positions
            
            :param axis: the pseudo motor role axis
            :type axis: int
-           :param physical_pos: a sequence of motor positions
+           :param physical_pos: a sequence containing motor positions
            :type physical_pos: sequence<float>
+           :param curr_pseudo_pos: a sequence containing the current pseudo
+                                     motor positions
+           :type curr_pseudo_pos: sequence<float>
            :return: a pseudo motor position corresponding to the given axis pseudo motor role
            :rtype: float
            
            .. versionadded:: 1.0"""
-        raise NotImplementedError("calc_pseudo must be redefined")
+        return self.calc_pseudo(axis, physical_pos)
     
-    def CalcPhysical(self, axis, pseudo_pos):
+    def CalcPhysical(self, axis, pseudo_pos, curr_physical_pos):
         """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
            Calculate physical motor position given the pseudo motor positions.
            
            :param axis: the motor role axis
            :type axis: int
-           :param pseudo_pos: a sequence of pseudo motor positions
+           :param pseudo_pos: a sequence containing pseudo motor positions
            :type pseudo_pos: sequence<float>
+           :param curr_physical_pos: a sequence containing the current physical
+                                     motor positions
+           :type curr_physical_pos: sequence<float>
            :return: a motor position corresponding to the given axis motor role
            :rtype: float
            
@@ -618,7 +661,7 @@ class PseudoMotorController(Controller):
            
            .. deprecated:: 1.0
                Deprecated: implement :meth:`PseudoMotorController.CalcPseudo` instead"""
-        raise NotImplementedError("CalcPseudo must be redefined")
+        raise NotImplementedError("CalcPseudo must be defined in te controller")
     
     def calc_physical(self, axis, pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
@@ -633,5 +676,60 @@ class PseudoMotorController(Controller):
            
            .. deprecated:: 1.0
                Deprecated: implement :meth:`PseudoMotorController.CalcPhysical` instead"""
-        raise NotImplementedError("CalcPhysical must be redefined")
+        raise NotImplementedError("CalcPhysical must be defined in te controller")
 
+    def _getElem(self, index_or_role, roles, local_cache, ids):
+        """*Iternal*."""
+        elem = local_cache.get(index_or_role)
+        if elem is None:
+            pool = self._getPoolController().pool
+            if type(index_or_role) == int:
+                index = axis_or_role
+                role = roles[index]
+            else:
+                role = index_or_role
+                index = roles.index(role)
+            motor_id = ids[index]
+            elem = pool.get_element_by_id(motor_id)
+            elems[index] = elems[role] = weakref.ref(elem)
+        else:
+            elem = elem()
+        return elem
+    
+    def getMotor(self, index_or_role):
+        """Returns the motor for a given role/index.
+        
+        .. warning::
+            Use with care: Executing motor methods can be dangerous!
+        
+        .. warning::
+            Since any controller is built before any element (including motors),
+            this method will **FAIL** when called from the controller
+            constructor
+        
+        :param index_or_role: index number or role name
+        :type index_or_role: int or str
+        :return: Motor object for the given role/index
+        :rtype: PoolMotor"""
+        return self._getElem(index_or_role, self.motor_roles,
+                             self.__motor_role_elements,
+                             self._kwargs['motor_ids'])
+
+    def getPseudoMotor(self, index_or_role):
+        """Returns the pseudo motor for a given role/index.
+        
+        .. warning::
+            Use with care: Executing pseudo motor methods can be dangerous!
+        
+        .. warning::
+            Since any controller is built before any element (including pseudo
+            motors), this method will **FAIL** when called from the controller
+            constructor
+        
+        :param index_or_role: index number or role name
+        :type index_or_role: int or str
+        :return: PseudoMotor object for the given role/index
+        :rtype: PoolPseudoMotor"""
+        return self._getElem(index_or_role, self.pseudo_motor_roles,
+                             self.__pseudo_motor_role_elements,
+                             self._kwargs['pseudo_motor_roles'])

@@ -71,7 +71,12 @@ packages = [
     'sardana.pool',
     'sardana.pool.poolcontrollers',
     'sardana.macroserver',
+    'sardana.macroserver.macros',
+    'sardana.macroserver.scan',
     'sardana.tango',
+    'sardana.tango.core',
+    'sardana.tango.pool',
+    'sardana.tango.macroserver',
 ]
 
 extra_packages = [
@@ -95,7 +100,8 @@ package_data = {
 def get_script_files():
     scripts_dir = abspath('scripts')
     scripts = []
-    for item in os.listdir(scripts_dir):
+    items = os.listdir(scripts_dir)
+    for item in items:
         # avoid hidden files
         if item.startswith("."):
             continue
@@ -105,7 +111,13 @@ def get_script_files():
             continue
         # avoid files that have any extension
         if len(os.path.splitext(abs_item)[1]) > 0:
-            continue 
+            continue
+        # avoid compiled version of script
+        if item.endswith('c') and item[:-1] in items:
+            continue
+        # avoid any core dump... of course there isn't any :-) but just in case
+        if item.startswith('core'):
+            continue
         scripts.append('scripts/' + item)
     return scripts
 

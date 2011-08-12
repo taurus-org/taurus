@@ -232,8 +232,8 @@ class PoolElement(PoolBaseElement):
     # --------------------------------------------------------------------------
     
     def abort(self):
-        self.controller.ctrl.AbortOne(self.axis)
         self._aborted = True
+        self.controller.ctrl.AbortOne(self.axis)
     
     def was_aborted(self):
         return self._aborted
