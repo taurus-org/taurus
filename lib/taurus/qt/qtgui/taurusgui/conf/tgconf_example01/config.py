@@ -45,7 +45,12 @@ from taurus.qt.qtgui.taurusgui.utils import PanelDescription, ExternalApp, Qt_Qt
 #===============================================================================
 GUI_NAME = 'EXAMPLE 01'
 ORGANIZATION = 'Taurus'
-#CUSTOM_LOGO = <full path to GUI-specific logo>
+
+#===============================================================================
+# Specific logo. It can be an absolute path,or relative to the app dir or a 
+# resource path. If commented out, ":/taurus.png" will be used
+#===============================================================================
+#CUSTOM_LOGO = <path GUI-specific logo 
 
 #===============================================================================
 # You can provide an URI for a manual in html format

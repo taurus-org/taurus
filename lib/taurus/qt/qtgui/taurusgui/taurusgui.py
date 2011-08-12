@@ -679,17 +679,18 @@ class TaurusGui(TaurusMainWindow):
         APPNAME = getattr(conf,'GUI_NAME', self.__getVarFromXML(xmlroot,"GUI_NAME", confname))
         ORGNAME = getattr(conf,'ORGANIZATION', self.__getVarFromXML(xmlroot,"ORGANIZATION", 'Taurus'))
         CUSTOMLOGO =  getattr(conf, 'CUSTOM_LOGO', getattr(conf,'LOGO', self.__getVarFromXML(xmlroot,"CUSTOM_LOGO", ':/taurus.png')))
-        if not CUSTOMLOGO.startswith(':'):
-            CUSTOMLOGO = os.path.join(self._confDirectory, CUSTOMLOGO)
+        if CUSTOMLOGO.startswith(':'):
+            customIcon = taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO)
+        else:
+            customIcon = Qt.QIcon(os.path.join(self._confDirectory, CUSTOMLOGO))
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
         self.resetQSettings() 
         
         self.setWindowTitle(APPNAME)
-        windowIcon = taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO)
-        self.setWindowIcon(windowIcon)
+        self.setWindowIcon(customIcon)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
-        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(CUSTOMLOGO),APPNAME)
+        self.jorgsBar.addAction(customIcon,APPNAME)
         
         #manual panel
         MANUAL_URI = getattr(conf,'MANUAL_URI', self.__getVarFromXML(xmlroot,"MANUAL_URI", None))
