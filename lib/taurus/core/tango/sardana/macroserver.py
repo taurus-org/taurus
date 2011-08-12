@@ -755,7 +755,7 @@ class BaseMacroServer(MacroServerDevice):
         return deleted_macro_names, new_macro_names
     
     def _addMacros(self, macro_names):
-        json_macros = self.GetMacroInfo(macro_names)
+        json_macros = self.getHWObj().GetMacroInfo(macro_names)
         for json_macro in json_macros:
             self._addMacro(json_macro)
 
