@@ -36,6 +36,8 @@ from taurus.qt.qtgui.input import TaurusValueComboBox
 from taurus.qt.qtgui.panel import TaurusValue
 from taurus.qt.qtgui.container import TaurusWidget
 from poolmotor import LabelWidgetDragsDeviceAndAttribute
+
+from ui_poolioregisterbuttons import Ui_PoolIORegisterButtons
 import taurus
 
 class PoolIORegisterReadWidget(TaurusLabel):
@@ -59,6 +61,15 @@ class PoolIORegisterReadWidget(TaurusLabel):
             label, value = label_and_value.split(':')
             self.readEventValueMap[int(value)] = label
         self.setEventFilters([self.readEventValueMap])
+
+    # FILTERS ARE NOT WORKING AS OF SVN:17541
+    # SO I RE-IMPLEMENT getFormatedToolTip for this purpose
+    def getFormatedToolTip(self, cache=True):
+        taurus_label_tooltip = TaurusLabel.getFormatedToolTip(self, cache)
+        value = int(self.getDisplayValue())
+        label = self.readEventValueMap[value]
+        extended_tooltip = '%d: %s' % (value, label)
+        return taurus_label_tooltip + '<HR>' + extended_tooltip
 
 class PoolIORegisterWriteWidget(TaurusValueComboBox):
     ''' This class is intended to be used as a write widget of a TaurusValue with IORegister devices.
@@ -86,7 +97,7 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
         self.setValueNames(self.writeValueNames)
 
 class PoolIORegister(TaurusValue):
-    ''' A widget that displays and controls a pool channel device.  It
+    ''' A widget that displays and controls a pool IORegister device.  It
     behaves as a TaurusValue.
     '''
     def __init__(self, parent = None, designMode = False):
@@ -97,10 +108,70 @@ class PoolIORegister(TaurusValue):
         self.setWriteWidgetClass(PoolIORegisterWriteWidget)
 
 
-if __name__ == '__main__':
-    import sys
-    app = Qt.QApplication(sys.argv)
-    
+
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.display import TaurusConfigLabel
+
+class PoolIORegisterButtons(TaurusWidget):
+    ''' A widget that displays and controls a pool IORegister device.
+    It reads the value and provides buttons to switch between values.
+    NOTE: It would be nice to provide 'ABORT' button if the device allows it.
+    NOTE: It would be nice to set icons for each possible value label.
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
+
+        self.ui = Ui_PoolIORegisterButtons()
+        self.ui.setupUi(self)
+
+        self.alias_label = TaurusConfigLabel()
+        self.value_label = PoolIORegisterReadWidget()
+        self.button_value_dict = {}
+
+        policy = self.value_label.sizePolicy()
+        policy.setHorizontalPolicy(Qt.QSizePolicy.Expanding)
+        self.value_label.setSizePolicy(policy)
+
+        self.ui.lo_state_read.addWidget(self.alias_label)
+        self.ui.lo_state_read.addWidget(self.value_label)
+
+        self.ior_dev = None
+
+
+    def setModel(self, model):
+        self.ior_dev = None
+        try: self.ior_dev = taurus.Device(model)
+        except: return
+
+        self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
+        self.value_label.setModel(model)
+
+        # Empty previous buttons
+        #self.ui.lo_buttons_write.
+        for button in self.button_value_dict.keys():
+            self.disconnect(button, Qt.SIGNAL('clicked'), self.writeValue)
+            button.deleteLater()
+        self.button_value_dict = {}
+
+        labels = self.ior_dev.getAttribute('Labels').read().value
+        labels_list = labels.split(' ')
+        # Update the mapping
+        for label_and_value in labels_list:
+            label, value = label_and_value.split(':')
+            button = Qt.QPushButton(label)
+            self.button_value_dict[button] = value
+            self.ui.lo_buttons_write.addWidget(button)
+            self.connect(button, Qt.SIGNAL('clicked()'), self.writeValue)
+
+    def writeValue(self):
+        if self.ior_dev is None:
+            return
+        button = self.sender()
+        value = self.button_value_dict[button]
+        self.ior_dev.getAttribute('Value').write(value)
+
+
+def test_form():
     from taurus.qt.qtgui.panel import TaurusForm
     tgclass_map = {'IORegister':PoolIORegister}
     form = TaurusForm()
@@ -111,5 +182,21 @@ if __name__ == '__main__':
 
     form.setModel([model])
     form.show()
+    
+def test_buttons():
+    w = PoolIORegisterButtons()
+    model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
+    if len(sys.argv)>1:
+        model = sys.argv[1]
+
+    w.setModel(model)
+    w.show()
+
+if __name__ == '__main__':
+    import sys
+    app = Qt.QApplication(sys.argv)
+
+    #test_form()
+    test_buttons()
 
     sys.exit(app.exec_())
