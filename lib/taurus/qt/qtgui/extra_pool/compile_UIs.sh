@@ -29,3 +29,4 @@ taurusuic4 -x ui/TaurusMotorV.ui -o ui_taurusmotorv.py
 taurusuic4 -x ui/TaurusMotorV2.ui -o ui_taurusmotorv2.py
 
 taurusuic4 -x ui/PoolMotorSlim.ui -o ui_poolmotorslim.py
+pyuic4 -x ui/poolioregisterbuttons.ui -o ui_poolioregisterbuttons.py
