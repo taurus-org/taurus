@@ -62,14 +62,24 @@ class PoolIORegisterReadWidget(TaurusLabel):
             self.readEventValueMap[int(value)] = label
         self.setEventFilters([self.readEventValueMap])
 
+    ##########################################################
     # FILTERS ARE NOT WORKING AS OF SVN:17541
     # SO I RE-IMPLEMENT getFormatedToolTip for this purpose
     def getFormatedToolTip(self, cache=True):
         taurus_label_tooltip = TaurusLabel.getFormatedToolTip(self, cache)
-        value = int(self.getDisplayValue())
-        label = self.readEventValueMap[value]
-        extended_tooltip = '%d: %s' % (value, label)
+        display_value = int(self.getDisplayValue())
+        extended_tooltip = ''
+        value_keys = self.readEventValueMap.keys()
+        value_keys.sort()
+        for value in value_keys:
+            label = self.readEventValueMap[value]
+            value_label_info = '%d: %s' % (value, label)
+            if value == display_value:
+                value_label_info = '<B>* '+value_label_info+' *</B>'
+            extended_tooltip += value_label_info+'<BR>'
+            
         return taurus_label_tooltip + '<HR>' + extended_tooltip
+    ##########################################################
 
 class PoolIORegisterWriteWidget(TaurusValueComboBox):
     ''' This class is intended to be used as a write widget of a TaurusValue with IORegister devices.
