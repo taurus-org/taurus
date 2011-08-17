@@ -62,6 +62,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         
     def setValue(self, v):
         self.lineEdit().setValue(v)
+        self.lineEdit().emit(Qt.SIGNAL('editingFinished()'))
     
     def getValue(self):
         return self.lineEdit().getValue()
