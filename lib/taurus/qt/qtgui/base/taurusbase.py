@@ -1521,7 +1521,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
 
     def writeValue(self, forceApply=False):
         '''Writes the value to the attribute, either by applying pending
-        operations or (if the ForcedApply flag is True), it wites directly when
+        operations or (if the ForcedApply flag is True), it writes directly when
         no operations are pending'''
         
         if self.hasPendingOperations():
