@@ -62,8 +62,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         
     def setValue(self, v):
         self.lineEdit().setValue(v)
-        self.lineEdit().emit(Qt.SIGNAL('editingFinished()'))
-    
+
     def getValue(self):
         return self.lineEdit().getValue()
     
@@ -82,6 +81,14 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def stepBy(self, steps):
         #validator = self.lineEdit().validator()
         self.setValue(self.getValue() + self.getSingleStep()*steps)
+
+        if self.lineEdit().getAutoApply():
+            self.lineEdit().emit(Qt.SIGNAL('editingFinished()'))
+        else:
+            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
+            controlpressed = bool(kmods&Qt.Qt.ControlModifier)
+            if controlpressed:
+                self.lineEdit().writeValue(forceApply=True)
     
     def stepEnabled(self):
         le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
