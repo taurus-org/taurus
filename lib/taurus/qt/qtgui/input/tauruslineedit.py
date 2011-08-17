@@ -63,6 +63,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
         self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
         self.connect(self, Qt.SIGNAL('valueChanged'), self.updatePendingOperations)
+        self.connect(self, Qt.SIGNAL('editingFinished'). self._onEditingFinished)
         
     def _updateValidator(self, attrinfo):
         '''This method sets a validator depending on the data type
@@ -99,9 +100,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         except:
             return None
     
+    
+    def _onEditFinished(self):
+        '''slot for performing autoapply only when edition is finished'''
+        if self._autoApply:
+            self.writeValue()
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    def valueChanged(self, *args):
+        '''reimplement to avoid autoapply on every partial edition'''
+        self.emitValueChanged()
+    
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == taurus.core.TaurusEventType.Config:
             if evt_value.min_alarm != taurus.core.TaurusConfiguration.no_min_alarm:
