@@ -63,7 +63,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
         self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
         self.connect(self, Qt.SIGNAL('valueChanged'), self.updatePendingOperations)
-        self.connect(self, Qt.SIGNAL('editingFinished()'). self._onEditingFinished)
+        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
         
     def _updateValidator(self, attrinfo):
         '''This method sets a validator depending on the data type
@@ -101,7 +101,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return None
     
     
-    def _onEditFinished(self):
+    def _onEditingFinished(self):
         '''slot for performing autoapply only when edition is finished'''
         if self._autoApply:
             self.writeValue()
