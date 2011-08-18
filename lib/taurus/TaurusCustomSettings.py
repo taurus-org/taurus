@@ -43,6 +43,6 @@ T_FORM_CUSTOM_WIDGET_MAP = \
      'ZeroDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
      'OneDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
      'TwoDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegister',(),{})
+     'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegisterTV',(),{})
     }
     
