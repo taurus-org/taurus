@@ -26,7 +26,7 @@
 """
 poolioregister.py: 
 """
-__all__=["PoolIORegister"]
+__all__=["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
 from PyQt4 import Qt
 
 from taurus.qt.qtgui.display import TaurusLabel
@@ -106,7 +106,7 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
 
         self.setValueNames(self.writeValueNames)
 
-class PoolIORegister(TaurusValue):
+class PoolIORegisterTV(TaurusValue):
     ''' A widget that displays and controls a pool IORegister device.  It
     behaves as a TaurusValue.
     '''
@@ -118,10 +118,37 @@ class PoolIORegister(TaurusValue):
         self.setWriteWidgetClass(PoolIORegisterWriteWidget)
 
 
+class PoolIORegister(TaurusWidget):
+    ''' A widget that displays and controls a pool IORegister device.
+    It reads the value and provides a combobox to write it.
+    NOTE: It would be nice to provide 'ABORT' button if the device allows it.
+    NOTE: It would be nice to set icons for each possible value label.
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
 
-from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.display import TaurusConfigLabel
+        self.setLayout(Qt.QHBoxLayout())
+        self.layout().setContentsMargins(0,0,0,0)
+        self.layout().setSpacing(0)
+        
+        self.alias_label = TaurusLabel()
+        self.alias_label.setBgRole('none')
+        self.layout().addWidget(self.alias_label)
+        
+        self.read_widget = PoolIORegisterReadWidget()
+        self.layout().addWidget(self.read_widget)
+        
+        self.write_widget = PoolIORegisterWriteWidget()
+        self.layout().addWidget(self.write_widget)
 
+    def setModel(self, model):
+        try: taurus.Device(model)
+        except: return
+
+        self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
+        self.read_widget.setModel(model)
+        self.write_widget.setModel(model)
+        
 class PoolIORegisterButtons(TaurusWidget):
     ''' A widget that displays and controls a pool IORegister device.
     It reads the value and provides buttons to switch between values.
@@ -134,7 +161,8 @@ class PoolIORegisterButtons(TaurusWidget):
         self.ui = Ui_PoolIORegisterButtons()
         self.ui.setupUi(self)
 
-        self.alias_label = TaurusConfigLabel()
+        self.alias_label = TaurusLabel()
+        self.alias_label.setBgRole('none')
         self.value_label = PoolIORegisterReadWidget()
         self.button_value_dict = {}
 
@@ -183,7 +211,7 @@ class PoolIORegisterButtons(TaurusWidget):
 
 def test_form():
     from taurus.qt.qtgui.panel import TaurusForm
-    tgclass_map = {'IORegister':PoolIORegister}
+    tgclass_map = {'IORegister':PoolIORegisterTV}
     form = TaurusForm()
     form.setCustomWidgetMap(tgclass_map)
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
@@ -192,6 +220,15 @@ def test_form():
 
     form.setModel([model])
     form.show()
+
+def test_widget():
+    w = PoolIORegister()
+    model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
+    if len(sys.argv)>1:
+        model = sys.argv[1]
+
+    w.setModel(model)
+    w.show()
     
 def test_buttons():
     w = PoolIORegisterButtons()
@@ -207,6 +244,7 @@ if __name__ == '__main__':
     app = Qt.QApplication(sys.argv)
 
     #test_form()
-    test_buttons()
+    test_widget()
+    #test_buttons()
 
     sys.exit(app.exec_())
