@@ -135,13 +135,13 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         return self.lineEdit().resetAutoApply()
         
     def setForcedApply(self, model):
-        self.lineEdit().setAutoApply(model)
+        self.lineEdit().setForcedApply(model)
     
     def getForcedApply(self):
-        return self.lineEdit().getAutoApply()
+        return self.lineEdit().getForcedApply()
     
     def resetForcedApply(self):
-        return self.lineEdit().resetAutoApply()
+        return self.lineEdit().resetForcedApply()
     
     def getSingleStep(self):
         return self._singleStep
