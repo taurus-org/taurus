@@ -87,7 +87,6 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
     '''
     def __init__(self, parent=None, designMode=False):
         TaurusValueComboBox.__init__(self, parent, designMode)
-        self.setAutoApply(True)
 
     def setModel(self, model):
         TaurusValueComboBox.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
