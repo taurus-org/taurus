@@ -309,7 +309,10 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         # THIS WILL BE DONE IN THE DESIGNER
         # Config Button will launch a PoolMotorConfigurationForm
-        taurus_attr_form = PoolMotorConfigurationForm()
+#        19.08.2011 after discussion between cpascual, gcui and zreszela, Configuration Panel was rolled back to 
+#        standard TaurusAttrForm - list of all attributes alphabetically ordered 
+#        taurus_attr_form = PoolMotorConfigurationForm()        
+        taurus_attr_form = TaurusAttrForm()
         
         taurus_attr_form.setMinimumSize(Qt.QSize(470,800))
         self.ui.btnCfg.setWidget(taurus_attr_form)
