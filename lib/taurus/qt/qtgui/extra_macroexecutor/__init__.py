@@ -31,3 +31,4 @@ from sequenceeditor import TaurusSequencerWidget, TaurusSequencer
 from common import TaurusMacroConfigurationDialog
 from macrodescriptionviewer import TaurusMacroDescriptionViewer
 from dooroutput import DoorOutput, DoorDebug, DoorResult
+from macrobutton import MacroButton
