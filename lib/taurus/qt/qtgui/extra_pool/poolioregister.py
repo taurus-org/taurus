@@ -65,6 +65,7 @@ class PoolIORegisterReadWidget(TaurusLabel):
     ##########################################################
     # FILTERS ARE NOT WORKING AS OF SVN:17541
     # SO I RE-IMPLEMENT getFormatedToolTip for this purpose
+    ##########################################################
     def getFormatedToolTip(self, cache=True):
         taurus_label_tooltip = TaurusLabel.getFormatedToolTip(self, cache)
         display_value = int(self.getDisplayValue())
@@ -87,6 +88,7 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
     '''
     def __init__(self, parent=None, designMode=False):
         TaurusValueComboBox.__init__(self, parent, designMode)
+        TaurusValueComboBox.setForcedApply(self, True)
 
     def setModel(self, model):
         TaurusValueComboBox.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
@@ -115,6 +117,22 @@ class PoolIORegisterTV(TaurusValue):
         self.setLabelConfig('dev_alias')
         self.setReadWidgetClass(PoolIORegisterReadWidget)
         self.setWriteWidgetClass(PoolIORegisterWriteWidget)
+        self.ioreg_dev = None
+
+    def setModel(self, model):
+        TaurusValue.setModel(self, model)
+        try: self.ioreg_dev = taurus.Device(model)
+        except: return
+        
+    def showEvent(self, event):
+        TaurusValue.showEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').enablePolling(force=True)
+
+    def hideEvent(self, event):
+        TaurusValue.hideEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').disablePolling()
 
 
 class PoolIORegister(TaurusWidget):
@@ -126,12 +144,14 @@ class PoolIORegister(TaurusWidget):
     def __init__(self, parent = None, designMode = False):
         TaurusWidget.__init__(self, parent, designMode)
 
+        self.ioreg_dev = None
+        
         self.setLayout(Qt.QHBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         
         self.alias_label = TaurusLabel()
-        self.alias_label.setBgRole('none')
+        self.alias_label.setBgRole('state')
         self.layout().addWidget(self.alias_label)
         
         self.read_widget = PoolIORegisterReadWidget()
@@ -141,13 +161,24 @@ class PoolIORegister(TaurusWidget):
         self.layout().addWidget(self.write_widget)
 
     def setModel(self, model):
-        try: taurus.Device(model)
+        try: self.ioreg_dev = taurus.Device(model)
         except: return
 
         self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
         self.read_widget.setModel(model)
         self.write_widget.setModel(model)
-        
+
+    def showEvent(self, event):
+        TaurusWidget.showEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').enablePolling(force=True)
+
+    def hideEvent(self, event):
+        TaurusWidget.hideEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').disablePolling()
+
+
 class PoolIORegisterButtons(TaurusWidget):
     ''' A widget that displays and controls a pool IORegister device.
     It reads the value and provides buttons to switch between values.
@@ -157,11 +188,13 @@ class PoolIORegisterButtons(TaurusWidget):
     def __init__(self, parent = None, designMode = False):
         TaurusWidget.__init__(self, parent, designMode)
 
+        self.ioreg_dev = None
+
         self.ui = Ui_PoolIORegisterButtons()
         self.ui.setupUi(self)
 
         self.alias_label = TaurusLabel()
-        self.alias_label.setBgRole('none')
+        self.alias_label.setBgRole('state')
         self.value_label = PoolIORegisterReadWidget()
         self.button_value_dict = {}
 
@@ -172,12 +205,8 @@ class PoolIORegisterButtons(TaurusWidget):
         self.ui.lo_state_read.addWidget(self.alias_label)
         self.ui.lo_state_read.addWidget(self.value_label)
 
-        self.ior_dev = None
-
-
     def setModel(self, model):
-        self.ior_dev = None
-        try: self.ior_dev = taurus.Device(model)
+        try: self.ioreg_dev = taurus.Device(model)
         except: return
 
         self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
@@ -190,7 +219,7 @@ class PoolIORegisterButtons(TaurusWidget):
             button.deleteLater()
         self.button_value_dict = {}
 
-        labels = self.ior_dev.getAttribute('Labels').read().value
+        labels = self.ioreg_dev.getAttribute('Labels').read().value
         labels_list = labels.split(' ')
         # Update the mapping
         for label_and_value in labels_list:
@@ -201,11 +230,22 @@ class PoolIORegisterButtons(TaurusWidget):
             self.connect(button, Qt.SIGNAL('clicked()'), self.writeValue)
 
     def writeValue(self):
-        if self.ior_dev is None:
+        if self.ioreg_dev is None:
             return
         button = self.sender()
         value = self.button_value_dict[button]
-        self.ior_dev.getAttribute('Value').write(value)
+        self.ioreg_dev.getAttribute('Value').write(value)
+
+    def showEvent(self, event):
+        TaurusWidget.showEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').enablePolling(force=True)
+
+    def hideEvent(self, event):
+        TaurusWidget.hideEvent(self, event)
+        if self.ioreg_dev is not None:
+            self.ioreg_dev.getAttribute('Value').disablePolling()
+
 
 
 def test_form():
@@ -242,8 +282,8 @@ if __name__ == '__main__':
     import sys
     app = Qt.QApplication(sys.argv)
 
-    #test_form()
-    test_widget()
+    test_form()
+    #test_widget()
     #test_buttons()
 
     sys.exit(app.exec_())
