@@ -32,10 +32,14 @@ from PyQt4 import QtCore, QtGui, Qt
 
 import taurus
 import taurus.qt.qtcore.mimetypes
+from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.display import TaurusConfigLabel
+from taurus.qt.qtgui.display import TaurusLabel
+from taurus.qt.qtgui.input import TaurusValueLineEdit
+from taurus.qt.qtgui.input import TaurusValueSpinBox
 from taurus.qt.qtgui.panel import DefaultLabelWidget
+from taurus.qt.qtgui.panel import DefaultUnitsWidget
 from taurus.qt.qtgui.panel import TaurusValue, TaurusAttrForm
 from ui_poolmotorslim import Ui_PoolMotorSlim
 
@@ -272,7 +276,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
         TaurusAttrForm.setModel(self, modelName)
         controllerType = self.getMotorControllerType()
         attributes = self.getDisplayAttributes(controllerType)
-        self.setViewFilters([lambda a: a.name.lower() in attributes])
+        #self.setViewFilters([lambda a: a.name.lower() in attributes])
         self.setSortKey(lambda att: attributes.index(att.name.lower()) if att.name.lower() in attributes else 1)
         
 class PoolMotorSlim(TaurusWidget, PoolMotorClient):
@@ -720,6 +724,192 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
     stepSizeIncrement = QtCore.pyqtProperty("double", getStepSizeIncrement,setStepSizeIncrement,resetStepSizeIncrement)
 
 
+
+################################################################################################
+# NEW APPROACH TO OPERATE POOL MOTORS FROM A TAURUS FORM INHERITTING DIRECTLY FROM TaurusVALUE #
+# AND USING PARTICULAR CLASSES THAT KNOW THEY ARE PART OF A TAURUSVALUE AND CAN INTERACT       #
+################################################################################################
+
+class PoolMotorTVReadWidget(TaurusWidget):
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
+        self.setLayout(Qt.QGridLayout())
+        
+        self.read_label_1 = TaurusLabel()
+        self.read_label_2 = TaurusLabel()
+        self.read_label_3 = TaurusLabel()
+        self.read_label_3.setBgRole('none')
+        self.layout().addWidget(self.read_label_1,0,0)
+        self.layout().addWidget(self.read_label_2,0,1)
+        self.layout().addWidget(self.read_label_3,1,0,1,2)
+
+    def setModel(self, model):
+        self.read_label_1.setModel(model+'/Position')
+        self.read_label_2.setModel(model+'/Position')
+        self.read_label_3.setModel(model+'/Position')
+        
+class PoolMotorTVWriteWidget(TaurusWidget):
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
+        self.setLayout(Qt.QGridLayout())
+        # FOR THE WRITE, WIDGET, FORCEDAPPLY SHOULD BE SET
+        
+        self.write_lineedit_1 = TaurusValueLineEdit()
+        self.write_lineedit_2 = TaurusValueLineEdit()
+        self.write_lineedit_3 = TaurusValueLineEdit()
+        self.write_lineedit_4 = TaurusValueLineEdit()
+        self.layout().addWidget(self.write_lineedit_1,0,0)
+        self.layout().addWidget(self.write_lineedit_2,0,1)
+        self.layout().addWidget(self.write_lineedit_3,1,0)
+        self.layout().addWidget(self.write_lineedit_4,1,1)
+
+    def setModel(self, model):
+        self.write_lineedit_1.setModel(model+'/Position')
+        self.write_lineedit_2.setModel(model+'/Position')
+        self.write_lineedit_3.setModel(model+'/Position')
+        self.write_lineedit_4.setModel(model+'/Position')
+
+class PoolMotorTVUnitsWidget(DefaultUnitsWidget):
+    def __init__(self, parent=None, designMode=False):
+        DefaultUnitsWidget.__init__(self, parent, designMode)
+
+    def setModel(self, model):
+        DefaultUnitsWidget.setModel(self, model+'/Position')
+
+class PoolMotorTV(TaurusValue):
+    ''' A widget that displays and controls a pool Motor device.  It
+    behaves as a TaurusValue.
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusValue.__init__(self, parent = parent, designMode = designMode)
+        self.setLabelWidgetClass(LabelWidgetDragsDeviceAndAttribute)
+        self.setLabelConfig('dev_alias')
+        self.setReadWidgetClass(PoolMotorTVReadWidget)
+        self.setWriteWidgetClass(PoolMotorTVWriteWidget)
+        self.setUnitsWidgetClass(PoolMotorTVUnitsWidget)
+        self.motor_dev = None
+
+    def setModel(self, model):
+        TaurusValue.setModel(self, model)
+        try: self.motor_dev = taurus.Device(model)
+        except: return
+        
+    def showEvent(self, event):
+        TaurusValue.showEvent(self, event)
+        if self.motor_dev is not None:
+            self.motor_dev.getAttribute('Position').enablePolling(force=True)
+
+    def hideEvent(self, event):
+        TaurusValue.hideEvent(self, event)
+        if self.motor_dev is not None:
+            self.motor_dev.getAttribute('Position').disablePolling()
+
+###################################################
+# A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
+###################################################
+
+class PoolMotor(TaurusWidget):
+    ''' A widget that displays and controls a pool Motor device.
+    NOTE: WHEN GETTING EVENTS ON LIMITS, SOMETHING SHOULD BE DONE LIKE:
+    setStyleSheet('QAbstractSpinBox::up-button {background-color: orange;} QAbstractSpinBox::down-button {background-color: red;}')
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
+
+        self.motor_dev = None
+
+        self.setLayout(Qt.QHBoxLayout())
+        self.layout().setContentsMargins(0,0,0,0)
+        self.layout().setSpacing(0)
+
+        self.alias_label = TaurusLabel()
+        self.alias_label.setBgRole('state')
+        self.layout().addWidget(self.alias_label)
+
+        self.read_label = TaurusLabel()
+        self.layout().addWidget(self.read_label)
+
+        self.write_spinbox = TaurusValueSpinBox()
+        self.write_spinbox.setForcedApply(True)
+        self.write_spinbox.setButtonSymbols(Qt.QAbstractSpinBox.PlusMinus)
+        self.layout().addWidget(self.write_spinbox)
+
+        self.unit_label = TaurusLabel()
+        self.unit_label.setBgRole('none')
+        self.layout().addWidget(self.unit_label)
+
+        self.btn_stop = Qt.QPushButton()
+        self.btn_stop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
+        self.btn_stop.setFixedSize(self.btn_stop.iconSize())
+        self.layout().addWidget(self.btn_stop)
+
+        #### At some point it will be an icon...
+        self.step_icon = Qt.QLabel('step')
+        self.layout().addWidget(self.step_icon)
+        
+        self.cb_step = Qt.QComboBox()
+        self.cb_step.addItem('1')
+        self.cb_step.setEditable(True)
+        self.cb_step.setFixedWidth(60)
+        self.layout().addWidget(self.cb_step)
+
+        self.connectSignals()
+
+    def setModel(self, model):
+        try: self.motor_dev = taurus.Device(model)
+        except: return
+
+        self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
+        self.read_label.setModel('%s/Position' % model)
+        self.write_spinbox.setModel('%s/Position' % model)
+        self.unit_label.setModel('%s/Position?configuration=unit' % model)
+
+    def showEvent(self, event):
+        TaurusWidget.showEvent(self, event)
+        if self.motor_dev is not None:
+            self.motor_dev.getAttribute('Position').enablePolling(force=True)
+
+    def hideEvent(self, event):
+        TaurusWidget.hideEvent(self, event)
+        if self.motor_dev is not None:
+            self.motor_dev.getAttribute('Position').disablePolling()
+
+    def keyPressEvent(self, key_event):
+        if key_event.key() == Qt.Qt.Key_Escape:
+            self.abort()
+            key_event.accept()
+        TaurusWidget.keyPressEvent(self, key_event)
+
+    def connectSignals(self):
+        self.connect(self.btn_stop, Qt.SIGNAL('clicked()'), self.abort)
+        self.connect(self.cb_step, Qt.SIGNAL('currentIndexChanged(QString)'), self.updateStepSize)
+
+    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the motion.')
+    def abort(self):
+        if self.motor_dev is None:
+            return
+        self.motor_dev.abort()
+
+    def updateStepSize(self, value):
+        try:
+            value = float(value)
+            self.write_spinbox.setSingleStep(value)
+        except Exception,e:
+            print 'oups',e
+
+
+def test_form(motors, classname='PoolMotorSlim'):
+    from taurus.qt.qtgui.panel import TaurusForm
+    form = TaurusForm()
+    widget_class = 'taurus.qt.qtgui.extra_pool.'+classname
+    tgclass_map = {'SimuMotor':(widget_class,(),{}),
+                   'Motor':(widget_class,(),{}),
+                   'PseudoMotor':(widget_class,(),{})}
+    form.setCustomWidgetMap(tgclass_map)
+    form.setModel(motors)
+
+    form.show()
+
 def main():
     
     import sys
@@ -732,21 +922,21 @@ def main():
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
     args = app.get_command_line_args()
     
-    qw = QtGui.QWidget()
-    qw.setLayout(QtGui.QVBoxLayout())
-
-    motors = ['tango://controls02:10000/motor/gc_ipap_ctrl/8']
+    motors = ['tango://controls02:10000/motor/gcipap10ctrl/8']
     if len(args)>0:
         motors = args
-    
-    for motor in motors:
-        pms = PoolMotorSlim()
-        pms.setStepSize(1)
-        pms.setStepSizeIncrement(1)
-        pms.setModel(motor)
-        qw.layout().addWidget(pms)
-     
-    qw.show()
+
+    test_form(motors, classname='PoolMotorSlim')
+    #test_form(motors, classname='PoolMotorTV')
+
+    #w = Qt.QWidget()
+    #w.setLayout(Qt.QVBoxLayout())
+    #w.show()
+    #for motor in motors:
+    #    motor_widget = PoolMotor()
+    #    motor_widget.setModel(motor)
+    #    w.layout().addWidget(motor_widget)
+
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
