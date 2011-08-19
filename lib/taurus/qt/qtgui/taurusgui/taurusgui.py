@@ -43,7 +43,7 @@ from taurus.qt.qtgui.plot import TaurusTrend, TaurusMonitorTiny
 from taurus.qt.qtgui.input import GraphicalChoiceDlg
 
 try:
-    from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannel
+    from taurus.qt.qtgui.extra_pool import PoolMotorSlim, IORegisterTV, PoolChannelTV
     HAS_EXTRA_POOL = True
 except ImportError:
     HAS_EXTRA_POOL = False
@@ -592,7 +592,7 @@ class TaurusGui(TaurusMainWindow):
         
         motors = sorted(ms.getElementNamesOfType('Motor'))
         channels = sorted(ms.getElementNamesOfType('ExpChannel'))
-        ioregisters = sorted(ms.getElementNamesOfType('IORegisters'))
+        ioregisters = sorted(ms.getElementNamesOfType('IORegister'))
         
         pool_elements = motors + channels + ioregisters
         for e_name in pool_elements:
