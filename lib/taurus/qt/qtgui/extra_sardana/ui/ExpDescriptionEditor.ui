@@ -1,0 +1,151 @@
+<ui version="4.0" >
+ <class>ExpDescriptionEditor</class>
+ <widget class="QWidget" name="ExpDescriptionEditor" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>707</width>
+    <height>646</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2" >
+   <item>
+    <widget class="TaurusGroupBox" name="taurusGroupBox" >
+     <property name="title" >
+      <string>Measurement group</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout" >
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout" >
+        <item>
+         <widget class="QLabel" name="label" >
+          <property name="text" >
+           <string>Active Measurement Group</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="activeMntGrpCB" />
+        </item>
+        <item>
+         <widget class="QToolButton" name="mntGrpOptionBT" >
+          <property name="text" >
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer" >
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0" >
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="MntGrpChannelEditor" name="channelEditor" />
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Storage</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout" >
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_3" >
+        <property name="text" >
+         <string>File Name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="QLineEdit" name="filenameLE" />
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>Path</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QLineEdit" name="pathLE" />
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_4" >
+        <property name="text" >
+         <string>Data compression</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="compressionCB" >
+        <item>
+         <property name="text" >
+          <string>nowhere</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>for datasets of rank 1 or more</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>for datasets of rank 2 or more</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>for datasets of rank 3 or more</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>for all datasets</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::NoButton</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MntGrpChannelEditor</class>
+   <extends>QMainWindow</extends>
+   <header>taurus.qt.qtgui.extra_sardana</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>taurus.qt.qtgui.container</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -76,7 +76,7 @@ class QDoor(Qt.QObject, BaseDoor):
         The real implementation should be able to read the info from the
         ExperimentConfiguration envvar stored in the environment attribute.
         '''
-        from taurus.qt.qtgui.extra_sardana.expdescription import DUMMY_EXP_CONF
+        from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
         return DUMMY_EXP_CONF
 
 

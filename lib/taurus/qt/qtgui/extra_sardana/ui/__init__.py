@@ -22,12 +22,3 @@
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-
-"""This package contains a collection of taurus widgets designed to connect
-to sardana"""
-
-__docformat__ = 'restructuredtext'
-
-#from .sardanashell import *
-from .measurementgroup import *
-from .expdescription import *
