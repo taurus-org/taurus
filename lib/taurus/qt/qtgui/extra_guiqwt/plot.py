@@ -160,7 +160,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display Widgets'
         ret['icon'] =':/designer/qwtplot.png'
         return ret
@@ -366,7 +366,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display Widgets'
         ret['icon'] =':/designer/qwtplot.png'
         return ret
@@ -427,7 +427,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display Widgets'
         ret['icon'] =':/designer/qwtplot.png'
         return ret
