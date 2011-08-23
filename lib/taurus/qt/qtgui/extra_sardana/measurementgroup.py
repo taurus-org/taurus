@@ -65,7 +65,7 @@ from taurus.qt.qtgui.table import TaurusBaseTableWidget
 #                    - 'enabled' : True/False (default is True)
 #                    any hints:
 #                    - 'output' : True/False (default is True)
-#                    - 'plot_type' : 'No'/'1D'/'2D' (default is 'No')
+#                    - 'plot_type' : 'No'/'Curve'/'Image' (default is 'No')
 #                    - 'plot_axes' : list<str> 'where str is channel name/'step#/'index#' (default is [])
 #                    - 'label' : prefered label (default is channel name)
 #                    - 'scale' : <float, float> with min/max (defaults to channel
@@ -91,7 +91,7 @@ def createChannelDict(name, index=None, **kwargs):
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
     if 'plot_axes' not in ret: 
-        default_axes = {'No':'', '1D':'<idx>', '2D':'<idx>:<idx>'}
+        default_axes = {'No':'', 'Curve':'<idx>', 'Image':'<idx>:<idx>'}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     return ret
 
@@ -133,6 +133,7 @@ DUMMY_MNTGRPCONFIGS = {'bl96_mntgrp1':DUMMY_MNGRPCFG_1,
 
 DUMMY_EXP_CONF = {'ScanDir':'/tmp/scandir',
                   'ScanFile':'dummyscan.h5',
+                  'DataCompressionRank':-1, #integer representing the rank of a dataset above which data will be compressed (or -1  for never using compression)
                   'ActiveMntGrp':'bl96_mntgrp1',
                   'MntGrpConfigs': DUMMY_MNTGRPCONFIGS
                   }
@@ -141,7 +142,7 @@ DUMMY_EXP_CONF = {'ScanDir':'/tmp/scandir',
 
 ChannelView = Enumeration("ChannelView", ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer", "Monitor", "Trigger", "Conditioning", "Normalization","NXPath","Unknown"))
 
-PlotType = Enumeration("PlotType", ("No", "1D", "2D"))
+PlotType = Enumeration("PlotType", ("No", "Curve", "Image"))
 Normalization = Enumeration("Normalization", ("No", "Avg", "Integ"))
 
                        
@@ -252,36 +253,14 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
         
         key = self.itemdata_keys_map[taurus_role]
         return ch_data[key]        
-#        if taurus_role == ChannelView.Channel:
-#            return ch_data['label']
-#        elif taurus_role == ChannelView.Enabled:
-#            return ch_data['enabled']
-#        elif taurus_role == ChannelView.Output:
-#            return ch_data['output']
-#        elif taurus_role == ChannelView.PlotType:
-#            return ch_data['plot_type']
-#        elif taurus_role == ChannelView.PlotAxes:
-#            if ch_data['plot_type'] == PlotType.No:
-#                return None
-#            return ch_data['plot_axes']
 
     def setData(self, index, data):
         taurus_role = index.model().role(index.column())
         ch_name, ch_data = self.itemData()
         key = self.itemdata_keys_map[taurus_role]
+        if hasattr(Qt,'QString') and isinstance(data, Qt.QString): #for PyQt<=4.6 compatibility:
+            data = str(data)
         ch_data[key] = data
-#        if taurus_role == ChannelView.Channel:
-#            ch_data['label'] = str(data)
-#        elif taurus_role == ChannelView.Enabled:
-#            ch_data['enabled'] = data
-#        elif taurus_role == ChannelView.Output:
-#            ch_data['output'] = data
-#        elif taurus_role == ChannelView.PlotType:
-#            ch_data['plot_type'] = data
-#        elif taurus_role == ChannelView.PlotAxes:
-#            ch_data['plot_axes'] = data
-#        else:
-#            print 'MntGrpChannelItem.setData does not support the role "%s"'%repr(ChannelView.whatis(taurus_role))
 
     def role(self):
         return ChannelView.Channel
@@ -308,11 +287,20 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                   ChannelView.Trigger, ChannelView.Conditioning,
                   ChannelView.Normalization, ChannelView.NXPath)
     DftFont = Qt.QFont()
+    
+    _availableChannels = {}
 
     def __init__(self, parent=None, data=None):
         TaurusBaseModel.__init__(self, parent=parent, data=data)
         self._config = None
         self._dirty = False    
+    
+        
+    def setAvailableChannels(self,cdict):
+        self._availableChannels = cdict
+        
+    def getAvailableChannels(self):
+        return self._availableChannels
     
     def createNewRootItem(self):
         return BaseMntGrpChannelItem(self, self.ColumnNames)
@@ -355,6 +343,18 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         channelNodes = [MntGrpChannelItem(self, chcfg, root) for chcfg in self.getChannelConfigs(mgconfig)]
         for ch in channelNodes:
             root.appendChild(ch)
+        self.updateMntGrpChannelIndex(root=root)
+
+    def updateMntGrpChannelIndex(self, root=None):
+        '''
+        assigns the MeasurementGroup index (the internal order in the MG)
+        according to the order in the QModel
+        '''
+        if root is None:
+            root = self._rootItem
+        for row in range(root.childCount()):
+            chname,chdata = root.child(row).itemData()
+            chdata['index'] = row+1
 
     def flags(self, index):
         flags = TaurusBaseModel.flags(self, index)
@@ -368,7 +368,55 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             self.emit(Qt.SIGNAL("dataChanged(const QModelIndex &, const QModelIndex &)"),
                       index, index)
         return ret
+    
+    def addChannel(self, chname=None): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
+        
+        #NOTE: THIS WILL BE UNNECESSARY WHEN WE USE PROPER *TAURUS* SARDANA DEVICES
+        chname = str(chname)
+        desc = self.getAvailableChannels()[chname]
+        ctrlname = desc['_ctrl_name']
+        unitname = desc.get('_unit_name','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+        
+        #update the internal data 
+        self.beginResetModel() #we are altering the internal data here, so we need to protect it
+        ctrlsdict = self.dataSource()['controllers']
+        if not ctrlsdict.has_key(ctrlname): ctrlsdict[ctrlname] = {'units':{}}
+        unitsdict = ctrlsdict[ctrlname]['units']
+        if not unitsdict.has_key(unitname): unitsdict[unitname] = {'channels':{}}
+        channelsdict = unitsdict[unitname]['channels']
+        if channelsdict.has_key(chname):
+            self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
+            return
+        
+        channelsdict[chname] = createChannelDict(chname)
+        self.endResetModel() #we are altering the internal data here, so we need to protect it
+        self.refresh() #note that another reset will be done here... 
 
+        #newchannels = [(chname,chdata)]
+        #self.insertChannels(newchannels)      
+
+    def removeChannels(self, chnames): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows            
+        #update the internal data 
+        self.beginResetModel() #we are altering the internal data here, so we need to protect it
+        for chname in chnames:
+            desc = self.getAvailableChannels()[chname]
+            ctrlname = desc['_ctrl_name']
+            unitname = desc.get('_unit_name','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+            try:
+                self.dataSource()['controllers'][ctrlname]['units'][unitname]['channels'].pop(chname)
+            except:
+                self.error('cannot find "%s" for removing'%chname)
+        self.endResetModel() #we are altering the internal data here, so we need to protect it
+        self.refresh() #note that another reset will be done here... 
+        
+    def swapChannels(self, root, row1, row2): #@todo: Very inefficient implementation. We should use {begin|end}MoveRows 
+        n1,d1 = root.child(row1).itemData()
+        n2,d2 = root.child(row2).itemData()
+        d1['index'], d2['index'] = d2['index'], d1['index']
+        self.debug("swapping %s with %s"%(n1,n2))
+        self.refresh()
+        
+            
 
 class MntGrpChannelModel(BaseMntGrpChannelModel):
     '''A BaseMntGrpChannelModel that communicates with a MntGrp device for setting and reading the configuration
@@ -413,14 +461,64 @@ class MntGrpChannelModel(BaseMntGrpChannelModel):
         return self.getSourceData() != self.getLocalData()
 
 
+class AxesSelector(Qt.QWidget):
+    def __init__(self, parent, n=0, choices=None):
+        '''Shows n comboboxes populated with choices. If n is 0, it just shows a LineEdit instead'''
+        Qt.QWidget.__init__(self, parent)
+        self._n = n
+        self._coices = choices
+        self._CBs = []
+        self._LE = None
+        l = Qt.QHBoxLayout(self)
+        if self._n == 0:
+            self._LE = Qt.QLineEdit()
+            l.addWidget(self._LE)
+        else:
+            for i in range(n):
+                cb = Qt.QComboBox()
+                l.addWidget(cb)
+                self._CBs.append(cb)
+        if choices is not None:
+            self.setChoices(choices)
+            
+    def setChoices(self, choices):
+        for cb in self._CBs:
+            cb.addItems(choices)
+            
+    def text(self):
+        if self._LE is None:
+            return ":".join([str(cb.currentText()) for cb in self._CBs])
+        else:
+            return str(self._LE.text())
+    
+    def setCurrentChoices(self, choice):
+        if self._LE is None:
+            texts = str(choice).split(':')
+            for t,cb in zip(texts[:len(self._CBs)],self._CBs):               
+                cb.setCurrentIndex(max(0,cb.findText(t)))
+        else:
+            self._LE.setText(str(choice))
+
+
 class ChannelDelegate(Qt.QStyledItemDelegate):
-    availableChannels = {}
+    
     
     def createEditor(self, parent, option, index):
-        taurus_role = index.model().role(index.column())
+        model = index.model()
+        taurus_role = model.role(index.column())
         if taurus_role in (ChannelView.Channel, ChannelView.PlotType, ChannelView.Timer, 
                            ChannelView.Monitor, ChannelView.Trigger, ChannelView.Normalization):
             ret = Qt.QComboBox(parent)
+        elif taurus_role == ChannelView.PlotAxes:
+            item = index.internalPointer()
+            ptype = PlotType[item.itemData()[1]['plot_type']]
+            if ptype == PlotType.Curve:
+                n=1
+            elif ptype == PlotType.Image:
+                n=2
+            else:
+                return None
+            ret = AxesSelector(parent, n=n)
         else:
             ret = Qt.QStyledItemDelegate.createEditor(self, parent, option, index)
         ret.setAutoFillBackground(True)
@@ -432,7 +530,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
         pydata = data.toPyObject()
         taurus_role = model.role(index.column())
         if taurus_role == ChannelView.Channel:
-            editor.addItems(sorted(self.availableChannels.keys()))
+            editor.addItems(sorted(model.availableChannels.keys()))
             editor.setCurrentIndex(editor.findText(pydata))
         elif taurus_role == ChannelView.PlotType:
             editor.addItems(PlotType.keys())
@@ -441,15 +539,19 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             editor.addItems(Normalization.keys())
             editor.setCurrentIndex(editor.findText(pydata))
         elif taurus_role in (ChannelView.Timer, ChannelView.Monitor, ChannelView.Trigger):
-            ##IF we want to offer oonly certain channels (e.g. those sharing the controller), use the code commented below
+            ##IF we want to offer only certain channels (e.g. those sharing the controller), use the code commented below
             ##find the controller of this item
             #item = index.internalPointer()
             #ch_name,ch_data = item.itemData()
-            #ctrl_name = self.availableChannels.get(ch_name,{}).get('_ctrl_name',None)
+            #ctrl_name = model.availableChannels.get(ch_name,{}).get('_ctrl_name',None)
             #ctrl_filterlist = (ctrl_name,)  #find the channels already in the mntgrp that share the same controller
             ctrl_filterlist = None
             selectables = [n for n,d in model.getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
             editor.addItems(selectables)
+        elif taurus_role == ChannelView.PlotAxes:
+            selectables = ['<idx>']+[n for n,d in model.getChannelConfigs(model.dataSource())]
+            editor.setChoices(selectables)
+            editor.setCurrentChoices(pydata)
         else:
             Qt.QStyledItemDelegate.setEditorData(self, editor, index)
     
@@ -458,6 +560,9 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
         if taurus_role in (ChannelView.Channel, ChannelView.PlotType, ChannelView.Timer, 
                            ChannelView.Monitor, ChannelView.Trigger, ChannelView.Normalization):
             data = Qt.QVariant(editor.currentText())
+            model.setData(index, data)
+        elif taurus_role == ChannelView.PlotAxes:
+            data = Qt.QVariant(editor.text())
             model.setData(index, data)
         else:
             Qt.QStyledItemDelegate.setModelData(self, editor, model, index)
@@ -485,6 +590,9 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         tableView.setItemDelegate(self._delegate)
         tableView.setSortingEnabled(False)
         self.connect(self._editorBar, Qt.SIGNAL("addTriggered"), self.addChannel)
+        self.connect(self._editorBar, Qt.SIGNAL("removeTriggered"), self.removeChannels)
+        self.connect(self._editorBar, Qt.SIGNAL("moveUpTriggered"), self.moveUpChannel)
+        self.connect(self._editorBar, Qt.SIGNAL("moveDownTriggered"), self.moveDownChannel)
         return tableView
 
     def createToolArea(self):
@@ -496,47 +604,53 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     def getModelClass(self):
         return taurus.core.TaurusDevice
     
-    def setAvailableChannels(self,cdict):
-        self._delegate.availableChannels = cdict
-        
-    def getAvailableChannels(self):
-        return self._delegate.availableChannels
-    
     def addChannel(self, channel=None):
         qmodel = self.getQModel()
         if channel is None:
             shown = [n for n,d in qmodel.getChannelConfigs(qmodel.dataSource())]
-            clist = [c for c in self.getAvailableChannels() if c not in shown]
+            clist = [c for c in qmodel.getAvailableChannels() if c not in shown]
             chname,ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", sorted(clist), 0, False)
             if not ok:
+                return       
+        qmodel.addChannel(chname=chname)
+        
+    def removeChannels(self, channels=None):
+        if channels is None:
+            channels = self.selectedItems()
+        chnames = [ch.itemData()[0] for ch in channels]
+        self.getQModel().removeChannels(chnames)
+        
+    def moveUpChannel(self, channel=None):
+        if channel is None:
+            channels = self.selectedItems()
+            if len(channels) != 1:
                 return
-        
-        #NOTE: THIS WILL BE UNNECESSARY WHEN WE USE PROPER *TAURUS* SARDANA DEVICES
-        chname = str(chname)
-        desc = self.getAvailableChannels()[chname]
-        ctrlname = desc['_ctrl_name']
-        unitname = desc.get('_unit_name','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
-        
-        #update the internal data 
-        qmodel.beginResetModel() #we are altering the internal data here, so we need to protect it
-        ctrlsdict = qmodel.dataSource()['controllers']
-        if not ctrlsdict.has_key(ctrlname): ctrlsdict[ctrlname] = {'units':{}}
-        unitsdict = ctrlsdict[ctrlname]['units']
-        if not unitsdict.has_key(unitname): unitsdict[unitname] = {'channels':{}}
-        channelsdict = unitsdict[unitname]['channels']
-        if channelsdict.has_key(chname):
-            self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
+            channel = channels[0]
+        parent = channel.parent()
+        row = channel.row()
+        if row < 1: 
             return
         
-        channelsdict[chname] = createChannelDict(chname)
-        qmodel.endResetModel() #we are altering the internal data here, so we need to protect it
-        qmodel.refresh() #note that another reset will be done here... 
+        model = self.getQModel()
+        model.swapChannels(parent, row, row-1)
+        idx = model.index(row-1,0)
+        self.viewWidget().setCurrentIndex(idx)
         
-        #newchannels = [(chname,chdata)]
-        #qmodel.insertChannels(newchannels)
-        
-        self.emit(Qt.SIGNAL("channelsChanged"))
-        
+    def moveDownChannel(self, channel=None):
+        if channel is None:
+            channels = self.selectedItems()
+            if len(channels) != 1:
+                return
+            channel = channels[0]
+        parent = channel.parent()
+        row = channel.row()
+        if row >= parent.childCount() - 1: 
+            return
+        model = self.getQModel()
+        self.getQModel().swapChannels(parent, row, row+1)
+        idx = model.index(row+1,0)
+        self.viewWidget().setCurrentIndex(idx)
+
     def getLocalConfig(self):
         return self.getQModel().getLocalData()
         

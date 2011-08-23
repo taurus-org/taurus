@@ -77,8 +77,18 @@ class QDoor(Qt.QObject, BaseDoor):
         ExperimentConfiguration envvar stored in the environment attribute.
         '''
         from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
-        return DUMMY_EXP_CONF
-
+        import copy
+        return copy.deepcopy(getattr(self, "_dummy_exp_conf", DUMMY_EXP_CONF))
+    
+    def setExperimentConfiguration(self, conf):
+        '''
+        Sets the ExperimentConfiguration dictionary. 
+        This implementation is a dummy one which saves it as the "_dummy_exp_conf" member 
+        The real implementation should be able to write it as the
+        ExperimentConfiguration envvar stored in the environment attribute.
+        '''
+        import copy
+        self._dummy_exp_conf = copy.deepcopy(conf)
 
 class QMacroServer(Qt.QObject, BaseMacroServer):
     

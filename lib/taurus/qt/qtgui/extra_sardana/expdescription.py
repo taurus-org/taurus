@@ -52,39 +52,12 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._localConfig = None
         self._originalConfiguration = None
         self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('currentIndexChanged (QString)'), self.onActiveMntGrpChanged)
+        self.connect(self.ui.compressionCB, Qt.SIGNAL('currentIndexChanged (int)'), self.onCompressionCBChanged )
         
         if door is not None:
             self.setModel(door)
         self.connect(self.ui.buttonBox, Qt.SIGNAL("clicked(QAbstractButton *)"), self.onDialogButtonClicked)
-        
-    def onActiveMntGrpChanged(self, activeMntGrpName):
-        activeMntGrpName = str(activeMntGrpName)
-        if self._localConfig is None: return
-        if activeMntGrpName not in self._localConfig['MntGrpConfigs']: return
-#        if self.ui.channelEditor.getQModel().isDataChanged():
-#            previous = self._localConfig['ActiveMntGrp']
-#            op = Qt.QMessageBox.question(self, "Save changes", 'The measurement group "%S" has unsaved info. Do you want to save it?'%previous, Qt.QMessageBox.Save|Qt.QMessageBox.Discard, Qt.QMessageBox.Save)
-#            if op == Qt.QMessageBox.Save:
-#                
-#                for chname,chdata in channels:
-#                    self._localConfig['MntGrpConfigs'][previous]['__channelsFlatDict__'] = chdata 
-#                    self._localConfig['MntGrpConfigs'][previous]['controllers'].update()
-#                
-#                             
-# 
-        self._localConfig['ActiveMntGrp'] = activeMntGrpName
-        mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
-        self.ui.channelEditor.getQModel().setDataSource(mgconfig)
-        
-#    def updateMntGrp(self, mntgrpname, channels=None):
-#        if channels is None:
-#            channels = self.ui.channelEditor.getLocalConfig()
-#            ## IMHO, THE FOLLOWING COMMENTED LINES SHOULD BE THE WAY TO GO WHEN SARDANA SUPPORT IN TAURUS IS MORE ADVANCED
-#            #chobj = taurus.Device(chname) #this should return a taurus.core.tango.sardana.ExpChan, not just a TangoDevice
-#            #ctrl, unit = chobj.getControllerName(), chobj.getUnitName()
-#            ctrl, unit = self.__getChannelControllerAndUnit(chname) #this is just a temporary workaround
-#            self._localConfig['MntGrpConfigs'][activeMntGrpName]['__channelsFlatDict__'] = channels
-                
+             
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.TaurusDevice
@@ -92,15 +65,28 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     def onDialogButtonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
         #qmodel = self.ui.channelEditor.getQModel()
-        if role == Qt.QDialogButtonBox.AcceptRole:
-            print self.isDataChanged(), self.getLocalConfig()
-        elif role == Qt.QDialogButtonBox.ApplyRole:
-            localconf = self.getLocalConfig()
-            print self.isDataChanged(), localconf
-            #qmodel.writeSourceData()
+        if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.ApplyRole) :
+            conf = copy.deepcopy(self.getLocalConfig())
+            print self.isDataChanged(), conf
+            self._originalConfiguration = conf
+            door = self.getModelObj()
+            if door is None: 
+                return
+            door.setExperimentConfiguration(conf)
         elif role == Qt.QDialogButtonBox.ResetRole:
             self._reloadConf()
-            #qmodel.refresh()
+        if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.RejectRole):
+            self.close()
+    
+    def closeEvent(self,event):
+        '''This event handler receives widget close events'''
+        if self.isDataChanged():
+            op = Qt.QMessageBox.question(self, "Discard pending changes?", 
+                                    "There are unsaved changes in the configuration. If you close they will be lost.\n Close anyway?", 
+                                    Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+            if op != Qt.QMessageBox.Yes: 
+                return
+        Qt.QWidget.closeEvent(self,event)
     
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -108,7 +94,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._reloadConf(force=True)
         
     def _reloadConf(self, force=False):
-        if not force:
+        if not force and self.isDataChanged():
             op = Qt.QMessageBox.question(self, "Reload info from door", 
                                     "If you reload, all current experiment configuration changes will be lost. Reload?", 
                                     Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
@@ -117,54 +103,55 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         door = self.getModelObj()
         if door is None: return
         conf = door.getExperimentConfiguration()
-        self._originalConfiguration = conf
+        self._originalConfiguration = copy.deepcopy(conf)
         self.setLocalConfig(conf)
+        
         #set a list of available channels
         from taurus.core.tango.sardana.pool import ExpChannel
         avail = {}
         for s in door.macro_server.ExpChannelList:
             d = ExpChannel.match(s)
             avail[d['_alias']] = d
-            
-        self.ui.channelEditor.setAvailableChannels(avail)
+        
+        self.ui.channelEditor.getQModel().setAvailableChannels(avail)
         
     def isDataChanged(self):
         """Tells if the local data has been modified since it was last refreshed
         """
         return self._originalConfiguration != self.getLocalConfig()
 
+    def getLocalConfig(self):
+        return self._localConfig
+
     def setLocalConfig(self, conf):
         '''gets a ExpDescription dictionary and sets up the widget'''
         self._localConfig = conf
+        
+        #measurement group settings
         mgcfgs = conf['MntGrpConfigs']
         self.ui.activeMntGrpCB.clear()
         self.ui.activeMntGrpCB.addItems(sorted(mgcfgs.keys()))
         idx = self.ui.activeMntGrpCB.findText(self._localConfig['ActiveMntGrp'])
-        self.ui.activeMntGrpCB.setCurrentIndex(idx)
+        self.ui.activeMntGrpCB.setCurrentIndex(idx) #note that this triggers a call to onActiveMntGrpChanged (which)
         
+        #other settings
+        self.ui.filenameLE.setText(self._localConfig['ScanFile'])
+        self.ui.pathLE.setText(self._localConfig['ScanDir'])
+        self.ui.compressionCB.setCurrentIndex(self._localConfig['DataCompressionRank']+1)
         
-#    def _createChannelPerspective(self, orig):
-#        '''
-#        gets a configuration dict as it comes from the door and adds a new item
-#        ('__channelsFlatDict__') containing a flat view of the channels (it
-#        flattens the controllers and units level). Note that the channel
-#        dictionaries are just referenced -not copied-, so they can be accessed
-#        and edited indistinctly from both the flat or the original branch.
-#        '''
-#        ret = copy.deepcopy(orig)
-#        for mgname,mgdict in ret['MntGrpConfigs'].items():
-#            mgdict['__channelsFlatDict__'] = channelsflatdict = {} 
-#            for ctrlname,ctrldict in mgdict['controllers'].items():
-#                for unitname,unitdict in ctrldict['units'].items():
-#                    for chname, chdict in unitdict['channels'].items():
-#                        channelsflatdict[chname] = chdict
-##        print "!!!RET ", sorted(ret['MntGrpConfigs'][ret['ActiveMntGrp']].keys())
-##        print "!!!ORIG",  sorted(orig['MntGrpConfigs'][ret['ActiveMntGrp']].keys())
-##        print ret['MntGrpConfigs'][ret['ActiveMntGrp']]['__channelsFlatDict__'].keys()
-#        return ret
+    def onActiveMntGrpChanged(self, activeMntGrpName):
+        activeMntGrpName = str(activeMntGrpName)
+        if self._localConfig is None: return
+        if activeMntGrpName not in self._localConfig['MntGrpConfigs']: return
+        self._localConfig['ActiveMntGrp'] = activeMntGrpName
+        mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
+        self.ui.channelEditor.getQModel().setDataSource(mgconfig)
+        
+    def onCompressionCBChanged(self, idx):
+        if self._localConfig is None: return
+        self._localConfig['DataCompressionRank'] = idx - 1
+ 
     
-    def getLocalConfig(self):
-        return self._localConfig
         
             
 
