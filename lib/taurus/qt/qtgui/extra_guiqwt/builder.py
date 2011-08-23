@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import guiqwt.builder
 
 from curve import TaurusCurveItem, TaurusTrendItem
-from image import TaurusImageItem
+from image import TaurusImageItem, TaurusRGBImageItem
 from guiqwt.curve import CurveParam
 from guiqwt.image import ImageParam
 from guiqwt.config import _
@@ -98,6 +98,7 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
             xformat = kwargs.get('xformat','%.1f')
             yformat = kwargs.get('yformat','%.1f')
             zformat = kwargs.get('zformat','%.1f')
+            forceRGB = kwargs.get('force_rgb', False)
                      
             assert isinstance(xdata, (tuple, list)) and len(xdata) == 2
             assert isinstance(ydata, (tuple, list)) and len(ydata) == 2
@@ -121,12 +122,23 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                                    xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                    xformat=xformat, yformat=yformat,
                                    zformat=zformat)
-            image = TaurusImageItem(param)
+            if forceRGB:
+                image = TaurusRGBImageItem(param)
+            else:
+                image = TaurusImageItem(param)
             image.setModel(taurusmodel)
             if eliminate_outliers is not None:
                 image.set_lut_range(lut_range_threshold(image, 256, eliminate_outliers))
                 
         return image
+    
+    def rgbimage(self, taurusmodel=None, **kwargs):
+        if taurusmodel is None:
+            image = guiqwt.builder.PlotItemBuilder.rgbimage(self, **kwargs)
+        else:
+            image = self.image(taurusmodel=taurusmodel, force_rgb=True, **kwargs)
+        return image
+            
     
     def ttrend(self, model, taurusparam =None, title=u"",
               color=None, linestyle=None, linewidth=None,

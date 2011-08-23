@@ -26,22 +26,21 @@
 """
 Extension of :mod:`guiqwt.image`
 """
-__all__=["TaurusImageItem"]
+__all__=["TaurusImageItem","TaurusRGBImageItem"]
 
 from PyQt4 import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from taurus.core.util import ArrayBuffer
 
-from guiqwt.image import ImageItem, XYImageItem, INTERP_NEAREST, INTERP_LINEAR
+from guiqwt.image import ImageItem, RGBImageItem, XYImageItem, INTERP_NEAREST, INTERP_LINEAR
 
 import numpy
 
-class TaurusImageItem(ImageItem, TaurusBaseComponent):
+class TaurusBaseImageItem(TaurusBaseComponent):
     '''A ImageItem that gets its data from a taurus attribute'''
-    def __init__(self, param=None):
-        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
-        TaurusBaseComponent.__init__(self, self.__class__.__name__)
+    def __init__(self, classname):
+        TaurusBaseComponent.__init__(self, classname)
         self._signalGen = Qt.QObject()
 
     def getSignaller(self):
@@ -69,6 +68,18 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
+
+class TaurusImageItem(ImageItem, TaurusBaseImageItem):
+    '''A ImageItem that gets its data from a taurus attribute'''
+    def __init__(self, param=None):
+        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
+        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+
+class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
+    '''A RGBImageItem that gets its data from a taurus attribute'''
+    def __init__(self, param=None):
+        RGBImageItem.__init__(self, numpy.zeros((1,1,3)), param=param)
+        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
         
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
@@ -258,6 +269,7 @@ def test1():
     #define a taurus image
     model1 = 'sys/tg_test/1/short_image_ro'
     taurusimage = make.image(taurusmodel= model1)
+    taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
     
     #define normal image (guiqwt standard)
     data = numpy.random.rand(100,100)
@@ -271,6 +283,7 @@ def test1():
     plot = win.get_plot()
     plot.add_item(taurusimage)
     plot.add_item(image)
+    plot.add_item(taurusrgbimage)
 #    win.get_itemlist_panel().show()
     
     #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
@@ -280,5 +293,6 @@ def test1():
 
 
 if __name__ == "__main__":
+    #test1()
     taurusImageMain()   
 

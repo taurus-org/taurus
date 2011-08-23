@@ -391,9 +391,19 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         TaurusBaseWidget.__init__(self, 'TaurusImageDialog')
         self.setWindowFlags(Qt.Qt.Widget)
         self.imgItem = None
+        self._rgbmode = False
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.add_tool(TaurusModelChooserTool, singleModel=True)
-        self.setModifiableByUser(True)    
+        self.setModifiableByUser(True)
+    
+    def setRGBmode(self,enable):
+        self._rgbmode = enable
+        
+    def getRGBmode(self):
+        return self._rgbmode
+    
+    def resetRGBmode(self):
+        self.setRGBmode(False)
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -404,7 +414,10 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         plot = self.get_plot()
         if self.imgItem is not None:
             plot.del_item(self.imgItem)
-        self.imgItem = make.image(taurusmodel=model)
+        if self.rgbmode:
+            self.imgItem = make.rgbimage(taurusmodel=model)
+        else:
+            self.imgItem = make.image(taurusmodel=model)
         plot.add_item(self.imgItem)
         self.imgItem.set_readonly(not self.isModifiableByUser())
         self.connect(self.imgItem.getSignaller(), Qt.SIGNAL("dataChanged"), self.update_cross_sections) #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
@@ -433,6 +446,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         return ret
     
     model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
+    rgbmode = Qt.pyqtProperty("bool", getRGBmode, setRGBmode, resetRGBmode)
     
     
     
@@ -553,7 +567,7 @@ def taurusImageDlgMain():
         
 
 if __name__ == "__main__":
-    taurusCurveDlgMain()
+#    taurusCurveDlgMain()
 #    taurusTrendDlgMain()
-#    taurusImageDlgMain()    
+    taurusImageDlgMain()    
     
