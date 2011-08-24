@@ -6,6 +6,11 @@
 import time
 from macro import *
 
+intern_nb_cs = [0,6,4,4,4,4,4,8,3,5,4,3,3,3,4]
+
+
+shutter_names = [[""],["ABS0", "BS0", "BS1", "BS2", "BS3", "BS4"],["ABS0",  "BS0", "BSA1", "BSB1"],["ABS0", "BS0", "BS1", "BS2"],["ABS0",  "BS0", "BSA1", "BSB1"],["ABS0", "BS0", "BS1", "BS2"],["ABS0", "BS0", "BS1", "BS2"],["ABS0", "BS0", "BSA1", "BSA2", "BSA3", "BSA4", "BSA5", "BSB1"],["ABS0", "BS0", "BS1"],["ABS0", "BS0", "BS1", "BS2", "BS3"],["ABS0", "BS0", "BS1", "BS2"],["ABS0", "BS0", "BS1"],["ABS0", "BS0", "BS1"],["ABS0", "BS0", "BS1"],["ABS0", "BS0", "BS1", "BS2"]]
+
 class _shutter:
     """Internal class used as a base class for the shutter macros"""
 
@@ -20,11 +25,12 @@ class _shutter:
         
         self.nb_bs = self.shutter.get_property(['Nb_bs'])
 
-        
+        self.beamline = self.shutter.get_property(['Beamline'])
+
         self.prepared = True
 
 class shutter_status(Macro, _shutter):
-    """Returns information about the current status of the shutter.""" 
+    """Returns information about the current status of the shutter. 0 open, 3 closed""" 
 
     def prepare(self):
         _shutter.prepare(self)
@@ -33,33 +39,12 @@ class shutter_status(Macro, _shutter):
         if not self.prepared:
             return
         
-        for i in range(0,self.nb_bs):
-            angle_device = self.getDevice(self.angle_device_name[angle])
-            if i == 0:
-                shutter_name = Abs0
-                str_status = self.shutter.StringStateAbs0
-            elif i == 1:
-                shutter_name = BS0
-                str_status = self.shutter.StringStateBS0
-            elif i == 2:
-                shutter_name = BS1
-                str_status = self.shutter.StringStateBS1
-            elif i == 3:
-                shutter_name = BS2
-                str_status = self.shutter.StringStateBS2
-            elif i == 4:
-                shutter_name = BS3
-                str_status = self.shutter.StringStateBS3
-            elif i == 5:
-                shutter_name = BS4
-                str_status = self.shutter.StringStateBS4
-            elif i == 6:
-                shutter_name = BS5
-                str_status = self.shutter.StringStateBS5
-                
-            self.output("%s:  %s " % (shutter_name,str_status))
-            
-        self.output("General State:  %s" % (self.shutter.StringGeneralStateBL))
+        for i in range(0,self.intern_nb_cs[self.beamline]):
+            shutter_name = shutter_names[self.beamline][i]
+            attr_to_read = shutter_names[self.beamline][i] + "OffenDisplayState"
+            status = self.shutter.read_attribute(attr_to_read).value
+            self.output("%s:  %d " % (shutter_name,status))
+ 
 
 class shutter_open(Macro, _shutter):
     """Open shutter. Without arguments open all shutters in the beamline.
