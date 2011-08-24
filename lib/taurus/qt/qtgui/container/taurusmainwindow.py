@@ -370,9 +370,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         #To be extra-safe, restore the state of the window and dockwidgets again (this or the previous one may not be needed)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
-        self.restoreState(settings.value("MainWindow/State").toByteArray()) 
         for d in sorted(dockwidgets):
             r = self.restoreDockWidget(d)
+        self.restoreState(settings.value("MainWindow/State").toByteArray()) 
         if group is not None: 
             settings.endGroup()
         self.info('MainWindow settings restored')
