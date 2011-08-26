@@ -785,14 +785,12 @@ class TaurusGui(TaurusMainWindow):
             self.jorgsBar.addWidget(self.__monitor)
             self.registerConfigDelegate(self.__monitor, 'monitor')
         
-        #read QSettings 
-        self.loadSettings()
-        #If no valid ini file is found in the standard locations, try with a fallback ini file (aka "factory" settings)
-        if self.getQSettings().allKeys().isEmpty(): 
-            #open the fallback file. By default, it is called "default.ini" and resides in the configuration dir
-            INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
-            iniFileName = os.path.join(self._confDirectory, INIFILE) #if a relative name is given, the conf dir is used as the root path
-            self.importSettingsFile(iniFileName)
+        #get the "factory settings" filename. By default, it is called "default.ini" and resides in the configuration dir
+        INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
+        iniFileName = os.path.join(self._confDirectory, INIFILE) #if a relative name is given, the conf dir is used as the root path
+        
+        #read the settings (or the factory settings if the regular file is not found)
+        self.loadSettings(factorySettingsFileName=iniFileName)
             
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)

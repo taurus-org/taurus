@@ -32,6 +32,7 @@ __all__ = ["TaurusMainWindow"]
 __docformat__ = 'restructuredtext'
 
 from PyQt4 import Qt
+import os, sys
 
 from taurusbasecontainer import TaurusBaseContainer
 
@@ -336,7 +337,19 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         #self.__settings = Qt.QSettings() #this uses QCoreApplication.applicationName() and QCoreApplication.organizationName()
         #self.__settings.setDefaultFormat(Qt.QSettings.IniFormat)
             
-    def loadSettings(self, settings=None, group=None, ignoreGeometry=False):
+    def getFactorySettingsFileName(self):
+        '''returns the file name of the "factory settings" (the ini file with default settings).
+        The default implementation returns "<path>/<appname>.ini", where <path>
+        is the path of the module where the main window class is defined and
+        <appname> is the application name (as obtained from QApplication).
+        
+        :return: (str) the absolute file name.
+        '''
+        root,tail = os.path.split(os.path.abspath(sys.modules[self.__module__].__file__))
+        basename = "%s.ini"%str(Qt.qApp.applicationName())
+        return os.path.join(root,basename)
+    
+    def loadSettings(self, settings=None, group=None, ignoreGeometry=False, factorySettingsFileName=None):
         '''restores the application settings previously saved with :meth:`saveSettings`.
         
         .. note:: This method should be called explicitly from derived classes after all
@@ -347,10 +360,23 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                          be used
         :param group: (str) a prefix that will be added to the keys to be
                        loaded (no prefix by default)
-        :param ignoreGeometry: (str) if True, the geometry of the MainWindow
+        :param ignoreGeometry: (bool) if True, the geometry of the MainWindow
                                won't be restored
+        :param factorySettingsFileName: (str) file name of a ini file containing the default
+                                        settings to be used as a fallback in
+                                        case the settings file is not found
+                                        (e.g., the first time the application is
+                                        launched after installation)
         '''
-        if settings is None: settings = self.getQSettings()
+        if settings is None: 
+            settings = self.getQSettings()
+            if settings.allKeys().isEmpty():
+                fname = factorySettingsFileName or self.getFactorySettingsFileName()
+                if os.path.exists(fname):
+                    self.info('Importing factory settings from "%s"'%fname)
+                    self.importSettingsFile(fname)
+                return
+                
         #hide all current dockwidgets (so that they are shown only if they are present in the settings)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
         for d in dockwidgets:
