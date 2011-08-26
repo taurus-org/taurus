@@ -101,6 +101,11 @@
         </item>
         <item>
          <property name="text" >
+          <string>for all datasets</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
           <string>for datasets of rank 1 or more</string>
          </property>
         </item>
@@ -112,11 +117,6 @@
         <item>
          <property name="text" >
           <string>for datasets of rank 3 or more</string>
-         </property>
-        </item>
-        <item>
-         <property name="text" >
-          <string>for all datasets</string>
          </property>
         </item>
        </widget>
@@ -135,15 +135,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MntGrpChannelEditor</class>
-   <extends>QMainWindow</extends>
-   <header>taurus.qt.qtgui.extra_sardana</header>
-  </customwidget>
-  <customwidget>
    <class>TaurusGroupBox</class>
    <extends>QGroupBox</extends>
    <header>taurus.qt.qtgui.container</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MntGrpChannelEditor</class>
+   <extends>QMainWindow</extends>
+   <header>taurus.qt.qtgui.extra_sardana</header>
   </customwidget>
  </customwidgets>
  <resources/>

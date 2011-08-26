@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpTO3vvY.ui'
+# Form implementation generated from reading ui file '/tmp/tmpf8jNJv.ui'
 #
-# Created: Thu Aug 18 18:25:20 2011
+# Created: Tue Aug 23 12:54:43 2011
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -83,10 +83,10 @@ class Ui_ExpDescriptionEditor(object):
         self.label_2.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Path", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Data compression", None, QtGui.QApplication.UnicodeUTF8))
         self.compressionCB.setItemText(0, QtGui.QApplication.translate("ExpDescriptionEditor", "nowhere", None, QtGui.QApplication.UnicodeUTF8))
-        self.compressionCB.setItemText(1, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 1 or more", None, QtGui.QApplication.UnicodeUTF8))
-        self.compressionCB.setItemText(2, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 2 or more", None, QtGui.QApplication.UnicodeUTF8))
-        self.compressionCB.setItemText(3, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 3 or more", None, QtGui.QApplication.UnicodeUTF8))
-        self.compressionCB.setItemText(4, QtGui.QApplication.translate("ExpDescriptionEditor", "for all datasets", None, QtGui.QApplication.UnicodeUTF8))
+        self.compressionCB.setItemText(1, QtGui.QApplication.translate("ExpDescriptionEditor", "for all datasets", None, QtGui.QApplication.UnicodeUTF8))
+        self.compressionCB.setItemText(2, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 1 or more", None, QtGui.QApplication.UnicodeUTF8))
+        self.compressionCB.setItemText(3, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 2 or more", None, QtGui.QApplication.UnicodeUTF8))
+        self.compressionCB.setItemText(4, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 3 or more", None, QtGui.QApplication.UnicodeUTF8))
 
 from taurus.qt.qtgui.container import TaurusGroupBox
 from taurus.qt.qtgui.extra_sardana import MntGrpChannelEditor
