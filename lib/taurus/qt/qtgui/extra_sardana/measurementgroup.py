@@ -65,7 +65,7 @@ from taurus.qt.qtgui.table import TaurusBaseTableWidget
 #                    - 'enabled' : True/False (default is True)
 #                    any hints:
 #                    - 'output' : True/False (default is True)
-#                    - 'plot_type' : 'No'/'Curve'/'Image' (default is 'No')
+#                    - 'plot_type' : 'No'/'Spectrum'/'Image' (default is 'No')
 #                    - 'plot_axes' : list<str> 'where str is channel name/'step#/'index#' (default is [])
 #                    - 'label' : prefered label (default is channel name)
 #                    - 'scale' : <float, float> with min/max (defaults to channel
@@ -91,7 +91,7 @@ def createChannelDict(name, index=None, **kwargs):
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
     if 'plot_axes' not in ret: 
-        default_axes = {'No':'', 'Curve':'<idx>', 'Image':'<idx>:<idx>'}
+        default_axes = {'No':'', 'Spectrum':'<idx>', 'Image':'<idx>:<idx>'}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     return ret
 
@@ -142,7 +142,7 @@ DUMMY_EXP_CONF = {'ScanDir':'/tmp/scandir',
 
 ChannelView = Enumeration("ChannelView", ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer", "Monitor", "Trigger", "Conditioning", "Normalization","NXPath","Unknown"))
 
-PlotType = Enumeration("PlotType", ("No", "Curve", "Image"))
+PlotType = Enumeration("PlotType", ("No", "Spectrum", "Image"))
 Normalization = Enumeration("Normalization", ("No", "Avg", "Integ"))
 
                        
@@ -512,7 +512,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
         elif taurus_role == ChannelView.PlotAxes:
             item = index.internalPointer()
             ptype = PlotType[item.itemData()[1]['plot_type']]
-            if ptype == PlotType.Curve:
+            if ptype == PlotType.Spectrum:
                 n=1
             elif ptype == PlotType.Image:
                 n=2
@@ -549,7 +549,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             selectables = [n for n,d in model.getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
             editor.addItems(selectables)
         elif taurus_role == ChannelView.PlotAxes:
-            selectables = ['<idx>']+[n for n,d in model.getChannelConfigs(model.dataSource())]
+            selectables = ['<idx>','<mov>']+[n for n,d in model.getChannelConfigs(model.dataSource())]
             editor.setChoices(selectables)
             editor.setCurrentChoices(pydata)
         else:
