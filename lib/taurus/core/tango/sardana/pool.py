@@ -938,8 +938,7 @@ class Motor(PoolElement, motion.Moveable):
         state = self.getStateExObj()
         state.lock()
         try:
-            if state.readValue() == Moving:
-                self.command_inout("Abort")
+            self.command_inout("Abort")
             if wait_ready:
                 self.waitReady(timeout=timeout)
         finally:
@@ -1038,8 +1037,7 @@ class PseudoMotor(PoolElement, motion.Moveable):
         state = self.getStateExObj()
         state.lock()
         try:
-            if state.readValue() == Moving:
-                self.command_inout('Abort')
+            self.command_inout('Abort')
             if wait_ready:
                 self.waitReady(timeout=timeout)
         finally:
@@ -1149,8 +1147,7 @@ class MotorGroup(PoolElement, motion.Moveable):
         state = self.getStateExObj()
         state.lock()
         try:
-            if state.readValue() == Moving:
-                self.command_inout('Abort')
+            self.command_inout('Abort')
             if wait_ready:
                 self.waitReady(timeout=timeout)
         finally:
@@ -1372,9 +1369,8 @@ class MeasurementGroup(PoolElement):
         state = self.getStateExObj()
         state.lock()
         try:
-            if state.readValue() == Counting:
-                self.command_inout('Abort')
-                self.waitCount(timeout=timeout)
+            self.command_inout('Abort')
+            self.waitCount(timeout=timeout)
         finally:
             state.unlock()
 
