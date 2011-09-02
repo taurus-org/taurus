@@ -518,8 +518,8 @@ class DummyMotorController(MotorController):
 
     MaxDevice = 1024
     
-    def __init__(self, inst, props):
-        MotorController.__init__(self,inst,props)
+    def __init__(self, inst, props, *args, **kwargs):
+        MotorController.__init__(self, inst, props, *args, **kwargs)
         self.m = self.MaxDevice*[None,]
         self._lowerLS = float("-inf")
         self._upperLS = float("+inf")

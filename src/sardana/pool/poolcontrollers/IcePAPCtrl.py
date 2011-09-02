@@ -97,12 +97,12 @@ class IcepapController(MotorController):
 
     MaxDevice = 128
 
-    def __init__(self,inst,props):
+    def __init__(self, inst, props, *args, **kwargs):
         """ Do the default init plus the icepap connection
         @param inst instance name of the controller
         @param properties of the controller
         """
-        MotorController.__init__(self,inst,props)
+        MotorController.__init__(self, inst, props, *args, **kwargs)
         self.iPAP = EthIcePAP(self.Host, self.Port, self.Timeout)
         # DO NOT CONNECT BY DEFAULT SINCE THIS CAN RAISE A TANGO TIMEOUT EXCEPTION IN THE POOL COMMAND CreateController.
         # self.iPAP.connect()

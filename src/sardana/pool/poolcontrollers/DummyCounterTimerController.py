@@ -27,8 +27,8 @@ class DummyCounterTimerController(CounterTimerController):
     MonitorMode = 2
     CounterMode = 3
 
-    def __init__(self,inst,props):
-        CounterTimerController.__init__(self,inst,props)
+    def __init__(self, inst, props, *args, **kwargs):
+        CounterTimerController.__init__(self, inst, props, *args, **kwargs)
         self.channels = self.MaxDevice*[None,]
         self.reset()
         
