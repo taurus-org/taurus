@@ -32,7 +32,8 @@ __docformat__ = "restructuredtext"
 import weakref
 import sys
 
-from enums import TaurusSWDevState, TaurusEventType
+from enums import TaurusSWDevState, TaurusEventType, LockStatus
+from taurusbasetypes import TaurusLockInfo
 import taurusmodel
 
 DFT_DEVICE_DESCRIPTION = "A device"
@@ -55,7 +56,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         
         self._deviceObj = self._createHWObject()
         self._deviceStateObj = None
-
+        self._lock_info = TaurusLockInfo()
         self._descr = None
         self._deviceSwState = self.decode(TaurusSWDevState.Uninitialized)
         
@@ -132,13 +133,21 @@ class TaurusDevice(taurusmodel.TaurusModel):
         """
         return True
 
+    def getLockInfo(self, cache=False):
+        return self._lock_info
 
-        
+    def lock(self, force=False):
+        pass
+
+    def unlock(self, force=False):
+        pass
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory implementation in sub class
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    
     def _createHWObject(self):
-        raise RuntimeError("TaurusDevice::_createHWObject cannot be called")
+        raise NotImplementedError
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation

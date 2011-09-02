@@ -33,7 +33,7 @@ import time
 import PyTango
 
 import taurus.core
-from taurus.core import TaurusSWDevState
+from taurus.core import TaurusSWDevState, TaurusLockInfo, LockStatus
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
@@ -69,6 +69,45 @@ class TangoDevice(taurus.core.TaurusDevice):
         '''see: :meth:`TaurusDevice.isValid`'''
         return self._deviceObj is not None
 
+    def lock(self, force=False):
+        li = self.getLockInfo()
+        if force:
+            if self.getLockInfo().status == LockInfo.Locked:
+                self.unlock(force=True)
+        return self.getHWObj().lock()
+
+    def unlock(self, force=False):
+        return self.getHWObj().unlock(force)
+    
+    def getLockInfo(self, cache=False):
+        lock_info = self._lock_info
+        if cache and lock_info.status != LockStatus.Unknown:
+            return lock_info
+        try:
+            dev = self.getHWObj()
+            li = PyTango.LockerInfo()
+            locked = dev.get_locker(li)
+            lock_info.id = pid = li.li
+            lock_info.language = li.ll
+            lock_info.host = host = li.locker_host
+            lock_info.klass = li.locker_class
+            msg = "%s " % self.getSimpleName()
+            if locked:
+                if dev.is_locked_by_me():
+                    status = LockStatus.LockedMaster
+                    msg += "is locked by you!"
+                else:
+                    status = LockStatus.Locked
+                    msg += "is locked by PID %s on %s" % (pid, host)
+            else:
+                status = LockStatus.Unlocked
+                msg += "is not locked"
+            lock_info.status = status
+            lock_info.status_msg = msg
+        except:
+            self._lock_info = lock_info = TaurusLockInfo()
+        return lock_info
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Protected implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

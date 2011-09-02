@@ -26,8 +26,10 @@
 a misc collection of basic types
 '''
 
-from enums import AttrQuality
-import time, datetime
+import time
+import datetime
+
+from enums import AttrQuality, LockStatus
 
 class TaurusTimeVal(object):
     def __init__(self):
@@ -109,5 +111,20 @@ class TaurusConfigValue(object):
         self.warning = float('-inf'), float('inf')
         self.disp_level = None
         self.description = None
+    
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
+        
+class TaurusLockInfo(object):
+    
+    LOCK_STATUS_UNKNOWN = 'Lock status unknown'
+    
+    def __init__(self):
+        self.status = LockStatus.Unknown
+        self.status_msg = self.LOCK_STATUS_UNKNOWN
+        self.id = None
+        self.host = None
+        self.klass = None
+
+    def __repr__(self):
+        return self.status_msg

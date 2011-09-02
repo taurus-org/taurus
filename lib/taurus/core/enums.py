@@ -27,8 +27,8 @@
 
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
-           "MatchLevel", "TaurusElementType", "DataFormat", "AttrQuality",
-           "AttrType", "DisplayLevel", "ManagerState"]
+           "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
+           "AttrQuality", "AttrType", "DisplayLevel", "ManagerState"]
 
 __docformat__ = "restructuredtext"
 
@@ -106,10 +106,18 @@ TaurusElementType = util.Enumeration(
     'Database',
 ))
 
+LockStatus = util.Enumeration(
+'LockStatus', (
+    'Unlocked',
+    'Locked',
+    'LockedMaster',
+    'Unknown',
+))
+
 DataFormat = util.Enumeration(
 'DataFormat', (
-    '_0D', 
-    '_1D', 
+    '_0D',
+    '_1D',
     '_2D'
 ))
 
