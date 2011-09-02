@@ -50,6 +50,8 @@ from poolmetacontroller import ControllerLib, ControllerClass
 class ControllerManager(Singleton, Logger):
     """The singleton class responsible for managing controller plug-ins."""
     
+    DEFAULT_CONTROLLER_DIRECTORIES = 'poolcontrollers',
+    
     def __init__(self):
         """Initialization. Nothing to be done here for now."""
         pass
@@ -119,6 +121,13 @@ class ControllerManager(Singleton, Logger):
         p = []
         for item in controller_path:
             p.extend(item.split(":"))
+        
+        # add basic dummy controller directory(ies)
+        pool_dir = os.path.dirname(os.path.abspath(__file__))
+        for ctrl_dir in self.DEFAULT_CONTROLLER_DIRECTORIES:
+            ctrl_dir = os.path.join(pool_dir, ctrl_dir)
+            if not ctrl_dir in p:
+                p.append(ctrl_dir)
         
         self._controller_path = p
         
