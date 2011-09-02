@@ -358,8 +358,9 @@ class Pool(PyTango.Device_4Impl, Logger):
             try:
                 db = util.get_database()
                 data = { "id" : self.pool.get_new_id(),
-                         "ctrl_id" : ctrl.get_id(), "axis" : axis,
-                         "elements" : kwargs['elements'] }
+                         "ctrl_id" : ctrl.get_id(), "axis" : axis, }
+                if elem_type == ElementType.PseudoMotor:
+                    data['elements'] = kwargs['elements']
                 db.put_device_property(device_name, data)
 
                 data = {}
