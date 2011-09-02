@@ -111,6 +111,13 @@ class TaurusMessageBox(Qt.QDialog):
         :type text: str"""
         self._panel.setText(text)
     
+    def getText(self):
+        """Returns the current text of this panel
+        
+        :return: the text for this panel
+        :rtype: str"""
+        return self._panel.getText()
+    
     def setDetailedText(self, text):
         """Sets the detailed text of the dialog
         

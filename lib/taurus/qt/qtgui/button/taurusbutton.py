@@ -26,7 +26,7 @@
 
 """This module provides a taurus QPushButton based widgets"""
 
-__all__ = ["TaurusLauncherButton", "TaurusCommandButton"]
+__all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
 
@@ -34,9 +34,12 @@ from PyQt4 import Qt
 
 import PyTango
 
-import taurus.core
+from taurus.core import TaurusDevice, LockStatus, TaurusLockInfo
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
+from taurus.core.util import Enumeration
+from taurus.qt.qtgui.resource import getIcon
+from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     '''This class provides a button that launches a modeless dialog containing
@@ -381,6 +384,80 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     DangerMessage = Qt.pyqtProperty("QString", TaurusBaseWidget.getDangerMessage, TaurusBaseWidget.setDangerMessage, TaurusBaseWidget.resetDangerMessage)
     
     CustomText = Qt.pyqtProperty("QString", getCustomText, setCustomText, resetCustomText)  
+
+
+class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
+
+    _LOCK_MAP = { LockStatus.Unlocked : ":/lock_unlocked.svg",
+                  LockStatus.Locked   : ":/lock_locked_unpreviledged.svg",
+                  LockStatus.LockedMaster : ":/lock_locked.svg",
+                  LockStatus.Unknown: ":/lock_unknown.svg" }
+
+    def __init__(self, parent = None, designMode = False):
+        self._lock_info = TaurusLockInfo()
+        name = self.__class__.__name__
+        self.call__init__wo_kw(Qt.QPushButton, parent)
+        self.call__init__(TaurusBaseWidget, name, designMode=designMode)
+        self.connect(self, Qt.SIGNAL("toggled(bool)"), self.on_toggle)
+        self.setCheckable(True)
+        self.setAutoTooltip(False)
+        self.update_button()
+        
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return { 
+            'group'     : 'Taurus Buttons',
+            'icon'      : ':/designer/pushbutton.png',
+            'module'    : 'taurus.qt.qtgui.button',
+            'container' : False }
+
+    def getModelClass(self):
+        return TaurusDevice
+    
+    def setModel(self, model):
+        TaurusBaseWidget.setModel(self, model)
+        self.update_button()
+        
+    def get_lock_info(self, cache=False):
+        dev = self.getModelObj()
+        if dev is not None:
+            self._lock_info = dev.getLockInfo(cache=cache)
+        return self._lock_info
+    
+    def update_button(self, lock_info=None):
+        if lock_info is None:
+            lock_info = self.get_lock_info()
+        status = lock_info.status
+        self.setIcon(getIcon(self._LOCK_MAP[status]))
+        self.setDown(status in (LockStatus.Locked, LockStatus.LockedMaster))
+        self.setToolTip(lock_info.status_msg)
+        self.update()
+        return lock_info
+    
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        pass
+    
+    def _on_toggle(self, down):
+        dev = self.getModelObj()
+        if down:
+            dev.lock()
+        else:
+            dev.unlock()
+        self.update_button()
+        
+    def on_toggle(self, down):
+        try:
+            self._on_toggle(down)
+        except:
+            import sys
+            msgbox = TaurusMessageBox(*sys.exc_info())
+            msgbox.setWindowTitle("Error locking device")
+            if self.update_button().status == LockStatus.Locked:
+                msgbox.setText(self._lock_info.status_msg)
+            msgbox.exec_()
+        
+    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, setModel,
+                            TaurusBaseWidget.resetModel)
   
 #if __name__ == "__main__":
 #    import sys
