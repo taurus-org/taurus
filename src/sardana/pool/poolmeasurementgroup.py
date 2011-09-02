@@ -35,7 +35,7 @@ import math
 from pooldefs import *
 from poolevent import EventType
 from poolbase import *
-from poolgroupelement import *
+from poolgroupelement import PoolGroupElement
 from poolacquisition import *
 from sardana import State
 
@@ -101,7 +101,8 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._config = None
         self._config_dirty = True
         PoolGroupElement.__init__(self, **kwargs)
-        self.set_acquisition(PoolCTAcquisition("%s.CTAcquisition" % kwargs.get('name')))
+        acq_name = "%s.CTAcquisition" % self._name
+        self.set_acquisition(PoolCTAcquisition(self.pool, acq_name))
         self.set_configuration(kwargs.get('config'))
     
     def get_type(self):
@@ -110,28 +111,10 @@ class PoolMeasurementGroup(PoolGroupElement):
     def on_element_changed(self, evt_src, evt_type, evt_value):
         name = evt_type.name
         if name == 'state':
-            fault, alarm, on, moving = 0, 0, 0, 0
-            status = []
-            for e in self.get_user_elements():
-                s = e.get_state()
-                if s == State.Moving: moving += 1
-                elif s == State.On: on += 1
-                elif s == State.Fault:
-                    status.append(e.name + " is in FAULT")
-                    fault += 1
-                elif s == State.Alarm:
-                    status.append(e.name + " is in ALARM")
-                    alarm += 1
-            state = State.On
-            if fault:
-                state = State.Fault
-            elif alarm:
-                state = State.Alarm
-            elif moving:
-                state = State.Moving
+            state, status = self._calculate_states()
+            propagate_state = name == 'state'
             self.set_state(state, propagate=2)
-            if status:
-                self.set_status("\n".join(status))
+            self.set_status("\n".join(status))
     
     def get_pool_controllers(self):
         return self.get_acquisition().get_pool_controllers()

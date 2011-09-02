@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This file contains the main pool class"""
+"""This module contains the main pool class"""
 
 __all__ = ["Pool", "get_thread_pool"]
 
@@ -48,6 +48,11 @@ from poolcontrollermanager import ControllerManager
 __thread_pool = None
 
 def get_thread_pool():
+    """Returns the global pool of threads
+    
+    :return: the global pool of threads object
+    :rtype: taurus.core.util.ThreadPool"""
+    
     global __thread_pool
     if __thread_pool is None:
         __thread_pool = ThreadPool(name="PoolTP", Psize=10)
@@ -57,7 +62,11 @@ def get_thread_pool():
 class Pool(PoolContainer, PoolObject):
     """The central pool class."""
     
+    #: Default value representing the number of state reads per position
+    #: read during a motion loop
     Default_MotionLoop_StatesPerPosition = 5
+
+    #: Default value representing the sleep time for each motion loop
     Default_MotionLoop_SleepTime = 0.01
     
     def __init__(self, full_name, name=None):
@@ -72,6 +81,13 @@ class Pool(PoolContainer, PoolObject):
         ControllerManager()
     
     def init_remote_logging(self, host=None, port=None):
+        """Initializes remote logging. 
+        
+        :param host: host name [default: None, meaning use the machine host name
+                     as returned by :func:`socket.getfqdn`].
+        :type host: str
+        :param port: port number [default: None, meaning use
+                     :data:`logging.handlers.DEFAULT_TCP_LOGGING_PORT`"""
         log = logging.getLogger("Controller")
         
         # port 0 means no remote logging
@@ -220,6 +236,7 @@ class Pool(PoolContainer, PoolObject):
         else:
             self.reserve_id(id)
         
+        # For pseudo controllers make sure 'role_ids' is given
         klass = klass_map.get(elem_type, PoolController)
         if elem_type == ElementType.PseudoMotor:
             motor_roles = kwargs['role_ids']

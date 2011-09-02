@@ -60,7 +60,8 @@ class PoolMotor(PoolElement):
         self._velocity = None
         self._base_rate = None
         self._instability_time = None
-        self.set_action_cache(PoolMotion("%s.Motion" % self._name))
+        motion_name = "%s.Motion" % self._name
+        self.set_action_cache(PoolMotion(self.pool, motion_name))
 
     def get_type(self):
         return ElementType.Motor
@@ -444,12 +445,9 @@ class PoolMotor(PoolElement):
         if not self._simulation_mode:
             pool = self.pool
             pos_info = pos, dial, do_backlash, dial_backlash
-            pars = dict(items = {self : pos_info},
-                        motion_sleep_time = pool.motion_loop_sleep_time,
-                        nb_states_per_position = pool.motion_loop_states_per_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
                        "dial_backlash=%f", *pos_info)
-            self.motion.run(**pars)
+            self.motion.run(items = {self : pos_info})
     
     def prepare_to_move(self):
         self._aborted = False

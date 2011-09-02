@@ -63,13 +63,13 @@ class Channel(PoolActionItem):
 
 class PoolCTAcquisition(PoolAction):
     
-    def __init__(self, name="CTAcquisition"):
-        PoolAction.__init__(self, name)
+    def __init__(self, pool, name="CTAcquisition"):
+        PoolAction.__init__(self, pool, name)
     
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
         
-           :param config"""
+           :param: config"""
         integ_time = kwargs.get("integ_time")
         mon_count = kwargs.get("monitor_count")
         if integ_time is None and mon_count is None:
@@ -113,11 +113,11 @@ class PoolCTAcquisition(PoolAction):
             ctrl.LoadOne(axis, master_value)
             ctrl.LoadAll()
 
-        # PreStartAllCT on all controllers
+        # PreStartAll on all controllers
         for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.PreStartAllCT()
+            pool_ctrl.ctrl.PreStartAll()
         
-        # PreStartOneCT & StartOneCT on all elements
+        # PreStartOne & StartOne on all elements
         enabled_channels = []
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
@@ -129,20 +129,20 @@ class PoolCTAcquisition(PoolAction):
                 axis = element.axis
                 channel = Channel(element, info=element_info)
                 if channel.enabled:
-                    ret = ctrl.PreStartOneCT(axis)
+                    ret = ctrl.PreStartOne(axis, master_value)
                     if not ret:
-                        raise Exception("%s.PreStartOneCT(%d) returns False" \
+                        raise Exception("%s.PreStartOne(%d) returns False" \
                                         % (ctrl.name, axis))
-                    ctrl.StartOneCT(axis)
+                    ctrl.StartOne(axis)
                     enabled_channels.append(channel)
         
         # set the state of all elements to  and inform their listeners
         for channel in enabled_channels:
             channel.set_state(State.Moving, propagate=2)
         
-        # StartAllCT on all controllers
+        # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.StartAllCT()
+            pool_ctrl.ctrl.StartAll()
         
         self._channels = enabled_channels
     

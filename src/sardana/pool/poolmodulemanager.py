@@ -26,6 +26,8 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
+__all__ = ["ModuleManager"]
+
 __docformat__ = 'restructuredtext'
 
 import sys
@@ -33,7 +35,7 @@ import os
 import imp
 
 from taurus.core import ManagerState
-from taurus.core.utils import Singleton, Logger, ListEventGenerator
+from taurus.core.util import Singleton, Logger, ListEventGenerator
 
 class ModuleManager(Singleton, Logger):
     

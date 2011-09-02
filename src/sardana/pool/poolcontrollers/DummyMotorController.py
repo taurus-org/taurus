@@ -25,7 +25,7 @@ import time
 from math import pow, sqrt
 
 from sardana import State
-from sardana.pool import MotorController
+from sardana.pool.controller import MotorController
 
 
 class Motion:

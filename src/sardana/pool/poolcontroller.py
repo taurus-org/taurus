@@ -386,7 +386,7 @@ class PoolController(PoolBaseController):
     def set_axis_par(self, axis, name, value):
         #return self.ctrl.setCtrlPar(unit, axis, name, value)
         return self.ctrl.SetAxisPar(axis, name, value)
-
+    
     @check_ctrl
     def get_ctrl_par(self, axis, name):
         #return self.ctrl.getCtrlPar(unit, axis, name, value)
@@ -398,7 +398,7 @@ class PoolController(PoolBaseController):
         return self._ctrl_lock
     
     ctrl_lock = property(fget=get_ctrl_lock)
-
+    
     def _get_free_axis(self):
         ret = {}
         for axis, element in self._element_axis.items():
@@ -408,7 +408,6 @@ class PoolController(PoolBaseController):
         return ret
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
-    
     
     @check_ctrl
     def raw_read_axis_states(self, axises=None, ctrl_states=None):
@@ -563,6 +562,26 @@ class PoolPseudoMotorController(PoolController):
         name, klass, props, args, kwargs = pars
         kwargs['motor_ids'] = tuple(self._motor_ids)
         return pars
+    
+    @check_ctrl
+    def calc_all_pseudo(self, physical_pos, curr_pseudo_pos):
+        ctrl = self.ctrl
+        return ctrl.CalcAllPseudo(physical_pos, curr_pseudo_pos)
+
+    @check_ctrl
+    def calc_all_physical(self, pseudo_pos, curr_physical_pos):
+        ctrl = self.ctrl
+        return ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos)
+    
+    @check_ctrl
+    def calc_pseudo(self, axis, physical_pos, curr_pseudo_pos):
+        ctrl = self.ctrl
+        return ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos)
+    
+    @check_ctrl
+    def calc_physical(self, axis, pseudo_pos, curr_physical_pos):
+        ctrl = self.ctrl
+        return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos)
 
 
 class PoolGenericTangoController(PoolBaseController):

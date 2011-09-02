@@ -37,7 +37,7 @@ from sardana import State
 from pooldefs import *
 from poolevent import EventType
 from poolbase import *
-from poolgroupelement import *
+from poolgroupelement import PoolGroupElement
 from poolmotion import *
 from poolmotor import *
 from poolmoveable import *
@@ -66,45 +66,16 @@ class PoolMotorGroup(PoolGroupElement):
         self._state_statistics = {}
         self._physical_elements = []
         PoolGroupElement.__init__(self, **kwargs)
-        self.set_action_cache(PoolMotion("%s.Motion" % self._name))
+        motion_name = "%s.Motion" % self._name
+        self.set_action_cache(PoolMotion(self.pool, motion_name))
     
     def get_type(self):
         return ElementType.MotorGroup
     
-    def _update_states(self):
-        user_elements = self.get_user_elements()
-        fault, alarm, on, moving = 0, 0, 0, 0
-        status = []
-        for elem in user_elements:
-            s = elem.inspect_state()
-            if s == State.Moving:
-                moving += 1
-                status.append(elem.name + " is in MOVING")
-            elif s == State.On: 
-                on += 1
-                status.append(elem.name + " is in ON")
-            elif s == State.Fault:
-                fault += 1
-                status.append(elem.name + " is in FAULT")
-            elif s == State.Alarm:
-                alarm += 1
-                status.append(elem.name + " is in ALARM")
-        state = State.On
-        if fault:
-            state = State.Fault
-        elif alarm:
-            state = State.Alarm
-        elif moving:
-            state = State.Moving
-        self._state_statistics = { State.On : on, State.Fault : fault,
-                                   State.Alarm : alarm, State.Moving : moving }
-        return state, status
-    
     def on_element_changed(self, evt_src, evt_type, evt_value):
         name = evt_type.name
-        state = self._state
         if name in ('state', 'position'):
-            state, status = self._update_states()
+            state, status = self._calculate_states()
             propagate_state = name == 'state'
             self.set_state(state, propagate=propagate_state)
             self.set_status("\n".join(status), propagate=propagate_state)

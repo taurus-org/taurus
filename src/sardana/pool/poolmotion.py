@@ -37,6 +37,7 @@ from taurus.core.util import Enumeration, DebugIt
 from sardana import State
 from poolaction import PoolAction, PoolActionItem
 
+#: enumeration representing possible motion states
 MotionState = Enumeration("MotionSate", ( \
     "Stopped",
 #    "StoppedOnError",
@@ -50,16 +51,17 @@ MS = MotionState
 MovingStates = MS.Moving, MS.MovingBacklash, MS.MovingInstability
 StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
 
-MotionAction = Enumeration("MotionAction", ( \
-    "StartMotion",
-    "Finish",
-    "Abort",
-    "NoAction",
-    "Invalid") )
+#MotionAction = Enumeration("MotionAction", ( \
+#    "StartMotion",
+#    "Finish",
+#    "Abort",
+#    "NoAction",
+#    "Invalid") )
 
-MA = MotionAction
+#MA = MotionAction
 
 class PoolMotionItem(PoolActionItem):
+    """An item involved in the motion. Maps directly to a motor object"""
     
     def __init__(self, moveable, position, dial_position, do_backlash,
                  backlash, instability_time=None):
@@ -161,19 +163,25 @@ class PoolMotionItem(PoolActionItem):
     
     
 class PoolMotion(PoolAction):
+    """This class manages motion actions"""
     
-    def __init__(self, name="GlobalMotion"):
-        PoolAction.__init__(self, name)
+    def __init__(self, pool, name="GlobalMotion"):
+        PoolAction.__init__(self, pool, name)
 
     def start_action(self, *args, **kwargs):
         """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
         
         items = kwargs.pop("items")
         
+        pool = self._pool
+        
         # prepare data structures
         self._aborted = False
-        self._motion_sleep_time = kwargs.pop("motion_sleep_time")
-        self._nb_states_per_position = kwargs.pop("nb_states_per_position")
+        self._motion_sleep_time = kwargs.pop("motion_sleep_time",
+                                             pool.motion_loop_sleep_time)
+        self._nb_states_per_position = \
+            kwargs.pop("nb_states_per_position",
+                       pool.motion_loop_states_per_position)
         
         motion_info = {}
         for moveable, motion_data in items.items():

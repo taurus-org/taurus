@@ -134,8 +134,9 @@ class PoolAction(Logger):
     """A generic class to handle any type of operation (like motion or
     acquisition)"""
     
-    def __init__(self, name="GlobalAction"):
+    def __init__(self, pool, name="GlobalAction"):
         Logger.__init__(self, name)
+        self._pool = pool
         self._aborted = False
         self._elements = []
         self._pool_ctrls = {}

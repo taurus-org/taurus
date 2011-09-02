@@ -245,19 +245,40 @@ class Pool(PyTango.Device_4Impl, Logger):
         # for pseudo motor check that motors are given
         if elem_type == ElementType.PseudoMotor:
             klass_roles = ctrl_class.motor_roles
-            motor_roles = kwargs.get('roles')
-            if motor_roles is None:
+            klass_pseudo_roles = ctrl_class.pseudo_motor_roles
+            roles = kwargs.get('roles')
+            if roles is None:
                 raise Exception("Pseudo motor controller class %s needs motors "
-                                "for roles: %s" % (class_name, ", ".join(klass_roles)))
+                                "for roles: %s and pseudo roles: %s"
+                                % (class_name, ", ".join(klass_roles),
+                                   ", ".join(klass_pseudo_roles)))
             motor_ids = []
             for klass_role in klass_roles:
-                if not klass_role in motor_roles:
+                if not klass_role in roles:
                     raise Exception("Pseudo motor controller class %s needs motor"
                                     "for role %s" % (class_name, klass_role))
-                motor_name = motor_roles[klass_role]
+                motor_name = roles[klass_role]
                 motor_ids.extend(self._get_moveable_ids(motor_name))
-            properties['role_ids'] = motor_ids
-        
+            properties['motor_role_ids'] = motor_ids
+            
+            pseudo_motor_infos = {}
+            pseudo_motor_ids = []
+            for i, klass_pseudo_role in enumerate(klass_pseudo_roles):
+                if not klass_pseudo_role in roles:
+                    raise Exception("Pseudo motor controller class %s needs "
+                                    "pseudo motor name for role %s"
+                                    % (class_name, klass_pseudo_role))
+                pm_id = self.pool.get_new_id()
+                pm_name = roles[klass_pseudo_role]
+                info = dict(id=pm_id, name=pm_name, ctrl_name=name, axis=i+1,
+                            type='PseudoMotor', elements=motor_ids)
+                if pm_name.count(',') > 0:
+                    n, fn = map(str.strip, pm_name.split(',', 1))
+                    info['name'], info['full_name'] = n, fn
+                pseudo_motor_infos[klass_pseudo_role] = info
+                pseudo_motor_ids.append(pm_id)
+            properties['pseudo_motor_role_ids'] = pseudo_motor_ids
+            
         properties['type'] = type_str
         properties['library'] = lib
         properties['klass'] = class_name
@@ -273,7 +294,13 @@ class Pool(PyTango.Device_4Impl, Logger):
                 raise
 
         util.create_device('Controller', full_name, name, cb=create_controller_cb)
-    
+        
+        # for pseudo motor controller also create pseudo motors automatically
+        if elem_type == ElementType.PseudoMotor:
+            for pseudo_motor_info in pseudo_motor_infos.values():
+                print "Creating pseudo",pseudo_motor_info
+                self._create_single_element(pseudo_motor_info)
+            
     #@PyTango.DebugIt()
     def CreateInstrument(self, argin):
         i = self.pool.create_instrument(*argin)
@@ -286,10 +313,11 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     #@PyTango.DebugIt()
     def CreateElement(self, argin):
-        kwargs = self._format_CreateElement_arguments(argin)
-        # TODO: Support in future sequence of elements
-        kwargs = kwargs[0]
-        
+        kwargs_seq = self._format_CreateElement_arguments(argin)
+        for kwargs in kwargs_seq:
+            self._create_single_element(kwargs)
+    
+    def _create_single_element(self, kwargs):
         elem_type_str = kwargs['type']
         ctrl_name = kwargs['ctrl_name']
         axis = kwargs['axis']
@@ -327,21 +355,27 @@ class Pool(PyTango.Device_4Impl, Logger):
         util = PyTango.Util.instance()
 
         def create_element_cb(device_name):
-            db = util.get_database()
-            data = { "id" : self.pool.get_new_id(),
-                     "ctrl_id" : ctrl.get_id(), "axis" : axis }
-            db.put_device_property(device_name, data)
+            try:
+                db = util.get_database()
+                data = { "id" : self.pool.get_new_id(),
+                         "ctrl_id" : ctrl.get_id(), "axis" : axis,
+                         "elements" : kwargs['elements'] }
+                db.put_device_property(device_name, data)
 
-            data = {}
-            if elem_type == ElementType.Motor:
-                data["position"] = { "abs_change" : "1.0"}
-                data["dialposition"] = { "abs_change" : "1.0"}
-                data["limit_switches"] = { "abs_change" : "1.0"}
-            elif elem_type == ElementType.CTExpChannel:
-                data["value"] = { "abs_change" : "1.0"}
-            
-            db.put_device_attribute_property(device_name, data)
-            
+                data = {}
+                if elem_type == ElementType.Motor:
+                    data["position"] = { "abs_change" : "1.0"}
+                    data["dialposition"] = { "abs_change" : "1.0"}
+                    data["limit_switches"] = { "abs_change" : "1.0"}
+                elif elem_type == ElementType.CTExpChannel:
+                    data["value"] = { "abs_change" : "1.0"}
+                elif elem_type == ElementType.PseudoMotor:
+                    data["position"] = { "abs_change" : "1.0"}
+                db.put_device_attribute_property(device_name, data)
+            except Exception,e:
+                import traceback
+                traceback.print_exc()
+                
         util.create_device(elem_type_str, full_name, name, cb=create_element_cb)
 
     #@PyTango.DebugIt()
@@ -660,6 +694,14 @@ CREATE_CTRL_DESC = \
     * a sequence of strings: <type>, <library>, <class>, <name>
       [, <role_name>'='<element name>] [, <property name>, <property value>]"""
 
+CREATE_ELEMENT_DESC = \
+"""Must give either:
+
+    * A JSON encoded dict as first string with:
+        * mandatory keys: 'type', 'ctrl_name', 'axis', 'name' (values are
+          strings).
+    * a sequence of strings: <type>, <ctrl_name>, <axis>, <name>"""
+
 class PoolClass(PyTango.DeviceClass):
 
     #    Class Properties
@@ -700,10 +742,7 @@ class PoolClass(PyTango.DeviceClass):
             [[PyTango.DevVarStringArray, CREATE_CTRL_DESC],
              [PyTango.DevVoid, ""]],
         'CreateElement':
-            [[PyTango.DevVarStringArray, "Must give either:\n"
-              " * A JSON encoded dict as first string with keys : 'type', "
-              "'ctrl_name', 'axis', 'name';\n"
-              " * a sequence of strings: <type>, <ctrl_name>, <axis>, <name>"],
+            [[PyTango.DevVarStringArray, CREATE_ELEMENT_DESC],
              [PyTango.DevVoid, ""]],
         'CreateInstrument':
             [[PyTango.DevVarStringArray, ""],

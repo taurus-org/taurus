@@ -198,7 +198,7 @@ class Motor(PoolElementDevice):
         attr.set_value(self.motor.get_limit_switches(cache=False))
     
     def DefinePosition(self, argin):
-        pass
+        raise NotImplementedError
     
     def is_DefinePosition_allowed(self):
         if self.get_state() in [PyTango.DevState.FAULT, DevState.MOVING, DevState.UNKNOWN]:
@@ -206,7 +206,7 @@ class Motor(PoolElementDevice):
         return True
     
     def SaveConfig(self):
-        pass
+        raise NotImplementedError
     
     def is_SaveConfig_allowed(self):
         if self.get_state() in [PyTango.DevState.FAULT, DevState.MOVING, DevState.UNKNOWN]:
@@ -214,7 +214,7 @@ class Motor(PoolElementDevice):
         return True
     
     def MoveRelative(self, argin):
-        pass
+        raise NotImplementedError
     
     def is_MoveRelative_allowed(self):
         if self.get_state() in [PyTango.DevState.FAULT, DevState.MOVING, DevState.UNKNOWN]:
@@ -296,5 +296,5 @@ class MotorClass(PoolElementDeviceClass):
 
     def __init__(self, name):
         PoolElementDeviceClass.__init__(self, name)
-        self.set_type(name);
+        self.set_type(name)
 

@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for pool event mechanism"""
 
-__all__ = ["EventGenerator", "EventType"]
+__all__ = ["EventGenerator", "EventReceiver", "EventType"]
 
 __docformat__ = 'restructuredtext'
 
@@ -117,6 +117,25 @@ class EventGenerator(object):
                 real_listener.event_received(self, event_type, event_value)
             elif operator.isCallable(real_listener):
                 real_listener(self, event_type, event_value)
+
+
+class EventReceiver(object):
+    """A simple class that implements usefull features for a class which is 
+    an event receiver. The actual class may inherit from this EventReceiver class
+    and may choose to use just a part of the API provided by this class, the 
+    whole API or none of the API."""
+    
+    def __init__(self):
+        self._events_blocked = False
+    
+    def block_events(self):
+        self._events_blocked = True
+        
+    def unblock_events(self):
+        self._events_blocked = False
+    
+    def are_events_blocked(self):
+        return self._events_blocked
 
 
 class EventType(object):

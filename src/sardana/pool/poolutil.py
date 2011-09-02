@@ -29,7 +29,6 @@ __all__ = ["PoolUtil"]
 
 __docformat__ = 'restructuredtext'
 
-from PyTango import DeviceProxy, Database
 from taurus.core.util import CaselessDict
 
 class _PoolUtil(object):
@@ -45,14 +44,13 @@ class _PoolUtil(object):
             self._ctrl_proxies[ctrl_name] = ctrl_devs = CaselessDict()
         dev = ctrl_devs.get(device_name)
         if dev is None:
-            ctrl_devs[device_name] = dev = DeviceProxy(device_name)
+            import PyTango
+            ctrl_devs[device_name] = dev = PyTango.DeviceProxy(device_name)
         return dev
     
     get_motor = get_phy_motor = get_pseudo_motor = get_motor_group = \
         get_exp_channel = get_ct_channel = get_zerod_channel = get_oned_channel = \
         get_twod_channel = get_pseudo_counter_channel = get_measurement_group = \
         get_com_channel = get_ioregister = get_device
-        
-
 
 PoolUtil = _PoolUtil()

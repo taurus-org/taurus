@@ -34,25 +34,28 @@ import weakref
 
 from taurus.core.util import Logger
 
-from poolevent import EventGenerator
+from poolevent import EventGenerator, EventReceiver
 
 
-class PoolBaseObject(EventGenerator, Logger):
+class PoolBaseObject(EventGenerator, EventReceiver, Logger):
     """The Pool most abstract object. It contains only two members:
+    
        - _pool : a weak reference to the pool where it belongs
        - _name : the name"""
        
     def __init__(self, **kwargs):
         EventGenerator.__init__(self)
+        EventReceiver.__init__(self)
         self._name = intern(kwargs['name'])
         Logger.__init__(self, self._name)
         self._pool = weakref.ref(kwargs['pool'])
     
     def get_pool(self):
-        """Return the :class:`sardana.pool.Pool` which *owns* this pool object.
+        """Return the :class:`sardana.pool.pool.Pool` which *owns* this pool
+        object.
         
         :return: the pool which *owns* this pool object.
-        :rtype: :class:`sardana.pool.Pool`"""
+        :rtype: :class:`sardana.pool.pool.Pool`"""
         return self._pool()
     
     def get_name(self):
@@ -68,18 +71,18 @@ class PoolBaseObject(EventGenerator, Logger):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self._name)
 
-    pool = property(get_pool)
-    name = property(get_name)
+    pool = property(get_pool, doc="reference to the :class:`sardana.pool.pool.Pool`")
+    name = property(get_name, doc="object name")
     
 
 class PoolObject(PoolBaseObject):
     """A Pool object that besides the name and reference to the pool has:
        
-           - _id : the internal identifier
-           - _full_name : the name (usually a tango device name, but can be 
-             anything else.)
-           - _user_full_name : "[alias] '('[full_name]')' [class-of_device] \
-             [extra_info]" """
+       - _id : the internal identifier
+       - _full_name : the name (usually a tango device name, but can be 
+         anything else.)
+       - _user_full_name : "[alias] '('[full_name]')' [class-of_device] \
+         [extra_info]" """
        
     def __init__(self, **kwargs):
         self._full_name = kwargs.pop('full_name')
@@ -108,5 +111,5 @@ class PoolObject(PoolBaseObject):
         :rtype: :obj:'"""
         raise NotImplementedError
 
-    full_name = property(get_full_name)
-    id = property(get_id)
+    full_name = property(get_full_name, doc="object full name")
+    id = property(get_id, doc="object ID")

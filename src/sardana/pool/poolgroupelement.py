@@ -26,27 +26,60 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolGroupElement" ]
+__all__ = [ "PoolBaseGroup", "PoolGroupElement" ]
 
 __docformat__ = 'restructuredtext'
 
-from pooldefs import *
+from sardana import State
+from pooldefs import ElementType
 from poolelement import PoolBaseElement
 from poolcontainer import PoolContainer
 
-class PoolGroupElement(PoolContainer, PoolBaseElement):
+
+class PoolBaseGroup(PoolContainer):
 
     def __init__(self, **kwargs):
         user_elem_ids = kwargs.pop('user_elements')
         PoolContainer.__init__(self)
-        PoolBaseElement.__init__(self, **kwargs)
         
         self._user_elements = []
 
-        pool = self.pool
+        pool = self._get_pool()
         for id in user_elem_ids:
             self.add_user_element(pool.get_element(id=id))
 
+    def _get_pool(self):
+        raise NotImplementedError
+
+    def _calculate_states(self):
+        user_elements = self.get_user_elements()
+        fault, alarm, on, moving = [], [], [], []
+        status = []
+        for elem in user_elements:
+            s = elem.inspect_state()
+            if s == State.Moving:
+                moving.append(elem)
+                status.append(elem.name + " is in MOVING")
+            elif s == State.On: 
+                on.append(elem)
+                status.append(elem.name + " is in ON")
+            elif s == State.Fault:
+                fault.append(elem)
+                status.append(elem.name + " is in FAULT")
+            elif s == State.Alarm:
+                alarm.append(elem)
+                status.append(elem.name + " is in ALARM")
+        state = State.On
+        if fault:
+            state = State.Fault
+        elif alarm:
+            state = State.Alarm
+        elif moving:
+            state = State.Moving
+        self._state_statistics = { State.On : on, State.Fault : fault,
+                                   State.Alarm : alarm, State.Moving : moving }
+        return state, status
+    
     def on_element_changed(self, evt_src, evt_type, evt_value):
         pass
 
@@ -86,3 +119,14 @@ class PoolGroupElement(PoolContainer, PoolBaseElement):
         element.remove_listener(self.on_element_changed)
         del self._user_elements[idx]
         self.remove_element(element)
+
+
+class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
+    
+    def __init__(self, **kwargs):
+        user_elements = kwargs.pop('user_elements')
+        PoolBaseElement.__init__(self, **kwargs)
+        PoolBaseGroup.__init__(self, user_elements=user_elements)
+    
+    def _get_pool(self):
+        return self.pool

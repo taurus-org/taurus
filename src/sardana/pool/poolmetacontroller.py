@@ -53,6 +53,7 @@ from poolinstrument import PoolInstrument
 from controller import Controller, MotorController, CounterTimerController, \
     PseudoMotorController
 
+#: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
     \"\"\"@controller_name@ description.\"\"\"
     
@@ -60,20 +61,29 @@ CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
 
 ET = ElementType
 
+#: a dictionary dict<:data:`~sardana.pool.pooldefs.ElementType`, class>
+#: mapping element type enumeration with the corresponding controller pool class
+#: (:class:`~sardana.pool.poolcontroller.PoolController` or sub-class of it).
 CTRL_TYPE_MAP = {
     ET.Motor        : PoolController,
     ET.CTExpChannel : PoolController,
     ET.PseudoMotor  : PoolPseudoMotorController,
 }
 
-# key - element type
-# value - type string representation, family, internal pool class, automatic full name, controller class
+#: dictionary dict<:data:`~sardana.pool.pooldefs.ElementType`, :class:`tuple`> 
+#: where tuple is a sequence:
+#: 
+#: #. type string representation
+#: #. family
+#: #. internal pool class
+#: #. automatic full name
+#: #. controller class
 TYPE_MAP = {
     ET.Ctrl             : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{klass}/{name}",  Controller),
     ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                None),
     ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",   MotorController),
     ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
-    ET.PseudoMotor      : ("PseudoMotor",      "PseudoMotor",      PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
+    ET.PseudoMotor      : ("PseudoMotor",      "Motor",            PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
     ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
     ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),
 }
@@ -84,13 +94,15 @@ class TypeData(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
+#: dictionary
+#: dict<:data:`~sardana.pool.pooldefs.ElementType`, :class:`~sardana.pool.poolmetacontroller.TypeData`>
 TYPE_MAP_OBJ = {}
 for t, d in TYPE_MAP.items():
     o = TypeData(type=t, name=d[0], family=d[1], klass=d[2] ,
                  auto_full_name=d[3], ctrl_klass=d[4])
     TYPE_MAP_OBJ[t] = o
 
-
+#: dictionary dict<data type, :class:`sardana.DataType`>
 DTYPE_MAP = { 'int'            : DataType.Integer,
               'integer'        : DataType.Integer,
               int              : DataType.Integer,
@@ -110,6 +122,7 @@ DTYPE_MAP = { 'int'            : DataType.Integer,
               bool             : DataType.Boolean,
               DataType.Boolean : DataType.Boolean, }
 
+#: dictionary dict<access type, :class:`sardana.DataAccess`>
 DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
                 DataAccess.ReadOnly  : DataAccess.ReadOnly,
                 'readwrite'          : DataAccess.ReadWrite,
@@ -120,6 +133,7 @@ DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
 class ControllerLib(object):
     """Object representing a python module containning controller classes.
        Public members:
+       
            - module - reference to python module
            - f_path - complete (absolute) path and filename
            - f_name - filename (including file extension)
@@ -322,9 +336,11 @@ class DataInfo(object):
 class ControllerClass(object):
     """Object representing a python controller class. 
        Public members:
-           name - class name
-           klass - python class object
-           lib - ControllerLib object representing the module where the controller is.
+       
+           - name - class name
+           - klass - python class object
+           - lib - ControllerLib object representing the module where the
+             controller is.
     """
     
     NoDoc = '<Undocumented controller>'

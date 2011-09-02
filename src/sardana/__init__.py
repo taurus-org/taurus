@@ -24,6 +24,8 @@
 ##
 ##############################################################################
 
+"""This package provides the sardana library"""
+
 import release as __release
 import requirements as __requirements
 

@@ -30,6 +30,7 @@ __docformat__ = 'restructuredtext'
 from .PoolDevice import *
 from .Controller import *
 from .Motor import *
+from .PseudoMotor import *
 from .MotorGroup import *
 from .CTExpChannel import *
 from .MeasurementGroup import *
@@ -40,6 +41,7 @@ def prepare_pool(util):
     util.add_class(ControllerClass, Controller)
     util.add_class(MotorClass, Motor)
     util.add_class(CTExpChannelClass, CTExpChannel)
+    util.add_class(PseudoMotorClass, PseudoMotor)
     util.add_class(MotorGroupClass, MotorGroup)
     util.add_class(MeasurementGroupClass, MeasurementGroup)
 

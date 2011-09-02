@@ -105,8 +105,19 @@ class PoolMonitor(Logger, threading.Thread):
         :type wait: bool
         """
         pool = self._pool
-        pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
-        pool_ctrls = [ ctrl for ctrl in pool_ctrls if ctrl.is_online() ]
+        _pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
+        
+        # get the list of conntrollers.
+        #TODO: in the future pre-calculate the list of controllers instead of
+        # calculating it every time
+        pool_ctrls = []
+        for pool_ctrl in _pool_ctrls:
+            if not pool_ctrl.is_online():
+                continue
+            tps = pool_ctrl.get_ctrl_types()
+            if ElementType.PseudoMotor in tps or ElementType.PseudoCounter in tps:
+                continue
+            pool_ctrls.append(pool_ctrl)
 
         update = self._update_state_info_concurrent
         if serial:

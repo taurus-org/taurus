@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This file contains the basic pool definitions"""
+"""This file contains the basic pool definitions."""
 
 __all__ = ["InvalidId", "InvalidAxis", "ControllerAPI", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
@@ -33,14 +33,17 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Enumeration
 
+#: A constant representing  an invalid ID
 InvalidId = 0
 
+#: A constant representing an invalid axis
 InvalidAxis = 0
 
+#: A constant defining the controller API version currently supported
 ControllerAPI = 1
 
+#: An enumeration describing the all possible element types in the device pool
 ElementType = Enumeration("ElementType", ( \
-    "Undef",
     "Pool",
     "Ctrl",
     "Motor",
@@ -55,23 +58,30 @@ ElementType = Enumeration("ElementType", ( \
     "Constraint",
     "MotorGroup",
     "MeasurementGroup",
-    "Instrument") )
+    "Instrument",
+    "Unknown") )
 
 ET = ElementType
+
+#: a tuple containning all "controllable" element types
 TYPE_ELEMENTS = ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
-    ET.OneDExpChannel, ET.TwoDExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.Communication, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter, ET.Constraint
-    
+
+#: a sequence containing all group element types
 TYPE_GROUP_ELEMENTS = ET.MotorGroup, ET.MeasurementGroup
 
+#: a sequence containing the type of elements which are moveable
 TYPE_MOVEABLE_ELEMENTS = ET.Motor, ET.PseudoMotor, ET.MotorGroup
 
+#: an enumeration describing all possible acquisition trigger types
 AcqTriggerType = Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
     "Gate",     # channel triggered by HW - start and stop by external 
     "Unknown") )
 
+#: an enumeration describing all possible acquisition mode types
 AcqMode = Enumeration("AcqMode", ( \
     "Timer",
     "Monitor",

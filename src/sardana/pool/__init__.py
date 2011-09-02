@@ -28,5 +28,4 @@
 __docformat__ = 'restructuredtext'
 
 from .pooldefs import *
-from .controller import *
 from .poolutil import *

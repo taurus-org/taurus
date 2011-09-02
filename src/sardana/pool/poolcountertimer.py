@@ -41,7 +41,8 @@ class PoolCounterTimer(PoolElement):
         PoolElement.__init__(self, **kwargs)
         self._value = None
         self._wvalue = None
-        self.set_action_cache(PoolCTAcquisition("%s.Acquisition" % self._name))
+        acq_name = "%s.Acquisition" % self._name
+        self.set_action_cache(PoolCTAcquisition(self.pool, name=acq_name))
         self._aborted = False
     
     def get_type(self):

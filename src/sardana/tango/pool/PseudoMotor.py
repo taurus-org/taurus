@@ -25,77 +25,78 @@
 
 """ """
 
-__all__ = ["MotorGroup", "MotorGroupClass"]
+__all__ = ["PseudoMotor", "PseudoMotorClass"]
 
 __docformat__ = 'restructuredtext'
 
 import time
 
 from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
+from PyTango import DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, DevString
+from PyTango import DevVarStringArray
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 
 from taurus.core.util.log import InfoIt, DebugIt
 
-from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
+from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 from sardana.tango.core import to_tango_state
 
-class MotorGroup(PoolGroupDevice):
-    
+class PseudoMotor(PoolElementDevice):
+
     def __init__(self, dclass, name):
-        PoolGroupDevice.__init__(self, dclass, name)
-        MotorGroup.init_device(self)
+        PoolElementDevice.__init__(self, dclass, name)
+        PseudoMotor.init_device(self)
 
     def init(self, name):
-        PoolGroupDevice.init(self, name)
+        PoolElementDevice.init(self, name)
 
     def _is_allowed(self, req_type):
-        return PoolGroupDevice._is_allowed(self, req_type)
-    
-    def get_motor_group(self):
+        return PoolElementDevice._is_allowed(self, req_type)
+
+    def get_pseudo_motor(self):
         return self.element
-    
-    def set_motor_group(self, motor_group):
-        self.element = motor_group
-    
-    motor_group = property(get_motor_group, set_motor_group)
+
+    def set_pseudo_motor(self, pseudo_motor):
+        self.element = pseudo_motor
+
+    pseudo_motor = property(get_pseudo_motor, set_pseudo_motor)
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.motor_group.get_name())
-        self.motor_group = None
+        self.pool.delete_element(self.pseudo_motor.get_name())
+        self.pseudo_motor = None
     
-    @DebugIt()
+    @InfoIt()
     def init_device(self):
-        PoolGroupDevice.init_device(self)
-    
+        PoolElementDevice.init_device(self)
+
         detect_evts = "state", "status", "position"
-        non_detect_evts = "elementlist",
+        non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-
+        
         self.Elements = map(int, self.Elements)
-        if self.motor_group is None:
-            motor_group = self.pool.create_motor_group(name=self.alias, 
-                full_name=self.get_name(), id=self.Id,
-                user_elements=self.Elements)
-            motor_group.add_listener(self.on_motor_group_changed)
-            self.motor_group = motor_group
+        if self.pseudo_motor is None:
+            pseudo_motor = self.pool.create_element(type="PseudoMotor",
+                name=self.alias, full_name=self.get_name(), id=self.Id,
+                axis=self.Axis, ctrl_id=self.Ctrl_id, user_elements=self.Elements)
+            if self.instrument is not None:
+                motor.set_instrument(self.instrument)
+            pseudo_motor.add_listener(self.on_pseudo_motor_changed)
+            self.pseudo_motor = pseudo_motor
         # force a state read to initialize the state attribute
-        #state = self.motor_group.state
-        #self.set_state(to_tango_state(state))
         self.set_state(DevState.ON)
-
-    def on_motor_group_changed(self, event_source, event_type, event_value):
+        
+    def on_pseudo_motor_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name
-        
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
         
         recover = False
-        if event_type.priority:
+        if event_type.priority > 1:
+            self.info("priority event %s", name)
             attr.set_change_event(True, False)
             recover = True
         
@@ -108,44 +109,45 @@ class MotorGroup(PoolGroupDevice):
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
             else:
-                state = to_tango_state(self.motor_group.get_state())
+                state = to_tango_state(self.pseudo_motor.get_state())
                 #state = self.get_state()
                 if name == "position":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING
-                    positions = self._to_motor_positions(event_value)
-                attr.set_value_date_quality(positions, t, quality)
-                self.push_change_event(name, positions, t, quality)
+                self.push_change_event(name, event_value, t, quality)
         finally:
             if recover:
                 attr.set_change_event(True, True)
-    
+
     def always_executed_hook(self):
-        pass 
-        #state = to_tango_state(self.motor_group.get_state(cache=False))
-    
+        #state = to_tango_state(self.pseudo_motor.get_state(cache=False))
+        pass
+
     def read_attr_hardware(self,data):
         pass
     
-    def _to_motor_positions(self, pos):
-        return [ pos[elem] for elem in self.motor_group.get_user_elements() ]
-    
     def read_Position(self, attr):
-        # if motors are moving their position is already being updated with a
-        # high frequency so don't bother overloading and just get the cached
-        # values
-        cache = self.get_state() == DevState.MOVING
-        positions = self.motor_group.get_position(cache=cache)
-        positions = self._to_motor_positions(positions)
-        attr.set_value(positions)
+        moving = self.get_state() == DevState.MOVING
+        position = self.pseudo_motor.get_position(cache=moving)
+        attr.set_value(position)
+        if moving:
+            attr.set_quality(AttrQuality.ATTR_CHANGING)
     
     def write_Position(self, attr):
-        self.motor_group.position = attr.get_write_value()
-        
-    is_Position_allowed = _is_allowed
+        self.pseudo_motor.position = attr.get_write_value()
     
+    def MoveRelative(self, argin):
+        raise NotImplementedError
+    
+    def is_MoveRelative_allowed(self):
+        if self.get_state() in [PyTango.DevState.FAULT, DevState.MOVING, DevState.UNKNOWN]:
+            return False
+        return True
+    
+    is_Position_allowed = _is_allowed
 
-class MotorGroupClass(PoolGroupDeviceClass):
+
+class PseudoMotorClass(PoolElementDeviceClass):
 
     #    Class Properties
     class_property_list = {
@@ -153,22 +155,23 @@ class MotorGroupClass(PoolGroupDeviceClass):
 
     #    Device Properties
     device_property_list = {
+        "Elements" :    [ DevVarStringArray, "elements used by the pseudo", [ ] ],
     }
-    device_property_list.update(PoolGroupDeviceClass.device_property_list)
+    device_property_list.update(PoolElementDeviceClass.device_property_list)
 
     #    Command definitions
     cmd_list = {
+        'MoveRelative' :   [ [DevDouble, "amount to move"], [DevVoid, ""] ],
     }
-    cmd_list.update(PoolGroupDeviceClass.cmd_list)
+    cmd_list.update(PoolElementDeviceClass.cmd_list)
 
     #    Attribute definitions
     attr_list = {
-        'Position'     : [ [ DevDouble, SPECTRUM, READ_WRITE, 4096 ] ],
+        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
     }
-    attr_list.update(PoolGroupDeviceClass.attr_list)
+    attr_list.update(PoolElementDeviceClass.attr_list)
 
     def __init__(self, name):
-        PoolGroupDeviceClass.__init__(self, name)
+        PoolElementDeviceClass.__init__(self, name)
         self.set_type(name)
-
 
