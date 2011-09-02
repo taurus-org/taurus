@@ -33,7 +33,7 @@ sardana *API v1*:
    to::
    
        from sardana import pool
-       from sardana.pool import <ControllerClass>/PoolUtil
+       from sardana.pool.controller import <ControllerClass>/PoolUtil
 
 2. Make sure that in AddDevice/DeleteDevice you call the super class 
    :meth:`~Controller.AddDevice`/:meth:`~Controller.DeleteDevice`. Not doing so
@@ -103,7 +103,7 @@ This chapter is a summary of all new features in *API v1*.
 
 1. All Controllers now have a :attr:`~Controller.ctrl_attributes` class member
    to define extra controller attributes (and new methods:
-   :meth:`~Controller.GetCtrlPar`, :meth:`~Controller.`SetCtrlPar`)
+   :meth:`~Controller.GetCtrlPar`, :meth:`~Controller.SetCtrlPar`)
 2. For :attr:`~Controller.ctrl_properties`, :attr:`~Controller.`axis_attributes`
    and :attr:`~Controller.ctrl_extra_attributes`:
     
@@ -113,8 +113,8 @@ This chapter is a summary of all new features in *API v1*.
          Now it is read-write by default.
        - support for 2D
        - new keys 'fget' and 'fset' override default method calls
-3. no need to import PyTango ('StateOne' can return sardana.State.On instead
-   of PyTango.DevState.ON)
+3. no need to import :mod:`PyTango` (:meth:`~Controller.StateOne` can return
+   sardana.State.On instead of PyTango.DevState.ON)
 4. new :meth:`~Controller.AbortAll` (with default implementation which calls
    :meth:`~Controller.AbortOne` for each axis)
 5. PseudoMotorController has new :meth:`~PseudoMotorController.getMotor` and 

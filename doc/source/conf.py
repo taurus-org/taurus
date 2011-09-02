@@ -253,6 +253,8 @@ inheritance_node_attrs = dict(shape='box', fontcolor='black',
 
 inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 
+graphviz_output_format = 'png' # 'svg'
+
 #inheritance_graph_attrs = dict(rankdir="LR", size='"6.0, 8.0"',
 #                               fontsize=14, ratio='compress')
 

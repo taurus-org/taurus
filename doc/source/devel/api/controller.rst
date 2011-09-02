@@ -1,5 +1,5 @@
 
-.. currentmodule:: sardana.pool
+.. currentmodule:: sardana.pool.controller
 
 .. _pool-controller-api:
 
@@ -7,17 +7,26 @@
 Controller API
 ==================
 
+.. hlist::
+    :columns: 3
+
+    * :class:`Controller`
+    * :class:`MotorController`
+    * :class:`CounterTimerController`
+    * :class:`PseudoMotorController`
+
 .. _pool-controller-data-type:
 
 Data Type definition
 ----------------------
 
-When writting a new controller you may need to specify extra attributes (per 
+When writting a new controller you may need to specify extra attributes (per
 controller or/and per axis) as well as extra properties. This chapter describes
 how to describe the data type for each of this additional members.
 Controller data type definition has the following equivalences. This means you
-can use any of the given possibilities to describe a field data type. The possibilities
-are ordered by preference (example: usage of int is prefered to "int" or "PyTango.DevLong"):
+can use any of the given possibilities to describe a field data type. The
+possibilities are ordered by preference (example: usage of int is prefered
+to "int" or "PyTango.DevLong"):
 
 - for 0D data types:
    - **integer**: int   | DataType.Integer | "int"    | "integer" | "long" | long | [ "PyTango." ] "DevLong"
@@ -35,7 +44,7 @@ are ordered by preference (example: usage of int is prefered to "int" or "PyTang
   
 .. note:: when string, types are case insensitive. This means "long" is the same as "LONG"
 
-Example on how to define extra attributes per axis:
+Here is an example on how to define extra attributes per axis:
 
     1. EncoderSource: a scalar r/w string
     2. ReflectionMatrix: a 2D readable float with customized getter method
@@ -66,34 +75,3 @@ Example on how to define extra attributes per axis:
         
         def getReflectionMatrix(self, axis):
             return ( (1.0, 0.0), (0.0, 1.0) )
-
-Base Controller API
------------------------
-
-.. autoclass:: Controller
-    :inherited-members:
-    :members:
-    :undoc-members:
-    
-Motor Controller API
-----------------------
-
-.. autoclass:: MotorController
-    :inherited-members:
-    :members:
-    :undoc-members:
-    
-Counter Timer Controller API
------------------------------
-
-.. autoclass:: CounterTimerController
-    :inherited-members:
-    :members:
-    :undoc-members:
-
-Pseudo Motor Controller API
------------------------------
-
-.. autoclass:: PseudoMotorController
-    :members:
-    :undoc-members:

@@ -11,6 +11,6 @@ Developer's Guide
     Writting macros <howto_macros>
     Writting controllers <howto_controllers>
     API <api/sardana>
-    Migration guide <migration_guide>
+    Migration guide <guide_migration>
     Examples <examples/examples>
-    Development guidelines <coding_guide>
+    Development guidelines <guide_coding>
