@@ -70,7 +70,14 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self._name)
-
+    
+    def fire_event(self, event_type, event_value, listeners=None):
+        try:
+            return EventGenerator.fire_event(self, event_type, event_value,
+                                             listeners=listeners)
+        except:
+            self.warning("Error firing event", exc_info=1)
+    
     pool = property(get_pool, doc="reference to the :class:`sardana.pool.pool.Pool`")
     name = property(get_name, doc="object name")
     

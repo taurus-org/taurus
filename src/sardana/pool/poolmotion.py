@@ -276,22 +276,23 @@ class PoolMotion(PoolAction):
                     old_motion_state != MS.MovingBacklash
                 start_instability = motion_state == MS.MovingInstability and \
                     old_motion_state != MS.MovingInstability
-                    
+                stopped_now = not moving and old_motion_state in MovingStates
+                
                 # if motor stopped 'well' and there is a backlash to do...
                 if start_backlash:
+                    moveable.info("Starting backlash")
                     # make sure the last position after the first motion is
                     # sent before starting the backlash motion
                     moveable.get_position(cache=False, propagate=2)
                     self.backlash_item(motion_item)
                     moving = motion_item.in_motion()
                 elif start_instability:
+                    moveable.info("Starting to wait for instability")
                     # make sure the last position after the first motion is
                     # sent before starting the backlash motion
                     moveable.get_position(cache=False, propagate=2)
-                
-                if moving:
-                    in_motion = True
-                else:
+                elif stopped_now:
+                    moveable.info("Stopped")
                     # first update the motor state so that position calculation
                     # that is done after takes the updated state into account
                     moveable.set_state_info(state_info, propagate=0)
@@ -301,6 +302,9 @@ class PoolMotion(PoolAction):
                     
                     # Then update the state
                     moveable.set_state_info(state_info, propagate=2)
+                
+                if moving:
+                    in_motion = True
             
             if not in_motion:
                 break

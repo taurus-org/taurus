@@ -130,7 +130,7 @@ class Motor(PoolElementDevice):
     
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
-        position = self.motor.get_position(cache=moving)
+        position = self.motor.get_position(cache=moving, propagate=0)
         attr.set_value(position)
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
