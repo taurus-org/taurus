@@ -360,7 +360,7 @@ class PoolController(PoolBaseController):
         if hasattr(self.ctrl, axis_attr_info.fget):
             ret = getattr(self.ctrl, axis_attr_info.fget)(axis)
         else:
-            ret = self.ctrl.GetAxisExtraPar(axis, name)
+            ret = self.ctrl.GetExtraAxisPar(axis, name)
         return ret
     
     @check_ctrl
@@ -370,7 +370,7 @@ class PoolController(PoolBaseController):
         try:
             return getattr(self.ctrl, axis_attr_info.fset)(axis, value)
         except AttributeError:
-            return self.ctrl.SetAxisExtraPar(axis, name, value)
+            return self.ctrl.SetExtraAxisPar(axis, name, value)
     
     @check_ctrl
     def set_ctrl_par(self, name, value):
