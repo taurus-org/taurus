@@ -31,11 +31,9 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, DevString
-from PyTango import DevVarStringArray
-from PyTango import DispLevel, DevState, AttrQuality
-from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import Util, DevFailed, READ, READ_WRITE, SCALAR, SPECTRUM, \
+    DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, DevString, \
+    DevVarStringArray, DispLevel, DevState, AttrQuality
 
 from taurus.core.util.log import InfoIt, DebugIt
 

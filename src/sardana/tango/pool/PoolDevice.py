@@ -193,9 +193,10 @@ class PoolElementDevice(PoolDevice):
         #for axis_attr in axis_attrs:
         #    self.add_standard_attribute(axis_attr)
         axis_attrs = ctrl_info.getAxisAttributes()
+        read = PoolElementDevice.read_DynammicAttribute
+        write = PoolElementDevice.write_DynammicAttribute
         for k, v in axis_attrs.items():
-            self.add_dynamic_attribute(v, PoolElementDevice.read_DynammicAttribute, 
-                                       PoolElementDevice.write_DynammicAttribute)
+            self.add_dynamic_attribute(v, read, write)
 
     def add_standard_attribute(self, attr_name):
         cls = self.get_device_class()
@@ -204,7 +205,8 @@ class PoolElementDevice(PoolDevice):
         # TODO
 
     def add_dynamic_attribute(self, data_info, read, write):
-        tg_type, tg_format = to_tango_type_format(data_info.dtype, data_info.dformat)
+        tg_type, tg_format = to_tango_type_format(data_info.dtype,
+                                                  data_info.dformat)
         tg_access = to_tango_access(data_info.access)
 
         if tg_access == READ:
@@ -234,11 +236,12 @@ class PoolElementDevice(PoolDevice):
         attr.set_value(v)
     
     def write_DynammicAttribute(self, attr):
-        name = attr.get_name()
+        name, value = attr.get_name(), attr.get_write_value()
+        self.info("Writting dynamic attribute %s with %s", name, value)
         ctrl = self.ctrl
         if ctrl is None:
             raise Exception("Cannot write %s. Controller not build!" % name)
-        ctrl.set_axis_attr(self.element.axis, name, attr.get_write_value())
+        ctrl.set_axis_attr(self.element.axis, name, value)
 
 
 class PoolElementDeviceClass(PoolDeviceClass):
