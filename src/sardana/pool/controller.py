@@ -200,7 +200,7 @@ class Controller(object):
         .. versionadded:: 1.0"""
         return self.GetPar(axis, parameter)
     
-    def SetExtraAxisPar(self, axis, parameter, value):
+    def SetAxisExtraPar(self, axis, parameter, value):
         """**Controller API**. Overwrite as necessary.
         Called to set a parameter with a value on the given axis. Default
         implementation calls deprecated :meth:`~Controller.SetExtraAttributePar`
@@ -239,7 +239,7 @@ class Controller(object):
         given axis. Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.SetExtraAxisPar` instead"""
+            Deprecated: use :meth:`~Controller.SetAxisExtraPar` instead"""
         raise NotImplementedError("SetExtraAttributePar must be defined in the "
                                   "controller")
 
@@ -248,7 +248,7 @@ class Controller(object):
         axis. Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.GetExtraAxisPar` instead"""
+            Deprecated: use :meth:`~Controller.GetAxisExtraPar` instead"""
         raise NotImplementedError("GetExtraAttributePar must be defined in the "
                                   "controller")
     
