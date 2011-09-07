@@ -83,8 +83,8 @@ class Grabber(Qt.QObject):
         If period is given and >0 means grab the image every period seconds
         
         .. warning:
-            if period is given, you **MUST** keep a reference to the Grabber
-            object returned by this function
+            this method **MUST** be called from the same thread which created
+            the widget
 
         :param Qt.QWidget widget: the qt widget to be grabbed
         :param str fileName: the name of the image file
