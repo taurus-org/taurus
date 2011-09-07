@@ -32,3 +32,4 @@ from .taurusactionfactory import *
 from .taurusaction import *
 from .tauruscolor import *
 from .tauruswidgetfactory import *
+from .taurusscreenshot import *
