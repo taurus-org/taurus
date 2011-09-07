@@ -27,7 +27,68 @@
 
 __docformat__ = 'restructuredtext'
 
-__all__ = ["prepare_tango_logging", "prepare_rconsole", "run_tango_server", "run"]
+__all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
+           "to_tango_state", "to_tango_type_format", "to_tango_type",
+           "to_tango_access",
+           "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
+           "run"]
+
+from PyTango import Util, DevFailed, \
+    DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
+    DevVarLong64Array, DispLevel, DevState, SCALAR, SPECTRUM, IMAGE, \
+    READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
+
+from sardana import DataType, DataFormat, DataAccess
+
+class GenericScalarAttr(Attr):
+    pass
+
+
+class GenericSpectrumAttr(SpectrumAttr):
+    
+    def __init__(self, name, tg_type, tg_access, dim_x=2048):
+        SpectrumAttr.__init__(self, name, tg_type, tg_access, dim_x)
+
+
+class GenericImageAttr(ImageAttr):
+
+    def __init__(self, name, tg_type, tg_access, dim_x=2048, dim_y=2048):
+        ImageAttr.__init__(self, name, tg_type, tg_access, dim_x, dim_y)
+
+def to_tango_state(state):
+    return DevState(state)
+
+def to_tango_type_format(dtype, dformat):
+    t = DevLong
+    f = SCALAR
+    if dtype == DataType.Double:
+        t = DevDouble
+    elif dtype == DataType.String:
+        t = DevString
+    elif dtype == DataType.Boolean:
+        t = DevBoolean
+    if dformat == DataFormat.OneD:
+        f = SPECTRUM
+    elif dformat == DataFormat.TwoD:
+        f = IMAGE
+    return t, f
+
+def to_tango_type(dtype):
+    t = DevLong
+    if dtype == DataType.Double:
+        t = DevDouble
+    elif dtype == DataType.String:
+        t = DevString
+    elif dtype == DataType.Boolean:
+        t = DevBoolean
+    return t
+
+def to_tango_access(access):
+    a = READ_WRITE
+    if access == DataAccess.ReadOnly:
+        a = READ
+    return a
+
 
 
 def clean_tango_args(args):
@@ -184,13 +245,12 @@ def prepare_rconsole(options, args, tango_args):
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
 def run_tango_server():
-    import PyTango
     try:
-        tango_util = PyTango.Util.instance()
+        tango_util = Util.instance()
         tango_util.server_init()
         print "Ready to accept request"
         tango_util.server_run()
-    except PyTango.DevFailed, e:
+    except DevFailed, e:
         import taurus
         taurus.critical("Server exited with DevFailed",exc_info=1)
     except KeyboardInterrupt:
@@ -207,8 +267,7 @@ def run(prepare_func, args=None, tango_util=None):
 
     options, args, tango_args = prepare_cmdline(args=args)
     if tango_util == None:
-        import PyTango
-        tango_util = PyTango.Util(tango_args)
+        tango_util = Util(tango_args)
 
     prepare_taurus(options, args, tango_args)
     prepare_logging(options, args, tango_args)

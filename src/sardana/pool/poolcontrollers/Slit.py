@@ -28,8 +28,8 @@ __all__ = ["Slit"]
 
 __docformat__ = 'restructuredtext'
 
+from sardana import DataAccess
 from sardana.pool.controller import PseudoMotorController
-
 
 class Slit(PseudoMotorController):
     """A Slit pseudo motor controller for handling gap and offset pseudo 
@@ -47,12 +47,18 @@ class Slit(PseudoMotorController):
     
     class_prop = {'sign':{'Type':'PyTango.DevDouble','Description':'Gap = sign * calculated gap\nOffset = sign * calculated offet','DefaultValue':1},}
     
+    axis_attributes = { 'example' : { 'type' : int,
+                                      'r/w type' : DataAccess.ReadWrite,
+                                      'description' : 'test purposes' }
+                      }
+    
     #ctrl_attributes = {}
 
     def __init__(self, inst, props, *args, **kwargs):
         PseudoMotorController.__init__(self, inst, props, *args, **kwargs)
         self._log.info("Created SLIT %s", inst)
-    
+        self._example = {}
+        
     def calc_physical(self,index,pseudo_pos):
         half_gap = pseudo_pos[0]/2.0
         if index == 1:
@@ -82,3 +88,9 @@ class Slit(PseudoMotorController):
         half_gap = pseudo_pos[0]/2.0
         return (self.sign * (pseudo_pos[1] + half_gap),
                 self.sign * (half_gap - pseudo_pos[1]))
+
+    def SetAxisExtraPar(self, axis, parameter, value):
+        self._example[axis] = value
+    
+    def GetAxisExtraPar(self, axis, parameter):
+        return self._example.get(axis, -1)

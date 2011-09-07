@@ -26,5 +26,3 @@
 """ """
 
 __docformat__ = 'restructuredtext'
-
-from .SardanaDevice import *

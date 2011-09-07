@@ -39,7 +39,7 @@ from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 from taurus.core.util.log import InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
-from sardana.tango.core import to_tango_state
+from sardana.tango.core.util import to_tango_state
 
 class Motor(PoolElementDevice):
 
@@ -66,7 +66,7 @@ class Motor(PoolElementDevice):
         self.pool.delete_element(self.motor.get_name())
         self.motor = None
     
-    @DebugIt()
+    @InfoIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
 
@@ -123,8 +123,9 @@ class Motor(PoolElementDevice):
 
     def always_executed_hook(self):
         #state = to_tango_state(self.motor.get_state(cache=False))
+        dev_class, multi_attr1 = self.get_device_class(), self.get_device_attr()
         pass
-
+    
     def read_attr_hardware(self,data):
         pass
     

@@ -37,8 +37,8 @@ from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
     
 #from taurus.core.util.log import DebugIt, InfoIt
 
-from sardana.tango.core import SardanaDevice, SardanaDeviceClass
-from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, \
+from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
+from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
     GenericImageAttr, to_tango_type_format, to_tango_access
 from sardana.pool import InvalidId, InvalidAxis
 
@@ -169,7 +169,6 @@ class PoolElementDevice(PoolDevice):
     
     def write_Instrument(self, attr):
         name = attr.get_write_value()
-        self.info("Write instrument '%s'", name)
         instrument = None
         if name:
             instrument = self.pool.get_element(full_name=name)
@@ -180,6 +179,7 @@ class PoolElementDevice(PoolDevice):
         db.put_device_property(self.get_name(), { "Instrument_id" : instrument.id })
     
     def initialize_dynamic_attributes(self):
+        
         ctrl = self.ctrl
         if ctrl is None:
             self.debug("no controller: dynamic attributes NOT created")
@@ -189,20 +189,47 @@ class PoolElementDevice(PoolDevice):
             self.debug("no controller info: dynamic attributes NOT created")
             return
         
+        self.remove_unwanted_dynamic_attributes()
+        
         #axis_attrs = ctrl.get_standard_axis_attributes(self.Axis)
         #for axis_attr in axis_attrs:
         #    self.add_standard_attribute(axis_attr)
         axis_attrs = ctrl_info.getAxisAttributes()
         read = PoolElementDevice.read_DynammicAttribute
         write = PoolElementDevice.write_DynammicAttribute
+        #self.info("adding dynamic attributes %s", axis_attrs.keys())
         for k, v in axis_attrs.items():
             self.add_dynamic_attribute(v, read, write)
+        
+    def remove_unwanted_dynamic_attributes(self):
+        """Removes unwanted dynamic attributes from previous motor creation"""
+        
+        ctrl_info = self.ctrl.get_ctrl_info()
+        dev_class, multi_attr = self.get_device_class(), self.get_device_attr()
+        multi_class_attr = dev_class.get_class_attr()
+        klass_attrs = [ attr_name.lower() for attr_name in dev_class.attr_list ]
+        klass_attrs.extend(('state', 'status'))
+        
+        attribute_names = []
+        for ind in range(multi_attr.get_attr_nb()):
+            attribute_names.append(multi_attr.get_attr_by_ind(ind).get_name())
+        
+        for attribute_name in attribute_names:
+            attribute_name_lower = attribute_name.lower()
+            if attribute_name_lower in klass_attrs:
+                continue
+            try:
+                self.remove_attribute(attribute_name)
+                attr = multi_class_attr.get_attr(attribute_name)
+                multi_class_attr.remove_attr(attribute_name, attr.get_cl_name())
+            except Exception, e:
+                self.warning("Error removing dynamic attribute %s (%s)",
+                             attr_name, e)
 
     def add_standard_attribute(self, attr_name):
         cls = self.get_device_class()
         attr_name = attr_name.capitalize()
         attr_info = cls.get_standard_attr_info(attr_name)
-        # TODO
 
     def add_dynamic_attribute(self, data_info, read, write):
         tg_type, tg_format = to_tango_type_format(data_info.dtype,
@@ -221,8 +248,8 @@ class PoolElementDevice(PoolDevice):
         if tg_access == READ_WRITE and tg_format == SCALAR:
             attr.set_memorized()
             attr.set_memorized_init(True)
+        attr.set_disp_level(DispLevel.EXPERT)
         self.add_attribute(attr, read, write)
-
         return attr
 
     def read_DynammicAttribute(self, attr):
@@ -237,7 +264,7 @@ class PoolElementDevice(PoolDevice):
     
     def write_DynammicAttribute(self, attr):
         name, value = attr.get_name(), attr.get_write_value()
-        self.info("Writting dynamic attribute %s with %s", name, value)
+        self.info("writting dynamic attribute %s with value %s", name, value)
         ctrl = self.ctrl
         if ctrl is None:
             raise Exception("Cannot write %s. Controller not build!" % name)

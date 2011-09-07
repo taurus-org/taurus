@@ -476,27 +476,32 @@ class DummyMotorController(MotorController):
     """This class is the Tango Sardana motor controller."""
 
     ctrl_attributes = {
-        'LowerLimitSwitch' : { 'type' : float, 
+        'LowerLimitSwitch' : { 'type' : float,
                                'description' : 'lower limit switch position',
                                'fget' : 'getLowerLimitSwitch',
-                               'fset' : 'setLowerLimitSwitch', },
-        'UpperLimitSwitch' : { 'type' : float, 
-                               'description' : 'upper limit switch position' } 
+                               'fset' : 'setLowerLimitSwitch',
+                               'defaultvalue': -9999.9999 },
+        'UpperLimitSwitch' : { 'type' : float,
+                               'description' : 'upper limit switch position',
+                               'defaultvalue': 8888.8888 }
     }
     
     axis_attributes = {
         'LowerLimitSwitch' : { 'type' : float,
                                'description' : 'lower limit switch position',
                                'fget' : 'getLLS',
-                               'fset' : 'setLLS', },
+                               'fset' : 'setLLS',
+                               'defaultvalue': -9999.9999 },
         'UpperLimitSwitch' : { 'type' : float,
                                'description' : 'upper limit switch position',
                                'fget' : 'getULS',
-                               'fset' : 'setULS', },
+                               'fset' : 'setULS',
+                               'defaultvalue': 8888.8888 },
         'Power'            : { 'type' : bool,
                                'description' : 'motor power',
                                'fget' : 'getPower',
-                               'fset' : 'setPower', },
+                               'fset' : 'setPower',
+                               'defaultvalue': True },
     }
     
     ctrl_properties = {

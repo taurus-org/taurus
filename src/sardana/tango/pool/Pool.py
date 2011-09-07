@@ -290,15 +290,32 @@ class Pool(PyTango.Device_4Impl, Logger):
                 properties['id'] = self.pool.get_new_id()
                 db.put_device_property(device_name, properties)
             except:
-                self.warning("Unexpected error in controller creation callback", exc_info=True)
+                self.warning("Unexpected error in controller creation callback",
+                             exc_info=True)
                 raise
-
-        util.create_device('Controller', full_name, name, cb=create_controller_cb)
+        
+        util.create_device('Controller', full_name, name,
+                           cb=create_controller_cb)
+        
+        # Determine which controller writtable attributes have default value
+        # and apply them to the newly created controller
+        attrs = []
+        for attr_name, attr_info in ctrl_class.getControllerAttributes().items():
+            default_value = attr_info.default_value
+            if default_value is None:
+                continue
+            attrs.append((attr_name, default_value))
+        if attrs:
+            ctrl_proxy = PyTango.DeviceProxy(full_name)
+            try:
+                ctrl_proxy.write_attributes(attrs)
+            except:
+                self.warning("Error trying to write controller default value "
+                             "for attribute(s)", exc_info=1)
         
         # for pseudo motor controller also create pseudo motors automatically
         if elem_type == ElementType.PseudoMotor:
             for pseudo_motor_info in pseudo_motor_infos.values():
-                print "Creating pseudo",pseudo_motor_info
                 self._create_single_element(pseudo_motor_info)
             
     #@PyTango.DebugIt()
@@ -339,16 +356,19 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         if ctrl.get_type() != ElementType.Ctrl:
             type_str = ElementType.whatis(ctrl.get_type())
-            raise Exception("'%s' is not a controller (It is a %s)" % (ctrl_name, type_str))
+            raise Exception("'%s' is not a controller (It is a %s)" %
+                            (ctrl_name, type_str))
         
         ctrl_types, ctrl_id = ctrl.get_ctrl_types(), ctrl.get_id()
         if elem_type not in ctrl_types:
             ctrl_type_str = ElementType.whatis(ctrl_types[0])
-            raise Exception("Cannot create %s in %s controller" % (type, ctrl_type_str))
+            raise Exception("Cannot create %s in %s controller" %
+                            (type, ctrl_type_str))
 
         elem_axis = ctrl.get_element(axis=axis)
         if elem_axis is not None:
-            raise Exception("Controller already contains axis %d (%s)" % (axis, elem_axis.get_name()))
+            raise Exception("Controller already contains axis %d (%s)" %
+                            (axis, elem_axis.get_name()))
         
         self._check_element(name, full_name)
 
@@ -378,7 +398,25 @@ class Pool(PyTango.Device_4Impl, Logger):
                 traceback.print_exc()
                 
         util.create_device(elem_type_str, full_name, name, cb=create_element_cb)
-
+        return
+        # Determine which writtable attributes have default value and apply
+        # them to the newly created controller
+        ctrl_class_info = ctrl.get_ctrl_info()
+        attrs = []
+        for attr_name, attr_info in ctrl_class_info.getAxisAttributes().items():
+            default_value = attr_info.default_value
+            if default_value is None:
+                continue
+            attrs.append((attr_name, default_value))
+        if attrs:
+            elem_proxy = PyTango.DeviceProxy(full_name)
+            try:
+                print full_name, elem_proxy.ping()
+                elem_proxy.write_attributes(attrs)
+            except:
+                self.warning("Error trying to write default value for "
+                             "attribute(s)", exc_info=1)
+                
     #@PyTango.DebugIt()
     def CreateMotorGroup(self, argin):
         kwargs = self._format_CreateMotorGroup_arguments(argin)
@@ -436,7 +474,8 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         elem_ids = []
         for elem_name in kwargs["elements"]:
-            # if internal pool element (channel, motor, ioregister, etc) store it's id
+            # if internal pool element (channel, motor, ioregister, etc) store
+            # it's id
             try:
                 elem = self.pool.get_element(name=elem_name)
                 elem_ids.append(elem.id)
@@ -454,7 +493,8 @@ class Pool(PyTango.Device_4Impl, Logger):
             
             db.put_device_attribute_property(device_name, data)
             
-        util.create_device("MeasurementGroup", full_name, name, cb=create_mntgrp_cb)
+        util.create_device("MeasurementGroup", full_name, name,
+                           cb=create_mntgrp_cb)
         
     def _check_element(self, name, full_name):
         self.pool.check_element(name, full_name)
@@ -663,7 +703,8 @@ class Pool(PyTango.Device_4Impl, Logger):
         
     #@PyTango.DebugIt()
     def ReloadControllerClass(self, class_name):
-        lib_name = self.pool.ctrl_manager.getControllerMetaClass(class_name).getModuleName()
+        ctrl_info = self.pool.ctrl_manager.getControllerMetaClass(class_name)
+        lib_name = ctrl_info.getModuleName()
         self.ReloadControllerLib(lib_name)
 
     def GetFile(self, name):
@@ -715,6 +756,11 @@ class PoolClass(PyTango.DeviceClass):
             [PyTango.DevVarStringArray,
             "list of directories to search for controllers (path separators "
             "can be '\n' or ':')",
+            [] ],
+        'PythonPath':
+            [PyTango.DevVarStringArray,
+            "list of directories to be appended to sys.path at startup  (path "
+            "separators can be '\n' or ':')",
             [] ],
         'MotionLoop_SleepTime':
             [PyTango.DevLong,

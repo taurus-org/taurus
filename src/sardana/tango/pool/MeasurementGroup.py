@@ -42,7 +42,7 @@ from taurus.core.util import CodecFactory
 from taurus.core.util.log import InfoIt, DebugIt
 
 from sardana.pool import AcqMode
-from sardana.tango.core import to_tango_state
+from sardana.tango.core.util import to_tango_state
 
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 

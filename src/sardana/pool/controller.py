@@ -51,38 +51,60 @@ class Controller(object):
     ctrl_extra_attributes = {}
     
     #: A :class:`dict` containning controller properties where:
-    #: - key : (:class:`str`) controller property name
-    #: - value : :class:`dict` with with three :class:`str` keys ("type", "description" and "defaultvalue" case insensitive):
     #:
-    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
-    #:     - for key="description", value is a :class:`str` description of the property.
+    #: - key : (:class:`str`) controller property name
+    #: - value : :class:`dict` with with three :class:`str` keys ("type",
+    #:   "description" and "defaultvalue" case insensitive):
+    #:
+    #:     - for key="type", value is one of the values described in
+    #:       :ref:`pool-controller-data-type`
+    #:     - for key="description", value is a :class:`str` description of the
+    #:       property.
     #:       if is not given it defaults to empty string.
-    #:     - for key="defaultvalue", value is a python object or None if no default value exists for the property
-    #:       if is not given it defaults to None value.
+    #:     - for key="defaultvalue", value is a python object or None if no
+    #:       default value exists for the property.
     ctrl_properties = {}
     
     #: A :class:`dict` containning controller extra attributes where:
     #:
     #: - key : (:class:`str`) controller attribute name
-    #: - value : :class:`dict` with :class:`str` possible keys: "type", "r/w type", "description", "fget" and "fset" (case insensitive):
-    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
-    #:     - for key="r/w type", value is one of "read" or "read_write" (case insensitive)
-    #:     - for key="description", value is a :class:`str` description of the attribute
-    #:     - for key="fget", value is a :class:`str` with the method name for the attribute getter
+    #: - value : :class:`dict` with :class:`str` possible keys: "type",
+    #:   "r/w type", "description", "fget" and "fset" (case insensitive):
+    #:     - for key="type", value is one of the values described in
+    #:       :ref:`pool-controller-data-type`
+    #:     - for key="r/w type", value is one of "read" or "read_write"
+    #:       (case insensitive)
+    #:     - for key="description", value is a :class:`str` description of the
+    #:       attribute
+    #:     - for key="fget", value is a :class:`str` with the method name for
+    #:       the attribute getter
     #:       if is not given it defaults to "get"<controller attribute name>
-    #:     - for key="fset", value is a :class:`str` with the method name for the attribute setter
-    #:       if is not given and "r/w type"="read_write" it defaults to "set"<controller attribute name>
+    #:     - for key="fset", value is a :class:`str` with the method name for
+    #:       the attribute setter
+    #:       if is not given and "r/w type"="read_write" it defaults to
+    #:       "set"<controller attribute name>
+    #:     - for key="defaultvalue", value is a python object or None if no
+    #:       default value exists for the attribute. If given, the attribute is
+    #:       set when the controller is first created.
     #:
     #: .. versionadded:: 1.0
     ctrl_attributes = {}
 
-    #: A :class:`dict` containning controller extra attributes for each axis where:
+    #: A :class:`dict` containning controller extra attributes for each axis
+    #: where:
     #:
     #: - key : (:class:`str`) axis attribute name
-    #: - value : :class:`dict` with three :class:`str` keys ("type", "r/w type", "description" case insensitive):
-    #:     - for key="type", value is one of the values described in :ref:`pool-controller-data-type`
-    #:     - for key="r/w type", value is one of "read" or "read_write" (case insensitive)
-    #:     - for key="description", value is a :class:`str` description of the attribute
+    #: - value : :class:`dict` with three :class:`str` keys
+    #:   ("type", "r/w type", "description" case insensitive):
+    #:     - for key="type", value is one of the values described in
+    #:       :ref:`pool-controller-data-type`
+    #:     - for key="r/w type", value is one of "read" or "read_write"
+    #        (case insensitive)
+    #:     - for key="description", value is a :class:`str` description of the
+    #:       attribute
+    #:     - for key="defaultvalue", value is a python object or None if no
+    #:       default value exists for the attribute. If given, the attribute is
+    #:       set when the axis is first created.
     #:
     #: .. versionadded:: 1.0
     axis_attributes = {}
@@ -220,11 +242,13 @@ class Controller(object):
 
     def SetPar(self, axis, parameter, value):
         """**Controller API**. Called to set a parameter with a value on
-        the given axis. Default implementation raises :exc:`NotImplementedError`.
+        the given axis. Default implementation raises 
+        :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
             Deprecated: use :meth:`~Controller.SetAxisPar` instead"""
-        raise NotImplementedError("SetPar must be defined in the controller")
+        raise NotImplementedError("SetAxisPar must be defined in the "
+                                  "controller")
 
     def GetPar(self, axis, parameter):
         """**Controller API**. Called to get a parameter value on the given
@@ -232,7 +256,8 @@ class Controller(object):
 
         .. deprecated:: 1.0
             Deprecated: use :meth:`~Controller.GetAxisPar` instead"""
-        raise NotImplementedError("GetPar must be defined in the controller")
+        raise NotImplementedError("GetAxisPar must be defined in the "
+                                  "controller")
 
     def SetExtraAttributePar(self, axis, parameter, value):
         """**Controller API**. Called to set a parameter with a value on the
@@ -240,7 +265,7 @@ class Controller(object):
 
         .. deprecated:: 1.0
             Deprecated: use :meth:`~Controller.SetAxisExtraPar` instead"""
-        raise NotImplementedError("SetExtraAttributePar must be defined in the "
+        raise NotImplementedError("SetAxisExtraPar must be defined in the "
                                   "controller")
 
     def GetExtraAttributePar(self, axis, parameter):
@@ -249,7 +274,7 @@ class Controller(object):
 
         .. deprecated:: 1.0
             Deprecated: use :meth:`~Controller.GetAxisExtraPar` instead"""
-        raise NotImplementedError("GetExtraAttributePar must be defined in the "
+        raise NotImplementedError("GetAxisExtraPar must be defined in the "
                                   "controller")
     
     @classmethod
@@ -495,7 +520,8 @@ class CounterTimerController(Controller, Readable):
         
         .. deprecated:: 1.0
             Deprecated: use :meth:`~CounterTimerController.StartAll` instead"""
-        raise NotImplementedError("StartAllCT must be defined in the controller")
+        raise NotImplementedError("StartAllCT must be defined in the "
+                                  "controller")
     
     def PreStartAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -572,7 +598,8 @@ class PseudoMotorController(Controller):
     Current procedure for a correct implementation of a Pseudo Motor class:
     
     - mandatory:
-        - define the class level attributes :attr:`~PseudoMotorController.pseudo_motor_roles`,
+        - define the class level attributes
+          :attr:`~PseudoMotorController.pseudo_motor_roles`,
           :attr:`~PseudoMotorController.motor_roles`
         - write :meth:`~PseudoMotorController.CalcPseudo` method
         - write :meth:`~PseudoMotorController.CalcPhysical` method.
@@ -585,7 +612,8 @@ class PseudoMotorController(Controller):
     #: this controller
     pseudo_motor_roles = ()
     
-    #: a sequence of strings describing the role of each motor in  this controller
+    #: a sequence of strings describing the role of each motor in  this
+    #: controller
     motor_roles = ()
 
     def __init__(self, inst, props, *args, **kwargs):
@@ -597,15 +625,16 @@ class PseudoMotorController(Controller):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
            Calculates the positions of all pseudo motors that belong to the
            pseudo motor system from the positions of the physical motors.
-           Default implementation does a loop calling :meth:`PseudoMotorController.calc_pseudo`
-           for each pseudo motor role.
+           Default implementation does a loop calling
+           :meth:`PseudoMotorController.calc_pseudo` for each pseudo motor role.
            
            :param sequence<float> physical_pos: a sequence containing physical
                                                 motor positions
            :param sequence<float> curr_pseudo_pos: a sequence containing the
                                                    current pseudo motor
                                                    positions
-           :return: a sequece of pseudo motor positions (one for each pseudo motor role)
+           :return: a sequece of pseudo motor positions (one for each pseudo
+                    motor role)
            :rtype: sequence<float>
            
            .. versionadded:: 1.0"""
@@ -742,7 +771,8 @@ class PseudoMotorController(Controller):
            .. deprecated:: 1.0
                Deprecated: implement :meth:`PseudoMotorController.CalcPhysical`
                instead"""
-        raise NotImplementedError("CalcPhysical must be defined in te controller")
+        raise NotImplementedError("CalcPhysical must be defined in the "
+                                  "controller")
 
     def _getElem(self, index_or_role, roles, local_cache, ids):
         """*Iternal*."""

@@ -204,7 +204,7 @@ class PoolMotor(PoolElement):
         return self._step_per_unit
     
     def set_step_per_unit(self, step_per_unit, propagate=1):
-        self.controller.ctrl.SetPar(self.axis, "step_per_unit", step_per_unit)
+        self.controller.set_axis_par(self.axis, "step_per_unit", step_per_unit)
         self._set_step_per_unit(step_per_unit, propagate=propagate)
     
     def _set_step_per_unit(self, step_per_unit, propagate=1):
@@ -215,7 +215,7 @@ class PoolMotor(PoolElement):
             self.get_position(cache=False, propagate=2)
     
     def read_step_per_unit(self):
-        return self.controller.ctrl.GetPar(self.axis, "step_per_unit")
+        return self.controller.get_axis_par(self.axis, "step_per_unit")
     
     step_per_unit = property(get_step_per_unit, set_step_per_unit,
                              doc="motor steps per unit")
@@ -231,7 +231,7 @@ class PoolMotor(PoolElement):
         return self._acceleration
     
     def set_acceleration(self, acceleration, propagate=1):
-        self.controller.ctrl.SetPar(self.axis, "acceleration", acceleration)
+        self.controller.set_axis_par(self.axis, "acceleration", acceleration)
         self._set_acceleration(acceleration, propagate=propagate)
     
     def _set_acceleration(self, acceleration, propagate=1):
@@ -241,7 +241,7 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("acceleration", priority=propagate), acceleration)
     
     def read_acceleration(self):
-        return self.controller.ctrl.GetPar(self.axis, "acceleration")
+        return self.controller.get_axis_par(self.axis, "acceleration")
     
     acceleration = property(get_acceleration, set_acceleration,
                             doc="motor acceleration")
@@ -257,7 +257,7 @@ class PoolMotor(PoolElement):
         return self._deceleration
     
     def set_deceleration(self, deceleration, propagate=1):
-        self.controller.ctrl.SetPar(self.axis, "deceleration", deceleration)
+        self.controller.set_axis_par(self.axis, "deceleration", deceleration)
         self._set_deceleration(deceleration, propagate=propagate)
     
     def _set_deceleration(self, deceleration, propagate=1):
@@ -267,7 +267,7 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("deceleration", priority=propagate), deceleration)
     
     def read_deceleration(self):
-        return self.controller.ctrl.GetPar(self.axis, "deceleration")
+        return self.controller.get_axis_par(self.axis, "deceleration")
     
     deceleration = property(get_deceleration, set_deceleration,
                             doc="motor deceleration")
@@ -282,7 +282,7 @@ class PoolMotor(PoolElement):
         return self._base_rate
     
     def set_base_rate(self, base_rate, propagate=1):
-        self.controller.ctrl.SetPar(self.axis, "base_rate", base_rate)
+        self.controller.set_axis_par(self.axis, "base_rate", base_rate)
         self._set_base_rate(base_rate, propagate=propagate)
     
     def _set_base_rate(self, base_rate, propagate=1):
@@ -292,7 +292,7 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("base_rate", priority=propagate), base_rate)
     
     def read_base_rate(self):
-        return self.controller.ctrl.GetPar(self.axis, "base_rate")
+        return self.controller.get_axis_par(self.axis, "base_rate")
     
     base_rate = property(get_base_rate, set_base_rate,
                          doc="motor base rate")
@@ -308,7 +308,7 @@ class PoolMotor(PoolElement):
         return self._velocity
     
     def set_velocity(self, velocity, propagate=1):
-        self.controller.ctrl.SetPar(self.axis, "velocity", velocity)
+        self.controller.set_axis_par(self.axis, "velocity", velocity)
         self._set_velocity(velocity, propagate=propagate)
     
     def _set_velocity(self, velocity, propagate=1):
@@ -318,7 +318,7 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("velocity", priority=propagate), velocity)
     
     def read_velocity(self):
-        return self.controller.ctrl.GetPar(self.axis, "velocity")
+        return self.controller.get_axis_par(self.axis, "velocity")
     
     velocity = property(get_velocity, set_velocity,
                         doc="motor velocity")

@@ -40,7 +40,7 @@ from PyTango import Attr, SpectrumAttr, ImageAttr
 from taurus.core.util.log import InfoIt, DebugIt
 
 from sardana import DataType, DataFormat
-from sardana.tango.core import GenericScalarAttr, GenericSpectrumAttr, \
+from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
     GenericImageAttr, to_tango_type_format, to_tango_access
 
 from PoolDevice import PoolDevice, PoolDeviceClass
