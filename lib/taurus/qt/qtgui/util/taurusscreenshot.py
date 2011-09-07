@@ -30,37 +30,49 @@ __all__ = ["Grabber", "grabWidget"]
 __docformat__ = 'restructuredtext'
 
 import time
+import threading
 import os.path
 from taurus.qt import Qt
 
-class Grabber(Qt.QThread):
+
+class GrabberThread(threading.Thread):
     
-    def __init__(self, widget, fileName, period, parent=None):
-        Qt.QThread.__init__(self, parent=parent)
+    def __init__(self, widget, fileName, period):
+        threading.Thread.__init__(self, name="Grabber")
+        self.daemon = True
         if period <= 0:
             raise ValueError("period MUST be greater than 0")
-        self._widget = widget
-        self._fileName = fileName
         self._period = period
         self._continue = True
-        self.connect(self, Qt.SIGNAL("grab"), self.onGrab)
+        self._grabber = Grabber(widget, fileName)
         
     def run(self):
         period = self._period
         while self._continue:
-            self.emit(Qt.SIGNAL("grab"))
+            self._grabber.grabTrigger()
             time.sleep(period)
     
     def stop(self):
         self._continue = False
     
+
+class Grabber(Qt.QObject):
+    
+    def __init__(self, widget, fileName):
+        Qt.QObject.__init__(self)
+        self._widget = widget
+        self._fileName = fileName
+        self.connect(self, Qt.SIGNAL("grab"), self.onGrab)
+    
+    def grabTrigger(self):
+        self.emit(Qt.SIGNAL("grab"))
+        
     def onGrab(self):
-        widget, fileName = self._widget, self._fileName
-        print "grabbing",fileName
-        Grabber._grabWidget(widget, fileName)
+        Grabber._grabWidget(self._widget, self._fileName)
     
     @staticmethod
     def _grabWidget(widget, fileName):
+        print "grabbing to",fileName
         pixmap = Qt.QPixmap.grabWidget(widget)
         pixmap.save(fileName, quality=100)
 
@@ -80,23 +92,12 @@ class Grabber(Qt.QThread):
         """
         if period is None:
             return Grabber._grabWidget(widget, fileName)
-        ret = Grabber(widget, fileName, period)
+        ret = GrabberThread(widget, fileName, period)
         ret.start()
         return ret
 
 
 def grabWidget(widget, fileName, period=None):
-    """Grabs the given widget into the given image filename. If period is
-    not given (or given with None) means grab immediately once and return.
-    If period is given and >0 means grab the image every period seconds
-    
-    .. warning:
-        if period is given, you **MUST** keep a reference to the Grabber
-        object returned by this function
-    
-    :param Qt.QWidget widget: the qt widget to be grabbed
-    :param str fileName: the name of the image file
-    :param float period
-    """
     return Grabber.grabWidget(widget, fileName, period=period)
     
+grabWidget.__doc__ = Grabber.grabWidget.__doc__
