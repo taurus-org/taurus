@@ -67,6 +67,17 @@ class PoolChannelTV(TaurusValue):
     def setModel(self,model):
         TaurusValue.setModel(self, "%s/value"%model) #@todo: change this (it assumes tango naming!)
 
+    def showEvent(self, event):
+        TaurusValue.showEvent(self, event)
+        try: self.getModelObj().getParentObj().getAttribute('Value').enablePolling(force=True)
+        except: pass
+
+    def hideEvent(self, event):
+        TaurusValue.hideEvent(self, event)
+        try: self.getModelObj().getParentObj().getAttribute('Value').disablePolling()
+        except: pass
+
+
 
 class PoolChannel(TaurusWidget):
     ''' A widget that displays and controls a pool channel device
