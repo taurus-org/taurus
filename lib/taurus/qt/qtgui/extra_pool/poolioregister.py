@@ -68,18 +68,21 @@ class PoolIORegisterReadWidget(TaurusLabel):
     ##########################################################
     def getFormatedToolTip(self, cache=True):
         taurus_label_tooltip = TaurusLabel.getFormatedToolTip(self, cache)
-        display_value = int(self.getDisplayValue())
-        extended_tooltip = ''
-        value_keys = self.readEventValueMap.keys()
-        value_keys.sort()
-        for value in value_keys:
-            label = self.readEventValueMap[value]
-            value_label_info = '%d: %s' % (value, label)
-            if value == display_value:
-                value_label_info = '<B>* '+value_label_info+' *</B>'
-            extended_tooltip += value_label_info+'<BR>'
-            
-        return taurus_label_tooltip + '<HR>' + extended_tooltip
+        try:
+            display_value = int(self.getDisplayValue())
+            extended_tooltip = ''
+            value_keys = self.readEventValueMap.keys()
+            value_keys.sort()
+            for value in value_keys:
+                label = self.readEventValueMap[value]
+                value_label_info = '%d: %s' % (value, label)
+                if value == display_value:
+                    value_label_info = '<B>* '+value_label_info+' *</B>'
+                extended_tooltip += value_label_info+'<BR>'
+            return taurus_label_tooltip + '<HR>' + extended_tooltip
+        except:
+            pass
+        return taurus_label_tooltip
     ##########################################################
 
 class PoolIORegisterWriteWidget(TaurusValueComboBox):
@@ -282,8 +285,8 @@ if __name__ == '__main__':
     import sys
     app = Qt.QApplication(sys.argv)
 
-    test_form()
+    #test_form()
     #test_widget()
-    #test_buttons()
+    test_buttons()
 
     sys.exit(app.exec_())
