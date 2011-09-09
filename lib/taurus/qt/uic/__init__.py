@@ -124,11 +124,15 @@ def tau2taurus(xml_source):
         extends_node.text = new_super_name
         new_custom_widget_name_list.append(new_class_name)
         new_custom_widget_node_list.append(new_custom_widget_node)
-    
-    custom_widgets_node = xml_source.find(".//customwidgets")
-    custom_widgets_node.clear() # remove all children
-    custom_widgets_node.extend(new_custom_widget_node_list)
-    
+
+    if len(new_custom_widget_node_list) > 0:
+        custom_widgets_node = xml_source.find(".//customwidgets")
+        if custom_widgets_node is None:
+            ui_node = xml_source.getroot()
+            custom_widgets_node = lxml.etree.SubElement(ui_node, "customwidgets")
+        custom_widgets_node.clear() # remove all children
+        custom_widgets_node.extend(new_custom_widget_node_list)
+
     return xml_source
 
 def resolve_inheritance(xml_source):
@@ -163,8 +167,12 @@ def resolve_inheritance(xml_source):
             xml = _build_widget(module_name, widget_klass, widget_klasses, custom_widget_list)
         new_custom_widgets.extend(xml)
     
-    custom_widgets_node = xml_source.find(".//customwidgets")
-    custom_widgets_node.extend(new_custom_widgets)
+    if len(new_custom_widgets) > 0:
+        custom_widgets_node = xml_source.find(".//customwidgets")
+        if custom_widgets_node is None:
+            ui_node = xml_source.getroot()
+            custom_widgets_node = lxml.etree.SubElement(ui_node, "customwidgets")
+        custom_widgets_node.extend(new_custom_widgets)
     return xml_source
 
 def _build_plain_widget(widget_klass_name):
