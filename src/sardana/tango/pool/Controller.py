@@ -86,6 +86,7 @@ class Controller(PoolDevice):
             ctrl = self.pool.create_controller(**args)
             ctrl.add_listener(self.elements_changed)
             self.ctrl = ctrl
+        self.set_state(DevState.ON)
         
     def _get_ctrl_properties(self):
         try:
@@ -166,34 +167,41 @@ class Controller(PoolDevice):
     def elements_changed(self, evt_src, evt_type, evt_value):
         self.push_change_event("ElementList", self.get_element_names())
 
-    def initialize_dynamic_attributes(self):
+    def get_dynamic_attributes(self):
         info = self.ctrl.ctrl_info
         if info is None:
             self.warning("Controller %s doesn't have any information", self.ctrl)
             return
-        for name, attr_info in info.getControllerAttributes().items():
-            tg_type, tg_format = to_tango_type_format(attr_info.dtype, attr_info.dformat)
-            tg_access = to_tango_access(attr_info.access)
-            read, write = Controller.read_DynammicAttribute, None
-            if tg_access == READ_WRITE:
-                write = Controller.write_DynammicAttribute
-            klass = GenericScalarAttr
-            if tg_format == SPECTRUM:
-                klass = GenericSpectrumAttr
-            elif tg_format == IMAGE:
-                klass = GenericImageAttr
+        return info.getControllerAttributes()
+        
+#    def initialize_dynamic_attributes(self):
+#        info = self.ctrl.ctrl_info
+#        if info is None:
+#            self.warning("Controller %s doesn't have any information", self.ctrl)
+#            return
+#        for name, attr_info in info.getControllerAttributes().items():
+#            tg_type, tg_format = to_tango_type_format(attr_info.dtype, attr_info.dformat)
+#            tg_access = to_tango_access(attr_info.access)
+#            read, write = Controller.read_DynamicAttribute, None
+#            if tg_access == READ_WRITE:
+#                write = Controller.write_DynamicAttribute
+#            klass = GenericScalarAttr
+#            if tg_format == SPECTRUM:
+#                klass = GenericSpectrumAttr
+#            elif tg_format == IMAGE:
+#                klass = GenericImageAttr
                 
-            attr = klass(name, tg_type, tg_access)
-            if tg_access == READ_WRITE:
-                attr.set_memorized()
-                attr.set_memorized_init(True)
-            self.add_attribute(attr, read, write)
+#            attr = klass(name, tg_type, tg_access)
+#            if tg_access == READ_WRITE:
+#                attr.set_memorized()
+#                attr.set_memorized_init(True)
+#            self.add_attribute(attr, read, write)
 
-    def read_DynammicAttribute(self, attr):
+    def read_DynamicAttribute(self, attr):
         attr_name = attr.get_name()
         attr.set_value(self.ctrl.get_ctrl_attr(attr_name))
 
-    def write_DynammicAttribute(self, attr):
+    def write_DynamicAttribute(self, attr):
         v = attr.get_write_value()
         attr_name = attr.get_name()
         self.ctrl.set_ctrl_attr(attr_name, v)

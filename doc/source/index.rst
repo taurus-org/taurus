@@ -4,7 +4,8 @@ Welcome to Sardana's |version| documentation!
 =============================================
 
 .. figure:: /_static/sardana_screenshot.png
-    
+    :width: 500
+
 Sardana is the control program initially developed at ALBA_. Our mission statement:
 
     `Produce a modular, high performance, robust, and generic user environment

@@ -541,7 +541,7 @@ class PoolController(PoolBaseController):
             ctrl.StartOne(axis, dial_position)
         
         ctrl.StartAll()
-        
+    
     def has_backlash(self):
         return "Backlash" in self._ctrl.ctrl_features
     

@@ -35,11 +35,13 @@ from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, DevString
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import AttrData, Attr, SpectrumAttr, ImageAttr
 
 from taurus.core.util.log import InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 from sardana.tango.core.util import to_tango_state
+
 
 class Motor(PoolElementDevice):
 
@@ -70,10 +72,10 @@ class Motor(PoolElementDevice):
     def init_device(self):
         PoolElementDevice.init_device(self)
 
-        detect_evts = "state", "status", "position", "dialposition", "limit_switches"
-        non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
-            "acceleration", "deceleration", "base_rate", "backlash"
-        self.set_change_events(detect_evts, non_detect_evts)
+        #detect_evts = "state", "status"
+        #non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
+        #    "acceleration", "deceleration", "base_rate", "backlash"
+        #self.set_change_events(detect_evts, non_detect_evts)
         
         if self.motor is None:
             motor = self.pool.create_element(type="Motor",
@@ -94,7 +96,10 @@ class Motor(PoolElementDevice):
         if name == "dial_position":
             name = "dialposition"
         multi_attr = self.get_device_attr()
-        attr = multi_attr.get_attr_by_name(name)
+        try:
+            attr = multi_attr.get_attr_by_name(name)
+        except DevFailed:
+            return
         quality = AttrQuality.ATTR_VALID
         
         recover = False
@@ -129,6 +134,53 @@ class Motor(PoolElementDevice):
     def read_attr_hardware(self,data):
         pass
     
+    def initialize_dynamic_attributes(self):
+        PoolElementDevice.initialize_dynamic_attributes(self)
+        basic, discrete = False, False
+        detect_evts, non_detect_evts = ["Position"], []
+        ctrl = self.ctrl
+        if ctrl is None:
+            self.debug("no controller: setting motor to full continuos")
+        else:
+            ctrl_info = ctrl.get_ctrl_info()
+            if ctrl_info is None:
+                self.debug("no controller info: setting motor to full "
+                           "continuos")
+            else:
+                ctrl_features = ctrl_info.getControllerFeatures()
+                discrete = 'Discrete' in ctrl_features
+                basic = discrete or 'Basic' in ctrl_features
+        
+        cl_name = self.get_device_class().get_name()
+        
+        if basic:
+            attr_infos = {}
+        else:
+            attr_infos = dict(self.full_motor_attr_list)
+        
+        attr_infos['Position'] = [ [ DevDouble, SCALAR, READ_WRITE ] ]
+        if discrete:
+            attr_infos['Position'][0][0] = DevLong
+
+        detect_evts = "position", "dialposition", "limit_switches"
+        non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
+            "acceleration", "deceleration", "base_rate", "backlash"
+        
+        read = self.__class__._read_DynamicAttribute
+        write = self.__class__._write_DynamicAttribute
+        is_allowed = self.__class__._is_DynamicAttribute_allowed
+        for attr_name, attr_info in attr_infos.items():
+            #self.info("Adding standard motor attribute %s", attr_name)
+            #read, write = "read_" + attr_name, "write_" + attr_name
+            #read, write = getattr(Motor, read), getattr(Motor, write)
+            attr_data = AttrData(attr_name, cl_name, attr_info)
+            attr = self.add_attribute(attr_data, read, write, is_allowed)
+            attr_name_lower = attr_name.lower()
+            if attr_name_lower in detect_evts:
+                self.set_change_event(attr_name, True, True)
+            elif attr_name_lower in non_detect_evts:
+                self.set_change_event(attr_name, True, False)
+        
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
         position = self.motor.get_position(cache=moving)
@@ -234,34 +286,7 @@ class Motor(PoolElementDevice):
     is_Sign_allowed = _is_allowed
     is_Limit_switches_allowed = _is_allowed
 
-
-class MotorClass(PoolElementDeviceClass):
-
-    #    Class Properties
-    class_property_list = {
-    }
-
-    #    Device Properties
-    device_property_list = {
-        'Sleep_bef_last_read' : [DevLong, "Number of mS to sleep before the last read during a motor movement", 0],
-        '_Acceleration' : [DevDouble, "", -1],
-        '_Deceleration' : [DevDouble, "", -1],
-        '_Velocity'     : [DevDouble, "", -1],
-        '_Base_rate'    : [DevDouble, "", -1],
-    }
-    device_property_list.update(PoolElementDeviceClass.device_property_list)
-
-    #    Command definitions
-    cmd_list = {
-        'DefinePosition' : [ [DevDouble, "New position"], [DevVoid, ""] ],
-        'SaveConfig' :     [ [DevVoid, ""], [DevVoid, ""] ],
-        'MoveRelative' :   [ [DevDouble, "amount to move"], [DevVoid, ""] ],
-    }
-    cmd_list.update(PoolElementDeviceClass.cmd_list)
-
-    #    Attribute definitions
-    attr_list = {
-        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+    full_motor_attr_list = {
         'Acceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Deceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Base_rate'    : [ [ DevDouble, SCALAR, READ_WRITE ],
@@ -292,6 +317,65 @@ class MotorClass(PoolElementDeviceClass):
                               "1 - The upper limit switch\n"\
                               "2 - The lower limit switch\n"\
                               "False means not active. True means active" } ],
+    }
+
+class MotorClass(PoolElementDeviceClass):
+
+    #    Class Properties
+    class_property_list = {
+    }
+
+    #    Device Properties
+    device_property_list = {
+        'Sleep_bef_last_read' : [DevLong, "Number of mS to sleep before the last read during a motor movement", 0],
+        '_Acceleration' : [DevDouble, "", -1],
+        '_Deceleration' : [DevDouble, "", -1],
+        '_Velocity'     : [DevDouble, "", -1],
+        '_Base_rate'    : [DevDouble, "", -1],
+    }
+    device_property_list.update(PoolElementDeviceClass.device_property_list)
+
+    #    Command definitions
+    cmd_list = {
+        'DefinePosition' : [ [DevDouble, "New position"], [DevVoid, ""] ],
+        'SaveConfig' :     [ [DevVoid, ""], [DevVoid, ""] ],
+        'MoveRelative' :   [ [DevDouble, "amount to move"], [DevVoid, ""] ],
+    }
+    cmd_list.update(PoolElementDeviceClass.cmd_list)
+
+    #    Attribute definitions
+    attr_list = {
+#        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+#        'Acceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+#        'Deceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+#        'Base_rate'    : [ [ DevDouble, SCALAR, READ_WRITE ],
+#                           { 'label'         : 'Base rate', } ],
+#        'Velocity'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+#        'Offset'       : [ [ DevDouble, SCALAR, READ_WRITE ],
+#                           { 'Memorized'     : "true",
+#                             'Display level' : DispLevel.EXPERT } ],
+#        'DialPosition' : [ [ DevDouble, SCALAR, READ ],
+#                           { 'label'         : "Dial position",
+#                             'Display level' : DispLevel.EXPERT } ],
+#        'Step_per_unit': [ [ DevDouble, SCALAR, READ_WRITE],
+#                           { 'Memorized'     : "true",
+#                             'label'         : "Steps p/ unit",
+#                             'Display level' : DispLevel.EXPERT } ],
+#        'Backlash'     : [ [ DevLong, SCALAR, READ_WRITE],
+#                           { 'Memorized'     : "true",
+#                             'Display level' : DispLevel.EXPERT } ],
+#        'Sign'         : [ [ DevShort, SCALAR, READ_WRITE],
+#                           { 'Memorized'     : "true",
+#                             'Display level' : DispLevel.EXPERT } ],
+#        'Limit_switches': [ [ DevBoolean, SPECTRUM, READ, 3],
+#                            { 'label'       : "Limit switches (H,U,L)",
+#                              'description' : "This attribute is the motor "\
+#                              "limit switches state. It's an array with 3 \n"\
+#                              "elements which are:\n"\
+#                              "0 - The home switch\n"\
+#                              "1 - The upper limit switch\n"\
+#                              "2 - The lower limit switch\n"\
+#                              "False means not active. True means active" } ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

@@ -9,7 +9,7 @@ from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.container import QGroupWidget
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueSpinBoxEx
-from taurus.qt.qtgui.button import TaurusCommandButton
+from taurus.qt.qtgui.button import TaurusCommandButton, TaurusLockButton
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.console import TaurusConsole
 
@@ -19,6 +19,9 @@ class CmdButton(TaurusCommandButton):
     
     def getDisplayValue(self):
         return ""
+
+DFT_BTN_ICON_SIZE = Qt.QSize(24,24)
+DFT_BTN_STYLE = "QPushButton {margin: 0px;}"
 
 def createMotorPanel(*names):
     m_panel = QGroupWidget()
@@ -39,15 +42,20 @@ def createMotorPanel(*names):
         unit = TaurusLabel(content)
         abort = CmdButton(parent=content, command='abort')
         abort.setIcon(getIcon(":/actions/media_playback_stop.svg"))
+        abort.setIconSize(DFT_BTN_ICON_SIZE)
         #abort.setIconSize(Qt.QSize(24,24))
         #abort.setMaximumSize(Qt.QSize(26,26))
-        abort.setStyleSheet('* { border: 0px; }')
+        abort.setStyleSheet(DFT_BTN_STYLE)
+        lock = TaurusLockButton(content)
+        lock.setIconSize(DFT_BTN_ICON_SIZE)
+        lock.setStyleSheet(DFT_BTN_STYLE)
         m_panel_l.addWidget(  state, i, 0)
         m_panel_l.addWidget(  label, i, 1)
         m_panel_l.addWidget(r_value, i, 2)
         m_panel_l.addWidget(w_value, i, 3)
         m_panel_l.addWidget(   unit, i, 4)
         m_panel_l.addWidget(  abort, i, 5)
+        m_panel_l.addWidget(   lock, i, 6)
         m_panel_l.setRowStretch(i, 0)
         state.model = name + "/state"
         label.model = name + "/position?configuration=dev_alias"
@@ -57,6 +65,7 @@ def createMotorPanel(*names):
         unit.model = name + "/position?configuration=unit"
         unit.bgRole = None
         abort.Model = name
+        lock.model = name
     m_panel_l.setRowStretch(i+1, 1)
     m_panel_l.setColumnStretch(0, 0)
     m_panel_l.setColumnStretch(1, 0)
@@ -185,16 +194,27 @@ group_box1 = Qt.QGroupBox("Demo group box")
 panel1_l.addWidget(group_box1, 1, 1,2,1)
 group_box1_l = Qt.QGridLayout()
 group_box1.setLayout(group_box1_l)
-ice8_backlash_label = TaurusLabel(group_box1)
-group_box1_l.addWidget(ice8_backlash_label, 0, 0)
-ice8_r_backlash_value = TaurusLabel(group_box1)
-group_box1_l.addWidget(ice8_r_backlash_value, 0, 1)
-ice8_w_backlash_value = Spin(group_box1)
-group_box1_l.addWidget(ice8_w_backlash_value, 0, 2)
-ice8_backlash_label.bgRole = None
-ice8_backlash_label.model = "ICE_M8/backlash?configuration=label"
-ice8_r_backlash_value.model = "ICE_M8/backlash"
-ice8_w_backlash_value.model = "ICE_M8/backlash"
+gap1_backlash_label = TaurusLabel(group_box1)
+group_box1_l.addWidget(gap1_backlash_label, 0, 0)
+gap1_r_backlash_value = TaurusLabel(group_box1)
+group_box1_l.addWidget(gap1_r_backlash_value, 0, 1)
+gap1_w_backlash_value = Spin(group_box1)
+group_box1_l.addWidget(gap1_w_backlash_value, 0, 2)
+gap1_backlash_label.bgRole = None
+gap1_backlash_label.model = "GAP1/position?configuration=dev_alias"
+gap1_r_backlash_value.model = "GAP1/position"
+gap1_w_backlash_value.model = "GAP1/position"
+
+offset1_backlash_label = TaurusLabel(group_box1)
+group_box1_l.addWidget(offset1_backlash_label, 1, 0)
+offset1_r_backlash_value = TaurusLabel(group_box1)
+group_box1_l.addWidget(offset1_r_backlash_value, 1, 1)
+offset1_w_backlash_value = Spin(group_box1)
+group_box1_l.addWidget(offset1_w_backlash_value, 1, 2)
+offset1_backlash_label.bgRole = None
+offset1_backlash_label.model = "OFFSET1/position?configuration=dev_alias"
+offset1_r_backlash_value.model = "OFFSET1/position"
+offset1_w_backlash_value.model = "OFFSET1/position"
 
 
 panel1_l.setRowStretch(0, 0)

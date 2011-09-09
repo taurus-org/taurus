@@ -49,7 +49,6 @@ try:
 except:
     sphinx = None
 
-
 def abspath(*path):
     """A method to determine absolute path for a given relative path to the
     directory where this setup.py script is located"""
