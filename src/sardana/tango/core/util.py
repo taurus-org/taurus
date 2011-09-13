@@ -29,16 +29,19 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "to_tango_state", "to_tango_type_format", "to_tango_type",
-           "to_tango_access",
+           "to_tango_access", "to_tango_attr_info",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
 from PyTango import Util, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
-    DevVarLong64Array, DispLevel, DevState, SCALAR, SPECTRUM, IMAGE, \
+    DevVarLong64Array, DispLevel, DevState, \
+    SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 
-from sardana import DataType, DataFormat, DataAccess
+from sardana import DataType, DataFormat, DataAccess, \
+    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
+from sardana.pool.poolmetacontroller import DataInfo
 
 class GenericScalarAttr(Attr):
     pass
@@ -58,39 +61,54 @@ class GenericImageAttr(ImageAttr):
 def to_tango_state(state):
     return DevState(state)
 
-def to_tango_type_format(dtype, dformat):
-    t = DevLong
-    f = SCALAR
-    if dtype == DataType.Double:
-        t = DevDouble
-    elif dtype == DataType.String:
-        t = DevString
-    elif dtype == DataType.Boolean:
-        t = DevBoolean
-    if dformat == DataFormat.OneD:
-        f = SPECTRUM
-    elif dformat == DataFormat.TwoD:
-        f = IMAGE
-    return t, f
+#: dictionary dict<:class:`sardana.DataType`, :class:`PyTango.CmdArgType`>
+TTYPE_MAP = {
+    DataType.Integer : DevLong,
+    DataType.Double  : DevDouble,
+    DataType.String  : DevString,
+    DataType.Boolean : DevBoolean,
+}
 
-def to_tango_type(dtype):
-    t = DevLong
-    if dtype == DataType.Double:
-        t = DevDouble
-    elif dtype == DataType.String:
-        t = DevString
-    elif dtype == DataType.Boolean:
-        t = DevBoolean
-    return t
+#: dictionary dict<:class:`sardana.DataFormat`, :class:`PyTango.AttrFormat`>
+TFORMAT_MAP = {
+    DataFormat.Scalar : SCALAR,
+    DataFormat.OneD   : SPECTRUM,
+    DataFormat.TwoD   : IMAGE,
+}
+
+#: dictionary dict<:class:`sardana.DataAccess`, :class:`PyTango.AttrWriteType`>
+TACCESS_MAP = {
+    DataAccess.ReadOnly  : READ,
+    DataAccess.ReadWrite : READ_WRITE,
+}
 
 def to_tango_access(access):
-    a = READ_WRITE
-    if access == DataAccess.ReadOnly:
-        a = READ
-    return a
+    return TACCESS_MAP.get(access, READ)
 
+def to_tango_type_format(dtype_or_info, dformat=None):
+    dtype = dtype_or_info
+    if dformat is None:
+        dtype, dformat = to_dtype_dformat(dtype)
+    return TTYPE_MAP.get(dtype, DevVoid), TFORMAT_MAP.get(dformat, FMT_UNKNOWN)
+    
+def to_tango_attr_info(attr_name, attr_info):
+    if isinstance(attr_info, DataInfo):
+        data_type, data_format = attr_info.dtype, attr_info.dformat
+        data_access = attr_info.access
+        desc = attr_info.description
+    else:
+        data_type, data_format = to_dtype_dformat(attr_info.get('type'))
+        data_access = to_daccess(attr_info.get('r/w type'))
+        desc = attr_info.get('description')
+    
+    tg_type, tg_format = to_tango_type_format(data_type, data_format)
+    tg_access = to_tango_access(data_access)
+    tg_attr_info = [ [ tg_type, tg_format, tg_access ] ]
 
-
+    if desc is not None and len(desc) > 0:
+        tg_attr_info.append( { 'description' : desc } )
+    return attr_name, tg_attr_info
+    
 def clean_tango_args(args):
     ret, ret_for_tango = [], []
     

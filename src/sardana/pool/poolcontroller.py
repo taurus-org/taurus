@@ -336,8 +336,8 @@ class PoolController(PoolBaseController):
         return self._class_name
     
     @check_ctrl
-    def get_standard_axis_attributes(self, axis):
-        return self.ctrl.GetStandardAxisAttributes(axis)
+    def get_axis_attributes(self, axis):
+        return self.ctrl.GetAxisAttributes(axis)
     
     @check_ctrl
     def get_ctrl_attr(self, name):

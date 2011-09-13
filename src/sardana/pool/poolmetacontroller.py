@@ -40,9 +40,10 @@ import json
 
 from taurus.core.util import CaselessDict, CodecFactory
 
-from sardana import DataType, DataFormat, DataAccess
-from pooldefs import ElementType, TYPE_ELEMENTS
+from sardana import DataType, DataFormat, DataAccess, \
+    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
 
+from pooldefs import ElementType, TYPE_ELEMENTS
 from poolcontroller import PoolController, PoolPseudoMotorController
 from poolmotor import PoolMotor
 from poolpseudomotor import PoolPseudoMotor
@@ -101,33 +102,6 @@ for t, d in TYPE_MAP.items():
     o = TypeData(type=t, name=d[0], family=d[1], klass=d[2] ,
                  auto_full_name=d[3], ctrl_klass=d[4])
     TYPE_MAP_OBJ[t] = o
-
-#: dictionary dict<data type, :class:`sardana.DataType`>
-DTYPE_MAP = { 'int'            : DataType.Integer,
-              'integer'        : DataType.Integer,
-              int              : DataType.Integer,
-              long             : DataType.Integer,
-              'long'           : DataType.Integer,
-              DataType.Integer : DataType.Integer,
-              'float'          : DataType.Double,
-              'double'         : DataType.Double,
-              float            : DataType.Double,
-              DataType.Double  : DataType.Double,
-              'str'            : DataType.String,
-              'string'         : DataType.String,
-              str              : DataType.String,
-              DataType.String  : DataType.String,
-              'bool'           : DataType.Boolean,
-              'boolean'        : DataType.Boolean,
-              bool             : DataType.Boolean,
-              DataType.Boolean : DataType.Boolean, }
-
-#: dictionary dict<access type, :class:`sardana.DataAccess`>
-DACCESS_MAP = { 'read'               : DataAccess.ReadOnly,
-                DataAccess.ReadOnly  : DataAccess.ReadOnly,
-                'readwrite'          : DataAccess.ReadWrite,
-                'read_write'         : DataAccess.ReadWrite,
-                DataAccess.ReadWrite : DataAccess.ReadWrite,}
 
 
 class ControllerLib(object):
@@ -235,29 +209,6 @@ class ControllerClassJSONEncoder(json.JSONEncoder):
         return obj.toDict()
 
 
-def from_dtype_str(dtype):
-    dformat = DataFormat.Scalar
-    if type(dtype) == str:
-        dtype = dtype.lower()
-        if dtype.startswith("pytango."):
-            dtype = dtype[len("pytango."):]
-        if dtype.startswith("dev"):
-            dtype = dtype[len("dev"):]
-        if dtype.startswith("var"):
-            dtype = dtype[len("var"):]
-        if dtype.endswith("array"):
-            dtype = dtype[:dtype.index("array")]
-            dformat = DataFormat.OneD
-    return dtype, dformat
-
-def from_access_str(access):
-    if type(access) == str:
-        access = access.lower()
-        if access.startswith("pytango."):
-            access = access[len("pytango."):]
-    return access
-
-
 class DataInfo(object):
     
     def __init__(self, name, dtype, dformat=DataFormat.Scalar,
@@ -277,34 +228,18 @@ class DataInfo(object):
         info = CaselessDict(info)
         dformat = DataFormat.Scalar
         dtype = info['type']
-        if type(dtype) == str:
-            dtype, dformat = from_dtype_str(dtype)
-        elif operator.isSequenceType(dtype):
-            dformat = DataFormat.OneD
-            dtype = dtype[0]
-            if type(dtype) == str:
-                dtype, dformat2 = from_dtype_str(dtype)
-                if dformat2 == DataFormat.OneD:
-                    dformat = DataFormat.TwoD
-            elif operator.isSequenceType(dtype):
-                dformat = DataFormat.TwoD
-                dtype = dtype[0]
-                if type(dtype) == str:
-                    dtype, _ = from_dtype_str(dtype)
-        dtype = DTYPE_MAP[dtype]
+        dtype, dformat = to_dtype_dformat(dtype)
         default_value = info.get('defaultvalue')
         description = info.get('description', '')
-        access = info.get('r/w type', DataAccess.ReadWrite)
-        if type(access) == str:
-            access = from_access_str(access)
-        access = DACCESS_MAP[access]
+        daccess = info.get('r/w type', DataAccess.ReadWrite)
+        daccess = to_daccess(daccess)
         fget = info.get('fget')
         fset = info.get('fset')
         if default_value is not None and dtype != DataType.String:
             if type(default_value) in types.StringTypes:
                 default_value = eval(default_value)
-        return DataInfo(name, dtype, dformat, access, description, default_value,
-                        fget, fset)
+        return DataInfo(name, dtype, dformat, daccess, description,
+                        default_value, fget, fset)
     
     def toDict(self):
         return { 'name' : self.name, 'type' : DataType.whatis(self.dtype),

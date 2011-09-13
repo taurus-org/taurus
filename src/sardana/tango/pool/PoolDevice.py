@@ -33,14 +33,14 @@ __docformat__ = 'restructuredtext'
 
 from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
     DevDouble, DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ, AttReqType
+    IMAGE, READ_WRITE, READ, AttReqType, AttrData
     
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_type_format, to_tango_access
+    GenericImageAttr, to_tango_type_format, to_tango_access, to_tango_attr_info
 from sardana.pool import InvalidId, InvalidAxis
 
 class PoolDevice(SardanaDevice):
@@ -113,24 +113,40 @@ class PoolDevice(SardanaDevice):
         return True
 
     def get_dynamic_attributes(self):
-        return ()
+        return CaselessDict(), CaselessDict()
 
     def initialize_dynamic_attributes(self):
         self._attributes = attrs = CaselessDict()
         
-        dynamic_attributes = self.get_dynamic_attributes()
+        attr_data = self.get_dynamic_attributes()
         
+        std_attrs, dyn_attrs = attr_data
         self.remove_unwanted_dynamic_attributes()
+
+        #self.info("init dynamic attributes %s %s", std_attrs.keys(), dyn_attrs.keys())
+
+        if std_attrs is not None:
+            read = self.__class__._read_DynamicAttribute
+            write = self.__class__._write_DynamicAttribute
+            is_allowed = self.__class__._is_DynamicAttribute_allowed
+            for attr_name, data_info in std_attrs.items():
+                attr_name, data_info, attr_info = data_info
+                attr = self.add_standard_attribute(attr_name, data_info,
+                                                   attr_info, read,
+                                                   write, is_allowed)
+                attrs[attr.get_name()] = None
         
-        if dynamic_attributes is None or len(dynamic_attributes) == 0:
-            return
-        
-        read = self.__class__._read_DynamicAttribute
-        write = self.__class__._write_DynamicAttribute
-        is_allowed = self.__class__._is_DynamicAttribute_allowed
-        for k, data_info in dynamic_attributes.items():
-            attr = self.add_dynamic_attribute(data_info, read, write, is_allowed)
-            attrs[attr.get_name()] = None
+        if dyn_attrs is not None:
+            read = self.__class__._read_DynamicAttribute
+            write = self.__class__._write_DynamicAttribute
+            is_allowed = self.__class__._is_DynamicAttribute_allowed
+            for attr_name, data_info in dyn_attrs.items():
+                attr_name, data_info, attr_info = data_info
+                attr = self.add_dynamic_attribute(attr_name, data_info,
+                                                  attr_info, read,
+                                                  write, is_allowed)
+                attrs[attr.get_name()] = None
+        return attrs
     
     def remove_unwanted_dynamic_attributes(self):
         """Removes unwanted dynamic attributes from previous device creation"""
@@ -170,12 +186,10 @@ class PoolDevice(SardanaDevice):
                 self.warning("Error removing dynamic attribute %s from device "
                              "class (%s)",
                              attr_name, e)
-
-    def add_dynamic_attribute(self, data_info, read, write, is_allowed):
-        #self.info("adding dynamic attribute %s", data_info.name)
-        tg_type, tg_format = to_tango_type_format(data_info.dtype,
-                                                  data_info.dformat)
-        tg_access = to_tango_access(data_info.access)
+    
+    def add_dynamic_attribute(self, attr_name, data_info, attr_info, read,
+                              write, is_allowed):
+        tg_type, tg_format, tg_access = data_info[0]
 
         if tg_access == READ:
             write = None
@@ -185,13 +199,20 @@ class PoolDevice(SardanaDevice):
         elif tg_format == IMAGE:
             klass = GenericImageAttr
             
-        attr = klass(data_info.name, tg_type, tg_access)
+        attr = klass(attr_name, tg_type, tg_access)
         if tg_access == READ_WRITE and tg_format == SCALAR:
             attr.set_memorized()
             attr.set_memorized_init(True)
         attr.set_disp_level(DispLevel.EXPERT)
         return self.add_attribute(attr, read, write, is_allowed)
-
+    
+    def add_standard_attribute(self, attr_name, data_info, attr_info, read,
+                               write, is_allowed):
+        dev_class = self.get_device_class()
+        attr_data = AttrData(attr_name, dev_class.get_name(), data_info)
+        attr = self.add_attribute(attr_data, read, write, is_allowed)
+        return attr
+    
     def read_DynamicAttribute(self, attr):
         raise NotImplementedError
 
@@ -249,6 +270,8 @@ class PoolDeviceClass(SardanaDeviceClass):
                           { 'label'         : "Simulation mode" } ],
     }
     attr_list.update(SardanaDeviceClass.attr_list)
+    
+    standard_attr_list = {}
 
 
 class PoolElementDevice(PoolDevice):
@@ -292,15 +315,27 @@ class PoolElementDevice(PoolDevice):
         db.put_device_property(self.get_name(), { "Instrument_id" : instrument.id })
     
     def get_dynamic_attributes(self):
+        if hasattr(self, "_dynamic_attributes_cache"):
+            return self._standard_attributes_cache, self._dynamic_attributes_cache
         ctrl = self.ctrl
         if ctrl is None:
             self.debug("no controller: dynamic attributes NOT created")
-            return
-        ctrl_info = ctrl.get_ctrl_info()
-        if ctrl_info is None:
-            self.debug("no controller info: dynamic attributes NOT created")
-            return
-        return ctrl_info.getAxisAttributes()
+            return PoolDevice.get_dynamic_attributes(self)
+        self._dynamic_attributes_cache = dyn_attrs = CaselessDict()
+        self._standard_attributes_cache = std_attrs = CaselessDict()
+        dev_class = self.get_device_class()
+        axis_attrs = ctrl.get_axis_attributes(self.element.axis)
+        
+        std_attrs_lower = [ attr.lower() for attr in dev_class.standard_attr_list ]
+        for attr_name, attr_info in axis_attrs.items():
+            attr_name_lower = attr_name.lower()
+            if attr_name_lower in std_attrs_lower:
+                tg_info = dev_class.standard_attr_list[attr_name]
+                std_attrs[attr_name] = attr_name, tg_info, attr_info
+            else:
+                name, tg_info = to_tango_attr_info(attr_name, attr_info)
+                dyn_attrs[attr_name] = name, tg_info, attr_info
+        return std_attrs, dyn_attrs
 
     def read_DynamicAttribute(self, attr):
         name = attr.get_name()
@@ -344,8 +379,6 @@ class PoolElementDeviceClass(PoolDeviceClass):
     }
     attr_list.update(PoolDeviceClass.attr_list)
 
-    standard_attr_list = {}
-    
     def get_standard_attr_info(self, attr):
         return self.standard_attr_list[attr]
     

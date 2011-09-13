@@ -475,8 +475,6 @@ class Motion:
 class BasicDummyMotorController(MotorController):
     """This class represents a basic, dummy Sardana motor controller."""
     
-    ctrl_features = ['Basic']
-
     gender = "Simulation"
     model  = "Basic"
     organization = "CELLS - ALBA"
@@ -488,7 +486,14 @@ class BasicDummyMotorController(MotorController):
     def __init__(self, inst, props, *args, **kwargs):
         MotorController.__init__(self, inst, props, *args, **kwargs)
         self.m = self.MaxDevice*[None,]
-
+    
+    def GetAxisAttributes(self, axis):
+        axis_attrs = MotorController.GetAxisAttributes(self, axis)
+        new_axis_attrs = {}
+        for attr in ('Position', 'Limit_switches'):
+            new_axis_attrs[attr] = axis_attrs[attr]
+        return new_axis_attrs
+    
     def AddDevice(self,axis):
         idx = axis - 1
         if len(self.m) < axis:
@@ -558,12 +563,14 @@ class BasicDummyMotorController(MotorController):
 class DiscreteDummyMotorController(BasicDummyMotorController):
     """This class represents a discrete, dummy Sardana motor controller."""
      
-    ctrl_features = BasicDummyMotorController.ctrl_features + ['Discrete']
-
-    model = "Discrete"
-    
     def __init__(self, inst, props, *args, **kwargs):
         BasicDummyMotorController.__init__(self, inst, props, *args, **kwargs)
+
+    def GetAxisAttributes(self, axis):
+        axis_attrs = MotorController.GetAxisAttributes(self, axis)
+        new_axis_attrs = dict(Position=axis_attrs['Position'])
+        new_axis_attrs['Position']['type'] = int
+        return new_axis_attrs
 
     def ReadOne(self, axis):
         pos = BasicDummyMotorController.ReadOne(self, axis)
@@ -619,6 +626,9 @@ class DummyMotorController(BasicDummyMotorController):
         BasicDummyMotorController.__init__(self, inst, props, *args, **kwargs)
         self._lowerLS = float("-inf")
         self._upperLS = float("+inf")
+
+    def GetAxisAttributes(self, axis):
+        return MotorController.GetAxisAttributes(self, axis)
     
     def SetAxisPar(self, axis, name, value):
         idx = axis - 1

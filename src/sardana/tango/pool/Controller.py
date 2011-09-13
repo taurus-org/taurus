@@ -37,11 +37,11 @@ from PyTango import SCALAR, SPECTRUM, IMAGE
 from PyTango import READ_WRITE, READ
 from PyTango import Attr, SpectrumAttr, ImageAttr
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
 from sardana import DataType, DataFormat
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_type_format, to_tango_access
+    GenericImageAttr, to_tango_attr_info
 
 from PoolDevice import PoolDevice, PoolDeviceClass
 
@@ -168,11 +168,18 @@ class Controller(PoolDevice):
         self.push_change_event("ElementList", self.get_element_names())
 
     def get_dynamic_attributes(self):
+        if hasattr(self, "_dynamic_attributes_cache"):
+            return self._standard_attributes_cache, self._dynamic_attributes_cache
         info = self.ctrl.ctrl_info
         if info is None:
             self.warning("Controller %s doesn't have any information", self.ctrl)
-            return
-        return info.getControllerAttributes()
+            return PoolDevice.get_dynamic_attributes(self)
+        self._dynamic_attributes_cache = dyn_attrs = CaselessDict()
+        self._standard_attributes_cache = std_attrs = CaselessDict()
+        for attr_name, attr_data in info.getControllerAttributes().items():
+            name, tg_info = to_tango_attr_info(attr_name, attr_data)
+            dyn_attrs[attr_name] = attr_name, tg_info, attr_data
+        return std_attrs, dyn_attrs
         
 #    def initialize_dynamic_attributes(self):
 #        info = self.ctrl.ctrl_info

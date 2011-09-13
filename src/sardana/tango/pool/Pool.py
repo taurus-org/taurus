@@ -411,7 +411,6 @@ class Pool(PyTango.Device_4Impl, Logger):
         if attrs:
             elem_proxy = PyTango.DeviceProxy(full_name)
             try:
-                print full_name, elem_proxy.ping()
                 elem_proxy.write_attributes(attrs)
             except:
                 self.warning("Error trying to write default value for "

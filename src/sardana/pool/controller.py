@@ -31,8 +31,10 @@ __all__ = ["Controller", "Readable", "Startable",
 
 __docformat__ = 'restructuredtext'
 
+import copy
+
 import taurus
-from taurus.core.util.log import Logger
+from taurus.core.util import Logger
 
 from pooldefs import AcqTriggerType, ControllerAPI
 
@@ -123,6 +125,8 @@ class Controller(object):
     
     #: A :class:`str` containning the path to the image logo file
     logo = None
+    
+    _standard_axis_attributes = {}
     
     def __init__(self, inst, props, *args, **kwargs):
         self.inst_name = inst
@@ -277,17 +281,21 @@ class Controller(object):
         raise NotImplementedError("GetAxisExtraPar must be defined in the "
                                   "controller")
     
-    @classmethod
-    def GetStandardAxisAttributes(self, axis):
+    def GetAxisAttributes(self, axis):
         """**Controller API**. Overwrite as necessary.
-        Returns a sequence of standard attributes per axis.
-        Default implementation returns empty :class:`tuple`.
+        Returns a dictionary of all attributes per axis.
+        Default implementation returns a new :class:`dict` with the standard
+        attributes plus the :attr:`~Controller.axis_attributes`
         
         :param int axis: axis number
-        :return: sequence of standard attributes
-        
+        :return: a dict containing attribute information as defined in
+                 :attr:`~Controller.axis_attributes`
+                 
         .. versionadded:: 1.0"""
-        return ()
+        ret = copy.deepcopy(self._standard_axis_attributes)
+        axis_attrs = copy.deepcopy(self.axis_attributes)
+        ret.update(axis_attrs)
+        return ret
     
     def AbortOne(self, axis):
         """**Controller API**. Overwrite is MANDATORY!
@@ -435,33 +443,75 @@ class MotorController(Controller, Startable, Readable):
     respectively in order to maintain backward compatibility).
     """
     
-    @classmethod
-    def GetStandardAxisAttributes(self, axis):
+    _standard_axis_attributes = {
+        'Position'       : { 'type' : float,
+                             'description' : 'Position', },
+        'DialPosition'   : { 'type' : float,
+                             'description' : 'Dial Position', },
+        'Offset'         : { 'type' : float,
+                             'description' : 'Offset', },
+        'Sign'           : { 'type' : float,
+                             'description' : 'Sign', },
+        'Step_per_unit'  : { 'type' : float,
+                             'description' : 'Steps per unit', },
+        'Acceleration'   : { 'type' : float,
+                             'description' : 'Acceleration time (s)', },
+        'Deceleration'   : { 'type' : float,
+                             'description' : 'Deceleration time (s)', },
+        'Base_rate'      : { 'type' : float,
+                             'description' : 'Base rate', },
+        'Velocity'       : { 'type' : float,
+                             'description' : 'Velocity', },
+        'Backlash'       : { 'type' : float,
+                             'description' : 'Backlash', },
+        'Limit_switches' : { 'type' : float,
+                             'description' : "This attribute is the motor "\
+                              "limit switches state. It's an array with 3 \n"\
+                              "elements which are:\n"\
+                              "0 - The home switch\n"\
+                              "1 - The upper limit switch\n"\
+                              "2 - The lower limit switch\n"\
+                              "False means not active. True means active", },
+    }
+    
+    def GetAxisAttributes(self, axis):
         """**Motor Controller API**. Overwrite as necessary.
-        Returns a sequence of standard attributes per axis.
-        Default implementation returns a :class:`tuple` containning:
+        Returns a sequence of all attributes per axis.
+        Default implementation returns a :class:`dict` containning:
         
-        - acceleration
-        - deceleration
-        - base_rate
-        - velocity
-        - step_per_unit
-        - offset
-        - dialposition
-        - backlash
-        - sign
-        - limit_switches
+        - Position
+        - DialPosition
+        - Offset
+        - Sign
+        - Step_per_unit
+        - Acceleration
+        - Deceleration
+        - Base_rate
+        - Velocity
+        - Backlash
+        - Limit_switches
         
-        .. note:: Normally you don't need to overwrite this method.
+        plus all attributes contained in :attr:`~Controller.axis_attributes`
+        
+        .. note::
+            Normally you don't need to overwrite this method. You just implement
+            the class member :attr:`~Controller.axis_attributes`. Typically, 
+            you will need to overwrite this method in two cases:
+                
+                - certain axises contain a different set of extra attributes
+                  which cannot be simply defined in
+                  :attr:`~Controller.axis_attributes`
+                - certain axises (or all) don't implement a set of standard
+                  moveable parameters (ex.: if a motor controller is created to
+                  control a power supply, it may have a position (current) and
+                  a velocity (ramp speed) but it may not have acceleration)
         
         :param int axis: axis number
-        :return: sequence of standard attributes
+        :return: a dict containing attribute information as defined in
+                 :attr:`~Controller.axis_attributes`
         
         .. versionadded:: 1.0"""
-        return "acceleration", "deceleration", "base_rate", "velocity", \
-            "step_per_unit", "offset", "dialposition", "backlash", "sign", \
-            "limit_switches"
-
+        return Controller.GetAxisAttributes(self, axis)
 
 class CounterTimerController(Controller, Readable):
     """Base class for a counter/timer controller. Inherit from this class to 
