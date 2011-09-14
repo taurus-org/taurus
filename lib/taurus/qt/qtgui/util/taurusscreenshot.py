@@ -86,9 +86,9 @@ class Grabber(Qt.QObject):
             this method **MUST** be called from the same thread which created
             the widget
 
-        :param Qt.QWidget widget: the qt widget to be grabbed
-        :param str fileName: the name of the image file
-        :param float period
+        :param widget: (Qt.QWidget) the qt widget to be grabbed
+        :param fileName: (str) the name of the image file
+        :param period: (float) period (seconds)
         """
         if period is None:
             return Grabber._grabWidget(widget, fileName)
