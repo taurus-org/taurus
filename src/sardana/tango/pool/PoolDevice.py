@@ -74,12 +74,6 @@ class PoolDevice(SardanaDevice):
     
     element = property(get_element, set_element)
     
-    def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
-        for evt in evts_checked_by_tango:
-            self.set_change_event(evt, True, True)
-        for evt in evts_not_checked_by_tango:
-            self.set_change_event(evt, True, False)
-    
     def init_device(self):
         SardanaDevice.init_device(self)
     
@@ -279,6 +273,7 @@ class PoolElementDevice(PoolDevice):
     
     def init_device(self):
         PoolDevice.init_device(self)
+        
         self.instrument = None
         self.ctrl = None
         try:

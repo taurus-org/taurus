@@ -59,7 +59,17 @@ class SardanaDevice(Device_4Impl, Logger):
 
     def init_device(self):
         self.get_device_properties(self.get_device_class())
-    
+
+        detect_evts = "state", "status"
+        non_detect_evts = ()
+        self.set_change_events(detect_evts, non_detect_evts)
+
+    def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
+        for evt in evts_checked_by_tango:
+            self.set_change_event(evt, True, True)
+        for evt in evts_not_checked_by_tango:
+            self.set_change_event(evt, True, False)
+
     def initialize_dynamic_attributes(self):
         pass
     

@@ -70,13 +70,13 @@ class MotorGroup(PoolGroupDevice):
     def init_device(self):
         PoolGroupDevice.init_device(self)
     
-        detect_evts = "state", "status", "position"
+        detect_evts = "position",
         non_detect_evts = "elementlist",
         self.set_change_events(detect_evts, non_detect_evts)
 
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
-            motor_group = self.pool.create_motor_group(name=self.alias, 
+            motor_group = self.pool.create_motor_group(name=self.alias,
                 full_name=self.get_name(), id=self.Id,
                 user_elements=self.Elements)
             motor_group.add_listener(self.on_motor_group_changed)
@@ -109,7 +109,6 @@ class MotorGroup(PoolGroupDevice):
                 self.push_change_event(name, event_value)
             else:
                 state = to_tango_state(self.motor_group.get_state())
-                #state = self.get_state()
                 if name == "position":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING

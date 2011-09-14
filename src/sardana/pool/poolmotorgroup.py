@@ -150,7 +150,7 @@ class PoolMotorGroup(PoolGroupElement):
             user_elements = self.get_user_elements()
             items = {}
             for new_position, element in zip(new_positions, user_elements):
-                items[element] = element._calculate_move(new_position)
+                element.calculate_motion(new_position, items=items)
             self.motion.run(items=items)
     
 

@@ -31,7 +31,7 @@ __all__ = [ "PoolBaseGroup", "PoolGroupElement" ]
 __docformat__ = 'restructuredtext'
 
 from sardana import State
-from pooldefs import ElementType
+from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolelement import PoolBaseElement
 from poolcontainer import PoolContainer
 
@@ -43,7 +43,8 @@ class PoolBaseGroup(PoolContainer):
         PoolContainer.__init__(self)
         
         self._user_elements = []
-
+        self._physical_elements = {}
+        
         pool = self._get_pool()
         for id in user_elem_ids:
             self.add_user_element(pool.get_element(id=id))
@@ -87,17 +88,23 @@ class PoolBaseGroup(PoolContainer):
         return self._action_cache
     
     def set_action_cache(self, action_cache):
+        physical_elements = self.get_physical_elements()
         if self._action_cache is not None:
-            for element in self._user_elements:
-                action_cache.remove_element(element)
+            for ctrl_physical_elements in physical_elements.values():
+                for physical_element in ctrl_physical_elements:
+                    action_cache.remove_element(physical_element)
             
         self._action_cache = action_cache
         
-        for element in self._user_elements:
-            action_cache.add_element(element)
+        for ctrl, ctrl_physical_elements in physical_elements.items():
+            for physical_element in ctrl_physical_elements:
+                action_cache.add_element(physical_element)
     
     def get_user_elements(self):
         return self._user_elements
+    
+    def get_physical_elements(self):
+        return self._physical_elements
     
     def add_user_element(self, element, index=None):
         if element in self._user_elements:
@@ -106,11 +113,36 @@ class PoolBaseGroup(PoolContainer):
             index = len(self._user_elements)
         self._user_elements.insert(index, element)
         self.add_element(element)
-        if self._action_cache:
-            self._action_cache.add_element(element)
+
+        physical_elements = self._find_physical_elements(element,
+                                physical_elements=self._physical_elements)
+        if self._action_cache is not None:
+            for ctrl, ctrl_physical_elements in physical_elements.items():
+                for physical_element in ctrl_physical_elements:
+                    self._action_cache.add_element(physical_element)
+        
         element.add_listener(self.on_element_changed)
         return index
-        
+    
+    def _find_physical_elements(self, element, physical_elements=None):
+        elem_type = element.get_type()
+        if physical_elements is None:
+            physical_elements = {}
+        if elem_type in TYPE_PHYSICAL_ELEMENTS:
+            ctrl = element.controller
+            own_elements = physical_elements.get(ctrl)
+            if own_elements is None:
+                physical_elements[ctrl] = own_elements = set()
+            own_elements.add(element)
+        else:
+            for data in element.get_physical_elements():
+                for ctrl, elements in data.items():
+                    own_elements = physical_elements.get(ctrl)
+                    if own_elements is None:
+                        physical_elements[ctrl] = own_elements = set()
+                    own_elements.update(elements)
+        return physical_elements
+    
     def remove_user_element(self, element):
         try:
             idx = self._user_elements.index(element)

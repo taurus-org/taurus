@@ -38,7 +38,8 @@ from PyTango import Util, DevFailed, READ, READ_WRITE, SCALAR, SPECTRUM, \
 from taurus.core.util.log import InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
-from sardana.tango.core.util import to_tango_state
+
+from sardana.tango.core.util import to_tango_type_format, to_tango_state
 
 class PseudoMotor(PoolElementDevice):
 
@@ -69,15 +70,12 @@ class PseudoMotor(PoolElementDevice):
     def init_device(self):
         PoolElementDevice.init_device(self)
 
-        detect_evts = "state", "status", "position"
-        non_detect_evts = ()
-        self.set_change_events(detect_evts, non_detect_evts)
-        
         self.Elements = map(int, self.Elements)
         if self.pseudo_motor is None:
             pseudo_motor = self.pool.create_element(type="PseudoMotor",
                 name=self.alias, full_name=self.get_name(), id=self.Id,
-                axis=self.Axis, ctrl_id=self.Ctrl_id, user_elements=self.Elements)
+                axis=self.Axis, ctrl_id=self.Ctrl_id,
+                user_elements=self.Elements)
             if self.instrument is not None:
                 motor.set_instrument(self.instrument)
             pseudo_motor.add_listener(self.on_pseudo_motor_changed)
@@ -123,6 +121,30 @@ class PseudoMotor(PoolElementDevice):
 
     def read_attr_hardware(self,data):
         pass
+
+    def initialize_dynamic_attributes(self):
+        attrs = PoolElementDevice.initialize_dynamic_attributes(self)
+        
+        detect_evts = "position",
+        non_detect_evts = ()
+            
+        for attr_name in detect_evts:
+            if attrs.has_key(attr_name):
+                self.set_change_event(attr_name, True, True)
+        for attr_name in non_detect_evts:
+            if attrs.has_key(attr_name):
+                self.set_change_event(attr_name, True, False)
+        return
+    
+    def add_standard_attribute(self, attr_name, data_info, attr_info, read,
+                               write, is_allowed):
+        # For position attribute, listen to what the controller says for data
+        # type (between long and float)
+        if attr_name.lower() == 'position':
+            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            data_info[0][0] = ttype
+        return PoolElementDevice.add_standard_attribute(self, attr_name,
+            data_info, attr_info, read, write, is_allowed)
     
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
@@ -164,10 +186,10 @@ class PseudoMotorClass(PoolElementDeviceClass):
     cmd_list.update(PoolElementDeviceClass.cmd_list)
 
     #    Attribute definitions
-    attr_list = {
+    standard_attr_list = {
         'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
     }
-    attr_list.update(PoolElementDeviceClass.attr_list)
+    standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
 
     def __init__(self, name):
         PoolElementDeviceClass.__init__(self, name)

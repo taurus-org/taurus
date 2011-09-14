@@ -27,6 +27,7 @@
 
 __all__ = ["InvalidId", "InvalidAxis", "ControllerAPI", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
+           "TYPE_PHYSICAL_ELEMENTS",
            "AcqMode", "AcqTriggerType"]
 
 __docformat__ = 'restructuredtext'
@@ -63,17 +64,21 @@ ElementType = Enumeration("ElementType", ( \
 
 ET = ElementType
 
-#: a tuple containning all "controllable" element types
-TYPE_ELEMENTS = ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+#: a set containning all "controllable" element types
+TYPE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.Communication, ET.IORegister, ET.PseudoMotor, \
-    ET.PseudoCounter, ET.Constraint
+    ET.PseudoCounter, ET.Constraint))
 
-#: a sequence containing all group element types
-TYPE_GROUP_ELEMENTS = ET.MotorGroup, ET.MeasurementGroup
+#: a set containing all group element types
+TYPE_GROUP_ELEMENTS = set((ET.MotorGroup, ET.MeasurementGroup))
 
-#: a sequence containing the type of elements which are moveable
-TYPE_MOVEABLE_ELEMENTS = ET.Motor, ET.PseudoMotor, ET.MotorGroup
+#: a set containing the type of elements which are moveable
+TYPE_MOVEABLE_ELEMENTS = set((ET.Motor, ET.PseudoMotor, ET.MotorGroup))
+
+TYPE_PHYSICAL_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
+    ET.Communication, ET.IORegister))
 
 #: an enumeration describing all possible acquisition trigger types
 AcqTriggerType = Enumeration("AcqTriggerType", ( \

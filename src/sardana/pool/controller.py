@@ -126,7 +126,7 @@ class Controller(object):
     #: A :class:`str` containning the path to the image logo file
     logo = None
     
-    _standard_axis_attributes = {}
+    standard_axis_attributes = {}
     
     def __init__(self, inst, props, *args, **kwargs):
         self.inst_name = inst
@@ -292,7 +292,7 @@ class Controller(object):
                  :attr:`~Controller.axis_attributes`
                  
         .. versionadded:: 1.0"""
-        ret = copy.deepcopy(self._standard_axis_attributes)
+        ret = copy.deepcopy(self.standard_axis_attributes)
         axis_attrs = copy.deepcopy(self.axis_attributes)
         ret.update(axis_attrs)
         return ret
@@ -443,7 +443,7 @@ class MotorController(Controller, Startable, Readable):
     respectively in order to maintain backward compatibility).
     """
     
-    _standard_axis_attributes = {
+    standard_axis_attributes = {
         'Position'       : { 'type' : float,
                              'description' : 'Position', },
         'DialPosition'   : { 'type' : float,
@@ -666,6 +666,11 @@ class PseudoMotorController(Controller):
     #: controller
     motor_roles = ()
 
+    standard_axis_attributes = {
+        'Position'       : { 'type' : float,
+                             'description' : 'Position', },
+    }
+    
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
         self.__pseudo_role_motor_elements = {}

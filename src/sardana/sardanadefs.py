@@ -151,5 +151,5 @@ def to_dtype_dformat(data):
 def to_daccess(data):
     daccess = DataAccess.Invalid
     if type(data) == str:
-        daccess = DACCESS_MAP.get(from_access_str(data), DataAccess.Invalid)
+        daccess = DACCESS_MAP.get(from_access_str(data), DataAccess.ReadWrite)
     return daccess

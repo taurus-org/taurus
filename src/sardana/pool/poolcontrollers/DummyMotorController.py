@@ -572,6 +572,16 @@ class DiscreteDummyMotorController(BasicDummyMotorController):
         new_axis_attrs['Position']['type'] = int
         return new_axis_attrs
 
+    def AddDevice(self, axis):
+        BasicDummyMotorController.AddDevice(self, axis)
+        idx = axis - 1
+        m = self.m[idx]
+        m.setMinVelocity(0)
+        m.setMaxVelocity(1)
+        m.setAccelerationTime(0.01)
+        m.setDecelerationTime(0.01)
+        m.setCurrentPosition(0)
+        
     def ReadOne(self, axis):
         pos = BasicDummyMotorController.ReadOne(self, axis)
         return int(pos)

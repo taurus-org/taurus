@@ -405,7 +405,7 @@ class PoolMotor(PoolElement):
     # motion calculation
     # --------------------------------------------------------------------------
     
-    def _calculate_move(self, new_position):
+    def calculate_motion(self, new_position, items=None):
         old_position = self.position
         old_dial = self.dial_position
         
@@ -438,16 +438,17 @@ class PoolMotor(PoolElement):
         if do_backlash:
             backlash_position = new_dial + backlash / step_per_unit
         
-        return new_position, new_dial, do_backlash, backlash_position
+        if items is None:
+            items = {}
+        items[self] = new_position, new_dial, do_backlash, backlash_position
+        return items
     
     def start_move(self, new_position):
-        pos, dial, do_backlash, dial_backlash = self._calculate_move(new_position)
         if not self._simulation_mode:
-            pool = self.pool
-            pos_info = pos, dial, do_backlash, dial_backlash
+            items = self.calculate_motion(new_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
-                       "dial_backlash=%f", *pos_info)
-            self.motion.run(items = {self : pos_info})
+                       "dial_backlash=%f", *items[self])
+            self.motion.run(items=items)
     
     def prepare_to_move(self):
         self._aborted = False

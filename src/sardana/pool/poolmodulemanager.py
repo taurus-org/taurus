@@ -130,8 +130,9 @@ class ModuleManager(Singleton, Logger):
         return m
 
     def getModuleListStr(self):
-        l = self._modules.keys().sort()
-        return l
+        module_names = self._modules.keys()
+        module_names.sort()
+        return module_names
     
     def _fireModuleEvent(self, data=None):
         """Helper method that fires event for the current existing macros"""

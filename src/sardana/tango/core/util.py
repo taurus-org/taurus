@@ -83,7 +83,7 @@ TACCESS_MAP = {
 }
 
 def to_tango_access(access):
-    return TACCESS_MAP.get(access, READ)
+    return TACCESS_MAP.get(access, READ_WRITE)
 
 def to_tango_type_format(dtype_or_info, dformat=None):
     dtype = dtype_or_info
