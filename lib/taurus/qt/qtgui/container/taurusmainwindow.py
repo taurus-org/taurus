@@ -264,26 +264,24 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.configurationAction = Qt.QAction(getThemeIcon("preferences-system"), 'Configurations ...', self)
         self.connect(self.configurationAction, Qt.SIGNAL("triggered()"), self.configurationDialog.show)
-        
+    
         self.toggleFullScreenAction = Qt.QAction(getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
         self.toggleFullScreenAction.setCheckable(True)
-        self.toggleFullScreenAction.setShortcut(Qt.QKeySequence(Qt.Qt.Key_F11))
-        self.toggleFullScreenAction.setShortcutContext(Qt.Qt.ApplicationShortcut)
         self.connect(self.toggleFullScreenAction, Qt.SIGNAL("toggled(bool)"), self._onToggleFullScreen)
 
-        #self.shortcut = Qt.QShortcut(self)
-        #self.shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
-        #self.connect(self.shortcut, Qt.SIGNAL("activated()"), self._onToggleFullScreen1)
+        # In Qt <= 4.4 setting the QAction shortcut at the application level
+        # doesn't work when trying to get out of fullscreen so we create a
+        # QShortcut manually to solve the problem. 
+        #self.toggleFullScreenAction.setShortcut(Qt.QKeySequence(Qt.Qt.Key_F11))
+        #self.toggleFullScreenAction.setShortcutContext(Qt.Qt.ApplicationShortcut)
+        self.shortcut = Qt.QShortcut(self)
+        self.shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
+        self.connect(self.shortcut, Qt.SIGNAL("activated()"), self._onToggleFullScreen)
     
-    def _onToggleFullScreen1(self):
-        if self.isFullScreen():
-            self.showNormal()
-            self._toggleToolBarsAndMenu(True)
-        else:
-            self._toggleToolBarsAndMenu(False)
-            self.showFullScreen()
-    
-    def _onToggleFullScreen(self, yesno):
+    # I put the yesno=None keyword arg so it may be called by both toggled(bool)
+    # activated() Qt signals. There is no problem as long as we don't use the 
+    # parameter internally in the method
+    def _onToggleFullScreen(self, yesno=None):
         if self.isFullScreen():
             self.showNormal()
             self._toggleToolBarsAndMenu(True)
