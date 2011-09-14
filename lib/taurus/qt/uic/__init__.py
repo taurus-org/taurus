@@ -35,6 +35,7 @@ import optparse
 import lxml.etree
 
 import taurus.qt.qtgui.util
+from taurus.qt import Qt
 
 import tau2taurus_map
 
@@ -160,7 +161,9 @@ def resolve_inheritance(xml_source):
         super_name = extends_node.text
         if super_name in custom_widget_list:
             continue
-        if not super_name in widget_klasses:
+        if super_name in dir(Qt):
+            continue
+        if super_name not in widget_klasses:
             xml = _build_plain_widget(super_name)
         else:
             module_name, widget_klass = widget_klasses[super_name]
@@ -204,9 +207,12 @@ def _build_widget(module_name, widget_klass, widget_klasses, existing_widgets):
     
     existing_widgets.append(widget_klass_name)
     
-    if widget_super_klass_name in widget_klasses and widget_super_klass_name not in existing_widgets:
-        super_module_name, super_klass = widget_klasses[widget_super_klass_name]
-        new_custom_widget_nodes = _build_widget(super_module_name, super_klass, widget_klasses, existing_widgets)
-        ret.extend(new_custom_widget_nodes)
+    if widget_super_klass_name not in widget_klasses and widget_super_klass_name not in dir(Qt):
+        _build_plain_widget(widget_super_klass_name)
+    else:
+        if widget_super_klass_name in widget_klasses and widget_super_klass_name not in existing_widgets:
+            super_module_name, super_klass = widget_klasses[widget_super_klass_name]
+            new_custom_widget_nodes = _build_widget(super_module_name, super_klass, widget_klasses, existing_widgets)
+            ret.extend(new_custom_widget_nodes)
     
     return ret
