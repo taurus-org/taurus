@@ -96,6 +96,7 @@ QDockWidget::title {{
     border-color: rgb(0, 65, 200);
     border-radius: {border_radius};
     margin-top: 1.5ex;
+    padding-top: 8px;
     background-color: {content_background_color};
  }}
 
