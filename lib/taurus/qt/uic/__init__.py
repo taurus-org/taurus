@@ -208,7 +208,8 @@ def _build_widget(module_name, widget_klass, widget_klasses, existing_widgets):
     existing_widgets.append(widget_klass_name)
     
     if widget_super_klass_name not in widget_klasses and widget_super_klass_name not in dir(Qt):
-        _build_plain_widget(widget_super_klass_name)
+        new_custom_widget_nodes = _build_plain_widget(widget_super_klass_name)
+        ret.extend(new_custom_widget_nodes)
     else:
         if widget_super_klass_name in widget_klasses and widget_super_klass_name not in existing_widgets:
             super_module_name, super_klass = widget_klasses[widget_super_klass_name]
