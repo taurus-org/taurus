@@ -59,7 +59,7 @@ def prepare_pyqt():
             get_logger().info("SIP: %s", e)
     else:
         sip_ver = sip.SIP_VERSION_STR
-        get_logger().info("Using old SIP %s (advised >= 4.9)", sip_ver)
+        get_logger().debug("Using old SIP %s (advised >= 4.9)", sip_ver)
 
 def prepare_pyside():
     pass
