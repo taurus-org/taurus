@@ -87,12 +87,12 @@ class TangoDevice(taurus.core.TaurusDevice):
             dev = self.getHWObj()
             li = PyTango.LockerInfo()
             locked = dev.get_locker(li)
-            lock_info.id = pid = li.li
-            lock_info.language = li.ll
-            lock_info.host = host = li.locker_host
-            lock_info.klass = li.locker_class
             msg = "%s " % self.getSimpleName()
             if locked:
+                lock_info.id = pid = li.li
+                lock_info.language = li.ll
+                lock_info.host = host = li.locker_host
+                lock_info.klass = li.locker_class
                 if dev.is_locked_by_me():
                     status = LockStatus.LockedMaster
                     msg += "is locked by you!"
@@ -100,6 +100,10 @@ class TangoDevice(taurus.core.TaurusDevice):
                     status = LockStatus.Locked
                     msg += "is locked by PID %s on %s" % (pid, host)
             else:
+                lock_info.id = None
+                lock_info.language = None
+                lock_info.host = host = None
+                lock_info.klass = None
                 status = LockStatus.Unlocked
                 msg += "is not locked"
             lock_info.status = status
