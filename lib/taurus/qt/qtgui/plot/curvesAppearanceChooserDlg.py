@@ -29,8 +29,8 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
-
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 from ui import ui_curvesAppearanceChooser
 from taurus.qt.qtgui.resource import getIcon
 from taurus.core.util import CaselessDict

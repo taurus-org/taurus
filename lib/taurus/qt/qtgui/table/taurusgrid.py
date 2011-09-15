@@ -39,7 +39,7 @@ import operator
 import traceback
 from functools import partial
 
-from PyQt4 import QtGui, QtCore
+from taurus.qt import QtGui, QtCore
 
 import taurus
 from taurus.core import TaurusManager
@@ -854,7 +854,6 @@ if __name__ == '__main__':
         print '\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False'
         exit()
         
-    from PyQt4 import QtGui,QtCore        
     app = QtGui.QApplication(sys.argv[0:1])
     gui = TaurusGrid()
 

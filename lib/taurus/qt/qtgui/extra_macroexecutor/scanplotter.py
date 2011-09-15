@@ -35,8 +35,9 @@ scanplotter.py:
 import taurus
 import taurus.core
 
-from PyQt4 import QtGui, QtCore, Qwt5
-from PyQt4.Qt import *
+from taurus.qt import QtGui, QtCore
+from taurus.qt.Qt import *
+from PyQt4 import Qwt5
 
 from taurus.qt.qtgui.plot import TaurusTrend
 

@@ -29,8 +29,7 @@ __all__ = ["TaurusGroupWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from qcontainer import QGroupWidget
 from taurusbasecontainer import TaurusBaseContainer
 

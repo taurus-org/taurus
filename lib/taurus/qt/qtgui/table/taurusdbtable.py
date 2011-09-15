@@ -30,8 +30,7 @@ __all__ = ["TaurusDbTableWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.core import TaurusElementType, TaurusDatabase
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.resource import getElementTypeIcon, getElementTypeIconName

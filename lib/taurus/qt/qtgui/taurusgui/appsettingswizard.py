@@ -37,7 +37,7 @@ __all__=["AppSettingsWizard", "ExternalAppEditor"]
 
 import os, sys, shutil,re
 import datetime
-from PyQt4 import Qt
+from taurus.qt import Qt
 import taurus.qt.qtgui.resource
 import taurus.qt.qtgui.extra_macroexecutor.common
 import taurus.qt.qtgui.panel

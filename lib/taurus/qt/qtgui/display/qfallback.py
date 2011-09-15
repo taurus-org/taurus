@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 import functools
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 def create_fallback(widget_klass_name):
     return functools.partial(QFallBackWidget, replaces=widget_klass_name,

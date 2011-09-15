@@ -31,7 +31,7 @@ __all__ = ["QButtonBox"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 class QButtonBox(Qt.QDialogButtonBox):
     __pyqtSignals__ = ("okClicked()","openClicked()", "saveClicked()", "cancelClicked()",

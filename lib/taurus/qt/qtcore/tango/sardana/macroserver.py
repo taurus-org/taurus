@@ -30,7 +30,7 @@ __all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler", "registerE
 import taurus.core
 from taurus.core.tango.sardana.macroserver import BaseMacroServer, BaseDoor
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 CHANGE_EVTS = (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic)
 

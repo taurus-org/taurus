@@ -31,7 +31,8 @@ __all__=['TaurusCurveItemTableModel','CurveItemConf', 'CurveItemConfDlg']
 
 import copy
 
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 import taurus
 from taurus.core import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE

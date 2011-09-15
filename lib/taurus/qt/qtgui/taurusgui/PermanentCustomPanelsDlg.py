@@ -28,7 +28,7 @@
 PermanentCustomPanelDlg.py: 
 """
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from ui.ui_PermanentCustomPanelsDlg import Ui_PermanentCustomPanelsDlg
 
 class PermanentCustomPanelsDlg(Qt.QDialog):

@@ -29,7 +29,8 @@ tauruspluginplugin.py:
 
 import os
 
-from PyQt4 import Qt, QtDesigner
+from taurus.qt import Qt
+from PyQt4 import QtDesigner
 
 def build_qtdesigner_widget_plugin(klass):
     import taurusplugin

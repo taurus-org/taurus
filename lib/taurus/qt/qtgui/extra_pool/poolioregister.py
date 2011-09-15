@@ -27,7 +27,7 @@
 poolioregister.py: 
 """
 __all__=["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.core.util.eventfilters import EventValueMap

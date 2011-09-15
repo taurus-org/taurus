@@ -32,7 +32,7 @@ __all__ = ["QBaseModelWidget", "TaurusBaseModelWidget",
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.util import ActionFactory

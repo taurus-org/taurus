@@ -28,7 +28,7 @@ Extension of :mod:`guiqwt.image`
 """
 __all__=["TaurusImageItem","TaurusRGBImageItem"]
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from taurus.core.util import ArrayBuffer

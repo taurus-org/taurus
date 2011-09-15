@@ -32,8 +32,7 @@ __docformat__ = 'restructuredtext'
 import copy
 import sys
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.qt.qtgui.resource import getThemePixmap, getThemeIcon, getStandardIcon
 
 _TitleBarStyleExpanded = """.QFrame {{

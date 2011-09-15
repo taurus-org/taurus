@@ -34,7 +34,7 @@ __docformat__ = 'restructuredtext'
 import os
 import math
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 POLY = Qt.QPolygonF
 P = Qt.QPointF

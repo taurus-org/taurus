@@ -26,12 +26,13 @@
 """
 Provides a QtObject for taurus attributes 
 """
-
-from PyQt4 import Qt
-from taurus.qt.qtgui.base import TaurusBaseComponent
+import weakref
+import re
 import PyTango
-import weakref, re
+
 import taurus.core
+from taurus.qt import Qt
+from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util import SafeEvaluator
 
 class TaurusQAttributeFactory(object): #@this probably needs to be ported to a proper TaurusFactory

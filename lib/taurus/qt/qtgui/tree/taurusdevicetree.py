@@ -36,7 +36,8 @@ import subprocess
 try:import icons_dev_tree
 except:icons_dev_tree = None
 
-from PyQt4 import QtCore, QtGui, Qt, Qwt5
+from taurus.qt import Qt, QtCore, QtGui
+from PyQt4 import Qwt5
 
 import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE

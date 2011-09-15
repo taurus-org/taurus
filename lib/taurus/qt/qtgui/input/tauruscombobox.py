@@ -30,7 +30,7 @@ __all__ = ["TaurusAttrListComboBox", "TaurusValueComboBox"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import PyTango
 import taurus.core

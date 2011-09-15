@@ -28,7 +28,7 @@ __all__=["PanelDescriptionWizard"]
 paneldescriptionwizard.py: 
 """
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import sys
 import weakref
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription

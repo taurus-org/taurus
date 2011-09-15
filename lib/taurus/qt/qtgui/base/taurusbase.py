@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import PyTango
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import taurus.core
 from taurus.core.util import eventfilters

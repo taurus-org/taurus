@@ -27,7 +27,7 @@
 taurusserverswidget.py: 
 """
 
-from PyQt4 import QtGui, QtCore, Qt
+from taurus.qt import QtGui, QtCore, Qt
 from PyTango_utils.servers import ServersDict
 from PyTango import DevState
 from taurus.core.util import DEVICE_STATE_PALETTE

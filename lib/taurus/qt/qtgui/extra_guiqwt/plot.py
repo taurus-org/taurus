@@ -28,8 +28,9 @@ Extension of :mod:`guiqwt.plot`
 """
 __all__=["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
+from taurus.qt import Qt
 from guiqwt.plot import ImageDialog, CurveDialog
-from PyQt4 import Qt
+
 import copy
 import taurus.core
 from guiqwt.curve import CurveParam

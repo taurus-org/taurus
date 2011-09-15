@@ -27,7 +27,7 @@
 
 __all__ = ["ExpDescriptionEditor"]
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import copy
 import taurus
 from taurus.qt.qtgui.base import TaurusBaseWidget

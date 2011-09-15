@@ -25,14 +25,15 @@
 
 """This module provides a set of basic taurus widgets based on QAbstractSpinBox"""
 
-__all__ = ["TaurusValueSpinBox" ]
+__all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx" ]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from tauruslineedit import TaurusValueLineEdit
+from taurus.qt.qtgui.resource import getStandardIcon
 
 class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
@@ -53,12 +54,12 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         return getattr(self.lineEdit(), name)
 
     # The minimum size of the widget (a limit for the user)
-    def minimumSizeHint(self):
-        return Qt.QSize(20, 20)
+    #def minimumSizeHint(self):
+    #    return Qt.QSize(20, 20)
     
     # The default size of the widget
-    def sizeHint(self):
-        return Qt.QSize(80, 24)
+    #def sizeHint(self):
+    #    return Qt.QSize(80, 24)
         
     def setValue(self, v):
         self.lineEdit().setValue(v)
@@ -173,3 +174,53 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
     forcedApply = Qt.pyqtProperty("bool", getForcedApply, setForcedApply,
                                     resetForcedApply)
+
+_S = """
+QSpinBox::up-button {
+    border-width: 0px;
+}
+QPushButton {
+    min-width: 6px;
+    min-height: 10px;
+    /*border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;*/
+    margin: 0px;
+    padding: 0px;
+}
+"""
+    
+class TaurusValueSpinBoxEx(Qt.QWidget):
+
+    def __init__(self, qt_parent = None, designMode = False):
+        Qt.QWidget.__init__(self, qt_parent)
+        layout = Qt.QGridLayout()
+        layout.setMargin(0)
+        layout.setContentsMargins(0,0,0,0)
+        layout.setSpacing(0)
+        self.setLayout(layout)
+        self.setStyleSheet(_S)
+        self.__dict__['spinBox'] = spin = TaurusValueSpinBox(qt_parent=self, designMode=designMode)
+        self.__dict__['sliderButton1'] = b1 = Qt.QToolButton(self)
+        self.__dict__['sliderButton2'] = b2 = Qt.QToolButton(self)
+        b1.setIcon(getStandardIcon(Qt.QStyle.SP_TitleBarShadeButton, b1))
+        b2.setIcon(getStandardIcon(Qt.QStyle.SP_TitleBarUnshadeButton, b2))
+        layout.addWidget(spin, 0, 0, 2, 1)
+        layout.addWidget(b1, 0, 1, 1, 1, Qt.Qt.AlignBottom)
+        layout.addWidget(b2, 1, 1, 1, 1, Qt.Qt.AlignTop)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
+        
+        policy = self.sizePolicy()
+        policy.setHorizontalPolicy(Qt.QSizePolicy.Minimum)
+        policy.setVerticalPolicy(Qt.QSizePolicy.Fixed)
+        self.setSizePolicy(policy)
+        
+    def __getattr__(self, name):
+        return getattr(self.spinBox, name)
+    
+    def __setattr__(self, name, value):
+        setattr(self.spinBox, name, value)
+    

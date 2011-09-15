@@ -23,39 +23,12 @@
 ##
 #############################################################################
 
-"""This module sets the taurus.core.util.Logger to be the Qt message handler"""
+""""""
 
-__all__ = ['getQtLogger', 'initTaurusQtLogger']
+from taurusqtoptions import QT_API, QT_API_PYQT, QT_API_PYSIDE
 
-__docformat__ = 'restructuredtext'
-
-from taurus.qt import Qt
-import taurus.core.util
-
-qtLogger = None
-
-QT_LEVEL_MATCHER = {
-    Qt.QtDebugMsg    : taurus.core.util.Logger.debug,
-    Qt.QtWarningMsg  : taurus.core.util.Logger.warning,
-    Qt.QtCriticalMsg : taurus.core.util.Logger.error,
-    Qt.QtFatalMsg    : taurus.core.util.Logger.error,
-    Qt.QtSystemMsg   : taurus.core.util.Logger.info
-}
-
-def getQtLogger():
-    global qtLogger
-    if qtLogger is None:
-        qtLogger = taurus.core.util.Logger('QtLogger')
-    return qtLogger
-    
-def qtTaurusMsgHandler(type, msg):
-    global qtLogger
-    if qtLogger is not None:
-        caller = QT_LEVEL_MATCHER.get(type)
-        caller(qtLogger, msg)
-
-def initTaurusQtLogger():
-    global qtLogger
-    if not qtLogger:
-        Qt.qInstallMsgHandler(qtTaurusMsgHandler)
-    
+# Now peform the imports.
+if QT_API == QT_API_PYQT:
+    from PyQt4.QtGui import *
+elif QT_API == QT_API_PYSIDE:
+    from PySide.QtGui import *

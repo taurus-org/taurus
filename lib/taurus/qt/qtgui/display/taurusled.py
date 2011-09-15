@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 import weakref
 import operator
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 # Shame on me!!!!
 import PyTango

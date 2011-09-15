@@ -28,8 +28,7 @@ macroparameterseditor.py:
 """
 import sys, inspect, glob
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.core.util import Singleton
 from taurus.core.tango.sardana import macro
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.delegate import ParamEditorDelegate

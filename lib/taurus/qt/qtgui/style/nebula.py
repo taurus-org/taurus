@@ -29,7 +29,7 @@ __all__ = ["getStyle", "getStyleSheet"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 _NEBULA_KEYS = {
     'border_radius' : '4px',

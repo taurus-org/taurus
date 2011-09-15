@@ -27,9 +27,11 @@
 macrobutton.py: 
 """
 __all__=['MacroButton']
-from PyQt4 import Qt, uic
 
 import PyTango
+
+from taurus.qt import Qt
+
 import taurus
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox

@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import imp
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 def setTaurusStyle(newStyle):
 

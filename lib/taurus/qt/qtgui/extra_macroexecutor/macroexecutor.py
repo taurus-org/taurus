@@ -29,9 +29,10 @@ sequenceeditor.py:
 
 import sys
 from copy import deepcopy
-from PyQt4 import Qt
+
 import PyTango
 
+from taurus.qt import Qt
 from taurus import Device
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusLed

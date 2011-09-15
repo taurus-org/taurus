@@ -35,8 +35,7 @@ import operator
 # shame of me for importing PyTango!
 import PyTango
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 import taurus.core.util
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget

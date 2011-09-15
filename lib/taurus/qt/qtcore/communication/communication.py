@@ -27,7 +27,7 @@
 comunications.py: 
 """
 
-from PyQt4 import QtCore
+from taurus.qt import QtCore
 import weakref, copy
 
 _DEBUG = False

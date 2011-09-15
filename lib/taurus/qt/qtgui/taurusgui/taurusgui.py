@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import os, sys
 import weakref, inspect, copy
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager

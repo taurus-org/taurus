@@ -35,9 +35,9 @@ __docformat__ = 'restructuredtext'
 
 import weakref
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
-from taurus.core import DataFormat
+from taurus.core import DataFormat, TaurusEventType
 
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.util import QT_DEVICE_STATE_PALETTE
@@ -49,6 +49,9 @@ class TaurusBaseController(object):
         self._widget = weakref.ref(widget)
         self._updateAsPalette = updateAsPalette
         self._stateObj = None
+        self._last_value = None
+        self._last_config_value = None
+        self._last_error_value = None
         self._setStyle()
     
     def _setStyle(self):
@@ -69,9 +72,13 @@ class TaurusBaseController(object):
     attrObj = configObj = deviceObj = modelObj
     
     def valueObj(self):
-        modelObj = self.modelObj()
-        if modelObj is None: return None
-        return modelObj.getValueObj()
+        value = self._last_value
+        if value is None:
+            modelObj = self.modelObj()
+            if modelObj is None:
+                return None
+            value = modelObj.getValueObj()
+        return value
     
     def stateValueObj(self):
         stateObj = self.stateObj()
@@ -83,13 +90,11 @@ class TaurusBaseController(object):
         return getattr(valueObj, "value", None)
 
     def w_value(self):
-        attrObj = self.attrObj()
-        valueObj = attrObj and attrObj.getValueObj() or None
+        valueObj = self.valueObj()
         return getattr(valueObj, "w_value", None)
     
     def quality(self):
-        attrObj = self.attrObj()
-        valueObj = attrObj and attrObj.getValueObj() or None
+        valueObj = self.valueObj()
         return getattr(valueObj, "quality", None)
 
     def state(self):
@@ -100,6 +105,12 @@ class TaurusBaseController(object):
         return self.widget().getDisplayValue()
     
     def handleEvent(self, evt_src, evt_type, evt_value):
+        if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
+            self._last_value = evt_value
+        elif evt_type == TaurusEventType.Config:
+            self._last_config_value = evt_value
+        else:
+            self._last_error_value = evt_value
         self.update()
 
     def eventReceived(self, evt_src, evt_type, evt_value):
@@ -182,11 +193,38 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
             else: value = valueObj.value
             if idx is not None and len(idx):
                 for i in idx: value = value[i]
-            return self.modelObj().displayValue(value)
+            
+            if self._last_config_value is None or value is None:
+                return self.modelObj().displayValue(value)
+            else:
+                #TODO: last_config_value object to format the value
+                return self.modelObj().displayValue(value)
+                
         except Exception, e:
             return widget.getNoneValue()
 
-
+    def displayValue(self,value):
+        if value is None:
+            return None
+        ret = None
+        try:
+            if self.isScalar():
+                format = self.getFormat()
+                if self.isNumeric() and format is not None:
+                    format = self.getFormat()
+                    ret = self.getFormat() % value
+                else:
+                    ret = str(value)
+            elif self.isSpectrum():
+                ret = str(value)
+            else:
+                ret = str(value)
+        except:
+            # if cannot calculate value based on the format just return the value
+            raise
+            ret = str(value)
+        return ret
+    
 class TaurusConfigurationControllerHelper(object):
 
     def __init__(self):

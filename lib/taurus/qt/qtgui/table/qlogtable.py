@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 import operator
 import logging
 import datetime
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import taurus.core.util
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon

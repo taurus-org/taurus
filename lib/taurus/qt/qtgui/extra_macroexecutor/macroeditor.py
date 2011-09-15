@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-from PyQt4 import Qsci, Qt
+from taurus.qt import Qt
+from PyQt4 import Qsci
 
 from taurus.qt.qtgui.resource import getThemeIcon
 

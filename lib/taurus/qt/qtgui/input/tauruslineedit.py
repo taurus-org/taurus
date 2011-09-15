@@ -29,7 +29,7 @@ __all__ = ["TaurusValueLineEdit", "TaurusConfigLineEdit"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import sys
 import PyTango

@@ -29,7 +29,7 @@ one or more curves"""
 import os.path
 from datetime import datetime
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from ui import ui_DataExportDlg
 

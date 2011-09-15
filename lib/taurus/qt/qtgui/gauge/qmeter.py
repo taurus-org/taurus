@@ -30,7 +30,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import math
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.display import QPixmapWidget
 
 class QBaseMeter(QPixmapWidget):

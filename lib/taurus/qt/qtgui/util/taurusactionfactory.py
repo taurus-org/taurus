@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import xml.dom.minidom
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import taurus.core.util
 import taurus.qt.qtgui.resource
 import taurusaction

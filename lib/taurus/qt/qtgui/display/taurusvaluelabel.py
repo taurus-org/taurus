@@ -29,7 +29,7 @@ __all__ = ["TaurusStateLabel", "TaurusValueLabel"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import taurus.core
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
@@ -63,13 +63,13 @@ class TaurusValueLabel(Qt.QLabel, TaurusBaseWidget):
     Example::
     
         import sys
-        from PyQt4 import Qt
-        import taurus.qt.qtgui.display
+        from taurus.qt import Qt
+        from taurus.qt.qtgui.display import TaurusValueLabel
 
         app = Qt.QApplication(sys.argv)
 
-        w = taurus.qt.qtgui.display.TaurusValueLabel()
-        w.setModel('sys/taurustest/1/position')
+        w = TaurusValueLabel()
+        w.model = 'sys/taurustest/1/position'
 
         w.setVisible(True)
         sys.exit(app.exec_())

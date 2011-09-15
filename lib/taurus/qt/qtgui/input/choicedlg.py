@@ -29,7 +29,7 @@ __all__ = ["GraphicalChoiceDlg","GraphicalChoiceWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 class GraphicalChoiceDlg(Qt.QDialog):
     '''

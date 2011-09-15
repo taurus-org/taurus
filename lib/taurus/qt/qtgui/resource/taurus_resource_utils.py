@@ -35,7 +35,7 @@ __docformat__ = 'restructuredtext'
 
 import os
 
-import PyQt4.Qt as Qt
+from taurus.qt import Qt
 
 import taurus.core
 import taurus.core.util

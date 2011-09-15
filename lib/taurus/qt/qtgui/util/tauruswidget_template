@@ -2,7 +2,7 @@
 
 """ module containing the Tau Widget: <_TauClass_> """
 
-from PyQt4 import QtGui, QtCore
+from taurus.qt import QtGui, QtCore
 import tau.core
 from tau.widget import TauBaseWidget
 

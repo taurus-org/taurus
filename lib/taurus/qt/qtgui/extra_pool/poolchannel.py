@@ -27,7 +27,7 @@
 channelWidgets.py: 
 """
 __all__=["PoolChannel","PoolChannelTV"]
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtgui.panel import TaurusValue, TaurusDevButton
 from taurus.qt.qtgui.container import TaurusWidget

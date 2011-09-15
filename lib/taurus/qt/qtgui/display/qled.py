@@ -30,8 +30,8 @@ __all__ = ["LedColor", "LedStatus", "LedSize", "QLed", "QLedOld"]
 __docformat__ = 'restructuredtext'
 
 import sys
-from PyQt4 import Qt
 
+from taurus.qt import Qt
 import taurus.core.util
 import taurus.qt.qtgui.resource
 import qpixmapwidget

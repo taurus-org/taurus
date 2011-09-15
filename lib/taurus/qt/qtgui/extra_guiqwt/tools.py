@@ -30,9 +30,11 @@
 __docformat__ = 'restructuredtext'
 
 
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 from guiqwt.tools import CommandTool, ToggleTool, DefaultToolbarID, QActionGroup, add_actions
 from guiqwt.signals import SIG_ITEMS_CHANGED
-from PyQt4 import Qt, Qwt5
+
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem,TaurusTrendItem

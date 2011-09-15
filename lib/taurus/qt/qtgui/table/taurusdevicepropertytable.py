@@ -29,7 +29,8 @@ taurusdevicepropertytable.py:
 
 __all__ = ["TaurusPropTable"]
 
-from PyQt4 import QtCore, QtGui, Qt, Qwt5
+from taurus.qt import Qt, QtCore, QtGui
+from PyQt4 import Qwt5
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import taurus.core
 import PyTango

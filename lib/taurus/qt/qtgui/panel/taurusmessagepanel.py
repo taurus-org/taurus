@@ -46,7 +46,7 @@ except:
 # show PyTango exceptions
 import PyTango
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import taurus.core.util
 import taurus.qt.qtgui.resource

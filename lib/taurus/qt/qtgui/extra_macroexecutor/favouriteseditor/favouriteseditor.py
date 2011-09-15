@@ -28,7 +28,7 @@ favouriteseditor.py:
 """
 import copy
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from model import MacrosListModel

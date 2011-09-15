@@ -30,7 +30,7 @@ __all__ = ["MntGrpChannelEditor", "MntGrpChannelPanel"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import copy
 import taurus
 from taurus.core.util import Enumeration

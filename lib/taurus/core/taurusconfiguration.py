@@ -34,7 +34,7 @@ import time
 import weakref
 import numpy
 
-from enums import TaurusEventType, AttrType
+from enums import TaurusEventType, AttrAccess
 import taurusmodel
 
 class TaurusConfigurationProxy(object):
@@ -466,10 +466,10 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         return numpy.isscalar(v.value)
     
     def isWrite(self, cache=True):
-        return self.getWritable(cache) == AttrType.WRITE
+        return self.getWritable(cache) == AttrAccess.WRITE
     
     def isReadOnly(self, cache=True):
-        return self.getWritable(cache) == AttrType.READ
+        return self.getWritable(cache) == AttrAccess.READ
 
     def isReadWrite(self, cache=True):
-        return self.getWritable(cache) == AttrType.READ_WRITE
+        return self.getWritable(cache) == AttrAccess.READ_WRITE

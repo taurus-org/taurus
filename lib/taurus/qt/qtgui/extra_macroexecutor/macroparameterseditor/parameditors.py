@@ -29,8 +29,7 @@ parameditors.py:
 
 import os
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 
 from taurus.qt.qtgui.extra_macroexecutor import globals

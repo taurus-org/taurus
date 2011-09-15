@@ -31,7 +31,7 @@ __all__ = ["QConfigViewer"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import cPickle as pickle
 import os
 from taurus.qt.qtcore.configuration import BaseConfigurableClass

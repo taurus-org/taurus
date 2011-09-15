@@ -30,10 +30,9 @@ __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
 import PyTango
 
+from taurus.qt import Qt
 from taurus.core import TaurusDevice, LockStatus, TaurusLockInfo
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters

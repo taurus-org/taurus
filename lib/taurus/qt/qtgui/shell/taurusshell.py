@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import os
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 try:
     import spyderlib

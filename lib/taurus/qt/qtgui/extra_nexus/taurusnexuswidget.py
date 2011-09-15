@@ -29,7 +29,7 @@ nexusWidget.py:
 __all__=["TaurusNexusBrowser"]
 
 from PyMca import HDF5Widget, HDF5Info, HDF5DatasetTable
-from PyQt4 import Qt
+from taurus.qt import Qt
 import numpy
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.plot import TaurusPlot

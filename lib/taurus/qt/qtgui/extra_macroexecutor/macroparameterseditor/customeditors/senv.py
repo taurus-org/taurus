@@ -23,10 +23,7 @@
 ##
 #############################################################################
 
-from PyQt4 import Qt
-
-
-
+from taurus.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus import Database

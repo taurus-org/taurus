@@ -28,7 +28,7 @@ import copy
 import PyTango
 import numpy
 
-from PyQt4 import QtCore, QtGui, Qt
+from taurus.qt import QtCore, QtGui, Qt
 
 import taurus
 import taurus.qt.qtcore.mimetypes

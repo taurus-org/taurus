@@ -28,7 +28,7 @@
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
-           "AttrQuality", "AttrType", "DisplayLevel", "ManagerState"]
+           "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState"]
 
 __docformat__ = "restructuredtext"
 
@@ -121,6 +121,14 @@ DataFormat = util.Enumeration(
     '_2D'
 ))
 
+DataType = util.Enumeration(
+'DataType', (
+    'Integer',
+    'Float',
+    'String',
+    'Boolean',
+))
+
 SubscriptionState = util.Enumeration(
 "SubscriptionState", (
     "Unsubscribed",
@@ -139,8 +147,8 @@ AttrQuality = util.Enumeration(
     'ATTR_ALARM'
 ))
 
-AttrType = util.Enumeration(
-'AttrType', (
+AttrAccess = util.Enumeration(
+'AttrAccess', (
     'READ', 
     'READ_WITH_WRITE', 
     'WRITE', 

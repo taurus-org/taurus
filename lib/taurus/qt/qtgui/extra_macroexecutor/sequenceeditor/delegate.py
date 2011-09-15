@@ -27,7 +27,7 @@
 delegate.py: 
 """
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.parameditors import AttrListComboBoxParam, SpinBoxParam, \
     DoubleSpinBoxParam, LineEditParam, FileDialogParam
 

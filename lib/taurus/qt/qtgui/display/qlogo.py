@@ -31,8 +31,7 @@ __all__ = ["QLogo"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.qt.qtgui.resource import getPixmap
 
 class QLogo(Qt.QLabel):

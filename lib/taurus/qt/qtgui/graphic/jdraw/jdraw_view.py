@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import traceback
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser

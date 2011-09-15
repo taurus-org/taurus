@@ -29,7 +29,8 @@ arrayedit.py: Widget for editing a spectrum/array via control points
 
 
 import numpy
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 from curvesAppearanceChooserDlg import CurveAppearanceProperties 
 
 import ui.ui_EditCPointsDialog as ui_EditCPointsDialog

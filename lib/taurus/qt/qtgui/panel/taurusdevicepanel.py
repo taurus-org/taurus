@@ -31,7 +31,7 @@ __all__ = ["TaurusDevPanel"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 import taurus.core
 from taurus.qt.qtgui.container import TaurusMainWindow

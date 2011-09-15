@@ -29,7 +29,7 @@ a misc collection of basic types
 import time
 import datetime
 
-from enums import AttrQuality, LockStatus
+from enums import AttrQuality, AttrAccess, DataFormat, LockStatus
 
 class TaurusTimeVal(object):
     def __init__(self):
@@ -114,7 +114,26 @@ class TaurusConfigValue(object):
     
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
-        
+
+    def isWrite(self):
+        return self.writable == AttrAccess.WRITE
+    
+    def isReadOnly(sel):
+        return self.writable == AttrAccess.READ
+
+    def isReadWrite(self):
+        return self.writable == AttrAccess.READ_WRITE
+    
+    def isScalar(self):
+        return self.format == DataFormat._0D
+    
+    def isSpectrum(self):
+        return self.format == DataFormat._1D
+    
+    def isImage(self):
+        return self.format == DataFormat._2D
+
+
 class TaurusLockInfo(object):
     
     LOCK_STATUS_UNKNOWN = 'Lock status unknown'

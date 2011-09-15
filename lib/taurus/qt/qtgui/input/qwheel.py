@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import math
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 #from taurus.qt.qtgui.resource.qrc_extra_icons import *
 

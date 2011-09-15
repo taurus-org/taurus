@@ -31,9 +31,10 @@ __all__ = ["TaurusMainWindow"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-import os, sys
+import os
+import sys
 
+from taurus.qt import Qt
 from taurusbasecontainer import TaurusBaseContainer
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass

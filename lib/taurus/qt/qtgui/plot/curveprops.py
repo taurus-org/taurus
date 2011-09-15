@@ -31,7 +31,8 @@ __all__=['CurveConf','CurvesTableModel','ExtendedSelectionModel','CurvePropertie
 
 import copy, re
 
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 import taurus
 import taurus.core
 from taurus.qt.qtgui.resource import getThemeIcon

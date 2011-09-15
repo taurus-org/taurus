@@ -29,8 +29,7 @@ __all__ = ["TaurusFrame"]
 
 __docformat__ = 'restructuredtext'
 
-from PyQt4 import Qt
-
+from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurusbasecontainer import TaurusBaseContainer
 

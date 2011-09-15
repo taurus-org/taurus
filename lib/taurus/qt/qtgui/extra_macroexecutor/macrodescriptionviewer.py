@@ -27,8 +27,7 @@
 macrodescriptionviewer.py: 
 """
 
-from PyQt4 import Qt
-#from PyQt4.Qt import *
+from taurus.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import taurus.core

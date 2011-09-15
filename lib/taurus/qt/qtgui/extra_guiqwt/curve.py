@@ -27,7 +27,7 @@
 
 __all__=["TaurusCurveItem"]
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus
 from guiqwt.curve import CurveItem

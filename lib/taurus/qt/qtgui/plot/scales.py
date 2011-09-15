@@ -33,7 +33,8 @@ __all__=["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine"
 import numpy
 from datetime import datetime, timedelta
 from time import mktime
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 
     
 def _getDefaultAxisLabelsAlignment(axis, rotation):

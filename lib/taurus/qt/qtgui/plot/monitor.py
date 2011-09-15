@@ -27,8 +27,8 @@
 monitor.py: Specialized mini-trend widget to monitor some scalar value
 """
 
-
-from PyQt4 import Qt, Qwt5
+from taurus.qt import Qt
+from PyQt4 import Qwt5
 from taurus.qt.qtgui.plot import TaurusTrend
 import datetime
 

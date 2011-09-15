@@ -27,7 +27,7 @@
 
 import weakref
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 
 from Qub.Widget.DataDisplay.QubDataImageDisplay import QubDataImageDisplay
 from Qub.Widget.QubActionSet import QubToolbarToggleButtonAction

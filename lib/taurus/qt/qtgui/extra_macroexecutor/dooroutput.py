@@ -27,7 +27,7 @@
 dooroutput.py: 
 """
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import taurus.core
         
         

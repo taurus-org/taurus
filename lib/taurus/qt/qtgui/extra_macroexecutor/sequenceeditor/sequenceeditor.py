@@ -28,7 +28,7 @@ sequenceeditor.py:
 """
 import os, sys
 
-from PyQt4 import Qt
+from taurus.qt import Qt
 import PyTango
 
 from taurus.core.util import etree
