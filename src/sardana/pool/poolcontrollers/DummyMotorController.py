@@ -518,20 +518,20 @@ class BasicDummyMotorController(MotorController):
         idx = axis - 1
         m = self.m[idx]
         state = State.On
-        status = "Motor is ON"
+        status = "Motor HW is ON"
         if m.isInMotion():
             state = State.Moving
-            status = "Motor is MOVING"
+            status = "Motor HW is MOVING"
         p = m.getCurrentUserPosition()
         switchstate = 0
         if m.hitLowerLimit():
             switchstate |= 4
             state = State.Alarm
-            status = "Motor is in ALARM. Hit hardware lower limit switch"
+            status = "Motor HW is in ALARM. Hit hardware lower limit switch"
         if m.hitUpperLimit():
             switchstate |= 2
             state = State.Alarm
-            status = "Motor is in ALARM. Hit hardware upper limit switch"
+            status = "Motor HW is in ALARM. Hit hardware upper limit switch"
         return int(state), status, switchstate
 
     def ReadOne(self, axis):

@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the class for a
 motion"""
 
-__all__ = [ "MotionState", "PoolMotion", "PoolMotionItem" ]
+__all__ = [ "MotionState", "MotionMap", "PoolMotion", "PoolMotionItem" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -60,6 +60,15 @@ StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
 
 #MA = MotionAction
 
+MotionMap = {
+    MS.Stopped           : State.On,
+    MS.Moving            : State.Moving,
+    MS.MovingBacklash    : State.Moving,
+    MS.MovingInstability : State.Moving,
+    MS.Invalid           : State.Invalid,
+}
+
+
 class PoolMotionItem(PoolActionItem):
     """An item involved in the motion. Maps directly to a motor object"""
     
@@ -77,8 +86,8 @@ class PoolMotionItem(PoolActionItem):
         self.start_time = None
         self.stop_time = None
         self.stop_final_time = None
-        self.old_state = State.Invalid
-        self.state = State.On
+        self.old_state_info = State.Invalid, "Uninitialized", (False,False,False)
+        self.state_info = State.On, "Uninitialized", (False,False,False)
         
     def has_instability_time(self):
         return self.instability_time is not None
@@ -91,25 +100,10 @@ class PoolMotionItem(PoolActionItem):
     
     moveable = property(fget=get_moveable)
 
-#    def action(self, state, timestamp):
-#        action = MA.NoAction
-#        self.old_state = old_state = self.state
-#        self.state = state
-        
-#        if old_state == State.Moving:
-#            if state == State.On:
-#                action = MA.Finished
-#        else:
-#            if state == State.Moving:
-#                action = MA.Start
-#            else:
-                
-    
-#    def on_state_switch(self, state, timestamp=None):
-#        if timestamp is None:
-#            timestamp = time.time()
-#        action = self.action(state)
-        
+    def get_state_info(self):
+        si = self.state_info
+        return MotionMap[self.motion_state], si[1], si[2]
+
     def stopped(self, timestamp):
         self.stop_time = timestamp
         if self.instability_time is None:
@@ -127,11 +121,12 @@ class PoolMotionItem(PoolActionItem):
             new_ms = MS.Stopped
         return new_ms
     
-    def on_state_switch(self, state, timestamp=None):
+    def on_state_switch(self, state_info, timestamp=None):
         if timestamp is None:
             timestamp = time.time()
-        self.old_state = old_state = self.state
-        self.state = state
+        self.old_state_info = self.state_info
+        self.state_info = state_info
+        state = state_info[0]
         new_ms = ms = self.motion_state
         moveable = self.moveable
         self.aborted = moveable.was_aborted()
@@ -216,19 +211,10 @@ class PoolMotion(PoolAction):
             dial_position = motion_info[moveable].dial_position
             ctrl.StartOne(axis, dial_position)
         
-        # set the state of all elements to move and inform their listeners
-        for moveable in moveables:
-            motion_info[moveable].motion_state = MotionState.Moving
-            moveable.set_state(State.Moving, propagate=2)
-        
-        #update local motion information
-        for motion_item in motion_info.values():
-            state = motion_item.moveable.inspect_state()
-            motion_item.on_state_switch(state)
-        
         # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
             pool_ctrl.ctrl.StartAll()
+
     
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable
@@ -253,6 +239,12 @@ class PoolMotion(PoolAction):
         nap = self._motion_sleep_time
         nb_states_per_pos = self._nb_states_per_position
         
+        # read state once to send a first state & status event when starting
+        self.read_state_info(ret=states)
+        for moveable, state_info in states.items():
+            state_info = moveable._from_ctrl_state_info(state_info)
+            moveable.set_state_info(state_info, propagate=2)
+            
         # read positions to send a first event when starting to move
         self.read_dial_position(ret=positions)
         for moveable, position in positions.items():
@@ -264,9 +256,11 @@ class PoolMotion(PoolAction):
             for moveable, state_info in states.items():
                 motion_item = self._motion_info[moveable]
                 state_info = moveable._from_ctrl_state_info(state_info)
-                state = state_info[0]
+                
+                state, status, limit_switches = state_info
                 old_motion_state, motion_state = \
-                    motion_item.on_state_switch(state, timestamp=timestamp)
+                    motion_item.on_state_switch(state_info, timestamp=timestamp)
+                real_state_info = motion_item.get_state_info()
                 
                 aborted = moveable.was_aborted()
                 well_stopped = state == State.On and not aborted
@@ -277,6 +271,9 @@ class PoolMotion(PoolAction):
                 start_instability = motion_state == MS.MovingInstability and \
                     old_motion_state != MS.MovingInstability
                 stopped_now = not moving and old_motion_state in MovingStates
+
+                # make sure the state is placed in the motor
+                moveable.put_state_info(real_state_info)
                 
                 # if motor stopped 'well' and there is a backlash to do...
                 if start_backlash:
@@ -293,19 +290,22 @@ class PoolMotion(PoolAction):
                     moveable.get_position(cache=False, propagate=2)
                 elif stopped_now:
                     moveable.info("Stopped")
-                    # first update the motor state so that position calculation
-                    # that is done after takes the updated state into account
-                    moveable.set_state_info(state_info, propagate=0)
                     
                     # try to read a last position to force an event
                     moveable.get_position(cache=False, propagate=2)
                     
-                    # Then update the state
-                    moveable.set_state_info(state_info, propagate=2)
+                # Then update the state
+                propagate = 1
+                if stopped_now:
+                    propagate = 2
+                moveable.set_state_info(real_state_info, propagate=propagate)
                 
                 if moving:
                     in_motion = True
-            
+                
+                # only update status string coming from controller. The state
+                # reported by the controller may not be the state we want to set
+                
             if not in_motion:
                 break
             

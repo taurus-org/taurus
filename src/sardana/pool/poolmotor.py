@@ -33,13 +33,13 @@ __docformat__ = 'restructuredtext'
 import math
 import operator
 
-from sardana import EpsilonError
+from sardana import EpsilonError, State
 from poolbase import *
 
 from pooldefs import ElementType
 from poolevent import EventType
 from poolelement import PoolElement
-from poolmotion import PoolMotion
+from poolmotion import PoolMotion, PoolMotionItem, MotionState, MotionMap
 
 
 class PoolMotor(PoolElement):
@@ -62,14 +62,14 @@ class PoolMotor(PoolElement):
         self._instability_time = None
         motion_name = "%s.Motion" % self._name
         self.set_action_cache(PoolMotion(self.pool, motion_name))
-
+    
     def get_type(self):
         return ElementType.Motor
     
     # --------------------------------------------------------------------------
     # state information
     # --------------------------------------------------------------------------
-
+    
     def _from_ctrl_state_info(self, state_info):
         if len(state_info) > 2:
             state, status, ls = state_info[:3]
@@ -83,13 +83,52 @@ class PoolMotor(PoolElement):
         return state, status, ls
     
     def _set_state_info(self, state_info, propagate=1):
-        PoolElement._set_state_info(self, state_info[:2], propagate=propagate)
+        PoolElement._set_state_info(self, state_info, propagate=propagate)
         ls = state_info[-1]
         self._set_limit_switches(ls, propagate=propagate)
     
     # --------------------------------------------------------------------------
+    # state information
+    # --------------------------------------------------------------------------
+    
+    _STD_STATUS = "{name} is {state}{limit_switches}\n{ctrl_status}"
+    def calculate_state_info(self, state_info=None):
+        if state_info is None:
+            state, status, ls = self._state, self._status, self._limit_switches
+        else:
+            state, status, ls = state_info
+        if state == State.On:
+            state_str = "Stopped"
+        elif state == State.Moving:
+            motion_state = self.motion._motion_info[self].motion_state
+            state_str = "Moving"
+            if motion_state == MotionState.MovingBacklash:
+                state_str += " (backlash)"
+            elif motion_state == MotionState.MovingInstability:
+                state_str += " (instability)"
+        else:
+            state_str = State[state]
+            
+        
+        limit_switches = ""
+        if ls[0]:
+            limit_switches += ". Hit home switch"
+        if ls[1]:
+            limit_switches += ". Hit upper switch"
+        if ls[2]:
+            limit_switches += ". Hit lower switch"
+
+        new_status = self._STD_STATUS.format(name=self.name, state=state_str,
+                                             limit_switches=limit_switches,
+                                             ctrl_status=status)
+        return state, new_status, ls
+    
+    # --------------------------------------------------------------------------
     # limit switches
     # --------------------------------------------------------------------------
+
+    def inspect_limit_switches(self):
+        return self._limit_switches
     
     def get_limit_switches(self, cache=True, propagate=1):
         self.get_state(cache=cache, propagate=propagate)
@@ -97,6 +136,9 @@ class PoolMotor(PoolElement):
     
     def set_limit_switches(self, ls, propagate=1):
         self._set_limit_switches(ls, propagate=propagate)
+
+    def put_limit_switches(self, ls, propagate=1):
+        self._limit_switches = tuple(ls)
     
     def _set_limit_switches(self, ls, propagate=1):
         self._limit_switches = tuple(ls)
@@ -444,6 +486,7 @@ class PoolMotor(PoolElement):
         return items
     
     def start_move(self, new_position):
+        self.prepare_to_move()
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "

@@ -48,12 +48,20 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         user_elements = kwargs.pop('user_elements')
         PoolElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
-        motion_name = "%s.Motion" % self._name
-        self.set_action_cache(PoolMotion(self.pool, motion_name))
         
     def _get_pool(self):
         return self.pool
+    
+    def _create_action_cache(self):
+        motion_name = "%s.Motion" % self._name
+        return PoolMotion(self.pool, motion_name)
 
+    def get_action_cache(self):
+        return self._get_action_cache()
+    
+    def set_action_cache(self, action_cache):
+        self._set_action_cache(action_cache)
+        
     def get_type(self):
         return ElementType.PseudoMotor
     
@@ -112,9 +120,10 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             for motion_obj, motion_pos in dial_positions.items():
                 motion_obj.put_dial_position(motion_pos, propagate=propagate)
             self._low_level_physical_positions = positions = {}
-            for motion_obj in self.get_user_elements():
-                positions[motion_obj] = motion_obj.get_position(propagate=0)
-        return self._low_level_physical_positions
+            for ctrl, motion_objs in self.get_physical_elements().items():
+                for motion_obj in motion_objs:
+                    positions[motion_obj] = motion_obj.get_position(propagate=0)
+        return positions
     
     def get_physical_positions(self, cache=True, propagate=1):
         positions = self._physical_positions
@@ -186,6 +195,26 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     
     position = property(get_position, set_position, doc="pseudo motor position")
     
+    # --------------------------------------------------------------------------
+    # state information
+    # --------------------------------------------------------------------------
+    
+    def read_state_info(self, state_info=None):
+        if state_info is None:
+            state_info = {}
+            action_cache = self.get_action_cache()
+            ctrl_state_infos = action_cache.read_state_info(serial=True)
+            for motion_obj, ctrl_state_info in ctrl_state_infos.items():
+                state_info[motion_obj] = motion_state_info = \
+                    motion_obj._from_ctrl_state_info(ctrl_state_info)
+                motion_obj.put_state_info(motion_state_info)
+        for user_element in self.get_user_elements():
+            if user_element.get_type() not in TYPE_PHYSICAL_ELEMENTS:
+                motion_state_info = user_element._calculate_states()
+                user_element.put_state_info(motion_state_info)
+                
+        return self._calculate_states()
+        
     # --------------------------------------------------------------------------
     # motion
     # --------------------------------------------------------------------------

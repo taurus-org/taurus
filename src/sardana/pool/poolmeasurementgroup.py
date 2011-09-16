@@ -102,9 +102,13 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._config_dirty = True
         PoolGroupElement.__init__(self, **kwargs)
         acq_name = "%s.CTAcquisition" % self._name
-        self.set_acquisition(PoolCTAcquisition(self.pool, acq_name))
+        #self.set_acquisition(PoolCTAcquisition(self.pool, acq_name))
         self.set_configuration(kwargs.get('config'))
-    
+
+    def _create_action_cache(self):
+        acq_name = "%s.CTAcquisition" % self._name
+        return PoolCTAcquisition(self.pool, acq_name)
+        
     def get_type(self):
         return ElementType.MeasurementGroup
     

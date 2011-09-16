@@ -39,18 +39,45 @@ from poolcontainer import PoolContainer
 class PoolBaseGroup(PoolContainer):
 
     def __init__(self, **kwargs):
-        user_elem_ids = kwargs.pop('user_elements')
+        self._user_element_ids = kwargs.pop('user_elements')
         PoolContainer.__init__(self)
         
-        self._user_elements = []
-        self._physical_elements = {}
-        
-        pool = self._get_pool()
-        for id in user_elem_ids:
-            self.add_user_element(pool.get_element(id=id))
+        self._pending = True
+        self._user_elements = None
+        self._physical_elements = None
 
     def _get_pool(self):
         raise NotImplementedError
+
+    def _create_action_cache(self):
+        raise NotImplementedError
+
+    def _get_action_cache(self):
+        if self._action_cache is None:
+            self._action_cache = self._fill_action_cache()
+        return self._action_cache
+    
+    def _set_action_cache(self, action_cache):
+        physical_elements = self.get_physical_elements()
+        if self._action_cache is not None:
+            for ctrl_physical_elements in physical_elements.values():
+                for physical_element in ctrl_physical_elements:
+                    action_cache.remove_element(physical_element)
+        
+        self._action_cache = self._fill_action_cache(action_cache)
+
+    def _fill_action_cache(self, action_cache=None, physical_elements=None):
+        a, b = action_cache is None, physical_elements is None
+        if action_cache is None:
+            a = True
+            action_cache = self._create_action_cache()
+        if physical_elements is None:
+            physical_elements = self.get_physical_elements()
+
+        for ctrl, ctrl_physical_elements in physical_elements.items():
+            for physical_element in ctrl_physical_elements:
+                action_cache.add_element(physical_element)
+        return action_cache
 
     def _calculate_states(self):
         user_elements = self.get_user_elements()
@@ -79,48 +106,53 @@ class PoolBaseGroup(PoolContainer):
             state = State.Moving
         self._state_statistics = { State.On : on, State.Fault : fault,
                                    State.Alarm : alarm, State.Moving : moving }
-        return state, status
+        return state, "\n".join(status)
+
+    def _build_elements(self):
+        self._user_elements = user_elements = []
+        self._physical_elements = physical_elements = {}
+        
+        pool = self._get_pool()
+        for user_element_id in self._user_element_ids:
+            try:
+                user_element = pool.get_element(id=user_element_id)
+            except KeyError:
+                self._pending = True
+                self._user_elements = None
+                self._physical_elements = None
+                raise
+            self.add_user_element(user_element)
+        self._pending = False
     
     def on_element_changed(self, evt_src, evt_type, evt_value):
         pass
-
-    def get_action_cache(self):
-        return self._action_cache
-    
-    def set_action_cache(self, action_cache):
-        physical_elements = self.get_physical_elements()
-        if self._action_cache is not None:
-            for ctrl_physical_elements in physical_elements.values():
-                for physical_element in ctrl_physical_elements:
-                    action_cache.remove_element(physical_element)
-            
-        self._action_cache = action_cache
-        
-        for ctrl, ctrl_physical_elements in physical_elements.items():
-            for physical_element in ctrl_physical_elements:
-                action_cache.add_element(physical_element)
     
     def get_user_elements(self):
+        if self._pending:
+            self._build_elements()
         return self._user_elements
     
     def get_physical_elements(self):
+        if self._pending:
+            self._build_elements()
         return self._physical_elements
     
     def add_user_element(self, element, index=None):
-        if element in self._user_elements:
+        user_elements = self._user_elements
+        physical_elements=self._physical_elements
+        if element in user_elements:
             raise Exception("Group already contains %s" % element.name)
         if index is None:
-            index = len(self._user_elements)
-        self._user_elements.insert(index, element)
+            index = len(user_elements)
+        user_elements.insert(index, element)
         self.add_element(element)
-
-        physical_elements = self._find_physical_elements(element,
-                                physical_elements=self._physical_elements)
-        if self._action_cache is not None:
-            for ctrl, ctrl_physical_elements in physical_elements.items():
-                for physical_element in ctrl_physical_elements:
-                    self._action_cache.add_element(physical_element)
+        self._find_physical_elements(element,
+                                     physical_elements=physical_elements)
         
+        action_cache = self._action_cache
+        if action_cache is not None:
+            self._fill_action_cache(action_cache=action_cache,
+                                    physical_elements=physical_elements)
         element.add_listener(self.on_element_changed)
         return index
     
@@ -135,12 +167,11 @@ class PoolBaseGroup(PoolContainer):
                 physical_elements[ctrl] = own_elements = set()
             own_elements.add(element)
         else:
-            for data in element.get_physical_elements():
-                for ctrl, elements in data.items():
-                    own_elements = physical_elements.get(ctrl)
-                    if own_elements is None:
-                        physical_elements[ctrl] = own_elements = set()
-                    own_elements.update(elements)
+            for ctrl, elements in element.get_physical_elements().items():
+                own_elements = physical_elements.get(ctrl)
+                if own_elements is None:
+                    physical_elements[ctrl] = own_elements = set()
+                own_elements.update(elements)
         return physical_elements
     
     def remove_user_element(self, element):
@@ -162,3 +193,9 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     
     def _get_pool(self):
         return self.pool
+    
+    def get_action_cache(self):
+        return self._get_action_cache()
+    
+    def set_action_cache(self, action_cache):
+        self._set_action_cache(action_cache)

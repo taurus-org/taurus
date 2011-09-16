@@ -33,6 +33,7 @@ __docformat__ = 'restructuredtext'
 import weakref
 import functools
 
+from sardana import State
 from poolevent import EventType
 from poolbase import PoolObject
 
@@ -108,6 +109,9 @@ class PoolBaseElement(PoolObject):
     # status
     # --------------------------------------------------------------------------
     
+    def inspect_status(self):
+        return self._status
+    
     def get_status(self, cache=True, propagate=1):
         if not cache or self._status is None:
             state_info = self.read_state_info()
@@ -136,22 +140,33 @@ class PoolBaseElement(PoolObject):
     # --------------------------------------------------------------------------
     # state information
     # --------------------------------------------------------------------------
-
+    
+    _STD_STATUS = "{name} is {state}\n{ctrl_status}"
+    def calculate_state_info(self, status_info=None):
+        if status_info is None:
+            status_info = self._state, self._status
+        state, status = status_info
+        state_str = State[state]
+        new_status = self._STD_STATUS.format(name=self.name, state=state_str,
+                                             ctrl_status=status)
+        return status_info[0], new_status
+    
     def set_state_info(self, state_info, propagate=1):
         self._set_state_info(state_info, propagate=propagate)
         
     def _set_state_info(self, state_info, propagate=1):
-        state, status = state_info
+        state_info = self.calculate_state_info(state_info)
+        state, status = state_info[:2]
         self._set_state(state, propagate=propagate)
         self._set_status(status, propagate=propagate)
     
     def read_state_info(self):
-        ctrl_state_info = self._action_cache.read_state_info(serial=True)[self]
+        action_cache = self.get_action_cache()
+        ctrl_state_info = action_cache.read_state_info(serial=True)[self]
         return self._from_ctrl_state_info(ctrl_state_info)
     
     def put_state_info(self, state_info):
-        self.put_state(state_info[0])
-        self.put_status(state_info[1])
+        self.set_state_info(state_info, propagate=0)
         
     def _from_ctrl_state_info(self, state_info):
         state, status = state_info[:2]
