@@ -1394,17 +1394,10 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
                             grp->attr_Position_read,mot_nb,
                             Tango::ATTR_CHANGING,when);
                     ahs.push(tad);
+                    tg->fill_attr_polling_buffer(grp,attr_name,ahs);
                 }
-                else
-                {
-                    Tango::TimedAttrData<Tango::DevDouble> tad(except.errors,
-                                                               when);
-                    ahs.push(tad);
-                }
-                tg->fill_attr_polling_buffer(grp,attr_name,ahs);
-                
-            }    
-                    
+            }
+            
             for (long ctr = 0;ctr < mot_nb;ctr++)
             {
                 MotInMove &mot_mv = implied_mots[ctr];
@@ -1456,23 +1449,16 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
                 
                 if ((obj_trigg[ctr] == true) && (last_call == false))
                 {
-                    Tango::AttrHistoryStack<Tango::DevDouble> ahs;
-                    ahs.length(1);
     
                     if (read_except == false)
                     {    
+                        Tango::AttrHistoryStack<Tango::DevDouble> ahs;
+                        ahs.length(1);
                         Tango::TimedAttrData<Tango::DevDouble> 
                             tad(&(pos), Tango::ATTR_CHANGING,when);
                         ahs.push(tad);
+                        tg->fill_attr_polling_buffer(motor,attr_name,ahs);
                     }
-                    else
-                    {
-                        Tango::TimedAttrData<Tango::DevDouble> tad(
-                                except.errors, when);
-                        ahs.push(tad);
-                    }
-        
-                    tg->fill_attr_polling_buffer(motor,attr_name,ahs);
                 }
             }
         }
@@ -1563,24 +1549,16 @@ void Pool::read_pos_while_moving(vector<MotInMove> &implied_mots,
         
             if ((obj_trigg[0] == true) && (last_call == false))
             {
-                Tango::AttrHistoryStack<Tango::DevDouble> ahs;
-                ahs.length(1);
-    
                 if (read_except == false)
                 {
+                    Tango::AttrHistoryStack<Tango::DevDouble> ahs;
+                    ahs.length(1);
                     Tango::TimedAttrData<Tango::DevDouble> tad(
                             motor->attr_Position_read,
                             Tango::ATTR_CHANGING,when);
                     ahs.push(tad);
+                    tg->fill_attr_polling_buffer(motor,attr_name,ahs);
                 }
-                else
-                {
-                    Tango::TimedAttrData<Tango::DevDouble> tad(except.errors,
-                                                               when);
-                    ahs.push(tad);
-                }
-    
-                tg->fill_attr_polling_buffer(motor,attr_name,ahs);
             }
         }
     }
