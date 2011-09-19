@@ -754,6 +754,8 @@ class TaurusTrend(TaurusPlot):
         self._usePollingBufferAction.setCheckable(True)
         self._usePollingBufferAction.setChecked(self.getUsePollingBuffer())
         self.connect(self._usePollingBufferAction, Qt.SIGNAL("toggled(bool)"), self.setUsePollingBuffer)
+        self._setForcedReadingPeriodAction = Qt.QAction("Set forced reading period...", None)
+        self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL("triggered()"), self.setForcedReadingPeriod)
     
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         if enable:
@@ -1250,6 +1252,7 @@ class TaurusTrend(TaurusPlot):
         menu = TaurusPlot._canvasContextMenu(self)
         menu.insertAction(self._setCurvesTitleAction, self._useArchivingAction)
         menu.insertAction(self._setCurvesTitleAction, self._usePollingBufferAction)
+        menu.insertAction(self._setCurvesTitleAction, self._setForcedReadingPeriodAction)
         return menu
     
     def _axisContextMenu(self,axis=None):
@@ -1280,16 +1283,28 @@ class TaurusTrend(TaurusPlot):
             self.setScansXDataKey(key, scanname)
             
     
-    def setForcedReadingPeriod(self, msec, tsetnames=None):
+    def setForcedReadingPeriod(self, msec=None, tsetnames=None):
         '''Sets the forced reading period for the trend sets given by tsetnames.
         
-        :param msec: (int) period in milliseconds
+        :param msec: (int or None) period in milliseconds. If None passed, the user will be 
+                     prompted
         :param tsetnames: (seq<str> or None) names of the curves for which the forced 
                           reading is set. If None passed, this will be set for all 
                           present *and future* curves added to this trend
     
         .. seealso: :meth:`TaurusTrendSet.setForcedReadingPeriod`
         '''
+        if msec is None:
+            msec = self._forcedReadingPeriod
+            if msec is None: 
+                msec = 0
+            msec,ok = Qt.QInputDialog.getInt(self, 'New forced reading period', 
+                                               'Enter the new period for forced reading (in ms).\n Enter "0" for disabling', 
+                                               msec, 0, 604800000, 100)
+            if not ok: 
+                return
+            if msec == 0: 
+                msec=None
         if tsetnames is None: 
             tsetnames=self.trendSets.keys()
             self._forcedReadingPeriod = msec
