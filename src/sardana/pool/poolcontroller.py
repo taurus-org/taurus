@@ -497,32 +497,115 @@ class PoolController(PoolBaseController):
                 raise Exception("Controller returns 'None' for ReadOne")
             ctrl_values[element] = value
         return ctrl_values
+    
+    def _stop_all(self):
+        try:
+            return self.ctrl.StopAll()
+        except:
+            self.ctrl.warning("StopAll() raises exception", exc_info=1)
+
+    def _stop_one(self, axis):
+        try:
+            self.ctrl.StopOne(axis)
+        except:
+            try:
+                self.ctrl.warning("StopOne(%d) raises exception", axis,
+                                  exc_info=1)
+            except:
+                pass
 
     @check_ctrl
-    def abort(self, axises=None):
-        """Aborts the given axises. If axises is None, aborts all active axises.
+    def stop_all(self):
+        self._stop_all()
+    
+    stop = stop_all
+    
+    @check_ctrl
+    def stop_one(self, axis):
+        return self._stop_one(axis)
+    
+    @check_ctrl
+    def stop_axises(self, axises=None):
+        """Stops the given axises. If axises is None, stops all active axises.
         
-        :param axises: the list of axis to get the value. Default is None meaning
-                       all active axis in this controller
+        :param axises: the list of axis to stop. Default is None
+                       meaning all active axis in this controller
         :type axises: seq<int> or None
         """
-        ctrl = self.ctrl
-        
         if axises is None:
-            try:
-                return ctrl.AbortAll()
-            except NotImplementedError:
-                axises = self._element_axis
+            return self._stop_all()
         
         for axis in axises:
-            try:
-                ctrl.AbortOne(axis)
-            except:
-                try:
-                    ctrl.warning("AbortOne(%d) raises exception", axis, exc_info=1)
-                except:
-                    pass
+            self._stop_one(axis)
+    
+    @check_ctrl
+    def stop_elements(self, elements=None):
+        """Stops the given elements. If axises is None, stops all active axises.
+        
+        :param elements: the list of elements to stop. Default is None
+                         meaning all active axis in this controller
+        :type axises: seq<PoolElement> or None
+        """
+        if elements is None:
+            return self._stop_all()
+        
+        for element in elements:
+            self._stop_one(element.axis)
+    
+    def _abort_all(self):
+        try:
+            return self.ctrl.AbortAll()
+        except:
+            self.ctrl.warning("AbortAll() raises exception", exc_info=1)
 
+    def _abort_one(self, axis):
+        try:
+            self.ctrl.AbortOne(axis)
+        except:
+            try:
+                self.ctrl.warning("AbortOne(%d) raises exception", axis,
+                                  exc_info=1)
+            except:
+                pass
+
+    @check_ctrl
+    def abort_all(self):
+        self._abort_all()
+
+    @check_ctrl
+    def abort_one(self, axis):
+        return self._abort_one(axis)
+    
+    @check_ctrl
+    def abort_axises(self, axises=None):
+        """Aborts the given axises. If axises is None, aborts all active axises.
+        
+        :param axises: the list of axis to abort. Default is None
+                       meaning all active axis in this controller
+        :type axises: seq<int> or None
+        """
+        if axises is None:
+            return self._abort_all()
+        
+        for axis in axises:
+            self._abort_one(axis)
+    
+    @check_ctrl
+    def abort_elements(self, elements=None):
+        """Aborts the given elements. If axises is None, aborts all active axises.
+        
+        :param elements: the list of elements to abort. Default is None
+                         meaning all active axis in this controller
+        :type axises: seq<PoolElement> or None
+        """
+        if elements is None:
+            return self._abort_all()
+        
+        for element in elements:
+            self._abort_one(element.axis)
+    
+    abort = abort_all
+    
     # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------

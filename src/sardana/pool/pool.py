@@ -445,4 +445,13 @@ class Pool(PoolContainer, PoolObject):
                         { "name" : full_name, "type" : ElementType.Instrument })
         return ret
     
+    def stop(self):
+        controllers = self.get_elements_by_type(ElementType.Ctrl)
+        for controller in controllers:
+            controller.stop_all()
     
+    def abort(self):
+        controllers = self.get_elements_by_type(ElementType.Ctrl)
+        for controller in controllers:
+            controller.abort_all()
+        

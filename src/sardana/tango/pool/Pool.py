@@ -396,11 +396,42 @@ class Pool(PyTango.Device_4Impl, Logger):
             except Exception,e:
                 import traceback
                 traceback.print_exc()
-                
+        
+        
         util.create_device(elem_type_str, full_name, name, cb=create_element_cb)
+        
+        # Hack to register event abs change until tango bug #3151801 is solved
+        elem_proxy = PyTango.DeviceProxy(full_name)
+        cfg = []
+        if elem_type == ElementType.Motor:
+            attr = elem_proxy.get_attribute_config_ex("position")[0]
+            attr.events.ch_event.abs_change = "1"
+            cfg.append(attr)
+            try:
+                attr = elem_proxy.get_attribute_config_ex("dialposition")[0]
+                attr.events.ch_event.abs_change = "5.0"
+                cfg.append(attr)
+            except:
+                pass
+            try:
+                attr = elem_proxy.get_attribute_config_ex("limit_switches")[0]
+                attr.events.ch_event.abs_change = "1"
+                cfg.append(attr)
+            except:
+                pass
+        elif elem_type == ElementType.CTExpChannel:
+            attr = elem_proxy.get_attribute_config_ex("value")[0]
+            attr.events.ch_event.abs_change = "1.0"
+            cfg.append(attr)
+        elif elem_type == ElementType.PseudoMotor:
+            attr = elem_proxy.get_attribute_config_ex("position")[0]
+            attr.events.ch_event.abs_change = "1"
+            cfg.append(attr)
+        elem_proxy.set_attribute_config(cfg)
         return
+        
         # Determine which writtable attributes have default value and apply
-        # them to the newly created controller
+        # them to the newly created element
         ctrl_class_info = ctrl.get_ctrl_info()
         attrs = []
         for attr_name, attr_info in ctrl_class_info.getAxisAttributes().items():
@@ -719,6 +750,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         manager = p.ctrl_manager
         manager.setControllerLib(*file_data)
     
+    def Stop(self):
+        self.pool.stop()
+
+    def Abort(self):
+        self.pool.abort()
 
 CREATE_CTRL_DESC = \
 """Must give either:
@@ -828,6 +864,12 @@ class PoolClass(PyTango.DeviceClass):
              [PyTango.DevVarStringArray, "[complete(with absolute path) file name, file contents]"]],
         'PutFile':
             [[PyTango.DevVarStringArray, "[name (may be module name, file name or full (with absolute path) file name, file contents]"],
+             [PyTango.DevVoid, ""]],
+        'Stop':
+            [[PyTango.DevVoid, ""],
+             [PyTango.DevVoid, ""]],
+        'Abort':
+            [[PyTango.DevVoid, ""],
              [PyTango.DevVoid, ""]],
     }
 

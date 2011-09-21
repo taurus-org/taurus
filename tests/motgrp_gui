@@ -9,9 +9,11 @@ from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.container import QGroupWidget
 from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueSpinBoxEx
-from taurus.qt.qtgui.button import TaurusCommandButton, TaurusLockButton
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.console import TaurusConsole
+from taurus.qt.qtgui.panel import TaurusAttrForm
+from taurus.qt.qtgui.button import TaurusCommandButton, TaurusLockButton, \
+    TaurusLauncherButton
 
 Spin = TaurusValueSpinBox
 
@@ -20,9 +22,41 @@ class CmdButton(TaurusCommandButton):
     def getDisplayValue(self):
         return ""
 
-DFT_BTN_ICON_SIZE = Qt.QSize(24,24)
+class CfgButton(TaurusLauncherButton):
+
+    def getDisplayValue(self):
+        return ""
+
+DFT_STATE_ICON_SIZE = Qt.QSize(24, 24)
+DFT_BTN_ICON_SIZE = Qt.QSize(20, 20)
 LS_ICON_SIZE = Qt.QSize(16,16)
-DFT_BTN_STYLE = "QPushButton {margin: 0px;}"
+DFT_BTN_STYLE = "QPushButton {margin: 0px; padding: 0px;}"
+
+def createPoolPanel(name):
+    panel = QGroupWidget()
+    panel.titleIcon = getIcon(":/applications-system.svg")
+    content = panel.content()
+    panel_l = Qt.QGridLayout()
+    content.setLayout(panel_l)
+    
+    stop = TaurusCommandButton(parent=content, command='Stop')
+    stop.setIcon(getIcon(":/stop_sign.svg"))
+    stop.setIconSize(Qt.QSize(48, 48))
+    #stop.setStyleSheet(DFT_BTN_STYLE)
+    #stop.setFlat(True)
+    stop.Model = name
+    panel_l.addWidget(stop, 0, 0)
+    
+    abort = TaurusCommandButton(parent=content, command='Abort')
+    abort.setIcon(getIcon(":/panic_button.png"))
+    abort.setIconSize(Qt.QSize(48, 48))
+    #abort.setStyleSheet(DFT_BTN_STYLE)
+    #abort.setFlat(True)
+    abort.Model = name
+    panel_l.addWidget(abort, 0, 1)
+
+    return panel
+    
 
 def createMotorPanel(*names):
     m_panel = QGroupWidget()
@@ -35,66 +69,99 @@ def createMotorPanel(*names):
 def createMotorLayout(content, *names):
     m_panel_l = Qt.QGridLayout()
     m_panel_l.setMargin(4)
-    m_panel_l.setHorizontalSpacing(4)
-    m_panel_l.setVerticalSpacing(4)
+    m_panel_l.setHorizontalSpacing(2)
+    m_panel_l.setVerticalSpacing(2)
     monospace = Qt.QFont("Monospace",10)
     monospace_small = Qt.QFont("Monospace",8)
     for i, name in enumerate(names):
         row = i*2
+        motor = taurus.Device(name)
+        motor_attrs = [ attr.lower() for attr in motor.get_attribute_list() ]
+        
         state = TaurusLed(content)
-        state.setMinimumSize(DFT_BTN_ICON_SIZE)
-        state.setMaximumSize(DFT_BTN_ICON_SIZE)
+        state.setMinimumSize(DFT_STATE_ICON_SIZE)
+        state.setMaximumSize(DFT_STATE_ICON_SIZE)
+        state.model = motor.getNormalName() + "/state"
+        m_panel_l.addWidget(  state, row, 0)
+        
         label = TaurusLabel(content)
+        label.model = name + "/position?configuration=dev_alias"
+        label.bgRole = None
+        m_panel_l.addWidget(  label, row, 1)
+        
         r_value = TaurusLabel(content)
         r_value.setMinimumWidth(80)
+        r_value.model = name + "/position"
+        m_panel_l.addWidget(r_value, row, 2)
+        
         w_value = Spin(content)
         w_value.setMinimumWidth(100)
+        w_value.model = name + "/position"
+        m_panel_l.addWidget(w_value, row, 3)
+        
         unit = TaurusLabel(content)
+        unit.model = name + "/position?configuration=unit"
+        unit.bgRole = None
+        m_panel_l.addWidget(unit, row, 4)
+        
+        stop = CmdButton(parent=content, command='stop')
+        stop.setIcon(getIcon(":/stop_sign.svg"))
+        stop.setIconSize(DFT_BTN_ICON_SIZE)
+        stop.setStyleSheet(DFT_BTN_STYLE)
+        stop.setFlat(True)
+        stop.Model = name
+        m_panel_l.addWidget(stop, row, 5)
+
         abort = CmdButton(parent=content, command='abort')
-        abort.setIcon(getIcon(":/actions/media_playback_stop.svg"))
+        abort.setIcon(getIcon(":/panic_button.png"))
         abort.setIconSize(DFT_BTN_ICON_SIZE)
         abort.setStyleSheet(DFT_BTN_STYLE)
+        abort.setFlat(True)
+        abort.Model = name
+        m_panel_l.addWidget(abort, row, 6)
+        
         lock = TaurusLockButton(content)
         lock.setIconSize(DFT_BTN_ICON_SIZE)
         lock.setStyleSheet(DFT_BTN_STYLE)
-        limitswitches = TaurusLed(content), TaurusLed(content), TaurusLed(content)
-        lmswtch_l = Qt.QVBoxLayout()
-        dial = TaurusLabel(content)
+        lock.setFlat(True)
+        lock.model = name
+        m_panel_l.addWidget(lock, row, 7)
+        
+        w = TaurusAttrForm()
+        cfg = CfgButton(widget=w, icon=":/categories/preferences-system.svg")
+        cfg.setIconSize(DFT_BTN_ICON_SIZE)
+        cfg.setStyleSheet(DFT_BTN_STYLE)
+        cfg.setModel(name)
+        m_panel_l.addWidget(cfg, row, 8)
+        
         status = TaurusLabel(content)
         font = Qt.QFont(status.font())
         font.setPointSize(8)
         status.setFont(font)
-        for n, lm_swtch_w in enumerate(limitswitches):
-            lm_swtch_w.setMinimumSize(LS_ICON_SIZE)
-            lm_swtch_w.setMaximumSize(LS_ICON_SIZE)
-            lmswtch_l.addWidget(lm_swtch_w)
-            lm_swtch_w.model = state.model = name + "/limit_switches"
-            lm_swtch_w.modelIndex = n
-            lm_swtch_w.onColor = "red"
-        m_panel_l.addWidget(  state, row, 0)
-        m_panel_l.addWidget(  label, row, 1)
-        m_panel_l.addWidget(r_value, row, 2)
-        m_panel_l.addWidget(w_value, row, 3)
-        m_panel_l.addWidget(   unit, row, 4)
-        m_panel_l.addWidget(  abort, row, 5)
-        m_panel_l.addWidget(   lock, row, 6)
-        m_panel_l.addWidget(dial, row+1, 2)
-        m_panel_l.addWidget( status, row+1, 3, 1, 4)
-        m_panel_l.addItem(lmswtch_l, row, 7, 2, 1)
-        m_panel_l.setRowStretch(row, 0)
-        m_panel_l.setRowStretch(row+1, 0)
-        state.model = name + "/state"
-        label.model = name + "/position?configuration=dev_alias"
-        label.bgRole = None
-        r_value.model = name + "/position"
-        w_value.model = name + "/position"
-        unit.model = name + "/position?configuration=unit"
-        unit.bgRole = None
-        abort.Model = name
-        lock.model = name
-        dial.model = name + "/dialposition"
         status.model = name + "/status"
         status.bgRole = None
+        m_panel_l.addWidget(status, row+1, 3, 1, 6)
+        
+        if "dialposition" in motor_attrs:
+            dial = TaurusLabel(content)
+            dial.model = name + "/dialposition"
+            m_panel_l.addWidget(dial, row+1, 2)
+        
+        if "limit_switches" in motor_attrs:
+            limitswitches = TaurusLed(content), TaurusLed(content), TaurusLed(content)
+            lmswtch_l = Qt.QVBoxLayout()
+            for n, lm_swtch_w in enumerate(limitswitches):
+                lm_swtch_w.setMinimumSize(LS_ICON_SIZE)
+                lm_swtch_w.setMaximumSize(LS_ICON_SIZE)
+                lmswtch_l.addWidget(lm_swtch_w)
+                lm_swtch_w.model = name + "/limit_switches"
+                lm_swtch_w.modelIndex = n
+                lm_swtch_w.onColor = "red"
+            m_panel_l.addItem(lmswtch_l, row, 9, 2, 1)
+        
+        m_panel_l.setRowStretch(row, 0)
+        m_panel_l.setRowStretch(row+1, 0)
+        
     m_panel_l.setRowStretch(row+2, 1)
     m_panel_l.setColumnStretch(0, 0)
     m_panel_l.setColumnStretch(1, 0)
@@ -183,13 +250,23 @@ panel1_l.setContentsMargins(4,4,4,4)
 panel1_l.setSpacing(4)
 dock1_w.setLayout(panel1_l)
 
-m1_panel = createMotorPanel("M1","M2", "M3", "M4")
-m1_panel.title = "Motors on DummyMotorCtrl1"
-panel1_l.addWidget(m1_panel, 0, 0)
+pool_panel = createPoolPanel("Pool_V3")
+pool_panel.title = "Main Control Panel"
+panel1_l.addWidget(pool_panel, 0, 0)
 
-m2_panel = createMotorPanel("M101","M102", "M103", "M104", "M105", "M106")
+motors = ["M%d" % i for i in range(1,5)] 
+m1_panel = createMotorPanel(*motors)
+m1_panel.title = "Motors on DummyMotorCtrl1"
+panel1_l.addWidget(m1_panel, 1, 0)
+
+motors = ["M1%02d" % i for i in range(1,11)] 
+m2_panel = createMotorPanel(*motors)
 m2_panel.title = "Motors on DummyMotorCtrl2"
-panel1_l.addWidget(m2_panel, 0, 1)
+panel1_l.addWidget(m2_panel, 0, 1, 3, 1)
+
+pm1_panel = createMotorPanel("GAP1", "OFFSET1", "GAP2", "OFFSET2")
+pm1_panel.title = "Pseudo motors"
+panel1_l.addWidget(pm1_panel, 2, 0, 1, 1)
 
 panel1_l.setRowStretch(0, 0)
 panel1_l.setRowStretch(1, 1)

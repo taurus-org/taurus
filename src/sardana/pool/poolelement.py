@@ -181,7 +181,14 @@ class PoolElement(PoolBaseElement):
     
     def __init__(self, **kwargs):
         self._aborted = False
+        self._stopped = False
+        
+        # The operation context in which the element is involved
         self._operation = None
+        
+        # The :class:`PoolAction` in which element is involved
+        self._pool_action = None
+        
         ctrl = kwargs.pop('ctrl')
         self._ctrl = weakref.ref(ctrl)
         self._axis = kwargs.pop('axis')
@@ -241,17 +248,35 @@ class PoolElement(PoolBaseElement):
             return
         self.fire_event(EventType("instrument", priority=propagate),
                         new_instrument_name)
-
+    
+    # --------------------------------------------------------------------------
+    # stop
+    # --------------------------------------------------------------------------
+    
+    def stop(self):
+        self._stopped = True
+        self.controller.stop_one(self.axis)
+    
+    def was_stopped(self):
+        return self._stopped
+    
     # --------------------------------------------------------------------------
     # abort
     # --------------------------------------------------------------------------
     
     def abort(self):
         self._aborted = True
-        self.controller.ctrl.AbortOne(self.axis)
+        self.controller.abort_one(self.axis)
     
     def was_aborted(self):
         return self._aborted
+    
+    # --------------------------------------------------------------------------
+    # action ended by an abort or stop
+    # --------------------------------------------------------------------------
+    
+    def was_interrupted(self):
+        return self.was_aborted() or self.was_stopped()
     
     # --------------------------------------------------------------------------
     # involved in an operation
@@ -266,7 +291,8 @@ class PoolElement(PoolBaseElement):
     
     def set_operation(self, operation):
         if self.is_in_operation() and operation is not None:
-            raise Exception("%s is already involed in an operation" % self.name)
+            raise Exception("%s is already involved in an operation"
+                            % self.name)
         self._operation = operation
     
     def clear_operation(self):
@@ -274,6 +300,28 @@ class PoolElement(PoolBaseElement):
     
     operation = property(get_operation, set_operation,
                          doc="operation in which the element is involved")
+
+    # --------------------------------------------------------------------------
+    # involved in an action
+    # --------------------------------------------------------------------------
+
+    def is_in_action(self):
+        """Returns True if this element is involved in any action"""
+        return self._pool_action is not None
+    
+    def get_action(self):
+        return self._pool_action
+    
+    def set_action(self, action):
+        if self.is_in_action() and action is not None:
+            raise Exception("%s is already involved in an action" % self.name)
+        self._pool_action = action
+    
+    def clear_action(self):
+        return self.set_action(None)
+
+    action = property(get_action, set_action,
+                      doc="action in which the element is involved")
     
     axis = property(get_axis, doc="element axis")
     

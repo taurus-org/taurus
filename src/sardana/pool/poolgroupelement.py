@@ -84,19 +84,17 @@ class PoolBaseGroup(PoolContainer):
         fault, alarm, on, moving = [], [], [], []
         status = []
         for elem in user_elements:
-            s = elem.inspect_state()
-            if s == State.Moving:
+            u_state = elem.inspect_state()
+            u_status = elem.inspect_status().split("\n", 1)[0]
+            if u_state == State.Moving:
                 moving.append(elem)
-                status.append(elem.name + " is in MOVING")
-            elif s == State.On: 
+            elif u_state == State.On: 
                 on.append(elem)
-                status.append(elem.name + " is in ON")
-            elif s == State.Fault:
+            elif u_state == State.Fault:
                 fault.append(elem)
-                status.append(elem.name + " is in FAULT")
-            elif s == State.Alarm:
+            elif u_state == State.Alarm:
                 alarm.append(elem)
-                status.append(elem.name + " is in ALARM")
+            status.append(u_status)
         state = State.On
         if fault:
             state = State.Fault

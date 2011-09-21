@@ -91,11 +91,15 @@ class PoolDevice(SardanaDevice):
     
     def Abort(self):
         self.element.abort()
-    
+
     def is_Abort_allowed(self):
-        if self.get_state() in [DevState.UNKNOWN]:
-            return False
-        return True
+        return self.get_state() != DevState.UNKNOWN
+
+    def Stop(self):
+        self.element.stop()
+
+    def is_Stop_allowed(self):
+        return self.get_state() != DevState.UNKNOWN
     
     def _is_allowed(self, req_type):
         state = self.get_state()
@@ -254,6 +258,7 @@ class PoolDeviceClass(SardanaDeviceClass):
     
     #    Command definitions
     cmd_list = {
+        'Stop' : [ [DevVoid, ""], [DevVoid, ""] ],
         'Abort': [ [DevVoid, ""], [DevVoid, ""] ]
     }
     cmd_list.update(SardanaDeviceClass.cmd_list)

@@ -443,6 +443,27 @@ class MotorController(Controller, Startable, Readable):
     respectively in order to maintain backward compatibility).
     """
     
+    #: A constant representing an active *Home* switch.
+    #: You can *OR* two or more switches together. For example, to say both 
+    #: upper and lower limit switches are active::
+    #:
+    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    HomeLimitSwitch  = 1
+
+    #: A constant representing an active *upper limit* switch.
+    #: You can *OR* two or more switches together. For example, to say both 
+    #: upper and lower limit switches are active::
+    #:
+    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    UpperLimitSwitch = 2
+
+    #: A constant representing an active *lower limit* switch.
+    #: You can *OR* two or more switches together. For example, to say both 
+    #: upper and lower limit switches are active::
+    #:
+    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    LowerLimitSwitch = 4
+    
     standard_axis_attributes = {
         'Position'       : { 'type' : float,
                              'description' : 'Position', },
@@ -880,3 +901,15 @@ class PseudoMotorController(Controller):
         return self._getElem(index_or_role, self.pseudo_motor_roles,
                              self.__pseudo_motor_role_elements,
                              self._kwargs['pseudo_motor_roles'])
+    
+    def AbortOne(self, axis):
+        pass
+    
+    def AbortAll(self):
+        pass
+
+    def StopOne(self, axis):
+        pass
+    
+    def StopAll(self):
+        pass

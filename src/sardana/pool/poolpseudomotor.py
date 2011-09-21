@@ -30,6 +30,7 @@ __all__ = [ "PoolPseudoMotor" ]
 
 __docformat__ = 'restructuredtext'
 
+from sardana import State
 from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolevent import EventType
 from poolelement import PoolElement
@@ -80,14 +81,16 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     def on_element_changed(self, evt_src, evt_type, evt_value):
         name = evt_type.name
         # always calculate state.
-        state, status = self._calculate_states()
-        status_str = "\n".join(status)
-        st_propagate = 0
+        status_info = self._calculate_states()
+        state, status = self.calculate_state_info(status_info=status_info)
+        state_propagate = 0
+        status_propagate = 0
         if name == 'state':
-            st_propagate = evt_type.priority
-        self.set_state(state, propagate=st_propagate)
-        self.set_status(status_str, propagate=st_propagate)
-        
+            state_propagate = evt_type.priority
+        elif name == 'status':
+            status_propagate = evt_type.priority
+        self.set_state(state, propagate=state_propagate)
+        self.set_status(status, propagate=status_propagate)
         if name == 'position':
             self.put_physical_element_position(evt_src, evt_value,
                                                propagate=evt_type.priority)
@@ -198,6 +201,19 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # --------------------------------------------------------------------------
     # state information
     # --------------------------------------------------------------------------
+
+    _STD_STATUS = "{name} is {state}\n{ctrl_status}"
+    def calculate_state_info(self, status_info=None):
+        if status_info is None:
+            status_info = self._state, self._status
+        state, status = status_info
+        if state == State.On:
+            state_str = "Stopped"
+        else:
+            state_str = "in " + State[state]
+        new_status = self._STD_STATUS.format(name=self.name, state=state_str,
+                                             ctrl_status=status)
+        return status_info[0], new_status
     
     def read_state_info(self, state_info=None):
         if state_info is None:
@@ -212,8 +228,9 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             if user_element.get_type() not in TYPE_PHYSICAL_ELEMENTS:
                 motion_state_info = user_element._calculate_states()
                 user_element.put_state_info(motion_state_info)
-                
-        return self._calculate_states()
+        
+        ret = self._calculate_states()
+        return ret
         
     # --------------------------------------------------------------------------
     # motion
@@ -250,7 +267,26 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     
     def start_move(self, new_position):
         self._aborted = False
+        self._stopped = False
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
             self.motion.run(items=items)
+
+    # --------------------------------------------------------------------------
+    # stop
+    # --------------------------------------------------------------------------
+    
+    def stop(self):
+        self._stopped = True
+        for ctrl, elements in self.get_physical_elements().items():
+            ctrl.stop_elements(elements=elements)
+    
+    # --------------------------------------------------------------------------
+    # abort
+    # --------------------------------------------------------------------------
+    
+    def abort(self):
+        self._aborted = True
+        for ctrl, elements in self.get_physical_elements().items():
+            ctrl.abort_elements(elements=elements)
     

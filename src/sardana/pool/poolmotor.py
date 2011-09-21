@@ -79,7 +79,7 @@ class PoolMotor(PoolElement):
                 ls, status = other, ''
             else:
                 ls, status = 0, other
-        state, ls = int(state), tuple(map(bool, (ls&4,ls&2,ls&1)))
+        state, ls = int(state), tuple(map(bool, (ls&1,ls&2,ls&4)))
         return state, status, ls
     
     def _set_state_info(self, state_info, propagate=1):
@@ -91,7 +91,7 @@ class PoolMotor(PoolElement):
     # state information
     # --------------------------------------------------------------------------
     
-    _STD_STATUS = "{name} is {state}{limit_switches}\n{ctrl_status}"
+    _STD_STATUS = "{name} is {state}{limit_switches}{ctrl_status}"
     def calculate_state_info(self, state_info=None):
         if state_info is None:
             state, status, ls = self._state, self._status, self._limit_switches
@@ -100,15 +100,15 @@ class PoolMotor(PoolElement):
         if state == State.On:
             state_str = "Stopped"
         elif state == State.Moving:
-            motion_state = self.motion._motion_info[self].motion_state
+            motion = self.action
+            motion_state = motion._motion_info[self].motion_state
             state_str = "Moving"
             if motion_state == MotionState.MovingBacklash:
                 state_str += " (backlash)"
             elif motion_state == MotionState.MovingInstability:
                 state_str += " (instability)"
         else:
-            state_str = State[state]
-            
+            state_str = "in " + State[state]
         
         limit_switches = ""
         if ls[0]:
@@ -117,7 +117,9 @@ class PoolMotor(PoolElement):
             limit_switches += ". Hit upper switch"
         if ls[2]:
             limit_switches += ". Hit lower switch"
-
+        
+        if len(status) > 0:
+            status = "\n" + status
         new_status = self._STD_STATUS.format(name=self.name, state=state_str,
                                              limit_switches=limit_switches,
                                              ctrl_status=status)
@@ -486,12 +488,13 @@ class PoolMotor(PoolElement):
         return items
     
     def start_move(self, new_position):
-        self.prepare_to_move()
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
                        "dial_backlash=%f", *items[self])
             self.motion.run(items=items)
     
-    def prepare_to_move(self):
+    def prepare_to_move(self, motion):
         self._aborted = False
+        self._stopped = False
+        self.action = motion

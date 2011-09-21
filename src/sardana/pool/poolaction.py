@@ -138,6 +138,7 @@ class PoolAction(Logger):
         Logger.__init__(self, name)
         self._pool = pool
         self._aborted = False
+        self._stopped = False
         self._elements = []
         self._pool_ctrls = {}
         self._state_info = OperationInfo()
@@ -218,17 +219,28 @@ class PoolAction(Logger):
         
         if synch:
             with OperationContext(self):
-                self.start_action(*args, **kwargs)
-                self.action_loop()
+                try:
+                    self.start_action(*args, **kwargs)
+                    self.action_loop()
+                finally:
+                    try:
+                        self.finish_action()
+                    except:
+                        self.warning("Unable to finish action", exc_info=1)
         else:
             context = OperationContext(self)
             context.enter()
             try:
                 self.start_action(*args, **kwargs)
             except:
+                try:
+                    self.finish_action()
+                except:
+                    self.warning("Unable to finish action", exc_info=1)
                 context.exit()
                 raise
             get_thread_pool().add(self._asynch_action_loop, None, context)
+        
     
     def start_action(self, *args, **kwargs):
         """Start procedure for this action. Default implementation raises
@@ -238,11 +250,39 @@ class PoolAction(Logger):
         raise NotImplementedError("start_action must be implemented in "
                                   "subclass")
     
+    def finish_action(self, *args, **kwargs):
+        pass
+    
+    def stop_action(self, *args, **kwargs):
+        """Stop procedure for this action."""
+        self._stopped = True
+        for pool_ctrl, elements in self._pool_ctrls.items():
+            pool_ctrl.stop_elements(elements)
+
+    def abort_action(self, *args, **kwargs):
+        """Aborts procedure for this action"""
+        self._aborted = True
+        for pool_ctrl, elements in self._pool_ctrls.items():
+            pool_ctrl.abort_elements(elements)
+
+    def was_stopped(self):
+        return self._stopped
+    
+    def was_aborted(self):
+        return self._aborted
+    
+    def was_action_interrupted(self):
+        return self.was_aborted() or self.was_stopped()
+
     def _asynch_action_loop(self, context):
         """Internal method. Asynchronous action loop"""
         try:
             self.action_loop()
         finally:
+            try:
+                self.finish_action()
+            except:
+                self.warning("Unable to finish action", exc_info=1)
             context.exit()
     
     def action_loop(self):
@@ -369,14 +409,3 @@ class PoolAction(Logger):
         finally:
             self._value_info.finish_one()
     
-    def abort(self, element=None):
-        """Performs an abort on the requested element or on all elements
-        
-        :param element: If None (default) perform abort on all elements of this
-                        action
-        :type element: sardana.pool.poolelement.PoolElement"""
-        self._aborted = True
-        if element is None:
-            pass
-        else:
-            element.controller.ctrl.AbortOne(element.axis)

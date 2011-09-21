@@ -495,6 +495,7 @@ class BasicDummyMotorController(MotorController):
         return new_axis_attrs
     
     def AddDevice(self,axis):
+        MotorController.AddDevice(self, axis)
         idx = axis - 1
         if len(self.m) < axis:
             raise Exception("Invalid axis %d" % axis)
@@ -508,6 +509,7 @@ class BasicDummyMotorController(MotorController):
             self.m[idx] = m
             
     def DeleteDevice(self, axis):
+        MotorController.DeleteDevice(self, axis)
         idx = axis - 1
         if len(self.m) < axis or not self.m[idx]:
             self._log.error("Invalid axis %d" % axis)
@@ -525,11 +527,11 @@ class BasicDummyMotorController(MotorController):
         p = m.getCurrentUserPosition()
         switchstate = 0
         if m.hitLowerLimit():
-            switchstate |= 4
+            switchstate |= MotorController.LowerLimitSwitch
             state = State.Alarm
             status = "Motor HW is in ALARM. Hit hardware lower limit switch"
         if m.hitUpperLimit():
-            switchstate |= 2
+            switchstate |= MotorController.UpperLimitSwitch
             state = State.Alarm
             status = "Motor HW is in ALARM. Hit hardware upper limit switch"
         return int(state), status, switchstate

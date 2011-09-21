@@ -131,9 +131,9 @@ class Motor(PoolElementDevice):
     def initialize_dynamic_attributes(self):
         attrs = PoolElementDevice.initialize_dynamic_attributes(self)
         
-        detect_evts = "position", "dialposition", "limit_switches"
-        non_detect_evts = "step_per_unit", "offset", "sign", "velocity", \
-            "acceleration", "deceleration", "base_rate", "backlash"
+        detect_evts = "position", "dialposition",
+        non_detect_evts = "limit_switches", "step_per_unit", "offset", "sign", \
+            "velocity", "acceleration", "deceleration", "base_rate", "backlash"
         
         for attr_name in detect_evts:
             if attrs.has_key(attr_name):
@@ -288,7 +288,8 @@ class MotorClass(PoolElementDeviceClass):
     attr_list.update(PoolElementDeviceClass.attr_list)
 
     standard_attr_list = {
-        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ],
+                           { 'abs_change' : '0.5' } ],
         'Acceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Deceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Base_rate'    : [ [ DevDouble, SCALAR, READ_WRITE ],

@@ -61,7 +61,7 @@ StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
 #MA = MotionAction
 
 MotionMap = {
-    MS.Stopped           : State.On,
+    #MS.Stopped           : State.On,
     MS.Moving            : State.Moving,
     MS.MovingBacklash    : State.Moving,
     MS.MovingInstability : State.Moving,
@@ -76,7 +76,7 @@ class PoolMotionItem(PoolActionItem):
                  backlash, instability_time=None):
         PoolActionItem.__init__(self, moveable)
         self.position = position
-        self.aborted = False
+        self.interrupted = False
         self.dial_position = dial_position
         self.do_backlash = do_backlash
         self.backlash = backlash
@@ -102,7 +102,7 @@ class PoolMotionItem(PoolActionItem):
 
     def get_state_info(self):
         si = self.state_info
-        return MotionMap[self.motion_state], si[1], si[2]
+        return MotionMap.get(self.motion_state, si[0]), si[1], si[2]
 
     def stopped(self, timestamp):
         self.stop_time = timestamp
@@ -126,12 +126,13 @@ class PoolMotionItem(PoolActionItem):
             timestamp = time.time()
         self.old_state_info = self.state_info
         self.state_info = state_info
+        old_state = self.old_state_info[0]
         state = state_info[0]
         new_ms = ms = self.motion_state
         moveable = self.moveable
-        self.aborted = moveable.was_aborted()
+        self.interrupted = moveable.was_interrupted()
         
-        if self.aborted:
+        if self.interrupted:
             if ms == MS.MovingInstability:
                 new_ms = self.handle_instability(timestamp)
             elif state == State.Moving:
@@ -162,7 +163,17 @@ class PoolMotion(PoolAction):
     
     def __init__(self, pool, name="GlobalMotion"):
         PoolAction.__init__(self, pool, name)
-
+        self._motion_info = None
+        self._motion_sleep_time = None
+        self._nb_states_per_position = None
+    
+    def finish_action(self, *args, **kwargs):
+        motion_info = self._motion_info
+        if motion_info is not None:
+            for moveable in motion_info:
+                moveable.clear_action()
+        self._motion_info = None
+        
     def start_action(self, *args, **kwargs):
         """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
         
@@ -172,6 +183,7 @@ class PoolMotion(PoolAction):
         
         # prepare data structures
         self._aborted = False
+        self._stopped = False
         self._motion_sleep_time = kwargs.pop("motion_sleep_time",
                                              pool.motion_loop_sleep_time)
         self._nb_states_per_position = \
@@ -180,7 +192,7 @@ class PoolMotion(PoolAction):
         
         motion_info = {}
         for moveable, motion_data in items.items():
-            moveable.prepare_to_move()
+            moveable.prepare_to_move(self)
             it = moveable.instability_time
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
@@ -262,8 +274,8 @@ class PoolMotion(PoolAction):
                     motion_item.on_state_switch(state_info, timestamp=timestamp)
                 real_state_info = motion_item.get_state_info()
                 
-                aborted = moveable.was_aborted()
-                well_stopped = state == State.On and not aborted
+                interrupted = moveable.was_interrupted()
+                well_stopped = state == State.On and not interrupted
                 moving = motion_item.in_motion()
                 
                 start_backlash = motion_state == MS.MovingBacklash and \
