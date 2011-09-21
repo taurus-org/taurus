@@ -28,16 +28,21 @@ by specific TaurusGui-based GUIs"""
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util import etree
 import os,sys
 
-TAURUSGUI_AREAS = {'Left':Qt.Qt.LeftDockWidgetArea,
-                'Right':Qt.Qt.RightDockWidgetArea, 
-                'Top':Qt.Qt.TopDockWidgetArea, 
-                'Bottom':Qt.Qt.BottomDockWidgetArea}
+class Qt_Qt:
+    LeftDockWidgetArea = 1
+    RightDockWidgetArea = 2
+    TopDockWidgetArea = 3
+    BottomDockWidgetArea = 4
+
+TAURUSGUI_AREAS = {'Left':Qt_Qt.LeftDockWidgetArea,
+                'Right':Qt_Qt.RightDockWidgetArea, 
+                'Top':Qt_Qt.TopDockWidgetArea, 
+                'Bottom':Qt_Qt.BottomDockWidgetArea}
 
 
 class ExternalApp(object):
