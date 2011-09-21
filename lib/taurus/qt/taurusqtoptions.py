@@ -35,7 +35,7 @@ import threading
 
 QT_API_PYQT = 'pyqt'
 QT_API_PYSIDE = 'pyside'
-QT_USE_API2 = True
+QT_USE_API2 = False
 
 def get_logger():
     import taurus.core.util
