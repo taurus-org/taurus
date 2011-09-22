@@ -33,11 +33,12 @@ from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util import etree
 import os,sys
 
-class Qt_Qt:
+#this is here only for backwards compatibility. It should not be used at all
+class Qt_Qt: 
     LeftDockWidgetArea = 1
     RightDockWidgetArea = 2
-    TopDockWidgetArea = 3
-    BottomDockWidgetArea = 4
+    BottomDockWidgetArea = 3
+    TopDockWidgetArea = 4
 
 TAURUSGUI_AREAS = {'Left':Qt_Qt.LeftDockWidgetArea,
                 'Right':Qt_Qt.RightDockWidgetArea, 
@@ -106,11 +107,9 @@ class ExternalApp(object):
         return ExternalApp(" ".join((command,params)), text=text, icon=icon)
         
 
-class PanelDescription(object):
+class TaurusGuiComponentDescription(object):
     '''
-    A description of a teurusgui panel. 
-    This class is not a panel, but a container of the information required to
-    build a panel.
+    A base class for describing a taurusgui component. 
     '''
     def __init__(self,name, classname=None, modulename=None, widgetname=None, 
                  sharedDataWrite=None, sharedDataRead=None, 
@@ -336,5 +335,22 @@ class PanelDescription(object):
     sharedDataRead = property(fget=getSharedDataRead, fset=setSharedDataRead) 
     model = property(fget=getModel, fset=setModel) 
 
+class PanelDescription(TaurusGuiComponentDescription):
+    '''
+    A description of a taurusgui panel. 
+    This class is not a panel, but a container of the information required to
+    build a panel.
+    '''
+    pass
 
-        
+class ToolBarDescription(TaurusGuiComponentDescription):
+    '''
+    A description of a toolbar to be inserted in a TaurusGUI. 
+    '''
+    pass
+
+class AppletDescription(TaurusGuiComponentDescription): 
+    '''
+    A description of a widget to be inserted in the "applets bar" of the TaurusGUI. 
+    '''
+    pass

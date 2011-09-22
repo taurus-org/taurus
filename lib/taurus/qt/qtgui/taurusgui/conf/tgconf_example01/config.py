@@ -35,7 +35,7 @@ user will find when launching the GUI for the first time.
 #==============================================================================
 # Import section. You probably want to keep this line. Don't edit this block 
 # unless you know what you are doing
-from taurus.qt.qtgui.taurusgui.utils import PanelDescription, ExternalApp, Qt_Qt
+from taurus.qt.qtgui.taurusgui.utils import PanelDescription, ExternalApp, ToolBarDescription, AppletDescription
 # (end of import section)
 #==============================================================================
 
@@ -103,6 +103,30 @@ trend = PanelDescription('Trend',
                         model = ['sys/tg_test/1/double_scalar'])
 
 #===============================================================================
+# Define custom toolbars to be shown. To define a toolbar, instantiate a
+# ToolbarDescription object (see documentation for the gblgui_utils module)
+#===============================================================================
+
+dummytoolbar = ToolBarDescription('Empty Toolbar',
+                        classname = 'QToolBar',
+                        modulename = 'PyQt4.Qt')
+
+#panictoolbar = ToolBarDescription('Panic Toolbar',
+#                        classname = 'PanicToolbar',
+#                        modulename = 'tangopanic')
+
+#===============================================================================
+# Define custom applets to be shown in the applets bar (the wide bar that
+# contains the logos). To define an applet, instantiate an AppletDescription
+# object (see documentation for the gblgui_utils module)
+#===============================================================================
+
+mon2 = AppletDescription('Dummy Monitor',
+                        classname = 'TaurusMonitorTiny',
+                        model='eval://1000*rand(2)')
+
+
+#===============================================================================
 # Define which External Applications are to be inserted.
 # To define an external application, instantiate an ExternalApp object
 # See TaurusMainWindow.addExternalAppLauncher for valid values of ExternalApp
@@ -121,6 +145,7 @@ pymca = ExternalApp(['pymca'])
 #MACROEDITORS_PATH = 
 
 #===============================================================================
-# Monitor widget
+# Monitor widget (This is obsolete now, you can get the same result defining a
+# custom applet with classname='TaurusMonitorTiny')
 #===============================================================================
-MONITOR = ['sys/tg_test/1/double_scalar_rww']
+# MONITOR = ['sys/tg_test/1/double_scalar_rww']

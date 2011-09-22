@@ -48,7 +48,7 @@ try:
 except ImportError:
     HAS_EXTRA_POOL = False
 
-from taurus.qt.qtgui.taurusgui.utils import PanelDescription, ExternalApp
+from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, ToolBarDescription, AppletDescription
 from PermanentCustomPanelsDlg import PermanentCustomPanelsDlg
 import taurus.qt.qtgui.resource
 from taurus.core.util import etree
@@ -762,7 +762,79 @@ class TaurusGui(TaurusMainWindow):
                     sys.exit()
         #add a separator in the panels view submenu (it separates the panels created from the config file from the user-created panels)
         self.__panelsMenu.addSeparator()
+        
+        #get custom toolbars descriptions from the python config file      
+        CUSTOM_TOOLBARS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ToolBarDescription)]
+        
+        #add custom toolbar descriptions from xml config
+        toolBarDescriptions = xmlroot.find("ToolBarDescriptions")
+        if (toolBarDescriptions is not None):
+            for child in toolBarDescriptions:
+                if (child.tag == "ToolBarDescription"):
+                    d = ToolBarDescription.fromXml(etree.tostring(child))
+                    if d is not None:
+                        CUSTOM_TOOLBARS.append(d)
+        
+        #create toolbars based on the descriptions gathered before
+        for d in CUSTOM_TOOLBARS:
+            try:
+                w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+                if d.model is not None:
+                    w.setModel(d.model)
+                w.setWindowTitle(d.name)
+                #add the toolbar to the window
+                self.addToolBar(w)
+                #add the toggleview action to the view menu
+                self.viewToolBarsMenu.addAction(w.toggleViewAction())
+                #register the toolbar as delegate if it supports it
+                if isinstance(w,BaseConfigurableClass):
+                    self.registerConfigDelegate(w, d.name)
                 
+            except Exception,e:
+                msg='Cannot add toolbar %s'%getattr(d,'name','__Unknown__')
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+
+        CUSTOM_APPLETS = []
+        #for backwards compatibility
+        MONITOR = getattr(conf, 'MONITOR', self.__getVarFromXML(xmlroot,"MONITOR", []))
+        if MONITOR:
+            CUSTOM_APPLETS.append(AppletDescription('monitor', classname='TaurusMonitorTiny', model=MONITOR) )
+
+        #get custom applet descriptions from the python config file      
+        CUSTOM_APPLETS += [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, AppletDescription)]
+        
+        #add applet descriptions from xml config
+        appletDescriptions = xmlroot.find("AppletDescriptions")
+        if (appletDescriptions is not None):
+            for child in appletDescriptions:
+                if (child.tag == "AppletDescription"):
+                    d = AppletDescription.fromXml(etree.tostring(child))
+                    if d is not None:
+                        CUSTOM_APPLETS.append(d)
+        
+        #create applet based on the descriptions gathered before
+        for d in CUSTOM_APPLETS:
+            try:
+                w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+                if d.model is not None:
+                    w.setModel(d.model)
+                #add the widget to the applets toolbar
+                self.jorgsBar.addWidget(w)
+                #register the toolbar as delegate if it supports it
+                if isinstance(w,BaseConfigurableClass):
+                    self.registerConfigDelegate(w, d.name)                
+            except Exception,e:
+                msg='Cannot add applet %s'%getattr(d,'name','__Unknown__')
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+
         #add external applications from both the python and the xml config files
         EXTERNAL_APPS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ExternalApp)]
                 
@@ -776,14 +848,6 @@ class TaurusGui(TaurusMainWindow):
         
         for a in EXTERNAL_APPS:
             self.addExternalAppLauncher(a.getAction())
-        
-        #add a beam monitor        
-        MONITOR = getattr(conf, 'MONITOR', self.__getVarFromXML(xmlroot,"MONITOR", []))
-        if MONITOR:
-            self.__monitor = TaurusMonitorTiny()
-            self.__monitor.setModel(MONITOR)
-            self.jorgsBar.addWidget(self.__monitor)
-            self.registerConfigDelegate(self.__monitor, 'monitor')
         
         #get the "factory settings" filename. By default, it is called "default.ini" and resides in the configuration dir
         INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
