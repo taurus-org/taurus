@@ -633,9 +633,8 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
         if isinstance(treeItem, TaurusTreeDeviceDomainItem):
             domain = treeItem.display()
             devices = sourceModel.getDomainDevices(domain)
-            for d in devices:
-                #if expr.exactMatch(d.name()):
-                if Qt.QString(d.name()).contains(expr):
+            for device in devices:
+                if self.deviceMatches(device, expr):
                     return True
             return False
         
@@ -645,18 +644,25 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
             family = treeItem.display()
             devices = sourceModel.getFamilyDevices(domain, family)
             for device in devices:
-                #if expr.exactMatch(d.name()):
-                if Qt.QString(device.name()).contains(expr):
+                if self.deviceMatches(device, expr):
                     return True
             return False
         
         if isinstance(treeItem, TaurusTreeDeviceItem) or \
            isinstance(treeItem, TaurusTreeSimpleDeviceItem) or \
            isinstance(treeItem, TaurusTreeDeviceMemberItem):
-            #return expr.exactMatch(treeItem.qdisplay())
-            return treeItem.qdisplay().contains(expr)
-        
+            device = treeItem.itemData()
+            return self.deviceMatches(device, expr)
         return True
+    
+    def deviceMatches(self, device, expr):
+        name = device.name()
+        if Qt.QString(name).contains(expr):
+            return True
+        name = device.alias()
+        if name is None:
+            return False
+        return Qt.QString(name).contains(expr)
 
 
 class TaurusDbServerProxyModel(TaurusDbBaseProxyModel):
