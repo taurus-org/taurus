@@ -1022,7 +1022,7 @@ def main():
         sys.exit(app.exec_())
         
     confname = options.config_dir
-    if confname is None and len(args) == 1: #for backwards compat, we allow to specify the confname without the "--config-file" parameter
+    if confname is None and len(args) == 1: #for backwards compat, we allow to specify the confname without the "--config-dir" parameter
         confname = args[0]
     else:
         parser.print_help(sys.stderr)
