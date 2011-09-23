@@ -58,7 +58,8 @@ class PoolChannelTV(TaurusValue):
     '''
     def __init__(self, parent = None, designMode = False):
         TaurusValue.__init__(self, parent = parent, designMode = designMode)
-        self.setLabelWidgetClass(LabelWidgetDragsDeviceAndAttribute)
+        self.setLabelWidgetClass("LabelWidgetDragsDeviceAndAttribute")
+        #self.setLabelWidgetClass("DefaultLabelWidget")
         self.setLabelConfig('dev_alias')
     
     def getDefaultExtraWidgetClass(self):

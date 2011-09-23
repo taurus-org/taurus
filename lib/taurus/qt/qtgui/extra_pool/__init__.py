@@ -28,6 +28,6 @@ __init__.py:
 """
 
 from motor import TaurusMotorH, TaurusMotorH2, TaurusMotorV, TaurusMotorV2
-from poolmotor import PoolMotorSlim, PoolMotorTV, PoolMotor
+from poolmotor import PoolMotorSlim, PoolMotorTV, PoolMotor,LabelWidgetDragsDeviceAndAttribute
 from poolchannel import PoolChannel, PoolChannelTV
 from poolioregister import PoolIORegisterTV, PoolIORegister, PoolIORegisterButtons
