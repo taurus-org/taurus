@@ -63,8 +63,9 @@ class MotorGroup(PoolGroupDevice):
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.motor_group.get_name())
-        self.motor_group = None
+        pass
+        #self.pool.delete_element(self.motor_group.get_name())
+        #self.motor_group = None
     
     @DebugIt()
     def init_device(self):

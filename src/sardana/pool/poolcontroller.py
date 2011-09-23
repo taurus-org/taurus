@@ -38,14 +38,15 @@ import functools
 import threading
 
 from taurus.core.util import CaselessDict
+from taurus.core.util import InfoIt
 
 from sardana import State
+from pooldefs import ElementType
+from poolelement import PoolBaseElement
+from poolevent import EventType
 
-from poolbase import *
-from pooldefs import *
 
-
-class PoolBaseController(PoolObject):
+class PoolBaseController(PoolBaseElement):
     """Base class for all controllers"""
     def __init__(self, **kwargs):
         self._ctrl_error = None
@@ -93,7 +94,7 @@ class PoolBaseController(PoolObject):
             s = s[:-1]
         return s
     
-    def add_element(self, elem):
+    def add_element(self, elem, propagate=1):
         name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
         if self.is_online():
             self._ctrl.AddDevice(axis)
@@ -105,9 +106,13 @@ class PoolBaseController(PoolObject):
             self._pending_element_ids[id] = elem
             self._pending_element_axis[axis] = elem
             self._pending_element_names[name] = elem
-        self.fire_event("ElementCreated", elem)
-        
-    def remove_element(self, elem):
+        if propagate:
+            elements = self.get_elements()
+            elements = [ elements[id].name for id in sorted(elements) ]
+            self.fire_event(EventType("elementlist", priority=propagate),
+                            elements)
+            
+    def remove_element(self, elem, propagate=1):
         id = elem.id
         f = self._element_ids.has_key(id)
         if not f:
@@ -122,9 +127,13 @@ class PoolBaseController(PoolObject):
             del self._element_axis[elem.get_axis()]
             del self._element_names[elem.get_name()]
             self._ctrl.DeleteDevice(elem.get_axis())
-        self.fire_event("ElementDeleted", elem)
+        if propagate:
+            elements = self.get_elements()
+            elements = [ elements[id].name for id in sorted(elements) ]
+            self.fire_event(EventType("elementlist", priority=propagate),
+                            elements)
 
-    def remove_axis(self, axis):
+    def remove_axis(self, axis, propagate=1):
         f = self._element_axis.has_key(axis)
         if not f:
             f = self._pending_element_axis.has_key(axis)
@@ -133,7 +142,7 @@ class PoolBaseController(PoolObject):
             elem = self._pending_element_axis[axis]
         else:
             elem = self._element_axis[axis]
-        self.remove_element(elem)
+        self.remove_element(elem, propagate=propagate)
         
     def get_elements(self):
         return self._element_ids
@@ -226,7 +235,7 @@ class PoolController(PoolBaseController):
         self._ctrl = None
         self._ctrl_lock = threading.Lock()
         super(PoolController, self).__init__(**kwargs)
-        self.init()
+        self.re_init()
 
     def __repr__(self):
         ctrl_info = self._ctrl_info
@@ -237,17 +246,6 @@ class PoolController(PoolBaseController):
         r = "{name} ({module}.{class}/{name}) - {type} {language} ctrl ({filename})".format(**data)
         return r
 
-    def init(self):
-        if self._ctrl_info is None:
-            if self._lib_info is not None:
-                self._ctrl_error = self._lib_info.getError()
-            return
-        try:
-            self._ctrl = self._create_controller()
-        except:
-            self._ctrl = None
-            self._ctrl_error = sys.exc_info()
-    
     def _create_ctrl_args(self):
         name = self.name
         klass = self._ctrl_info.getControllerClass()
@@ -265,30 +263,55 @@ class PoolController(PoolBaseController):
         elif api == 1:
             ctrl = klass(name, props, *args, **kwargs)
         return ctrl
+
+    def _init(self):
+        if self._ctrl_info is None:
+            if self._lib_info is not None:
+                self._ctrl_error = self._lib_info.getError()
+            return
+        try:
+            self._ctrl = self._create_controller()
+        except:
+            self._ctrl = None
+            self._ctrl_error = sys.exc_info()
     
-    def reInit(self):
-        self.info("reInit")
+    @InfoIt()
+    def re_init(self):
+        self.set_state(State.Init, propagate=2)
+        status = "{0} is Initializing (temporarly unavailable)".format(self.name)
+        self.set_status(status, propagate=2)
         manager = self.pool.ctrl_manager
         old_e_ids = self._element_ids
         old_p_e_ids = self._pending_element_ids
         
         elem_axis = dict(self._element_axis)
-        for axis in elem_axis.keys():
-            self.remove_axis(axis)
+        for axis in elem_axis:
+            self.remove_axis(axis, propagate=0)
         
         mod_name = self._lib_info.name
         class_name = self._ctrl_info.name
         
+        self._ctrl_error = None
         self._ctrl_info = None
         self._lib_info = manager.getControllerLib(mod_name)
         if self._lib_info is not None:
             self._ctrl_info = self._lib_info.getController(class_name)
         
-        self.init()
+        self._init()
         
         for elem in elem_axis.values():
-            self.add_element(elem)
+            self.add_element(elem, propagate=0)
     
+        state, status = State.Fault, ""
+        if self.is_online():
+            state = State.On
+        else:
+            status = "\n" + self.get_ctrl_error_str()
+        
+        status = "{0} is {1}".format(self.name, State[state]) + status
+        self.set_status(status, propagate=2)
+        self.set_state(state, propagate=2)
+
     def get_ctrl_types(self):
         return self._ctrl_info.getTypes()
 
@@ -551,7 +574,7 @@ class PoolController(PoolBaseController):
         
         for element in elements:
             self._stop_one(element.axis)
-    
+            
     def _abort_all(self):
         try:
             return self.ctrl.AbortAll()
@@ -672,6 +695,6 @@ class PoolGenericTangoController(PoolBaseController):
     
     def __init__(self, **kwargs):
         super(PoolGenericTangoController, self).__init__(**kwargs)
-        self.init()
+        self.reInit()
     
     

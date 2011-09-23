@@ -29,6 +29,8 @@ __all__ = ["Controller", "ControllerClass"]
 
 __docformat__ = 'restructuredtext'
 
+import time
+
 from PyTango import Util, DevFailed
 from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
 from PyTango import DevVarStringArray, DevVarLongArray
@@ -41,7 +43,7 @@ from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
 from sardana import DataType, DataFormat
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_attr_info
+    GenericImageAttr, to_tango_attr_info, to_tango_state
 
 from PoolDevice import PoolDevice, PoolDeviceClass
 
@@ -65,9 +67,10 @@ class Controller(PoolDevice):
     
     ctrl = property(get_ctrl, set_ctrl)
     
-    @DebugIt()
+    @InfoIt()
     def delete_device(self):
-        self.pool.delete_element(self.ctrl.get_name())
+        pass
+        #self.pool.delete_element(self.ctrl.get_name())
     
     @InfoIt()
     def init_device(self):
@@ -76,17 +79,21 @@ class Controller(PoolDevice):
         detect_evts = "state", "status"
         non_detect_evts = "elementlist",
         self.set_change_events(detect_evts, non_detect_evts)
-
-        if self.ctrl is None:
+        
+        ctrl = self.ctrl
+        if ctrl is None:
             args = dict(type=self.Type, name=self.alias,
                         full_name=self.get_name(),
                         library=self.Library, klass=self.Klass,
                         id=self.Id, role_ids=self.Role_ids,
                         properties=self._get_ctrl_properties())
             ctrl = self.pool.create_controller(**args)
-            ctrl.add_listener(self.elements_changed)
+            ctrl.add_listener(self.on_controller_changed)
             self.ctrl = ctrl
-        self.set_state(DevState.ON)
+            self.set_state(to_tango_state(ctrl.get_state()))
+            self.set_status(ctrl.get_status())
+        else:
+            ctrl.re_init()
         
     def _get_ctrl_properties(self):
         try:
@@ -129,7 +136,8 @@ class Controller(PoolDevice):
         if missing_props:
             self.set_state(DevState.ALARM)
             missing_props = ", ".join(missing_props)
-            self.set_status("Controller has missing properties: %s" % missing_props)
+            self.set_status("Controller has missing properties: %s"
+                            % missing_props)
         
         return ret
     
@@ -164,9 +172,33 @@ class Controller(PoolDevice):
         elements = self.ctrl.get_elements()
         return [ elements[id].get_name() for id in sorted(elements) ]
     
-    def elements_changed(self, evt_src, evt_type, evt_value):
-        self.push_change_event("ElementList", self.get_element_names())
-
+    def on_controller_changed(self, event_src, event_type, event_value):
+        name = event_type.name
+        multi_attr = self.get_device_attr()
+        try:
+            attr = multi_attr.get_attr_by_name(name)
+        except DevFailed:
+            return
+        
+        recover = False
+        if event_type.priority > 1:
+            attr.set_change_event(True, False)
+            recover = True
+        
+        try:
+            if name == "state":
+                event_value = to_tango_state(event_value)
+                self.set_state(event_value)
+                self.push_change_event(name, event_value)
+            elif name == "status":
+                self.set_status(event_value)
+                self.push_change_event(name, event_value)
+            else:
+                self.push_change_event(name, event_value)
+        finally:
+            if recover:
+                attr.set_change_event(True, True)
+    
     def get_dynamic_attributes(self):
         if hasattr(self, "_dynamic_attributes_cache"):
             return self._standard_attributes_cache, self._dynamic_attributes_cache
@@ -180,39 +212,16 @@ class Controller(PoolDevice):
             name, tg_info = to_tango_attr_info(attr_name, attr_data)
             dyn_attrs[attr_name] = attr_name, tg_info, attr_data
         return std_attrs, dyn_attrs
-        
-#    def initialize_dynamic_attributes(self):
-#        info = self.ctrl.ctrl_info
-#        if info is None:
-#            self.warning("Controller %s doesn't have any information", self.ctrl)
-#            return
-#        for name, attr_info in info.getControllerAttributes().items():
-#            tg_type, tg_format = to_tango_type_format(attr_info.dtype, attr_info.dformat)
-#            tg_access = to_tango_access(attr_info.access)
-#            read, write = Controller.read_DynamicAttribute, None
-#            if tg_access == READ_WRITE:
-#                write = Controller.write_DynamicAttribute
-#            klass = GenericScalarAttr
-#            if tg_format == SPECTRUM:
-#                klass = GenericSpectrumAttr
-#            elif tg_format == IMAGE:
-#                klass = GenericImageAttr
-                
-#            attr = klass(name, tg_type, tg_access)
-#            if tg_access == READ_WRITE:
-#                attr.set_memorized()
-#                attr.set_memorized_init(True)
-#            self.add_attribute(attr, read, write)
-
+    
     def read_DynamicAttribute(self, attr):
         attr_name = attr.get_name()
         attr.set_value(self.ctrl.get_ctrl_attr(attr_name))
-
+    
     def write_DynamicAttribute(self, attr):
         v = attr.get_write_value()
         attr_name = attr.get_name()
         self.ctrl.set_ctrl_attr(attr_name, v)
-
+    
     def read_LogLevel(self, attr):
         l = self.ctrl.get_log_level()
         self.debug(l)
@@ -220,7 +229,7 @@ class Controller(PoolDevice):
     
     def write_LogLevel(self, attr):
         self.ctrl.set_log_level(attr.get_write_value())
-
+    
 
 class ControllerClass(PoolDeviceClass):
 

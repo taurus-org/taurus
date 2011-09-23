@@ -100,6 +100,22 @@ class PoolCTAcquisition(PoolAction):
         pool_ctrls.remove(master_ctrl)
         pool_ctrls.append(master_ctrl)
         
+        # Determine which channels are active
+        channels = {}
+        for pool_ctrl in pool_ctrls:
+            ctrl = pool_ctrl.ctrl
+            pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
+            main_unit_data = pool_ctrl_data['units']['0']
+            elements = main_unit_data['channels']
+            
+            for element, element_info in elements.items():
+                axis = element.axis
+                channel = Channel(element, info=element_info)
+                channels[element] = channel
+        
+        self._channels = channels
+        
+        # PreLoadAll, PreLoadOne, LoadOne and LoadAll
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
             pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
@@ -118,34 +134,29 @@ class PoolCTAcquisition(PoolAction):
             pool_ctrl.ctrl.PreStartAll()
         
         # PreStartOne & StartOne on all elements
-        enabled_channels = []
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
             pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
             main_unit_data = pool_ctrl_data['units']['0']
             elements = main_unit_data['channels']
-            
-            for element, element_info in elements.items():
+            for element in elements:
                 axis = element.axis
-                channel = Channel(element, info=element_info)
+                channel = channels[element]
                 if channel.enabled:
                     ret = ctrl.PreStartOne(axis, master_value)
                     if not ret:
                         raise Exception("%s.PreStartOne(%d) returns False" \
                                         % (ctrl.name, axis))
                     ctrl.StartOne(axis)
-                    enabled_channels.append(channel)
         
         # set the state of all elements to  and inform their listeners
-        for channel in enabled_channels:
+        for channel in channels:
             channel.set_state(State.Moving, propagate=2)
         
         # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
             pool_ctrl.ctrl.StartAll()
         
-        self._channels = enabled_channels
-    
     def in_acquisition(self, states):
         """Determines if we are in acquisition or if the acquisition has ended
         based on the current unit trigger modes and states returned by the
@@ -166,8 +177,7 @@ class PoolCTAcquisition(PoolAction):
         i = 0
         
         states, values = {}, {}
-        for channel in self._channels:
-            element = channel.element
+        for element in self._channels:
             states[element] = None
             values[element] = None
 
@@ -206,7 +216,5 @@ class PoolCTAcquisition(PoolAction):
         # finally set the state and propagate to all listeners
         for acquirable, state_info in states.items():
             acquirable.set_state_info(state_info, propagate=2)
-        
-        #if self._head is not None:
-        #    self._head.set_state(State.On, propagate=2)
+
 

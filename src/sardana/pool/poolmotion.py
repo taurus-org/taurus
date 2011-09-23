@@ -171,7 +171,7 @@ class PoolMotion(PoolAction):
         motion_info = self._motion_info
         if motion_info is not None:
             for moveable in motion_info:
-                moveable.clear_action()
+                moveable.finish_from_move()
         self._motion_info = None
         
     def start_action(self, *args, **kwargs):
@@ -215,7 +215,7 @@ class PoolMotion(PoolAction):
             if not ret:
                 raise Exception("%s.PreStartOne(%d, %f) returns False" \
                                 % (controller.name, axis, dial_position))
-
+        
         # StartOne on all elements
         for moveable in moveables:
             ctrl = moveable.controller.ctrl
@@ -226,7 +226,6 @@ class PoolMotion(PoolAction):
         # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
             pool_ctrl.ctrl.StartAll()
-
     
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable

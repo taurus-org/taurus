@@ -454,4 +454,23 @@ class Pool(PoolContainer, PoolObject):
         controllers = self.get_elements_by_type(ElementType.Ctrl)
         for controller in controllers:
             controller.abort_all()
+    
+    def reload_controller_lib(self, lib_name):
+        manager = self.ctrl_manager
         
+        ctrl_infos = manager.getControllerLib(lib_name).getControllers()
+        pool_ctrls = self.get_elements_by_type(ElementType.Ctrl)
+        init_pool_ctrls = []
+        for pool_ctrl in pool_ctrls:
+            if pool_ctrl.get_ctrl_info() in ctrl_infos:
+                init_pool_ctrls.append(pool_ctrl)
+        
+        manager.reloadControllerLib(lib_name)
+        
+        for pool_ctrl in init_pool_ctrls:
+            pool_ctrl.re_init()
+    
+    def reload_controller_class(self, class_name):
+        ctrl_info = self.ctrl_manager.getControllerMetaClass(class_name)
+        lib_name = ctrl_info.getModuleName()
+        self.reload_controller_lib(lib_name)

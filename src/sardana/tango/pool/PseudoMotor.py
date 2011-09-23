@@ -63,8 +63,9 @@ class PseudoMotor(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.pseudo_motor.get_name())
-        self.pseudo_motor = None
+        pass
+        #self.pool.delete_element(self.pseudo_motor.get_name())
+        #self.pseudo_motor = None
     
     @InfoIt()
     def init_device(self):
@@ -92,7 +93,6 @@ class PseudoMotor(PoolElementDevice):
         
         recover = False
         if event_type.priority > 1:
-            self.info("priority event %s=%s", name, event_value)
             attr.set_change_event(True, False)
             recover = True
         

@@ -716,26 +716,11 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def ReloadControllerLib(self, lib_name):
-        p = self.pool
-        manager = p.ctrl_manager
-        
-        ctrl_infos = manager.getControllerLib(lib_name).getControllers()
-        pool_ctrls = p.get_elements_by_type(ElementType.Ctrl)
-        init_pool_ctrls = []
-        for pool_ctrl in pool_ctrls:
-            if pool_ctrl.get_ctrl_info() in ctrl_infos:
-                init_pool_ctrls.append(pool_ctrl)
-        
-        manager.reloadControllerLib(lib_name)
-        
-        for pool_ctrl in init_pool_ctrls:
-            pool_ctrl.reInit()
+        self.pool.reload_controller_lib(lib_name)
         
     #@PyTango.DebugIt()
     def ReloadControllerClass(self, class_name):
-        ctrl_info = self.pool.ctrl_manager.getControllerMetaClass(class_name)
-        lib_name = ctrl_info.getModuleName()
-        self.ReloadControllerLib(lib_name)
+        self.pool.reload_controller_class(class_name)
 
     def GetFile(self, name):
         p = self.pool

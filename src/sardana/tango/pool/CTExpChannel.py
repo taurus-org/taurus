@@ -63,8 +63,9 @@ class CTExpChannel(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.element.get_name())
-        self.ct = None
+        pass
+        #self.pool.delete_element(self.element.get_name())
+        #self.ct = None
 
     @DebugIt()
     def init_device(self):
@@ -153,8 +154,7 @@ class CTExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ],
-                        { 'Memorized'     : "true", } ],
+        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

@@ -82,7 +82,17 @@ class PoolCounterTimer(PoolElement):
     # --------------------------------------------------------------------------
     # acquisition
     # --------------------------------------------------------------------------
-
+    
+    def prepare_to_acquire(self, acquisition):
+        self._aborted = False
+        self._stopped = False
+        self.action = acquisition
+    
+    def finish_from_acquisition(self):
+        self._aborted = False
+        self._stopped = False
+        self.clear_action()
+    
     def get_acquisition(self):
         return self.get_action_cache()
     

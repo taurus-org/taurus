@@ -57,7 +57,6 @@ class DummyCounterTimerController(CounterTimerController):
         pass
     
     def StateOne(self, ind):
-        self._log.debug("StateOne(%d)", ind)
         idx = ind - 1
         sta = State.On
         status = "Stopped"
@@ -69,7 +68,6 @@ class DummyCounterTimerController(CounterTimerController):
             if channel.is_counting:
                 sta = State.Moving
                 status = "Acquiring"
-        self._log.debug("StateOne(%d) returns %s", ind, sta)
         return sta, status
         
     def _updateChannelState(self, ind, elapsed_time):
@@ -82,7 +80,7 @@ class DummyCounterTimerController(CounterTimerController):
             # monitor counts
             v = int(elapsed_time*100*ind)
             if v >= self.monitor_count:
-                self.finish(elapsed_time)
+                self._finish(elapsed_time)
     
     def _updateChannelValue(self, ind, elapsed_time):
         channel = self.channels[ind-1]
@@ -124,7 +122,6 @@ class DummyCounterTimerController(CounterTimerController):
                     self._updateChannelValue(ind, elapsed_time)
     
     def ReadOne(self,ind):
-        self._log.debug("ReadOne(%d)", ind)
         v = self.read_channels[ind].value
         return v
     

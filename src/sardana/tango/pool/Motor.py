@@ -64,8 +64,9 @@ class Motor(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.motor.get_name())
-        self.motor = None
+        pass
+        #self.pool.delete_element(self.motor.get_name())
+        #self.motor = None
     
     @InfoIt()
     def init_device(self):
@@ -82,7 +83,8 @@ class Motor(PoolElementDevice):
             motor.add_listener(self.on_motor_changed)
             self.motor = motor
         # force a state read to initialize the state attribute
-        self.set_state(DevState.ON)
+        state = to_tango_state(self.motor.get_state(cache=False))
+        status = self.motor.get_status(cache=False)
         
     def on_motor_changed(self, event_source, event_type, event_value):
         t = time.time()
@@ -98,7 +100,6 @@ class Motor(PoolElementDevice):
         
         recover = False
         if event_type.priority > 1:
-            self.debug("priority event %s",name)
             attr.set_change_event(True, False)
             recover = True
         

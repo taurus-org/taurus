@@ -66,8 +66,9 @@ class MeasurementGroup(PoolGroupDevice):
     
     @DebugIt()
     def delete_device(self):
-        self.pool.delete_element(self.measurement_group.get_name())
-        self.measurement_group = None
+        pass
+        #self.pool.delete_element(self.measurement_group.get_name())
+        #self.measurement_group = None
     
     @DebugIt()
     def init_device(self):

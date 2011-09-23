@@ -80,24 +80,16 @@ class PoolDevice(SardanaDevice):
     def delete_device(self):
         SardanaDevice.delete_device(self)
         self.pool.delete_element(self.element.get_name())
-    
-    def read_SimulationMode(self, attr):
-        attr_SimulationMode_read = 1
-        attr.set_value(attr_SimulationMode_read)
-    
-    def write_SimulationMode(self, attr):
-        data=[]
-        attr.get_write_value(data)
-    
+        
     def Abort(self):
         self.element.abort()
-
+    
     def is_Abort_allowed(self):
         return self.get_state() != DevState.UNKNOWN
-
+    
     def Stop(self):
         self.element.stop()
-
+    
     def is_Stop_allowed(self):
         return self.get_state() != DevState.UNKNOWN
     
@@ -149,37 +141,40 @@ class PoolDevice(SardanaDevice):
     def remove_unwanted_dynamic_attributes(self):
         """Removes unwanted dynamic attributes from previous device creation"""
         
-        dev_class, multi_attr = self.get_device_class(), self.get_device_attr()
+        dev_class = self.get_device_class()
+        multi_attr = self.get_device_attr()
         multi_class_attr = dev_class.get_class_attr()
-        klass_attrs = [ attr_name.lower() for attr_name in dev_class.attr_list ]
-        klass_attrs.extend(('state', 'status'))
+        static_attr_names = map(str.lower, dev_class.attr_list.keys())
+        static_attr_names.extend(('state', 'status'))
+        standard_attr_names = map(str.lower, dev_class.standard_attr_list.keys())
         
-        attribute_names = []
-        for ind in range(multi_attr.get_attr_nb()):
-            attribute_names.append(multi_attr.get_attr_by_ind(ind).get_name())
+        device_attr_names = []
+        for i in range(multi_attr.get_attr_nb()):
+            device_attr_names.append(multi_attr.get_attr_by_ind(i).get_name())
         
-        for attribute_name in attribute_names:
-            attribute_name_lower = attribute_name.lower()
-            if attribute_name_lower in klass_attrs:
+        for attr_name in device_attr_names:
+            attr_name_lower = attr_name.lower()
+            if attr_name_lower in static_attr_names:
                 continue
             try:
-                self.remove_attribute(attribute_name)
+                self.remove_attribute(attr_name)
             except Exception, e:
                 self.warning("Error removing dynamic attribute %s (%s)",
-                             attribute_name, e)
+                             attr_name_lower, e)
         
-        attr_names = []
-        attrs = multi_class_attr.get_attr_list()
-        for ind in range(len(attrs)):
-            attr_names.append(attrs[ind].get_name())
+        klass_attr_names = []
+        klass_attrs = multi_class_attr.get_attr_list()
+        for ind in range(len(klass_attrs)):
+            klass_attr_names.append(klass_attrs[ind].get_name())
         
-        for attr_name in attr_names:
+        klass_name = dev_class.get_name()
+        for attr_name in klass_attr_names:
             attr_name_lower = attr_name.lower()
-            if attr_name_lower in klass_attrs:
+            if attr_name_lower in static_attr_names:
                 continue
             try:
                 attr = multi_class_attr.get_attr(attr_name)
-                multi_class_attr.remove_attr(attr_name, attr.get_cl_name())
+                multi_class_attr.remove_attr(attr.get_name(), attr.get_cl_name())
             except Exception, e:
                 self.warning("Error removing dynamic attribute %s from device "
                              "class (%s)",
@@ -235,6 +230,7 @@ class PoolDevice(SardanaDevice):
 
         write_name = "write_" + name
         if hasattr(self, write_name):
+            self.warning("_write_DynamicAttribute(%s,%s)", name, attr.get_write_value())
             write = getattr(self, write_name)
             return write(attr)
         
@@ -265,8 +261,6 @@ class PoolDeviceClass(SardanaDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'SimulationMode': [ [DevBoolean, SCALAR, READ_WRITE],
-                          { 'label'         : "Simulation mode" } ],
     }
     attr_list.update(SardanaDeviceClass.attr_list)
     
@@ -356,6 +350,12 @@ class PoolElementDevice(PoolDevice):
             raise Exception("Cannot write %s. Controller not build!" % name)
         ctrl.set_axis_attr(self.element.axis, name, value)
 
+    def read_SimulationMode(self, attr):
+        attr.set_value(self.element.simulation_mode)
+    
+    def write_SimulationMode(self, attr):
+        self.element.simulation_mode = attr.get_write_value()
+
 
 class PoolElementDeviceClass(PoolDeviceClass):
     """Base Tango Pool Element Device Class class"""
@@ -376,6 +376,8 @@ class PoolElementDeviceClass(PoolDeviceClass):
         'Instrument' :    [ [DevString, SCALAR, READ_WRITE],
                           { 'label'         : "Instrument",
                             'Display level' : DispLevel.EXPERT } ],
+        'SimulationMode': [ [DevBoolean, SCALAR, READ_WRITE],
+                          { 'label'         : "Simulation mode" } ],
     }
     attr_list.update(PoolDeviceClass.attr_list)
 

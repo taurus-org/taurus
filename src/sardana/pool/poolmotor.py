@@ -248,6 +248,8 @@ class PoolMotor(PoolElement):
         return self._step_per_unit
     
     def set_step_per_unit(self, step_per_unit, propagate=1):
+        if step_per_unit <= 0.0:
+            raise Exception("Step per unit must be > 0.0")
         self.controller.set_axis_par(self.axis, "step_per_unit", step_per_unit)
         self._set_step_per_unit(step_per_unit, propagate=propagate)
     
@@ -498,3 +500,8 @@ class PoolMotor(PoolElement):
         self._aborted = False
         self._stopped = False
         self.action = motion
+        
+    def finish_from_move(self):
+        self._aborted = False
+        self._stopped = False
+        self.clear_action()

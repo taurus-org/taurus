@@ -62,6 +62,35 @@ class PoolBaseElement(PoolObject):
     # --------------------------------------------------------------------------
     # state
     # --------------------------------------------------------------------------
+    def get_simulation_mode(self, cache=True, propagate=1):
+        """Returns the simulation mode for this object.
+            :param cache: not used [default: True]
+            :type cache: bool
+            :param propagate: [default: 1]
+            :type propagate: int
+            :return: the current simulation mode
+            :rtype: bool"""
+        return self._simulation_mode
+    
+    def set_simulation_mode(self, simulation_mode, propagate=1):
+        self._simulation_mode = simulation_mode
+        if not propagate:
+            return
+        if simulation_mode == self._simulation_mode:
+            # current state is equal to last state_event. Skip event
+            return
+        self.fire_event(EventType("simulation_mode", priority=propagate),
+                        simulation_mode)
+    
+    def put_simulation_mode(self, simulation_mode):
+        self._simulation_mode = simulation_mode
+
+    simulation_mode = property(get_simulation_mode, set_simulation_mode,
+                               doc="element simulation mode")
+    
+    # --------------------------------------------------------------------------
+    # state
+    # --------------------------------------------------------------------------
     
     def get_state(self, cache=True, propagate=1):
         """Returns the state for this object. If cache is True (default) it
@@ -328,6 +357,7 @@ class PoolElement(PoolBaseElement):
     controller = property(get_controller, doc="element controller")
     controller_id = property(get_controller_id, doc="element controller id")
     
-    instrument = property(get_instrument, set_instrument, doc="element instrument")
+    instrument = property(get_instrument, set_instrument,
+                          doc="element instrument")
     
 
