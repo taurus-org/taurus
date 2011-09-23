@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-""" """
+"""This module contains the definition of the Controller base classes"""
 
 __all__ = ["Controller", "Readable", "Startable",
            "MotorController", "CounterTimerController",

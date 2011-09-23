@@ -175,7 +175,7 @@ macro just type the macro name directly followed by a question mark('?'):
 Moving motors
 --------------
 
-A single motor may be moved using the *mv** *motor* *position* macro. Example::
+A single motor may be moved using the *mv** *motor* *position* macro. Example:
 
 .. sourcecode:: spock
 

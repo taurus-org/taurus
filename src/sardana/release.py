@@ -40,16 +40,14 @@ Release data for the taurus project. It contains the following members:
     - keywords : list<str> list of keywords
 """
 
-# Name of the package for release purposes.  This is the name which labels
-# the tarballs and RPMs made by distutils, so it's best to lowercase it.
+#: Name of the package for release purposes.  This is the name which labels
+#: the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'sardana'
 
-# For versions with substrings (like 0.6.16.svn), use an extra . to separate
-# the new substring.  We have to avoid using either dashes or underscores,
-# because bdist_rpm does not accept dashes (an RPM) convention, and
-# bdist_deb does not accept underscores (a Debian convention).
-
-
+#: For versions with substrings (like 0.6.16.svn), use an extra . to separate
+#: the new substring. We have to avoid using either dashes or underscores,
+#: because bdist_rpm does not accept dashes (an RPM) convention, and
+#: bdist_deb does not accept underscores (a Debian convention).
 version_info = (1,0,0,'dev',0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])

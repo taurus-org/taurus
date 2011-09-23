@@ -815,14 +815,18 @@ class PoolClass(PyTango.DeviceClass):
             [[PyTango.DevVarStringArray, ""],
              [PyTango.DevVoid, ""]],
         'CreateMotorGroup':
-            [[PyTango.DevVarStringArray, ""],
+            [[PyTango.DevVarStringArray, "Must give either:\n"
+               " * A JSON encoded dict as first string with keys : 'name', "
+               "'elements' (with value being a list of moveables) and optional "
+               "'full_name' (with value being a full tango device name a/b/c);\n"
+               " * a sequence of strings: <motor group name> [, <element> ]"],
              [PyTango.DevVoid, ""]],
         'CreateMeasurementGroup':
             [[PyTango.DevVarStringArray, "Must give either:\n"
                " * A JSON encoded dict as first string with keys : 'name', "
                "'elements' (with value being a list of channels) and optional "
                "'full_name' (with value being a full tango device name a/b/c);\n"
-               " * a sequence of strings: <mg name> [, <element> ]"],
+               " * a sequence of strings: <measurement group name> [, <element> ]"],
              [PyTango.DevVoid, ""]],
         'DeleteElement':
             [[PyTango.DevString, ""],

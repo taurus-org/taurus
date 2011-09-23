@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-""" """
+"""This is the main device pool module"""
 
 __docformat__ = 'restructuredtext'
 

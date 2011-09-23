@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-""" """
+"""This module contains the most generic sardana constants and enumerations"""
 
 __all__ = ["EpsilonError", "State", "DataType", "DataFormat", "DataAccess",
            "DTYPE_MAP", "DACCESS_MAP", "from_dtype_str", "from_access_str",
@@ -33,8 +33,10 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Enumeration
 
-EpsilonError = 1E-9
+#: maximum difference between two floats so that they are considered equal
+EpsilonError = 1E-16
 
+#: sardana element state enumeration
 State = Enumeration("State", ( \
     "On",
     "Off",
@@ -52,6 +54,7 @@ State = Enumeration("State", ( \
     "Unknown",
     "Invalid") )
 
+#: sardana data types (used by device pool controllers)
 DataType = Enumeration("DataType", ( \
     "Integer",
     "Double",
@@ -59,13 +62,15 @@ DataType = Enumeration("DataType", ( \
     "Boolean",
     "Encoded",
     "Invalid") )
-    
+
+#: sardana data format enumeration (used by device pool controllers)
 DataFormat = Enumeration("DataFormat", ( \
     "Scalar",
     "OneD",
     "TwoD",
     "Invalid") )
-    
+
+#: sardana data access (used by device pool controllers)
 DataAccess = Enumeration("DataAccess", ( \
     "ReadOnly",
     "ReadWrite",
