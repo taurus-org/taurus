@@ -33,12 +33,13 @@ __docformat__ = 'restructuredtext'
 from taurus.qt import Qt
 import copy
 import taurus
-from taurus.core.util import Enumeration
+
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.table import TaurusBaseTableWidget
+from taurus.core.tango.sardana import ChannelView, PlotType, Normalization 
 
 
 #===============================================================================
@@ -139,11 +140,6 @@ DUMMY_EXP_CONF = {'ScanDir':'/tmp/scandir',
                   }
 #
 #===============================================================================
-
-ChannelView = Enumeration("ChannelView", ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer", "Monitor", "Trigger", "Conditioning", "Normalization","NXPath","Unknown"))
-
-PlotType = Enumeration("PlotType", ("No", "Spectrum", "Image"))
-Normalization = Enumeration("Normalization", ("No", "Avg", "Integ"))
 
                        
 def getElementTypeIcon(t):

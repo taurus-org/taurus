@@ -26,7 +26,8 @@
 """The sardana submodule. It contains specific part of sardana"""
 
 __all__ = ["Pool", "MacroServer", "Door", "Sardana", "SardanaManager",
-           "PoolElementType", "ControllerClassInfo", "ControllerInfo"]
+           "PoolElementType", "ControllerClassInfo", "ControllerInfo",
+           "ChannelView", "PlotType", "Normalization"]
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N
@@ -46,6 +47,14 @@ PoolElementType = taurus.core.util.Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister", 
       "Motor","PseudoCounter", "PseudoMotor"))
 
+ChannelView = taurus.core.util.Enumeration("ChannelView", 
+    ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer", 
+     "Monitor", "Trigger", "Conditioning", "Normalization","NXPath",
+     "Unknown"))
+
+PlotType = taurus.core.util.Enumeration("PlotType", ("No", "Spectrum", "Image"))
+
+Normalization = taurus.core.util.Enumeration("Normalization", ("No", "Avg", "Integ"))
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N
