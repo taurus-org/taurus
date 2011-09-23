@@ -38,7 +38,7 @@ import qpixmapwidget
 
 getPixmap = taurus.qt.qtgui.resource.getPixmap
 
-LedColor  = taurus.core.util.Enumeration("LedColor",  ["BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "MAGENTA", "GRENOBLE", "BLACK"])
+LedColor  = taurus.core.util.Enumeration("LedColor",  ["BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "MAGENTA", "GRENOBLE", "BLACK", "WHITE"])
 LedStatus = taurus.core.util.Enumeration("LedStatus", ["ON", "OFF"])
 LedSize   = taurus.core.util.Enumeration("LedSize",   [("SMALL", 24), ("LARGE", 48)])
 
