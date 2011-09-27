@@ -151,6 +151,39 @@ you may experience performance issues if you change the scale to include  large
 time range. For this reason a warning dialog may be shown when you try to access
 too much archived data.  
 
+Polling buffer
+--------------
+
+The Tango control system provides a buffer of the last values read for an attribute. 
+This can be useful sometimes for performance reasons. The Polling Buffer support in 
+TaurusTrend can be enabled in the :ref:`Context Menu <taurusplotcontextmenu>`.
+
+Forced read of attributes
+-------------------------
+
+Some attributes of the control system may be set to only send events when their
+value changes. In the case of TaurusTrend, this behaviour causes that attributes
+that do not change often, do not get new points in the trend and thus may seem
+to have been "lost". To avoid this issue, you can instruct the TaurusTrend to
+periodically force re-read the attributes being displayed. You can enable this
+feature (and set the re-read period) from the :ref:`Context Menu
+<taurusplotcontextmenu>`.
+ 
+If launching the TaurusTrend as a stand-alone application, you can also enable this
+at launch time by passing the `-r` option (see the `TaurusTrend as a stand-alone 
+application`_ section).
+
+Keep in mind the following:
+
+- When enabling this feature, TaurusTrend will ignore all other events (to
+  guarantee that the refresh occurs at *and only at* the desired periodic
+  times).
+  
+- Setting very frequent re-reads may impact your control system and GUI
+  performance. Specially if you are plotting several attributes. **So, do not
+  use this feature unless it is really needed**
+
+
 Known limitations
 -----------------
 

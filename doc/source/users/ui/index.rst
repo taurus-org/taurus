@@ -18,6 +18,7 @@ User's Interface
     Array Editor <arrayeditor>
     Synoptics <synoptics>
     Macros <macros/index>
+    TaurusGui <taurusgui>
     
 
 This section explains some features that are common to most applications built

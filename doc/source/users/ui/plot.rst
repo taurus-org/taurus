@@ -47,14 +47,23 @@ Options::
   --export=EXPORT_FILE, --export-file=EXPORT_FILE
                         use the given file to as output instead of showing the
                         plot
-  --taurus-log-level=LEVEL
+  --version             show program's version number and exit
+
+  Taurus Options:
+    Basic options present in any taurus application
+
+    --taurus-log-level=LEVEL
                         taurus log level. Allowed values are (case
                         insensitive): critical, error, warning/warn, info,
                         debug, trace
-  --taurus-polling-period=MILLISEC
+    --taurus-polling-period=MILLISEC
                         taurus global polling period in milliseconds
-  --tango-host=TANGO_HOST
+    --taurus-serialization-mode=SERIAL
+                        taurus serialization mode. Allowed values are (case
+                        insensitive): serial, concurrent (default)
+    --tango-host=TANGO_HOST
                         Tango host name
+
 
 
 The <model_list> is a space-separated list of models for :class:`TaurusPlot`. Valid models are:
