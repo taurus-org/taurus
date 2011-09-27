@@ -19,11 +19,20 @@ For each item (attribute or device) represented in a TaurusForm, the following
 elements will be shown (vertically aligned with those of the other items along 5
 columns):
 
-- label text
-- read value widget
-- write value widget (if applicable)
-- units value text
-- extra column widget (if applicable)
+#. *label text*. It shows the name or other identification of the item. 
+#. *read widget*. It shows the current value of the item. If the information cannot
+   be shown in a compact way, it may be a button that launches a separate dialog
+   which provides detailed information. The read widget may provide information 
+   on both the read value and the quality status of the attribute, typically 
+   using the :ref:`Taurus color convention <ui_colors>`. The read widget will 
+   extend over the second and third columns for those items that are not writable.
+#. *write widget* (only shown if the item allows writting). A widget for modifying 
+   the value of the item. If it cannot be done in a compact way, it may be a 
+   button that launches a separate dialog which provides detailed information. 
+#. *units text*. It shows the units associated to the item (it is not shown if no 
+   units are defined for this item).  
+#. *extra widget*. An extra space that may be used by some custom widgets 
+   (only shown if used).
 
 The precise widgets that are used by default for each item are determined by the
 type of attribute / class of device as well as by a custom mapping that is set

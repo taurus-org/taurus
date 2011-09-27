@@ -13,7 +13,7 @@ TaurusGui is not a GUI in itself but a framework for building Taurus graphical
 user interfaces in an efficient way (but not all Taurus-based applications are
 necessarily TaurusGui-based).
 
-An specific TaurusGui-based application is defined in a "configuration directory"
+A specific TaurusGui-based application is defined in a "configuration directory"
 which is read by :class:`TaurusGui` to construct the specific GUI.
 
 From the user perspective the only important thing is that, while different
