@@ -269,7 +269,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
                           a :class:`FancyScaleDraw` will be set
         :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
-                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+                          a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:
             scaleDraw=FancyScaleDraw()
@@ -385,7 +385,7 @@ class DeltaTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
                           a :class:`FancyScaleDraw` will be set
         :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
-                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+                          a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:
             scaleDraw=FancyScaleDraw()
@@ -450,7 +450,7 @@ class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
         :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
                           a :class:`FancyScaleDraw` will be set
         :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
-                          a :class:`Qwt5.QwtLinearScaleEngine will be set
+                          a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:
             scaleDraw=FancyScaleDraw()
