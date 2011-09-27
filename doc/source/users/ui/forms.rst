@@ -29,7 +29,7 @@ The precise widgets that are used by default for each item are determined by the
 type of attribute / class of device as well as by a custom mapping that is set
 at Taurus installation time.
 
-.. _standalonetaurustrend:
+.. _standalonetaurusform:
 
 TaurusTrend as a stand-alone application
 -----------------------------------------
