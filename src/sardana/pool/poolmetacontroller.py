@@ -336,16 +336,25 @@ class ControllerClass(object):
 
     def __str__(self):
         return self.getName()
-
+    
+    def str(self, *args, **kwargs):
+        data = self.toDict()
+        data.update(kwargs)
+        return json.dumps(data)
+    
     def toDict(self):
-        ret = dict(name=self.getName(),
-                   module=self.getModuleName(),
+        name = self.getName()
+        module_name = self.getModuleName()
+        ret = dict(name=name,
+                   module=module_name,
                    filename=self.getFileName(),
                    description=self.getDescription(),
                    gender=self.getGender(),
                    model=self.getModel(),
                    organization=self.getOrganization(),
                    api_version=self.api_version,)
+        
+        ret['full_name'] = name + "." + module_name
         
         ctrl_types = map(ElementType.whatis, self.getTypes())
         
@@ -359,7 +368,7 @@ class ControllerClass(object):
             ctrl_attrs[ctrl_attr.name] = ctrl_attr.toDict()
         axis_attrs = {}
         for axis_attr in self.getAxisAttributes().values():
-            axis_attrs[ctrl_attr.name] = axis_attr.toDict()
+            axis_attrs[axis_attr.name] = axis_attr.toDict()
         
         ret['ctrl_properties'] = ctrl_props
         ret['ctrl_attributes'] = ctrl_attrs

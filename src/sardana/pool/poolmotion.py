@@ -104,6 +104,10 @@ class PoolMotionItem(PoolActionItem):
         si = self.state_info
         return MotionMap.get(self.motion_state, si[0]), si[1], si[2]
 
+    def start(self, new_state):
+        self.old_state_info = self.state_info
+        self.state_info = new_state, self.state_info[1], self.state_info[2]
+
     def stopped(self, timestamp):
         self.stop_time = timestamp
         if self.instability_time is None:
@@ -190,14 +194,13 @@ class PoolMotion(PoolAction):
             kwargs.pop("nb_states_per_position",
                        pool.motion_loop_states_per_position)
         
-        motion_info = {}
+        self._motion_info = motion_info = {}
         for moveable, motion_data in items.items():
-            moveable.prepare_to_move(self)
             it = moveable.instability_time
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
-            
-        self._motion_info = motion_info
+        for moveable in items:
+            moveable.prepare_to_move(self)
         
         pool_ctrls = self._pool_ctrls.keys()
         moveables = self.get_elements()
@@ -222,6 +225,13 @@ class PoolMotion(PoolAction):
             axis = moveable.axis
             dial_position = motion_info[moveable].dial_position
             ctrl.StartOne(axis, dial_position)
+        
+        for moveable in moveables:
+            moveable_info = motion_info[moveable]
+            moveable.set_state(State.Moving, propagate=2)
+            state_info = moveable.inspect_state(), moveable.inspect_status(), \
+                moveable.inspect_limit_switches()
+            moveable_info.on_state_switch(state_info)
         
         # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
@@ -250,12 +260,6 @@ class PoolMotion(PoolAction):
         nap = self._motion_sleep_time
         nb_states_per_pos = self._nb_states_per_position
         
-        # read state once to send a first state & status event when starting
-        self.read_state_info(ret=states)
-        for moveable, state_info in states.items():
-            state_info = moveable._from_ctrl_state_info(state_info)
-            moveable.set_state_info(state_info, propagate=2)
-            
         # read positions to send a first event when starting to move
         self.read_dial_position(ret=positions)
         for moveable, position in positions.items():
@@ -272,7 +276,6 @@ class PoolMotion(PoolAction):
                 old_motion_state, motion_state = \
                     motion_item.on_state_switch(state_info, timestamp=timestamp)
                 real_state_info = motion_item.get_state_info()
-                
                 interrupted = moveable.was_interrupted()
                 well_stopped = state == State.On and not interrupted
                 moving = motion_item.in_motion()

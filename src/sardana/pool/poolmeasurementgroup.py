@@ -32,6 +32,8 @@ __docformat__ = 'restructuredtext'
 
 import math
 
+from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
+
 from pooldefs import *
 from poolevent import EventType
 from poolbase import *
@@ -104,7 +106,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         acq_name = "%s.CTAcquisition" % self._name
         #self.set_acquisition(PoolCTAcquisition(self.pool, acq_name))
         self.set_configuration(kwargs.get('config'))
-
+    
     def _create_action_cache(self):
         acq_name = "%s.CTAcquisition" % self._name
         return PoolCTAcquisition(self.pool, acq_name)
@@ -165,8 +167,14 @@ class PoolMeasurementGroup(PoolGroupElement):
                     channel_data['enabled'] = True
                     channel_data['label'] = element.name
                     channel_data['output'] = True
-                    channel_data['plot_type'] = 'No'
+                    channel_data['plot_type'] = PlotType.No
                     channel_data['plot_axes'] = []
+                    channel_data['name'] = element.name
+                    channel_data['full_name'] = element.full_name
+                    channel_data['conditioning'] = ''
+                    channel_data['normalization'] = Normalization.No
+                    channel_data['instrument'] = element.instrument
+                    channel_data['source'] = element.get_source()
             config['label'] = self.name
             config['description'] = self.DFT_DESC
         # checks

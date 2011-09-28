@@ -120,11 +120,24 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_attr_hardware(self,data):
         pass
 
+    #@PyTango.DebugIt()
+    def read_ControllerLibList(self, attr):
+        attr.set_value(self.pool.get_controller_libs_summary_info())
+
+    #@PyTango.DebugIt()
+    def read_ControllerClassList(self, attr):
+        ctrl_class_info = []
+        pool_name = self.pool.name
+        for ctrl_class in self.pool.get_controller_classes():
+            ctrl_class_info.append(ctrl_class.str(pool=pool_name))
+        attr.set_value(ctrl_class_info)
+        
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
-        ctrls = self.pool.get_elements_by_type(ElementType.Ctrl)
-        ctrl_names = [ repr(ctrl) for ctrl in ctrls ]
-        attr.set_value(ctrl_names)
+        ctrl_info = []
+        for ctrl in self.pool.get_elements_by_type(ElementType.Ctrl):
+            ctrl_info.append(ctrl.str())
+        attr.set_value(ctrl_info)
 
     def read_InstrumentList(self, attr):
         instruments = self._pool.get_elements_by_type(ElementType.Instrument)
@@ -133,45 +146,47 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def read_ExpChannelList(self, attr):
-        cts = self._pool.get_elements_by_type(ElementType.CTExpChannel)
-        ct_names = [ repr(ct) for ct in cts ]
-        attr.set_value(ct_names)
+        channel_info = []
+        for channel in self.pool.get_elements_by_type(ElementType.CTExpChannel):
+            channel_info.append(channel.str())
+        attr.set_value(channel_info)
     
     #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
-        mgs = self._pool.get_elements_by_type(ElementType.MotorGroup)
-        mg_names = map(PoolMotorGroup.get_name, mgs)
-        attr.set_value(mg_names)
-
-    #@PyTango.DebugIt()
-    def read_ControllerLibList(self, attr):
-        attr.set_value(self.pool.get_controller_libs_summary_info())
-
-    #@PyTango.DebugIt()
-    def read_ControllerClassList(self, attr):
-        attr.set_value(self.pool.get_controller_classes_summary_info())
-
+        mg_info = []
+        for motgrp in self.pool.get_elements_by_type(ElementType.MotorGroup):
+            mg_info.append(motgrp.str())
+        attr.set_value(mg_info)
+    
     #@PyTango.DebugIt()
     def read_MotorList(self, attr):
-        motors = self._pool.get_elements_by_type(ElementType.Motor)
-        motor_names = [ repr(motor) for motor in motors ]
-        attr.set_value(motor_names)
+        motors = self.pool.get_elements_by_type(ElementType.Motor)
+        motors.extend(self.pool.get_elements_by_type(ElementType.PseudoMotor))
+        motor_info = []
+        for motor in motors:
+            motor_info.append(motor.str())
+        attr.set_value(motor_info)
 
     #@PyTango.DebugIt()
     def read_MeasurementGroupList(self, attr):
-        mgs = self._pool.get_elements_by_type(ElementType.MeasurementGroup)
-        mg_names = map(PoolMeasurementGroup.get_name, mgs)
-        attr.set_value(mg_names)
+        mg_info = []
+        for mntgrp in self.pool.get_elements_by_type(ElementType.MeasurementGroup):
+            mg_info.append(mntgrp.str())
+        attr.set_value(mg_info)
 
     #@PyTango.DebugIt()
     def read_IORegisterList(self, attr):
-        attr_IORegisterList_read = ["Hello Tango world"]
-        attr.set_value(attr_IORegisterList_read, 1)
+        ioregister_info = []
+        for ioregister in self.pool.get_elements_by_type(ElementType.IORegister):
+            ioregister_info.append(ioregister.str())
+        attr.set_value(ioregister_info)
 
     #@PyTango.DebugIt()
     def read_CommunicationChannelList(self, attr):
-        attr_CommunicationChannelList_read = ["Hello Tango world"]
-        attr.set_value(attr_CommunicationChannelList_read, 1)
+        channel_info = []
+        for channel in self.pool.get_elements_by_type(ElementType.Communication):
+            channel_info.append(channel.str())
+        attr.set_value(channel_info)
 
     def _get_moveable_ids(self, *elem_names):
         _pool, motor_ids = self.pool, []
@@ -871,7 +886,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Motor list",
-                'description':"the list of instruments",
+                'description':"the list of instruments (a JSON encoded dict)",
             } ],
         'ControllerList':
             [[PyTango.DevString,
@@ -879,7 +894,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Controller list",
-                'description':"the list of controllers",
+                'description':"the list of controllers (a JSON encoded dict)",
             } ],
         'ExpChannelList':
             [[PyTango.DevString,
@@ -887,7 +902,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Experiment channel list",
-                'description':"The list of experiment channels",
+                'description':"The list of experiment channels (a JSON encoded dict)",
             } ],
         'MotorGroupList':
             [[PyTango.DevString,
@@ -895,7 +910,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Motor group list",
-                'description':"the list of motor groups",
+                'description':"the list of motor groups (a JSON encoded dict)",
             } ],
         'ControllerLibList':
             [[PyTango.DevString,
@@ -903,7 +918,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Controller library list",
-                'description':"the list of controller libraries",
+                'description':"the list of controller libraries (a JSON encoded dict)",
             } ],
         'ControllerClassList':
             [[PyTango.DevString,
@@ -911,7 +926,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Controller class list",
-                'description':"the list of controller classes",
+                'description':"the list of controller classes (a JSON encoded dict)",
             } ],
         'MotorList':
             [[PyTango.DevString,
@@ -919,7 +934,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Motor list",
-                'description':"the list of motors",
+                'description':"the list of motors (a JSON encoded dict)",
             } ],
         'MeasurementGroupList':
             [[PyTango.DevString,
@@ -927,7 +942,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Measurement group list",
-                'description':"the list of measurement groups",
+                'description':"the list of measurement groups (a JSON encoded dict)",
             } ],
         'IORegisterList':
             [[PyTango.DevString,
@@ -935,7 +950,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"IORegister list",
-                'description':"the list of IORegisters",
+                'description':"the list of IORegisters (a JSON encoded dict)",
             } ],
         'CommunicationChannelList':
             [[PyTango.DevString,
@@ -943,7 +958,7 @@ class PoolClass(PyTango.DeviceClass):
             PyTango.READ, 4096],
             {
                 'label':"Communication channel list",
-                'description':"the list of communication channels",
+                'description':"the list of communication channels (a JSON encoded dict)",
             } ],
         }
 

@@ -30,6 +30,7 @@ __all__ = ["PoolBaseObject", "PoolObject"]
 
 __docformat__ = 'restructuredtext'
 
+import json
 import weakref
 
 from taurus.core.util import Logger
@@ -64,19 +65,30 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
         :return: this pool object name
         :rtype: str"""
         return self._name
-    
-    def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__, self._name)
 
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self._name)
-    
     def fire_event(self, event_type, event_value, listeners=None):
         try:
             return EventGenerator.fire_event(self, event_type, event_value,
                                              listeners=listeners)
         except:
             self.warning("Error firing event", exc_info=1)
+
+    def to_json(self, *args, **kwargs):
+        cl_name = self.__class__.__name__
+        if cl_name.startswith("Pool"):
+            cl_name = cl_name[4:]
+        data = dict(name=self.name, pool=self.pool.name, type=cl_name)
+        data.update(kwargs)
+        return data
+
+    def str(self, *args, **kwargs):
+        return json.dumps(self.to_json(*args, **kwargs))
+    
+    def __str__(self):
+        return "%s(%s)" % (self.__class__.__name__, self._name)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, self._name)
     
     pool = property(get_pool, doc="reference to the :class:`sardana.pool.pool.Pool`")
     name = property(get_name, doc="object name")
@@ -117,6 +129,12 @@ class PoolObject(PoolBaseObject):
         :return: this pool object type
         :rtype: :obj:'"""
         raise NotImplementedError
+
+    def to_json(self, *args, **kwargs):
+        kwargs['id'] = self.id
+        kwargs['full_name'] = self.full_name
+        ret = PoolBaseObject.to_json(self, *args, **kwargs)
+        return ret
 
     full_name = property(get_full_name, doc="object full name")
     id = property(get_id, doc="object ID")

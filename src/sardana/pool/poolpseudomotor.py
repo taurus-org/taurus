@@ -49,7 +49,20 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         user_elements = kwargs.pop('user_elements')
         PoolElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
-        
+    
+    def to_json(self, *args, **kwargs):
+        ret = PoolElement.to_json(self, *args, **kwargs)
+        elements = [ elem.name for elem in self.get_user_elements() ]
+        physical_elements = []
+        for elem_list in self.get_physical_elements().values():
+            for elem in elem_list:
+                physical_elements.append(elem.name)
+        cl_name = self.__class__.__name__
+        cl_name = cl_name[4:]
+        ret['elements'] = elements
+        ret['physical_elements'] = physical_elements
+        return ret
+    
     def _get_pool(self):
         return self.pool
     
@@ -271,22 +284,21 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
             self.motion.run(items=items)
-
+    
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------
     
     def stop(self):
-        self._stopped = True
-        for ctrl, elements in self.get_physical_elements().items():
-            ctrl.stop_elements(elements=elements)
+        #surpass the PoolElement.stop because it doesn't do what we want
+        PoolBaseElement.stop(self)
+        PoolBaseGroup.stop(self)
     
     # --------------------------------------------------------------------------
     # abort
     # --------------------------------------------------------------------------
     
     def abort(self):
-        self._aborted = True
-        for ctrl, elements in self.get_physical_elements().items():
-            ctrl.abort_elements(elements=elements)
-    
+        #surpass the PoolElement.abort because it doesn't do what we want
+        PoolBaseElement.abort(self)
+        PoolBaseGroup.abort(self)

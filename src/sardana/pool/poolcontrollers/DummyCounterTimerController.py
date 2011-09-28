@@ -98,10 +98,19 @@ class DummyCounterTimerController(CounterTimerController):
                 if not channel.is_counting:
                     channel.value = self.monitor_count
     
-    def _finish(self, elapsed_time):
-        for ind, channel in self.counting_channels.items():
-            channel.is_counting = False
-            self._updateChannelValue(ind, elapsed_time)
+    def _finish(self, elapsed_time, ind=None):
+        if ind is None:
+            for ind, channel in self.counting_channels.items():
+                channel.is_counting = False
+                self._updateChannelValue(ind, elapsed_time)
+        else:
+            if ind in self.counting_channels:
+                channel = self.counting_channels[ind]
+                channel.is_counting = False
+                self._updateChannelValue(ind, elapsed_time)
+            else:
+                channel = self.channels[ind-1]
+                channel.is_counting = False
         self.counting_channels = {}
                 
     def PreReadAll(self):
@@ -121,27 +130,27 @@ class DummyCounterTimerController(CounterTimerController):
                 if channel.is_counting:
                     self._updateChannelValue(ind, elapsed_time)
     
-    def ReadOne(self,ind):
+    def ReadOne(self, ind):
         v = self.read_channels[ind].value
         return v
     
     def PreStartAllCT(self):
         self.counting_channels = {}
     
-    def PreStartOneCT(self,ind):
+    def PreStartOneCT(self, ind):
         idx = ind - 1
         channel = self.channels[idx]
         channel.value = 0.0
         self.counting_channels[ind] = channel
         return True
     
-    def StartOneCT(self,ind):
+    def StartOneCT(self, ind):
         self.counting_channels[ind].is_counting = True
     
     def StartAllCT(self):
         self.start_time = time.time()
     
-    def LoadOne(self,ind,value):
+    def LoadOne(self, ind, value):
         idx = ind - 1
         if value > 0:
             self.integ_time = value
@@ -150,8 +159,10 @@ class DummyCounterTimerController(CounterTimerController):
             self.integ_time = None
             self.monitor_count = -value
     
-    def AbortOne(self,ind):
-        if self.counting_channels:
-            now = time.time()
+    def AbortOne(self, ind):
+        self._log.warning("AbortOne %d",ind)
+        now = time.time()
+        if ind in self.counting_channels:
             elapsed_time = now - self.start_time
-            self.finish(elapsed_time)
+            self._finish(elapsed_time, ind=ind)
+            

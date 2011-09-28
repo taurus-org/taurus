@@ -105,3 +105,6 @@ class PoolCounterTimer(PoolElement):
             raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
         if not self._simulation_mode:
             acq = self.acquisition.run()
+    
+    def get_source(self):
+        return "{0}/value".format(self.full_name)

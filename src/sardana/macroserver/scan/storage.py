@@ -64,8 +64,6 @@ class FIO_FileRecorder(BaseFileRecorder):
         return DataFormats.whatis(DataFormats.fio)
     
     def _startRecordList(self, recordlist):
-        from scan import *
-        from macro import *
         
         if self.filename is None:
               return

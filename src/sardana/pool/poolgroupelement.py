@@ -45,13 +45,13 @@ class PoolBaseGroup(PoolContainer):
         self._pending = True
         self._user_elements = None
         self._physical_elements = None
-
+    
     def _get_pool(self):
         raise NotImplementedError
-
+    
     def _create_action_cache(self):
         raise NotImplementedError
-
+    
     def _get_action_cache(self):
         if self._action_cache is None:
             self._action_cache = self._fill_action_cache()
@@ -65,7 +65,7 @@ class PoolBaseGroup(PoolContainer):
                     action_cache.remove_element(physical_element)
         
         self._action_cache = self._fill_action_cache(action_cache)
-
+    
     def _fill_action_cache(self, action_cache=None, physical_elements=None):
         a, b = action_cache is None, physical_elements is None
         if action_cache is None:
@@ -73,12 +73,12 @@ class PoolBaseGroup(PoolContainer):
             action_cache = self._create_action_cache()
         if physical_elements is None:
             physical_elements = self.get_physical_elements()
-
+        
         for ctrl, ctrl_physical_elements in physical_elements.items():
             for physical_element in ctrl_physical_elements:
                 action_cache.add_element(physical_element)
         return action_cache
-
+    
     def _calculate_states(self):
         user_elements = self.get_user_elements()
         fault, alarm, on, moving = [], [], [], []
@@ -105,7 +105,7 @@ class PoolBaseGroup(PoolContainer):
         self._state_statistics = { State.On : on, State.Fault : fault,
                                    State.Alarm : alarm, State.Moving : moving }
         return state, "\n".join(status)
-
+    
     def _build_elements(self):
         self._user_elements = user_elements = []
         self._physical_elements = physical_elements = {}
@@ -181,6 +181,33 @@ class PoolBaseGroup(PoolContainer):
         del self._user_elements[idx]
         self.remove_element(element)
 
+    # --------------------------------------------------------------------------
+    # stop
+    # --------------------------------------------------------------------------
+    
+    def stop(self):
+        for ctrl, elements in self.get_physical_elements().items():
+            try:
+                ctrl.stop_elements(elements=elements)
+            except:
+                self.warning("Unable to stop controller %s", ctrl.name)
+                self.debug("Unable to stop controller %s. Details:", ctrl.name,
+                           exc_info=1)
+    
+    # --------------------------------------------------------------------------
+    # abort
+    # --------------------------------------------------------------------------
+    
+    def abort(self):
+        for ctrl, elements in self.get_physical_elements().items():
+            self.info("Aborting %s %s", ctrl.name,  [ e.name for e in elements] )
+            try:
+                ctrl.abort_elements(elements=elements)
+            except:
+                self.warning("Unable to abort controller %s", ctrl.name)
+                self.debug("Unable to abort controller %s. Details:", ctrl.name,
+                           exc_info=1)
+
 
 class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     
@@ -188,6 +215,17 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
         user_elements = kwargs.pop('user_elements')
         PoolBaseElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
+    
+    def to_json(self, *args, **kwargs):
+        elements = [ elem.name for elem in self.get_user_elements() ]
+        physical_elements = []
+        for elem_list in self.get_physical_elements().values():
+            for elem in elem_list:
+                physical_elements.append(elem.name)
+        kwargs['elements'] = elements
+        kwargs['physical_elements'] = physical_elements
+        ret = PoolBaseElement.to_json(self, *args, **kwargs)
+        return ret
     
     def _get_pool(self):
         return self.pool
@@ -197,3 +235,19 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     
     def set_action_cache(self, action_cache):
         self._set_action_cache(action_cache)
+
+    # --------------------------------------------------------------------------
+    # stop
+    # --------------------------------------------------------------------------
+    
+    def stop(self):
+        PoolBaseElement.stop(self)
+        PoolBaseGroup.stop(self)
+                
+    # --------------------------------------------------------------------------
+    # abort
+    # --------------------------------------------------------------------------
+    
+    def abort(self):
+        PoolBaseElement.abort(self)
+        PoolBaseGroup.abort(self)

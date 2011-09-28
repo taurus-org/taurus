@@ -53,11 +53,23 @@ class PoolBaseElement(PoolObject):
         self._status = None
         self._status_event = None
         self._action_cache = None
+        self._aborted = False
+        self._stopped = False
+
+        # The operation context in which the element is involved
+        self._operation = None
+        
+        # The :class:`PoolAction` in which element is involved
+        self._pool_action = None
+
         super(PoolBaseElement, self).__init__(**kwargs)
     
     def get_action_cache(self):
         """Returns the internal action cache object"""
         return self._action_cache
+    
+    def to_json(self, *args, **kwargs):
+        return PoolObject.to_json(self, *args, **kwargs)
     
     # --------------------------------------------------------------------------
     # state
@@ -202,6 +214,79 @@ class PoolBaseElement(PoolObject):
         state = int(state)
         return state, status
 
+    # --------------------------------------------------------------------------
+    # stop
+    # --------------------------------------------------------------------------
+    
+    def stop(self):
+        self._stopped = True
+
+    def was_stopped(self):
+        return self._stopped
+    
+    # --------------------------------------------------------------------------
+    # abort
+    # --------------------------------------------------------------------------
+    
+    def abort(self):
+        self._aborted = True
+
+    def was_aborted(self):
+        return self._aborted
+
+    # --------------------------------------------------------------------------
+    # interrupted
+    # --------------------------------------------------------------------------
+
+    def was_interrupted(self):
+        """Tells if action ended by an abort or stop"""
+        return self.was_aborted() or self.was_stopped()
+
+    # --------------------------------------------------------------------------
+    # involved in an operation
+    # --------------------------------------------------------------------------
+    
+    def is_in_operation(self):
+        """Returns True if this element is involved in any operation"""
+        return self._operation is not None
+    
+    def get_operation(self):
+        return self._operation
+    
+    def set_operation(self, operation):
+        if self.is_in_operation() and operation is not None:
+            raise Exception("%s is already involved in an operation"
+                            % self.name)
+        self._operation = operation
+    
+    def clear_operation(self):
+        return self.set_operation(None)
+    
+    operation = property(get_operation, set_operation,
+                         doc="operation in which the element is involved")
+
+    # --------------------------------------------------------------------------
+    # involved in an action
+    # --------------------------------------------------------------------------
+
+    def is_in_action(self):
+        """Returns True if this element is involved in any action"""
+        return self._pool_action is not None
+    
+    def get_action(self):
+        return self._pool_action
+    
+    def set_action(self, action):
+        if self.is_in_action() and action is not None:
+            raise Exception("%s is already involved in an action" % self.name)
+        self._pool_action = action
+    
+    def clear_action(self):
+        return self.set_action(None)
+
+    action = property(get_action, set_action,
+                      doc="action in which the element is involved")
+
 
 class PoolElement(PoolBaseElement):
     """A Pool element is an Pool object which is controlled by a controller.
@@ -209,15 +294,6 @@ class PoolElement(PoolBaseElement):
        the controller)."""
     
     def __init__(self, **kwargs):
-        self._aborted = False
-        self._stopped = False
-        
-        # The operation context in which the element is involved
-        self._operation = None
-        
-        # The :class:`PoolAction` in which element is involved
-        self._pool_action = None
-        
         ctrl = kwargs.pop('ctrl')
         self._ctrl = weakref.ref(ctrl)
         self._axis = kwargs.pop('axis')
@@ -228,13 +304,13 @@ class PoolElement(PoolBaseElement):
         except KeyError:
             self._instrument = None
         super(PoolElement, self).__init__(**kwargs)
-
-    def __repr__(self):
-        data = {'name' : self.name, 'full_name': self.full_name,
-                'ctrl_name' : self.controller.name, 'axis' : self.axis,
-                'type' : self.controller.get_ctrl_type_names()[0] }
-        res = "{name} ({full_name}) ({ctrl_name}/{axis}) {type}".format(**data)
-        return res
+    
+    def to_json(self, *args, **kwargs):
+        ret = PoolBaseElement.to_json(self, *args, **kwargs)
+        ret['controller'] = self.controller.name
+        ret['axis'] = self.axis
+        ret['instrument'] = self.instrument
+        return ret
 
     def get_controller(self):
         if self._ctrl is None:
@@ -283,80 +359,20 @@ class PoolElement(PoolBaseElement):
     # --------------------------------------------------------------------------
     
     def stop(self):
-        self._stopped = True
+        PoolBaseElement.stop(self)
         self.controller.stop_one(self.axis)
-    
-    def was_stopped(self):
-        return self._stopped
     
     # --------------------------------------------------------------------------
     # abort
     # --------------------------------------------------------------------------
     
     def abort(self):
-        self._aborted = True
+        PoolBaseElement.abort(self)
         self.controller.abort_one(self.axis)
     
-    def was_aborted(self):
-        return self._aborted
-    
-    # --------------------------------------------------------------------------
-    # action ended by an abort or stop
-    # --------------------------------------------------------------------------
-    
-    def was_interrupted(self):
-        return self.was_aborted() or self.was_stopped()
-    
-    # --------------------------------------------------------------------------
-    # involved in an operation
-    # --------------------------------------------------------------------------
-    
-    def is_in_operation(self):
-        """Returns True if this element is involved in any operation"""
-        return self._operation is not None
-    
-    def get_operation(self):
-        return self._operation
-    
-    def set_operation(self, operation):
-        if self.is_in_operation() and operation is not None:
-            raise Exception("%s is already involved in an operation"
-                            % self.name)
-        self._operation = operation
-    
-    def clear_operation(self):
-        return self.set_operation(None)
-    
-    operation = property(get_operation, set_operation,
-                         doc="operation in which the element is involved")
-
-    # --------------------------------------------------------------------------
-    # involved in an action
-    # --------------------------------------------------------------------------
-
-    def is_in_action(self):
-        """Returns True if this element is involved in any action"""
-        return self._pool_action is not None
-    
-    def get_action(self):
-        return self._pool_action
-    
-    def set_action(self, action):
-        if self.is_in_action() and action is not None:
-            raise Exception("%s is already involved in an action" % self.name)
-        self._pool_action = action
-    
-    def clear_action(self):
-        return self.set_action(None)
-
-    action = property(get_action, set_action,
-                      doc="action in which the element is involved")
-    
     axis = property(get_axis, doc="element axis")
-    
     controller = property(get_controller, doc="element controller")
     controller_id = property(get_controller_id, doc="element controller id")
-    
     instrument = property(get_instrument, set_instrument,
                           doc="element instrument")
     

@@ -58,23 +58,16 @@ class PoolBaseController(PoolBaseElement):
         self._pending_element_names = CaselessDict()
         self._operator = None
         super(PoolBaseController, self).__init__(**kwargs)
-
-    def __repr__(self):
-        data = {'name' : self.name, 'language' : 'Python',
-                'type' : self.get_ctrl_type_names()[0],
-                'filename' : ctrl_info.getSimpleFileName() }
-        r = "{name} ({module}.{class}/{name}) - {type} {language} ctrl ({filename})".format(**data)
-        return r
     
     def get_ctrl_types(self):
         raise NotImplementedError
-
+    
     def get_ctrl_type_names(self):
         return map(ElementType.whatis, self.get_ctrl_types())
         
     def get_type(self):
         return ElementType.Ctrl
-
+    
     def is_online(self):
         return True
     
@@ -237,15 +230,15 @@ class PoolController(PoolBaseController):
         super(PoolController, self).__init__(**kwargs)
         self.re_init()
 
-    def __repr__(self):
+    def to_json(self, *args, **kwargs):
         ctrl_info = self._ctrl_info
-        data = {'name' : self.name, 'module': ctrl_info.getModuleName(),
-                'class' : ctrl_info.getName(), 'language' : 'Python',
-                'type' : self.get_ctrl_type_names()[0],
-                'filename' : ctrl_info.getSimpleFileName() }
-        r = "{name} ({module}.{class}/{name}) - {type} {language} ctrl ({filename})".format(**data)
-        return r
-
+        kwargs['module'] = ctrl_info.getModuleName()
+        kwargs['class'] = ctrl_info.getName()
+        kwargs['language'] = 'Python'
+        kwargs['filename'] = ctrl_info.getSimpleFileName()
+        kwargs['type'] = self.get_ctrl_type_names()[0]
+        return PoolBaseController.to_json(self, *args, **kwargs)
+    
     def _create_ctrl_args(self):
         name = self.name
         klass = self._ctrl_info.getControllerClass()

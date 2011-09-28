@@ -1,6 +1,7 @@
 import time
 import array
 import os
+
 from sardana.macroserver.macro import *
 
 ################################################################################
@@ -51,7 +52,7 @@ class defmeas(Macro):
         for c in channel_list:
             channels.append(c.getName())
         mg = pool.createMeasurementGroup(name, channels)
-        print("Created measurement group %s" %mg.getName())
+        print("Created %s" % str(mg))
 
 class udefmeas(Macro):
     """Deletes an existing measurement group"""
@@ -63,7 +64,6 @@ class udefmeas(Macro):
         if len(pools) > 1:
             self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
         pool = pools[0]
-
         pool.deleteMeasurementGroup(mntgrp.getName())
 
 class defelem(Macro):
@@ -71,13 +71,14 @@ class defelem(Macro):
     
     param_def = [ ['name',  Type.String, None, 'new element name'],
                   ['ctrl',  Type.Controller, None, 'existing controller'],
-                  ['axis',  Type.Integer, None, 'axis in the controller'],]
+                  ['axis',  Type.Integer, -1, 'axis in the controller (default is -1, meaning add to the end)'],]
     
     def run(self, name, ctrl, axis):
         pool = ctrl.getPoolObj()
+        if axis == -1:
+            axis = None
         elem = pool.createElement(name, ctrl, axis)
-        print("Created %s on %s %s controller on axis %d" % (elem.getName(), ctrl.getName(), ctrl.getType(), axis))
-        print("Last axis on controller is now %d" % ctrl.getLastUsedAxis())
+        print("Created %s" % str(elem))
 
 class udefelem(Macro):
     """Deletes an existing element"""
@@ -92,8 +93,33 @@ class udefelem(Macro):
         ctrl = manager.getObj(obj.getControllerName())
         pool = obj.getPoolObj()
         pool.deleteElement(name)
-        print("Deleted %s on %s %s controller" % (name, ctrl.getName(), ctrl.getType()))
+
+class defctrl(Macro):
+    """Creates a new controller"""
     
+    param_def = [ ['class',  Type.String, None, 'controller class'],
+                  ['name',  Type.String, None, 'new controller name'],
+                  ['properties',
+                   ParamRepeat(['property item', Type.String, None, 'a property item'],min=0),
+                   None, 'property item'] ]
+    
+    def run(self, ctrl_class, name, *props):
+        pools = self.getManager().getPoolListObjs()
+        if len(pools) > 1:
+            self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
+        pool = pools[0]
+        elem = pool.createController(ctrl_class, name, *props)
+        print("Created %s" % str(elem))
+
+class udefctrl(Macro):
+    """Deletes an existing controller"""
+    
+    param_def = [ ['controller', Type.Controller, None, 'existing controller'],]
+    
+    def run(self, controller):
+        pool = controller.getPoolObj()
+        pool.deleteController(controller.getName())
+
 ################################################################################
 #
 # Controller related macros

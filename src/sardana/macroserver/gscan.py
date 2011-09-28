@@ -193,9 +193,9 @@ class GScan(Logger):
         if mnt_grp is None:
             raise ScanSetupError('ActiveMntGrp is not defined or has invalid value')
 
-        self._master_name = mnt_grp.getTimer()
+        self._master = mnt_grp.getTimer()
 
-        if not self._master_name:
+        if self._master is None:
             raise ScanSetupError('%s has no timer defined' % mnt_grp.getName())
         
         self._measurement_group = mnt_grp
@@ -384,22 +384,27 @@ class GScan(Logger):
         env['ref_moveables'] = ref_moveables
         
         # add master column
-        ch_obj = self.measurement_group.getChannelObj(self._master_name)
-        instrument = ch_obj.getInstrument()
-        data_desc.append( ColumnDesc(label=self._master_name, instrument=instrument) )
+        master = self._master
+        instrument = master['instrument']
+        label = master['label']
+        data_desc.append( ColumnDesc(label=label, instrument=instrument) )
         #TODO: maybe we want to include the nxpath in the instrument as well????
         
         # add counters
         # +++
         counters = []
-        for ch_name in self.measurement_group.getCounterNames():
-            counters.append( ch_name)
-            ch_attr = self.measurement_group.getAttrObj("%s_value" % ch_name)
-            type = FROM_TANGO_TO_STR_TYPE[ch_attr.getType()]
-            shape = ch_attr.getShape()
-            ch_obj = self.measurement_group.getChannelObj(ch_name)
-            instrument = ch_obj.getInstrument()
-            data_desc.append( ColumnDesc(label=ch_name, dtype=type, shape=shape, instrument=instrument) )
+        configuration = self.measurement_group.getConfiguration()
+        for counter in self.measurement_group.getCounters():
+            counter_name = counter['name']
+            counter_obj = configuration.getChannelObject(counter_name)
+            counter_type = FROM_TANGO_TO_STR_TYPE[counter_obj.getType()]
+            counter_shape = counter_obj.getShape()
+            instrument = counter['instrument']
+            label = counter['label']
+            column = ColumnDesc(label=label, dtype=counter_type,
+                                shape=counter_shape, instrument=instrument)
+            data_desc.append(column)
+            counters.append(counter_name)
         
         for extra_column in self._extra_columns:
             data_desc.append(extra_column.getColumnDesc())

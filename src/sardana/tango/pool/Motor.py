@@ -205,7 +205,8 @@ class Motor(PoolElementDevice):
         attr.set_value(self.motor.get_step_per_unit(cache=False))
     
     def write_Step_per_unit(self, attr):
-        self.motor.step_per_unit = attr.get_write_value()
+        step_per_unit = attr.get_write_value()
+        self.motor.step_per_unit = step_per_unit
     
     def read_Backlash(self, attr):
         attr.set_value(self.motor.get_backlash(cache=False))

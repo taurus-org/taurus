@@ -265,7 +265,7 @@ class PoolMotor(PoolElement):
     
     step_per_unit = property(get_step_per_unit, set_step_per_unit,
                              doc="motor steps per unit")
-                            
+    
     # --------------------------------------------------------------------------
     # acceleration
     # --------------------------------------------------------------------------

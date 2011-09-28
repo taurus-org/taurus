@@ -39,8 +39,8 @@ import PyTango
 import taurus
 from taurus.core.util import Logger
 
-from sardana.tango.core import SardanaDevice, SardanaDeviceClass
-from sardana.tango.core import GenericSpectrumAttr
+from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
+from sardana.tango.core.util import GenericSpectrumAttr
 from sardana.macroserver.exception import MacroServerException
 
 

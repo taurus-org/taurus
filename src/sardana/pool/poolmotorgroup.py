@@ -66,7 +66,7 @@ class PoolMotorGroup(PoolGroupElement):
         self._state_statistics = {}
         self._physical_elements = []
         PoolGroupElement.__init__(self, **kwargs)
-
+    
     def _create_action_cache(self):
         motion_name = "%s.Motion" % self._name
         return PoolMotion(self.pool, motion_name)

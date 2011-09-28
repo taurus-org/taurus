@@ -42,7 +42,7 @@ Type = TypeNames()
 
 
 import taurus.core.util
-
+from taurus.core.tango.sardana.pool import BaseElement
 
 class ParamType(taurus.core.util.Logger):
     
@@ -142,7 +142,7 @@ class PoolObjParamType(ParamType, taurus.core.util.ListEventGenerator):
     
     def _fireElementsChanged(self):
         objs = self.getObjList(cache=True)
-        objs_str = map(repr, objs)
+        objs_str = map(BaseElement.str, objs)
         self.fireEvent(objs_str)
 
     def getObj(self, name, pool=ParamType.All, cache=False):

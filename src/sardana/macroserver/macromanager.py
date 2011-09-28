@@ -732,9 +732,9 @@ class MacroExecutor(taurus.core.util.Logger):
                     obj.abort()
                 except AttributeError:
                     pass
-                except Exception as e:
+                except Exception:
                     self.warning("Unable to abort %s" % obj)
-                    self.debug(str(e))
+                    self.debug("Details", exc_info=1)
 
     def abort(self):
         self._aborted, m = True, self.getRunningMacro()
