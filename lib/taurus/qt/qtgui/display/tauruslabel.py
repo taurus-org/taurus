@@ -204,8 +204,8 @@ class TaurusLabelControllerConfigurationDesignMode(TaurusLabelControllerDesignMo
 
 
 _CONTROLLER_MAP = {
-                         None : TaurusLabelController,
-      TaurusModelType.Unknown : TaurusLabelController,
+                         None : None,
+      TaurusModelType.Unknown : None,
     TaurusModelType.Attribute : TaurusLabelControllerAttribute,
 TaurusModelType.Configuration : TaurusLabelControllerConfiguration,
 }
@@ -245,7 +245,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         # if we are in design mode there will be no events so we force the
         # creation of a controller object 
         if self._designMode:
-            self.controller().update()
+            self.controllerUpdate()
 
     def _calculate_controller_class(self):
         map = _CONTROLLER_MAP
@@ -264,19 +264,28 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         
         # if there is a controller object and it is still the same class...
         ctrl_klass = self._calculate_controller_class()
-        if ctrl is not None and ctrl.__class__ == ctrl_klass:
+        if ctrl_klass is None:
+            return None
+        elif ctrl.__class__ == ctrl_klass:
             return ctrl
     
         self._controller = ctrl = ctrl_klass(self)
         return ctrl
 
+    def controllerUpdate(self):
+        ctrl = self.controller()
+        if ctrl is not None:
+            ctrl.update()
+    
     def showValueDialog(self, *args):
-        self.controller().showValueDialog(self)
+        ctrl = self.controller()
+        if ctrl is not None:
+            ctrl.showValueDialog(self)
 
     def resizeEvent(self,event):
         # recheck the display every time we resize to make sure the text should
         # become trimmed or not
-        self.controller().update()
+        self.controllerUpdate()
         Qt.QLabel.resizeEvent(self, event)
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -284,7 +293,9 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
    
     def handleEvent(self, evt_src, evt_type, evt_value):
-        self.controller().handleEvent(evt_src, evt_type, evt_value)
+        ctrl = self.controller()
+        if ctrl is not None:
+            ctrl.handleEvent(evt_src, evt_type, evt_value)
     
     def isReadOnly(self):
         return True
@@ -319,7 +330,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
-        self.controller().update()
+        self.controllerUpdate()
 
     def resetModelIndex(self):
         self.setModelIndex(self.DefaultModelIndex)
@@ -329,7 +340,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     
     def setBgRole(self, bgRole):
         self._bgRole = str(bgRole).lower()
-        self.controller().update()
+        self.controllerUpdate()
 
     def resetBgRole(self):
         self.setBgRole(self.DefaultBgRole)
@@ -339,7 +350,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     
     def setFgRole(self, fgRole):
         self._fgRole = str(fgRole).lower()
-        self.controller().update()
+        self.controllerUpdate()
 
     def resetFgRole(self):
         self.setFgRole(self.DefaultFgRole)
@@ -349,7 +360,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     
     def setPrefixText(self,prefix):
         self._prefix = str(prefix)
-        self.controller().update()
+        self.controllerUpdate()
 
     def resetPrefixText(self):
         self.setPrefixText(self.DefaultPrefix)
@@ -359,7 +370,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     
     def setSuffixText(self,suffix):
         self._suffix = str(suffix)
-        self.controller().update()
+        self.controllerUpdate()
     
     def resetSuffixText(self):
         self.setSuffixText(self.DefaultSuffix)
