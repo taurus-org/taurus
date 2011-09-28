@@ -901,23 +901,12 @@ class PoolMotor(TaurusWidget):
             print 'oups',e
 
 
-def test_form(motors, classname='PoolMotorSlim'):
-    from taurus.qt.qtgui.panel import TaurusForm
-    form = TaurusForm()
-    widget_class = 'taurus.qt.qtgui.extra_pool.'+classname
-    tgclass_map = {'SimuMotor':(widget_class,(),{}),
-                   'Motor':(widget_class,(),{}),
-                   'PseudoMotor':(widget_class,(),{})}
-    form.setCustomWidgetMap(tgclass_map)
-    form.setModel(motors)
-
-    form.show()
-
 def main():
     
     import sys
     import taurus.qt.qtgui.application
     import taurus.core.util.argparse
+    from taurus.qt.qtgui.panel import TaurusForm
     
     parser = taurus.core.util.argparse.get_taurus_parser()
     parser.usage = "%prog [options] [<motor1> [<motor2>] ...]"
@@ -929,16 +918,39 @@ def main():
     if len(args)>0:
         motors = args
 
-    test_form(motors, classname='PoolMotorSlim')
-    #test_form(motors, classname='PoolMotorTV')
+    w = Qt.QWidget()
+    w.setLayout(Qt.QVBoxLayout())
 
-    #w = Qt.QWidget()
-    #w.setLayout(Qt.QVBoxLayout())
-    #w.show()
-    #for motor in motors:
-    #    motor_widget = PoolMotor()
-    #    motor_widget.setModel(motor)
-    #    w.layout().addWidget(motor_widget)
+    # 1) Test PoolMotorSlim motor widget
+    form_pms = TaurusForm()
+    pms_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorSlim'
+    pms_tgclass_map = {'SimuMotor':(pms_widget_class,(),{}),
+                       'Motor':(pms_widget_class,(),{}),
+                       'PseudoMotor':(pms_widget_class,(),{})}
+    form_pms.setCustomWidgetMap(pms_tgclass_map)
+
+    form_pms.setModel(motors)
+    w.layout().addWidget(form_pms)
+    
+    # 2) Test PoolMotorTV motor widget
+    form_tv = TaurusForm()
+    tv_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorTV'
+    tv_tgclass_map = {'SimuMotor':(tv_widget_class,(),{}),
+                      'Motor':(tv_widget_class,(),{}),
+                      'PseudoMotor':(tv_widget_class,(),{})}
+    form_tv.setCustomWidgetMap(tv_tgclass_map)
+    form_tv.setModel(motors)
+    w.layout().addWidget(form_tv)
+    
+    
+    # 3) Test Stand-Alone PoolMotor widget
+    for motor in motors:
+        motor_widget = PoolMotor()
+        motor_widget.setModel(motor)
+        w.layout().addWidget(motor_widget)
+
+
+    w.show()
 
     sys.exit(app.exec_())
 
