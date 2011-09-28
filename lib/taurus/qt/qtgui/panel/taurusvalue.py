@@ -67,6 +67,7 @@ class DefaultLabelWidget(TaurusLabel):
         self.setAlignment(Qt.Qt.AlignRight)
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
         self.setBgRole(None)
+        self.autoTrim = False
         self.setStyleSheet('border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;')
     def setModel(self, model):
         if model is None or model=='': 
@@ -132,6 +133,7 @@ class DefaultUnitsWidget(TaurusLabel):
         TaurusLabel.__init__(self,*args)
         self.setNoneValue('')
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
+        self.autoTrim = False
         self.setBgRole(None)
     def setModel(self, model):
         if model is None or model=='': 

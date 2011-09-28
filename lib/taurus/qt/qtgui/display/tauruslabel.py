@@ -105,18 +105,22 @@ class TaurusLabelController(TaurusBaseController):
             label.setText("undef")
             return
         
-        self._text = label.prefixText + value + label.suffixText
-        label.setText(self._text)
+        self._text = text = label.prefixText + value + label.suffixText
 
         # Checks that the display fits in the widget and sets it to "..." if
         # it does not fit the widget
-        self._trimmedText = self._shouldTrim(label, self._text)
+        self._trimmedText = self._shouldTrim(label, text)
         if self._trimmedText:
-            label.setText("<a href='...'>...</a>")
+            text = "<a href='...'>...</a>"
+
+        label.setText(text)
+
     
     def _shouldTrim(self, label, text):
-        pointsPerChar = label.font().pointSize()
-        size, textSize = label.size(), len(text)*pointsPerChar
+        if not label.autoTrim:
+            return False
+        font_metrics = Qt.QFontMetrics(label.font())
+        size, textSize = label.size().width(), font_metrics.width(text)
         return textSize > size
 
     def _updateToolTip(self, label):
@@ -226,13 +230,15 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     DefaultFgRole = 'value'
     DefaultShowText = True
     DefaultModelIndex = None
-    
+    DefaultAutoTrim = True
+
     def __init__(self, parent=None, designMode=False):
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
         self._bgRole = self.DefaultBgRole
         self._fgRole = self.DefaultFgRole
         self._modelIndex = self.DefaultModelIndex
+        self._autoTrim = self.DefaultAutoTrim
         self._modelIndexStr = ''
         self._controller = None
         name = self.__class__.__name__
@@ -283,9 +289,12 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
             ctrl.showValueDialog(self)
 
     def resizeEvent(self,event):
-        # recheck the display every time we resize to make sure the text should
-        # become trimmed or not
-        self.controllerUpdate()
+    #    # recheck the display every time we resize to make sure the text should
+    #    # become trimmed or not
+        if not getattr(self, '_inResize', False):
+            self._inResize = True
+            self.controllerUpdate()
+            self._inResize = False
         Qt.QLabel.resizeEvent(self, event)
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -374,6 +383,16 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     
     def resetSuffixText(self):
         self.setSuffixText(self.DefaultSuffix)
+
+    def setAutoTrim(self, trim):
+        self._autoTrim = trim
+        self.controllerUpdate()
+
+    def getAutoTrim(self):
+        return self._autoTrim
+
+    def resetAutoTrim(self):
+        self.setAutoTrim(self.DefaultAutoTrim)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -471,6 +490,15 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:     * :meth:`TaurusLabel.resetBgRole`
     bgRole = Qt.pyqtProperty("QString", getBgRole, setBgRole,
                              resetBgRole, doc="background role")
+
+    #: This property holds the 
+    #:
+    #: **Access functions:**
+    #:
+    #:     * :meth:`TaurusLabel.getAutoTrim`
+    #:     * :meth:`TaurusLabel.setAutoTrim`
+    autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
+                               resetAutoTrim, doc="auto trim text")
 
 def demo():
     "Label"
