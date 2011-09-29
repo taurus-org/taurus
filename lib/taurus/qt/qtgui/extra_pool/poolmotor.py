@@ -1110,8 +1110,6 @@ class PoolMotorTV(TaurusValue):
             print e
             return
 
-        self.setExpertView(True)
-
     def hasPowerOn(self):
         try: return hasattr(self.motor_dev, 'PowerOn')
         except: return False
