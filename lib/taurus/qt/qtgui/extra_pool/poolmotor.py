@@ -845,8 +845,6 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
 
-        self.tabs_absolute_relative = Qt.QTabWidget()
-
         self.le_write_absolute = TaurusValueLineEdit()
         self.layout().addWidget(self.le_write_absolute, 0, 0, 1, 4)
 
@@ -887,8 +885,8 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         btns_layout.setMargin(0)
         btns_layout.setSpacing(0)
 
-        self.rbtn_absolute = Qt.QRadioButton('Absolute')
-        self.rbtn_relative = Qt.QRadioButton('Relative')
+        self.rbtn_absolute = Qt.QRadioButton('Abs')
+        self.rbtn_relative = Qt.QRadioButton('Rel')
         self.btngrp_absolute_relative = Qt.QButtonGroup()
         self.btngrp_absolute_relative.addButton(self.rbtn_absolute)
         self.btngrp_absolute_relative.addButton(self.rbtn_relative)
