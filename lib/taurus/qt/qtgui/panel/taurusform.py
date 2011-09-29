@@ -340,7 +340,7 @@ class TaurusForm(TaurusWidget):
             if parent_name: model = "%s/%s" % (parent_name, model) #@todo: Change this (it assumes tango model naming!)
             klass, args, kwargs = self.getFormWidget(model=model)
             widget = klass(frame,*args,**kwargs)
-            widget.setMinimumHeight(20)
+            widget.setMinimumHeight(20)  #@todo UGLY... See if this can be done in other ways... (this causes trouble with widget that need more vertical space , like PoolMotorTV)
             try: 
                 widget.setModel(model)
                 widget.setParent(frame)

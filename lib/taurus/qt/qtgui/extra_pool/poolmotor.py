@@ -1109,7 +1109,10 @@ class PoolMotorTV(TaurusValue):
     def setExpertView(self, expertView):
         self._expertView = expertView
         self.emit(Qt.SIGNAL('expertViewChanged(bool)'), expertView)
-
+    
+    def minimumHeight(self):
+        return None #@todo: UGLY HACK to avoid subwidgets being forced to minimumheight=20
+            
     def setModel(self, model):
         self.motor_dev = None
         TaurusValue.setModel(self, model)
