@@ -410,7 +410,9 @@ class ControllerManager(Singleton, Logger):
             
         controller_lib = None
         if m is None or exc_info is not None:
-            self._modules[module_name] = ControllerLib(exc_info=exc_info)
+            err_lib = ControllerLib(exc_info=exc_info)
+            err_lib.name = module_name
+            self._modules[module_name] = err_lib
         else:
             controller_lib = ControllerLib(module=m)
             lib_contains_controllers = False
@@ -486,8 +488,16 @@ class ControllerManager(Singleton, Logger):
         self._controller_lib_list_obj.fireEvent(controller_lib_list)
         return controller_lib_list
     
-    def getControllerLibs(self):
-        return self._modules
+    def getControllerLibs(self, filter=None):
+        ret, expr = [], None
+        if filter is not None:
+            expr = re.compile(filter, re.IGNORECASE)
+        for name, lib in self._modules.iteritems():
+            if lib.hasErrors() or (expr is not None and expr.match(name) is None):
+                continue
+            ret.append(lib)
+        ret.sort()
+        return ret
 
     def getControllers(self, filter=None):
         if filter is None:

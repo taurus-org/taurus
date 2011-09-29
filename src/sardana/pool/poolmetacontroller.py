@@ -165,6 +165,12 @@ class ControllerLib(object):
     def getModule(self):
         return self.module
 
+    def getDescription(self):
+        mod = self.getModule()
+        if mod is None:
+            return None
+        return mod.__doc__
+    
     def getCode(self):
         """Returns a sequence of sourcelines corresponding to the module code.
            :return: list of source code lines
@@ -195,6 +201,27 @@ class ControllerLib(object):
     
     def getError(self):
         return self.exc_info
+    
+    def str(self, *args, **kwargs):
+        data = self.toDict()
+        data.update(kwargs)
+        return json.dumps(data)
+    
+    def toDict(self):
+        name = self.getName()
+        module_name = self.getModuleName()
+        ret = dict(name=name,
+                   module=module_name,
+                   filename=self.getFileName(),
+                   description=self.getDescription())
+        
+        ret['full_name'] = module_name
+        return ret
+
+    def getJSON(self):
+        json_codec = CodecFactory().getCodec('json')
+        format, data = json_codec.encode(('', self))
+        return data
 
 
 class ControllerClassJSONEncoder(json.JSONEncoder):

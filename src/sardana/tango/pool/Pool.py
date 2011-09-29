@@ -42,6 +42,7 @@ from taurus import Factory
 from taurus.core.util import CaselessDict
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
+from sardana import ServerState, SardanaServer
 from sardana.pool import ElementType, TYPE_MOVEABLE_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
@@ -70,7 +71,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             alias = PyTango.Util.instance().get_ds_inst_name()
             
         self._pool = POOL(full_name, alias)
-        self._pool.add_listener(self.elements_changed)
+        self._pool.add_listener(self.on_pool_changed)
 
     @property
     def pool(self):
@@ -90,11 +91,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         p.set_motion_loop_states_per_position(self.MotionLoop_StatesPerPosition)
         p.init_remote_logging(port=self.LogPort)
         self._recalculate_instruments()
+        for attr in self.get_device_class().attr_list:
+            if attr.lower().endswith("list"):
+                self.set_change_event(attr, True, False)
         self.set_change_event("State", True, False)
-        self.set_change_event("ControllerList", True, False)
-        self.set_change_event("ControllerLibList", True, False)
-        self.set_change_event("MotorList", True, False)
-        self.set_change_event("InstrumentList", True, False)
+        self.set_change_event("Status", True, False)
         self.pool.monitor.resume()
     
     def _recalculate_instruments(self):
@@ -122,22 +123,18 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def read_ControllerLibList(self, attr):
-        attr.set_value(self.pool.get_controller_libs_summary_info())
+        info = self.pool.get_elements_str_info(ElementType.ControllerLib)
+        attr.set_value(info)
 
     #@PyTango.DebugIt()
     def read_ControllerClassList(self, attr):
-        ctrl_class_info = []
-        pool_name = self.pool.name
-        for ctrl_class in self.pool.get_controller_classes():
-            ctrl_class_info.append(ctrl_class.str(pool=pool_name))
-        attr.set_value(ctrl_class_info)
+        info = self.pool.get_elements_str_info(ElementType.ControllerClass)
+        attr.set_value(info)
         
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
-        ctrl_info = []
-        for ctrl in self.pool.get_elements_by_type(ElementType.Ctrl):
-            ctrl_info.append(ctrl.str())
-        attr.set_value(ctrl_info)
+        info = self.pool.get_elements_str_info(ElementType.Ctrl)
+        attr.set_value(info)
 
     def read_InstrumentList(self, attr):
         instruments = self._pool.get_elements_by_type(ElementType.Instrument)
@@ -146,47 +143,34 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@PyTango.DebugIt()
     def read_ExpChannelList(self, attr):
-        channel_info = []
-        for channel in self.pool.get_elements_by_type(ElementType.CTExpChannel):
-            channel_info.append(channel.str())
-        attr.set_value(channel_info)
+        info = self.pool.get_elements_str_info(ElementType.CTExpChannel)
+        attr.set_value(info)
     
     #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
-        mg_info = []
-        for motgrp in self.pool.get_elements_by_type(ElementType.MotorGroup):
-            mg_info.append(motgrp.str())
-        attr.set_value(mg_info)
+        info = self.pool.get_elements_str_info(ElementType.MotorGroup)
+        attr.set_value(info)
     
     #@PyTango.DebugIt()
     def read_MotorList(self, attr):
-        motors = self.pool.get_elements_by_type(ElementType.Motor)
-        motors.extend(self.pool.get_elements_by_type(ElementType.PseudoMotor))
-        motor_info = []
-        for motor in motors:
-            motor_info.append(motor.str())
-        attr.set_value(motor_info)
+        info = self.pool.get_elements_str_info(ElementType.Motor)
+        info.extend(self.pool.get_elements_str_info(ElementType.PseudoMotor))
+        attr.set_value(info)
 
     #@PyTango.DebugIt()
     def read_MeasurementGroupList(self, attr):
-        mg_info = []
-        for mntgrp in self.pool.get_elements_by_type(ElementType.MeasurementGroup):
-            mg_info.append(mntgrp.str())
-        attr.set_value(mg_info)
+        info = self.pool.get_elements_str_info(ElementType.MeasurementGroup)
+        attr.set_value(info)
 
     #@PyTango.DebugIt()
     def read_IORegisterList(self, attr):
-        ioregister_info = []
-        for ioregister in self.pool.get_elements_by_type(ElementType.IORegister):
-            ioregister_info.append(ioregister.str())
-        attr.set_value(ioregister_info)
+        info = self.pool.get_elements_str_info(ElementType.IORegister)
+        attr.set_value(info)
 
     #@PyTango.DebugIt()
-    def read_CommunicationChannelList(self, attr):
-        channel_info = []
-        for channel in self.pool.get_elements_by_type(ElementType.Communication):
-            channel_info.append(channel.str())
-        attr.set_value(channel_info)
+    def read_ComChannelList(self, attr):
+        info = self.pool.get_elements_str_info(ElementType.Communication)
+        attr.set_value(info)
 
     def _get_moveable_ids(self, *elem_names):
         _pool, motor_ids = self.pool, []
@@ -482,7 +466,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         self._check_element(name, full_name)
         
-        elem_ids = self._get_moveable_ids(kwargs["elements"])
+        elem_ids = self._get_moveable_ids(*kwargs["elements"])
         
         def create_motgrp_cb(device_name):
             db = util.get_database()
@@ -559,18 +543,19 @@ class Pool(PyTango.Device_4Impl, Logger):
             pass
         if e: raise e
     
-    def elements_changed(self, evt_src, evt_type, evt_value):
-        elem_type = evt_value["type"]
-        
-        td = TYPE_MAP_OBJ[elem_type]
-        klass = td.klass
-        auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
-        family = td.family
-        
-        attribute_list_name = family + "List"
-        elem_names = self.pool.get_element_names_by_type(elem_type)
-        self.push_change_event(attribute_list_name, elem_names)
+    def on_pool_changed(self, evt_src, evt_type, evt_value):
+        evt_name = evt_type.name.lower()
+        if evt_name in ("elementcreated", "elementdeleted"):
+            # during server startup avoind processing element creation events 
+            # for performance reasons
+            if SardanaServer.server_state != ServerState.Run:
+                return
+            elem_type = evt_value["type"]
+            #print "on_pool_changed", evt_name, ElementType[elem_type]
+            td = TYPE_MAP_OBJ[elem_type]
+            attribute_list_name = td.family + "List"
+            info = self.pool.get_elements_str_info(elem_type)
+            self.push_change_event(attribute_list_name, info)
 
     def _format_create_json_arguments(self, argin):
         elems, ret = json.loads(argin[0]), []
@@ -699,9 +684,8 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         full_name = elem.get_full_name()
         
+        self.pool.delete_element(name)
         if elem_type == ElementType.Instrument:
-            self.pool.delete_element(name)
-
             # update database property
             il = self.InstrumentList
             idx = il.index(full_name)
@@ -952,7 +936,7 @@ class PoolClass(PyTango.DeviceClass):
                 'label':"IORegister list",
                 'description':"the list of IORegisters (a JSON encoded dict)",
             } ],
-        'CommunicationChannelList':
+        'ComChannelList':
             [[PyTango.DevString,
             PyTango.SPECTRUM,
             PyTango.READ, 4096],

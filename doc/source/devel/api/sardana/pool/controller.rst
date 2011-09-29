@@ -11,6 +11,9 @@
     :columns: 3
 
     * :class:`Controller`
+    * :class:`Readable`
+    * :class:`Startable`
+    * :class:`MotorController`
     * :class:`PseudoMotorController`
     * :class:`CounterTimerController`
     

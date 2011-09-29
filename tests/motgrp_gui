@@ -128,6 +128,7 @@ def createMotorLayout(content, *names):
         m_panel_l.addWidget(lock, row, 7)
         
         w = TaurusAttrForm()
+        w.setMinimumSize(Qt.QSize(500,700))
         cfg = CfgButton(widget=w, icon=":/categories/preferences-system.svg")
         cfg.setIconSize(DFT_BTN_ICON_SIZE)
         cfg.setStyleSheet(DFT_BTN_STYLE)

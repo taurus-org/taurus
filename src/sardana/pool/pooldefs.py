@@ -60,6 +60,8 @@ ElementType = Enumeration("ElementType", ( \
     "MotorGroup",
     "MeasurementGroup",
     "Instrument",
+    "ControllerClass",
+    "ControllerLib",
     "Unknown") )
 
 ET = ElementType

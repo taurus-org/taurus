@@ -359,6 +359,7 @@ class PoolElement(PoolBaseElement):
     # --------------------------------------------------------------------------
     
     def stop(self):
+        self.info("Stop!")
         PoolBaseElement.stop(self)
         self.controller.stop_one(self.axis)
     
@@ -367,6 +368,7 @@ class PoolElement(PoolBaseElement):
     # --------------------------------------------------------------------------
     
     def abort(self):
+        self.info("Abort!")
         PoolBaseElement.abort(self)
         self.controller.abort_one(self.axis)
     

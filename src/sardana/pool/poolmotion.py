@@ -291,19 +291,19 @@ class PoolMotion(PoolAction):
                 
                 # if motor stopped 'well' and there is a backlash to do...
                 if start_backlash:
-                    moveable.info("Starting backlash")
+                    moveable.debug("Starting backlash")
                     # make sure the last position after the first motion is
                     # sent before starting the backlash motion
                     moveable.get_position(cache=False, propagate=2)
                     self.backlash_item(motion_item)
                     moving = motion_item.in_motion()
                 elif start_instability:
-                    moveable.info("Starting to wait for instability")
+                    moveable.debug("Starting to wait for instability")
                     # make sure the last position after the first motion is
                     # sent before starting the backlash motion
                     moveable.get_position(cache=False, propagate=2)
                 elif stopped_now:
-                    moveable.info("Stopped")
+                    moveable.debug("Stopped")
                     
                     # try to read a last position to force an event
                     moveable.get_position(cache=False, propagate=2)

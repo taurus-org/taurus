@@ -25,9 +25,10 @@
 
 """This module contains the most generic sardana constants and enumerations"""
 
-__all__ = ["EpsilonError", "State", "DataType", "DataFormat", "DataAccess",
-           "DTYPE_MAP", "DACCESS_MAP", "from_dtype_str", "from_access_str",
-           "to_dtype_dformat", "to_daccess"]
+__all__ = ["EpsilonError", "ServerState", "SardanaServer", "State", "DataType",
+           "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
+           "from_dtype_str", "from_access_str", "to_dtype_dformat",
+           "to_daccess"]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,6 +36,19 @@ from taurus.core.util import Enumeration
 
 #: maximum difference between two floats so that they are considered equal
 EpsilonError = 1E-16
+
+#: the server phase
+ServerState = Enumeration("ServerState", ( \
+    "Init",
+    "Run",
+    "Shutdown",
+    "Invalid") )
+
+class _SardanaServer(object):
+    def __init__(self):
+        self.server_state = ServerState.Invalid
+
+SardanaServer = _SardanaServer()
 
 #: sardana element state enumeration
 State = Enumeration("State", ( \

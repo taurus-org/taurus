@@ -100,13 +100,16 @@ class PoolMotor(PoolElement):
         if state == State.On:
             state_str = "Stopped"
         elif state == State.Moving:
-            motion = self.action
-            motion_state = motion._motion_info[self].motion_state
             state_str = "Moving"
-            if motion_state == MotionState.MovingBacklash:
-                state_str += " (backlash)"
-            elif motion_state == MotionState.MovingInstability:
-                state_str += " (instability)"
+            motion = self.action
+            if motion is None:
+                state_str += " (external)"
+            else:
+                motion_state = motion._motion_info[self].motion_state
+                if motion_state == MotionState.MovingBacklash:
+                    state_str += " (backlash)"
+                elif motion_state == MotionState.MovingInstability:
+                    state_str += " (instability)"
         else:
             state_str = "in " + State[state]
         

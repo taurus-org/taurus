@@ -160,7 +160,6 @@ class DummyCounterTimerController(CounterTimerController):
             self.monitor_count = -value
     
     def AbortOne(self, ind):
-        self._log.warning("AbortOne %d",ind)
         now = time.time()
         if ind in self.counting_channels:
             elapsed_time = now - self.start_time

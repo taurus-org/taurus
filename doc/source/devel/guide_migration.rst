@@ -1,4 +1,4 @@
-.. currentmodule:: sardana.pool
+.. currentmodule:: sardana.pool.controller
 
 .. _sardana-migration-guide:
 
@@ -33,7 +33,9 @@ sardana *API v1*:
    to::
    
        from sardana import pool
-       from sardana.pool.controller import <ControllerClass>/PoolUtil
+       from sardana.pool import PoolUtil
+       from sardana.pool.controller import <ControllerClass>
+       
 
 2. Make sure that in AddDevice/DeleteDevice you call the super class 
    :meth:`~Controller.AddDevice`/:meth:`~Controller.DeleteDevice`. Not doing so
@@ -101,10 +103,12 @@ New features in API v1
 
 This chapter is a summary of all new features in *API v1*.
 
+*New controller features:*
+
 1. All Controllers now have a :attr:`~Controller.ctrl_attributes` class member
    to define extra controller attributes (and new methods:
    :meth:`~Controller.GetCtrlPar`, :meth:`~Controller.SetCtrlPar`)
-2. For :attr:`~Controller.ctrl_properties`, :attr:`~Controller.`axis_attributes`
+2. For :attr:`~Controller.ctrl_properties`, :attr:`~Controller.axis_attributes`
    and :attr:`~Controller.ctrl_extra_attributes`:
     
    - new (more pythonic) syntax. Old syntax is still supported:
@@ -115,7 +119,43 @@ This chapter is a summary of all new features in *API v1*.
        - new keys 'fget' and 'fset' override default method calls
 3. no need to import :mod:`PyTango` (:meth:`~Controller.StateOne` can return
    sardana.State.On instead of PyTango.DevState.ON)
-4. new :meth:`~Controller.AbortAll` (with default implementation which calls
-   :meth:`~Controller.AbortOne` for each axis)
-5. PseudoMotorController has new :meth:`~PseudoMotorController.getMotor` and 
+4. PseudoMotorController has new :meth:`~PseudoMotorController.getMotor` and 
    :meth:`~PseudoMotorController.getPseudoMotor`
+5. new :meth:`~Controller.AbortAll` (with default implementation which calls
+   :meth:`~Controller.AbortOne` for each axis)
+6. new :meth:`~Controller.StopOne` (with default implementation which calls
+   :meth:`~Controller.AbortOne`)
+7. new :meth:`~Controller.StopAll` (with default implementation which calls
+   :meth:`~Controller.StoptOne` for each axis)
+8. new :meth:`~Controller.GetAxisAttributes` allows features like:
+    1. per axis customized dynamic attributes
+    2. Basic interface (example: motor without velocity or acceleration)
+    3. Discrete motor (declare position has an integer instead of a float).
+       No need for IORegisters anymore
+9. New :class:`~MotorController` constants:
+    - :class:`~MotorController.HomeLimitSwitch`;
+    - :class:`~MotorController.UpperLimitSwitch`;
+    - :class:`~MotorController.LowerLimitSwitch`
+
+*New acquisition features:*
+
+1. Measurement group has a new *Configuration* attribute which contains the full
+   description of the experiment in JSON format
+
+*New Tango API features:*
+
+1. Controllers are now Tango devices
+2. Pool has a default PoolPath (points to <pool install dir>/poolcontrollers)
+3. Create* commands can receive JSON object or an old style list of parameters
+4. new CreateElement command (can replace CreateMotor, CreateExpChannel, etc)
+5. Pool Abort command: aborts all elements (non pseudo elements)
+6. Pool Stop command: stops all elements (non pseudo elements)
+7. Controller Abort command: aborts all controller elements
+8. Controller Stop command: stops all controller elements
+9. Controllers have a LogLevel attribute which allows remote python logging
+   management
+
+*Others:*
+
+1. Pool device is a python device :-)
+2. many command line parameters help logging, debugging

@@ -39,8 +39,8 @@ from PyTango import Util, DevFailed, \
     SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 
-from sardana import DataType, DataFormat, DataAccess, \
-    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
+from sardana import ServerState, SardanaServer, DataType, DataFormat, \
+    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
 from sardana.pool.poolmetacontroller import DataInfo
 
 class GenericScalarAttr(Attr):
@@ -262,21 +262,24 @@ def prepare_rconsole(options, args, tango_args):
     except:
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
-def run_tango_server():
+def run_tango_server(util):
     try:
         tango_util = Util.instance()
+        SardanaServer.server_state = ServerState.Init
         tango_util.server_init()
+        SardanaServer.server_state = ServerState.Run
         print "Ready to accept request"
         tango_util.server_run()
-    except DevFailed, e:
+        SardanaServer.server_state = ServerState.Shutdown
+    except DevFailed:
         import taurus
-        taurus.critical("Server exited with DevFailed",exc_info=1)
+        taurus.critical("Server exited with DevFailed", exc_info=1)
     except KeyboardInterrupt:
         import taurus
         taurus.critical("Interrupted by keyboard")
-    except Exception,e:
+    except Exception:
         import taurus
-        taurus.critical("Server exited with unforeseen exception",exc_info=1)
+        taurus.critical("Server exited with unforeseen exception", exc_info=1)
 
 def run(prepare_func, args=None, tango_util=None):
     if args is None:
@@ -292,4 +295,4 @@ def run(prepare_func, args=None, tango_util=None):
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
 
-    run_tango_server()
+    run_tango_server(tango_util)

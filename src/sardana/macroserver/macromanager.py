@@ -734,7 +734,7 @@ class MacroExecutor(taurus.core.util.Logger):
                     pass
                 except Exception:
                     self.warning("Unable to abort %s" % obj)
-                    self.debug("Details", exc_info=1)
+                    self.debug("Unable to abort %s. Details:", obj, exc_info=1)
 
     def abort(self):
         self._aborted, m = True, self.getRunningMacro()
@@ -816,11 +816,9 @@ class MacroExecutor(taurus.core.util.Logger):
         except Exception as e:
             pass
         finally:
-            self.debug("Starting cleanup")
             self._macro_stack = None
             self._xml_stack = None
             self.sendState(MacroManager.Finished)
-            self.debug("Finished cleanup")
     
     def __runStatelessXML(self, xml=None):
         if xml is None:
@@ -854,12 +852,13 @@ class MacroExecutor(taurus.core.util.Logger):
     
     def runMacro(self, macro_obj):
         name = macro_obj._getName()
+        desc = macro_obj._getDescription()
         if self._aborted:
             self.sendMacroStatusAbort()
             raise AbortException("aborted between macros (before %s)" % name)
         macro_exp, tb, result = None, None, None
         try:
-            self.debug("[START] runMacro %s" % macro_obj._getDescription())
+            self.debug("[START] runMacro %s" % desc)
             self._macro_pointer = macro_obj
             self._macro_stack.append(macro_obj)
 
@@ -913,7 +912,7 @@ class MacroExecutor(taurus.core.util.Logger):
                 door.error("An error occured while running macro %s:\n%s" % (macro_obj.description, macro_exp.msg))
             self._popMacro()
             raise macro_exp
-        self.debug("[ END ] runMacro %s" % name)
+        self.debug("[ END ] runMacro %s" % desc)
         self._popMacro()
         return result
 

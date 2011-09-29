@@ -189,6 +189,16 @@ class Pool(PoolContainer, PoolObject):
             ret.append(elem)
         return ret
     
+    def get_elements_str_info(self, obj_type):
+        if obj_type == ElementType.ControllerClass:
+            objs = self.get_controller_classes()
+        elif obj_type == ElementType.ControllerLib:
+            objs = self.get_controller_libs()
+        else:
+            objs = self.get_elements_by_type(obj_type)
+        name = self.full_name
+        return [ obj.str(pool=name) for obj in objs ]
+    
     def check_element(self, name, full_name):
         raise_element_name = True
         try:
