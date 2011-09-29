@@ -35,9 +35,9 @@ aspects of Taurus.
 # device_class_name:(classname_with_full_module_path, args, kwargs)
 # where the args and kwargs will be passed to the constructor of the class
 T_FORM_CUSTOM_WIDGET_MAP = \
-    {'SimuMotor':('taurus.qt.qtgui.extra_pool.PoolMotorSlim',(),{}),
-     'Motor':('taurus.qt.qtgui.extra_pool.PoolMotorSlim',(),{}),
-     'PseudoMotor':('taurus.qt.qtgui.extra_pool.PoolMotorSlim',(),{}),
+    {'SimuMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
+     'Motor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
+     'PseudoMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
      'PseudoCounter':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
      'CTExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
      'ZeroDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
