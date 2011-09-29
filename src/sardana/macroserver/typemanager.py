@@ -1,3 +1,34 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the definition of the macroserver data type manager"""
+
+__all__ = ["TypeManager"]
+
+__docformat__ = 'restructuredtext'
+
 import os
 import inspect
 
@@ -76,13 +107,19 @@ class TypeManager(Singleton, Logger):
         self._modules[module_name] = {}
         
         for name in dir(m):
+            if name.startswith("_"):
+                continue
             klass = getattr(m, name)
-            
-            if inspect.isclass(klass) and \
-               issubclass(klass, ParamType) and \
-               not klass in AbstractParamTypes:
-                t = klass(name)
-                self.addType(t)
+            try:
+                if not issubclass(klass, ParamType):
+                    continue
+            except:
+                continue
+            if klass in AbstractParamTypes:
+                continue
+            t = klass(name)
+            self.addType(t)
+
         self._fireTypeEvent()
         
     def addType(self, type_obj, fire_event=False):
@@ -92,8 +129,9 @@ class TypeManager(Singleton, Logger):
         
         mod_types = self._modules[module_name]
         
-        action = (((type_name in mod_types) and "Updating") \
-                  or "Adding")
+        #action = (((type_name in mod_types) and "Updating") \
+        #          or "Adding")
+        action = "Updating"
         self.debug("%s type %s", action, type_name)
         mod_types[type_name] = type_class
         self._inst_dict[type_class] = type_obj

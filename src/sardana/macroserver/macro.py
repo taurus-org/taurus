@@ -1,4 +1,39 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the class definition for the MacroServer generic
+scan"""
+
 from __future__ import with_statement
+
+__all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
+           "MacroFinder", "Macro", "Table", "List",
+           "Type", "ParamRepeat"]
+
+__docformat__ = 'restructuredtext'
+
 import threading
 import traceback
 import time
@@ -8,13 +43,13 @@ import types
 import weakref
 import functools
 
-import PyTango
-import taurus.core.util
+from PyTango import DevState
+from taurus.core.util import Logger, CodecFactory, propertx
 from taurus.core.tango.sardana.pool import PoolElement
 
 from parameter import Type, ParamType, ParamRepeat
-from exception import MacroServerException, AbortException, MacroWrongParameterType
-from gscan import *
+from exception import MacroServerException, AbortException, \
+    MacroWrongParameterType
 
 class OverloadPrint(object):
     
@@ -48,7 +83,7 @@ class OverloadPrint(object):
         self._macro.output(b)
         self._accum = ""
 
-class PauseEvent(taurus.core.util.Logger):
+class PauseEvent(Logger):
     
     def __init__(self, macro_obj):
         self._name = self.__class__.__name__
@@ -56,7 +91,7 @@ class PauseEvent(taurus.core.util.Logger):
         self._resume_cb = None
         self._macro_obj_wr = weakref.ref(macro_obj)
         self._macro_name = macro_obj._getName()
-        taurus.core.util.Logger.__init__(self, "Macro_%s %s" % (self._macro_name, self._name))
+        Logger.__init__(self, "Macro_%s %s" % (self._macro_name, self._name))
         # we create an event object that is automatically set
         self._event = threading.Event()
         self._event.set()
@@ -90,7 +125,7 @@ class PauseEvent(taurus.core.util.Logger):
         return not self._event.isSet()
 
 
-class Hookable(taurus.core.util.Logger):
+class Hookable(Logger):
     
     # avoid creating an __init__
     
@@ -130,7 +165,7 @@ class Hookable(taurus.core.util.Logger):
         else:
             return self._getHookHintsDict().get(hint,[])
         
-    @taurus.core.util.propertx
+    @propertx
     def hooks():
         def get(self):
             return self._getHooks()
@@ -233,19 +268,19 @@ def mAPI(fn):
         return ret
     return new_fn
 
-class Macro(taurus.core.util.Logger):
+class Macro(Logger):
     """ The Macro base class. All macros should inherit directly or indirectly
     from this class."""
 
     # States
-    Init     = PyTango.DevState.INIT
-    Running  = PyTango.DevState.RUNNING
-    Pause    = PyTango.DevState.STANDBY
-    Stop     = PyTango.DevState.STANDBY
-    Fault    = PyTango.DevState.FAULT
-    Finished = PyTango.DevState.ON
-    Ready    = PyTango.DevState.ON
-    Abort    = PyTango.DevState.ALARM
+    Init     = DevState.INIT
+    Running  = DevState.RUNNING
+    Pause    = DevState.STANDBY
+    Stop     = DevState.STANDBY
+    Fault    = DevState.FAULT
+    Finished = DevState.ON
+    Ready    = DevState.ON
+    Abort    = DevState.ALARM
 
     All      = ParamType.All
     
@@ -315,7 +350,7 @@ class Macro(taurus.core.util.Logger):
         self._pause_event = PauseEvent(self)
         self._macros = MacroFinder(self)
         log_parent = self._parent_macro or self.getDoorObj() or self.getManager()
-        taurus.core.util.Logger.__init__(self, "Macro[%s]" % self._name, log_parent)
+        Logger.__init__(self, "Macro[%s]" % self._name, log_parent)
         self._reserveObjs(args)
 
     ## @name Official Macro API
@@ -527,7 +562,7 @@ class Macro(taurus.core.util.Logger):
            :param args: the plotting args
            :param kwargs: the plotting keyword args"""
            
-        codec = taurus.core.util.CodecFactory().getCodec('bz2_json_plot')
+        codec = CodecFactory().getCodec('bz2_json_plot')
         data = { 'args' : args, 'kwargs' : kwargs } 
         data = codec.encode(data)
         self.sendRecordData(*data)
@@ -550,20 +585,20 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.trace(self, msg, *args, **kwargs)
+        return Logger.trace(self, msg, *args, **kwargs)
     
     
     @mAPI
     def traceback(self, *args, **kwargs):
         """**Macro API**.
            Logs the traceback with level TRACE on the macro logger."""
-        return taurus.core.util.Logger.traceback(self, *args, **kwargs)
+        return Logger.traceback(self, *args, **kwargs)
 
     @mAPI
     def stack(self, *args, **kwargs):
         """**Macro API**.
            Logs the stack with level TRACE on the macro logger."""
-        return taurus.core.util.Logger.stack(self, *args, **kwargs)
+        return Logger.stack(self, *args, **kwargs)
 
     @mAPI
     def log(self, *args, **kwargs):
@@ -576,7 +611,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.log(self, *args, **kwargs)
+        return Logger.log(self, *args, **kwargs)
 
     @mAPI
     def debug(self, *args, **kwargs):
@@ -588,7 +623,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.debug(self, *args, **kwargs)
+        return Logger.debug(self, *args, **kwargs)
 
     @mAPI
     def info(self, *args, **kwargs):
@@ -600,7 +635,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.info(self, *args, **kwargs)
+        return Logger.info(self, *args, **kwargs)
 
     @mAPI
     def warning(self, *args, **kwargs):
@@ -612,7 +647,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.warning(self, *args, **kwargs)
+        return Logger.warning(self, *args, **kwargs)
 
     @mAPI
     def error(self, *args, **kwargs):
@@ -624,7 +659,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.error(self, *args, **kwargs)
+        return Logger.error(self, *args, **kwargs)
 
     @mAPI
     def critical(self, *args, **kwargs):
@@ -636,7 +671,7 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.critical(self, *args, **kwargs)
+        return Logger.critical(self, *args, **kwargs)
 
     @mAPI
     def output(self, *args, **kwargs):
@@ -648,13 +683,13 @@ class Macro(taurus.core.util.Logger):
            :param args: list of arguments
            :param kw: list of keyword arguments
         """
-        return taurus.core.util.Logger.output(self, *args, **kwargs)
+        return Logger.output(self, *args, **kwargs)
 
     @mAPI
     def flushOutput(self):
         """**Macro API**.
            Flushes the output buffer."""
-        return taurus.core.util.Logger.flushOutput(self)
+        return Logger.flushOutput(self)
 
     @mAPI
     def getMacroThread(self):

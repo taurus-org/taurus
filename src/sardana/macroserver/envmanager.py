@@ -1,15 +1,49 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
 """This module contains the class definition for the MacroServer environment
 manager"""
 
-import os, re, shelve, copy
-import operator, types
+__all__ = ["EnvironmentManager"]
+
+__docformat__ = 'restructuredtext'
+
+import os
+import re
+import shelve
+import copy
+import operator
+import types
 
 from taurus.core import ManagerState
-import taurus.core.util
+from taurus.core.util import Singleton, Logger, CaselessDict
 
 from exception import UnknownEnv
 
-class EnvironmentManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+
+class EnvironmentManager(Singleton, Logger):
     """The MacroServer environment manager class. It is designed to be a 
     singleton for the entire application.
     """
@@ -22,7 +56,7 @@ class EnvironmentManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
         
         # a string containing the absolute filename containing the environment
         self._env_name = None
@@ -73,7 +107,7 @@ class EnvironmentManager(taurus.core.util.Singleton, taurus.core.util.Logger):
 
     def _initEnv(self):
         self._macro_env, self._global_env = {}, {}
-        self._door_env = taurus.core.util.CaselessDict()
+        self._door_env = CaselessDict()
 
     def _clearEnv(self):
         self._env = self._macro_env = self._global_env = self._door_env = None
@@ -414,7 +448,7 @@ class EnvironmentManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             self._setOneEnv(k, v)
         #@TODO send event that environment as changed
         #obj["__type__"] = "set_env"
-        #codec = taurus.core.util.CodecFactory().getCodec('json')
+        #codec = CodecFactory().getCodec('json')
         #data = codec.encode(obj)
         #door.sendEnvironment(*data)
         return obj

@@ -91,11 +91,6 @@ class MacroServer(SardanaDevice):
         
         self.EnvironmentDb = self._calculate_environment_name(self.EnvironmentDb)
 
-        _macro_dirs = []
-        for md in self.MacroPath:
-            _macro_dirs.extend(md.split(':'))
-        self.MacroPath = _macro_dirs
-
         # Init MacroServer Manager
         # it is important that the MacroServerManager singleton be called
         # here for the first time. So don't call it in the main or 

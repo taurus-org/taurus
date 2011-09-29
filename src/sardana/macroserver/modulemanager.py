@@ -1,9 +1,43 @@
-import sys, os, imp
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the class definition for the MacroServer module
+manager"""
+
+__all__ = ["ModuleManager"]
+
+__docformat__ = 'restructuredtext'
+
+import sys
+import os
+import imp
 
 from taurus.core import ManagerState
-import taurus.core.util
+from taurus.core.util import Singleton, Logger, ListEventGenerator
 
-class ModuleManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+class ModuleManager(Singleton, Logger):
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -13,8 +47,8 @@ class ModuleManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(taurus.core.util.Logger, name)
-        self._module_list_obj = taurus.core.util.ListEventGenerator('ModuleList')
+        self.call__init__(Logger, name)
+        self._module_list_obj = ListEventGenerator('ModuleList')
         self.reInit()
     
     def reInit(self):

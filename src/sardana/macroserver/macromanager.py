@@ -1,3 +1,35 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the class definition for the MacroServer macro
+manager"""
+
+__all__ = ["MacroManager", "MacroExecutor",]
+
+__docformat__ = 'restructuredtext'
+
 import sys
 import os
 import inspect
@@ -8,34 +40,34 @@ import types
 import re
 import time
 import threading
+import json
 
+from PyTango import DevState, DevFailed
 from taurus.core import ManagerState
-import taurus.core.util
-from taurus.core.util import etree, InfoIt
-
-import PyTango
+from taurus.core.util import Singleton, Logger, CodecFactory, InfoIt, \
+    ListEventGenerator, etree
 
 import macro
 import metamacro
-
 from exception import MacroServerExceptionList
 from exception import UnknownMacro, UnknownLib, MissingEnv, LibError
 from exception import MacroServerException, AbortException, MacroWrongParameterType
-
 from modulemanager import ModuleManager
 
 
-class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+class MacroManager(Singleton, Logger):
 
     # States
-    Init     = PyTango.DevState.INIT
-    Running  = PyTango.DevState.RUNNING
-    Pause    = PyTango.DevState.STANDBY
-    Stop     = PyTango.DevState.STANDBY
-    Fault    = PyTango.DevState.FAULT
-    Finished = PyTango.DevState.ON
-    Ready    = PyTango.DevState.ON
-    Abort    = PyTango.DevState.ALARM
+    Init     = DevState.INIT
+    Running  = DevState.RUNNING
+    Pause    = DevState.STANDBY
+    Stop     = DevState.STANDBY
+    Fault    = DevState.FAULT
+    Finished = DevState.ON
+    Ready    = DevState.ON
+    Abort    = DevState.ALARM
+    
+    DEFAULT_MACRO_DIRECTORIES = 'macros',
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -45,9 +77,9 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(taurus.core.util.Logger, name)
-        self._macro_list_obj = taurus.core.util.ListEventGenerator('MacroList')
-        self._macro_lib_list_obj = taurus.core.util.ListEventGenerator('MacroLibList')
+        self.call__init__(Logger, name)
+        self._macro_list_obj = ListEventGenerator('MacroList')
+        self._macro_lib_list_obj = ListEventGenerator('MacroLibList')
         self.reInit()
 
     def reInit(self):
@@ -94,10 +126,20 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         This means that if any reference to an old macro object was kept it will
         refer to an old module (which could possibly generate problems of type
         class A != class A)."""
-        self._macro_path = macro_path
+        p = []
+        for item in macro_path:
+            p.extend(item.split(":"))
+
+        # add basic macro directories
+        macroserver_dir = os.path.dirname(os.path.abspath(__file__))
+        for macro_dir in self.DEFAULT_MACRO_DIRECTORIES:
+            macro_dir = os.path.join(macroserver_dir, macro_dir)
+            if not macro_dir in p:
+                p.append(macro_dir)
+        
+        self._macro_path = p
         
         macro_file_names = self._findMacroLibNames()
-        
         for macro_file_name in macro_file_names:
             try:
                 self.reloadMacroLib(macro_file_name)
@@ -525,10 +567,9 @@ class MacroManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             self._macro_executors[door] = me = MacroExecutor(door)
         return me
 
-from taurus.core.util import json, CodecFactory
 
 
-class MacroExecutor(taurus.core.util.Logger):
+class MacroExecutor(Logger):
     """ """
     
     class RunSubXMLHook:
@@ -550,7 +591,7 @@ class MacroExecutor(taurus.core.util.Logger):
         self._last_macro_status = None
         name = "%s.%s" % (str(door), self.__class__.__name__)
         self._macro_status_codec = CodecFactory().getCodec('json')
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
     
     def _preprocessParameters(self, par_str_list):
         if not par_str_list[0].lstrip().startswith('<'):
@@ -876,7 +917,7 @@ class MacroExecutor(taurus.core.util.Logger):
             macro_exp = mse
             if not mse.traceback:
                 mse.traceback = traceback.format_exc()
-        except PyTango.DevFailed as df:
+        except DevFailed as df:
             exc_info = sys.exc_info()
             exp_pars = {'type'      : df[0].reason,
                         'msg'       : df[0].desc,

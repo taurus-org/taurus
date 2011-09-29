@@ -1,3 +1,36 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the class definition for the MacroServer generic
+scan"""
+
+__all__ = ["ScanSetupError", "ScanException", "ExtraData", "TangoExtraData",
+           "GScan", "SScan", "CScan"]
+
+__docformat__ = 'restructuredtext'
+
 import os
 import sys
 import datetime
@@ -5,14 +38,17 @@ import operator
 import types
 import time
 import taurus
+
 from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 
-from scan import *
-from exception import MacroServerException
-from parameter import Type
+from sardana.macroserver.exception import MacroServerException
+from sardana.macroserver.parameter import Type
+from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
+from recorder import OutputRecorder, SharedMemoryRecorder, FileRecorder
 
-from taurus.core.tango.sardana.pool import Ready, Standby, Counting, Acquiring, Moving, Alarm, Fault
+from taurus.core.tango.sardana.pool import Ready, Standby, Counting, \
+    Acquiring, Moving, Alarm, Fault
 
 class ScanSetupError(Exception): pass
 
@@ -164,7 +200,7 @@ class GScan(Logger):
         # placed incrSerialNo here because we need the serialNo in the FIO 
         # filerecorder which is initialized before _setupEnvironment is called
         #
-        ScanFactory().incrSerialNo()        
+        ScanFactory().incrSerialNo()
         self._macro = macro
         self._generator = generator
         self._extrainfodesc = extrainfodesc

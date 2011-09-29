@@ -1,8 +1,43 @@
-import logging, threading, weakref
-import operator, types
+#!/usr/bin/env python
 
-import taurus.core.util
-        
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This is the main macro server module"""
+
+__all__ = ["AttributeLogHandler", "AttributeBufferedLogHandler"]
+
+__docformat__ = 'restructuredtext'
+
+import logging
+import threading
+import weakref
+import operator
+import types
+
+from taurus.core.util import LIFO
+
+
 class AttributeLogHandler(logging.Handler):
     
     def __init__(self, dev, attr_name, level=logging.NOTSET, max_buff_size=0):
@@ -17,7 +52,7 @@ class AttributeLogHandler(logging.Handler):
         attr = attr_list.get_attr_by_name(attr_name)
         attr.set_value([])
 
-        self._buff = taurus.core.util.LIFO(max_buff_size)
+        self._buff = LIFO(max_buff_size)
 
     def emit(self, record):
         output = self.getRecordMessage(record)

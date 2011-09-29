@@ -1,10 +1,44 @@
-"""This module contains the class definition for the MacroServer main manager"""
+#!/usr/bin/env python
 
-import sys, os, re, copy
-import operator, types
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
 
-from taurus.core import ManagerState
-import taurus.core.util
+
+__all__ = ["MacroServerManager"]
+
+__docformat__ = 'restructuredtext'
+
+import sys
+import os
+import re
+import copy
+import operator
+import types
+
+from taurus import Device
+from taurus.core import ManagerState, TaurusManager
+from taurus.core.util import Singleton, Logger, ListEventGenerator, \
+    CaselessDict, ThreadPool
 from taurus.core.tango.sardana import pool
 from taurus.core.tango.sardana import motion
 
@@ -16,7 +50,7 @@ from parameter import ParamType
 
 from exception import UnknownEnv
 
-class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+class MacroServerManager(Singleton, Logger):
     """The MacroServer manager class. It is designed to be a singleton for the
     entire application.
     This Manager also exports the interface of the MacroManager, TypeManager and
@@ -32,19 +66,19 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
 
         # dictionary for registered doors
         # dict<string, PyTango.Device_3Impl> where:
         #  - key: door device name
         #  - value: door device object
-        self._doors = taurus.core.util.CaselessDict()
+        self._doors = CaselessDict()
         
         # maximum number of parallel macros
         self._max_parallel_macros = 5
 
-        self._pool_list_obj = taurus.core.util.ListEventGenerator('PoolList')
-        self._door_list_obj = taurus.core.util.ListEventGenerator('DoorList')
+        self._pool_list_obj = ListEventGenerator('PoolList')
+        self._door_list_obj = ListEventGenerator('DoorList')
         
         self.reInit(*args)
 
@@ -53,7 +87,7 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         if self._state == ManagerState.INITED:
             return
         
-        taurus_manager = taurus.core.TaurusManager()
+        taurus_manager = TaurusManager()
         taurus_manager.reInit()
         #taurus_manager.setSerializationMode(taurus.core.TaurusSerializationMode.Serial)
         pool.registerExtensions()
@@ -62,10 +96,8 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             self.setPools(pools)
 
         pool_thread_size = max_parallel or self._max_parallel_macros
-        self._macro_thread_pool = taurus.core.util.ThreadPool(name="MSTP",
-                                                            parent=self,
-                                                            Psize=pool_thread_size, 
-                                                            Qsize=50)
+        self._macro_thread_pool = ThreadPool(name="MSTP", parent=self,
+                                             Psize=pool_thread_size, Qsize=50)
 
         if max_parallel > 0:
             self.setMaxParallelMacros(max_parallel)
@@ -82,9 +114,7 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         EnvironmentManager().reInit()
         EnvironmentManager().setEnvironment(env_db)
         
-        if not macro_path is None:
-            MacroManager().setMacroPath(macro_path)
-        
+        MacroManager().setMacroPath(macro_path)
         self._state = ManagerState.INITED
     
     def cleanUp(self):
@@ -100,7 +130,7 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         TypeManager().cleanUp()
         ModuleManager().cleanUp()
 
-        #taurus.core.TaurusManager().cleanUp()
+        #TaurusManager().cleanUp()
         
         self._pools = None
                 
@@ -122,11 +152,11 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         # dict<str, Pool>
         # key   - device name (case insensitive)
         # value - Pool object representing the device name
-        self._pools = taurus.core.util.CaselessDict()
+        self._pools = CaselessDict()
         
         for name in pool_names:
             self.debug("Creating pool %s", name)
-            p = taurus.Device(name)
+            p = Device(name)
             if p is None:
                 self.error('Could not create Pool object for %s' % name)
                 continue

@@ -23,9 +23,11 @@
 ##
 ##############################################################################
 
-"""This is the macro server scan module"""
+"""This is the macro server scan recorder module"""
 
 __docformat__ = 'restructuredtext'
 
-from scandata import *
-from gscan import *
+from .datarecorder import *
+from .output import *
+from .sharedmemory import *
+from .storage import *
