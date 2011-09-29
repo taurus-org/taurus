@@ -756,15 +756,20 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.layout().addWidget(self.lbl_alias)
 
         self.btn_poweron = Qt.QPushButton()
+        self.btn_poweron.setEnabled(False)
         self.btn_poweron.setText('power on/off')
         self.layout().addWidget(self.btn_poweron)
         
         # Align everything on top
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding))
 
-        # This should overwrite the contextmenu of the lbl_alias widget
-        self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
-        self.connect(self, Qt.SIGNAL('customContextMenuRequested(QPoint)'), self.buildContextMenu)
+        # I don't like this approach, there should be something like
+        # self.lbl_alias.addAction(...)
+        self.lbl_alias.contextMenuEvent = lambda(event): self.contextMenuEvent(event)
+
+        # I' don't like this approach, tehre should be something like
+        # self.lbl_alias.addToolTipCallback(self.calculate_extra_tooltip)
+        self.lbl_alias.getFormatedToolTip = self.calculateExtendedTooltip
 
     def setExpertView(self, expertView):
         btn_poweron_visible = expertView and self.taurusValueBuddy().hasPowerOn()
@@ -778,7 +783,17 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         # Handle User/Expert view
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
 
-    def buildContextMenu(self, point):
+    def calculateExtendedTooltip(self, cache=False):
+        default_label_widget_tooltip = DefaultLabelWidget.getFormatedToolTip(self.lbl_alias, cache)
+        status_info = ''
+        motor_dev = self.taurusValueBuddy().motor_dev
+        if motor_dev is not None:
+            status = motor_dev.getAttribute('Status').read().value
+            status_info = '<BR><B>Status</B>: '+status
+        return default_label_widget_tooltip + status_info
+    
+    def contextMenuEvent(self, event):
+        # Overwrite the default taurus label behaviour
         menu = Qt.QMenu(self)
         action_expert_view = Qt.QAction(self)
         action_expert_view.setText('Expert View')
@@ -786,11 +801,8 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         action_expert_view.setChecked(self.taurusValueBuddy()._expertView)
         menu.addAction(action_expert_view)
         self.connect(action_expert_view, Qt.SIGNAL('toggled(bool)'), self.taurusValueBuddy().setExpertView)
-        
-        menu.popup(self.cursor().pos())
-
-    def getFormatedToolTip(slef, cache=True):
-        return 'abc'
+        menu.exec_(event.globalPos())
+        event.accept()
         
 ##################################################
 #                   READ WIDGET                  #
@@ -899,14 +911,16 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btngrp_absolute_relative = Qt.QButtonGroup()
         self.btngrp_absolute_relative.addButton(self.rbtn_absolute)
         self.btngrp_absolute_relative.addButton(self.rbtn_relative)
-        abs_rel_layout = Qt.QHBoxLayout()
-        abs_rel_layout.setMargin(0)
-        abs_rel_layout.setSpacing(0)
-        abs_rel_layout.addWidget(self.rbtn_absolute)
-        abs_rel_layout.addWidget(self.rbtn_relative)
+        #abs_rel_layout = Qt.QHBoxLayout()
+        #abs_rel_layout.setMargin(10)
+        #abs_rel_layout.setSpacing(0)
+        #abs_rel_layout.addWidget(self.rbtn_absolute)
+        #abs_rel_layout.addWidget(self.rbtn_relative)
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 1, 0)
-        self.layout().addLayout(abs_rel_layout, 1, 1)
-        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 1, 2)
+        #self.layout().addLayout(abs_rel_layout, 1, 1)
+        self.layout().addWidget(self.rbtn_absolute, 1, 1)
+        self.layout().addWidget(self.rbtn_relative, 1, 2)
+        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 1, 3)
         
         # Since they belong in a button group, only one signal needed
         self.connect(self.rbtn_absolute, Qt.SIGNAL('toggled(bool)'), self.btnAbsoluteToggled)
@@ -1023,6 +1037,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         neg_sw_limit_visible = expertView and self.taurusValueBuddy().motor_dev.getAttribute('Position').min_value.lower() != 'not specified'
         self.btn_to_neg.setVisible(neg_sw_limit_visible)
         self.btn_to_neg_press.setVisible(neg_sw_limit_visible)
+
         pos_sw_limit_visible = expertView and self.taurusValueBuddy().motor_dev.getAttribute('Position').max_value.lower() != 'not specified'
         self.btn_to_pos.setVisible(pos_sw_limit_visible)
         self.btn_to_pos_press.setVisible(pos_sw_limit_visible)
@@ -1089,6 +1104,7 @@ class PoolMotorTV(TaurusValue):
         self.motor_dev = None
         self._expertView = False
         self.limits_listener = None
+        self.setExpertView(False)
 
     def setExpertView(self, expertView):
         self._expertView = expertView
@@ -1126,6 +1142,8 @@ class PoolMotorTV(TaurusValue):
         if pos_lim:
             pos_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
+        self.writeWidget().btn_step_up.setEnabled(enabled)
+        self.writeWidget().btn_step_up.setStyleSheet(pos_btnstylesheet)
         self.writeWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
         self.writeWidget().btn_to_pos.setEnabled(enabled)
         self.writeWidget().btn_to_pos_press.setEnabled(enabled)
@@ -1136,6 +1154,9 @@ class PoolMotorTV(TaurusValue):
         if neg_lim:
             neg_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
+        self.writeWidget().btn_step_down.setEnabled(enabled)
+        self.writeWidget().btn_step_down.setStyleSheet(neg_btnstylesheet)
+
         self.writeWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
         self.writeWidget().btn_to_neg.setEnabled(enabled)
         self.writeWidget().btn_to_neg_press.setEnabled(enabled)
@@ -1268,7 +1289,7 @@ def main():
     tests = []
     #tests.append(1)
     tests.append(2)
-    tests.append(3)
+    #tests.append(3)
     
     # 1) Test PoolMotorSlim motor widget
     form_pms = TaurusForm()
