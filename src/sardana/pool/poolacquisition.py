@@ -66,14 +66,7 @@ class PoolCTAcquisition(PoolAction):
     def __init__(self, pool, name="CTAcquisition"):
         self._channels = None
         PoolAction.__init__(self, pool, name)
-
-    def finish_action(self, *args, **kwargs):
-        channels = self._channels
-        if channels is not None:
-            for channel in channels:
-                channel.finish_from_acquisition()
-        self._channels = None
-        
+    
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
         
@@ -211,19 +204,25 @@ class PoolCTAcquisition(PoolAction):
             time.sleep(0.01)
         
         self.read_state_info(ret=states)
-
+        
         # first update the element state so that value calculation
         # that is done after takes the updated state into account
         for acquirable, state_info in states.items():
             acquirable.set_state_info(state_info, propagate=0)
         
-        # read values and propagate the change to all listeners
-        self.read_value(ret=values)
-        for acquirable, value in values.items():
-            acquirable.put_value(value, propagate=2)
+        # Do NOT send events before we exit the OperationContext, otherwise
+        # we may be asked to start another action before we leave the context
+        # of the current action. Instead, send the events in the finish hook
+        # which is executed outside the OperationContext
+
+        def finish_hook(*args, **kwargs):
+            # read values and propagate the change to all listeners
+            self.read_value(ret=values)
+            for acquirable, value in values.items():
+                acquirable.put_value(value, propagate=2)
+            
+            # finally set the state and propagate to all listeners
+            for acquirable, state_info in states.items():
+                acquirable.set_state_info(state_info, propagate=2)
         
-        # finally set the state and propagate to all listeners
-        for acquirable, state_info in states.items():
-            acquirable.set_state_info(state_info, propagate=2)
-
-
+        self.set_finish_hook(finish_hook)

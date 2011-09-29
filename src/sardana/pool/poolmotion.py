@@ -171,13 +171,6 @@ class PoolMotion(PoolAction):
         self._motion_sleep_time = None
         self._nb_states_per_position = None
     
-    def finish_action(self, *args, **kwargs):
-        motion_info = self._motion_info
-        if motion_info is not None:
-            for moveable in motion_info:
-                moveable.finish_from_move()
-        self._motion_info = None
-        
     def start_action(self, *args, **kwargs):
         """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
         
@@ -199,8 +192,6 @@ class PoolMotion(PoolAction):
             it = moveable.instability_time
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
-        for moveable in items:
-            moveable.prepare_to_move(self)
         
         pool_ctrls = self._pool_ctrls.keys()
         moveables = self.get_elements()
@@ -308,6 +299,13 @@ class PoolMotion(PoolAction):
                     # try to read a last position to force an event
                     moveable.get_position(cache=False, propagate=2)
                     
+                    # free the motor from the OperationContext so we can send
+                    # a state event. Otherwise we may be asked to move the motor
+                    # again which would result in an exception saying that the
+                    # motor is already involved in an operation
+                    moveable.clear_operation()
+                    
+                    
                 # Then update the state
                 propagate = 1
                 if stopped_now:
@@ -317,9 +315,6 @@ class PoolMotion(PoolAction):
                 if moving:
                     in_motion = True
                 
-                # only update status string coming from controller. The state
-                # reported by the controller may not be the state we want to set
-                
             if not in_motion:
                 break
             
@@ -328,7 +323,7 @@ class PoolMotion(PoolAction):
                 self.read_dial_position(ret=positions)
                 for moveable, position in positions.items():
                     moveable.put_dial_position(position)
-
+            
             i += 1
             time.sleep(nap)
     

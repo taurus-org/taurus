@@ -255,39 +255,19 @@ class PoolBaseElement(PoolObject):
     
     def set_operation(self, operation):
         if self.is_in_operation() and operation is not None:
-            import traceback
-            traceback.print_stack()
             raise Exception("%s is already involved in an operation"
                             % self.name)
+        if operation is not None:
+            self._aborted = False
+            self._stopped = False
         self._operation = operation
     
     def clear_operation(self):
         return self.set_operation(None)
+        
     
     operation = property(get_operation, set_operation,
                          doc="operation in which the element is involved")
-
-    # --------------------------------------------------------------------------
-    # involved in an action
-    # --------------------------------------------------------------------------
-
-    def is_in_action(self):
-        """Returns True if this element is involved in any action"""
-        return self._pool_action is not None
-    
-    def get_action(self):
-        return self._pool_action
-    
-    def set_action(self, action):
-        if self.is_in_action() and action is not None:
-            raise Exception("%s is already involved in an action" % self.name)
-        self._pool_action = action
-    
-    def clear_action(self):
-        return self.set_action(None)
-
-    action = property(get_action, set_action,
-                      doc="action in which the element is involved")
 
 
 class PoolElement(PoolBaseElement):

@@ -113,24 +113,23 @@ class OperationContext(object):
     
     def enter(self):
         """Enters operation context"""
-        self._pool_action.warning("Context enter")
         pool_action = self._pool_action
         for element in pool_action.get_elements():
             element.set_operation(pool_action)
     
     def exit(self):
         """Leaves operation context"""
-        self._pool_action.warning("Context exit")
         pool_action = self._pool_action
         for element in pool_action.get_elements():
             element.clear_operation()
+        pool_action.finish_action()
     
     def __enter__(self):
         return self.enter()
         
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.exit()
-    
+
 
 class PoolAction(Logger):
     """A generic class to handle any type of operation (like motion or
@@ -143,6 +142,7 @@ class PoolAction(Logger):
         self._stopped = False
         self._elements = []
         self._pool_ctrls = {}
+        self._finish_hook = None
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
 
@@ -221,28 +221,17 @@ class PoolAction(Logger):
         
         if synch:
             with OperationContext(self):
-                try:
-                    self.start_action(*args, **kwargs)
-                    self.action_loop()
-                finally:
-                    try:
-                        self.finish_action()
-                    except:
-                        self.warning("Unable to finish action", exc_info=1)
+                self.start_action(*args, **kwargs)
+                self.action_loop()
         else:
             context = OperationContext(self)
             context.enter()
             try:
                 self.start_action(*args, **kwargs)
             except:
-                try:
-                    self.finish_action()
-                except:
-                    self.warning("Unable to finish action", exc_info=1)
                 context.exit()
                 raise
             get_thread_pool().add(self._asynch_action_loop, None, context)
-        
     
     def start_action(self, *args, **kwargs):
         """Start procedure for this action. Default implementation raises
@@ -252,8 +241,17 @@ class PoolAction(Logger):
         raise NotImplementedError("start_action must be implemented in "
                                   "subclass")
     
-    def finish_action(self, *args, **kwargs):
-        pass
+    def set_finish_hook(self, hook):
+        self._finish_hook = hook
+        
+    def finish_action(self):
+        hook = self._finish_hook
+        if hook is None:
+            return
+        try:
+            hook()
+        except:
+            self.warning("Exception running faction finish hook", exc_info=1)
     
     def stop_action(self, *args, **kwargs):
         """Stop procedure for this action."""
@@ -281,10 +279,6 @@ class PoolAction(Logger):
         try:
             self.action_loop()
         finally:
-            try:
-                self.finish_action()
-            except:
-                self.warning("Unable to finish action", exc_info=1)
             context.exit()
     
     def action_loop(self):
