@@ -29,7 +29,7 @@ event.py:
 
 __all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator", 
            "ConfigEventGenerator", "ListEventGenerator", "EventListener",
-           "AttributeEventWait"]
+           "AttributeEventWait", "AttributeEventIterator"]
 
 __docformat__ = "restructuredtext"
 

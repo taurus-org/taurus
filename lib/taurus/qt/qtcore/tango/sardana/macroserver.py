@@ -34,7 +34,7 @@ from taurus.qt import Qt
 
 CHANGE_EVTS = (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic)
 
-class QDoor(Qt.QObject, BaseDoor):
+class QDoor(BaseDoor, Qt.QObject):
     
     __pyqtSignals__ = ["resultUpdated","recordDataUpdated", "macroStatusUpdated"]
     __pyqtSignals__ += [ "%sUpdated" % l.lower() for l in BaseDoor.log_streams ]
@@ -90,7 +90,7 @@ class QDoor(Qt.QObject, BaseDoor):
         import copy
         self._dummy_exp_conf = copy.deepcopy(conf)
 
-class QMacroServer(Qt.QObject, BaseMacroServer):
+class QMacroServer(BaseMacroServer, Qt.QObject):
     
     def __init__(self, name, qt_parent=None, **kw):
         self.call__init__wo_kw(Qt.QObject, qt_parent)
@@ -151,6 +151,7 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
             html += pygments.highlight(exc_info, pygments.lexers.PythonTracebackLexer(), formatter)
         html += "</body></html>"
         msgbox.setOriginHtml(html)
+
 
 def registerExtensions():
     """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""

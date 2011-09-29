@@ -492,44 +492,39 @@ class UnknownMacroServerElementFormat(Exception):
 
 
 class MacroServerElement:
-    
-    CommonReStr = '(?P<alias>\S+)\s+\((?P<id>[^)]+)\)'
-    
-    # The regular expression string to parse from the MacroServer
-    BaseReStr    = CommonReStr + '.+\[(?P<pool_id>[^\)]+)\]'
-    # The compiled regular expression to parse from the MacroServer
-    BaseRe       = re.compile(BaseReStr)
-
-    # The basic string representation
-    SimpleReprStr = '%(alias)s'
-    # The string representation  
-    ReprStr   = SimpleReprStr + ' (%(id)s) [%(pool_id)s]'
 
     def __init__(self, type, from_str):
         self._type = type
-        m = self.BaseRe.match(from_str)
-        if m is None:
-            raise UnknownMacroServerElementFormat('Unable to parse element ' \
-                                                  'information %s' % from_str)
-        self.__dict__.update(m.groupdict())
+        codec = taurus.core.util.CodecFactory().getCodec('JSON')
+        self._pool_data_str = from_str
+        data = codec.decode(('json', from_str), ensure_ascii=True)[1]
+        self._pool_data = data
+        self.__dict__.update(data)
 
     def __repr__(self):
-        return self.SimpleReprStr % self.__dict__
+        return self.getName()
     
     def __str__(self):
-        return self.ReprStr % self.__dict__
+        return self._pool_data_str
     
     def getName(self):
-        return self.SimpleReprStr % self.__dict__
+        return self._pool_data['name']
     
     def getId(self):
-        return self.id
+        return self._pool_data['full_name']
 
     def getPoolId(self):
-        return self.pool_id
+        try:
+            return self._pool_data['pool']
+        except:
+            print self._pool_data
+            raise
     
     def getType(self):
-        return self._type
+        return self.getTypes()[0]
+    
+    def getTypes(self):
+        return self._pool_data['type']
 
 
 class MacroServerElementContainer:

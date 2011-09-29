@@ -261,7 +261,36 @@ class JSONCodec(Codec):
         if not data[0].startswith('json'):
             return data
         format = data[0].partition('_')[2]
-        return format, json.loads(data[1])
+        
+        ensure_ascii = False
+        if 'ensure_ascii' in kwargs:
+            ensure_ascii = kwargs.pop('ensure_ascii')
+            
+        data = json.loads(data[1])
+        if ensure_ascii:
+            data = self._transform_ascii(data)
+        return format, data
+
+    def _transform_ascii(self, data):
+        if isinstance(data, unicode):
+            return data.encode('utf-8')
+        elif isinstance(data, dict):
+            return self._transform_dict(data)
+        elif isinstance(data, list):
+            return self._transform_list(data)
+        elif isinstance(data, tuple):
+            return tuple(self._transform_list(data))
+        else:
+            return data
+        
+    def _transform_list(self, lst):
+        return [ self._transform_ascii(item) for item in lst ]
+
+    def _transform_dict(self, dct):
+        newdict = {}
+        for k, v in dct.iteritems():
+            newdict[self._transform_ascii(k)] = self._transform_ascii(v)
+        return newdict
 
 
 class FunctionCodec(Codec):
