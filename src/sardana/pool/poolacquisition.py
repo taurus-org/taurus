@@ -64,8 +64,16 @@ class Channel(PoolActionItem):
 class PoolCTAcquisition(PoolAction):
     
     def __init__(self, pool, name="CTAcquisition"):
+        self._channels = None
         PoolAction.__init__(self, pool, name)
-    
+
+    def finish_action(self, *args, **kwargs):
+        channels = self._channels
+        if channels is not None:
+            for channel in channels:
+                channel.finish_from_acquisition()
+        self._channels = None
+        
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
         
@@ -101,7 +109,7 @@ class PoolCTAcquisition(PoolAction):
         pool_ctrls.append(master_ctrl)
         
         # Determine which channels are active
-        channels = {}
+        self._channels = channels = {}
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl
             pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
@@ -112,9 +120,10 @@ class PoolCTAcquisition(PoolAction):
                 axis = element.axis
                 channel = Channel(element, info=element_info)
                 channels[element] = channel
-        
-        self._channels = channels
-        
+
+        for channel in channels:
+            channel.prepare_to_acquire(self)
+
         # PreLoadAll, PreLoadOne, LoadOne and LoadAll
         for pool_ctrl in pool_ctrls:
             ctrl = pool_ctrl.ctrl

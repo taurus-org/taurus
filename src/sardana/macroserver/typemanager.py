@@ -1,13 +1,13 @@
-import os, inspect
+import os
+import inspect
 
 from taurus.core import ManagerState
-import taurus.core.util
-from taurus.core.util import InfoIt
+from taurus.core.util import InfoIt, Singleton, Logger, ListEventGenerator
 
-import parameter
+from parameter import Type, ParamType, AbstractParamTypes
 from modulemanager import ModuleManager
 
-class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+class TypeManager(Singleton, Logger):
 
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -17,8 +17,8 @@ class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
-        self.call__init__(taurus.core.util.Logger, name)
-        self._type_list_obj = taurus.core.util.ListEventGenerator('TypeList')
+        self.call__init__(Logger, name)
+        self._type_list_obj = ListEventGenerator('TypeList')
 
         self.reInit()
     
@@ -48,7 +48,7 @@ class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             mm = ModuleManager()
             for module_name, types_dict in self._modules.items():
                 for type_name in types_dict:
-                    parameter.Type.removeType(type_name)
+                    Type.removeType(type_name)
                 mm.unloadModule(module_name)
                 
         self._modules = None
@@ -79,8 +79,8 @@ class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
             klass = getattr(m, name)
             
             if inspect.isclass(klass) and \
-               issubclass(klass, parameter.ParamType) and \
-               not klass in parameter.AbstractParamTypes:
+               issubclass(klass, ParamType) and \
+               not klass in AbstractParamTypes:
                 t = klass(name)
                 self.addType(t)
         self._fireTypeEvent()
@@ -98,7 +98,7 @@ class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         mod_types[type_name] = type_class
         self._inst_dict[type_class] = type_obj
         
-        parameter.Type.addType(type_name)
+        Type.addType(type_name)
         
         if fire_event:
             self._fireTypeEvent()
@@ -108,7 +108,7 @@ class TypeManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         
         for module_name, type_class_dict in self._modules.items():
             for tname, tklass in type_class_dict.items():
-                if tklass.hasCapability(parameter.ParamType.ItemList):
+                if tklass.hasCapability(ParamType.ItemList):
                     type_list_obj.append("%s*" % tname)
                 else:
                     type_list_basic.append(tname)

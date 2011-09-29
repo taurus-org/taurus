@@ -113,12 +113,14 @@ class OperationContext(object):
     
     def enter(self):
         """Enters operation context"""
+        self._pool_action.warning("Context enter")
         pool_action = self._pool_action
         for element in pool_action.get_elements():
             element.set_operation(pool_action)
     
     def exit(self):
         """Leaves operation context"""
+        self._pool_action.warning("Context exit")
         pool_action = self._pool_action
         for element in pool_action.get_elements():
             element.clear_operation()

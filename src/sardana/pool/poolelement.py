@@ -255,6 +255,8 @@ class PoolBaseElement(PoolObject):
     
     def set_operation(self, operation):
         if self.is_in_operation() and operation is not None:
+            import traceback
+            traceback.print_stack()
             raise Exception("%s is already involved in an operation"
                             % self.name)
         self._operation = operation

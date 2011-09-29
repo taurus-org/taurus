@@ -1,7 +1,46 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This module contains the definition of the macroserver parameters for
+macros"""
+
+__all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
+           "TypeNames", "Type", "ParamType", "ParamRepeat", "PoolObjParamType",
+           "AttrParamType", "AbstractParamTypes", "ParamDecoder" ]
+
+__docformat__ = 'restructuredtext'
+
 import copy
 import exception
+import weakref
 
-class WrongParam(exception.MacroServerException): 
+from taurus.core.util import CaselessDict, Logger, ListEventGenerator
+from taurus.core.tango.sardana.pool import BaseElement
+
+
+class WrongParam(exception.MacroServerException):
     pass
 
 class MissingParam(WrongParam): 
@@ -41,10 +80,7 @@ class TypeNames:
 Type = TypeNames()
 
 
-import taurus.core.util
-from taurus.core.tango.sardana.pool import BaseElement
-
-class ParamType(taurus.core.util.Logger):
+class ParamType(Logger):
     
     All             = 'All'
     
@@ -56,7 +92,7 @@ class ParamType(taurus.core.util.Logger):
     
     def __init__(self, name):
         self._name = name
-        taurus.core.util.Logger.__init__(self, '%sType' % name)
+        Logger.__init__(self, '%sType' % name)
     
     def getName(self):
         return self._name
@@ -87,29 +123,31 @@ class ParamRepeat:
     def obj(self):
         return self._obj
     
-import weakref
-import manager
 
-class PoolObjParamType(ParamType, taurus.core.util.ListEventGenerator):
+class PoolObjParamType(ParamType, ListEventGenerator):
     
     capabilities = [ParamType.ItemList, ParamType.ItemListEvents]
     
     def __init__(self, name):
         ParamType.__init__(self, name)
-        taurus.core.util.ListEventGenerator.__init__(self, self._name)
+        ListEventGenerator.__init__(self, self._name)
 
         # dict<Pool, list<str>> 
         # key   : Pool object 
         # value : list of object names
-        self._pool_dict = taurus.core.util.CaselessDict()
+        self._pool_dict = CaselessDict()
         
-        mg = manager.MacroServerManager()
+        mg = self.getManager()
         
         mg.getPoolListObj().subscribeEvent(self.poolsChanged)
-        
+    
+    def getManager(self):
+        import manager
+        return manager.MacroServerManager()
+    
     def poolsChanged(self, data, pool_data):
         all_pools, old_pools, new_pools = pool_data
-        mg = manager.MacroServerManager()
+        mg = self.getManager()
         
         for pool_name in old_pools:
             pool_obj = mg.getPoolObj(pool_name)
@@ -121,7 +159,7 @@ class PoolObjParamType(ParamType, taurus.core.util.ListEventGenerator):
             self._pool_dict.pop(pool_name, None)
         
         for pool_name in new_pools:
-            self._pool_dict[pool_name] = taurus.core.util.CaselessDict()
+            self._pool_dict[pool_name] = CaselessDict()
             pool_obj = mg.getPoolObj(pool_name)
             list_obj = pool_obj.getListObj(self._name)
             # if the pool has this list (it may not have because it is an old 
@@ -131,7 +169,7 @@ class PoolObjParamType(ParamType, taurus.core.util.ListEventGenerator):
     
     def listChanged(self, info, list_data):
         pool_name, list_obj = info
-        new_elems = taurus.core.util.CaselessDict()
+        new_elems = CaselessDict()
         list_data = list_data or []
         self.trace("listChanged(%s, %s)" % (pool_name, list_data))
         for elem_name in list_data:
@@ -155,7 +193,7 @@ class PoolObjParamType(ParamType, taurus.core.util.ListEventGenerator):
             pass
         
         if pool == ParamType.All:
-            objs = taurus.core.util.CaselessDict()
+            objs = CaselessDict()
             for pool_objs in self._pool_dict.values():
                 objs.update(pool_objs)
             return objs
@@ -186,6 +224,10 @@ class ParamDecoder:
         self.param_list = None
         self.decode()
 
+    def getManager(self):
+        import manager
+        return manager.MacroServerManager()
+
     def decode(self):
         dec_token, obj_list = self.decodeNormal(self.param_str_list[1:],
                                                 self.macro_class.param_def)
@@ -214,7 +256,7 @@ class ParamDecoder:
                     data = self.decodeRepeat(str_list[str_idx:], par_def)
                     dec_token, new_obj_list = data
                 else:
-                    mg = manager.MacroServerManager()
+                    mg = self.getManager()
                     type_name = type_class
                     type_class = mg.getTypeClass(type_name)
                     par_type = mg.getTypeObj(type_name)
