@@ -52,7 +52,7 @@ class LimitsListener(Qt.QObject):
     """
     def __init__(self):
         Qt.QObject.__init__(self)
-        
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_type not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]:
             return
@@ -78,15 +78,15 @@ class PoolMotorClient():
             self.has_encoder = hasattr(self.motor_dev, 'Encoder')
         except Exception,e:
             print 'EXCEPTION CREATING MOTOR DEVICE...\n'+str(e)
-        
+
     def moveMotor(self, pos):
         #self.motor_dev['position'] = pos
         # Make use of Taurus operations (being logged)
         self.motor_dev.getAttribute('Position').write(pos)
-        
+
     def moveInc(self, inc):
         self.moveMotor(self.motor_dev['position'].value + inc)
-        
+
     def jogNeg(self):
         neg_limit = - ( (self.maxint_in_32_bits / 2) - 1)
         # THERE IS A BUG IN THE ICEPAP THAT DOES NOT ALLOW MOVE ABSOLUTE FURTHER THAN 32 BIT
@@ -99,7 +99,7 @@ class PoolMotorClient():
         except Exception,e:
             pass
         self.moveMotor(neg_limit)
-        
+
     def jogPos(self):
         pos_limit = (self.maxint_in_32_bits / 2) - 1
         # THERE IS A BUG IN THE ICEPAP THAT DOES NOT ALLOW MOVE ABSOLUTE FURTHER THAN 32 BIT
@@ -134,13 +134,13 @@ class LabelWidgetDragsDeviceAndAttribute(DefaultLabelWidget):
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
         dropAction = drag.start(Qt.Qt.CopyAction)
-        
+
 class PoolMotorConfigurationForm(TaurusAttrForm):
-    
+
     def __init__(self, parent=None, designMode=False):
         TaurusAttrForm.__init__(self, parent, designMode)
         self._form.setWithButtons(False)
-        
+
     def getMotorControllerType(self):
         modelObj = self.getModelObj()
         modelNormalName = modelObj.getNormalName()
@@ -159,7 +159,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
             motorInfos = motorInfo.split()
             if modelNormalName.lower() == motorInfos[1][1:-1].lower():
                 controllerName = motorInfos[2][1:-1].split("/")[0]
-        
+
         poolControllerInfos = pool["ControllerList"].value
         for controllerInfo in poolControllerInfos:
             #to better understand following actions
@@ -169,7 +169,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
             if controllerName.lower() == controllerInfos[0].lower():
                 controllerType = controllerInfos[1][1:-1].split("/")[0]
         return controllerType
-    
+
     def getDisplayAttributes(self, controllerType):
         attributes = ['position',
                       'state', 
@@ -182,7 +182,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
                       'sign', 
                       'offset',  
                       'backlash'] 
-        
+
         if controllerType == "IcePAPCtrl.IcepapController":
             attributes.insert(1,"encoder")
             attributes.extend(['frequency', 
@@ -197,7 +197,7 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
                                'statuslim-', 
                                'statuslim+', 
                                'statushome'])
-            
+
         elif controllerType == "PmacCtrl.PmacController":
             attributes.extend(["motoractivated", 
                                "negativeendlimitset", 
@@ -271,26 +271,26 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
                                "warningfollowingerror", 
                                "inposition"])            
         return attributes
-            
+
     def setModel(self, modelName):
         TaurusAttrForm.setModel(self, modelName)
         controllerType = self.getMotorControllerType()
         attributes = self.getDisplayAttributes(controllerType)
         #self.setViewFilters([lambda a: a.name.lower() in attributes])
         self.setSortKey(lambda att: attributes.index(att.name.lower()) if att.name.lower() in attributes else 1)
-        
+
 class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
     def __init__(self, parent = None, designMode = False):
         TaurusWidget.__init__(self, parent)
-        
+
         #self.call__init__wo_kw(Qt.QWidget, parent)
         #self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         PoolMotorClient.__init__(self)
         self.show_context_menu = True
-        
+
         self.setAcceptDrops(True)
 
         self.ui = Ui_PoolMotorSlim()
@@ -313,7 +313,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 #        standard TaurusAttrForm - list of all attributes alphabetically ordered 
 #        taurus_attr_form = PoolMotorConfigurationForm()        
         taurus_attr_form = TaurusAttrForm()
-        
+
         taurus_attr_form.setMinimumSize(Qt.QSize(470,800))
         self.ui.btnCfg.setWidget(taurus_attr_form)
         self.ui.btnCfg.setUseParentModel(True)
@@ -352,7 +352,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.ui.btnMin.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-remove.svg'))
         self.ui.btnMax.setText('')
         self.ui.btnMax.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-add.svg'))
-        
+
         self.ui.btnGoToNeg.setText('')
         self.ui.btnGoToNeg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_backward.svg'))
         self.ui.btnGoToNegPress.setText('')
@@ -372,11 +372,11 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.ui.btnCfg.setText('')
         self.ui.btnCfg.setIcon(taurus.qt.qtgui.resource.getIcon(':/categories/preferences-system.svg'))
         #################################################################################################################
-        
+
 
         self.ui.motorGroupBox.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
         self.connect(self.ui.motorGroupBox, Qt.SIGNAL('customContextMenuRequested(QPoint)'), self.buildContextMenu)
-        
+
         self.connect(self.ui.btnGoToNeg, Qt.SIGNAL('clicked()'), self.jogNeg)
         self.connect(self.ui.btnGoToNegPress, Qt.SIGNAL('pressed()'), self.jogNeg)
         self.connect(self.ui.btnGoToNegPress, Qt.SIGNAL('released()'), self.abort)
@@ -419,8 +419,8 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.ui.btnGoToPos.setEnabled(enabled)
         self.ui.btnGoToPosPress.setEnabled(enabled)
         self.ui.btnGoToPosInc.setEnabled(enabled)
-        
-        
+
+
         neg_lim = limits[2]
         neg_btnstylesheet = ''
         enabled = True
@@ -437,10 +437,10 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     def goToNegInc(self):
         self.moveInc(-1 * self.ui.inc.value())
-        
+
     def goToPosInc(self):
         self.moveInc(self.ui.inc.value())
-        
+
     def buildContextMenu(self, point):
         if not self.show_context_menu:
             return
@@ -496,19 +496,19 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         action_homing.setCheckable(True)
         action_homing.setChecked(self.ui.btnHome.isVisible())
         menu.addAction(action_homing)
-        
+
         action_config = Qt.QAction(self)
         action_config.setText('Config')
         action_config.setCheckable(True)
         action_config.setChecked(self.ui.btnCfg.isVisible())
         menu.addAction(action_config)
-        
+
         action_status = Qt.QAction(self)
         action_status.setText('Status')
         action_status.setCheckable(True)
         action_status.setChecked(self.ui.lblStatus.isVisible())
         menu.addAction(action_status)
-        
+
         self.connect(action_hide_all, Qt.SIGNAL('triggered()'), self.toggleHideAll)
         self.connect(action_show_all, Qt.SIGNAL('triggered()'), self.toggleShowAll)
         self.connect(action_move_absolute, Qt.SIGNAL('toggled(bool)'), self.toggleMoveAbsolute)
@@ -520,7 +520,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.connect(action_homing, Qt.SIGNAL('toggled(bool)'), self.toggleHoming)
         self.connect(action_config, Qt.SIGNAL('toggled(bool)'), self.toggleConfig)
         self.connect(action_status, Qt.SIGNAL('toggled(bool)'), self.toggleStatus)
-        
+
         menu.popup(self.cursor().pos())
 
     def toggleHideAll(self):
@@ -559,7 +559,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     def toggleEncoder(self, visible):
         self.taurus_value_enc.setVisible(visible)
-        
+
     def toggleStopMove(self, visible):
         self.ui.btnStop.setVisible(visible)
 
@@ -574,7 +574,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     def dragEnterEvent(self, event):
         event.accept()
-        
+
     def dropEvent(self, event):
         mimeData = event.mimeData()
         if mimeData.hasFormat(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE):
@@ -605,7 +605,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         ret['icon'] = ':/designer/extra_pool.png'
         ret['container'] = False
         return ret
-    
+
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)
         self.motor_dev.getAttribute('Position').enablePolling(force=True)
@@ -632,7 +632,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             self.setMotor(model)
             self.ui.motorGroupBox.setModel(model)
             self.ui.motorGroupBox.setEnabled(True)
-            
+
             self.taurus_value.setModel(model+'/Position')
 
             # DUE TO A BUG IN TAURUSVALUE, THAT DO NOT USE PARENT MODEL WE NEED TO ALWAYS SET THE MODEL
@@ -641,7 +641,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             # THE FORCED APPLY HAS TO BE DONE AFTER THE MODEL IS SET, SO THE WRITEWIDGET IS AVAILABLE
             if self.taurus_value.writeWidget() is not None:
                 self.taurus_value.writeWidget().setForcedApply(True)
-            
+
             show_enc = self.taurus_value_enc.isVisible()
             if self.has_encoder:
                 self.taurus_value_enc.setModel(model+'/Encoder')
@@ -661,11 +661,11 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             self.registerConfigProperty(self.taurus_value.writeWidget().isVisible, self.toggleMoveAbsolute, 'MoveAbsolute')
             self.registerConfigProperty(self.taurus_value_enc.isVisible, self.toggleEncoder, 'Encoder')
 
-            
+
             # SINCE TAURUSLAUNCHERBUTTON HAS NOT THIS PROPERTY IN THE
             # DESIGNER, WE MUST SET IT HERE
             self.ui.btnCfg.setUseParentModel(True)
-            
+
             # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
             self.limits_listener = LimitsListener()
             self.connect(self.limits_listener, Qt.SIGNAL('updateLimits(PyQt_PyObject)'), self.updateLimits)
@@ -681,7 +681,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
             self.ui.motorGroupBox.setEnabled(False)
             self.info('Error setting model "%s". Reason: %s'%(model, repr(e)))
             self.traceback()
-        
+
     @Qt.pyqtSignature("resetModel()")
     def resetModel(self):
         self.ui.motorGroupBox.resetModel()
@@ -750,16 +750,16 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.setLayout(Qt.QGridLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        
+
         self.lbl_alias = DefaultLabelWidget(parent, designMode)
-        self.lbl_alias.setBgRole('state')
+        self.lbl_alias.setBgRole('none')
         self.layout().addWidget(self.lbl_alias)
 
         self.btn_poweron = Qt.QPushButton()
         self.btn_poweron.setEnabled(False)
         self.btn_poweron.setText('power on/off')
         self.layout().addWidget(self.btn_poweron)
-        
+
         # Align everything on top
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding))
 
@@ -774,7 +774,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
     def setExpertView(self, expertView):
         btn_poweron_visible = expertView and self.taurusValueBuddy().hasPowerOn()
         self.btn_poweron.setVisible(btn_poweron_visible)
-        
+
     def setModel(self, model):
         TaurusWidget.setModel(self, model+'/Status')
         self.lbl_alias.taurusValueBuddy = self.taurusValueBuddy
@@ -791,7 +791,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
             status = motor_dev.getAttribute('Status').read().value
             status_info = '<BR><B>Status</B>: '+status
         return default_label_widget_tooltip + status_info
-    
+
     def contextMenuEvent(self, event):
         # Overwrite the default taurus label behaviour
         menu = Qt.QMenu(self)
@@ -803,7 +803,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.connect(action_expert_view, Qt.SIGNAL('toggled(bool)'), self.taurusValueBuddy().setExpertView)
         menu.exec_(event.globalPos())
         event.accept()
-        
+
 ##################################################
 #                   READ WIDGET                  #
 ##################################################
@@ -817,7 +817,7 @@ class PoolMotorTVReadWidget(TaurusWidget):
         self.setLayout(Qt.QGridLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        
+
         self.lbl_read = TaurusLabel()
         self.lbl_read.setBgRole('quality')
         self.layout().addWidget(self.lbl_read)
@@ -827,14 +827,14 @@ class PoolMotorTVReadWidget(TaurusWidget):
 
     def setExpertView(self, expertView):
         pass
-        
+
     def setModel(self, model):
         TaurusWidget.setModel(self, model+'/Position')
         self.lbl_read.setModel(model+'/Position')
 
         # Handle User/Expert view
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
-        
+
 ##################################################
 #                  WRITE WIDGET                  #
 ##################################################
@@ -844,22 +844,16 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.setLayout(Qt.QGridLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        
+
         self.tabs_absolute_relative = Qt.QTabWidget()
 
         self.le_write_absolute = TaurusValueLineEdit()
-        self.layout().addWidget(self.le_write_absolute, 0, 0, 1, 3)
-        
+        self.layout().addWidget(self.le_write_absolute, 0, 0, 1, 4)
+
         self.qw_write_relative = Qt.QWidget()
         self.qw_write_relative.setLayout(Qt.QHBoxLayout())
         self.qw_write_relative.layout().setMargin(0)
         self.qw_write_relative.layout().setSpacing(0)
-
-        self.btn_step_down = Qt.QPushButton()
-        self.btn_step_down.setToolTip('Decrements motor position')
-        self.prepare_button(self.btn_step_down)
-        self.btn_step_down.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_backward.svg'))
-        self.qw_write_relative.layout().addWidget(self.btn_step_down)
 
         self.cb_step = Qt.QComboBox()
         self.cb_step.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed))
@@ -868,39 +862,26 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.cb_step.lineEdit().setAlignment(Qt.Qt.AlignRight)
         self.cb_step.addItem('1')
         self.qw_write_relative.layout().addWidget(self.cb_step)
-        
+
+        self.btn_step_down = Qt.QPushButton()
+        self.btn_step_down.setToolTip('Decrements motor position')
+        self.prepare_button(self.btn_step_down)
+        self.btn_step_down.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_backward.svg'))
+        self.qw_write_relative.layout().addWidget(self.btn_step_down)
+
         self.btn_step_up = Qt.QPushButton()
         self.btn_step_up.setToolTip('Increments motor position')
         self.prepare_button(self.btn_step_up)
         self.btn_step_up.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_start.svg'))
         self.qw_write_relative.layout().addWidget(self.btn_step_up)
 
-        self.layout().addWidget(self.qw_write_relative, 0, 0, 1, 3)
-        
-        ###self.qdsp_write_relative = Qt.QDoubleSpinBox()
-        ###self.qdsp_write_relative.setSingleStep(0)
-        ###self.qdsp_write_relative.setValue(1)
-        ###self.qdsp_write_relative.setButtonSymbols(Qt.QAbstractSpinBox.PlusMinus)
-        ###self.qdsp_write_relative.setDecimals(6)
-        ###self.qdsp_write_relative.setMinimum(float(-1e100))
-        ###self.qdsp_write_relative.setMaximum(float(1e100))
-        ###self.qdsp_write_relative.setAlignment(Qt.Qt.AlignRight)
-        ###self.layout().addWidget(self.qdsp_write_relative,0 ,0, 1, 3)
-        ###
-        ###def step_by(steps):
-        ###    # steps will be either 1 or -1
-        ###    units = float(self.qdsp_write_relative.lineEdit().text())
-        ###    increment = steps * units
-        ###    self.goRelative(increment)
-        ###
-        ###self.qdsp_write_relative.stepBy = step_by
-        ###
+        self.layout().addWidget(self.qw_write_relative, 0, 0, 1, 4)
 
         self.btn_stop = Qt.QPushButton()
         self.btn_stop.setToolTip('Stops de motor')
         self.prepare_button(self.btn_stop)
         self.btn_stop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
-        self.layout().addWidget(self.btn_stop, 0, 3)
+        self.layout().addWidget(self.btn_stop, 0, 4)
 
         btns_layout = Qt.QHBoxLayout()
         btns_layout.setMargin(0)
@@ -920,8 +901,8 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         #self.layout().addLayout(abs_rel_layout, 1, 1)
         self.layout().addWidget(self.rbtn_absolute, 1, 1)
         self.layout().addWidget(self.rbtn_relative, 1, 2)
-        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 1, 3)
-        
+        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 1, 3, 1, 1)
+
         # Since they belong in a button group, only one signal needed
         self.connect(self.rbtn_absolute, Qt.SIGNAL('toggled(bool)'), self.btnAbsoluteToggled)
         self.rbtn_absolute.setChecked(True)
@@ -932,13 +913,13 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.prepare_button(self.btn_lim_neg)
         self.btn_lim_neg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-remove.svg'))
         btns_layout.addWidget(self.btn_lim_neg)
-        
+
         self.btn_to_neg = Qt.QPushButton()
         self.btn_to_neg.setToolTip('Moves the motor towards the Negative Software Limit')
         self.prepare_button(self.btn_to_neg)
         self.btn_to_neg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_backward.svg'))
         btns_layout.addWidget(self.btn_to_neg)
-        
+
         self.btn_to_neg_press = Qt.QPushButton()
         self.btn_to_neg_press.setToolTip('Moves the motor (while pressed) towards the Negative Software Limit')
         self.prepare_button(self.btn_to_neg_press)
@@ -950,13 +931,13 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btn_to_pos_press.setToolTip('Moves the motor (while pressed) towards the Positive Software Limit')
         self.btn_to_pos_press.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_seek_forward.svg'))
         btns_layout.addWidget(self.btn_to_pos_press)
-        
+
         self.btn_to_pos = Qt.QPushButton()
         self.btn_to_pos.setToolTip('Moves the motor towards the Positive Software Limit')
         self.prepare_button(self.btn_to_pos)
         self.btn_to_pos.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_forward.svg'))
         btns_layout.addWidget(self.btn_to_pos)
-        
+
         self.btn_lim_pos = Qt.QPushButton()
         self.btn_lim_pos.setToolTip('Positive Hardware Limit')
         self.btn_lim_pos.setEnabled(False)
@@ -965,8 +946,8 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         btns_layout.addWidget(self.btn_lim_pos)
 
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 2, 0)
-        self.layout().addLayout(btns_layout, 2, 1)
-        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 2, 2)
+        self.layout().addLayout(btns_layout, 2, 1, 1, 2)
+        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum), 2, 3, 1, 1)
 
         self.connect(self.btn_step_down, Qt.SIGNAL('clicked()'), self.stepDown)
         self.connect(self.btn_step_up, Qt.SIGNAL('clicked()'), self.stepUp)
@@ -979,18 +960,19 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.connect(self.btn_to_pos_press, Qt.SIGNAL('released()'), self.abort)
 
         # Align everything on top
-        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 3, 0)
+        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 3, 0, 1, 4)
+        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 1, 4, 3, 1)
 
     def btnAbsoluteToggled(self, checked):
         self.le_write_absolute.setVisible(checked)
         self.qw_write_relative.setVisible(not checked)
-        
+
     def stepDown(self):
         self.goRelative(-1)
 
     def stepUp(self):
         self.goRelative(+1)
-        
+
     @ProtectTaurusMessageBox(msg='An error occurred trying to move the motor.')
     def goRelative(self, direction):
         motor_dev = self.taurusValueBuddy().motor_dev
@@ -1030,17 +1012,27 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         btn.setText('')
 
     def setExpertView(self, expertView):
-        hw_limits_visible = expertView and self.taurusValueBuddy().hasHwLimits()
-        self.btn_lim_neg.setVisible(hw_limits_visible)
-        self.btn_lim_pos.setVisible(hw_limits_visible)
-        
-        neg_sw_limit_visible = expertView and self.taurusValueBuddy().motor_dev.getAttribute('Position').min_value.lower() != 'not specified'
-        self.btn_to_neg.setVisible(neg_sw_limit_visible)
-        self.btn_to_neg_press.setVisible(neg_sw_limit_visible)
+        self.btn_lim_neg.setVisible(expertView)
+        self.btn_lim_pos.setVisible(expertView)
 
-        pos_sw_limit_visible = expertView and self.taurusValueBuddy().motor_dev.getAttribute('Position').max_value.lower() != 'not specified'
-        self.btn_to_pos.setVisible(pos_sw_limit_visible)
-        self.btn_to_pos_press.setVisible(pos_sw_limit_visible)
+        self.btn_to_neg.setVisible(expertView)
+        self.btn_to_neg_press.setVisible(expertView)
+
+        self.btn_to_pos.setVisible(expertView)
+        self.btn_to_pos_press.setVisible(expertView)
+
+        if expertView and self.taurusValueBuddy().motor_dev is not None:
+            hw_limits = self.taurusValueBuddy().hasHwLimits()
+            self.btn_lim_neg.setVisible(hw_limits)
+            self.btn_lim_pos.setVisible(hw_limits)
+
+            neg_sw_limit_enabled = self.taurusValueBuddy().motor_dev.getAttribute('Position').min_value.lower() != 'not specified'
+            self.btn_to_neg.setEnabled(neg_sw_limit_enabled)
+            self.btn_to_neg_press.setEnabled(neg_sw_limit_enabled)
+
+            pos_sw_limit_enabled = self.taurusValueBuddy().motor_dev.getAttribute('Position').max_value.lower() != 'not specified'
+            self.btn_to_pos.setEnabled(pos_sw_limit_enabled)
+            self.btn_to_pos_press.setEnabled(pos_sw_limit_enabled)
 
     def setModel(self, model):
         TaurusWidget.setModel(self, model+'/Position')
@@ -1065,7 +1057,7 @@ class PoolMotorTVUnitsWidget(TaurusWidget):
         self.setLayout(Qt.QGridLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        
+
         self.lbl_unit = DefaultUnitsWidget(parent, designMode)
         self.layout().addWidget(self.lbl_unit)
 
@@ -1074,7 +1066,7 @@ class PoolMotorTVUnitsWidget(TaurusWidget):
 
     def setExpertView(self, expertView):
         pass
-        
+
     def setModel(self, model):
         TaurusWidget.setModel(self, model+'/Position')
         self.lbl_unit.taurusValueBuddy = self.taurusValueBuddy
@@ -1132,7 +1124,7 @@ class PoolMotorTV(TaurusValue):
     def hasPowerOn(self):
         try: return hasattr(self.motor_dev, 'PowerOn')
         except: return False
-        
+
     def hasHwLimits(self):
         try: return hasattr(self.motor_dev, 'Limit_Switches')
         except: return False
@@ -1150,7 +1142,7 @@ class PoolMotorTV(TaurusValue):
         self.writeWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
         self.writeWidget().btn_to_pos.setEnabled(enabled)
         self.writeWidget().btn_to_pos_press.setEnabled(enabled)
-        
+
         neg_lim = limits[2]
         neg_btnstylesheet = ''
         enabled = True
@@ -1216,7 +1208,7 @@ class PoolMotor(TaurusWidget):
         #### At some point it will be an icon...
         self.step_icon = Qt.QLabel('step')
         self.layout().addWidget(self.step_icon)
-        
+
         self.cb_step = Qt.QComboBox()
         self.cb_step.addItem('1')
         self.cb_step.setEditable(True)
@@ -1269,18 +1261,18 @@ class PoolMotor(TaurusWidget):
 
 
 def main():
-    
+
     import sys
     import taurus.qt.qtgui.application
     import taurus.core.util.argparse
     from taurus.qt.qtgui.panel import TaurusForm
-    
+
     parser = taurus.core.util.argparse.get_taurus_parser()
     parser.usage = "%prog [options] [<motor1> [<motor2>] ...]"
-       
+
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
     args = app.get_command_line_args()
-    
+
     models = ['tango://controls02:10000/motor/gcipap10ctrl/8']
     if len(args)>0:
         models = args
@@ -1293,7 +1285,7 @@ def main():
     #tests.append(1)
     tests.append(2)
     #tests.append(3)
-    
+
     # 1) Test PoolMotorSlim motor widget
     form_pms = TaurusForm()
     pms_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorSlim'
@@ -1304,7 +1296,7 @@ def main():
     if 1 in tests:
         form_pms.setModel(models)
         w.layout().addWidget(form_pms)
-    
+
     # 2) Test PoolMotorTV motor widget
     form_tv = TaurusForm()
     tv_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorTV'
@@ -1321,8 +1313,8 @@ def main():
         models.append('gc_ipap8/State')
         form_tv.setModel(models)
         w.layout().addWidget(form_tv)
-    
-    
+
+
     # 3) Test Stand-Alone PoolMotor widget
     if 3 in tests:
         for motor in models:
