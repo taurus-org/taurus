@@ -281,13 +281,12 @@ class build_resources(Command):
             result[1].extend(result2[1])
             result[2].extend(result2[2])
             result[3].extend(result2[3])
-            result[4].extend(result2[4])
 
             catalog.write("<h1>Index</h1>\n<ul>")
-            for anchor in result[4]:
+            for anchor in result[3]:
                 catalog.write("<li>%s</li>\n" % anchor)
             catalog.write("</ul>\n")
-            catalog.writelines(result[3])
+            catalog.writelines(result[2])
         finally:
             catalog.write("""</body></html>""")
             catalog.close()
@@ -346,16 +345,7 @@ class build_resources(Command):
         else:
             print("[DONE]", file=out)
         
-        # Generate python resource file
-        print("Generating %s... " % pyrcc_filename, file=out, end='')
-        out.flush()
-        cmd = 'pyrcc4 -compress 1 -o %s %s' % (pyrcc_filename, qrc_filename)
-        if os.system(cmd):
-            print("[FAILED]", file=out)
-        else:
-            print("[DONE]", file=out)
-        
-        return [ [qrc_filename], [rcc_filename], [pyrcc_filename], [html], [anchor] ]
+        return [ [qrc_filename], [rcc_filename], [html], [anchor] ]
     
     def _build_res(self, abs_dir, bases=list()):
         """Builds the resources in the abs_dir recursively.
@@ -380,7 +370,6 @@ class build_resources(Command):
                 result[1].extend(ret[1])
                 result[2].extend(ret[2])
                 result[3].extend(ret[3])
-                result[4].extend(ret[4])
             elif os.path.splitext(abs_elem)[1][1:].lower() in build_resources.AllowedExt:
                 local_elems.append(elem)
         
@@ -426,8 +415,8 @@ class build_resources(Command):
                 html += '</table>\n'
                 f.close()
             result[0].append(qrc_filename)
-            result[3].append(html)
-            result[4].append(anchor)
+            result[2].append(html)
+            result[3].append(anchor)
             print("[DONE]", file=out)
             
             # Generate binary rcc file
@@ -440,15 +429,6 @@ class build_resources(Command):
                 result[1].append(rcc_filename)
                 print("[DONE]", file=out)
             
-            # Generate python resource file
-            print("Generating %s... " % pyrcc_filename, file=out, end='')
-            out.flush()
-            cmd = 'pyrcc4 -compress 1 -o %s %s' % (pyrcc_filename, qrc_filename)
-            if os.system(cmd):
-                print("[FAILED]", file=out)
-            else:
-                result[2].append(pyrcc_filename)
-                print("[DONE]", file=out)
         return result
 
 
