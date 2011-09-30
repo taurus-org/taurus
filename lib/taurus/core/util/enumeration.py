@@ -83,15 +83,18 @@ class Enumeration(object):
         'PASSAT'
     """
         
-    def __init__(self, name, enumList):
+    def __init__(self, name, enumList, flaggable=False):
         self.__doc__ = name
         lookup = { }
         reverseLookup = { }
-        uniqueNames = [ ]
-        self._uniqueValues = uniqueValues = [ ]
+        uniqueNames = set()
+        self._flaggable = flaggable
+        self._uniqueValues = uniqueValues = set()
         self._uniqueId = 0
         for x in enumList:
             if type(x) == types.TupleType:
+                if flaggable:
+                    raise EnumException("flagablle enum does not accept tuple items")
                 x, i = x
                 if type(x) != types.StringType:
                     raise EnumException("enum name is not a string: %s" % str(x))
@@ -101,8 +104,8 @@ class Enumeration(object):
                     raise EnumException("enum name is not unique: " % str(x))
                 if i in uniqueValues:
                     raise EnumException("enum value is not unique for " % str(x))
-                uniqueNames.append(x)
-                uniqueValues.append(i)
+                uniqueNames.add(x)
+                uniqueValues.add(i)
                 lookup[x] = i
                 reverseLookup[i] = x
         for x in enumList:
@@ -111,18 +114,21 @@ class Enumeration(object):
                     raise EnumException("enum name is not a string: " % str(x))
                 if x in uniqueNames:
                     raise EnumException("enum name is not unique: " % str(x))
-                uniqueNames.append(x)
+                uniqueNames.add(x)
                 i = self._generateUniqueId()
-                uniqueValues.append(i)
+                uniqueValues.add(i)
                 lookup[x] = i
                 reverseLookup[i] = x
         self.lookup = lookup
         self.reverseLookup = reverseLookup
    
     def _generateUniqueId(self):
-        while self._uniqueId in self._uniqueValues:
-            self._uniqueId += 1
-        n = self._uniqueId
+        if self._flaggable:
+            n = 2**self._uniqueId
+        else:
+            while self._uniqueId in self._uniqueValues:
+                self._uniqueId += 1
+            n = self._uniqueId
         self._uniqueId += 1
         return n
     
