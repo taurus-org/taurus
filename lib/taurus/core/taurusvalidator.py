@@ -40,7 +40,6 @@ InvalidAlias = "nada"
 
 class AbstractTangoValidator:
     
-    protocol_prefix = 'tango://'
     complete_name = None
     normal_name = None
     short_name = None
@@ -51,6 +50,7 @@ class AbstractTangoValidator:
     uri_sub_delims = "\!\$\&\'\(\)\*\,\;\="
     uri_reserved = uri_gen_delims + uri_sub_delims
     tango_word = '[^' + uri_reserved + ']+'
+    protocol_prefix = 'tango://'
 
     def __init__(self):
         self.complete_re = re.compile("^%s$" % self.complete_name)
@@ -91,9 +91,11 @@ class AbstractTangoValidator:
 
 class DatabaseNameValidator(util.Singleton, AbstractTangoValidator):
     
+    protocol_prefix = '((?P<scheme>tango)://)?'
+    
     db = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
     # for tango://host:port
-    complete_name = '(' + AbstractTangoValidator.protocol_prefix + ')?' + db
+    complete_name = '(' + protocol_prefix + ')?' + db
     # for a/b/c
     normal_name = db
     # for devalias
@@ -157,7 +159,7 @@ class DeviceNameValidator(util.Singleton, AbstractTangoValidator):
     # for tango://host:port/a/b/c/attrname or host:port/a/b/c
     complete_name = DatabaseNameValidator.complete_name + '/' + dev
     # for a/b/c
-    normal_name = dev
+    normal_name = DatabaseNameValidator.protocol_prefix + dev
     # for devalias
     short_name = '(?P<devalias>'+ w + ')'
 
