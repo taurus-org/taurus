@@ -42,7 +42,7 @@ from taurus.core.util import Logger
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericSpectrumAttr
 from sardana.macroserver.exception import MacroServerException
-
+from sardana.macroserver.manager import MacroServerManager
 
 #==================================================================
 #   MacroServer Class Description:
@@ -63,8 +63,7 @@ class MacroServer(SardanaDevice):
         MacroServer.init_device(self)
 
     def __getManager(self, *args):
-        import sardana.macroserver.manager
-        return sardana.macroserver.manager.MacroServerManager(*args)
+        return MacroServerManager(*args)
     
 #------------------------------------------------------------------
 #    Device destructor

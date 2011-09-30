@@ -428,15 +428,14 @@ class GScan(Logger):
         
         # add counters
         # +++
+        counters_info = self.measurement_group.getCountersInfo()
         counters = []
-        configuration = self.measurement_group.getConfiguration()
-        for counter in self.measurement_group.getCounters():
-            counter_name = counter['name']
-            counter_obj = configuration.getChannelObject(counter_name)
-            counter_type = FROM_TANGO_TO_STR_TYPE[counter_obj.getType()]
-            counter_shape = counter_obj.getShape()
-            instrument = counter['instrument']
-            label = counter['label']
+        for counter_info in counters_info:
+            counter_name = counter_info.name
+            counter_type = counter_info.data_type_str
+            counter_shape = counter_info.shape
+            instrument = counter_info.instrument
+            label = counter_info.label
             column = ColumnDesc(label=label, dtype=counter_type,
                                 shape=counter_shape, instrument=instrument)
             data_desc.append(column)
