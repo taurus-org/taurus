@@ -34,22 +34,23 @@ __all__ = ["AbortException", "BaseElement", "ControllerClass",
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import os
 import weakref
 import re
 import thread
-import copy
 import time
 import operator
 import json
 
-from PyTango import DevState, DevFailed
+from PyTango import DevState, AttrDataFormat, DevFailed, \
+    DeviceProxy, AttributeProxy
 
-import taurus
-from taurus.core import TaurusEventType
+from taurus import Factory
+from taurus.core import TaurusEventType, AttributeNameValidator
 from taurus.core.util import Logger, CaselessDict, CodecFactory, \
     EventGenerator, AttributeEventWait, AttributeEventIterator
-from taurus.core.tango import TangoDevice
+from taurus.core.tango import TangoDevice, FROM_TANGO_TO_STR_TYPE
 
 from motion import Moveable, MoveableSource
 
@@ -254,7 +255,7 @@ class HardwareObjList(BaseObjList):
         self.call__init__(BaseObjList, pool, name, obj_class, attr)
 
     def _createObject(self, elem_data):
-        f = taurus.Factory()
+        f = Factory()
         name = elem_data["full_name"]
         obj = f.getExistingDevice(name)
         if obj is not None:
@@ -273,7 +274,7 @@ class HardwareObjList(BaseObjList):
         deleted_elements = old_elements.difference(all_elements)
         new_elements = all_elements.difference(old_elements)
         
-        f = taurus.Factory()
+        f = Factory()
         for name, obj in old_objects.items():
             if name in deleted_elements:
                 f.removeExistingDevice(name)
@@ -292,6 +293,9 @@ class TangoAttributeEG(Logger, EventGenerator):
         self.call__init__(EventGenerator, event_name)
 
         self._attr.addListener(self)
+    
+    def getAttribute(self):
+        return self._attr
     
     def eventReceived(self, src, type, evt_value):
         """Event handler from Taurus"""
@@ -315,7 +319,8 @@ class TangoAttributeEG(Logger, EventGenerator):
     
     def __getattr__(self, name):
         return getattr(self._attr, name)
-        
+    
+    
 
 def reservedOperation(fn):
     def new_fn(*args, **kwargs):
@@ -335,19 +340,14 @@ class PoolElement(BaseElement, TangoDevice):
         self._reserved = None
         self.call__init__(TangoDevice, name, **kw)
         self._name_lower = self.getName().lower()
-
-        # dict<string, TangoAttribute>
-        # key : the attribute name
-        # value : the corresponding TangoAttribute object from the taurus layer
-        self._attr_obj = CaselessDict()
         
         # dict<string, TangoAttributeEG>
         # key : the attribute name
         # value : the corresponding TangoAttributeEG 
-        self._attr_obj_ex = CaselessDict()
+        self._attrEG = CaselessDict()
                 
         # force the creation of a state attribute
-        self.getStateExObj()
+        self.getStatEG()
 
         self._str_tuple = self._create_str_tuple()
 
@@ -358,12 +358,13 @@ class PoolElement(BaseElement, TangoDevice):
         TangoDevice.cleanUp(self)
         self._reserved = None
         f = self.factory()
-        for name, attr in self._attr_obj.items():
+        
+        attr_map = self._attrEG
+        for attr_name in attr_map.keys():
+            attrEG = attr_map.pop(attr_name)
+            attr = attrEG.getAttribute()
+            attrEG = None
             f.removeExistingAttribute(attr)
-            del self._attr_obj[name]
-            
-        self._attr_obj = CaselessDict()
-        self._attr_obj_ex = CaselessDict()
         
     def reserve(self, obj):
         if obj is None:
@@ -392,25 +393,24 @@ class PoolElement(BaseElement, TangoDevice):
         return self._reserved()
     
     def _getAttrValue(self, name, force=False):
-        attrExObj = self._getAttrEx(name)
-        if attrExObj is None: return None
-        return attrExObj.readValue(force=force)
+        attrEG = self._getAttrEG(name)
+        if attrEG is None: return None
+        return attrEG.readValue(force=force)
     
-    def _getAttrEx(self, name):
-        attrExObj = self.getAttrExObj(name)
-        if attrExObj is None:
-            attrExObj = self._createAttribute(name)[1]
-        return attrExObj
+    def _getAttrEG(self, name):
+        attrEG = self.getAttrEG(name)
+        if attrEG is None:
+            attrEG = self._createAttribute(name)
+        return attrEG
     
     def _createAttribute(self, name):
         attrObj = self.getAttribute(name)
         if attrObj is None:
             self.warning("Unable to create attribute %s" % name)
             return None, None
-        self._attr_obj[name] = attrObj
-        attrExObj = TangoAttributeEG(attrObj)
-        self._attr_obj_ex[name] = attrExObj
-        return attrObj, attrExObj
+        attrEG = TangoAttributeEG(attrObj)
+        self._attrEG[name] = attrEG
+        return attrEG
     
     def _getEventWait(self):
         if not hasattr(self, '_evt_wait'):
@@ -419,8 +419,8 @@ class PoolElement(BaseElement, TangoDevice):
             self._evt_wait = AttributeEventWait()
         return self._evt_wait
     
-    def getStateExObj(self):
-        return self._getAttrEx('state')
+    def getStatEG(self):
+        return self._getAttrEG('state')
     
     def __cmp__(self,o):
         return cmp(self._name_lower, o._name_lower)
@@ -441,18 +441,21 @@ class PoolElement(BaseElement, TangoDevice):
         return self._pool_obj
 
     def waitReady(self, timeout=None):
-        return self.getStateExObj().waitEvent(Moving, equal=False, timeout=timeout)
+        return self.getStatEG().waitEvent(Moving, equal=False, timeout=timeout)
 
-    def getAttrExObj(self, name):
+    def getAttrEG(self, name):
         """Returns the TangoAttributeEG object"""
-        return self._attr_obj_ex.get(name)
+        return self._attrEG.get(name)
     
     def getAttrObj(self, name):
         """Returns the taurus.core.TangoAttribute object"""
-        return self._attr_obj.get(name)
+        attrEG = self._attrEG.get(name)
+        if attrEG is None:
+            return None
+        return attrEG.getAttribute()
 
     def getInstrumentObj(self):
-        return self._getAttrEx('instrument')
+        return self._getAttrEG('instrument')
     
     def getInstrumentName(self, force=False):
         instr_name = self._getAttrValue('instrument', force=force)
@@ -503,7 +506,7 @@ class PoolElement(BaseElement, TangoDevice):
 
     def abort(self, wait_ready=True, timeout=None):
         self.info("Abort!")
-        state = self.getStateExObj()
+        state = self.getStatEG()
         state.lock()
         try:
             self.command_inout("Abort")
@@ -657,37 +660,37 @@ class Motor(PoolElement, Moveable):
         return self._getAttrValue('SimulationMode', force=force)
 
     def getPositionObj(self):
-        return self._getAttrEx('position')
+        return self._getAttrEG('position')
 
     def getDialPositionObj(self):
-        return self._getAttrEx('dialposition')
+        return self._getAttrEG('dialposition')
 
     def getVelocityObj(self):
-        return self._getAttrEx('velocity')
+        return self._getAttrEG('velocity')
 
     def getAccelerationObj(self):
-        return self._getAttrEx('acceleration')
+        return self._getAttrEG('acceleration')
 
     def getDecelerationObj(self):
-        return self._getAttrEx('deceleration')
+        return self._getAttrEG('deceleration')
     
     def getBaseRateObj(self):
-        return self._getAttrEx('base_rate')
+        return self._getAttrEG('base_rate')
 
     def getBacklashObj(self):
-        return self._getAttrEx('backlash')
+        return self._getAttrEG('backlash')
 
     def getLimitSwitchesObj(self):
-        return self._getAttrEx('limit_switches')
+        return self._getAttrEG('limit_switches')
     
     def getOffsetObj(self):
-        return self._getAttrEx('offset')
+        return self._getAttrEG('offset')
     
     def getStepPerUnitObj(self):
-        return self._getAttrEx('step_per_unit')
+        return self._getAttrEG('step_per_unit')
     
     def getSimulationModeObj(self):
-        return self._getAttrEx('step_per_unit')
+        return self._getAttrEG('step_per_unit')
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
@@ -709,7 +712,7 @@ class Motor(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateExObj().readValue(), self.readPosition()
+        return self.getStatEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish    
@@ -788,7 +791,7 @@ class PseudoMotor(PoolElement, Moveable):
         return self.getPosition(force=force)
 
     def getPositionObj(self):
-        return self._getAttrEx('position')
+        return self._getAttrEG('position')
 
     def getDialPositionObj(self):
         return self.getPositionObj()
@@ -813,7 +816,7 @@ class PseudoMotor(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateExObj().readValue(), self.readPosition()
+        return self.getStatEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish    
@@ -858,7 +861,7 @@ class MotorGroup(PoolElement, Moveable):
         return self._getAttrValue('position', force=force)
 
     def getPositionObj(self):
-        return self._getAttrEx('position')
+        return self._getAttrEG('position')
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
@@ -878,11 +881,11 @@ class MotorGroup(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateExObj().readValue(), self.readPosition()
+        return self.getStatEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
-    waitMove = PoolElement.waitFinish    
-    move = go   
+    waitMove = PoolElement.waitFinish
+    move = go
 
     def readPosition(self, force=False):
         return self.getPosition(force=force)
@@ -905,93 +908,253 @@ class MotorGroup(PoolElement, Moveable):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
 
-class BaseChannel(object):
+class BaseChannelInfo(object):
     
     def __init__(self, data):
+        # dict<str, obj>
+        # channel data
         self.raw_data = data
         self.__dict__.update(data)
 
 
-class TangoChannel(BaseChannel):
+class TangoChannelInfo(BaseChannelInfo):
     
-    def __init__(self, data):
-        BaseChannel.__init__(self, data)
-        self._attribute = None
-    
-    @property
-    def attribute(self):
-        if self._attribute is None:
-            self._attribute = AttributeProxy(self.source)
-        return self.__attribute
-    
-    def read(self):
-        return self.attribute.read()
-    
-    def read_asynch(self):
-        return self.attribute.read_asynch()
-    
-    def read_reply(self, id):
-        return self.attribute.read_reply(id)
+    def __init__(self, data, info):
+        BaseChannelInfo.__init__(self, data)
+        
+        # PyTago.AttributeInfoEx
+        self.raw_info = info
+        
+        self.data_type_str = FROM_TANGO_TO_STR_TYPE[self.data_type]
+        
+        shape = ()
+        if info.data_format == AttrDataFormat.SPECTRUM:
+            shape = (info.max_dim_x,)
+        elif info.data_format == AttrDataFormat.IMAGE:
+            shape = (info.max_dim_x, info.max_dim_y)
+        self.shape = shape
+        
+    def __getattr__(self, name):
+        return getattr(self.raw_info, name)
 
 
 class MGConfiguration(object):
     
-    def __init__(self, data):
+    def __init__(self, mg, data):
+        self._mg = weakref.ref(mg)
         if isinstance(data, str):
             json_codec = CodecFactory().getCodec('json')
             _, data = json_codec.decode(('json', data), ensure_ascii=True)
         self.raw_data = data
         self.__dict__.update(data)
         
+        # dict<str, dict>
+        # where key is the channel name and value is the channel data in form
+        # of a dict as receveid by the MG configuration attribute 
         self.channels = channels = CaselessDict()
+        
         for ctrl_name, ctrl_data in self.controllers.items():
             for unit_id, unit_data in ctrl_data['units'].items():
                 for channel_name, channel_data in unit_data['channels'].items():
                     data_source = channel_data['source']
                     channels[channel_name] = channel_data
+        
+        # seq<dict> each element is the channel data in form of a dict as
+        # receveid by the MG configuration attribute. This seq is just a cache
+        # ordered by channel index in the MG.
         self.channel_list = channel_list = len(channels)*[None]
+        
         for channel in channels.values():
             self.channel_list[channel['index']] = channel
-    
-    def getChannelObject(self, name):
-        channel = self.channels[name]
-        channel_obj = channel.get('channel')
-        if channel_obj is None:
-            data_source = channel['source']
-            channel['channel'] = channel_obj = taurus.Attribute(data_source)
-        return channel_obj
+
+        # dict<str, list[DeviceProxy, CaselessDict<str, dict>]>
+        # where key is a device name and value is a list with two elements:
+        #  - A device proxy or None if there was an error building it
+        #  - A dict where keys are attribute names and value is a reference to
+        #    a dict representing channel data as received in raw data
+        self.tango_dev_channels = None
+        
+        # Number of elements in tango_dev_channels in error (could not build 
+        # DeviceProxy, probably)
+        self.tango_dev_channels_in_error = 0
+        
+        # dict<str, tuple<str, str, TangoChannelInfo>>
+        # where key is a channel name and value is a tuple of three elements:
+        #  - device name
+        #  - attribute name
+        #  - attribute information or None if there was an error trying to get
+        #    the information
+        self.tango_channels_info = None
+
+        # Number of elements in tango_channels_info_in_error in error
+        # (could not build attribute info, probably)
+        self.tango_channels_info_in_error = 0
+        
+        # dict<str, dict>
+        # where key is a channel name and data is a reference to a dict
+        # representing channel data as received in raw data
+        self.non_tango_channels = None
+        
+        self.initialized = False
+        
+    def _build(self):
+        # internal channel structure that groups channels by tango device so
+        # they can be read as a group minimizing this way the network requests
+        self.tango_dev_channels = tg_dev_chs = CaselessDict()
+        self.tango_dev_channels_in_error = 0
+        self.tango_channels_info = tg_chs_info = CaselessDict()
+        self.tango_channels_info_in_error = 0
+        self.non_tango_channels = n_tg_chs = CaselessDict()
+        self.cache = cache = {}
+        
+        tg_attr_validator = AttributeNameValidator()
+        for channel_name, channel_data in self.channels.items():
+            cache[channel_name] = None
+            data_source = channel_data['source']
+            params = tg_attr_validator.getParams(data_source)
+            if params is None:
+                # Handle NON tango channel
+                n_tg_chs[channel_name] = channel_data
+            else:
+                # Handle tango channel
+                dev_name = params['devicename'].lower()
+                attr_name = params['attributename'].lower()
+                host, port = params.get('host'), params.get('port')
+                if host is not None and port is not None:
+                    dev_name = "{0}:{1}/{2}".format(host, port, dev_name)
+                dev_data = tg_dev_chs.get(dev_name)
+                
+                if dev_data is None:
+                    # Build tango device
+                    dev = None
+                    try:
+                        dev = DeviceProxy(dev_name)
+                    except:
+                        self.tango_dev_channels_in_error += 1
+                    tg_dev_chs[dev_name] = dev_data = [ dev, CaselessDict() ]
+                dev, attr_data = dev_data
+                attr_data[attr_name] = channel_data
+                
+                # get attribute configuration
+                attr_info = None
+                if dev is None:
+                    self.tango_channels_info_in_error += 1
+                else:
+                    try:
+                        tg_attr_info = dev.get_attribute_config_ex(attr_name)[0]
+                        attr_info = TangoChannelInfo(channel_data, tg_attr_info)
+                    except:
+                        import traceback
+                        traceback.print_exc()
+                        self.tango_channels_info_in_error += 1
+                tg_chs_info[channel_name] = dev_name, attr_name, attr_info
     
     def prepare(self):
-        # force the creation of taurus attributes
-        for channel in self.channels:
-            getChannelObject(channel)
+        # first time? build everything
+        if self.tango_dev_channels is None:
+            return self._build()
+        
+        # prepare missing tango devices
+        if self.tango_dev_channels_in_error > 0:
+            for dev_name, dev_data in self.tango_dev_channels.items():
+                if dev_data[0] is None:
+                    try:
+                        dev_data[0] = DeviceProxy(dev_name)
+                        self.tango_dev_channels_in_error -= 1
+                    except:
+                        pass
+        
+        # prepare missing tango attribute configuration
+        if self.tango_channels_info_in_error > 0:
+            for channel_name, attr_data in self.tango_channels_info.items():
+                dev_name, attr_name, attr_info = attr_data
+                if attr_info is not None:
+                    continue
+                dev = self.tango_dev_channels[dev_name]
+                if dev is None:
+                    continue
+                try:
+                    tg_attr_info = dev.get_attribute_config_ex(attr_name)[0]
+                    channel_data = self.channels[channel_name]
+                    attr_info = attr_info = TangoChannelInfo(channel_data, tg_attr_info)
+                    attr_data[2] = attr_info
+                    self.tango_channels_info_in_error -= 1
+                except:
+                    continue
+    
+    def getChannelInfo(self, channel_name):
+        return self.tango_channels_info[channel_name]
+    
+    def getChannelsInfo(self):
+        self.prepare()
+        return self.tango_channels_info
+    
+    def getChannelsInfoList(self):
+        ch_info = self.getChannelsInfo()
+        return [ ch_info[ch['name']][2] for ch in self.channel_list ]
+
+    def getCountersInfoList(self):
+        ch_info = self.getChannelsInfo()
+        ret = []
+        for ch in self.channel_list:
+            ch_name = ch['name']
+            if ch_name != self.timer:
+                ret.append(ch_info[ch_name][2])
+        return ret
+    
+    def read(self):
+        ret = CaselessDict(self.cache)
+        dev_replies = {}
+        for dev_name, dev_data in self.tango_dev_channels.items():
+            dev, attrs = dev_data
+            if dev is None:
+                continue
+            try:
+                dev_replies[dev] = dev.read_attributes_asynch(attrs.keys()), attrs
+            except:
+                continue
+        for dev, reply_data in dev_replies.items():
+            reply, attrs = reply_data
+            try:
+                data = dev.read_attributes_reply(reply, 0)
+                for data_item in data:
+                    channel_data = attrs[data_item.name]
+                    if data_item.has_failed:
+                        value = None
+                    else:
+                        value = data_item.value
+                    ret[channel_data['name']] = value
+            except:
+                continue
+        return ret
+
 
 class MeasurementGroup(PoolElement):
     """ Class encapsulating MeasurementGroup functionality."""
-
+    
     def __init__(self, name, **kw):
         """PoolElement initialization."""
         self._configuration = None
         self._channels = None
         self.call__init__(PoolElement, name, **kw)
         
-        self._configuration_attr = cfg_attr = self._getAttrEx('configuration')
+        self._configuration_attr = cfg_attr = self._getAttrEG('configuration')
         cfg_attr.subscribeEvent(self.onConfigurationChanged)
 
     def _create_str_tuple(self):
         return self.getName(), self.getTimerName(), ", ".join(self.getChannelNames())
  
-    def getConfigurationObj(self):
-        return self._getAttrEx('Configuration')
+    def getConfigurationAttrEG(self):
+        return self._getAttrEG('Configuration')
     
     def getConfiguration(self, force=False):
         if force or self._configuration is None:
-            data = self.getConfigurationObj().readValue(force=True)
+            data = self.getConfigurationAttrEG().readValue(force=True)
             self.onConfigurationChanged(None, data)
         return self._configuration
     
     def onConfigurationChanged(self, obj, data):
-        self._configuration = MGConfiguration(data)
+        self._configuration = MGConfiguration(self, data)
     
     def getTimerName(self):
         return self.getConfiguration().timer
@@ -1033,45 +1196,39 @@ class MeasurementGroup(PoolElement):
     def getChannel(self, name):
         return self.getConfiguration().channels[name]
     
-    def getChannelObject(self, name):
-        return self.getConfiguration().getChannelObject(name)
+    def getChannelInfo(self, name):
+        return self.getConfiguration().getChannelInfo(name)
     
-    def getValues(self, force=False):
-        #if force:
-        #    return self.getValuesFromHW()
-        ret = {}
-        nan = float('NAN')
-        
-        for ch_name in self.getChannelNames():
-            ch_attr = self.getChannelObject(ch_name)
-            try:
-                ch_value = ch_attr.read(cache=not force).value
-            except Exception, e:
-                self.debug("Failed to read '%s'" , ch_name, exc_info=1)
-                ch_value = None
-            if ch_value is None: ch_value = nan
-            ret[ch_name] = ch_value
-        return ret
+    def getChannelsInfo(self):
+        return self.getConfiguration().getChannelsInfoList()
+    
+    def getCountersInfo(self):
+        return self.getConfiguration().getCountersInfoList()
+    
+    def getValues(self):
+        return self.getConfiguration().read()
     
     def getIntegrationTime(self):
         return self._getAttrValue('IntegrationTime')
-
+    
     def getIntegrationTimeObj(self):
-        return self._getAttrEx('IntegrationTime')
-
+        return self._getAttrEG('IntegrationTime')
+    
     def setIntegrationTime(self, ctime):
         self.getIntegrationTimeObj().write(ctime)
-
+    
     def _start(self, *args, **kwargs):
         self.Start()
-
+    
     def go(self, *args, **kwargs):
+        cfg = self.getConfiguration()
+        cfg.prepare()
         duration = args[0]
         if duration is None or duration == 0:
-            return self.getStateExObj().readValue(), self.getValues(force=True)
+            return self.getStatEG().readValue(), self.getValues()
         self.setIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateExObj().readValue(), self.getValues(force=False)
+        return self.getStatEG().readValue(), self.getValues()
         
     startCount = PoolElement.start
     waitCount = PoolElement.waitFinish
@@ -1087,7 +1244,7 @@ class IORegister(PoolElement):
         self.call__init__(PoolElement, name, **kw)
 
     def getValueObj(self):
-        return self._getAttrEx('value')
+        return self._getAttrEG('value')
     
     def readValue(self, force=False):
         return self._getAttrValue('value', force=force)
@@ -1109,7 +1266,7 @@ class IORegister(PoolElement):
     def writeValue(self, new_value, timeout=None):
         self.startWriteValue(new_value, timeout=timeout)
         self.waitWriteValue(timeout=timeout)
-        return self.getStateExObj().readValue(), self.readValue()
+        return self.getStatEG().readValue(), self.readValue()
 
     writeIORegister = writeIOR = writeValue
     readIORegister = readIOR = getValue = readValue
@@ -1194,20 +1351,17 @@ class Pool(TangoDevice, MoveableSource):
         
         for name, obj_class in self.SoftwareObjMap:
             attr_name = "%sList" % name
-            attr = self._createAttribute(attr_name)
+            attr = self.getAttribute(attr_name)
             self._attr_dict[attr] = attr_name
             sw_obj_list = SoftwareObjList(self, name, obj_class, attr)
             self._obj_dict[name] = sw_obj_list
 
         for name, obj_class in self.HardwareObjMap:
             attr_name = "%sList" % name
-            attr = self._createAttribute(attr_name)
+            attr = self.getAttribute(attr_name)
             self._attr_dict[attr] = attr_name
             hw_obj_list = HardwareObjList(self, name, obj_class, attr)
             self._obj_dict[name] = hw_obj_list
-
-    def _createAttribute(self, attr_name):
-        return self.getAttribute(attr_name)
 
     def hasListObj(self, name):
         return self._obj_dict.has_key(name)
@@ -1341,8 +1495,7 @@ class Pool(TangoDevice, MoveableSource):
         ctrl_list.waitEvent(any=True, timeout=0.5)
         
 def registerExtensions():
-    import taurus
-    factory = taurus.Factory()
+    factory = Factory()
     factory.registerDeviceClass("Pool", Pool)
     for klass_name, klass in Pool.HardwareObjTypeMap:
         factory.registerDeviceClass(klass_name, klass)
