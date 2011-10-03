@@ -215,7 +215,7 @@ class BaseObjList(Logger, EventGenerator):
             # Maybe name is the full name
             name_lower = name.lower()
             for e_data in self._elements.values():
-                if e_data.full_name.lower() == name_lower:
+                if e_data['full_name'].lower() == name_lower:
                     elem_data = e_data
                     break
             if elem_data is None:
@@ -297,13 +297,15 @@ class TangoAttributeEG(Logger, EventGenerator):
     def getAttribute(self):
         return self._attr
     
-    def eventReceived(self, src, type, evt_value):
+    def eventReceived(self, evt_src, evt_type, evt_value):
         """Event handler from Taurus"""
-        if type not in (TaurusEventType.Change, TaurusEventType.Periodic):
+        if evt_type not in (TaurusEventType.Change, TaurusEventType.Periodic):
             return
-        if not evt_value is None:
-            evt_value = evt_value.value
-        EventGenerator.fireEvent(self, evt_value)
+        if evt_value is None:
+            v = None
+        else:
+            v = evt_value.value
+        EventGenerator.fireEvent(self, v)
 
     def read(self, force=False):
         try:
