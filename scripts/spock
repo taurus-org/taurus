@@ -27,7 +27,7 @@
    ipython file that can be found in <prefix>/ipython (prefix usually being in 
    linux '/usr/bin'"""
 
-__all__ = ["main"]
+__all__ = [ "main" ]
 
 __docformat__ = 'restructuredtext'
 
