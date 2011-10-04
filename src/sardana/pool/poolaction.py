@@ -123,6 +123,7 @@ class OperationContext(object):
         for element in pool_action.get_elements():
             element.clear_operation()
         pool_action.finish_action()
+        return False
     
     def __enter__(self):
         return self.enter()
@@ -220,7 +221,7 @@ class PoolAction(Logger):
         synch = kwargs.pop("synch", False)
         
         if synch:
-            with OperationContext(self):
+            with OperationContext(self) as context:
                 self.start_action(*args, **kwargs)
                 self.action_loop()
         else:
