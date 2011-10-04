@@ -218,7 +218,6 @@ class PoolController(PoolBaseController):
         self._class_name = kwargs.pop('klass')
         self._properties = kwargs.pop('properties')
         self._ctrl = None
-        self._ctrl_lock = threading.Lock()
         super(PoolController, self).__init__(**kwargs)
         self.re_init()
 
@@ -260,7 +259,6 @@ class PoolController(PoolBaseController):
             self._ctrl = None
             self._ctrl_error = sys.exc_info()
     
-    @InfoIt()
     def re_init(self):
         self.set_state(State.Init, propagate=2)
         status = "{0} is Initializing (temporarly unavailable)".format(self.name)
@@ -408,33 +406,19 @@ class PoolController(PoolBaseController):
         return self.ctrl.GetAxisPar(axis, name)    
 
     # END API WHICH ACCESSES CONTROLLER API ------------------------------------
-
-    def get_ctrl_lock(self):
-        return self._ctrl_lock
-    
-    ctrl_lock = property(fget=get_ctrl_lock)
-
-    def __enter__(self):
-        self._ctrl_lock.acquire()
-
-    def __exit__(self, type, value, traceback):
-        self._ctrl_lock.release()
-        return False
-
-    def _get_free_axis(self):
-        ret = {}
-        for axis, element in self._element_axis.items():
-            if element.is_in_operation():
-                continue
-            ret[axis] = element
-        return ret
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
 
-    @check_ctrl
+    def __build_exception_information(self, axises):
+        status = s = "".join(traceback.format_exception(*sys.exc_info()))
+        state_info = State.Fault, status
+        for axis in axises:
+            element = self.get_element(axis=axis)
+            ctrl_states[element] = state_info
+
     def raw_read_axis_states(self, axises=None, ctrl_states=None):
-        """Reads the state for the given axises. If axises is None, reads the
-        state of all active axises.
+        """**Unsafe method**. Reads the state for the given axises. If axises
+        is None, reads the state of all active axises.
         
         :param axises: the list of axis to get the state. Default is None meaning
                        all active axis in this controller
@@ -443,27 +427,34 @@ class PoolController(PoolBaseController):
         :rtype: dict<PoolElement, state info>
         """
         if axises is None:
-            axises = sorted(self._get_free_axis())
+            axises = self._element_axis.keys()
+        if ctrl_states is None:
+            ctrl_states = {}
         
         ctrl = self.ctrl
+        
         ctrl.PreStateAll()
         
         for axis in axises:
             ctrl.PreStateOne(axis)
-        
+            
         ctrl.StateAll()
         
-        if ctrl_states is None:
-            ctrl_states = {}
         for axis in axises:
             element = self.get_element(axis=axis)
-            state_info = ctrl.StateOne(axis)
+            try:
+                state_info = ctrl.StateOne(axis)
+            except:
+                self.__build_exception_information((axis,))
+                continue
+            
             if state_info is None:
-                msg = "%s.StateOne(%s) returns 'None'" % (self.name, element.name)
+                msg = "%s.StateOne(%d) returns 'None'" % (self.name, axis)
                 state_info = State.Fault, msg
             ctrl_states[element] = state_info
         return ctrl_states
-
+    
+    @check_ctrl
     def read_axis_states(self, axises=None):
         """Reads the state for the given axises. If axises is None, reads the
         state of all active axises.
@@ -474,22 +465,48 @@ class PoolController(PoolBaseController):
         :return: a map containing the controller state information for each axis
         :rtype: dict<PoolElement, state info>
         """
-        if axises is None:
-            axises = sorted(self._get_free_axis())
-        ctrl_states = {}
-        try:
-            ctrl_states = self.raw_read_axis_states(axises=axises, ctrl_states=ctrl_states)
-        except:
-            status = s = "".join(traceback.format_exception(*sys.exc_info()))
-            state_info = State.Fault, status
-            for axis in axises:
-                element = self.get_element(axis=axis)
-                if not ctrl_states.has_key(element):
-                    ctrl_states[element] = state_info
-        return ctrl_states
+        return self.raw_read_axis_states(axises=axises)
     
+    def raw_read_axis_values(self, axises=None, ctrl_values=None):
+        """**Unsafe method**. Reads the value for the given axises. If axises
+        is None, reads the value of all active axises.
+        
+        :param axises: the list of axis to get the value. Default is None meaning
+                       all active axis in this controller
+        :type axises: seq<int> or None
+        :return: a map containing the controller value information for each axis
+        :rtype: dict<PoolElement, value>
+        """
+        if axises is None:
+            axises = self._element_axis.keys()
+        if ctrl_values is None:
+            ctrl_values = {}
+        
+        ctrl = self.ctrl
+
+        ctrl.PreReadAll()
+        
+        for axis in axises:
+            ctrl.PreReadOne(axis)
+        
+        ctrl.ReadAll()
+        
+        for axis in axises:
+            element = self.get_element(axis=axis)
+            try:
+                value = ctrl.ReadOne(axis)
+            except:
+                self.__build_exception_information((axis,))
+                ctrl_values[element] = None
+                continue
+            
+            if value is None:
+                self.info("ReadOne(%d) returns 'None'", axis)
+            ctrl_values[element] = value
+        return ctrl_values
+
     @check_ctrl
-    def read_axis_values(self, axises=None, ctrl_values=None):
+    def read_axis_values(self, axises=None):
         """Reads the value for the given axises. If axises is None, reads the
         value of all active axises.
         
@@ -499,34 +516,15 @@ class PoolController(PoolBaseController):
         :return: a map containing the controller value information for each axis
         :rtype: dict<PoolElement, value>
         """
-        if axises is None:
-            axises = sorted(self._get_free_axis())
-        
-        ctrl = self.ctrl
-        ctrl.PreReadAll()
-        
-        for axis in axises:
-            ctrl.PreReadOne(axis)
-        
-        ctrl.ReadAll()
-        
-        if ctrl_values is None:
-            ctrl_values = {}
-        for axis in axises:
-            element = self.get_element(axis=axis)
-            value = ctrl.ReadOne(axis)
-            if value is None:
-                raise Exception("Controller returns 'None' for ReadOne")
-            ctrl_values[element] = value
-        return ctrl_values
+        return self.raw_read_axis_values(axises=axises)
     
-    def _stop_all(self):
+    def raw_stop_all(self):
         try:
             return self.ctrl.StopAll()
         except:
             self.ctrl.warning("StopAll() raises exception", exc_info=1)
 
-    def _stop_one(self, axis):
+    def raw_stop_one(self, axis):
         try:
             self.ctrl.StopOne(axis)
         except:
@@ -538,13 +536,13 @@ class PoolController(PoolBaseController):
 
     @check_ctrl
     def stop_all(self):
-        self._stop_all()
+        self.raw_stop_all()
     
     stop = stop_all
     
     @check_ctrl
     def stop_one(self, axis):
-        return self._stop_one(axis)
+        return self.raw_stop_one(axis)
     
     @check_ctrl
     def stop_axises(self, axises=None):
@@ -555,10 +553,10 @@ class PoolController(PoolBaseController):
         :type axises: seq<int> or None
         """
         if axises is None:
-            return self._stop_all()
+            return self.raw_stop_all()
         
         for axis in axises:
-            self._stop_one(axis)
+            self.raw_stop_one(axis)
     
     @check_ctrl
     def stop_elements(self, elements=None):
@@ -569,18 +567,18 @@ class PoolController(PoolBaseController):
         :type axises: seq<PoolElement> or None
         """
         if elements is None:
-            return self._stop_all()
+            return self.raw_stop_all()
         
         for element in elements:
-            self._stop_one(element.axis)
+            self.raw_stop_one(element.axis)
             
-    def _abort_all(self):
+    def raw_abort_all(self):
         try:
             return self.ctrl.AbortAll()
         except:
             self.ctrl.warning("AbortAll() raises exception", exc_info=1)
 
-    def _abort_one(self, axis):
+    def raw_abort_one(self, axis):
         try:
             self.ctrl.AbortOne(axis)
         except:
@@ -592,11 +590,11 @@ class PoolController(PoolBaseController):
 
     @check_ctrl
     def abort_all(self):
-        self._abort_all()
+        self.raw_abort_all()
 
     @check_ctrl
     def abort_one(self, axis):
-        return self._abort_one(axis)
+        return self.raw_abort_one(axis)
     
     @check_ctrl
     def abort_axises(self, axises=None):
@@ -607,10 +605,10 @@ class PoolController(PoolBaseController):
         :type axises: seq<int> or None
         """
         if axises is None:
-            return self._abort_all()
+            return self.raw_abort_all()
         
         for axis in axises:
-            self._abort_one(axis)
+            self.raw_abort_one(axis)
     
     @check_ctrl
     def abort_elements(self, elements=None):
@@ -621,10 +619,10 @@ class PoolController(PoolBaseController):
         :type axises: seq<PoolElement> or None
         """
         if elements is None:
-            return self._abort_all()
+            return self.raw_abort_all()
         
         for element in elements:
-            self._abort_one(element.axis)
+            self.raw_abort_one(element.axis)
     
     abort = abort_all
     
@@ -632,8 +630,7 @@ class PoolController(PoolBaseController):
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------
     
-    @check_ctrl
-    def move(self, axis_pos):
+    def raw_move(self, axis_pos):
         ctrl = self.ctrl
         ctrl.PreStartAll()
         for axis, dial_position in axis_pos.items():
@@ -646,6 +643,10 @@ class PoolController(PoolBaseController):
             ctrl.StartOne(axis, dial_position)
         
         ctrl.StartAll()
+
+    @check_ctrl
+    def move(self, axis_pos):
+        return self.raw_move(axis_pos)
     
     def has_backlash(self):
         return "Backlash" in self._ctrl.ctrl_features

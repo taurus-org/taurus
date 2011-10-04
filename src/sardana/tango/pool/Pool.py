@@ -147,6 +147,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         attr.set_value(info)
     
     #@PyTango.DebugIt()
+    def read_AcqChannelList(self, attr):
+        info = self.pool.get_acquisition_elements_str_info()
+        attr.set_value(info)
+    
+    #@PyTango.DebugIt()
     def read_MotorGroupList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.MotorGroup)
         attr.set_value(info)
@@ -546,16 +551,21 @@ class Pool(PyTango.Device_4Impl, Logger):
     def on_pool_changed(self, evt_src, evt_type, evt_value):
         evt_name = evt_type.name.lower()
         if evt_name in ("elementcreated", "elementdeleted"):
-            # during server startup avoind processing element creation events 
-            # for performance reasons
+            
+            # during server startup and shutdown avoid processing element
+            # creation events
             if SardanaServer.server_state != ServerState.Run:
                 return
+            
             elem_type = evt_value["type"]
-            #print "on_pool_changed", evt_name, ElementType[elem_type]
             td = TYPE_MAP_OBJ[elem_type]
             attribute_list_name = td.family + "List"
             info = self.pool.get_elements_str_info(elem_type)
             self.push_change_event(attribute_list_name, info)
+            
+            if elem_type in TYPE_ACQUIRABLE_ELEMENTS:
+                info = self.pool.get_acquisition_elements_str_info()
+                self.push_change_event('AcqChannelList', info)
 
     def _format_create_json_arguments(self, argin):
         elems, ret = json.loads(argin[0]), []
@@ -887,6 +897,14 @@ class PoolClass(PyTango.DeviceClass):
             {
                 'label':"Experiment channel list",
                 'description':"The list of experiment channels (a JSON encoded dict)",
+            } ],
+        'AcqChannelList':
+            [[PyTango.DevString,
+            PyTango.SPECTRUM,
+            PyTango.READ, 4096],
+            {
+                'label':"Acquisition channel list",
+                'description':"The list of all acquisition channels (a JSON encoded dict)",
             } ],
         'MotorGroupList':
             [[PyTango.DevString,

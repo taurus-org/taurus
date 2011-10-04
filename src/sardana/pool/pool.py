@@ -31,11 +31,12 @@ __docformat__ = 'restructuredtext'
 
 import os.path
 import logging.handlers
+import json
 
-from taurus.core.util import ThreadPool, InfoIt, DebugIt
+from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 
 
-from pooldefs import *
+from pooldefs import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
 from poolbase import PoolObject
 from poolevent import EventType
 from poolcontainer import PoolContainer
@@ -74,6 +75,15 @@ class Pool(PoolContainer, PoolObject):
         self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
         self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
         
+        # dict<str, dict<str, str>>
+        # keys are acquisition channel names and value is a dict describing the
+        # channel containing:
+        #  - 'name': with value being the channel name (given by user)
+        #  - 'full_name': acq channel full name (ex: tango attribute)
+        #  - 'origin': 'local' if local to this server or 'remote' if a remote
+        #    channel
+        self._extra_acquisition_element_names = CaselessDict()
+        
         PoolContainer.__init__(self)
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                             pool=self)
@@ -81,7 +91,7 @@ class Pool(PoolContainer, PoolObject):
         ControllerManager()
     
     def init_remote_logging(self, host=None, port=None):
-        """Initializes remote logging. 
+        """Initializes remote logging.
         
         :param host: host name [default: None, meaning use the machine host name
                      as returned by :func:`socket.getfqdn`].
@@ -198,6 +208,21 @@ class Pool(PoolContainer, PoolObject):
             objs = self.get_elements_by_type(obj_type)
         name = self.full_name
         return [ obj.str(pool=name) for obj in objs ]
+    
+    def get_acquisition_elements_info(self):
+        ret = []
+        for name, element in self.get_element_name_map().items():
+            if element.get_type() not in TYPE_ACQUIRABLE_ELEMENTS:
+                continue
+            acq_channel = element.get_default_acquisition_channel()
+            full_name = "{0}/{1}".format(element.full_name, acq_channel)
+            info = dict(name=element.name, full_name=full_name, origin='local')
+            ret.append(info)
+        ret.extend(self._extra_acquisition_element_names.values())
+        return ret
+    
+    def get_acquisition_elements_str_info(self):
+        return map(json.dumps, self.get_acquisition_elements_info())
     
     def check_element(self, name, full_name):
         raise_element_name = True

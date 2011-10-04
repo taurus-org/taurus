@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import weakref
 import functools
+import threading
 
 from sardana import State
 from poolevent import EventType
@@ -55,7 +56,10 @@ class PoolBaseElement(PoolObject):
         self._action_cache = None
         self._aborted = False
         self._stopped = False
-
+        
+        # A lock for high level operations: monitoring, motion or acquisition
+        self._lock = threading.Lock()
+        
         # The operation context in which the element is involved
         self._operation = None
         
@@ -63,7 +67,20 @@ class PoolBaseElement(PoolObject):
         self._pool_action = None
 
         super(PoolBaseElement, self).__init__(**kwargs)
+
+    def __enter__(self):
+        self._lock.acquire()
+
+    def __exit__(self, type, value, traceback):
+        self._lock.release()
+        return False
+
+    def lock(self, blocking=True):
+        return self._lock.acquire(blocking)
     
+    def unlock(self):
+        return self._lock.release()
+
     def get_action_cache(self):
         """Returns the internal action cache object"""
         return self._action_cache
@@ -213,7 +230,14 @@ class PoolBaseElement(PoolObject):
         state, status = state_info[:2]
         state = int(state)
         return state, status
-
+    
+    # --------------------------------------------------------------------------
+    # default acquisition channel
+    # --------------------------------------------------------------------------
+    
+    def get_default_acquisition_channel(self):
+        raise NotImplementedError
+    
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------

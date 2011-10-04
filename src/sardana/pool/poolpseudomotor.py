@@ -244,7 +244,14 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         
         ret = self._calculate_states()
         return ret
-        
+    
+    # --------------------------------------------------------------------------
+    # default acquisition channel
+    # --------------------------------------------------------------------------
+    
+    def get_default_acquisition_channel(self):
+        return "position"
+    
     # --------------------------------------------------------------------------
     # motion
     # --------------------------------------------------------------------------

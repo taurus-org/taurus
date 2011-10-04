@@ -40,6 +40,7 @@ from taurus.core.util import Logger
 #from taurus.core.util import DebugIt, InfoIt
 
 from sardana import State
+from poolbase import PoolObject
 
 def get_thread_pool():
     """Returns the global pool of threads"""
@@ -115,13 +116,19 @@ class OperationContext(object):
         """Enters operation context"""
         pool_action = self._pool_action
         for element in pool_action.get_elements():
+            element.lock()
             element.set_operation(pool_action)
-    
+        for ctrl in pool_action.get_pool_controller_list():
+            ctrl.lock()
+        
     def exit(self):
         """Leaves operation context"""
         pool_action = self._pool_action
-        for element in pool_action.get_elements():
+        for element in reversed(pool_action.get_elements()):
             element.clear_operation()
+            element.unlock()
+        for ctrl in reversed(pool_action.get_pool_controller_list()):
+            ctrl.unlock()
         pool_action.finish_action()
         return False
     
@@ -142,7 +149,8 @@ class PoolAction(Logger):
         self._aborted = False
         self._stopped = False
         self._elements = []
-        self._pool_ctrls = {}
+        self._pool_ctrl_dict = {}
+        self._pool_ctrl_list = []
         self._finish_hook = None
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
@@ -152,13 +160,20 @@ class PoolAction(Logger):
         
         :param element: the new element to be added
         :type element: sardana.pool.poolelement.PoolElement"""
-        ctrl_items = self._pool_ctrls.get(element.controller)
+        ctrl = element.controller
+        ctrl_items = self._pool_ctrl_dict.get(ctrl)
         if ctrl_items is None:
             ctrl_items = []
-            self._pool_ctrls[element.controller] = ctrl_items
-
+            self._pool_ctrl_dict[ctrl] = ctrl_items
+            self._pool_ctrl_list.append(ctrl)
+            self._pool_ctrl_list.sort(key=PoolObject.get_id)
+        
         self._elements.append(element)
         ctrl_items.append(element)
+        # make sure elements are ordered by ID so that a multiple lock always
+        # locks and unlocks in the same order
+        self._elements.sort(key=PoolObject.get_id)
+        ctrl_items.sort(key=PoolObject.get_id)
     
     def remove_element(self, element):
         """Removes an element from this action. If the element is not part of
@@ -175,10 +190,11 @@ class PoolAction(Logger):
         except ValueError:
             raise ValueError("action doesn't contain %s" % element.name)
         del self._elements[idx]
-        ctrl_items = self._pool_ctrls[ctrl]
+        ctrl_items = self._pool_ctrl_dict[ctrl]
         del ctrl_items[ctrl_items.index(element)]
         if not len(ctrl_items):
-            del self._pool_ctrls[ctrl]
+            del self._pool_ctrl_dict[ctrl]
+            del self._pool_ctrl_list[self._pool_ctrl_list.index(ctrl)]
     
     def get_elements(self, copy_of=False):
         """Returns a sequence of all elements involved in this action.
@@ -193,20 +209,20 @@ class PoolAction(Logger):
         if copy_of:
             elements = tuple(elements)
         return elements
-    
-    def get_pool_controllers(self, copy_of=False):
-        """Returns a map of all controller elements involved in this action.
+
+    def get_pool_controller_list(self):
+        """Returns a list of all controller elements involved in this action.
         
-        :param copy_of: If False (default) the internal container of controllers
-                        is returned. If True, a copy of the internal container
-                        is returned instead
-        :type copy_of: bool
-        :return: a sequence of all controller elements involved in this action.
-        :rtype: seq<sardana.pool.poolelement.PoolController>"""
-        pool_ctrls = self._pool_ctrls
-        if copy_of:
-            pool_ctrls = copy.deepcopy(pool_ctrls)
-        return pool_ctrls
+        :return: a list of all controller elements involved in this action.
+        :rtype: list<sardana.pool.poolelement.PoolController>"""
+        return self._pool_ctrl_list
+    
+    def get_pool_controllers(self):
+        """Returns a dict of all controller elements involved in this action.
+        
+        :return: a dict of all controller elements involved in this action.
+        :rtype: dict<sardana.pool.poolelement.PoolController, seq<sardana.pool.poolelement.PoolElement>>"""
+        return self._pool_ctrl_dict
     
     def _is_in_action(self, state):
         """Determines if the given state is a busy state (Moving or Running) or
@@ -257,13 +273,13 @@ class PoolAction(Logger):
     def stop_action(self, *args, **kwargs):
         """Stop procedure for this action."""
         self._stopped = True
-        for pool_ctrl, elements in self._pool_ctrls.items():
+        for pool_ctrl, elements in self._pool_ctrl_dict.items():
             pool_ctrl.stop_elements(elements)
 
     def abort_action(self, *args, **kwargs):
         """Aborts procedure for this action"""
         self._aborted = True
-        for pool_ctrl, elements in self._pool_ctrls.items():
+        for pool_ctrl, elements in self._pool_ctrl_dict.items():
             pool_ctrl.abort_elements(elements)
 
     def was_stopped(self):
@@ -308,21 +324,21 @@ class PoolAction(Logger):
             read = self._read_state_info_serial
         state_info = self._state_info
         with state_info:
-            state_info.init(len(self._pool_ctrls))
+            state_info.init(len(self._pool_ctrl_dict))
             read(ret)
             state_info.wait()
         return ret
 
     def _read_state_info_serial(self, ret):
         """Internal method. Read state in a serial mode"""
-        for pool_ctrl in self._pool_ctrls:
+        for pool_ctrl in self._pool_ctrl_dict:
             self._read_ctrl_state_info(ret, pool_ctrl)
         return ret
 
     def _read_state_info_concurrent(self, ret):
         """Internal method. Read state in a concurrent mode"""
         th_pool = get_thread_pool()
-        for pool_ctrl in self._pool_ctrls:
+        for pool_ctrl in self._pool_ctrl_dict:
             th_pool.add(self._read_ctrl_state_info, None, ret, pool_ctrl)
         return ret
     
@@ -343,14 +359,14 @@ class PoolAction(Logger):
         """Internal method. Read controller information and store it in ret
         parameter"""
         try:
-            axises = [ elem.axis for elem in self._pool_ctrls[pool_ctrl] ]
-            state_infos = pool_ctrl.read_axis_states(axises)
+            axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
+            state_infos = pool_ctrl.raw_read_axis_states(axises)
             ret.update( state_infos )
         except:
             self.error("Something wrong happend: Error should have been caught"
                        "by ctrl.read_axis_states", exc_info=1)
             state_info = self._get_ctrl_error_state_info(pool_ctrl)
-            for elem in self._pool_ctrls[pool_ctrl]:
+            for elem in self._pool_ctrl_dict[pool_ctrl]:
                 ret[elem] = state_info
         finally:
             self._state_info.finish_one()
@@ -378,21 +394,21 @@ class PoolAction(Logger):
         value_info = self._value_info
         
         with value_info:
-            value_info.init(len(self._pool_ctrls))
+            value_info.init(len(self._pool_ctrl_dict))
             read(ret)
             value_info.wait()
         return ret
 
     def _read_value_serial(self, ret):
         """Internal method. Read value in a serial mode"""
-        for pool_ctrl in self._pool_ctrls:
+        for pool_ctrl in self._pool_ctrl_dict:
             self._read_ctrl_value(ret, pool_ctrl)
         return ret
 
     def _read_value_concurrent(self, ret):
         """Internal method. Read value in a concurrent mode"""
         th_pool = get_thread_pool()
-        for pool_ctrl in self._pool_ctrls:
+        for pool_ctrl in self._pool_ctrl_dict:
             th_pool.add(self._read_ctrl_value, None, ret, pool_ctrl)
         return ret
     
@@ -400,8 +416,8 @@ class PoolAction(Logger):
         """Internal method. Read controller value information and store it in
         ret parameter"""
         try:
-            axises = [ elem.axis for elem in self._pool_ctrls[pool_ctrl] ]
-            value_infos = pool_ctrl.read_axis_values(axises)
+            axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
+            value_infos = pool_ctrl.raw_read_axis_values(axises)
             ret.update( value_infos )
         finally:
             self._value_info.finish_one()

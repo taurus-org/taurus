@@ -442,6 +442,13 @@ class PoolMotor(PoolElement):
     dial_position = property(get_dial_position, doc="motor dial position")
     
     # --------------------------------------------------------------------------
+    # default acquisition channel
+    # --------------------------------------------------------------------------
+    
+    def get_default_acquisition_channel(self):
+        return 'position'
+    
+    # --------------------------------------------------------------------------
     # motion
     # --------------------------------------------------------------------------
 

@@ -27,8 +27,8 @@
 
 __all__ = ["InvalidId", "InvalidAxis", "ControllerAPI", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
-           "TYPE_PHYSICAL_ELEMENTS",
-           "AcqMode", "AcqTriggerType"]
+           "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
+           "TYPE_PSEUDO_ELEMENTS", "AcqMode", "AcqTriggerType"]
 
 __docformat__ = 'restructuredtext'
 
@@ -81,6 +81,13 @@ TYPE_MOVEABLE_ELEMENTS = set((ET.Motor, ET.PseudoMotor, ET.MotorGroup))
 TYPE_PHYSICAL_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.Communication, ET.IORegister))
+
+TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
+    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.PseudoCounter))
+
+TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 
 #: an enumeration describing all possible acquisition trigger types
 AcqTriggerType = Enumeration("AcqTriggerType", ( \

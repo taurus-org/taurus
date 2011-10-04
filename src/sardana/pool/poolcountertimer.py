@@ -80,6 +80,13 @@ class PoolCounterTimer(PoolElement):
     value = property(get_value, set_value, doc="ct value")
     
     # --------------------------------------------------------------------------
+    # default acquisition channel
+    # --------------------------------------------------------------------------
+    
+    def get_default_acquisition_channel(self):
+        return 'value'
+    
+    # --------------------------------------------------------------------------
     # acquisition
     # --------------------------------------------------------------------------
     

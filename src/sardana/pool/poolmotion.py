@@ -193,7 +193,7 @@ class PoolMotion(PoolAction):
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
         
-        pool_ctrls = self._pool_ctrls.keys()
+        pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
         
         # PreStartAll on all controllers
@@ -222,6 +222,8 @@ class PoolMotion(PoolAction):
             moveable.set_state(State.Moving, propagate=2)
             state_info = moveable.inspect_state(), moveable.inspect_status(), \
                 moveable.inspect_limit_switches()
+            if state_info[0] != State.Moving:
+                raise Exception("CORRUPTION %s" % moveable.is_in_operation())
             moveable_info.on_state_switch(state_info)
         
         # StartAll on all controllers

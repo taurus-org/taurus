@@ -22,6 +22,8 @@
 ##############################################################################
 
 import time
+import threading
+import traceback
 from math import pow, sqrt
 
 from sardana import State
@@ -522,7 +524,7 @@ class BasicDummyMotorController(MotorController):
         #self.m[idx] = None
     
     def StateOne(self, axis):
-        self._log.debug("StateOne(%d)", axis)
+        #self._log.debug("StateOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
         state = State.On
@@ -543,7 +545,7 @@ class BasicDummyMotorController(MotorController):
         return int(state), status, switchstate
 
     def ReadOne(self, axis):
-        self._log.debug("ReadOne(%d)", axis)
+        #self._log.debug("ReadOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
         return m.getCurrentUserPosition()
@@ -608,7 +610,7 @@ class FastDummyMotorController(MotorController):
         self._log.debug("StateOne(%d)", axis)
         state = State.On
         status = "Motor HW is ON"
-        switchstate = 0        
+        switchstate = 0
         return state, status, switchstate
 
     def ReadOne(self, axis):

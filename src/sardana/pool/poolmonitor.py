@@ -50,7 +50,8 @@ class PoolMonitor(Logger, threading.Thread):
     MIN_THREADS =  1
     MAX_THREADS = 10
     
-    def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0, auto_start=True):
+    def __init__(self, pool, name='PoolMonitor', period=.1, min_sleep=1.0,
+                 auto_start=True):
         Logger.__init__(self, name)
         threading.Thread.__init__(self, name=name)
         self.daemon = True
@@ -60,91 +61,80 @@ class PoolMonitor(Logger, threading.Thread):
         self._stop = False
         self._pause = threading.Event()
         self._thread_pool = None
-        self._state_info = OperationInfo()
-        self._value_info = OperationInfo()
+        self._ctrl_ids = []
+        self._elem_ids = []
+        pool.add_listener(self.on_pool_changed)
         if not auto_start:
             self.pause()
         self.start()
     
     def on_pool_changed(self, evt_src, evt_type, evt_value):
-        evt_name = evt_type.name
-        
-        if evt_name == 'ElementCreated':
-            pass
-        elif evt_name == 'ElementDeleted':
-            pass
+        evt_name = evt_type.name.lower()
+        if "created" in evt_name or "deleted" in evt_name:
+            pool = self._pool
+            pool_ctrls = pool.get_elements_by_type(ElementType.Ctrl)
+            pool_ctrls.sort(key=PoolObject.get_id)
+            ctrl_ids = []
+            elem_ids = []
+            for pool_ctrl in pool_ctrls:
+                types = set(pool_ctrl.get_ctrl_types())
+                if types.isdisjoint(TYPE_PSEUDO_ELEMENTS):
+                    ctrl_ids.append(pool_ctrl.id)
+                    elem_ids.extend(pool_ctrl.get_element_ids().keys())
+            elem_ids.sort()
+            self._elem_ids = elem_ids
+            self._ctrl_ids = ctrl_ids
     
-    def _readjust_thread_pool(self, pool_ctrls):
-        nb_ctrls = len(pool_ctrls)
-        tp = self._thread_pool
-        if tp is None:
-            nb_threads = 0
-        else:
-            nb_threads = tp.size
-        n = min(self.MAX_THREADS, nb_ctrls)
-        n = max(self.MIN_THREADS, n)
-        if nb_threads == n:
-            return
-        else:
-            if tp is None:
-                self.info("Creating monitor pool of threads %d", n)
-                tp = ThreadPool(name=self.name, Psize=n)
-                self._thread_pool = tp
-            else:
-                self.info("Readjusting monitor pool of threads from %d to %d", nb_threads, n)
-                self._thread_pool.size = n
-    
-    def update_state_info(self, serial=False, wait=True):
-        """Update state information of every element.
+    def update_state_info(self):
+        """Update state information of every element."""
         
-        :param serial: serialize or not controller access. Default is False meaning
-                       use concurrent access to all controllers
-        :type serial: bool
-        :param wait: wheater or not to wait for end of procedure. Ignored when
-                     serial==True. Default is True.
-        :type wait: bool
-        """
         pool = self._pool
-        _pool_ctrls = pool.get_element_type_map().get(ElementType.Ctrl, {}).values()
-        
-        # get the list of conntrollers.
-        #TODO: in the future pre-calculate the list of controllers instead of
-        # calculating it every time
-        pool_ctrls = []
-        for pool_ctrl in _pool_ctrls:
-            if not pool_ctrl.is_online():
-                continue
-            tps = pool_ctrl.get_ctrl_types()
-            if ElementType.PseudoMotor in tps or ElementType.PseudoCounter in tps:
-                continue
-            pool_ctrls.append(pool_ctrl)
-
-        update = self._update_state_info_concurrent
-        if serial:
-            update = self._update_state_info_serial
-        si = self._state_info
-        with si:
-            si.init(len(pool_ctrls))
-            update(pool_ctrls)
-            si.wait()
-            
-    def _update_state_info_serial(self, pool_ctrls):
-        for pool_ctrl in pool_ctrls:
-            self._update_ctrl_state_info(pool_ctrl)
-
-    def _update_state_info_concurrent(self, pool_ctrls):
-        self._readjust_thread_pool(pool_ctrls)
-        for pool_ctrl in pool_ctrls:
-            self._thread_pool.add(self._update_ctrl_state_info, None, pool_ctrl)
-    
-    def _update_ctrl_state_info(self, pool_ctrl):
+        elems, ctrls, ctrl_items = [], [], {}
         try:
-            state_infos = pool_ctrl.read_axis_states()
-            for elem, state_info in state_infos.items():
-                state_info = elem._from_ctrl_state_info(state_info)
-                elem.set_state_info(state_info)
+            blocked_ctrls = set()
+            for elem_id in self._elem_ids:
+                elem = pool.get_element_by_id(elem_id)
+                ctrl = elem.controller
+                if ctrl in blocked_ctrls:
+                    continue
+                ret = elem.lock(blocking=False)
+                if ret:
+                    elems.append(elem)
+                    ctrl_elems = ctrl_items.get(ctrl)
+                    if ctrl_elems is None:
+                        ctrl_items[ctrl] = ctrl_elems = []
+                    ctrl_elems.append(elem)
+                else:
+                    self.debug("%s is busy", elem.name)
+                    blocked_ctrls.add(ctrl)
+                    
+            for ctrl, ctrl_elems in ctrl_items.items():
+                ret = ctrl.lock(blocking=False)
+                if ret:
+                    ctrls.append(ctrl)
+                else:
+                    self.debug("%s is busy", ctrl.name)
+                    for elem in reversed(ctrl_elems):
+                        elem.unlock()
+                        elems.remove(elem)
+                
+            self._update_state_info_serial(ctrl_items)
         finally:
-            self._state_info.finish_one()
+            for ctrl in reversed(ctrls):
+                ctrl.unlock()
+            for elem in reversed(elems):
+                elem.unlock()
+        
+    def _update_state_info_serial(self, pool_ctrls):
+        for pool_ctrl, elems in pool_ctrls.items():
+            self._update_ctrl_state_info(pool_ctrl, elems)
+    
+    def _update_ctrl_state_info(self, pool_ctrl, elems):
+        axises = [ elem.axis for elem in elems ]
+        state_infos = pool_ctrl.raw_read_axis_states(axises)
+        for elem, state_info in state_infos.items():
+            state_info = elem._from_ctrl_state_info(state_info)
+            elem.set_state_info(state_info)
             
     def stop(self):
         self.resume()
