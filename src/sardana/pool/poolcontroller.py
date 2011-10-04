@@ -196,23 +196,15 @@ def check_ctrl(fn):
         if not pool_ctrl.is_online():
             raise Exception("Cannot execute '%s' because '%s' is offline" % \
                             (fn.__name__, pool_ctrl.name))
-        lock = pool_ctrl.ctrl_lock
-        lock.acquire()
-        try:
+        with pool_ctrl:
             return fn(pool_ctrl, *args, **kwargs)
-        finally:
-            lock.release()
     return wrapper
 
 def ctrl_access(fn):
     @functools.wraps(fn)
     def wrapper(pool_ctrl, *args, **kwargs):
-        lock = pool_ctrl.ctrl_lock
-        lock.acquire()
-        try:
+        with pool_ctrl:
             return fn(pool_ctrl, *args, **kwargs)
-        finally:
-            lock.release()
     return wrapper
 
 
@@ -281,8 +273,15 @@ class PoolController(PoolBaseController):
         for axis in elem_axis:
             self.remove_axis(axis, propagate=0)
         
-        mod_name = self._lib_info.name
-        class_name = self._ctrl_info.name
+        if self._lib_info is None:
+            mod_name = self.get_library_name()
+        else:
+            mod_name = self._lib_info.name
+
+        if self._ctrl_info is None:
+            class_name = self.get_class_name()
+        else:
+            class_name = self._ctrl_info.name
         
         self._ctrl_error = None
         self._ctrl_info = None
@@ -406,15 +405,22 @@ class PoolController(PoolBaseController):
     @check_ctrl
     def get_axis_par(self, axis, name):
         #return self.ctrl.GetAxisPar(unit, axis, name, value)
-        return self.ctrl.GetAxisPar(axis, name)
-    
+        return self.ctrl.GetAxisPar(axis, name)    
+
     # END API WHICH ACCESSES CONTROLLER API ------------------------------------
 
     def get_ctrl_lock(self):
         return self._ctrl_lock
     
     ctrl_lock = property(fget=get_ctrl_lock)
-    
+
+    def __enter__(self):
+        self._ctrl_lock.acquire()
+
+    def __exit__(self, type, value, traceback):
+        self._ctrl_lock.release()
+        return False
+
     def _get_free_axis(self):
         ret = {}
         for axis, element in self._element_axis.items():
@@ -424,7 +430,7 @@ class PoolController(PoolBaseController):
         return ret
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
-    
+
     @check_ctrl
     def raw_read_axis_states(self, axises=None, ctrl_states=None):
         """Reads the state for the given axises. If axises is None, reads the
