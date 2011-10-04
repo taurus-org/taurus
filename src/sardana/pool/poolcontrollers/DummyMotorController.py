@@ -27,9 +27,8 @@ from math import pow, sqrt
 from sardana import State
 from sardana.pool.controller import MotorController
 
+class BaseMotion(object):
 
-class Motion:
-    
     def __init__(self):
         self.min_vel = -1
         self.max_vel = -1
@@ -37,12 +36,19 @@ class Motion:
         self.decel_time = -1
         self.accel = -1
         self.decel = -1
-        self.dsplmnt_reach_max_vel = -1
-        self.dsplmnt_reach_min_vel = -1
         
         self.init_pos = -1
         self.final_pos = -1
         self.curr_pos = -1
+
+
+class Motion(BaseMotion):
+    
+    def __init__(self):
+        BaseMotion.__init__(self)
+
+        self.dsplmnt_reach_max_vel = -1
+        self.dsplmnt_reach_min_vel = -1
         self.dsplmnt = -1
         
         self.curr_instant = -1
@@ -561,6 +567,73 @@ class BasicDummyMotorController(MotorController):
         idx = axis - 1
         self.m[idx].abortMotion()
 
+
+class FastDummyMotorController(MotorController):
+
+    gender = "Simulation"
+    model  = "Basic"
+    organization = "CELLS - ALBA"
+    image = "dummy_motor_ctrl.png"
+    logo = "ALBA_logo.png"
+
+    MaxDevice = 1024
+
+    def __init__(self, inst, props, *args, **kwargs):
+        MotorController.__init__(self, inst, props, *args, **kwargs)
+        self.m = self.MaxDevice*[None,]
+    
+    def GetAxisAttributes(self, axis):
+        axis_attrs = MotorController.GetAxisAttributes(self, axis)
+        new_axis_attrs = {}
+        for attr in ('Position', 'Limit_switches'):
+            new_axis_attrs[attr] = axis_attrs[attr]
+        return new_axis_attrs
+    
+    def AddDevice(self,axis):
+        MotorController.AddDevice(self, axis)
+        idx = axis - 1
+        if len(self.m) < axis:
+            raise Exception("Invalid axis %d" % axis)
+        if self.m[idx] is None:
+            self.m[idx] = BaseMotion()
+            
+    def DeleteDevice(self, axis):
+        MotorController.DeleteDevice(self, axis)
+        idx = axis - 1
+        if len(self.m) < axis or not self.m[idx]:
+            self._log.error("Invalid axis %d" % axis)
+        #self.m[idx] = None
+    
+    def StateOne(self, axis):
+        self._log.debug("StateOne(%d)", axis)
+        state = State.On
+        status = "Motor HW is ON"
+        switchstate = 0        
+        return state, status, switchstate
+
+    def ReadOne(self, axis):
+        self._log.debug("ReadOne(%d)", axis)
+        idx = axis - 1
+        m = self.m[idx]
+        return m.curr_pos
+    
+    def PreStartAll(self):
+        self.motions = {}
+        
+    def PreStartOne(self, axis, pos):
+        return True
+
+    def StartOne(self, axis, pos):
+        idx = axis - 1
+        self.motions[self.m[idx]] = pos
+        
+    def StartAll(self):
+        for motion, pos in self.motions.items():
+            motion.curr_pos = pos
+        
+    def AbortOne(self, axis):
+        pass
+    
 
 class DiscreteDummyMotorController(BasicDummyMotorController):
     """This class represents a discrete, dummy Sardana motor controller."""
