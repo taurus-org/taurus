@@ -58,34 +58,42 @@ def check_requirements(exec_name=None):
         print "Sardana requires python %s. Installed version is %s" % (pyver_str_, pyver_str)
         sys.exit(-1)
     
+    pytangover = None
     try:
         import PyTango
-        pytangover = PyTango.__version_info__[:3]
+        pytangover = PyTango.Release.version_info[:3]
     except ImportError:
-        print "%s requires PyTango %s. No version installed" % (exec_name, pytangover_str_,)
+        pass
     except:
         pytangover = tuple(map(int, PyTango.__version__.split('.', 3)))
-    pytangover_str = ".".join(map(str,pytangover))
 
+    if pytangover is None:
+        print "%s requires PyTango %s. No version installed" % (exec_name, pytangover_str_,)
+        sys.exit(-1)
     if pytangover < pytangover_:
+        pytangover_str = ".".join(map(str,pytangover))
         print "%s requires PyTango %s. Installed version is %s" % (exec_name, pytangover_str_, pytangover_str)
         sys.exit(-1)
     
+    taurusver = None
     try:
         import taurus
         taurusver = taurus.Release.version_info[:3]
     except ImportError:
-        print "%s requires taurus %s. No version installed" % (exec_name, taurusver_str_,)
+        pass
     except:
         taurusver = tuple(map(int, taurus.Release.version.split('.', 3)))
-    taurusver_str = ".".join(map(str,taurusver))
 
+    if taurusver is None:
+        print "%s requires taurus %s. No version installed" % (exec_name, taurusver_str_,)
+        sys.exit(-1)
     if taurusver < taurusver_:
+        taurusver_str = ".".join(map(str,taurusver))
         print "%s requires taurus %s. Installed version is %s" % (exec_name, taurusver_str_, taurusver_str)
         sys.exit(-1)
     
     try:
-        taurus.core.util.etree
+        from taurus.core.util import etree
     except:
         print "Could not find any suitable XML library"
         sys.exit(-1)
