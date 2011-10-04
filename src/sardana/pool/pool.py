@@ -237,6 +237,8 @@ class Pool(PoolContainer, PoolObject):
         if ctrl_lib_info is not None:
             ctrl_class_info = ctrl_lib_info.getController(class_name)
         
+               
+
         kwargs['pool'] = self
         kwargs['class_info'] = ctrl_class_info
         kwargs['lib_info'] = ctrl_lib_info
@@ -254,10 +256,13 @@ class Pool(PoolContainer, PoolObject):
         # make sure the properties (that may have come from a case insensitive
         # environment like tango) are made case sensitive
         props = {}
-        ctrl_prop_info = ctrl_class_info.getControllerProperties()
+        if ctrl_class_info is None:
+            ctrl_prop_info = {}
+        else:
+            ctrl_prop_info = ctrl_class_info.getControllerProperties()
         for k, v in kwargs['properties'].items():
             info = ctrl_prop_info.get(k)
-            if k is None:
+            if info is None:
                 props[k] = v
             else:
                 props[info.name] = v
