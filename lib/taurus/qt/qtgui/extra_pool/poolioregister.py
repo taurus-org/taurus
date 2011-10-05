@@ -60,7 +60,10 @@ class PoolIORegisterReadWidget(TaurusLabel):
         for label_and_value in labels_list:
             label, value = label_and_value.split(':')
             self.readEventValueMap[int(value)] = label
-        self.setEventFilters([self.readEventValueMap])
+        # @TODO: Some day filters will work again...
+        # until then, it is better to NOT have the filter
+        # so at least we see a value and not '------'
+        #self.setEventFilters([self.readEventValueMap])
 
     ##########################################################
     # FILTERS ARE NOT WORKING AS OF SVN:17541
