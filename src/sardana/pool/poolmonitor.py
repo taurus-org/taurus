@@ -50,7 +50,7 @@ class PoolMonitor(Logger, threading.Thread):
     MIN_THREADS =  1
     MAX_THREADS = 10
     
-    def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0,
+    def __init__(self, pool, name='PoolMonitor', period=0.1, min_sleep=1.0,
                  auto_start=True):
         Logger.__init__(self, name)
         threading.Thread.__init__(self, name=name)
@@ -95,6 +95,8 @@ class PoolMonitor(Logger, threading.Thread):
             for elem_id in self._elem_ids:
                 elem = pool.get_element_by_id(elem_id)
                 ctrl = elem.controller
+                if elem.is_in_operation():
+                    continue
                 if ctrl in blocked_ctrls:
                     continue
                 ret = elem.lock(blocking=False)
@@ -131,7 +133,7 @@ class PoolMonitor(Logger, threading.Thread):
     
     def _update_ctrl_state_info(self, pool_ctrl, elems):
         axises = [ elem.axis for elem in elems ]
-        state_infos = pool_ctrl.raw_read_axis_states(axises)
+        state_infos, _ = pool_ctrl.raw_read_axis_states(axises)
         for elem, state_info in state_infos.items():
             state_info = elem._from_ctrl_state_info(state_info)
             elem.set_state_info(state_info)

@@ -661,6 +661,12 @@ class CounterTimerController(Controller, Readable):
         pass
 
 
+class ZeroDController(Controller, Readable):
+    """Base class for a 0D controller. Inherit from this class to
+    implement your own 0D controller for the device pool."""
+    pass
+
+
 class PseudoMotorController(Controller):
     """Base class for a pseudo motor controller. Inherit from this class to 
     implement your own pseudo motor controller for the device pool.

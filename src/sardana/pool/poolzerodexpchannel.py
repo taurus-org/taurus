@@ -46,3 +46,71 @@ class Pool0DExpChannel(PoolElement):
     
     def get_type(self):
         return ElementType.ZeroDExpChannel
+    
+    # --------------------------------------------------------------------------
+    # value
+    # --------------------------------------------------------------------------
+
+    def read_value(self):
+        return self.acquisition.read_value()[self]
+    
+    def put_value(self, value, propagate=1):
+        self._set_value(value, propagate=propagate)
+    
+    def get_value(self, cache=True, propagate=1):
+        if not cache or self._value is None:
+            value = self.read_value()
+            self._set_value(value, propagate=propagate)
+        return self._value
+    
+    def get_value_w(self):
+        return self._wvalue
+    
+    def set_value(self, value, propagate=1):
+        self._wvalue = value
+        self._set_value(value, propagate=propagate)
+        
+    def _set_value(self, value, propagate=1):
+        self._value = value
+        if not propagate:
+            return
+        self.fire_event(EventType("value", priority=propagate), value)
+    
+    value = property(get_value, set_value, doc="0D value")
+    
+    # --------------------------------------------------------------------------
+    # default acquisition channel
+    # --------------------------------------------------------------------------
+    
+    def get_default_acquisition_channel(self):
+        return 'value'
+    
+    # --------------------------------------------------------------------------
+    # acquisition
+    # --------------------------------------------------------------------------
+    
+    def prepare_to_acquire(self, acquisition):
+        self._aborted = False
+        self._stopped = False
+        self.action = acquisition
+    
+    def finish_from_acquisition(self):
+        self._aborted = False
+        self._stopped = False
+        self.clear_action()
+    
+    def get_acquisition(self):
+        return self.get_action_cache()
+    
+    acquisition = property(get_acquisition, doc="acquisition object")
+    
+    def start_acquisition(self, value=None):
+        self._aborted = False
+        value = value or self.get_value_w()
+        if value is None:
+            raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
+        if not self._simulation_mode:
+            acq = self.acquisition.run()
+    
+    def get_source(self):
+        return "{0}/value".format(self.full_name)

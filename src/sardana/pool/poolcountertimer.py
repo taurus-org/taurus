@@ -43,7 +43,6 @@ class PoolCounterTimer(PoolElement):
         self._wvalue = None
         acq_name = "%s.Acquisition" % self._name
         self.set_action_cache(PoolCTAcquisition(self.pool, name=acq_name))
-        self._aborted = False
     
     def get_type(self):
         return ElementType.CTExpChannel

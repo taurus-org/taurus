@@ -41,7 +41,7 @@ from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
 from sardana import State
-from pooldefs import ElementType
+from pooldefs import ElementType, InvalidAxis
 from poolelement import PoolBaseElement
 from poolevent import EventType
 
@@ -196,8 +196,7 @@ def check_ctrl(fn):
         if not pool_ctrl.is_online():
             raise Exception("Cannot execute '%s' because '%s' is offline" % \
                             (fn.__name__, pool_ctrl.name))
-        with pool_ctrl:
-            return fn(pool_ctrl, *args, **kwargs)
+        return fn(pool_ctrl, *args, **kwargs)
     return wrapper
 
 def ctrl_access(fn):
@@ -409,8 +408,8 @@ class PoolController(PoolBaseController):
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
 
-    def __build_exception_information(self, axises):
-        status = s = "".join(traceback.format_exception(*sys.exc_info()))
+    def __build_exc_info(self, ctrl_states, axises, exc_info):
+        status = s = "".join(traceback.format_exception(*exc_info))
         state_info = State.Fault, status
         for axis in axises:
             element = self.get_element(axis=axis)
@@ -433,26 +432,35 @@ class PoolController(PoolBaseController):
         
         ctrl = self.ctrl
         
-        ctrl.PreStateAll()
+        try:
+            ctrl.PreStateAll()
+            for axis in axises:
+                ctrl.PreStateOne(axis)
+            ctrl.StateAll()
+        except:
+            exc_info = sys.exc_info()
+            status = "".join(traceback.format_exception(*exc_info))
+            state_info = State.Fault, status
+            for axis in axises:
+                element = self.get_element(axis=axis)
+                ctrl_states[element] = state_info
+            return ctrl_states, { InvalidAxis : exc_info }
         
-        for axis in axises:
-            ctrl.PreStateOne(axis)
-            
-        ctrl.StateAll()
-        
+        ret_exc_info = {}
         for axis in axises:
             element = self.get_element(axis=axis)
             try:
                 state_info = ctrl.StateOne(axis)
             except:
-                self.__build_exception_information((axis,))
-                continue
+                ret_exc_info[axis] = exc_info = sys.exc_info()
+                status = "".join(traceback.format_exception(*exc_info))
+                state_info = State.Fault, status
             
             if state_info is None:
                 msg = "%s.StateOne(%d) returns 'None'" % (self.name, axis)
                 state_info = State.Fault, msg
             ctrl_states[element] = state_info
-        return ctrl_states
+        return ctrl_states, ret_exc_info
     
     @check_ctrl
     def read_axis_states(self, axises=None):
@@ -483,27 +491,34 @@ class PoolController(PoolBaseController):
             ctrl_values = {}
         
         ctrl = self.ctrl
-
-        ctrl.PreReadAll()
         
-        for axis in axises:
-            ctrl.PreReadOne(axis)
-        
-        ctrl.ReadAll()
-        
+        try:
+            ctrl.PreReadAll()
+            for axis in axises:
+                ctrl.PreReadOne(axis)
+            ctrl.ReadAll()
+        except:
+            exc_info = sys.exc_info()
+            for axis in axises:
+                element = self.get_element(axis=axis)
+                ctrl_values[element] = None
+            return ctrl_values, { InvalidAxis : exc_info }
+            
+        ret_exc_info = {}
         for axis in axises:
             element = self.get_element(axis=axis)
             try:
                 value = ctrl.ReadOne(axis)
             except:
-                self.__build_exception_information((axis,))
+                ret_exc_info[axis] = exc_info = sys.exc_info()
                 ctrl_values[element] = None
                 continue
             
             if value is None:
                 self.info("ReadOne(%d) returns 'None'", axis)
             ctrl_values[element] = value
-        return ctrl_values
+        
+        return ctrl_values, ret_exc_info
 
     @check_ctrl
     def read_axis_values(self, axises=None):

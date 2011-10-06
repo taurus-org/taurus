@@ -106,7 +106,7 @@ class OperationInfo(object):
         return self.release()
 
 
-class OperationContext(object):
+class BaseOperationContext(object):
     """Stores operation context"""
     
     def __init__(self, pool_action):
@@ -130,6 +130,60 @@ class OperationContext(object):
         for ctrl in reversed(pool_action.get_pool_controller_list()):
             ctrl.unlock()
         pool_action.finish_action()
+        return False
+    
+    def __enter__(self):
+        return self.enter()
+        
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return self.exit()
+
+
+class OperationContext(BaseOperationContext):
+
+    def __init__(self, pool_action):
+        self._pool_action = pool_action
+
+    def enter(self):
+        pool_action = self._pool_action
+        for element in pool_action.get_elements():
+            element.set_operation(pool_action)
+
+    def exit(self):
+        pool_action = self._pool_action
+        for element in reversed(pool_action.get_elements()):
+            element.clear_operation()
+        pool_action.finish_action()
+        return False
+    
+    def __enter__(self):
+        return self.enter()
+        
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return self.exit()
+
+
+class ActionContext(object):
+    """Stores an atomic action context"""
+    
+    def __init__(self, pool_action):
+        self._pool_action = pool_action
+    
+    def enter(self):
+        """Enters operation"""
+        pool_action = self._pool_action
+        for element in pool_action.get_elements():
+            element.lock()
+        for ctrl in pool_action.get_pool_controller_list():
+            ctrl.lock()
+        
+    def exit(self):
+        """Leaves operation"""
+        pool_action = self._pool_action
+        for element in reversed(pool_action.get_elements()):
+            element.unlock()
+        for ctrl in reversed(pool_action.get_pool_controller_list()):
+            ctrl.unlock()
         return False
     
     def __enter__(self):
@@ -323,10 +377,12 @@ class PoolAction(Logger):
         if serial:
             read = self._read_state_info_serial
         state_info = self._state_info
-        with state_info:
-            state_info.init(len(self._pool_ctrl_dict))
-            read(ret)
-            state_info.wait()
+        
+        with ActionContext(self):
+            with state_info:
+                state_info.init(len(self._pool_ctrl_dict))
+                read(ret)
+                state_info.wait()
         return ret
 
     def _read_state_info_serial(self, ret):
@@ -360,7 +416,7 @@ class PoolAction(Logger):
         parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            state_infos = pool_ctrl.raw_read_axis_states(axises)
+            state_infos, _ = pool_ctrl.raw_read_axis_states(axises)
             ret.update( state_infos )
         except:
             self.error("Something wrong happend: Error should have been caught"
@@ -393,10 +449,11 @@ class PoolAction(Logger):
         
         value_info = self._value_info
         
-        with value_info:
-            value_info.init(len(self._pool_ctrl_dict))
-            read(ret)
-            value_info.wait()
+        with ActionContext(self):
+            with value_info:
+                value_info.init(len(self._pool_ctrl_dict))
+                read(ret)
+                value_info.wait()
         return ret
 
     def _read_value_serial(self, ret):
@@ -417,7 +474,7 @@ class PoolAction(Logger):
         ret parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            value_infos = pool_ctrl.raw_read_axis_values(axises)
+            value_infos, _ = pool_ctrl.raw_read_axis_values(axises)
             ret.update( value_infos )
         finally:
             self._value_info.finish_one()
