@@ -222,8 +222,6 @@ class PoolMotion(PoolAction):
             moveable.set_state(State.Moving, propagate=2)
             state_info = moveable.inspect_state(), moveable.inspect_status(), \
                 moveable.inspect_limit_switches()
-            if state_info[0] != State.Moving:
-                raise Exception("CORRUPTION %s" % moveable.is_in_operation())
             moveable_info.on_state_switch(state_info)
         
         # StartAll on all controllers
@@ -301,18 +299,20 @@ class PoolMotion(PoolAction):
                     # try to read a last position to force an event
                     moveable.get_position(cache=False, propagate=2)
                     
-                    # free the motor from the OperationContext so we can send
-                    # a state event. Otherwise we may be asked to move the motor
-                    # again which would result in an exception saying that the
-                    # motor is already involved in an operation
-                    moveable.clear_operation()
-                    
+                    ## free the motor from the OperationContext so we can send
+                    ## a state event. Otherwise we may be asked to move the motor
+                    ## again which would result in an exception saying that the
+                    ## motor is already involved in an operation
+                    ## ... but before protect the motor so that the monitor
+                    #moveable.clear_operation()
                     
                 # Then update the state
                 propagate = 1
                 if stopped_now:
                     propagate = 2
                 moveable.set_state_info(real_state_info, propagate=propagate)
+                if stopped_now:
+                    moveable.clear_operation()
                 
                 if moving:
                     in_motion = True
