@@ -90,6 +90,7 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 
 #: an enumeration describing all possible acquisition trigger types
+#@todo: change to use taurus.core.tango.sardana.AcqTriggerType
 AcqTriggerType = Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
     "Gate",     # channel triggered by HW - start and stop by external 
