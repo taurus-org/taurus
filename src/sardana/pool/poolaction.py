@@ -26,7 +26,8 @@
 """This module is part of the Python Pool libray. It defines the class for an
 abstract action over a set of pool elements"""
 
-__all__ = [ "OperationInfo", "PoolAction", "PoolActionItem", "get_thread_pool" ]
+__all__ = [ "PoolActionItem", "OperationInfo", "ActionContext", "PoolAction",
+            "get_thread_pool" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -358,7 +359,7 @@ class PoolAction(Logger):
         
         :raises: NotImplementedError"""
         raise NotImplementedError("action_loop must be implemented in subclass")
-    
+
     def read_state_info(self, ret=None, serial=False):
         """Reads state information of all elements involved in this action
         
@@ -371,31 +372,46 @@ class PoolAction(Logger):
         :type serial: bool
         :return: a map containing state information per element
         :rtype: dict<sardana.pool.poolelement.PoolElement, stateinfo>"""
+        with ActionContext(self):
+            return self.raw_read_state_info(ret=ret, serial=serial)
+
+    def raw_read_state_info(self, ret=None, serial=False):
+        """**Unsafe**. Reads state information of all elements involved in this
+        action
+        
+        :param ret: output map parameter that should be filled with state
+                    information. If None is given (default), a new map is
+                    created an returned
+        :type ret: dict
+        :param serial: If False (default) perform controller HW state requests
+                       in parallel. If True, access is serialized.
+        :type serial: bool
+        :return: a map containing state information per element
+        :rtype: dict<sardana.pool.poolelement.PoolElement, stateinfo>"""
         if ret is None:
             ret = {}
-        read = self._read_state_info_concurrent
+        read = self._raw_read_state_info_concurrent
         if serial:
-            read = self._read_state_info_serial
+            read = self._raw_read_state_info_serial
         state_info = self._state_info
         
-        with ActionContext(self):
-            with state_info:
-                state_info.init(len(self._pool_ctrl_dict))
-                read(ret)
-                state_info.wait()
+        with state_info:
+            state_info.init(len(self._pool_ctrl_dict))
+            read(ret)
+            state_info.wait()
         return ret
 
-    def _read_state_info_serial(self, ret):
+    def _raw_read_state_info_serial(self, ret):
         """Internal method. Read state in a serial mode"""
         for pool_ctrl in self._pool_ctrl_dict:
-            self._read_ctrl_state_info(ret, pool_ctrl)
+            self._raw_read_ctrl_state_info(ret, pool_ctrl)
         return ret
 
-    def _read_state_info_concurrent(self, ret):
+    def _raw_read_state_info_concurrent(self, ret):
         """Internal method. Read state in a concurrent mode"""
         th_pool = get_thread_pool()
         for pool_ctrl in self._pool_ctrl_dict:
-            th_pool.add(self._read_ctrl_state_info, None, ret, pool_ctrl)
+            th_pool.add(self._raw_read_ctrl_state_info, None, ret, pool_ctrl)
         return ret
     
     def _get_ctrl_error_state_info(self, pool_ctrl):
@@ -411,12 +427,14 @@ class PoolAction(Logger):
                 return State.Fault, "Unexpected controller error:\n" + err_msg
         return State.Fault, pool_ctrl.get_ctrl_error_str()
     
-    def _read_ctrl_state_info(self, ret, pool_ctrl):
+    def _raw_read_ctrl_state_info(self, ret, pool_ctrl):
         """Internal method. Read controller information and store it in ret
         parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            state_infos, _ = pool_ctrl.raw_read_axis_states(axises)
+            state_infos, exc_info = pool_ctrl.raw_read_axis_states(axises)
+            if len(exc_info):
+                self.info("STATE ERROR %s", exc_info)
             ret.update( state_infos )
         except:
             self.error("Something wrong happend: Error should have been caught"
@@ -439,42 +457,60 @@ class PoolAction(Logger):
         :type serial: bool
         :return: a map containing value information per element
         :rtype: dict<sardana.pool.poolelement.PoolElement, object>"""
+        with ActionContext(self):
+            return self.raw_read_value(ret=ret, serial=serial)
+
+    def raw_read_value(self, ret=None, serial=False):
+        """**Unsafe**. Reads value information of all elements involved in this
+        action
+        
+        :param ret: output map parameter that should be filled with value
+                    information. If None is given (default), a new map is
+                    created an returned
+        :type ret: dict
+        :param serial: If False (default) perform controller HW value requests
+                       in parallel. If True, access is serialized.
+        :type serial: bool
+        :return: a map containing value information per element
+        :rtype: dict<sardana.pool.poolelement.PoolElement, object>"""
         
         if ret is None:
             ret = {}
         
-        read = self._read_value_concurrent
+        read = self._raw_read_value_concurrent
         if serial:
-            read = self._read_value_serial
+            read = self._raw_read_value_serial
         
         value_info = self._value_info
         
-        with ActionContext(self):
-            with value_info:
-                value_info.init(len(self._pool_ctrl_dict))
-                read(ret)
-                value_info.wait()
+        with value_info:
+            value_info.init(len(self._pool_ctrl_dict))
+            read(ret)
+            value_info.wait()
         return ret
 
-    def _read_value_serial(self, ret):
+    def _raw_read_value_serial(self, ret):
         """Internal method. Read value in a serial mode"""
         for pool_ctrl in self._pool_ctrl_dict:
-            self._read_ctrl_value(ret, pool_ctrl)
+            self._raw_read_ctrl_value(ret, pool_ctrl)
         return ret
 
-    def _read_value_concurrent(self, ret):
+    def _raw_read_value_concurrent(self, ret):
         """Internal method. Read value in a concurrent mode"""
         th_pool = get_thread_pool()
         for pool_ctrl in self._pool_ctrl_dict:
-            th_pool.add(self._read_ctrl_value, None, ret, pool_ctrl)
+            th_pool.add(self._raw_read_ctrl_value, None, ret, pool_ctrl)
         return ret
     
-    def _read_ctrl_value(self, ret, pool_ctrl):
+    def _raw_read_ctrl_value(self, ret, pool_ctrl):
         """Internal method. Read controller value information and store it in
         ret parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            value_infos, _ = pool_ctrl.raw_read_axis_values(axises)
+            value_infos, exc_info = pool_ctrl.raw_read_axis_values(axises)
+            if len(exc_info):
+                self.info("VALUE ERROR %s", exc_info)
+
             ret.update( value_infos )
         finally:
             self._value_info.finish_one()

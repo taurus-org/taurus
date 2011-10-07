@@ -35,7 +35,7 @@ import time
 from taurus.core.util import Enumeration, DebugIt
 
 from sardana import State
-from poolaction import PoolAction, PoolActionItem
+from poolaction import ActionContext, PoolActionItem, PoolAction
 
 #: enumeration representing possible motion states
 MotionState = Enumeration("MotionSate", ( \
@@ -195,38 +195,47 @@ class PoolMotion(PoolAction):
         
         pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
-        
-        # PreStartAll on all controllers
-        for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.PreStartAll()
-        
-        # PreStartOne on all elements
-        for moveable in moveables:
-            controller = moveable.controller
-            ctrl, axis = controller.ctrl, moveable.axis
-            dial_position = items[moveable][1]
-            ret = ctrl.PreStartOne(axis, dial_position)
-            if not ret:
-                raise Exception("%s.PreStartOne(%d, %f) returns False" \
-                                % (controller.name, axis, dial_position))
-        
-        # StartOne on all elements
-        for moveable in moveables:
-            ctrl = moveable.controller.ctrl
-            axis = moveable.axis
-            dial_position = motion_info[moveable].dial_position
-            ctrl.StartOne(axis, dial_position)
-        
-        for moveable in moveables:
-            moveable_info = motion_info[moveable]
-            moveable.set_state(State.Moving, propagate=2)
-            state_info = moveable.inspect_state(), moveable.inspect_status(), \
-                moveable.inspect_limit_switches()
-            moveable_info.on_state_switch(state_info)
-        
-        # StartAll on all controllers
-        for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.StartAll()
+
+        with ActionContext(self) as context:        
+
+            # PreStartAll on all controllers
+            for pool_ctrl in pool_ctrls:
+                pool_ctrl.ctrl.PreStartAll()
+            
+            # PreStartOne on all elements
+            for moveable in moveables:
+                controller = moveable.controller
+                ctrl, axis = controller.ctrl, moveable.axis
+                dial_position = items[moveable][1]
+                ret = ctrl.PreStartOne(axis, dial_position)
+                if not ret:
+                    raise Exception("%s.PreStartOne(%d, %f) returns False" \
+                                    % (controller.name, axis, dial_position))
+            
+            # StartOne on all elements
+            for moveable in moveables:
+                ctrl = moveable.controller.ctrl
+                axis = moveable.axis
+                dial_position = motion_info[moveable].dial_position
+                ctrl.StartOne(axis, dial_position)
+            
+            for moveable in moveables:
+                moveable_info = motion_info[moveable]
+                moveable.set_state(State.Moving, propagate=2)
+                state_info = moveable.inspect_state(), \
+                    moveable.inspect_status(), \
+                    moveable.inspect_limit_switches()
+                moveable_info.on_state_switch(state_info)
+            
+            # StartAll on all controllers
+            for pool_ctrl in pool_ctrls:
+                pool_ctrl.ctrl.StartAll()
+
+            # read positions to send a first event when starting to move
+            positions = self.raw_read_dial_position()
+            for moveable, position in positions.items():
+                moveable.put_dial_position(position, propagate=2)
+            
     
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable
@@ -252,9 +261,11 @@ class PoolMotion(PoolAction):
         nb_states_per_pos = self._nb_states_per_position
         
         # read positions to send a first event when starting to move
-        self.read_dial_position(ret=positions)
-        for moveable, position in positions.items():
-            moveable.put_dial_position(position, propagate=2)
+        #self.read_dial_position(ret=positions)
+        #for moveable, position in positions.items():
+        #    moveable.put_dial_position(position, propagate=2)
+
+        
         while True:
             self.read_state_info(ret=states)
             timestamp = time.time()
@@ -308,8 +319,8 @@ class PoolMotion(PoolAction):
                     
                 # Then update the state
                 propagate = 1
-                if stopped_now:
-                    propagate = 2
+                #if stopped_now:
+                #    propagate = 2
                 moveable.set_state_info(real_state_info, propagate=propagate)
                 if stopped_now:
                     moveable.clear_operation()
@@ -329,8 +340,9 @@ class PoolMotion(PoolAction):
             i += 1
             time.sleep(nap)
     
-    def read_value(self, ret=None, serial=False):
-        return PoolAction.read_value(self, ret=ret, serial=serial)
-    
-    read_dial_position = read_value
+    def read_dial_position(self, ret=None, serial=False):
+        return self.read_value(ret=ret, serial=serial)
+
+    def raw_read_dial_position(self, ret=None, serial=False):
+        return self.raw_read_value(ret=ret, serial=serial)
     

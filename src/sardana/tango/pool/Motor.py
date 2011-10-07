@@ -107,7 +107,12 @@ class Motor(PoolElementDevice):
             if name == "state":
                 event_value = to_tango_state(event_value)
                 self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                try:
+                    self.push_change_event(name, event_value)
+                except:
+                    self.traceback(level=self.Critical)
+                    print 80*"="
+                    import traceback; traceback.print_stack()
             elif name == "status":
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
