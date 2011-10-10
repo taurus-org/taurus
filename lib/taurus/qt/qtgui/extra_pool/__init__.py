@@ -31,4 +31,4 @@ from motor import TaurusMotorH, TaurusMotorH2, TaurusMotorV, TaurusMotorV2
 from poolmotor import PoolMotorSlim, PoolMotor, LabelWidgetDragsDeviceAndAttribute
 from poolmotor import PoolMotorTV, PoolMotorTVLabelWidget, PoolMotorTVReadWidget, PoolMotorTVWriteWidget, PoolMotorTVUnitsWidget
 from poolchannel import PoolChannel, PoolChannelTV
-from poolioregister import PoolIORegisterTV, PoolIORegister, PoolIORegisterButtons
+from poolioregister import PoolIORegisterTV, PoolIORegisterReadWidget, PoolIORegisterWriteWidget, PoolIORegister, PoolIORegisterButtons
