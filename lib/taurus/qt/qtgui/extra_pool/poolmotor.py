@@ -35,6 +35,7 @@ import taurus.qt.qtcore.mimetypes
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.container import TaurusFrame
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.input import TaurusValueLineEdit
 from taurus.qt.qtgui.input import TaurusValueSpinBox
@@ -1293,19 +1294,17 @@ class PoolMotorTV(TaurusValue):
 # A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
 ###################################################
 
-class PoolMotor(TaurusWidget):
+class PoolMotor(TaurusFrame):
     ''' A widget that displays and controls a pool Motor device.
-    NOTE: WHEN GETTING EVENTS ON LIMITS, SOMETHING SHOULD BE DONE LIKE:
-    setStyleSheet('QAbstractSpinBox::up-button {background-color: orange;} QAbstractSpinBox::down-button {background-color: red;}')
     '''
     def __init__(self, parent = None, designMode = False):
-        TaurusWidget.__init__(self, parent, designMode)
-
-        self.motor_dev = None
-
+        TaurusFrame.__init__(self, parent, designMode)
+        
         self.setLayout(Qt.QGridLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
+
+        self.setFrameShape(Qt.QFrame.Box)
 
         self.pool_motor_tv = PoolMotorTV(self)
 
