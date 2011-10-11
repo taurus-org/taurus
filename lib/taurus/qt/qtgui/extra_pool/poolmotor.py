@@ -781,9 +781,14 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         # self.lbl_alias.addAction(...)
         self.lbl_alias.contextMenuEvent = lambda(event): self.contextMenuEvent(event)
 
-        # I' don't like this approach, tehre should be something like
+        # I' don't like this approach, there should be something like
         # self.lbl_alias.addToolTipCallback(self.calculate_extra_tooltip)
         self.lbl_alias.getFormatedToolTip = self.calculateExtendedTooltip
+
+        # I' don't like this approach, there should be something like
+        # self.lbl_alias.disableDrag() or self.lbl_alias.setDragEnabled(False)
+        # or better, define if Attribute or Device or Both have to be included in the mimeData
+        self.lbl_alias.mouseMoveEvent = self.mouseMoveEvent
 
     def setExpertView(self, expertView):
         btn_poweron_visible = expertView and self.taurusValueBuddy().hasPowerOn()
@@ -840,6 +845,20 @@ class PoolMotorTVLabelWidget(TaurusWidget):
 
         menu.exec_(event.globalPos())
         event.accept()
+
+    def mouseMoveEvent(self, event):
+        model = self.lbl_alias.getModelName()
+        mimeData = Qt.QMimeData()
+        mimeData.setText(self.lbl_alias.text())
+        dev_name = model.rpartition('/')[0]
+        attr_name = dev_name+'/Position'
+        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE, dev_name)
+        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE, attr_name)
+    
+        drag = Qt.QDrag(self)
+        drag.setMimeData(mimeData)
+        drag.setHotSpot(event.pos() - self.rect().topLeft())
+        dropAction = drag.start(Qt.Qt.CopyAction)
 
 ##################################################
 #                   READ WIDGET                  #
@@ -1255,7 +1274,7 @@ class PoolMotorTV(TaurusValue):
     def showTangoAttributes(self):
         model = self.getModel()
         taurus_attr_form = TaurusAttrForm()
-        taurus_attr_form.setMinimumSize(Qt.QSize(470,800))
+        taurus_attr_form.setMinimumSize(Qt.QSize(555,800))
         taurus_attr_form.setModel(model)
         taurus_attr_form.setWindowTitle('%s Tango Attributes'%taurus.Factory().getDevice(model).getSimpleName())
         taurus_attr_form.show()
