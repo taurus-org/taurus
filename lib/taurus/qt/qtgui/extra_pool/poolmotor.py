@@ -1406,8 +1406,8 @@ def main():
 
     tests = []
     #tests.append(1)
-    tests.append(2)
-    #tests.append(3)
+    #tests.append(2)
+    tests.append(3)
 
     # 1) Test PoolMotorSlim motor widget
     form_pms = TaurusForm()
