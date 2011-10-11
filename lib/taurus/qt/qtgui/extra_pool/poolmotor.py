@@ -1289,99 +1289,30 @@ class PoolMotorTV(TaurusValue):
         if self.motor_dev is not None:
             self.motor_dev.getAttribute('Position').disablePolling()
 
-######################################################
-#### A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
-######################################################
-###
-###class PoolMotor(TaurusWidget):
-###    ''' A widget that displays and controls a pool Motor device.
-###    NOTE: WHEN GETTING EVENTS ON LIMITS, SOMETHING SHOULD BE DONE LIKE:
-###    setStyleSheet('QAbstractSpinBox::up-button {background-color: orange;} QAbstractSpinBox::down-button {background-color: red;}')
-###    '''
-###    def __init__(self, parent = None, designMode = False):
-###        TaurusWidget.__init__(self, parent, designMode)
-###
-###        self.motor_dev = None
-###
-###        self.setLayout(Qt.QHBoxLayout())
-###        self.layout().setContentsMargins(0,0,0,0)
-###        self.layout().setSpacing(0)
-###
-###        self.alias_label = TaurusLabel()
-###        self.alias_label.setBgRole('state')
-###        self.layout().addWidget(self.alias_label)
-###
-###        self.read_label = TaurusLabel()
-###        self.layout().addWidget(self.read_label)
-###
-###        self.write_spinbox = TaurusValueSpinBox()
-###        self.write_spinbox.setForcedApply(True)
-###        self.write_spinbox.setButtonSymbols(Qt.QAbstractSpinBox.PlusMinus)
-###        self.layout().addWidget(self.write_spinbox)
-###
-###        self.unit_label = TaurusLabel()
-###        self.unit_label.setBgRole('none')
-###        self.layout().addWidget(self.unit_label)
-###
-###        self.btn_stop = Qt.QPushButton()
-###        self.btn_stop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
-###        self.btn_stop.setFixedSize(self.btn_stop.iconSize())
-###        self.layout().addWidget(self.btn_stop)
-###
-###        #### At some point it will be an icon...
-###        self.step_icon = Qt.QLabel('step')
-###        self.layout().addWidget(self.step_icon)
-###
-###        self.cb_step = Qt.QComboBox()
-###        self.cb_step.addItem('1')
-###        self.cb_step.setEditable(True)
-###        self.cb_step.setFixedWidth(60)
-###        self.layout().addWidget(self.cb_step)
-###
-###        self.connectSignals()
-###
-###    def setModel(self, model):
-###        try: self.motor_dev = taurus.Device(model)
-###        except: return
-###
-###        self.alias_label.setModel('%s/State?configuration=dev_alias' % model)
-###        self.read_label.setModel('%s/Position' % model)
-###        self.write_spinbox.setModel('%s/Position' % model)
-###        self.unit_label.setModel('%s/Position?configuration=unit' % model)
-###
-###    def showEvent(self, event):
-###        TaurusWidget.showEvent(self, event)
-###        if self.motor_dev is not None:
-###            self.motor_dev.getAttribute('Position').enablePolling(force=True)
-###
-###    def hideEvent(self, event):
-###        TaurusWidget.hideEvent(self, event)
-###        if self.motor_dev is not None:
-###            self.motor_dev.getAttribute('Position').disablePolling()
-###
-###    def keyPressEvent(self, key_event):
-###        if key_event.key() == Qt.Qt.Key_Escape:
-###            self.abort()
-###            key_event.accept()
-###        TaurusWidget.keyPressEvent(self, key_event)
-###
-###    def connectSignals(self):
-###        self.connect(self.btn_stop, Qt.SIGNAL('clicked()'), self.abort)
-###        self.connect(self.cb_step, Qt.SIGNAL('currentIndexChanged(QString)'), self.updateStepSize)
-###
-###    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the motion.')
-###    def abort(self):
-###        if self.motor_dev is None:
-###            return
-###        self.motor_dev.abort()
-###
-###    def updateStepSize(self, value):
-###        try:
-###            value = float(value)
-###            self.write_spinbox.setSingleStep(value)
-###        except Exception,e:
-###            print 'oups',e
+###################################################
+# A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
+###################################################
 
+class PoolMotor(TaurusWidget):
+    ''' A widget that displays and controls a pool Motor device.
+    NOTE: WHEN GETTING EVENTS ON LIMITS, SOMETHING SHOULD BE DONE LIKE:
+    setStyleSheet('QAbstractSpinBox::up-button {background-color: orange;} QAbstractSpinBox::down-button {background-color: red;}')
+    '''
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent, designMode)
+
+        self.motor_dev = None
+
+        self.setLayout(Qt.QGridLayout())
+        self.layout().setContentsMargins(0,0,0,0)
+        self.layout().setSpacing(0)
+
+        self.pool_motor_tv = PoolMotorTV(self)
+
+    def setModel(self, model):
+        self.pool_motor_tv.setModel(model)
+        try: self.motor_dev = taurus.Device(model)
+        except: return
 
 def main():
 
@@ -1402,7 +1333,6 @@ def main():
 
     w = Qt.QWidget()
     w.setLayout(Qt.QVBoxLayout())
-
 
     tests = []
     tests.append(1)
@@ -1436,14 +1366,10 @@ def main():
     # 3) Test Stand-Alone PoolMotor widget
     # New approach would be to let PoolMotorTV live outside a TaurusForm.... but inside a GridLayout
     # Carlos already said this is not a good approach but... 
-    if 3 in tests:
-        faked_form = Qt.QWidget()
-        faked_form.setLayout(Qt.QGridLayout())
         for motor in models:
-            motor_widget = PoolMotorTV(faked_form)
+            motor_widget = PoolMotor()
             motor_widget.setModel(motor)
-            faked_form.layout().addWidget(motor_widget)
-        w.layout().addWidget(faked_form)
+            w.layout().addWidget(motor_widget)
 
     w.show()
 
