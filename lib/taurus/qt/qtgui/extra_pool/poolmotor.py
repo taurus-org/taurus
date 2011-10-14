@@ -992,7 +992,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.layout().addWidget(self.cbAbsoluteReltaive, 0, 1)
         
         self.btn_stop = Qt.QPushButton()
-        self.btn_stop.setToolTip('Stops de motor')
+        self.btn_stop.setToolTip('Stops the motor')
         self.prepare_button(self.btn_stop)
         self.btn_stop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
         self.layout().addWidget(self.btn_stop, 0, 2)
@@ -1176,6 +1176,7 @@ class PoolMotorTV(TaurusValue):
         self.limits_listener = None
         self.poweron_listener = None
         self.status_listener = None
+        self.position_listener = None
         self.setExpertView(False)
 
     def setExpertView(self, expertView):
@@ -1213,6 +1214,13 @@ class PoolMotorTV(TaurusValue):
             self.connect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
             self.motor_dev.getAttribute('Status').addListener(self.status_listener)
             
+            # CONFIGURE AN EVENT RECEIVER IN ORDER TO ACTIVATE LIMIT BUTTONS ON SOFTWARE LIMITS
+            if self.position_listener is not None:
+                self.position_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
+            self.position_listener = TaurusAttributeListener()
+            self.connect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
+            self.motor_dev.getAttribute('Position').addListener(self.position_listener)
+            
             self.setExpertView(self._expertView)
         except Exception,e:
             print e
@@ -1229,7 +1237,29 @@ class PoolMotorTV(TaurusValue):
     def updateLimits(self, limits):
         if isinstance(limits, dict): limits = limits["limits"]
         limits = list(limits)
-        pos_lim = limits[1]
+        HOME = 0
+        POS = 1
+        NEG = 2
+
+        # Check also if the software limit is 'active'
+        if self.motor_dev is not None:
+            position_attribute = self.motor_dev.getAttribute('Position')
+            pos = position_attribute.read().value
+            max_value_str = position_attribute.max_value
+            min_value_str = position_attribute.min_value
+            try:
+                max_value = float(max_value_str)
+                limits[POS] = limits[POS] or (pos >= max_value)
+            except:
+                pass
+            try:
+                min_value = float(min_value_str)
+                limits[NEG] = limits[NEG] or (pos <= min_value)
+            except:
+                pass
+            
+        pos_lim = limits[POS]
+        
         pos_btnstylesheet = ''
         enabled = True
         if pos_lim:
@@ -1242,7 +1272,7 @@ class PoolMotorTV(TaurusValue):
         self.writeWidget().btn_to_pos.setEnabled(enabled)
         self.writeWidget().btn_to_pos_press.setEnabled(enabled)
 
-        neg_lim = limits[2]
+        neg_lim = limits[NEG]
         neg_btnstylesheet = ''
         enabled = True
         if neg_lim:
@@ -1267,6 +1297,16 @@ class PoolMotorTV(TaurusValue):
         # TaurusLabel.updateStyle DIDN'T WORK, SO I HAD TO GO DEEPER TO THE CONTROLLER...
         #self.labelWidget().lbl_alias.updateStyle()
         self.labelWidget().lbl_alias.controllerUpdate()
+        
+    def updatePosition(self, position):
+        # we do not need the position for nothing...
+        # we just want to check if any software limit is 'active'
+        # and updateLimits takes care of it
+        if self.motor_dev is not None:
+            limit_switches = [False, False, False]
+            if self.hasHwLimits():
+                limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
+            self.updateLimits(limit_switches)
         
     def hasEncoder(self):
         try: return hasattr(self.motor_dev, 'Encoder')
