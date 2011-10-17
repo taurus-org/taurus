@@ -69,10 +69,10 @@ Options::
    
                         
 .. note::
-  for backwards compatibility::
+  for backwards compatibility:
     taurusgui CONFIG_DIR
     
-  is equivalent to::
+  is equivalent to:
     taurusgui --config-dir=CONFIG_DIR
 
 

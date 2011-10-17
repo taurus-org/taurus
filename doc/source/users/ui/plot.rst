@@ -21,8 +21,8 @@ are plotted. It may also show a legend.
 But the :class:`TaurusPlot` does a lot more than just showing a plot. It allows
 the user to interact with the plot in many ways as described below.
 
-    *The features described here are available* by default *in all tau widgets.
-    Note that some GUIs may choose to disable some of these features*
+.. note:: The features described here are available *by default* in all TaurusPlot 
+          widgets, but certain GUIs may choose to disable some of these features.
 
 .. _standalonetaurusplot:
 
@@ -33,7 +33,7 @@ You may also use :class:`TaurusPlot` as a stand-alone application for displaying
 attributes from the control system or for plotting a function. You can launch the
 stand-alone :class:`TaurusPlot` with the following command::
 
-    taurustrend [options] [<model_list>]
+    taurusplot [options] [<model_list>]
 	
 Options::
 
@@ -235,7 +235,7 @@ You want a figure for a logbook?
 
 Or you want to store the plotted values in a file?
 
-Then you will like the Export capabilities of TauPlot.
+Then you will like the Export capabilities of TaurusPlot.
 
 You can access them from the `TaurusPlot context menu`_ and for the moment they
 allow you to:
