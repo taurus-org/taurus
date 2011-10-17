@@ -43,7 +43,8 @@ from taurus.core.util import CaselessDict
 from taurus.core.util.log import Logger, InfoIt, DebugIt
 
 from sardana import ServerState, SardanaServer
-from sardana.pool import ElementType, TYPE_MOVEABLE_ELEMENTS
+from sardana.pool import ElementType, TYPE_MOVEABLE_ELEMENTS, \
+    TYPE_ACQUIRABLE_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
 from sardana.pool.poolmotorgroup import PoolMotorGroup
