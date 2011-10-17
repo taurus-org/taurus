@@ -714,6 +714,7 @@ class TaurusSequencerWidget(TaurusWidget):
         macroNode = self.getModelObj().getMacroNodeObj(macroName)
         self.tree.addMacro(macroNode)
         self.saveSequenceAction.setEnabled(True)
+        self.playSequenceAction.setEnabled(True)
         
     def isEmptySequence(self):
         return len(self.tree.root()) == 0
