@@ -215,8 +215,8 @@ class PoolBaseElement(PoolObject):
     def _set_state_info(self, state_info, propagate=1):
         state_info = self.calculate_state_info(state_info)
         state, status = state_info[:2]
-        self._set_state(state, propagate=propagate)
         self._set_status(status, propagate=propagate)
+        self._set_state(state, propagate=propagate)
     
     def read_state_info(self):
         action_cache = self.get_action_cache()

@@ -196,7 +196,7 @@ class PoolMotion(PoolAction):
         pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
 
-        with ActionContext(self) as context:        
+        with ActionContext(self) as context:
 
             # PreStartAll on all controllers
             for pool_ctrl in pool_ctrls:
@@ -230,11 +230,6 @@ class PoolMotion(PoolAction):
             # StartAll on all controllers
             for pool_ctrl in pool_ctrls:
                 pool_ctrl.ctrl.StartAll()
-
-            # read positions to send a first event when starting to move
-            positions = self.raw_read_dial_position()
-            for moveable, position in positions.items():
-                moveable.put_dial_position(position, propagate=2)
             
     
     def backlash_item(self, motion_item):
@@ -256,15 +251,16 @@ class PoolMotion(PoolAction):
         for k in self.get_elements():
             states[k] = None
             positions[k] = None
-
+        
         nap = self._motion_sleep_time
         nb_states_per_pos = self._nb_states_per_position
         
-        # read positions to send a first event when starting to move
-        #self.read_dial_position(ret=positions)
-        #for moveable, position in positions.items():
-        #    moveable.put_dial_position(position, propagate=2)
-
+        with ActionContext(self) as context:
+            # read positions to send a first event when starting to move
+            positions = self.raw_read_dial_position()
+            for moveable, position in positions.items():
+                moveable.put_dial_position(position, propagate=2)
+            
         
         while True:
             self.read_state_info(ret=states)
@@ -315,15 +311,15 @@ class PoolMotion(PoolAction):
                     ## again which would result in an exception saying that the
                     ## motor is already involved in an operation
                     ## ... but before protect the motor so that the monitor
-                    #moveable.clear_operation()
+                    ## doesn't come in between the two instructions below and
+                    ## send a state event on it's own
+                    with moveable:
+                        moveable.clear_operation()
+                        moveable.set_state_info(real_state_info, propagate=2)
                     
                 # Then update the state
-                propagate = 1
-                #if stopped_now:
-                #    propagate = 2
-                moveable.set_state_info(real_state_info, propagate=propagate)
-                if stopped_now:
-                    moveable.clear_operation()
+                if not stopped_now:
+                    moveable.set_state_info(real_state_info, propagate=1)
                 
                 if moving:
                     in_motion = True
