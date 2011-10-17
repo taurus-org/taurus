@@ -62,43 +62,6 @@ def get_release_info():
     release = imp.load_module(name, *data)
     return release
 
-Release = get_release_info()
-
-author = Release.authors['Tiago']
-package_name = Release.name
-
-package_dir = { 'sardana' : abspath('src', 'sardana') }
-
-packages = [
-    'sardana',
-    'sardana.pool',
-    'sardana.pool.poolcontrollers',
-    'sardana.macroserver',
-    'sardana.macroserver.macros',
-    'sardana.macroserver.scan',
-    'sardana.tango',
-    'sardana.tango.core',
-    'sardana.tango.pool',
-    'sardana.tango.macroserver',
-]
-
-extra_packages = [
-]
-
-provides = [
-    'sardana',
-    'sardana.pool',
-    'sardana.macroserver',
-]
-
-requires = [ 
-    'PyTango (>=7.1)',
-    'taurus (>= 2.1)',
-]
- 
-package_data = { 
-
-}
 
 def get_script_files():
     scripts_dir = abspath('scripts')
@@ -123,29 +86,6 @@ def get_script_files():
             continue
         scripts.append('scripts/' + item)
     return scripts
-
-scripts = get_script_files()
-
-data_files = [
-]
-
-classifiers = [
-    'Development Status :: 4 - Beta',
-    'Environment :: Console',
-    'Environment :: No Input/Output (Daemon)',
-    'Environment :: Win32 (MS Windows)',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
-    'Operating System :: Microsoft :: Windows',
-    'Operating System :: POSIX',
-    'Operating System :: POSIX :: Linux',
-    'Operating System :: Unix',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Topic :: Scientific/Engineering',
-    'Topic :: Software Development :: Libraries',
-]
 
 
 class build(dftbuild):
@@ -301,25 +241,98 @@ if sphinx:
     
     cmdclass['build_doc'] = build_doc
 
+def main():
+    Release = get_release_info()
 
-setup(name             = 'sardana',
-      version          = Release.version,
-      description      = Release.description,
-      long_description = Release.long_description,
-      author           = author[0],
-      author_email     = author[1],
-      url              = Release.url,
-      download_url     = Release.download_url,
-      platforms        = Release.platforms,
-      license          = Release.license,
-      packages         = packages,
-      package_dir      = package_dir,
-      classifiers      = classifiers,
-      package_data     = package_data,
-      data_files       = data_files,
-      scripts          = scripts,
-      provides         = provides,
-      keywords         = Release.keywords,
-      requires         = requires,
-      cmdclass         = cmdclass)
+    author = Release.authors['Tiago']
+    package_name = Release.name
 
+    package_dir = { 'sardana' : abspath('src', 'sardana') }
+
+    pool_packages = [
+
+    ]
+    packages = [
+        'sardana',
+        
+        'sardana.pool',
+        'sardana.pool.poolcontrollers',
+        
+        'sardana.macroserver',
+        'sardana.macroserver.macros',
+        'sardana.macroserver.scan',
+        'sardana.macroserver.scan.recorder',
+        
+        'sardana.tango',
+        'sardana.tango.core',
+        'sardana.tango.pool',
+        'sardana.tango.macroserver',
+        
+        'sardana.spock',
+    ]
+
+    extra_packages = [
+    ]
+
+    provides = [
+        'sardana',
+        'sardana.pool',
+        'sardana.macroserver',
+        'sardana.spock',
+    ]
+
+    requires = [ 
+        'PyTango (>=7.1)',
+        'taurus (>= 2.1)',
+    ]
+     
+    package_data = { 
+
+    }
+
+    scripts = get_script_files()
+
+    data_files = [
+    ]
+
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: No Input/Output (Daemon)',
+        'Environment :: Win32 (MS Windows)',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: Unix',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Software Development :: Libraries',
+    ]
+
+    setup(name             = 'sardana',
+          version          = Release.version,
+          description      = Release.description,
+          long_description = Release.long_description,
+          author           = author[0],
+          author_email     = author[1],
+          url              = Release.url,
+          download_url     = Release.download_url,
+          platforms        = Release.platforms,
+          license          = Release.license,
+          packages         = packages,
+          package_dir      = package_dir,
+          classifiers      = classifiers,
+          package_data     = package_data,
+          data_files       = data_files,
+          scripts          = scripts,
+          provides         = provides,
+          keywords         = Release.keywords,
+          requires         = requires,
+          cmdclass         = cmdclass)
+
+if __name__ == "__main__":
+    main()
