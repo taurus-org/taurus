@@ -76,9 +76,27 @@ class QDoor(BaseDoor, Qt.QObject):
         The real implementation should be able to read the info from the
         ExperimentConfiguration envvar stored in the environment attribute.
         '''
-        from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
-        import copy
-        return copy.deepcopy(getattr(self, "_dummy_exp_conf", DUMMY_EXP_CONF))
+#        from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
+        import copy, json
+        
+#        ms = self.macroserver
+#        poolname = ms.get_property('poolnames')['poolnames'][0]
+#        pool = taurus.Device(poolname) 
+        ActiveMntGrp = json.loads(str(self.Environment[1]))['ActiveMntGrp']
+        MNTGRPCONFIGS = {}
+        for element in self.macro_server.MeasurementGroupList:
+            mginfo = json.loads(element)
+            name = mginfo['name']
+            mg = taurus.Device(str(name))
+            conf = json.loads(mg.configuration)
+            MNTGRPCONFIGS[name] = conf
+        default = {'MntGrpConfigs': MNTGRPCONFIGS,
+               'ActiveMntGrp' : ActiveMntGrp,
+               'ScanDir':'/tmp/scandir',
+               'ScanFile':'dummyscan.h5',
+               'DataCompressionRank':-1}
+        return copy.deepcopy(getattr(self, "_dummy_exp_conf", default))
+    
     
     def setExperimentConfiguration(self, conf):
         '''
