@@ -80,12 +80,12 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
-        if self.isDataChanged():
-            op = Qt.QMessageBox.question(self, "Discard pending changes?", 
-                                    "There are unsaved changes in the configuration. If you close they will be lost.\n Close anyway?", 
-                                    Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
-            if op != Qt.QMessageBox.Yes: 
-                return
+#        if self.isDataChanged():
+#            op = Qt.QMessageBox.question(self, "Discard pending changes?", 
+#                                    "There are unsaved changes in the configuration. If you close they will be lost.\n Close anyway?", 
+#                                    Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+#            if op != Qt.QMessageBox.Yes: 
+#                return
         Qt.QWidget.closeEvent(self,event)
     
     def setModel(self, model):
@@ -109,9 +109,11 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         #set a list of available channels
         from taurus.core.tango.sardana.pool import ExpChannel
         avail = {}
-        for s in door.macro_server.ExpChannelList:
-            d = ExpChannel.match(s)
-            avail[d['_alias']] = d
+       
+        import json #@todo @fixme!!!!
+        for channeldesc in door.macro_server.ExpChannelList: 
+            channeldesc = json.loads(channeldesc) #@todo: this decoding should be done at the QMacroServer level
+            avail[channeldesc['name']] = channeldesc
         
         self.ui.channelEditor.getQModel().setAvailableChannels(avail)
         
@@ -132,7 +134,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.ui.activeMntGrpCB.clear()
         self.ui.activeMntGrpCB.addItems(sorted(mgcfgs.keys()))
         idx = self.ui.activeMntGrpCB.findText(self._localConfig['ActiveMntGrp'])
-        self.ui.activeMntGrpCB.setCurrentIndex(idx) #note that this triggers a call to onActiveMntGrpChanged (which)
+        self.ui.activeMntGrpCB.setCurrentIndex(idx) #note that this triggers a call to onActiveMntGrpChanged 
         
         #other settings
         self.ui.filenameLE.setText(self._localConfig['ScanFile'])
