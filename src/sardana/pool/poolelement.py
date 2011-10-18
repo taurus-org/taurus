@@ -315,7 +315,10 @@ class PoolElement(PoolBaseElement):
         ret = PoolBaseElement.to_json(self, *args, **kwargs)
         ret['controller'] = self.controller.name
         ret['axis'] = self.axis
-        ret['instrument'] = self.instrument
+        if self.instrument is not None:
+            ret['instrument'] = self.instrument.full_name
+        else:
+            ret['instrument'] = None
         return ret
 
     def get_controller(self):

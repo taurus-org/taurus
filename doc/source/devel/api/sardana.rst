@@ -21,7 +21,7 @@
     :maxdepth: 1
 
     pool <sardana/pool>
-
+    macroserver <sardana/macroserver>
 
 
 

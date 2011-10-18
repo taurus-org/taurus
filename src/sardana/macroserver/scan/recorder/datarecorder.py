@@ -31,12 +31,6 @@ __all__ = ["DataFormats", "SaveModes", "RecorderStatus", "DataHandler",
 __docformat__ = 'restructuredtext'
 
 import time
-import numpy
-import os
-import string
-import itertools
-import types
-import operator
 
 from taurus.core.util import Enumeration, Logger
 

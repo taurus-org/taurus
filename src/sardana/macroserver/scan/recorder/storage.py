@@ -29,18 +29,13 @@ __all__ = ["BaseFileRecorder", "FileRecorder"]
 
 __docformat__ = 'restructuredtext'
 
+import os
+import time
+import itertools
+
 import numpy
 
-try:
-    import nxs  #check if Nexus data format is supported by this system
-    NEXUS_AVAILABLE=True
-except: 
-    from taurus.core.util import Logger
-    log = Logger("ScanStorage")
-    log.info("NEXUS is not available. NEXUS_FileRecorder won't work")
-    NEXUS_AVAILABLE=False
-
-from datarecorder import DataRecorder, DataFormats
+from datarecorder import DataRecorder, DataFormats, SaveModes
 
 
 class BaseFileRecorder(DataRecorder):
@@ -182,6 +177,13 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
     def __init__(self, filename=None, macro=None, overwrite=False, **pars):
         BaseFileRecorder.__init__(self, **pars)
+
+        try:
+            import nxs  #check if Nexus data format is supported by this system
+            self.nxs = nxs
+        except: 
+            raise Exception("NeXus is not available")
+
         self.overwrite = overwrite
         if filename:
             self.setFileName(filename)
@@ -201,18 +203,21 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         return DataFormats.whatis(self.nxfilemode)
         
     def _startRecordList(self, recordlist):
+        nxs = self.nxs
         nxfilemode = self.getFormat()
         
         if self.filename is None:
             return
-        if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
-        self.fd = nxs.open(self.filename, nxfilemode) 
-        self.entryname=self._newentryname('entry')
-        self.fd.makegroup(self.entryname,"NXentry") 
-        self.fd.opengroup(self.entryname,"NXentry") 
         
         self.currentlist = recordlist
         env = self.currentlist.getEnviron()
+        
+        if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
+        self.fd = nxs.open(self.filename, nxfilemode) 
+        self.entryname=self._newentryname(prefix='entry', suffix=env['title'])
+        self.fd.makegroup(self.entryname,"NXentry") 
+        self.fd.opengroup(self.entryname,"NXentry") 
+        
         self.datadesc = env['datadesc']
         
         #make a dictionary out of env['instrumentlist'] (use paths as keys)
@@ -256,6 +261,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
             return
+        nxs = self.nxs
         for dd in self.datadesc:
             if record.data.has_key( dd.label ):
                 data = record.data[dd.label]
@@ -317,13 +323,15 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             self.fd.closedata()
         self._endRecordList( recordlist )
 
-    def _newentryname(self,preffix='entry',offset=1):
+    def _newentryname(self, prefix='entry', suffix='', offset=1):
         '''Returns a str representing the name for a new entry.
-        The name is formed by the preffix and an incremental numeric suffix.
+        The name is formed by the prefix and an incremental numeric suffix.
         The offset indicates the start of the numeric suffix search'''
         i=offset
         while True:
-            entry="%s%i"%(preffix,i)            
+            entry="%s%04i"%(prefix,i)
+            if suffix:
+                entry += " - " + suffix
             try:
                 self.fd.opengroup(entry,'NXentry')
                 self.fd.closegroup()

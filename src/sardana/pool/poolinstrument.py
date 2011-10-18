@@ -47,10 +47,19 @@ class PoolInstrument(PoolObject):
         self._child_instruments = {}
         self._elements = {}
         super(PoolInstrument, self).__init__(**kwargs)
-
+    
     def get_type(self):
         return ElementType.Instrument
-
+    
+    def to_json(self, *args, **kwargs):
+        ret = PoolObject.to_json(self, *args, **kwargs)
+        ret['klass'] = self.instrument_class
+        if self.parent_instrument is not None:
+            ret['parent_instrument'] = self.parent_instrument.full_name
+        else:
+            ret['parent_instrument'] = None
+        return ret
+    
     def get_instrument_class(self):
         return self._instrument_class
 

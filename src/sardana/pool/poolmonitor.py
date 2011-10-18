@@ -50,7 +50,7 @@ class PoolMonitor(Logger, threading.Thread):
     MIN_THREADS =  1
     MAX_THREADS = 10
     
-    def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0,
+    def __init__(self, pool, name='PoolMonitor', period=0.01, min_sleep=1.0,
                  auto_start=True):
         Logger.__init__(self, name)
         threading.Thread.__init__(self, name=name)
@@ -96,6 +96,7 @@ class PoolMonitor(Logger, threading.Thread):
                 elem = pool.get_element_by_id(elem_id)
                 ctrl = elem.controller
                 if elem.is_in_operation():
+                    blocked_ctrls.add(ctrl)
                     continue
                 if ctrl in blocked_ctrls:
                     continue

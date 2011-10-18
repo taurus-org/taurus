@@ -197,7 +197,6 @@ class PoolMotion(PoolAction):
         moveables = self.get_elements()
 
         with ActionContext(self) as context:
-
             # PreStartAll on all controllers
             for pool_ctrl in pool_ctrls:
                 pool_ctrl.ctrl.PreStartAll()
@@ -255,12 +254,11 @@ class PoolMotion(PoolAction):
         nap = self._motion_sleep_time
         nb_states_per_pos = self._nb_states_per_position
         
+        # read positions to send a first event when starting to move
         with ActionContext(self) as context:
-            # read positions to send a first event when starting to move
             positions = self.raw_read_dial_position()
             for moveable, position in positions.items():
                 moveable.put_dial_position(position, propagate=2)
-            
         
         while True:
             self.read_state_info(ret=states)

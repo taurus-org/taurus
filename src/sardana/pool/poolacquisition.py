@@ -26,18 +26,36 @@
 """This module is part of the Python Pool libray. It defines the class for an
 acquisition"""
 
-__all__ = [ "PoolCTAcquisition" ]
+__all__ = [ "AcquisitionState", "AcquisitionMap", "PoolCTAcquisition", 
+            "Channel" ]
 
 __docformat__ = 'restructuredtext'
 
 import time
 import weakref
 
-import taurus.core.util
+from taurus.core.util import Enumeration, DebugIt
 
 from sardana import State
-from poolaction import *
+from poolaction import ActionContext, PoolActionItem, PoolAction
 
+#: enumeration representing possible motion states
+AcquisitionState = Enumeration("AcquisitionState", ( \
+    "Stopped",
+#    "StoppedOnError",
+#    "StoppedOnAbort",
+    "Acquiring",
+    "Invalid") )
+
+AS = AcquisitionState
+AcquiringStates = AS.Acquiring,
+StoppedStates = AS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
+
+AcquisitionMap = {
+    #AS.Stopped           : State.On,
+    AS.Acquiring         : State.Moving,
+    AS.Invalid           : State.Invalid,
+}
 class PoolAcquisition(PoolAction):
     
     def __init__(self, name="Acquisition"):
@@ -49,7 +67,8 @@ class PoolAcquisition(PoolAction):
     
     def start_action(self, *args, **kwargs):
         pass
-    
+
+
 class Channel(PoolActionItem):
     
     def __init__(self, acquirable, info=None):
@@ -71,6 +90,13 @@ class PoolCTAcquisition(PoolAction):
         """Prepares everything for acquisition and starts it.
         
            :param: config"""
+        
+        pool = self._pool
+        
+        # prepare data structures
+        self._aborted = False
+        self._stopped = False
+        
         integ_time = kwargs.get("integ_time")
         mon_count = kwargs.get("monitor_count")
         if integ_time is None and mon_count is None:
@@ -113,51 +139,53 @@ class PoolCTAcquisition(PoolAction):
                 axis = element.axis
                 channel = Channel(element, info=element_info)
                 channels[element] = channel
-
-        for channel in channels:
-            channel.prepare_to_acquire(self)
-
-        # PreLoadAll, PreLoadOne, LoadOne and LoadAll
-        for pool_ctrl in pool_ctrls:
-            ctrl = pool_ctrl.ctrl
-            pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
-            main_unit_data = pool_ctrl_data['units']['0']
-            ctrl.PreLoadAll()
-            master = main_unit_data[master_key]
-            axis = master.axis
-            res = ctrl.PreLoadOne(axis, master_value)
-            if not res:
-                raise Exception("%s.PreLoadOne(%d) returns False" % (pool_ctrl.name, axis,))
-            ctrl.LoadOne(axis, master_value)
-            ctrl.LoadAll()
-
-        # PreStartAll on all controllers
-        for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.PreStartAll()
         
-        # PreStartOne & StartOne on all elements
-        for pool_ctrl in pool_ctrls:
-            ctrl = pool_ctrl.ctrl
-            pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
-            main_unit_data = pool_ctrl_data['units']['0']
-            elements = main_unit_data['channels']
-            for element in elements:
-                axis = element.axis
-                channel = channels[element]
-                if channel.enabled:
-                    ret = ctrl.PreStartOne(axis, master_value)
-                    if not ret:
-                        raise Exception("%s.PreStartOne(%d) returns False" \
-                                        % (ctrl.name, axis))
-                    ctrl.StartOne(axis)
+        #for channel in channels:
+        #    channel.prepare_to_acquire(self)
         
-        # set the state of all elements to  and inform their listeners
-        for channel in channels:
-            channel.set_state(State.Moving, propagate=2)
-        
-        # StartAll on all controllers
-        for pool_ctrl in pool_ctrls:
-            pool_ctrl.ctrl.StartAll()
+        with ActionContext(self) as context:
+            
+            # PreLoadAll, PreLoadOne, LoadOne and LoadAll
+            for pool_ctrl in pool_ctrls:
+                ctrl = pool_ctrl.ctrl
+                pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
+                main_unit_data = pool_ctrl_data['units']['0']
+                ctrl.PreLoadAll()
+                master = main_unit_data[master_key]
+                axis = master.axis
+                res = ctrl.PreLoadOne(axis, master_value)
+                if not res:
+                    raise Exception("%s.PreLoadOne(%d) returns False" % (pool_ctrl.name, axis,))
+                ctrl.LoadOne(axis, master_value)
+                ctrl.LoadAll()
+
+            # PreStartAll on all controllers
+            for pool_ctrl in pool_ctrls:
+                pool_ctrl.ctrl.PreStartAll()
+            
+            # PreStartOne & StartOne on all elements
+            for pool_ctrl in pool_ctrls:
+                ctrl = pool_ctrl.ctrl
+                pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
+                main_unit_data = pool_ctrl_data['units']['0']
+                elements = main_unit_data['channels']
+                for element in elements:
+                    axis = element.axis
+                    channel = channels[element]
+                    if channel.enabled:
+                        ret = ctrl.PreStartOne(axis, master_value)
+                        if not ret:
+                            raise Exception("%s.PreStartOne(%d) returns False" \
+                                            % (ctrl.name, axis))
+                        ctrl.StartOne(axis)
+            
+            # set the state of all elements to  and inform their listeners
+            for channel in channels:
+                channel.set_state(State.Moving, propagate=2)
+            
+            # StartAll on all controllers
+            for pool_ctrl in pool_ctrls:
+                pool_ctrl.ctrl.StartAll()
         
     def in_acquisition(self, states):
         """Determines if we are in acquisition or if the acquisition has ended
@@ -174,7 +202,7 @@ class PoolCTAcquisition(PoolAction):
             if self._is_in_action(s):
                 return True
     
-    @taurus.core.util.DebugIt()
+    @DebugIt()
     def action_loop(self):
         i = 0
         
@@ -184,10 +212,11 @@ class PoolCTAcquisition(PoolAction):
             values[element] = None
 
         # read values to send a first event when starting to acquire
-        self.read_value(ret=values)
-        for acquirable, value in values.items():
-            acquirable.put_value(value, propagate=2)
-            
+        with ActionContext(self) as context:
+            self.raw_read_value(ret=values)
+            for acquirable, value in values.items():
+                acquirable.put_value(value, propagate=2)
+        
         while True:
             self.read_state_info(ret=states)
             
@@ -199,30 +228,20 @@ class PoolCTAcquisition(PoolAction):
                 self.read_value(ret=values)
                 for acquirable, value in values.items():
                     acquirable.put_value(value)
-                
+            
             i += 1
             time.sleep(0.01)
         
-        self.read_state_info(ret=states)
-        
-        # first update the element state so that value calculation
-        # that is done after takes the updated state into account
-        for acquirable, state_info in states.items():
-            acquirable.set_state_info(state_info, propagate=0)
-        
-        # Do NOT send events before we exit the OperationContext, otherwise
-        # we may be asked to start another action before we leave the context
-        # of the current action. Instead, send the events in the finish hook
-        # which is executed outside the OperationContext
+        with ActionContext(self):
+            self.raw_read_state_info(ret=states)
+            self.raw_read_value(ret=values)
 
-        def finish_hook(*args, **kwargs):
-            # read values and propagate the change to all listeners
-            self.read_value(ret=values)
-            for acquirable, value in values.items():
-                acquirable.put_value(value, propagate=2)
-            
-            # finally set the state and propagate to all listeners
+            # first update the element state so that value calculation
+            # that is done after takes the updated state into account
             for acquirable, state_info in states.items():
+                acquirable.set_state_info(state_info, propagate=0)
+                value = values[acquirable]
+                acquirable.put_value(value, propagate=2)
+                acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)
-        
-        self.set_finish_hook(finish_hook)
+

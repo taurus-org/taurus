@@ -106,6 +106,7 @@ class PoolCounterTimer(PoolElement):
     
     def start_acquisition(self, value=None):
         self._aborted = False
+        self._stopped = False
         value = value or self.get_value_w()
         if value is None:
             raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)

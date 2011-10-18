@@ -138,9 +138,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         attr.set_value(info)
 
     def read_InstrumentList(self, attr):
-        instruments = self._pool.get_elements_by_type(ElementType.Instrument)
-        instrument_names = map(PoolInstrument.get_name, instruments)
-        attr.set_value(instrument_names)
+        #instruments = self._pool.get_elements_by_type(ElementType.Instrument)
+        #instrument_names = map(PoolInstrument.get_full_name, instruments)
+        #attr.set_value(instrument_names)
+        info = self.pool.get_elements_str_info(ElementType.Instrument)
+        attr.set_value(info)
 
     #@PyTango.DebugIt()
     def read_ExpChannelList(self, attr):
@@ -325,12 +327,14 @@ class Pool(PyTango.Device_4Impl, Logger):
             
     #@PyTango.DebugIt()
     def CreateInstrument(self, argin):
-        i = self.pool.create_instrument(*argin)
-        
+        instrument = self.pool.create_instrument(*argin)
+        instrument_list = self.InstrumentList
         # update database property
-        self.InstrumentList.extend([i.instrument_class, i.full_name, i.id])
+        instrument_list.append(instrument.instrument_class)
+        instrument_list.append(instrument.full_name)
+        instrument_list.append(instrument.id)
         db = PyTango.Util.instance().get_database()
-        props = { 'InstrumentList' : self.InstrumentList }
+        props = { 'InstrumentList' : instrument_list }
         db.put_device_property(self.get_name(), props)
     
     #@PyTango.DebugIt()

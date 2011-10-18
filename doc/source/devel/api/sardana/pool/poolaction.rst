@@ -17,22 +17,12 @@
 .. hlist::
     :columns: 3
 
-    * :class:`OperationInfo`
     * :class:`PoolAction`
+    * :class:`OperationInfo`
     * :class:`PoolActionItem`
-
+    * :class:`ActionContext`
+     
 .. autofunction:: get_thread_pool
-
-OperationInfo
--------------------
-
-.. inheritance-diagram:: OperationInfo
-    :parts: 1
-    
-.. autoclass:: OperationInfo
-    :show-inheritance:
-    :members:
-    :undoc-members:
 
 PoolAction
 -------------------
@@ -44,6 +34,17 @@ PoolAction
     :show-inheritance:
     :members:
     :undoc-members:
+    
+OperationInfo
+-------------------
+
+.. inheritance-diagram:: OperationInfo
+    :parts: 1
+    
+.. autoclass:: OperationInfo
+    :show-inheritance:
+    :members:
+    :undoc-members:
 
 PoolActionItem
 -------------------
@@ -52,6 +53,17 @@ PoolActionItem
     :parts: 1
     
 .. autoclass:: PoolActionItem
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+ActionContext
+-------------------
+
+.. inheritance-diagram:: ActionContext
+    :parts: 1
+    
+.. autoclass:: ActionContext
     :show-inheritance:
     :members:
     :undoc-members:

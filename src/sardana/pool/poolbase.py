@@ -71,7 +71,8 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
             return EventGenerator.fire_event(self, event_type, event_value,
                                              listeners=listeners)
         except:
-            self.warning("Error firing event", exc_info=1)
+            self.warning("Error firing event <%s,%s>", event_type, event_value)
+            self.debug("Error description: ", exc_info=1)
 
     def to_json(self, *args, **kwargs):
         cl_name = self.__class__.__name__

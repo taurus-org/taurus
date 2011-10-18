@@ -506,12 +506,12 @@ class PoolMotor(PoolElement):
                        "dial_backlash=%f", *items[self])
             self.motion.run(items=items)
     
-    def prepare_to_move(self, motion):
-        self._aborted = False
-        self._stopped = False
-        self.action = motion
+#    def prepare_to_move(self, motion):
+#        self._aborted = False
+#        self._stopped = False
+#        self.action = motion
         
-    def finish_from_move(self):
-        self._aborted = False
-        self._stopped = False
-        self.clear_action()
+#    def finish_from_move(self):
+#        self._aborted = False
+#        self._stopped = False
+#        self.clear_action()

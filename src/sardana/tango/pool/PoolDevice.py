@@ -38,6 +38,7 @@ from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
+from sardana.pool import ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
     GenericImageAttr, to_tango_type_format, to_tango_access, to_tango_attr_info
@@ -303,7 +304,7 @@ class PoolElementDevice(PoolDevice):
             if instrument.get_type() != ElementType.Instrument:
                 raise Exception("%s is not an instrument" % name)
         self.element.instrument = instrument
-        db = PyTango.Util.instance().get_database()
+        db = Util.instance().get_database()
         db.put_device_property(self.get_name(), { "Instrument_id" : instrument.id })
     
     def get_dynamic_attributes(self):

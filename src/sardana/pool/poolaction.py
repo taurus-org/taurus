@@ -314,9 +314,15 @@ class PoolAction(Logger):
                                   "subclass")
     
     def set_finish_hook(self, hook):
+        """Attaches/Detaches a finish hook
+        
+        :param hook: a callable object or None
+        :type hook: callable or None"""
         self._finish_hook = hook
         
     def finish_action(self):
+        """Finishes the action execution. If a finish hook is defined it safely
+        executes it. Otherwise nothing happens"""
         hook = self._finish_hook
         if hook is None:
             return
@@ -338,12 +344,26 @@ class PoolAction(Logger):
             pool_ctrl.abort_elements(elements)
 
     def was_stopped(self):
+        """Determines if the action has been stopped from outside
+        
+        :return: True if action has been stopped from outside or False otherwise
+        :rtype: bool"""
         return self._stopped
     
     def was_aborted(self):
+        """Determines if the action has been aborted from outside
+        
+        :return: True if action has been aborted from outside or False otherwise
+        :rtype: bool"""
         return self._aborted
     
     def was_action_interrupted(self):
+        """Determines if the action has been interruped from outside (either
+        from an abort or a stop).
+        
+        :return: True if action has been interruped from outside or False
+                 otherwise
+        :rtype: bool"""
         return self.was_aborted() or self.was_stopped()
 
     def _asynch_action_loop(self, context):
