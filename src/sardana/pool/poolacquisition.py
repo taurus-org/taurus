@@ -97,6 +97,12 @@ class PoolCTAcquisition(PoolAction):
         self._aborted = False
         self._stopped = False
         
+        self._acq_sleep_time = kwargs.pop("motion_sleep_time",
+                                             pool.acq_loop_sleep_time)
+        self._nb_states_per_value = \
+            kwargs.pop("nb_states_per_value",
+                       pool.acq_loop_states_per_value)
+
         integ_time = kwargs.get("integ_time")
         mon_count = kwargs.get("monitor_count")
         if integ_time is None and mon_count is None:
@@ -211,6 +217,9 @@ class PoolCTAcquisition(PoolAction):
             states[element] = None
             values[element] = None
 
+        nap = self._acq_sleep_time
+        nb_states_per_value = self._nb_states_per_value
+
         # read values to send a first event when starting to acquire
         with ActionContext(self) as context:
             self.raw_read_value(ret=values)
@@ -224,24 +233,24 @@ class PoolCTAcquisition(PoolAction):
                 break
             
             # read value every n times
-            if not i % 5:
+            if not i % nb_states_per_value:
                 self.read_value(ret=values)
                 for acquirable, value in values.items():
                     acquirable.put_value(value)
             
             i += 1
-            time.sleep(0.01)
+            time.sleep(nap)
         
         with ActionContext(self):
             self.raw_read_state_info(ret=states)
             self.raw_read_value(ret=values)
 
+        for acquirable, state_info in states.items():
             # first update the element state so that value calculation
             # that is done after takes the updated state into account
-            for acquirable, state_info in states.items():
-                acquirable.set_state_info(state_info, propagate=0)
-                value = values[acquirable]
-                acquirable.put_value(value, propagate=2)
+            acquirable.set_state_info(state_info, propagate=0)
+            acquirable.put_value(values[acquirable], propagate=2)
+            with acquirable:
                 acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)
 

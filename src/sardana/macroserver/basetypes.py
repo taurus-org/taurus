@@ -33,8 +33,7 @@ __all__ = ["Integer", "Float", "Boolean", "String", "User", "Filename",
 
 __docformat__ = 'restructuredtext'
 
-from sardana.macroserver.parameter import ParamType, AttrParamType, \
-    PoolObjParamType
+from sardana.macroserver.parameter import ParamType, AttrParamType, PoolObjParamType
 
 # Basic types
 

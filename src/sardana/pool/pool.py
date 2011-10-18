@@ -69,11 +69,20 @@ class Pool(PoolContainer, PoolObject):
 
     #: Default value representing the sleep time for each motion loop
     Default_MotionLoop_SleepTime = 0.01
+
+    #: Default value representing the number of state reads per value
+    #: read during a motion loop
+    Default_AcqLoop_StatesPerValue = 5
+
+    #: Default value representing the sleep time for each acquisition loop
+    Default_AcqLoop_SleepTime = 0.01
     
     def __init__(self, full_name, name=None):
         self._last_id = InvalidId
         self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
         self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
+        self._acq_loop_states_per_value = self.Default_AcqLoop_StatesPerValue
+        self._acq_loop_sleep_time = self.Default_AcqLoop_SleepTime
         
         # dict<str, dict<str, str>>
         # keys are acquisition channel names and value is a dict describing the
@@ -136,6 +145,27 @@ class Pool(PoolContainer, PoolObject):
         set_motion_loop_states_per_position,
         doc="Number of State reads done before doing a position read in the "
             "motion loop")
+
+    def set_acq_loop_sleep_time(self, acq_loop_sleep_time):
+        self._acq_loop_sleep_time = acq_loop_sleep_time
+    
+    def get_acq_loop_sleep_time(self):
+        return self._acq_loop_sleep_time
+    
+    acq_loop_sleep_time = property(get_acq_loop_sleep_time,
+                                   set_acq_loop_sleep_time,
+                                   doc="acquisition sleep time (s)")
+    
+    def set_acq_loop_states_per_value(self, acq_loop_states_per_value):
+        self._acq_loop_states_per_value = acq_loop_states_per_value
+        
+    def get_acq_loop_states_per_value(self):
+        return self._acq_loop_states_per_value
+
+    acq_loop_states_per_value = property(get_acq_loop_states_per_value,
+        set_acq_loop_states_per_value,
+        doc="Number of State reads done before doing a value read in the "
+            "acquisition loop")
 
     @property
     def monitor(self):

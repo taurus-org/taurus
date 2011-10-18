@@ -34,7 +34,7 @@ def getCallable(repr):
 class aNscan(Hookable):
     
     hints = { 'scan' : 'aNscan', 'allowsHooks': ('pre-scan', 'pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step', 'post-scan') }
-    env = ('ActiveMntGrp',)
+    #env = ('ActiveMntGrp',)
     
     """N-dimensional scan. This is **not** meant to be called by the user,
     but as a generic base to construct ascan, a2scan, a3scan,..."""

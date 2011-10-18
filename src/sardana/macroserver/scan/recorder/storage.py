@@ -432,8 +432,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
 #D %(epoch)s
 #C Acquisition started at %(starttime)s
 #N %(nocols)s
-#L %(labels)s
-""" % data )
+#L %(labels)s""" % data )
         self.fd.flush()
 
     def _writeRecord(self, record):

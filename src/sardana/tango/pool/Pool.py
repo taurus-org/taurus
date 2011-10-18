@@ -90,6 +90,8 @@ class Pool(PyTango.Device_4Impl, Logger):
         p.set_path(self.PoolPath)
         p.set_motion_loop_sleep_time(self.MotionLoop_SleepTime / 1000.0)
         p.set_motion_loop_states_per_position(self.MotionLoop_StatesPerPosition)
+        p.set_acq_loop_sleep_time(self.AcqLoop_SleepTime / 1000.0)
+        p.set_acq_loop_states_per_value(self.AcqLoop_StatesPerValue)
         p.init_remote_logging(port=self.LogPort)
         self._recalculate_instruments()
         for attr in self.get_device_class().attr_list:
@@ -806,6 +808,16 @@ class PoolClass(PyTango.DeviceClass):
             "Number of State reads done before doing a position read in the "
             "motion loop [default: %d]" % POOL.Default_MotionLoop_StatesPerPosition,
             POOL.Default_MotionLoop_StatesPerPosition ],
+        'AcqLoop_SleepTime':
+            [PyTango.DevLong,
+            "Sleep time in the acquisition loop in mS [default: %dms]" %
+            int(POOL.Default_AcqLoop_SleepTime*1000),
+            int(POOL.Default_AcqLoop_SleepTime*1000) ],
+        'AcqLoop_StatesPerValue':
+            [PyTango.DevLong,
+            "Number of State reads done before doing a value read in the "
+            "acquisition loop [default: %d]" % POOL.Default_AcqLoop_StatesPerValue,
+            POOL.Default_AcqLoop_StatesPerValue ],
         'LogPort':
             [PyTango.DevLong,
             "Logging (python logging) port [default: %d]" % 

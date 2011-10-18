@@ -34,9 +34,7 @@ import time
 
 from taurus.core.util import Enumeration, Logger
 
-# +++
 DataFormats    = Enumeration('DataFormats', ('Spec', 'CSV', 'XLS', 'w5', 'w4', 'wx', 'fio'))
-# DataFormats    = Enumeration('DataFormats', ('Spec', 'CSV', 'XLS', 'w5', 'w4', 'wx'))
 SaveModes      = Enumeration('SaveModes', ('Record', 'Block'))
 RecorderStatus = Enumeration('RecorderStatus', ('Idle', 'Active', 'Disable'))
 

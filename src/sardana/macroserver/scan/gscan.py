@@ -42,7 +42,7 @@ import taurus
 from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 
-from sardana.macroserver.exception import MacroServerException
+from sardana.macroserver.exception import MacroServerException, UnknownEnv
 from sardana.macroserver.parameter import Type
 from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
 from recorder import OutputRecorder, SharedMemoryRecorder, FileRecorder
@@ -195,12 +195,6 @@ class GScan(Logger):
     env = ('ActiveMntGrp', 'ExtraColumns' 'ScanDir', 'ScanFile', 'SharedMemory', 'OutputCols')
     
     def __init__(self, macro, generator=None, moveables=[], env={}, constraints=[], extrainfodesc=[]):
-
-        #+++
-        # placed incrSerialNo here because we need the serialNo in the FIO 
-        # filerecorder which is initialized before _setupEnvironment is called
-        #
-        ScanFactory().incrSerialNo()
         self._macro = macro
         self._generator = generator
         self._extrainfodesc = extrainfodesc
@@ -223,8 +217,16 @@ class GScan(Logger):
         # ----------------------------------------------------------------------
         # Find the measurement group
         # ----------------------------------------------------------------------
-        mnt_grp_name = macro.getEnv('ActiveMntGrp')
-        mnt_grp = macro.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
+        try:
+            mnt_grp_name = macro.getEnv('ActiveMntGrp')
+            mnt_grp = macro.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
+        except UnknownEnv:
+            mnt_grps = macro.getObjs(".*", type_class=Type.MeasurementGroup)
+            if len(mnt_grps) == 0:
+                ScanSetupError('No Measurement Group defined')
+            mnt_grp = mnt_grps[0]
+            macro.info("ActiveMntGrp not defined. Using %s", mnt_grp)
+            macro.setEnv('ActiveMntGrp', mnt_grp.getName())
 
         if mnt_grp is None:
             raise ScanSetupError('ActiveMntGrp is not defined or has invalid value')
@@ -257,8 +259,8 @@ class GScan(Logger):
         # The Output recorder (if any)
         json_recorder = self._getJsonRecorder()
         
-        # The File recorder (if any)
-        file_recorder = self._getFileRecorder()
+        # The File recorders (if any)
+        file_recorders = self._getFileRecorders()
         
         # The Shared memory recorder (if any)
         shm_recorder = self._getSharedMemoryRecorder(0)
@@ -266,7 +268,8 @@ class GScan(Logger):
         
         data_handler.addRecorder(output_recorder)
         data_handler.addRecorder(json_recorder)
-        data_handler.addRecorder(file_recorder)
+        for file_recorder in file_recorders:
+            data_handler.addRecorder(file_recorder)
         data_handler.addRecorder(shm_recorder)
         data_handler.addRecorder(shm_recorder_1d)
         
@@ -324,20 +327,36 @@ class GScan(Logger):
             pass
         return OutputRecorder(self.macro, cols=cols, number_fmt='%g')
     
-    def _getFileRecorder(self):
+    def _getFileRecorders(self):
+        macro = self.macro
         try:
-            p = self.macro.getEnv('ScanDir')
+            scan_dir = macro.getEnv('ScanDir')
         except:
-            self.macro.info('ScanDir is not defined. This operation will not be stored persistently')
-            return
+            macro.warning('ScanDir is not defined. This operation will not be stored persistently')
+            macro.info('Use "senv ScanDir <abs directory>" to enable it')
+            return ()
         try:
-            f = self.macro.getEnv('ScanFile')
+            file_names = macro.getEnv('ScanFile')
         except:
-            self.macro.info('ScanFile is not defined. This operation will not be stored persistently')
-            return
-            
-        return FileRecorder( filename=os.path.join(p, f), macro=self.macro )
-#+++        return FileRecorder( filename=os.path.join(p, f) )
+            macro.warning('ScanFile is not defined. This operation will not be stored persistently')
+            macro.info('Use "senv ScanDir <scan file(s)>" to enable it')
+            return ()
+        
+        if type(file_names) in types.StringTypes:
+            file_names = (file_names,)
+        
+        file_recorders = []
+        for file_name in file_names:
+            abs_file_name = os.path.join(scan_dir, file_name)
+            try:
+                file_recorder = FileRecorder(abs_file_name, macro=macro)
+                file_recorders.append(file_recorder)
+            except:
+                macro.warning("Error creating recorder for %s", abs_file_name)
+        
+        if len(file_recorders) == 0:
+            macro.warning("No valid recorder found. This operation will not be stored persistently")
+        return file_recorders
     
     def _getSharedMemoryRecorder(self, id):
         macro, mg, shm = self.macro, self.measurement_group, False
@@ -373,13 +392,13 @@ class GScan(Logger):
             elif id == 1:
                 cols = 1024
                 
-            if id == 0:        
+            if id == 0:
                 kwargs.update({ 'program' : macro.getDoorName(),
                                   'array' : "%s_0D" % array_prefix,
                                   'shape' : (cols, 4096) } )
-            elif id == 1:            
+            elif id == 1:
                 if oned_nb == 0:
-                    return            
+                    return
                 else:
                     kwargs.update({ 'program' : macro.getDoorName(),
                                   'array' : "%s_1D" % array_prefix,
@@ -400,9 +419,16 @@ class GScan(Logger):
         return 86400*td.days + td.seconds + 1E-6*td.microseconds
     
     def _setupEnvironment(self, additional_env):
+        try:
+            serialno = self.macro.getEnv("_ScanID")
+            serialno = serialno + 1
+        except UnknownEnv:
+            serialno = 1
+        self.macro.setEnv("_ScanID", serialno)
+            
         env = ScanDataEnvironment(
-                { 'serialno' : ScanFactory().getSerialNo(),
-                      'user' : USER_NAME, 
+                { 'serialno' : serialno,
+                      'user' : USER_NAME,
                      'title' : self.macro.getCommand() } )
         
         # add point no column
@@ -427,7 +453,6 @@ class GScan(Logger):
         #TODO: maybe we want to include the nxpath in the instrument as well????
         
         # add counters
-        # +++
         counters_info = self.measurement_group.getCountersInfo()
         counters = []
         for counter_info in counters_info:
@@ -449,13 +474,11 @@ class GScan(Logger):
         
         env['macro_id'] = self.macro.getID()
         env['datadesc'] = data_desc
-# +++
         env['counters'] = counters
         try:
             env['ScanFile'] = self.macro.getEnv('ScanFile')
         except:
             env['ScanFile'] = None
-# +++
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
 

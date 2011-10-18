@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import json
 import weakref
+import traceback
 
 from taurus.core.util import Logger
 
@@ -67,12 +68,15 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
         return self._name
 
     def fire_event(self, event_type, event_value, listeners=None):
-        try:
-            return EventGenerator.fire_event(self, event_type, event_value,
-                                             listeners=listeners)
-        except:
-            self.warning("Error firing event <%s,%s>", event_type, event_value)
-            self.debug("Error description: ", exc_info=1)
+        return EventGenerator.fire_event(self, event_type, event_value,
+                                         listeners=listeners)
+#        try:
+#            return EventGenerator.fire_event(self, event_type, event_value,
+#                                             listeners=listeners)
+#        except:
+#            self.warning("Error firing event <%s,%s>", event_type, event_value)
+#            self.info("Error description: \n%s", traceback.format_exc())
+            
 
     def to_json(self, *args, **kwargs):
         cl_name = self.__class__.__name__

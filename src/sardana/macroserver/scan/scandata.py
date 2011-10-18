@@ -228,24 +228,15 @@ class ScanData(RecordList):
 
 
 class ScanFactory(Singleton):
+    
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
-
+    
     def init(self, *args):
         """Singleton instance initialization."""
-        self.serialno = 0
-
-
-# +++
-    def incrSerialNo(self):
-        self.serialno += 1
-        return self.serialno
-# +++
-    def getSerialNo(self):
-        return self.serialno
-# +++
-
+        pass
+    
     def getDataHandler(self):
         return DataHandler()
 

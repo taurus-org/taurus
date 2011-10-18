@@ -51,6 +51,7 @@ from parameter import Type, ParamType, ParamRepeat
 from exception import MacroServerException, AbortException, \
     MacroWrongParameterType
 
+
 class OverloadPrint(object):
     
     def __init__(self, m):
@@ -82,6 +83,7 @@ class OverloadPrint(object):
         if b[-1] == '\n': b = b[:-1]
         self._macro.output(b)
         self._accum = ""
+
 
 class PauseEvent(Logger):
     
