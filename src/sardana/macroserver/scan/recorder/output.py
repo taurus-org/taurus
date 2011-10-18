@@ -113,16 +113,16 @@ class OutputRecorder(DataRecorder):
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         data_desc = recordlist.getEnvironValue('datadesc')
         
+        dh = recordlist.getDataHandler()
+        
+        for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
+            self._stream.info('Scan data will be saved in %s (%s)' % (fr.getFileName(), fr.getFormat()))
+
         msg = "Scan started at %s." % starttime
         if not estimatedtime is None:
             estimatedtime = datetime.timedelta(0, abs(estimatedtime))
             msg += " It will take at least %s" % estimatedtime
         self._stream.info(msg)
-
-        dh = recordlist.getDataHandler()
-        
-        for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
-            self._stream.info('Scan data will be saved in %s (%s)' % (fr.getFileName(), fr.getFormat()))
 
         #labels = [ col.label for col in data_desc if numpy.prod(col.shape) == 1 ]
         labels = [ col.label for col in data_desc ]

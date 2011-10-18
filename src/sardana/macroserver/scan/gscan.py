@@ -45,7 +45,8 @@ from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from sardana.macroserver.exception import MacroServerException, UnknownEnv
 from sardana.macroserver.parameter import Type
 from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
-from recorder import OutputRecorder, SharedMemoryRecorder, FileRecorder
+from recorder import OutputRecorder, JsonRecorder, SharedMemoryRecorder, \
+    FileRecorder
 
 from taurus.core.tango.sardana.pool import Ready, Standby, Counting, \
     Acquiring, Moving, Alarm, Fault
