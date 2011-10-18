@@ -299,6 +299,7 @@ class Controller(object):
     
     def AbortOne(self, axis):
         """**Controller API**. Overwrite is MANDATORY!
+        Default implementation raises :exc:`NotImplementedError`.
         Aborts one of the axis
         
         :param int axis: axis number"""
@@ -534,6 +535,14 @@ class MotorController(Controller, Startable, Readable):
         .. versionadded:: 1.0"""
         return Controller.GetAxisAttributes(self, axis)
 
+    def DefinePosition(self, axis, position):
+        """**Motor Controller API**.  Overwrite is MANDATORY!
+           Default implementation raises :exc:`NotImplementedError`
+        """
+        raise NotImplementedError("DefinePosition must be defined in the "
+                                  "controller")
+
+
 class CounterTimerController(Controller, Readable):
     """Base class for a counter/timer controller. Inherit from this class to 
     implement your own counter/timer controller for the device pool.
@@ -585,7 +594,7 @@ class CounterTimerController(Controller, Readable):
         pass
 
     def StartAllCT(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Overwrite is MANDATORY!
         Called to start an acquisition of a selected axis.
         Default implementation does nothing.
         

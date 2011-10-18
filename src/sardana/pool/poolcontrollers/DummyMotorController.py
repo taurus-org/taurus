@@ -420,7 +420,7 @@ class Motion(BaseMotion):
         return pos
 
     def setCurrentUserPosition(self, user_pos):
-        self.setCurrentPosition(self, user_pos*self.step_per_unit)
+        self.setCurrentPosition(user_pos*self.step_per_unit)
 
     def getCurrentUserPosition(self, curr_instant=None):
         return self.getCurrentPosition(curr_instant=curr_instant) / self.step_per_unit

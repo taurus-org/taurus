@@ -376,6 +376,11 @@ class PoolMotor(PoolElement):
     # position & dial position
     # --------------------------------------------------------------------------
     
+    def define_position(self, position):
+        dial = (position - self.offset) / self.sign
+        self.controller.define_position(self.axis, dial)
+        self.get_position(cache=False, propagate=2)
+    
     def to_user_position(self, dial_position=None, sign=None, offset=None):
         """utility method to calculate user position from dial position, sign
         and offset"""

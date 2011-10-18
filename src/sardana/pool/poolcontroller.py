@@ -668,6 +668,10 @@ class PoolController(PoolBaseController):
     
     def wants_rounding(self):
         return "Rounding" in self._ctrl.ctrl_features
+
+    @check_ctrl
+    def define_position(self, axis, position):
+        return self.ctrl.DefinePosition(axis, position)
         
     # END SPECIFIC TO MOTOR CONTROLLER -----------------------------------------
 
