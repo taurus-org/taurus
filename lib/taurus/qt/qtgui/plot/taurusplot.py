@@ -1844,7 +1844,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         if not self.getXIsTime():
             switchThisAxis = lambda : self.setAxisScaleType(axis=axis, scale=None)
-            switchThisAxisAction= menu.addAction("Togle linear/log for %s"%axisname)
+            switchThisAxisAction= menu.addAction("Toggle linear/log for %s"%axisname)
             self.connect(switchThisAxisAction, Qt.SIGNAL("triggered()"), switchThisAxis)
 
         if axis in (Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
