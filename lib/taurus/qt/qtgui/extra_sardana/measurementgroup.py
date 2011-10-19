@@ -31,7 +31,7 @@ __all__ = ["MntGrpChannelEditor", "MntGrpChannelPanel"]
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-import copy
+#import copy
 import taurus
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
@@ -76,70 +76,29 @@ from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqT
 #    - 'label' : measurement group label (defaults to measurement group name)
 #    - 'description' : measurement group description
 
+
+#===============================================================================
+
 def createChannelDict(name, index=None, **kwargs):
     ret = {'label': name, #channel label
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
-           'plot_type': 'No', # one of the PlotType enumeration members (as string)
+           'plot_type': PlotType.No, # one of the PlotType enumeration members (as string)
 #           'timer': '', #should contain a channel name
 #           'monitor': '', #should contain a channel name
 #           'trigger': '', #should contain a channel name
            'conditioning': '', #this is a python expresion to be evaluated for conditioning the data. The data for this channel can be referred as 'x' and data from other channels can be referred by channel name
-           'normalization': 'No', # one of the Normalization enumeration members (as string)
+           'normalization': Normalization.No, # one of the Normalization enumeration members (as string)
            'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
            }
     ret.update(kwargs) 
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
     if 'plot_axes' not in ret: 
-        default_axes = {'No':'', 'Spectrum':'<idx>', 'Image':'<idx>:<idx>'}
+        default_axes = {PlotType.No:'', PlotType.Spectrum:'<idx>', PlotType.Image:'<idx>:<idx>'}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     return ret
 
-
-      
-
-DUMMY_CHANNELCONFIGS = {u'BL96_CT1': createChannelDict('BL96_CT1',index=0), 
-                        u'BL96_CT2': createChannelDict('BL96_CT2',index=1)
-                       } 
- 
-DUMMY_MNGRPCFG_1 = \
-{u'monitor': u'BL96_CT1',
- u'description': u'General purpose measurement group', 
- u'timer': u'BL96_CT1', 
- u'label': u'bl96_mntgrp1',
- u'controllers': {u'BL96_DummyCounterTimerController1': {u'units': {u'0': {u'monitor': u'BL96_CT1', 
-                                                                           u'id': 0, 
-                                                                           u'timer': u'BL96_CT1', 
-                                                                           u'trigger_type': 0,
-                                                                           u'channels': copy.deepcopy(DUMMY_CHANNELCONFIGS) 
-                                                                           }}}}
- }
-
-DUMMY_MNGRPCFG_2 = \
-{u'monitor': u'BL96_CT1',
- u'description': u'General purpose measurement group', 
- u'timer': u'BL96_CT1', 
- u'label': u'bl96_mntgrp2',
- u'controllers': {u'BL96_DummyCounterTimerController1': {u'units': {u'0': {u'monitor': u'BL96_CT1', 
-                                                                           u'id': 0, 
-                                                                           u'timer': u'BL96_CT1', 
-                                                                           u'trigger_type': 0,
-                                                                           u'channels': copy.deepcopy(DUMMY_CHANNELCONFIGS) 
-                                                                           }}}}
- }
-
-DUMMY_MNTGRPCONFIGS = {'bl96_mntgrp1':DUMMY_MNGRPCFG_1,
-                       'bl96_mntgrp2':DUMMY_MNGRPCFG_2}
-
-DUMMY_EXP_CONF = {'ScanDir':'/tmp/scandir',
-                  'ScanFile':'dummyscan.h5',
-                  'DataCompressionRank':-1, #integer representing the rank of a dataset above which data will be compressed (or -1  for never using compression)
-                  'ActiveMntGrp':'bl96_mntgrp1',
-                  'MntGrpConfigs': DUMMY_MNTGRPCONFIGS
-                  }
-#
-#===============================================================================
 
                        
 def getElementTypeIcon(t):
@@ -304,7 +263,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
 
     def __init__(self, parent=None, data=None):
         TaurusBaseModel.__init__(self, parent=parent, data=data)
-        self._config = None
+        self._mgconfig = None
         self._dirty = False    
     
     def setAvailableChannels(self,cdict):
@@ -370,18 +329,13 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
     def setupModelData(self, mgconfig):
         if mgconfig is None:
             return
-        if hasattr(self,'_mgconfig'):
-            ctrlname = 'dummyctctrl_cp1_1'
-            unitid = '0'
-            print ">>>",self._mgconfig['controllers'][ctrlname]['units'][unitid]['timer']
-            print "<<<",mgconfig['controllers'][ctrlname]['units'][unitid]['timer']
         root = self._rootItem #@The root could eventually be changed for each unit or controller
         channelNodes = [MntGrpChannelItem(self, chcfg, root) for chcfg in self.getChannelConfigs(mgconfig)]
         for ch in channelNodes:
             root.appendChild(ch)
         self.updateMntGrpChannelIndex(root=root)
         #store the whole config object for accessing the info that is not at the channel level
-        self._mgconfig = copy.deepcopy(mgconfig)
+        self._mgconfig = mgconfig
 
     def updateMntGrpChannelIndex(self, root=None):
         '''
