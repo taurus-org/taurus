@@ -30,9 +30,12 @@ __all__ = [ "PoolBaseGroup", "PoolGroupElement" ]
 
 __docformat__ = 'restructuredtext'
 
+from taurus.core import AttributeNameValidator
+
 from sardana import State
 from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolelement import PoolBaseElement
+from poolexternal import PoolTangoObject
 from poolcontainer import PoolContainer
 
 
@@ -84,6 +87,8 @@ class PoolBaseGroup(PoolContainer):
         fault, alarm, on, moving = [], [], [], []
         status = []
         for elem in user_elements:
+            if elem.get_type() == ElementType.External:
+                continue
             u_state = elem.get_state(propagate=0)
             u_status = elem.get_status(propagate=0).split("\n", 1)[0]
             if u_state == State.Moving:
@@ -112,13 +117,21 @@ class PoolBaseGroup(PoolContainer):
         
         pool = self._get_pool()
         for user_element_id in self._user_element_ids:
-            try:
-                user_element = pool.get_element(id=user_element_id)
-            except KeyError:
-                self._pending = True
-                self._user_elements = None
-                self._physical_elements = None
-                raise
+            # an internal element
+            if type(user_element_id) is int:
+                try:
+                    user_element = pool.get_element(id=user_element_id)
+                except KeyError:
+                    self._pending = True
+                    self._user_elements = None
+                    self._physical_elements = None
+                    raise
+            # a tango channel
+            else:
+                validator = AttributeNameValidator()
+                params = validator.getParams(user_element_id)
+                params['pool'] = self.pool
+                user_element = PoolTangoObject(**params)
             self.add_user_element(user_element)
         self._pending = False
     
@@ -143,6 +156,10 @@ class PoolBaseGroup(PoolContainer):
         if index is None:
             index = len(user_elements)
         user_elements.insert(index, element)
+        
+        if element.get_type() == ElementType.External:
+            return index
+        
         self.add_element(element)
         self._find_physical_elements(element,
                                      physical_elements=physical_elements)

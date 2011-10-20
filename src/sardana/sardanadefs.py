@@ -25,8 +25,8 @@
 
 """This module contains the most generic sardana constants and enumerations"""
 
-__all__ = ["EpsilonError", "ServerState", "SardanaServer", "State", "DataType",
-           "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
+__all__ = ["EpsilonError", "Alignment", "ServerState", "SardanaServer", "State",
+           "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
            "from_dtype_str", "from_access_str", "to_dtype_dformat",
            "to_daccess"]
 
@@ -36,6 +36,17 @@ from taurus.core.util import Enumeration
 
 #: maximum difference between two floats so that they are considered equal
 EpsilonError = 1E-16
+
+#: Flaggable alignment for both horizontal and vertical text
+#: Conflicting combinations of flags have undefined meanings.
+Alignment = Enumeration("Alignment", ( \
+    ("Left",    0x0001),
+    ("Right",   0x0002),
+    ("HCenter", 0x0004),
+    ("Top",     0x0020),
+    ("Bottom",  0x0040),
+    ("VCenter", 0x0080),
+    ("Center",  0x0004 | 0x0080 ) ) )
 
 #: the server phase
 ServerState = Enumeration("ServerState", ( \

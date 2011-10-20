@@ -767,9 +767,10 @@ class MacroExecutor(Logger):
 
     def __abortObjects(self):
         """Aborts all the reserved objects in the executor"""
-        for objs in self._reserved_macro_objs.values():
+        for macro, objs in self._reserved_macro_objs.items():
             for obj in objs:
                 try:
+                    self.debug("%s aborting %s", macro._getName(), obj.getName())
                     obj.abort()
                 except AttributeError:
                     pass

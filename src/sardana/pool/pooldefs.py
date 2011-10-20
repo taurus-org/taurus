@@ -28,11 +28,12 @@
 __all__ = ["InvalidId", "InvalidAxis", "ControllerAPI", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
-           "TYPE_PSEUDO_ELEMENTS", "AcqMode", "AcqTriggerType"]
+           "TYPE_PSEUDO_ELEMENTS", "AcqTriggerType", "AcqMode"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Enumeration
+from taurus.core.tango.sardana import AcqTriggerType, AcqMode
 
 #: A constant representing  an invalid ID
 InvalidId = 0
@@ -62,6 +63,7 @@ ElementType = Enumeration("ElementType", ( \
     "Instrument",
     "ControllerClass",
     "ControllerLib",
+    "External",
     "Unknown") )
 
 ET = ElementType
@@ -89,17 +91,7 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
 
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 
-#: an enumeration describing all possible acquisition trigger types
-#@todo: change to use taurus.core.tango.sardana.AcqTriggerType
-AcqTriggerType = Enumeration("AcqTriggerType", ( \
-    "Software", # channel triggered by software - start and stop by software
-    "Gate",     # channel triggered by HW - start and stop by external 
-    "Unknown") )
 
-#: an enumeration describing all possible acquisition mode types
-AcqMode = Enumeration("AcqMode", ( \
-    "Timer",
-    "Monitor",
-    "Unknown") )
+
 
 

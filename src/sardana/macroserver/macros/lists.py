@@ -1,5 +1,6 @@
 import re
 
+from sardana import Alignment
 from sardana.macroserver.macro import *
 
 ################################################################################
@@ -35,7 +36,8 @@ class _lsobj(_ls):
     
     subtype = Macro.All
         
-    cols = ('Name', 'Type', 'Controller', 'Axis', 'State')
+    cols  = 'Name', 'Type', 'Controller', 'Axis', 'State'
+    width = len(cols)*[0]
     
     def objs(self, filter):
         return self.findObjs(filter, type_class=self.type, subtype=self.subtype)
@@ -54,7 +56,7 @@ class _lsobj(_ls):
             self.output('No %ss defined' % t)
             return
         
-        out = List(self.cols)
+        out = List(self.cols, alignment=Alignment.Left, max_col_width=self.width)
         objs.sort()
         for obj in objs:
             out.appendRow( self.obj2Row(obj) )
@@ -133,8 +135,8 @@ class lsmeas(_lsobj):
 
     type = Type.MeasurementGroup
 
-    cols = ('Active', 'Name', 'Timer', 'Experim. channels', 'State')
-
+    cols  = 'Active', 'Name', 'Timer', 'Experim. channels', 'State'
+    width = 0, 0, 0, 50, 0
     def prepare(self, filter, **opts):
         try:
             self.mnt_grp = self.getEnv('ActiveMntGrp').lower() or None

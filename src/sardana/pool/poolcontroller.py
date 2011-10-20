@@ -26,7 +26,8 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolController", "PoolPseudoMotorController" ]
+__all__ = [ "PoolController", "PoolPseudoMotorController", 
+            "PoolTangoController" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -41,7 +42,7 @@ from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
 from sardana import State
-from pooldefs import ElementType, InvalidAxis
+from pooldefs import ElementType, InvalidAxis, InvalidId
 from poolelement import PoolBaseElement
 from poolevent import EventType
 
@@ -709,11 +710,14 @@ class PoolPseudoMotorController(PoolController):
         return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos)
 
 
-class PoolGenericTangoController(PoolBaseController):
+class PoolTangoController(PoolBaseController):
     """Controller class mediator for tango based items"""
     
     def __init__(self, **kwargs):
-        super(PoolGenericTangoController, self).__init__(**kwargs)
+        kwargs['name'] = kwargs['full_name'] = 'tango'
+        kwargs['id'] = InvalidId
+        super(PoolTangoController, self).__init__(**kwargs)
         self.reInit()
     
-    
+    def get_ctrl_types(self):
+        return ElementType.External,

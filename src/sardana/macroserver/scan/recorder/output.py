@@ -112,13 +112,14 @@ class OutputRecorder(DataRecorder):
         starttime = recordlist.getEnvironValue('starttime').ctime()
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         data_desc = recordlist.getEnvironValue('datadesc')
+        serialno = recordlist.getEnvironValue('serialno')
         
         dh = recordlist.getDataHandler()
         
         for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
             self._stream.info('Scan data will be saved in %s (%s)' % (fr.getFileName(), fr.getFormat()))
 
-        msg = "Scan started at %s." % starttime
+        msg = "Scan #%d started at %s." % (serialno, starttime)
         if not estimatedtime is None:
             estimatedtime = datetime.timedelta(0, abs(estimatedtime))
             msg += " It will take at least %s" % estimatedtime

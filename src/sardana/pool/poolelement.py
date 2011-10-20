@@ -314,6 +314,7 @@ class PoolElement(PoolBaseElement):
     def to_json(self, *args, **kwargs):
         ret = PoolBaseElement.to_json(self, *args, **kwargs)
         ret['controller'] = self.controller.name
+        ret['unit'] = '0' #TODO: hardcoded unit to 0
         ret['axis'] = self.axis
         if self.instrument is not None:
             ret['instrument'] = self.instrument.full_name

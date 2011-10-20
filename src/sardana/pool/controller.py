@@ -36,7 +36,8 @@ import copy
 import taurus
 from taurus.core.util import Logger
 
-from pooldefs import AcqTriggerType, ControllerAPI
+from pooldefs import ControllerAPI, AcqTriggerType, AcqMode
+
 
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""

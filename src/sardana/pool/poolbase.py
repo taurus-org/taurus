@@ -43,14 +43,17 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
     """The Pool most abstract object. It contains only two members:
     
        - _pool : a weak reference to the pool where it belongs
-       - _name : the name"""
+       - _name : the name
+       - _full_name : the name (usually a tango device name, but can be 
+         anything else.)"""
        
     def __init__(self, **kwargs):
         EventGenerator.__init__(self)
         EventReceiver.__init__(self)
-        self._name = intern(kwargs['name'])
+        self._name = intern(kwargs.pop('name'))
+        self._full_name = intern(kwargs.pop('full_name'))
         Logger.__init__(self, self._name)
-        self._pool = weakref.ref(kwargs['pool'])
+        self._pool = weakref.ref(kwargs.pop('pool'))
     
     def get_pool(self):
         """Return the :class:`sardana.pool.pool.Pool` which *owns* this pool
@@ -67,6 +70,21 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
         :rtype: str"""
         return self._name
 
+    def get_full_name(self):
+        """Returns this pool object full name
+        
+        :return: this pool object full name
+        :rtype: str"""
+        return self._full_name
+    
+    def get_type(self):
+        """Returns this pool object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:'"""
+        raise NotImplementedError
+    
     def fire_event(self, event_type, event_value, listeners=None):
         return EventGenerator.fire_event(self, event_type, event_value,
                                          listeners=listeners)
@@ -97,28 +115,17 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
     
     pool = property(get_pool, doc="reference to the :class:`sardana.pool.pool.Pool`")
     name = property(get_name, doc="object name")
+    full_name = property(get_full_name, doc="object full name")
     
 
 class PoolObject(PoolBaseObject):
     """A Pool object that besides the name and reference to the pool has:
        
-       - _id : the internal identifier
-       - _full_name : the name (usually a tango device name, but can be 
-         anything else.)
-       - _user_full_name : "[alias] '('[full_name]')' [class-of_device] \
-         [extra_info]" """
+       - _id : the internal identifier"""
        
     def __init__(self, **kwargs):
-        self._full_name = kwargs.pop('full_name')
         self._id = kwargs.pop('id')
         PoolBaseObject.__init__(self, **kwargs)
-
-    def get_full_name(self):
-        """Returns this pool object full name
-        
-        :return: this pool object full name
-        :rtype: str"""
-        return self._full_name
 
     def get_id(self):
         """Returns this pool object ID
@@ -127,13 +134,6 @@ class PoolObject(PoolBaseObject):
         :rtype: int"""
         return self._id
 
-    def get_type(self):
-        """Returns this pool object type. Default implementation raises
-        NotImplementedError.
-        
-        :return: this pool object type
-        :rtype: :obj:'"""
-        raise NotImplementedError
 
     def to_json(self, *args, **kwargs):
         kwargs['id'] = self.id
@@ -141,5 +141,4 @@ class PoolObject(PoolBaseObject):
         ret = PoolBaseObject.to_json(self, *args, **kwargs)
         return ret
 
-    full_name = property(get_full_name, doc="object full name")
     id = property(get_id, doc="object ID")

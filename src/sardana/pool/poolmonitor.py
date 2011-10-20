@@ -50,7 +50,7 @@ class PoolMonitor(Logger, threading.Thread):
     MIN_THREADS =  1
     MAX_THREADS = 10
     
-    def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0,
+    def __init__(self, pool, name='PoolMonitor', period=5, min_sleep=1.0,
                  auto_start=True):
         Logger.__init__(self, name)
         threading.Thread.__init__(self, name=name)
@@ -108,7 +108,6 @@ class PoolMonitor(Logger, threading.Thread):
                         ctrl_items[ctrl] = ctrl_elems = []
                     ctrl_elems.append(elem)
                 else:
-                    self.debug("%s is busy", elem.name)
                     blocked_ctrls.add(ctrl)
                     
             for ctrl, ctrl_elems in ctrl_items.items():
@@ -116,7 +115,6 @@ class PoolMonitor(Logger, threading.Thread):
                 if ret:
                     ctrls.append(ctrl)
                 else:
-                    self.debug("%s is busy", ctrl.name)
                     for elem in reversed(ctrl_elems):
                         elem.unlock()
                         elems.remove(elem)

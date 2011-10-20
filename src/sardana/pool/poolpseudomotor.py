@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 from sardana import State
 from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolevent import EventType
-from poolelement import PoolElement
+from poolelement import PoolBaseElement, PoolElement
 from poolgroupelement import PoolBaseGroup
 from poolmotion import PoolMotion
 

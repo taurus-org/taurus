@@ -192,7 +192,9 @@ class GScan(Logger):
       - 'point_nb' : the point number of the scan
       - for each column of the scan (motor or counter), a key with the 
       corresponding column name will contain the value"""
-      
+    
+    MAX_SCAN_HISTORY = 20
+    
     env = ('ActiveMntGrp', 'ExtraColumns' 'ScanDir', 'ScanFile', 'SharedMemory', 'OutputCols')
     
     def __init__(self, macro, generator=None, moveables=[], env={}, constraints=[], extrainfodesc=[]):
@@ -301,7 +303,6 @@ class GScan(Logger):
                             kw['instrument'] = instrument
                     ret.append(TangoExtraData(**kw))
                 except Exception, colexcept:
-                    print colexcept
                     try:
                         colname = kw['label']
                     except:
@@ -421,11 +422,10 @@ class GScan(Logger):
     
     def _setupEnvironment(self, additional_env):
         try:
-            serialno = self.macro.getEnv("_ScanID")
-            serialno = serialno + 1
+            serialno = self.macro.getEnv("ScanID") + 1
         except UnknownEnv:
             serialno = 1
-        self.macro.setEnv("_ScanID", serialno)
+        self.macro.setEnv("ScanID", serialno)
             
         env = ScanDataEnvironment(
                 { 'serialno' : serialno,
@@ -480,6 +480,10 @@ class GScan(Logger):
             env['ScanFile'] = self.macro.getEnv('ScanFile')
         except:
             env['ScanFile'] = None
+        try:
+            env['ScanDir'] = self.macro.getEnv('ScanDir')
+        except:
+            env['ScanDir'] = None
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
 
@@ -555,12 +559,29 @@ class GScan(Logger):
         self.data.start()
 
     def end(self):
-        self._env['endtime'] = end = datetime.datetime.now()
-        total_time = end - self._env['starttime']
+        env = self._env
+        env['endtime'] = end = datetime.datetime.now()
+        total_time = end - env['starttime']
         total_time = total_time.days*24*60*60 + total_time.seconds + total_time.microseconds * 1e-6
-        estimated = self._env['estimatedtime']
-        self._env['deadtime'] = 100.0 * (total_time-estimated) / total_time
+        estimated = env['estimatedtime']
+        env['deadtime'] = 100.0 * (total_time-estimated) / total_time
         self.data.end()
+        try:
+            scan_history = self.macro.getEnv('ScanHistory')
+        except UnknownEnv:
+            scan_history = []
+        
+        labels = [ col.label for col in env['datadesc'] ]
+        history = dict(starttime=env['starttime'], endtime=env['endtime'],
+                       estimatedtime=env['estimatedtime'],
+                       deadtime=env['deadtime'], title=env['title'],
+                       serialno=env['serialno'], user=env['user'],
+                       ScanFile=env['ScanFile'], ScanDir=env['ScanDir'],
+                       channels=labels)
+        scan_history.append(history)
+        while len(scan_history) > self.MAX_SCAN_HISTORY:
+            scan_history.pop(0)
+        self.macro.setEnv('ScanHistory', scan_history)
 
     def scan(self):
         for step in self.step_scan(): pass
@@ -615,7 +636,7 @@ class SScan(GScan):
         motion, mg = self.motion, self.measurement_group
         
         #pre-move hooks
-        for hook in step.get('pre-move-hooks',[]):
+        for hook in step.get('pre-move-hooks',()):
             hook()
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
@@ -626,7 +647,7 @@ class SScan(GScan):
         self.debug("[ END ] motion")
         
         #post-move hooks
-        for hook in step.get('post-move-hooks',[]):
+        for hook in step.get('post-move-hooks',()):
             hook()
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
@@ -637,7 +658,7 @@ class SScan(GScan):
             raise ScanException({ 'msg' : m })
         
         #pre-acq hooks
-        for hook in step.get('pre-acq-hooks',[]):
+        for hook in step.get('pre-acq-hooks',()):
             hook()
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
@@ -646,11 +667,11 @@ class SScan(GScan):
         self.debug("[START] acquisition")
         state, data_line = mg.count(step['integ_time'])
         for ec in self._extra_columns:
-            data_line[ec.getName()] = ec.read() 
+            data_line[ec.getName()] = ec.read()
         self.debug("[ END ] acquisition")
         
         #post-acq hooks
-        for hook in step.get('post-acq-hooks',[]):
+        for hook in step.get('post-acq-hooks',()):
             hook()
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
@@ -658,7 +679,7 @@ class SScan(GScan):
         #hooks for backwards compatibility:
         if step.has_key('hooks'):
             self.macro.info('Deprecation warning: you should use "post-acq-hooks" instead of "hooks" in the step generator')
-            for hook in step.get('hooks',[]):
+            for hook in step.get('hooks',()):
                 hook()
                 try: step['extrainfo'].update(hook.getStepExtraInfo())
                 except: pass
@@ -666,7 +687,7 @@ class SScan(GScan):
         # Add final moveable positions
         data_line['point_nb'] = n
         for i, m in enumerate(self.moveables):
-            data_line[m.moveable.getName()] = positions[i]
+            data_line[m.moveable.getName()] = float(positions[i])
         
         #Add extra data coming in the step['extrainfo'] dictionary
         if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
@@ -674,7 +695,7 @@ class SScan(GScan):
         self.data.addRecord(data_line)
     
         #post-step hooks
-        for hook in step.get('post-step-hooks',[]):
+        for hook in step.get('post-step-hooks',()):
             hook()
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass

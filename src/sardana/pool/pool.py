@@ -33,8 +33,8 @@ import os.path
 import logging.handlers
 import json
 
+from taurus.core import AttributeNameValidator
 from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
-
 
 from pooldefs import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
 from poolbase import PoolObject
@@ -424,24 +424,29 @@ class Pool(PoolContainer, PoolObject):
         klass = td.klass
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
-
+        
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         kwargs.pop('pool_name')
         
         self.check_element(name, full_name)
         
         for elem_id in elem_ids:
-            elem = self.pool.get_element(id=elem_id)
-            # Do any check here if necessary
-
+            if type(elem_id) is int:
+                self.pool.get_element(id=elem_id)
+            else:
+                tg_attr_validator = AttributeNameValidator()
+                params = tg_attr_validator.getParams(elem_id)
+                if params is None:
+                    raise Exception("Invalid channel name %s" % elem_id)
+        
         id = kwargs.get('id')
         if id is None:
             kwargs['id'] = id = self.get_new_id()
         else:
             self.reserve_id(id)
-            
+        
         elem = klass(**kwargs)
-
+        
         ret = self.add_element(elem)
         self.fire_event(EventType("ElementCreated"),
                         { "name" : name, "type" : ElementType.MeasurementGroup })

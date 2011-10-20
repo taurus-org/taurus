@@ -214,7 +214,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
         self.fd = nxs.open(self.filename, nxfilemode) 
-        self.entryname=self._newentryname(prefix='entry', suffix=env['title'])
+        self.entryname=self._newentryname(prefix='entry')
         self.fd.makegroup(self.entryname,"NXentry") 
         self.fd.opengroup(self.entryname,"NXentry") 
         
@@ -265,7 +265,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if record.data.has_key( dd.label ):
                 data = record.data[dd.label]
-                self.trace("writing recordno %i: '%s' (type=%s, shape=%s)",
+                self.trace("writting recordno %i: '%s' (type=%s, shape=%s)",
                            record.recordno, dd.label, type(data), dd.shape)
                 self.fd.opendata(dd.label)
                 
@@ -273,7 +273,11 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                     data = numpy.array([data], dtype=dd.dtype)
                 slab_offset = [record.recordno]+[0]*len(dd.shape)
                 shape = [1]+list(numpy.shape(data))
-                self.fd.putslab(data,slab_offset,shape)
+                try:
+                    self.fd.putslab(data,slab_offset,shape)
+                except:
+                    self.warning("Could not write <%s> with shape %s", data, shape)
+                    raise
                     
                 ###Note: the following 3 lines of code were substituted by the one above.
                 ###      (now we trust the datadesc info instead of asking the nxs file each time)
@@ -281,7 +285,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 #shape[0]=1 #the shape of the record is of just 1 slab in the extensible dimension (first dim)
                 #self.fd.putslab(record.data[lbl],[record.recordno]+[0]*(len(shape)-1),shape)
                 self.fd.closedata()
-                self.trace("done writing %i", record.recordno)
+                self.trace("done writting %i", record.recordno)
             else:
                 self.debug("missing data for label '%s'", dd.label)
         self.fd.flush()
@@ -329,7 +333,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         The offset indicates the start of the numeric suffix search'''
         i=offset
         while True:
-            entry="%s%04i"%(prefix,i)
+            entry="%s%i"%(prefix,i)
             if suffix:
                 entry += " - " + suffix
             try:
@@ -432,7 +436,8 @@ class SPEC_FileRecorder(BaseFileRecorder):
 #D %(epoch)s
 #C Acquisition started at %(starttime)s
 #N %(nocols)s
-#L %(labels)s""" % data )
+#L %(labels)s
+""" % data )
         self.fd.flush()
 
     def _writeRecord(self, record):

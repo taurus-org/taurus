@@ -113,7 +113,8 @@ def clean_tango_args(args):
     ret, ret_for_tango = [], []
     
     tango_args = "-?", "-nodb", "-file="
-    for i in range(len(args)):
+    nb_args = len(args)
+    for i in range(nb_args):
         arg = args[i]
         try:
             if arg.startswith("-v") and int(arg[2:]):
@@ -121,14 +122,23 @@ def clean_tango_args(args):
                 continue
         except:
             pass
+        if arg.startswith('-ORB'):
+            ret_for_tango.append(arg)
+            i += 1
+            if i < nb_args:
+                ret_for_tango.append(args[i])
+                i += 1
+            continue
         if arg.startswith(tango_args):
-            ret_for_tango.append(arg) 
+            ret_for_tango.append(arg)
             continue
         if arg == "-dlist":
             ret_for_tango.append(arg)
             i += 1
-            while i < len(args) and args[i][0] != "-":
+            while i < nb_args and args[i][0] != "-":
+                arg = args[i]
                 ret_for_tango.append(arg)
+                i += 1
             continue
         ret.append(arg)
     return ret, ret_for_tango

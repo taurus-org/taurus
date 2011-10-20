@@ -13,6 +13,7 @@
 import os, copy
 import numpy
 
+from sardana import Alignment
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 
@@ -632,3 +633,76 @@ class fscan(Macro,Hookable):
     @property
     def data(self):
         return self._gScan.data
+
+class scan_hist(Macro):
+    """Shows scan history information. Give optional parameter scan number to
+    display details about a specific scan"""
+    
+    param_def = [
+       ['scan number',  Type.Integer, -1,
+        'scan number. [default=-1 meaning show all scans]'],
+    ]
+    
+    def run(self, scan_number):
+        try:
+            hist = self.getEnv("ScanHistory")
+        except UnknownEnv:
+            print "No scan recorded in history"
+            return
+        if scan_number < 0:
+            self.show_all(hist)
+        else:
+            self.show_one(hist, scan_number)
+    
+    def show_one(self, hist, scan_number):
+        item = None
+        for h in hist:
+            if h['serialno'] == scan_number:
+                item = h
+                break
+        if item is None:
+            self.warning("Could not find scan number %s", scan_number)
+            return
+        
+        serialno, title = h['serialno'], h['title']
+        start, end = h['starttime'], h['endtime']
+        total_time = end - start
+        start, end, total_time = start.ctime(), end.ctime(), str(total_time)
+        scan_dir, scan_file = h['ScanDir'], h['ScanFile']
+        deadtime = '%.1f%%' % h['deadtime']
+        
+        user = h['user']
+        store = "Not stored!"
+        if scan_dir is not None and scan_file is not None:
+            if type(scan_file) is str:
+                store = os.path.join(scan_dir, scan_file)
+            else:
+                store = scan_dir + os.path.sep + str(scan_file)
+        channels = ", ".join(h['channels'])
+        cols = ["#", "Title", "Start time", "End time", "Took", "Dead time",
+                "User", "Stored", "Channels" ]
+        data = [serialno, title, start, end, total_time, deadtime, user, store, channels]
+        
+        table = Table([data], row_head_str=cols, row_head_fmt='%*s',
+                      elem_fmt=['%-*s'],
+                      col_sep='  :  ')
+        for line in table.genOutput():
+            self.output(line)
+    
+    def show_all(self, hist):
+        
+        cols  = "#", "Title", "Start time", "End time", "Stored"
+        width =   0,      10,            0,          0,       0
+        out = List(cols, alignment=Alignment.Left, max_col_width=width)
+        for h in hist:
+            start, end = h['starttime'].ctime(), h['endtime'].ctime()
+            scan_file = h['ScanFile']
+            store = "Not stored!"
+            if scan_file is not None:
+                store = str(scan_file)
+            row = h['serialno'], h['title'], start, end, store
+            out.appendRow(row)
+        for line in out.genOutput():
+            self.output(line)
+        
+        

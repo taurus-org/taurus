@@ -125,7 +125,8 @@ class PoolCTAcquisition(PoolAction):
         master = cfg[master_key]
         master_ctrl = master.controller
 
-        pool_ctrls_dict = cfg['controllers']
+        pool_ctrls_dict = dict(cfg['controllers'])
+        pool_ctrls_dict.pop('__tango__', None)
         pool_ctrls = pool_ctrls_dict.keys()
         
         # make sure the controller which has the master channel is the last to

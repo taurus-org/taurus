@@ -41,9 +41,9 @@ from PyTango.constants import DescNotSet
 from taurus.core.util import CodecFactory
 from taurus.core.util.log import InfoIt, DebugIt
 
-from sardana.pool import AcqMode
 from sardana.tango.core.util import to_tango_state
 
+from sardana.pool import AcqMode
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
