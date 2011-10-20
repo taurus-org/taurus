@@ -376,13 +376,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                     self.importSettingsFile(fname)
                 return
                 
-        #hide all current dockwidgets (so that they are shown only if they are present in the settings)
-        dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
-        for d in dockwidgets:
-            d.hide()
         if group is not None: 
             settings.beginGroup(group)
-        self.restoreState(settings.value("MainWindow/State").toByteArray())
         if not ignoreGeometry: 
             self.restoreGeometry(settings.value("MainWindow/Geometry").toByteArray()) 
         #restore the Taurus config
@@ -393,11 +388,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.error(msg)
             Qt.QMessageBox.warning(self,'Error Loading settings', msg, Qt.QMessageBox.Ok)
         
-        #To be extra-safe, restore the state of the window and dockwidgets again (this or the previous one may not be needed)
+        #hide all dockwidgets (so that they are shown only if they were present in the settings)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
-        for d in sorted(dockwidgets):
-            r = self.restoreDockWidget(d)
+        for d in dockwidgets:
+#            r = self.restoreDockWidget(d)
+            d.hide()
         self.restoreState(settings.value("MainWindow/State").toByteArray()) 
+        
         if group is not None: 
             settings.endGroup()
         self.info('MainWindow settings restored')
