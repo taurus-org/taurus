@@ -165,6 +165,12 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewToolBarsMenu = self.viewMenu.addMenu("Tool Bars")
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.toggleFullScreenAction)
+        self.viewMenu.addSeparator()
+        self.perspectivesMenu = Qt.QMenu("Load Perspectives")
+        self.viewMenu.addMenu(self.perspectivesMenu)
+        self.viewMenu.addAction(self.savePerspectiveAction)
+        self.viewMenu.addAction(self.deletePerspectiveAction)
+        
         
         #Taurus Menu
         self.taurusMenu = self.menuBar().addMenu("Taurus")
@@ -186,7 +192,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewToolBar.addAction(self.toggleFullScreenAction)
         
         #Perspectives Toolbar
-        self.perspectivesMenu = Qt.QMenu("Load Perspectives")
         self.perspectivesToolBar = self.addToolBar("Perspectives")
         self.perspectivesToolBar.setObjectName("perspectivesToolBar")
         self.viewToolBarsMenu.addAction(self.perspectivesToolBar.toggleViewAction())
@@ -253,6 +258,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.savePerspectiveAction = Qt.QAction(getThemeIcon("document-save"),'Save Perspective ...', self)
         self.connect(self.savePerspectiveAction, Qt.SIGNAL("triggered()"), self.savePerspective)
+        
+        self.deletePerspectiveAction = Qt.QAction(getIcon(":/actions/edit-delete.svg"),'Delete Perspective ...', self)
+        self.connect(self.deletePerspectiveAction, Qt.SIGNAL("triggered()"), self.removePerspective)
         
         self.exportSettingsFileAction = Qt.QAction(getThemeIcon("document-save"),'Export Settings ...', self)
         self.connect(self.exportSettingsFileAction, Qt.SIGNAL("triggered()"), self.exportSettingsFile)
@@ -397,6 +405,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         if group is not None: 
             settings.endGroup()
+        self.updatePerspectivesMenu()
         self.info('MainWindow settings restored')
         
     
@@ -473,6 +482,29 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         names = settings.childGroups()
         settings.endGroup()
         return names
+    
+    def removePerspective(self, name=None, settings=None):
+        '''removes the given perspective from the settings
+                
+        :param name: (str) name of the perspective            
+        :param settings: (QSettings or None) a QSettings object. If None given,
+                         the default one returned by :meth:`getQSettings` will
+                         be used
+        '''
+        if settings is None: settings = self.getQSettings()
+        if name is None:
+            perspectives = self.getPerspectivesList()
+            if perspectives.isEmpty(): return
+            name,ok = Qt.QInputDialog.getItem(self, "Delete Perspective", "Choose perspective to be deleted:",
+                                              perspectives, 0, False) 
+            if not ok: return
+        if name not in perspectives:
+            self.warning("Cannot remove perspective %s (not found)"%str(name))
+            return
+        settings.beginGroup("Perspectives")
+        settings.remove(name)
+        settings.endGroup()
+        self.updatePerspectivesMenu()
     
     def exportSettingsFile(self, fname=None):
         '''copies the current settings file into the given file name.
@@ -679,6 +711,7 @@ if __name__ == "__main__":
     #form.setHelpManualURI('http://google.com')
 
     form.loadSettings()
+    
     
     #form.setCentralWidget(Qt.QMdiArea()) #just for testing
     

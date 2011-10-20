@@ -191,7 +191,6 @@ class TaurusGui(TaurusMainWindow):
                 
         self.loadConfiguration(confname)
         
-        self.updatePerspectivesMenu()
         self.splashScreen().finish(self)
         
         #connect the main window itself as a reader/writer of "short messages"
@@ -212,12 +211,7 @@ class TaurusGui(TaurusMainWindow):
         self.viewMenu.addMenu(self.__panelsMenu)
         self.newPanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("window-new"),"New Panel...", self.createCustomPanel)
         self.__panelsMenu.addSeparator()
-        #Perspectives
-        self.viewMenu.addSeparator()
-#        self.viewMenu.addAction(self.loadPerspectiveAction)
-        self.viewMenu.addMenu(self.perspectivesMenu)
-        self.viewMenu.addAction(self.savePerspectiveAction)
-        
+      
         #view locking
         self.viewMenu.addSeparator()
         self._lockviewAction = Qt.QAction(taurus.qt.qtgui.resource.getThemeIcon("system-lock-screen"),"Lock View", self)
