@@ -1,3 +1,4 @@
+from taurus.console.list import List
 from sardana.macroserver.macro import *
 
 ################################################################################

@@ -29,8 +29,7 @@ scan"""
 from __future__ import with_statement
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
-           "MacroFinder", "Macro", "Table", "List",
-           "Type", "ParamRepeat"]
+           "MacroFinder", "Macro", "Type", "ParamRepeat"]
 
 __docformat__ = 'restructuredtext'
 
@@ -46,9 +45,9 @@ import textwrap
 
 from PyTango import DevState
 from taurus.core.util import Logger, CodecFactory, propertx
+
 from taurus.core.tango.sardana.pool import PoolElement
 
-from sardana import Alignment
 from parameter import Type, ParamType, ParamRepeat
 from exception import MacroServerException, AbortException, \
     MacroWrongParameterType
@@ -59,13 +58,14 @@ class OverloadPrint(object):
     def __init__(self, m):
         self._macro = m
         self._accum = ""
-        
+    
     def __enter__(self):
+        self.stdout = sys.stdout
         sys.stdout = self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.flush()
-        sys.stdout = sys.__stdout__
+        sys.stdout = self.stdout
     
     def write(self, s):
         self._accum += s
@@ -1375,256 +1375,3 @@ class Macro(Logger):
         self._pause_event.resume(cb=cb)
         
     #@}
-
-
-class Table:
-
-    DefTermWidth = 80
-
-    PrettyOpts   = {'col_sep': ' |', 'col_head_sep': '-', 'border': '='}
-    
-    def __init__(self, elem_list, elem_fmt=['%*s'], term_width=None,
-                 row_head_str=None, row_head_fmt='%-*s', row_head_width=None,
-                 col_head_str=None, col_head_fmt='%*s',  col_head_width=None,
-                 col_sep=' ', row_sep=' ', col_head_sep=None, border=None):
-
-        self.nr_col = len(elem_list)
-        self.nr_row = len(elem_list[0])
-        self.elem_list = elem_list
-        self.elem_fmt  = elem_fmt
-        if len(elem_fmt) == 1:
-            elem_fmt *= self.nr_row
-        
-        self.term_width   = term_width or Table.DefTermWidth
-        self.col_sep      = col_sep
-        self.row_sep      = row_sep
-        self.col_head_sep = col_head_sep
-        self.border       = border
-        
-        max_len_fn = lambda x: reduce(max, map(len, x))
-        
-        self.row_head_str = row_head_str
-        self.row_head_fmt = row_head_fmt
-        if row_head_str is not None and len(row_head_str) != self.nr_row:
-            msg = 'RowHeadStr nr (%d) and RowNr (%d) mistmatch' % \
-                  len(row_head_str), self.nr_row
-            raise ValueError, msg
-        if row_head_width is None:
-            if row_head_str is not None:
-                row_head_width = max_len_fn(row_head_str)
-            else:
-                row_head_width = 0
-        self.row_head_width = row_head_width
-            
-        self.col_head_str = col_head_str
-        self.col_head_fmt = col_head_fmt
-        if col_head_str is not None and len(col_head_str) != self.nr_col:
-            msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % \
-                  len(col_head_str), self.nr_col
-            raise ValueError, msg
-        if col_head_width is None:
-            if col_head_str is not None:
-                col_head_width = reduce(max, map(max_len_fn, col_head_str))
-            else:
-                col_head_width = 10
-        self.col_head_width = col_head_width
-        if col_head_str is not None:
-            self.col_head_lines = len(col_head_str[0])
-        else:
-            self.col_head_lines = 0
-        
-    def updateElem(self, elem_list):
-        new_col, new_row = len(elem_list), len(elem_list[0])
-        if new_col != self.nr_col or new_row != self.nr_row:
-            raise 'Invalid new elem list size %dx%d, was %dx%d' % \
-                  (new_col, new_row, self.nr_col, self.nr_row)
-        self.elem_list = elem_list
-        
-    def genOutput(self, term_width=None):
-        if term_width is None:
-            term_width = self.term_width
-        
-        rhw, chw = self.row_head_width, self.col_head_width
-        chl = self.col_head_lines
-        lcs = len(self.col_sep)
-        width = term_width - chw   # At least one disp column!
-        if rhw > 0:
-            width -= rhw + lcs
-        disp_cols = width / (chw + lcs) + 1
-        tot_width = chw + (disp_cols - 1) * (chw + lcs)
-        tot_rows = chl + self.nr_row
-        if rhw > 0:
-            tot_width += rhw + lcs
-            
-        output = []
-
-        if self.row_head_str is not None:
-            row_head = []
-            fmt = self.row_head_fmt
-            for head in [''] * chl + self.row_head_str:
-                head = fmt % (rhw, head)
-                row_head.append(head + self.col_sep)
-        else:
-            row_head = [''] * tot_rows
-
-        for i in xrange(0, self.nr_col, disp_cols):
-            if i > 0:
-                nr_sep = tot_width / len(self.row_sep)
-                output.append(self.row_sep * nr_sep)
-
-            row_end = min(i + disp_cols, self.nr_col)
-            line = list(row_head)
-            for j in xrange(i, row_end):
-                elem = self.elem_list[j]
-                if chl:
-                    col_head = self.col_head_str[j]
-                    if j > i:
-                        for k in xrange(tot_rows):
-                            line[k] += self.col_sep
-                    fmt = self.col_head_fmt
-                    for k in xrange(chl):
-                        line[k] += fmt % (chw, col_head[k])
-                        
-                for k in xrange(self.nr_row):
-                    fmt = self.elem_fmt[k]
-                    line[chl+k] += fmt % (chw, elem[k])
-
-            max_width = reduce(max, map(len, line))
-            if self.border is not None:
-                nr_border = max_width / len(self.border)
-                output.append(self.border * nr_border)
-            for l in line[:chl]:
-                output.append(l)
-            if self.col_head_sep is not None:
-                nr_sep = max_width / len(self.col_head_sep)
-                output.append(self.col_head_sep * nr_sep)
-            for l in line[chl:]:
-                output.append(l)
-            if self.border is not None:
-                output.append(self.border * nr_border)
-
-        return output
-
-class List:
-    
-    def __init__(self, header, border='-', max_col_width=None):
-        self.col_nb = len(header)
-        self.rows = [list(header), self.col_nb*[border]]
-        if max_col_width is None:
-            max_col_width = 0
-        if not operator.isSequenceType(max_col_width):
-            max_col_width = self.col_nb*[max_col_width]
-        self.max_col_width = max_col_width
-        self.col_lens = self.col_nb * [0]
-        self.border = '-'
-        self.line = ''
-        
-    def recalc_col_sizes(self):
-        for i,row in enumerate(self.rows):
-            for j,cell in enumerate(row):
-                cell = str(cell)
-                row[j] = cell
-                n = len(cell)
-                if n >= self.col_lens[j]:
-                    new_len = n + 3
-                    self.col_lens[j] = new_len
-                    self.rows[1][j] = (n+2)*self.border
-        self.line = ''
-        for n in self.col_lens:
-            self.line += '%c%ds' % ('%',n)
-    
-    def appendRow(self,row):
-        row = list(row[:self.col_nb])
-        self.rows.append(row)
-    
-    def putRow(self,row,idx):
-        row = list(row[:self.col_nb])
-        self.rows[idx] = row
-
-    def genOutput(self):
-        self.recalc_col_sizes()
-        ret = []
-        for row in self.rows:
-            ret.append(self.line % tuple(row))
-        return ret
-
-
-class List:
-    
-    def __init__(self, header, border='-', max_col_width=None,
-                 alignment=Alignment.Right | Alignment.Top):
-        self.col_nb = col_nb = len(header)
-        self.rows = []
-        if max_col_width is None:
-            max_col_width = 0
-        if not operator.isSequenceType(max_col_width):
-            max_col_width = col_nb*[max_col_width]
-        self.max_col_width = max_col_width
-        self.cur_col_width = col_nb * [0]
-        if not operator.isSequenceType(alignment):
-            alignment = col_nb*[alignment]
-        self.alignment = alignment
-        self.border = border
-        self.appendRow(header)
-    
-    def appendRow(self, row):
-        row = map(str, row[:self.col_nb])
-        self.rows.append(row)
-    
-    def putRow(self,row,idx):
-        row = list(row[:self.col_nb])
-        self.rows[idx] = row
-
-    def _calc(self):
-        cur_col_width, max_col_width = self.cur_col_width, self.max_col_width
-        
-        for row_index, row in enumerate(self.rows):
-            for column_index, cell in enumerate(row):
-                size = len(cell) + 3
-                col_width = cur_col_width[column_index]
-                max_width = max_col_width[column_index]
-                if size > col_width:
-                    col_width = size
-                if max_width > 0:
-                    col_width = min(max_width, col_width)
-                cur_col_width[column_index] = col_width
-    
-    def genOutput(self):
-        self._calc()
-        cur_col_width = self.cur_col_width
-        alignment = self.alignment
-        ret = []
-        wrapper = textwrap.TextWrapper()
-        for row_index, row in enumerate(self.rows):
-            row_nb = 0
-            text_columns = []
-            for column_index, cell in enumerate(row):
-                align = alignment[column_index]
-                width = cur_col_width[column_index]
-                wrapper.width = width - 3
-                cells = wrapper.wrap(cell)
-                align_text, prefix = '+', ''
-                if align & Alignment.Left:
-                    width -= 2
-                    align_text, prefix = '-', '  '
-                for i, c in enumerate(cells):
-                    fmt = '%s%%%s%ds' % (prefix, align_text, width)
-                    cells[i] = fmt % c
-                row_nb = max(len(cells), row_nb)
-                text_columns.append(cells)
-            
-            text_rows = row_nb*['']
-            for column_index, cells in enumerate(text_columns):
-                for i in range(row_nb):
-                    if i < len(cells):
-                        text_rows[i] = text_rows[i] + cells[i]
-                    else:
-                        width = cur_col_width[column_index]
-                        text_rows[i] = text_rows[i] + width*" "
-            ret.extend(text_rows)
-        
-        line = ''
-        for n in cur_col_width:
-            line = line + " " + (n-1)*"-"
-        ret.insert(1, line)
-        return ret

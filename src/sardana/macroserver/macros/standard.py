@@ -1,5 +1,7 @@
 import sys
 
+from taurus.console.table import Table
+
 from sardana.macroserver.macro import *
 
 ################################################################################

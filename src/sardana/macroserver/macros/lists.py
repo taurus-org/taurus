@@ -1,7 +1,10 @@
 import re
 
-from sardana import Alignment
+from taurus.console import Alignment
+from taurus.console.list import List
 from sardana.macroserver.macro import *
+
+Left, Right, HCenter = Alignment.Left, Alignment.Right, Alignment.HCenter
 
 ################################################################################
 #
@@ -23,22 +26,31 @@ class _ls(Macro):
 class lsdef(_ls):
     """List all macro definitions"""
 
+    cols  = 'Name', 'Module', 'Brief Description'
+    width =     -1,       -1,                  -1
+    align =  Right,    Right,                Left
+
     def run(self, filter):
-        out = List(['Name', 'Module', 'Brief Description'])
+        out = List(self.cols, text_alignment=self.align,
+                   max_col_width=self.width)
         
         for m in self.getMacros(filter):
+            if m.getName().startswith("_"):
+                continue
             out.appendRow([m.getName(), m.getModuleName(), m.getBriefDescription()])
         
         for line in out.genOutput():
             self.output(line)
 
+
 class _lsobj(_ls):
     
     subtype = Macro.All
-        
+
     cols  = 'Name', 'Type', 'Controller', 'Axis', 'State'
-    width = len(cols)*[0]
-    
+    width =     -1,     -1,           -1,     -1,      -1
+    align =  Right,  Right,        Right,  Right,   Right
+
     def objs(self, filter):
         return self.findObjs(filter, type_class=self.type, subtype=self.subtype)
 
@@ -56,7 +68,8 @@ class _lsobj(_ls):
             self.output('No %ss defined' % t)
             return
         
-        out = List(self.cols, alignment=Alignment.Left, max_col_width=self.width)
+        out = List(self.cols, text_alignment=self.align,
+                   max_col_width=self.width)
         objs.sort()
         for obj in objs:
             out.appendRow( self.obj2Row(obj) )
@@ -136,7 +149,9 @@ class lsmeas(_lsobj):
     type = Type.MeasurementGroup
 
     cols  = 'Active', 'Name', 'Timer', 'Experim. channels', 'State'
-    width = 0, 0, 0, 50, 0
+    width =       -1,     -1,      -1,                  50,      -1
+    align =  HCenter,  Right,   Right,                Left,   Right
+    
     def prepare(self, filter, **opts):
         try:
             self.mnt_grp = self.getEnv('ActiveMntGrp').lower() or None

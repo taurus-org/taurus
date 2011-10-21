@@ -10,10 +10,14 @@
      
 """
 
-import os, copy
+import os
+import copy
 import numpy
 
-from sardana import Alignment
+from taurus.console import Alignment
+from taurus.console.list import List
+from taurus.console.table import Table
+
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 
@@ -634,6 +638,7 @@ class fscan(Macro,Hookable):
     def data(self):
         return self._gScan.data
 
+
 class scan_hist(Macro):
     """Shows scan history information. Give optional parameter scan number to
     display details about a specific scan"""
@@ -678,10 +683,12 @@ class scan_hist(Macro):
                 store = os.path.join(scan_dir, scan_file)
             else:
                 store = scan_dir + os.path.sep + str(scan_file)
+        
         channels = ", ".join(h['channels'])
         cols = ["#", "Title", "Start time", "End time", "Took", "Dead time",
                 "User", "Stored", "Channels" ]
-        data = [serialno, title, start, end, total_time, deadtime, user, store, channels]
+        data = [serialno, title, start, end, total_time, deadtime, user, store,
+                channels]
         
         table = Table([data], row_head_str=cols, row_head_fmt='%*s',
                       elem_fmt=['%-*s'],
@@ -692,14 +699,14 @@ class scan_hist(Macro):
     def show_all(self, hist):
         
         cols  = "#", "Title", "Start time", "End time", "Stored"
-        width =   0,      10,            0,          0,       0
-        out = List(cols, alignment=Alignment.Left, max_col_width=width)
+        width =  -1,      -1,           -1,         -1,       -1
+        out = List(cols, max_col_width=width)
         for h in hist:
             start, end = h['starttime'].ctime(), h['endtime'].ctime()
             scan_file = h['ScanFile']
             store = "Not stored!"
             if scan_file is not None:
-                store = str(scan_file)
+                store = ", ".join(scan_file)
             row = h['serialno'], h['title'], start, end, store
             out.appendRow(row)
         for line in out.genOutput():

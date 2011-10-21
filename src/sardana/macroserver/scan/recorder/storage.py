@@ -244,6 +244,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         if self.savemode==SaveModes.Record:
             #create extensible data elements
             for dd in self.datadesc:
+                self.warning("%s:%s", dd.label, dd.dtype)
                 self.fd.makedata(dd.label,dd.dtype, [nxs.UNLIMITED]+list(dd.shape)) #the first dimension is extensible
         else:
             #leave the creation of the data elements to _writeRecordList (when we actually know the length of the data to write)
@@ -265,7 +266,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if record.data.has_key( dd.label ):
                 data = record.data[dd.label]
-                self.trace("writting recordno %i: '%s' (type=%s, shape=%s)",
+                self.debug("writting recordno %i: '%s' (type=%s, shape=%s)",
                            record.recordno, dd.label, type(data), dd.shape)
                 self.fd.opendata(dd.label)
                 

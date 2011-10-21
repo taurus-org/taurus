@@ -687,7 +687,7 @@ class SScan(GScan):
         # Add final moveable positions
         data_line['point_nb'] = n
         for i, m in enumerate(self.moveables):
-            data_line[m.moveable.getName()] = float(positions[i])
+            data_line[m.moveable.getName()] = positions[i]
         
         #Add extra data coming in the step['extrainfo'] dictionary
         if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
