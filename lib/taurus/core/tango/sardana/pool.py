@@ -232,6 +232,9 @@ class BaseObjList(Logger, EventGenerator):
     
     def getObj(self, id):
         return self.getObjByName(id)
+    
+    def getElementsInfo(self):
+        return self._elements
 
 
 class SoftwareObjList(BaseObjList):
@@ -349,7 +352,7 @@ class PoolElement(BaseElement, TangoDevice):
         self._attrEG = CaselessDict()
                 
         # force the creation of a state attribute
-        self.getStatEG()
+        self.getStateEG()
 
         self._str_tuple = self._create_str_tuple()
 
@@ -421,7 +424,7 @@ class PoolElement(BaseElement, TangoDevice):
             self._evt_wait = AttributeEventWait()
         return self._evt_wait
     
-    def getStatEG(self):
+    def getStateEG(self):
         return self._getAttrEG('state')
     
     def __cmp__(self,o):
@@ -443,7 +446,7 @@ class PoolElement(BaseElement, TangoDevice):
         return self._pool_obj
 
     def waitReady(self, timeout=None):
-        return self.getStatEG().waitEvent(Moving, equal=False, timeout=timeout)
+        return self.getStateEG().waitEvent(Moving, equal=False, timeout=timeout)
 
     def getAttrEG(self, name):
         """Returns the TangoAttributeEG object"""
@@ -462,7 +465,7 @@ class PoolElement(BaseElement, TangoDevice):
     def getInstrumentName(self, force=False):
         instr_name = self._getAttrValue('instrument', force=force)
         if len(instr_name) == 0: return instr_name
-        instr_name = instr_name[:instr_name.index('(')]
+        #instr_name = instr_name[:instr_name.index('(')]
         return instr_name
     
     def getInstrument(self):
@@ -507,8 +510,7 @@ class PoolElement(BaseElement, TangoDevice):
         self.waitFinish(id=id)
 
     def abort(self, wait_ready=True, timeout=None):
-        self.info("Abort!")
-        state = self.getStatEG()
+        state = self.getStateEG()
         state.lock()
         try:
             self.command_inout("Abort")
@@ -715,7 +717,7 @@ class Motor(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStatEG().readValue(), self.readPosition()
+        return self.getStateEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish    
@@ -819,7 +821,7 @@ class PseudoMotor(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStatEG().readValue(), self.readPosition()
+        return self.getStateEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish    
@@ -884,7 +886,7 @@ class MotorGroup(PoolElement, Moveable):
 
     def go(self, *args, **kwargs):
         PoolElement.go(self, *args, **kwargs)
-        return self.getStatEG().readValue(), self.readPosition()
+        return self.getStateEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish
@@ -1095,7 +1097,7 @@ class MGConfiguration(object):
     def getChannelsInfoList(self):
         ch_info = self.getChannelsInfo()
         return [ ch_info[ch['name']][2] for ch in self.channel_list ]
-
+    
     def getCountersInfoList(self):
         ch_info = self.getChannelsInfo()
         ret = []
@@ -1228,10 +1230,10 @@ class MeasurementGroup(PoolElement):
         cfg.prepare()
         duration = args[0]
         if duration is None or duration == 0:
-            return self.getStatEG().readValue(), self.getValues()
+            return self.getStateEG().readValue(), self.getValues()
         self.setIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
-        return self.getStatEG().readValue(), self.getValues()
+        return self.getStateEG().readValue(), self.getValues()
         
     startCount = PoolElement.start
     waitCount = PoolElement.waitFinish
@@ -1269,7 +1271,7 @@ class IORegister(PoolElement):
     def writeValue(self, new_value, timeout=None):
         self.startWriteValue(new_value, timeout=timeout)
         self.waitWriteValue(timeout=timeout)
-        return self.getStatEG().readValue(), self.readValue()
+        return self.getStateEG().readValue(), self.readValue()
 
     writeIORegister = writeIOR = writeValue
     readIORegister = readIOR = getValue = readValue
@@ -1279,42 +1281,30 @@ class Instrument(BaseElement):
     
     def __init__(self, **kw):
         self.__dict__.update(kw)
-        self._id = self._alias
-        self._simp_name = self._alias
-        self._elements = []
-        self._parent = None
-        self._parent_name = ""
-        self._children = []
-        self._name_lower = self.getName().lower()
-        self._buildInfo()
-    
-    def _buildInfo(self):
-        if self._id.count('/') > 1:
-            self._parent_name = self._id[:self._id.rindex('/')]
-            self._parent = self.getPoolObj().getObj('Instrument', self._parent_name)
-            if self._parent is not None:
-                self._parent._children.append(self)
-                
-        self._str_tuple = self.getName(), self.getType(), self.getParentInstrumentName()
+        self._name_lower = self.full_name.lower()
     
     def getFullName(self):
-        return self._id
+        return self.full_name
     
     def getParentInstrument(self):
-        return self._parent
+        return self.getPoolObj().getObj(self.parent_instrument)
 
     def getParentInstrumentName(self):
-        return self._parent_name
+        return self.parent_instrument
     
     def getChildrenInstruments(self):
+        raise NotImplementedError
         return self._children
     
     def getElements(self):
+        raise NotImplementedError
         return self._elements
 
     def getType(self):
-        return self._type
-    
+        return self.klass
+
+    def getPoolObj(self):
+        return self._pool_obj
 
 HardwareObjNames   = [
     'Controller',
@@ -1411,16 +1401,14 @@ class Pool(TangoDevice, MoveableSource):
     def __findMotorGroupWithElems(self, names):
         mg_list = self.getListObj('MotorGroup')
         len_names = len(names)
-        for mg in mg_list.getObjs():
-            motor_names = mg.getMotorNames()
+        names = set(map(str.lower, names))
+        for mg_name, mg_info in mg_list.getElementsInfo().items():
+            motor_names = mg_info['elements']
             if len_names == len(motor_names):
                 found = True
-                for name in names:
-                    if not mg.hasMotor(name):
-                        found = False
-                        break;
-                if found:
-                    return mg
+                motor_names = set(map(str.lower, motor_names))
+                if names == motor_names:
+                    return mg_list.getObjByName(mg_name)
         return None
     #
     # End of MoveableSource interface

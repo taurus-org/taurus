@@ -27,7 +27,8 @@
 
 __all__ = ["Pool", "MacroServer", "Door", "Sardana", "SardanaManager",
            "PoolElementType", "ControllerClassInfo", "ControllerInfo",
-           "ChannelView", "PlotType", "Normalization", "AcqTriggerType"]
+           "ChannelView", "PlotType", "Normalization", "AcqTriggerType",
+           "AcqMode"]
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N
@@ -56,9 +57,16 @@ PlotType = taurus.core.util.Enumeration("PlotType", ("No", "Spectrum", "Image"))
 
 Normalization = taurus.core.util.Enumeration("Normalization", ("No", "Avg", "Integ"))
 
+#: an enumeration describing all possible acquisition trigger types
 AcqTriggerType = taurus.core.util.Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
     "Gate",     # channel triggered by HW - start and stop by external 
+    "Unknown") )
+
+#: an enumeration describing all possible acquisition mode types
+AcqMode = taurus.core.util.Enumeration("AcqMode", ( \
+    "Timer",
+    "Monitor",
     "Unknown") )
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
