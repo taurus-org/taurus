@@ -59,12 +59,24 @@ class ColumnDesc:
         s = kwargs.get('shape', ()) 
         self.shape = self._simplifyShape(s)
         self.instrument = kwargs.get('instrument', None)
+    
+    @staticmethod
+    def _simplifyShape(s): 
+        '''the idea is to strip the shape of useless "ones" at the beginning. For example:
 
-    def _simplifyShape(self, s):
-        for i in s:
-            if i > 1:
-                return s
-        return (1,)
+            - () -> ()
+            - (1,) -> ()
+            - (1,1,1,1) -> ()
+            - (2,) -> (2)
+            - (1,2) -> (2)
+            - (1,2,3) -> (2,3)
+            - (2,3) -> (2,3)
+            - (1,1,1,2,3) -> (2,3)
+            - (3,1,1) -> (3,1,1)
+        '''
+        for i,e in enumerate(s):
+            if e>1: return s[i:]
+        return ()       
 
     def tr(self, dtype):
         return self._TYPE_MAP.get(dtype, dtype)
