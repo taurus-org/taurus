@@ -308,6 +308,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                             y[i]=v.value
                         self.__xBuffer.extendLeft(t)
                         self.__yBuffer.extendLeft(y)
+                        if archived is not None and len(archived): self.replot()
                     except Exception,e:
                         self.trace('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),str(e)))     
         else:
@@ -741,8 +742,15 @@ class TaurusTrend(TaurusPlot):
         self.setAxisLabelAlignment(self.xBottom, alignment)
         #use dynamic scale by default
         self.setXDynScale(True)
-        self._scrollStep = 0.2
-        
+        self._scrollStep = 0.2    
+
+        self._dirtyPlot = True
+        self._lastReplot = 0
+        self._replotTimer = Qt.QTimer()
+        self.connect(self._replotTimer,Qt.SIGNAL('timeout()'),self.doReplot)
+        self._replotTimer.start(3000)
+        self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)  
+    
     
     def __initActions(self):
         '''Create TaurusTrend actions'''
@@ -1032,8 +1040,24 @@ class TaurusTrend(TaurusPlot):
         finally:
             self.curves_lock.release()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
-        self.replot()
-    
+        if not self.xIsTime: self.replot()
+        else: self._dirtyPlot = True
+
+    def doReplot(self):
+        if self._dirtyPlot:
+            #self.debug('In doReplot(dirty=%s) after %1.2f seconds',(self._dirtyPlot,time.time()-self._lastReplot))
+            #self._lastReplot = time.time()
+            self.replot()
+            self._dirtyPlot = False
+
+    def rescheduleReplot(self):
+        if self.xIsTime:
+            sdiv = self.axisScaleDiv(self.xBottom)
+            currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
+            plot_refresh = int(1000*(currmax-currmin)/1080) #HD ready ;)
+            self.debug('In reschedulePeriod(): new replot period is %1.2f seconds',(plot_refresh/1000.))
+            self._replotTimer.start(min((max((plot_refresh,250)),1800000)))
+
     def setPaused(self, paused = True):
         '''Pauses itself and other listeners (e.g. the trendsets) depending on it
         
