@@ -247,6 +247,7 @@ class AttributeAllConfigAction(TaurusAction):
         self.setText("All...")
         
     def actionTriggered(self):
+        raise NotImplementedError('This action is not yet implemented')
         taurus_widget = self.parent()
         import dialog
         d = dialog.AttributeConfigDialog()
