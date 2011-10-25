@@ -39,13 +39,14 @@ import threading
 import time
 import uuid
 import os.path as osp
+import json
 import PyTango
 
 import taurus
 import taurus.core
 import taurus.core.tango
 import taurus.core.util
-from taurus.core.util import etree
+from taurus.core.util import etree, CodecFactory, CaselessDict
 from taurus.core.util.console import NoColors, TermColors
 import macro
 
@@ -106,17 +107,74 @@ class LogAttr(Attr):
 class MacroServerDevice(taurus.core.tango.TangoDevice):
     """A class encapsulating a generic macro server device (usually a 
     MacroServer or a Door"""
-
-    def _createAttribute(self, attr_name):
-        attr_name = "%s/%s" % (self.getFullName(), attr_name)
-        return self.factory().getAttribute(attr_name)
-
+    
     def _getEventWait(self):
         if not hasattr(self, '_evt_wait'):
             # create an object that waits for attribute events.
             # each time we use it we have to connect and disconnect to an attribute
             self._evt_wait = taurus.core.util.AttributeEventWait()
         return self._evt_wait
+
+
+class ExperimentConfiguration(object):
+    
+    def __init__(self, door):
+        self._door = door
+    
+    def get(self, cache=False):
+        door = self._door
+        macro_server = door.macro_server
+        env = door.getEnvironment()
+        
+        ret = dict(ScanDir=env.get('ScanDir'),
+                   DataCompressionRank=env.get('DataCompressionRank', -1))
+        scan_file = env.get('ScanFile')
+        if scan_file is None:
+            scan_file = []
+        elif isinstance(scan_file, (str, unicode)):
+            scan_file = [scan_file]
+        ret['ScanFile'] = scan_file
+
+        mnt_grps = macro_server.getElementNamesOfType("MeasurementGroup")
+        
+        active_mnt_grp = env.get('ActiveMntGrp')
+        if active_mnt_grp is None and len(mnt_grps):
+            door.setEnvironment('ActiveMntGrp', mnt_grps[0])
+        
+        ret['ActiveMntGrp'] = active_mnt_grp
+        
+        ret['MntGrpConfigs'] = mnt_grp_configs = CaselessDict()
+        
+        if len(mnt_grps) == 0:
+            return ret
+        
+        mnt_grp_grps = PyTango.Group("grp")
+        mnt_grp_grps.add(mnt_grps)
+        
+        codec = CodecFactory().getCodec('json')
+        replies = mnt_grp_grps.read_attribute("configuration")
+        for mnt_grp, reply in zip(mnt_grps, replies):
+            mnt_grp_configs[mnt_grp] = \
+                codec.decode(('json', reply.get_data().value),
+                             ensure_ascii=True)[1]
+        return ret
+    
+    def set(self, conf):
+        """Sets the ExperimentConfiguration dictionary."""
+        env = dict(ScanDir=conf.get('ScanDir'),
+                   ScanFile=conf.get('ScanFile'),
+                   DataCompressionRank=conf.get('DataCompressionRank', -1))
+        env['ActiveMntGrp'] = active_mnt_grp = conf.get('ActiveMntGrp')
+        mnt_grp_cfg = conf['MntGrpConfigs'][active_mnt_grp]
+        mnt_grp = taurus.Device(active_mnt_grp)
+        self._door.setEnvironments(env)
+            
+        # TODO when we start using measurement group change de code below with
+        # the following:
+        # mnt_grp.setConfiguration(mnt_grp_cfg)
+        codec = CodecFactory().getCodec('json')
+        data = codec.encode(('', mnt_grp_cfg))[1]
+        mnt_grp.write_attribute('configuration', data)
 
 
 class BaseDoor(MacroServerDevice):
@@ -144,7 +202,7 @@ class BaseDoor(MacroServerDevice):
     InteractiveTimeout = 0.1
     
     def __init__(self, name, **kw):
-        self._log_attr = taurus.core.util.CaselessDict()
+        self._log_attr = CaselessDict()
         self._block_lines = 0
         self._macro_server = None
 
@@ -166,7 +224,7 @@ class BaseDoor(MacroServerDevice):
         self.getStateObj().addListener(self.stateChanged)
 
         for log_name in self.log_streams:
-            tg_attr = self._createAttribute(log_name)
+            tg_attr = self.getAttribute(log_name)
             attr = LogAttr(self, log_name, None, tg_attr)
             if log_name == 'Result':
                 attr.subscribeEvent(self.resultReceived, log_name)
@@ -174,7 +232,7 @@ class BaseDoor(MacroServerDevice):
                 attr.subscribeEvent(self.logReceived, log_name)
             self._log_attr[log_name] = attr
 
-        self._environment_attr = self._createAttribute('Environment')
+        self._environment_attr = self.getAttribute('Environment')
         self._environment_attr.addListener(self.environmentChanged)
         
         #ms = self.macro_server
@@ -187,6 +245,7 @@ class BaseDoor(MacroServerDevice):
         macro_status_attr = self.getAttribute('MacroStatus')
         macro_status_attr.addListener(self.macroStatusReceived)
         
+        self._experiment_configuration = ExperimentConfiguration(self)
         #record_data_attr = self._createAttribute('RecordData')
         #self._record_data_attr = Attr(self, 'RecordData', None, record_data_attr)
         #self._record_data_attr.subscribeEvent(self.recordDataReceived)
@@ -384,7 +443,21 @@ class BaseDoor(MacroServerDevice):
     def environmentChanged(self, s, t, v):
         if t not in CHANGE_EVTS: return
         return self._processEnvironmentData(v)
-        
+    
+    def setEnvironment(self, name, value):
+        self.setEnvironments({ name : value })
+
+    def setEnvironments(self, obj):
+        obj['__type__'] = 'set_env'
+        codec = CodecFactory().getCodec('json')
+        self.write_attribute('Environment', codec.encode(('', obj)))
+    
+    def getEnvironment(self, name=None):
+        if name is None:
+            return self._env
+        else:
+            return getattr(self._env, name)
+    
     def _processEnvironmentData(self, data):
         if data is None: return
         # make sure we get it as string since PyTango 7.1.4 returns a buffer
@@ -394,11 +467,11 @@ class BaseDoor(MacroServerDevice):
         size = len(data[1])
         if size == 0: return
         format = data[0]
-        codec = taurus.core.util.CodecFactory().getCodec(format)
-        obj = codec.decode(data)
-        env_type = obj[1].get("__type__")
+        codec = CodecFactory().getCodec(format)
+        obj = codec.decode(data, ensure_ascii=True)[1]
+        env_type = obj.get("__type__")
         if env_type == 'set_env':
-            self._env.update(obj[1])
+            self._env.update(obj)
         return obj
     
     def recordDataReceived(self, s, t, v):
@@ -485,6 +558,12 @@ class BaseDoor(MacroServerDevice):
     
     def writeln(self, msg='', stream=None):
         self.write("%s\n" % msg, stream=stream)
+    
+    def getExperimentConfiguration(self):
+        return self._experiment_configuration.get()
+        
+    def setExperimentConfiguration(self, config):
+        self._experiment_configuration.set(config)
 
 
 class UnknownMacroServerElementFormat(Exception):
@@ -495,7 +574,7 @@ class MacroServerElement:
 
     def __init__(self, type, from_str):
         self._type = type
-        codec = taurus.core.util.CodecFactory().getCodec('JSON')
+        codec = taurus.core.util.CodecFactory().getCodec('json')
         self._pool_data_str = from_str
         data = codec.decode(('json', from_str), ensure_ascii=True)[1]
         self._pool_data = data
@@ -524,7 +603,10 @@ class MacroServerElement:
         return self.getTypes()[0]
     
     def getTypes(self):
-        return self._pool_data['type']
+        elem_types = self._pool_data['type']
+        if isinstance(elem_types, (str, unicode)):
+            return [elem_types]
+        return elem_types
 
 
 class MacroServerElementContainer:
@@ -533,18 +615,19 @@ class MacroServerElementContainer:
         # dict<str, dict> where key is the pool device name and value is:
         #     dict<str, MacroServerElement> where key is the element alias
         #                                   and value is the Element object
-        self._pool_elems_dict = taurus.core.util.CaselessDict()
+        self._pool_elems_dict = CaselessDict()
         
         # dict<str, dict> where key is the type and value is:
         #     dict<str, MacroServerElement> where key is the element alias and
         #                                   value is the Element object
-        self._type_elems_dict = taurus.core.util.CaselessDict()
+        self._type_elems_dict = CaselessDict()
         
         # dict<str, MacroServerElement> where key is the element alias and value
         #                               value is the Element object
-        self._name_elems_dict = taurus.core.util.CaselessDict()
+        self._name_elems_dict = CaselessDict()
     
     def addElement(self, e):
+        
         pool = e.getPoolId()
         type = e.getType()
         name = e.getName()
@@ -554,7 +637,7 @@ class MacroServerElementContainer:
         if self._pool_elems_dict.has_key(pool):
             pool_elems = self._pool_elems_dict.get(pool)
         else:
-            pool_elems = taurus.core.util.CaselessDict()
+            pool_elems = CaselessDict()
             self._pool_elems_dict[pool] = pool_elems
         pool_elems[name] = e
     
@@ -562,7 +645,7 @@ class MacroServerElementContainer:
         if self._type_elems_dict.has_key(type):
             type_elems = self._type_elems_dict.get(type)
         else:
-            type_elems = taurus.core.util.CaselessDict()
+            type_elems = CaselessDict()
             self._type_elems_dict[type] = type_elems
         type_elems[name] = e
         
@@ -634,12 +717,12 @@ class BaseMacroServer(MacroServerDevice):
         # dict<str, taurus.core.tango.TangoAttribute>
         # key - attribute name
         # value - taurus tango attribute object
-        self._attr_dict = taurus.core.util.CaselessDict()
+        self._attr_dict = CaselessDict()
         
         # dict<str, sequence<object>>
         # key - type of object ('Macro', 'Type', 'Motor', 'CTExpChannel', etc)
         # value - sequence of objects of the key type
-        self._obj_dict = taurus.core.util.CaselessDict()
+        self._obj_dict = CaselessDict()
         self._elems = MacroServerElementContainer()
         
         self._type_dict_lock = threading.Lock()
@@ -649,22 +732,24 @@ class BaseMacroServer(MacroServerDevice):
         self._macro_dict = {}
         
         self.call__init__(MacroServerDevice, name, **kw)
-
+        
+        self._ready_event = threading.Event()
+        
         macro_list = self.getAttribute("MacroList")
         macro_list.addListener(self._macrosChanged)
 
         type_list = self.getAttribute("TypeList")
         type_list.addListener(self._typesChanged)
+        
+        self._ready_event.wait(0.25)
 
     def _typesChanged(self, s, t, v):
         if t not in CHANGE_EVTS: return
-        self._type_dict_lock.acquire()
-        try:
+        with self._type_dict_lock:
             self._removeTypes()
             self._addTypes(v.value)
-        finally:
-            self._type_dict_lock.release()
-
+        self._ready_event.set()
+        
     def _addTypes(self, type_names):
         dev = self.getHWObj()
         dev_attr_names = map(str.lower, dev.get_attribute_list())
@@ -723,8 +808,7 @@ class BaseMacroServer(MacroServerDevice):
         except AttributeError:
             old_macro_names = set()
 
-        self._macro_dict_lock.acquire()
-        try:
+        with self._macro_dict_lock:
             # remove information about all macros. some macros may just have
             # changed their description, for example, so everything needs to be rebuild
             self._removeMacros()
@@ -734,8 +818,6 @@ class BaseMacroServer(MacroServerDevice):
             
             all_macros = v.value
             self._addMacros(all_macros)
-        finally:
-            self._macro_dict_lock.release()
 
         all_macro_names = set(all_macros)
         deleted_macro_names = old_macro_names.difference(all_macro_names)
@@ -775,20 +857,12 @@ class BaseMacroServer(MacroServerDevice):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getMacros(self):
-        self._macro_dict_lock.acquire()
-        ret = None
-        try:
+        with self._macro_dict_lock:
             return dict(self._macro_dict)
-        finally:
-            self._macro_dict_lock.release()
 
     def getMacroInfoObj(self, macro_name):
-        self._macro_dict_lock.acquire()
-        ret = None
-        try:
+        with self._macro_dict_lock:
             return self._macro_dict.get(macro_name)
-        finally:
-            self._macro_dict_lock.release()
 
     def getMacroStrList(self):
         return self._macro_dict.keys()

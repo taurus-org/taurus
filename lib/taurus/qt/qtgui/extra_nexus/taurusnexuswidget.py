@@ -26,11 +26,15 @@
 """
 nexusWidget.py: 
 """
+
 __all__=["TaurusNexusBrowser"]
+
+import numpy
+import posixpath
 
 from PyMca import HDF5Widget, HDF5Info, HDF5DatasetTable
 from taurus.qt import Qt
-import numpy
+
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.plot import TaurusPlot
 import taurus.qt.qtgui.resource
@@ -98,7 +102,7 @@ class TaurusNeXusBrowser(TaurusWidget):
         
         #configuration
         self.registerConfigProperty(self.togglePreviewAction.isChecked, self.togglePreviewAction.setChecked, 'showPreview')
-       
+    
     def openFile(self, fname=None):
         if fname is None:
             fname = unicode(Qt.QFileDialog.getOpenFileName(self, "Choose NeXus File","/home/cpascual/local/tmp/scantest.h5"))#@TODO!!
@@ -130,6 +134,39 @@ class TaurusNeXusBrowser(TaurusWidget):
             w.setInfoDict(info)
         return w
     
+    def neXusWidget(self):
+        return self.treeWidget
+    
+    def findNodeIndex(self, filename, nodename):
+        nexus_widget = self.neXusWidget()
+        file_model = nexus_widget.model()
+        
+        for node in file_model.rootItem.children:
+            if node.file.filename == filename:
+                file_node = node
+                break
+        else:
+            raise Exception("Could not find file %s" % filename)
+        
+        index = file_model.index(file_node.row, 0, Qt.QModelIndex())
+        
+        node_parts = nodename.split(posixpath.sep)
+        while node_parts:
+            name = posixpath.basename(node_parts.pop(0))
+            for child in node.children:
+                child_name = posixpath.basename(child.name)
+                if child_name == name:
+                    node = child
+                    index = file_model.index(node.row, 0, index)
+                    break
+            else:
+                raise Exception("Could not find node %s in %s" % (name, filename))
+        return index
+    
+    def setCurrentNode(self, filename, nodename):
+        index = self.findNodeIndex(filename, nodename)
+        self.setCurrentIndex(index)
+    
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
@@ -138,7 +175,8 @@ class TaurusNeXusBrowser(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Composite Widgets'
         return ret
-        
+    
+    
         
 if __name__ == "__main__":
     import sys

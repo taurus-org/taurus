@@ -1152,6 +1152,11 @@ class MeasurementGroup(PoolElement):
     def getConfigurationAttrEG(self):
         return self._getAttrEG('Configuration')
     
+    def setConfiguration(self, configuration):
+        codec = CodecFactory().getCodec('json')
+        data = codec.encode(configuration)
+        self.write_attribute('configuration', data)
+        
     def getConfiguration(self, force=False):
         if force or self._configuration is None:
             data = self.getConfigurationAttrEG().readValue(force=True)

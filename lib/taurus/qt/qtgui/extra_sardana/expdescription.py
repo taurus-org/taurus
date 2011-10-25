@@ -103,6 +103,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         door = self.getModelObj()
         if door is None: return
         conf = door.getExperimentConfiguration()
+        print conf
         self._originalConfiguration = copy.deepcopy(conf)
         self.setLocalConfig(conf)
         
@@ -137,7 +138,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.ui.activeMntGrpCB.setCurrentIndex(idx) #note that this triggers a call to onActiveMntGrpChanged 
         
         #other settings
-        self.ui.filenameLE.setText(self._localConfig['ScanFile'])
+        self.ui.filenameLE.setText(", ".join(self._localConfig['ScanFile']))
         self.ui.pathLE.setText(self._localConfig['ScanDir'])
         self.ui.compressionCB.setCurrentIndex(self._localConfig['DataCompressionRank']+1)
         

@@ -69,44 +69,45 @@ class QDoor(BaseDoor, Qt.QObject):
         self.emit(Qt.SIGNAL("%sUpdated" % log_name.lower()), output)
         return res
     
-    def getExperimentConfiguration(self, cache=False):
-        '''
-        Returns the ExperimentConfiguration dictionary. 
-        This implementation is a dummy one returning a hardcoded dictionary. 
-        The real implementation should be able to read the info from the
-        ExperimentConfiguration envvar stored in the environment attribute.
-        '''
-#        from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
-        import copy, json
+#    def getExperimentConfiguration(self, cache=False):
+#        '''
+#        Returns the ExperimentConfiguration dictionary. 
+#        This implementation is a dummy one returning a hardcoded dictionary. 
+#        The real implementation should be able to read the info from the
+#        ExperimentConfiguration envvar stored in the environment attribute.
+#        '''
+##        from taurus.qt.qtgui.extra_sardana.measurementgroup import DUMMY_EXP_CONF
+#        import copy, json
         
-#        ms = self.macroserver
-#        poolname = ms.get_property('poolnames')['poolnames'][0]
-#        pool = taurus.Device(poolname) 
-        ActiveMntGrp = json.loads(str(self.Environment[1]))['ActiveMntGrp']
-        MNTGRPCONFIGS = {}
-        for element in self.macro_server.MeasurementGroupList:
-            mginfo = json.loads(element)
-            name = mginfo['name']
-            mg = taurus.Device(str(name))
-            conf = json.loads(mg.configuration)
-            MNTGRPCONFIGS[name] = conf
-        default = {'MntGrpConfigs': MNTGRPCONFIGS,
-               'ActiveMntGrp' : ActiveMntGrp,
-               'ScanDir':'/tmp/scandir',
-               'ScanFile':'dummyscan.h5',
-               'DataCompressionRank':-1}
-        return copy.deepcopy(getattr(self, "_dummy_exp_conf", default))
+##        ms = self.macroserver
+##        poolname = ms.get_property('poolnames')['poolnames'][0]
+##        pool = taurus.Device(poolname) 
+#        ActiveMntGrp = json.loads(str(self.Environment[1]))['ActiveMntGrp']
+#        MNTGRPCONFIGS = {}
+#        for element in self.macro_server.MeasurementGroupList:
+#            mginfo = json.loads(element)
+#            name = mginfo['name']
+#            mg = taurus.Device(str(name))
+#            conf = json.loads(mg.configuration)
+#            MNTGRPCONFIGS[name] = conf
+#        default = {'MntGrpConfigs': MNTGRPCONFIGS,
+#               'ActiveMntGrp' : ActiveMntGrp,
+#               'ScanDir':'/tmp/scandir',
+#               'ScanFile':'dummyscan.h5',
+#               'DataCompressionRank':-1}
+#        return copy.deepcopy(getattr(self, "_dummy_exp_conf", default))
     
     
-    def setExperimentConfiguration(self, conf):
-        '''
-        Sets the ExperimentConfiguration dictionary. 
-        This implementation is a dummy one which saves it as the "_dummy_exp_conf" member 
-        The real implementation should be able to write it as the
-        ExperimentConfiguration envvar stored in the environment attribute.
-        '''
-        import copy
-        self._dummy_exp_conf = copy.deepcopy(conf)
+#    def setExperimentConfiguration(self, conf):
+#        '''
+#        Sets the ExperimentConfiguration dictionary. 
+#        This implementation is a dummy one which saves it as the "_dummy_exp_conf" member 
+#        The real implementation should be able to write it as the
+#        ExperimentConfiguration envvar stored in the environment attribute.
+#        '''
+#        import copy
+#        self._dummy_exp_conf = copy.deepcopy(conf)
+
 
 class QMacroServer(BaseMacroServer, Qt.QObject):
     

@@ -68,15 +68,6 @@ class List(list):
     
     header_separator = property(getHeaderSeparator, setHeaderSeparator)
 
-#    def setShowHeaderSeparator(self, show_header_separator):
-#        self.ShowHeaderSeparator = show_header_separator
-    
-#    def getShowHeaderSeparator(self):
-#        return self.ShowHeaderSeparator
-    
-#    show_header_separator = property(getShowHeaderSeparator,
-#                                     setShowHeaderSeparator)
-    
     def setRowSeparator(self, row_separator):
         if isinstance(row_separator, str):
             row_separator = self.col_nb * [row_separator]
@@ -86,14 +77,6 @@ class List(list):
         return self.RowSeparator
     
     row_separator = property(getRowSeparator, setRowSeparator)
-    
-#    def setShowRowSeparator(self, show_row_separator):
-#        self.ShowRowSeparator = show_row_separator
-    
-#    def getShowRowSeparator(self):
-#        return self.ShowRowSeparator
-    
-#    show_row_separator = property(getShowRowSeparator, setShowRowSeparator)
     
     def setMaxColumnWidth(self, max_col_width):
         if max_col_width is None:
