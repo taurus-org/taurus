@@ -734,6 +734,7 @@ class TaurusTrend(TaurusPlot):
         self._startingTime = time.time()
         self._archivingWarningLocked = False
         self._forcedReadingPeriod = None
+        self._replotTimer = None 
         #Use a rotated labels x timescale by default
         self.setXIsTime(True)
         rotation = -45
@@ -742,15 +743,7 @@ class TaurusTrend(TaurusPlot):
         self.setAxisLabelAlignment(self.xBottom, alignment)
         #use dynamic scale by default
         self.setXDynScale(True)
-        self._scrollStep = 0.2    
-
-        self._dirtyPlot = True
-        self._lastReplot = 0
-        self._replotTimer = Qt.QTimer()
-        self.connect(self._replotTimer,Qt.SIGNAL('timeout()'),self.doReplot)
-        self._replotTimer.start(3000)
-        self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)  
-    
+        self._scrollStep = 0.2        
     
     def __initActions(self):
         '''Create TaurusTrend actions'''
@@ -766,12 +759,27 @@ class TaurusTrend(TaurusPlot):
         self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL("triggered()"), self.setForcedReadingPeriod)
     
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
+        '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
+        #set a reasonable scale
         if enable:
-            self.setAxisScale(self.xBottom, self._startingTime-60, self._startingTime)#Set a range of 1 min
+            self.setAxisScale(axis, self._startingTime-60, self._startingTime)#Set a range of 1 min
         else:
-            self.setAxisScale(self.xBottom, 0, 10) #Set a range of 10 events   
+            self.setAxisScale(axis, 0, 10) #Set a range of 10 events   
+        #enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
+        #call the parent class method
         TaurusPlot.setXIsTime(self, enable, axis=axis)
+        #set the replot timer if needed
+        if enable:
+            if self._replotTimer is None:
+                self._dirtyPlot = True
+                self._replotTimer = Qt.QTimer()
+                self.connect(self._replotTimer,Qt.SIGNAL('timeout()'),self.doReplot)
+            self.rescheduleReplot(axis)
+            self.connect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)
+        else:
+            self.disconnect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)
+            self._replotTimer = None 
 
     def onScanPlotablesFilterChanged(self, flt, scanname=None):
         if scanname is None:
@@ -831,8 +839,7 @@ class TaurusTrend(TaurusPlot):
         if key is None: key = ''
         self.setAxisTitle(self.xBottom, key)
         self._scansXDataKey = key
-        
-    
+            
     def setScanDoor(self, qdoorname):
         '''
         sets the door to which TaurusTrend will listen for scans.
@@ -1044,19 +1051,33 @@ class TaurusTrend(TaurusPlot):
         else: self._dirtyPlot = True
 
     def doReplot(self):
+        '''calls :meth:`replot` only if there is new data to be plotted'''
+        self.debug('Replotting? %s',self._dirtyPlot)
         if self._dirtyPlot:
-            #self.debug('In doReplot(dirty=%s) after %1.2f seconds',(self._dirtyPlot,time.time()-self._lastReplot))
-            #self._lastReplot = time.time()
             self.replot()
             self._dirtyPlot = False
 
-    def rescheduleReplot(self):
+    def rescheduleReplot(self, axis=Qwt5.QwtPlot.xBottom, width=1080):
+        '''calculates the replotting frequency based on the time axis range.
+        It assumes that it is unnecessary to replot with a period less than the
+        time per pixel.
+        
+        :param axis: (Qwt5.QwtPlot.Axis) the axis to which it should associate
+        :param width: (int) the approx canvas width (in pixels). The exact value
+                      could be obtained from the widget, but an order of
+                      magnitude approximation is usually ok (and cheaper). The
+                      default value is 1080 (HD ready!)
+        
+        '''
         if self.xIsTime:
-            sdiv = self.axisScaleDiv(self.xBottom)
+            sdiv = self.axisScaleDiv(axis)
             currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
-            plot_refresh = int(1000*(currmax-currmin)/1080) #HD ready ;)
-            self.debug('In reschedulePeriod(): new replot period is %1.2f seconds',(plot_refresh/1000.))
-            self._replotTimer.start(min((max((plot_refresh,250)),1800000)))
+            plot_refresh = int(1000*(currmax-currmin)/width)
+            plot_refresh = min((max((plot_refresh,250)),1800000)) #enforce limits
+            self._replotTimer.start(plot_refresh)
+            self.debug('New replot period is %1.2f seconds',(plot_refresh/1000.))
+        else:
+            self.warning('rescheduleReplot() called but X axis is not in time mode')
 
     def setPaused(self, paused = True):
         '''Pauses itself and other listeners (e.g. the trendsets) depending on it
