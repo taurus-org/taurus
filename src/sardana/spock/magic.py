@@ -2,6 +2,20 @@
 
 import IPython
 
+def showscan(self, parameter_s=''):
+    """Shows a scan in a GUI.
+    
+    :param scan_id: scan number [default: None, meaning show last scan]"""
+    params = parameter_s.split()
+    door = _get_door()
+    online, scan_nb = False, None
+    if len(params) > 0:
+        if params[0].lower() == 'online':
+            online = True
+        else:
+            scan_nb = int(params[0])
+    door.show_scan(scan_nb, online=online)
+
 def spsplot(self, parameter_s=''):
     _get_door().plot()
 

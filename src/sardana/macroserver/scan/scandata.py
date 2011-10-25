@@ -233,6 +233,7 @@ class RecordList(dict):
     #def __str__(self):
     #    return "RecordList(env=%s, records=%s" % (str(self.getEnviron()), str(self.records))
 
+
 class ScanData(RecordList):
     def __init__(self, environment=None,data_handler=None):
         dh = data_handler or DataHandler()

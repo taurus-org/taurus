@@ -12,12 +12,15 @@
 
 import os
 import copy
+import datetime
+
 import numpy
 
 from taurus.console import Alignment
 from taurus.console.list import List
 from taurus.console.table import Table
 
+from sardana.macroserver.exception import UnknownEnv
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 
@@ -670,7 +673,8 @@ class scan_hist(Macro):
             return
         
         serialno, title = h['serialno'], h['title']
-        start, end = h['starttime'], h['endtime']
+        start = datetime.datetime.fromtimestamp(h['startts'])
+        end = datetime.datetime.fromtimestamp(h['endts'])
         total_time = end - start
         start, end, total_time = start.ctime(), end.ctime(), str(total_time)
         scan_dir, scan_file = h['ScanDir'], h['ScanFile']
@@ -702,7 +706,8 @@ class scan_hist(Macro):
         width =  -1,      -1,           -1,         -1,       -1
         out = List(cols, max_col_width=width)
         for h in hist:
-            start, end = h['starttime'].ctime(), h['endtime'].ctime()
+            start = datetime.datetime.fromtimestamp(h['startts'])
+            end = datetime.datetime.fromtimestamp(h['endts'])
             scan_file = h['ScanFile']
             store = "Not stored!"
             if scan_file is not None:

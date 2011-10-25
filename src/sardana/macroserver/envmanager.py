@@ -38,7 +38,7 @@ import operator
 import types
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, CaselessDict
+from taurus.core.util import Singleton, Logger, CaselessDict, CodecFactory
 
 from exception import UnknownEnv
 
@@ -446,11 +446,14 @@ class EnvironmentManager(Singleton, Logger):
         obj = self._encode(obj)
         for k, v in obj.iteritems():
             self._setOneEnv(k, v)
-        #@TODO send event that environment as changed
-        #obj["__type__"] = "set_env"
-        #codec = CodecFactory().getCodec('json')
-        #data = codec.encode(obj)
-        #door.sendEnvironment(*data)
+        obj["__type__"] = "set_env"
+        codec = CodecFactory().getCodec('json')
+        data = codec.encode(('',obj))
+
+        # @TODO find another way to find existing doors without connecting to tango
+        import PyTango
+        for door in PyTango.Util.instance().get_device_list_by_class("Door"):
+            door.sendEnvironment(*data)
         return obj
     
     def setEnv(self, key, value):

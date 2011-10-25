@@ -555,14 +555,15 @@ class GScan(Logger):
         return self._steps
     
     def start(self):
-        self._env['starttime'] = datetime.datetime.now()
+        self._env['startts'] = ts = time.time()
+        self._env['starttime'] = datetime.datetime.fromtimestamp(ts)
         self.data.start()
 
     def end(self):
         env = self._env
-        env['endtime'] = end = datetime.datetime.now()
-        total_time = end - env['starttime']
-        total_time = total_time.days*24*60*60 + total_time.seconds + total_time.microseconds * 1e-6
+        env['endts'] = end_ts = time.time()
+        env['endtime'] = end = datetime.datetime.fromtimestamp(end_ts)
+        total_time = end_ts - env['startts']
         estimated = env['estimatedtime']
         env['deadtime'] = 100.0 * (total_time-estimated) / total_time
         self.data.end()
@@ -572,7 +573,7 @@ class GScan(Logger):
             scan_history = []
         
         labels = [ col.label for col in env['datadesc'] ]
-        history = dict(starttime=env['starttime'], endtime=env['endtime'],
+        history = dict(startts=env['startts'], endts=env['endts'],
                        estimatedtime=env['estimatedtime'],
                        deadtime=env['deadtime'], title=env['title'],
                        serialno=env['serialno'], user=env['user'],

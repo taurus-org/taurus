@@ -211,10 +211,12 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         self.currentlist = recordlist
         env = self.currentlist.getEnviron()
+        serialno = env["serialno"]
         
         if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
-        self.fd = nxs.open(self.filename, nxfilemode) 
-        self.entryname=self._newentryname(prefix='entry')
+        self.fd = nxs.open(self.filename, nxfilemode)
+        #self.entryname=self._newentryname(prefix='entry')
+        self.entryname = "entry%d" % serialno
         self.fd.makegroup(self.entryname,"NXentry") 
         self.fd.opengroup(self.entryname,"NXentry") 
         

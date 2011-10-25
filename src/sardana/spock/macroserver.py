@@ -1,9 +1,11 @@
 import sys
+import os
 import re
 import weakref
 import threading
 import operator
 import types
+import posixpath
 
 import PyTango
 
@@ -18,16 +20,116 @@ import genutils
 import exception
 
 if genutils.get_gui_mode() == 'qt4':
-    import taurus.qt.qtcore.tango.sardana.macroserver
-    BaseDoor = taurus.qt.qtcore.tango.sardana.macroserver.QDoor
-    BaseMacroServer = taurus.qt.qtcore.tango.sardana.macroserver.QMacroServer
+    from taurus.qt import Qt
+    from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
+    BaseDoor = QDoor
+    BaseMacroServer = QMacroServer
+    BaseGUIViewer = object
 else:
     from taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
+    BaseGUIViewer = object
 
-class Plotter:
+class GUIViewer(BaseGUIViewer):
     
+    def __init__(self, door=None):
+        BaseGUIViewer.__init__(self)
+        self._door = door
+        
     def run(self):
         self.plot()
+    
+    def show_scan(self, scan_nb=None, scan_history_info=None, directory_map=None):
+        if scan_nb is None and scan_history_info is None:
+            import taurus.qt.qtgui.plot
+            w = taurus.qt.qtgui.plot.TaurusTrend()
+            w.model = "scan://" + self._door.getNormalName()
+            w.show()
+            return
+        
+        scan_dir, scan_file = None, None
+        if scan_nb is None:
+            for scan in reversed(scan_history_info):
+                scan_dir = scan.get('ScanDir')
+                scan_file = scan.get('ScanFile')
+                if scan_dir is None or scan_file is None:
+                    continue
+                if not isinstance(scan_file, (str, unicode)):
+                    scan_file = scan_file[0]
+                break
+            else:
+                print "Cannot plot scan:"
+                print "No scan in scan history was saved into a file"
+                return
+        else:
+            for scan in reversed(scan_history_info):
+                if scan['serialno'] == scan_nb:
+                    scan_dir = scan.get('ScanDir')
+                    scan_file = scan.get('ScanFile')
+                    if scan_dir is None or scan_file is None:
+                        print "Cannot plot scan:"
+                        print "Scan %d was not saved into a file" % (scan_nb,)
+                        return
+                    if not isinstance(scan_file, (str, unicode)):
+                        scan_file = scan_file[0]
+                    break
+            else:
+                print "Cannot plot scan:"
+                print "Scan %d not found in scan history" % (scan_nb,)
+                return
+                    
+        remote_file = os.path.join(scan_dir, scan_file)
+        
+        locations = [scan_dir]
+        local_file = None
+        if directory_map is None or not scan_dir in directory_map:
+            if os.path.isdir(scan_dir):
+                if scan_file in os.listdir(scan_dir):
+                    local_file = os.path.join(scan_dir, scan_file)
+        else:
+            local_directories = directory_map[scan_dir]
+            if isinstance(scan_file, (str, unicode)):
+                local_directories = [local_directories]
+            locations = local_directories
+            if scan_dir not in locations: locations.append(scan_dir)
+            for local_directory in local_directories:
+                if os.path.isdir(local_directory):
+                    if scan_file in os.listdir(local_directory):
+                        local_file = os.path.join(local_directory, scan_file)
+                        break
+        if local_file is None:
+            print "Cannot plot scan:"
+            print "Could not find %s in any of the following locations:" % (scan_file,)
+            print "\n".join(locations)
+            return
+
+        import taurus.qt.qtgui.extra_nexus
+        taurus_nexus_widget = taurus.qt.qtgui.extra_nexus.TaurusNeXusBrowser()
+        taurus_nexus_widget.setMinimumSize(800, 600)
+        
+        print "Trying to open local scan file %s..." % (local_file,)
+        taurus_nexus_widget.openFile(local_file)
+        taurus_nexus_widget.show()
+        nexus_widget = taurus_nexus_widget.neXusWidget()
+        entry_name = "entry%d" % scan["serialno"]
+        measurement_name = "%s/measurement" % entry_name
+        title_name = "%s/title" % entry_name
+        windowTitle = scan_file + "[" + entry_name + "]"
+        
+        try:
+            entry_index = taurus_nexus_widget.findNodeIndex(local_file, entry_name)
+            measurement_index = taurus_nexus_widget.findNodeIndex(local_file, measurement_name)
+            #nexus_widget.setRootIndex(entry_index)
+            nexus_widget.setCurrentIndex(measurement_index)
+            nexus_widget.expand(measurement_index)
+            title_index = taurus_nexus_widget.findNodeIndex(local_file, title_name)
+            file_model = nexus_widget.model()
+            title = file_model.getNodeFromIndex(title_index)[0]
+            windowTitle += " - " + title
+        except Exception, e:
+            print "Cannot plot scan:"
+            print str(e)
+        
+        taurus_nexus_widget.setWindowTitle(windowTitle)
         
     def plot(self):
         try:
@@ -112,6 +214,7 @@ class Plotter:
             line.color = colors[i-3]
         pylab.legend()
 
+
 class SpockBaseDoor(BaseDoor):
     """A CLI version of the Door device"""
     
@@ -131,6 +234,7 @@ class SpockBaseDoor(BaseDoor):
         if not kw.has_key('silent'): kw['silent'] = False
         self._lines = []
         self._spock_state = None
+        self._plotter = GUIViewer(self)
         self.call__init__(BaseDoor, name, **kw)
 
     def get_color_mode(self):
@@ -244,7 +348,19 @@ class SpockBaseDoor(BaseDoor):
         return ret
     
     def plot(self):
-        Plotter().run()
+        self._plotter.run()
+    
+    def show_scan(self, scan_nb=None, online=False):
+        if online:
+            self._plotter.show_scan()
+            return
+        env = self.getEnvironment()
+        scan_history_info = env.get("ScanHistory")
+        directory_map = env.get("DirectoryMap")
+        self._plotter.show_scan(scan_nb=scan_nb,
+                                scan_history_info=scan_history_info,
+                                directory_map=directory_map)
+
     
     def stateChanged(self, s, t, v):
         old_state, old_sw_state = self._old_door_state, self._old_sw_door_state
@@ -330,11 +446,11 @@ class SpockBaseDoor(BaseDoor):
 
     def _processEnvironmentData(self, data):
         obj = BaseDoor._processEnvironmentData(self, data)
-        env_type = obj[1].get("__type__")
+        env_type = obj.get("__type__")
         if env_type == 'set_env':
             ip = genutils.get_ipapi()
             g_env = ip.user_ns.get(genutils.ENV_NAME)
-            g_env.update(obj[1])
+            g_env.update(obj)
 
 
 class QSpockDoor(SpockBaseDoor):

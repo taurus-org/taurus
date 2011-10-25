@@ -824,7 +824,7 @@ def init_magic(ip):
     expose_magic('bench', magic.bench, None)
     expose_magic('spsplot', magic.spsplot, None)
     expose_magic('edmac', magic.edmac, None)
-    
+    expose_magic('showscan', magic.showscan, None)
     ip.set_hook('late_startup_hook', magic.spock_late_startup_hook)
     ip.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
 
