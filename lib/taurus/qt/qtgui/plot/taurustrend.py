@@ -1343,7 +1343,11 @@ class TaurusTrend(TaurusPlot):
             msec = self._forcedReadingPeriod
             if msec is None: 
                 msec = 0
-            msec,ok = Qt.QInputDialog.getInt(self, 'New forced reading period', 
+            try: #API changed in QInputDialog since Qt4.4
+                qgetint = Qt.QInputDialog.getInt
+            except AttributeError:
+                qgetint = Qt.QInputDialog.getInteger
+            msec,ok = qgetint(self, 'New forced reading period', 
                                                'Enter the new period for forced reading (in ms).\n Enter "0" for disabling', 
                                                msec, 0, 604800000, 100)
             if not ok: 
