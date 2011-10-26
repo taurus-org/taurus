@@ -336,6 +336,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self.updateMntGrpChannelIndex(root=root)
         #store the whole config object for accessing the info that is not at the channel level
         self._mgconfig = mgconfig
+        self._dirty = False
 
     def updateMntGrpChannelIndex(self, root=None):
         '''
@@ -420,7 +421,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         channelsdict[chname] = createChannelDict(chname)
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here... 
-
+        self._dirty = True
         #newchannels = [(chname,chdata)]
         #self.insertChannels(newchannels)      
 
@@ -437,6 +438,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                 self.error('cannot find "%s" for removing'%chname)
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here... 
+        self._dirty = True
         
     def swapChannels(self, root, row1, row2): #@todo: Very inefficient implementation. We should use {begin|end}MoveRows 
         n1,d1 = root.child(row1).itemData()
@@ -444,7 +446,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         d1['index'], d2['index'] = d2['index'], d1['index']
         self.debug("swapping %s with %s"%(n1,n2))
         self.refresh()
-        
+        self._dirty = True
+    
+    def isDataChanged(self):
+        return self._dirty    
             
 class MntGrpChannelModel(BaseMntGrpChannelModel):
     '''A BaseMntGrpChannelModel that communicates with a MntGrp device for setting and reading the configuration
@@ -481,11 +486,6 @@ class MntGrpChannelModel(BaseMntGrpChannelModel):
         since it may have been modified by the user)"""
         return self._mgconfig
     
-    def isDataChanged(self):
-        """Tells if the local data has been modified since it was last refreshed
-        set by a setupModelData call"""
-        return self.getSourceData() != self.getLocalData()
-
 
 class AxesSelector(Qt.QWidget):
     def __init__(self, parent, n=0, choices=None):
@@ -563,7 +563,8 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             current = model.data(index).toString()
             editor.setCurrentIndex(editor.findText(current))
         elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
-            ctrl_filterlist = None
+            ch_name, ch_data = index.internalPointer().itemData()
+            ctrl_filterlist = [ch_data['_controller_name']]
             selectables = [n for n,d in model.getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
             editor.addItems(selectables)
             current = model.data(index).toString()

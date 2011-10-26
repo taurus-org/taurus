@@ -146,6 +146,20 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         activeMntGrpName = str(activeMntGrpName)
         if self._localConfig is None: return
         if activeMntGrpName not in self._localConfig['MntGrpConfigs']: return
+        
+        #make sure that the previously active measurement group is saved (or explicitely discarded)
+        if self.ui.channelEditor.getQModel().isDataChanged():
+            previous = self._localConfig['ActiveMntGrp']
+            op = Qt.QMessageBox.question(self, "Save configuration?", 
+                                        'Do you want to save the configuration of "%s" \n(if not, any changes will be discarded)'%previous, 
+                                        Qt.QMessageBox.Yes|Qt.QMessageBox.No)
+            if op == Qt.QMessageBox.Yes: 
+                door = self.getModelObj()
+                door.setExperimentConfiguration(self._localConfig)
+            else:
+                orig = self._originalConfiguration['MntGrpConfigs'][previous]
+                self._localConfig['MntGrpConfigs'][previous] = copy.deepcopy(orig)
+                
         self._localConfig['ActiveMntGrp'] = activeMntGrpName
         mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
         self.ui.channelEditor.getQModel().setDataSource(mgconfig)
