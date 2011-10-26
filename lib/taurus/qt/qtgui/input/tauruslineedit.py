@@ -80,9 +80,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             validator= Qt.QDoubleValidator(self)
             validator.setBottom(self.__minLimit)
             validator.setTop(self.__maxLimit)
-            decimalDigits = self.__decimalDigits(attrinfo.format)
-            if decimalDigits is not None:
-                validator.setDecimals(decimalDigits)
+            #I removed the validation of decimal digits because it was not practical when editing values
+#            decimalDigits = self.__decimalDigits(attrinfo.format) 
+#            if decimalDigits is not None:
+#                validator.setDecimals(decimalDigits)
             self.setValidator(validator)
             self.debug("DoubleValidator set with limits=[%f,%f]"%(self.__minLimit, self.__maxLimit))
         else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
