@@ -171,7 +171,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewMenu.addAction(self.savePerspectiveAction)
         self.viewMenu.addAction(self.deletePerspectiveAction)
         
-        
         #Taurus Menu
         self.taurusMenu = self.menuBar().addMenu("Taurus")
         self.taurusMenu.addAction(self.changeTangoHostAction)
@@ -377,7 +376,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         if settings is None: 
             settings = self.getQSettings()
-            if settings.allKeys().isEmpty():
+            if len(settings.allKeys()) == 0:
                 fname = factorySettingsFileName or self.getFactorySettingsFileName()
                 if os.path.exists(fname):
                     self.info('Importing factory settings from "%s"'%fname)
@@ -711,7 +710,6 @@ if __name__ == "__main__":
     #form.setHelpManualURI('http://google.com')
 
     form.loadSettings()
-    
     
     #form.setCentralWidget(Qt.QMdiArea()) #just for testing
     
