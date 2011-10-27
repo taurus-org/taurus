@@ -113,6 +113,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         except:
             self._alias = name
         self._simulation = None
+        self._macro_server = None
         taurus.core.util.Logger.__init__(self, self._alias)
         Door.init_device(self)
 
@@ -171,6 +172,15 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
     
     def getRunningMacro(self):
         return self.macro_executor.getRunningMacro()
+    
+    @property
+    def macro_server(self):
+        ms = self._macro_server
+        if ms is None:
+            util = PyTango.Util.instance()
+            self._macro_server = ms = \
+                util.get_device_list_by_class("MacroServer")[0]
+        return ms
 
     def always_executed_hook(self):
         pass
@@ -201,8 +211,14 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         handler, filter, format = self._handler_dict[name]
         handler.read(attr)
 
-    read_Critical = read_Error = read_Warning = read_Info = read_Output = read_Debug = read_Trace = readLogAttr 
+    read_Critical = read_Error = read_Warning = read_Info = read_Output = \
+        read_Debug = read_Trace = readLogAttr 
 
+    #@DebugIt()
+    def read_ElementList(self, attr):
+        element_list = self.macro_server.getElementList()
+        attr.set_value(*element_list)
+        
     def sendRecordData(self, format, data):
         self.push_change_event('RecordData', format, data)
 
@@ -235,7 +251,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
     
     def read_Environment(self, attr):
         env = self.manager.getAllDoorEnv(door_name=self.get_name())
-        env["__type__"] = "set_env"
+        env["__type__"] = "set"
         attr.set_value('json', json.dumps(env))
         return
         
@@ -490,6 +506,14 @@ class DoorClass(PyTango.DeviceClass):
             PyTango.READ],
             {
                 'label'     : 'Macro Status',
+            } ],
+        'ElementList':
+            [[PyTango.DevEncoded,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label':"Element list",
+                'description':"the list of all elements (a JSON encoded dict)",
             } ],
         }
 

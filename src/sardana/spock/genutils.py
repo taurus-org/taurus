@@ -1,3 +1,50 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+##############################################################################
+##
+## This file is part of Sardana
+## 
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This package provides the spock generic utilities"""
+
+__all__ = ['get_gui_mode', 'get_ipapi', 'ask_yes_no',
+           'translate_version_str2int', 'get_ipython_version',
+           'get_ipython_version_number', 'get_python_version',
+           'get_python_version_number', 'get_ipython_dir',
+           'get_ipython_profiles', 'get_spock_profiles', 
+           'get_non_spock_profiles', 'get_spock_user_profile_module',
+           'get_pytango_version', 'get_pytango_version_number',
+           'get_server_for_device', 'get_macroserver_for_door',
+           'get_device_from_user', 'get_tango_db', 'get_tango_host_from_user',
+           'print_dev_from_class', 'from_name_to_tango', 'clean_up',
+           'get_taurus_core_version', 'get_taurus_core_version_number',
+           'check_requirements', 'get_door', 'get_macro_server', 'expose_magic',
+           'unexpose_magic', 'expose_variable', 'expose_variables',
+           'create_spock_profile', 'check_for_upgrade', 'get_args',
+            'init_console', 'init_magic', 'init_pre_spock', 'init_post_spock',
+            'init_spock', 'start', 'mainloop', 'run']
+
+__docformat__ = 'restructuredtext'
+
 import sys
 import os
 import socket
