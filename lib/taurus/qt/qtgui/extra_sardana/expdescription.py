@@ -51,8 +51,13 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         
         self._localConfig = None
         self._originalConfiguration = None
-        self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('currentIndexChanged (QString)'), self.onActiveMntGrpChanged)
+        self._dirty = False
+        self._dirtyMntGrps = set()
+        
+        self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('activated (QString)'), self.onActiveMntGrpActivated)
         self.connect(self.ui.compressionCB, Qt.SIGNAL('currentIndexChanged (int)'), self.onCompressionCBChanged )
+        self.connect(self.ui.pathLE, Qt.SIGNAL('editingFinished ()'), self.onPathLEEdited )
+        self.connect(self.ui.filenameLE, Qt.SIGNAL('editingFinished ()'), self.onFilenameLEEdited )
         
         if door is not None:
             self.setModel(door)
@@ -66,13 +71,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         role = self.ui.buttonBox.buttonRole(button)
         #qmodel = self.ui.channelEditor.getQModel()
         if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.ApplyRole) :
-            conf = copy.deepcopy(self.getLocalConfig())
-            print self.isDataChanged(), conf
-            self._originalConfiguration = conf
-            door = self.getModelObj()
-            if door is None: 
-                return
-            door.setExperimentConfiguration(conf)
+            self.writeExperimentConfiguration(ask=False)
         elif role == Qt.QDialogButtonBox.ResetRole:
             self._reloadConf()
         if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.RejectRole):
@@ -80,12 +79,8 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
-#        if self.isDataChanged():
-#            op = Qt.QMessageBox.question(self, "Discard pending changes?", 
-#                                    "There are unsaved changes in the configuration. If you close they will be lost.\n Close anyway?", 
-#                                    Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
-#            if op != Qt.QMessageBox.Yes: 
-#                return
+        if self.isDataChanged():
+            self.writeExperimentConfiguration(ask=True)
         Qt.QWidget.closeEvent(self,event)
     
     def setModel(self, model):
@@ -103,25 +98,23 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         door = self.getModelObj()
         if door is None: return
         conf = door.getExperimentConfiguration()
-        print conf
         self._originalConfiguration = copy.deepcopy(conf)
         self.setLocalConfig(conf)
-        
+        self._dirty = False
+        self._dirtyMntGrps = set()
         #set a list of available channels
         from taurus.core.tango.sardana.pool import ExpChannel
         avail = {}
-       
         import json #@todo @fixme!!!!
         for channeldesc in door.macro_server.ExpChannelList: 
             channeldesc = json.loads(channeldesc) #@todo: this decoding should be done at the QMacroServer level
-            avail[channeldesc['name']] = channeldesc
-        
+            avail[channeldesc['name']] = channeldesc        
         self.ui.channelEditor.getQModel().setAvailableChannels(avail)
         
     def isDataChanged(self):
         """Tells if the local data has been modified since it was last refreshed
         """
-        return self._originalConfiguration != self.getLocalConfig()
+        return self._dirty or self.ui.channelEditor.getQModel().isDataChanged() or self._dirtyMntGrps
 
     def getLocalConfig(self):
         return self._localConfig
@@ -130,43 +123,78 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         '''gets a ExpDescription dictionary and sets up the widget'''
         self._localConfig = conf
         
-        #measurement group settings
-        mgcfgs = conf['MntGrpConfigs']
+        #set the Channel Editor
+        activeMntGrpName = self._localConfig['ActiveMntGrp']
+        mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
+        self.ui.channelEditor.getQModel().setDataSource(mgconfig)
+        
+        #set the measurement group ComboBox
         self.ui.activeMntGrpCB.clear()
-        self.ui.activeMntGrpCB.addItems(sorted(mgcfgs.keys()))
-        idx = self.ui.activeMntGrpCB.findText(self._localConfig['ActiveMntGrp'])
-        self.ui.activeMntGrpCB.setCurrentIndex(idx) #note that this triggers a call to onActiveMntGrpChanged 
+        self.ui.activeMntGrpCB.addItems(sorted(self._localConfig['MntGrpConfigs'].keys()))
+        idx = self.ui.activeMntGrpCB.findText(activeMntGrpName)
+        self.ui.activeMntGrpCB.setCurrentIndex(idx)
         
         #other settings
         self.ui.filenameLE.setText(", ".join(self._localConfig['ScanFile']))
-        self.ui.pathLE.setText(self._localConfig['ScanDir'])
+        self.ui.pathLE.setText(self._localConfig['ScanDir'] or '')
         self.ui.compressionCB.setCurrentIndex(self._localConfig['DataCompressionRank']+1)
         
-    def onActiveMntGrpChanged(self, activeMntGrpName):
-        activeMntGrpName = str(activeMntGrpName)
-        if self._localConfig is None: return
-        if activeMntGrpName not in self._localConfig['MntGrpConfigs']: return
+    def writeExperimentConfiguration(self, ask=True):
+        '''sends the current local configuration to the door
         
-        #make sure that the previously active measurement group is saved (or explicitely discarded)
-        if self.ui.channelEditor.getQModel().isDataChanged():
-            previous = self._localConfig['ActiveMntGrp']
+        :param ask: (bool) If True (default) prompts the user before saving.
+        '''
+        if ask:
             op = Qt.QMessageBox.question(self, "Save configuration?", 
-                                        'Do you want to save the configuration of "%s" \n(if not, any changes will be discarded)'%previous, 
+                                        'Do you want to save the current configuration?\n(if not, any changes will be lost)', 
                                         Qt.QMessageBox.Yes|Qt.QMessageBox.No)
-            if op == Qt.QMessageBox.Yes: 
-                door = self.getModelObj()
-                door.setExperimentConfiguration(self._localConfig)
-            else:
-                orig = self._originalConfiguration['MntGrpConfigs'][previous]
-                self._localConfig['MntGrpConfigs'][previous] = copy.deepcopy(orig)
-                
+            if op != Qt.QMessageBox.Yes:
+                return False
+        
+        #check if the currently displayed mntgrp is changed
+        if self.ui.channelEditor.getQModel().isDataChanged():
+            self._dirtyMntGrps.add(self._localConfig['ActiveMntGrp'])
+            
+        conf = self.getLocalConfig()
+        door = self.getModelObj()
+        door.setExperimentConfiguration(conf, mnt_grps=self._dirtyMntGrps)
+        self._originalConfiguration = copy.deepcopy(conf)
+        self._dirty = False
+        self._dirtyMntGrps = set()
+        self.ui.channelEditor.getQModel().setDataChanged(False)
+        return True
+        
+    def onActiveMntGrpActivated(self, activeMntGrpName):
+        activeMntGrpName = str(activeMntGrpName)
+        if self._localConfig is None: 
+            return
+        if activeMntGrpName == self._localConfig['ActiveMntGrp']: 
+            return #nothing changed
+        if activeMntGrpName not in self._localConfig['MntGrpConfigs']: 
+            raise KeyError('Unknown measurement group "%s"'%activeMntGrpName)
+        
+        #add the previous measurement group to the list of "dirty" groups if something was changed
+        if self.ui.channelEditor.getQModel().isDataChanged():
+            self._dirtyMntGrps.add(self._localConfig['ActiveMntGrp'])
+                            
         self._localConfig['ActiveMntGrp'] = activeMntGrpName
         mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
         self.ui.channelEditor.getQModel().setDataSource(mgconfig)
+        self._dirty = True
         
     def onCompressionCBChanged(self, idx):
         if self._localConfig is None: return
         self._localConfig['DataCompressionRank'] = idx - 1
+        self._dirty = True
+        
+    def onPathLEEdited(self):
+        self._localConfig['ScanDir'] = str(self.ui.pathLE.text())
+        self._dirty = True
+        
+    def onFilenameLEEdited(self):
+        self._localConfig['ScanFile'] = [v.strip() for v in str(self.ui.filenameLE.text()).split(',')]
+        self._dirty = True
+        
  
     
         
