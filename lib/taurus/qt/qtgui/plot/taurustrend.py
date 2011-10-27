@@ -93,7 +93,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._history = []
         self.__xBuffer = None
         self.__yBuffer = None
-        self.ForcedReadingTimer = None
+        self.forcedReadingTimer = None
         try: self.__maxBufferSize = self._parent.getMaxDataBufferSize()
         except: self.__maxBufferSize = 1048576 #(1M= 2**20)
         if curves is None:
@@ -406,16 +406,30 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         (xIsTime==False)since there is no way of distinguishing the real from
         the fake events.
         
-        :param msec: (int ) period in milliseconds. Use msec=-1 to stop the
+        :param msec: (int) period in milliseconds. Use msec<0 to stop the
                      forced periodic reading
         '''
-        if self.ForcedReadingTimer is None:
-            self.ForcedReadingTimer = Qt.QTimer()
-            self.connect(self.ForcedReadingTimer, Qt.SIGNAL('timeout()'),self.forceReading)
-            self.insertEventFilter(self.__ONLY_OWN_EVENTS)
-        self.ForcedReadingTimer.stop()
+        if self.forcedReadingTimer is None:
+            self.forcedReadingTimer = Qt.QTimer()
+            self.connect(self.forcedReadingTimer, Qt.SIGNAL('timeout()'),self.forceReading)
+        
+        #stop the timer and remove the __ONLY_OWN_EVENTS filter
+        self.forcedReadingTimer.stop()
+        filters = self.getEventFilters()
+        if self.__ONLY_OWN_EVENTS in filters: 
+            filters.remove(self.__ONLY_OWN_EVENTS)
+            self.setEventFilters(filters)
+        
+        #if msec is positive, set the filter and start
         if msec >= 0:
-            self.ForcedReadingTimer.start(msec)
+            self.insertEventFilter(self.__ONLY_OWN_EVENTS)
+            self.forcedReadingTimer.start(msec)
+            
+    def getForcedReadingPeriod(self):
+        if self.forcedReadingTimer is None or not self.forcedReadingTimer.isActive():
+            return -1
+        else:
+            return self.forcedReadingTimer.interval()
     
     def __ONLY_OWN_EVENTS(self, s ,t, v):
         '''An event filter that rejects all events except those that originate from this object'''
@@ -1111,6 +1125,8 @@ class TaurusTrend(TaurusPlot):
         configdict.pop("TangoCurves") #delete the TangoCurves key since it is meaningless in a TaurusTrend
         tsetsdict = CaselessDict()
         rawdatadict = CaselessDict(configdict["RawData"])
+        miscdict = CaselessDict(configdict["Misc"])
+        miscdict["ForcedReadingPeriod"] = self.getForcedReadingPeriod()
         self.curves_lock.acquire()
         try:
             for tsname,ts in self.trendSets.iteritems():
@@ -1122,6 +1138,7 @@ class TaurusTrend(TaurusPlot):
             self.curves_lock.release()
         configdict["TrendSets"] = tsetsdict
         configdict["RawData"] = rawdatadict
+        configdict["Misc"] = miscdict
         return configdict
         
     def applyConfig(self, configdict, **kwargs):
@@ -1146,6 +1163,9 @@ class TaurusTrend(TaurusPlot):
         self.applyAxesConfig(configdict["Axes"])
         #set other misc configurations
         self.applyMiscConfig(configdict["Misc"])
+        forcedreadingperiod = configdict["Misc"].get("ForcedReadingPeriod")
+        if forcedreadingperiod is not None:
+            self.setForcedReadingPeriod(forcedreadingperiod)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -1341,28 +1361,51 @@ class TaurusTrend(TaurusPlot):
         '''
         if msec is None:
             msec = self._forcedReadingPeriod
-            if msec is None: 
-                msec = 0
             try: #API changed in QInputDialog since Qt4.4
                 qgetint = Qt.QInputDialog.getInt
             except AttributeError:
                 qgetint = Qt.QInputDialog.getInteger
             msec,ok = qgetint(self, 'New forced reading period', 
                                                'Enter the new period for forced reading (in ms).\n Enter "0" for disabling', 
-                                               msec, 0, 604800000, 100)
+                                               max(0,msec), 0, 604800000, 100)
             if not ok: 
                 return
             if msec == 0: 
-                msec=None
+                msec=-1
+        
+        self._forcedReadingPeriod = msec
+        
         if tsetnames is None: 
             tsetnames=self.trendSets.keys()
-            self._forcedReadingPeriod = msec
         self.curves_lock.acquire()
         try:
             for name in tsetnames:
                 self.trendSets[name].setForcedReadingPeriod(msec)
         finally:
             self.curves_lock.release()
+            
+    def getForcedReadingPeriod(self, tsetname=None):
+        '''returns the forced reading period for the given trend (or the general period 
+        if None is given)
+        
+        :param tsetname: (str or None) name of the trend set for which the forced 
+                          reading should be returned. If None passed, the
+                          default period for all curves is returned
+    
+        .. seealso: :meth:`setForcedReadingPeriod`
+        '''
+        if tsetname is None:
+            return self._forcedReadingPeriod
+        else:
+            self.curves_lock.acquire()
+            try:
+                return self.trendSets[name].getForcedReadingPeriod()
+            finally:
+                self.curves_lock.release()
+                
+    def resetForcedReadingPeriod(self):
+        '''Equivalent to setForcedReadingPeriod(msec=-1, tsetnames=None)'''
+        self.setForcedReadingPeriod(msec=-1, tsetnames=None)
             
     def setScrollStep(self, scrollStep):
         '''
@@ -1396,6 +1439,7 @@ class TaurusTrend(TaurusPlot):
     usePollingBuffer = Qt.pyqtProperty("bool", getUsePollingBuffer, setUsePollingBuffer, resetUsePollingBuffer)
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
     scrollstep = Qt.pyqtProperty("double", getScrollStep, setScrollStep, resetScrollStep)
+    forcedReadingPeriod = Qt.pyqtProperty("int", getForcedReadingPeriod, setForcedReadingPeriod, resetForcedReadingPeriod)
     
 
 def main():
@@ -1458,7 +1502,7 @@ def main():
         sys.exit(app.exec_()) #exit without showing the widget
     
     # period option
-    if options.forced_read_period >=0:
+    if options.forced_read_period >0:
         w.setForcedReadingPeriod(options.forced_read_period)
     
     #archiving option     
