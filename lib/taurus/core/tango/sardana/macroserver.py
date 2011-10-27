@@ -159,22 +159,26 @@ class ExperimentConfiguration(object):
                              ensure_ascii=True)[1]
         return ret
     
-    def set(self, conf):
+    def set(self, conf, mnt_grps=None):
         """Sets the ExperimentConfiguration dictionary."""
         env = dict(ScanDir=conf.get('ScanDir'),
                    ScanFile=conf.get('ScanFile'),
-                   DataCompressionRank=conf.get('DataCompressionRank', -1))
-        env['ActiveMntGrp'] = active_mnt_grp = conf.get('ActiveMntGrp')
-        mnt_grp_cfg = conf['MntGrpConfigs'][active_mnt_grp]
-        mnt_grp = taurus.Device(active_mnt_grp)
+                   DataCompressionRank=conf.get('DataCompressionRank', -1),
+                   ActiveMntGrp=conf.get('ActiveMntGrp'))
+        if mnt_grps is None:
+            mnt_grps = conf['MntGrpConfigs'].keys()
+        
         self._door.setEnvironments(env)
-            
-        # TODO when we start using measurement group change de code below with
-        # the following:
-        # mnt_grp.setConfiguration(mnt_grp_cfg)
+        
         codec = CodecFactory().getCodec('json')
-        data = codec.encode(('', mnt_grp_cfg))[1]
-        mnt_grp.write_attribute('configuration', data)
+        for mnt_grp in mnt_grps:
+            mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
+            mnt_grp_dev = taurus.Device(mnt_grp)
+            # TODO when we start using measurement group change de code below with
+            # the following:
+            # mnt_grp.setConfiguration(mnt_grp_cfg)
+            data = codec.encode(('', mnt_grp_cfg))[1]
+            mnt_grp_dev.write_attribute('configuration', data)
 
 
 class BaseDoor(MacroServerDevice):
@@ -562,8 +566,8 @@ class BaseDoor(MacroServerDevice):
     def getExperimentConfiguration(self):
         return self._experiment_configuration.get()
         
-    def setExperimentConfiguration(self, config):
-        self._experiment_configuration.set(config)
+    def setExperimentConfiguration(self, config, mnt_grps=None):
+        self._experiment_configuration.set(config, mnt_grps=mnt_grps)
 
 
 class UnknownMacroServerElementFormat(Exception):
