@@ -1,3 +1,26 @@
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
 """
     Macro library containning scan macros for the macros server Tango device 
     server as part of the Sardana project.
@@ -7,8 +30,14 @@
      dscan family: dscan, d2scan, d3scan, d4scan and dmultiscan
      mesh
      fscan
-     
+     scanhist
 """
+
+__docformat__ = 'restructuredtext'
+
+__all__ = ["a2scan", "a3scan", "a4scan", "amultiscan", "aNscan", "ascan",
+           "d2scan", "d3scan", "d4scan", "dmultiscan", "dNScan", "dscan",
+           "fscan", "mesh", "scanhist"]
 
 import os
 import copy
@@ -642,7 +671,7 @@ class fscan(Macro,Hookable):
         return self._gScan.data
 
 
-class scan_hist(Macro):
+class scanhist(Macro):
     """Shows scan history information. Give optional parameter scan number to
     display details about a specific scan"""
     

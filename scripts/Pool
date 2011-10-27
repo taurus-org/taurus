@@ -29,6 +29,9 @@ __all__ = ["main"]
 
 __docformat__ = 'restructuredtext'
 
+import datetime
+__START_TIME = datetime.datetime.now()
+
 def set_src():
     import sys
     import os.path as osp
@@ -44,7 +47,7 @@ except ImportError:
 
 def main():
     import sardana.tango.pool
-    sardana.tango.pool.main_pool()
+    sardana.tango.pool.main_pool(start_time=__START_TIME)
 
 if __name__ == '__main__':
     main()

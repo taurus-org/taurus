@@ -100,7 +100,8 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
         cl_name = self.__class__.__name__
         if cl_name.startswith("Pool"):
             cl_name = cl_name[4:]
-        data = dict(name=self.name, pool=self.pool.name, type=cl_name)
+        data = dict(name=self.name, pool=self.pool.name, type=cl_name,
+                    full_name=self.full_name)
         data.update(kwargs)
         return data
 
@@ -137,7 +138,6 @@ class PoolObject(PoolBaseObject):
 
     def to_json(self, *args, **kwargs):
         kwargs['id'] = self.id
-        kwargs['full_name'] = self.full_name
         ret = PoolBaseObject.to_json(self, *args, **kwargs)
         return ret
 

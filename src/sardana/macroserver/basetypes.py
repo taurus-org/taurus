@@ -33,7 +33,7 @@ __all__ = ["Integer", "Float", "Boolean", "String", "User", "Filename",
 
 __docformat__ = 'restructuredtext'
 
-from sardana.macroserver.parameter import ParamType, AttrParamType, PoolObjParamType
+from sardana.macroserver.parameter import ParamType, AttrParamType, ElementParamType
 
 # Basic types
 
@@ -103,46 +103,70 @@ class MotorParam(AttrParamType):
     def getNonAttrItemList(self):
         return self.non_attr_item_list
 
-class Motor(PoolObjParamType):
+
+class Element(ElementParamType):
+    
+    def accepts(self, elem):
+        return True
+
+
+class PoolElement(ElementParamType):
+
+    def accepts(self, elem):
+        return hasattr(elem, 'pool')
+
+
+class Motor(ElementParamType):
     """ Class designed to represend a generic movement parameter. Could in fact
     be a Motor, PseudoMotor or even a MotorGroup object 
     """
+    _types = "Motor", "PseudoMotor"
+    def accepts(self, elem):
+        return elem.getType() in self._types
+
+
+class MotorGroup(ElementParamType):
+    """ Class designed to represend a generic motor group."""
     pass
 
-class MotorGroup(PoolObjParamType):
-    pass
 
-class ExpChannel(PoolObjParamType):
-    """ Class designed to represend a generic experiment channel parameter. 
-    Could in fact be a Counter/Timer, 0D, 1D or 2D channel or a PseudoCounter 
+class ExpChannel(ElementParamType):
+    """ Class designed to represend a generic experiment channel parameter.
+    Could in fact be a Counter/Timer, 0D, 1D or 2D channel or a PseudoCounter
     """
+    _types = "CounterTimer", "ZeroDExpChannel", "OneDExpChannel", \
+             "TwoDExpChannel", "PseudoCounter"
+
+    def accepts(self, elem):
+        return elem.getType() in self._types
+
+
+class MeasurementGroup(ElementParamType):
+    """ Class designed to represend a generic experiment."""
     pass
 
-class MeasurementGroup(PoolObjParamType):
-    """ Class designed to represend a generic experiment."""    
-    pass
 
-class ComChannel(PoolObjParamType):
+class ComChannel(ElementParamType):
     """ Class designed to represend a generic communication channel."""
     pass
 
-class IORegister(PoolObjParamType):
+
+class IORegister(ElementParamType):
     """ Class designed to represend a generic input/output register. """
     pass
 
-class Controller(PoolObjParamType):
+
+class Controller(ElementParamType):
     """ Class designed to represent a generic controller."""
     pass
 
-class Instrument(PoolObjParamType):
+
+class Instrument(ElementParamType):
     """ Class designed to represent a generic instrument."""
     pass
 
-class ControllerClass(PoolObjParamType):
-    
-    def __init__(self, name):
-        PoolObjParamType.__init__(self, name)
 
-#    def getPoolObjList(self, pool):
-#        obj_list = pool.getCtrlClassListObj()
-#        return obj_list.read()
+class ControllerClass(ElementParamType):
+    """ Class designed to represent a generic controller class."""
+    pass
+

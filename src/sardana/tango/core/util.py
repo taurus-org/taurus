@@ -199,7 +199,7 @@ def prepare_taurus(options, args, tango_args):
     factory = taurus.Factory()
     factory.disablePolling()
     
-def prepare_logging(options, args, tango_args):
+def prepare_logging(options, args, tango_args, start_time=None):
     import os.path
     import logging
     import taurus
@@ -250,12 +250,21 @@ def prepare_logging(options, args, tango_args):
             
             m_h.setLevel(log_file_level)
             root.addHandler(m_h)
+            
+            if start_time is not None:
+                taurus.info("Started at %s", start_time)
+            else:
+                taurus.info("Starting up...")
             taurus.info("Log is being stored in %s", log_file_name)
         except:
-            root.warning("'%s' could not be created. Logs will not be stored", log_file_name)
-            root.debug("Error description", exc_info=1)
+            if start_time is not None:
+                taurus.info("Started at %s", start_time)
+            else:
+                taurus.info("Starting up...")
+            taurus.warning("'%s' could not be created. Logs will not be stored",
+                           log_file_name)
+            taurus.debug("Error description", exc_info=1)
 
-    taurus.info("Starting up")
     taurus.debug("Start args=%s", args)
     taurus.debug("Start options=%s", options)
 
@@ -272,26 +281,30 @@ def prepare_rconsole(options, args, tango_args):
     except:
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
-def run_tango_server(util):
+def run_tango_server(util, start_time=None):
+    import taurus
     try:
         tango_util = Util.instance()
         SardanaServer.server_state = ServerState.Init
         tango_util.server_init()
         SardanaServer.server_state = ServerState.Run
-        print "Ready to accept request"
+        if start_time is not None:
+            import datetime
+            dt = datetime.datetime.now() - start_time
+            taurus.info("Ready to accept request in %s", dt)
+        else:
+            taurus.info("Ready to accept request")
         tango_util.server_run()
         SardanaServer.server_state = ServerState.Shutdown
     except DevFailed:
-        import taurus
         taurus.critical("Server exited with DevFailed", exc_info=1)
     except KeyboardInterrupt:
-        import taurus
         taurus.critical("Interrupted by keyboard")
     except Exception:
-        import taurus
         taurus.critical("Server exited with unforeseen exception", exc_info=1)
+    taurus.info("Exited")
 
-def run(prepare_func, args=None, tango_util=None):
+def run(prepare_func, args=None, tango_util=None, start_time=None):
     if args is None:
         import sys
         args = sys.argv
@@ -301,8 +314,8 @@ def run(prepare_func, args=None, tango_util=None):
         tango_util = Util(tango_args)
 
     prepare_taurus(options, args, tango_args)
-    prepare_logging(options, args, tango_args)
+    prepare_logging(options, args, tango_args, start_time=start_time)
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
 
-    run_tango_server(tango_util)
+    run_tango_server(tango_util, start_time=start_time)

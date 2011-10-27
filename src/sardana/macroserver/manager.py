@@ -163,7 +163,7 @@ class MacroServerManager(Singleton, Logger):
             self._pools[name] = p
         
         self._firePoolEvent()
-
+    
     def _firePoolEvent(self):
         """Helper method that fires event for the current existing pools"""
         pool_list = self.getPoolListStr()
@@ -187,6 +187,19 @@ class MacroServerManager(Singleton, Logger):
         """Returns the list of device pool names"""
         return self._pools.keys()
 
+    def get_elements_info(self):
+        ret = [ elem.to_json()
+            for pool in self.getPoolListObjs()
+                for elem in pool.getElements().values() ]
+
+        ret += [ macrolib.to_json()
+            for macrolib in self.getMacroLibs().values() ]
+
+        ret += [ macro.to_json()
+            for macro in self.getMacros() ]
+        
+        return ret
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Door list related methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
@@ -240,9 +253,9 @@ class MacroServerManager(Singleton, Logger):
         return self.findObjs(names, type_class, subtype, pool)
 
     def findObjs(self, param, type_class=All, subtype=All, pool=All):
-        if isinstance(param, str):
-            param = (param,)
-
+        if isinstance(param, (str, unicode)):
+            param = param,
+        
         if type_class == MacroServerManager.All:
             type_name_list = self.getTypeListObj().read()
         else:
@@ -256,19 +269,19 @@ class MacroServerManager(Singleton, Logger):
         re_subtype = re.compile(subtype, re.IGNORECASE)
         for type_name in type_name_list:
             type_class_name = type_name
-            if type_class_name.endswith('*'): 
+            if type_class_name.endswith('*'):
                type_class_name = type_class_name[:-1] 
             type_inst = self.getTypeObj(type_class_name)
             if not type_inst.hasCapability(ParamType.ItemList):
                 continue
             for name, obj in type_inst.getObjDict(pool=pool).items():
                 for re_obj in re_objs:
-                    if not re_obj.match(name) is None:
-                        if subtype is MacroServerManager.All or re_subtype.match(obj.getType()):
+                    if re_obj.match(name) is not None:
+                        if subtype is MacroServerManager.All or \
+                           re_subtype.match(obj.getType()):
                             obj_list.append(obj)
-                            break
         return obj_list
-
+    
     def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
         if not motion_source:
             motion_source = self.getPoolListObjs()

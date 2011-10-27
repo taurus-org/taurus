@@ -9,7 +9,7 @@ import logging.handlers
 import PyTango
 
 import taurus
-from taurus.core.util import Logger
+from taurus.core.util import Logger, CodecFactory
 
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericSpectrumAttr
@@ -18,7 +18,9 @@ from sardana.macroserver.manager import MacroServerManager
 
 
 class MacroServer(SardanaDevice):
-
+    
+    ElementListCache = None
+    
     def __init__(self,cl, name):
         SardanaDevice.__init__(self,cl, name)
         MacroServer.init_device(self)
@@ -39,6 +41,7 @@ class MacroServer(SardanaDevice):
         self.set_change_event('DoorList', True, False)
         self.set_change_event('MacroList', True, False)
         self.set_change_event('MacroLibList', True, False)
+        self.set_change_event('ElementList', True, False)
         
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
@@ -95,6 +98,22 @@ class MacroServer(SardanaDevice):
         ms_manager = self.__getManager()
         type_list_obj = ms_manager.getTypeListObj()
         attr.set_value(type_list_obj.read())
+        
+    #@DebugIt()
+    def getElementList(self, cache=True):
+        value = self.ElementListCache
+        if cache and value is not None:
+            return value
+        elements = self.__getManager().get_elements_info()
+        value = dict(__type__="set", elements=elements)
+        value = CodecFactory().getCodec('json').encode(('', value))
+        self.ElementListCache = value
+        return value
+    
+    #@DebugIt()
+    def read_ElementList(self, attr):
+        element_list = self.getElementList()
+        attr.set_value(*element_list)
     
     def GetMacroInfo(self, argin):
         """GetMacroInfo(list<string> macro_names):
@@ -156,9 +175,9 @@ class MacroServer(SardanaDevice):
             if type_name[-1] == '*':
                 self.removeTypeAttribute(type_name[:-1])
 
-        for type_name in new_types:
-            if type_name[-1] == '*':
-                self.addTypeAttribute(type_name[:-1])
+        #for type_name in new_types:
+        #    if type_name[-1] == '*':
+        #        self.addTypeAttribute(type_name[:-1])
 
         self.push_change_event('TypeList', all_types)
     
@@ -184,13 +203,13 @@ class MacroServer(SardanaDevice):
     def macroLibsChanged(self, data, macro_lib_data):
         all_macro_libs = macro_lib_data[0]
         self.push_change_event('MacroLibList', all_macro_libs) 
-
+    
     def genericListChanged(self, attr_data, data):
         pass
-
+    
     def doorsChanged(self, attr_data, data):
         pass
-
+    
     def read_GenericList(self, attr):
         attr_name = attr.get_name()
         type_name = attr_name[:attr_name.index('List')]
@@ -279,6 +298,14 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
             [[PyTango.DevString,
             PyTango.SPECTRUM,
             PyTango.READ, 256]],
+        'ElementList':
+            [[PyTango.DevEncoded,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label':"Element list",
+                'description':"the list of all elements (a JSON encoded dict)",
+            } ],
         }
     
     def __init__(self, name):

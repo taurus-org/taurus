@@ -880,8 +880,8 @@ class MacroExecutor(Logger):
             raise ae
         except Exception as e:
             door = self.getDoor()
-            door.debug(traceback.format_exc())
-            door.error("An error occured while preparing macro %s:\n%s" % (xml.get('macro_line'), str(e)))
+            door.error("Error: %s", str(e))
+            door.debug("Error details:", exc_info=1)
             raise e
         
         self._xml_stack.append(xml)

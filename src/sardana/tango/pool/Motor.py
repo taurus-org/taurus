@@ -68,7 +68,7 @@ class Motor(PoolElementDevice):
         #self.pool.delete_element(self.motor.get_name())
         #self.motor = None
     
-    @InfoIt()
+    @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
      

@@ -67,12 +67,12 @@ class Controller(PoolDevice):
     
     ctrl = property(get_ctrl, set_ctrl)
     
-    @InfoIt()
+    @DebugIt()
     def delete_device(self):
         pass
         #self.pool.delete_element(self.ctrl.get_name())
     
-    @InfoIt()
+    @DebugIt()
     def init_device(self):
         PoolDevice.init_device(self)
 

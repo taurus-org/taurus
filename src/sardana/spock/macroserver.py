@@ -475,9 +475,35 @@ class SpockMacroServer(BaseMacroServer):
     def __init__(self, name, **kw):
         self._local_magic = {}
         self.call__init__(BaseMacroServer, name, **kw)
+    
+    def on_elements_changed(self, evt_src, evt_type, evt_value):
+        ret = added, removed = \
+            BaseMacroServer.on_elements_changed(self, evt_src, evt_type,
+                                                evt_value)
+    
+    _SKIP_ELEMENTS = 'controller', 'motorgroup', 'instrument', \
+        'controllerclass', 'controllerlib', 'macrolib'
+
+    def _addElement(self, element_data):
+        element = BaseMacroServer._addElement(self, element_data)
+        elem_type = element.type
+        if elem_type == "MacroClass":
+            self._addMacro(element)
+        elif elem_type not in self.NO_CLASS_TYPES:
+            # TODO: when it becomes possible to do:
+            # some taurus.Device.<attr name> = <value>
+            # replace device_proxy with element
+            device_proxy = element.getObj().getHWObj()
+            genutils.expose_variable(element.name, device_proxy)
+        return element
+    
+    def _removeElement(self, element_data):
+        element = BaseMacroServer._removeElement(self, element_data)
+        if element.type == "MacroClass":
+            self._removeMacro(self, element)
+        return element
         
-    def _addMacro(self, json_macro):
-        macro_info = BaseMacroServer._addMacro(self, json_macro)
+    def _addMacro(self, macro_info):
         macro_name = str(macro_info.name)
         
         def macro_fn(self, parameter_s='', name=macro_name):
@@ -489,7 +515,7 @@ class SpockMacroServer(BaseMacroServer):
                 return door.getRunningMacro().getResult()
         
         macro_fn.func_name = macro_name
-        macro_fn.__doc__ = str(macro_info.doc)
+        macro_fn.__doc__ = macro_info.doc
         
         # register magic command
         genutils.expose_magic(macro_name, macro_fn)
@@ -497,17 +523,8 @@ class SpockMacroServer(BaseMacroServer):
         
         return macro_info
     
-    def _removeMacro(self, macro_name):
-        BaseMacroServer._removeMacro(self, macro_name)
+    def _removeMacro(self, macro_info):
+        macro_name = macro_info.name
         #genutils.unexpose_magic(macro_name)
         del self._local_magic[macro_name]
 
-    _SKIP_ELEMENTS = ('controller', 'controllerclass', 'motorgroup', 'instrument')
-
-    def _addElement(self, family, elem_str):
-        elem = BaseMacroServer._addElement(self, family, elem_str)
-        elem_name = elem.getName()
-        family_lower = family.lower()
-        if family_lower in self._SKIP_ELEMENTS: return
-        genutils.expose_variable(elem_name, PyTango.DeviceProxy(elem_name))
-    

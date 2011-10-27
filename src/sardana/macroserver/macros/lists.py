@@ -19,6 +19,22 @@ class _ls(Macro):
          '.*', 'a regular expression filter'],
     ]
 
+    def get_column_names(self):
+        cols = []
+        for col in self.cols:
+            if isinstance(col, tuple):
+                col = col[0]
+            cols.append(col)
+        return cols
+    
+    def get_column_members(self):
+        cols = []
+        for col in self.cols:
+            if isinstance(col, tuple):
+                col = col[1]
+            cols.append(col.lower())
+        return cols
+    
     def run(self, *filter):
         self.warning('This macro is not intended to be executed directly by the user')
         return
@@ -31,7 +47,9 @@ class lsdef(_ls):
     align =  Right,    Right,                Left
 
     def run(self, filter):
-        out = List(self.cols, text_alignment=self.align,
+        
+        cols = self.get_column_names()
+        out = List(cols, text_alignment=self.align,
                    max_col_width=self.width)
         
         for m in self.getMacros(filter):
@@ -47,16 +65,24 @@ class _lsobj(_ls):
     
     subtype = Macro.All
 
-    cols  = 'Name', 'Type', 'Controller', 'Axis', 'State'
-    width =     -1,     -1,           -1,     -1,      -1
-    align =  Right,  Right,        Right,  Right,   Right
+    cols  = 'Name', 'Type', 'Controller', 'Axis'#, 'State'
+    width =     -1,     -1,           -1,     -1#,      -1
+    align =  Right,  Right,        Right,  Right#,   Right
 
     def objs(self, filter):
-        return self.findObjs(filter, type_class=self.type, subtype=self.subtype)
+        return self.findObjs(filter, type_class=self.type, subtype=self.subtype,
+                             reserve=False)
 
-    def obj2Row(self, o):
-        return list(o.str(len(self.cols)-1)) + [str(o.getState())]
-
+    def obj2Row(self, o, cols=None):
+        cols = cols or self.get_column_members()
+        ret = []
+        for col in cols:
+            value = getattr(o, col)
+            if value is None:
+                value = '-----'
+            ret.append(value)
+        return ret
+    
     def run(self, filter):
         objs = self.objs(filter)
         nb = len(objs)
@@ -68,7 +94,8 @@ class _lsobj(_ls):
             self.output('No %ss defined' % t)
             return
         
-        out = List(self.cols, text_alignment=self.align,
+        cols = self.get_column_names()
+        out = List(cols, text_alignment=self.align,
                    max_col_width=self.width)
         objs.sort()
         for obj in objs:
@@ -120,24 +147,17 @@ class lspc(lsexp):
 class lsctrllib(_lsobj):
     """Lists all existing controller classes"""
     type = Type.ControllerClass
-    cols = ('Name', 'Type', 'Library', 'Family')
+    cols = 'Name', 'Type', 'Library', 'Family'
 
 class lsctrl(_lsobj):
     """Lists all existing controllers"""
     type = Type.Controller
-    cols = ('Name', 'Type', 'Class', 'Module')
-
-    def obj2Row(self, o):
-        return list(o.str(len(self.cols)))
+    cols = 'Name', 'Type', 'Class', 'Module'
 
 class lsi(_lsobj):
     """Lists all existing instruments"""
     type = Type.Instrument
-    cols = ('Name', 'Type', 'Parent')
-
-    def obj2Row(self, o):
-        return list(o.str(len(self.cols)))
-
+    cols = 'Name', 'Type', ('Parent', 'parent_instrument')
 
 class lsa(_lsobj):
     """Lists all existing objects"""
@@ -148,9 +168,9 @@ class lsmeas(_lsobj):
 
     type = Type.MeasurementGroup
 
-    cols  = 'Active', 'Name', 'Timer', 'Experim. channels', 'State'
-    width =       -1,     -1,      -1,                  50,      -1
-    align =  HCenter,  Right,   Right,                Left,   Right
+    cols  = 'Active', 'Name', 'Timer', 'Experim. channels'
+    width =       -1,     -1,      -1,                  50
+    align =  HCenter,  Right,   Right,                Left
     
     def prepare(self, filter, **opts):
         try:
@@ -159,9 +179,9 @@ class lsmeas(_lsobj):
             self.mnt_grp = None
 
     def obj2Row(self, o):
-        row = _lsobj.obj2Row(self, o)
         if self.mnt_grp and (o.getName().lower() == self.mnt_grp):
-            row.insert(0,'*')
+            active = '*'
         else:
-            row.insert(0,' ')
-        return row
+            active = ' '
+        return active, o.name, o.getTimerName(), ", ".join(o.getChannelNames())
+

@@ -1,35 +1,35 @@
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""IORegister related macros"""
+
+__docformat__ = 'restructuredtext'
+
+__all__ = ["write_ioreg", "read_ioreg"]
+
 from sardana.macroserver.macro import *
 
 import array
-
-class lsioreg(Macro):
-    """Lists all existing input/output registers"""
-    
-    def run(self):
-
-        all_ioreg = self.findObjs('.*', type_class=Type.IORegister)
-
-        nr_ioreg = len(all_ioreg)
-        if nr_ioreg == 0:
-            self.output('No input/output registers defined')
-            return
-
-        out = List(['Name', 'Family'])
-       
-        for ioreg in all_ioreg:
-            pool = ioreg.getPool()            
-            ctrl = self.findObjs(ioreg.info.ctrl_name, type_class=Type.Controller)
-            family = "Not specified"
-            if len(ctrl) > 0:
-                class_name = ctrl[0].info.klass
-                ctrl_class = pool.getCtrlClassByName(class_name)
-                if ctrl_class:
-                    family = ctrl_class.getGender()
-            out.appendRow([ioreg.getName(), family])
-        
-        for line in out.genOutput():
-            self.output(line)
-
 
 
 class write_ioreg(Macro):

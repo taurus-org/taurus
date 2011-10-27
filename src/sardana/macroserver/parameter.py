@@ -27,7 +27,7 @@
 macros"""
 
 __all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
-           "TypeNames", "Type", "ParamType", "ParamRepeat", "PoolObjParamType",
+           "TypeNames", "Type", "ParamType", "ParamRepeat", "ElementParamType",
            "AttrParamType", "AbstractParamTypes", "ParamDecoder" ]
 
 __docformat__ = 'restructuredtext'
@@ -41,16 +41,32 @@ from taurus.core.tango.sardana.pool import BaseElement
 
 
 class WrongParam(exception.MacroServerException):
-    pass
+    
+    def __init__(self, *args):
+        exception.MacroServerException.__init__(self, *args)
+        self.type = 'Wrong parameter'
 
-class MissingParam(WrongParam): 
-    pass
 
-class UnknownParamObj(WrongParam): 
-    pass
+class MissingParam(WrongParam):
+    
+    def __init__(self, *args):
+        WrongParam.__init__(self, *args)
+        self.type = 'Missing parameter'
+
+
+class UnknownParamObj(WrongParam):
+
+    def __init__(self, *args):
+        WrongParam.__init__(self, *args)
+        self.type = 'Unknown parameter'
+
 
 class WrongParamType(WrongParam):
-    pass
+
+    def __init__(self, *args):
+        WrongParam.__init__(self, *args)
+        self.type = 'Unknown parameter type'
+
 
 class TypeNames:
     """Class that holds the list of registered macro parameter types"""
@@ -124,82 +140,36 @@ class ParamRepeat:
         return self._obj
     
 
-class PoolObjParamType(ParamType, ListEventGenerator):
+class ElementParamType(ParamType):
     
-    capabilities = [ParamType.ItemList, ParamType.ItemListEvents]
+    capabilities = ParamType.ItemList, ParamType.ItemListEvents
     
     def __init__(self, name):
         ParamType.__init__(self, name)
-        ListEventGenerator.__init__(self, self._name)
-
-        # dict<Pool, list<str>> 
-        # key   : Pool object 
-        # value : list of object names
-        self._pool_dict = CaselessDict()
         
-        mg = self.getManager()
-        
-        mg.getPoolListObj().subscribeEvent(self.poolsChanged)
-    
     def getManager(self):
         import manager
         return manager.MacroServerManager()
     
-    def poolsChanged(self, data, pool_data):
-        all_pools, old_pools, new_pools = pool_data
-        mg = self.getManager()
-        
-        for pool_name in old_pools:
-            pool_obj = mg.getPoolObj(pool_name)
-            list_obj = pool_obj.getListObj(self._name)
-            # if the pool has this list (it may not have because it is an old 
-            # software version of the Pool, for example)
-            if list_obj:
-                list_obj.unsubscribeEvent(self.listChanged, (pool_name, list_obj))
-            self._pool_dict.pop(pool_name, None)
-        
-        for pool_name in new_pools:
-            self._pool_dict[pool_name] = CaselessDict()
-            pool_obj = mg.getPoolObj(pool_name)
-            list_obj = pool_obj.getListObj(self._name)
-            # if the pool has this list (it may not have because it is an old 
-            # software version of the Pool, for example)
-            if list_obj:
-                list_obj.subscribeEvent(self.listChanged, (pool_name, list_obj))
+    def accepts(self, elem):
+        return elem.getType() == self._name
     
-    def listChanged(self, info, list_data):
-        pool_name, list_obj = info
-        new_elems = CaselessDict()
-        list_data = list_data or []
-        self.trace("listChanged(%s, %s)" % (pool_name, list_data))
-        for elem_name in list_data:
-            new_elem_obj = list_obj.getObj(elem_name)
-            new_elems[new_elem_obj.getName()] = new_elem_obj
-        self._pool_dict[pool_name] = new_elems
-        self._fireElementsChanged()
-    
-    def _fireElementsChanged(self):
-        objs = self.getObjList(cache=True)
-        objs_str = map(BaseElement.str, objs)
-        self.fireEvent(objs_str)
-
     def getObj(self, name, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.get(name, None)
-
+    
     def getObjDict(self, pool=ParamType.All, cache=False):
-        if not (self.hasCapability(ParamType.ItemListEvents) or cache):
-            # TODO refresh the object list
-            pass
-        
+        objs = CaselessDict()
         if pool == ParamType.All:
-            objs = CaselessDict()
-            for pool_objs in self._pool_dict.values():
-                objs.update(pool_objs)
-            return objs
+            pools = self.getManager().getPoolListObjs()
         else:
-            return self._pool_dict.get(pool,[])
-
+            pools = self.getManager().getPoolObj(pool),
+        for pool in pools:
+            for elem_name, elem_info in pool.getElements().items():
+                if self.accepts(elem_info):
+                    objs[elem_name] = elem_info
+        return objs
+    
     def getObjListStr(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.keys()
@@ -213,7 +183,7 @@ class AttrParamType(ParamType):
     pass
 
 
-AbstractParamTypes = (ParamType, PoolObjParamType, AttrParamType)
+AbstractParamTypes = (ParamType, ElementParamType, AttrParamType)
 
 
 class ParamDecoder:

@@ -125,6 +125,13 @@ class Pool(PoolContainer, PoolObject):
         handler = logging.handlers.SocketHandler(host, port)
         log.addHandler(handler)
     
+    def to_json(self, *args, **kwargs):
+        kwargs['name'] = kwargs['pool'] = self.name
+        kwargs['full_name'] = self.full_name
+        kwargs['type'] = self.__class__.__name__
+        kwargs['id'] = InvalidId
+        return kwargs
+    
     def set_motion_loop_sleep_time(self, motion_loop_sleep_time):
         self._motion_loop_sleep_time = motion_loop_sleep_time
     
@@ -229,8 +236,12 @@ class Pool(PoolContainer, PoolObject):
             ret.append(elem)
         return ret
     
-    def get_elements_str_info(self, obj_type):
-        if obj_type == ElementType.ControllerClass:
+    def get_elements_str_info(self, obj_type=None):
+        if obj_type is None:
+            objs = self.get_element_id_map().values()
+            objs.extend(self.get_controller_classes())
+            objs.extend(self.get_controller_libs())
+        elif obj_type == ElementType.ControllerClass:
             objs = self.get_controller_classes()
         elif obj_type == ElementType.ControllerLib:
             objs = self.get_controller_libs()
@@ -238,6 +249,21 @@ class Pool(PoolContainer, PoolObject):
             objs = self.get_elements_by_type(obj_type)
         name = self.full_name
         return [ obj.str(pool=name) for obj in objs ]
+    
+    def get_elements_info(self, obj_type=None):
+        if obj_type is None:
+            objs = self.get_element_id_map().values()
+            objs.extend(self.get_controller_classes())
+            objs.extend(self.get_controller_libs())
+            objs.append(self)
+        elif obj_type == ElementType.ControllerClass:
+            objs = self.get_controller_classes()
+        elif obj_type == ElementType.ControllerLib:
+            objs = self.get_controller_libs()
+        else:
+            objs = self.get_elements_by_type(obj_type)
+        name = self.full_name
+        return [ obj.to_json(pool=name) for obj in objs ]
     
     def get_acquisition_elements_info(self):
         ret = []
@@ -325,8 +351,7 @@ class Pool(PoolContainer, PoolObject):
         
         ctrl = klass(**kwargs)
         ret = self.add_element(ctrl)
-        self.fire_event(EventType("ElementCreated"),
-                        { "name" : name, "type" : ElementType.Ctrl })
+        self.fire_event(EventType("ElementCreated"), ctrl)
         return ret
     
     def create_element(self, **kwargs):
@@ -377,8 +402,7 @@ class Pool(PoolContainer, PoolObject):
         elem = klass(**kwargs)
         ctrl.add_element(elem)
         ret = self.add_element(elem)
-        self.fire_event(EventType("ElementCreated"),
-                        { "name" : name, "type" : elem_type })
+        self.fire_event(EventType("ElementCreated"), elem)
         return ret
     
     def create_motor_group(self, **kwargs):
@@ -409,8 +433,7 @@ class Pool(PoolContainer, PoolObject):
         elem = klass(**kwargs)
 
         ret = self.add_element(elem)
-        self.fire_event(EventType("ElementCreated"),
-                        { "name" : name, "type" : ElementType.MotorGroup })
+        self.fire_event(EventType("ElementCreated"), elem)
         return ret
     
     def create_measurement_group(self, **kwargs):
@@ -448,8 +471,7 @@ class Pool(PoolContainer, PoolObject):
         elem = klass(**kwargs)
         
         ret = self.add_element(elem)
-        self.fire_event(EventType("ElementCreated"),
-                        { "name" : name, "type" : ElementType.MeasurementGroup })
+        self.fire_event(EventType("ElementCreated"), elem)
         return ret
     
     def delete_element(self, name):
@@ -482,8 +504,7 @@ class Pool(PoolContainer, PoolObject):
         
         self.remove_element(elem)
         
-        self.fire_event(EventType("ElementDeleted"),
-                        { "name" : name, "type" : elem_type } )
+        self.fire_event(EventType("ElementDeleted"), elem)
     
     def create_instrument(self, full_name, klass_name, id=None):
         is_root = full_name.count('/') == 1
@@ -516,8 +537,7 @@ class Pool(PoolContainer, PoolObject):
         if parent:
             parent.add_instrument(elem)
         ret = self.add_element(elem)
-        self.fire_event(EventType("ElementCreated"),
-                        { "name" : full_name, "type" : ElementType.Instrument })
+        self.fire_event(EventType("ElementCreated"), elem)
         return ret
     
     def stop(self):

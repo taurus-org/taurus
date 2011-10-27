@@ -981,34 +981,37 @@ class Macro(Logger):
         self.getExecutor().returnObj(obj)
 
     @mAPI
-    def getObj(self, name, type_class=All, subtype=All, pool=All):
+    def getObj(self, name, type_class=All, subtype=All, pool=All, reserve=True):
         """**Macro API**. Gets the object of the given type belonging to the given
-           pool with the given name. The object (if found) will automatically 
+           pool with the given name. The object (if found) will automatically
            become controlled by the macro.
            
            :raises: MacroWrongParameterType if name is not a string
            :raises: AttributeError if more than one matching object is found
            
-           :param name: string representing the name of the object. 
+           :param name: string representing the name of the object.
                         Can be a regular expression
            :type name: str
            :param type_class: the type of object (optional, default is All)
-           :param subtype: a string representing the subtype (optional, 
+           :param subtype: a string representing the subtype (optional,
                            default is All)
                            Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
-           :param pool: the pool to which the object should belong (optional, 
+           :param pool: the pool to which the object should belong (optional,
                         default is All)
+           :param reserve: automatically reserve the object for this macro
+                           (optional, default is True)
            
            :return: the object or empty list if no compatible object is found"""
         if not isinstance(name, str):
             raise self._buildWrongParamExp("getObj", "name", "string", str(type(name)))
         
         obj = self.getManager().getObj(name, type_class=type_class, subtype=subtype, pool=pool)
-        if obj: self.addObj(obj)
+        if obj and reserve:
+            self.addObj(obj)
         return obj or []
     
     @mAPI
-    def getObjs(self, names, type_class=All, subtype=All, pool=All):
+    def getObjs(self, names, type_class=All, subtype=All, pool=All, reserve=True):
         """**Macro API**. Gets the objects of the given type belonging to the given
            pool with the given names. The objects (if found) will automatically
            become controlled by the macro.
@@ -1023,15 +1026,17 @@ class Macro(Logger):
                            Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
            :param pool: the pool to which the object should belong (optional, 
                         default is All)
+           :param reserve: automatically reserve the object for this macro
+                           (optional, default is True)
            
            :return: a list of objects or empty list if no compatible object is found"""
-        
         obj_list = self.getManager().getObjs(names, type_class=type_class, subtype=subtype, pool=pool)
-        self.addObjs(obj_list)
+        if reserve:
+            self.addObjs(obj_list)
         return obj_list or []
     
     @mAPI
-    def findObjs(self, names, type_class=All, subtype=All, pool=All):
+    def findObjs(self, names, type_class=All, subtype=All, pool=All, reserve=True):
         """**Macro API**. Gets the objects of the given type belonging to the given pool with 
            the given names. The objects (if found) will automatically become 
            controlled by the macro.
@@ -1045,11 +1050,14 @@ class Macro(Logger):
                            Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
            :param pool: the pool to which the object should belong (optional, 
                         default is All)
+           :param reserve: automatically reserve the object for this macro
+                           (optional, default is True)
            
            :return: a list of objects or empty list if no compatible object 
                     is found"""
         obj_list = self.getManager().findObjs(names, type_class=type_class, subtype=subtype, pool=pool)
-        self.addObjs(obj_list)
+        if reserve:
+            self.addObjs(obj_list)
         return obj_list
 
     @mAPI

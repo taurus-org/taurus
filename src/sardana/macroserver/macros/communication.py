@@ -1,36 +1,36 @@
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
+
+"""This is the standard macro module"""
+
+__docformat__ = 'restructuredtext'
+
+__all__ = ["get", "put"]
+
 from sardana.macroserver.macro import *
 
 import array
 
-class lscom(Macro):
-    """Lists all existing communication channels"""
-    
-    def run(self):
-
-        all_comch = self.findObjs('.*', type_class=Type.ComChannel)
-
-        nr_comch = len(all_comch)
-        if nr_comch == 0:
-            self.output('No communication channels defined')
-            return
-
-        out = List(['Name', 'Family'])
-       
-        for comch in all_comch:
-            pool = comch.getPool()            
-            ctrl = self.findObjs(comch.info.ctrl_name, type_class=Type.Controller)
-            family = "Not specified"
-            if len(ctrl) > 0:
-                class_name = ctrl[0].info.klass
-                ctrl_class = pool.getCtrlClassByName(class_name)
-                if ctrl_class:
-                    family = ctrl_class.getGender()
-            out.appendRow([comch.getName(), family])
-        
-        for line in out.genOutput():
-            self.output(line)
-
-    
 class put(Macro):
     """Sends a string to the communication channel"""
     param_def = [

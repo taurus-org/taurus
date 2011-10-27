@@ -227,7 +227,7 @@ class PoolController(PoolBaseController):
         kwargs['class'] = ctrl_info.getName()
         kwargs['language'] = 'Python'
         kwargs['filename'] = ctrl_info.getSimpleFileName()
-        kwargs['type'] = self.get_ctrl_type_names()[0]
+        kwargs['types'] = self.get_ctrl_type_names()
         return PoolBaseController.to_json(self, *args, **kwargs)
     
     def _create_ctrl_args(self):

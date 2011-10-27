@@ -202,21 +202,24 @@ class ControllerLib(object):
     def getError(self):
         return self.exc_info
     
-    def str(self, *args, **kwargs):
+    def to_json(self, *args, **kwargs):
         data = self.toDict()
-        data.update(kwargs)
-        return json.dumps(data)
+        kwargs.update(data)
+        return kwargs
     
+    def str(self, *args, **kwargs):
+        return json.dumps(self.to_json(*args, **kwargs))
+        
     def toDict(self):
         name = self.getName()
         module_name = self.getModuleName()
-        ret = dict(name=name,
-                   module=module_name,
-                   filename=self.getFileName(),
-                   description=self.getDescription())
-        
-        ret['full_name'] = module_name
-        return ret
+        return dict(name=name,
+                    full_name=self.f_path,
+                    id=0,
+                    type=self.__class__.__name__,
+                    module=module_name,
+                    filename=self.getFileName(),
+                    description=self.getDescription())
 
     def getJSON(self):
         json_codec = CodecFactory().getCodec('json')
@@ -364,15 +367,19 @@ class ControllerClass(object):
     def __str__(self):
         return self.getName()
     
+    def to_json(self, *args, **kwargs):
+        kwargs.update(self.toDict())
+        return kwargs
+    
     def str(self, *args, **kwargs):
-        data = self.toDict()
-        data.update(kwargs)
-        return json.dumps(data)
+        return json.dumps(self.to_json(*args, **kwargs))
     
     def toDict(self):
         name = self.getName()
         module_name = self.getModuleName()
         ret = dict(name=name,
+                   full_name=name + "." + module_name,
+                   id=0,
                    module=module_name,
                    filename=self.getFileName(),
                    description=self.getDescription(),
@@ -380,12 +387,9 @@ class ControllerClass(object):
                    model=self.getModel(),
                    organization=self.getOrganization(),
                    api_version=self.api_version,)
-        
-        ret['full_name'] = name + "." + module_name
-        
+
         ctrl_types = map(ElementType.whatis, self.getTypes())
-        
-        ret['type'] = ctrl_types
+        ret['types'] = ctrl_types
         
         ctrl_props = {}
         for ctrl_prop in self.getControllerProperties().values():
@@ -401,7 +405,7 @@ class ControllerClass(object):
         ret['ctrl_attributes'] = ctrl_attrs
         ret['axis_attributes'] = axis_attrs
         ret['ctrl_features'] = self.getControllerFeatures()
-        
+        ret['type'] = self.__class__.__name__
         ret.update(self.dict_extra)
         return ret
 

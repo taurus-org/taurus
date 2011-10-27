@@ -50,7 +50,7 @@ class MacroServerException(Exception):
                 self.type = self.__class__.__name__
 
     def __str__(self):
-        return "%s: %s" % (self.type, self.msg)
+        return "{0}: {1}".format(self.type, self.msg)
 
 
 class MacroServerExceptionList(MacroServerException):

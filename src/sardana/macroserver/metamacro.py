@@ -36,6 +36,8 @@ import operator
 import types
 import parameter
 
+from taurus.core.util import CodecFactory
+
 MACRO_TEMPLATE = """class @macro_name@(Macro):
     \"\"\"@macro_name@ description.\"\"\"
 
@@ -95,8 +97,17 @@ class MacroLib:
         if self.f_path.endswith('.pyc'):
             return self.f_path[:-1]
         return self.f_path
-        
-
+    
+    def to_json(self, *args, **kwargs):
+        kwargs['name'] = self.name
+        kwargs['full_name'] = self.f_path
+        kwargs['id'] = 0
+        kwargs['type'] = self.__class__.__name__
+        kwargs['filename'] = self.getFileName()
+        kwargs['path'] = self.path
+        kwargs['module_name'] = self.getModuleName()
+        return kwargs
+    
 import json
 
 class MacroClassJSONEncoder(json.JSONEncoder):
@@ -106,6 +117,8 @@ class MacroClassJSONEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, ret)
         klass = obj.getMacroClass()
         ret = { 'name' : obj.getName(),
+          'full_name' : obj.getFullName(),
+          'id' : 0,
           'module_name' : obj.getModuleName(),
           'filename' : obj.getFileName(),
           'description' : obj.getDescription(),
@@ -149,10 +162,23 @@ class MacroClass:
         if param: ret['parameters'] = param
         if result: ret['result'] = result
         return ret
-
+    
+    def to_json(self, *args, **kwargs):
+        kwargs['name'] = self.getName()
+        kwargs['full_name'] = self.getFullName()
+        kwargs['id'] = 0
+        kwargs['type'] = self.__class__.__name__
+        kwargs['module_name'] = self.getModuleName()
+        kwargs['filename'] = self.getFileName()
+        kwargs['description'] = self.getDescription()
+        kwargs['hints'] = self.klass.hints
+        param, result = self.getParamObj(), self.getResultObj()
+        if param: kwargs['parameters'] = param
+        if result: kwargs['result'] = result
+        return kwargs
+    
     def getJSON(self):
-        import taurus.core.util
-        json_codec = taurus.core.util.CodecFactory().getCodec('json')
+        json_codec = CodecFactory().getCodec('json')
         format, data = json_codec.encode(('', self), cls=MacroClassJSONEncoder)
         return data
 

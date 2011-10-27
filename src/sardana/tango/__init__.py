@@ -35,7 +35,7 @@ def prepare_sardana(util):
     pool.prepare_pool(util)
     macroserver.prepare_macroserver(util)
 
-def main_sardana():
-    core.util.run(prepare_sardana)
+def main_sardana(start_time=None):
+    core.util.run(prepare_sardana, start_time=start_time)
 
 
