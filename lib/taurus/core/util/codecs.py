@@ -265,7 +265,10 @@ class JSONCodec(Codec):
         ensure_ascii = False
         if 'ensure_ascii' in kwargs:
             ensure_ascii = kwargs.pop('ensure_ascii')
-            
+        
+        if isinstance(data[1], buffer):
+            data = data[0], str(data[1])
+        
         data = json.loads(data[1])
         if ensure_ascii:
             data = self._transform_ascii(data)
@@ -486,4 +489,8 @@ class CodecFactory(Singleton, Logger):
                 ret = self._codec_klasses.get('')()
         return ret
     
-    
+    def decode(self, data, *args, **kwargs):
+        return self.getCodec(data[0]).decode(data, *args, **kwargs)[1]
+        
+    def encode(self, data, *args, **kwargs):
+        return self.getCodec(data[0]).encode(data, *args, **kwargs)[1]

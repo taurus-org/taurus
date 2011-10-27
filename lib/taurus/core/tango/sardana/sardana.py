@@ -25,7 +25,8 @@
 
 """The sardana submodule. It contains specific part of sardana"""
 
-__all__ = ["Pool", "MacroServer", "Door", "Sardana", "SardanaManager",
+__all__ = ["BaseSardanaElement", "BaseSardanaElementContainer",
+           "Pool", "MacroServer", "Door", "Sardana", "SardanaManager",
            "PoolElementType", "ControllerClassInfo", "ControllerInfo",
            "ChannelView", "PlotType", "Normalization", "AcqTriggerType",
            "AcqMode"]
@@ -41,34 +42,148 @@ __docformat__ = 'restructuredtext'
 import socket
 
 import time
-import taurus.core.util
 import PyTango
 
-PoolElementType = taurus.core.util.Enumeration("PoolElementType",
+from taurus.core.util import Enumeration, Singleton, Logger, CaselessDict, \
+    CodecFactory
+
+PoolElementType = Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister", 
       "Motor","PseudoCounter", "PseudoMotor"))
 
-ChannelView = taurus.core.util.Enumeration("ChannelView", 
+ChannelView = Enumeration("ChannelView", 
     ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer", 
      "Monitor", "Trigger", "Conditioning", "Normalization","NXPath",
      "Unknown"))
 
-PlotType = taurus.core.util.Enumeration("PlotType", ("No", "Spectrum", "Image"))
+PlotType = Enumeration("PlotType", ("No", "Spectrum", "Image"))
 
-Normalization = taurus.core.util.Enumeration("Normalization", ("No", "Avg", "Integ"))
+Normalization = Enumeration("Normalization", ("No", "Avg", "Integ"))
 
 #: an enumeration describing all possible acquisition trigger types
-AcqTriggerType = taurus.core.util.Enumeration("AcqTriggerType", ( \
+AcqTriggerType = Enumeration("AcqTriggerType", ( \
     "Software", # channel triggered by software - start and stop by software
     "Gate",     # channel triggered by HW - start and stop by external 
     "Unknown") )
 
 #: an enumeration describing all possible acquisition mode types
-AcqMode = taurus.core.util.Enumeration("AcqMode", ( \
+AcqMode = Enumeration("AcqMode", ( \
     "Timer",
     "Monitor",
     "Unknown") )
 
+
+class BaseSardanaElement(object):
+    """Generic sardana element"""
+    
+    def __init__(self, *args, **kwargs):
+        self._manager = kwargs.pop('manager')
+        self.__dict__.update(kwargs)
+        self._data = kwargs
+        self._object = None
+    
+    def __repr__(self):
+        return "{0}({1})".format(self.type, self.full_name)
+    
+    def __str__(self):
+        return self.name
+    
+    def getName(self):
+        return self.name
+    
+    def getId(self):
+        return self.full_name
+    
+    def getType(self):
+        return self.getTypes()[0]
+    
+    def getTypes(self):
+        elem_types = self.type
+        if isinstance(elem_types, (str, unicode)):
+            return [elem_types]
+        return elem_types
+    
+    def to_json(self, *args, **kwargs):
+        kwargs.update(self._data)
+        return kwargs
+    
+    def str(self, *args, **kwargs):
+        return CodecFactory().encode('json', self.to_json(*args, **kwargs))
+    
+    def getObj(self):
+        obj = self._object
+        if obj is None:
+            self._object = obj = self._manager.getObject(self)
+        return obj
+    
+    def __getattr__(self, name):
+        return getattr(self.getObj(), name)
+
+
+class BaseSardanaElementContainer:
+    
+    def __init__(self):
+#        # dict<str, dict> where key is the owner name ( and value is:
+#        #     dict<str, MacroServerElement> where key is the element alias
+#        #                                   and value is the Element object
+#        self._pool_elems_dict = CaselessDict()
+        
+        # dict<str, dict> where key is the type and value is:
+        #     dict<str, MacroServerElement> where key is the element alias and
+        #                                   value is the Element object
+        self._type_elems_dict = CaselessDict()
+        
+        # dict<str, MacroServerElement> where key is the element alias and value
+        #                               value is the Element object
+        self._name_elems_dict = CaselessDict()
+    
+    def addElement(self, e):
+        type = e.getType()
+        name = e.getName()
+
+        #update type_elems
+        if self._type_elems_dict.has_key(type):
+            type_elems = self._type_elems_dict.get(type)
+        else:
+            type_elems = CaselessDict()
+            self._type_elems_dict[type] = type_elems
+        type_elems[name] = e
+        
+        #update name_elems
+        self._name_elems_dict[name] = e
+    
+    def removeElement(self, e):
+        type = e.getType()
+        name = e.getName()
+
+        # update type_elems
+        type_elems = self._type_elems_dict.get(type)
+        if type_elems:
+            del type_elems[name]
+        
+        if self._name_elems_dict.has_key(name):
+            del self._name_elems_dict[name]
+    
+    def removeElementsOfType(self, t):
+        for elem in self.getElementsOfType(t):
+            self.removeElement(elem)
+    
+    def getElementsOfType(self, t):
+        elems = self._type_elems_dict.get(t, {})
+        return elems
+    
+    def getElementNamesOfType(self, t):
+        return [ e.name for e in self._type_elems_dict.get(t, {}).values() ]
+    
+    def hasElementName(self, elem_name):
+        return self._name_elems_dict.has_key(elem_name)
+    
+    def getElement(self, elem_name):
+        return self._name_elems_dict.get(elem_name)
+    
+    def getElements(self):
+        return self._name_elems_dict
+    
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N
 #
@@ -491,7 +606,7 @@ class DatabaseSardana(object):
 #
 # THIS IS USED FOR TEST PURPOSES ONLY. DO NOT USE IT OUTSIDE SARDANA TESTS
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-class SardanaManager(taurus.core.util.Singleton, taurus.core.util.Logger):
+class SardanaManager(Singleton, Logger):
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -501,7 +616,7 @@ class SardanaManager(taurus.core.util.Singleton, taurus.core.util.Logger):
         """Singleton instance initialization.
            **For internal usage only**"""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
         self._db_sardanas = {}
         
     def _get_db_sardana(self, db=None):

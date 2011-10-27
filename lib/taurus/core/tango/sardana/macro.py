@@ -25,7 +25,8 @@
 
 """The macro submodule."""
 
-__all__ = ["MacroInfo", "Macro", "MacroNode", "MacroRunException"]
+__all__ = ["MacroInfo", "Macro", "MacroNode", "ParamFactory",
+           "MacroRunException"]
 
 __docformat__ = 'restructuredtext'
 
@@ -46,9 +47,12 @@ class MacroInfo(object):
     """Contains all information about a macro: name, documentation, parameters, 
     result, etc"""
     
-    def __init__(self, from_json_str=None):
+    def __init__(self, from_json_str=None, from_json=None):
+        json_obj = from_json
         if from_json_str is not None:
             json_obj = self._fromJSON(from_json_str)
+        
+        if json_obj:
             self.__dict__.update(json_obj)
             self._buildDoc()
     

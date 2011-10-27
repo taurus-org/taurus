@@ -52,6 +52,7 @@ from taurus.core.util import Logger, CaselessDict, CodecFactory, \
     EventGenerator, AttributeEventWait, AttributeEventIterator
 from taurus.core.tango import TangoDevice, FROM_TANGO_TO_STR_TYPE
 
+from sardana import BaseSardanaElementContainer, BaseSardanaElement
 from motion import Moveable, MoveableSource
 
 Ready = Standby = DevState.ON
@@ -59,6 +60,7 @@ Counting = Acquiring = Moving = DevState.MOVING
 Alarm = DevState.ALARM
 Fault = DevState.FAULT
 
+CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
 class AbortException(Exception):
     pass
@@ -67,15 +69,6 @@ class BaseElement(object):
     """ The base class for elements in the Pool (Pool itself, Motor, 
     ControllerClass, ExpChannel all should inherit from this class directly or
     indirectly) 
-    
-    Demands that the subclasses contain the following members:
-    - At the class level:
-      cls.BaseReStr - a string representing the regular expression to parse from
-                      the string that is received from the Pool
-      cls.BaseRe - a re.compile result of the cls.BaseReStr
-      cls.SimpleReprStr - the basic string representation for the MacroServer 
-                          attribute
-      cls.ReprStr - the string representation for the MacroServer attribute
 
     - At the object level:
       self._name_lower - the lower case string name of the object (used for 
@@ -117,6 +110,7 @@ class ControllerClass(BaseElement):
     
     def __init__(self, **kw):
         self.__dict__.update(kw)
+        self._name_lower = self.name
         self.path, self.fname = os.path.split(self.filename)
         self.libname, self.ext = os.path.splitext(self.fname)
         
@@ -161,129 +155,17 @@ class ControllerClass(BaseElement):
         return cmp(self.getClassName(), o.getClassName())
 
 
-class BaseObjList(Logger, EventGenerator):
-    """An event generator for a 'List' type attribute"""
+class ControllerLib(BaseElement):
     
-    def __init__(self, pool, name, obj_class, attr):
-        self._pool = weakref.ref(pool)
-        self._type = name
-        self._list_name = '%sList' % self._type
-        self._obj_class  = obj_class
-        self._attr = attr
-        self._elements = CaselessDict()
-        self._objects = CaselessDict()
-        self.call__init__(Logger, self._list_name, pool)
-        event_name = 'Pool %s %s list' % (pool.getNormalName(), name)
-        self.call__init__(EventGenerator, event_name)
-        self._attr.addListener(self)
-            
-    def eventReceived(self, evt_src, evt_type, evt_value):
-        """Event handler from Taurus"""
-        if evt_type not in (TaurusEventType.Change, TaurusEventType.Periodic):
-            return
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+        self._name_lower = self.name
 
-        self._elements = elements = CaselessDict()
-        self._objects = CaselessDict()
-        
-        if evt_value is None:
-            return
-        
-        if evt_value.value is None:
-            value = []
-        else:
-            value = evt_value.value
-        
-        self._elements = elements = CaselessDict()
-        element_names = []
-        json_codec = CodecFactory().getCodec('json')
-        for elem_data in value:
-            _, elem_data = json_codec.decode(('json', elem_data), ensure_ascii=True)
-            name = elem_data["name"]
-            elements[name] = elem_data
-            element_names.append(name)
-        return element_names
+    def getType(self):
+        return self.getTypes()[0]
 
-    def getPoolObj(self):
-        return self._pool()
-    
-    def getObjClass(self):
-        return self._obj_class
-
-    def getObjByName(self, name):
-        elem_data = self._elements.get(name)
-        if elem_data is None:
-            # Maybe name is the full name
-            name_lower = name.lower()
-            for e_data in self._elements.values():
-                if e_data['full_name'].lower() == name_lower:
-                    elem_data = e_data
-                    break
-            if elem_data is None:
-                raise Exception("%s not in %s" % (name, self._list_name))
-        obj = self._objects.get(name)
-        if obj is None:
-            self._objects[name] = obj = self._createObject(elem_data)
-        return obj
-    
-    def _createObject(self, elem_data):
-        params = dict(elem_data)
-        params['_pool_data'] = elem_data
-        return self._obj_class(**params)
-    
-    def getObj(self, id):
-        return self.getObjByName(id)
-    
-    def getElementsInfo(self):
-        return self._elements
-
-
-class SoftwareObjList(BaseObjList):
-    """An event generator for a 'List' type attribute in the Pool 
-    (ControllerClassList so far)"""
-    def __init__(self, pool, name, obj_class, attr):
-        self._obj_dict = None
-        self.call__init__(BaseObjList, pool, name, obj_class, attr)
-    
-    def eventReceived(self, evt_src, evt_type, evt_value):
-        """Event handler from Taurus"""
-        ret = BaseObjList.eventReceived(self, evt_src, evt_type, evt_value)
-        if ret is not None:
-            self.fireEvent(ret)
-
-
-class HardwareObjList(BaseObjList):
-    """An event generator for a 'List' type attribute in the Pool 
-    (MotorList, ExpChannelList, ComChannelList, etc)"""
-    def __init__(self, pool, name, obj_class, attr):
-        self.call__init__(BaseObjList, pool, name, obj_class, attr)
-
-    def _createObject(self, elem_data):
-        f = Factory()
-        name = elem_data["full_name"]
-        obj = f.getExistingDevice(name)
-        if obj is not None:
-            f.removeExistingDevice(name)
-        pool = self.getPoolObj()
-        obj = f.getDevice(name, _pool_obj=pool, _pool_data=elem_data)
-        return obj
-    
-    def eventReceived(self, evt_src, evt_type, evt_value):
-        """Event handler from Taurus"""
-        old_elements = set(self._elements)
-        old_objects = self._objects
-        ret = BaseObjList.eventReceived(self, evt_src, evt_type, evt_value)
-        all_elements = set(self._elements)
-        
-        deleted_elements = old_elements.difference(all_elements)
-        new_elements = all_elements.difference(old_elements)
-        
-        f = Factory()
-        for name, obj in old_objects.items():
-            if name in deleted_elements:
-                f.removeExistingDevice(name)
-        
-        if ret is not None:
-            self.fireEvent(ret)
+    def getTypes(self):
+        return self.type
 
 
 class TangoAttributeEG(Logger, EventGenerator):
@@ -302,7 +184,7 @@ class TangoAttributeEG(Logger, EventGenerator):
     
     def eventReceived(self, evt_src, evt_type, evt_value):
         """Event handler from Taurus"""
-        if evt_type not in (TaurusEventType.Change, TaurusEventType.Periodic):
+        if evt_type not in CHANGE_EVT_TYPES:
             return
         if evt_value is None:
             v = None
@@ -1143,8 +1025,8 @@ class MeasurementGroup(PoolElement):
         self._channels = None
         self.call__init__(PoolElement, name, **kw)
         
-        self._configuration_attr = cfg_attr = self._getAttrEG('configuration')
-        cfg_attr.subscribeEvent(self.onConfigurationChanged)
+        cfg_attr = self.getAttribute('configuration')
+        cfg_attr.addListener(self.on_configuration_changed)
 
     def _create_str_tuple(self):
         return self.getName(), self.getTimerName(), ", ".join(self.getChannelNames())
@@ -1156,15 +1038,20 @@ class MeasurementGroup(PoolElement):
         codec = CodecFactory().getCodec('json')
         data = codec.encode(configuration)
         self.write_attribute('configuration', data)
+    
+    def _setConfiguration(self, data):
+        self._configuration = MGConfiguration(self, data)
         
     def getConfiguration(self, force=False):
         if force or self._configuration is None:
             data = self.getConfigurationAttrEG().readValue(force=True)
-            self.onConfigurationChanged(None, data)
+            self._setConfiguration(data)
         return self._configuration
     
-    def onConfigurationChanged(self, obj, data):
-        self._configuration = MGConfiguration(self, data)
+    def on_configuration_changed(self, evt_src, evt_type, evt_value):
+        if evt_type not in CHANGE_EVT_TYPES:
+            return
+        self._setConfiguration(evt_value.value)
     
     def getTimerName(self):
         return self.getConfiguration().timer
@@ -1347,31 +1234,82 @@ class Pool(TangoDevice, MoveableSource):
         self.call__init__(TangoDevice, name, **kw)
         self.call__init__(MoveableSource)
         
-        for name, obj_class in self.SoftwareObjMap:
-            attr_name = "%sList" % name
-            attr = self.getAttribute(attr_name)
-            self._attr_dict[attr] = attr_name
-            sw_obj_list = SoftwareObjList(self, name, obj_class, attr)
-            self._obj_dict[name] = sw_obj_list
+#        for name, obj_class in self.SoftwareObjMap:
+#            attr_name = "%sList" % name
+#            attr = self.getAttribute(attr_name)
+#            self._attr_dict[attr] = attr_name
+#            sw_obj_list = SoftwareObjList(self, name, obj_class, attr)
+#            self._obj_dict[name] = sw_obj_list
 
-        for name, obj_class in self.HardwareObjMap:
-            attr_name = "%sList" % name
-            attr = self.getAttribute(attr_name)
-            self._attr_dict[attr] = attr_name
-            hw_obj_list = HardwareObjList(self, name, obj_class, attr)
-            self._obj_dict[name] = hw_obj_list
-
+#        for name, obj_class in self.HardwareObjMap:
+#            attr_name = "%sList" % name
+#            attr = self.getAttribute(attr_name)
+#            self._attr_dict[attr] = attr_name
+#            hw_obj_list = HardwareObjList(self, name, obj_class, attr)
+#            self._obj_dict[name] = hw_obj_list
+        
+        self._elements = BaseSardanaElementContainer()
+        self.getAttribute("ElementList").addListener(self.on_elements_changed)
+    
+    def getObject(self, element_info):
+        elem_type = element_info.getType()
+        data = element_info._data
+        if elem_type in ('ControllerClass', 'ControllerLib', 'Instrument'):
+            klass = globals()[elem_type]
+            kwargs = dict(data)
+            kwargs['_pool_data'] = data
+            return klass(**kwargs)
+        obj = Factory().getDevice(element_info.full_name, _pool_obj=self,
+                                  _pool_data=data)
+        return obj
+        
+    def on_elements_changed(self, evt_src, evt_type, evt_value):
+        if evt_type not in CHANGE_EVT_TYPES:
+            return
+        try:
+            elems = CodecFactory().decode(evt_value.value, ensure_ascii=True)
+        except:
+            self.error("Could not decode element info format=%s len=%s",
+                       evt_value.value[0], len(evt_value.value[1]))
+            return
+        
+        event_type = elems['__type__']
+        elements_data = elems['elements']
+        
+        elements = self.getElementsInfo()
+        if event_type == 'set':
+            for element_data in elements_data:
+                element_data['manager'] = self
+                element = BaseSardanaElement(**element_data)
+                elements.addElement(element)
+        else:
+            for element_data in elements_data:
+                element = self.getElementInfo(element_data['name'])
+                elements.removeElement()
+    
+    def getElementsInfo(self):
+        return self._elements
+    
+    def getElements(self):
+        return self.getElementsInfo().getElements()
+    
+    def getElementInfo(self, name):
+        return self.getElementsInfo().getElement(name)
+    
     def hasListObj(self, name):
         return self._obj_dict.has_key(name)
 
     def getListObj(self, name):
         return self._obj_dict.get(name, None)
 
-    def getObj(self, type, name):
+    def getObj_OLD(self, type, name):
         list_obj = self.getListObj(type)
         if list_obj is None:
             return
         return list_obj.getObjByName(name)
+    
+    def getObj(self, type, name):
+        return self.getElementInfo(name)
     
     def __repr__(self):
         return self.getNormalName()

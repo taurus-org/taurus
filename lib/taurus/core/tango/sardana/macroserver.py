@@ -40,34 +40,38 @@ import time
 import uuid
 import os.path as osp
 import json
+
 import PyTango
 
-import taurus
-import taurus.core
-import taurus.core.tango
-import taurus.core.util
-from taurus.core.util import etree, CodecFactory, CaselessDict
+from taurus import Device, Factory
+from taurus.core import TaurusEventType, TaurusSWDevState
+from taurus.core.util import etree, CodecFactory, CaselessDict, Logger, \
+    EventGenerator, AttributeEventWait
 from taurus.core.util.console import NoColors, TermColors
-import macro
+from taurus.core.tango import TangoDevice
 
-CHANGE_EVTS = (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic)
+from macro import MacroInfo, Macro, MacroNode, ParamFactory
+from sardana import BaseSardanaElementContainer, BaseSardanaElement
 
-class Attr(taurus.core.util.Logger, taurus.core.util.EventGenerator):
+CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
+
+
+class Attr(Logger, EventGenerator):
 
     def __init__(self, dev, name, obj_class, attr):
         self._dev = weakref.ref(dev)
         self._obj_class  = obj_class
         self._attr = attr
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
         event_name = '%s %s' % (dev.getNormalName(), name)
-        self.call__init__(taurus.core.util.EventGenerator, event_name)
+        self.call__init__(EventGenerator, event_name)
         
         self._attr.addListener(self)
         
     def eventReceived(self, src, type, evt_value):
-        if type == taurus.core.TaurusEventType.Error:
+        if type == TaurusEventType.Error:
             self.fireEvent(None)
-        elif type != taurus.core.TaurusEventType.Config:
+        elif type != TaurusEventType.Config:
             if evt_value:
                 self.fireEvent(evt_value.value)
             else:
@@ -78,6 +82,7 @@ class Attr(taurus.core.util.Logger, taurus.core.util.EventGenerator):
 
     def __getattr__(self, name):
         return getattr(self._attr, name)
+
 
 class LogAttr(Attr):
     
@@ -93,7 +98,7 @@ class LogAttr(Attr):
         self._log_buffer = []
     
     def eventReceived(self, src, type, evt_value):
-        if type == taurus.core.TaurusEventType.Change:
+        if type == TaurusEventType.Change:
             if evt_value is None or evt_value.value is None:
                 self.fireEvent(None)
             else:
@@ -104,7 +109,7 @@ class LogAttr(Attr):
                     self.fireEvent(evt_value.value)
 
 
-class MacroServerDevice(taurus.core.tango.TangoDevice):
+class MacroServerDevice(TangoDevice):
     """A class encapsulating a generic macro server device (usually a 
     MacroServer or a Door"""
     
@@ -112,7 +117,7 @@ class MacroServerDevice(taurus.core.tango.TangoDevice):
         if not hasattr(self, '_evt_wait'):
             # create an object that waits for attribute events.
             # each time we use it we have to connect and disconnect to an attribute
-            self._evt_wait = taurus.core.util.AttributeEventWait()
+            self._evt_wait = AttributeEventWait()
         return self._evt_wait
 
 
@@ -173,7 +178,7 @@ class ExperimentConfiguration(object):
         codec = CodecFactory().getCodec('json')
         for mnt_grp in mnt_grps:
             mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
-            mnt_grp_dev = taurus.Device(mnt_grp)
+            mnt_grp_dev = Device(mnt_grp)
             # TODO when we start using measurement group change de code below with
             # the following:
             # mnt_grp.setConfiguration(mnt_grp_cfg)
@@ -223,7 +228,7 @@ class BaseDoor(MacroServerDevice):
         self.call__init__(MacroServerDevice, name, **kw)
         
         self._old_door_state = PyTango.DevState.UNKNOWN
-        self._old_sw_door_state = taurus.core.TaurusSWDevState.Uninitialized
+        self._old_sw_door_state = TaurusSWDevState.Uninitialized
         
         self.getStateObj().addListener(self.stateChanged)
 
@@ -350,7 +355,7 @@ class BaseDoor(MacroServerDevice):
             self.command_inout("Abort")
             return
         
-        evt_wait = taurus.core.util.AttributeEventWait(self.getAttribute("state"))
+        evt_wait = AttributeEventWait(self.getAttribute("state"))
         evt_wait.lock()
         try:
             time_stamp = time.time()
@@ -400,7 +405,7 @@ class BaseDoor(MacroServerDevice):
         self._running_macros = {}
         for macro_xml in xml_root.xpath('//macro'):
             id, name = macro_xml.get('id'), macro_xml.get('name')
-            self._running_macros[id] = macro.Macro(self, name, id, macro_xml)
+            self._running_macros[id] = Macro(self, name, id, macro_xml)
         return xml_root
 
     def postRunMacro(self, result, synch):
@@ -445,7 +450,7 @@ class BaseDoor(MacroServerDevice):
         self._running_macro.setResult(result)
     
     def environmentChanged(self, s, t, v):
-        if t not in CHANGE_EVTS: return
+        if t not in CHANGE_EVT_TYPES: return
         return self._processEnvironmentData(v)
     
     def setEnvironment(self, name, value):
@@ -479,7 +484,7 @@ class BaseDoor(MacroServerDevice):
         return obj
     
     def recordDataReceived(self, s, t, v):
-        if t not in CHANGE_EVTS: return
+        if t not in CHANGE_EVT_TYPES: return
         return self._processRecordData(v)
     
     def _processRecordData(self, data):
@@ -491,13 +496,13 @@ class BaseDoor(MacroServerDevice):
         size = len(data[1])
         if size == 0: return
         format = data[0]
-        codec = taurus.core.util.CodecFactory().getCodec(format)
+        codec = CodecFactory().getCodec(format)
         return codec.decode(data)
     
     def macroStatusReceived(self, s, t, v):
         if v is None or self._running_macros is None:
             return
-        if t not in CHANGE_EVTS: return
+        if t not in CHANGE_EVT_TYPES: return
 
         # make sure we get it as string since PyTango 7.1.4 returns a buffer
         # object and json.loads doesn't support buffer objects (only str)
@@ -505,7 +510,7 @@ class BaseDoor(MacroServerDevice):
         if not len(v[1]):
             return
         format = v[0]
-        codec = taurus.core.util.CodecFactory().getCodec(format)
+        codec = CodecFactory().getCodec(format)
         
         # make sure we get it as string since PyTango 7.1.4 returns a buffer
         # object and json.loads doesn't support buffer objects (only str)
@@ -578,7 +583,7 @@ class MacroServerElement:
 
     def __init__(self, type, from_str):
         self._type = type
-        codec = taurus.core.util.CodecFactory().getCodec('json')
+        codec = CodecFactory().getCodec('json')
         self._pool_data_str = from_str
         data = codec.decode(('json', from_str), ensure_ascii=True)[1]
         self._pool_data = data
@@ -709,170 +714,111 @@ class MacroPath(object):
         self.refresh()
 
     def refresh(self):
-        self.macro_path = self._ms().get_property("MacroPath")["MacroPath"]
+        self.macro_path = mp = self._ms().get_property("MacroPath")["MacroPath"]
         self.base_macro_path = osp.commonprefix(self.macro_path)
-        self.rel_macro_path = [ osp.relpath for p in self.macro_path, self.base_macro_path ]
+        self.rel_macro_path = [ osp.relpath for p in mp, self.base_macro_path ]
 
 
 class BaseMacroServer(MacroServerDevice):
     """Class encapsulating Macro Server device functionality."""
     
     def __init__(self, name, **kw):
-        # dict<str, taurus.core.tango.TangoAttribute>
-        # key - attribute name
-        # value - taurus tango attribute object
-        self._attr_dict = CaselessDict()
-        
-        # dict<str, sequence<object>>
-        # key - type of object ('Macro', 'Type', 'Motor', 'CTExpChannel', etc)
-        # value - sequence of objects of the key type
-        self._obj_dict = CaselessDict()
-        self._elems = MacroServerElementContainer()
-        
-        self._type_dict_lock = threading.Lock()
-        self._type_dict = {}
-        
-        self._macro_dict_lock = threading.Lock()
-        self._macro_dict = {}
-        
+        self._elements = BaseSardanaElementContainer()
         self.call__init__(MacroServerDevice, name, **kw)
         
-        self._ready_event = threading.Event()
-        
-        macro_list = self.getAttribute("MacroList")
-        macro_list.addListener(self._macrosChanged)
-
-        type_list = self.getAttribute("TypeList")
-        type_list.addListener(self._typesChanged)
-        
-        self._ready_event.wait(0.25)
-
-    def _typesChanged(self, s, t, v):
-        if t not in CHANGE_EVTS: return
-        with self._type_dict_lock:
-            self._removeTypes()
-            self._addTypes(v.value)
-        self._ready_event.set()
-        
-    def _addTypes(self, type_names):
-        dev = self.getHWObj()
-        dev_attr_names = map(str.lower, dev.get_attribute_list())
-
-        for name in type_names:
-            if self._type_dict.has_key(name):
-                continue
-            
-            self._type_dict[name] = []
-            
-            name = name[:-1]
-            attr_name = '%sList' % name
-            
-            if attr_name.lower() in dev_attr_names:
-                attr = self.getAttribute(attr_name)
-                self._attr_dict[attr_name] = attr
-                attr.addListener(self._elementsChanged)
-
-    def _removeTypes(self, type_names=None):
-        type_names = type_names or self._type_dict.keys()
-        for type_name in type_names:
-            
-            del self._type_dict[type_name]
-            
-            if not type_name.endswith('*'):
-                return
-
-            name = type_name[:-1]
-            attr_name = '%sList' % name
-            
-            self._elems.removeElementsOfType(name)
-            
-            del_obj = self._attr_dict.pop(name, None)
-            if not del_obj is None:
-                del_obj.removeListener(self._elementsChanged)
-
-    def _elementsChanged(self, s, t, v):
-        """Executed when the list of elements of a certain type as changed"""
-        if t not in CHANGE_EVTS: return
-        family = v.name[:-4] # Take the 'List' suffix out
-        self._elems.removeElementsOfType(family)
-        if v.value:
-            for elem_str in v.value:
-                self._addElement(family, elem_str)
-
-    def _addElement(self, family, elem_str):
-        elem = MacroServerElement(family, elem_str)
-        self._elems.addElement(elem)
-        return elem
+        attr = self.getAttribute("ElementList")
+        attr.addListener(self.on_elements_changed)
     
-    def _macrosChanged(self, s, t, v):
-        if t == taurus.core.TaurusEventType.Config:
-            return
+    NO_CLASS_TYPES = 'ControllerClass', 'ControllerLib', \
+                     'MacroLib', 'Instrument'
+    
+    def getObject(self, element_info):
+        elem_type = element_info.getType()
+        data = element_info._data
+        if elem_type in self.NO_CLASS_TYPES:
+            obj = object()
+        elif elem_type == 'MacroClass':
+            obj = self._createMacroClassObject(element_info)
+        else:
+            obj = self._createDeviceObject(element_info)
+        return obj
+    
+    def _createMacroClassObject(self, element_info):
+        return MacroInfo(from_json=element_info._data)
+    
+    def _createDeviceObject(self, element_info):
+        return Factory().getDevice(element_info.full_name)
+    
+    def on_elements_changed(self, evt_src, evt_type, evt_value):
         try:
-            old_macro_names = set(self.getMacroStrList())
-        except AttributeError:
-            old_macro_names = set()
-
-        with self._macro_dict_lock:
-            # remove information about all macros. some macros may just have
-            # changed their description, for example, so everything needs to be rebuild
-            self._removeMacros()
-            
-            if t ==  taurus.core.TaurusEventType.Error or v.value is None:
-                return
-            
-            all_macros = v.value
-            self._addMacros(all_macros)
-
-        all_macro_names = set(all_macros)
-        deleted_macro_names = old_macro_names.difference(all_macro_names)
-        new_macro_names = all_macro_names.difference(old_macro_names)
-
-        deleted_macro_nb, new_macro_nb = len(deleted_macro_names), len(new_macro_names)
-        if deleted_macro_nb != 0:
-            self.debug('%d macro(s) deleted', deleted_macro_nb)
-        if new_macro_nb != 0:
-            self.debug('%d new macro(s) available', new_macro_nb)
-        
-        return deleted_macro_names, new_macro_names
+            return self._on_elements_changed(evt_src, evt_type, evt_value)
+        except Exception, e:
+            self.error("Exception occurred processing elements")
+            self.debug("Details:", exc_info=1)
+            return set(), set()
     
-    def _addMacros(self, macro_names):
-        json_macros = self.getHWObj().GetMacroInfo(macro_names)
-        for json_macro in json_macros:
-            self._addMacro(json_macro)
-
-    def _removeMacros(self, macro_names=None):
-        if macro_names is None:
-            macro_names = self._macro_dict.keys()
+    def _on_elements_changed(self, evt_src, evt_type, evt_value):
+        ret = added, removed = set(), set()
+        if evt_type not in CHANGE_EVT_TYPES:
+            return ret
+        try:
+            elems = CodecFactory().decode(evt_value.value, ensure_ascii=True)
+        except:
+            self.error("Could not decode element info format=%s len=%s",
+                       evt_value.value[0], len(evt_value.value[1]))
+            return
         
-        for macro_name in macro_names:
-            self._removeMacro(macro_name)
-
-    def _addMacro(self, json_macro):
-        macro_info = macro.MacroInfo(from_json_str=json_macro)
-        self._macro_dict[macro_info.name] = macro_info
-        return macro_info
+        event_type = elems['__type__']
+        elements_data = elems['elements']
         
-    def _removeMacro(self, macro_name):
-        if self._macro_dict.has_key(macro_name):
-            del self._macro_dict[macro_name]
+        if event_type == 'set':
+            for element_data in elements_data:
+                element_data['manager'] = self
+                element = self._addElement(element_data)
+                added.add(element)
+        elif event_type == 'del':
+            for element_data in elements_data:
+                element = self.removeElement(element_data)
+                removed.add(element)
+        return ret
+    
+    def _addElement(self, element_data):
+        element = BaseSardanaElement(**element_data)
+        self.getElementsInfo().addElement(element)
+        return element
+    
+    def _removeElement(self, element_data):
+        name = element_data['name']
+        element = self.getElementInfo(name)
+        self.getElementsInfo().removeElement(element)
+        return element
+    
+    def getElementsInfo(self):
+        return self._elements
+    
+    def getElements(self):
+        return self.getElementsInfo().getElements()
+    
+    def getElementInfo(self, name):
+        return self.getElementsInfo().getElement(name)
+
+    def getElementNamesOfType(self, elem_type):
+        return self.getElementsInfo().getElementNamesOfType(elem_type)
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro API
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getMacros(self):
-        with self._macro_dict_lock:
-            return dict(self._macro_dict)
+        return dict(self.getElementsInfo().getElementsOfType('MacroClass'))
 
     def getMacroInfoObj(self, macro_name):
-        with self._macro_dict_lock:
-            return self._macro_dict.get(macro_name)
+        ret = self.getElementInfo(macro_name)
+        assert ret.type == 'MacroClass'
+        return ret
 
     def getMacroStrList(self):
-        return self._macro_dict.keys()
-    
-    def getElementNamesOfType(self, type):
-        return self._elems.getElementNamesOfType(type)
+        return self.getElementNamesOfType('MacroClass')
     
     def getMacroNodeObj(self, macro_name):
         """
@@ -886,7 +832,7 @@ class BaseMacroServer(MacroServerDevice):
         See Also: fillMacroNodeAddidtionalInfos
         """
         
-        macroNode = macro.MacroNode(name=macro_name)
+        macroNode = MacroNode(name=macro_name)
         macroInfoObj = self.getMacroInfoObj(macro_name)
         if macroInfoObj is None: return
         allowedHookPlaces = []
@@ -896,7 +842,7 @@ class BaseMacroServer(MacroServerDevice):
         macroNode.setHasParams(macroInfoObj.hasParams())
         paramsInfo = macroInfoObj.getParamList()
         for paramInfo in paramsInfo:
-            param = macro.ParamFactory(paramInfo)
+            param = ParamFactory(paramInfo)
             macroNode.addParam(param)
         return macroNode
     
@@ -951,7 +897,6 @@ class BaseMacroServer(MacroServerDevice):
 
 def registerExtensions():
     """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
-    import taurus
-    factory = taurus.Factory('tango')
+    factory = Factory('tango')
     factory.registerDeviceClass('MacroServer', BaseMacroServer)
     factory.registerDeviceClass('Door', BaseDoor)
