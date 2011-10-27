@@ -347,7 +347,8 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             root = self._rootItem
         for row in range(root.childCount()):
             chname,chdata = root.child(row).itemData()
-            chdata['index'] = row+1
+            index = chdata['index']
+            chdata['index'] = row
 
     def flags(self, index):
         flags = TaurusBaseModel.flags(self, index)
@@ -449,8 +450,11 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self._dirty = True
     
     def isDataChanged(self):
-        return self._dirty    
-            
+        return self._dirty
+        
+    def setDataChanged(self, datachanged):
+        self._dirty = datachanged
+    
 class MntGrpChannelModel(BaseMntGrpChannelModel):
     '''A BaseMntGrpChannelModel that communicates with a MntGrp device for setting and reading the configuration
     ''' 
