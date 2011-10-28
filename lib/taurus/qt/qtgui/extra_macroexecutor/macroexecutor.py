@@ -401,6 +401,7 @@ def createMacroExecutor(args):
     macroExecutor.setCustomMacroEditorPaths("/home/zreszela/workspace/taurus/lib/taurus/qt/qtgui/extra_macroexecutor/macroparameterseditor/customeditors")
     macroExecutor.setModelInConfig(True)
     Qt.QObject.connect(macroExecutor, Qt.SIGNAL("doorChanged"), macroExecutor.onDoorChanged)
+    args=['macroserver/cp1/1','door/cp1/1'] ###@todo:JUST FOR DEBUGGING
     if len(args) == 2:
         macroExecutor.setModel(args[0])
         macroExecutor.emit(Qt.SIGNAL('doorChanged'),args[1])
