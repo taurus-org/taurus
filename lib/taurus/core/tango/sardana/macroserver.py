@@ -801,10 +801,13 @@ class BaseMacroServer(MacroServerDevice):
     
     def getElementInfo(self, name):
         return self.getElementsInfo().getElement(name)
-
+    
     def getElementNamesOfType(self, elem_type):
         return self.getElementsInfo().getElementNamesOfType(elem_type)
     
+    def getElementsOfType(self, elem_type):
+        return self.getElementsInfo().getElementsOfType(elem_type)
+        
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro API
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

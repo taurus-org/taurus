@@ -109,10 +109,8 @@ class Motion(Moveable):
         
         if isinstance(first_elem,str):
             self.init_by_names(elements, moveable_srcs, allow_repeat, allow_unknown)
-        elif isinstance(first_elem,Moveable):
-            self.init_by_movables(elements, moveable_srcs, allow_repeat, allow_unknown)
         else:
-            raise Exception("Invalid parameter 'elements'")
+            self.init_by_movables(elements, moveable_srcs, allow_repeat, allow_unknown)
     
     def init_by_movables(self, elements, moveable_srcs, allow_repeat, allow_unknown):
         # TODO: Optimize this. Dont call init_by_names. It its possible to do it

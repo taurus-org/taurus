@@ -88,6 +88,12 @@ class BaseSardanaElement(object):
     def __str__(self):
         return self.name
     
+    def __getattr__(self, name):
+        return getattr(self.getObj(), name)
+    
+    def __cmp__(self, elem):
+        return cmp(self.name, elem.name)
+    
     def getName(self):
         return self.name
     
@@ -116,8 +122,6 @@ class BaseSardanaElement(object):
             self._object = obj = self._manager.getObject(self)
         return obj
     
-    def __getattr__(self, name):
-        return getattr(self.getObj(), name)
 
 
 class BaseSardanaElementContainer:

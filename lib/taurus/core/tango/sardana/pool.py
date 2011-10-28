@@ -62,6 +62,8 @@ Fault = DevState.FAULT
 
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
+MOVEABLE_TYPES = 'Motor', 'PseudoMotor', 'MotorGroup'
+
 class AbortException(Exception):
     pass
 
@@ -1221,11 +1223,6 @@ class Pool(TangoDevice, MoveableSource):
     HardwareObjTypeMap = [ (name, globals()[name]) for name in HardwareObjTypeNames ]
     
     def __init__(self, name, **kw):
-        # dict<TangoAttribute, string>
-        # key : A tango attribute object
-        # value : the name of the attribute
-        self._attr_dict = {}
-        
         # dict<string, HardwareObjList>
         # key : the hardware object name
         # value : the Hardware object list object
@@ -1233,20 +1230,6 @@ class Pool(TangoDevice, MoveableSource):
         
         self.call__init__(TangoDevice, name, **kw)
         self.call__init__(MoveableSource)
-        
-#        for name, obj_class in self.SoftwareObjMap:
-#            attr_name = "%sList" % name
-#            attr = self.getAttribute(attr_name)
-#            self._attr_dict[attr] = attr_name
-#            sw_obj_list = SoftwareObjList(self, name, obj_class, attr)
-#            self._obj_dict[name] = sw_obj_list
-
-#        for name, obj_class in self.HardwareObjMap:
-#            attr_name = "%sList" % name
-#            attr = self.getAttribute(attr_name)
-#            self._attr_dict[attr] = attr_name
-#            hw_obj_list = HardwareObjList(self, name, obj_class, attr)
-#            self._obj_dict[name] = hw_obj_list
         
         self._elements = BaseSardanaElementContainer()
         self.getAttribute("ElementList").addListener(self.on_elements_changed)
@@ -1285,7 +1268,7 @@ class Pool(TangoDevice, MoveableSource):
         else:
             for element_data in elements_data:
                 element = self.getElementInfo(element_data['name'])
-                elements.removeElement()
+                elements.removeElement(element)
     
     def getElementsInfo(self):
         return self._elements
@@ -1295,21 +1278,25 @@ class Pool(TangoDevice, MoveableSource):
     
     def getElementInfo(self, name):
         return self.getElementsInfo().getElement(name)
-    
-    def hasListObj(self, name):
-        return self._obj_dict.has_key(name)
 
-    def getListObj(self, name):
-        return self._obj_dict.get(name, None)
-
-    def getObj_OLD(self, type, name):
-        list_obj = self.getListObj(type)
-        if list_obj is None:
-            return
-        return list_obj.getObjByName(name)
+    def getElementNamesOfType(self, elem_type):
+        return self.getElementsInfo().getElementNamesOfType(elem_type)
     
-    def getObj(self, type, name):
-        return self.getElementInfo(name)
+    def getElementsOfType(self, elem_type):
+        return self.getElementsInfo().getElementsOfType(elem_type)
+        
+    def getObj(self, name, elem_type=None):
+        if elem_type is None:
+            return self.getElementInfo(name)
+        elif isinstance(elem_type, (str, unicode)):
+            elem_types = elem_type,
+        else:
+            elem_types = elem_type
+        for e_type in elem_type:
+            elems = self.getElementsOfType(e_type)
+            elem = elems.get(name)
+            if elem is not None:
+                return elem
     
     def __repr__(self):
         return self.getNormalName()
@@ -1322,48 +1309,74 @@ class Pool(TangoDevice, MoveableSource):
     #    
     
     def getMoveable(self, names):
-        """getMoveable(list<string> names) -> Moveable 
+        """getMoveable(seq<string> names) -> Moveable
 
         Returns a moveable object that handles all the moveable items given in 
-        names."""        
+        names."""
         # if simple motor just return it (if the pool has it)
+        if isinstance(names, (str, unicode)):
+            names = names,
+            
         if len(names) == 1:
             name = names[0]
-            return self.getObj('Motor',name) or self.getObj('MotorGroup',name)
+            return self.getObj(name, elem_type=MOVEABLE_TYPES)
         
         # find a motor group that contains elements
         moveable = self.__findMotorGroupWithElems(names)
         
         # if none exists create one
         if moveable is None:
-            name = "_mg_macserv_" + str(os.getpid()) + "_" + str(thread.get_ident()) 
-            self.createMotorGroup(name, names)
-            moveable = self.getObj('MotorGroup', name)
+            mgs = self.getElementsOfType('MotorGroup')
+            i, cont = 1, True
+            pid = os.getpid()
+            while cont:
+                name = "_mg_ms_{0}_{1}".format(pid, i)
+                if name not in mgs:
+                    cont = False
+                i += 1
+            moveable = self.createMotorGroup(name, names)
         return moveable
-             
+    
     def __findMotorGroupWithElems(self, names):
-        mg_list = self.getListObj('MotorGroup')
+        names_lower = map(str.lower, names)
         len_names = len(names)
-        names = set(map(str.lower, names))
-        for mg_name, mg_info in mg_list.getElementsInfo().items():
-            motor_names = mg_info['elements']
-            if len_names == len(motor_names):
-                found = True
-                motor_names = set(map(str.lower, motor_names))
-                if names == motor_names:
-                    return mg_list.getObjByName(mg_name)
-        return None
+        mgs = self.getElementsOfType('MotorGroup')
+        for mg in mgs.values():
+            mg_elems = mg.elements
+            if len(mg_elems) != len_names:
+                continue
+            for mg_elem, name in zip(mg_elems, names_lower):
+                if mg_elem.lower() != name:
+                    break
+            else:
+                return mg
+    
     #
     # End of MoveableSource interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
-    def createMotorGroup(self, name, elements):
-        params = [name,] + map(str, elements)
-        self.debug('trying to create motor group: %s', params)
-        mg_list = self.getListObj('MotorGroup')
+    def _wait_for_element_in_container(self, container, elem_name, timeout=0.5):
+        start = time.time()
+        cond = True
+        nap = 0.01
+        if timeout:
+            nap = timeout / 10.
+        while cond:
+            if elem_name in container:
+                return True
+            if timeout:
+                dt = time.time() - start
+                if dt > timeout:
+                    return False
+            time.sleep(nap)
+    
+    def createMotorGroup(self, mg_name, elements):
+        params = [mg_name,] + map(str, elements)
+        self.debug('trying to create motor group for elements: %s', params)
         self.command_inout('CreateMotorGroup', params)
-        mg_list.waitEvent(any=True, timeout=0.5)
-        return mg_list.getObjByName(name)
+        elements = self.getElements()
+        if self._wait_for_element_in_container(elements, mg_name):
+            return elements[mg_name]
     
     def createMeasurementGroup(self, name, elements):
         params = [name,] + map(str,elements)
