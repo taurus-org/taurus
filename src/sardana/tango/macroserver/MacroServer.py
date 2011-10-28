@@ -197,9 +197,9 @@ class MacroServer(SardanaDevice):
         pass
     
     def macrosChanged(self, data, macro_data):
-        all_macros = macro_data[0]
-        self.push_change_event('MacroList', all_macros) 
-        
+        all_macros, removed, added = macro_data
+        self.push_change_event('MacroList', all_macros)
+    
     def macroLibsChanged(self, data, macro_lib_data):
         all_macro_libs = macro_lib_data[0]
         self.push_change_event('MacroLibList', all_macro_libs) 

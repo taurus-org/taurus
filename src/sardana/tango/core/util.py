@@ -28,10 +28,12 @@
 __docformat__ = 'restructuredtext'
 
 __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
-           "to_tango_state", "to_tango_type_format", "to_tango_type",
-           "to_tango_access", "to_tango_attr_info",
+           "tango_protect", "to_tango_state", "to_tango_type_format",
+           "to_tango_type", "to_tango_access", "to_tango_attr_info",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
+
+import functools
 
 from PyTango import Util, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
@@ -42,6 +44,7 @@ from PyTango import Util, DevFailed, \
 from sardana import ServerState, SardanaServer, DataType, DataFormat, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
 from sardana.pool.poolmetacontroller import DataInfo
+
 
 class GenericScalarAttr(Attr):
     pass
@@ -57,6 +60,14 @@ class GenericImageAttr(ImageAttr):
 
     def __init__(self, name, tg_type, tg_access, dim_x=2048, dim_y=2048):
         ImageAttr.__init__(self, name, tg_type, tg_access, dim_x, dim_y)
+
+
+def tango_protect(wrapped, *args, **kwargs):
+    @functools.wraps(wrapped)
+    def wrapper(self, *args, **kwargs):
+        with self.tango_lock:
+            return wrapped(self, *args, **kwargs)
+    return wrapper
 
 def to_tango_state(state):
     return DevState(state)

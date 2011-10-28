@@ -51,7 +51,7 @@ class AttributeLogHandler(logging.Handler):
         attr_list = dev.get_device_attr()
         attr = attr_list.get_attr_by_name(attr_name)
         attr.set_value([])
-
+        
         self._buff = LIFO(max_buff_size)
 
     def emit(self, record):
@@ -60,7 +60,7 @@ class AttributeLogHandler(logging.Handler):
         self.sendText(output)
 
     def getRecordMessage(self, record):
-        return record.getMessage().split('\n')
+        return self.format(record).split('\n')
     
     def sendText(self, output):
         self._dev().push_change_event(self._attr_name, output)

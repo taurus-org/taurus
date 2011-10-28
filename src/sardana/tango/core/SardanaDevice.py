@@ -29,9 +29,12 @@ __all__ = ["SardanaDevice", "SardanaDeviceClass"]
 
 __docformat__ = 'restructuredtext'
 
+import threading
+
 from PyTango import Device_4Impl, DeviceClass, Util
 
 from taurus.core.util.log import Logger
+
 
 class SardanaDevice(Device_4Impl, Logger):
     
@@ -41,6 +44,10 @@ class SardanaDevice(Device_4Impl, Logger):
         if self._alias:
             name = "Tango_%s" % self.alias
         Logger.__init__(self, name)
+        
+        # access to some tango API (like MultiAttribute and Attribute) is 
+        # still not thread safe so we have this lock to protect
+        self.tango_lock = threading.Lock()
         
     def init(self, name):
         util = Util.instance()

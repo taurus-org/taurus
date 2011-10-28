@@ -937,7 +937,7 @@ def init_spock(ip, macro_server, door):
 
 
 def start(user_ns=None):
-    if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
+    #if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
     if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
 
     # Make sure the log level is changed to warning
