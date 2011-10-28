@@ -394,11 +394,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s'%(unicode(settings.fileName()), repr(e))
             self.error(msg)
             Qt.QMessageBox.warning(self,'Error Loading settings', msg, Qt.QMessageBox.Ok)
-        
+        self.restoreState(settings.value("MainWindow/State").toByteArray()) 
         #hide all dockwidgets (so that they are shown only if they were present in the settings)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
         for d in dockwidgets:
-#            r = self.restoreDockWidget(d)
+            r = self.restoreDockWidget(d)
             d.hide()
         self.restoreState(settings.value("MainWindow/State").toByteArray()) 
         
