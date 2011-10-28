@@ -73,8 +73,10 @@ class PseudoMotor(PoolElementDevice):
 
         self.Elements = map(int, self.Elements)
         if self.pseudo_motor is None:
+            full_name = self.get_name()
+            name = self.alias or full_name
             pseudo_motor = self.pool.create_element(type="PseudoMotor",
-                name=self.alias, full_name=self.get_name(), id=self.Id,
+                name=name, full_name=full_name, id=self.Id,
                 axis=self.Axis, ctrl_id=self.Ctrl_id,
                 user_elements=self.Elements)
             if self.instrument is not None:

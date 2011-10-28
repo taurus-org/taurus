@@ -77,9 +77,10 @@ class MotorGroup(PoolGroupDevice):
 
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
-            motor_group = self.pool.create_motor_group(name=self.alias,
-                full_name=self.get_name(), id=self.Id,
-                user_elements=self.Elements)
+            full_name = self.get_name()
+            name = self.alias or full_name
+            motor_group = self.pool.create_motor_group(name=name, id=self.Id,
+                full_name=full_name, user_elements=self.Elements)
             motor_group.add_listener(self.on_motor_group_changed)
             self.motor_group = motor_group
         # force a state read to initialize the state attribute

@@ -82,8 +82,9 @@ class Controller(PoolDevice):
         
         ctrl = self.ctrl
         if ctrl is None:
-            args = dict(type=self.Type, name=self.alias,
-                        full_name=self.get_name(),
+            full_name = self.get_name()
+            name = self.alias or full_name
+            args = dict(type=self.Type, name=name, full_name=full_name,
                         library=self.Library, klass=self.Klass,
                         id=self.Id, role_ids=self.Role_ids,
                         properties=self._get_ctrl_properties())

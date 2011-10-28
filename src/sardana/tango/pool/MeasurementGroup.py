@@ -85,9 +85,10 @@ class MeasurementGroup(PoolGroupDevice):
             except:
                 pass
         if self.measurement_group is None:
-            mg = self.pool.create_measurement_group(name=self.alias,
-                full_name=self.get_name(), id=self.Id,
-                user_elements=self.Elements)
+            full_name = self.get_name()
+            name = self.alias or full_name
+            mg = self.pool.create_measurement_group(name=name,
+                full_name=full_name, id=self.Id, user_elements=self.Elements)
             mg.add_listener(self.on_measurement_group_changed)
             self.measurement_group = mg
         # force a state read to initialize the state attribute

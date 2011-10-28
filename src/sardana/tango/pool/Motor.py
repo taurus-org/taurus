@@ -73,8 +73,10 @@ class Motor(PoolElementDevice):
         PoolElementDevice.init_device(self)
      
         if self.motor is None:
+            full_name = self.get_name()
+            name = self.alias or full_name
             motor = self.pool.create_element(type="Motor",
-                name=self.alias, full_name=self.get_name(), id=self.Id,
+                name=name, full_name=full_name, id=self.Id,
                 axis=self.Axis, ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 motor.set_instrument(self.instrument)
