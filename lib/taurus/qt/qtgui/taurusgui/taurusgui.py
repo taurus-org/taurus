@@ -39,7 +39,6 @@ from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseComponent
 from taurus.qt.qtgui.container import TaurusMainWindow
-from taurus.qt.qtgui.plot import TaurusTrend, TaurusMonitorTiny
 from taurus.qt.qtgui.input import GraphicalChoiceDlg
 
 try:
@@ -242,95 +241,94 @@ class TaurusGui(TaurusMainWindow):
         self.jorgsBar.setIconSize(Qt.QSize(60,60))
         self.jorgsBar.setMovable(False)
         
-    def createMacroInfrastructure(self, msname='', doorname='', meditpath=''):
-        '''
-        Put here code for initializing infrastructure needed for macro execution 
-        '''
-        from taurus.qt.qtgui.extra_macroexecutor import TaurusMacroExecutorWidget, TaurusSequencerWidget, TaurusMacroConfigurationDialog, \
-                                                     TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
-        from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
-        
-        #Create macroconfiguration dialog & action
-        self.splashScreen().showMessage("setting up Macro config dialog")
-        self.__macroConfigurationDialog = TaurusMacroConfigurationDialog(self)
-        self.macroConfigurationAction = self.taurusMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-system-session"), "Macro execution configuration...", self.__macroConfigurationDialog.show)
-        Qt.qApp.SDM.connectReader("macroserverName", self.__macroConfigurationDialog.selectMacroServer)
-        Qt.qApp.SDM.connectReader("doorName", self.__macroConfigurationDialog.selectDoor)
-        Qt.qApp.SDM.connectWriter("macroserverName", self.__macroConfigurationDialog, 'macroserverNameChanged')
-        Qt.qApp.SDM.connectWriter("doorName", self.__macroConfigurationDialog, 'doorNameChanged')
-        
-        #put a Macro Executor
-        self.splashScreen().showMessage('setting up macro-related components')
-        self.__macroExecutor = TaurusMacroExecutorWidget()
-        Qt.qApp.SDM.connectReader("macroserverName", self.__macroExecutor.setModel)
-        Qt.qApp.SDM.connectReader("doorName", self.__macroExecutor.onDoorChanged)
-        Qt.qApp.SDM.connectReader("macroStatus", self.__macroExecutor.onMacroStatusUpdated)
-        Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
-        Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
-        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
-        Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
-        self.createPanel(self.__macroExecutor, 'Macros', registerconfig=True)
-        
-        #put a Sequencer
-        self.__sequencer = TaurusSequencerWidget()
-        Qt.qApp.SDM.connectReader("macroserverName", self.__sequencer.setModel)
-        Qt.qApp.SDM.connectReader("doorName", self.__sequencer.onDoorChanged)
-        Qt.qApp.SDM.connectReader("macroStatus", self.__sequencer.onMacroStatusUpdated)
-        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer.tree, "macroNameChanged")
-        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
-        Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
-        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
-        Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
-        self.createPanel(self.__sequencer, 'Sequences', registerconfig=True)
-        
-        #puts a macrodescriptionviewer
-        self.__macroDescriptionViewer = TaurusMacroDescriptionViewer(self)
-        Qt.qApp.SDM.connectReader("macroserverName", self.__macroDescriptionViewer.setModel)
-        Qt.qApp.SDM.connectReader("macroName", self.__macroDescriptionViewer.onMacroNameChanged)
-        self.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True)
-        
-        #puts a doorOutput
-        self.__doorOutput = DoorOutput(self)
-        Qt.qApp.SDM.connectReader("doorOutputChanged", self.__doorOutput.onDoorOutputChanged)
-        Qt.qApp.SDM.connectReader("doorInfoChanged", self.__doorOutput.onDoorInfoChanged)
-        Qt.qApp.SDM.connectReader("doorWarningChanged", self.__doorOutput.onDoorWarningChanged)
-        Qt.qApp.SDM.connectReader("doorErrorChanged", self.__doorOutput.onDoorErrorChanged)
-        self.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False)
-        
-        #puts doorDebug
-        self.__doorDebug = DoorDebug(self)
-        Qt.qApp.SDM.connectReader("doorDebugChanged", self.__doorDebug.onDoorDebugChanged)
-        self.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False)
-        
-        #puts doorResult
-        self.__doorResult = DoorResult(self)
-        Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
-        self.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
-        
-        #puts a TaurusTrend connected to the door for showing scan trends
-        self.__scanTrend = TaurusTrend()
-        self.__scanTrend.setXIsTime(False)
-        self.__scanTrend.setScansAutoClear(False)
-        Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
-        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
-        self.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
-        
-        #The app-wide door
-        self.__qdoor = None
-        
-        #connect to macroserver and door if given
-        if msname: self.emit(Qt.SIGNAL("macroserverNameChanged"), msname)
-        if doorname: self.emit(Qt.SIGNAL("doorNameChanged"), doorname)
-        if meditpath:
-            ParamEditorManager().parsePaths(meditpath)
-            ParamEditorManager().browsePaths()
+#    def createMacroInfrastructure(self, msname='', doorname='', meditpath=''):
+#        '''
+#        Put here code for initializing infrastructure needed for macro execution 
+#        '''
+#        from taurus.qt.qtgui.extra_macroexecutor import TaurusMacroExecutorWidget, TaurusSequencerWidget, TaurusMacroConfigurationDialog, \
+#                                                     TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
+#        from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
+#        
+#        #Create macroconfiguration dialog & action
+#        self.splashScreen().showMessage("setting up Macro config dialog")
+#        self.__macroConfigurationDialog = TaurusMacroConfigurationDialog(self)
+#        self.macroConfigurationAction = self.taurusMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-system-session"), "Macro execution configuration...", self.__macroConfigurationDialog.show)
+#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroConfigurationDialog.selectMacroServer)
+#        Qt.qApp.SDM.connectReader("doorName", self.__macroConfigurationDialog.selectDoor)
+#        Qt.qApp.SDM.connectWriter("macroserverName", self.__macroConfigurationDialog, 'macroserverNameChanged')
+#        Qt.qApp.SDM.connectWriter("doorName", self.__macroConfigurationDialog, 'doorNameChanged')
+#        
+#        #put a Macro Executor
+#        self.splashScreen().showMessage('setting up macro-related components')
+#        self.__macroExecutor = TaurusMacroExecutorWidget()
+#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroExecutor.setModel)
+#        Qt.qApp.SDM.connectReader("doorName", self.__macroExecutor.onDoorChanged)
+#        Qt.qApp.SDM.connectReader("macroStatus", self.__macroExecutor.onMacroStatusUpdated)
+#        Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
+#        Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
+#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
+#        Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
+#        self.createPanel(self.__macroExecutor, 'Macros', registerconfig=True)
+#        
+#        #put a Sequencer
+#        self.__sequencer = TaurusSequencerWidget()
+#        Qt.qApp.SDM.connectReader("macroserverName", self.__sequencer.setModel)
+#        Qt.qApp.SDM.connectReader("doorName", self.__sequencer.onDoorChanged)
+#        Qt.qApp.SDM.connectReader("macroStatus", self.__sequencer.onMacroStatusUpdated)
+#        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer.tree, "macroNameChanged")
+#        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
+#        Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
+#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
+#        Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
+#        self.createPanel(self.__sequencer, 'Sequences', registerconfig=True)
+#        
+#        #puts a macrodescriptionviewer
+#        self.__macroDescriptionViewer = TaurusMacroDescriptionViewer(self)
+#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroDescriptionViewer.setModel)
+#        Qt.qApp.SDM.connectReader("macroName", self.__macroDescriptionViewer.onMacroNameChanged)
+#        self.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True)
+#        
+#        #puts a doorOutput
+#        self.__doorOutput = DoorOutput(self)
+#        Qt.qApp.SDM.connectReader("doorOutputChanged", self.__doorOutput.onDoorOutputChanged)
+#        Qt.qApp.SDM.connectReader("doorInfoChanged", self.__doorOutput.onDoorInfoChanged)
+#        Qt.qApp.SDM.connectReader("doorWarningChanged", self.__doorOutput.onDoorWarningChanged)
+#        Qt.qApp.SDM.connectReader("doorErrorChanged", self.__doorOutput.onDoorErrorChanged)
+#        self.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False)
+#        
+#        #puts doorDebug
+#        self.__doorDebug = DoorDebug(self)
+#        Qt.qApp.SDM.connectReader("doorDebugChanged", self.__doorDebug.onDoorDebugChanged)
+#        self.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False)
+#        
+#        #puts doorResult
+#        self.__doorResult = DoorResult(self)
+#        Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
+#        self.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
+#        
+#        #puts a TaurusTrend connected to the door for showing scan trends
+#        self.__scanTrend = TaurusTrend()
+#        self.__scanTrend.setXIsTime(False)
+#        self.__scanTrend.setScansAutoClear(False)
+#        Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
+#        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
+#        self.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
+#        
+#        #The app-wide door
+#        self.__qdoor = None
+#        
+#        #connect to macroserver and door if given
+#        if msname: self.emit(Qt.SIGNAL("macroserverNameChanged"), msname)
+#        if doorname: self.emit(Qt.SIGNAL("doorNameChanged"), doorname)
+#        if meditpath:
+#            ParamEditorManager().parsePaths(meditpath)
+#            ParamEditorManager().browsePaths()
         
     def __initSharedDataConnections(self):        
         #register the TAURUSGUI itself as a writer/reader for several shared data items
         self.splashScreen().showMessage("setting up shared data connections")
         Qt.qApp.SDM.connectWriter("macroserverName", self, 'macroserverNameChanged')
         Qt.qApp.SDM.connectWriter("doorName", self, 'doorNameChanged')
-        Qt.qApp.SDM.connectReader("doorName", self.onDoorNameChanged)
         Qt.qApp.SDM.connectReader("SelectedInstrument", self.setFocusToPanel)
         Qt.qApp.SDM.connectReader("executionStarted", self.setFocusToPanel)
 
@@ -694,10 +692,21 @@ class TaurusGui(TaurusMainWindow):
                     
         #configure the macro infrastructure       
         MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', self.__getVarFromXML(xmlroot,"MACROSERVER_NAME", None))
-        DOOR_NAME = getattr(conf,'DOOR_NAME', self.__getVarFromXML(xmlroot,"DOOR_NAME", ''))
-        MACROEDITORS_PATH = getattr(conf,'MACROEDITORS_PATH', self.__getVarFromXML(xmlroot,"MACROEDITORS_PATH", ''))
         if MACROSERVER_NAME is not None:
-            self.createMacroInfrastructure(msname=MACROSERVER_NAME, doorname=DOOR_NAME, meditpath=MACROEDITORS_PATH)
+            from taurus.qt.qtgui.taurusgui import MacroBroker
+            self.__macroBroker =  MacroBroker(self)
+        if MACROSERVER_NAME: 
+            self.emit(Qt.SIGNAL("macroserverNameChanged"), MACROSERVER_NAME)
+        
+        DOOR_NAME = getattr(conf,'DOOR_NAME', self.__getVarFromXML(xmlroot,"DOOR_NAME", ''))
+        if DOOR_NAME:
+            self.emit(Qt.SIGNAL("doorNameChanged"), DOOR_NAME)
+        
+        MACROEDITORS_PATH = getattr(conf,'MACROEDITORS_PATH', self.__getVarFromXML(xmlroot,"MACROEDITORS_PATH", ''))
+        if MACROEDITORS_PATH:
+            from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
+            ParamEditorManager().parsePaths(MACROEDITORS_PATH)
+            ParamEditorManager().browsePaths()
             
         #Synoptics          
         SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
@@ -875,35 +884,35 @@ class TaurusGui(TaurusMainWindow):
         '''
         self.statusBar().showMessage(msg)
     
-    def onDoorNameChanged(self, doorname):
-        ''' Slot to be called when the door name has changed
-        
-        :param doorname: (str) the tango name of the door device 
-        '''
-        if self.__qdoor is not None: #disconnect it from *all* shared data providing
-            Qt.qApp.SDM.disconnectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
-            Qt.qApp.SDM.disconnectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
-             
-        if doorname == "": return #@todo send signal with doorName to macroExecutorWidget in case of "" also send it to disconnect doorstateled
-        door = taurus.Device(doorname)
-        if not isinstance(door, Qt.QObject):
-            msg= "cannot connect to door %s"%doorname
-            Qt.QMessageBox.critical(self,'Door connection error', msg)
-            return
-        self.__qdoor = door
-        Qt.qApp.SDM.connectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
-        Qt.qApp.SDM.connectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
-        Qt.qApp.SDM.connectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
-        Qt.qApp.SDM.connectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
-        Qt.qApp.SDM.connectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
-        Qt.qApp.SDM.connectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
-        Qt.qApp.SDM.connectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
-        #@todo: connect as a writer of other data as well
+#    def onDoorNameChanged(self, doorname):
+#        ''' Slot to be called when the door name has changed
+#        
+#        :param doorname: (str) the tango name of the door device 
+#        '''
+#        if getattr(self, '__qdoor',None) is not None: #disconnect it from *all* shared data providing
+#            Qt.qApp.SDM.disconnectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
+#            Qt.qApp.SDM.disconnectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
+#             
+#        if doorname == "": return #@todo send signal with doorName to macroExecutorWidget in case of "" also send it to disconnect doorstateled
+#        door = taurus.Device(doorname)
+#        if not isinstance(door, Qt.QObject):
+#            msg= "cannot connect to door %s"%doorname
+#            Qt.QMessageBox.critical(self,'Door connection error', msg)
+#            return
+#        self.__qdoor = door
+#        Qt.qApp.SDM.connectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
+#        Qt.qApp.SDM.connectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
+#        Qt.qApp.SDM.connectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
+#        Qt.qApp.SDM.connectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
+#        Qt.qApp.SDM.connectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
+#        Qt.qApp.SDM.connectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
+#        Qt.qApp.SDM.connectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
+#        #@todo: connect as a writer of other data as well
     
 #    def onSelectedInstrumentChanged(self, instrumentname):
 #        ''' Slot to be called when the selected instrument has changed (e.g. by user
