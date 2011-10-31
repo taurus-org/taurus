@@ -41,7 +41,6 @@ import re
 import thread
 import time
 import operator
-import json
 
 from PyTango import DevState, AttrDataFormat, DevFailed, \
     DeviceProxy, AttributeProxy
@@ -86,7 +85,7 @@ class BaseElement(object):
     def __str__(self):
         return self.getName()
     
-    def to_json(self):
+    def serialize(self):
         return self._pool_data
     
     def str(self, n=0):
@@ -95,7 +94,7 @@ class BaseElement(object):
         
         :param n: the number of elements in the tuple."""
         if n == 0:
-            return json.dumps(self.to_json())
+            return CodecFactory.encode(('json'), self.serialize())
         return self._str_tuple[:n]
     
     def __cmp__(self,o):
@@ -831,9 +830,8 @@ class MGConfiguration(object):
     
     def __init__(self, mg, data):
         self._mg = weakref.ref(mg)
-        if isinstance(data, str):
-            json_codec = CodecFactory().getCodec('json')
-            _, data = json_codec.decode(('json', data), ensure_ascii=True)
+        if isinstance(data, (str, unicode)):
+            data = CodecFactory().decode(('json', data), ensure_ascii=True)
         self.raw_data = data
         self.__dict__.update(data)
         
@@ -1037,8 +1035,7 @@ class MeasurementGroup(PoolElement):
         return self._getAttrEG('Configuration')
     
     def setConfiguration(self, configuration):
-        codec = CodecFactory().getCodec('json')
-        data = codec.encode(configuration)
+        data = CodecFactory().encode(('json', configuration))
         self.write_attribute('configuration', data)
     
     def _setConfiguration(self, data):
@@ -1232,7 +1229,7 @@ class Pool(TangoDevice, MoveableSource):
         self.call__init__(MoveableSource)
         
         self._elements = BaseSardanaElementContainer()
-        self.getAttribute("ElementList").addListener(self.on_elements_changed)
+        self.getAttribute("Elements").addListener(self.on_elements_changed)
     
     def getObject(self, element_info):
         elem_type = element_info.getType()
@@ -1247,7 +1244,10 @@ class Pool(TangoDevice, MoveableSource):
         return obj
         
     def on_elements_changed(self, evt_src, evt_type, evt_value):
-        if evt_type not in CHANGE_EVT_TYPES:
+        if evt_type == TaurusEventType.Error:
+            self.warning("Received element list error event %s", evt_value)
+            return
+        elif evt_type not in CHANGE_EVT_TYPES:
             return
         try:
             elems = CodecFactory().decode(evt_value.value, ensure_ascii=True)

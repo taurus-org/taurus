@@ -97,9 +97,8 @@ class TangoDevInfo(taurus.core.TaurusDevInfo):
             for attr_info in attr_info_list:
                 full_name = "%s/%s" % (self.fullName(), attr_info.name)
                 attr_obj = taurus.core.TaurusAttrInfo(self.container(), 
-                                                      name=attr_info.name.lower(),
-                                                      full_name=full_name.lower(),
-                                                      device=self, info=attr_info) 
+                    name=attr_info.name.lower(), full_name=full_name.lower(),
+                    device=self, info=attr_info)
                 attrs.append(attr_obj)
             attrs = sorted(attrs, key=lambda attr : attr.name())
         except PyTango.DevFailed, df:

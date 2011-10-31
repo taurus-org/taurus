@@ -43,7 +43,7 @@ except ImportError:
 
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorer
+from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
 from taurus.qt.qtgui.util import ActionFactory
 
@@ -61,8 +61,8 @@ class TaurusBaseEditor(Qt.QSplitter):
         self.menu_list = None
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.outlineexplorer = OutlineExplorer(self, show_fullpath=False,
-                                               show_all_files=False)
+        self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
+                                                     show_all_files=False)
         editor_widgets = Qt.QWidget(self)
         editor_layout = Qt.QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
@@ -122,7 +122,7 @@ class TaurusBaseEditor(Qt.QSplitter):
             editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
         
         editorstack.set_io_actions(*self.io_actions)
-        font = Qt.QFont("Courier New")
+        font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
         self.connect(editorstack, Qt.SIGNAL('close_file(int)'),

@@ -209,11 +209,11 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     def roleSize(self, role):
         raise NotImplementedError("roleSize must be implemented "
                                   "in %s" % self.__class__.__name__)
-
+    
     def roleToolTip(self, role):
         raise NotImplementedError("roleToolTip must be implemented "
                                   "in %s" % self.__class__.__name__)
-
+    
     def setDataSource(self, data_src):
         self._data_src = data_src
         self.refresh()
@@ -238,15 +238,15 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     
     def columnIcon(self, column):
         return self.roleIcon(self.role(column))
-
+    
     def columnToolTip(self, column):
         return self.roleToolTip(self.role(column))
-
+    
     def columnSize(self, column):
         role = self.role(column)
         s = self.roleSize(role)
         return s
-
+    
     def pyData(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid():
             return None

@@ -235,14 +235,40 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
         if role == ElemType.Attribute or role == ElemType.Name:
-            return self._itemData.name()
-
+            data = self.itemData()
+            data_info = data.info()
+            ret = data.name()
+            if data_info and hasattr(data_info, 'label'):
+                ret = "'" + data_info.label + "' (" + ret + ")"
+            return ret
+    
+    def toolTip(self, index):
+        if index.column() > 0:
+            return TaurusTreeDbBaseItem.toolTip(self, index)
+        data = self.itemData()
+        di = data.info()
+        if di is None:
+            return data.name()
+        ret = '<TABLE border="0" cellpadding="1" cellspacing="0">'
+        items = dict(
+            name = "'" + di.label + "' (" + data.name() + ")",
+            description = di.description.replace("<","&lt;").replace(">","&gt;"),
+            unit = di.unit,
+            limits = "[%s, %s]" % (di.min_value, di.max_value),
+            alarms = "[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
+            warnings = "[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
+        
+        for id, value in items.items():
+            ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (id.capitalize(), value)
+        ret += '</TABLE>'
+        return ret
+        
     def mimeData(self, index):
         return self.itemData().fullName()
-
+    
     def role(self):
         return ElemType.Attribute
-
+    
         
 class TaurusTreeServerNameItem(TaurusTreeDbBaseItem):
     """A node designed to represent the server name part of a server"""
@@ -277,7 +303,7 @@ class TaurusTreeServerItem(TaurusTreeDbBaseItem):
             return self._itemData.health()
         elif role == ElemType.Host:
             return self._itemData.host()
-
+    
     def mimeData(self, index):
         return self.itemData().fullName()
 
@@ -405,12 +431,14 @@ class TaurusDbBaseModel(TaurusBaseModel):
                 health = item.data(index)
                 ret = getSWDevHealthIcon(health)
         elif role == Qt.Qt.ToolTipRole:
-            data = item.data(index)
-            if data is not None:
-                if taurus_role == ElemType.Exported:
-                    ret = getSWDevHealthToolTip(data)
-                else:
-                    ret = self.roleToolTip(taurus_role)
+            ret = item.toolTip(index)
+            if ret is None:
+                data = item.data(index)
+                if data is not None:
+                    if taurus_role == ElemType.Exported:
+                        ret = getSWDevHealthToolTip(data)
+                    else:
+                        ret = self.roleToolTip(taurus_role)
         #elif role == Qt.Qt.SizeHintRole:
         #    ret = self.columnSize(column)
         elif role == Qt.Qt.FontRole:

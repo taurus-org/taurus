@@ -109,12 +109,14 @@ class BaseSardanaElement(object):
             return [elem_types]
         return elem_types
     
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
         kwargs.update(self._data)
         return kwargs
     
     def str(self, *args, **kwargs):
-        return CodecFactory().encode('json', self.to_json(*args, **kwargs))
+        #TODO change and check which is the active protocol to serialize
+        #acordingly
+        return CodecFactory().encode(('json', self.serialize(*args, **kwargs)))
     
     def getObj(self):
         obj = self._object
@@ -187,6 +189,9 @@ class BaseSardanaElementContainer:
     
     def getElements(self):
         return self._name_elems_dict
+    
+    def getTypes(self):
+        return self._type_elems_dict
     
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N

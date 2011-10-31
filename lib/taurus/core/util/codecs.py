@@ -76,8 +76,6 @@ from singleton import Singleton
 from log import Logger, DebugIt
 from containers import CaselessDict
 
-from taurus.core.util import json
-
 
 class Codec(Logger):
     """The base class for all codecs"""
@@ -219,7 +217,8 @@ class BZ2Codec(Codec):
 
 
 class JSONCodec(Codec):
-    """A codec able to encode/decode to/from json format. It uses the :mod:`json` module.
+    """A codec able to encode/decode to/from json format. It uses the
+    :mod:`json` module.
     
     Example::
         
@@ -240,12 +239,15 @@ class JSONCodec(Codec):
         {'hello': 'world', 'goodbye': 1000}"""
     
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a json string. The given data **must** be a python
-        object that json is able to convert.
+        """encodes the given data to a json string. The given data **must** be
+        a python object that json is able to convert.
             
-        :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
         
-        :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        import json
         format = 'json'
         if len(data[0]): format += '_%s' % data[0]
         # make it compact by default
@@ -255,21 +257,98 @@ class JSONCodec(Codec):
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a json string.
             
-        :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
         
-        :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        import json
         if not data[0].startswith('json'):
             return data
         format = data[0].partition('_')[2]
         
-        ensure_ascii = False
-        if 'ensure_ascii' in kwargs:
-            ensure_ascii = kwargs.pop('ensure_ascii')
+        ensure_ascii = kwargs.pop('ensure_ascii', False)
         
         if isinstance(data[1], buffer):
             data = data[0], str(data[1])
         
         data = json.loads(data[1])
+        if ensure_ascii:
+            data = self._transform_ascii(data)
+        return format, data
+
+    def _transform_ascii(self, data):
+        if isinstance(data, unicode):
+            return data.encode('utf-8')
+        elif isinstance(data, dict):
+            return self._transform_dict(data)
+        elif isinstance(data, list):
+            return self._transform_list(data)
+        elif isinstance(data, tuple):
+            return tuple(self._transform_list(data))
+        else:
+            return data
+        
+    def _transform_list(self, lst):
+        return [ self._transform_ascii(item) for item in lst ]
+
+    def _transform_dict(self, dct):
+        newdict = {}
+        for k, v in dct.iteritems():
+            newdict[self._transform_ascii(k)] = self._transform_ascii(v)
+        return newdict
+
+
+class BSONCodec(Codec):
+    """A codec able to encode/decode to/from bson format. It uses the
+    :mod:`bson` module.
+    
+    Example::
+        
+        >>> from taurus.core.util import CodecFactory
+        
+        >>> cf = CodecFactory()
+        >>> codec = cf.getCodec('bson')
+        >>>
+        >>> # first encode something
+        >>> data = { 'hello' : 'world', 'goodbye' : 1000 }
+        >>> format, encoded_data = codec.encode(("", data))
+        >>>
+        >>> # now decode it
+        >>> _, decoded_data = codec.decode((format, encoded_data))
+        >>> print decoded_data
+        {'hello': 'world', 'goodbye': 1000}"""
+    
+    def encode(self, data, *args, **kwargs):
+        """encodes the given data to a bson string. The given data **must** be
+        a python object that bson is able to convert.
+            
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        import bson
+        format = 'bson'
+        if len(data[0]): format += '_%s' % data[0]
+        return format, bson.BSON.encode(data[1], *args, **kwargs)
+    
+    def decode(self, data, *args, **kwargs):
+        """decodes the given data from a bson string.
+            
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        if not data[0].startswith('bson'):
+            return data
+        format = data[0].partition('_')[2]
+        ensure_ascii = kwargs.pop('ensure_ascii', False)
+        
+        data = data[0], bson.BSON(data[1])
+        
+        data = decode(data[1])
         if ensure_ascii:
             data = self._transform_ascii(data)
         return format, data
@@ -416,6 +495,7 @@ class CodecFactory(Singleton, Logger):
     #: Default minimum map of registered codecs
     CODEC_MAP = CaselessDict({
         'json' : JSONCodec,
+        'bson' : BSONCodec,
         'bz2'  : BZ2Codec,
         'zip'  : ZIPCodec,
         'plot' : PlotCodec,

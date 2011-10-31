@@ -209,7 +209,10 @@ class TaurusAttrInfo(TaurusInfo):
 
     def device(self):
         return self._device()
-        
+    
+    def info(self):
+        return self._info
+    
     def __getattr__(self, name):
         return getattr(self._info, name)
 

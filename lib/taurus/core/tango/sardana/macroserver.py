@@ -39,7 +39,6 @@ import threading
 import time
 import uuid
 import os.path as osp
-import json
 
 import PyTango
 
@@ -579,134 +578,6 @@ class UnknownMacroServerElementFormat(Exception):
     pass
 
 
-class MacroServerElement:
-
-    def __init__(self, type, from_str):
-        self._type = type
-        codec = CodecFactory().getCodec('json')
-        self._pool_data_str = from_str
-        data = codec.decode(('json', from_str), ensure_ascii=True)[1]
-        self._pool_data = data
-        self.__dict__.update(data)
-
-    def __repr__(self):
-        return self.getName()
-    
-    def __str__(self):
-        return self._pool_data_str
-    
-    def getName(self):
-        return self._pool_data['name']
-    
-    def getId(self):
-        return self._pool_data['full_name']
-
-    def getPoolId(self):
-        try:
-            return self._pool_data['pool']
-        except:
-            print self._pool_data
-            raise
-    
-    def getType(self):
-        return self.getTypes()[0]
-    
-    def getTypes(self):
-        elem_types = self._pool_data['type']
-        if isinstance(elem_types, (str, unicode)):
-            return [elem_types]
-        return elem_types
-
-
-class MacroServerElementContainer:
-    
-    def __init__(self):
-        # dict<str, dict> where key is the pool device name and value is:
-        #     dict<str, MacroServerElement> where key is the element alias
-        #                                   and value is the Element object
-        self._pool_elems_dict = CaselessDict()
-        
-        # dict<str, dict> where key is the type and value is:
-        #     dict<str, MacroServerElement> where key is the element alias and
-        #                                   value is the Element object
-        self._type_elems_dict = CaselessDict()
-        
-        # dict<str, MacroServerElement> where key is the element alias and value
-        #                               value is the Element object
-        self._name_elems_dict = CaselessDict()
-    
-    def addElement(self, e):
-        
-        pool = e.getPoolId()
-        type = e.getType()
-        name = e.getName()
-        id = e.getId()
-        
-        # update pool_elems
-        if self._pool_elems_dict.has_key(pool):
-            pool_elems = self._pool_elems_dict.get(pool)
-        else:
-            pool_elems = CaselessDict()
-            self._pool_elems_dict[pool] = pool_elems
-        pool_elems[name] = e
-    
-        #update type_elems
-        if self._type_elems_dict.has_key(type):
-            type_elems = self._type_elems_dict.get(type)
-        else:
-            type_elems = CaselessDict()
-            self._type_elems_dict[type] = type_elems
-        type_elems[name] = e
-        
-        #update name_elems
-        self._name_elems_dict[name] = e
-    
-    def removeElement(self, e):
-        pool = e.getPoolId()
-        type = e.getType()
-        name = e.getName()
-        id = e.getId()
-        
-        # update pool_elems
-        pool_elems = self._pool_elems_dict.get(pool)
-        if pool_elems:
-            del pool_elems[name]
-        
-        # update type_elems
-        type_elems = self._type_elems_dict.get(type)
-        if type_elems:
-            del type_elems[name]
-        
-        if self._name_elems_dict.has_key(name):
-            del self._name_elems_dict[name]
-    
-    def removeElementsOfType(self, t):
-        for elem in self.getElementsOfType(t):
-            self.removeElement(elem)
-    
-    def getElementsOfType(self, t):
-        elems = self._type_elems_dict.get(t, {})
-        return elems.values()
-    
-    def getElementNamesOfType(self, t):
-        elems = self._type_elems_dict.get(t, {})
-        return elems.keys()
-    
-    def getElementsOfPool(self, pool):
-        elems = self._pool_elems_dict.get(type, {})
-        return elems.values()
-
-    def getElementNamesOfPool(self, pool):
-        elems = self._pool_elems_dict.get(type, {})
-        return elems.keys()
-    
-    def hasElementName(self, elem_name):
-        return self._name_elems_dict.has_key(elem_name)
-    
-    def getElementObj(self, elem_name):
-        return self._name_elems_dict.get(elem_name)
-
-
 class MacroPath(object):
     
     def __init__(self, ms):
@@ -726,7 +597,7 @@ class BaseMacroServer(MacroServerDevice):
         self._elements = BaseSardanaElementContainer()
         self.call__init__(MacroServerDevice, name, **kw)
         
-        attr = self.getAttribute("ElementList")
+        attr = self.getAttribute("Elements")
         attr.addListener(self.on_elements_changed)
     
     NO_CLASS_TYPES = 'ControllerClass', 'ControllerLib', \
@@ -754,7 +625,7 @@ class BaseMacroServer(MacroServerDevice):
             return self._on_elements_changed(evt_src, evt_type, evt_value)
         except Exception, e:
             self.error("Exception occurred processing elements")
-            self.debug("Details:", exc_info=1)
+            self.error("Details:", exc_info=1)
             return set(), set()
     
     def _on_elements_changed(self, evt_src, evt_type, evt_value):

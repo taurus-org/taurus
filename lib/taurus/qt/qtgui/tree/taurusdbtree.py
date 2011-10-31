@@ -56,6 +56,13 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
             "tooltip" : "View by device tree",
             "model"   : [TaurusDbDeviceProxyModel, TaurusDbDeviceModel,],
         },
+        'PlainDevice' : {
+            "label"   : "By plain device",
+            "icon"    : getElementTypeIconName(TaurusElementType.Device),
+            "tooltip" : "View by plain device tree",
+            "model"   : [TaurusDbDeviceProxyModel, TaurusDbPlainDeviceModel,],
+        },
+
         TaurusElementType.Server : {
             "label" : "By server",
             "icon" : getElementTypeIconName(TaurusElementType.Server),
