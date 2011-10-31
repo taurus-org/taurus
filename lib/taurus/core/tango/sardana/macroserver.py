@@ -567,6 +567,9 @@ class BaseDoor(MacroServerDevice):
     def writeln(self, msg='', stream=None):
         self.write("%s\n" % msg, stream=stream)
     
+    def getExperimentConfigurationObj(self):
+        return self._experiment_configuration
+        
     def getExperimentConfiguration(self):
         return self._experiment_configuration.get()
         
