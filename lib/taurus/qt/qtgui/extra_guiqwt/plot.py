@@ -546,6 +546,7 @@ def taurusImageDlgMain():
     parser.set_usage("%prog [options] <model>")
     parser.set_description('a Taurus application for plotting Image Attributes')
     parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    parser.add_option("--rgb", action="store_true", dest="rgb_mode", default=False, help="assume image is RGB")
     app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Image Dialog", app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
@@ -555,6 +556,8 @@ def taurusImageDlgMain():
         args.append('eval://rand(256,128)')
         
     w = TaurusImageDialog()
+    
+    w.setRGBmode(options.rgb_mode)
         
     #set model
     if len(args) == 1:
