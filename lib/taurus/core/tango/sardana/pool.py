@@ -417,7 +417,7 @@ class Controller(PoolElement):
         return self._pool_data['module']
     
     def getClassName(self):
-        return self._pool_data['class']
+        return self._pool_data['klass']
     
     def addElement(self, elem):
         axis = elem.getAxis()
