@@ -539,12 +539,12 @@ class ControllerManager(Singleton, Logger):
         if os.path.isabs(name):
             abs_file_name = name
             for lib in self._modules.values():
-                if lib.f_path == abs_file_name:
+                if lib.file_path == abs_file_name:
                     return lib
         elif name.count(os.path.extsep):
             file_name = name
             for lib in self._modules.values():
-                if lib.f_name == file_name:
+                if lib.file_name == file_name:
                     return lib
         module_name = name
         return self._modules.get(module_name)
