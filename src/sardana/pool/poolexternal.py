@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import PyTango
 
-from pooldefs import ElementType
+from sardana import ElementType
 from poolbase import PoolBaseObject
 
 

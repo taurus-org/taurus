@@ -41,8 +41,7 @@ import threading
 from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
-from sardana import State
-from pooldefs import ElementType, InvalidAxis, InvalidId
+from sardana import State, ElementType, InvalidAxis, InvalidId
 from poolelement import PoolBaseElement
 from poolevent import EventType
 
@@ -221,14 +220,24 @@ class PoolController(PoolBaseController):
         super(PoolController, self).__init__(**kwargs)
         self.re_init()
 
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolBaseController.serialize(self, *args, **kwargs)
         ctrl_info = self._ctrl_info
-        kwargs['module'] = ctrl_info.getModuleName()
-        kwargs['class'] = ctrl_info.getName()
-        kwargs['language'] = 'Python'
-        kwargs['filename'] = ctrl_info.getSimpleFileName()
-        kwargs['types'] = self.get_ctrl_type_names()
-        return PoolBaseController.to_json(self, *args, **kwargs)
+        if ctrl_info is None:
+            kwargs['module'] = self._lib_name
+            kwargs['klass'] = self._class_name
+            kwargs['language'] = 'Python'
+            kwargs['filename'] = None
+            kwargs['types'] = None
+            kwargs['parent'] = self._class_name
+        else:
+            kwargs['module'] = ctrl_info.getModuleName()
+            kwargs['klass'] = ctrl_info.getName()
+            kwargs['language'] = 'Python'
+            kwargs['filename'] = ctrl_info.getSimpleFileName()
+            kwargs['types'] = self.get_ctrl_type_names()
+            kwargs['parent'] = ctrl_info.getName()
+        return kwargs
     
     def _create_ctrl_args(self):
         name = self.name
@@ -251,7 +260,7 @@ class PoolController(PoolBaseController):
     def _init(self):
         if self._ctrl_info is None:
             if self._lib_info is not None:
-                self._ctrl_error = self._lib_info.getError()
+                self._ctrl_error = self._lib_info.get_error()
             return
         try:
             self._ctrl = self._create_controller()
@@ -285,8 +294,7 @@ class PoolController(PoolBaseController):
         self._ctrl_info = None
         self._lib_info = manager.getControllerLib(mod_name)
         if self._lib_info is not None:
-            self._ctrl_info = self._lib_info.getController(class_name)
-        
+            self._ctrl_info = self._lib_info.get_controller(class_name)
         self._init()
         
         for elem in elem_axis.values():
@@ -682,7 +690,12 @@ class PoolPseudoMotorController(PoolController):
     def __init__(self, **kwargs):
         self._motor_ids = kwargs.pop('role_ids')
         super(PoolPseudoMotorController, self).__init__(**kwargs)
-
+    
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolController.serialize(self, *args, **kwargs)
+        kwargs['type'] = 'Controller'
+        return kwargs
+        
     def _create_ctrl_args(self):
         pars = PoolController._create_ctrl_args(self)
         name, klass, props, args, kwargs = pars

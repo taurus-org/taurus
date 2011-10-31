@@ -33,9 +33,9 @@ __docformat__ = 'restructuredtext'
 import math
 import weakref
 
-from poolbase import *
-from pooldefs import *
+from sardana import ElementType
 
+from poolbase import PoolObject
 
 class PoolInstrument(PoolObject):
     
@@ -51,14 +51,17 @@ class PoolInstrument(PoolObject):
     def get_type(self):
         return ElementType.Instrument
     
-    def to_json(self, *args, **kwargs):
-        ret = PoolObject.to_json(self, *args, **kwargs)
-        ret['klass'] = self.instrument_class
+    def get_parent(self):
+        return self.get_parent_instrument()
+    
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolObject.serialize(self, *args, **kwargs)
+        kwargs['klass'] = self.instrument_class
         if self.parent_instrument is not None:
-            ret['parent_instrument'] = self.parent_instrument.full_name
+            kwargs['parent_instrument'] = self.parent_instrument.full_name
         else:
-            ret['parent_instrument'] = None
-        return ret
+            kwargs['parent_instrument'] = None
+        return kwargs
     
     def get_instrument_class(self):
         return self._instrument_class

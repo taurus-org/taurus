@@ -32,8 +32,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core import AttributeNameValidator
 
-from sardana import State
-from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
+from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolelement import PoolBaseElement
 from poolexternal import PoolTangoObject
 from poolcontainer import PoolContainer
@@ -233,7 +232,8 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
         PoolBaseElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
     
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolBaseElement.serialize(self, *args, **kwargs)
         elements = [ elem.name for elem in self.get_user_elements() ]
         physical_elements = []
         for elem_list in self.get_physical_elements().values():
@@ -241,8 +241,7 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
                 physical_elements.append(elem.name)
         kwargs['elements'] = elements
         kwargs['physical_elements'] = physical_elements
-        ret = PoolBaseElement.to_json(self, *args, **kwargs)
-        return ret
+        return kwargs
     
     def _get_pool(self):
         return self.pool

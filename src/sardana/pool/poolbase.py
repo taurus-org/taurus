@@ -24,36 +24,23 @@
 ##############################################################################
 
 """This module is part of the Python Pool libray. It defines the base classes
-for"""
+for Pool object"""
 
 __all__ = ["PoolBaseObject", "PoolObject"]
 
 __docformat__ = 'restructuredtext'
 
-import json
-import weakref
-import traceback
-
 from taurus.core.util import Logger
 
-from poolevent import EventGenerator, EventReceiver
+from sardana.sardanabase import SardanaBaseObject
 
 
-class PoolBaseObject(EventGenerator, EventReceiver, Logger):
-    """The Pool most abstract object. It contains only two members:
-    
-       - _pool : a weak reference to the pool where it belongs
-       - _name : the name
-       - _full_name : the name (usually a tango device name, but can be 
-         anything else.)"""
+class PoolBaseObject(SardanaBaseObject):
+    """The Pool most abstract object."""
        
     def __init__(self, **kwargs):
-        EventGenerator.__init__(self)
-        EventReceiver.__init__(self)
-        self._name = intern(kwargs.pop('name'))
-        self._full_name = intern(kwargs.pop('full_name'))
-        Logger.__init__(self, self._name)
-        self._pool = weakref.ref(kwargs.pop('pool'))
+        kwargs['manager'] = kwargs.pop('pool')
+        SardanaBaseObject.__init__(self, **kwargs)
     
     def get_pool(self):
         """Return the :class:`sardana.pool.pool.Pool` which *owns* this pool
@@ -61,84 +48,36 @@ class PoolBaseObject(EventGenerator, EventReceiver, Logger):
         
         :return: the pool which *owns* this pool object.
         :rtype: :class:`sardana.pool.pool.Pool`"""
-        return self._pool()
+        return self.get_manager()
     
-    def get_name(self):
-        """Returns this pool object name
-        
-        :return: this pool object name
-        :rtype: str"""
-        return self._name
-
-    def get_full_name(self):
-        """Returns this pool object full name
-        
-        :return: this pool object full name
-        :rtype: str"""
-        return self._full_name
+    def serialize(self, *args, **kwargs):
+        kwargs = SardanaBaseObject.serialize(self, *args, **kwargs)
+        kwargs['pool'] = self.pool.name
+        return kwargs
     
-    def get_type(self):
-        """Returns this pool object type. Default implementation raises
-        NotImplementedError.
-        
-        :return: this pool object type
-        :rtype: :obj:'"""
-        raise NotImplementedError
-    
-    def fire_event(self, event_type, event_value, listeners=None):
-        return EventGenerator.fire_event(self, event_type, event_value,
-                                         listeners=listeners)
-#        try:
-#            return EventGenerator.fire_event(self, event_type, event_value,
-#                                             listeners=listeners)
-#        except:
-#            self.warning("Error firing event <%s,%s>", event_type, event_value)
-#            self.info("Error description: \n%s", traceback.format_exc())
-            
-
-    def to_json(self, *args, **kwargs):
-        cl_name = self.__class__.__name__
-        if cl_name.startswith("Pool"):
-            cl_name = cl_name[4:]
-        data = dict(name=self.name, pool=self.pool.name, type=cl_name,
-                    full_name=self.full_name)
-        data.update(kwargs)
-        return data
-
-    def str(self, *args, **kwargs):
-        return json.dumps(self.to_json(*args, **kwargs))
-    
-    def __str__(self):
-        return "%s(%s)" % (self.__class__.__name__, self._name)
-
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self._name)
-    
-    pool = property(get_pool, doc="reference to the :class:`sardana.pool.pool.Pool`")
-    name = property(get_name, doc="object name")
-    full_name = property(get_full_name, doc="object full name")
+    pool = property(get_pool,
+                    doc="reference to the :class:`sardana.pool.pool.Pool`")
     
 
 class PoolObject(PoolBaseObject):
     """A Pool object that besides the name and reference to the pool has:
        
        - _id : the internal identifier"""
-       
+    
     def __init__(self, **kwargs):
         self._id = kwargs.pop('id')
         PoolBaseObject.__init__(self, **kwargs)
-
+    
     def get_id(self):
         """Returns this pool object ID
         
         :return: this pool object ID
         :rtype: int"""
         return self._id
-
-
-    def to_json(self, *args, **kwargs):
+    
+    def serialize(self, *args, **kwargs):
+        ret = PoolBaseObject.serialize(self, *args, **kwargs)
         kwargs['id'] = self.id
-        ret = PoolBaseObject.to_json(self, *args, **kwargs)
         return ret
-
+    
     id = property(get_id, doc="object ID")

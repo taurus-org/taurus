@@ -35,13 +35,11 @@ import time
 
 from taurus.core.util import Logger, ThreadPool, DebugIt, InfoIt
 
+from sardana import ElementType, TYPE_PSEUDO_ELEMENTS
+
 from poolcontrollermanager import ControllerManager
 
-from poolbase import *
-from pooldefs import *
-from poolelement import *
-from poolcontroller import *
-from poolmotor import *
+from poolbase import PoolObject
 from poolaction import OperationInfo
 
 
@@ -77,6 +75,8 @@ class PoolMonitor(Logger, threading.Thread):
             ctrl_ids = []
             elem_ids = []
             for pool_ctrl in pool_ctrls:
+                if not pool_ctrl.is_online():
+                    continue
                 types = set(pool_ctrl.get_ctrl_types())
                 if types.isdisjoint(TYPE_PSEUDO_ELEMENTS):
                     ctrl_ids.append(pool_ctrl.id)

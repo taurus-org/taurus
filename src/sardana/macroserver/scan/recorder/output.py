@@ -59,9 +59,9 @@ class JsonRecorder(DataRecorder):
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         total_scan_intervals = recordlist.getEnvironValue('total_scan_intervals')
         start_time = recordlist.getEnvironValue('starttime').ctime()
-        self.column_desc = [ e for e in column_desc if e.shape == (1,) ]
+        self.column_desc = [ e for e in column_desc if e.shape == () ]
         column_desc = [ d.toDict() for d in self.column_desc ]
-        data = { 'column_desc' : column_desc, 
+        data = { 'column_desc' : column_desc,
                  'ref_moveables' : ref_moveables,
                  'estimatedtime' : estimatedtime,
                  'total_scan_intervals' : total_scan_intervals,

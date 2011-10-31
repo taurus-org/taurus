@@ -23,8 +23,8 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
-for"""
+"""This module is part of the Python Sardana libray. It defines the base classes
+for module manager"""
 
 __all__ = ["ModuleManager"]
 
@@ -81,7 +81,7 @@ class ModuleManager(Singleton, Logger):
 
         self.unloadModule(module_name)
         
-        m, exc_info, trace, file = None, False, None, None
+        m, trace, file = None, None, None
         try:
             file, pathname, desc = imp.find_module(module_name, path)
             self.info("(re)loading module %s", module_name)
@@ -90,7 +90,8 @@ class ModuleManager(Singleton, Logger):
             self.info("Error (re)loading module %s", module_name, exc_info=1)
             raise
         finally:
-            if file is not None: file.close()
+            if file is not None:
+                file.close()
         
         if m is None:
             return

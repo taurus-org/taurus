@@ -30,8 +30,7 @@ __all__ = [ "PoolPseudoMotor" ]
 
 __docformat__ = 'restructuredtext'
 
-from sardana import State
-from pooldefs import ElementType, TYPE_PHYSICAL_ELEMENTS
+from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolevent import EventType
 from poolelement import PoolBaseElement, PoolElement
 from poolgroupelement import PoolBaseGroup
@@ -50,8 +49,8 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         PoolElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
     
-    def to_json(self, *args, **kwargs):
-        ret = PoolElement.to_json(self, *args, **kwargs)
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolElement.serialize(self, *args, **kwargs)
         elements = [ elem.name for elem in self.get_user_elements() ]
         physical_elements = []
         for elem_list in self.get_physical_elements().values():
@@ -59,9 +58,9 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
                 physical_elements.append(elem.name)
         cl_name = self.__class__.__name__
         cl_name = cl_name[4:]
-        ret['elements'] = elements
-        ret['physical_elements'] = physical_elements
-        return ret
+        kwargs['elements'] = elements
+        kwargs['physical_elements'] = physical_elements
+        return kwargs
     
     def _get_pool(self):
         return self.pool

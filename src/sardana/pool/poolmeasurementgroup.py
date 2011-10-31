@@ -32,7 +32,8 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
 
-from pooldefs import ElementType, AcqMode, AcqTriggerType
+from sardana import ElementType
+from pooldefs import AcqMode, AcqTriggerType
 from poolevent import EventType
 from poolgroupelement import PoolGroupElement
 from poolacquisition import PoolCTAcquisition

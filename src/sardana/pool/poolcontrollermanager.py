@@ -41,10 +41,11 @@ import re
 from taurus.core import ManagerState
 from taurus.core.util import Singleton, Logger, InfoIt, ListEventGenerator
 
+from sardana import ElementType
+from sardana.sardanamodulemanager import ModuleManager
+
 import controller
-from pooldefs import ElementType
 from poolexception import UnknownController
-from poolmodulemanager import ModuleManager
 from poolmetacontroller import ControllerLib, ControllerClass
 
 class ControllerManager(Singleton, Logger):
@@ -61,6 +62,7 @@ class ControllerManager(Singleton, Logger):
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
         self.call__init__(Logger, name)
+        self._pool = None
         self._controller_list_obj = ListEventGenerator('ControllerClassList')
         self._controller_lib_list_obj = ListEventGenerator('ControllerLibList')
         self.reInit()
@@ -106,7 +108,13 @@ class ControllerManager(Singleton, Logger):
         self._modules = None
         
         self._state = ManagerState.CLEANED
-
+    
+    def set_pool(self, pool):
+        self._pool = pool
+    
+    def get_pool(self):
+        return self._pool
+    
     def setControllerPath(self, controller_path):
         """Registers a new list of controller directories in this manager.
         
@@ -205,7 +213,7 @@ class ControllerManager(Singleton, Logger):
             if controller_lib is None:
                 f_name, code = self.createControllerLib(lib_name), ''
             else:
-                f_name = controller_lib.getFileName()
+                f_name = controller_lib.get_file_name()
                 f = file(f_name)
                 code = f.read()
                 f.close()
@@ -214,7 +222,7 @@ class ControllerManager(Singleton, Logger):
             if controller_lib is None:
                 f_name, code, line_nb = self.createController(lib_name, controller_name)
             else:
-                controller = controller_lib.getController(controller_name)
+                controller = controller_lib.get_controller(controller_name)
                 if controller is None:
                     f_name, code, line_nb = self.createController(lib_name, controller_name)
                 else:
@@ -409,12 +417,17 @@ class ControllerManager(Singleton, Logger):
             exc_info = sys.exc_info()
             
         controller_lib = None
+        params = dict(module=m, name=module_name, pool=self.get_pool())
         if m is None or exc_info is not None:
-            err_lib = ControllerLib(exc_info=exc_info)
-            err_lib.name = module_name
-            self._modules[module_name] = err_lib
+            params['exc_info'] = exc_info
+            controller_lib = ControllerLib(**params)
+            self._modules[module_name] = controller_lib
         else:
-            controller_lib = ControllerLib(module=m)
+            try:
+                controller_lib = ControllerLib(**params)
+            except:
+                import traceback
+                traceback.print_exc()
             lib_contains_controllers = False
             for name, klass in inspect.getmembers(m, inspect.isclass):
                 if not klass in self._base_classes and \
@@ -443,7 +456,7 @@ class ControllerManager(Singleton, Logger):
     def addController(self, controller_lib, klass, fire_event=False):
         """Adds a new controller class"""
         controller_name = klass.__name__
-        exists = controller_lib.hasController(controller_name)
+        exists = controller_lib.has_controller(controller_name)
         if exists:
             action = "Updating"
         else:
@@ -455,7 +468,7 @@ class ControllerManager(Singleton, Logger):
             controller_class = ControllerClass(controller_lib, klass)
             #self._setControllerTypes(klass, controller_class)
             
-            controller_lib.addController(controller_class)
+            controller_lib.add_controller(controller_class)
             self._controller_dict[controller_name] = controller_class
             
             if fire_event:
@@ -542,15 +555,6 @@ class ControllerManager(Singleton, Logger):
 
     def getControllerClass(self, controller_name):
         return self.getControllerMetaClass(controller_name).klass
-
-    def getControllerInfo(self, controller_names, format='json'):
-        if isinstance(controller_names, str):
-            controller_names = [controller_names]
-            
-        m = self._getPlainControllerInfo
-        if format == 'json':
-            m = self._getJSONControllerInfo
-        return m(controller_names)
     
     def _getPlainControllerInfo(self, controller_names):
         ret = []
@@ -559,14 +563,7 @@ class ControllerManager(Singleton, Logger):
             if controller_class is not None:
                 ret += controller_class.getInfo()
         return ret
-
-    def _getJSONControllerInfo(self, controller_names):
-        ret = []
-        for controller_name in controller_names:
-            controller_class = self.getControllerMetaClass(controller_name)
-            ret.append(controller_class.getJSON())
-        return ret
-
+    
     def decodeControllerParameters(self, in_par_list):
         if len(in_par_list) == 0:
             raise RuntimeError('Controller name not specified')

@@ -85,8 +85,8 @@ class PoolBaseElement(PoolObject):
         """Returns the internal action cache object"""
         return self._action_cache
     
-    def to_json(self, *args, **kwargs):
-        return PoolObject.to_json(self, *args, **kwargs)
+    def serialize(self, *args, **kwargs):
+        return PoolObject.serialize(self, *args, **kwargs)
     
     # --------------------------------------------------------------------------
     # state
@@ -311,17 +311,20 @@ class PoolElement(PoolBaseElement):
             self._instrument = None
         super(PoolElement, self).__init__(**kwargs)
     
-    def to_json(self, *args, **kwargs):
-        ret = PoolBaseElement.to_json(self, *args, **kwargs)
-        ret['controller'] = self.controller.name
-        ret['unit'] = '0' #TODO: hardcoded unit to 0
-        ret['axis'] = self.axis
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolBaseElement.serialize(self, *args, **kwargs)
+        kwargs['controller'] = self.controller.name
+        kwargs['unit'] = '0' #TODO: hardcoded unit to 0
+        kwargs['axis'] = self.axis
         if self.instrument is not None:
-            ret['instrument'] = self.instrument.full_name
+            kwargs['instrument'] = self.instrument.full_name
         else:
-            ret['instrument'] = None
-        return ret
-
+            kwargs['instrument'] = None
+        return kwargs
+    
+    def get_parent(self):
+        return self.get_controller()
+    
     def get_controller(self):
         if self._ctrl is None:
             return None

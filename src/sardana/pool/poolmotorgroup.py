@@ -34,7 +34,6 @@ import math
 
 from sardana import State
 
-from pooldefs import *
 from poolevent import EventType
 from poolbase import *
 from poolgroupelement import PoolGroupElement

@@ -30,7 +30,7 @@ __all__ = [ "Pool0DExpChannel" ]
 
 __docformat__ = 'restructuredtext'
 
-from pooldefs import ElementType
+from sardana import ElementType
 from poolevent import EventType
 from poolelement import PoolElement
 #from poolacquisition import PoolCTAcquisition

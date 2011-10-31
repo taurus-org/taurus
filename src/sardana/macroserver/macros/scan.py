@@ -734,9 +734,18 @@ class scanhist(Macro):
         cols  = "#", "Title", "Start time", "End time", "Stored"
         width =  -1,      -1,           -1,         -1,       -1
         out = List(cols, max_col_width=width)
+        today = datetime.datetime.today().date()
         for h in hist:
             start = datetime.datetime.fromtimestamp(h['startts'])
+            if start.date() == today:
+                start = start.time().strftime("%H:%M:%S")
+            else:
+                start = start.strftime("%Y-%m-%d %H:%M:%S")
             end = datetime.datetime.fromtimestamp(h['endts'])
+            if end.date() == today:
+                end = end.time().strftime("%H:%M:%S")
+            else:
+                end = end.strftime("%Y-%m-%d %H:%M:%S")
             scan_file = h['ScanFile']
             store = "Not stored!"
             if scan_file is not None:

@@ -246,7 +246,12 @@ def prepare_logging(options, args, tango_args, start_time=None):
         else:
             log_file_name = options.log_file_name
         path = os.path.dirname(log_file_name)
-            
+        
+        # because some versions of python have a bug in logging.shutdown (this
+        # function is not protected against deleted handlers) we store the
+        # handlers we create to make sure a strong reference exists when the
+        # logging.shutdown is called
+        taurus._handlers = handlers = []
         try:
             if not os.path.exists(path):
                 os.makedirs(path, 0777)
@@ -258,9 +263,11 @@ def prepare_logging(options, args, tango_args, start_time=None):
             # Create a memory handler and set the target to the file handler
             m_h = logging.handlers.MemoryHandler(10, flushLevel=taurus.Info)
             m_h.setTarget(f_h)
+            handlers.append(f_h)
             
             m_h.setLevel(log_file_level)
             root.addHandler(m_h)
+            handlers.append(m_h)
             
             if start_time is not None:
                 taurus.info("Started at %s", start_time)

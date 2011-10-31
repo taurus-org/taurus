@@ -36,14 +36,14 @@ import inspect
 import os
 import operator
 import types
-import json
 
 from taurus.core.util import CaselessDict, CodecFactory
 
 from sardana import DataType, DataFormat, DataAccess, \
-    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
+    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, \
+    ElementType, TYPE_ELEMENTS
+from sardana.sardanameta import SardanaMetaLib, SardanaMetaClass
 
-from pooldefs import ElementType, TYPE_ELEMENTS
 from poolcontroller import PoolController, PoolPseudoMotorController
 from poolmotor import PoolMotor
 from poolpseudomotor import PoolPseudoMotor
@@ -62,7 +62,7 @@ CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
 
 ET = ElementType
 
-#: a dictionary dict<:data:`~sardana.pool.pooldefs.ElementType`, class>
+#: a dictionary dict<:data:`~sardana.ElementType`, class>
 #: mapping element type enumeration with the corresponding controller pool class
 #: (:class:`~sardana.pool.poolcontroller.PoolController` or sub-class of it).
 CTRL_TYPE_MAP = {
@@ -71,7 +71,7 @@ CTRL_TYPE_MAP = {
     ET.PseudoMotor  : PoolPseudoMotorController,
 }
 
-#: dictionary dict<:data:`~sardana.pool.pooldefs.ElementType`, :class:`tuple`> 
+#: dictionary dict<:data:`~sardana.ElementType`, :class:`tuple`> 
 #: where tuple is a sequence:
 #: 
 #: #. type string representation
@@ -96,7 +96,7 @@ class TypeData(object):
         self.__dict__.update(kwargs)
 
 #: dictionary
-#: dict<:data:`~sardana.pool.pooldefs.ElementType`, :class:`~sardana.pool.poolmetacontroller.TypeData`>
+#: dict<:data:`~sardana.ElementType`, :class:`~sardana.pool.poolmetacontroller.TypeData`>
 TYPE_MAP_OBJ = {}
 for t, d in TYPE_MAP.items():
     o = TypeData(type=t, name=d[0], family=d[1], klass=d[2] ,
@@ -104,7 +104,7 @@ for t, d in TYPE_MAP.items():
     TYPE_MAP_OBJ[t] = o
 
 
-class ControllerLib(object):
+class ControllerLib(SardanaMetaLib):
     """Object representing a python module containning controller classes.
        Public members:
        
@@ -118,125 +118,14 @@ class ControllerLib(object):
                         the module
     """
     
-    def __init__(self, module=None, f_path=None, exc_info=None):
-        self.module = module
-        if module is not None:
-            f_path = os.path.abspath(module.__file__)
-        self.f_path = f_path
-        if f_path is None:
-            self.path= None
-            self.f_name = None
-            self.name = None
-        else:
-            if self.f_path.endswith(".pyc"):
-                self.f_path = self.f_path[:-1]
-            self.path, self.f_name = os.path.split(self.f_path)
-            self.name, _ = os.path.splitext(self.f_name)
-        self.controller_list = []
-        self.exc_info = exc_info
+    def __init__(self, **kwargs):
+        kwargs['manager'] = kwargs.pop('pool')
+        SardanaMetaLib.__init__(self, **kwargs)
     
-    def __cmp__(self, o):
-        return cmp(self.name, o.name)
-
-    def __str__(self):
-        return self.getModuleName()
-    
-    def addController(self,controller_data):
-        self.controller_list.append(controller_data)
-        
-    def getController(self,controller_name):
-        for m in self.controller_list:
-            if m.name == controller_name:
-                return m
-        return None
-
-    def getControllers(self):
-        return self.controller_list
-
-    def hasController(self,controller_name):
-        return not self.getController(controller_name) is None
-    
-    def getName(self):
-        return self.name
-    
-    def getModuleName(self):
-        return self.name
-    
-    def getModule(self):
-        return self.module
-
-    def getDescription(self):
-        mod = self.getModule()
-        if mod is None:
-            return None
-        return mod.__doc__
-    
-    def getCode(self):
-        """Returns a sequence of sourcelines corresponding to the module code.
-           :return: list of source code lines
-           :rtype: list
-        """
-        mod = self.getModule()
-        if mod is None:
-            raise Exception("Source code not available")
-        return inspect.getsourcelines(mod)[0]
-
-    def getFileName(self):
-        if self.f_path is None:
-            return None
-        if self.f_path.endswith('.pyc'):
-            return self.f_path[:-1]
-        return self.f_path
-    
-    def getSimpleFileName(self):
-        return self.f_name
-    
-    def hasErrors(self):
-        return self.exc_info != None
-    
-    def setError(self, exc_info):
-        self.exc_info = exc_info
-        if exc_info is None:
-            self.controller_list = []
-    
-    def getError(self):
-        return self.exc_info
-    
-    def to_json(self, *args, **kwargs):
-        data = self.toDict()
-        kwargs.update(data)
-        return kwargs
-    
-    def str(self, *args, **kwargs):
-        return json.dumps(self.to_json(*args, **kwargs))
-        
-    def toDict(self):
-        name = self.getName()
-        module_name = self.getModuleName()
-        return dict(name=name,
-                    full_name=self.f_path,
-                    id=0,
-                    type=self.__class__.__name__,
-                    module=module_name,
-                    filename=self.getFileName(),
-                    description=self.getDescription())
-
-    def getJSON(self):
-        json_codec = CodecFactory().getCodec('json')
-        format, data = json_codec.encode(('', self))
-        return data
-
-
-class ControllerClassJSONEncoder(json.JSONEncoder):
-    
-    def default(self, obj):
-        if isinstance(obj, ControllerClass):
-            return self.controllerClass(obj)
-        else:
-            return json.JSONEncoder.default(self, ret)
-    
-    def controllerClass(self, obj):
-        return obj.toDict()
+    add_controller = SardanaMetaLib.add_meta_class
+    get_controller = SardanaMetaLib.get_meta_class
+    get_controllers = SardanaMetaLib.get_meta_classes
+    has_controller = SardanaMetaLib.has_meta_class
 
 
 class DataInfo(object):
@@ -277,11 +166,11 @@ class DataInfo(object):
                  'access' : DataAccess.whatis(self.access),
                  'description' : self.description,
                  'default_value' : self.default_value }
-        
-    def getJSON(self):
-        return json.dumps(self.toDict())
-
-
+    
+    def serialize(self, *args, **kwargs):
+        kwargs.update(self.toDict())
+        return kwargs
+    
 #class PropertyInfo(DataInfo):
     
 #    def __init__(self, name, dtype, dformat=DataFormat.Scalar,
@@ -367,12 +256,12 @@ class ControllerClass(object):
     def __str__(self):
         return self.getName()
     
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
         kwargs.update(self.toDict())
         return kwargs
     
     def str(self, *args, **kwargs):
-        return json.dumps(self.to_json(*args, **kwargs))
+        raise NotImplementedError
     
     def toDict(self):
         name = self.getName()
@@ -408,12 +297,7 @@ class ControllerClass(object):
         ret['type'] = self.__class__.__name__
         ret.update(self.dict_extra)
         return ret
-
-    def getJSON(self):
-        json_codec = CodecFactory().getCodec('json')
-        format, data = json_codec.encode(('', self), cls=ControllerClassJSONEncoder)
-        return data
-
+    
     def setTypes(self, types):
         self.types = types
 

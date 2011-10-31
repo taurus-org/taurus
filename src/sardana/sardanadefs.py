@@ -28,7 +28,10 @@
 __all__ = ["EpsilonError", "ServerState", "SardanaServer", "State",
            "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
            "from_dtype_str", "from_access_str", "to_dtype_dformat",
-           "to_daccess"]
+           "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
+           "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
+           "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
+           "TYPE_PSEUDO_ELEMENTS"]
 
 __docformat__ = 'restructuredtext'
 
@@ -172,3 +175,59 @@ def to_daccess(data):
     if type(data) == str:
         daccess = DACCESS_MAP.get(from_access_str(data), DataAccess.ReadWrite)
     return daccess
+
+#: A constant representing  an invalid ID
+InvalidId = 0
+
+#: A constant representing an invalid axis
+InvalidAxis = 0
+
+#: A constant defining the controller API version currently supported
+ControllerAPI = 1
+
+#: An enumeration describing the all possible element types in the device pool
+ElementType = Enumeration("ElementType", ( \
+    "Pool",
+    "Ctrl",
+    "Motor",
+    "CTExpChannel",
+    "ZeroDExpChannel",
+    "OneDExpChannel",
+    "TwoDExpChannel",
+    "Communication",
+    "IORegister",
+    "PseudoMotor",
+    "PseudoCounter",
+    "Constraint",
+    "MotorGroup",
+    "MeasurementGroup",
+    "Instrument",
+    "ControllerClass",
+    "ControllerLib",
+    "External",
+    "Unknown") )
+
+ET = ElementType
+
+#: a set containning all "controllable" element types
+TYPE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
+    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.PseudoCounter, ET.Constraint))
+
+#: a set containing all group element types
+TYPE_GROUP_ELEMENTS = set((ET.MotorGroup, ET.MeasurementGroup))
+
+#: a set containing the type of elements which are moveable
+TYPE_MOVEABLE_ELEMENTS = set((ET.Motor, ET.PseudoMotor, ET.MotorGroup))
+
+TYPE_PHYSICAL_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
+    ET.Communication, ET.IORegister))
+
+TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, \
+    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.PseudoCounter))
+
+TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))

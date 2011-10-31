@@ -47,12 +47,16 @@ from taurus.core import ManagerState
 from taurus.core.util import Singleton, Logger, CodecFactory, InfoIt, \
     ListEventGenerator, etree
 
+from sardana.sardanamodulemanager import ModuleManager
+
 import macro
 import metamacro
 from exception import MacroServerExceptionList
 from exception import UnknownMacro, UnknownLib, MissingEnv, LibError
 from exception import MacroServerException, AbortException, MacroWrongParameterType
-from modulemanager import ModuleManager
+
+
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class MacroManager(Singleton, Logger):
@@ -67,7 +71,8 @@ class MacroManager(Singleton, Logger):
     Ready    = DevState.ON
     Abort    = DevState.ALARM
     
-    DEFAULT_MACRO_DIRECTORIES = 'macros',
+    
+    DEFAULT_MACRO_DIRECTORIES = os.path.join(_BASE_DIR, 'macros'),
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -131,9 +136,7 @@ class MacroManager(Singleton, Logger):
             p.extend(item.split(":"))
 
         # add basic macro directories
-        macroserver_dir = os.path.dirname(os.path.abspath(__file__))
         for macro_dir in self.DEFAULT_MACRO_DIRECTORIES:
-            macro_dir = os.path.join(macroserver_dir, macro_dir)
             if not macro_dir in p:
                 p.append(macro_dir)
         
@@ -157,6 +160,8 @@ class MacroManager(Singleton, Logger):
                 elems = os.listdir(p)
                 for f in os.listdir(p):
                     name,ext = os.path.splitext(f)
+                    if name.startswith("_"):
+                        continue
                     if ext.endswith('py'):
                         ret.append(name)
             except:

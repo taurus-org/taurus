@@ -31,18 +31,18 @@ __docformat__ = 'restructuredtext'
 
 import os.path
 import logging.handlers
-import json
 
 from taurus.core import AttributeNameValidator
 from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 
-from pooldefs import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
+from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
+from sardana.sardanabase import SardanaBaseManager
+
 from poolbase import PoolObject
 from poolevent import EventType
 from poolcontainer import PoolContainer
 from poolcontroller import PoolController
 from poolmonitor import PoolMonitor
-
 from poolmetacontroller import TYPE_MAP_OBJ
 from poolcontrollermanager import ControllerManager
 
@@ -60,7 +60,7 @@ def get_thread_pool():
     return __thread_pool
 
 
-class Pool(PoolContainer, PoolObject):
+class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     """The central pool class."""
     
     #: Default value representing the number of state reads per position
@@ -97,7 +97,7 @@ class Pool(PoolContainer, PoolObject):
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                             pool=self)
         self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
-        ControllerManager()
+        ControllerManager().set_pool(self)
     
     def init_remote_logging(self, host=None, port=None):
         """Initializes remote logging.
@@ -125,11 +125,11 @@ class Pool(PoolContainer, PoolObject):
         handler = logging.handlers.SocketHandler(host, port)
         log.addHandler(handler)
     
-    def to_json(self, *args, **kwargs):
-        kwargs['name'] = kwargs['pool'] = self.name
-        kwargs['full_name'] = self.full_name
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolObject.serialize(self, *args, **kwargs)
         kwargs['type'] = self.__class__.__name__
         kwargs['id'] = InvalidId
+        kwargs['parent'] = None
         return kwargs
     
     def set_motion_loop_sleep_time(self, motion_loop_sleep_time):
@@ -263,7 +263,7 @@ class Pool(PoolContainer, PoolObject):
         else:
             objs = self.get_elements_by_type(obj_type)
         name = self.full_name
-        return [ obj.to_json(pool=name) for obj in objs ]
+        return [ obj.serialize(pool=name) for obj in objs ]
     
     def get_acquisition_elements_info(self):
         ret = []
@@ -278,7 +278,7 @@ class Pool(PoolContainer, PoolObject):
         return ret
     
     def get_acquisition_elements_str_info(self):
-        return map(json.dumps, self.get_acquisition_elements_info())
+        return map(self.str_object, self.get_acquisition_elements_info())
     
     def check_element(self, name, full_name):
         raise_element_name = True
@@ -316,7 +316,7 @@ class Pool(PoolContainer, PoolObject):
         ctrl_class_info = None
         ctrl_lib_info = self.ctrl_manager.getControllerLib(mod_name)
         if ctrl_lib_info is not None:
-            ctrl_class_info = ctrl_lib_info.getController(class_name)
+            ctrl_class_info = ctrl_lib_info.get_controller(class_name)
         
                
 
@@ -553,7 +553,7 @@ class Pool(PoolContainer, PoolObject):
     def reload_controller_lib(self, lib_name):
         manager = self.ctrl_manager
         
-        ctrl_infos = manager.getControllerLib(lib_name).getControllers()
+        ctrl_infos = manager.getControllerLib(lib_name).get_controllers()
         pool_ctrls = self.get_elements_by_type(ElementType.Ctrl)
         init_pool_ctrls = []
         for pool_ctrl in pool_ctrls:

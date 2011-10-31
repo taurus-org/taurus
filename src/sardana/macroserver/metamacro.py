@@ -98,7 +98,7 @@ class MacroLib:
             return self.f_path[:-1]
         return self.f_path
     
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
         kwargs['name'] = self.name
         kwargs['full_name'] = self.f_path
         kwargs['id'] = 0
@@ -163,7 +163,7 @@ class MacroClass:
         if result: ret['result'] = result
         return ret
     
-    def to_json(self, *args, **kwargs):
+    def serialize(self, *args, **kwargs):
         kwargs['name'] = self.getName()
         kwargs['full_name'] = self.getFullName()
         kwargs['id'] = 0

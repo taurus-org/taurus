@@ -43,9 +43,8 @@ from taurus import Factory
 from taurus.core.util import CaselessDict, CodecFactory
 from taurus.core.util.log import Logger, InfoIt, DebugIt, WarnIt
 
-from sardana import ServerState, SardanaServer
-from sardana.pool import ElementType, TYPE_MOVEABLE_ELEMENTS, \
-    TYPE_ACQUIRABLE_ELEMENTS
+from sardana import ServerState, SardanaServer, ElementType, \
+    TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
 from sardana.pool.poolmotorgroup import PoolMotorGroup
@@ -54,7 +53,7 @@ from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
 
 class Pool(PyTango.Device_4Impl, Logger):
     
-    ElementListCache = None
+    ElementsCache = None
     
     def __init__(self,cl, name):
         PyTango.Device_4Impl.__init__(self,cl,name)
@@ -102,6 +101,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 self.set_change_event(attr, True, False)
         self.set_change_event("State", True, False)
         self.set_change_event("Status", True, False)
+        self.set_change_event("Elements", True, False)
         self.pool.monitor.resume()
     
     def _recalculate_instruments(self):
@@ -186,18 +186,18 @@ class Pool(PyTango.Device_4Impl, Logger):
         attr.set_value(info)
     
     #@DebugIt()
-    def getElementList(self, cache=True):
-        value = self.ElementListCache
+    def getElements(self, cache=True):
+        value = self.ElementsCache
         if cache and value is not None:
             return value
         value = dict(__type__="set", elements=self.pool.get_elements_info())
         value = CodecFactory().getCodec('json').encode(('', value))
-        self.ElementListCache = value
+        self.ElementsCache = value
         return value
     
     #@DebugIt()
-    def read_ElementList(self, attr):
-        element_list = self.getElementList()
+    def read_Elements(self, attr):
+        element_list = self.getElements()
         attr.set_value(*element_list)
 
     def _get_moveable_ids(self, *elem_names):
@@ -595,7 +595,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             
             # force the element list cache to be rebuild next time someone reads
             # the element list
-            self.ElementListCache = None
+            self.ElementsCache = None
             
             value = { }
             if "created" in evt_name:
@@ -605,7 +605,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             json_elem = elem.to_json(pool=self.pool.full_name)
             value['elements'] = json_elem,
             value = CodecFactory().getCodec('json').encode(('', value))
-            self.push_change_event('ElementList', *value)
+            self.push_change_event('Elements', *value)
 
     def _format_create_json_arguments(self, argin):
         elems, ret = json.loads(argin[0]), []
@@ -1012,12 +1012,12 @@ class PoolClass(PyTango.DeviceClass):
                 'label':"Communication channel list",
                 'description':"the list of communication channels (a JSON encoded dict)",
             } ],
-        'ElementList':
+        'Elements':
             [[PyTango.DevEncoded,
             PyTango.SCALAR,
             PyTango.READ],
             {
-                'label':"Element list",
+                'label':"Elements",
                 'description':"the list of all elements (a JSON encoded dict)",
             } ],
         }

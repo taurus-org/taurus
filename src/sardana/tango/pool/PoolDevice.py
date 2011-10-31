@@ -38,11 +38,10 @@ from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
-from sardana.pool import ElementType
+from sardana import InvalidId, InvalidAxis, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
     GenericImageAttr, to_tango_type_format, to_tango_access, to_tango_attr_info
-from sardana.pool import InvalidId, InvalidAxis
 
 class PoolDevice(SardanaDevice):
     """Base Tango Pool Device class"""
@@ -312,8 +311,12 @@ class PoolElementDevice(PoolDevice):
             return self._standard_attributes_cache, self._dynamic_attributes_cache
         ctrl = self.ctrl
         if ctrl is None:
-            self.debug("no controller: dynamic attributes NOT created")
+            self.warning("no controller: dynamic attributes NOT created")
             return PoolDevice.get_dynamic_attributes(self)
+        if not ctrl.is_online():
+            self.warning("controller offline: dynamic attributes NOT created")
+            return PoolDevice.get_dynamic_attributes(self)
+        
         self._dynamic_attributes_cache = dyn_attrs = CaselessDict()
         self._standard_attributes_cache = std_attrs = CaselessDict()
         dev_class = self.get_device_class()

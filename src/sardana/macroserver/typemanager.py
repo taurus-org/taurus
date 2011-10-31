@@ -35,8 +35,10 @@ import inspect
 from taurus.core import ManagerState
 from taurus.core.util import InfoIt, Singleton, Logger, ListEventGenerator
 
+from sardana.sardanamodulemanager import ModuleManager
+
 from parameter import Type, ParamType, AbstractParamTypes
-from modulemanager import ModuleManager
+
 
 class TypeManager(Singleton, Logger):
 

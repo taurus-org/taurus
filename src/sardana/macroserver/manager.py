@@ -42,7 +42,8 @@ from taurus.core.util import Singleton, Logger, ListEventGenerator, \
 from taurus.core.tango.sardana import pool
 from taurus.core.tango.sardana import motion
 
-from modulemanager import ModuleManager
+from sardana.sardanamodulemanager import ModuleManager
+
 from macromanager import MacroManager
 from typemanager import TypeManager
 from envmanager import EnvironmentManager
@@ -188,14 +189,14 @@ class MacroServerManager(Singleton, Logger):
         return self._pools.keys()
 
     def get_elements_info(self):
-        ret = [ elem.to_json()
+        ret = [ elem.serialize()
             for pool in self.getPoolListObjs()
                 for elem in pool.getElements().values() ]
 
-        ret += [ macrolib.to_json()
+        ret += [ macrolib.serialize()
             for macrolib in self.getMacroLibs().values() ]
 
-        ret += [ macro.to_json()
+        ret += [ macro.serialize()
             for macro in self.getMacros() ]
         
         return ret

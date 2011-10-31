@@ -7,8 +7,8 @@ import threading
 import logging.handlers
 
 import PyTango
+from PyTango import Util, DebugIt
 
-import taurus
 from taurus.core.util import Logger, CodecFactory
 
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
@@ -19,7 +19,7 @@ from sardana.macroserver.manager import MacroServerManager
 
 class MacroServer(SardanaDevice):
     
-    ElementListCache = None
+    ElementsCache = None
     
     def __init__(self,cl, name):
         SardanaDevice.__init__(self,cl, name)
@@ -41,7 +41,7 @@ class MacroServer(SardanaDevice):
         self.set_change_event('DoorList', True, False)
         self.set_change_event('MacroList', True, False)
         self.set_change_event('MacroLibList', True, False)
-        self.set_change_event('ElementList', True, False)
+        self.set_change_event('Elements', True, False)
         
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
@@ -52,9 +52,19 @@ class MacroServer(SardanaDevice):
         # it is important that the MacroServerManager singleton be called
         # here for the first time. So don't call it in the main or 
         # MacroServerClass
-        manager_params = self.PoolNames, self.MacroPath, self.EnvironmentDb, self.MaxParallelMacros
+        manager_params = self.PoolNames, self.MacroPath, self.EnvironmentDb, \
+            self.MaxParallelMacros
         ms_manager = self.__getManager(*manager_params)
         ms_manager.reInit(*manager_params)
+        
+        # if default directories are not in the MacroPath property, write them
+        # into the database
+        mpath = set(self.MacroPath)
+        default_mpath = set(ms_manager.DEFAULT_MACRO_DIRECTORIES)
+        if mpath & default_mpath != default_mpath:
+            db = Util.instance().get_database()
+            db.put_device_property(self.get_name(),
+                                   dict(MacroPath=ms_manager.getMacroPath()))
         
         dl = ms_manager.getDoorListObj()
         if not dl.isSubscribed(self.doorsChanged):
@@ -82,7 +92,7 @@ class MacroServer(SardanaDevice):
         door_list_obj = ms_manager.getDoorListObj()
         attr.set_value(door_list_obj.read())
         
-    @PyTango.DebugIt()
+    @DebugIt()
     def read_MacroList(self, attr):
         self.info_stream("inside read_MacroList")
         ms_manager = self.__getManager()
@@ -100,19 +110,19 @@ class MacroServer(SardanaDevice):
         attr.set_value(type_list_obj.read())
         
     #@DebugIt()
-    def getElementList(self, cache=True):
-        value = self.ElementListCache
+    def getElements(self, cache=True):
+        value = self.ElementsCache
         if cache and value is not None:
             return value
         elements = self.__getManager().get_elements_info()
         value = dict(__type__="set", elements=elements)
         value = CodecFactory().getCodec('json').encode(('', value))
-        self.ElementListCache = value
+        self.ElementsCache = value
         return value
     
     #@DebugIt()
-    def read_ElementList(self, attr):
-        element_list = self.getElementList()
+    def read_Elements(self, attr):
+        element_list = self.getElements()
         attr.set_value(*element_list)
     
     def GetMacroInfo(self, argin):
@@ -298,12 +308,12 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
             [[PyTango.DevString,
             PyTango.SPECTRUM,
             PyTango.READ, 256]],
-        'ElementList':
+        'Elements':
             [[PyTango.DevEncoded,
             PyTango.SCALAR,
             PyTango.READ],
             {
-                'label':"Element list",
+                'label':"Elements",
                 'description':"the list of all elements (a JSON encoded dict)",
             } ],
         }
@@ -318,69 +328,3 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
     def dyn_attr(self, dev_list):
         for dev in dev_list:
             dev.dyn_attr()
-
-
-def main(argv):
-    l = get_main_log()
-    l.info('Starting up...')
-    
-    pyu = PyTango.Util(sys.argv)
-    
-    pyu.add_TgClass(MacroServerClass, MacroServer, 'MacroServer')
-    
-    import Door
-    pyu.add_TgClass(Door.DoorClass, Door.Door, 'Door')
-
-    # make sure the polling is not active
-    factory = taurus.Factory()
-    factory.disablePolling()
-
-    u = PyTango.Util.instance()
-    u.set_serial_model(PyTango.SerialModel.BY_PROCESS)
-    
-    try:
-        u.server_init()
-    except PyTango.DevFailed, e1:
-        l.critical("Critical error during server initialization: %s" % e1[0].desc)
-        l.error("Error detail",exc_info=1)
-        l.trace(str(e1))
-        sys.exit(-1)
-    except Exception, e:
-        l.critical("Critical error during server initialization: %s" % str(e))
-        sys.exit(-1)
-    print 'Ready to accept request'
-
-    try:
-        u.server_run()
-    except PyTango.DevFailed, e1:
-        l.critical("Critical error during server run: %s" % e1[0].desc)
-        l.trace(str(e1))
-        sys.exit(-1)
-    except Exception, e:
-        l.critical("Critical error during server run: %s" % str(e))
-        sys.exit(-1)
-
-
-def run():
-    try:
-        main(sys.argv)
-    except PyTango.DevFailed, e1:
-        l = get_main_log()
-        from taurus.core.util import str_DevFailed
-        #l.error(str_DevFailed(e1))
-        import traceback
-        print traceback.print_exc()
-        
-    except Exception, e2:
-        import traceback
-        print traceback.print_exc()
-        l = get_main_log()
-        l.traceback()
-    get_main_log().info('Server shutdown')
-    print 'Exiting'
-    print 'Exited'
-    
-    sys.exit()
-
-if __name__ == '__main__':
-    run()

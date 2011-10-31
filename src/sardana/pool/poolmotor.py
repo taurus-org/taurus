@@ -33,10 +33,9 @@ __docformat__ = 'restructuredtext'
 import math
 import operator
 
-from sardana import EpsilonError, State
+from sardana import EpsilonError, State, ElementType
 from poolbase import *
 
-from pooldefs import ElementType
 from poolevent import EventType
 from poolelement import PoolElement
 from poolmotion import PoolMotion, PoolMotionItem, MotionState, MotionMap
