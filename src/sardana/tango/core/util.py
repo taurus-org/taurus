@@ -322,7 +322,7 @@ def run_tango_server(util, start_time=None):
         taurus.critical("Server exited with unforeseen exception", exc_info=1)
     taurus.info("Exited")
 
-def run(prepare_func, args=None, tango_util=None, start_time=None):
+def run(prepare_func, args=None, tango_util=None, start_time=None, asynch=False):
     if args is None:
         import sys
         args = sys.argv
@@ -335,7 +335,7 @@ def run(prepare_func, args=None, tango_util=None, start_time=None):
     prepare_logging(options, args, tango_args, start_time=start_time)
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
-
+    
     import threading
     class TangoThread(threading.Thread):
         
@@ -344,5 +344,8 @@ def run(prepare_func, args=None, tango_util=None, start_time=None):
     
     tango_thread = TangoThread(name="Tango")
     tango_thread.start()
-    tango_thread.join()
+    if not asynch:
+        tango_thread.join()
+    else:
+        return tango_thread
     
