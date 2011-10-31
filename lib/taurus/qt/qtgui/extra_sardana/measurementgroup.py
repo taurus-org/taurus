@@ -633,6 +633,12 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         self.connect(self._editorBar, Qt.SIGNAL("removeTriggered"), self.removeChannels)
         self.connect(self._editorBar, Qt.SIGNAL("moveUpTriggered"), self.moveUpChannel)
         self.connect(self._editorBar, Qt.SIGNAL("moveDownTriggered"), self.moveDownChannel)
+        
+        ########################
+        #@todo: remove this once the new pool allows to edit the measurement groups
+        self._editorBar.setEnabled(False)
+        self.info("Editing measurement groups is temporarily disabled until it is supported by the new pool") 
+        ########################
         return tableView
 
     def createToolArea(self):
