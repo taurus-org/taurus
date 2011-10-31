@@ -336,4 +336,13 @@ def run(prepare_func, args=None, tango_util=None, start_time=None):
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
 
-    run_tango_server(tango_util, start_time=start_time)
+    import threading
+    class TangoThread(threading.Thread):
+        
+        def run(self):
+            run_tango_server(tango_util, start_time=start_time)
+    
+    tango_thread = TangoThread(name="Tango")
+    tango_thread.start()
+    tango_thread.join()
+    
