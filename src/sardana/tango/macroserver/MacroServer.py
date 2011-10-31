@@ -53,7 +53,7 @@ class MacroServer(SardanaDevice):
         # here for the first time. So don't call it in the main or 
         # MacroServerClass
         manager_params = self.PoolNames, self.MacroPath, self.EnvironmentDb, \
-            self.MaxParallelMacros
+            self.MaxParallelMacros, self
         ms_manager = self.__getManager(*manager_params)
         ms_manager.reInit(*manager_params)
         

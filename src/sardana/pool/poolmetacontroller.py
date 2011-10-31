@@ -41,7 +41,7 @@ from taurus.core.util import CaselessDict, CodecFactory
 
 from sardana import DataType, DataFormat, DataAccess, \
     DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, \
-    ElementType, TYPE_ELEMENTS
+    ElementType, TYPE_ELEMENTS, InvalidId
 from sardana.sardanameta import SardanaMetaLib, SardanaMetaClass
 
 from poolcontroller import PoolController, PoolPseudoMotorController
@@ -80,7 +80,7 @@ CTRL_TYPE_MAP = {
 #: #. automatic full name
 #: #. controller class
 TYPE_MAP = {
-    ET.Ctrl             : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{klass}/{name}",  Controller),
+    ET.Controller       : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{klass}/{name}",  Controller),
     ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                None),
     ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",   MotorController),
     ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
@@ -106,16 +106,16 @@ for t, d in TYPE_MAP.items():
 
 class ControllerLib(SardanaMetaLib):
     """Object representing a python module containning controller classes.
-       Public members:
-       
-           - module - reference to python module
-           - f_path - complete (absolute) path and filename
-           - f_name - filename (including file extension)
-           - path - complete (absolute) path
-           - name - module name (without file extension)
-           - controller_list - list<ControllerClass>
-           - exc_info - exception information if an error occured when loading 
-                        the module
+    Public members:
+    
+        - module - reference to python module
+        - f_path - complete (absolute) path and filename
+        - f_name - filename (including file extension)
+        - path - complete (absolute) path
+        - name - module name (without file extension)
+        - controller_list - list<ControllerClass>
+        - exc_info - exception information if an error occured when loading 
+                     the module
     """
     
     def __init__(self, **kwargs):
@@ -126,6 +126,16 @@ class ControllerLib(SardanaMetaLib):
     get_controller = SardanaMetaLib.get_meta_class
     get_controllers = SardanaMetaLib.get_meta_classes
     has_controller = SardanaMetaLib.has_meta_class
+
+    def serialize(self, *args, **kwargs):
+        kwargs = SardanaMetaLib.serialize(self, *args, **kwargs)
+        kwargs['pool'] = self.get_manager().name
+        kwargs['id'] = InvalidId
+        return kwargs
+    
+    @property
+    def controllers(self):
+        return self.meta_classes
 
 
 class DataInfo(object):
@@ -186,48 +196,45 @@ class DataInfo(object):
 #        DataInfo.__init__(self, name, dtype, dformat, access=DataAcces.ReadWrite,
 #                          description=description, default_value=None)
 
-
-class ControllerClass(object):
+class ControllerClass(SardanaMetaClass):
     """Object representing a python controller class. 
        Public members:
        
            - name - class name
            - klass - python class object
            - lib - ControllerLib object representing the module where the
-             controller is.
-    """
+             controller is."""
     
-    NoDoc = '<Undocumented controller>'
-    
-    def __init__(self, lib, klass, name=None):
-        self.klass = klass
-        self.name = name or klass.__name__
-        self.lib = lib
+    def __init__(self, **kwargs):
+        kwargs['manager'] = kwargs.pop('pool')
+        SardanaMetaClass.__init__(self, **kwargs)
+
         self.types = []
-        self.errors = []
         self.dict_extra = {}
         self.api_version = 1
-        
+    
+        klass = self.klass
         # Generic controller information
-        self._ctrl_features = tuple(klass.ctrl_features)
+        self.ctrl_features = tuple(klass.ctrl_features)
         
-        self._ctrl_properties = props = CaselessDict()
+        self.ctrl_properties = props = CaselessDict()
         for k, v in klass.class_prop.items(): # old member
             props[k] = DataInfo.toDataInfo(k, v)
         for k, v in klass.ctrl_properties.items():
             props[k] = DataInfo.toDataInfo(k, v)
         
-        self._ctrl_attributes = ctrl_attrs = CaselessDict()
+        self.ctrl_attributes = ctrl_attrs = CaselessDict()
         for k, v in klass.ctrl_attributes.items():
             ctrl_attrs[k] = DataInfo.toDataInfo(k, v)
         
-        self._axis_attributes = axis_attrs = CaselessDict()
+        self.axis_attributes = axis_attrs = CaselessDict()
         for k, v in klass.ctrl_extra_attributes.items(): # old member
             axis_attrs[k] = DataInfo.toDataInfo(k, v)
         for k, v in klass.axis_attributes.items():
             axis_attrs[k] = DataInfo.toDataInfo(k, v)
         
         self.types = types = self.__build_types()
+        self.type_names = map(ElementType.whatis, types)
         
         if ElementType.PseudoMotor in types:
             self.motor_roles = tuple(klass.motor_roles)
@@ -238,7 +245,7 @@ class ControllerClass(object):
         init_args = inspect.getargspec(klass.__init__)
         if init_args.varargs is None or init_args.keywords is None:
             self.api_version = 0
-        
+    
     def __build_types(self):
         types = []
         klass = self.klass
@@ -249,123 +256,41 @@ class ControllerClass(object):
                 types.append(_type)
         return types
     
-    def __cmp__(self, o):
-        if o is None: return cmp(self.getName(), None)
-        return cmp(self.getName(), o.getName())
-
-    def __str__(self):
-        return self.getName()
-    
     def serialize(self, *args, **kwargs):
-        kwargs.update(self.toDict())
+        kwargs = SardanaMetaClass.serialize(self, *args, **kwargs)
+        kwargs['id'] = InvalidId
+        kwargs['pool'] = self.get_manager().name
+        kwargs['gender'] = self.gender
+        kwargs['model'] = self.model
+        kwargs['organization'] = self.organization
+        kwargs['types'] = self.type_names
+        if len(self.type_names):
+            kwargs['main_type'] = self.type_names[0]
+        else:
+            kwargs['main_type'] = None
+        kwargs['api_version'] = self.api_version
         return kwargs
     
-    def str(self, *args, **kwargs):
-        raise NotImplementedError
-    
-    def toDict(self):
-        name = self.getName()
-        module_name = self.getModuleName()
-        ret = dict(name=name,
-                   full_name=name + "." + module_name,
-                   id=0,
-                   module=module_name,
-                   filename=self.getFileName(),
-                   description=self.getDescription(),
-                   gender=self.getGender(),
-                   model=self.getModel(),
-                   organization=self.getOrganization(),
-                   api_version=self.api_version,)
-
-        ctrl_types = map(ElementType.whatis, self.getTypes())
-        ret['types'] = ctrl_types
-        
-        ctrl_props = {}
-        for ctrl_prop in self.getControllerProperties().values():
-            ctrl_props[ctrl_prop.name] = ctrl_prop.toDict()
-        ctrl_attrs = {}
-        for ctrl_attr in self.getControllerAttributes().values():
-            ctrl_attrs[ctrl_attr.name] = ctrl_attr.toDict()
-        axis_attrs = {}
-        for axis_attr in self.getAxisAttributes().values():
-            axis_attrs[axis_attr.name] = axis_attr.toDict()
-        
-        ret['ctrl_properties'] = ctrl_props
-        ret['ctrl_attributes'] = ctrl_attrs
-        ret['axis_attributes'] = axis_attrs
-        ret['ctrl_features'] = self.getControllerFeatures()
-        ret['type'] = self.__class__.__name__
-        ret.update(self.dict_extra)
-        return ret
-    
-    def setTypes(self, types):
-        self.types = types
-
-    def getTypes(self):
-        return self.types
-
-    def getControllerLib(self):
-        return self.lib
-    
-    def getControllerClass(self):
+    @property
+    def controller_class(self):
         return self.klass
-
-    def getName(self):
-        return self.name
-
-    def getFullName(self):
-        return '%s.%s' % (self.getModuleName(), self.getName())
-
-    def getModuleName(self):
-        return self.getControllerLib().getModuleName()
-
-    def getFileName(self):
-        return self.getControllerLib().getFileName()
     
-    def getSimpleFileName(self):
-        return self.getControllerLib().getSimpleFileName()
-    
-    def getDescription(self):
-        return self.getControllerClass().__doc__ or ControllerClass.NoDoc
-
     def getBriefDescription(self, max_chars=60):
         d = self.getControllerClass().__doc__ or ControllerClass.NoDoc
         d = d.replace('\n',' ')
         if len(d) > max_chars: d = d[:max_chars-5] + '[...]'
         return d
     
-    def getCode(self):
-        """Returns a tuple (sourcelines, firstline) corresponding to the 
-        definition of the controller class. sourcelines is a list of source code 
-        lines. firstline is the line number of the first source code line.
-        """
-        return inspect.getsourcelines(self.getControllerClass())
+    @property
+    def gender(self):
+        return self.klass.gender
     
-    def getGender(self):
-        return self.getControllerClass().gender
-    
-    def getModel(self):
-        return self.getControllerClass().model
-    
-    def getOrganization(self):
-        return self.getControllerClass().organization
-    
-    def getImage(self):
-        return self.getControllerClass().image
-    
-    def getLogo(self):
-        return self.getControllerClass().logo
-    
-    def getControllerProperties(self):
-        return self._ctrl_properties
-    
-    def getControllerAttributes(self):
-        return self._ctrl_attributes
-    
-    def getAxisAttributes(self):
-        return self._axis_attributes
-    
-    def getControllerFeatures(self):
-        return self._ctrl_features
-    
+    @property
+    def model(self):
+        return self.klass.model
+
+    @property
+    def organization(self):
+        return self.klass.organization
+
     

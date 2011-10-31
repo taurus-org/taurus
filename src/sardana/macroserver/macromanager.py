@@ -82,6 +82,7 @@ class MacroManager(Singleton, Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
+        self._macro_server = None
         self.call__init__(Logger, name)
         self._macro_list_obj = ListEventGenerator('MacroList')
         self._macro_lib_list_obj = ListEventGenerator('MacroLibList')
@@ -124,7 +125,13 @@ class MacroManager(Singleton, Logger):
         self._modules = None
         
         self._state = ManagerState.CLEANED
-
+    
+    def set_macro_server(self, macro_server):
+        self._macro_server = macro_server
+        
+    def get_macro_server(self):
+        return self._macro_server
+    
     def setMacroPath(self, macro_path):
         """Registers a new list of macro directories in this manager.
         Warning: as a consequence all the macro modules will be reloaded.
@@ -207,8 +214,8 @@ class MacroManager(Singleton, Logger):
             if macro_lib is None:
                 f_name, code = self.createMacroLib(lib_name), ''
             else:
-                f_name = macro_lib.getFileName()
-                f = file(f_name)
+                full_name = macro_lib.file_path
+                f = file(full_name)
                 code = f.read()
                 f.close()
         else:
@@ -216,11 +223,11 @@ class MacroManager(Singleton, Logger):
             if macro_lib is None:
                 f_name, code, line_nb = self.createMacro(lib_name, macro_name)
             else:
-                macro = macro_lib.getMacro(macro_name)
+                macro = macro_lib.get_macro(macro_name)
                 if macro is None:
                     f_name, code, line_nb = self.createMacro(lib_name, macro_name)
                 else:
-                    code_lines, line_nb = macro.getMacroCode()
+                    code_lines, line_nb = macro.code
                     f_name = macro.getFileName()
                     f = file(f_name)
                     code = f.read()
@@ -319,7 +326,7 @@ class MacroManager(Singleton, Logger):
         """
         module_names = []
         for macro_name in macro_names:
-            module_name = self.getMacroMetaClass(macro_name).getModuleName()
+            module_name = self.getMacroMetaClass(macro_name).module_name
             module_names.append(module_name)
         self.reloadMacroLibs(module_names, path=path, fire_event=fire_event)
         
@@ -397,14 +404,25 @@ class MacroManager(Singleton, Logger):
             raise LibError(exp_pars)
         
         macro_lib = None
+
+        params = dict(module=m, name=module_name,
+                      macro_server=self.get_macro_server())
         if not m is None:
-            macro_lib = metamacro.MacroLib( os.path.abspath(m.__file__) )
-            
+            macro_lib = metamacro.MacroLib(**params)
             lib_contains_macros = False
+            abs_file = macro_lib.file_path
             for name, klass in inspect.getmembers(m, inspect.isclass):
-                if not klass is macro.Macro and issubclass(klass, macro.Macro):
+                if issubclass(klass, macro.Macro):
+                    # if it is a class defined in some other class forget it to
+                    # avoid replicating the same macro in different macro files
+                    if inspect.getabsfile(klass) != abs_file:
+                        continue
                     lib_contains_macros = True
-                    self.addMacro(macro_lib, klass)
+                    try:
+                        self.addMacro(macro_lib, klass)
+                    except:
+                        import traceback
+                        traceback.print_exc()
             
             if lib_contains_macros:
                 self._modules[module_name] = macro_lib
@@ -417,11 +435,13 @@ class MacroManager(Singleton, Logger):
     
     def addMacro(self, macro_lib, klass, fire_event=False):
         macro_name = klass.__name__
-        action = (macro_lib.hasMacro(macro_name) and "Updating") or "Adding"
+        action = (macro_lib.has_macro(macro_name) and "Updating") or "Adding"
         self.debug("%s macro %s" % (action, macro_name))
         
-        macro_class = metamacro.MacroClass(macro_lib, klass)
-        macro_lib.addMacro(macro_class)
+        params = dict(macro_server=self.get_macro_server(), lib=macro_lib,
+                      klass=klass)
+        macro_class = metamacro.MacroClass(**params)
+        macro_lib.add_macro(macro_class)
         self._macro_dict[macro_name] = macro_class
         
         if fire_event:
@@ -479,25 +499,11 @@ class MacroManager(Singleton, Logger):
     def getMacroInfo(self, macro_names, format='json'):
         if isinstance(macro_names, str):
             macro_names = [macro_names]
-            
-        m = self._getPlainMacroInfo
-        if format == 'json':
-            m = self._getJSONMacroInfo
-        return m(macro_names)
-    
-    def _getPlainMacroInfo(self, macro_names):
         ret = []
+        json_codec = CodecFactory().getCodec('json')
         for macro_name in macro_names:
             macro_class = self.getMacroMetaClass(macro_name)
-            if macro_class is not None:
-                ret += macro_class.getInfo()
-        return ret
-
-    def _getJSONMacroInfo(self, macro_names):
-        ret = []
-        for macro_name in macro_names:
-            macro_class = self.getMacroMetaClass(macro_name)
-            ret.append(macro_class.getJSON())
+            ret.append(json_codec.encode(('', macro_class.serialize()))[1])
         return ret
 
     def decodeMacroParameters(self, in_par_list):

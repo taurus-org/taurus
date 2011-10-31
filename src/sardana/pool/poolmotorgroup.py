@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import math
 
-from sardana import State
+from sardana import State, ElementType
 
 from poolevent import EventType
 from poolbase import *

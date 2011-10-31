@@ -83,10 +83,13 @@ class MacroServerManager(Singleton, Logger):
         
         self.reInit(*args)
 
-    def reInit(self, pools=None, macro_path=None, env_db=None, max_parallel=0):
+    def reInit(self, pools=None, macro_path=None, env_db=None, max_parallel=0,
+               macro_server=None):
         """(Re)initializes the manager"""
         if self._state == ManagerState.INITED:
             return
+        
+        self._macro_server = macro_server
         
         taurus_manager = TaurusManager()
         taurus_manager.reInit()
@@ -110,10 +113,18 @@ class MacroServerManager(Singleton, Logger):
         ModuleManager().reInit()
         TypeManager().reInit()
         basetypes_dir = os.path.dirname(os.path.abspath(__file__))
-        TypeManager().reloadTypeModule('basetypes', path=[basetypes_dir])
-        MacroManager().reInit()
-        EnvironmentManager().reInit()
-        EnvironmentManager().setEnvironment(env_db)
+        
+        type_manager = TypeManager()
+        type_manager.set_macro_server(macro_server)
+        type_manager.reloadTypeModule('basetypes', path=[basetypes_dir])
+        
+        macro_manager = MacroManager()
+        macro_manager.reInit()
+        macro_manager.set_macro_server(macro_server)
+        
+        environment_manager = EnvironmentManager()
+        environment_manager.reInit()
+        environment_manager.setEnvironment(env_db)
         
         MacroManager().setMacroPath(macro_path)
         self._state = ManagerState.INITED
@@ -136,7 +147,15 @@ class MacroServerManager(Singleton, Logger):
         self._pools = None
                 
         self._state = ManagerState.CLEANED
-
+    
+    def set_macro_server(self, macro_server):
+        self._macro_server = macro_server
+        MacroManager().set_macro_server(macro_server)
+        TypeManager().set_macro_server(macro_server)
+    
+    def get_macro_server(self):
+        return self._macro_server
+    
     def getMaxParallelMacros(self):
         return self._macro_thread_pool.size
     

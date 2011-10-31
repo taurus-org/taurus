@@ -33,6 +33,7 @@ import time
 import array
 import os
 
+from taurus.console.list import List
 from sardana.macroserver.macro import *
 
 ################################################################################
@@ -255,13 +256,13 @@ class lsmac(Macro):
     
     def run(self):
         manager = self.getManager()
-        macro_lib_dict = manager.getMacroLibs()
+        macro_libs = manager.getMacroLibs()
         
         out = List(['Name','Module'])
         
-        for libObj in macro_lib_dict.values():
-            for macObj in libObj.macro_list:
-                out.appendRow([macObj.name, libObj.f_path])
+        for macro_lib in macro_libs.values():
+            for macro in macro_lib.get_macros():
+                out.appendRow([macro.name, macro.file_path])
         for line in out.genOutput():
             self.output(line)
         
@@ -280,7 +281,7 @@ class prdef(Macro):
             self.output("Unknown macro")
             return
          
-        code_lines, first_line = macro_data.getMacroCode()
+        code_lines, first_line = macro_data.code
          
         for code_line in code_lines:
             self.output(code_line.strip('\n'))

@@ -230,7 +230,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         ret = []
         for ctrl_class_info in ctrl_classes:
             types = ctrl_class_info.getTypes()
-            types_str = [ TYPE_MAP_OBJ[t].name for t in types if t != ElementType.Ctrl ]
+            types_str = [ TYPE_MAP_OBJ[t].name for t in types if t != ElementType.Controller ]
             types_str = ", ".join(types_str)
             elem = "%s (%s) %s" % (ctrl_class_info.getName(), ctrl_class_info.getFileName(), types_str)
             ret.append(elem)
@@ -306,7 +306,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
         
-        td = TYPE_MAP_OBJ[ElementType.Ctrl]
+        td = TYPE_MAP_OBJ[ElementType.Controller]
         klass_map = td.klass
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
@@ -340,7 +340,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         if ctrl_class_info is None:
             ctrl_prop_info = {}
         else:
-            ctrl_prop_info = ctrl_class_info.getControllerProperties()
+            ctrl_prop_info = ctrl_class_info.ctrl_properties
         for k, v in kwargs['properties'].items():
             info = ctrl_prop_info.get(k)
             if info is None:
@@ -484,7 +484,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
                 raise Exception("There is no element with name '%s'" % name)
         
         elem_type = elem.get_type()
-        if elem_type == ElementType.Ctrl:
+        if elem_type == ElementType.Controller:
             if len(elem.get_elements()) > 0:
                 raise Exception("Cannot delete controller with elements. Delete elements first")
         elif elem_type == ElementType.Instrument:
@@ -541,12 +541,12 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         return ret
     
     def stop(self):
-        controllers = self.get_elements_by_type(ElementType.Ctrl)
+        controllers = self.get_elements_by_type(ElementType.Controller)
         for controller in controllers:
             controller.stop_all()
     
     def abort(self):
-        controllers = self.get_elements_by_type(ElementType.Ctrl)
+        controllers = self.get_elements_by_type(ElementType.Controller)
         for controller in controllers:
             controller.abort_all()
     
@@ -554,7 +554,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         manager = self.ctrl_manager
         
         ctrl_infos = manager.getControllerLib(lib_name).get_controllers()
-        pool_ctrls = self.get_elements_by_type(ElementType.Ctrl)
+        pool_ctrls = self.get_elements_by_type(ElementType.Controller)
         init_pool_ctrls = []
         for pool_ctrl in pool_ctrls:
             if pool_ctrl.get_ctrl_info() in ctrl_infos:
@@ -567,5 +567,5 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     
     def reload_controller_class(self, class_name):
         ctrl_info = self.ctrl_manager.getControllerMetaClass(class_name)
-        lib_name = ctrl_info.getModuleName()
+        lib_name = ctrl_info.module_name
         self.reload_controller_lib(lib_name)

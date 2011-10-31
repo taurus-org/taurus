@@ -188,7 +188,7 @@ ControllerAPI = 1
 #: An enumeration describing the all possible element types in the device pool
 ElementType = Enumeration("ElementType", ( \
     "Pool",
-    "Ctrl",
+    "Controller",
     "Motor",
     "CTExpChannel",
     "ZeroDExpChannel",

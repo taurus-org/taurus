@@ -63,7 +63,11 @@ class SardanaDevice(Device_4Impl, Logger):
     @property
     def alias(self):
         return self._alias
-
+    
+    @property
+    def name(self):
+        return self.get_name()
+    
     def init_device(self):
         self.get_device_properties(self.get_device_class())
 

@@ -333,7 +333,7 @@ class ControllerManager(Singleton, Logger):
                                 or module list changes [default: True]"""
         module_names = []
         for controller_name in controller_names:
-            module_name = self.getControllerMetaClass(controller_name).getModuleName()
+            module_name = self.getControllerMetaClass(controller_name).get_module_name()
             module_names.append(module_name)
         self.reloadControllerLibs(module_names, path=path, fire_event=fire_event)
         
@@ -423,15 +423,16 @@ class ControllerManager(Singleton, Logger):
             controller_lib = ControllerLib(**params)
             self._modules[module_name] = controller_lib
         else:
-            try:
-                controller_lib = ControllerLib(**params)
-            except:
-                import traceback
-                traceback.print_exc()
+            controller_lib = ControllerLib(**params)
             lib_contains_controllers = False
+            abs_file = controller_lib.file_path
             for name, klass in inspect.getmembers(m, inspect.isclass):
-                if not klass in self._base_classes and \
-                   issubclass(klass, controller.Controller):
+                if issubclass(klass, controller.Controller):
+                    # if it is a class defined in some other class forget it to
+                    # avoid replicating the same controller in different
+                    # controller files
+                    if inspect.getabsfile(klass) != abs_file:
+                        continue
                     lib_contains_controllers = True
                     self.addController(controller_lib, klass)
             
@@ -465,16 +466,17 @@ class ControllerManager(Singleton, Logger):
         self.debug("%s controller %s" % (action, controller_name))
         
         try:
-            controller_class = ControllerClass(controller_lib, klass)
+            controller_class = ControllerClass(pool=self.get_pool(),
+                                               lib=controller_lib, klass=klass)
             #self._setControllerTypes(klass, controller_class)
-            
             controller_lib.add_controller(controller_class)
             self._controller_dict[controller_name] = controller_class
             
             if fire_event:
                 self._fireControllerEvent()
         except:
-            self.debug("Faild to add controller class %s", controller_name, exc_info=1)
+            self.warning("Faild to add controller class %s", controller_name,
+                         exc_info=1)
 
         if exists:
             action = "Updated"
@@ -506,7 +508,7 @@ class ControllerManager(Singleton, Logger):
         if filter is not None:
             expr = re.compile(filter, re.IGNORECASE)
         for name, lib in self._modules.iteritems():
-            if lib.hasErrors() or (expr is not None and expr.match(name) is None):
+            if lib.has_errors() or (expr is not None and expr.match(name) is None):
                 continue
             ret.append(lib)
         ret.sort()

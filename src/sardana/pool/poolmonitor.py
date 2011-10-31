@@ -70,7 +70,7 @@ class PoolMonitor(Logger, threading.Thread):
         evt_name = evt_type.name.lower()
         if "created" in evt_name or "deleted" in evt_name:
             pool = self._pool
-            pool_ctrls = pool.get_elements_by_type(ElementType.Ctrl)
+            pool_ctrls = pool.get_elements_by_type(ElementType.Controller)
             pool_ctrls.sort(key=PoolObject.get_id)
             ctrl_ids = []
             elem_ids = []

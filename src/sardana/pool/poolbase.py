@@ -76,8 +76,8 @@ class PoolObject(PoolBaseObject):
         return self._id
     
     def serialize(self, *args, **kwargs):
-        ret = PoolBaseObject.serialize(self, *args, **kwargs)
+        kwargs = PoolBaseObject.serialize(self, *args, **kwargs)
         kwargs['id'] = self.id
-        return ret
+        return kwargs
     
     id = property(get_id, doc="object ID")

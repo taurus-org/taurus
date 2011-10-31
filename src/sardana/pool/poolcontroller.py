@@ -66,7 +66,7 @@ class PoolBaseController(PoolBaseElement):
         return map(ElementType.whatis, self.get_ctrl_types())
         
     def get_type(self):
-        return ElementType.Ctrl
+        return ElementType.Controller
     
     def is_online(self):
         return True
@@ -227,21 +227,27 @@ class PoolController(PoolBaseController):
             kwargs['module'] = self._lib_name
             kwargs['klass'] = self._class_name
             kwargs['language'] = 'Python'
-            kwargs['filename'] = None
+            kwargs['file_name'] = None
             kwargs['types'] = None
+            kwargs['main_type'] = None
             kwargs['parent'] = self._class_name
         else:
-            kwargs['module'] = ctrl_info.getModuleName()
-            kwargs['klass'] = ctrl_info.getName()
+            types = self.get_ctrl_type_names()
+            kwargs['module'] = ctrl_info.module_name
+            kwargs['klass'] = ctrl_info.name
             kwargs['language'] = 'Python'
-            kwargs['filename'] = ctrl_info.getSimpleFileName()
-            kwargs['types'] = self.get_ctrl_type_names()
-            kwargs['parent'] = ctrl_info.getName()
+            kwargs['file_name'] = ctrl_info.file_name
+            kwargs['types'] = types
+            kwargs['parent'] = ctrl_info.name
+            if len(types):
+                kwargs['main_type'] = types[0]
+            else:
+                kwargs['main_type'] = None
         return kwargs
     
     def _create_ctrl_args(self):
         name = self.name
-        klass = self._ctrl_info.getControllerClass()
+        klass = self._ctrl_info.klass
         props = dict(self._properties)
         args, kwargs = [], dict(pool_controller=weakref.ref(self))
         return name, klass, props, args, kwargs
@@ -311,7 +317,7 @@ class PoolController(PoolBaseController):
         self.set_state(state, propagate=2)
 
     def get_ctrl_types(self):
-        return self._ctrl_info.getTypes()
+        return self._ctrl_info.types
 
     def is_online(self):
         return self._ctrl_error is None and self._ctrl is not None
@@ -363,21 +369,21 @@ class PoolController(PoolBaseController):
     @check_ctrl
     def get_ctrl_attr(self, name):
         ctrl_info = self.ctrl_info
-        attr_info = ctrl_info.getControllerAttributes()[name]
+        attr_info = ctrl_info.ctrl_attributes[name]
         fget = getattr(self.ctrl, attr_info.fget)
         return fget()
     
     @check_ctrl
     def set_ctrl_attr(self, name, value):
         ctrl_info = self.ctrl_info
-        attr_info = ctrl_info.getControllerAttributes()[name]
+        attr_info = ctrl_info.ctrl_attributes[name]
         fset = getattr(self.ctrl, attr_info.fset)
         fset(value)
     
     @check_ctrl
     def get_axis_attr(self, axis, name):
         ctrl_info = self.ctrl_info
-        axis_attr_info = ctrl_info.getAxisAttributes()[name]
+        axis_attr_info = ctrl_info.axis_attributes[name]
         if hasattr(self.ctrl, axis_attr_info.fget):
             ret = getattr(self.ctrl, axis_attr_info.fget)(axis)
         else:
@@ -387,7 +393,7 @@ class PoolController(PoolBaseController):
     @check_ctrl
     def set_axis_attr(self, axis, name, value):
         ctrl_info = self.ctrl_info
-        axis_attr_info = ctrl_info.getAxisAttributes()[name]
+        axis_attr_info = ctrl_info.axis_attributes[name]
         try:
             return getattr(self.ctrl, axis_attr_info.fset)(axis, value)
         except AttributeError:

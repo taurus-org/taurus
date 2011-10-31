@@ -139,7 +139,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
-        info = self.pool.get_elements_str_info(ElementType.Ctrl)
+        info = self.pool.get_elements_str_info(ElementType.Controller)
         attr.set_value(info)
 
     def read_InstrumentList(self, attr):
@@ -229,7 +229,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
         
-        td = TYPE_MAP_OBJ[ElementType.Ctrl]
+        td = TYPE_MAP_OBJ[ElementType.Controller]
         klass = td.klass
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
@@ -383,7 +383,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         ctrl = self.pool.get_element(name=ctrl_name)
         
-        if ctrl.get_type() != ElementType.Ctrl:
+        if ctrl.get_type() != ElementType.Controller:
             type_str = ElementType.whatis(ctrl.get_type())
             raise Exception("'%s' is not a controller (It is a %s)" %
                             (ctrl_name, type_str))
@@ -721,7 +721,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             elem = self.pool.get_element(name=name)
             
         elem_type = elem.get_type()
-        if elem_type == ElementType.Ctrl:
+        if elem_type == ElementType.Controller:
             if len(elem.get_elements()) > 0:
                 raise Exception("Cannot delete controller with elements. " \
                                 "Delete elements first")

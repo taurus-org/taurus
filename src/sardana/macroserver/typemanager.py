@@ -50,6 +50,7 @@ class TypeManager(Singleton, Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
+        self._macro_server = None
         self.call__init__(Logger, name)
         self._type_list_obj = ListEventGenerator('TypeList')
 
@@ -88,7 +89,13 @@ class TypeManager(Singleton, Logger):
         self._inst_dict = None
         
         self._state = ManagerState.CLEANED
-                
+    
+    def set_macro_server(self, macro_server):
+        self._macro_server = macro_server
+        
+    def get_macro_server(self):
+        return self._macro_server
+    
     def getTypeListObj(self):
         return self._type_list_obj
     

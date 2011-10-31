@@ -53,9 +53,9 @@ class lsdef(_ls):
                    max_col_width=self.width)
         
         for m in self.getMacros(filter):
-            if m.getName().startswith("_"):
+            if m.name.startswith("_"):
                 continue
-            out.appendRow([m.getName(), m.getModuleName(), m.getBriefDescription()])
+            out.appendRow([m.name, m.module_name, m.get_brief_description()])
         
         for line in out.genOutput():
             self.output(line)
@@ -147,12 +147,12 @@ class lspc(lsexp):
 class lsctrllib(_lsobj):
     """Lists all existing controller classes"""
     type = Type.ControllerClass
-    cols = 'Name', 'Type', 'Library', 'Family'
+    cols = 'Name', ('Type', 'main_type'), ('Library', 'module'), ('Family','gender')
 
 class lsctrl(_lsobj):
     """Lists all existing controllers"""
     type = Type.Controller
-    cols = 'Name', 'Type', 'Class', 'Module'
+    cols = 'Name', ('Type', 'main_type'), ('Class', 'klass'), 'Module'
 
 class lsi(_lsobj):
     """Lists all existing instruments"""
@@ -169,7 +169,7 @@ class lsmeas(_lsobj):
     type = Type.MeasurementGroup
 
     cols  = 'Active', 'Name', 'Timer', 'Experim. channels'
-    width =       -1,     -1,      -1,                  50
+    width =       -1,     -1,      -1,                  60
     align =  HCenter,  Right,   Right,                Left
     
     def prepare(self, filter, **opts):
