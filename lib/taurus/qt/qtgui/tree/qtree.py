@@ -190,21 +190,37 @@ class ExpansionBar(BaseToolBar):
 
         af = ActionFactory()
         self._expandAllAction = af.createAction(self, "Expand All",
-                                                icon=getIcon(":/actions/expand-all.svg"),
-                                                tip="Expand all items",
-                                                triggered=self.onExpand)
+            icon=getIcon(":/actions/expand.png"),
+            tip="Expand all items",
+            triggered=self.onExpandAll)
         self._collapseAllAction = af.createAction(self, "Collapse All",
-                                                  icon=getIcon(":/actions/collapse-all.svg"),
-                                                  tip="Collapse all items",
-                                                  triggered=self.onCollapse)
+            icon=getIcon(":/actions/collapse.png"),
+            tip="Collapse all items",
+            triggered=self.onCollapseAll)
+        self._expandSelectionAction = af.createAction(self, "Expand selection",
+            icon=getIcon(":/actions/expand-selection.png"),
+            tip="Expand selection",
+            triggered=self.onExpandSelection)
+        self._collapseSelectionAction = af.createAction(self, "Collapse All",
+            icon=getIcon(":/actions/collapse-selection.png"),
+            tip="Collapse selection",
+            triggered=self.onCollapseSelection)
         self.addAction(self._expandAllAction)
         self.addAction(self._collapseAllAction)
+        self.addAction(self._expandSelectionAction)
+        self.addAction(self._collapseSelectionAction)
     
-    def onExpand(self):
+    def onExpandAll(self):
         self.emit(Qt.SIGNAL("expandTriggered"))
-
-    def onCollapse(self):
+    
+    def onCollapseAll(self):
         self.emit(Qt.SIGNAL("collapseTriggered"))
+    
+    def onExpandSelection(self):
+        self.emit(Qt.SIGNAL("expandSelectionTriggered"))
+    
+    def onCollapseSelection(self):
+        self.emit(Qt.SIGNAL("collapseSelectionTriggered"))
 
 
 class QBaseTreeWidget(QBaseModelWidget):
@@ -221,6 +237,8 @@ class QBaseTreeWidget(QBaseModelWidget):
         e_bar = self._expandBar = ExpansionBar(view=self, parent=self)
         self.connect(e_bar, Qt.SIGNAL("expandTriggered"), self.expandAllTree)
         self.connect(e_bar, Qt.SIGNAL("collapseTriggered"), self.collapseAllTree)
+        self.connect(e_bar, Qt.SIGNAL("expandSelectionTriggered"), self.expandSelectionTree)
+        self.connect(e_bar, Qt.SIGNAL("collapseSelectionTriggered"), self.collapseSelectionTree)
         ta.append(e_bar)
         
         if self._with_navigation_bar:
@@ -277,6 +295,18 @@ class QBaseTreeWidget(QBaseModelWidget):
     
     def collapseAllTree(self):
         self.viewWidget().collapseAll()
+    
+    def expandSelectionTree(self):
+        tree = self.viewWidget()
+        index = tree.currentIndex()
+        if index.isValid():
+            tree.expand(index)
+        
+    def collapseSelectionTree(self):
+        tree = self.viewWidget()
+        index = tree.currentIndex()
+        if index.isValid():
+            tree.collapse(index)
     
     def resizeColumns(self):
         tree = self.viewWidget()

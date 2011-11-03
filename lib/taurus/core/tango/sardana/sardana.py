@@ -138,10 +138,6 @@ class BaseSardanaElementContainer:
         #     dict<str, MacroServerElement> where key is the element alias and
         #                                   value is the Element object
         self._type_elems_dict = CaselessDict()
-        
-        # dict<str, MacroServerElement> where key is the element alias and value
-        #                               value is the Element object
-        self._name_elems_dict = CaselessDict()
     
     def addElement(self, e):
         type = e.getType()
@@ -153,22 +149,16 @@ class BaseSardanaElementContainer:
         else:
             type_elems = CaselessDict()
             self._type_elems_dict[type] = type_elems
-        type_elems[name] = e
         
-        #update name_elems
-        self._name_elems_dict[name] = e
+        type_elems[name] = e
     
     def removeElement(self, e):
         type = e.getType()
-        name = e.getName()
 
         # update type_elems
         type_elems = self._type_elems_dict.get(type)
         if type_elems:
             del type_elems[name]
-        
-        if self._name_elems_dict.has_key(name):
-            del self._name_elems_dict[name]
     
     def removeElementsOfType(self, t):
         for elem in self.getElementsOfType(t):
@@ -182,13 +172,18 @@ class BaseSardanaElementContainer:
         return [ e.name for e in self._type_elems_dict.get(t, {}).values() ]
     
     def hasElementName(self, elem_name):
-        return self._name_elems_dict.has_key(elem_name)
+        return self.getElement(elem_name) != None
     
     def getElement(self, elem_name):
-        return self._name_elems_dict.get(elem_name)
+        for elems in self._type_elems_dict.values():
+            if elem_name in elems:
+                return e
     
     def getElements(self):
-        return self._name_elems_dict
+        ret = set()
+        for elems in self._type_elems_dict.values():
+            ret.update(elems.values())
+        return ret
     
     def getTypes(self):
         return self._type_elems_dict

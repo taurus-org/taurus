@@ -39,36 +39,40 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, \
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 
-_MOD, _CLS, _TNG = ":/python-file.png", ":/python.png", ":/tango.png"
+_MOD, _CLS, _FNC, _TNG = ":/python-module.png", ":/class.png", ":/function.png", ":/tango.png"
 
 TYPE_MAP = {
-    "ControllerLib"        : (_MOD, "Controller library",),
-    "ControllerClass"      : (_CLS, "Controller class",),
-    "Controller"           : (_TNG, "Controller",),
-    "Motor"                : (_TNG, "Motor",),
-    "PseudoMotor"          : (_TNG, "Pseudo Motor",),
-    "CTExpChannel"         : (_TNG, "Counter/Timer experiment channel",),
-    "CounterTimer"         : (_TNG, "Counter/Timer experiment channel",),
-    "ZeroDExpChannel"      : (_TNG, "0D experiment channel",),
-    "OneDExpChannel"       : (_TNG, "1D experiment channel",),
-    "TwoDExpChannel"       : (_TNG, "2D experiment channel",),
-    "MotorGroup"           : (_TNG, "Motor group",),
-    "MeasurementGroup"     : (_TNG, "Measurement group",),
-    "CommunicationChannel" : (_TNG, "Communication channel",),
-    "MacroLib"             : (_MOD, "Macro library",),
-    "MacroClass"           : (_CLS, "Macro class",),
-    "Instrument"           : (_TNG, "Instrument"),
-    "MacroFunction"        : (_CLS, "Macro function",),
+    "ControllerLib"        : ("Controller libraries", _MOD, "Controller library",),
+    "ControllerClass"      : ("Controller classes", _CLS, "Controller class",),
+    "Controller"           : ("Controllers", _TNG, "Controller",),
+    "Motor"                : ("Motors", _TNG, "Motor",),
+    "PseudoMotor"          : ("Pseudo motors", _TNG, "Pseudo Motor",),
+    "CTExpChannel"         : ("Counter/Timers", _TNG, "Counter/Timer experiment channel",),
+    "CounterTimer"         : ("Counter/Timers", _TNG, "Counter/Timer experiment channel",),
+    "ZeroDExpChannel"      : ("0D channels", _TNG, "0D experiment channel",),
+    "OneDExpChannel"       : ("1D channels", _TNG, "1D experiment channel",),
+    "TwoDExpChannel"       : ("2D channels", _TNG, "2D experiment channel",),
+    "MotorGroup"           : ("Motor groups", _TNG, "Motor group",),
+    "MeasurementGroup"     : ("Measurement groups", _TNG, "Measurement group",),
+    "CommunicationChannel" : ("Communication channels", _TNG, "Communication channel",),
+    "MacroLib"             : ("Macro libraries", _MOD, "Macro library",),
+    "MacroClass"           : ("Macro classes", _CLS, "Macro class",),
+    "Instrument"           : ("Instruments", _TNG, "Instrument"),
+    "MacroFunction"        : ("Macro functions", _FNC, "Macro function",),
 }
 
+def getElementTypeLabel(t):
+    return TYPE_MAP.get(t, (t,))[0]
+
 def getElementTypeIcon(t):
-    return getIcon(TYPE_MAP.get(t, _TNG)[0])
+    return getIcon(TYPE_MAP.get(t, _TNG)[1])
     
 def getElementTypeSize(t):
     return Qt.QSize(200,24)
 
 def getElementTypeToolTip(t):
-    return TYPE_MAP.get(t, 'no information')[1]
+    return TYPE_MAP.get(t, 'no information')[2]
+
 
 class SardanaBaseTreeItem(TaurusBaseTreeItem):
     """A generic node"""
@@ -80,7 +84,7 @@ class SardanaBaseTreeItem(TaurusBaseTreeItem):
         """
         if index.column() > 0:
             return None
-        return str(self._itemData)
+        return getElementTypeLabel(self._itemData)
     
     def role(self):
         """Returns the prefered role for the item.
@@ -93,6 +97,14 @@ class SardanaBaseTreeItem(TaurusBaseTreeItem):
         return 'type'
 
 
+class SardanaRootTreeItem(SardanaBaseTreeItem):
+    pass
+
+
+class SardanaTypeTreeItem(SardanaBaseTreeItem):
+    pass
+
+
 class SardanaElementTreeItem(SardanaBaseTreeItem):
     
     def role(self):
@@ -103,14 +115,14 @@ class SardanaElementTreeItem(SardanaBaseTreeItem):
         role = model.role(column, self.depth())
         obj = self.itemData()
         if role == "parent":
-            if hasattr(obj, "parent"):
-                return obj.parent
             if hasattr(obj, "klass"):
                 return obj.klass
             if hasattr(obj, "module"):
                 return obj.module
             if hasattr(obj, "controller"):
                 return obj.controller
+            if hasattr(obj, "parent"):
+                return obj.parent
             return None
         return getattr(obj, role)
     
@@ -129,7 +141,11 @@ class SardanaElementTreeItem(SardanaBaseTreeItem):
 class SardanaBaseElementModel(TaurusBaseModel):
     
     ColumnNames = ["Elements", "Controller/Module/Parent"]
-    ColumnRoles = ('type', 'type', 'name'), "parent"
+    ColumnRoles = ('Root', 'type', 'name', 'name'), "parent"
+    
+    def __init__(self, parent=None, data=None):
+        TaurusBaseModel.__init__(self, parent=parent, data=data)
+        self.setSelectables(self.ColumnRoles[0])
     
     def setDataSource(self, data_source):
         old_ds = self.dataSource()
@@ -142,11 +158,10 @@ class SardanaBaseElementModel(TaurusBaseModel):
         TaurusBaseModel.setDataSource(self, data_source)
     
     def on_elements_changed(self):
-        print "on_elements_changed"
         self.refresh()
 
     def createNewRootItem(self):
-        return SardanaBaseTreeItem(self, self.ColumnNames)
+        return SardanaRootTreeItem(self, self.ColumnNames)
     
     def roleIcon(self, role):
         return getElementTypeIcon(role)
@@ -195,17 +210,36 @@ class SardanaBaseElementModel(TaurusBaseModel):
         info = dev.getElementsInfo()
         elements = info.getElements()
         root = self._rootItem
-        
         type_nodes = {}
-        for elem_name, elem in elements.items():
-            elem_type = elem.type
-            type_item = type_nodes.get(elem_type)
+        parent_elements = {}
+        child_elements = set()
+        parent_types = "ControllerLib", "MacroLib", "Controller"
+        child_types = "ControllerClass", "MacroClass", "MacroFunction", \
+            "Motor", "CounterTimer", "PseudoMotor", "PseudoCounter", \
+            "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel"
+        
+        for element in elements:
+            element_type = element.type
+            type_item = type_nodes.get(element_type)
             if type_item is None:
-                type_item = SardanaBaseTreeItem(self, elem_type, root)
-                type_nodes[elem_type] = type_item
+                type_item = SardanaTypeTreeItem(self, element_type, root)
+                type_nodes[element_type] = type_item
                 root.appendChild(type_item)
-            elem_item = SardanaElementTreeItem(self, elem, type_item)
-            type_item.appendChild(elem_item)
+            element_item = SardanaElementTreeItem(self, element, type_item)
+            type_item.appendChild(element_item)
+            if element_type in parent_types:
+                parent_elements[element.name] = element_item
+            elif element_type in child_types:
+                child_elements.add(element)
+        
+        for element in child_elements:
+            try:
+                parent_item = parent_elements[element.parent]
+            except KeyError:
+                self.warning("Error adding %s to parent %s (parent unknown)",
+                             element.name, element.parent)
+            element_item = SardanaElementTreeItem(self, element, parent_item)
+            parent_item.appendChild(element_item)
             
 
 class SardanaElementTypeModel(SardanaBaseElementModel):
@@ -238,11 +272,11 @@ class SardanaBaseProxyModel(TaurusBaseProxyModel):
 class SardanaElementTreeWidget(TaurusBaseTreeWidget):
     
     KnownPerspectives = { "Type" : {
-                            "label" : "By type",
-                            "icon" : ":/python-file.png",
-                            "tooltip" : "View elements by type",
-                            "model" : [SardanaBaseProxyModel, SardanaElementTypeModel],
-                          },
+                          "label" : "By type",
+                          "icon" : ":/python-file.png",
+                          "tooltip" : "View elements by type",
+                          "model" : [SardanaBaseProxyModel, SardanaElementTypeModel],
+                        },
     }
     DftPerspective = "Type"
         

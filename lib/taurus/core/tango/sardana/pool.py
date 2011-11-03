@@ -1245,30 +1245,35 @@ class Pool(TangoDevice, MoveableSource):
         
     def on_elements_changed(self, evt_src, evt_type, evt_value):
         if evt_type == TaurusEventType.Error:
-            self.warning("Received element list error event %s", evt_value)
+            msg = evt_value
+            if isinstance(msg, DevFailed):
+                d = msg[0]
+                # skip configuration errors
+                if d.reason == "API_BadConfigurationProperty":
+                    return
+                if d.reason in ("API_DeviceNotExported", "API_CantConnectToDevice"):
+                    msg = "Pool was shutdown or is inacessible"
+                else:
+                    msg = "{0}: {1}".format(d.reason, d.desc)
+            self.warning("Received elements error event %s", msg)
+            self.debug(evt_value)
             return
         elif evt_type not in CHANGE_EVT_TYPES:
             return
         try:
             elems = CodecFactory().decode(evt_value.value, ensure_ascii=True)
         except:
-            self.error("Could not decode element info format=%s len=%s",
-                       evt_value.value[0], len(evt_value.value[1]))
+            self.error("Could not decode element info")
             return
         
-        event_type = elems['__type__']
-        elements_data = elems['elements']
-        
         elements = self.getElementsInfo()
-        if event_type == 'set':
-            for element_data in elements_data:
-                element_data['manager'] = self
-                element = BaseSardanaElement(**element_data)
-                elements.addElement(element)
-        else:
-            for element_data in elements_data:
-                element = self.getElementInfo(element_data['name'])
-                elements.removeElement(element)
+        for element_data in elems.get('new', ()):
+            element_data['manager'] = self
+            element = BaseSardanaElement(**element_data)
+            elements.addElement(element)
+        for element_data in elems.get('del', ()):
+            element = self.getElementInfo(element_data['name'])
+            elements.removeElement(element)
     
     def getElementsInfo(self):
         return self._elements

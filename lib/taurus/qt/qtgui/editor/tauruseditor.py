@@ -37,9 +37,9 @@ from taurus.qt import Qt
 try:
     import spyderlib
     if int(spyderlib.__version__.split(".")[0]) < 2:
-        raise Exception("TaurusEditor needs spyderlib >= 2.0")
+        raise Exception("TaurusEditor needs spyderlib >= 2.1")
 except ImportError: 
-    raise Exception("TaurusEditor needs spyderlib >= 2.0")
+    raise Exception("TaurusEditor needs spyderlib >= 2.1")
 
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.widgets.findreplace import FindReplace
@@ -107,7 +107,11 @@ class TaurusBaseEditor(Qt.QSplitter):
             editorstack.reload(idx)
             editorstack.analyze_script()
             if goto is not None:
+                editorstack.set_current_filename(filename)
                 editorstack.data[idx].editor.go_to_line(goto)
+    
+    def set_current_filename(self, filename):
+        self.editorStack().set_current_filename(filename)
     
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)

@@ -642,18 +642,13 @@ class BaseMacroServer(MacroServerDevice):
                        evt_value.value[0], len(evt_value.value[1]))
             return
         
-        event_type = elems['__type__']
-        elements_data = elems['elements']
-        
-        if event_type == 'set':
-            for element_data in elements_data:
-                element_data['manager'] = self
-                element = self._addElement(element_data)
-                added.add(element)
-        elif event_type == 'del':
-            for element_data in elements_data:
-                element = self.removeElement(element_data)
-                removed.add(element)
+        for element_data in elems.get('new', ()):
+            element_data['manager'] = self
+            element = self._addElement(element_data)
+            added.add(element)
+        for element_data in elems.get('del', ()):
+            element = self.removeElement(element_data)
+            removed.add(element)
         return ret
     
     def _addElement(self, element_data):
