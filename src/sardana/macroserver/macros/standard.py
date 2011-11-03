@@ -30,7 +30,7 @@ __all__ = ["ct", "mstate", "mv", "mvr", "pwa", "pwm", "set_lim", "set_lm",
 
 from taurus.console.table import Table
 
-from sardana.macroserver.macro import *
+from sardana.macroserver.macro import Macro, Type, ParamRepeat
 
 ################################################################################
 #
@@ -269,7 +269,6 @@ class umv(Macro):
     def prepare(self, *motor_pos_list, **opts):
         self.all_names = []
         self.all_pos = []
-        idx = 0
         self.print_pos = False
         for motor, pos in motor_pos_list:
             self.all_names.append([motor.getName()])

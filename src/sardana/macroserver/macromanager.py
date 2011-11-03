@@ -228,7 +228,7 @@ class MacroManager(Singleton, Logger):
                     f_name, code, line_nb = self.createMacro(lib_name, macro_name)
                 else:
                     code_lines, line_nb = macro.code
-                    f_name = macro.getFileName()
+                    f_name = macro.file_path
                     f = file(f_name)
                     code = f.read()
                     f.close()

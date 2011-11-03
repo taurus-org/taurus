@@ -165,9 +165,9 @@ class ElementParamType(ParamType):
         else:
             pools = self.getManager().getPoolObj(pool),
         for pool in pools:
-            for elem_name, elem_info in pool.getElements().items():
+            for elem_info in pool.getElements():
                 if self.accepts(elem_info):
-                    objs[elem_name] = elem_info
+                    objs[elem_info.name] = elem_info
         return objs
     
     def getObjListStr(self, pool=ParamType.All, cache=False):

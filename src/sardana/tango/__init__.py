@@ -27,15 +27,15 @@
 
 __docformat__ = 'restructuredtext'
 
-import core.util
-
 def prepare_sardana(util):
     import pool
     import macroserver
     pool.prepare_pool(util)
     macroserver.prepare_macroserver(util)
 
-def main_sardana(start_time=None):
-    core.util.run(prepare_sardana, start_time=start_time)
+def main_sardana(args=None, start_time=None, mode=None):
+    import core.util
+    return core.util.run(prepare_sardana, args=args, start_time=start_time,
+                         mode=mode)
 
 

@@ -45,8 +45,9 @@ def prepare_pool(util):
     util.add_class(MotorGroupClass, MotorGroup)
     util.add_class(MeasurementGroupClass, MeasurementGroup)
 
-def main_pool(start_time=None):
+def main_pool(args=None, start_time=None, mode=None):
     import sardana.tango.core.util
-    sardana.tango.core.util.run(prepare_pool, start_time=start_time)
+    return sardana.tango.core.util.run(prepare_pool, args=args,
+                                       start_time=start_time, mode=mode)
 
-
+run = main_pool

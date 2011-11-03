@@ -45,6 +45,11 @@ from sardana import ServerState, SardanaServer, DataType, DataFormat, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
 from sardana.pool.poolmetacontroller import DataInfo
 
+from taurus.core.util import Enumeration
+
+ServerRunMode = Enumeration("ServerRunMode", \
+                            ("SynchPure", "SynchThread", "SynchProcess", \
+                             "AsynchThread", "AsynchProcess"))
 
 class GenericScalarAttr(Attr):
     pass
@@ -322,30 +327,52 @@ def run_tango_server(util, start_time=None):
         taurus.critical("Server exited with unforeseen exception", exc_info=1)
     taurus.info("Exited")
 
-def run(prepare_func, args=None, tango_util=None, start_time=None, asynch=False):
+def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
+    
+    if mode is None:
+        mode = ServerRunMode.SynchPure
+        
     if args is None:
+        if mode != ServerRunMode.SynchPure:
+            raise Exception("When running in separate thread/process, " \
+                            "'args' must be given")
         import sys
         args = sys.argv
+    
+    name = args[0]
+    
+    if mode != ServerRunMode.SynchPure:
+        if mode in (ServerRunMode.SynchThread, ServerRunMode.AsynchThread):
+            import threading
+            class task_klass(threading.Thread):
+                def terminate(self):
+                    if not self.is_alive():
+                        return
+                    Util.instance().get_dserver_device().kill()
+        else:
+            import multiprocessing
+            task_klass = multiprocessing.Process
+            tango_util = None
 
+        task_args = prepare_func,
+        task_kwargs = dict(args=args, tango_util=tango_util,
+                           start_time=start_time, mode=ServerRunMode.SynchPure)
+        
+        task = task_klass(name=name, target=run, args=task_args,
+                          kwargs=task_kwargs)
+        task.daemon = False
+        task.start()
+        if mode in (ServerRunMode.SynchThread, ServerRunMode.SynchProcess):
+            task.join()
+        return task
+    
     options, args, tango_args = prepare_cmdline(args=args)
     if tango_util == None:
         tango_util = Util(tango_args)
-
+    
     prepare_taurus(options, args, tango_args)
     prepare_logging(options, args, tango_args, start_time=start_time)
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
     
-    import threading
-    class TangoThread(threading.Thread):
-        
-        def run(self):
-            run_tango_server(tango_util, start_time=start_time)
-    
-    tango_thread = TangoThread(name="Tango")
-    tango_thread.start()
-    if not asynch:
-        tango_thread.join()
-    else:
-        return tango_thread
-    
+    run_tango_server(tango_util, start_time=start_time)

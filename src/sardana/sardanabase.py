@@ -71,12 +71,12 @@ class SardanaBaseManager(object):
 class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
     """The Sardana most abstract object. It contains only two members:
     
-       - _manager : a weak reference to the manager (pool or ms) where it 
+       - _manager : a weak reference to the manager (pool or ms) where it
          belongs
        - _name : the name
-       - _full_name : the name (usually a tango device name, but can be 
+       - _full_name : the name (usually a tango device name, but can be
          anything else.)"""
-       
+    
     def __init__(self, **kwargs):
         EventGenerator.__init__(self)
         EventReceiver.__init__(self)
@@ -84,6 +84,7 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         self._full_name = intern(kwargs.pop('full_name'))
         Logger.__init__(self, self._name)
         self._manager = weakref.ref(kwargs.pop('manager'))
+        self._parent = weakref.ref(kwargs.pop('parent', self.manager))
     
     def get_manager(self):
         """Return the :class:`sardana.Manager` which *owns* this sardana
@@ -116,12 +117,11 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         raise NotImplementedError
     
     def get_parent(self):
-        """Returns this pool object parent. Default implementation returns
-        the manager
+        """Returns this pool object parent.
         
         :return: this objects parent
         :rtype: :obj:'"""
-        return self.get_manager()
+        return self._parent()
 
     def get_parent_name(self):
         """Returns this pool object parent's name.

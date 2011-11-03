@@ -49,9 +49,9 @@ def prepare_macroserver(util):
     util.add_class(MacroServerClass, MacroServer)
     util.add_class(DoorClass, Door)
     
-def main_macroserver(args=None, start_time=None, asynch=False):
+def main_macroserver(args=None, start_time=None, mode=None):
     import sardana.tango.core.util
     return sardana.tango.core.util.run(prepare_macroserver, args=args,
-                                       start_time=start_time, asynch=asynch)
+                                       start_time=start_time, mode=mode)
 
-
+run = main_macroserver

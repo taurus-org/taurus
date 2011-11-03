@@ -115,7 +115,7 @@ class MacroServer(SardanaDevice):
         if cache and value is not None:
             return value
         elements = self.__getManager().get_elements_info()
-        value = dict(__type__="set", elements=elements)
+        value = dict(new=elements)
         value = CodecFactory().getCodec('json').encode(('', value))
         self.ElementsCache = value
         return value

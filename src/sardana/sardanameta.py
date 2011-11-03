@@ -256,6 +256,7 @@ class SardanaMetaClass(SardanaBaseObject):
             self.description = doc
         kwargs['name'] = name = kwargs.pop('name', self.klass.__name__)
         kwargs['full_name'] = "{0}.{1}".format(lib.name, name)
+        kwargs['parent'] = kwargs.pop('parent', self.lib)
         SardanaBaseObject.__init__(self, **kwargs)
     
     @property
@@ -300,6 +301,15 @@ class SardanaMetaClass(SardanaBaseObject):
         :return: the file name for the library where this class is
         :rtype: str"""
         return self.lib.file_name
+
+    @property
+    def path(self):
+        """Returns the absolute path for the library where this class is. On
+        posix systems is something like: /abs/path
+        
+        :return: the absolute path for the library where this class is
+        :rtype: str"""
+        return self.lib.path
     
     @property
     def code(self):
@@ -324,6 +334,7 @@ class SardanaMetaClass(SardanaBaseObject):
         kwargs['module'] = self.module_name
         kwargs['file_name'] = self.file_name
         kwargs['file_path'] = self.file_path
+        kwargs['path'] = self.path
         kwargs['description'] = self.description
         return kwargs
     

@@ -190,7 +190,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         value = self.ElementsCache
         if cache and value is not None:
             return value
-        value = dict(__type__="set", elements=self.pool.get_elements_info())
+        value = dict(new=self.pool.get_elements_info())
         value = CodecFactory().getCodec('json').encode(('', value))
         self.ElementsCache = value
         return value
@@ -599,11 +599,11 @@ class Pool(PyTango.Device_4Impl, Logger):
             
             value = { }
             if "created" in evt_name:
-                value['__type__'] = 'set'
+                key = 'new'
             else:
-                value['__type__'] = 'del'
+                key = 'del'
             json_elem = elem.to_json(pool=self.pool.full_name)
-            value['elements'] = json_elem,
+            value[key] = json_elem,
             value = CodecFactory().getCodec('json').encode(('', value))
             self.push_change_event('Elements', *value)
 

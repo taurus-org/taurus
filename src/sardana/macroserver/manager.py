@@ -210,7 +210,7 @@ class MacroServerManager(Singleton, Logger):
     def get_elements_info(self):
         ret = [ elem.serialize()
             for pool in self.getPoolListObjs()
-                for elem in pool.getElements().values() ]
+                for elem in pool.getElements() ]
 
         ret += [ macrolib.serialize()
             for macrolib in self.getMacroLibs().values() ]

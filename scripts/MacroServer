@@ -45,9 +45,12 @@ except ImportError:
     set_src()
     import sardana
 
-def main():
+def run():
     import sardana.tango.macroserver
-    sardana.tango.macroserver.main_macroserver(start_time=__START_TIME)
+    sardana.tango.macroserver.run(start_time=__START_TIME)
+
+def main():
+    run()
 
 if __name__ == '__main__':
     main()
