@@ -42,6 +42,7 @@ class TaurusMonitorTiny(TaurusTrend):
                  :ref:`TaurusTrend User's Interface Guide <trend_ui>`, 
                  :ref:`The TaurusTrend coding examples <examples_taurustrend>`
     '''
+    DEFAULT_MAX_BUFFER_SIZE = 8192 #(8K events))
     def __init__(self, parent = None, designMode = False):
         TaurusTrend.__init__(self, parent = parent, designMode = designMode)
         
@@ -49,7 +50,6 @@ class TaurusMonitorTiny(TaurusTrend):
         self.setXIsTime(True)
         self.setAxisScale(self.xBottom, 0, 5*60) #set a 5 minutes range by default
         self.setXDynScale(True)
-        self.setMaxDataBufferSize(8192) 
         
         self.setCanvasBackground(Qt.Qt.black)
         

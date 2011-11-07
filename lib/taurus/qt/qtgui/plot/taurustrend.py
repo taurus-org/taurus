@@ -732,6 +732,9 @@ class TaurusTrend(TaurusPlot):
                  :ref:`TaurusTrend User's Interface Guide <trend_ui>`, 
                  :ref:`The TaurusTrend coding examples <examples_taurustrend>`
     '''
+    
+    DEFAULT_MAX_BUFFER_SIZE = 65536 #(=2**16, i.e., 64K events))
+    
     def __init__(self, parent = None, designMode = False):
         TaurusPlot.__init__(self, parent = parent, designMode = designMode)
         self.trendSets = CaselessDict()
@@ -740,7 +743,7 @@ class TaurusTrend(TaurusPlot):
         self._useArchiving = False
         self._usePollingBuffer = False
         self.setDefaultCurvesTitle('<label><[trend_index]>')
-        self._maxDataBufferSize = 65536 #(=2**16, i.e., 64K events))
+        self._maxDataBufferSize = self.DEFAULT_MAX_BUFFER_SIZE 
         self.__qdoorname = None
         self._scansXDataKey = None
         self._scansAutoClear = True
@@ -1309,8 +1312,8 @@ class TaurusTrend(TaurusPlot):
         return self._maxDataBufferSize
             
     def resetMaxDataBufferSize(self):
-        '''Same as setMaxDataBufferSize(1048576)  (i.e. 1M of events)'''
-        self.setMaxDataBufferSize(1048576)
+        '''Same as setMaxDataBufferSize(self.DEFAULT_MAX_BUFFER_SIZE)'''
+        self.setMaxDataBufferSize(self.DEFAULT_MAX_BUFFER_SIZE)
     
     def _canvasContextMenu(self):
         ''' see :meth:`TaurusPlot._canvasContextMenu` '''
