@@ -34,7 +34,9 @@ def process_type(t, obj_type='class'):
     if t.count(' or '):
        i = t.index(' or ')
        return ' '.join(map(process_type, (t[:i],'or', t[i+4:])))
-    if not t.count('<') or not t.count('>'): return ':%s:`%s`' % (obj_type, t)
+    if not t.count('<') or not t.count('>'):
+        ret = ':%s:~`%s`' % (obj_type, t)
+        return ret
     
     #process a container template
     start, stop = t.index('<'), t.index('>')
