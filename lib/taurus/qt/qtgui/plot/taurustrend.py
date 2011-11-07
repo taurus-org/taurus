@@ -740,7 +740,7 @@ class TaurusTrend(TaurusPlot):
         self._useArchiving = False
         self._usePollingBuffer = False
         self.setDefaultCurvesTitle('<label><[trend_index]>')
-        self._maxDataBufferSize = 1048576 #(=2**20, i.e., 1M events))
+        self._maxDataBufferSize = 65536 #(=2**16, i.e., 64K events))
         self.__qdoorname = None
         self._scansXDataKey = None
         self._scansAutoClear = True
@@ -1452,6 +1452,8 @@ def main():
     parser.set_description("a taurus application for plotting trends")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|e",
                   help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")
+    parser.add_option("-b", "--buffer", dest="max_buffer_size", default='65536', 
+                  help="maximum number of values per curve to be plotted (when reached, the oldest values will be discarded)")
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
                   help="use the given config file for initialization")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
@@ -1478,6 +1480,8 @@ def main():
     
     #xistime option
     w.setXIsTime(options.x_axis_mode.lower() == 't')
+    #max buffer size option
+    w.setMaxDataBufferSize(int(options.max_buffer_size))
     #configuration file option
     if options.config_file is not None: w.loadConfig(options.config_file)
     #set models 

@@ -49,6 +49,7 @@ class TaurusMonitorTiny(TaurusTrend):
         self.setXIsTime(True)
         self.setAxisScale(self.xBottom, 0, 5*60) #set a 5 minutes range by default
         self.setXDynScale(True)
+        self.setMaxDataBufferSize(8192) 
         
         self.setCanvasBackground(Qt.Qt.black)
         
