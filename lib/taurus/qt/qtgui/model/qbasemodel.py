@@ -254,7 +254,9 @@ class QBaseModelWidget(Qt.QMainWindow):
         statusbar = self.createStatusBar()
         
         for toolBar in toolBars:
+            toolBar.addSeparator()
             self.addToolBar(toolBar)
+            #self.addToolBarBreak()
         self.setContentsMargins(0, 0, 0, 0)
         self.setCentralWidget(self._viewWidget)
         self.setStatusBar(statusbar)

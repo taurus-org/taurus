@@ -367,6 +367,8 @@ class QBaseTreeWidget(QBaseModelWidget):
             if ip is not None:
                 goInto = ip.childCount() > 0
         self._navigationToolBar._goIntoAction.setEnabled(goInto)
+        self._expandBar._expandSelectionAction.setEnabled(goInto)
+        self._expandBar._collapseSelectionAction.setEnabled(goInto)
         
         goUp = tree.rootIndex().isValid()
         self._navigationToolBar._goUpAction.setEnabled(goUp)
