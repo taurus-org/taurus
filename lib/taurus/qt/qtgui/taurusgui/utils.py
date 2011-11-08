@@ -335,19 +335,24 @@ class TaurusGuiComponentDescription(object):
     sharedDataRead = property(fget=getSharedDataRead, fset=setSharedDataRead) 
     model = property(fget=getModel, fset=setModel) 
 
+
 class PanelDescription(TaurusGuiComponentDescription):
     '''
     A description of a taurusgui panel. 
     This class is not a panel, but a container of the information required to
     build a panel.
     '''
-    pass
+    def __init__(self, *args, **kwargs):
+        self.instrumentkey = kwargs.pop('instrumentkey', None)
+        TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
+        
 
 class ToolBarDescription(TaurusGuiComponentDescription):
     '''
     A description of a toolbar to be inserted in a TaurusGUI. 
     '''
     pass
+
 
 class AppletDescription(TaurusGuiComponentDescription): 
     '''

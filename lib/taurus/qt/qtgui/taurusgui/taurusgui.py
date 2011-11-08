@@ -53,6 +53,63 @@ import taurus.qt.qtgui.resource
 from taurus.core.util import etree
 
 
+class AssociationDialog(Qt.QDialog):
+    '''A dialog for viewing and editing the associations between instruments and panels''' 
+    def __init__(self, parent, flags= None):
+        if flags is None: flags = Qt.Qt.Widget
+        Qt.QDialog.__init__(self, parent, flags)
+        
+        from ui.ui_PanelAssociationsDlg import Ui_PanelAssociationsDlg
+        self.ui = Ui_PanelAssociationsDlg()
+        self.ui.setupUi(self)
+        
+        self.refresh()
+        self.connect(self.ui.instrumentCB, Qt.SIGNAL('activated (QString)'), self.onInstrumentChanged)
+        self.connect(self.ui.buttonBox, Qt.SIGNAL("clicked(QAbstractButton *)"), self.onDialogButtonClicked)
+        self.connect(self.ui.refreshBT, Qt.SIGNAL("clicked()"), self.refresh)
+        
+    def refresh(self):
+        currentinstrument = self.ui.instrumentCB.currentText()
+        currentinstrumentIdx= self.ui.instrumentCB.currentIndex()
+        mainwindow = self.parent()
+        
+        self.associations = mainwindow.getAllInstrumentAssociations()
+        
+        #fill the comboboxes
+        self.ui.instrumentCB.clear()
+        self.ui.panelCB.clear()
+        self.ui.instrumentCB.addItems(sorted(self.associations.keys()))
+        self.ui.panelCB.addItems(['__[None]__']+mainwindow.getPanelNames())
+        
+        #restore the index
+        idx = self.ui.instrumentCB.findText(currentinstrument)
+        if idx == -1 and self.ui.instrumentCB.count()>0:
+            idx = 0
+        self.ui.instrumentCB.setCurrentIndex(idx)
+        self.onInstrumentChanged(self.ui.instrumentCB.currentText())
+    
+    def onInstrumentChanged(self, instrumentname):
+        instrumentname = unicode(instrumentname)
+        panelname = self.associations.get(instrumentname)
+        if panelname is None:
+            self.ui.panelCB.setCurrentIndex(0)
+            return
+        else:
+            idx = self.ui.panelCB.findText(panelname)
+            self.ui.panelCB.setCurrentIndex(idx)
+        
+    def onDialogButtonClicked(self, button):
+        role = self.ui.buttonBox.buttonRole(button)
+        if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.ApplyRole) :
+            if self.ui.panelCB.currentIndex() > 0:
+                panelname = unicode(self.ui.panelCB.currentText())
+            else:
+                panelname = None
+            instrumentname = unicode(self.ui.instrumentCB.currentText())
+            self.associations[instrumentname] = panelname
+            self.parent().setInstrumentAssociation(instrumentname,panelname)
+        
+
 class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
     '''
     This is an extended QDockWidget which provides some methods for being used
@@ -74,19 +131,6 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         
         #store a weakref of the main window
         self._mainwindow =  weakref.proxy(mainwindow)
-        
-        #create and connect the toggleViewAction associated with this panel
-        self.connect(self,Qt.SIGNAL('visibilityChanged(bool)'), self.onVisibilityChanged)
-    
-    def onVisibilityChanged(self, visible):
-        if visible:
-            self.onSelected()
-            
-    def onSelected(self):
-        self.debug('panel "%s" selected'%unicode(self.objectName()))
-        w = self.widget()
-        if w is not None:
-            w.emit(Qt.SIGNAL("panelSelected"), unicode(self.objectName()))
     
     def isCustom(self):
         return self._custom
@@ -134,8 +178,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         if isinstance(self.widget(),BaseConfigurableClass):
             configdict['widget'] = self.widget().createConfig()
         return configdict
-
-
+    
 
 class TaurusGui(TaurusMainWindow):
     '''
@@ -152,31 +195,23 @@ class TaurusGui(TaurusMainWindow):
         be added in the near future.
     '''
     
+    IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
+    
     def __init__(self, parent=None, confname=None):
         TaurusMainWindow.__init__(self, parent, False, True)
         
         self.__panels = {}   
         self.__synoptics = []
+        self.__instrumentToPanelMap = {}
+        self.__panelToInstrumentMap = {}
         
         self.setDockNestingEnabled(True)
         
         self.registerConfigProperty(self._getPermanentCustomPanels, self._setPermanentCustomPanels, 'permanentCustomPanels')
+        self.registerConfigProperty(self.getAllInstrumentAssociations, self.setAllInstrumentAssociations, 'instrumentAssociation')
         
         from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
         self.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
-#        if HAS_EXTRA_POOL:
-#            self.info('extra_pool available: using PoolMotorSlim and PoolChannel widgets')
-#            self._customWidgetMap ={'SimuMotor':PoolMotorSlim,
-#                                    'Motor':PoolMotorSlim,
-#                                    'PseudoMotor':PoolMotorSlim,
-#                                    'PseudoCounter':PoolChannel,
-#                                    'CTExpChannel':PoolChannel,
-#                                    'ZeroDExpChannel':PoolChannel,
-#                                    'OneDExpChannel':PoolChannel,
-#                                    'TwoDExpChannel':PoolChannel}
-#        else:
-#            self._customWidgetMap = {}
-#            self.info('extra_pool not available: using generic widgets for motors and channels')
         
         #Create a global SharedDataManager
         Qt.qApp.SDM =  SharedDataManager(self)
@@ -218,8 +253,7 @@ class TaurusGui(TaurusMainWindow):
         self.connect(self._lockviewAction,Qt.SIGNAL("toggled(bool)"), self.setLockView)
         self._lockviewAction.setChecked(not self.isModifiableByUser())
         self.viewMenu.addAction(self._lockviewAction)
-        
-        
+             
     def __initPanelsToolBar(self):
         #Panels toolbar  
         self.panelsToolBar = self.addToolBar("Panels")
@@ -241,102 +275,20 @@ class TaurusGui(TaurusMainWindow):
         self.jorgsBar.setIconSize(Qt.QSize(60,60))
         self.jorgsBar.setMovable(False)
         
-#    def createMacroInfrastructure(self, msname='', doorname='', meditpath=''):
-#        '''
-#        Put here code for initializing infrastructure needed for macro execution 
-#        '''
-#        from taurus.qt.qtgui.extra_macroexecutor import TaurusMacroExecutorWidget, TaurusSequencerWidget, TaurusMacroConfigurationDialog, \
-#                                                     TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
-#        from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
-#        
-#        #Create macroconfiguration dialog & action
-#        self.splashScreen().showMessage("setting up Macro config dialog")
-#        self.__macroConfigurationDialog = TaurusMacroConfigurationDialog(self)
-#        self.macroConfigurationAction = self.taurusMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-system-session"), "Macro execution configuration...", self.__macroConfigurationDialog.show)
-#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroConfigurationDialog.selectMacroServer)
-#        Qt.qApp.SDM.connectReader("doorName", self.__macroConfigurationDialog.selectDoor)
-#        Qt.qApp.SDM.connectWriter("macroserverName", self.__macroConfigurationDialog, 'macroserverNameChanged')
-#        Qt.qApp.SDM.connectWriter("doorName", self.__macroConfigurationDialog, 'doorNameChanged')
-#        
-#        #put a Macro Executor
-#        self.splashScreen().showMessage('setting up macro-related components')
-#        self.__macroExecutor = TaurusMacroExecutorWidget()
-#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroExecutor.setModel)
-#        Qt.qApp.SDM.connectReader("doorName", self.__macroExecutor.onDoorChanged)
-#        Qt.qApp.SDM.connectReader("macroStatus", self.__macroExecutor.onMacroStatusUpdated)
-#        Qt.qApp.SDM.connectWriter("macroName", self.__macroExecutor, "macroNameChanged")
-#        Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
-#        Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
-#        self.createPanel(self.__macroExecutor, 'Macros', registerconfig=True)
-#        
-#        #put a Sequencer
-#        self.__sequencer = TaurusSequencerWidget()
-#        Qt.qApp.SDM.connectReader("macroserverName", self.__sequencer.setModel)
-#        Qt.qApp.SDM.connectReader("doorName", self.__sequencer.onDoorChanged)
-#        Qt.qApp.SDM.connectReader("macroStatus", self.__sequencer.onMacroStatusUpdated)
-#        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer.tree, "macroNameChanged")
-#        Qt.qApp.SDM.connectWriter("macroName", self.__sequencer, "macroNameChanged")
-#        Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
-#        Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
-#        Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
-#        self.createPanel(self.__sequencer, 'Sequences', registerconfig=True)
-#        
-#        #puts a macrodescriptionviewer
-#        self.__macroDescriptionViewer = TaurusMacroDescriptionViewer(self)
-#        Qt.qApp.SDM.connectReader("macroserverName", self.__macroDescriptionViewer.setModel)
-#        Qt.qApp.SDM.connectReader("macroName", self.__macroDescriptionViewer.onMacroNameChanged)
-#        self.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True)
-#        
-#        #puts a doorOutput
-#        self.__doorOutput = DoorOutput(self)
-#        Qt.qApp.SDM.connectReader("doorOutputChanged", self.__doorOutput.onDoorOutputChanged)
-#        Qt.qApp.SDM.connectReader("doorInfoChanged", self.__doorOutput.onDoorInfoChanged)
-#        Qt.qApp.SDM.connectReader("doorWarningChanged", self.__doorOutput.onDoorWarningChanged)
-#        Qt.qApp.SDM.connectReader("doorErrorChanged", self.__doorOutput.onDoorErrorChanged)
-#        self.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False)
-#        
-#        #puts doorDebug
-#        self.__doorDebug = DoorDebug(self)
-#        Qt.qApp.SDM.connectReader("doorDebugChanged", self.__doorDebug.onDoorDebugChanged)
-#        self.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False)
-#        
-#        #puts doorResult
-#        self.__doorResult = DoorResult(self)
-#        Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
-#        self.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
-#        
-#        #puts a TaurusTrend connected to the door for showing scan trends
-#        self.__scanTrend = TaurusTrend()
-#        self.__scanTrend.setXIsTime(False)
-#        self.__scanTrend.setScansAutoClear(False)
-#        Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
-#        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
-#        self.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
-#        
-#        #The app-wide door
-#        self.__qdoor = None
-#        
-#        #connect to macroserver and door if given
-#        if msname: self.emit(Qt.SIGNAL("macroserverNameChanged"), msname)
-#        if doorname: self.emit(Qt.SIGNAL("doorNameChanged"), doorname)
-#        if meditpath:
-#            ParamEditorManager().parsePaths(meditpath)
-#            ParamEditorManager().browsePaths()
-        
     def __initSharedDataConnections(self):        
         #register the TAURUSGUI itself as a writer/reader for several shared data items
         self.splashScreen().showMessage("setting up shared data connections")
         Qt.qApp.SDM.connectWriter("macroserverName", self, 'macroserverNameChanged')
         Qt.qApp.SDM.connectWriter("doorName", self, 'doorNameChanged')
-        Qt.qApp.SDM.connectReader("SelectedInstrument", self.setFocusToPanel)
+        Qt.qApp.SDM.connectReader("SelectedInstrument", self.onSelectedInstrument)
+        Qt.qApp.SDM.connectWriter("SelectedInstrument", self, 'SelectedInstrument')
         Qt.qApp.SDM.connectReader("executionStarted", self.setFocusToPanel)
 
     def __initToolsMenu(self):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
-        
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"select panel Configuration", self.updatePermanentCustomPanels)
+        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/apps/preferences-system-session.svg"),"manage instrument-panel associations", self.onShowAssociationDialog)
         
     def setCustomWidgetMap(self, map):
         '''
@@ -378,10 +330,12 @@ class TaurusGui(TaurusMainWindow):
         panel = self.__panels.pop(name)
         self.__panelsMenu.removeAction(panel.toggleViewAction())
         self.unregisterConfigurableItem(name, raiseOnError=False)
+        self.removeDockWidget(panel)
         panel.setParent(None)
-        panel.destroy()
+        panel.deleteLater()
     
-    def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, permanent=False, icon=None):
+    def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, 
+                    permanent=False, icon=None, instrumentkey=None):
         '''
         Creates a panel containing the given widget.
         
@@ -390,7 +344,9 @@ class TaurusGui(TaurusMainWindow):
         :param floating: (bool) whether the panel should be docked or floating. (see note below)
         :param registerconfig: (bool) if True, the panel will be registered as a delegate for configuration
         :param custom: (bool) if True the panel is to be considered a "custom panel"
-        :param permanent: (bool) set this to True for custom panels that need to be recreated when restoring the app  
+        :param permanent: (bool) set this to True for custom panels that need to be recreated when restoring the app 
+        :param icon: (QIcon) icon for the panel  
+        :param instrumentkey: (str) name of an instrument to which this panel is to be associated
         
         :return: (DockWidgetPanel) the created panel
         
@@ -401,7 +357,7 @@ class TaurusGui(TaurusMainWindow):
                   compatibility, the "floating" keyword argument stays at the
                   same position as the old `area` argument and if a Qt.DockWidgetArea
                   value is given, it will be interpreted as floating=True (while if
-                  the `None` is passed, it will be interpreted as floating=False.
+                  `None` is passed, it will be interpreted as floating=False.
         '''
         
         #backwards compatibility:
@@ -422,7 +378,18 @@ class TaurusGui(TaurusMainWindow):
             self.tabifyDockWidget(self.__panels.values()[-1], panel)
             
         panel.setFloating(floating)
-
+        
+        #associate this panel with an instrument
+        if instrumentkey is not None:
+            if instrumentkey == self.IMPLICIT_ASSOCIATION:
+                #see if there is an item whose name is the same as that of the panel
+                for syn in self.__synoptics:
+                    if name in syn.get_item_list():
+                        self.setInstrumentAssociation(name, name)
+                        break
+            else:
+                self.setInstrumentAssociation(instrumentkey, name)
+        
         #add toggle view action for this panel to the panels menu  
         self.__panelsMenu.addAction(panel.toggleViewAction())
         if icon is not None:
@@ -436,6 +403,9 @@ class TaurusGui(TaurusMainWindow):
         if registerconfig: 
             self.registerConfigDelegate(panel, name=name)
         self.__panels[name] = panel
+        
+        #connect the panel visibility changes
+        self.connect(panel,Qt.SIGNAL('visibilityChanged(bool)'),self._onPanelVisibilityChanged)
 
         return panel
    
@@ -495,7 +465,7 @@ class TaurusGui(TaurusMainWindow):
             
     def createCustomPanel(self, paneldesc=None):
         '''
-        Creates a panel which can be filled with a widget.
+        Creates a panel from a Panel Description and sets it as "custom panel".
         
         :param paneldesc: (PanelDescription) description of the panel to be created
                      
@@ -516,8 +486,7 @@ class TaurusGui(TaurusMainWindow):
             w.setModifiableByUser(True)
             w.setModelInConfig(True)
         
-
-        self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True, registerconfig=False)
+        self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True, registerconfig=False, instrumentkey=paneldesc.instrumentkey)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it'%w.name
         self.emit(Qt.SIGNAL('newShortMessage'), msg)
         
@@ -751,10 +720,10 @@ class TaurusGui(TaurusMainWindow):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
                 if p.model is not None:
                     w.setModel(p.model)
+                if p.instrumentkey is None:
+                    instrumentkey = self.IMPLICIT_ASSOCIATION
                 #create a panel
-                self.createPanel(w, p.name, floating=p.floating)
-                #connect the widget
-                Qt.qApp.SDM.connectWriter("SelectedInstrument", w, "panelSelected")
+                self.createPanel(w, p.name, floating=p.floating, instrumentkey=instrumentkey)
                 
             except Exception,e:
                 msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
@@ -941,7 +910,81 @@ class TaurusGui(TaurusMainWindow):
         '''shows all current panels'''
         for panel in self.__panels.itervalues():
             panel.show()
+    
+    def onShowAssociationDialog(self):
+        '''launches the instrument-panel association dialog (modal)'''
+        dlg = AssociationDialog(self)
+        Qt.qApp.SDM.connectWriter("SelectedInstrument", dlg.ui.instrumentCB, "activated(QString)")
+        dlg.exec_()
+        Qt.qApp.SDM.disconnectWriter("SelectedInstrument", dlg.ui.instrumentCB, "activated(QString)")
+            
+    def getInstrumentAssociation(self, instrumentname):
+        '''
+        Returns the panel name associated to an instrument name 
         
+        :param instrumentname: (str or None) The name of the instrument whose associated panel is wanted
+                
+        :return: (str or None) the associated panel name (or None).
+        '''
+        return self.__instrumentToPanelMap.get(instrumentname, None)
+    
+    def setInstrumentAssociation(self, instrumentname, panelname):
+        '''
+        Sets the panel name associated to an instrument 
+        
+        :param instrumentname: (str) The name of the instrument 
+        :param panelname: (str or None) The name of the associated 
+                          panel or None to remove the association 
+                          for this instrument.
+        '''
+        instrumentname = unicode(instrumentname)
+        #remove a previous association if it exists
+        oldpanelname = self.__instrumentToPanelMap.get(instrumentname,None)
+        self.__panelToInstrumentMap.pop(oldpanelname, None)
+                
+        #create the new association
+        self.__instrumentToPanelMap[instrumentname] = panelname
+        if panelname is not None:
+            self.__panelToInstrumentMap[panelname] = instrumentname
+    
+    def getAllInstrumentAssociations(self):
+        '''
+        Returns the dictionary of instrument-panel associations
+                
+        :return: (dict<str,str>) a dict whose keys are the instruments known to the gui 
+                 and whose values are the corresponding associated panels (or None).
+        '''
+        return copy.deepcopy(self.__instrumentToPanelMap) 
+    
+    def setAllInstrumentAssociations(self, associationsdict):
+        '''
+        Sets the dictionary of instrument-panel associations
+                
+        :return: (dict<str,str>) a dict whose keys are the instruments names
+                 and whose values are the corresponding associated panels (or None).
+        '''
+        self.__instrumentToPanelMap = copy.deepcopy(associationsdict)
+        self.__panelToInstrumentMap = {}
+        for k,v in self.__instrumentToPanelMap.iteritems():
+            self.__panelToInstrumentMap[v]=k
+    
+    def _onPanelVisibilityChanged(self,visible):
+        if visible:
+            panelname = unicode(self.sender().objectName())
+            instrumentname = self.__panelToInstrumentMap.get(panelname)
+            if instrumentname is not None:
+                self.emit(Qt.SIGNAL('SelectedInstrument'), instrumentname)
+          
+    def onSelectedInstrument(self, instrumentname):
+        ''' Slot to be called when the selected instrument has changed (e.g. by user
+        clicking in the synoptic)
+        
+        :param instrumentname: (str) The name that identifies the instrument.
+        '''
+        instrumentname = unicode(instrumentname)
+        panelname = self.getInstrumentAssociation(instrumentname)
+        self.setFocusToPanel(panelname)
+         
     def setFocusToPanel(self, panelname):
         ''' Method that sets a focus for panel passed via an argument
         
@@ -996,6 +1039,7 @@ class TaurusGui(TaurusMainWindow):
         '''reimplemented from :class:`TaurusMainWindow` to show the manual in a panel (not just a dockwidget)'''
         self.setFocusToPanel('Manual')
 
+
 #------------------------------------------------------------------------------ 
 def main():    
     import sys
@@ -1034,6 +1078,7 @@ def main():
     gui = TaurusGui(None, confname=confname)
     
     gui.show()
+    
     sys.exit(app.exec_())
    
        

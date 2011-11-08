@@ -40,6 +40,7 @@ import taurus
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.resource import getThemeIcon
+from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 
 class MacroBroker(Qt.QObject, TaurusBaseComponent):
     def __init__(self, parent):
@@ -51,6 +52,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         
         #connect the broker to shared data
         Qt.qApp.SDM.connectReader("doorName", self.setModel)
+        Qt.qApp.SDM.connectReader("expConfChanged", self.onExpConfChanged)
         
     def setModel(self, doorname):
         TaurusBaseComponent.setModel(self, doorname)
@@ -69,6 +71,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
             Qt.qApp.SDM.disconnectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
             Qt.qApp.SDM.disconnectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
             Qt.qApp.SDM.disconnectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
+            Qt.qApp.SDM.disconnectWriter("expConfChanged", self.__qdoor, "experimentConfigurationChanged")
              
         if doorname == "": return #@todo send signal with doorName to macroExecutorWidget in case of "" also send it to disconnect doorstateled
         door = taurus.Device(doorname)
@@ -84,6 +87,10 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
         Qt.qApp.SDM.connectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
         Qt.qApp.SDM.connectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
+        Qt.qApp.SDM.connectWriter("expConfChanged", self.__qdoor, "experimentConfigurationChanged")
+        
+        expconf = self.__qdoor.getExperimentConfiguration()
+        self.onExpConfChanged(expconf) #@todo: we may be able to remove this once the experimentConfigurationChanged signals from the door is implemented
         #@todo: connect as a writer of other data as well
         
     def _createPermanentPanels(self):
@@ -93,7 +100,6 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
 
         from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
         
-        from taurus.qt.qtgui.plot import TaurusTrend
         
         mainwindow = self.parent()
         
@@ -158,7 +164,24 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
         mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
         
+    def onExpConfChanged(self, expconf):
+        '''
+        slot to be called when experimental configuration changes. It should
+        remove the temporary panels and create the new ones needed.
+        
+        :param expconf: (dict) An Experiment Description dictionary. See 
+                        :meth:`taurus.qt.qtcore.tango.sardana.QDoor.getExperimentDescription` 
+                        for more details 
+        '''
+        mainwindow = self.parent()
+        
+        #extract the info of what to plot from the expconf (segregated by type of plot)
+          #for each trend1d, create a taurustrend and set the x and the plotablesfilter
+          #for each plot1d, create a taurusplot and set its source
+          #for each imageplot, create a taurusimage and set its source
+        
         #puts a TaurusTrend connected to the door for showing scan trends
+        from taurus.qt.qtgui.plot import TaurusTrend
         self.__scanTrend = TaurusTrend()
         self.__scanTrend.setXIsTime(False)
         self.__scanTrend.setScansAutoClear(False)
@@ -167,3 +190,5 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         mainwindow.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
         
         
+#class Trend1DDescription(PanelDescription):
+#    def __init__(self, ):      
