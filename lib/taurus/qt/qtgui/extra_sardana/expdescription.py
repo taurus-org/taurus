@@ -104,12 +104,8 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._dirtyMntGrps = set()
         #set a list of available channels
         from taurus.core.tango.sardana.pool import ExpChannel
-        avail = {}
-        import json #@todo @fixme!!!!
-        for channeldesc in door.macro_server.ExpChannelList: 
-            channeldesc = json.loads(channeldesc) #@todo: this decoding should be done at the QMacroServer level
-            avail[channeldesc['name']] = channeldesc        
-        self.ui.channelEditor.getQModel().setAvailableChannels(avail)
+        channels = door.macro_server.getExpChannelElements()
+        self.ui.channelEditor.getQModel().setAvailableChannels(channels)
         
     def isDataChanged(self):
         """Tells if the local data has been modified since it was last refreshed
