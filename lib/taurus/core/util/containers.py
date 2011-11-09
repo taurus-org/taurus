@@ -864,10 +864,10 @@ class DefaultThreadDict(defaultdict_fromkey,ThreadDict):
     
 
 def getDictAsTree(dct):
-    """ this method will print a recursive dict in a tree-like shape::
+    """This method will print a recursive dict in a tree-like shape::
     
-        >>> print getDictAsTree({'A':{'B':[1,2],'C':[3]}})
-        A
+       >>> print getDictAsTree({'A':{'B':[1,2],'C':[3]}})
+       A
             C
                 3
             B
