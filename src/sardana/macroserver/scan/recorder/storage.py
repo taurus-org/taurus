@@ -417,7 +417,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
         #store labels for performance reason
         labels = []
         for e in env['datadesc']:
-            if e.shape == (1,):
+            if e.shape == ():
                 labels.append(e.label)
         self.labels = labels
 
