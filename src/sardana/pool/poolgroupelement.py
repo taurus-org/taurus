@@ -41,12 +41,12 @@ from poolcontainer import PoolContainer
 class PoolBaseGroup(PoolContainer):
 
     def __init__(self, **kwargs):
-        self._user_element_ids = kwargs.pop('user_elements')
-        PoolContainer.__init__(self)
-        
         self._pending = True
+        self._user_element_ids = None
         self._user_elements = None
         self._physical_elements = None
+        self.set_user_element_ids(kwargs.pop('user_elements'))
+        PoolContainer.__init__(self)
     
     def _get_pool(self):
         raise NotImplementedError
@@ -134,6 +134,10 @@ class PoolBaseGroup(PoolContainer):
             self.add_user_element(user_element)
         self._pending = False
     
+    def set_user_element_ids(self, new_element_ids):
+        self.clear_user_elements()
+        self._user_element_ids = new_element_ids
+    
     def on_element_changed(self, evt_src, evt_type, evt_value):
         pass
     
@@ -196,7 +200,18 @@ class PoolBaseGroup(PoolContainer):
         element.remove_listener(self.on_element_changed)
         del self._user_elements[idx]
         self.remove_element(element)
-
+    
+    def clear_user_elements(self):
+        user_elements = self._user_elements
+        if user_elements is not None:
+            for element in user_elements:
+                element.remove_listener(self.on_element_changed)
+                self.remove_element(element)
+        self._pending = True
+        self._user_elements = None
+        self._user_element_ids = None
+        self._physical_elements = None
+        
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------

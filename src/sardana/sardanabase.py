@@ -57,15 +57,16 @@ class SardanaBaseManager(object):
         return self.serialize_object(obj)
     
     def serialize_object(self, obj, *args, **kwargs):
-        return CodecFactory.encode((self.serialization_protocol, obj),
+        return CodecFactory().encode((self.serialization_protocol, obj),
                                    *args, **kwargs)
     
     def str_element(self, element, *args, **kwargs):
         obj = element.serialize(*args, **kwargs)
         return self.str_object(obj)
     
-    def str_object(self, element, *args, **kwargs):
-        return  CodecFactory.encode(('json', obj), *args, **kwargs)
+    def str_object(self, obj, *args, **kwargs):
+        # TODO: use the active codec instead of hardcoded json
+        return  CodecFactory().encode(('json', obj), *args, **kwargs)
 
 
 class SardanaBaseObject(EventGenerator, EventReceiver, Logger):

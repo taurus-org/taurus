@@ -287,7 +287,8 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         except:
             raise_element_name = False
         if raise_element_name:
-            raise Exception("An element with name '%s' already exists" % name)
+            raise Exception("An element with name '%s' already "
+                            "exists" % name)
         
         raise_element_full_name = True
         try:
@@ -295,7 +296,8 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         except:
             raise_element_full_name = False
         if raise_element_full_name:
-            raise Exception("An element with full name '%s' already exists" % full_name)
+            raise Exception("An element with full name '%s' already "
+                            "exists" % full_name)
     
     def create_controller(self, **kwargs):
         ctrl_type = kwargs['type']
@@ -310,7 +312,8 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         klass_map = td.klass
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
-        kwargs['full_name'] = full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
+        kwargs['full_name'] = full_name = \
+            kwargs.get("full_name", auto_full_name.format(**kwargs))
         self.check_element(name, full_name)
         
         ctrl_class_info = None
@@ -318,8 +321,6 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         if ctrl_lib_info is not None:
             ctrl_class_info = ctrl_lib_info.get_controller(class_name)
         
-               
-
         kwargs['pool'] = self
         kwargs['class_info'] = ctrl_class_info
         kwargs['lib_info'] = ctrl_lib_info
@@ -366,11 +367,10 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         except:
             raise Exception("No controller with id '%d' found" % ctrl_id)
         
-        #if not ctrl.is_online():
-        #    raise Exception("Controller is offline. It is not possible to add %s" % name)
         elem_axis = ctrl.get_element(axis=axis)
         if elem_axis is not None:
-            raise Exception("Controller already contains axis %d (%s)" % (axis, elem_axis.get_name()))
+            raise Exception("Controller already contains axis %d (%s)"
+                            % (axis, elem_axis.get_name()))
 
         kwargs['pool'] = self
         kwargs['ctrl'] = ctrl
@@ -388,7 +388,8 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
             ctrl_types, ctrl_id = ctrl.get_ctrl_types(), ctrl.get_id()
             if elem_type not in ctrl_types:
                 ctrl_type_str = ElementType.whatis(ctrl_types[0])
-                raise Exception("Cannot create %s in %s controller" % (type, ctrl_type_str))
+                raise Exception("Cannot create %s in %s controller"
+                                % (type, ctrl_type_str))
 
         #check if controller is online
         #check if axis is allowed
@@ -486,10 +487,12 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         elem_type = elem.get_type()
         if elem_type == ElementType.Controller:
             if len(elem.get_elements()) > 0:
-                raise Exception("Cannot delete controller with elements. Delete elements first")
+                raise Exception("Cannot delete controller with elements. "
+                                "Delete elements first")
         elif elem_type == ElementType.Instrument:
             if elem.has_instruments():
-                raise Exception("Cannot delete instrument with instruments. Delete instruments first")
+                raise Exception("Cannot delete instrument with instruments. "
+                                "Delete instruments first")
             if elem.has_elements():
                 raise Exception("Cannot delete instrument with elements")
             parent_instrument = elem.parent_instrument
@@ -517,9 +520,11 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
             try:
                 parent = self.get_element_by_full_name(parent_full_name)
             except:
-                raise Exception("No parent instrument named '%s' found" % parent_full_name)
+                raise Exception("No parent instrument named '%s' found"
+                                % parent_full_name)
             if parent.get_type() != ElementType.Instrument:
-                raise Exception("%s is not an instrument as expected" % parent_full_name)
+                raise Exception("%s is not an instrument as expected"
+                                % parent_full_name)
             
         self.check_element(name, full_name)
         

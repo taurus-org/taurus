@@ -133,7 +133,9 @@ class PoolMeasurementGroup(PoolGroupElement):
     # --------------------------------------------------------------------------
     
     def set_configuration(self, config=None, propagate=1):
+        
         if config is None:
+            # Create a configuration using the existing user elements
             config = {}
             user_elements = self.get_user_elements()
             ctrls = self.get_pool_controllers()
@@ -203,7 +205,26 @@ class PoolMeasurementGroup(PoolGroupElement):
                     channel_data['normalization'] = Normalization.No
                     channel_data['instrument'] = None
                     channel_data['source'] = element.get_source()
-                
+        else:
+            # create a configuration based on a new configuration
+            channel_indexes = {}
+            pool = self.pool
+            for c, c_data in config['controllers'].items():
+                external = isinstance(c, (str, unicode))
+                # attention: following line only prepared for 1 unit per
+                # controller
+                for ch_data in c_data['units']['0']['channels'].values():
+                    if external:
+                        id = ch_data['full_name']
+                    else:
+                        id = pool.get_element_by_name(ch_data['name']).id
+                    channel_indexes[ch_data['index']] = id
+            
+            indexes = sorted(channel_indexes.keys())
+            assert indexes == range(len(indexes))
+            
+            self.set_user_element_ids([ channel_indexes[idx] for idx in indexes ])
+            
         # checks
         g_timer, g_monitor = config['timer'], config['monitor']
         
@@ -238,7 +259,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         
         for c, c_data in cfg['controllers'].items():
             ctrl_name = c
-            if not type(c) is str:
+            if not isinstance(c, (str, unicode)):
                 ctrl_name = c.name
             controllers[ctrl_name] = ctrl_data = {}
             ctrl_data['units'] = units = {}
@@ -263,26 +284,36 @@ class PoolMeasurementGroup(PoolGroupElement):
         config = {}
         user_elements = self.get_user_elements()
         ctrls = self.get_pool_controllers()
+        pool = self.pool
         
         timer_name = cfg.get('timer', user_elements[0].name)
         monitor_name = cfg.get('monitor', user_elements[0].name)
-        config['timer'] = self.get_element_by_name(timer_name)
-        config['monitor'] = self.get_element_by_name(monitor_name)
+        config['timer'] = pool.get_element_by_name(timer_name)
+        config['monitor'] = pool.get_element_by_name(monitor_name)
         config['controllers'] = controllers = {}
         
         for c_name, c_data in cfg['controllers'].items():
-            ctrl = self.get_pool_controller_by_name(c_name)
+            external = c_name.startswith('__')
+            if external:
+                ctrl = c_name
+            else:
+                ctrl = pool.get_element_by_name(c_name)
+                assert ctrl.get_type() == ElementType.Controller
             controllers[ctrl] = ctrl_data = {}
             ctrl_data['units'] = units = {}
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
-                unit_data['timer'] = self.get_element_by_name(u_data['timer'])
-                unit_data['monitor'] = self.get_element_by_name(u_data['monitor'])
-                unit_data['trigger_type'] = u_data['trigger_type']
+                if not external:
+                    unit_data['timer'] = self.get_element_by_name(u_data['timer'])
+                    unit_data['monitor'] = self.get_element_by_name(u_data['monitor'])
+                    unit_data['trigger_type'] = u_data['trigger_type']
                 unit_data['channels'] = channels = {}
                 for ch_name, ch_data in u_data['channels'].items():
-                    channel = self.get_element_by_name(ch_name)
+                    if external:
+                        channel = ch_name
+                    else:
+                        channel = self.get_element_by_name(ch_name)
                     channels[channel] = channel_data = dict(ch_data)
         
         config['label'] = cfg.get('label', self.name)
