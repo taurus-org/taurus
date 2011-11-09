@@ -59,7 +59,27 @@ class TaurusFactory(object):
         self.operation_mode = OperationMode.ONLINE
         self.polling_timers = {}
         self._polling_enabled = True
+        
+        import taurusmanager
+        manager = taurusmanager.TaurusManager()
+        self._serialization_mode = manager.getSerializationMode()
 
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # API for serialization
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    
+    def setSerializationMode(self, mode):
+        """Sets the serialization mode for the system.
+        
+        :param mode: (TaurusSerializationMode) the new serialization mode"""
+        self._serialization_mode = mode
+    
+    def getSerializationMode(self):
+        """Gives the serialization operation mode.
+        
+        :return: (TaurusSerializationMode) the current serialization mode"""
+        return self._serialization_mode
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Methods that must be implemented by the specific Factory
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-  

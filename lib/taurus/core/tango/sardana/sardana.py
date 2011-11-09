@@ -176,8 +176,9 @@ class BaseSardanaElementContainer:
     
     def getElement(self, elem_name):
         for elems in self._type_elems_dict.values():
-            if elem_name in elems:
-                return e
+            elem = elems.get(elem_name)
+            if elem is not None:
+                return elem
     
     def getElements(self):
         ret = set()

@@ -36,7 +36,8 @@ import threading
 import PyTango
 
 import taurus.core
-from taurus.core import TaurusEventType, SubscriptionState
+from taurus.core import TaurusEventType, TaurusSerializationMode, \
+    SubscriptionState
 from taurus.core.util import EventListener
 from enums import EVENT_TO_POLLING_EXCEPTIONS
 
@@ -326,20 +327,25 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         cfg = self._getRealConfig()
         cfg.addListener(listener)
         
+        listeners = self._listeners
         initial_subscription_state = self.__subscription_state
 
         ret = taurus.core.TaurusAttribute.addListener(self, listener)
         if not ret:
             return ret
         
-        assert len(self._listeners) >= 1
+        assert len(listeners) >= 1
         
-        if self.__subscription_state == SubscriptionState.Unsubscribed and len(self._listeners) == 1:
+        if self.__subscription_state == SubscriptionState.Unsubscribed and len(listeners) == 1:
             self._subscribeEvents()
         
         #if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(self._listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
-            taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+        if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
+            sm = self.getSerializationMode()
+            if sm == TaurusSerializationMode.Concurrent:
+                taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+            else:
+                self.__fireRegisterEvent((listener,))
         return ret
         
     def removeListener(self, listener):
@@ -433,15 +439,13 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
     
-    #def push_event(self, event):
-    #    taurus.Manager().addJob(self._push_event, None, event)
-        
     def push_event(self, event):
         """Method invoked by the PyTango layer when a change event occurs.
            Default implementation propagates the event to all listeners."""
         
         curr_time = time.time()
         manager = taurus.Manager()
+        sm = self.getSerializationMode()
         if not event.err:
             self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(event.attr_value), None, curr_time
             self.__subscription_state = SubscriptionState.Subscribed
@@ -449,8 +453,12 @@ class TangoAttribute(taurus.core.TaurusAttribute):
             if not self.isPollingForced():
                 self._deactivatePolling()
             listeners = tuple(self._listeners)
-            manager.addJob(self.fireEvent, None, taurus.core.TaurusEventType.Change, self.__attr_value, listeners=listeners)
-            #self.fireEvent(taurus.core.TaurusEventType.Change, self.__attr_value)
+            if sm == TaurusSerializationMode.Concurrent:
+                manager.addJob(self.fireEvent, None, TaurusEventType.Change,
+                               self.__attr_value, listeners=listeners)
+            else:
+                self.fireEvent(TaurusEventType.Change, self.__attr_value,
+                               listeners=listeners)
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
             if self.isPollingActive():
                 return
@@ -462,8 +470,12 @@ class TangoAttribute(taurus.core.TaurusAttribute):
             self.__subscription_event.set()
             self._deactivatePolling()
             listeners = tuple(self._listeners)
-            manager.addJob(self.fireEvent, None, taurus.core.TaurusEventType.Error, self.__attr_err, listeners=listeners)
-            #self.fireEvent(taurus.core.TaurusEventType.Error, self.__attr_err)
+            if sm == TaurusSerializationMode.Concurrent:
+                manager.addJob(self.fireEvent, None, TaurusEventType.Error,
+                               self.__attr_err, listeners=listeners)
+            else:
+                self.fireEvent(TaurusEventType.Error, self.__attr_err,
+                               listeners=listeners)
 
     def isInformDeviceOfErrors(self):
         return False
@@ -488,6 +500,6 @@ class TangoAttributeEventListener(EventListener):
         attr.addListener(self)
         
     def eventReceived(self, s, t, v):
-        if t not in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+        if t not in (TaurusEventType.Change, TaurusEventType.Periodic):
             return
         self.fireEvent(v.value)

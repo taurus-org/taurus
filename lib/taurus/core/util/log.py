@@ -536,7 +536,7 @@ class Logger(Object):
             
     def trace(self, msg, *args, **kw):
         """Record a trace message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.log`.
+           *kwargs* are the same as :meth:`logging.Logger.log`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -619,7 +619,7 @@ class Logger(Object):
     
     def log(self, level, msg, *args, **kw):
         """Record a log message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.log`.
+           *kwargs* are the same as :meth:`logging.Logger.log`.
         
            :param level: (int) the record level
            :param msg: (str) the message to be recorded
@@ -630,7 +630,7 @@ class Logger(Object):
     
     def debug(self, msg, *args, **kw):
         """Record a debug message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.debug`.
+           *kwargs* are the same as :meth:`logging.Logger.debug`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -640,7 +640,7 @@ class Logger(Object):
 
     def info(self, msg, *args, **kw):
         """Record an info message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.info`.
+           *kwargs* are the same as :meth:`logging.Logger.info`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -650,7 +650,7 @@ class Logger(Object):
 
     def warning(self, msg, *args, **kw):
         """Record a warning message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.warning`.
+           *kwargs* are the same as :meth:`logging.Logger.warning`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -660,7 +660,7 @@ class Logger(Object):
 
     def deprecated(self, msg, *args, **kw):
         """Record a deprecated warning message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.warning`.
+           *kwargs* are the same as :meth:`logging.Logger.warning`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -672,7 +672,7 @@ class Logger(Object):
 
     def error(self, msg, *args, **kw):
         """Record an error message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.error`.
+           *kwargs* are the same as :meth:`logging.Logger.error`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -682,7 +682,7 @@ class Logger(Object):
 
     def critical(self, msg, *args, **kw):
         """Record a critical message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :ref:`logging.Logger.critical`.
+           *kwargs* are the same as :meth:`logging.Logger.critical`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments
@@ -693,7 +693,7 @@ class Logger(Object):
     def exception(self, msg, *args):
         """Log a message with severity 'ERROR' on the root logger, with 
            exception information.. Accepted *args* are the same as 
-           :ref:`logging.Logger.exception`.
+           :meth:`logging.Logger.exception`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments

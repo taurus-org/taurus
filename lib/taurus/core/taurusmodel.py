@@ -40,16 +40,23 @@ class TaurusModel(util.Logger):
     
     RegularEvent = (TaurusEventType.Change, TaurusEventType.Config, TaurusEventType.Periodic)
 
-    def __init__(self,full_name,parent):
+    def __init__(self,full_name, parent, serializationMode=None):
         v = self.getNameValidator()
         self._full_name, self._norm_name, self._simp_name = v.getNames(full_name, self.factory())
         
         if self._full_name is None and self._norm_name and self._simp_name is None:
             self.trace("invalid name")
-
+        
         name = self._simp_name or self._norm_name or self._full_name or 'TaurusModel'
         self.call__init__(util.Logger, name, parent)
-
+        
+        if serializationMode is None:
+            s_obj = parent
+            if s_obj is None:
+                s_obj = self.factory()
+                serializationMode = s_obj.getSerializationMode()
+        self._serialization_mode = serializationMode
+        
         try:
             self._parentObj = weakref.ref(parent)
         except Exception:
@@ -107,18 +114,34 @@ class TaurusModel(util.Logger):
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for hierarchy access 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
         
     def getParentObj(self):
         if self._parentObj is None: return None
         return self._parentObj()
-
+    
     def getChildObj(self,child_name):
         return None
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # API for serialization
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    
+    def setSerializationMode(self, mode):
+        """Sets the serialization mode for the system.
+        
+        :param mode: (TaurusSerializationMode) the new serialization mode"""
+        self._serialization_mode = mode
+    
+    def getSerializationMode(self):
+        """Gives the serialization operation mode.
+        
+        :return: (TaurusSerializationMode) the current serialization mode"""
+        return self._serialization_mode
+    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for value access 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getValueObj(self,cache=True):
         raise RuntimeError("TaurusModel::getValueObj cannot be called")
@@ -145,7 +168,7 @@ class TaurusModel(util.Logger):
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def _listenerDied(self, weak_listener):
         if self._listeners is None: 

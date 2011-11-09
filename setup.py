@@ -155,7 +155,7 @@ provides = [
     'taurus.qt',
 ]
 
-requires = [ 
+requires = [
     'numpy (>=1.1)',
     'PyTango (>=7.1)',
     'PyQt4 (>=4.4)',
@@ -167,7 +167,8 @@ requires = [
 
 def get_resource_package_data():
     data = ['*.rcc']
-    tango_icons_dir = abspath('lib','taurus','qt','qtgui','resource', 'tango-icons')
+    tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
+                              'tango-icons')
     for tango_icon_item in os.listdir(tango_icons_dir):
         if tango_icon_item.startswith("."):
             continue
@@ -616,7 +617,7 @@ class build_doc_api(Command):
         
         docpreffix = abspath('doc', 'source', 'devel', 'api')
         templatespath = abspath('doc')
-        rstCreator = auto_rst4api.Auto_rst4API_Creator(exclude_patterns=['.*\.ui'],
+        rstCreator = auto_rst4api.Auto_rst4API_Creator(exclude_patterns=['.*\.ui', '_[^\.]*[^_]'],
                                                        templatespath=templatespath,
                                                        overwrite_old=buildcmd.all_files,
                                                        verbose=self.distribution.verbose)

@@ -43,7 +43,8 @@ import os.path as osp
 import PyTango
 
 from taurus import Device, Factory
-from taurus.core import TaurusEventType, TaurusSWDevState
+from taurus.core import TaurusEventType, TaurusSWDevState, \
+    TaurusSerializationMode
 from taurus.core.util import etree, CodecFactory, CaselessDict, Logger, \
     EventGenerator, AttributeEventWait
 from taurus.core.util.console import NoColors, TermColors
@@ -138,12 +139,13 @@ class ExperimentConfiguration(object):
         elif isinstance(scan_file, (str, unicode)):
             scan_file = [scan_file]
         ret['ScanFile'] = scan_file
-
+        
         mnt_grps = macro_server.getElementNamesOfType("MeasurementGroup")
         
         active_mnt_grp = env.get('ActiveMntGrp')
         if active_mnt_grp is None and len(mnt_grps):
-            door.setEnvironment('ActiveMntGrp', mnt_grps[0])
+            active_mnt_grp = mnt_grps[0]
+            door.setEnvironment('ActiveMntGrp',  active_mnt_grp)
         
         ret['ActiveMntGrp'] = active_mnt_grp
         
@@ -209,6 +211,7 @@ class BaseDoor(MacroServerDevice):
     # maximum execution time without user interruption
     InteractiveTimeout = 0.1
     
+    
     def __init__(self, name, **kw):
         self._log_attr = CaselessDict()
         self._block_lines = 0
@@ -239,13 +242,11 @@ class BaseDoor(MacroServerDevice):
             else:
                 attr.subscribeEvent(self.logReceived, log_name)
             self._log_attr[log_name] = attr
-
-        self._environment_attr = self.getAttribute('Environment')
-        self._environment_attr.addListener(self.environmentChanged)
         
-        #ms = self.macro_server
-        #macro_list_obj = ms.getAttribute("MacroList")
-        #macro_list_obj.addListener(self.macrosChanged)
+        self._environment_attr = attr = self.getAttribute('Environment')
+        attr.setSerializationMode(TaurusSerializationMode.Serial)
+        self._environment_attr.addListener(self.environmentChanged)
+        attr.setSerializationMode(TaurusSerializationMode.Concurrent)
         
         record_data_attr = self.getAttribute('RecordData')
         record_data_attr.addListener(self.recordDataReceived)
@@ -254,9 +255,6 @@ class BaseDoor(MacroServerDevice):
         macro_status_attr.addListener(self.macroStatusReceived)
         
         self._experiment_configuration = ExperimentConfiguration(self)
-        #record_data_attr = self._createAttribute('RecordData')
-        #self._record_data_attr = Attr(self, 'RecordData', None, record_data_attr)
-        #self._record_data_attr.subscribeEvent(self.recordDataReceived)
 
     def get_color_mode(self):
         return "NoColor"
@@ -599,9 +597,11 @@ class BaseMacroServer(MacroServerDevice):
     def __init__(self, name, **kw):
         self._elements = BaseSardanaElementContainer()
         self.call__init__(MacroServerDevice, name, **kw)
-        
+
         attr = self.getAttribute("Elements")
+        attr.setSerializationMode(TaurusSerializationMode.Serial)
         attr.addListener(self.on_elements_changed)
+        attr.setSerializationMode(TaurusSerializationMode.Concurrent)
     
     NO_CLASS_TYPES = 'ControllerClass', 'ControllerLib', \
                      'MacroLib', 'Instrument'
@@ -676,7 +676,18 @@ class BaseMacroServer(MacroServerDevice):
     
     def getElementsOfType(self, elem_type):
         return self.getElementsInfo().getElementsOfType(elem_type)
-        
+    
+    def getElementsOfTypes(self, elem_types):
+        elems = CaselessDict()
+        for elem_type in elem_types:
+            elems.update(self.getElementsOfType(elem_type))
+        return elems
+    
+    def getExpChannelElements(self):
+        channel_types = "CounterTimer", "ZeroDExpChannel", "OneDExpChannel", \
+            "PseudoCounter"
+        return self.getElementsOfTypes(channel_types)
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro API
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

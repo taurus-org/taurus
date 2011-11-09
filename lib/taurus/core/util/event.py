@@ -566,7 +566,8 @@ class AttributeEventWait(object):
         :rtype: float"""
         return self._event_set.get(v)
     
-    def waitEvent(self, val, after=0, equal=True, timeout=None, retries=-1):
+    def waitEvent(self, val, after=0, equal=True, timeout=None, retries=-1,
+                  any=False):
         """Wait for an event with the given value.
         
         :param val: value to compare
@@ -583,6 +584,9 @@ class AttributeEventWait(object):
         :param retries: number of maximum retries of max timeout to attempts. 
                         Default is -1 meaning infinite number of retries.
                         0 means no wait. Positive number is obvious.
+        :param any: if any is True ignore 'val' parameter and accept any event.
+                    If False (default),check with given 'val' parameter
+        :type  any: bool
         """
         if retries == 0:
             return
@@ -598,6 +602,9 @@ class AttributeEventWait(object):
             if retries > 0:
                 retries += 1
             while retries != 0:
+                if any:
+                    for v, t in s.items():
+                        if t >= after: return
                 if equal:
                     t = s.get(val)
                     if (t is not None) and (t >= after):
