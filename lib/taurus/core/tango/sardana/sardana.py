@@ -94,6 +94,9 @@ class BaseSardanaElement(object):
     def __cmp__(self, elem):
         return cmp(self.name, elem.name)
     
+    def getData(self):
+        return self._data
+    
     def getName(self):
         return self.name
     

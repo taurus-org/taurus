@@ -139,7 +139,6 @@ class ExperimentConfiguration(object):
         elif isinstance(scan_file, (str, unicode)):
             scan_file = [scan_file]
         ret['ScanFile'] = scan_file
-        
         mnt_grps = macro_server.getElementNamesOfType("MeasurementGroup")
         
         active_mnt_grp = env.get('ActiveMntGrp')
@@ -148,7 +147,6 @@ class ExperimentConfiguration(object):
             door.setEnvironment('ActiveMntGrp',  active_mnt_grp)
         
         ret['ActiveMntGrp'] = active_mnt_grp
-        
         ret['MntGrpConfigs'] = mnt_grp_configs = CaselessDict()
         
         if len(mnt_grps) == 0:
@@ -454,7 +452,7 @@ class BaseDoor(MacroServerDevice):
         self.setEnvironments({ name : value })
 
     def setEnvironments(self, obj):
-        obj['__type__'] = 'set_env'
+        obj['__type__'] = 'new'
         codec = CodecFactory().getCodec('json')
         self.write_attribute('Environment', codec.encode(('', obj)))
     
@@ -476,7 +474,7 @@ class BaseDoor(MacroServerDevice):
         codec = CodecFactory().getCodec(format)
         obj = codec.decode(data, ensure_ascii=True)[1]
         env_type = obj.get("__type__")
-        if env_type == 'set_env':
+        if env_type == 'new':
             self._env.update(obj)
         return obj
     

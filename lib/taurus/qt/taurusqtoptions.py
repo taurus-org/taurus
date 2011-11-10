@@ -31,7 +31,6 @@ __docformat__ = 'restructuredtext'
 
 import os
 import imp
-import threading
 
 QT_API_PYQT = 'pyqt'
 QT_API_PYSIDE = 'pyside'

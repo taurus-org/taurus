@@ -636,7 +636,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         
         ########################
         #@todo: remove this once the new pool allows to edit the measurement groups
-        self._editorBar.setEnabled(False)
+        #self._editorBar.setEnabled(False)
         #self.info("Editing measurement groups is temporarily disabled until it is supported by the new pool") 
         ########################
         return tableView
@@ -654,7 +654,9 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         qmodel = self.getQModel()
         if channel is None:
             shown = [n for n,d in qmodel.getChannelConfigs(qmodel.dataSource())]
-            clist = [c for c in qmodel.getAvailableChannels() if c not in shown]
+            avail_channels = qmodel.getAvailableChannels()
+            clist = [ ch_info['name'] for ch_name, ch_info in avail_channels.items()
+                      if ch_name not in shown ]
             chname,ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", sorted(clist), 0, False)
             if not ok:
                 return       

@@ -91,8 +91,8 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     def _reloadConf(self, force=False):
         if not force and self.isDataChanged():
             op = Qt.QMessageBox.question(self, "Reload info from door", 
-                                    "If you reload, all current experiment configuration changes will be lost. Reload?", 
-                                    Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                "If you reload, all current experiment configuration changes will be lost. Reload?", 
+                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
             if op != Qt.QMessageBox.Yes: 
                 return
         door = self.getModelObj()
@@ -103,9 +103,11 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._dirty = False
         self._dirtyMntGrps = set()
         #set a list of available channels
-        from taurus.core.tango.sardana.pool import ExpChannel
         channels = door.macro_server.getExpChannelElements()
-        self.ui.channelEditor.getQModel().setAvailableChannels(channels)
+        avail_channels = {}
+        for ch_info in door.macro_server.getExpChannelElements().values():
+            avail_channels[ch_info.name] = ch_info.getData()
+        self.ui.channelEditor.getQModel().setAvailableChannels(avail_channels)
         
     def isDataChanged(self):
         """Tells if the local data has been modified since it was last refreshed
