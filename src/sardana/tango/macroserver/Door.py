@@ -251,14 +251,13 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
     
     def read_Environment(self, attr):
         env = self.manager.getAllDoorEnv(door_name=self.get_name())
-        env["__type__"] = "set"
+        env["__type__"] = "new"
         attr.set_value('json', json.dumps(env))
         return
         
     def write_Environment(self, attr):
         data = attr.get_write_value()
-        print data  
-        codec = CodecFactory().getCodec('JSON')
+        codec = CodecFactory().getCodec('json')
         data = codec.decode(data, ensure_ascii=True)[1]
         self.manager.setEnvObj(data)
     

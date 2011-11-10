@@ -30,6 +30,7 @@ __all__ = [ "PoolMeasurementGroup" ]
 
 __docformat__ = 'restructuredtext'
 
+from taurus.core import AttributeNameValidator
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
 
 from sardana import ElementType
@@ -37,6 +38,8 @@ from pooldefs import AcqMode, AcqTriggerType
 from poolevent import EventType
 from poolgroupelement import PoolGroupElement
 from poolacquisition import PoolCTAcquisition
+from poolexternal import PoolExternalObject
+
 from sardana import State
 
 # dict <str, obj> with (at least) keys:
@@ -132,98 +135,123 @@ class PoolMeasurementGroup(PoolGroupElement):
     # configuration
     # --------------------------------------------------------------------------
     
-    def set_configuration(self, config=None, propagate=1):
+    def _build_channel_defaults(self, channel_data, channel):
+        """Fills the channel default values for the given channel dictionnary"""
         
+        external_from_name = isinstance(channel, (str, unicode))
+        if external_from_name:
+            name = full_name = source = channel
+            instrument = None
+        else:
+            name = channel.name
+            full_name = channel.full_name
+            source = channel.get_source()
+            instrument = channel.instrument
+            
+        # Definitively should be initialized by measurement group
+        # index MUST be here already (asserting this in the following line)
+        channel_data['index'] = channel_data['index']
+        channel_data['name'] = channel_data.get('name', name)
+        channel_data['full_name'] = channel_data.get('full_name', full_name)
+        channel_data['source'] = channel_data.get('source', source)
+        channel_data['enabled'] = channel_data.get('enabled', True)
+        channel_data['label'] = channel_data.get('label', channel_data['name'])
+        channel_data['instrument'] = channel_data.get('instrument', instrument)
+        
+        # Probably should be initialized by measurement group
+        channel_data['output'] = channel_data.get('output', True)
+        
+        # Perhaps should NOT be initialized by measurement group
+        channel_data['plot_type'] = channel_data.get('plot_type', PlotType.No)
+        channel_data['plot_axes'] = channel_data.get('plot_axes', [])
+        channel_data['conditioning'] = channel_data.get('conditioning', '')
+        channel_data['normalization'] = channel_data.get('normalization', Normalization.No)
+        
+        return channel_data
+    
+    def _build_configuration(self):
+        """Builds a configuration object from the list of elements"""
+        config = {}
+        user_elements = self.get_user_elements()
+        ctrls = self.get_pool_controllers()
+        
+        # find the first CT
+        first_ct = None
+        for elem in user_elements:
+            if elem.get_type() == ElementType.CTExpChannel:
+                first_ct = elem
+        if first_ct is None:
+            raise Exception("It is not possible to construct a measurement "
+                            "group without at least one Counter/Timer channel "
+                            "(for now)")
+        g_timer = g_monitor = first_ct
+        config['timer'] = g_timer
+        config['monitor'] = g_monitor
+        config['controllers'] = controllers = {}
+        
+        for ctrl, elements in ctrls.items():
+            controllers[ctrl] = ctrl_data = {}
+            # attention: following line only prepared for 1 unit per controller
+            ctrl_data['units'] = units = {}
+            units['0'] = unit_data = {}
+            unit_data['id'] = 0
+            if g_timer in elements:
+                unit_data['timer'] = g_timer
+            else:
+                unit_data['timer'] = elements[0]
+            if g_monitor in elements:
+                unit_data['monitor'] = g_monitor
+            else:
+                unit_data['monitor'] = elements[0]
+            unit_data['trigger_type'] = AcqTriggerType.Software
+            unit_data['channels'] = channels = {}
+            for element in elements:
+                channels[element] = channel_data = {}
+                channel_data['index'] = user_elements.index(element)
+                channel_data = self._build_channel_defaults(channel_data, element)
+        config['label'] = self.name
+        config['description'] = self.DFT_DESC
+        
+        # add external channels
+        external_user_elements = []
+        for index, element in enumerate(user_elements):
+            if element.get_type() == ElementType.External:
+                external_user_elements.append((index, element))
+        
+        if len(external_user_elements) > 0:
+            controllers['__tango__'] = ctrl_data = {}
+            ctrl_data['units'] = units = {}
+            units['0'] = unit_data = {}
+            unit_data['id'] = 0
+            unit_data['channels'] = channels = {}
+            for index, element in external_user_elements:
+                channels[element] = channel_data = {}
+                channel_data['index'] = index
+                channel_data = self._build_channel_defaults(channel_data, element)
+        return config
+    
+    def set_configuration(self, config=None, propagate=1):
         if config is None:
-            # Create a configuration using the existing user elements
-            config = {}
-            user_elements = self.get_user_elements()
-            ctrls = self.get_pool_controllers()
-            
-            g_timer = user_elements[0]
-            if g_timer.get_type() != ElementType.CTExpChannel:
-                raise Exception("Global timer %s is not a CounterTimer" % g_timer.name)
-            g_monitor = user_elements[0]
-            if g_timer.get_type() != ElementType.CTExpChannel:
-                raise Exception("Global monitor %s is not a CounterTimer" % g_monitor.name)
-            config['timer'] = g_timer
-            config['monitor'] = g_monitor
-            config['controllers'] = controllers = {}
-            
-            # by default set 1 unit per controller
-            for ctrl, elements in ctrls.items():
-                controllers[ctrl] = ctrl_data = {}
-                ctrl_data['units'] = units = {}
-                units['0'] = unit_data = {}
-                unit_data['id'] = 0
-                if g_timer in elements:
-                    unit_data['timer'] = g_timer
-                else:
-                    unit_data['timer'] = elements[0]
-                if g_monitor in elements:
-                    unit_data['monitor'] = g_monitor
-                else:
-                    unit_data['monitor'] = elements[0]
-                unit_data['trigger_type'] = AcqTriggerType.Software
-                unit_data['channels'] = channels = {}
-                for element in elements:
-                    channels[element] = channel_data = {}
-                    channel_data['index'] = user_elements.index(element)
-                    channel_data['enabled'] = True
-                    channel_data['label'] = element.name
-                    channel_data['output'] = True
-                    channel_data['plot_type'] = PlotType.No
-                    channel_data['plot_axes'] = []
-                    channel_data['name'] = element.name
-                    channel_data['full_name'] = element.full_name
-                    channel_data['conditioning'] = ''
-                    channel_data['normalization'] = Normalization.No
-                    channel_data['instrument'] = element.instrument
-                    channel_data['source'] = element.get_source()
-            config['label'] = self.name
-            config['description'] = self.DFT_DESC
-            
-            # add external channels
-            external_user_elements = [ (i, ue) for i, ue in enumerate(user_elements) if ue.get_type() == ElementType.External ]
-            if len(external_user_elements) > 0:
-                controllers['__tango__'] = ctrl_data = {}
-                ctrl_data['units'] = units = {}
-                units['0'] = unit_data = {}
-                unit_data['id'] = 0
-                unit_data['channels'] = channels = {}
-                for index, element in external_user_elements:
-                    channels[element] = channel_data = {}
-                    channel_data['index'] = index
-                    channel_data['enabled'] = True
-                    channel_data['label'] = element.name
-                    channel_data['output'] = True
-                    channel_data['plot_type'] = PlotType.No
-                    channel_data['plot_axes'] = []
-                    channel_data['name'] = element.name
-                    channel_data['full_name'] = element.full_name
-                    channel_data['conditioning'] = ''
-                    channel_data['normalization'] = Normalization.No
-                    channel_data['instrument'] = None
-                    channel_data['source'] = element.get_source()
+            config = self._build_configuration()
         else:
             # create a configuration based on a new configuration
-            channel_indexes = {}
+            user_elem_ids = {}
             pool = self.pool
             for c, c_data in config['controllers'].items():
                 external = isinstance(c, (str, unicode))
-                # attention: following line only prepared for 1 unit per
-                # controller
-                for ch_data in c_data['units']['0']['channels'].values():
+                # attention: following line only prepared for 1 unit per controller
+                for channel_data in c_data['units']['0']['channels'].values():
                     if external:
-                        id = ch_data['full_name']
+                        element = id = channel_data['full_name']
+                        channel_data['source'] = id
                     else:
-                        id = pool.get_element_by_name(ch_data['name']).id
-                    channel_indexes[ch_data['index']] = id
-            
-            indexes = sorted(channel_indexes.keys())
+                        element = pool.get_element_by_name(channel_data['name'])
+                        id = element.id
+                    user_elem_ids[channel_data['index']] = id
+                    channel_data = self._build_channel_defaults(channel_data, element)
+            indexes = sorted(user_elem_ids.keys())
             assert indexes == range(len(indexes))
-            
-            self.set_user_element_ids([ channel_indexes[idx] for idx in indexes ])
+            self.set_user_element_ids([ user_elem_ids[idx] for idx in indexes ])
             
         # checks
         g_timer, g_monitor = config['timer'], config['monitor']
@@ -245,6 +273,49 @@ class PoolMeasurementGroup(PoolGroupElement):
         if not propagate:
             return
         self.fire_event(EventType("configuration", priority=propagate), config)
+    
+    def set_configuration_from_user(self, cfg, propagate=1):
+        config = {}
+        user_elements = self.get_user_elements()
+        ctrls = self.get_pool_controllers()
+        pool = self.pool
+        
+        timer_name = cfg.get('timer', user_elements[0].name)
+        monitor_name = cfg.get('monitor', user_elements[0].name)
+        config['timer'] = pool.get_element_by_name(timer_name)
+        config['monitor'] = pool.get_element_by_name(monitor_name)
+        config['controllers'] = controllers = {}
+        
+        for c_name, c_data in cfg['controllers'].items():
+            external = c_name.startswith('__')
+            if external:
+                ctrl = c_name
+            else:
+                ctrl = pool.get_element_by_name(c_name)
+                assert ctrl.get_type() == ElementType.Controller
+            controllers[ctrl] = ctrl_data = {}
+            ctrl_data['units'] = units = {}
+            for u_id, u_data in c_data['units'].items():
+                units[u_id] = unit_data = dict(u_data)
+                unit_data['id'] = u_data.get('id', u_id)
+                if not external:
+                    unit_data['timer'] = pool.get_element_by_name(u_data['timer'])
+                    unit_data['monitor'] = pool.get_element_by_name(u_data['monitor'])
+                    unit_data['trigger_type'] = u_data['trigger_type']
+                unit_data['channels'] = channels = {}
+                for ch_name, ch_data in u_data['channels'].items():
+                    if external:
+                        validator = AttributeNameValidator()
+                        params = validator.getParams(ch_data['full_name'])
+                        params['pool'] = self.pool
+                        channel = PoolExternalObject(**params)
+                    else:
+                        channel = pool.get_element_by_name(ch_data['name'])
+                    channels[channel] = channel_data = dict(ch_data)
+        
+        config['label'] = cfg.get('label', self.name)
+        config['description'] = cfg.get('description', self.DFT_DESC)
+        self.set_configuration(config, propagate=propagate)
         
     def get_configuration(self):
         return self._config
@@ -279,46 +350,6 @@ class PoolMeasurementGroup(PoolGroupElement):
         config['label'] = cfg['label']
         config['description'] = cfg['description']
         return config
-    
-    def set_configuration_from_user(self, cfg, propagate=1):
-        config = {}
-        user_elements = self.get_user_elements()
-        ctrls = self.get_pool_controllers()
-        pool = self.pool
-        
-        timer_name = cfg.get('timer', user_elements[0].name)
-        monitor_name = cfg.get('monitor', user_elements[0].name)
-        config['timer'] = pool.get_element_by_name(timer_name)
-        config['monitor'] = pool.get_element_by_name(monitor_name)
-        config['controllers'] = controllers = {}
-        
-        for c_name, c_data in cfg['controllers'].items():
-            external = c_name.startswith('__')
-            if external:
-                ctrl = c_name
-            else:
-                ctrl = pool.get_element_by_name(c_name)
-                assert ctrl.get_type() == ElementType.Controller
-            controllers[ctrl] = ctrl_data = {}
-            ctrl_data['units'] = units = {}
-            for u_id, u_data in c_data['units'].items():
-                units[u_id] = unit_data = dict(u_data)
-                unit_data['id'] = u_data.get('id', u_id)
-                if not external:
-                    unit_data['timer'] = self.get_element_by_name(u_data['timer'])
-                    unit_data['monitor'] = self.get_element_by_name(u_data['monitor'])
-                    unit_data['trigger_type'] = u_data['trigger_type']
-                unit_data['channels'] = channels = {}
-                for ch_name, ch_data in u_data['channels'].items():
-                    if external:
-                        channel = ch_name
-                    else:
-                        channel = self.get_element_by_name(ch_name)
-                    channels[channel] = channel_data = dict(ch_data)
-        
-        config['label'] = cfg.get('label', self.name)
-        config['description'] = cfg.get('description', self.DFT_DESC)
-        self.set_configuration(config, propagate=propagate)
     
     def load_configuration(self, force=False):
         """Loads the current configuration to all involved controllers"""

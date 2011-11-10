@@ -209,12 +209,19 @@ class PoolAction(Logger):
         self._finish_hook = None
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
-
+    
+    def clear_elements(self):
+        """Clears all elements from this action"""
+        self._elements = []
+        self._pool_ctrl_dict = {}
+        self._pool_ctrl_list = []
+    
     def add_element(self, element):
         """Adds a new element to this action.
         
         :param element: the new element to be added
         :type element: sardana.pool.poolelement.PoolElement"""
+        self.warning("add element %s", element)
         ctrl = element.controller
         ctrl_items = self._pool_ctrl_dict.get(ctrl)
         if ctrl_items is None:

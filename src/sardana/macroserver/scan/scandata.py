@@ -41,15 +41,17 @@ class ColumnDesc:
     
     def __init__(self, **kwargs):
         """Expected keywords are:
-            - label (str, mandatory): column label
+            - name (str, mandatory): unique column name
+            - label (str, optional): column label (defaults to name)
             - dtype (str, optional): data type. Defaults to 'float64'
             - shape (seq, optional): data shape. Defaults to (1,)
             - instrument (Instrument, optional): instrument object. Defaults to None"""
         
         # string to be used as label (e.g. will be used as column header in an ascii output)
-        self.label = kwargs.get('label')
-        if self.label is None:
-            raise TypeError("label parameter is mandatory")
+        self.name = kwargs.get('name')
+        if self.name is None:
+            raise TypeError("name parameter is mandatory")
+        self.label = kwargs.get('label', self.name)
     
         # numpy-compatible description of data type
         self.dtype = self.tr(kwargs.get('dtype', 'float64'))
@@ -84,7 +86,7 @@ class ColumnDesc:
     def toDict(self):
         '''creates a dictionary representation of the record'''
         d={}
-        for k in ['label', 'dtype', 'shape']:
+        for k in ['name', 'label', 'dtype', 'shape']:
             d[k] = getattr(self, k)
         if self.instrument is not None:
             d['instrument'] = self.instrument.getFullName()
@@ -96,18 +98,21 @@ class MoveableDesc(ColumnDesc):
     
     def __init__(self, **kwargs):
         """Expected keywords are:
+            - moveable (Moveable, mandatory): moveable object
+            - name (str, optional): column name (defaults to moveable name)
             - label (str, optional): column label (defaults to moveable name)
             - dtype (str, optional): data type. Defaults to 'float64'
             - shape (seq, optional): data shape. Defaults to (1,)
             - instrument (Instrument, optional): instrument object. Defaults to moveable instrument"""
             
         try:
-            self.moveable = kwargs.pop('moveable')
+            self.moveable = moveable = kwargs.pop('moveable')
         except KeyError:
             raise TypeError("moveable parameter is mandatory")
-        
-        kwargs['label'] = kwargs.get('label', self.moveable.getName())
-        kwargs['instrument'] = kwargs.get('instrument', self.moveable.getInstrument())
+        name = moveable.getName()
+        kwargs['name'] = kwargs.get('name', name)
+        kwargs['label'] = kwargs.get('label', name)
+        kwargs['instrument'] = kwargs.get('instrument', moveable.getInstrument())
         
         self.min_value = kwargs.get('min_value')
         self.max_value = kwargs.get('max_value')

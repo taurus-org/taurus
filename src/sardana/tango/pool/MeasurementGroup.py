@@ -177,8 +177,7 @@ class MeasurementGroup(PoolGroupDevice):
     
     def write_Configuration(self, attr):
         data = attr.get_write_value()
-        codec = CodecFactory().getCodec('json')
-        _, cfg = codec.decode(('json', data))
+        cfg = CodecFactory().decode(('json', data), ensure_ascii=True)
         self.measurement_group.set_configuration_from_user(cfg)
 
     def Start(self):

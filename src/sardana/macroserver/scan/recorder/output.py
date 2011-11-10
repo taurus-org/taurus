@@ -82,7 +82,7 @@ class JsonRecorder(DataRecorder):
         macro_id = self.recordlist.getEnvironValue('macro_id')
         data = {} # dict(record.data)
         for k in self.column_desc:
-            name = k.label
+            name = k.name
             data[name] = record.data[name]
         self._sendPacket(type="record_data", data=data, macro_id=macro_id)
         
@@ -127,27 +127,32 @@ class OutputRecorder(DataRecorder):
 
         #labels = [ col.label for col in data_desc if numpy.prod(col.shape) == 1 ]
         labels = [ col.label for col in data_desc ]
+        col_names = [ col.name for col in data_desc ]
+        
         cols = self._columns
         if operator.isSequenceType(cols):
             labels = [labels[0]] + [ l for l in labels[1:] if l in cols ]
+            col_names = [col_names[0]] + [ l for l in col_names[1:] if l in cols ]
         elif operator.isNumberType(cols):
             labels = labels[:cols]
+            col_names = col_names[:cols]
         
-        self._labels = ['#Pt No'] + labels[1:]
+        self._labels = labels
+        self._col_names = col_names
         
-        col_size = max(map(len, self._labels))
+        col_size = max(map(len, self._col_names))
         number_size = len(self._number_fmt % float())
         self._col_size = max(col_size, number_size)
         
         cell_t_number = '%%%%(%%s)%s' % self._number_fmt[1:]
         cell_t_str = '%%%%(%s)%s'
         
-        self._scan_line_t  = [(labels[0], '%%(%s)4d' % labels[0])]
-        self._scan_line_t += [ (l, cell_t_number % l) for l in self._labels[1:] ]
+        self._scan_line_t  = [(col_names[0], '%%(%s)4d' % col_names[0])]
+        self._scan_line_t += [ (name, cell_t_number % name) for name in col_names[1:] ]
         header = ''
         for l in self._labels:
-            header += '%s%s%s' % (self._col_sep, 
-                                  string.center(l, self._col_size), 
+            header += '%s%s%s' % (self._col_sep,
+                                  string.center(l, self._col_size),
                                   self._col_sep)
             
         self._stream.output(header)
@@ -160,12 +165,13 @@ class OutputRecorder(DataRecorder):
         deadtime = recordlist.getEnvironValue('deadtime')
         deltatime = endtime - starttime
         endtime = endtime.ctime()
-        self._stream.info('Scan ended at %s, taking %s (dead time was %.1f%%)' % (endtime, deltatime, deadtime))
+        self._stream.info('Scan ended at %s, taking %s (dead time was %.1f%%)'
+                          % (endtime, deltatime, deadtime))
     
     def _writeRecord(self, record):
         scan_line, sep, c_nb = '', self._col_sep, self._col_size
-        for label, cell in self._scan_line_t:
-            cell_data = record.data[label]
+        for name, cell in self._scan_line_t:
+            cell_data = record.data[name]
             if isinstance(cell_data, numpy.ndarray):
                 cell = str(cell_data.shape)
             elif cell_data is None:

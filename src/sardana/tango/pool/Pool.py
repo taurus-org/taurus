@@ -548,7 +548,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                      "elements" : elem_ids }
             db.put_device_property(device_name, data)
 
-            data = {}
+            data = { }
             
             db.put_device_attribute_property(device_name, data)
             
@@ -602,7 +602,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 key = 'new'
             else:
                 key = 'del'
-            json_elem = elem.to_json(pool=self.pool.full_name)
+            json_elem = elem.serialize(pool=self.pool.full_name)
             value[key] = json_elem,
             value = CodecFactory().getCodec('json').encode(('', value))
             self.push_change_event('Elements', *value)

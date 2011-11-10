@@ -414,12 +414,14 @@ class SPEC_FileRecorder(BaseFileRecorder):
         epoch = time.mktime(start_time.timetuple())
         serialno = env['serialno']
         
-        #store labels for performance reason
+        #store names for performance reason
         labels = []
+        names = []
         for e in env['datadesc']:
             if e.shape == ():
                 labels.append(e.label)
-        self.labels = labels
+                names.append(e.name)
+        self.names = names
 
         data = {
                 'serialno':  serialno,
@@ -427,7 +429,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 'user':      env['user'],
                 'epoch':     epoch,
                 'starttime': start_time.ctime(),
-                'nocols':    len(labels),
+                'nocols':    len(names),
                 'labels':    '  '.join(labels)
                }
                
@@ -445,10 +447,10 @@ class SPEC_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
             return
-        nan, labels, fd = float('nan'), self.labels, self.fd
+        nan, names, fd = float('nan'), self.names, self.fd
         
         d = []
-        for c in labels:
+        for c in names:
             data = record.data.get(c)
             if data is None: data = nan
             d.append(str(data))

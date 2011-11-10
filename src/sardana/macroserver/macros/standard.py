@@ -394,7 +394,7 @@ class ct(Macro):
         for ch_name in self.mnt_grp.getChannelNames():
             names.append('  %s' % ch_name)
             counts.append(data.get(ch_name))
-    
+        
         table = Table([counts], row_head_str=names, row_head_fmt='%*s',
                       col_sep='  =  ')
         for line in table.genOutput():

@@ -446,7 +446,7 @@ class EnvironmentManager(Singleton, Logger):
         obj = self._encode(obj)
         for k, v in obj.iteritems():
             self._setOneEnv(k, v)
-        obj["__type__"] = "set_env"
+        obj["__type__"] = "new"
         codec = CodecFactory().getCodec('json')
         data = codec.encode(('',obj))
 

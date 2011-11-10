@@ -61,6 +61,7 @@ class ExtraData(object):
         """Expected keywords are:
             - model (str, mandatory): represents data source (ex.: a/b/c/d)
             - label (str, mandatory): column label
+            - name (str, optional): unique name (defaults to model)
             - shape (seq, optional): data shape 
             - dtype (numpy.dtype, optional): data type
             - instrument (str, optional): full instrument name"""
@@ -70,8 +71,13 @@ class ExtraData(object):
             kwargs['dtype'] = self.getType()
         if not kwargs.has_key('shape'):
             kwargs['shape'] = self.getShape()
+        if not kwargs.has_key('name'):
+            kwargs['name'] = self._model
         self._column = ColumnDesc(**kwargs)
     
+    def getLabel(self):
+        return self._label
+
     def getName(self):
         return self._label
     
@@ -433,24 +439,27 @@ class GScan(Logger):
                      'title' : self.macro.getCommand() } )
         
         # add point no column
-        data_desc = [ ColumnDesc(label='point_nb', dtype='int64') ]
+        data_desc = [ ColumnDesc(name='point_nb', label='#Pt No',
+                                 dtype='int64') ]
         
         # add motor columns
         ref_moveables = []
         for moveable in self.moveables:
             data_desc.append(moveable)
             if moveable.is_reference:
-                ref_moveables.insert(0, moveable.label)
+                ref_moveables.insert(0, moveable.name)
         
         if not ref_moveables and len(self.moveables):
-            ref_moveables.append(data_desc[-1].label)
+            ref_moveables.append(data_desc[-1].name)
         env['ref_moveables'] = ref_moveables
         
         # add master column
         master = self._master
         instrument = master['instrument']
         label = master['label']
-        data_desc.append( ColumnDesc(label=label, instrument=instrument) )
+        name = master['name']
+        data_desc.append( ColumnDesc(name=name, label=label,
+                                     instrument=instrument) )
         #TODO: maybe we want to include the nxpath in the instrument as well????
         
         # add counters
@@ -462,8 +471,9 @@ class GScan(Logger):
             counter_shape = counter_info.shape
             instrument = counter_info.instrument
             label = counter_info.label
-            column = ColumnDesc(label=label, dtype=counter_type,
-                                shape=counter_shape, instrument=instrument)
+            column = ColumnDesc(name=counter_name, label=label,
+                                dtype=counter_type, shape=counter_shape,
+                                instrument=instrument)
             data_desc.append(column)
             counters.append(counter_name)
         
@@ -572,13 +582,13 @@ class GScan(Logger):
         except UnknownEnv:
             scan_history = []
         
-        labels = [ col.label for col in env['datadesc'] ]
+        names = [ col.name for col in env['datadesc'] ]
         history = dict(startts=env['startts'], endts=env['endts'],
                        estimatedtime=env['estimatedtime'],
                        deadtime=env['deadtime'], title=env['title'],
                        serialno=env['serialno'], user=env['user'],
                        ScanFile=env['ScanFile'], ScanDir=env['ScanDir'],
-                       channels=labels)
+                       channels=names)
         scan_history.append(history)
         while len(scan_history) > self.MAX_SCAN_HISTORY:
             scan_history.pop(0)
@@ -784,7 +794,7 @@ class CScan(GScan):
             
             #acquire data and motor positions as close as possible
             #data_line,positions = mg.getValues(force=True), motion.readPosition(force=True)
-            data_line,positions = mg.getValues(), motion.readPosition()
+            data_line, positions = mg.getValues(), motion.readPosition()
             
             #execute post-acq hooks
             for hook in step.get('post-acq-hooks',[]): hook()

@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for external objects to the pool (like tango objects)"""
 
-__all__ = ["PoolBaseExternalObject", "PoolTangoObject"]
+__all__ = ["PoolBaseExternalObject", "PoolTangoObject", "PoolExternalObject"]
 
 __docformat__ = 'restructuredtext'
 
@@ -52,33 +52,55 @@ class PoolBaseExternalObject(PoolBaseObject):
     def get_source(self):
         return self.full_name
 
+
 class PoolTangoObject(PoolBaseExternalObject):
     """TODO"""
     
     def __init__(self, **kwargs):
         scheme = kwargs.pop('scheme', 'tango')
-        attributename = kwargs.pop('attributename')
+        attribute_name = kwargs.pop('attributename')
         host, port = kwargs.pop('host', None), kwargs.pop('port', None)
         devalias = kwargs.pop('devalias', None)
-        devicename = kwargs.pop('devicename', None)
+        device_name = kwargs.pop('devicename', None)
         if host is None:
             db = PyTango.Database()
             host, port = db.get_db_host(), db.get_db_port()
         else:
             db = PyTango.Database(host, port)
         full_name = "<unknown>"
-        if devicename is None:
+        if device_name is None:
             if devalias is not None:
                 try:
-                    devicename = db.get_device_alias(devalias)
-                    full_name = "{0}:{1}/{2}/{3}".format(host, port, devicename,
-                                                         attributename)
+                    device_name = db.get_device_alias(devalias)
+                    full_name = "{0}:{1}/{2}/{3}".format(host, port, device_name,
+                                                         attribute_name)
                 except:
-                    full_name = "{0}/{1}".format(devalias, attributename)
+                    full_name = "{0}/{1}".format(devalias, attribute_name)
         else:
-            full_name = "{0}:{1}/{2}/{3}".format(host, port, devicename,
-                                                 attributename)
-        kwargs['name'] = attributename
+            full_name = "{0}:{1}/{2}/{3}".format(host, port, device_name,
+                                                 attribute_name)
+        self._device_name = device_name
+        self._attribute_name = attribute_name
+        kwargs['name'] = attribute_name
         kwargs['full_name'] = full_name
         PoolBaseExternalObject.__init__(self, **kwargs)
+    
+    def get_device_name(self):
+        return self._device_name
+    
+    def get_attribute_name(self):
+        return self._attribute_name
+    
+    device_name = property(get_device_name)
+    attribute_name = property(get_attribute_name)
+    
+    
+_SCHEME_CLASS = { 'tango' : PoolTangoObject,
+                  None    : PoolTangoObject}
+
+
+def PoolExternalObject(**kwargs):
+    scheme = kwargs.get('scheme', 'tango')
+    klass = _SCHEME_CLASS[scheme]
+    return klass(**kwargs)
 

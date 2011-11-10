@@ -34,7 +34,7 @@ from taurus.core import AttributeNameValidator
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolelement import PoolBaseElement
-from poolexternal import PoolTangoObject
+from poolexternal import PoolExternalObject
 from poolcontainer import PoolContainer
 
 
@@ -130,7 +130,7 @@ class PoolBaseGroup(PoolContainer):
                 validator = AttributeNameValidator()
                 params = validator.getParams(user_element_id)
                 params['pool'] = self.pool
-                user_element = PoolTangoObject(**params)
+                user_element = PoolExternalObject(**params)
             self.add_user_element(user_element)
         self._pending = False
     
@@ -192,25 +192,32 @@ class PoolBaseGroup(PoolContainer):
                 own_elements.update(elements)
         return physical_elements
     
-    def remove_user_element(self, element):
-        try:
-            idx = self._user_elements.index(element)
-        except ValueError:
-            raise Exception("Group doesn't contain %s" % element.name)
-        element.remove_listener(self.on_element_changed)
-        del self._user_elements[idx]
-        self.remove_element(element)
+    # TODO: to complicated to implement for now
+#    def remove_user_element(self, element):
+#        try:
+#            idx = self._user_elements.index(element)
+#        except ValueError:
+#            raise Exception("Group doesn't contain %s" % element.name)
+#        action_cache = self.get_action_cache()
+#        element.remove_listener(self.on_element_changed)
+#        action_cache.remove_element(element)
+#        del self._user_elements[idx]
+#        del self._user_element_ids[self._user_element_ids.index(element.id)]
+#        self.remove_element(element)
     
     def clear_user_elements(self):
         user_elements = self._user_elements
         if user_elements is not None:
             for element in user_elements:
-                element.remove_listener(self.on_element_changed)
-                self.remove_element(element)
+                if element.get_type() != ElementType.External:
+                    element.remove_listener(self.on_element_changed)
+                    self.remove_element(element)
+        self._action_cache = None
         self._pending = True
         self._user_elements = None
         self._user_element_ids = None
         self._physical_elements = None
+        
         
     # --------------------------------------------------------------------------
     # stop
