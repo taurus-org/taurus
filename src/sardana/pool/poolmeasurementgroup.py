@@ -34,8 +34,9 @@ from taurus.core import AttributeNameValidator
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
 
 from sardana import ElementType
+from sardana.sardanaevent import EventType
+
 from pooldefs import AcqMode, AcqTriggerType
-from poolevent import EventType
 from poolgroupelement import PoolGroupElement
 from poolacquisition import PoolCTAcquisition
 from poolexternal import PoolExternalObject

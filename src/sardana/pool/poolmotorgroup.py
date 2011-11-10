@@ -33,8 +33,8 @@ __docformat__ = 'restructuredtext'
 import math
 
 from sardana import State, ElementType
+from sardana.sardanaevent import EventType
 
-from poolevent import EventType
 from poolbase import *
 from poolgroupelement import PoolGroupElement
 from poolmotion import *

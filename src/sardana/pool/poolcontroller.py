@@ -42,8 +42,9 @@ from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
 from sardana import State, ElementType, InvalidAxis, InvalidId
+from sardana.sardanaevent import EventType
+
 from poolelement import PoolBaseElement
-from poolevent import EventType
 
 
 class PoolBaseController(PoolBaseElement):

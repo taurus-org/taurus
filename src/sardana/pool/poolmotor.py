@@ -34,9 +34,10 @@ import math
 import operator
 
 from sardana import EpsilonError, State, ElementType
+from sardana.sardanaevent import EventType
+
 from poolbase import *
 
-from poolevent import EventType
 from poolelement import PoolElement
 from poolmotion import PoolMotion, PoolMotionItem, MotionState, MotionMap
 

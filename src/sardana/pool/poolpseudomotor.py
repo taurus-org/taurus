@@ -31,7 +31,8 @@ __all__ = [ "PoolPseudoMotor" ]
 __docformat__ = 'restructuredtext'
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
-from poolevent import EventType
+from sardana.sardanaevent import EventType
+
 from poolelement import PoolBaseElement, PoolElement
 from poolgroupelement import PoolBaseGroup
 from poolmotion import PoolMotion

@@ -37,9 +37,9 @@ from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
 from sardana.sardanabase import SardanaBaseManager
+from sardana.sardanaevent import EventType
 
 from poolbase import PoolObject
-from poolevent import EventType
 from poolcontainer import PoolContainer
 from poolcontroller import PoolController
 from poolmonitor import PoolMonitor

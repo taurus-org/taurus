@@ -35,7 +35,7 @@ import functools
 import threading
 
 from sardana import State
-from poolevent import EventType
+from sardana.sardanaevent import EventType
 from poolbase import PoolObject
 
 
