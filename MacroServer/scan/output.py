@@ -78,8 +78,9 @@ class OutputRecorder(DataRecorder):
         starttime = recordlist.getEnvironValue('starttime').ctime()
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         data_desc = recordlist.getEnvironValue('datadesc')
+        serialno = recordlist.getEnvironValue('serialno')
         
-        msg = "Scan started at %s." % starttime
+        msg = "Scan #%d started at %s." % (serialno, starttime)
         if not estimatedtime is None:
             estimatedtime = datetime.timedelta(0, abs(estimatedtime))
             msg += " It will take at least %s" % estimatedtime
@@ -125,7 +126,9 @@ class OutputRecorder(DataRecorder):
         deadtime = recordlist.getEnvironValue('deadtime')
         deltatime = endtime - starttime
         endtime = endtime.ctime()
-        self._stream.info('Scan ended at %s, taking %s (dead time was %.1f%%)' % (endtime, deltatime, deadtime))
+        serialno = recordlist.getEnvironValue('serialno')
+        self._stream.info('Scan #%d ended at %s, taking %s (dead time was %.1f%%)'
+                          % (serialno, endtime, deltatime, deadtime))
     
     def _writeRecord(self, record):
         scan_line, sep, c_nb = '', self._col_sep, self._col_size

@@ -156,6 +156,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.overwrite = overwrite
         if filename:
             self.setFileName(filename)
+        self.macro = macro
     
     def setFileName(self, filename):
         if self.fd  is not None:
@@ -181,6 +182,9 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.entryname=self._newentryname('entry')
         self.fd.makegroup(self.entryname,"NXentry") 
         self.fd.opengroup(self.entryname,"NXentry") 
+        
+        if self.macro:
+            self.macro.info("Writting NEXUS entry: %s", self.entryname)
         
         self.currentlist = recordlist
         env = self.currentlist.getEnviron()
