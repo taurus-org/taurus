@@ -144,8 +144,7 @@ class BaseSardanaElementContainer:
     
     def addElement(self, e):
         type = e.getType()
-        name = e.getName()
-
+        
         #update type_elems
         if self._type_elems_dict.has_key(type):
             type_elems = self._type_elems_dict.get(type)
@@ -153,15 +152,15 @@ class BaseSardanaElementContainer:
             type_elems = CaselessDict()
             self._type_elems_dict[type] = type_elems
         
-        type_elems[name] = e
+        type_elems[e.name] = e
     
     def removeElement(self, e):
         type = e.getType()
-
+        
         # update type_elems
         type_elems = self._type_elems_dict.get(type)
         if type_elems:
-            del type_elems[name]
+            del type_elems[e.name]
     
     def removeElementsOfType(self, t):
         for elem in self.getElementsOfType(t):

@@ -1384,13 +1384,13 @@ class Pool(TangoDevice, MoveableSource):
         if self._wait_for_element_in_container(elements, mg_name):
             return elements[mg_name]
     
-    def createMeasurementGroup(self, name, elements):
-        params = [name,] + map(str,elements)
+    def createMeasurementGroup(self, mg_name, elements):
+        params = [mg_name,] + map(str,elements)
         self.debug('trying to create measurement group: %s', params)
-        mg_list = self.getListObj('MeasurementGroup')
         self.command_inout('CreateMeasurementGroup', params)
-        mg_list.waitEvent(any=True, timeout=0.5)
-        return mg_list.getObjByName(name)
+        elements = self.getElements()
+        if self._wait_for_element_in_container(elements, mg_name):
+            return elements[mg_name]
         
     def deleteMeasurementGroup(self, name):
         mg_list = self.getListObj('MeasurementGroup')
