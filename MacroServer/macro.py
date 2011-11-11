@@ -1344,7 +1344,7 @@ class Table:
 
     PrettyOpts   = {'col_sep': ' |', 'col_head_sep': '-', 'border': '='}
     
-    def __init__(self, elem_list, elem_fmt=['%*s'], term_width=None,
+    def __init__(self, elem_list, elem_fmt=None, term_width=None,
                  row_head_str=None, row_head_fmt='%-*s', row_head_width=None,
                  col_head_str=None, col_head_fmt='%*s',  col_head_width=None,
                  col_sep=' ', row_sep=' ', col_head_sep=None, border=None):
@@ -1352,9 +1352,12 @@ class Table:
         self.nr_col = len(elem_list)
         self.nr_row = len(elem_list[0])
         self.elem_list = elem_list
-        self.elem_fmt  = elem_fmt
+        
+        if elem_fmt is None:
+            elem_fmt = self.nr_row * ['%*s']
         if len(elem_fmt) == 1:
             elem_fmt *= self.nr_row
+        self.elem_fmt  = elem_fmt
         
         self.term_width = term_width or Table.DefTermWidth
         self.col_sep      = col_sep
