@@ -215,22 +215,22 @@ class GScan(Logger):
         # The Scan data object
         data = ScanFactory().getScanData(data_handler)
 
+        # The File recorder (if any)
+        file_recorder = self._getFileRecorder()
+
         # The Output recorder (if any)
         output_recorder = self._getOutputRecorder()
 
         # The Output recorder (if any)
         json_recorder = self._getJsonRecorder()
         
-        # The File recorder (if any)
-        file_recorder = self._getFileRecorder()
-        
         # The Shared memory recorder (if any)
         shm_recorder = self._getSharedMemoryRecorder(0)
         shm_recorder_1d = self._getSharedMemoryRecorder(1)
         
+        data_handler.addRecorder(file_recorder)
         data_handler.addRecorder(output_recorder)
         data_handler.addRecorder(json_recorder)
-        data_handler.addRecorder(file_recorder)
         data_handler.addRecorder(shm_recorder)
         data_handler.addRecorder(shm_recorder_1d)
         
