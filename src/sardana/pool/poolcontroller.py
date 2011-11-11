@@ -418,7 +418,7 @@ class PoolController(PoolBaseController):
     @check_ctrl
     def get_axis_par(self, axis, name):
         #return self.ctrl.GetAxisPar(unit, axis, name, value)
-        return self.ctrl.GetAxisPar(axis, name)    
+        return self.ctrl.GetAxisPar(axis, name)
 
     # END API WHICH ACCESSES CONTROLLER API ------------------------------------
     
@@ -439,8 +439,7 @@ class PoolController(PoolBaseController):
                        all active axis in this controller
         :type axises: seq<int> or None
         :return: a map containing the controller state information for each axis
-        :rtype: dict<PoolElement, state info>
-        """
+        :rtype: dict<PoolElement, state info>"""
         if axises is None:
             axises = self._element_axis.keys()
         if ctrl_states is None:
@@ -483,24 +482,22 @@ class PoolController(PoolBaseController):
         """Reads the state for the given axises. If axises is None, reads the
         state of all active axises.
         
-        :param axises: the list of axis to get the state. Default is None meaning
-                       all active axis in this controller
+        :param axises: the list of axis to get the state. Default is None
+                       meaning all active axis in this controller
         :type axises: seq<int> or None
         :return: a map containing the controller state information for each axis
-        :rtype: dict<PoolElement, state info>
-        """
+        :rtype: dict<PoolElement, state info>"""
         return self.raw_read_axis_states(axises=axises)
     
     def raw_read_axis_values(self, axises=None, ctrl_values=None):
         """**Unsafe method**. Reads the value for the given axises. If axises
         is None, reads the value of all active axises.
         
-        :param axises: the list of axis to get the value. Default is None meaning
-                       all active axis in this controller
+        :param axises: the list of axis to get the value. Default is None
+                       meaning all active axis in this controller
         :type axises: seq<int> or None
         :return: a map containing the controller value information for each axis
-        :rtype: dict<PoolElement, value>
-        """
+        :rtype: dict<PoolElement, value>"""
         if axises is None:
             axises = self._element_axis.keys()
         if ctrl_values is None:
@@ -517,24 +514,20 @@ class PoolController(PoolBaseController):
             exc_info = sys.exc_info()
             for axis in axises:
                 element = self.get_element(axis=axis)
-                ctrl_values[element] = None
-            return ctrl_values, { InvalidAxis : exc_info }
+                ctrl_values[element] = None, exc_info
+            return ctrl_values
             
-        ret_exc_info = {}
         for axis in axises:
             element = self.get_element(axis=axis)
             try:
                 value = ctrl.ReadOne(axis)
+                if value is None:
+                    self.warning("ReadOne(%d) returns 'None'", axis)
+                ctrl_values[element] = value, None
             except:
-                ret_exc_info[axis] = exc_info = sys.exc_info()
-                ctrl_values[element] = None
-                continue
-            
-            if value is None:
-                self.info("ReadOne(%d) returns 'None'", axis)
-            ctrl_values[element] = value
+                ctrl_values[element] = None, sys.exc_info()
         
-        return ctrl_values, ret_exc_info
+        return ctrl_values
 
     @check_ctrl
     def read_axis_values(self, axises=None):
@@ -545,8 +538,7 @@ class PoolController(PoolBaseController):
                        all active axis in this controller
         :type axises: seq<int> or None
         :return: a map containing the controller value information for each axis
-        :rtype: dict<PoolElement, value>
-        """
+        :rtype: dict<PoolElement, value>"""
         return self.raw_read_axis_values(axises=axises)
     
     def raw_stop_all(self):

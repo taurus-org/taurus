@@ -181,7 +181,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         try:
             import nxs  #check if Nexus data format is supported by this system
             self.nxs = nxs
-        except: 
+        except ImportError:
             raise Exception("NeXus is not available")
 
         self.overwrite = overwrite
@@ -265,8 +265,8 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             return
         nxs = self.nxs
         for dd in self.datadesc:
-            if record.data.has_key( dd.label ):
-                data = record.data[dd.label]
+            if record.data.has_key( dd.name ):
+                data = record.data[dd.name]
                 self.debug("writting recordno %i: '%s' (type=%s, shape=%s)",
                            record.recordno, dd.label, type(data), dd.shape)
                 self.fd.opendata(dd.label)

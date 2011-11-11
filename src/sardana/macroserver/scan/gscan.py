@@ -361,6 +361,7 @@ class GScan(Logger):
                 file_recorders.append(file_recorder)
             except:
                 macro.warning("Error creating recorder for %s", abs_file_name)
+                macro.debug("Details:", exc_info=1)
         
         if len(file_recorders) == 0:
             macro.warning("No valid recorder found. This operation will not be stored persistently")

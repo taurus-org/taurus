@@ -60,7 +60,9 @@ class PoolCounterTimer(PoolElement):
     
     def get_value(self, cache=True, propagate=1):
         if not cache or self._value is None:
-            value = self.read_value()
+            value, exc_info = self.read_value()
+            if exc_info is not None:
+                raise exc_info[1]
             self._set_value(value, propagate=propagate)
         return self._value
     

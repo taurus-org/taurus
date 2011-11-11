@@ -102,8 +102,9 @@ class PoolMotorGroup(PoolGroupElement):
     def get_position(self, cache=True, propagate=1):
         positions = self._positions
         if not cache or positions is None:
-            dial_positions = self.motion.read_dial_position(serial=True)
-            for motion_obj, position in dial_positions.items():
+            dial_position_infos = self.motion.read_dial_position(serial=True)
+            for motion_obj, position_info in dial_position_infos.items():
+                position, exc_info = position_info
                 motion_obj.put_dial_position(position, propagate=propagate)
             positions = {}
             for motion_obj in self.get_user_elements():

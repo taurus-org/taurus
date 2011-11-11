@@ -130,7 +130,7 @@ class Controller(object):
     standard_axis_attributes = {}
     
     def __init__(self, inst, props, *args, **kwargs):
-        self.inst_name = inst
+        self._inst_name = inst
         self._log = Logger("Controller.%s" % inst)
         self._log.log_obj.setLevel(taurus.getLogLevel())
         self._args = args
@@ -147,7 +147,12 @@ class Controller(object):
     
     def _getPoolController(self):
         """*Internal*."""
-        return self._kwargs['pool_controller']()
+        if hasattr(self, '_kwargs'):
+            kw = self._kwargs
+            if kw is not None:
+                ctrl_wr = kw.get('pool_controller')
+                if ctrl_wr is not None:
+                    return ctrl_wr()
     
     def AddDevice(self, axis):
         """**Controller API**. Overwrite as necessary.
@@ -162,6 +167,35 @@ class Controller(object):
         method. Not doing so will prevent the default implementation of
         :meth:`~Controller.AbortAll` from working properly."""
         self._axis.remove(axis)
+    
+    @property
+    def inst_name(self):
+        """**Controller API**. The controller instance name.
+        
+        .. deprecated:: 1.0
+            Deprecated: use :meth:`~Controller.GetName` instead"""
+        return self._inst_name
+    
+    def GetName(self):
+        """**Controller API**. The controller instance name.
+        
+        :return: the controller instance name
+        :rtype: str
+        
+        .. versionadded:: 1.0"""
+        return self._inst_name
+    
+    def GetAxisName(self, axis):
+        """**Controller API**. The axis name.
+        
+        :return: the axis name
+        :rtype: str
+        
+        .. versionadded:: 1.0"""
+        ctrl = self._getPoolController()
+        if ctrl is not None:
+            return ctrl.get_element(axis=axis).name
+        return str(axis)
     
     def PreStateAll(self):
         """**Controller API**. Overwrite as necessary.

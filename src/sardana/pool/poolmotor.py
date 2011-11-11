@@ -407,7 +407,9 @@ class PoolMotor(PoolElement):
     
     def get_position(self, cache=True, propagate=1):
         if not cache or self._position is None:
-            dial_position = self.read_dial_position()
+            dial_position, exc_info = self.read_dial_position()
+            if exc_info is not None:
+                raise exc_info[1]
             self._set_dial_position(dial_position, propagate=propagate)
         return self._position
     
@@ -430,7 +432,9 @@ class PoolMotor(PoolElement):
     
     def get_dial_position(self, cache=True, propagate=1):
         if not cache or self._dial_position is None:
-            dial_position = self.read_dial_position()
+            dial_position, exc_info = self.read_dial_position()
+            if exc_info is not None:
+                raise exc_info[1]
             self._set_dial_position(dial_position, propagate=propagate)
         return self._dial_position
 
@@ -507,7 +511,7 @@ class PoolMotor(PoolElement):
     def start_move(self, new_position):
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
-            self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
+            self.info("Start motion pos=%f, dial=%f, do_backlash=%s, "
                        "dial_backlash=%f", *items[self])
             self.motion.run(items=items)
     

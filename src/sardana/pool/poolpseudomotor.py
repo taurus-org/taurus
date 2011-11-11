@@ -132,9 +132,10 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     def get_low_level_physical_positions(self, cache=True, propagate=1):
         positions = self._low_level_physical_positions
         if not cache or positions is None:
-            dial_positions = self.motion.read_dial_position(serial=True)
-            for motion_obj, motion_pos in dial_positions.items():
-                motion_obj.put_dial_position(motion_pos, propagate=propagate)
+            dial_position_infos = self.motion.read_dial_position(serial=True)
+            for motion_obj, position_info in dial_position_infos.items():
+                position, exc_info = position_info
+                motion_obj.put_dial_position(position, propagate=propagate)
             self._low_level_physical_positions = positions = {}
             for ctrl, motion_objs in self.get_physical_elements().items():
                 for motion_obj in motion_objs:

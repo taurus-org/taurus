@@ -26,7 +26,7 @@ The following are the 2 necessary changes to make your controller work in
 sardana *API v1*:
 
 1. from::
-
+   
        import pool
        from pool import <ControllerClass>/PoolUtil
    
@@ -55,6 +55,23 @@ controller to be recognized by the pool to be a *API v1* controller:
 
    (and don't forget to call the super class constructor also with args
    and kwargs).
+
+4. _log member changed from :class:`logging.Logger` to 
+   :class:`taurus.core.util.Logger`. This means that you need to change code
+   from::
+   
+        self._log.setLevel(logging.INFO)
+    
+    to::
+        
+        self._log.setLogLevel(logging.INFO)
+    
+    or::
+    
+        self._log.setLogLevel(taurus.Info)
+    
+    since taurus.Info == logging.INFO.
+    
 
 Optional changes
 """"""""""""""""

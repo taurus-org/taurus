@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import threading
 
-from PyTango import Device_4Impl, DeviceClass, Util
+from PyTango import Device_4Impl, DeviceClass, Util, DevState
 
 from taurus.core.util.log import Logger
 
@@ -69,11 +69,15 @@ class SardanaDevice(Device_4Impl, Logger):
         return self.get_name()
     
     def init_device(self):
+        self.set_state(DevState.ALARM)
+        self.set_status('Waiting to be initialized...')
+
         self.get_device_properties(self.get_device_class())
 
         detect_evts = "state", "status"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
+        
 
     def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
         for evt in evts_checked_by_tango:

@@ -248,18 +248,18 @@ class Pool(PyTango.Device_4Impl, Logger):
             raise Exception("Controller library '%s' not found" % lib)
         
         # check class exists
-        ctrl_class = ctrl_lib.getController(class_name)
+        ctrl_class = ctrl_lib.get_controller(class_name)
         if ctrl_class is None:
             raise Exception("Controller class '%s' not found in '%s'"
                             % (class_name, lib))
         
         # check that class type matches the required type
-        if not elem_type in ctrl_class.getTypes():
+        if not elem_type in ctrl_class.types:
             raise Exception("Controller class '%s' does not implement '%s' "
                             "interface" % (class_name, type_str))
         
         # check that necessary property values are set
-        for prop_name, prop_info in ctrl_class.getControllerProperties().items():
+        for prop_name, prop_info in ctrl_class.ctrl_properties.items():
             prop_value = properties.get(prop_name)
             if prop_value is None:
                 if prop_info.default_value is None:
@@ -327,7 +327,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         # Determine which controller writtable attributes have default value
         # and apply them to the newly created controller
         attrs = []
-        for attr_name, attr_info in ctrl_class.getControllerAttributes().items():
+        for attr_name, attr_info in ctrl_class.ctrl_attributes.items():
             default_value = attr_info.default_value
             if default_value is None:
                 continue

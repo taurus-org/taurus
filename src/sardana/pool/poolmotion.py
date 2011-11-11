@@ -257,7 +257,8 @@ class PoolMotion(PoolAction):
         # read positions to send a first event when starting to move
         with ActionContext(self) as context:
             positions = self.raw_read_dial_position()
-            for moveable, position in positions.items():
+            for moveable, position_info in positions.items():
+                position, exc_info = position_info
                 moveable.put_dial_position(position, propagate=2)
         
         while True:
@@ -328,7 +329,8 @@ class PoolMotion(PoolAction):
             # read position every n times
             if not i % nb_states_per_pos:
                 self.read_dial_position(ret=positions)
-                for moveable, position in positions.items():
+                for moveable, position_info in positions.items():
+                    position, exc_info = position_info
                     moveable.put_dial_position(position)
             
             i += 1

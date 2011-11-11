@@ -56,6 +56,7 @@ AcquisitionMap = {
     AS.Acquiring         : State.Moving,
     AS.Invalid           : State.Invalid,
 }
+
 class PoolAcquisition(PoolAction):
     
     def __init__(self, name="Acquisition"):
@@ -224,7 +225,8 @@ class PoolCTAcquisition(PoolAction):
         # read values to send a first event when starting to acquire
         with ActionContext(self) as context:
             self.raw_read_value(ret=values)
-            for acquirable, value in values.items():
+            for acquirable, value_info in values.items():
+                value, exc_info = value_info
                 acquirable.put_value(value, propagate=2)
         
         while True:
@@ -236,7 +238,8 @@ class PoolCTAcquisition(PoolAction):
             # read value every n times
             if not i % nb_states_per_value:
                 self.read_value(ret=values)
-                for acquirable, value in values.items():
+                for acquirable, value_info in values.items():
+                    value, exc_info = value_info
                     acquirable.put_value(value)
             
             i += 1
@@ -250,7 +253,8 @@ class PoolCTAcquisition(PoolAction):
             # first update the element state so that value calculation
             # that is done after takes the updated state into account
             acquirable.set_state_info(state_info, propagate=0)
-            acquirable.put_value(values[acquirable], propagate=2)
+            value, exc_info = values[acquirable]
+            acquirable.put_value(value, propagate=2)
             with acquirable:
                 acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)

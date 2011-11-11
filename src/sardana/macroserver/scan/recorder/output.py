@@ -165,8 +165,9 @@ class OutputRecorder(DataRecorder):
         deadtime = recordlist.getEnvironValue('deadtime')
         deltatime = endtime - starttime
         endtime = endtime.ctime()
-        self._stream.info('Scan ended at %s, taking %s (dead time was %.1f%%)'
-                          % (endtime, deltatime, deadtime))
+        serialno = recordlist.getEnvironValue('serialno')
+        self._stream.info('Scan #%s ended at %s, taking %s (dead time was %.1f%%)'
+                          % (serialno, endtime, deltatime, deadtime))
     
     def _writeRecord(self, record):
         scan_line, sep, c_nb = '', self._col_sep, self._col_size

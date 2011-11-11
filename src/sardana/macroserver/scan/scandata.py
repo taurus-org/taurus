@@ -64,8 +64,9 @@ class ColumnDesc:
     
     @staticmethod
     def _simplifyShape(s):
-        '''the idea is to strip the shape of useless "ones" at the beginning. For example:
-
+        '''the idea is to strip the shape of useless "ones" at the beginning.
+        For example:
+            
             - () -> ()
             - (1,) -> ()
             - (1,1,1,1) -> ()

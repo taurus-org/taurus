@@ -221,7 +221,6 @@ class PoolAction(Logger):
         
         :param element: the new element to be added
         :type element: sardana.pool.poolelement.PoolElement"""
-        self.warning("add element %s", element)
         ctrl = element.controller
         ctrl_items = self._pool_ctrl_dict.get(ctrl)
         if ctrl_items is None:
@@ -483,7 +482,8 @@ class PoolAction(Logger):
                        in parallel. If True, access is serialized.
         :type serial: bool
         :return: a map containing value information per element
-        :rtype: dict<sardana.pool.poolelement.PoolElement, object>"""
+        :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement`,
+                     (value object, Exception or None)>"""
         with ActionContext(self):
             return self.raw_read_value(ret=ret, serial=serial)
 
@@ -499,7 +499,8 @@ class PoolAction(Logger):
                        in parallel. If True, access is serialized.
         :type serial: bool
         :return: a map containing value information per element
-        :rtype: dict<sardana.pool.poolelement.PoolElement, object>"""
+        :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement,
+                     (value object, Exception or None)>"""
         
         if ret is None:
             ret = {}
@@ -534,10 +535,7 @@ class PoolAction(Logger):
         ret parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            value_infos, exc_info = pool_ctrl.raw_read_axis_values(axises)
-            if len(exc_info):
-                self.info("VALUE ERROR %s", exc_info)
-
+            value_infos = pool_ctrl.raw_read_axis_values(axises)
             ret.update( value_infos )
         finally:
             self._value_info.finish_one()

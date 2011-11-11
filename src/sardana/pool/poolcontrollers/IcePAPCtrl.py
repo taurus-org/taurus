@@ -1,11 +1,15 @@
 import PyTango
 import socket
 import errno
-from sardana.pool.controller import MotorController
-from sardana.pool import PoolUtil
-from pyIcePAP import *
 import time
 import math
+
+from pyIcePAP import *
+
+from sardana import State
+from sardana.pool.controller import MotorController
+from sardana.pool import PoolUtil
+
 
 class IcepapController(MotorController):
     """This class is the Sardana motor controller for the ICEPAP motor controller.
@@ -174,10 +178,12 @@ class IcepapController(MotorController):
         @param axis to read the state
         @return the state value: {ALARM|ON|MOVING}
         """
+        name = self.GetAxisName(axis)
         if axis not in self.stateMultiple:
-            self._log.warning('StateOne(%d) Not enabled. Check the Driver Board is present in %s.'%(axis,self.Host))
-            self.attributes[axis]["last_state_value"] = PyTango.DevState.ALARM
-            return (PyTango.DevState.ALARM, 'Motor Not Enabled or Not Present', 0)
+            self._log.warning('StateOne(%s(%s)) Not enabled. Check the Driver Board is present in %s.',
+                              name, axis, self.Host)
+            self.attributes[axis]["last_state_value"] = State.Alarm
+            return State.Alarm, 'Motor Not Enabled or Not Present', 0
 
         status_template = "STATE(%s) PWR(%s) RDY(%s) MOVING(%s) SETTLING(%s) STPCODE(%s) LIM+(%s) LIM-(%s)"
         status_state = '?'
@@ -188,6 +194,7 @@ class IcepapController(MotorController):
         status_stopcode = '?'
         status_limpos = '?'
         status_limneg = '?'
+        
         if self.iPAP.connected:
             try:
                 register = self.attributes[axis]['status_value']
@@ -196,17 +203,17 @@ class IcepapController(MotorController):
 
 
                 if status_dict is None:
-                    self.attributes[axis]["last_state_value"] = PyTango.DevState.ALARM
-                    return (PyTango.DevState.ALARM, 'Status Register not available', 0)
+                    self.attributes[axis]["last_state_value"] = State.Alarm
+                    return (State.Alarm, 'Status Register not available', 0)
 
                 # CHECK POWER LED
                 poweron = status_dict['poweron'][0]
                 disable, status_power = status_dict['disable']
                 if poweron == 1:
-                    state = PyTango.DevState.ON
+                    state = State.On
                     status_state = 'ON'
                 else:
-                    state = PyTango.DevState.ALARM
+                    state = State.Alarm
                     status_state = 'ALARM_AXIS_DISABLE'
 
                 # CHECK LIMIT SWITCHES
@@ -219,22 +226,22 @@ class IcepapController(MotorController):
                     switchstate = 4
                 elif upper == 1:
                     switchstate = 2
-                if switchstate != 0 and state == PyTango.DevState.ON:
-                    state = PyTango.DevState.ALARM
+                if switchstate != 0 and state == State.On:
+                    state = State.Alarm
                     status_state = 'ALARM_LIMIT_SWITCH'
                         
                 # CHECK READY
                 # Not used because slave axis are 'BUSY' (NOT READY) and should not be an alarm
                 ready, status_ready = status_dict['ready']
-                #if ready == 0 and state == PyTango.DevState.ON:
-                #    state = PyTango.DevState.ALARM
+                #if ready == 0 and state == State.On:
+                #    state = State.Alarm
                 #    status_state = 'ALARM_NOT_READY'
 
                 # CHECK MOTION
                 moving, status_moving = status_dict['moving']
                 settling, status_settling = status_dict['settling']
                 if moving == 1 or settling == 1:
-                    state = PyTango.DevState.MOVING
+                    state = State.Moving
                     status_state = 'MOVING'
 
                 # STOP CODE
@@ -244,24 +251,25 @@ class IcepapController(MotorController):
                 # TWO OPTIONS, PUT CONFIG MODE IN STATUS REGISTER
                 #              OR PROVIDE MULTI_AXIS COMMAND FOR MODE - SOMETHING LIKE ?FMODE
                 #if self.iPAP.getMode(axis) == IcepapMode.CONFIG:
-                #    state = PyTango.DevState.ALARM
+                #    state = State.Alarm
                 #    status_state = 'ALARM_CONFIG'
 
                 status_string = status_template % (status_state,status_power,status_ready,status_moving,status_settling,status_stopcode,upper,lower)
-                if previous_state != PyTango.DevState.ALARM and state == PyTango.DevState.ALARM:
+                if previous_state != State.Alarm and state == State.Alarm:
                     dump = self.iPAP.debug_internals(axis)
-                    self._log.warning('StateOne(%d).State change from %s to %s. Icepap internals dump:\n%s' % (axis, previous_state, state, dump))
+                    self._log.warning('StateOne(%s(%s)).State change from %s to %s. Icepap internals dump:\n%s',
+                                      name, axis, previous_state, State[state], dump)
                 self.attributes[axis]["last_state_value"] = state
                 return (state, status_string, switchstate)
-            except Exception,e:
-                self._log.error('StateOne(%d).\nException:\n%s' % (axis,str(e)))
+            except:
+                self._log.error('StateOne(%s(%d)) Exception:', name, axis, exc_info=1)
                 raise
 
         else:
             # To provent huge logs, do not log this error until log levels can be changed in per-controller basis
             #self._log.error('StateOne(%d). No connection to %s.' % (axis,self.Host))
             pass
-        return (PyTango.DevState.ALARM, 'Icepap Not Connected', 0)
+        return (State.Alarm, 'Icepap Not Connected', 0)
 
     def PreReadAll(self):
         """ If there is no connection, to the Icepap system, return False"""
@@ -296,23 +304,25 @@ class IcepapController(MotorController):
         @param axis to read the position
         @return the current axis position
         """
+        name = self.GetAxisName(axis)
+        log = self._log
         if axis not in self.positionMultiple:
             # IN CASE OF EXTERNAL SOURCE, JUST READ IT AND EVALUATE THE FORMULA
             if self.attributes[axis]['use_encoder_source']:
                 return self.GetExtraAttributePar(axis,'Encoder')
             else:
-                self._log.warning('ReadOne(%d) Not enabled. Check the Driver Board is present in %s.'%(axis,self.Host))
-                raise Exception(self.inst_name,'Axis %d is not enabled: No position value available'%axis)
-
+                log.warning('ReadOne(%s(%d)) Not enabled. Check the Driver Board is present in %s.', name, axis, self.Host)
+                raise Exception('ReadOne(%s(%d)) Not enabled: No position value available' % (name, axis))
+        
         if self.iPAP.connected:
             try:
                 pos = self.attributes[axis]['position_value']
                 return (1.0 * pos) / self.attributes[axis]["step_per_unit"]
-            except Exception,e:
-                self._log.error('ReadOne(%d).\nException:\n%s' % (axis,str(e)))
+            except:
+                log.error('ReadOne(%s(%d)) Exception:', name, axis, exc_info=1)
                 raise
         else:
-            self._log.error('ReadOne(%d). No connection to %s.' % (axis,self.Host))
+            log.error('ReadOne(%s(%d)). No connection to %s.', name, axis, self.Host)
         return None
 
     def PreStartAll(self):
@@ -540,7 +550,10 @@ class IcepapController(MotorController):
                 elif name == 'frequency':
                     return float(self.iPAP.getSpeed(axis))
                 else:
-                    PyTango.Except.throw_exception("IcepapController_GetExtraAttributePar()", "Error getting " + name + ", not implemented", "GetExtraAttributePar()")
+                    axis_name = self.GetAxisName(axis)
+                    raise Exception("GetExtraAttributePar(%s(%s), %s): "
+                                    "Error getting %s, not implemented"
+                                    %(axis_name, axis, name, name))
             except Exception,e:
                 if name == "encshftenc" or name == "enctgtenc" or name == "posshftenc" or name == "postgtenc":
                     #IN SOME CASES THIS VALUES ARE NOT ACCESSIBLE
@@ -564,6 +577,10 @@ class IcepapController(MotorController):
                         #self.iPAP.setIndexerSource(axis, value)
                         self.iPAP.setIndexer(axis, value)
                     else:
+                        axis_name = self.GetAxisName(axis)
+                        raise Exception("GetExtraAttributePar(%s(%s), %s): "
+                                        "Error getting %s, not implemented"
+                                        %(axis_name, axis, name, name))
                         PyTango.Except.throw_exception("IcepapController_SetExtraAttributePar()", "Error setting " + name + ", value not in "+str(IcepapRegisters.IndexerRegisters), "SetExtraAttributePar()")
                 elif name == "enableencoder_5v":
                     if value:

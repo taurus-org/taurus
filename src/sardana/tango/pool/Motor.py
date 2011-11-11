@@ -38,8 +38,10 @@ from PyTango import Util, DevFailed, DevVoid, DevShort, DevLong, DevLong64, \
 
 from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana import ServerState, SardanaServer
 from sardana.tango.core.util import to_tango_type_format, to_tango_state
+
+from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 
 class Motor(PoolElementDevice):
@@ -59,7 +61,7 @@ class Motor(PoolElementDevice):
 
     def set_motor(self, motor):
         self.element = motor
-
+    
     motor = property(get_motor, set_motor)
     
     @DebugIt()
@@ -71,7 +73,7 @@ class Motor(PoolElementDevice):
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-     
+    
         if self.motor is None:
             full_name = self.get_name()
             name = self.alias or full_name
@@ -84,11 +86,14 @@ class Motor(PoolElementDevice):
                 motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
             motor.add_listener(self.on_motor_changed)
             self.motor = motor
-        # force a state read to initialize the state attribute
-        state = to_tango_state(self.motor.get_state(cache=False))
-        status = self.motor.get_status(cache=False)
-        
+    
     def on_motor_changed(self, event_source, event_type, event_value):
+
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != ServerState.Run:
+            return
+        
         t = time.time()
         name = event_type.name
         if name == "dial_position":
@@ -109,12 +114,7 @@ class Motor(PoolElementDevice):
             if name == "state":
                 event_value = to_tango_state(event_value)
                 self.set_state(event_value)
-                try:
-                    self.push_change_event(name, event_value)
-                except:
-                    self.traceback(level=self.Critical)
-                    print 80*"="
-                    import traceback; traceback.print_stack()
+                self.push_change_event(name, event_value)
             elif name == "status":
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
