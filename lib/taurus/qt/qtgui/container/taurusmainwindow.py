@@ -551,6 +551,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
         self.saveSettings() #save current window state before closing
+        self.socketServer.close()
         
         #print "\n\n------ MAIN WINDOW CLOSED ------ \n\n"
     
@@ -655,6 +656,56 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         else:
             self.helpManualDW.show()
             
+    def checkSingleInstance(self, key=None):
+        '''
+        Tries to connect via a QLocalSocket to an existing application with the
+        given key. If another instance already exists (i.e. the connection succeeds),
+        it means that this application is not the only one
+        '''
+        if key is None:
+            from taurus.core.util import getSystemUserName
+            username = getSystemUserName()
+            appname = unicode(Qt.QApplication.applicationName())
+            key = "__socket_%s-%s__"%(username,appname)
+        
+        socket = Qt.QLocalSocket(self) 
+        socket.connectToServer(key)
+        alive = socket.waitForConnected(3000)
+        if alive:
+            self.info('Another application with key "%s" is already running', key)
+            return False
+        else:
+            self.socketServer = Qt.QLocalServer(self)
+            self.connect(self.socketServer, Qt.SIGNAL("newConnection()"), self.onIncommingSocketConnection)
+            ok = self.socketServer.listen(key)
+            if not ok:
+                if self.socketServer.serverError() == Qt.QAbstractSocket.AddressInUseError:
+                    self.info('Resetting unresponsive socket with key "%s"',key)
+                    if hasattr(self.socketServer, 'removeServer'): #removeServer() was added in Qt4.5. (In Qt4.4 a call to listen() removes a previous server)  
+                        self.socketServer.removeServer(key)
+                    ok = self.socketServer.listen(key)
+                if not ok:
+                    self.warning('Cannot start local socket with key "%s". Reason: %s ', key, self.socketServer.errorString())
+                    return False
+            self.info('Registering as single instance with key "%s"',key)
+            return True
+    
+    def onIncommingSocketConnection(self):
+        '''
+        Slot to be called when another application/instance with the same key
+        checks if this application exists. 
+        
+        .. note:: This is a dummy implementation which
+                  just logs the connection and discards the associated socket
+                  You may want to reimplement this if you want to act on such
+                  connections
+        '''
+        self.info('Incomming connection from application')
+        socket = self.socketServer.nextPendingConnection()
+        socket.deleteLater()
+        self.raise_()
+        self.activateWindow()
+        
         
         
 
@@ -706,6 +757,11 @@ if __name__ == "__main__":
     app.setOrganizationName('ALBA')
     
     form = TaurusMainWindow()
+    
+    #ensure only a single instance of this application is running
+    single = form.checkSingleInstance()
+    if not single:
+        sys.exit(1)
     
     #form.setHelpManualURI('http://google.com')
 
