@@ -646,8 +646,18 @@ class TaurusGui(TaurusMainWindow):
             customIcon = Qt.QIcon(os.path.join(self._confDirectory, CUSTOMLOGO))
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
-        self.resetQSettings() 
         
+        #if required, enforce that only one instance of this GUI can be run
+        SINGLEINSTANCE = getattr(conf,'SINGLE_INSTANCE', (self.__getVarFromXML(xmlroot,"SINGLE_INSTANCE", 'True').lower() == 'true') )
+        if SINGLEINSTANCE:
+            if not self.checkSingleInstance():
+                msg = 'Only one istance of %s is allowed to run the same time'%(APPNAME)
+                self.error(msg)
+                Qt.QMessageBox.critical(self,'Multiple copies', msg, Qt.QMessageBox.Abort)
+                sys.exit(1)
+        
+        #some initialization 
+        self.resetQSettings() 
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
