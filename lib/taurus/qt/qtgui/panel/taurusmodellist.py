@@ -215,7 +215,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
     
     def mimeData(self, indexes):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
-        mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
+        mimedata = Qt.QAbstractListModel.mimeData(self, indexes)
         if len(indexes)==1:
 #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, str(self.data(indexes[0]).toString()))
             mimedata.setText(self.data(indexes[0],role=SRC_ROLE).toString())
