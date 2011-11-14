@@ -102,8 +102,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         else:
             self._curves = curves
             self._orderedCurveNames = curves.keys()
-        self.setModel(name)
         self._titleText = None
+        self.setModel(name)
         
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -943,12 +943,7 @@ class TaurusTrend(TaurusPlot):
         
         :return: (list<str>) a copy of self.trendSets.keys()
         '''
-        self.curves_lock.acquire()
-        try:
-            ret = copy.deepcopy(self.trendSets.keys())
-        finally:
-            self.curves_lock.release()
-        return ret
+        return self.getModel()
     
     def getTrendSet(self, name):
         '''gets a trend set object by name.
@@ -1029,7 +1024,7 @@ class TaurusTrend(TaurusPlot):
         '''
         self.curves_lock.acquire()
         try:
-            if setNames is None: setNames = self.trendSets.iterkeys()
+            if setNames is None: setNames = self.getModel()
             for tname in setNames:
                 if tname in self.trendSets:
                     self.trendSets[tname].setTitleText(basetitle)
@@ -1105,7 +1100,7 @@ class TaurusTrend(TaurusPlot):
             ts.setPaused(paused)
         self._isPaused = paused
     
-    def createConfig(self, curvenames=None, **kwargs):
+    def createConfig(self, tsnames=None, **kwargs):
         '''Returns a pickable dictionary containing all relevant information
         about the current plot.
         For Tango attributes it stores the attribute name and the curve properties
@@ -1123,8 +1118,10 @@ class TaurusTrend(TaurusPlot):
         
         :return: (dict) configurations (which can be loaded with applyConfig)
         '''
-        configdict = TaurusPlot.createConfig(self, curvenames=curvenames) #use the superclass configdict as a starting point
-        if curvenames is None: curvenames = CaselessList(self.trendSets.keys())
+        configdict = TaurusPlot.createConfig(self, curvenames=None) #use the superclass configdict as a starting point
+        if tsnames is None: tsnames = CaselessList(self.getModel())
+        model = CaselessList([m for m in self.getModel() if m in tsnames])
+        configdict["model"] = model #overwrite the value created by TaurusPlot.createConfig()
         configdict.pop("TangoCurves") #delete the TangoCurves key since it is meaningless in a TaurusTrend
         tsetsdict = CaselessDict()
         rawdatadict = CaselessDict(configdict["RawData"])
@@ -1133,7 +1130,7 @@ class TaurusTrend(TaurusPlot):
         self.curves_lock.acquire()
         try:
             for tsname,ts in self.trendSets.iteritems():
-                if tsname in curvenames:
+                if tsname in tsnames:
                     tsetsdict[tsname] = tsname #store a dict containing just model names (key and value are the same)
                 for cname in CaselessList(ts.getCurveNames()):
                     rawdatadict.pop(cname)#clean the rawdatadict of rawdata curves that come from trendsets (but we keep the properties!)                
@@ -1154,7 +1151,7 @@ class TaurusTrend(TaurusPlot):
         if not self.checkConfigVersion(configdict): return
         #attach the curves
         for rd in configdict["RawData"].values(): self.attachRawData(rd)
-        models = configdict["TrendSets"].values()
+        models = configdict.get("model",configdict["TrendSets"].values()) #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
         self.addModels(models)
         for m in models:
             tset = self.trendSets[m]
@@ -1186,7 +1183,7 @@ class TaurusTrend(TaurusPlot):
         '''propagates a list of taurus filters to the trendsets given by tsetnames.
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
-        if tsetnames is None: tsetnames=self.trendSets.keys()
+        if tsetnames is None: tsetnames=self.getModel()
         self.curves_lock.acquire()
         try:
             for name in tsetnames:
@@ -1379,7 +1376,7 @@ class TaurusTrend(TaurusPlot):
         self._forcedReadingPeriod = msec
         
         if tsetnames is None: 
-            tsetnames=self.trendSets.keys()
+            tsetnames=self.getModel()
         self.curves_lock.acquire()
         try:
             for name in tsetnames:

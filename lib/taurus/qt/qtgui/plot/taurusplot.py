@@ -2020,9 +2020,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.error('Exception while gathering curves configuration info'+str(e))
         finally:
             self.curves_lock.release()
+        model = CaselessList([m for m in self.getModel() if m in curvenames])
         configdict={"Axes":axesdict, "Misc":miscdict, "RawData":rawdatadict,
                     "TangoCurves":tangodict, "CurveProp":propdict,
-                    "ConfigVersion":self._supportedConfigVersions[-1]}
+                    "ConfigVersion":self._supportedConfigVersions[-1],
+                    "model":model}
         return configdict
 
     def applyConfig(self, configdict, **kwargs):
@@ -2035,7 +2037,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if not self.checkConfigVersion(configdict): return
         #attach the curves
         for rd in configdict["RawData"].values(): self.attachRawData(rd)
-        self.addModels(configdict["TangoCurves"].values())
+        models = configdict.get("model", configdict["TangoCurves"].values()) #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
+        self.addModels(models)
         #set curve properties
         self.setCurveAppearanceProperties(configdict["CurveProp"])
         self.updateLegend(force=True)
