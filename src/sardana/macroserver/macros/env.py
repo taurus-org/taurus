@@ -23,9 +23,9 @@
 
 """Environment related macros"""
 
-__docformat__ = 'restructuredtext'
-
 __all__ = ["dumpenv", "load_env", "lsenv", "senv", "usenv"]
+
+__docformat__ = 'restructuredtext'
 
 from taurus.console.list import List
 from sardana.macroserver.macro import *

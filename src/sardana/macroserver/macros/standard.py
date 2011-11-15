@@ -23,10 +23,10 @@
 
 """This is the standard macro module"""
 
-__docformat__ = 'restructuredtext'
-
 __all__ = ["ct", "mstate", "mv", "mvr", "pwa", "pwm", "set_lim", "set_lm",
            "set_pos", "settimer", "uct", "umv", "umvr", "wa", "wm"]
+
+__docformat__ = 'restructuredtext'
 
 from taurus.console.table import Table
 
