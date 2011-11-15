@@ -36,10 +36,11 @@ __docformat__ = 'restructuredtext'
 
 
 import os, sys
+import datetime
 import taurus
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.resource import getThemeIcon
+from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 
 class MacroBroker(Qt.QObject, TaurusBaseComponent):
@@ -53,6 +54,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         #connect the broker to shared data
         Qt.qApp.SDM.connectReader("doorName", self.setModel)
         Qt.qApp.SDM.connectReader("expConfChanged", self.onExpConfChanged)
+        Qt.qApp.SDM.connectWriter("shortMessage", self, 'newShortMessage')
         
     def setModel(self, doorname):
         TaurusBaseComponent.setModel(self, doorname)
@@ -99,7 +101,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                                                      TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
 
         from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
-        
+        from taurus.qt.qtgui.button import TaurusCommandButton
         
         mainwindow = self.parent()
         
@@ -164,6 +166,35 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
         mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
         
+        #add panic button for aborting the door
+        self.doorAbortAction = mainwindow.jorgsBar.addAction(getIcon(":/actions/process-stop.svg"), "Panic Button: stops the pool (double-click for abort)", self.__onDoorAbort)
+        self.__lastAbortTime = datetime.datetime(1,1,1) #beginning of times
+        self.__doubleclickInterval = datetime.timedelta(0,0,1000*Qt.qApp.doubleClickInterval()) #doubleclick interval translated into a timedelta
+        
+    def __onDoorAbort(self):
+        '''slot to be called when the abort action is triggered. 
+        It sends stop command to the pools (or abort if the action
+        has been triggered twice in less than self.__doubleclickInterval
+        
+        .. note:: An abort command is always preceded by an stop command 
+        '''
+        #decide whether to send stop or abort
+        now = datetime.datetime.now()
+        if now-self.__lastAbortTime < self.__doubleclickInterval:
+            cmd = 'abort'
+        else:
+            cmd = 'stop'
+        #send stop/abort to all pools
+        pools = self.__qdoor.macro_server.getElementsOfType('Pool')
+        for pool in pools.values():
+            self.info('Sending %s command to %s'%(cmd,pool.getFullName()))
+            pool.getObj().command_inout(cmd)
+        self.emit(Qt.SIGNAL("newShortMessage"),"%s command sent to all pools"%cmd)      
+        self.__lastAbortTime = now
+        
+        
+        
+            
     def onExpConfChanged(self, expconf):
         '''
         slot to be called when experimental configuration changes. It should
