@@ -73,11 +73,14 @@ class TypeNames:
     
     def __init__(self):
         self._type_names = {}
+        self._pending_type_names = {}
     
     def addType(self, name):
         """Register a new macro parameter type"""
         setattr(self, name, name)
         self._type_names[name] = name
+        if name in self._pending_type_names:
+            del self._pending_type_names[name]
     
     def removeType(self, name):
         """remove a macro parameter type"""
@@ -90,6 +93,11 @@ class TypeNames:
     def __str__(self):
         return str(self._type_names.keys())
     
+    def __getattr__(self, name):
+        if name not in self._pending_type_names:
+            self._pending_type_names[name] = name
+        return self._pending_type_names[name]
+
 
 # This instance of TypeNames is intended to provide access to types to the 
 # Macros in a "Type.Motor" fashion

@@ -1,5 +1,7 @@
 .. currentmodule:: sardana.macroserver.macros
 
+.. _macroserver-standard-macro-catalog:
+
 :mod:`~sardana.macroserver.macros`
 ===================================
 
@@ -12,115 +14,115 @@
 .. hlist::
     :columns: 3
 
-    * :class:`~standard.wa`
-    * :class:`~standard.wm`
-    * :class:`~standard.pwa`
-    * :class:`~standard.pwm`
-    * :class:`~standard.set_lim`
-    * :class:`~standard.set_lm`
-    * :class:`~standard.set_pos`
-    * :class:`~standard.mv`
-    * :class:`~standard.umv`
-    * :class:`~standard.mvr`
-    * :class:`~standard.umvr`
-    * :class:`~standard.ct`
-    * :class:`~standard.uct`
-    * :class:`~standard.settimer`
+    * :class:`~sardana.macroserver.macros.standard.wa`
+    * :class:`~sardana.macroserver.macros.standard.wm`
+    * :class:`~sardana.macroserver.macros.standard.pwa`
+    * :class:`~sardana.macroserver.macros.standard.pwm`
+    * :class:`~sardana.macroserver.macros.standard.set_lim`
+    * :class:`~sardana.macroserver.macros.standard.set_lm`
+    * :class:`~sardana.macroserver.macros.standard.set_pos`
+    * :class:`~sardana.macroserver.macros.standard.mv`
+    * :class:`~sardana.macroserver.macros.standard.umv`
+    * :class:`~sardana.macroserver.macros.standard.mvr`
+    * :class:`~sardana.macroserver.macros.standard.umvr`
+    * :class:`~sardana.macroserver.macros.standard.ct`
+    * :class:`~sardana.macroserver.macros.standard.uct`
+    * :class:`~sardana.macroserver.macros.standard.settimer`
 
 wa
 ---
 
-.. autoclass:: standard.wa
+.. autoclass:: sardana.macroserver.macros.standard.wa
     :members:
     :undoc-members:
     
 wm
 ---
 
-.. autoclass:: standard.wm
+.. autoclass:: sardana.macroserver.macros.standard.wm
     :members:
     :undoc-members:
     
 pwa
 ---------
 
-.. autoclass:: standard.pwa
+.. autoclass:: sardana.macroserver.macros.standard.pwa
     :members:
     :undoc-members:
     
 pwm
 ---------
 
-.. autoclass:: standard.pwm
+.. autoclass:: sardana.macroserver.macros.standard.pwm
     :members:
     :undoc-members:
     
 set_lim
 ---------
 
-.. autoclass:: standard.set_lim
+.. autoclass:: sardana.macroserver.macros.standard.set_lim
     :members:
     :undoc-members:
     
 set_lm
 ---------
 
-.. autoclass:: standard.set_lm
+.. autoclass:: sardana.macroserver.macros.standard.set_lm
     :members:
     :undoc-members:
     
 set_pos
 ---------
 
-.. autoclass:: standard.set_pos
+.. autoclass:: sardana.macroserver.macros.standard.set_pos
     :members:
     :undoc-members:
     
 mv
 ---------
 
-.. autoclass:: standard.mv
+.. autoclass:: sardana.macroserver.macros.standard.mv
     :members:
     :undoc-members:
 
 umv
 ---------
 
-.. autoclass:: standard.umv
+.. autoclass:: sardana.macroserver.macros.standard.umv
     :members:
     :undoc-members:
 
 mvr
 ---------
 
-.. autoclass:: standard.mvr
+.. autoclass:: sardana.macroserver.macros.standard.mvr
     :members:
     :undoc-members:
 
 umvr
 ---------
 
-.. autoclass:: standard.umvr
+.. autoclass:: sardana.macroserver.macros.standard.umvr
     :members:
     :undoc-members:
 
 ct
 ---------
 
-.. autoclass:: standard.ct
+.. autoclass:: sardana.macroserver.macros.standard.ct
     :members:
     :undoc-members:
 
 uct
 ---------
 
-.. autoclass:: standard.uct
+.. autoclass:: sardana.macroserver.macros.standard.uct
     :members:
     :undoc-members:
 
 settimer
 ---------
 
-.. autoclass:: standard.settimer
+.. autoclass:: sardana.macroserver.macros.standard.settimer
     :members:
     :undoc-members:

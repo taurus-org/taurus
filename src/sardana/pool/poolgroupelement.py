@@ -225,12 +225,12 @@ class PoolBaseGroup(PoolContainer):
     
     def stop(self):
         for ctrl, elements in self.get_physical_elements().items():
+            self.debug("Stopping %s %s", ctrl.name, [e.name for e in elements])
             try:
                 ctrl.stop_elements(elements=elements)
             except:
                 self.warning("Unable to stop controller %s", ctrl.name)
-                self.debug("Unable to stop controller %s. Details:", ctrl.name,
-                           exc_info=1)
+                self.debug("Details:", exc_info=1)
     
     # --------------------------------------------------------------------------
     # abort
@@ -238,13 +238,12 @@ class PoolBaseGroup(PoolContainer):
     
     def abort(self):
         for ctrl, elements in self.get_physical_elements().items():
-            self.info("Aborting %s %s", ctrl.name,  [ e.name for e in elements] )
+            self.debug("Aborting %s %s", ctrl.name, [e.name for e in elements])
             try:
                 ctrl.abort_elements(elements=elements)
             except:
                 self.warning("Unable to abort controller %s", ctrl.name)
-                self.debug("Unable to abort controller %s. Details:", ctrl.name,
-                           exc_info=1)
+                self.debug("Details:", exc_info=1)
 
 
 class PoolGroupElement(PoolBaseElement, PoolBaseGroup):

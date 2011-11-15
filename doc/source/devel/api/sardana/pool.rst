@@ -1,4 +1,3 @@
-
 .. currentmodule:: sardana.pool
 
 :mod:`sardana.pool`
@@ -22,7 +21,6 @@
     poolcountertimer <pool/poolcountertimer>
     pooldefs <pool/pooldefs>
     poolelement <pool/poolelement>
-    poolevent <pool/poolevent>
     poolexception <pool/poolexception>
     poolgroupelement <pool/poolgroupelement>
     poolinstrument <pool/poolinstrument>
@@ -55,22 +53,6 @@
 .. hlist::
     :columns: 3
 
-    * :data:`~sardana.pool.pooldefs.InvalidId`
-
-    * :data:`~sardana.pool.pooldefs.InvalidAxis`
-
     * :data:`~sardana.pool.pooldefs.ControllerAPI`
-
-    * :data:`~sardana.pool.pooldefs.ElementType`
-
-    * :data:`~sardana.pool.pooldefs.TYPE_ELEMENTS`
-
-    * :data:`~sardana.pool.pooldefs.TYPE_GROUP_ELEMENTS`
-
-    * :data:`~sardana.pool.pooldefs.TYPE_MOVEABLE_ELEMENTS`
-
-    * :data:`~sardana.pool.pooldefs.AcqTriggerType`
-
-    * :data:`~sardana.pool.pooldefs.AcqMode`
 
 

@@ -1,9 +1,9 @@
-.. currentmodule:: sardana.pool.poolevent
+.. currentmodule:: sardana.sardanaevent
 
-:mod:`~sardana.pool.poolevent`
-==============================
+:mod:`~sardana.pool.sardanaevent`
+====================================
 
-.. automodule:: sardana.pool.poolevent
+.. automodule:: sardana.sardanaevent
 
 .. rubric:: Classes
 

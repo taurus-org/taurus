@@ -328,6 +328,7 @@ class PoolMotion(PoolAction):
             
             # read position every n times
             if not i % nb_states_per_pos:
+                _start = time.time()
                 self.read_dial_position(ret=positions)
                 for moveable, position_info in positions.items():
                     position, exc_info = position_info

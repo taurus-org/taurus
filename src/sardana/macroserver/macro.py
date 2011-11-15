@@ -259,6 +259,10 @@ class MacroFinder:
         return f
 
 def mAPI(fn):
+    """Wraps the given Macro method as being protected by the abort procedure.
+    To be used by the :class:`Macro` as a decorator for all methods.
+    :param: macro method
+    :return: wrapped macro method"""
     @functools.wraps(fn)
     def new_fn(*args, **kwargs):
         self = args[0]
@@ -895,22 +899,19 @@ class Macro(Logger):
     @mAPI
     def getTangoFactory(self):
         """**Macro API**. Helper method that returns the tango factory.
-        Same as::
         
-            import taurus
-            f = taurus.Factory()
-        """
+        :return: the tango factory singleton
+        :rtype: :class:`~taurus.core.tango.TangoFactory`"""
         import taurus
         return taurus.Factory()
 
     @mAPI
     def getDevice(self, dev_name):
-        """**Macro API**. Helper method that returns the device for the given 
-        device name. Same as::
+        """**Macro API**. Helper method that returns the device for the given
+        device name
         
-            import taurus
-            dev = taurus.Device(dev_name)
-        """
+        :return: the taurus device for the given device name
+        :rtype: :class:`~taurus.core.TaurusDevice`"""
         import taurus
         return taurus.Device(dev_name)
         
@@ -920,14 +921,14 @@ class Macro(Logger):
 
     @mAPI
     def setLogBlockStart(self):
-        """**Macro API**. Specifies the begining of a block of data. Basically it outputs the
-        'BLOCK' tag"""
+        """**Macro API**. Specifies the begining of a block of data. Basically
+        it outputs the 'BLOCK' tag"""
         self.output(Macro.BlockStart)
 
     @mAPI
     def setLogBlockFinish(self):
-        """**Macro API**. Specifies the end of a block of data. Basically it outputs the
-        '/BLOCK' tag"""
+        """**Macro API**. Specifies the end of a block of data. Basically it
+        outputs the '/BLOCK' tag"""
         self.output(Macro.BlockFinish)
 
     @mAPI

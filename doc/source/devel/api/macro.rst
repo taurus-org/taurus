@@ -1,5 +1,5 @@
 
-.. currentmodule:: MacroServer.macro
+.. currentmodule:: sardana.macroserver.macro
 
 .. _macroserver-macro-api:
 

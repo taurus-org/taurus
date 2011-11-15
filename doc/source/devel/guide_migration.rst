@@ -35,42 +35,39 @@ sardana *API v1*:
        from sardana import pool
        from sardana.pool import PoolUtil
        from sardana.pool.controller import <ControllerClass>
-       
+    
+2. change contructor from::
 
-2. Make sure that in AddDevice/DeleteDevice you call the super class 
-   :meth:`~Controller.AddDevice`/:meth:`~Controller.DeleteDevice`. Not doing so
-   will prevent the default implementation of :meth:`~Controller.AbortAll` from
-   work properly!
-
-The following change is not mandatory but is necessary in order for your
-controller to be recognized by the pool to be a *API v1* controller:
-
-3. change contructor from::
-
-       def __init__(self, inst, props)
+       def __init__(self, inst, props):
+           code
        
    to::
    
-       def __init__(self, inst, props, *args, **kwargs)
+       def __init__(self, inst, props, *args, **kwargs):
+           MotorController.__init__(self, inst, props, *args, **kwargs)
+           code
 
    (and don't forget to call the super class constructor also with args
    and kwargs).
 
-4. _log member changed from :class:`logging.Logger` to 
+The following change is not mandatory but is necessary in order for your
+controller to be recognized by the pool to be a *API v1* controller:
+
+3. _log member changed from :class:`logging.Logger` to 
    :class:`taurus.core.util.Logger`. This means that you need to change code
    from::
    
         self._log.setLevel(logging.INFO)
     
-    to::
+   to::
         
         self._log.setLogLevel(logging.INFO)
     
-    or::
+   or::
     
         self._log.setLogLevel(taurus.Info)
     
-    since taurus.Info == logging.INFO.
+   since taurus.Info == logging.INFO.
     
 
 Optional changes
@@ -87,9 +84,10 @@ The following changes are not necessary to make your controller work. The
 
 3. **data types**:
 
-    #. :meth:`~Controller.StateOne` **return type**: Previously StateOne had to
-       return a member of :class:`PyTango.DevState`. Now it **can** instead return
-       a member of :class:`sardana.State`. This eliminates the need to import
+    #. :meth:`~Controller.StateOne` **return type**: Previously
+       :meth:`~Controller.StateOne` had to return a member of 
+       :class:`PyTango.DevState`. Now it **can** instead return a member of
+       :class:`sardana.State`. This eliminates the need to import
        :mod:`PyTango`.
     #. In *API v0* class member (like :attr:`~Controller.ctrl_extra_attributes`)
        value for key *type* had to be a string (like 'PyTango.DevString' or
@@ -112,8 +110,8 @@ The following changes are not necessary to make your controller work. The
     #. from: :meth:`~PseudoMotorController.calc_physical` to: :meth:`~PseudoMotorController.CalcPhysical`
     #. from: :meth:`~PseudoMotorController.calc_all_pseudo` to: :meth:`~PseudoMotorController.CalcAllPseudo`
     #. from: :meth:`~PseudoMotorController.calc_all_physical` to: :meth:`~PseudoMotorController.CalcAllPhysical`
-    #. new feature in *API v1*: :meth:`~PseudoMotorController.getMotor`
-    #. new feature in *API v1*: :meth:`~PseudoMotorController.getPseudoMotor`
+    #. new feature in *API v1*: :meth:`~PseudoMotorController.GetMotor`
+    #. new feature in *API v1*: :meth:`~PseudoMotorController.GetPseudoMotor`
 
 New features in API v1
 """""""""""""""""""""""

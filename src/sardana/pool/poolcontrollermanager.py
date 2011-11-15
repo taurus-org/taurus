@@ -580,13 +580,13 @@ class ControllerManager(Singleton, Logger):
         return controller_class, in_par_list, out_par_list
 
     def strControllerParamValues(self,par_list):
-        """strControllerParamValues(list<string> par_list) -> list<string> 
-        
-           Creates a short string representantion of the parameter values list.
-           Params:
-               - par_list: list of strings representing the parameter values.
-           Return:
-               a list containning an abreviated version of the par_list argument. 
+        """Creates a short string representantion of the parameter values list.
+           
+           :param par_list: list of strings representing the parameter values.
+           :type par_list: list<str>
+           :return: a list containning an abreviated version of the par_list
+                    argument.
+           :rtype: list<str>
         """
         ret = []
         for p in par_list:

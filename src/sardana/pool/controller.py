@@ -25,9 +25,9 @@
 
 """This module contains the definition of the Controller base classes"""
 
-__all__ = ["Controller", "Readable", "Startable",
-           "MotorController", "CounterTimerController",
-           "PseudoMotorController" ]
+__all__ = ["Type", "Access", "Description", "DefaultValue", "Read", "ReadWrite",
+           "Controller", "Readable", "Startable",
+           "MotorController", "CounterTimerController", "PseudoMotorController"]
 
 __docformat__ = 'restructuredtext'
 
@@ -36,7 +36,15 @@ import copy
 import taurus
 from taurus.core.util import Logger
 
+from sardana import DataAccess
 from pooldefs import ControllerAPI, AcqTriggerType, AcqMode
+
+#: Data type
+Type = 'type'
+Access = 'r/w type'
+Description = 'description'
+DefaultValue = 'defaultvalue'
+
 
 
 class Controller(object):
@@ -73,6 +81,7 @@ class Controller(object):
     #: - key : (:class:`str`) controller attribute name
     #: - value : :class:`dict` with :class:`str` possible keys: "type",
     #:   "r/w type", "description", "fget" and "fset" (case insensitive):
+    #:     
     #:     - for key="type", value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write"
@@ -99,6 +108,7 @@ class Controller(object):
     #: - key : (:class:`str`) axis attribute name
     #: - value : :class:`dict` with three :class:`str` keys
     #:   ("type", "r/w type", "description" case insensitive):
+    #:     
     #:     - for key="type", value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write"
@@ -127,6 +137,8 @@ class Controller(object):
     #: A :class:`str` containning the path to the image logo file
     logo = None
     
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
     standard_axis_attributes = {}
     
     def __init__(self, inst, props, *args, **kwargs):
@@ -136,7 +148,6 @@ class Controller(object):
         self._args = args
         self._kwargs = kwargs
         self._api_version = self._findAPIVersion()
-        self._axis = set()
         for prop_name, prop_value in props.items():
             setattr(self, prop_name, prop_value)
     
@@ -155,18 +166,18 @@ class Controller(object):
                     return ctrl_wr()
     
     def AddDevice(self, axis):
-        """**Controller API**. Overwrite as necessary.
-        When overwritting do not forget to call the super class AddDevice
-        method. Not doing so will prevent the default implementation of
-        :meth:`~Controller.AbortAll` from working properly."""
-        self._axis.add(axis)
+        """**Controller API**. Overwrite as necessary. Default implementation
+        does nothing.
+        
+        :param int axis: axis number"""
+        pass
     
     def DeleteDevice(self, axis):
-        """**Controller API**. Overwrite as necessary.
-        When overwritting do not forget to call the super class DeleteDevice
-        method. Not doing so will prevent the default implementation of
-        :meth:`~Controller.AbortAll` from working properly."""
-        self._axis.remove(axis)
+        """**Controller API**. Overwrite as necessary. Default implementation
+        does nothing.
+        
+        :param int axis: axis number"""
+        pass
     
     @property
     def inst_name(self):
@@ -347,7 +358,8 @@ class Controller(object):
         
         .. versionadded:: 1.0"""
         exceptions = []
-        for axis in self._axis:
+        axises = self._getPoolController().get_element_axis().keys()
+        for axis in axises:
             try:
                 self.AbortOne(axis)
             except:
@@ -376,7 +388,8 @@ class Controller(object):
         
         .. versionadded:: 1.0"""
         exceptions = []
-        for axis in self._axis:
+        axises = self._getPoolController().get_element_axis().keys()
+        for axis in axises:
             try:
                 self.StopOne(axis)
             except:
@@ -388,7 +401,9 @@ class Controller(object):
 
 class Startable(object):
     """A Startable interface. A controller for which it's axis are 'startable'
-    (like a motor, for example) should implement this interface"""
+    (like a motor, for example) should implement this interface
+    
+    .. note: Do not inherit directly from Startable."""
     
     def PreStartAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -424,7 +439,9 @@ class Startable(object):
 
 class Readable(object):
     """A Readable interface. A controller for which it's axis are 'readable'
-    (like a motor, counter or 1D for example) should implement this interface"""
+    (like a motor, counter or 1D for example) should implement this interface
+    
+    .. note: Do not inherit directly from Readable."""
     
     def PreReadAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -479,11 +496,11 @@ class MotorController(Controller, Startable, Readable):
     respectively in order to maintain backward compatibility).
     """
     
-    #: A constant representing an active *Home* switch.
-    #: You can *OR* two or more switches together. For example, to say both 
+    #: A constant representing an active *home* switch.
+    #: You can *OR* two or more switches together. For example, to say both
     #: upper and lower limit switches are active::
     #:
-    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    #:    limit_switches = MotorController.HomeLimitSwitch | MotorController.LowerLimitSwitch
     HomeLimitSwitch  = 1
 
     #: A constant representing an active *upper limit* switch.
@@ -500,6 +517,8 @@ class MotorController(Controller, Startable, Readable):
     #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
     LowerLimitSwitch = 4
     
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
     standard_axis_attributes = {
         'Position'       : { 'type' : float,
                              'description' : 'Position', },
@@ -737,6 +756,8 @@ class PseudoMotorController(Controller):
     #: controller
     motor_roles = ()
 
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
     standard_axis_attributes = {
         'Position'       : { 'type' : float,
                              'description' : 'Position', },
@@ -916,7 +937,7 @@ class PseudoMotorController(Controller):
             elems[index] = elems[role] = elem
         return elem
     
-    def getMotor(self, index_or_role):
+    def GetMotor(self, index_or_role):
         """Returns the motor for a given role/index.
         
         .. warning::
@@ -934,7 +955,7 @@ class PseudoMotorController(Controller):
                              self.__motor_role_elements,
                              self._kwargs['motor_ids'])
 
-    def getPseudoMotor(self, index_or_role):
+    def GetPseudoMotor(self, index_or_role):
         """Returns the pseudo motor for a given role/index.
         
         .. warning::

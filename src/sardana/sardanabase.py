@@ -26,7 +26,7 @@
 """This module is part of the Python Sardana libray. It defines the base classes
 for Sardana object"""
 
-__all__ = ["SardanaBaseManager", "SardanaBaseObject"]
+__all__ = ["SardanaBaseManager", "SardanaAttribute", "SardanaBaseObject"]
 
 __docformat__ = 'restructuredtext'
 
@@ -67,6 +67,17 @@ class SardanaBaseManager(object):
     def str_object(self, obj, *args, **kwargs):
         # TODO: use the active codec instead of hardcoded json
         return  CodecFactory().encode(('json', obj), *args, **kwargs)
+
+
+class SardanaAttribute(object):
+    """Class representing an atomic attribute like position of a motor or a
+    counter value"""
+    
+    def __init__(self):
+        self.value = None
+        self.min_value = None
+        self.max_value = None
+        self.exc_info = None
 
 
 class SardanaBaseObject(EventGenerator, EventReceiver, Logger):

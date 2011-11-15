@@ -91,7 +91,13 @@ class PoolBaseController(PoolBaseElement):
     def add_element(self, elem, propagate=1):
         name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
         if self.is_online():
-            self._ctrl.AddDevice(axis)
+            try:
+                self._ctrl.AddDevice(axis)
+            except:
+                self.error("Unable to add %s(%s)", name, axis, exc_info=1)
+                self._pending_element_ids[id] = elem
+                self._pending_element_axis[axis] = elem
+                self._pending_element_names[name] = elem
             self._element_ids[id] = elem
             self._element_axis[axis] = elem
             self._element_names[name] = elem
@@ -107,20 +113,23 @@ class PoolBaseController(PoolBaseElement):
                             elements)
             
     def remove_element(self, elem, propagate=1):
-        id = elem.id
+        name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
         f = self._element_ids.has_key(id)
         if not f:
             f = self._pending_element_ids.has_key(id)
             if not f:
                 raise Exception("element '%s' is not in controller")
             del self._pending_element_ids[id]
-            del self._pending_element_axis[elem.get_axis()]
-            del self._pending_element_names[elem.get_name()]
+            del self._pending_element_axis[axis]
+            del self._pending_element_names[name]
         else:
             del self._element_ids[id]
-            del self._element_axis[elem.get_axis()]
-            del self._element_names[elem.get_name()]
-            self._ctrl.DeleteDevice(elem.get_axis())
+            del self._element_axis[axis]
+            del self._element_names[name]
+            try:
+                self._ctrl.DeleteDevice(axis)
+            except:
+                self.error("Unable to delete %s(%s)", name, axis, exc_info=1)
         if propagate:
             elements = self.get_elements()
             elements = [ elements[id].name for id in sorted(elements) ]
@@ -545,15 +554,14 @@ class PoolController(PoolBaseController):
         try:
             return self.ctrl.StopAll()
         except:
-            self.ctrl.warning("StopAll() raises exception", exc_info=1)
+            self.warning("StopAll() raises exception", exc_info=1)
 
     def raw_stop_one(self, axis):
         try:
             self.ctrl.StopOne(axis)
         except:
             try:
-                self.ctrl.warning("StopOne(%d) raises exception", axis,
-                                  exc_info=1)
+                self.warning("StopOne(%d) raises exception", axis, exc_info=1)
             except:
                 pass
 
@@ -599,15 +607,14 @@ class PoolController(PoolBaseController):
         try:
             return self.ctrl.AbortAll()
         except:
-            self.ctrl.warning("AbortAll() raises exception", exc_info=1)
+            self.warning("AbortAll() raises exception", exc_info=1)
 
     def raw_abort_one(self, axis):
         try:
             self.ctrl.AbortOne(axis)
         except:
             try:
-                self.ctrl.warning("AbortOne(%d) raises exception", axis,
-                                  exc_info=1)
+                self.warning("AbortOne(%d) raises exception", axis, exc_info=1)
             except:
                 pass
 

@@ -51,6 +51,7 @@ class _SardanaServer(object):
     def __init__(self):
         self.server_state = ServerState.Invalid
 
+#: the global object containing the SardanaServer information
 SardanaServer = _SardanaServer()
 
 #: sardana element state enumeration
@@ -127,10 +128,23 @@ DACCESS_MAP = {
 #DACCESS_MAP.setdefault(DataAccess.Invalid)
 
 def from_dtype_str(dtype):
+    """Transforms the given dtype parameter (string/:obj:`DataType` or None)
+    into a tuple of two elements (str, :obj:`DataFormat`) where the first
+    element is a string with a simplified data type.
+    
+        - If None is given, it returns
+          ('float', :obj:`DataFormat.Scalar`)
+        - If :obj:`DataType` is given, it returns
+          (:obj:`DataType`, :obj:`DataFormat.Scalar`)
+          
+    :param dtype: the data type to be transformed
+    :type dtype: str or None or :obj:`DataType`
+    :return: a tuple <str, :obj:`DataFormat`> for the given dtype
+    :rtype: tuple<str, :obj:`DataFormat`>"""
     dformat = DataFormat.Scalar
     if dtype is None:
-        dtype = DataType.Double
-    elif type(dtype) == str:
+        dtype = 'float'
+    elif isinstance(dtype, (str, unicode)):
         dtype = dtype.lower()
         if dtype.startswith("pytango."):
             dtype = dtype[len("pytango."):]
@@ -144,6 +158,13 @@ def from_dtype_str(dtype):
     return dtype, dformat
 
 def from_access_str(access):
+    """Transforms the given access parameter (string or :obj:`DataAccess`) into
+    a simplified data access string.
+    
+    :param dtype: the access to be transformed
+    :type dtype: str
+    :return: a simple string for the given access
+    :rtype: str"""
     if type(access) == str:
         access = access.lower()
         if access.startswith("pytango."):
@@ -151,9 +172,18 @@ def from_access_str(access):
     return access
 
 def to_dtype_dformat(data):
+    """Transforms the given data parameter (string/ or sequence of string or
+    sequence of sequence of string/:obj:`DataType`) into a tuple of two
+    elements (:obj:`DataType`, :obj:`DataFormat`).
+    
+    :param data: the data information to be transformed
+    :type data: str or seq<str> or seq<seq<str>>
+    :return: a tuple <:obj:`DataType`, :obj:`DataFormat`> for the given data
+    :rtype: tuple<:obj:`DataType`, :obj:`DataFormat`>
+    """
     import operator
     dtype, dformat = data, DataFormat.Scalar
-    if type(data) == str:
+    if isinstance(data, (str, unicode)):
         dtype, dformat = from_dtype_str(data)
     elif operator.isSequenceType(data):
         dformat = DataFormat.OneD
@@ -171,8 +201,15 @@ def to_dtype_dformat(data):
     return dtype, dformat
 
 def to_daccess(data):
+    """Transforms the given access parameter (string or None) into a
+    :obj:`DataAccess`. If None is given returns :obj:`DataAccess.ReadWrite`
+    
+    :param dtype: the access to be transformed
+    :type dtype: str
+    :return: a :obj:`DataAccess` for the given access
+    :rtype: :obj:`DataAccess`"""
     daccess = DataAccess.Invalid
-    if type(data) == str:
+    if isinstance(data , (str, unicode)):
         daccess = DACCESS_MAP.get(from_access_str(data), DataAccess.ReadWrite)
     return daccess
 
@@ -181,9 +218,6 @@ InvalidId = 0
 
 #: A constant representing an invalid axis
 InvalidAxis = 0
-
-#: A constant defining the controller API version currently supported
-ControllerAPI = 1
 
 #: An enumeration describing the all possible element types in the device pool
 ElementType = Enumeration("ElementType", ( \
@@ -221,13 +255,16 @@ TYPE_GROUP_ELEMENTS = set((ET.MotorGroup, ET.MeasurementGroup))
 #: a set containing the type of elements which are moveable
 TYPE_MOVEABLE_ELEMENTS = set((ET.Motor, ET.PseudoMotor, ET.MotorGroup))
 
+#: a set containing the possible types of physical elements
 TYPE_PHYSICAL_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.Communication, ET.IORegister))
 
+#: a set containing the possible types of acquirable elements
 TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.Communication, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter))
 
+#: a set containing the possible types of pseudo elements
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))

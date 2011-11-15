@@ -222,7 +222,7 @@ Using spock as a Tango_ console
 As metioned in the beggining of this chapter, the sardana *spock* is an extension
 of PyTango_ 's "pure spock" console. Therefore all Tango_ features from "pure spock"
 are automatically available on the sardana *spock* console. For example, creating
-a :class:`PyTango.DeviceProxy` will work inside the sardana *spock* console:
+a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
 
 .. sourcecode:: spock
 
