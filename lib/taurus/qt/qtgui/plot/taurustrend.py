@@ -495,8 +495,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         #self._usePointNumber = usePointNumber
         self._currentpoint = -1
         self._plotablesFilter = lambda x:True
+        self.__datadesc = None
         self._endMarkers = []
-        self.clearTrends()
         self.setModel(name)
         self._endMacroMarkerEnabled = True
         
@@ -547,7 +547,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         #reset current point counter
         self._currentpoint = -1
         #call the superclass
-        TaurusTrendSet.clearTrends(self, replot=replot)
+        TaurusTrendsSet.clearTrends(self, replot=replot)
     
     def onPlotablesFilterChanged(self, flt):
         '''
