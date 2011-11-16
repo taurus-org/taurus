@@ -40,6 +40,7 @@ from taurusbasecontainer import TaurusBaseContainer
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
+from taurus.qt.qtgui.dialog import protectTaurusMessageBox
 
 import cPickle as pickle
 
@@ -95,7 +96,35 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
         if self._tabwidget.count():
                 Qt.QDialog.show(self)
 
+
+class Rpdb2Thread(Qt.QThread):
+    
+    def run(self):
+        dialog = Rpdb2WaitDialog(parent=self.parent())
+        dialog.exec_()
+
+
+class Rpdb2WaitDialog(Qt.QMessageBox):
+    
+    def __init__(self, title=None, text=None, parent=None):
+        if text is None:
+            text = "Waitting for a debugger console to attach..."
+        if title is None:
+            title = "Rpdb2 waitting..."
+        Qt.QMessageBox.__init__(self)
+        self.addButton(Qt.QMessageBox.Ok)
+        self.setWindowTitle(title)
+        self.setText(text)
+        self.button(Qt.QMessageBox.Ok).setEnabled(False)
         
+        self.connect(parent, Qt.SIGNAL("rpdb2Started"), self.onStarted)
+    
+    def onStarted(self):
+        self.setWindowTitle("Rpdb2 running!")
+        self.setText("A rpdb2 debugger was started successfully!")
+        self.button(Qt.QMessageBox.Ok).setEnabled(True)
+        
+
 class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     '''A Taurus-aware QMainWindow with several customizations:
     
@@ -166,7 +195,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.toggleFullScreenAction)
         self.viewMenu.addSeparator()
-        self.perspectivesMenu = Qt.QMenu("Load Perspectives")
+        self.perspectivesMenu = Qt.QMenu("Load Perspectives", self)
         self.viewMenu.addMenu(self.perspectivesMenu)
         self.viewMenu.addAction(self.savePerspectiveAction)
         self.viewMenu.addAction(self.deletePerspectiveAction)
@@ -272,7 +301,23 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         
         self.configurationAction = Qt.QAction(getThemeIcon("preferences-system"), 'Configurations ...', self)
         self.connect(self.configurationAction, Qt.SIGNAL("triggered()"), self.configurationDialog.show)
-    
+        
+        #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
+        self.spawnRpdb2Shortcut = Qt.QShortcut(self)
+        self.spawnRpdb2Shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F9))
+        self.connect(self.spawnRpdb2Shortcut, Qt.SIGNAL("activated()"), self._onSpawnRpdb2)
+
+        #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
+        self.spawnRpdb2Shortcut = Qt.QShortcut(self)
+        rpdb2key = Qt.QKeySequence(Qt.Qt.CTRL + Qt.Qt.ALT + Qt.Qt.Key_0, Qt.Qt.Key_1)
+        self.spawnRpdb2Shortcut.setKey(rpdb2key)
+        self.connect(self.spawnRpdb2Shortcut, Qt.SIGNAL("activated()"), self._onSpawnRpdb2)
+        
+        self.spawnRConsoleShortcut = Qt.QShortcut(self)
+        rconsolekey = Qt.QKeySequence(Qt.Qt.CTRL + Qt.Qt.ALT + Qt.Qt.Key_0, Qt.Qt.Key_2)
+        self.spawnRConsoleShortcut.setKey(rconsolekey)
+        self.connect(self.spawnRConsoleShortcut, Qt.SIGNAL("activated()"), self._onSpawnRConsole)
+        
         self.toggleFullScreenAction = Qt.QAction(getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
         self.toggleFullScreenAction.setCheckable(True)
         self.connect(self.toggleFullScreenAction, Qt.SIGNAL("toggled(bool)"), self._onToggleFullScreen)
@@ -282,9 +327,67 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         # QShortcut manually to solve the problem. 
         #self.toggleFullScreenAction.setShortcut(Qt.QKeySequence(Qt.Qt.Key_F11))
         #self.toggleFullScreenAction.setShortcutContext(Qt.Qt.ApplicationShortcut)
-        self.shortcut = Qt.QShortcut(self)
-        self.shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
-        self.connect(self.shortcut, Qt.SIGNAL("activated()"), self._onToggleFullScreen)
+        self.fullScreenShortcut = Qt.QShortcut(self)
+        self.fullScreenShortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
+        self.connect(self.fullScreenShortcut, Qt.SIGNAL("activated()"), self._onToggleFullScreen)
+    
+    @protectTaurusMessageBox
+    def _onSpawnRpdb2(self):
+        try:
+            import rpdb2
+        except ImportError:
+            Qt.QMessageBox.warning(self, "Rpdb2 not installed",
+                                   "Cannot spawn debugger: Rpdb2 is not "
+                                   "installed on your system.")
+            return
+        if hasattr(self, "_rpdb2"):
+            Qt.QMessageBox.information(self, "Rpdb2 running",
+                                       "A rpdb2 debugger is already started")
+            return
+        
+        pwd, ok = Qt.QInputDialog.getText(self, "Rpdb2 password", "Password:",
+                                          Qt.QLineEdit.Password)
+        if not ok:
+            return
+        
+        Qt.QMessageBox.warning(self, "Rpdb2 freeze",
+                               "The application will freeze until a "
+                               "debugger attaches.")
+        
+        self._rpdb2 = rpdb2.start_embedded_debugger(str(pwd))
+        
+        Qt.QMessageBox.information(self, "Rpdb2 running",
+                                   "rpdb2 debugger started successfully!")
+    
+    @protectTaurusMessageBox
+    def _onSpawnRConsole(self):
+        try:
+            import rfoo.utils.rconsole
+        except ImportError:
+            Qt.QMessageBox.warning(self, "rfoo not installed",
+                                   "Cannot spawn debugger: rfoo is not "
+                                   "installed on your system.")
+            return
+
+        port, ok = Qt.QInputDialog.getInteger(self, "rconsole port", "Port:",
+                                              rfoo.utils.rconsole.PORT,
+                                              0, 65535)
+        if not ok:
+            return
+
+        if hasattr(self, "_rconsole_port"):
+            Qt.QMessageBox.information(self, "rconsole running",
+                                       "A rconsole is already running on "
+                                       "port %d" % self._rconsole_port)
+            return
+        
+        rfoo.utils.rconsole.spawn_server(port=port)
+        self._rconsole_port = port
+        Qt.QMessageBox.information(self, "Rpdb2 running",
+                                   "<html>rconsole started successfully!<br>"
+                                   "Type:<p>"
+                                   "<b>rconsole -p %d</b></p>"
+                                   "to connect to it" % port)
     
     # I put the yesno=None keyword arg so it may be called by both toggled(bool)
     # activated() Qt signals. There is no problem as long as we don't use the 
@@ -590,7 +693,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             
         if toMenu:
             if self.toolsMenu is None:
-                self.toolsMenu = Qt.QMenu("Tools")
+                self.toolsMenu = Qt.QMenu("Tools", self)
                 self.menuBar().insertMenu(self.helpMenu.menuAction(), self.toolsMenu) #insert it before the Help menu
             if self.externalAppsMenu is None:
                 self.externalAppsMenu = self.toolsMenu.addMenu("External Applications")
@@ -627,7 +730,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__helpManualURI = uri
         if self.helpManualBrowser is None:
             from PyQt4.QtWebKit import QWebView
-            self.helpManualBrowser = QWebView()
+            self.helpManualBrowser = QWebView(self)
         try: url = Qt.QUrl.fromUserInput(uri) 
         except: url = Qt.QUrl(uri) #fallback for Qt<4.6
         self.helpManualBrowser.load(url)
