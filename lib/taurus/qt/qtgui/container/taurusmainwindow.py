@@ -730,7 +730,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__helpManualURI = uri
         if self.helpManualBrowser is None:
             from PyQt4.QtWebKit import QWebView
-            self.helpManualBrowser = QWebView(self)
+            self.helpManualBrowser = QWebView()
         try: url = Qt.QUrl.fromUserInput(uri) 
         except: url = Qt.QUrl(uri) #fallback for Qt<4.6
         self.helpManualBrowser.load(url)
