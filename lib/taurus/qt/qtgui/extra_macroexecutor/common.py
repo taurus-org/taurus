@@ -25,6 +25,7 @@
 
 import PyTango
 import taurus
+from taurus.core import TaurusEventType
 from taurus.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.container import TaurusMainWindow
@@ -43,52 +44,33 @@ def standardPlotablesFilter(column_desc_dict):
        
 
 class MSAttrListComboBox(TaurusAttrListComboBox):
-    
-    def __init__(self, parent=None):
-        TaurusAttrListComboBox.__init__(self, parent)
-        
-    def prepareAttrList(self, value):
-        lines = list(value)
-        items = []
-        for line in lines:
-            items.append(line.split()[0])
-        items.sort()       
-        return items
-        
-    def setModel(self, model):
-        TaurusAttrListComboBox.setModel(self, model)
-#        valueObj = self.getModelObj().getValueObj(cache=False)
-#        #@todo: remove this condition when MS is fixed to return empty list as a value in case of empty attribute
-#        if valueObj.is_empty:
-#            value = []
-#        else:
-#            value = getattr(valueObj, "value", [])
-#        items = self.prepareAttrList(value)
-#        self.addItems(items) 
+    _elementType = ''
     
     def handleEvent(self, evt_src, evt_type, evt_value):
-        text = self.currentText()
+        if evt_type in (TaurusEventType.Config, TaurusEventType.Error):
+            return
+        text = str(self.currentText())
         self.clear()
-        valueObj = self.getModelObj().getValueObj(cache=False)
-        if valueObj.is_empty:
-            value = []
-        else:
-            value = getattr(valueObj, "value", [])
-        items = self.prepareAttrList(value)
+        items = self.getParentModelObj().getElementNamesOfType(self._elementType)
+        items.sort()
         self.addItems(items)
-#        if evt_src and evt_value:
-#            value = evt_value.value
-#            if value is None: 
-#                return
-#            items = self.prepareAttrList(value)
-#            items.sort()       
-#            self.addItems(items)
-        self.setCurrentText(text)
+        if text in items:
+            self.setCurrentText(text)
     
     def setCurrentText(self, text):
         idx = self.findText(text)
         self.setCurrentIndex(idx)
 
+    def setElementType(self, elementType):
+        self._elementType = elementType
+        
+    def getElementType(self):
+        return self._elementType
+        
+    def resetElementType(self):
+        self._elementType = MSAttrListComboBox._elementType
+        
+    elementType = Qt.pyqtProperty("QString", getElementType, setElementType, resetElementType)
 
 class MacroComboBox(TaurusAttrListComboBox):
     """Combobox with inherited from TaurusAttrListComboBox for MacroList attribute 
