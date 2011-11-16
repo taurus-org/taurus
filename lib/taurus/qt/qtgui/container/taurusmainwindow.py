@@ -96,7 +96,6 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
         if self._tabwidget.count():
                 Qt.QDialog.show(self)
 
-
 class Rpdb2Thread(Qt.QThread):
     
     def run(self):
