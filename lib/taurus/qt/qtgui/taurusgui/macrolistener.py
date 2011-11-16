@@ -188,7 +188,10 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         pools = self.__qdoor.macro_server.getElementsOfType('Pool')
         for pool in pools.values():
             self.info('Sending %s command to %s'%(cmd,pool.getFullName()))
-            pool.getObj().command_inout(cmd)
+            try:
+                pool.getObj().command_inout(cmd)
+            except:
+                self.info('%s command failed on %s',cmd,pool.getFullName(), exc_info=1)
         self.emit(Qt.SIGNAL("newShortMessage"),"%s command sent to all pools"%cmd)      
         self.__lastAbortTime = now
         
