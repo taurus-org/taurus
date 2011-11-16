@@ -336,7 +336,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self.updateMntGrpChannelIndex(root=root)
         #store the whole config object for accessing the info that is not at the channel level
         self._mgconfig = mgconfig
+        
+    def setDataSource(self, data_src):
         self._dirty = False
+        TaurusBaseModel.setDataSource(self, data_src)
 
     def updateMntGrpChannelIndex(self, root=None):
         '''
@@ -387,6 +390,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             data = str(qvalue.toString())
             if taurus_role == ChannelView.Trigger:
                 data = AcqTriggerType[data]
+            self._dirty = True
             self.beginResetModel()
             unit_data[key] = data
             self.endResetModel()
@@ -419,15 +423,17 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
             return
         
+        self._dirty = True
         channelsdict[chname] = createChannelDict(chname)
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here... 
-        self._dirty = True
+        
         #newchannels = [(chname,chdata)]
         #self.insertChannels(newchannels)      
 
     def removeChannels(self, chnames): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows            
         #update the internal data 
+        self._dirty = True
         self.beginResetModel() #we are altering the internal data here, so we need to protect it
         for chname in chnames:
             desc = self.getAvailableChannels()[chname]
@@ -437,17 +443,16 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                 self.dataSource()['controllers'][ctrlname]['units'][unitname]['channels'].pop(chname)
             except:
                 self.error('cannot find "%s" for removing'%chname)
-        self.endResetModel() #we are altering the internal data here, so we need to protect it
-        self.refresh() #note that another reset will be done here... 
-        self._dirty = True
+        self.endResetModel() #we are altering the internal data here, so we need to protect it 
+        self.refresh() #note that another reset will be done here...
         
     def swapChannels(self, root, row1, row2): #@todo: Very inefficient implementation. We should use {begin|end}MoveRows 
+        self._dirty = True
         n1,d1 = root.child(row1).itemData()
         n2,d2 = root.child(row2).itemData()
         d1['index'], d2['index'] = d2['index'], d1['index']
         self.debug("swapping %s with %s"%(n1,n2))
         self.refresh()
-        self._dirty = True
     
     def isDataChanged(self):
         return self._dirty

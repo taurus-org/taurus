@@ -47,7 +47,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.ui = Ui_ExpDescriptionEditor()
         self.ui.setupUi(self)
         BB = Qt.QDialogButtonBox
-        self.ui.buttonBox.setStandardButtons(BB.Ok | BB.Cancel | BB.Reset | BB.Apply)
+        self.ui.buttonBox.setStandardButtons(Qt.QDialogButtonBox.Reset | Qt.QDialogButtonBox.Apply)
         
         self._localConfig = None
         self._originalConfiguration = None
@@ -58,6 +58,8 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.connect(self.ui.compressionCB, Qt.SIGNAL('currentIndexChanged (int)'), self.onCompressionCBChanged )
         self.connect(self.ui.pathLE, Qt.SIGNAL('editingFinished ()'), self.onPathLEEdited )
         self.connect(self.ui.filenameLE, Qt.SIGNAL('editingFinished ()'), self.onFilenameLEEdited )
+        self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('dataChanged (QModelIndex, QModelIndex)'), self._updateButtonBox )
+        self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('modelReset ()'), self._updateButtonBox )
         
         if door is not None:
             self.setModel(door)
@@ -69,13 +71,10 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         
     def onDialogButtonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
-        #qmodel = self.ui.channelEditor.getQModel()
-        if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.ApplyRole) :
+        if role == Qt.QDialogButtonBox.ApplyRole:
             self.writeExperimentConfiguration(ask=False)
         elif role == Qt.QDialogButtonBox.ResetRole:
             self._reloadConf()
-        if role in (Qt.QDialogButtonBox.AcceptRole,Qt.QDialogButtonBox.RejectRole):
-            self.close()
     
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
@@ -100,7 +99,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         conf = door.getExperimentConfiguration()
         self._originalConfiguration = copy.deepcopy(conf)
         self.setLocalConfig(conf)
-        self._dirty = False
+        self._setDirty(False)
         self._dirtyMntGrps = set()
         #set a list of available channels
         channels = door.macro_server.getExpChannelElements()
@@ -108,11 +107,20 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         for ch_info in door.macro_server.getExpChannelElements().values():
             avail_channels[ch_info.name] = ch_info.getData()
         self.ui.channelEditor.getQModel().setAvailableChannels(avail_channels)
+    
+    def _setDirty(self,dirty):
+        self._dirty = dirty
+        self._updateButtonBox()
         
     def isDataChanged(self):
         """Tells if the local data has been modified since it was last refreshed
+        
+        :return: (bool) True if he local data has been modified since it was last refreshed
         """
-        return self._dirty or self.ui.channelEditor.getQModel().isDataChanged() or self._dirtyMntGrps
+        return bool(self._dirty or self.ui.channelEditor.getQModel().isDataChanged() or self._dirtyMntGrps)
+    
+    def _updateButtonBox(self, *args, **kwargs):
+        self.ui.buttonBox.setEnabled(self.isDataChanged())
 
     def getLocalConfig(self):
         return self._localConfig
@@ -157,7 +165,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         door = self.getModelObj()
         door.setExperimentConfiguration(conf, mnt_grps=self._dirtyMntGrps)
         self._originalConfiguration = copy.deepcopy(conf)
-        self._dirty = False
+        self._setDirty(False)
         self._dirtyMntGrps = set()
         self.ui.channelEditor.getQModel().setDataChanged(False)
         return True
@@ -178,22 +186,21 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._localConfig['ActiveMntGrp'] = activeMntGrpName
         mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
         self.ui.channelEditor.getQModel().setDataSource(mgconfig)
-        self._dirty = True
+        self._setDirty(True)
         
     def onCompressionCBChanged(self, idx):
         if self._localConfig is None: return
         self._localConfig['DataCompressionRank'] = idx - 1
-        self._dirty = True
+        self._setDirty(True)
         
     def onPathLEEdited(self):
         self._localConfig['ScanDir'] = str(self.ui.pathLE.text())
-        self._dirty = True
+        self._setDirty(True)
         
     def onFilenameLEEdited(self):
         self._localConfig['ScanFile'] = [v.strip() for v in str(self.ui.filenameLE.text()).split(',')]
-        self._dirty = True
+        self._setDirty(True)
         
- 
     
         
             
