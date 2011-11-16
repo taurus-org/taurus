@@ -90,12 +90,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._parent = parent #@todo: maybe this should be converted to a weakref?
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
-        self._history = []
         self.__xBuffer = None
         self.__yBuffer = None
         self.forcedReadingTimer = None
         try: self.__maxBufferSize = self._parent.getMaxDataBufferSize()
-        except: self.__maxBufferSize = 1048576 #(1M= 2**20)
+        except: self.__maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
         if curves is None:
             self._curves = {}
             self._orderedCurveNames = []
@@ -320,7 +319,26 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         return self.__xBuffer.contents(), self.__yBuffer.contents()
 
-    
+    def clearTrends(self, replot=True):
+        '''clears all stored data (buffers and copies of the curves data)
+        
+        :param replot: (bool) do a replot after clearing
+        '''
+        #clean previous curves
+        for subname in self.getCurveNames():
+            self._parent.detachRawData(subname)
+        self._curves = {}
+        self._orderedCurveNames = []
+        #clean history Buffers
+        self.__xBuffer = None
+        self.__yBuffer = None
+        #clean x,ydata
+        self._xValues = None
+        self._yValues = None
+        #replot
+        if replot:
+            self._parent.replot()
+        
     def handleEvent(self, evt_src, evt_type, evt_value):
         ''' processes Change (and Periodic) Taurus Events: updates the data of all
         curves in the set according to the value of the attribute.
@@ -347,13 +365,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             ntrends=len(value.value)
         if ntrends != len(self._curves):
             #clean previous curves
-            for subname in self.getCurveNames():
-                self._parent.detachRawData(subname)
-            self._curves = {}
-            self._orderedCurveNames = []
-            #clean history Buffers
-            self.__xBuffer = None
-            self.__yBuffer = None
+            self.clearTrends(replot=False)
             #create as many curves as the dim_x of the given model and add them to the TrendSet
             name = self.getModelName()
             rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
@@ -519,29 +531,23 @@ class ScanTrendsSet(TaurusTrendsSet):
         else:
             self.debug("Ignoring packet of type %s"%repr(pcktype))
             
-    def clearTrends(self):
+    def clearTrends(self, replot=True):
         '''
-        Erases existing trends. If the autoClear property is True for this trend
-        set, this method is called automatically every time a data_desc package
-        is received.
-        If autoClear is False, you should manually call this
+        Reimplemented from :meth:`TaurusTrendsSet.clearTrends`. 
+        
+        .. note:: If the autoClear property is True for this trend set, this method is
+                  called automatically every time a data_desc package is received.
         '''
-        #clean previous curves
-        for subname in self.getCurveNames():
-            self._parent.detachRawData(subname)
-        self._curves = {}
-        self._orderedCurveNames = []
+        #clean the datadesc
         self.__datadesc = None
         #clean markers
         for m in self._endMarkers:
             m.detach()
         self._endMarkers = []
-        #clean history Buffers
-        self.__xBuffer = None
-        self.__yBuffer = None
         #reset current point counter
         self._currentpoint = -1
-        self._parent.replot()
+        #call the superclass
+        TaurusTrendSet.clearTrends(self, replot=replot)
     
     def onPlotablesFilterChanged(self, flt):
         '''
@@ -774,6 +780,8 @@ class TaurusTrend(TaurusPlot):
         self.connect(self._usePollingBufferAction, Qt.SIGNAL("toggled(bool)"), self.setUsePollingBuffer)
         self._setForcedReadingPeriodAction = Qt.QAction("Set forced reading period...", None)
         self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL("triggered()"), self.setForcedReadingPeriod)
+        self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
+        self.connect(self._clearBuffersAction, Qt.SIGNAL("triggered()"), self.clearBuffers)
     
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
@@ -874,7 +882,18 @@ class TaurusTrend(TaurusPlot):
         '''
         tset = self.getTrendSet(scanname)
         tset.clearTrends()
-    
+        
+    def clearBuffers(self):
+        '''clears the buffers of existing trend sets (note that this does
+        not remove the models, it simply removes all stored data)'''
+        self.curves_lock.acquire()
+        try:
+            for ts in self.trendSets.itervalues():
+                ts.clearTrends(replot=False)
+        finally:
+            self.curves_lock.release()
+        self.replot()
+          
     def updateCurves(self, names):
         '''Defines the curves that need to be plotted. For a TaurusTrend, the
         models can refer to:
@@ -926,8 +945,7 @@ class TaurusTrend(TaurusPlot):
                 name = str(name)
                 tset = self.trendSets.pop(name)
                 tset.unregisterDataChanged(self, self.curveDataChanged)
-                for subname in tset.getCurveNames():
-                    self.detachRawData(subname)
+                tset.clearTrends(replot=False)
             if del_sets:        
                 self.autoShowYAxes()
                 
@@ -1318,6 +1336,7 @@ class TaurusTrend(TaurusPlot):
         menu.insertAction(self._setCurvesTitleAction, self._useArchivingAction)
         menu.insertAction(self._setCurvesTitleAction, self._usePollingBufferAction)
         menu.insertAction(self._setCurvesTitleAction, self._setForcedReadingPeriodAction)
+        menu.insertAction(self._setCurvesTitleAction, self._clearBuffersAction)
         return menu
     
     def _axisContextMenu(self,axis=None):
@@ -1452,8 +1471,8 @@ def main():
     parser.set_description("a taurus application for plotting trends")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|e",
                   help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")
-    parser.add_option("-b", "--buffer", dest="max_buffer_size", default='65536', 
-                  help="maximum number of values per curve to be plotted (when reached, the oldest values will be discarded)")
+    parser.add_option("-b", "--buffer", dest="max_buffer_size", default=TaurusTrend.DEFAULT_MAX_BUFFER_SIZE, 
+                  help="maximum number of values per curve to be plotted (default = %i) (when reached, the oldest values will be discarded)"%TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
                   help="use the given config file for initialization")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
