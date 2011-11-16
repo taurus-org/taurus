@@ -551,7 +551,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
         self.saveSettings() #save current window state before closing
-        self.socketServer.close()
+        if hasattr(self,"socketServer"):
+            self.socketServer.close()
         
         #print "\n\n------ MAIN WINDOW CLOSED ------ \n\n"
     
