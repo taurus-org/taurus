@@ -459,24 +459,21 @@ class GScan(Logger):
         instrument = master['instrument']
         label = master['label']
         name = master['name']
-        data_desc.append( ColumnDesc(name=name, label=label,
-                                     instrument=instrument) )
-        #TODO: maybe we want to include the nxpath in the instrument as well????
         
-        # add counters
-        counters_info = self.measurement_group.getCountersInfo()
+        channels_info = self.measurement_group.getChannelsInfo()
         counters = []
-        for counter_info in counters_info:
-            counter_name = counter_info.name
-            counter_type = counter_info.data_type_str
-            counter_shape = counter_info.shape
-            instrument = counter_info.instrument
-            label = counter_info.label
-            column = ColumnDesc(name=counter_name, label=label,
-                                dtype=counter_type, shape=counter_shape,
-                                instrument=instrument)
+        for channel_info in channels_info:
+            channel_name = channel_info.name
+            channel_type = channel_info.data_type_str
+            channel_shape = channel_info.shape
+            channel_instrument = channel_info.instrument
+            channel_label = channel_info.label
+            column = ColumnDesc(name=channel_name, label=channel_label,
+                                dtype=channel_type, shape=channel_shape,
+                                instrument=channel_instrument)
             data_desc.append(column)
-            counters.append(counter_name)
+            counters.append(channel_name)
+        counters.remove(master['name'])
         
         for extra_column in self._extra_columns:
             data_desc.append(extra_column.getColumnDesc())

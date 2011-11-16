@@ -46,7 +46,6 @@ Description = 'description'
 DefaultValue = 'defaultvalue'
 
 
-
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""
 

@@ -41,9 +41,9 @@ from PyTango.constants import DescNotSet
 from taurus.core.util import CodecFactory
 from taurus.core.util.log import InfoIt, DebugIt
 
-from sardana.tango.core.util import to_tango_state
-
+from sardana import ServerState, SardanaServer
 from sardana.pool import AcqMode
+from sardana.tango.core.util import to_tango_state
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -74,8 +74,9 @@ class MeasurementGroup(PoolGroupDevice):
     def init_device(self):
         PoolGroupDevice.init_device(self)
 
-        detect_evts = "state", "status", "configuration"
-        non_detect_evts = "integrationtime", "monitorcount", "acquisitionmode", "elementlist"
+        detect_evts = () # state and status are already set by the super class
+        non_detect_evts = "configuration", "integrationtime", "monitorcount", \
+                          "acquisitionmode", "elementlist"
         self.set_change_events(detect_evts, non_detect_evts)
         
         self.Elements = list(self.Elements)
@@ -96,6 +97,12 @@ class MeasurementGroup(PoolGroupDevice):
         #state = self.measurement_group.state
         
     def on_measurement_group_changed(self, event_source, event_type, event_value):
+        
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != ServerState.Run:
+            return
+
         t = time.time()
         name = event_type.name
         name = name.replace('_','')
