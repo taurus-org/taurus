@@ -170,7 +170,8 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         Nexus file structure may not be standard
         assumes hdf5
         """
-
+    
+    
     formats = { DataFormats.w5 : '.h5', 
                 DataFormats.w4 : '.h4', 
                 DataFormats.wx : '.xml' }
@@ -299,7 +300,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         env=self.currentlist.getEnviron()
         self._populateInstrumentInfo()
-        self.fd.openpath("/"+self.entryname)
+        self.fd.openpath("/%s:NXentry" % self.entryname)
         self._writeData("end_time",env['endtime'].isoformat(),'char')
         self.fd.flush()
         self.debug("Finishing recording %d on file %s:", env['serialno'], self.filename)
@@ -350,7 +351,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if dd.instrument is not None:
                 #grab the ID of the data group
-                datapath="/%s/%s/%s"%(self.entryname,"measurement",dd.label)
+                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:measurement",dd.label)
                 self.fd.openpath(datapath)
                 id=self.fd.getdataID()
                 self._createBranch(dd.instrument.getFullName())
@@ -361,17 +362,18 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         It creates the groups if they do not exist, using the class info in self.instrDict
         If successful, path is left open"""
         groups=path.split('/')
-        self.fd.openpath("/"+self.entryname)
+        self.fd.openpath("/%s:NXentry" % self.entryname)
         relpath="" #the current path relative to <entry>, to use as a key for instrDict
         for g in groups:
             if len(g) == 0:
                 continue
             relpath = relpath + "/"+ g
+            group_type = self.instrDict[relpath].getType()
             try:
-                self.fd.opengroup(g)
+                self.fd.opengroup(g, group_type)
             except:
-                self.fd.makegroup(g,self.instrDict[relpath].getType())
-                self.fd.opengroup(g)
+                self.fd.makegroup(g, group_type)
+                self.fd.opengroup(g, group_type)
 
 
 class SPEC_FileRecorder(BaseFileRecorder):
