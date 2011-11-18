@@ -42,7 +42,7 @@ try:
 except:
     pygments = None
 
-# shame of me for importing PyTango! well not so much since this is designed to
+# shame on me for importing PyTango! well not so much since this is designed to
 # show PyTango exceptions
 import PyTango
 
@@ -161,7 +161,8 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
         msgbox.setOriginHtml(html)
 
 
-_REPORT = """-- Description -----------------------------------------------------------------
+_REPORT = """\
+-- Description -----------------------------------------------------------------
 An error occured in '{appName} {appVersion}' on {time}
 {text}
 
@@ -170,7 +171,8 @@ An error occured in '{appName} {appVersion}' on {time}
 
 -- Origin ----------------------------------------------------------------------
 {origin}
---------------------------------------------------------------------------------"""
+--------------------------------------------------------------------------------
+"""
 
 class TaurusMessagePanel(Qt.QWidget):
     """A panel intended to display a taurus error.
@@ -204,6 +206,8 @@ class TaurusMessagePanel(Qt.QWidget):
         self._ui = ui.ui_TaurusMessagePanel.Ui_TaurusMessagePanel()
         self._ui.setupUi(self)
         self._ui.detailsWidget.setVisible(False)
+        self._ui.checkBox.setVisible(False)
+        self._ui.checkBox.setCheckState(Qt.Qt.Unchecked)
         self.addButton(self._ui.showDetailsButton)
         self.addButton(self._ui.copyClipboardButton)
         
@@ -238,6 +242,48 @@ class TaurusMessagePanel(Qt.QWidget):
                              origin=self.getOriginText())
         clipboard.setText(txt)
     
+    def checkBox(self):
+        """Returns the check box from this panel
+        
+        :return: the check box from this panel
+        :rtype: PyQt4.Qt.QCheckBox"""
+        return self._ui.checkBox
+    
+    def checkBoxState(self):
+        """Returns the check box state
+        
+        :return: the check box state
+        :rtype: PyQt4.Qt.CheckState"""
+        return self.checkBox().checkState()
+    
+    def checkBoxText(self):
+        """Returns the check box text
+        
+        :return: the check box text
+        :rtype: str"""
+        return str(self.checkBox().text())
+    
+    def setCheckBoxText(self, text):
+        """Sets the checkbox text.
+        
+        :param text: new checkbox text
+        :type text: str"""
+        self.checkBox().setText(text)
+    
+    def setCheckBoxState(self, state):
+        """Sets the checkbox state.
+        
+        :param text: new checkbox state
+        :type text: PyQt4.Qt.CheckState"""
+        self.checkBox().setCheckState(state)
+        
+    def setCheckBoxVisible(self, visible):
+        """Sets the checkbox visibility.
+        
+        :param visible: True makes checkbox visible, False hides it
+        :type visible: bool"""
+        self.checkBox().setVisible(visible)
+    
     def buttonBox(self):
         """Returns the button box from this panel
         
@@ -253,6 +299,8 @@ class TaurusMessagePanel(Qt.QWidget):
         :param role: button role
         :type role: PyQt4.Qt.QDialogButtonBox.ButtonRole"""
         self._ui.buttonBox.addButton(button, role)
+    
+
     
     def setIconPixmap(self, pixmap):
         """Sets the icon to the dialog
@@ -413,6 +461,7 @@ class QMessageDialog(Qt.QDialog):
         l = Qt.QVBoxLayout()
         l.setContentsMargins(0,0,0,0)
         l.addWidget(msgbox)
+        l.addStretch(1)
         self.setLayout(l)
         
 
@@ -500,7 +549,7 @@ def main():
         app.setApplicationVersion("1.0")
 
     w = demo()
-
+    w.show()
     if owns_app:
         sys.exit(app.exec_())
     else:

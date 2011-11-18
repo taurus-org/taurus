@@ -27,7 +27,8 @@
 :mod:`logging` system."""
 
 __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
-           "CriticalIt", "MemoryLogHandler", "Logger", "LogFilter"]
+           "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
+           "LogFilter"]
 
 __docformat__ = "restructuredtext"
 
@@ -42,6 +43,7 @@ import functools
 import threading
 
 from object import Object
+from excepthook import BaseExceptHook
 
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
@@ -268,12 +270,37 @@ class MemoryLogHandler(list, logging.handlers.BufferingHandler):
         self.flush()
         del self[:]
         BufferingHandler.close(self)
+
+
+class LogExceptHook(BaseExceptHook):
+    """A callable class that acts as an excepthook that logs the exception in
+    the python logging system.
     
+    :param hook_to: callable excepthook that will be called at the end of
+                    this hook handling [default: None]
+    :type hook_to: callable
+    :param name: logger name [default: None meaning use class name]
+    :type name: str
+    :param level: log level [default: logging.ERROR]
+    :type level: int"""
+    
+    def __init__(self, hook_to=None, name=None, level=logging.ERROR):
+        BaseExceptHook.__init__(self, hook_to=hook_to)
+        name = name or self.__class__.__name__
+        self._level = level
+        self._log = Logger(name=name)
+        
+    def report(self, *exc_info):
+        text = "".join(traceback.format_exception(*exc_info))
+        if text[-1] == '\n':
+            text = text[:-1]
+        self._log.log(self._level, "Unhandled exception:\n%s", text)
+
 
 class Logger(Object):
-    """The taurus logger class. All taurus pertinent classes should inherit directly
-    or indirectly from this class if they need taurus logging facilities.
-    """
+    """The taurus logger class. All taurus pertinent classes should inherit
+    directly or indirectly from this class if they need taurus logging
+    facilities."""
     
     #: Internal usage
     root_inited    = False
@@ -361,11 +388,8 @@ class Logger(Object):
         try:
             cls.root_init_lock.acquire()
             root_logger = cls._getRootLog()
-            
-                
-
             logging.addLevelName(cls.Trace, "TRACE")
-            cls.stream_handler = logging.StreamHandler()
+            cls.stream_handler = logging.StreamHandler(stream=sys.__stderr__)
             cls.stream_handler.setFormatter(cls.log_format)
             root_logger.addHandler(cls.stream_handler)
             
@@ -386,7 +410,7 @@ class Logger(Object):
         
            :param h: (logging.Handler) the new log handler
         """
-        h.setFormatter(logging.Formatter(cls.getLogFormat()))
+        h.setFormatter(cls.getLogFormat())
         cls.initRoot().addHandler(h)
         
     @classmethod

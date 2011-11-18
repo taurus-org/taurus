@@ -485,3 +485,48 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
 #    sys.exit(app.exec_())
 #
 #
+
+def demo():
+    lock_button = TaurusLockButton()
+    lock_button.model = "sys/tg_test/1"
+    return lock_button
+
+def main():
+    import sys
+    import taurus.qt.qtgui.application
+    Application = taurus.qt.qtgui.application.TaurusApplication
+    
+    app = Application.instance()
+    owns_app = app is None
+    
+    if owns_app:
+        import taurus.core.util.argparse
+        parser = taurus.core.util.argparse.get_taurus_parser()
+        parser.usage = "%prog [options] <full_attribute_name(s)>"
+        app = Application(sys.argv, cmd_line_parser=parser, 
+                          app_name="Taurus lock button demo", app_version="1.0",
+                          org_domain="Taurus", org_name="Tango community")
+        
+    args = app.get_command_line_args()
+
+    if len(args) == 0:
+        w = demo()
+    else:
+        models = map(str.lower, args)
+
+        w = Qt.QWidget()
+        layout = Qt.QGridLayout()
+        w.setLayout(layout)
+        for model in models:
+            lock_button = TaurusLockButton()
+            lock_button.model = model
+            layout.addWidget(lock_button)
+    w.show()
+    
+    if owns_app:
+        sys.exit(app.exec_())
+    else:
+        return w
+
+if __name__ == '__main__':
+    main()

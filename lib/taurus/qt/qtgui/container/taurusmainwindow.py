@@ -367,17 +367,17 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                                    "Cannot spawn debugger: rfoo is not "
                                    "installed on your system.")
             return
-
-        port, ok = Qt.QInputDialog.getInteger(self, "rconsole port", "Port:",
-                                              rfoo.utils.rconsole.PORT,
-                                              0, 65535)
-        if not ok:
-            return
-
+        
         if hasattr(self, "_rconsole_port"):
             Qt.QMessageBox.information(self, "rconsole running",
                                        "A rconsole is already running on "
                                        "port %d" % self._rconsole_port)
+            return
+        
+        port, ok = Qt.QInputDialog.getInteger(self, "rconsole port", "Port:",
+                                              rfoo.utils.rconsole.PORT,
+                                              0, 65535)
+        if not ok:
             return
         
         rfoo.utils.rconsole.spawn_server(port=port)
@@ -855,10 +855,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 if __name__ == "__main__":
     
     import sys
-    app = Qt.QApplication(sys.argv)
+    import taurus.qt.qtgui.application
+    app = taurus.qt.qtgui.application.TaurusApplication()
     app.setApplicationName('TaurusMainWindow-test')
     app.setOrganizationName('ALBA')
-    
+    app.basicConfig()
     form = TaurusMainWindow()
     
     #ensure only a single instance of this application is running

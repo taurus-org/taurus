@@ -178,8 +178,8 @@ class ExperimentConfiguration(object):
         for mnt_grp in mnt_grps:
             mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
             mnt_grp_dev = Device(mnt_grp)
-            # TODO when we start using measurement group change de code below with
-            # the following:
+            # TODO when we start using measurement group extension change the
+            # code below with the following:
             # mnt_grp.setConfiguration(mnt_grp_cfg)
             data = codec.encode(('', mnt_grp_cfg))[1]
             mnt_grp_dev.write_attribute('configuration', data)

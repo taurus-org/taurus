@@ -30,14 +30,56 @@ __all__ = ["TaurusApplication"]
 
 __docformat__ = 'restructuredtext'
 
+import os
+import sys
+import logging
 import optparse
 
 from taurus.qt import Qt
 
-import taurus.core.util.log
+from taurus.core.util.log import LogExceptHook, Logger
 import taurus.core.util.argparse
 
-Logger = taurus.core.util.log.Logger
+
+class STD(Logger):
+    
+    def __init__(self, name='', parent=None, format=None):
+        """The Logger constructor
+        
+        :param name: (str) the logger name (default is empty string)
+        :param parent: (Logger) the parent logger or None if no parent exists (default is None)
+        :param format: (str) the log message format or None to use the default log format (default is None)
+        """
+        Logger.__init__(self, name=name, parent=parent, format=format)
+        self._buffer = ''
+        
+#    def write(self, msg):
+#        for line in msg.split('\n'):
+#            if not line or not line.strip():
+#                continue
+#            self.log(Logger.Console, "'" + line + "'")
+    
+#    def flush(self):
+#        pass
+
+    def write(self, msg):
+        self._buffer += msg
+        # while there is no new line, just accumulate the buffer
+        try:
+            if msg[-1] == '\n' or msg.index('\n') >= 0:
+                self.flush()
+        except ValueError:
+            pass
+        
+    def flush(self):
+        buff = self._buffer
+        if buff is None or len(self._buffer) == 0:
+            return
+        #take the '\n' because the output is a list of strings, each to be
+        #interpreted as a separate line in the client
+        if buff[-1] == '\n': buff = buff[:-1]
+        self.log(Logger.Console, buff)
+        self._buffer = ""
 
 class TaurusApplication(Qt.QApplication, Logger):
     """A QApplication that additionally parses the command line looking
@@ -148,6 +190,7 @@ class TaurusApplication(Qt.QApplication, Logger):
         self._cmd_line_args = args
         self.__registerQtLogger()
         self.__registerExtensions()
+        self.__redirect_std()
     
     def __registerQtLogger(self):
         import taurus.qt.qtcore.util
@@ -165,7 +208,27 @@ class TaurusApplication(Qt.QApplication, Logger):
             taurus.core.tango.img.registerExtensions()
         except:
             self.info("Failed to load image extensions", exc_info=1)
-        
+
+    def __redirect_std(self):
+        """Internal method to redirect stdout and stderr to log messages"""
+        Logger.addLevelName(Logger.Critical + 10, 'CONSOLE')
+        self._out = STD("OUT")
+        sys.stdout = self._out
+        self._err = STD("ERR")
+        sys.stderr = self._err
+    
+    def __buildLogFileName(self, prefix="/tmp", name=None):
+        appName = str(self.applicationName())
+        if not appName:
+            appName = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+        dirName = os.path.join(prefix, appName)
+        if not os.path.isdir(dirName):
+            os.makedirs(dirName)
+        if name is None:
+            name = appName + '.log'
+        fileName = os.path.join(dirName, name)
+        return fileName
+    
     def get_command_line_parser(self):
         """Returns the :class:`optparse.OptionParser` used to parse the command
         line parameters.
@@ -191,5 +254,35 @@ class TaurusApplication(Qt.QApplication, Logger):
         return self._cmd_line_args
     
     def setTaurusStyle(self, styleName):
+        """Sets taurus application style to the given style name
+        
+        :param styleName: the new style name to be applied
+        :type styleName: str"""
         import taurus.qt.qtgui.style
         taurus.qt.qtgui.style.setTaurusStyle(styleName)
+    
+    def basicConfig(self, log_file_name=None, maxBytes=1E7, backupCount=5,
+                    with_gui_exc_handler=True):
+        
+        # prepare exception handler to report exceptions as error log messages
+        # and to taurus message box (if with_gui is set)
+        hook_to = None
+        if with_gui_exc_handler:
+            import taurus.qt.qtgui.dialog
+            hook_to = taurus.qt.qtgui.dialog.TaurusExceptHookMessageBox()
+        sys.excepthook = LogExceptHook(hook_to=hook_to)
+        
+        # create a file log handler
+        try:
+            if log_file_name is None:
+                log_file_name = self.__buildLogFileName()
+            f_h = logging.handlers.RotatingFileHandler(log_file_name,
+                                                       maxBytes=maxBytes,
+                                                       backupCount=backupCount)
+            Logger.addRootLogHandler(f_h)
+            print "Logs will be saved in", log_file_name
+        except:
+            self.warning("'%s' could not be created. Logs will not be stored",
+                         log_file_name)
+            self.debug("Error description", exc_info=1)
+        
