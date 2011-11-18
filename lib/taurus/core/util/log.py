@@ -389,7 +389,7 @@ class Logger(Object):
             cls.root_init_lock.acquire()
             root_logger = cls._getRootLog()
             logging.addLevelName(cls.Trace, "TRACE")
-            cls.stream_handler = logging.StreamHandler(stream=sys.__stderr__)
+            cls.stream_handler = logging.StreamHandler(sys.__stderr__)
             cls.stream_handler.setFormatter(cls.log_format)
             root_logger.addHandler(cls.stream_handler)
             
