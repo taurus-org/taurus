@@ -43,43 +43,66 @@ import taurus.core.util.argparse
 
 class STD(Logger):
     
-    def __init__(self, name='', parent=None, format=None):
-        """The Logger constructor
+    def __init__(self, name='', parent=None, format=None, std=None,
+                 pure_text=True):
+        """The STD Logger constructor
         
         :param name: (str) the logger name (default is empty string)
-        :param parent: (Logger) the parent logger or None if no parent exists (default is None)
-        :param format: (str) the log message format or None to use the default log format (default is None)
+        :param parent: (Logger) the parent logger or None if no parent exists
+                       (default is None)
+        :param format: (str) the log message format or None to use the default
+                       log format (default is None)
+        :param std: std to forward write
+        :param pure_text: if True, writes the 'message' parameter of the log
+                          message in a separate line preserving the indentation
         """
         Logger.__init__(self, name=name, parent=parent, format=format)
-        self._buffer = ''
-        
-#    def write(self, msg):
-#        for line in msg.split('\n'):
-#            if not line or not line.strip():
-#                continue
-#            self.log(Logger.Console, "'" + line + "'")
+        self.buffer = ''
+        self.std = std
     
-#    def flush(self):
-#        pass
+    def addLogHandler(self, handler):
+        """When called, set to use a private handler and DON'T send messages to
+           parent loggers (basically will act as an independent logging system
+           by itself)
 
+        :param handler: new handler"""
+        Logger.addLogHandler(self, handler)
+        self.log_obj.propagate = not len(self.log_handlers)
+    
     def write(self, msg):
-        self._buffer += msg
-        # while there is no new line, just accumulate the buffer
         try:
+            self.buffer += msg
+            # while there is no new line, just accumulate the buffer
             if msg[-1] == '\n' or msg.index('\n') >= 0:
                 self.flush()
         except ValueError:
             pass
+        finally:
+            if self.std is not None:
+                try:
+                    self.std.write(msg)
+                except:
+                    pass
+            pass
         
     def flush(self):
-        buff = self._buffer
-        if buff is None or len(self._buffer) == 0:
-            return
-        #take the '\n' because the output is a list of strings, each to be
-        #interpreted as a separate line in the client
-        if buff[-1] == '\n': buff = buff[:-1]
-        self.log(Logger.Console, buff)
-        self._buffer = ""
+        try:
+            buff = self.buffer
+            if buff is None or len(buff) == 0:
+                return
+            #take the '\n' because the output is a list of strings, each to be
+            #interpreted as a separate line in the client
+            if buff[-1] == '\n': buff = buff[:-1]
+            self.log(Logger.Console, '\n' + buff)
+            self.buffer = ""
+        finally:
+            if self.std is not None:
+                try:
+                    self.std.flush()
+                except:
+                    pass
+            pass
+
 
 class TaurusApplication(Qt.QApplication, Logger):
     """A QApplication that additionally parses the command line looking
@@ -212,7 +235,7 @@ class TaurusApplication(Qt.QApplication, Logger):
     def __redirect_std(self):
         """Internal method to redirect stdout and stderr to log messages"""
         Logger.addLevelName(Logger.Critical + 10, 'CONSOLE')
-        self._out = STD("OUT")
+        self._out = STD(name="OUT")
         sys.stdout = self._out
         self._err = STD("ERR")
         sys.stderr = self._err
@@ -280,7 +303,9 @@ class TaurusApplication(Qt.QApplication, Logger):
                                                        maxBytes=maxBytes,
                                                        backupCount=backupCount)
             Logger.addRootLogHandler(f_h)
-            print "Logs will be saved in", log_file_name
+            self._out.std = sys.__stdout__
+            self._out.addLogHandler(f_h)
+            self.info("Logs will be saved in %s", log_file_name)
         except:
             self.warning("'%s' could not be created. Logs will not be stored",
                          log_file_name)
