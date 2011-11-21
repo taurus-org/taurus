@@ -58,6 +58,7 @@ class STD(Logger):
         """
         Logger.__init__(self, name=name, parent=parent, format=format)
         self.buffer = ''
+        self.log_obj.propagate = False
         self.std = std
     
     def addLogHandler(self, handler):
@@ -93,7 +94,8 @@ class STD(Logger):
             #take the '\n' because the output is a list of strings, each to be
             #interpreted as a separate line in the client
             if buff[-1] == '\n': buff = buff[:-1]
-            self.log(Logger.Console, '\n' + buff)
+            if self.log_handlers:
+                self.log(Logger.Console, '\n' + buff)
             self.buffer = ""
         finally:
             if self.std is not None:
@@ -235,9 +237,9 @@ class TaurusApplication(Qt.QApplication, Logger):
     def __redirect_std(self):
         """Internal method to redirect stdout and stderr to log messages"""
         Logger.addLevelName(Logger.Critical + 10, 'CONSOLE')
-        self._out = STD(name="OUT")
+        self._out = STD(name="OUT", std=sys.stdout)
         sys.stdout = self._out
-        self._err = STD("ERR")
+        self._err = STD(name="ERR", std=sys.stderr)
         sys.stderr = self._err
     
     def __buildLogFileName(self, prefix="/tmp", name=None):
@@ -305,6 +307,8 @@ class TaurusApplication(Qt.QApplication, Logger):
             Logger.addRootLogHandler(f_h)
             self._out.std = sys.__stdout__
             self._out.addLogHandler(f_h)
+            self._err.std = sys.__stderr__
+            self._err.addLogHandler(f_h)
             self.info("Logs will be saved in %s", log_file_name)
         except:
             self.warning("'%s' could not be created. Logs will not be stored",
