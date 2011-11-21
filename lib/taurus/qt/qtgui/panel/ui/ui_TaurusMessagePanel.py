@@ -1,91 +1,83 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'TaurusMessagePanel.ui'
+# Form implementation generated from reading ui file '/tmp/tmpw1w4kl.ui'
 #
-# Created: Fri Nov 18 09:36:31 2011
-#      by: PyQt4 UI code generator 4.8.3
+# Created: Mon Nov 21 17:04:37 2011
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-
 class Ui_TaurusMessagePanel(object):
     def setupUi(self, TaurusMessagePanel):
-        TaurusMessagePanel.setObjectName(_fromUtf8("TaurusMessagePanel"))
+        TaurusMessagePanel.setObjectName("TaurusMessagePanel")
         TaurusMessagePanel.resize(548, 614)
         self.gridLayout = QtGui.QGridLayout(TaurusMessagePanel)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.gridLayout.setObjectName("gridLayout")
         self.detailsWidget = QtGui.QWidget(TaurusMessagePanel)
-        self.detailsWidget.setObjectName(_fromUtf8("detailsWidget"))
+        self.detailsWidget.setObjectName("detailsWidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.detailsWidget)
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setMargin(0)
-        self.verticalLayout.setMargin(0)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.verticalLayout.setObjectName("verticalLayout")
         self.detailsTabWidget = QtGui.QTabWidget(self.detailsWidget)
         self.detailsTabWidget.setMinimumSize(QtCore.QSize(512, 512))
-        self.detailsTabWidget.setObjectName(_fromUtf8("detailsTabWidget"))
+        self.detailsTabWidget.setObjectName("detailsTabWidget")
         self.tabDetails = QtGui.QWidget()
-        self.tabDetails.setObjectName(_fromUtf8("tabDetails"))
+        self.tabDetails.setObjectName("tabDetails")
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.tabDetails)
         self.verticalLayout_2.setMargin(2)
-        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.detailsTextEdit = QtGui.QTextEdit(self.tabDetails)
         self.detailsTextEdit.setMinimumSize(QtCore.QSize(512, 512))
         self.detailsTextEdit.setReadOnly(True)
-        self.detailsTextEdit.setObjectName(_fromUtf8("detailsTextEdit"))
+        self.detailsTextEdit.setObjectName("detailsTextEdit")
         self.verticalLayout_2.addWidget(self.detailsTextEdit)
-        self.detailsTabWidget.addTab(self.tabDetails, _fromUtf8(""))
+        self.detailsTabWidget.addTab(self.tabDetails, "")
         self.tabOrigin = QtGui.QWidget()
-        self.tabOrigin.setObjectName(_fromUtf8("tabOrigin"))
+        self.tabOrigin.setObjectName("tabOrigin")
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.tabOrigin)
         self.verticalLayout_3.setMargin(2)
-        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.originTextEdit = QtGui.QTextEdit(self.tabOrigin)
         self.originTextEdit.setMinimumSize(QtCore.QSize(512, 256))
         self.originTextEdit.setReadOnly(True)
-        self.originTextEdit.setObjectName(_fromUtf8("originTextEdit"))
+        self.originTextEdit.setObjectName("originTextEdit")
         self.verticalLayout_3.addWidget(self.originTextEdit)
-        self.detailsTabWidget.addTab(self.tabOrigin, _fromUtf8(""))
+        self.detailsTabWidget.addTab(self.tabOrigin, "")
         self.verticalLayout.addWidget(self.detailsTabWidget)
         self.gridLayout.addWidget(self.detailsWidget, 4, 0, 1, 3)
         self.buttonPanelWidget = QtGui.QWidget(TaurusMessagePanel)
-        self.buttonPanelWidget.setObjectName(_fromUtf8("buttonPanelWidget"))
+        self.buttonPanelWidget.setObjectName("buttonPanelWidget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.buttonPanelWidget)
         self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.showDetailsButton = QtGui.QPushButton(self.buttonPanelWidget)
         self.showDetailsButton.setCheckable(True)
-        self.showDetailsButton.setObjectName(_fromUtf8("showDetailsButton"))
+        self.showDetailsButton.setObjectName("showDetailsButton")
         self.horizontalLayout.addWidget(self.showDetailsButton)
         self.copyClipboardButton = QtGui.QPushButton(self.buttonPanelWidget)
-        self.copyClipboardButton.setObjectName(_fromUtf8("copyClipboardButton"))
+        self.copyClipboardButton.setObjectName("copyClipboardButton")
         self.horizontalLayout.addWidget(self.copyClipboardButton)
         self.buttonBox = QtGui.QDialogButtonBox(self.buttonPanelWidget)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
+        self.buttonBox.setObjectName("buttonBox")
         self.horizontalLayout.addWidget(self.buttonBox)
         self.gridLayout.addWidget(self.buttonPanelWidget, 3, 0, 1, 3)
         self.checkBox = QtGui.QCheckBox(TaurusMessagePanel)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.checkBox.setObjectName("checkBox")
         self.gridLayout.addWidget(self.checkBox, 5, 0, 1, 1)
         self.iconTextLayout = QtGui.QHBoxLayout()
-        self.iconTextLayout.setObjectName(_fromUtf8("iconTextLayout"))
+        self.iconTextLayout.setObjectName("iconTextLayout")
         self.iconLabel = QtGui.QLabel(TaurusMessagePanel)
-        self.iconLabel.setObjectName(_fromUtf8("iconLabel"))
+        self.iconLabel.setObjectName("iconLabel")
         self.iconTextLayout.addWidget(self.iconLabel)
         self.textLabel = QtGui.QLabel(TaurusMessagePanel)
-        self.textLabel.setObjectName(_fromUtf8("textLabel"))
+        self.textLabel.setObjectName("textLabel")
         self.iconTextLayout.addWidget(self.textLabel)
-        self.iconTextLayout.setStretch(1, 1)
         self.gridLayout.addLayout(self.iconTextLayout, 1, 0, 2, 3)
 
         self.retranslateUi(TaurusMessagePanel)
@@ -101,14 +93,4 @@ class Ui_TaurusMessagePanel(object):
         self.checkBox.setText(QtGui.QApplication.translate("TaurusMessagePanel", "Don\'t show this message again", None, QtGui.QApplication.UnicodeUTF8))
         self.iconLabel.setText(QtGui.QApplication.translate("TaurusMessagePanel", "iconLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.textLabel.setText(QtGui.QApplication.translate("TaurusMessagePanel", "textLabel", None, QtGui.QApplication.UnicodeUTF8))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    TaurusMessagePanel = QtGui.QWidget()
-    ui = Ui_TaurusMessagePanel()
-    ui.setupUi(TaurusMessagePanel)
-    TaurusMessagePanel.show()
-    sys.exit(app.exec_())
 
