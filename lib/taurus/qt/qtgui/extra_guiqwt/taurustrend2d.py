@@ -49,9 +49,10 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     '''
     def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
-        if options is None:
-            options = dict(lock_aspect_ratio=False)
-        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=options, **kwargs)
+        defaultOptions = dict(lock_aspect_ratio=False)
+        if options is not None:
+            defaultOptions.update(options)
+        ImageDialog.__init__(self, parent=parent, toolbar=toolbar, options=defaultOptions, **kwargs)
         TaurusBaseWidget.__init__(self, "TaurusTrend2DDialog")
         self.trendItem = None  
         self.buffersize = buffersize
@@ -224,7 +225,8 @@ def taurusTrend2DMain():
     if options.demo:
         args.append('eval://sin(x+t)?x=linspace(0,3,40);t=rand()')
         
-    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle="Taurus Trend 2D", buffersize=int(options.max_buffer_size))
+    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle="Taurus Trend 2D", 
+                            buffersize=int(options.max_buffer_size))
     
     #set archiving
     if options.use_archiving:

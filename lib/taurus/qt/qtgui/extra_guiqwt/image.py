@@ -62,7 +62,9 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
-        self.set_data(evt_value.value)
+        lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
+        if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
+        self.set_data(evt_value.value, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
         if p is not None:
@@ -191,7 +193,9 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             plot.set_axis_limits('bottom', x.min(), xmax)
         
         #update the plot data
-        self.set_data(z)
+        lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
+        if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
+        self.set_data(z, lut_range=lut_range)
         self.set_xy(x, y)
         
         #signal data changed and replot
