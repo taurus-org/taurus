@@ -646,6 +646,7 @@ class TaurusGui(TaurusMainWindow):
             customIcon = Qt.QIcon(os.path.join(self._confDirectory, CUSTOMLOGO))
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
+        Qt.QApplication.instance().basicConfig()
         
         #if required, enforce that only one instance of this GUI can be run
         SINGLEINSTANCE = getattr(conf,'SINGLE_INSTANCE', (self.__getVarFromXML(xmlroot,"SINGLE_INSTANCE", 'True').lower() == 'true') )
