@@ -40,6 +40,7 @@ from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.table import TaurusBaseTableWidget
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
+from taurus.core.tango.sardana.pool import getChannelConfigs
 
 
 #===============================================================================
@@ -283,31 +284,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
 
     def roleToolTip(self, taurus_role):
         return getElementTypeToolTip(taurus_role)
-    
-    def getChannelConfigs(self, mgconfig, ctrls=None, units=None):
-        '''
-        gets a list of channel configurations by flattening the controllers and
-        units levels of the given measurement group configuration. It optionally
-        filters to those channels matching given lists of controller and unit
-        names.
-        
-        :return: (list<tuple>) A list of channelname,channeldata pairs. The list
-                 is ordered by channel index (if given in channeldata) and then by
-                 channelname.
-        '''
-        chconfigs = []
-        for ctrl_name, ctrl_data in mgconfig['controllers'].items():
-            if ctrls is None or ctrl_name in ctrls:
-                for unit_id, unit_data in ctrl_data['units'].items():
-                    if units is None or unit_id in units:
-                        for ch_name, ch_data in unit_data['channels'].items():
-                            ch_data.update({'_controller_name':ctrl_name, '_unit_id':unit_id}) #add controller and unit ids
-                            chconfigs.append((ch_name,ch_data))
-        #sort the channel configs by index (primary sort) and then by channel name.         
-        chconfigs = sorted(chconfigs, key=lambda c:c[0]) #sort by channel_name
-        chconfigs = sorted(chconfigs, key=lambda c:c[1].get('index',1e16)) #sort by index (give a very large index for those which don't have it)
-        return chconfigs
-    
+
     def getPyData(self, ctrlname=None, unitid=None, chname=None, key=None):
         '''
         If controller name, unitid and channel name are given, it returns the dictionary with the channel info. 
@@ -330,7 +307,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         if mgconfig is None:
             return
         root = self._rootItem #@The root could eventually be changed for each unit or controller
-        channelNodes = [MntGrpChannelItem(self, chcfg, root) for chcfg in self.getChannelConfigs(mgconfig)]
+        channelNodes = [MntGrpChannelItem(self, chcfg, root) for chcfg in getChannelConfigs(mgconfig)]
         for ch in channelNodes:
             root.appendChild(ch)
         self.updateMntGrpChannelIndex(root=root)
@@ -574,7 +551,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
         elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
             ch_name, ch_data = index.internalPointer().itemData()
             ctrl_filterlist = [ch_data['_controller_name']]
-            selectables = [n for n,d in model.getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
+            selectables = [n for n,d in getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
             editor.addItems(selectables)
             current = model.data(index).toString()
             editor.setCurrentIndex(editor.findText(current))
@@ -583,7 +560,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             current = model.data(index).toString()
             editor.setCurrentIndex(editor.findText(current))
         elif taurus_role == ChannelView.PlotAxes:
-            selectables = ['<idx>','<mov>']+[n for n,d in model.getChannelConfigs(model.dataSource())]
+            selectables = ['<idx>','<mov>']+[n for n,d in getChannelConfigs(model.dataSource())]
             editor.setChoices(selectables)
             current = model.data(index).toString()
             editor.setCurrentChoices(current)
@@ -597,7 +574,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             model.setData(index, data)
         elif taurus_role in (ChannelView.Timer, ChannelView.Monitor, ChannelView.Trigger):
             ch_name, ch_data = index.internalPointer().itemData()
-            affected = [n for n,d in model.getChannelConfigs(model.dataSource(), ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']]) ]
+            affected = [n for n,d in getChannelConfigs(model.dataSource(), ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']]) ]
             if len(affected) >1:
                 op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
                                             "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected), 
@@ -658,7 +635,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     def addChannel(self, channel=None):
         qmodel = self.getQModel()
         if channel is None:
-            shown = [n for n,d in qmodel.getChannelConfigs(qmodel.dataSource())]
+            shown = [n for n,d in getChannelConfigs(qmodel.dataSource())]
             avail_channels = qmodel.getAvailableChannels()
             clist = [ ch_info['name'] for ch_name, ch_info in avail_channels.items()
                       if ch_name not in shown ]

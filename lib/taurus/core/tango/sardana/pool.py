@@ -30,7 +30,7 @@ __all__ = ["AbortException", "BaseElement", "ControllerClass",
            "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel",
            "PseudoCounter", "Motor", "PseudoMotor", "MotorGroup",
            "MeasurementGroup", "IORegister", "Instrument", "Pool",
-           "registerExtensions"]
+           "registerExtensions", "getChannelConfigs"]
 
 __docformat__ = 'restructuredtext'
 
@@ -826,6 +826,38 @@ class TangoChannelInfo(BaseChannelInfo):
         return getattr(self.raw_info, name)
 
 
+def getChannelConfigs(mgconfig, ctrls=None, units=None, sort=True):
+    '''
+    gets a list of channel configurations by flattening the controllers and
+    units levels of the given measurement group configuration. It optionally
+    filters to those channels matching given lists of controller and unit
+    names.
+    
+    :param ctrls: (seq<str> or None) a sequence of strings to filter the 
+                  controllers. If None given, all controllers will be used
+    :param units: (seq<str>) a sequence of strings to filter the units. If 
+                  None given, all controllers will be used
+    :param sort: (bool) If True (default) the returned list will be sorted
+                 according to channel index (if given in channeldata) and
+                 then by channelname.
+    
+    :return: (list<tuple>) A list of channelname,channeldata pairs. 
+    '''
+    chconfigs = []
+    for ctrl_name, ctrl_data in mgconfig['controllers'].items():
+        if ctrls is None or ctrl_name in ctrls:
+            for unit_id, unit_data in ctrl_data['units'].items():
+                if units is None or unit_id in units:
+                    for ch_name, ch_data in unit_data['channels'].items():
+                        ch_data.update({'_controller_name':ctrl_name, '_unit_id':unit_id}) #add controller and unit ids
+                        chconfigs.append((ch_name,ch_data))
+    if sort:
+        #sort the channel configs by index (primary sort) and then by channel name.         
+        chconfigs = sorted(chconfigs, key=lambda c:c[0]) #sort by channel_name
+        chconfigs = sorted(chconfigs, key=lambda c:c[1].get('index',1e16)) #sort by index (give a very large index for those which don't have it)
+    return chconfigs
+
+
 class MGConfiguration(object):
     
     def __init__(self, mg, data):
@@ -845,6 +877,11 @@ class MGConfiguration(object):
                 for channel_name, channel_data in unit_data['channels'].items():
                     data_source = channel_data['source']
                     channels[channel_name] = channel_data
+                    
+        #####################
+        #@todo: the for-loops above could be replaced by something like:
+        #self.channels = channels = CaselessDict(getChannelConfigs(data,sort=False)) 
+        #####################
         
         # seq<dict> each element is the channel data in form of a dict as
         # receveid by the MG configuration attribute. This seq is just a cache
