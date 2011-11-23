@@ -1596,10 +1596,10 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         return []
 
     def getValue(self):
-        raise RuntimeError("Not allowed to call TaurusBaseWritableWidget.getValue()")
+        raise NotImplementedError("Not allowed to call TaurusBaseWritableWidget.getValue()")
 
     def setValue(self, v):
-        raise RuntimeError("Not allowed to call TaurusBaseWritableWidget.setValue()")
+        raise NotImplementedError("Not allowed to call TaurusBaseWritableWidget.setValue()")
 
     def updateStyle(self):
         if self._autoTooltip:
