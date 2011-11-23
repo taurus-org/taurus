@@ -107,7 +107,7 @@ class Motion(Moveable):
         
         first_elem = elements[0]
         
-        if isinstance(first_elem,str):
+        if isinstance(first_elem, (str, unicode)):
             self.init_by_names(elements, moveable_srcs, allow_repeat, allow_unknown)
         else:
             self.init_by_movables(elements, moveable_srcs, allow_repeat, allow_unknown)
