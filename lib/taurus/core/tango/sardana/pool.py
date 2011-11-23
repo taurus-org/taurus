@@ -603,8 +603,8 @@ class Motor(PoolElement, Moveable):
         return self.getStateEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
-    waitMove = PoolElement.waitFinish    
-    move = go    
+    waitMove = PoolElement.waitFinish
+    move = go
     
     @reservedOperation
     def iterMove(self, new_pos, timeout=None):
@@ -758,7 +758,7 @@ class MotorGroup(PoolElement, Moveable):
     def _start(self, *args, **kwargs):
         new_pos = args[0]
         try:
-            self.getPositionObj().write(new_pos)
+            self.write_attribute('position', new_pos)
         except DevFailed, df:
             for err in df:
                 if err.reason == 'API_AttrNotAllowed':
@@ -1108,10 +1108,15 @@ class MeasurementGroup(PoolElement):
         return cfg.channels[cfg.monitor]
 
     def setTimer(self, timer_name):
-        timer_name_l = timer_name.lower()
-        if not timer_name_l in self._user_name_list_l:
-            raise Exception("%s does not contain a channel named '%s'" % (str(self),timer_name))
-        self.getTimerObj().write(timer_name)
+        try:
+            channel = self.getChannel(timer_name)
+        except KeyError:
+            raise Exception("%s does not contain a channel named '%s'"
+                            % (str(self),timer_name))
+        cfg = self.getConfiguration().raw_data
+        cfg['timer'] = timer_name
+        import json
+        self.write_attribute("configuration", json.dumps(cfg))
     
     def getChannels(self):
         return self.getConfiguration().channel_list
@@ -1303,7 +1308,6 @@ class Pool(TangoDevice, MoveableSource):
         except:
             self.error("Could not decode element info")
             return
-        
         elements = self.getElementsInfo()
         for element_data in elems.get('new', ()):
             element_data['manager'] = self
@@ -1398,42 +1402,47 @@ class Pool(TangoDevice, MoveableSource):
     # End of MoveableSource interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
-    def _wait_for_element_in_container(self, container, elem_name, timeout=0.5):
+    def _wait_for_element_in_container(self, container, elem_name, timeout=0.5,
+                                       contains=True):
         start = time.time()
         cond = True
         nap = 0.01
         if timeout:
             nap = timeout / 10.
         while cond:
-            if elem_name in container:
-                return True
+            elem = container.getElement(elem_name)
+            if contains:
+                if elem is not None:
+                    return elem
+            else:
+                if elem is None:
+                    return True
             if timeout:
                 dt = time.time() - start
                 if dt > timeout:
-                    return False
+                    return
             time.sleep(nap)
     
     def createMotorGroup(self, mg_name, elements):
         params = [mg_name,] + map(str, elements)
         self.debug('trying to create motor group for elements: %s', params)
         self.command_inout('CreateMotorGroup', params)
-        elements = self.getElements()
-        if self._wait_for_element_in_container(elements, mg_name):
-            return elements[mg_name]
+        elements_info = self.getElementsInfo()
+        return self._wait_for_element_in_container(elements_info, mg_name)
     
     def createMeasurementGroup(self, mg_name, elements):
         params = [mg_name,] + map(str,elements)
         self.debug('trying to create measurement group: %s', params)
         self.command_inout('CreateMeasurementGroup', params)
-        elements = self.getElements()
-        if self._wait_for_element_in_container(elements, mg_name):
-            return elements[mg_name]
+        elements_info = self.getElementsInfo()
+        return self._wait_for_element_in_container(elements_info, mg_name)
         
     def deleteMeasurementGroup(self, name):
-        mg_list = self.getListObj('MeasurementGroup')
-        mg = mg_list.getObjByName(name)
-        self.command_inout('DeleteMeasurementGroup', name)
-        mg_list.waitEvent(any=True, timeout=0.5)
+        self.debug('trying to delete measurement group: %s', name)
+        self.command_inout('DeleteElement', name)
+        elements_info = self.getElementsInfo()
+        return self._wait_for_element_in_container(elements_info, name,
+                                                   contains=False)
     
     def createElement(self, name, ctrl, axis=None):
         ctrl_type = ctrl.getType()
