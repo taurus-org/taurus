@@ -229,7 +229,6 @@ class PoolMotion(PoolAction):
             # StartAll on all controllers
             for pool_ctrl in pool_ctrls:
                 pool_ctrl.ctrl.StartAll()
-            
     
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable
@@ -258,8 +257,7 @@ class PoolMotion(PoolAction):
         with ActionContext(self) as context:
             positions = self.raw_read_dial_position()
             for moveable, position_info in positions.items():
-                position, exc_info = position_info
-                moveable.put_dial_position(position, propagate=2)
+                moveable.put_dial_position(position_info, propagate=2)
         
         while True:
             self.read_state_info(ret=states)
@@ -331,8 +329,7 @@ class PoolMotion(PoolAction):
                 _start = time.time()
                 self.read_dial_position(ret=positions)
                 for moveable, position_info in positions.items():
-                    position, exc_info = position_info
-                    moveable.put_dial_position(position)
+                    moveable.put_dial_position(position_info)
             
             i += 1
             time.sleep(nap)

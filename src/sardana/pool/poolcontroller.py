@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolController", "PoolPseudoMotorController", 
+__all__ = [ "PoolController", "PoolPseudoMotorController",
             "PoolTangoController" ]
 
 __docformat__ = 'restructuredtext'
@@ -37,11 +37,12 @@ import StringIO
 import traceback
 import functools
 import threading
+import numbers
 
 from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
-from sardana import State, ElementType, InvalidAxis, InvalidId
+from sardana import State, ElementType, InvalidAxis, InvalidId, is_number
 from sardana.sardanaevent import EventType
 
 from poolelement import PoolBaseElement
@@ -530,8 +531,14 @@ class PoolController(PoolBaseController):
             element = self.get_element(axis=axis)
             try:
                 value = ctrl.ReadOne(axis)
-                if value is None:
-                    self.warning("ReadOne(%d) returns 'None'", axis)
+                if not is_number(value):
+                    t = type(value)
+                    if value is None:
+                        t = 'None'
+                    msg = '%s.ReadOne(%s[%d]) return error: Expected number, ' \
+                          'got %s instead' % (self.name, element.name, axis,
+                                              str(t))
+                    raise ValueError(msg)
                 ctrl_values[element] = value, None
             except:
                 ctrl_values[element] = None, sys.exc_info()

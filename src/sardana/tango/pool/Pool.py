@@ -630,13 +630,24 @@ class Pool(PyTango.Device_4Impl, Logger):
         if len(argin) > 4:
             ret['full_name'] = argin[4]
         return [ret]
-        
+    
     def _format_CreateController_arguments(self, argin):
         if len(argin) == 0:
             msg = PoolClass.cmd_list["CreateController"][0][1]
             raise Exception(msg)
         if len(argin) == 1:
-            return self._format_create_json_arguments(argin)
+            ret = self._format_create_json_arguments(argin)
+            if not ret.has_key('type'):
+                raise KeyError("Missing key 'type'")
+            if not ret.has_key('library'):
+                raise KeyError("Missing key 'library'")
+            if not ret.has_key('klass'):
+                raise KeyError("Missing key 'klass'")
+            if not ret.has_key('name'):
+                raise KeyError("Missing key 'name'")
+            if not ret.has_key('properties'):
+                ret['properties'] = CaselessDict()
+            return ret
         
         ret = { 'type' : argin[0], 'library' : argin[1], 'klass' : argin[2], 
                 'name' : argin[3] }
@@ -794,7 +805,7 @@ CREATE_CTRL_DESC = \
 """Must give either:
 
     * A JSON encoded dict as first string with:
-        * mandatory keys: 'type', 'library', 'class' and 'name' (values are
+        * mandatory keys: 'type', 'library', 'klass' and 'name' (values are
           strings).
         * optional keys:
             * 'properties': a dict with keys being property names and values

@@ -26,58 +26,15 @@
 """This module is part of the Python Sardana libray. It defines the base classes
 for Sardana object"""
 
-__all__ = ["SardanaBaseManager", "SardanaAttribute", "SardanaBaseObject"]
+__all__ = ["SardanaBaseObject"]
 
 __docformat__ = 'restructuredtext'
 
 import weakref
-import traceback
 
-from taurus.core.util import Logger, CodecFactory
+from taurus.core.util import Logger
 
-from sardanaevent import EventGenerator, EventReceiver
-
-
-class SardanaBaseManager(object):
-    
-    SerializationProtocol = 'json'
-    
-    def get_serialization_protocol(self):
-        return self.SerializationProtocol
-    
-    def set_serialization_protocol(self, protocol):
-        self.SerializationProtocol = protocol
-    
-    serialization_protocol = property(get_serialization_protocol,
-                                      set_serialization_protocol,
-                                      doc="the serialization protocol")
-    
-    def serialize_element(self, element, *args, **kwargs):
-        obj = element.serialize(*args, **kwargs)
-        return self.serialize_object(obj)
-    
-    def serialize_object(self, obj, *args, **kwargs):
-        return CodecFactory().encode((self.serialization_protocol, obj),
-                                   *args, **kwargs)
-    
-    def str_element(self, element, *args, **kwargs):
-        obj = element.serialize(*args, **kwargs)
-        return self.str_object(obj)
-    
-    def str_object(self, obj, *args, **kwargs):
-        # TODO: use the active codec instead of hardcoded json
-        return  CodecFactory().encode(('json', obj), *args, **kwargs)
-
-
-class SardanaAttribute(object):
-    """Class representing an atomic attribute like position of a motor or a
-    counter value"""
-    
-    def __init__(self):
-        self.value = None
-        self.min_value = None
-        self.max_value = None
-        self.exc_info = None
+from sardanaevent import EventGenerator, EventReceiver, EventType
 
 
 class SardanaBaseObject(EventGenerator, EventReceiver, Logger):

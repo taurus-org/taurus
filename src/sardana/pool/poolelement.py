@@ -31,11 +31,12 @@ __all__ = [ "PoolBaseElement", "PoolElement" ]
 __docformat__ = 'restructuredtext'
 
 import weakref
-import functools
-import threading
+
+from taurus.core.util.lock import TaurusLock
 
 from sardana import State
 from sardana.sardanaevent import EventType
+from sardana.sardanalock import SardanaLock
 from poolbase import PoolObject
 
 
@@ -57,8 +58,10 @@ class PoolBaseElement(PoolObject):
         self._aborted = False
         self._stopped = False
         
+        lock_name = kwargs['name'] + "Lock"
+        
         # A lock for high level operations: monitoring, motion or acquisition
-        self._lock = threading.Lock()
+        self._lock = TaurusLock(name=lock_name)
         
         # The operation context in which the element is involved
         self._operation = None
@@ -69,17 +72,19 @@ class PoolBaseElement(PoolObject):
         super(PoolBaseElement, self).__init__(**kwargs)
 
     def __enter__(self):
-        self._lock.acquire()
+        self.lock()
 
-    def __exit__(self, type, value, traceback):
-        self._lock.release()
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.unlock()
         return False
 
     def lock(self, blocking=True):
-        return self._lock.acquire(blocking)
+        ret = self._lock.acquire(blocking)
+        return ret
     
     def unlock(self):
-        return self._lock.release()
+        ret = self._lock.release()
+        return ret
 
     def get_action_cache(self):
         """Returns the internal action cache object"""
@@ -127,16 +132,16 @@ class PoolBaseElement(PoolObject):
         cache is empty). If propagate > 0 and if the state changed since last
         read, it will propagate the state event to all listeners.
         
-            :param cache: tells if return value from local cache or update
-                          from HW read [default: True]
-            :type cache: bool
-            :param propagate: if > 0 propagates the event in case it changed
-                              since last HW read. Values bigger that mean the
-                              event if sent should be a priority event
-                              [default: 1]
-            :type propagate: int
-            :return: the current object state
-            :rtype: :obj:`sardana.State`"""
+        :param cache: tells if return value from local cache or update
+                      from HW read [default: True]
+        :type cache: bool
+        :param propagate: if > 0 propagates the event in case it changed
+                          since last HW read. Values bigger that mean the
+                          event if sent should be a priority event
+                          [default: 1]
+        :type propagate: int
+        :return: the current object state
+        :rtype: :obj:`sardana.State`"""
         if not cache or self._state is None:
             state_info = self.read_state_info()
             self._set_state_info(state_info, propagate=propagate)

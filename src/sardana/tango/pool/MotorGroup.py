@@ -83,10 +83,6 @@ class MotorGroup(PoolGroupDevice):
                 full_name=full_name, user_elements=self.Elements)
             motor_group.add_listener(self.on_motor_group_changed)
             self.motor_group = motor_group
-        # force a state read to initialize the state attribute
-        #state = self.motor_group.state
-        #self.set_state(to_tango_state(state))
-        self.set_state(DevState.ON)
 
     def on_motor_group_changed(self, event_source, event_type, event_value):
         t = time.time()
@@ -129,15 +125,17 @@ class MotorGroup(PoolGroupDevice):
         pass
     
     def _to_motor_positions(self, pos):
-        return [ pos[elem] for elem in self.motor_group.get_user_elements() ]
+        return [ pos[elem].value for elem in self.motor_group.get_user_elements() ]
     
     def read_Position(self, attr):
         # if motors are moving their position is already being updated with a
         # high frequency so don't bother overloading and just get the cached
         # values
-        cache = self.get_state() == DevState.MOVING
-        positions = self.motor_group.get_position(cache=cache)
+        moving = self.get_state() == DevState.MOVING
+        positions = self.motor_group.get_position(cache=moving)
         positions = self._to_motor_positions(positions)
+        if moving:
+            attr.set_quality(AttrQuality.ATTR_CHANGING)
         attr.set_value(positions)
     
     def write_Position(self, attr):

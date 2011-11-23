@@ -51,6 +51,9 @@ class PoolBaseExternalObject(PoolBaseObject):
     
     def get_source(self):
         return self.full_name
+    
+    def get_config(self):
+        raise NotImplementedError
 
 
 class PoolTangoObject(PoolBaseExternalObject):
@@ -72,7 +75,8 @@ class PoolTangoObject(PoolBaseExternalObject):
             if devalias is not None:
                 try:
                     device_name = db.get_device_alias(devalias)
-                    full_name = "{0}:{1}/{2}/{3}".format(host, port, device_name,
+                    full_name = "{0}:{1}/{2}/{3}".format(host, port,
+                                                         device_name,
                                                          attribute_name)
                 except:
                     full_name = "{0}/{1}".format(devalias, attribute_name)
@@ -81,6 +85,8 @@ class PoolTangoObject(PoolBaseExternalObject):
                                                  attribute_name)
         self._device_name = device_name
         self._attribute_name = attribute_name
+        self._config = None
+        self._device = None
         kwargs['name'] = attribute_name
         kwargs['full_name'] = full_name
         PoolBaseExternalObject.__init__(self, **kwargs)
@@ -91,6 +97,25 @@ class PoolTangoObject(PoolBaseExternalObject):
     def get_attribute_name(self):
         return self._attribute_name
     
+    def get_device(self):
+        device = self._device
+        if device is None:
+            try:
+                self._device = device = PyTango.DeviceProxy(self._device_name)
+            except:
+                pass
+        return device
+    
+    def get_config(self):
+        config= self._config
+        if config is None:
+            try:
+                self._config = config = \
+                    self._device.get_attribute_config(self._attribute_name)
+            except:
+                pass
+        return config
+
     device_name = property(get_device_name)
     attribute_name = property(get_attribute_name)
     

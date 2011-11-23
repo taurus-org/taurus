@@ -31,9 +31,13 @@ __all__ = ["EpsilonError", "ServerState", "SardanaServer", "State",
            "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
-           "TYPE_PSEUDO_ELEMENTS"]
+           "TYPE_PSEUDO_ELEMENTS",
+           "is_number", "ScalarNumberFilter"]
 
 __docformat__ = 'restructuredtext'
+
+import functools
+import numbers
 
 from taurus.core.util import Enumeration
 
@@ -219,7 +223,7 @@ InvalidId = 0
 #: A constant representing an invalid axis
 InvalidAxis = 0
 
-#: An enumeration describing the all possible element types in the device pool
+#: An enumeration describing the all possible element types in sardana
 ElementType = Enumeration("ElementType", ( \
     "Pool",
     "Controller",
@@ -268,3 +272,31 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
 
 #: a set containing the possible types of pseudo elements
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
+
+risinstance = lambda kls_typ_or_tpl, obj : isinstance(obj, kls_typ_or_tpl)
+
+_is_pure_number = functools.partial(risinstance, numbers.Number)
+
+def is_number(value):
+    """utility function to determine if an object is a number"""
+    if _is_pure_number(value):
+        return True
+    if numpy:
+        return numpy.isreal(value) and numpy.isscalar(value)
+    return False
+
+
+class ScalarNumberFilter(object):
+    """A simple scalar number filter that returns ``False`` if two numbers are
+    indentical (i.e. |a-b| < error)"""
+    
+    def __call__(self, a, b):
+        try:
+            return fabs(a-b) > EpsilonError
+        except:
+            return a != b

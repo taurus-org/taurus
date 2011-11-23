@@ -45,6 +45,7 @@ class PoolBaseGroup(PoolContainer):
         self._user_element_ids = None
         self._user_elements = None
         self._physical_elements = None
+        self._state_statistics = {}
         self.set_user_element_ids(kwargs.pop('user_elements'))
         PoolContainer.__init__(self)
     
@@ -81,25 +82,41 @@ class PoolBaseGroup(PoolContainer):
                 action_cache.add_element(physical_element)
         return action_cache
     
-    def _calculate_states(self):
+    def _calculate_states(self, state_info=None):
         user_elements = self.get_user_elements()
-        fault, alarm, on, moving = [], [], [], []
+        none, unknown = set(), set()
+        fault, alarm, on, moving = set(), set(), set(), set()
         status = []
-        for elem in user_elements:
+        if state_info is None:
+            state_info = {}
+            for elem in user_elements:
+                # cannot call get_state(us) here since it may lead to dead lock!
+                si = elem.inspect_state(), elem.inspect_status()
+                state_info[elem] = si
+        for elem, elem_state_info in state_info.items():
             if elem.get_type() == ElementType.External:
                 continue
-            u_state = elem.get_state(propagate=0)
-            u_status = elem.get_status(propagate=0).split("\n", 1)[0]
+            u_state, u_status = elem_state_info
+            if u_status is None:
+                u_status = '%s is None' % elem.name
+            else:
+                u_status = u_status[1].split("\n", 1)[0]
             if u_state == State.Moving:
-                moving.append(elem)
+                moving.add(elem)
             elif u_state == State.On: 
-                on.append(elem)
+                on.add(elem)
             elif u_state == State.Fault:
-                fault.append(elem)
+                fault.add(elem)
             elif u_state == State.Alarm:
-                alarm.append(elem)
+                alarm.add(elem)
+            elif u_state is State.Unknown:
+                unknown.add(elem)
+            elif u_state is None:
+                none.add(elem)
             status.append(u_status)
         state = State.On
+        if none or unknown:
+            state = State.Unknown
         if fault:
             state = State.Fault
         elif alarm:
@@ -107,7 +124,8 @@ class PoolBaseGroup(PoolContainer):
         elif moving:
             state = State.Moving
         self._state_statistics = { State.On : on, State.Fault : fault,
-                                   State.Alarm : alarm, State.Moving : moving }
+                                   State.Alarm : alarm, State.Moving : moving,
+                                   State.Unknown : unknown, None : none }
         return state, "\n".join(status)
     
     def _build_elements(self):

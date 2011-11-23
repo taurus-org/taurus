@@ -140,15 +140,30 @@ class PoolMeasurementGroup(PoolGroupElement):
         """Fills the channel default values for the given channel dictionnary"""
         
         external_from_name = isinstance(channel, (str, unicode))
+        ndim = None
+        instrument = None
         if external_from_name:
             name = full_name = source = channel
-            instrument = None
         else:
             name = channel.name
             full_name = channel.full_name
             source = channel.get_source()
             instrument = channel.instrument
-            
+            ndim = None
+            ctype = channel.get_type()
+            if ctype == ElementType.CTExpChannel:
+                ndim = 0
+            elif ctype == ElementType.ZeroDExpChannel:
+                ndim = 0
+            elif ctype == ElementType.OneDExpChannel:
+                ndim = 1
+            elif ctype == ElementType.TwoDExpChannel:
+                ndim = 2
+            elif ctype == ElementType.External:
+                config = channel.get_config()
+                if config is not None:
+                    ndim = int(config.data_format)
+        
         # Definitively should be initialized by measurement group
         # index MUST be here already (asserting this in the following line)
         channel_data['index'] = channel_data['index']
@@ -158,7 +173,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         channel_data['enabled'] = channel_data.get('enabled', True)
         channel_data['label'] = channel_data.get('label', channel_data['name'])
         channel_data['instrument'] = channel_data.get('instrument', instrument)
-        
+        channel_data['ndim'] = ndim
         # Probably should be initialized by measurement group
         channel_data['output'] = channel_data.get('output', True)
         
@@ -181,6 +196,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         for elem in user_elements:
             if elem.get_type() == ElementType.CTExpChannel:
                 first_ct = elem
+                break
         if first_ct is None:
             raise Exception("It is not possible to construct a measurement "
                             "group without at least one Counter/Timer channel "

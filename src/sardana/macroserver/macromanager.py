@@ -781,16 +781,19 @@ class MacroExecutor(Logger):
         for macro, objs in self._reserved_macro_objs.items():
             for obj in objs:
                 try:
-                    self.debug("%s aborting %s", macro._getName(), obj.getName())
                     obj.abort()
                 except AttributeError:
                     pass
-                except Exception:
+                except Exception, e:
                     self.warning("Unable to abort %s" % obj)
                     self.debug("Unable to abort %s. Details:", obj, exc_info=1)
-
+    
     def abort(self):
+        self.main_manager.addJob(self._abort, None)
+    
+    def _abort(self):
         self._aborted, m = True, self.getRunningMacro()
+        
         if m is not None:
             m.abort()
             if m.isPaused():
@@ -991,7 +994,7 @@ class MacroExecutor(Logger):
         if ms is not None:
             ms['state'] = 'abort'
             
-            self.debug("Sending abort event %s", ms)
+            self.debug("Sending abort event")
             self.sendMacroStatus((ms,))
 
     def sendMacroStatusException(self, exc_info):
@@ -1001,21 +1004,21 @@ class MacroExecutor(Logger):
             ms['exc_type'] = str(exc_info[0])
             ms['exc_value'] = str(exc_info[1])
             ms['exc_stack'] = traceback.format_exception(*exc_info)
-            self.debug("Sending exception event %s", ms)
+            self.debug("Sending exception event")
             self.sendMacroStatus((ms,))
 
     def sendMacroStatusPause(self):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
             ms['state'] = 'pause'
-            self.debug("Sending pause event %s", ms)
+            self.debug("Sending pause event")
             self.sendMacroStatus((ms,))
 
     def sendMacroStatusResume(self):
         ms = self.getLastMacroStatus()
         if ms is not None and len(ms) > 0:
             ms['state'] = 'resume'
-            self.debug("Sending resume event %s", ms)
+            self.debug("Sending resume event")
             self.sendMacroStatus((ms,))
 
     def sendMacroStatus(self, data):

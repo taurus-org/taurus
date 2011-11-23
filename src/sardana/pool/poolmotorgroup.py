@@ -33,15 +33,14 @@ __docformat__ = 'restructuredtext'
 import math
 
 from sardana import State, ElementType
+from sardana.sardanaattribute import SardanaAttribute, SardanaSoftwareAttribute
 from sardana.sardanaevent import EventType
 
-from poolbase import *
 from poolgroupelement import PoolGroupElement
-from poolmotion import *
-from poolmotor import *
-from poolmoveable import *
+from poolmotion import PoolMotion
 
 from taurus.core.util import DebugIt
+
 
 class PhyElement(object):
     
@@ -57,12 +56,14 @@ class UserElement(object):
         self.user_elem_indexes = user_elem_indexes
 
 
+class Position(SardanaAttribute):
+    pass
+    
+    
 class PoolMotorGroup(PoolGroupElement):
 
     def __init__(self, **kwargs):
         self._positions = {}
-        self._states = {}
-        self._state_statistics = {}
         self._physical_elements = []
         PoolGroupElement.__init__(self, **kwargs)
     
@@ -96,6 +97,25 @@ class PoolMotorGroup(PoolGroupElement):
         PoolGroupElement.add_user_element(self, element, index=index)
     
     # --------------------------------------------------------------------------
+    # state information
+    # --------------------------------------------------------------------------
+    
+    def read_state_info(self):
+        state_info = {}
+        ctrl_state_info = self.motion.read_state_info(serial=True)
+        for elem, ctrl_elem_state_info in ctrl_state_info.items():
+            elem_state_info = elem._from_ctrl_state_info(ctrl_elem_state_info)
+            state_info[elem] = elem_state_info[:2]
+            elem.put_state_info(elem_state_info)
+        return state_info
+        
+    def _set_state_info(self, state_info, propagate=1):
+        state_info = self._calculate_states(state_info)
+        state, status = state_info
+        self._set_status(status, propagate=propagate)
+        self._set_state(state, propagate=propagate)
+        
+    # --------------------------------------------------------------------------
     # position
     # --------------------------------------------------------------------------
     
@@ -104,8 +124,7 @@ class PoolMotorGroup(PoolGroupElement):
         if not cache or positions is None:
             dial_position_infos = self.motion.read_dial_position(serial=True)
             for motion_obj, position_info in dial_position_infos.items():
-                position, exc_info = position_info
-                motion_obj.put_dial_position(position, propagate=propagate)
+                motion_obj.put_dial_position(position_info, propagate=propagate)
             positions = {}
             for motion_obj in self.get_user_elements():
                 positions[motion_obj] = motion_obj.get_position(propagate=0)
@@ -123,13 +142,12 @@ class PoolMotorGroup(PoolGroupElement):
         if not propagate:
             return
         self.fire_event(EventType("position", priority=propagate), positions)
-
+    
     def put_element_position(self, element, position, propagate=1):
         self._positions[element] = position
         if not propagate or len(self._positions) < len(self.get_user_elements()):
             return
         self.fire_event(EventType("position", priority=propagate), self._positions)
-        
     
     position = property(get_position, set_position, doc="motor group positions")
     
@@ -153,6 +171,7 @@ class PoolMotorGroup(PoolGroupElement):
             items = {}
             for new_position, element in zip(new_positions, user_elements):
                 element.calculate_motion(new_position, items=items)
+            self.debug("Start motion")
             self.motion.run(items=items)
     
 

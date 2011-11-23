@@ -266,12 +266,15 @@ def mAPI(fn):
     @functools.wraps(fn)
     def new_fn(*args, **kwargs):
         self = args[0]
-        if self.isAborted() and not self.isProcessingAbort():
-            self.setProcessingAbort(True)
+        is_macro_th = self._macro_thread == threading.current_thread()
+        if self._shouldRaiseAbortException():
+            if is_macro_th:
+                self.setProcessingAbort(True)
             raise AbortException("aborted before calling %s" % fn.__name__)
         ret = fn(*args, **kwargs)
-        if self.isAborted() and not self.isProcessingAbort():
-            self.setProcessingAbort(True)
+        if self._shouldRaiseAbortException():
+            if is_macro_th:
+                self.setProcessingAbort(True)
             raise AbortException("aborted after calling %s" % fn.__name__)
         return ret
     return new_fn
@@ -349,6 +352,7 @@ class Macro(Logger):
         self._parent_macro = kwargs.get('parent_macro')
         self._executor = kwargs.get('executor')
         self._macro_line = kwargs.get('macro_line')
+        self._macro_thread = None
         self._id = kwargs.get('id')
         self._desc = "Macro '%s'" % self._macro_line
         self._macro_status = { 'id' : self._id,
@@ -356,14 +360,13 @@ class Macro(Logger):
                                'state' : 'start',
                                'step' : 0.0 }
         self._pause_event = PauseEvent(self)
-        self._macros = MacroFinder(self)
         log_parent = self._parent_macro or self.getDoorObj() or self.getManager()
         Logger.__init__(self, "Macro[%s]" % self._name, log_parent)
         self._reserveObjs(args)
 
     ## @name Official Macro API
     #  This list contains the set of methods that are part of the official macro
-    #  API. This means that they can be safelly used inside any macro.
+    #  API. This means that they can be safely used inside any macro.
     #@{
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -425,6 +428,8 @@ class Macro(Logger):
                scan_data = m.data
         """
         self.checkPoint()
+        if not hasattr(self, '_macros'):
+            self._macros = MacroFinder(self)
         return self._macros
     
     @mAPI
@@ -680,7 +685,7 @@ class Macro(Logger):
            :param kw: list of keyword arguments
         """
         return Logger.critical(self, *args, **kwargs)
-
+    
     @mAPI
     def output(self, *args, **kwargs):
         """**Macro API**.
@@ -692,7 +697,7 @@ class Macro(Logger):
            :param kw: list of keyword arguments
         """
         return Logger.output(self, *args, **kwargs)
-
+    
     @mAPI
     def flushOutput(self):
         """**Macro API**.
@@ -924,19 +929,19 @@ class Macro(Logger):
         """**Macro API**. Specifies the begining of a block of data. Basically
         it outputs the 'BLOCK' tag"""
         self.output(Macro.BlockStart)
-
+    
     @mAPI
     def setLogBlockFinish(self):
         """**Macro API**. Specifies the end of a block of data. Basically it
         outputs the '/BLOCK' tag"""
         self.output(Macro.BlockFinish)
-
+    
     @mAPI
     def outputBlock(self, line):
         """**Macro API**. Sends an line tagged as a block to the output
         
         :param str line: line to be sent"""
-        if type(line) in types.StringTypes:
+        if isinstance(line, (str, unicode)):
             o = line
         elif operator.isSequenceType(line):
             o = "\n".join(line)
@@ -1277,7 +1282,10 @@ class Macro(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro execution methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
+    
+    def _shouldRaiseAbortException(self):
+        return self.isAborted() and not self.isProcessingAbort()
+    
     def _reserveObjs(self, args):
         """**Internal method**. Used to reserve a set of objects for this macro"""
         for obj in args:

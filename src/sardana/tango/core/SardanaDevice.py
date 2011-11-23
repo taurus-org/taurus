@@ -69,7 +69,7 @@ class SardanaDevice(Device_4Impl, Logger):
         return self.get_name()
     
     def init_device(self):
-        self.set_state(DevState.ALARM)
+        self.set_state(DevState.ON)
         self.set_status('Waiting to be initialized...')
 
         self.get_device_properties(self.get_device_class())

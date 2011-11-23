@@ -84,10 +84,11 @@ class ModuleManager(Singleton, Logger):
         m, trace, file = None, None, None
         try:
             file, pathname, desc = imp.find_module(module_name, path)
-            self.info("(re)loading module %s", module_name)
+            self.info("(re)loading module %s...", module_name)
             m = imp.load_module(module_name, file, pathname, desc)
         except:
-            self.info("Error (re)loading module %s", module_name, exc_info=1)
+            self.error("Error (re)loading module %s", module_name)
+            self.debug("Details:", exc_info=1)
             raise
         finally:
             if file is not None:

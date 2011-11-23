@@ -31,14 +31,16 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed, DevVoid, DevShort, DevLong, DevLong64, \
-    DevDouble, DevBoolean, DevString, DispLevel, DevState, AttrQuality, \
-    READ, READ_WRITE, SCALAR, SPECTRUM, \
-    AttrData, Attr, SpectrumAttr, ImageAttr
+from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
+    DevLong64, DevDouble, DevBoolean, DevString, DispLevel, DevState, \
+    AttrQuality, TimeVal, AttrData, Attr, SpectrumAttr, ImageAttr, \
+    READ, READ_WRITE, SCALAR, SPECTRUM
+    
 
 from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
 from sardana import ServerState, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import to_tango_type_format, to_tango_state
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
@@ -95,9 +97,7 @@ class Motor(PoolElementDevice):
             return
         
         t = time.time()
-        name = event_type.name
-        if name == "dial_position":
-            name = "dialposition"
+        name = event_type.name.lower()
         multi_attr = self.get_device_attr()
         try:
             attr = multi_attr.get_attr_by_name(name)
@@ -106,7 +106,7 @@ class Motor(PoolElementDevice):
         quality = AttrQuality.ATTR_VALID
         
         recover = False
-        if event_type.priority > 1:
+        if event_type.priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
         
@@ -119,7 +119,14 @@ class Motor(PoolElementDevice):
                 self.set_status(event_value)
                 self.push_change_event(name, event_value)
             else:
+                if isinstance(event_value, SardanaAttribute):
+                    if event_value.error:
+                        dev_failed = Except.to_dev_failed(*event_value.exc_info)
+                        self.push_change_event(name, dev_failed)
+                        return
+                    event_value = event_value.value
                 state = to_tango_state(self.motor.get_state())
+                
                 if name == "position" or name == "dialposition":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING
@@ -164,9 +171,12 @@ class Motor(PoolElementDevice):
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
         position = self.motor.get_position(cache=moving)
-        attr.set_value(position)
+        if position.error:
+            Except.throw_python_exception(*position.exc_info)
+        attr.set_value(position.value)
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
+        attr.set_date(TimeVal.fromtimestamp(position.timestamp))
     
     def write_Position(self, attr):
         self.motor.position = attr.get_write_value()
@@ -196,7 +206,7 @@ class Motor(PoolElementDevice):
         self.motor.velocity = attr.get_write_value()
 
     def read_Offset(self, attr):
-        attr.set_value(self.motor.get_offset(cache=False))
+        attr.set_value(self.motor.get_offset(cache=False).value)
     
     def write_Offset(self, attr):
         self.motor.offset = attr.get_write_value()
@@ -204,10 +214,13 @@ class Motor(PoolElementDevice):
     def read_DialPosition(self, attr):
         moving = self.get_state() == DevState.MOVING
         dial_position = self.motor.get_dial_position(cache=moving)
-        attr.set_value(dial_position)
+        if dial_position.error:
+            Except.throw_python_exception(*dial_position.exc_info)
+        attr.set_value(dial_position.value)
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
-    
+        attr.set_date(TimeVal.fromtimestamp(dial_position.timestamp))
+        
     def read_Step_per_unit(self, attr):
         attr.set_value(self.motor.get_step_per_unit(cache=False))
     
@@ -222,7 +235,7 @@ class Motor(PoolElementDevice):
         self.motor.backlash = attr.get_write_value()
     
     def read_Sign(self, attr):
-        sign = self.motor.get_sign(cache=False)
+        sign = self.motor.get_sign(cache=False).value
         attr.set_value(sign)
     
     def write_Sign(self, attr):

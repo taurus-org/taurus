@@ -75,7 +75,7 @@ class _wm(Macro):
             
             
 class wa(Macro):
-    """Show all motor position"""
+    """Show all motor positions"""
 
     def prepare(self, **opts):
         self.all_motors = self.findObjs('.*', type_class=Type.Motor)
@@ -190,7 +190,7 @@ class pwm(Macro):
         self.execMacro('wm', *motor_list, **Table.PrettyOpts)
 
 class mv(Macro):
-    """Move motor(s) to the specified position(s) and hello"""
+    """Move motor(s) to the specified position(s)"""
 
     param_def = [
        [ 'motor_pos_list',
@@ -215,44 +215,6 @@ class mv(Macro):
             self.debug("Starting %s movement to %s", motor.getName(), pos)
         motion = self.getMotion(motors)
         motion.move(positions)
-
-
-class mv2(Macro):
-    """Move motor(s) to the specified position(s)"""
-
-    param_def = [
-       [ 'motor_pos_list',
-         ( [ 'motor', Type.Motor, None, 'Motor to move'],
-           [ 'pos',   Type.Float, None, 'Position to move to'],
-           { 'min' : 1, 'max' : None } ),
-        None, 'List of motor/position pairs'],
-    ]
-
-    param_def = [
-       ['motor_pos_list',
-        ParamRepeat(['motor', Type.Motor, None, 'Motor to move'],
-                    ['pos',   Type.Float, None, 'Position to move to']),
-        None, 'List of motor/position pairs'],
-    ]
-
-    def run(self, *motor_pos_list):
-        motors, positions = [], []
-        for motor, pos in motor_pos_list:
-            motors.append(motor)
-            positions.append(pos)
-            self.debug("Starting %s movement to %s", motor.getName(), pos)
-        orig_p = motor_pos_list[0][0].getPosition(force=True)
-        final_p = motor_pos_list[0][1]
-        dp = abs(final_p - orig_p)
-        
-        motion = self.getMotion(motors)
-        self.info("Start move")
-        for p in motion.iterMove(positions):
-            curr_dp = abs(p - orig_p)
-            yield curr_dp/dp*100.0
-        yield 100.0
-        self.info("end")
-
 
 class mstate(Macro):
 
@@ -303,14 +265,11 @@ class umv(Macro):
                 raise e
     
     def positionChanged(self, motor, position):
-        try:
-            idx = self.all_names.index([motor.getName()])
-            self.all_pos[idx] = [position]
-            if self.print_pos:
-                self.printAllPos()
-        except Exception,e:
-            print str(e)
-            
+        idx = self.all_names.index([motor.getName()])
+        self.all_pos[idx] = [position]
+        if self.print_pos:
+            self.printAllPos()
+    
     def printAllPos(self):
         motor_width = 10
         table = Table(self.all_pos, elem_fmt=['%*.4f'],
