@@ -90,11 +90,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._parent = parent #@todo: maybe this should be converted to a weakref?
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
-        self.__xBuffer = None
-        self.__yBuffer = None
+        self._xBuffer = None
+        self._yBuffer = None
         self.forcedReadingTimer = None
-        try: self.__maxBufferSize = self._parent.getMaxDataBufferSize()
-        except: self.__maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
+        try: self._maxBufferSize = self._parent.getMaxDataBufferSize()
+        except: self._maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
         if curves is None:
             self._curves = {}
             self._orderedCurveNames = []
@@ -282,42 +282,42 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         else:
             ntrends=len(value.value)
             
-        if self.__xBuffer is None:
-            self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.__maxBufferSize )
-        if self.__yBuffer is None:
-            self.__yBuffer = ArrayBuffer(numpy.zeros((128, ntrends),dtype='d'), maxSize=self.__maxBufferSize )
+        if self._xBuffer is None:
+            self._xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self._maxBufferSize )
+        if self._yBuffer is None:
+            self._yBuffer = ArrayBuffer(numpy.zeros((128, ntrends),dtype='d'), maxSize=self._maxBufferSize )
         
-        self.__yBuffer.append(value.value)
+        self._yBuffer.append(value.value)
         
         if self._parent.getXIsTime():
             #add the timestamp to the x buffer
-            self.__xBuffer.append(value.time.totime())
+            self._xBuffer.append(value.time.totime())
             ##Adding archiving values
             if self._parent.getUseArchiving():
                 if self._parent.getXDynScale() or not self._parent.axisAutoScale(Qwt5.QwtPlot.xBottom): #Do not open a mysql connection for autoscaled plots
                     startdate = self._parent.axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
-                    stopdate = self.__xBuffer[0] #Older value already read
+                    stopdate = self._xBuffer[0] #Older value already read
                     try:
                         archived = getArchivedTrendValues(self,model,startdate,stopdate)
-                        del(archived[:-self.__xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
+                        del(archived[:-self._xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
                         t = numpy.zeros(len(archived), dtype=float)
-                        y = numpy.zeros((len(archived), ntrends), dtype=float)#self.__yBuffer.dtype)
+                        y = numpy.zeros((len(archived), ntrends), dtype=float)#self._yBuffer.dtype)
                         for i,v in enumerate(archived):
                             t[i]=v.time.totime()
                             y[i]=v.value
-                        self.__xBuffer.extendLeft(t)
-                        self.__yBuffer.extendLeft(y)
+                        self._xBuffer.extendLeft(t)
+                        self._yBuffer.extendLeft(y)
                         if archived is not None and len(archived): self.replot()
                     except Exception,e:
                         self.trace('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),str(e)))     
         else:
             #add the event number to the x buffer
             try:
-                self.__xBuffer.append(1.+self.__xBuffer[-1]) 
+                self._xBuffer.append(1.+self._xBuffer[-1]) 
             except IndexError: #this will happen when the x buffer is empty
-                self.__xBuffer.append(0) 
+                self._xBuffer.append(0) 
         
-        return self.__xBuffer.contents(), self.__yBuffer.contents()
+        return self._xBuffer.contents(), self._yBuffer.contents()
 
     def clearTrends(self, replot=True):
         '''clears all stored data (buffers and copies of the curves data)
@@ -330,8 +330,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._curves = {}
         self._orderedCurveNames = []
         #clean history Buffers
-        self.__xBuffer = None
-        self.__yBuffer = None
+        self._xBuffer = None
+        self._yBuffer = None
         #clean x,ydata
         self._xValues = None
         self._yValues = None
@@ -402,12 +402,12 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         :param maxSize: (int) the maximum limit
         '''
-        self.__xBuffer.setMaxSize(maxSize)
-        self.__yBuffer.setMaxSize(maxSize)
-        self.__maxBufferSize = maxSize
+        self._xBuffer.setMaxSize(maxSize)
+        self._yBuffer.setMaxSize(maxSize)
+        self._maxBufferSize = maxSize
         
     def maxDataBufferSize(self):
-        return self.__maxBufferSize
+        return self._maxBufferSize
 
     def setForcedReadingPeriod(self, msec):
         '''
@@ -589,7 +589,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         if self._autoClear:
             self.clearTrends()
         #decide which data to use for x
-        if self._xDataKey is None:
+        if self._xDataKey is None or self._xDataKey == "<mov>": #@todo use a standard key for <mov> and <idx>
             try:
                 self._autoXDataKey = datadesc['ref_moveables'][0]
             except KeyError, IndexError:
@@ -626,9 +626,9 @@ class ScanTrendsSet(TaurusTrendsSet):
         rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
         for dd in self.__datadesc:
             if len(stripShape(dd['shape']))== 0: #an scalar
-                label = dd["label"]
-                if label not in self._curves and self._plotablesFilter(dd) and label != self._autoXDataKey:
-                    rawdata["title"] = label
+                name = dd["name"]
+                if name not in self._curves and self._plotablesFilter(name) and name != self._autoXDataKey:
+                    rawdata["title"] = dd["label"]
                     curve = self._parent.attachRawData(rawdata)
                     prop = curve.getAppearanceProperties()
                     prop.sColor = prop.lColor
@@ -637,7 +637,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     prop.lWidth = 1
                     prop.lStyle = Qt.Qt.DotLine
                     curve.setAppearanceProperties(prop)
-                    self.addCurve(label, curve)
+                    self.addCurve(name, curve)
         self._parent.autoShowYAxes()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
     
@@ -663,17 +663,17 @@ class ScanTrendsSet(TaurusTrendsSet):
         #If autoclear is True, we use buffers
         if self._autoClear:
             curvenames = self.getCurveNames()
-            if self.__xBuffer is None:
-                self.__xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize() )
-            if self.__yBuffer is None:
-                self.__yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)),dtype='d'), maxSize=self.maxDataBufferSize() )
+            if self._xBuffer is None:
+                self._xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize() )
+            if self._yBuffer is None:
+                self._yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)),dtype='d'), maxSize=self.maxDataBufferSize() )
             #x values
-            self.__xBuffer.append(self._currentpoint)
+            self._xBuffer.append(self._currentpoint)
             #y values        
             y = numpy.array([recordData.get(n,numpy.NaN) for n in curvenames])
-            self.__yBuffer.append(y)
+            self._yBuffer.append(y)
             
-            self._xValues, self._yValues = self.__xBuffer.contents(), self.__yBuffer.contents()
+            self._xValues, self._yValues = self._xBuffer.contents(), self._yBuffer.contents()
     
             #assign xvalues and yvalues to each of the curves in self._curves
             for i,(n,c) in enumerate(self.getCurves()):
