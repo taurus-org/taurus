@@ -70,13 +70,15 @@ class TaurusMessageErrorHandler(object):
         :type error: object"""
         
         msgbox = self._msgbox
-        error = str(err_value)
+        error = "".join(traceback.format_exception_only(err_type, err_value))
         msgbox.setText(error)
         msg = "<html><body><pre>%s</pre></body></html>" % error
         msgbox.setDetailedHtml(msg)
 
-        html_orig = """<html><head><style type="text/css">{style}</style></head><body>"""
-        exc_info = "".join(traceback.format_exception(err_type, err_value, err_traceback))
+        html_orig = '<html><head><style type="text/css">{style}</style>' \
+                    '</head><body>'
+        exc_info = "".join(traceback.format_exception(err_type, err_value,
+                                                      err_traceback))
         style = ""
         if pygments is not None:
             formatter = HtmlFormatter()
@@ -103,7 +105,8 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
         :type error: object"""
         
         msgbox = self._msgbox
-        html_orig = """<html><head><style type="text/css">{style}</style></head><body>"""
+        html_orig = '<html><head><style type="text/css">{style}</style>' \
+                    '</head><body>'
         style, formatter = "", None
         if pygments is not None:
             formatter = HtmlFormatter()
@@ -121,7 +124,8 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
         msgbox.setText(err_value[0].desc)
         msgbox.setDetailedHtml(html)
 
-        exc_info = "".join(traceback.format_exception(err_type, err_value, err_traceback))
+        exc_info = "".join(traceback.format_exception(err_type, err_value,
+                                                      err_traceback))
         html = html_orig.format(style=style)
         if pygments is None:
             html += "<pre>%s</pre>" % exc_info
@@ -300,8 +304,6 @@ class TaurusMessagePanel(Qt.QWidget):
         :type role: PyQt4.Qt.QDialogButtonBox.ButtonRole"""
         self._ui.buttonBox.addButton(button, role)
     
-
-    
     def setIconPixmap(self, pixmap):
         """Sets the icon to the dialog
         
@@ -395,7 +397,8 @@ class TaurusMessagePanel(Qt.QWidget):
                 msgbox.setError(*exc_info)
                 msgbox.show()
         
-        :param err_type: the exception type of the exception being handled (a class object)
+        :param err_type:
+            the exception type of the exception being handled (a class object)
         :type error: class object
         :param err_value: exception object
         :type err_value: object
@@ -412,7 +415,8 @@ class TaurusMessagePanel(Qt.QWidget):
     def getError(self):
         """Returns the current exception information of this panel
         
-        :return: the current exception information (same as type as returned by :func:`sys.exc_info`)
+        :return: the current exception information (same as type as returned by
+                 :func:`sys.exc_info`)
         :rtype: tuple<type, value, traceback>"""
         return self._exc_info
 
