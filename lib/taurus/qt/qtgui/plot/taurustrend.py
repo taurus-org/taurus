@@ -33,7 +33,6 @@ from datetime import datetime
 import time
 import numpy
 import re
-import weakref
 import gc
 from taurus.qt import Qt
 from PyQt4 import Qwt5
@@ -89,13 +88,12 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     
     """
     def __init__(self, name, parent = None, curves=None):
-        self._parent = weakref.proxy(parent)
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._xBuffer = None
         self._yBuffer = None
         self.forcedReadingTimer = None
-        try: self._maxBufferSize = self._parent.getMaxDataBufferSize()
+        try: self._maxBufferSize = self.parent().getMaxDataBufferSize()
         except: self._maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
         if curves is None:
             self._curves = {}
@@ -291,13 +289,13 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         self._yBuffer.append(value.value)
         
-        if self._parent.getXIsTime():
+        if self.parent().getXIsTime():
             #add the timestamp to the x buffer
             self._xBuffer.append(value.time.totime())
             ##Adding archiving values
-            if self._parent.getUseArchiving():
-                if self._parent.getXDynScale() or not self._parent.axisAutoScale(Qwt5.QwtPlot.xBottom): #Do not open a mysql connection for autoscaled plots
-                    startdate = self._parent.axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
+            if self.parent().getUseArchiving():
+                if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom): #Do not open a mysql connection for autoscaled plots
+                    startdate = self.parent().axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
                     stopdate = self._xBuffer[0] #Older value already read
                     try:
                         archived = getArchivedTrendValues(self,model,startdate,stopdate)
@@ -328,7 +326,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''
         #clean previous curves
         for subname in self.getCurveNames():
-            self._parent.detachRawData(subname)
+            self.parent().detachRawData(subname)
         self._curves = {}
         self._orderedCurveNames = []
         #clean history Buffers
@@ -339,7 +337,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._yValues = None
         #replot
         if replot:
-            self._parent.replot()
+            self.parent().replot()
         #Force immediate garbage collection (otherwise the buffered data remains in memory)
         gc.collect()
         
@@ -350,7 +348,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         For documentation about the parameters of this method, see
         :meth:`TaurusBaseComponent.handleEvent`'''
         if evt_type == taurus.core.TaurusEventType.Config:
-            #self.setTitleText(self._titleText or self._parent.getDefaultCurvesTitle()) #this did not work well (it overwrites custom titles!)
+            #self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle()) #this did not work well (it overwrites custom titles!)
             return
         
         if evt_type == taurus.core.TaurusEventType.Error:
@@ -375,10 +373,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
             for i in xrange(ntrends):
                 subname = "%s[%i]"%(name,i)
-                self._parent.attachRawData(rawdata,id=subname)
-                self.addCurve(subname, self._parent.curves[subname])
-            self.setTitleText(self._titleText or self._parent.getDefaultCurvesTitle())
-            self._parent.autoShowYAxes()
+                self.parent().attachRawData(rawdata,id=subname)
+                self.addCurve(subname, self.parent().curves[subname])
+            self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle())
+            self.parent().autoShowYAxes()
 
         #get the data from the event
         self._xValues, self._yValues = self._updateHistory(model=model,value=value)
@@ -573,13 +571,13 @@ class ScanTrendsSet(TaurusTrendsSet):
             m = Qwt5.QwtPlotMarker()
             m.setLineStyle(m.VLine)
             m.setXValue(self._currentpoint)
-            m.attach(self._parent)
+            m.attach(self.parent())
             pen = Qt.QPen(Qt.Qt.DashLine)
             pen.setWidth(2)
             m.setLinePen(pen)
             self._endMarkers.append(m)
             self._currentpoint -= 1
-            self._parent.replot()
+            self.parent().replot()
     
     def getDataDesc(self):
         return self.__datadesc     
@@ -607,13 +605,13 @@ class ScanTrendsSet(TaurusTrendsSet):
             if e['label'] == self._autoXDataKey:
                 xinfo = e
                 break
-        self._parent.setAxisTitle(self._parent.xBottom, self._autoXDataKey)
+        self.parent().setAxisTitle(self.parent().xBottom, self._autoXDataKey)
         xmin, xmax = xinfo.get('min_value'), xinfo.get('max_value')
-        self._parent.setXDynScale(False)
+        self.parent().setXDynScale(False)
         if xmin is None or xmax is None:
-            self._parent.setAxisAutoScale(self._parent.xBottom) #autoscale if any limit is unknown
+            self.parent().setAxisAutoScale(self.parent().xBottom) #autoscale if any limit is unknown
         else:
-            self._parent.setAxisScale(self._parent.xBottom, xmin, xmax)
+            self.parent().setAxisScale(self.parent().xBottom, xmin, xmax)
         #create trends
         self._createTrends(datadesc["column_desc"])
        
@@ -628,13 +626,13 @@ class ScanTrendsSet(TaurusTrendsSet):
         self.__datadesc = datadesc
         #create as many curves as columns containing scalars
         rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
-        self._parent._curvePens.setCurrentIndex(0)
+        self.parent()._curvePens.setCurrentIndex(0)
         for dd in self.__datadesc:
             if len(stripShape(dd['shape']))== 0: #an scalar
                 name = dd["name"]
                 if name not in self._curves and self._plotablesFilter(name) and name != self._autoXDataKey:
                     rawdata["title"] = dd["label"]
-                    curve = self._parent.attachRawData(rawdata)
+                    curve = self.parent().attachRawData(rawdata)
                     prop = curve.getAppearanceProperties()
                     prop.sColor = prop.lColor
                     prop.sStyle = Qwt5.QwtSymbol.Ellipse
@@ -643,7 +641,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     prop.lStyle = Qt.Qt.DotLine
                     curve.setAppearanceProperties(prop)
                     self.addCurve(name, curve)
-        self._parent.autoShowYAxes()
+        self.parent().autoShowYAxes()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
     
     def _scanLineReceived(self, recordData):
