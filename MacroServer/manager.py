@@ -234,12 +234,17 @@ class MacroServerManager(taurus.core.util.Singleton, taurus.core.util.Logger):
                             obj_list.append(obj)
                             break
         return obj_list
-
-    def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
-        if not motion_source:
-            motion_source = self.getPoolListObjs()
-        return motion.Motion(elems, motion_source)
     
+    def getMotion(self, elems, motion_source=None, read_only=False, cache=True,
+                  decoupled=False):
+        if motion_source is None:
+            motion_source = self.getPoolListObjs()
+        
+        motion_klass = motion.Motion
+        if decoupled and len(elems)>1:
+            motion_klass = motion.MotionGroup
+        return motion_klass(elems, motion_source)
+        
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro, Type and Module Manager Interfaces
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

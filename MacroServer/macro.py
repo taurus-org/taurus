@@ -13,7 +13,8 @@ import taurus.core.util
 from taurus.core.tango.sardana.pool import PoolElement
 
 from parameter import Type, ParamType, ParamRepeat
-from exception import MacroServerException, AbortException, MacroWrongParameterType
+from exception import MacroServerException, AbortException, \
+    MacroWrongParameterType, UnknownEnv
 from gscan import *
 
 class OverloadPrint(object):
@@ -1059,8 +1060,16 @@ class Macro(taurus.core.util.Logger):
            :param cache: not used. Reserved for future use
            
            :return: a Motion object """
+        
+        decoupled=False
+        try:
+            decoupled = self.getEnv("MotionDecoupled")
+        except UnknownEnv:
+            pass
+        
         motion = self.getManager().getMotion(elems, motion_source=motion_source,
-                                             read_only=read_only, cache=cache)
+                                             read_only=read_only, cache=cache,
+                                             decoupled=decoupled)
         if motion is not None:
             self.addObj(motion, priority=1)
         return motion
