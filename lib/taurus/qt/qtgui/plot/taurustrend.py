@@ -33,6 +33,8 @@ from datetime import datetime
 import time
 import numpy
 import re
+import weakref
+import gc
 from taurus.qt import Qt
 from PyQt4 import Qwt5
 
@@ -87,7 +89,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     
     """
     def __init__(self, name, parent = None, curves=None):
-        self._parent = parent #@todo: maybe this should be converted to a weakref?
+        self._parent = weakref.proxy(parent)
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._xBuffer = None
@@ -338,6 +340,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         #replot
         if replot:
             self._parent.replot()
+        #Force immediate garbage collection (otherwise the buffered data remains in memory)
+        gc.collect()
         
     def handleEvent(self, evt_src, evt_type, evt_value):
         ''' processes Change (and Periodic) Taurus Events: updates the data of all
@@ -624,6 +628,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         self.__datadesc = datadesc
         #create as many curves as columns containing scalars
         rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
+        self._parent._curvePens.setCurrentIndex(0)
         for dd in self.__datadesc:
             if len(stripShape(dd['shape']))== 0: #an scalar
                 name = dd["name"]
@@ -924,6 +929,10 @@ class TaurusTrend(TaurusPlot):
             # self.trendSets is a CaselessDict
             del_sets = [ name for name in self.trendSets.keys() if name not in names]
             
+            #if all trends were removed, reset the color palette
+            if len(del_sets) == len(self.trendSets):
+                self._curvePens.setCurrentIndex(0)
+            
             for name in names:
                 name = str(name)
                 if "|" in name: raise ValueError('composed ("X|Y") models are not supported by TaurusTrend')
@@ -944,7 +953,9 @@ class TaurusTrend(TaurusPlot):
             for name in del_sets:
                 name = str(name)
                 tset = self.trendSets.pop(name)
+                tset.setModel(None)
                 tset.unregisterDataChanged(self, self.curveDataChanged)
+                tset.forcedReadingTimer = None
                 tset.clearTrends(replot=False)
             if del_sets:        
                 self.autoShowYAxes()

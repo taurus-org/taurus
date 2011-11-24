@@ -103,7 +103,6 @@ class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
     '''Taurus-enabled custom version of QwtPlotMarker
     '''
     def __init__(self, name, parent=None, labelOpacity=0.7):
-        self._parent = parent
         self.call__init__wo_kw(Qwt5.QwtPlotMarker)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self.labelOpacity = labelOpacity
@@ -148,7 +147,6 @@ class TaurusXValues(TaurusBaseComponent):
     '''
     def __init__(self, name, parent = None):
         self._xValues = None
-        self._parent = parent
         self._signalGen = Qt.QObject()
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._listeners = []
@@ -243,21 +241,20 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
     def __init__(self, name, xname=None, parent = None, rawData=None, optimized=False):
 
+        Qwt5.QwtPlotCurve.__init__(self)
+        TaurusBaseComponent.__init__(self, 'TaurusCurve')
         self._rawData=rawData
         self._xValues = None
         self._yValues = None
         self._showMaxPeak = False
         self._showMinPeak = False
-        self._maxPeakMarker = TaurusCurveMarker(name, self)
-        self._minPeakMarker = TaurusCurveMarker(name, self)
         self._filteredWhenLog = True
-        self._parent = parent
         self._history = []
         self._titleText = '<label>'
         self.setXValuesBuilder()
         self._signalGen = Qt.QObject()
-        self.call__init__wo_kw(Qwt5.QwtPlotCurve)
-        self.call__init__(TaurusBaseComponent, self.__class__.__name__)
+        self._maxPeakMarker = TaurusCurveMarker(name, self)
+        self._minPeakMarker = TaurusCurveMarker(name, self)
         self.__curveName = name
         self.isRawData= not(rawData is None)
         if optimized:
@@ -823,7 +820,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._useParentModel = False
         self._isPaused = False
         self._defaultCurvesTitle = '<label>'
-        self._curvePens=LoopList(DFT_CURVE_PENS)
+        self._curvePens = LoopList(DFT_CURVE_PENS)
         self._gridPen = Qt.QPen(Qt.Qt.gray, 1)
         self._supportedConfigVersions = ["tpc-1","tpc-1.1"] #the latest element of this list is considered the current version
 #        Logger.__init__(self)
@@ -1630,6 +1627,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 ynames.append(yname)
 
             del_curves = [ name for name in self.curves.keys() if name not in ynames]
+            
+            #if all curves were removed, reset the color palette
+            if len(del_curves) == len(self.curves):
+                self._curvePens.setCurrentIndex(0)
 
             for i,name in enumerate(ynames):
                 xname = xnames[i]
