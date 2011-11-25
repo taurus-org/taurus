@@ -761,8 +761,8 @@ class TaurusTrend(TaurusPlot):
         self._archivingWarningLocked = False
         self._forcedReadingPeriod = None
         self._replotTimer = None 
-        #Use a rotated labels x timescale by default
         self.setXIsTime(True)
+        #Use a rotated labels x timescale by default
         rotation = -45
         alignment = self.getDefaultAxisLabelsAlignment(self.xBottom, rotation)
         self.setAxisLabelRotation(self.xBottom, rotation)
@@ -793,10 +793,11 @@ class TaurusTrend(TaurusPlot):
             self.setAxisScale(axis, self._startingTime-60, self._startingTime)#Set a range of 1 min
         else:
             self.setAxisScale(axis, 0, 10) #Set a range of 10 events   
+            self.disconnect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot) #disconnects the previous axis
         #enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
         #call the parent class method
-        TaurusPlot.setXIsTime(self, enable, axis=axis)
+        TaurusPlot.setXIsTime(self, enable, axis=axis) #the axis is changed here
         #set the replot timer if needed
         if enable:
             if self._replotTimer is None:
@@ -804,10 +805,9 @@ class TaurusTrend(TaurusPlot):
                 self._replotTimer = Qt.QTimer()
                 self.connect(self._replotTimer,Qt.SIGNAL('timeout()'),self.doReplot)
             self.rescheduleReplot(axis)
-            self.connect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)
+            self.connect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot) #connects the new axis
         else:
-            self.disconnect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)
-            self._replotTimer = None 
+            self._replotTimer = None
 
     def onScanPlotablesFilterChanged(self, flt, scanname=None):
         if scanname is None:
