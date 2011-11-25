@@ -27,7 +27,7 @@
 tauruswidgetfactory.py: 
 """
 
-__all__ = ["TaurusWidgetFactory"]
+__all__ = ["TaurusWidgetFactory", "getWidgetsOfType"]
 
 __docformat__ = 'restructuredtext'
 
@@ -38,6 +38,32 @@ from taurus.qt import Qt
 
 import taurus.core.util
 import taurus.qt.qtgui.base
+
+
+def _getWidgetsOfType(widget, widgets, class_or_type_or_tuple):
+    
+    if isinstance(widget, class_or_type_or_tuple):
+        widgets.append(widget)
+    for w in widget.children():
+        if isinstance(w, Qt.QWidget):
+            _getWidgetsOfType(w, widgets, class_or_type_or_tuple)
+
+def getWidgetsOfType(widget, class_or_type_or_tuple):
+    """Returns all widgets in a hierarchy of a certain type
+    
+    :param widget: the widget to be inspected
+    :type widget: Qt.QWidget
+    :param class-or-type-or-tuple: type to be checked
+    :type class-or-type-or-tuple: type class or a tuple of type classes
+    
+    :return:
+        a sequence containning all widgets in the hierarchy that match the given
+        type
+    :rtype: seq<Qt.QWidget>"""
+    widgets = []
+    _getWidgetsOfType(widget, widgets, class_or_type_or_tuple)
+    return widgets
+
 
 class TaurusWidgetFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
     """The TaurusWidgetFactory is a utility class that provides information
