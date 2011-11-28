@@ -314,11 +314,24 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
             return list(c.cwarnings)
         return None
     
+    def getParam(self, param_name):
+        config = self.getValueObj()
+        if config:
+            if param_name.endswith('warning') or param_name.endswith('alarm'):
+                config = config.alarms
+            try:
+                return getattr(config, param_name)
+            except:
+                return None
+            
     def setParam(self, param_name, value):
         config = self.getValueObj()
-        if config and self.getParam(param_name):
-            setattr(config, param_name, value)
-            self._applyConfig()
+        if config is None:
+            return
+        if param_name.endswith('warning') or param_name.endswith('alarm'):
+            config = config.alarms
+        setattr(config, param_name, value)
+        self._applyConfig()
     
     def setDescription(self,descr):
         config = self.getValueObj()

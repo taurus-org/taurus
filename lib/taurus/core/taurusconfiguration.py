@@ -374,7 +374,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         c = self.getValueObj(cache=cache)
         if c:
             return list(c.warning)
-        return None        
+        return None
     
     def getParam(self, param_name):
         config = self.getValueObj()
