@@ -32,8 +32,17 @@ __docformat__ = 'restructuredtext'
 import time
 import threading
 import os.path
+from taurus.core.util import Logger
 from taurus.qt import Qt
 
+
+_LOGGER = None
+
+def _getLogger():
+    global _LOGGER
+    if _LOGGER is None:
+        _LOGGER = Logger('Grabber')
+    return _LOGGER
 
 class GrabberThread(threading.Thread):
     
@@ -56,10 +65,11 @@ class GrabberThread(threading.Thread):
         self._continue = False
     
 
-class Grabber(Qt.QObject):
+class Grabber(Qt.QObject, Logger):
     
     def __init__(self, widget, fileName):
         Qt.QObject.__init__(self)
+        Logger.__init__(self)
         self._widget = widget
         self._fileName = fileName
         self.connect(self, Qt.SIGNAL("grab"), self.onGrab)
@@ -72,10 +82,32 @@ class Grabber(Qt.QObject):
     
     @staticmethod
     def _grabWidget(widget, fileName):
-        print "grabbing to",fileName
-        pixmap = Qt.QPixmap.grabWidget(widget)
-        pixmap.save(fileName, quality=100)
-
+        _getLogger().debug("Grabbing widget to '%s':", fileName)
+        try:
+            pixmap = Qt.QPixmap.grabWidget(widget)
+            if fileName.endswith('.svg'):
+                import taurus.qt.QtSvg
+                generator = taurus.qt.QtSvg.QSvgGenerator()
+                generator.setFileName(fileName)
+                generator.setSize(pixmap.size());
+                if hasattr(generator, 'setViewBox'):
+                    viewBox = Qt.QRect(Qt.QPoint(0, 0), pixmap.size())
+                    generator.setViewBox(viewBox)
+                generator.setTitle("Taurus widget")
+                generator.setDescription("An SVG drawing created by the taurus "
+                                         "widget grabber")
+                painter = Qt.QPainter()
+                painter.begin(generator)
+                try:
+                    painter.drawPixmap(0, 0, -1, -1, pixmap)
+                finally:
+                    painter.end()
+            else:
+                pixmap.save(fileName, quality=100)
+        except:
+            _getLogger().warning("Could not save file into '%s':", fileName,
+                                 exc_info=1)
+    
     @staticmethod
     def grabWidget(widget, fileName, period=None):
         """Grabs the given widget into the given image filename. If period is
