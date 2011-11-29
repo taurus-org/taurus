@@ -271,6 +271,8 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         #    ret = self.columnSize(column)
         elif role == Qt.Qt.FontRole:
             ret = self.DftFont
+        elif role == Qt.Qt.UserRole:
+            ret = Qt.QVariant(item)
         return ret
     
     def data(self, index, role=Qt.Qt.DisplayRole):

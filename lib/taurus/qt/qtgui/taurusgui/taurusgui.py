@@ -1052,8 +1052,9 @@ class TaurusGui(TaurusMainWindow):
 
 
 #------------------------------------------------------------------------------ 
-def main():    
+def main():
     import sys
+    import taurus
     from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
         

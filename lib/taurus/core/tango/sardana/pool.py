@@ -41,8 +41,9 @@ import re
 import thread
 import time
 import operator
+import traceback
 
-from PyTango import DevState, AttrDataFormat, DevFailed, \
+from PyTango import DevState, AttrDataFormat, AttrQuality, DevFailed, \
     DeviceProxy, AttributeProxy
 
 from taurus import Factory
@@ -62,6 +63,15 @@ Fault = DevState.FAULT
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
 MOVEABLE_TYPES = 'Motor', 'PseudoMotor', 'MotorGroup'
+
+QUALITY = {
+    AttrQuality.ATTR_VALID : 'VALID',
+    AttrQuality.ATTR_INVALID : 'INVALID',
+    AttrQuality.ATTR_CHANGING : 'CHANGING',
+    AttrQuality.ATTR_WARNING : 'WARNING',
+    AttrQuality.ATTR_ALARM : 'ALARM',
+    None : 'UNKNOWN'
+}
 
 class AbortException(Exception):
     pass
@@ -401,7 +411,28 @@ class PoolElement(BaseElement, TangoDevice):
                 self.waitReady(timeout=timeout)
         finally:
             state.unlock()
-
+    
+    def info(self, tab='    '):
+        msg = [ self.getName() + ":" ]
+        try:
+            state = str(self.state())
+        except:
+            state = traceback.format_exception_only(sys.exc_info()[:2])
+        msg.append(tab + " State: " + state)
+        try:
+            status = self.status().replace('\n', '\n' + tab + 8*' ')
+        except:
+            status = traceback.format_exception_only(sys.exc_info()[:2])
+        msg.append(tab + "Status: " + status)
+        try:
+            position = self.read_attribute("position")
+            pos = str(position.value)
+            if position.quality != AttrQuality.ATTR_VALID:
+                pos += " [" + QUALITY[position.quality] + "]"
+        except:
+            pos = traceback.format_exception_only(*sys.exc_info()[:2])
+        msg.append(tab + "   Pos: " + pos)
+        return "\n".join(msg)
 
 class Controller(PoolElement):
     """ Class encapsulating Controller functionality."""

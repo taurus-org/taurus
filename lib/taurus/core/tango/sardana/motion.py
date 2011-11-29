@@ -25,7 +25,7 @@
 
 """The sardana motion submodule. It contains specific part of sardana motion"""
 
-__all__ = ["Moveable", "MoveableSource", "Motion"]
+__all__ = ["Moveable", "MoveableSource", "Motion", "MotionGroup"]
 
 __docformat__ = 'restructuredtext'
 
@@ -37,6 +37,7 @@ class Moveable:
     """ An item that can 'move'. In order to move it you need to provide a list
     of values (normally interpreted as motor positions).
     Therefore this Moveable can represent a single motor, a group of motors"""
+    
     def __init__(self):
         pass
     
@@ -95,10 +96,10 @@ class MoveableSource:
         """
         pass
 
-class Motion(Moveable):
-    """ A motion object """
+
+class BaseMotion(Moveable):
     
-    def __init__(self, elements, moveable_srcs, allow_repeat=False, 
+    def __init__(self, elements, moveable_srcs, allow_repeat=False,
                  allow_unknown=False, read_only=False):
         self.read_only = read_only
         
@@ -108,9 +109,100 @@ class Motion(Moveable):
         first_elem = elements[0]
         
         if isinstance(first_elem, (str, unicode)):
-            self.init_by_names(elements, moveable_srcs, allow_repeat, allow_unknown)
+            self.init_by_names(elements, moveable_srcs, allow_repeat,
+                               allow_unknown)
         else:
-            self.init_by_movables(elements, moveable_srcs, allow_repeat, allow_unknown)
+            self.init_by_movables(elements, moveable_srcs, allow_repeat,
+                                  allow_unknown)
+    
+    def getMoveable(self, sources, name):
+        for source in sources:
+            moveable = source.getMoveable(name)
+            if moveable is not None:
+                return moveable
+    
+class MotionGroup(BaseMotion):
+    """ A virtual motion group object """
+    
+    def init_by_movables(self, elements, moveable_srcs, allow_repeat, allow_unknown):
+        self.moveable_list = elements
+    
+    def init_by_names(self, names, moveable_srcs, allow_repeat, allow_unknown):
+        moveables = [ self.getMoveable(moveable_srcs, name) for name in names ]
+        self.init_by_movables(moveables, moveable_srcs, allow_repeat,
+                              allow_unknown)
+    
+    def startMove(self, pos_list, timeout=None):
+        if self.read_only:
+            raise Exception("Trying to move read only motion")
+        
+        if len(pos_list) != len(self.moveable_list):
+            raise Exception("Invalid number of position values")
+
+        ids = []
+        for i, moveable in enumerate(self.moveable_list):
+            ids.append( moveable.startMove(pos_list[i], timeout=timeout) )
+        return ids
+
+    def waitMove(self, timeout=None, id=None):
+        if id is None:
+            id = len(self.moveable_list)*[None]
+        for i, moveable in enumerate(self.moveable_list):
+            moveable.waitMove(timeout=timeout, id=id[i])
+
+    def move(self, new_pos, timeout=None):
+        states, positions = [], []
+        for moveable, pos in zip(self.moveable_list, new_pos):
+            res = moveable.move(pos, timeout=timeout)
+            states.append(res[0])
+            positions.extend(res[1])
+        import PyTango
+        state = PyTango.DevState.ON
+        if PyTango.DevState.FAULT in states:
+            state = PyTango.DevState.FAULT
+        elif PyTango.DevState.ALARM in states:
+            state = PyTango.DevState.ALARM
+        elif PyTango.DevState.UNKNOWN in states:
+            state = PyTango.DevState.UNKNOWN
+        elif PyTango.DevState.MOVING in states:
+            state = PyTango.DevState.MOVING
+        return state, positions
+
+    def iterMove(self, new_pos, timeout=None):
+        """ generator for motor positions"""
+        raise NotImplementedError
+    
+    def getStatus(self):
+#        res = []
+#        for moveable in self.moveable_list:
+#            status = moveable.status.split('\n')
+#            res.append(moveable.getName() + ":")
+#            for st in status:
+#                res.append("    " + st)
+#        return "\n".join(res)
+        return "\n".join([ m.status() for m in self.moveable_list ])
+
+    def readState(self, force=False):
+        if len(self.moveable_list) == 1:
+            return self.moveable_list[0].getState()
+        return [ m.getState() for m in self.moveable_list ]
+
+    def readPosition(self, force=False):
+        return [ m.readPosition(force=force) for m in self.moveable_list ]
+    
+    def abort(self, wait_ready=True, timeout=None):
+        for moveable in self.moveable_list:
+            try:
+                moveable.abort(wait_ready=wait_ready, timeout=timeout)
+            except:
+                pass
+    
+    def read(self):
+        pass
+
+
+class Motion(BaseMotion):
+    """ A motion object """
     
     def init_by_movables(self, elements, moveable_srcs, allow_repeat, allow_unknown):
         # TODO: Optimize this. Dont call init_by_names. It its possible to do it
@@ -120,14 +212,14 @@ class Motion(Moveable):
     
     def init_by_names(self, names, moveable_srcs, allow_repeat, allow_unknown):
 
-        ms_elem_names = self.getElemNamesByMoveableSource(names, moveable_srcs, 
-                                                         allow_repeat=allow_repeat, 
-                                                         allow_unknown=allow_unknown)
+        ms_elem_names = self.getElemNamesByMoveableSource(names, moveable_srcs,
+            allow_repeat=allow_repeat, allow_unknown=allow_unknown)
         
         # map<MoveableSource, Moveable>
         ms_moveables = {}
         for moveable_source, ms_names in ms_elem_names.items():
-            ms_moveables[moveable_source] = moveable_source.getMoveable(ms_names)
+            moveable = moveable_source.getMoveable(ms_names)
+            ms_moveables[moveable_source] = moveable
 
         # list<Moveable>
         moveable_list = ms_moveables.values()
@@ -200,7 +292,8 @@ class Motion(Moveable):
                          moveable_source_moveables.append(name)
                          break
                      elif present and not allow_repeat:
-                         raise Exception("Moveable item %s appears more than once" % name)
+                         raise Exception("Moveable item %s appears more "
+                                         "than once" % name)
             if moveable is None and not allow_unknown:
                  raise Exception("Moveable item %s not found" % name)
         return ms_elems
