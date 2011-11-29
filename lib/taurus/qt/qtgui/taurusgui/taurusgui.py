@@ -234,7 +234,15 @@ class TaurusGui(TaurusMainWindow):
         #emit a short message informing that we are ready to go
         msg = '%s is ready'%Qt.qApp.applicationName()
         self.emit(Qt.SIGNAL('newShortMessage'), msg)
-            
+        
+    def closeEvent(self, event):
+        try:
+            self.__macroBroker.removeTemporaryPanels()
+        except:
+            print 'nooop'
+            raise
+        TaurusMainWindow.closeEvent(self,event)
+        
     def __initViewMenu(self):        
         #Panels view menu
         self.__panelsMenu =  Qt.QMenu('Panels',self)
@@ -244,6 +252,7 @@ class TaurusGui(TaurusMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addMenu(self.__panelsMenu)
         self.newPanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("window-new"),"New Panel...", self.createCustomPanel)
+        self.removePanelAction= self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("edit-clear"), "Remove Panel...", self.removePanel)
         self.__panelsMenu.addSeparator()
       
         #view locking
@@ -321,10 +330,17 @@ class TaurusGui(TaurusMainWindow):
         self.updatePermanentCustomPanels(showAlways=False)
         return TaurusMainWindow.createConfig(self, *args, **kwargs)        
  
-    def removePanel(self, name):
+    def removePanel(self, name=None):
         ''' remove the given panel from the GUI
         
-        :param name: (str) the name of the panel to be removed'''
+        :param name: (str or None) the name of the panel to be removed
+                     If None given, the user will be prompted
+        '''
+        if name is None:
+            items = self.getPanelNames()
+            name,ok = Qt.QInputDialog.getItem (self, "Remove Panel", "Panel to be removed", items, 0, False)
+            if not ok:
+                return
         name = unicode(name)
         if name not in self.__panels: return
         panel = self.__panels.pop(name)
@@ -332,8 +348,9 @@ class TaurusGui(TaurusMainWindow):
         self.unregisterConfigurableItem(name, raiseOnError=False)
         self.removeDockWidget(panel)
         panel.setParent(None)
-        panel.deleteLater()
-    
+        panel.setAttribute(Qt.Qt.WA_DeleteOnClose)
+        panel.close()
+        
     def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, 
                     permanent=False, icon=None, instrumentkey=None):
         '''
@@ -408,7 +425,14 @@ class TaurusGui(TaurusMainWindow):
         self.connect(panel,Qt.SIGNAL('visibilityChanged(bool)'),self._onPanelVisibilityChanged)
 
         return panel
-   
+    
+    def getPanel(self,name):
+        '''get a panel object by name
+        
+        :return: (DockWidgetPanel)
+        '''
+        return self.__panels[unicode(name)]
+    
     def getPanelNames(self):
         '''returns the names of existing panels
         
