@@ -43,7 +43,7 @@ from taurus import Factory
 from taurus.core.util import CaselessDict, CodecFactory
 from taurus.core.util.log import Logger, InfoIt, DebugIt, WarnIt
 
-from sardana import ServerState, SardanaServer, ElementType, \
+from sardana import State, SardanaServer, ElementType, \
     TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
@@ -579,7 +579,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             
             # during server startup and shutdown avoid processing element
             # creation events
-            if SardanaServer.server_state != ServerState.Run:
+            if SardanaServer.server_state != State.Running:
                 return
             
             elem = evt_value

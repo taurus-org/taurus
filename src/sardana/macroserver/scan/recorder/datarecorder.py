@@ -47,7 +47,7 @@ class DataHandler:
        self.recorders = []
    
     def addRecorder(self, recorder):
-        if not recorder is None:
+        if recorder is not None:
             self.recorders.append( recorder )
 
     def startRecordList(self, recordlist ):

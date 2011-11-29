@@ -43,7 +43,7 @@ from sardana.sardanaevent import EventType
 from poolelement import PoolElement
 from poolmotion import PoolMotion, PoolMotionItem, MotionState, MotionMap
 
-class Position(ScalarNumberAttribute):
+class Position(SardanaAttribute):
     pass
 
 class DialPosition(ScalarNumberAttribute):

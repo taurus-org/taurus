@@ -41,7 +41,7 @@ from PyTango import Util, DevFailed, \
     SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 
-from sardana import ServerState, SardanaServer, DataType, DataFormat, \
+from sardana import State, SardanaServer, DataType, DataFormat, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
 from sardana.pool.poolmetacontroller import DataInfo
 
@@ -308,9 +308,9 @@ def run_tango_server(util, start_time=None):
     import taurus
     try:
         tango_util = Util.instance()
-        SardanaServer.server_state = ServerState.Init
+        SardanaServer.server_state = State.Init
         tango_util.server_init()
-        SardanaServer.server_state = ServerState.Run
+        SardanaServer.server_state = State.Running
         if start_time is not None:
             import datetime
             dt = datetime.datetime.now() - start_time
@@ -318,7 +318,7 @@ def run_tango_server(util, start_time=None):
         else:
             taurus.info("Ready to accept request")
         tango_util.server_run()
-        SardanaServer.server_state = ServerState.Shutdown
+        SardanaServer.server_state = State.Off
     except DevFailed:
         taurus.critical("Server exited with DevFailed", exc_info=1)
     except KeyboardInterrupt:

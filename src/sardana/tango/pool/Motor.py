@@ -29,21 +29,27 @@ __all__ = ["Motor", "MotorClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
+import traceback
 
 from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
     DevLong64, DevDouble, DevBoolean, DevString, DispLevel, DevState, \
     AttrQuality, TimeVal, AttrData, Attr, SpectrumAttr, ImageAttr, \
     READ, READ_WRITE, SCALAR, SPECTRUM
-    
 
 from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
-from sardana import ServerState, SardanaServer
+from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import to_tango_type_format, to_tango_state
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+
+def exception_str(etype=None, value=None, sep='\n'):
+    if etype is None:
+        etype, value = sys.exc_info()[:2]
+    return sep.join(traceback.format_exception_only(etype, value))
 
 
 class Motor(PoolElementDevice):
@@ -90,10 +96,19 @@ class Motor(PoolElementDevice):
             self.motor = motor
     
     def on_motor_changed(self, event_source, event_type, event_value):
-
+        try:
+            self._on_motor_changed(event_source, event_type, event_value)
+        except:
+            msg = 'Error occured "on_motor_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.motor.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+    
+    def _on_motor_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
-        if SardanaServer.server_state != ServerState.Run:
+        if SardanaServer.server_state != State.Running:
             return
         
         t = time.time()
@@ -112,29 +127,63 @@ class Motor(PoolElementDevice):
         
         try:
             if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                state = self.calculate_tango_state(event_value)
+                attr.set_value(state)
+                attr.fire_change_event()
+                #self.push_change_event(name, state)
             elif name == "status":
-                self.set_status(event_value)
-                self.push_change_event(name, event_value)
+                status = self.calculate_tango_status(event_value)
+                attr.set_value(status)
+                attr.fire_change_event()
+                #self.push_change_event(name, status)
             else:
                 if isinstance(event_value, SardanaAttribute):
                     if event_value.error:
                         dev_failed = Except.to_dev_failed(*event_value.exc_info)
-                        self.push_change_event(name, dev_failed)
+                        self.fire_change_event(dev_failed)
                         return
                     event_value = event_value.value
-                state = to_tango_state(self.motor.get_state())
+                    
+                state = self.motor.get_state()
                 
                 if name == "position" or name == "dialposition":
-                    if state == DevState.MOVING:
+                    if state == State.Moving:
                         quality = AttrQuality.ATTR_CHANGING
-                self.push_change_event(name, event_value, t, quality)
+                        attr.set_value_date_quality(event_value, t, quality)
+                        attr.fire_change_event()
+                        #self.push_change_event(name, event_value, t, quality)
+                    else:
+                        attr.set_value(event_value)
+                        attr.fire_change_event()
+                        #self.push_change_event(name, event_value)
+                else:
+                    attr.set_value(event_value)
+                    attr.fire_change_event()
+                    #self.push_change_event(name, event_value)
         finally:
             if recover:
                 attr.set_change_event(True, True)
-
+    
+    def calculate_tango_state(self, ctrl_state):
+        self._state = state = to_tango_state(ctrl_state)
+        self.set_state(state)
+        return state
+    
+    def calculate_tango_status(self, ctrl_status):
+        self._status = status = ctrl_status
+        self.set_status(status)
+        return status
+    
+    def dev_state(self):
+        ctrl_state = self.element.get_state(cache=False, propagate=0)
+        state = self.calculate_tango_state(ctrl_state)
+        return state
+    
+    def dev_status(self):
+        ctrl_status = self.element.get_status(cache=False, propagate=0)
+        status = self.calculate_tango_status(ctrl_status)
+        return status
+    
     def always_executed_hook(self):
         #state = to_tango_state(self.motor.get_state(cache=False))
         dev_class, multi_attr1 = self.get_device_class(), self.get_device_attr()

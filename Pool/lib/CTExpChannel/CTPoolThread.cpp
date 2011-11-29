@@ -1064,22 +1064,22 @@ void Pool::read_val_while_counting(AquisitionInfo &aq_info,
 // polling buffer
 //
         
-            if ((obj_trigg[ct_nb] == true) && (last_call == false))
-            {
-                for (size_t idx = 0;idx < ct_nb;idx++)
-                {
-                    if (read_except == false)
-                    {
-                        Tango::AttrHistoryStack<Tango::DevDouble> ahs;
-                        ahs.length(1);
-                        double *data = implied_group->grp->get_ct_data_from_index(idx);
-                        Tango::TimedAttrData<Tango::DevDouble> tad(data,1,Tango::ATTR_CHANGING,when);
-                        ahs.push(tad);
-                        string attr_name_idx = implied_cts[idx].ct_pool.name + "_value";
-                        tg->fill_attr_polling_buffer(implied_group->grp,attr_name_idx,ahs);
-                    }
-                }
-            }
+//            if ((obj_trigg[ct_nb] == true) && (last_call == false))
+//            {
+//                for (size_t idx = 0;idx < ct_nb;idx++)
+//                {
+//                    if (read_except == false)
+//                    {
+//                        Tango::AttrHistoryStack<Tango::DevDouble> ahs;
+//                        ahs.length(1);
+//                        double *data = implied_group->grp->get_ct_data_from_index(idx);
+//                        Tango::TimedAttrData<Tango::DevDouble> tad(data,1,Tango::ATTR_CHANGING,when);
+//                        ahs.push(tad);
+//                        string attr_name_idx = implied_cts[idx].ct_pool.name + "_value";
+//                        tg->fill_attr_polling_buffer(implied_group->grp,attr_name_idx,ahs);
+//                    }
+//                }
+//            }
             
             for (size_t idx = 0;idx < ct_nb;idx++)
             {
@@ -1104,19 +1104,19 @@ void Pool::read_val_while_counting(AquisitionInfo &aq_info,
                         implied_cts[idx].ct_dev->push_change_event("Value",&except);
                 }
                 
-                if ((obj_trigg[idx] == true) && (last_call == false))
-                {
+//                if ((obj_trigg[idx] == true) && (last_call == false))
+//                {
     
-                    if (read_except == false)
-                    {
-                        Tango::AttrHistoryStack<Tango::DevDouble> ahs;
-                        ahs.length(1);
-                        data = implied_group->grp->get_ct_data_from_index(idx);
-                        Tango::TimedAttrData<Tango::DevDouble> tad(data, Tango::ATTR_CHANGING, when);
-                        ahs.push(tad);
-                        tg->fill_attr_polling_buffer(implied_cts[idx].ct_dev, attr_name, ahs);
-                    }
-                }
+//                    if (read_except == false)
+//                    {
+//                        Tango::AttrHistoryStack<Tango::DevDouble> ahs;
+//                        ahs.length(1);
+//                        data = implied_group->grp->get_ct_data_from_index(idx);
+//                        Tango::TimedAttrData<Tango::DevDouble> tad(data, Tango::ATTR_CHANGING, when);
+//                        ahs.push(tad);
+//                        tg->fill_attr_polling_buffer(implied_cts[idx].ct_dev, attr_name, ahs);
+//                    }
+//                }
             }
         }
         else
@@ -1163,17 +1163,17 @@ void Pool::read_val_while_counting(AquisitionInfo &aq_info,
             }
                 
     
-            if ((obj_trigg[0] == true) && (last_call == false))
-            {
-                if (read_except == false)
-                {
-                    Tango::AttrHistoryStack<Tango::DevDouble> ahs;
-                    ahs.length(1);
-                    Tango::TimedAttrData<Tango::DevDouble> tad(implied_cts[0].ct_dev->attr_Value_read,Tango::ATTR_CHANGING,when);
-                    ahs.push(tad);
-                    tg->fill_attr_polling_buffer(implied_cts[0].ct_dev,attr_name,ahs);
-                }
-            }
+//            if ((obj_trigg[0] == true) && (last_call == false))
+//            {
+//                if (read_except == false)
+//                {
+//                    Tango::AttrHistoryStack<Tango::DevDouble> ahs;
+//                    ahs.length(1);
+//                    Tango::TimedAttrData<Tango::DevDouble> tad(implied_cts[0].ct_dev->attr_Value_read,Tango::ATTR_CHANGING,when);
+//                    ahs.push(tad);
+//                    tg->fill_attr_polling_buffer(implied_cts[0].ct_dev,attr_name,ahs);
+//                }
+//            }
         }
     }
     catch (Tango::DevFailed &e)
@@ -1208,6 +1208,7 @@ void Pool::read_val_while_counting(AquisitionInfo &aq_info,
 
 void Pool::set_ext_trigg(vector<CtInCount> &implied_cts,auto_ptr<GrpInCount> &implied_group,CTPoolThread *th,vector<bool> &obj_trigg)
 {
+    return;
     size_t ct_nb = implied_cts.size();
     size_t ctr;
 
@@ -1302,6 +1303,7 @@ void Pool::set_ext_trigg(vector<CtInCount> &implied_cts,auto_ptr<GrpInCount> &im
 
 void Pool::reset_ext_trigg(vector<CtInCount> &implied_cts,auto_ptr<GrpInCount> &implied_group,CTPoolThread *th,vector<bool> &obj_trigg)
 {
+    return;
     size_t ct_nb = implied_cts.size();
     size_t ctr;
 

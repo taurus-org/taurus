@@ -50,7 +50,7 @@ from taurus.core.tango.sardana.pool import PoolElement
 
 from parameter import Type, ParamType, ParamRepeat
 from exception import MacroServerException, AbortException, \
-    MacroWrongParameterType
+    MacroWrongParameterType, UnknownEnv
 
 
 class OverloadPrint(object):
@@ -1076,44 +1076,55 @@ class Macro(Logger):
 
     @mAPI
     def getMacros(self, filter=None):
-        """**Macro API**. Returns a sequence of MacroClass objects for all known macros that
-           obey the filter expression.
+        """**Macro API**. Returns a sequence of MacroClass objects for all
+        known macros that obey the filter expression.
            
-           :param filter: a regular expression for the macro name (optional, 
-                         default is None meaning match all macros)
-           :return: a sequence of MacroClass objects"""
+        :param filter:
+            a regular expression for the macro name (optional, default is None
+            meaning match all macros)
+        :return: a sequence of MacroClass objects"""
         return self.getManager().getMacros(filter=filter)
 
     @mAPI
     def getMacroInfo(self, macro_name):
         """**Macro API**. Returns the corresponding MacroClass object.
 
-           :param macro_name: a string with the desired macro name.
-           :type macro_name: str
-           :return: a MacroClass object or None if the macro with the given name 
-                    was not found"""
+        :param macro_name: a string with the desired macro name.
+        :type macro_name: str
+        :return: a MacroClass object or None if the macro with the given name 
+                was not found"""
         return self.getManager().getMacroMetaClass(macro_name)
 
     @mAPI
     def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
-        """**Macro API**. Returns a new Motion object containing the given elements
+        """**Macro API**. Returns a new Motion object containing the given
+        elements.
         
-           :raises: Exception if no elements are defined or the elems is not 
-                             recognized as valid, or an element is not found or
-                             an element appears more than once
-           
-           :param elems: list of moveable object names
-           :param motion_source: obj or list of objects containing moveable
-                                 elements. Usually this is a Pool object or a
-                                 list of Pool objects (optional, default is
-                                 None, meaning all known pools will be 
-                                 searched for the given moveable items
-           :param read_only: not used. Reserved for future use
-           :param cache: not used. Reserved for future use
-           
-           :return: a Motion object """
+        :raises:
+            Exception if no elements are defined or the elems is not recognized
+            as valid, or an element is not found or an element appears more
+            than once
+
+        :param elems: list of moveable object names
+        :param motion_source:
+            obj or list of objects containing moveable elements. Usually this
+            is a Pool object or a list of Pool objects (optional, default is
+            None, meaning all known pools will be searched for the given
+            moveable items
+        :param read_only: not used. Reserved for future use
+        :param cache: not used. Reserved for future use
+
+        :return: a Motion object """
+        
+        decoupled=False
+        try:
+            decoupled = self.getEnv("MotionDecoupled")
+        except UnknownEnv:
+            pass
+        
         motion = self.getManager().getMotion(elems, motion_source=motion_source,
-                                             read_only=read_only, cache=cache)
+                                             read_only=read_only, cache=cache,
+                                             decoupled=decoupled)
         if motion is not None:
             self.addObj(motion, priority=1)
         return motion
@@ -1124,10 +1135,10 @@ class Macro(Logger):
 
     @mAPI
     def getEnv(self, key, macro_name=None, door_name=None):
-        """**Macro API**. Returns the environment value for the given environment name (key).
-        if macro_name is None it will consider the current running macro. If 
-        door_name is None it will consider the door that executed the running 
-        macro."""
+        """**Macro API**. Returns the environment value for the given
+        environment name (key). If macro_name is None it will consider the
+        current running macro. If door_name is None it will consider the door
+        that executed the running macro."""
         door_name = door_name or self.getDoorName()
         macro_name = macro_name or self._name
         return self.getManager().getEnv(key=key, macro_name=macro_name, door_name=door_name)

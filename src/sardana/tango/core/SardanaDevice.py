@@ -45,6 +45,9 @@ class SardanaDevice(Device_4Impl, Logger):
             name = "Tango_%s" % self.alias
         Logger.__init__(self, name)
         
+        self._state = DevState.ON
+        self._status = 'Waiting to be initialized...'
+        
         # access to some tango API (like MultiAttribute and Attribute) is 
         # still not thread safe so we have this lock to protect
         self.tango_lock = threading.Lock()
@@ -69,16 +72,14 @@ class SardanaDevice(Device_4Impl, Logger):
         return self.get_name()
     
     def init_device(self):
-        self.set_state(DevState.ON)
-        self.set_status('Waiting to be initialized...')
+        self.set_state(self._state)
 
         self.get_device_properties(self.get_device_class())
 
         detect_evts = "state", "status"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-        
-
+    
     def set_change_events(self, evts_checked_by_tango, evts_not_checked_by_tango):
         for evt in evts_checked_by_tango:
             self.set_change_event(evt, True, True)

@@ -41,7 +41,7 @@ from PyTango.constants import DescNotSet
 from taurus.core.util import CodecFactory
 from taurus.core.util.log import InfoIt, DebugIt
 
-from sardana import ServerState, SardanaServer
+from sardana import State, SardanaServer
 from sardana.pool import AcqMode
 from sardana.tango.core.util import to_tango_state
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
@@ -100,7 +100,7 @@ class MeasurementGroup(PoolGroupDevice):
         
         # during server startup and shutdown avoid processing element
         # creation events
-        if SardanaServer.server_state != ServerState.Run:
+        if SardanaServer.server_state != State.Running:
             return
 
         t = time.time()

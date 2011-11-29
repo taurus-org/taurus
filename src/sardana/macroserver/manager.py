@@ -40,7 +40,7 @@ from taurus.core import ManagerState, TaurusManager
 from taurus.core.util import Singleton, Logger, ListEventGenerator, \
     CaselessDict, ThreadPool
 from taurus.core.tango.sardana import pool
-from taurus.core.tango.sardana import motion
+from taurus.core.tango.sardana.motion import Motion, MotionGroup
 
 from sardana.sardanamodulemanager import ModuleManager
 
@@ -93,7 +93,7 @@ class MacroServerManager(Singleton, Logger):
         
         taurus_manager = TaurusManager()
         taurus_manager.reInit()
-        #taurus_manager.setSerializationMode(taurus.core.TaurusSerializationMode.Serial)
+        #taurus_manager.setSerializationMode(TaurusSerializationMode.Serial)
         pool.registerExtensions()
         
         if not pools is None:
@@ -302,10 +302,15 @@ class MacroServerManager(Singleton, Logger):
                             obj_list.append(obj)
         return obj_list
     
-    def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
-        if not motion_source:
+    def getMotion(self, elems, motion_source=None, read_only=False, cache=True,
+                  decoupled=False):
+        if motion_source is None:
             motion_source = self.getPoolListObjs()
-        return motion.Motion(elems, motion_source)
+        
+        motion_klass = Motion
+        if decoupled: # and len(elems)>1:
+            motion_klass = MotionGroup
+        return motion_klass(elems, motion_source)
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro, Type and Module Manager Interfaces
@@ -324,4 +329,6 @@ class MacroServerManager(Singleton, Logger):
                     try:
                         return getattr(EnvironmentManager(), name)
                     except:
-                        raise AttributeError("No Manager has attribute %s" % name)
+                        raise AttributeError("No Manager has attribute %s"
+                                             % name)
+    

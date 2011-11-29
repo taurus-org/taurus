@@ -268,8 +268,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if record.data.has_key( dd.name ):
                 data = record.data[dd.name]
-                self.debug("writting recordno %i: '%s' (type=%s, shape=%s)",
-                           record.recordno, dd.label, type(data), dd.shape)
                 self.fd.opendata(dd.label)
                 
                 if not hasattr(data, 'shape'):
@@ -288,7 +286,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 #shape[0]=1 #the shape of the record is of just 1 slab in the extensible dimension (first dim)
                 #self.fd.putslab(record.data[lbl],[record.recordno]+[0]*(len(shape)-1),shape)
                 self.fd.closedata()
-                self.trace("done writting %i", record.recordno)
             else:
                 self.debug("missing data for label '%s'", dd.label)
         self.fd.flush()

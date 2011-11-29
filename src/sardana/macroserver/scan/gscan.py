@@ -37,10 +37,11 @@ import datetime
 import operator
 import types
 import time
-import taurus
 
+import taurus
 from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
+from taurus.console.table import Table
 
 from sardana.macroserver.exception import MacroServerException, UnknownEnv
 from sardana.macroserver.parameter import Type
@@ -273,7 +274,9 @@ class GScan(Logger):
         
         # The Shared memory recorder (if any)
         shm_recorder = self._getSharedMemoryRecorder(0)
-        shm_recorder_1d = self._getSharedMemoryRecorder(1)
+        shm_recorder_1d = None
+        if shm_recorder is not None:
+            shm_recorder_1d = self._getSharedMemoryRecorder(1)
         
         data_handler.addRecorder(output_recorder)
         data_handler.addRecorder(json_recorder)
@@ -303,8 +306,8 @@ class GScan(Logger):
                 kw = dict(kwargs)
                 try:
                     if kw.has_key('instrument'):
-                        instrument = self._macro.getObj(kw['instrument'], 
-                                                        type_class=Type.Instrument)
+                        instrument = self._macro.getObj(kw['instrument'],
+                            type_class=Type.Instrument)
                         if instrument:
                             kw['instrument'] = instrument
                     ret.append(TangoExtraData(**kw))
@@ -313,9 +316,11 @@ class GScan(Logger):
                         colname = kw['label']
                     except:
                         colname = str(i)
-                    self.macro.warning("Extra column %s is invalid: %s", colname, str(colexcept))
+                    self.macro.warning("Extra column %s is invalid: %s",
+                                       colname, str(colexcept))
         except Exception, envexcept:
-            self.macro.warning('ExtraColumns has invalid value. Must be a sequence of maps')
+            self.macro.warning('ExtraColumns has invalid value. Must be a '
+                               'sequence of maps')
         return ret
 
     def _getJsonRecorder(self):
@@ -325,7 +330,8 @@ class GScan(Logger):
                 return JsonRecorder(self.macro)
         except:
             pass
-        self.macro.info('JsonRecorder is not defined. Use "senv JsonRecorder True" to enable it')
+        self.macro.info('JsonRecorder is not defined. Use "senv JsonRecorder '
+                        'True" to enable it')
 
     def _getOutputRecorder(self):
         cols = None
@@ -340,14 +346,16 @@ class GScan(Logger):
         try:
             scan_dir = macro.getEnv('ScanDir')
         except:
-            macro.warning('ScanDir is not defined. This operation will not be stored persistently')
-            macro.info('Use "senv ScanDir <abs directory>" to enable it')
+            macro.warning('ScanDir is not defined. This operation will not be '
+                          'stored persistently. Use "senv ScanDir '
+                          '<abs directory>" to enable it')
             return ()
         try:
             file_names = macro.getEnv('ScanFile')
         except:
-            macro.warning('ScanFile is not defined. This operation will not be stored persistently')
-            macro.info('Use "senv ScanDir <scan file(s)>" to enable it')
+            macro.warning('ScanFile is not defined. This operation will not '
+                          'be stored persistently. Use "senv ScanDir <scan '
+                          'file(s)>" to enable it')
             return ()
         
         if type(file_names) in types.StringTypes:
@@ -364,7 +372,8 @@ class GScan(Logger):
                 macro.debug("Details:", exc_info=1)
         
         if len(file_recorders) == 0:
-            macro.warning("No valid recorder found. This operation will not be stored persistently")
+            macro.warning("No valid recorder found. This operation will not be "
+                          " stored persistently")
         return file_recorders
     
     def _getSharedMemoryRecorder(self, id):
@@ -372,7 +381,8 @@ class GScan(Logger):
         try:
             shm = macro.getEnv('SharedMemory')
         except Exception,e:
-            self.macro.info('SharedMemory is not defined.')
+            self.macro.info('SharedMemory is not defined. Use "senv '
+                            'SharedMemory sps" to enable it')
             return
         
         if not shm: 
@@ -580,12 +590,16 @@ class GScan(Logger):
         except UnknownEnv:
             scan_history = []
         
+        scan_file = env['ScanFile']
+        if isinstance(scan_file, (str, unicode)):
+            scan_file = scan_file,
+        
         names = [ col.name for col in env['datadesc'] ]
         history = dict(startts=env['startts'], endts=env['endts'],
                        estimatedtime=env['estimatedtime'],
                        deadtime=env['deadtime'], title=env['title'],
                        serialno=env['serialno'], user=env['user'],
-                       ScanFile=env['ScanFile'], ScanDir=env['ScanDir'],
+                       ScanFile=scan_file, ScanDir=env['ScanDir'],
                        channels=names)
         scan_history.append(history)
         while len(scan_history) > self.MAX_SCAN_HISTORY:
@@ -609,9 +623,10 @@ class GScan(Logger):
         if not ex is None: raise e
     
     def scan_loop(self):
-        raise RuntimeError('Scan method cannot be called by abstract class')
+        raise NotImplementedError('Scan method cannot be called by '
+                                  'abstract class')
 
-    
+
 class SScan(GScan):
     """Step scan"""
     
@@ -652,7 +667,11 @@ class SScan(GScan):
         
         # Move
         self.debug("[START] motion")
-        state, positions = motion.move(step['positions'])
+        try:
+            state, positions = motion.move(step['positions'])
+        except:
+            self.dump_info(n, step)
+            raise
         self.debug("[ END ] motion")
         
         #post-move hooks
@@ -662,6 +681,7 @@ class SScan(GScan):
             except: pass
         
         if state != Ready:
+            self.dump_info(n, step)
             m = "Scan aborted after problematic motion: " \
                 "Motion ended with %s\n" % str(state)
             raise ScanException({ 'msg' : m })
@@ -709,7 +729,14 @@ class SScan(GScan):
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
 
-
+    def dump_info(self, n, step):
+        moveables = self.motion.moveable_list
+        msg = ["Report: Stopped at step #" + str(n) + " with:"]
+        tab, dtab = 4*' ', 8*' '
+        for moveable in moveables:
+            msg.append(moveable.info())
+        self.macro.info("\n".join(msg))
+        
 class CScan(GScan):
     """Continuos scan"""
     

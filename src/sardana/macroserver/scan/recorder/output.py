@@ -117,7 +117,8 @@ class OutputRecorder(DataRecorder):
         dh = recordlist.getDataHandler()
         
         for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
-            self._stream.info('Scan data will be saved in %s (%s)' % (fr.getFileName(), fr.getFormat()))
+            self._stream.info('Operation will be saved in %s (%s)', 
+                              fr.getFileName(), fr.getFormat())
 
         msg = "Scan #%d started at %s." % (serialno, starttime)
         if not estimatedtime is None:
@@ -166,6 +167,13 @@ class OutputRecorder(DataRecorder):
         deltatime = endtime - starttime
         endtime = endtime.ctime()
         serialno = recordlist.getEnvironValue('serialno')
+
+        dh = recordlist.getDataHandler()
+        
+        for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
+            self._stream.info('Operation saved in %s (%s)', fr.getFileName(),
+                              fr.getFormat())
+
         self._stream.info('Scan #%s ended at %s, taking %s (dead time was %.1f%%)'
                           % (serialno, endtime, deltatime, deadtime))
     
