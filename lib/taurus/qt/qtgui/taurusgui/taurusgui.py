@@ -1081,6 +1081,8 @@ def main():
     import taurus
     from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
+    
+    taurus.info('Starting execution of TaurusGui')
         
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] confname")
@@ -1114,8 +1116,10 @@ def main():
     gui = TaurusGui(None, confname=confname)
     
     gui.show()
+    ret = app.exec_()
     
-    sys.exit(app.exec_())
+    taurus.info('Finished execution of TaurusGui')
+    sys.exit(ret)
    
        
 if __name__ == "__main__":
