@@ -96,7 +96,7 @@ def createChannelDict(name, index=None, **kwargs):
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
     if 'plot_axes' not in ret: 
-        default_axes = {PlotType.No:'', PlotType.Spectrum:'<idx>', PlotType.Image:'<idx>:<idx>'}
+        default_axes = {PlotType.No:[], PlotType.Spectrum:['<idx>'], PlotType.Image:['<idx>','<idx>']}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     return ret
 
@@ -211,12 +211,14 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
         if taurus_role == ChannelView.PlotType:
             ret = PlotType[ret]
         elif taurus_role == ChannelView.Normalization:
-            ret = Normalization[ret]
+            ret = Normalization[ret]   
+        elif taurus_role == ChannelView.PlotAxes:
+            ret = ":".join(ret)
         return ret
 
     def setData(self, index, qvalue):
         taurus_role = index.model().role(index.column())
-        if taurus_role in (ChannelView.Channel, ChannelView.PlotAxes, ChannelView.Conditioning, ChannelView.NXPath) :
+        if taurus_role in (ChannelView.Channel, ChannelView.Conditioning, ChannelView.NXPath) :
             data = str(qvalue.toString())
         elif taurus_role in (ChannelView.Enabled, ChannelView.Output) :
             data = qvalue.toBool()
@@ -224,6 +226,8 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
             data = PlotType[str(qvalue.toString())]
         elif taurus_role == ChannelView.Normalization:
             data = Normalization[str(qvalue.toString())]
+        elif taurus_role == ChannelView.PlotAxes:
+            data = [a for a in str(qvalue.toString()).split(':')]
         else:
             raise UnimplementedError('Unknown role')
         ch_name, ch_data = self.itemData()
@@ -478,7 +482,6 @@ class AxesSelector(Qt.QWidget):
         '''Shows n comboboxes populated with choices. If n is 0, it just shows a LineEdit instead'''
         Qt.QWidget.__init__(self, parent)
         self._n = n
-        self._coices = choices
         self._CBs = []
         self._LE = None
         l = Qt.QHBoxLayout(self)
@@ -498,10 +501,13 @@ class AxesSelector(Qt.QWidget):
             cb.addItems(choices)
             
     def text(self):
+        return ":".join(self.getCurrentChoices())
+    
+    def getCurrentChoices(self):
         if self._LE is None:
-            return ":".join([str(cb.currentText()) for cb in self._CBs])
+            return [str(cb.currentText()) for cb in self._CBs]
         else:
-            return str(self._LE.text())
+            return [str(self._LE.text())]
     
     def setCurrentChoices(self, choice):
         if self._LE is None:
