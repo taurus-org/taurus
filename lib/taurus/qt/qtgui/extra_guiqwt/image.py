@@ -26,7 +26,7 @@
 """
 Extension of :mod:`guiqwt.image`
 """
-__all__=["TaurusImageItem","TaurusRGBImageItem"]
+__all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem","TaurusTrend2DScanItem"]
 
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -90,9 +90,9 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
         self._signalGen = Qt.QObject()
         self.maxBufferSize = buffersize
-        self.__yValues = None
-        self.__xBuffer = None
-        self.__zBuffer = None
+        self._yValues = None
+        self._xBuffer = None
+        self._zBuffer = None
         self.stackMode = stackMode
         self.set_interpolation(INTERP_NEAREST)
         self.__timeOffset = None
@@ -109,14 +109,14 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         '''
         self.maxBufferSize = buffersize
         try:
-            if self.__xBuffer is not None:
-                self.__xBuffer.setMaxSize(buffersize)
-            if self.__zBuffer is not None:
-                self.__zBuffer.setMaxSize(buffersize)
+            if self._xBuffer is not None:
+                self._xBuffer.setMaxSize(buffersize)
+            if self._zBuffer is not None:
+                self._zBuffer.setMaxSize(buffersize)
         except ValueError:
             self.info('buffer downsizing  requested. Current contents will be discarded')
-            self.__xBuffer = None
-            self.__zBuffer = None
+            self._xBuffer = None
+            self._zBuffer = None
         
     def setModel(self, model):
         #do the standard stuff
@@ -137,17 +137,17 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             
         #initialization
         ySize = len(evt_value.value)
-        if self.__yValues is None:
-            self.__yValues = numpy.arange(ySize,dtype='d')
-        if self.__xBuffer is None:
-            self.__xBuffer = ArrayBuffer(numpy.zeros(min(128,self.maxBufferSize), dtype='d'), maxSize=self.maxBufferSize )
-        if self.__zBuffer is None:
-            self.__zBuffer = ArrayBuffer(numpy.zeros((min(128,self.maxBufferSize), ySize),dtype='d'), maxSize=self.maxBufferSize )
+        if self._yValues is None:
+            self._yValues = numpy.arange(ySize,dtype='d')
+        if self._xBuffer is None:
+            self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self.maxBufferSize), dtype='d'), maxSize=self.maxBufferSize )
+        if self._zBuffer is None:
+            self._zBuffer = ArrayBuffer(numpy.zeros((min(128,self.maxBufferSize), ySize),dtype='d'), maxSize=self.maxBufferSize )
             return
         
         #check that new data is compatible with previous data    
-        if ySize != self.__yValues.size:
-            self.info('Incompatible shape in data from event (orig=%i, current=%i). Ignoring'%(self.__yValues.size, ySize))
+        if ySize != self._yValues.size:
+            self.info('Incompatible shape in data from event (orig=%i, current=%i). Ignoring'%(self._yValues.size, ySize))
             return
         
         #update x values
@@ -156,36 +156,36 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
                 self.__timeOffset = evt_value.time.totime()
                 plot.set_axis_title('bottom', 'Time')
                 plot.set_axis_unit('bottom', '')
-            self.__xBuffer.append(evt_value.time.totime())
+            self._xBuffer.append(evt_value.time.totime())
         
         elif self.stackMode == 'deltatime':
             try:
-                self.__xBuffer.append(evt_value.time.totime() - self.__timeOffset)
+                self._xBuffer.append(evt_value.time.totime() - self.__timeOffset)
             except TypeError: #this will happen if self.__timeOffset has not been initialized
                 self.__timeOffset = evt_value.time.totime()
-                self.__xBuffer.append(0)
+                self._xBuffer.append(0)
                 plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat())
                 plot.set_axis_unit('bottom', '')
         else:  
             try:
                 step = 1 # +numpy.random.randint(0,4) #for debugging we can put a variable step
-                self.__xBuffer.append(self.__xBuffer[-1]+step) 
+                self._xBuffer.append(self._xBuffer[-1]+step) 
             except IndexError: #this will happen when the x buffer is empty
-                self.__xBuffer.append(0) 
+                self._xBuffer.append(0) 
                 plot.set_axis_title('bottom', 'Event #')
                 plot.set_axis_unit('bottom', '')
         
         #update z
-        self.__zBuffer.append(evt_value.value)
+        self._zBuffer.append(evt_value.value)
         
         #check if there is enough data to start plotting
-        if len(self.__xBuffer)<2:
+        if len(self._xBuffer)<2:
             self.info('waiting for at least 2 values to start plotting') 
             return
         
-        x = self.__xBuffer.contents()
-        y = self.__yValues
-        z = self.__zBuffer.contents().transpose()
+        x = self._xBuffer.contents()
+        y = self._yValues
+        z = self._zBuffer.contents().transpose()
         
         if x.size == 2:
             plot.set_axis_limits('left',y.min(), y.max())
@@ -211,7 +211,145 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             plot.replot()
             
             
+class TaurusTrend2DScanItem(TaurusTrend2DItem):
+    _xDataKey = 'point_nb'
+    def __init__(self, channelKey, xDataKey, door, param=None, buffersize=512):
+        TaurusTrend2DItem.__init__(self, param=param, buffersize=buffersize, stackMode=None)
+        self._channelKey = channelKey
+        self._xDataKey = xDataKey
+        self.connectWithQDoor(door)
+    
+    def scanDataReceived(self, packet):
+        '''
+        packet is a dict with {type:str, "data":object} and the accepted types are: data_desc, record_data, record_end
+        and the data objects are: seq<ColumnDesc.Todict()>, record.data dict and dict , respectively
+        '''
+        if packet is None:
+            self.debug('Ignoring empty scan data packet')
+            return
+        id,packet = packet
+        pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
+        if pcktype == "data_desc": 
+            self._dataDescReceived(packet["data"])
+        elif pcktype == "record_data": 
+            self._scanLineReceived(packet["data"])
+        elif pcktype == "record_end":
+            pass
+        else:
+            self.debug("Ignoring packet of type %s"%repr(pcktype))
+    
+    def clearTrend(self):
+        self._yValues = None
+        self._xBuffer = None
+        self._zBuffer = None
 
+    
+    def _dataDescReceived(self, datadesc):
+        '''prepares the plot according to the info in the datadesc dictionary'''
+        self.clearTrend()
+        #decide which data to use for x
+        if self._xDataKey is None or self._xDataKey == "<mov>":
+            self._autoXDataKey = datadesc['ref_moveables'][0]
+        elif self._xDataKey == "<idx>":
+            self._autoXDataKey = 'point_nb'
+        else:
+            self._autoXDataKey = self._xDataKey
+        #set the x axis
+        columndesc = datadesc.get('column_desc',[])
+        xinfo = {'min_value':None, 'max_value':None}
+        for e in columndesc:
+            if e['label'] == self._autoXDataKey:
+                xinfo = e
+                break
+        plot = self.plot()
+        plot.set_axis_title('bottom', self._autoXDataKey)
+        xmin, xmax = xinfo.get('min_value'), xinfo.get('max_value')
+        if xmin is None or xmax is None:
+            pass  #@todo: autoscale if any limit is unknown
+        else:
+            plot.set_axis_limits('bottom',xmin, xmax)
+            
+
+    
+    def _scanLineReceived(self, recordData):
+        '''Receives a recordData dictionary and updates the curves associated to it
+        
+        .. seealso:: <Sardana>/MacroServer/scan/scandata.py:Record.data
+        
+        '''
+        #obtain the x value
+        try:
+            xval = recordData[self._autoXDataKey]
+        except KeyError:
+            self.warning('Cannot find data "%s" in the current scan record. Ignoring',self._autoXDataKey)
+            return
+        if not numpy.isscalar(xval):
+            self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring',self._autoXDataKey, type(xval))
+            return
+        #obtain y value
+        try:
+            chval = recordData[self._channelKey]
+        except KeyError:
+            self.warning('Cannot find data "%s" in the current scan record. Ignoring',self._channelKey)
+        if yval.shape !=  self._yValues.shape:
+            self.warning('Incompatible shape of "%s" (%s). Ignoring',self._channelKey, repr(yval.shape))
+            return
+          
+        #initialization
+        if self._yValues is None:
+            self._yValues = numpy.arange(chval.size,dtype='d')
+        if self._xBuffer is None:
+            self._xBuffer = ArrayBuffer(numpy.zeros(min(16,self.maxBufferSize), dtype='d'), maxSize=self.maxBufferSize )
+        if self._zBuffer is None:
+            self._zBuffer = ArrayBuffer(numpy.zeros((min(16,self.maxBufferSize), chval.size),dtype='d'), maxSize=self.maxBufferSize )
+        
+        #update x           
+        self._xBuffer.append(xval) 
+        #update z
+        self._zBuffer.append(chval)
+        
+        #check if there is enough data to start plotting
+        if len(self._xBuffer)<2:
+            self.info('waiting for at least 2 values to start plotting') 
+            return
+        
+        x = self._xBuffer.contents()
+        y = self._yValues
+        z = self._zBuffer.contents().transpose()
+        
+        #update the plot data
+        lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
+        if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
+        self.set_data(z, lut_range=lut_range)
+        self.set_xy(x, y)
+        
+        #signal data changed and replot
+        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        plot = self.plot()
+        if plot is not None: 
+            value=x[-1]
+            axis = self.xAxis()
+            xmin, xmax = plot.get_axis_limits(axis)
+            if value>xmax or value<xmin:
+                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value )
+            plot.update_colormap_axis(self)
+            plot.replot()
+                  
+    def connectWithQDoor(self, doorname):
+        '''connects this TaurusTrend2DScanItem to a QDoor
+        
+        :param doorname: (str) the QDoor name
+        '''
+        qdoor = taurus.Device(doorname)
+        qdoor.connect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
+            
+    def getModel(self):
+        return self.__model 
+    
+    def setModel(self, model):
+        self.__model = model
+        
+        
 
 
 def taurusImageMain():
