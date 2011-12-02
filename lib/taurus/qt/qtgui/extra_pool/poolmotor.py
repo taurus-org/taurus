@@ -814,6 +814,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.disconnect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
         self.connect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
 
+
     def calculateExtendedTooltip(self, cache=False):
         default_label_widget_tooltip = DefaultLabelWidget.getFormatedToolTip(self.lbl_alias, cache)
         status_info = ''
@@ -1187,45 +1188,54 @@ class PoolMotorTV(TaurusValue):
         return None #@todo: UGLY HACK to avoid subwidgets being forced to minimumheight=20
             
     def setModel(self, model):
-        self.motor_dev = None
         TaurusValue.setModel(self, model)
+
         try:
+            # Try to clean everything
+
+            if self.motor_dev is not None:
+                if self.hasHwLimits():
+                    self.motor_dev.getAttribute('Limit_Switches').removeListener(self.limits_listener)
+                if self.hasPowerOn():
+                    self.motor_dev.getAttribute('PowerOn').removeListener(self.poweron_listener)
+                self.motor_dev.getAttribute('Status').removeListener(self.status_listener)
+                self.motor_dev.getAttribute('Position').removeListener(self.position_listener)
+
+            if model == '' or model is None:
+                self.warning('poolmotor for %s has been reused for an empty model' % self.motor_dev.model)
+                self.motor_dev = None
+                return
+
             self.motor_dev = taurus.Device(model)
+
             # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
-            if self.limits_listener is not None:
-                self.limits_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
-            self.limits_listener = TaurusAttributeListener()
             if self.hasHwLimits():
+                self.limits_listener = TaurusAttributeListener()
                 self.connect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
                 self.motor_dev.getAttribute('Limit_Switches').addListener(self.limits_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO PROVIDE POWERON <- True/False EXPERT OPERATION
-            if self.poweron_listener is not None:
-                self.poweron_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
-            self.poweron_listener = TaurusAttributeListener()
             if self.hasPowerOn():
+                self.poweron_listener = TaurusAttributeListener()
                 self.connect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
                 self.motor_dev.getAttribute('PowerOn').addListener(self.poweron_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO UPDATED STATUS TOOLTIP
-            if self.status_listener is not None:
-                self.status_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.status_listener = TaurusAttributeListener()
             self.connect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
             self.motor_dev.getAttribute('Status').addListener(self.status_listener)
             
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO ACTIVATE LIMIT BUTTONS ON SOFTWARE LIMITS
-            if self.position_listener is not None:
-                self.position_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.position_listener = TaurusAttributeListener()
             self.connect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
             self.motor_dev.getAttribute('Position').addListener(self.position_listener)
-            
-            self.setExpertView(self._expertView)
-        except Exception,e:
-            print e
-            return
 
+            self.setExpertView(self._expertView)
+
+        except Exception,e:
+            self.warning("Exception caught while setting model: %s",repr(e))
+            raise e
+        
     def hasPowerOn(self):
         try: return hasattr(self.motor_dev, 'PowerOn')
         except: return False
@@ -1265,11 +1275,14 @@ class PoolMotorTV(TaurusValue):
         if pos_lim:
             pos_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
+
         self.readWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
 
         self.writeWidget().btn_step_up.setEnabled(enabled)
         self.writeWidget().btn_step_up.setStyleSheet(pos_btnstylesheet)
+
         self.writeWidget().btn_to_pos.setEnabled(enabled)
+
         self.writeWidget().btn_to_pos_press.setEnabled(enabled)
 
         neg_lim = limits[NEG]
@@ -1278,17 +1291,21 @@ class PoolMotorTV(TaurusValue):
         if neg_lim:
             neg_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
+
         self.readWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
 
         self.writeWidget().btn_step_down.setEnabled(enabled)
         self.writeWidget().btn_step_down.setStyleSheet(neg_btnstylesheet)
+
         self.writeWidget().btn_to_neg.setEnabled(enabled)
+
         self.writeWidget().btn_to_neg_press.setEnabled(enabled)
 
     def updatePowerOn(self, poweron):
         btn_text = 'Set ON'
         if poweron:
             btn_text = 'Set OFF'
+
         self.labelWidget().btn_poweron.setText(btn_text)
 
     def updateStatus(self, status):
@@ -1297,7 +1314,7 @@ class PoolMotorTV(TaurusValue):
         # TaurusLabel.updateStyle DIDN'T WORK, SO I HAD TO GO DEEPER TO THE CONTROLLER...
         #self.labelWidget().lbl_alias.updateStyle()
         self.labelWidget().lbl_alias.controllerUpdate()
-        
+
     def updatePosition(self, position):
         # we do not need the position for nothing...
         # we just want to check if any software limit is 'active'
