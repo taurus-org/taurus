@@ -321,6 +321,7 @@ class TaurusForm(TaurusWidget):
         for child in self._children:
             self.unregisterConfigurableItem(child)
             #child.destroy()
+            child.setModel(None)
             child.deleteLater()
         self._children = []
                 
