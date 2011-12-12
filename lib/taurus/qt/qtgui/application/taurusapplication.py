@@ -74,7 +74,7 @@ class STD(Logger):
         try:
             self.buffer += msg
             # while there is no new line, just accumulate the buffer
-            if msg[-1] == '\n' or msg.index('\n') >= 0:
+            if msg and (msg[-1] == '\n' or msg.index('\n') >= 0):
                 self.flush()
         except ValueError:
             pass
