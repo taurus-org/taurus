@@ -270,7 +270,7 @@ class TaurusModelChooser(TaurusWidget):
         self.setSingleModelMode(self, False)
     
     @staticmethod
-    def modelChooserDlg(parent = None, selectables=None, host=None, asMimeData=False, singleModel=False):
+    def modelChooserDlg(parent = None, selectables=None, host=None, asMimeData=False, singleModel=False, windowTitle='Model Chooser'):
         '''Static method that launches a modal dialog containing a TaurusModelChooser
         
         :param parent: (QObject) parent for the dialog 
@@ -290,6 +290,8 @@ class TaurusModelChooser(TaurusWidget):
                  clicking on the "update" button) and False otherwise
         '''
         dlg = Qt.QDialog(parent)
+        dlg.setWindowTitle(windowTitle)
+        dlg.setWindowIcon(taurus.qt.qtgui.resource.getIcon(":/taurus.png"))
         layout = Qt.QVBoxLayout()
         w = TaurusModelChooser(parent = parent, selectables=selectables, host=host, singleModel=singleModel)
         layout.addWidget(w)
