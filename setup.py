@@ -78,6 +78,9 @@ packages = [
     'taurus.core.tango.img',
     'taurus.core.tango.sardana',
     
+    'taurus.console',
+    'taurus.console.util',
+    
     'taurus.qt',
 
     'taurus.qt.qtcore',
