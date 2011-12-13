@@ -64,7 +64,11 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             return
         lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
         if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
-        self.set_data(evt_value.value, lut_range=lut_range)
+        try:
+            self.set_data(evt_value.value, lut_range=lut_range)
+        except TypeError:
+            self.set_data(evt_value.value) #rgb images do not support lut_range
+            
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
         if p is not None:

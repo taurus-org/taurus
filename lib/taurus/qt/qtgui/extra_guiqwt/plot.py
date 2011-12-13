@@ -553,8 +553,10 @@ def taurusImageDlgMain():
     
     #check & process options
     if options.demo:
-        args.append('eval://rand(256,128)')
-        
+        if options.rgb_mode:
+            args.append('eval://randint(0,255,(10,20,3))')
+        else:
+            args.append('eval://rand(256,128,3)')
     w = TaurusImageDialog()
     
     w.setRGBmode(options.rgb_mode)
