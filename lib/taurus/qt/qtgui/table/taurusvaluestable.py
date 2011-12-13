@@ -23,131 +23,733 @@
 ##
 #############################################################################
 
-"""
-taurusvaluestable.py: 
-"""
-
 __all__ = ["TaurusValuesTable"]
 
 __docformat__ = 'restructuredtext'
 
+from taurus.qt import Qt
 import numpy
 
-from taurus.qt import Qt
-
-import PyTango
+import sys
 
 import taurus.core
-from taurus.core.util import ATTRIBUTE_QUALITY_PALETTE
-from taurus.qt.qtgui.base import TaurusBaseWidget
+from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
+from taurus.qt.qtgui.display import TaurusLabel
+from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.core.util import Enumeration
 
-class TaurusValuesTable(Qt.QTableWidget, TaurusBaseWidget):
-    '''This widget gets spectra or images as model and shows a table containing
-    the values in the model'''
-    
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-    
-    def __init__(self, parent = None, designMode = False):
-        name = self.__class__.__name__
-        self.call__init__wo_kw(Qt.QTableWidget, parent)
-        self.call__init__(TaurusBaseWidget, name, designMode=designMode)
-        #@TODO add event filter once the backwards compatibility is not needed
-        self.setEditTriggers(self.NoEditTriggers) #the table is non-editable by default
-        self.setShowQuality(False) #by default it does not show the quality on background
+TableRWState = Enumeration("TableRWState", ("Read", "Write"))
+
+class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
+    typeCastingMap = {'f':float, 'b':bool, 'u':int, 'i':int, 'S':str, 'U':unicode}
+    # Need to have an array
+    def __init__(self, size, parent=None):
+        Qt.QAbstractTableModel.__init__(self, parent)
+        self._rtabledata = []
+        self._wtabledata = []
+        self._rowCount = size [0]
+        self._columnCount = size[1]
+        self._modifiedDict = {}
+        self._attr = None
+        self._attrConfig = None
+        self.editedIndex = None
+        self._editable = False
+        self._writeMode = False
         
+    def isDirty(self):
+        '''returns True if there are user changes. False Otherwise'''
+        return bool(self._modifiedDict)
+        
+    #To be implemented ----- 
+    def rowCount(self, index = Qt.QModelIndex()):
+        '''see :meth:`Qt.QAbstractTableModel.rowCount`'''
+        if self._rowCount == 0:
+            self._rowCount = 1
+        return self._rowCount
+    
+    def columnCount(self, index = Qt.QModelIndex()):
+        '''see :meth:`Qt.QAbstractTableModel.columnCount`'''
+        if self._columnCount == 0:
+            self._columnCount = 1
+        return self._columnCount
+    
+    def data(self, index, role = Qt.Qt.DisplayRole):
+        '''see :meth:`Qt.QAbstractTableModel.data`'''
+        if self._writeMode == False:
+            tabledata = self._rtabledata
+        else:
+            tabledata = self._wtabledata
+        if not index.isValid() or not (0 <=index.row() < len(tabledata)):
+            return Qt.QVariant()
+        elif role == Qt.Qt.DisplayRole:
+            value = None
+            rc = (index.row(), index.column())
+            if self._writeMode and rc in self._modifiedDict:
+                return self._modifiedDict[rc]
+            else:
+                value = tabledata[rc]
+            #cast the value to a standard python type
+            value = self.typeCastingMap[tabledata.dtype.kind](value)
+            return Qt.QVariant(value)
+        elif role == Qt.Qt.DecorationRole:
+            status = self.getStatus(index)
+            if (self._modifiedDict.has_key((index.row(), index.column()))) and (self._writeMode):
+                if self.inAlarmRange(self._modifiedDict[(index.row(), index.column())].toDouble()[0]):
+                    icon = getThemeIcon('document-save')
+                    #return Qt.QVariant(Qt.QColor('blue'))
+                else:
+                    icon = getThemeIcon('emblem-important')
+                    #return Qt.QVariant(Qt.QColor('orange'))
+                return Qt.QVariant(icon)
+        elif role == Qt.Qt.EditRole:
+            value = None
+            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+                value = self._modifiedDict[(index.row(), index.column())]
+            else:
+                value = tabledata[index.row(),index.column()]
+                if tabledata.dtype == bool:
+                    value = bool(value)
+            return Qt.QVariant(value)
+        elif role == Qt.Qt.BackgroundRole:
+            if self._writeMode:
+                return Qt.QVariant(Qt.QColor(22,223,21,50))
+            else:
+                return Qt.QVariant(Qt.QColor('white'))
+        elif role == Qt.Qt.ForegroundRole:
+            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+                if self.inAlarmRange(self._modifiedDict[(index.row(), index.column())].toDouble()[0]):
+                    return Qt.QVariant(Qt.QColor('blue'))
+                else:
+                    return Qt.QVariant(Qt.QColor('orange'))
+            return Qt.QVariant(Qt.QColor('black'))
+        elif role == Qt.Qt.FontRole:
+            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+                return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
+        elif role == Qt.Qt.ToolTipRole:
+            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+                return Qt.QVariant('Original value: %d.\nNew value that will be saved: %d' 
+                                   %(tabledata[index.row(), index.column()],self._modifiedDict[index.row(), index.column()].toDouble()[0]))
+        return Qt.QVariant()
+    
+    def setAttr(self, attr):
+        '''
+        Updated the internal table data from an attribute value
+        
+        :param attr: (DeviceAttribute)
+        '''
+        self._attr = attr
+        values = numpy.array(attr.value)
+        wvalues = numpy.array(attr.w_value)
+        #reshape the table
+        if attr.data_format == taurus.core.DataFormat._1D:
+            rows, columns = values.size, 1
+        elif attr.data_format == taurus.core.DataFormat._2D:
+            rows, columns = values.shape
+        else:
+            raise TypeError('Unsupported data format "%s"'%repr(attr.data_format))
+        
+        if (self._rowCount != rows) or (self._columnCount != columns):
+            self.reset()
+        
+        self._rowCount = rows
+        self._columnCount = columns
+        values = values.reshape(rows,columns) #make sure it is in matrix form (not a vector)
+        self._rtabledata = values            
+        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(rows-1,columns-1))
+    
+    def setConfig(self, config):
+        '''
+        Handles configuration events
+        
+        :param attr: (TaurusConfiguration)
+        '''
+        self._attrConfig = config
+        self._editable = config.isWritable()
+        
+    def getConfig(self):
+        '''
+        Returns the configuration object for the data
+        
+        :returns:  (TaurusConfiguration)
+        '''
+        return self._attrConfig
+    
+    def getStatus(self, index):
+        '''
+        Returns Status of the variable
+        
+        :returns:  (taurus.core.AttrQuality) 
+        '''
+        return self._attr.quality
+    
+    def getType(self):
+        '''
+        Returns the table data type.
+        
+        :returns:  (numpy.dtype)
+        '''
+        return self._rtabledata.dtype
+    
+    def addValue(self, index, value):
+        '''adds a value to the dictionary of modified cell values
+        
+        :param index: (QModelIndex) table index
+        :param value: (object)
+        '''
+        self._modifiedDict[(index.row(), index.column())] = value
+        
+    def removeValue(self, index):
+        '''
+        Removes index from dictionary
+           
+        :param index:  (QModelIndex) table index
+        '''
+        if self._modifiedDict.has_key((index.row(), index.column())):
+            self._modifiedDict.pop((index.row(), index.column()))
+    
+    def flags(self, index):
+        '''see :meth:`Qt.QAbstractTableModel`'''
+        if not index.isValid():
+            return Qt.Qt.ItemIsEnabled
+        if self._editable:
+            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsSelectable)
+        else:
+            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsSelectable)
+    
+    def getModifiedWriteData(self):        
+        '''
+        returns an array for the write data that includes the user modifications
+        
+        :return: (numpy.array) The write values including user modifications.
+        '''
+        table = self._wtabledata
+        kind = table.dtype.kind
+        if kind in 'SU':
+            table = table.tolist() #we want to allow the strings to be larger than the original ones
+            for (r,c),v in self._modifiedDict.items():
+                table[r][c] = str(v.toString())
+            table = numpy.array(table)
+        else:        
+            for k,v in self._modifiedDict.items():
+                if kind == 'f':
+                    table[k],ok = v.toDouble()
+                elif kind in 'iu':
+                    table[k],ok = v.toInt()
+                elif kind == 'b':
+                    table[k] = v.toBool()
+                else:
+                    raise TypeError('Unknown data type "%s"'%kind)
+        #reshape if needed
+        if self._attr.data_format == taurus.core.DataFormat._1D:
+            table = table.flatten()
+        return table    
+     
+    def clearChanges(self):
+        '''clears the dictionary of changed values'''
+        self._modifiedDict.clear()
+        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(self.rowCount()-1,self.columnCount()-1))
+
+    def inAlarmRange(self, value):
+        '''
+        Checkes if value is in alarm range.
+           
+        :param value:  (float/int) user entered value
+        :returns:  (bool) True if value in alarm range, False if valid
+            
+        '''
+        try:
+            if float(self._attrConfig.getMinAlarm()) <= value <= float(self._attrConfig.getMaxAlarm()):
+                return True
+            else:
+                return False
+        except:
+            return True
+    
+    def inRange(self, value):
+        '''
+        Checks if value is in range.
+           
+        :param value:  (float/int) user entered value
+        :returns:  (bool) True if value in range, False if valid
+            
+        '''
+        try:
+            if float(self._attrConfig.getMinValue()) <= value <= float(self._attrConfig.getMaxValue()):
+                return True
+            else:
+                return False
+        except:
+            return True
+        
+    def setWriteMode(self, isWrite):
+        '''Changes the write state
+        
+        :param isWrite: (bool)
+        '''
+        self._writeMode = isWrite
+        if isWrite and not self.isDirty():
+            #refresh the write data (unless it is dirty)
+            wvalues=numpy.array(self._attr.w_value)
+            #reshape the table
+            if self._attr.data_format == taurus.core.DataFormat._1D:
+                rows, columns = wvalues.size, 1
+            elif self._attr.data_format == taurus.core.DataFormat._2D:
+                rows, columns = wvalues.shape
+            else:
+                self.warning('unsupported data format %s'%str(val.data_format))
+            wvalues = wvalues.reshape(rows,columns)
+            #In version 4.6 of Qt when whole table is updated it is recommended to use beginReset()
+            self._wtabledata = wvalues
+        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(self.rowCount()-1,self.columnCount()-1))
+    
+    def getModifiedDict(self):
+        '''
+        Returns dictionary.
+
+        :returns:  (dictionary) dictionary containing modified indexes and values
+        '''
+        return self._modifiedDict
+    
+    def getReadValue(self, index):
+        '''
+        Returns read value for a given index.
+           
+        :param index:  (QModelIndex) table model index
+        :returns:  (string/int/float/bool) read table value for a given cell
+        '''
+        return self._rtabledata[index.row(), index.column()]
+
+
+class TaurusValuesIOTable(Qt.QTableView):
+    def __init__(self, parent = None):
+        name = self.__class__.__name__
+        Qt.QTableView.__init__(self, parent)
+        self._showQuality = True
+        self._attr = None
+        self._value = None
+        self.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
+        self.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
+        itemDelegate = TaurusValuesIOTableDelegate(self)
+        self.setItemDelegate(itemDelegate)
+        #self.setStyleSheet('TaurusValuesIOTable { selection-background-color: violet;} ')
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+        
+    def setModel(self,shape):
+        '''
+        Creates an instance of QTableModel and sets a QT model.
+           
+        :param shape:  (tuple<int>) shape of the model table to be set
+            
+        '''
+        qmodel = TaurusValuesIOTableModel(shape, parent=self)
+        Qt.QTableView.setModel(self, qmodel)
+        
+    def cancelChanges(self):        
+        '''
+        Cancels all table modifications.
+        '''
+        self.model().clearChanges()
+        
+    def removeChange(self):        
+        '''
+        If the cell was modified it restores the original write value.
+        '''
+        self.model().removeValue(self.selectedIndexes()[0])
+    
+    def showHelp(self):
+        '''
+        Shows QMessageBox help window. It contains explanations of used icons.
+        '''
+        buttonBox = Qt.QMessageBox(self)
+        buttonBox.setLayout(Qt.QGridLayout(self))
+        icon = getThemePixmap('document-save')
+        l = Qt.QLabel()
+        l.setPixmap(icon)
+        buttonBox.layout().addWidget(l,0,0)
+        buttonBox.layout().addWidget(Qt.QLabel('- value is valid and will be saved if changes will be accepted'),0,1)
+        icon = getThemePixmap('dialog-warning')
+        l = Qt.QLabel()
+        l.setPixmap(icon)
+        buttonBox.layout().addWidget(l,1,0)
+        buttonBox.layout().addWidget(Qt.QLabel('- value is in alarm range and will be saved if changes will be accepted'),1,1)
+        buttonBox.exec_()
+    
+
+class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
+
+    def __init__(self, parent = None):
+        Qt.QStyledItemDelegate.__init__(self, parent)
+        self._initialText = ""
+    
+    def createEditor(self,parent,option,index):
+        '''
+        Creates a custom editor for a table delagate.
+        
+        see :meth:`Qt.QStyledItemDelegate.createEditor`
+        '''
+        if index.model().getType() == bool:
+            #editor = Qt.QStyledItemDelegate.createEditor(self,parent,option,index)
+            editor = Qt.QComboBox(parent)
+        else:
+            editor = TableInlineEdit(parent)
+            editor._updateValidator(index.model().getConfig(), index.model().getType())
+        self.emit(Qt.SIGNAL('editorCreated'))
+        return editor
+    
+    def setEditorData(self, editor, index):
+        '''
+        see :meth:`Qt.QStyledItemDelegate.setEditorData`
+        '''
+        if index.model().editedIndex == (index.row(), index.column()):
+            return
+        index.model().editedIndex = (index.row(), index.column())
+        self._initialText = None
+        if index.model().getType() == bool:
+            editor.addItems(['true', 'false'])
+            a = str(index.data().toBool()).lower()
+            self._initialText = a
+            editor.setCurrentIndex(editor.findText(a))
+        else:
+            data = index.model().data(index, Qt.Qt.EditRole)
+            self._initialText = data.toString()
+            editor.setText(data.toString())
+    
+    def setModelData(self, editor, model,index):
+        '''
+        see :meth:`Qt.QStyledItemDelegate.setModelData`
+        '''
+        #if editor text changed, then don't mark as updated.
+        try:
+            if not model.inRange(float(editor.text())):
+                return
+        except:
+            pass
+        if index.model().getType() == bool:
+            text = editor.currentText()
+        else:
+            text = editor.text()
+            
+        if(text != self._initialText) & (text != ""):
+            model.addValue(index, Qt.QVariant(text))
+            self.parent().resizeColumnsToContents()
+        index.model().editedIndex = None
+                    
+                    
+class TableInlineEdit(Qt.QLineEdit):
+    '''
+    TableInLineEdit is used to validate the content of the new value, also to paint the text: blue - valid, orange - in alarm, grey - invalid.
+    '''
+    def __init__(self, parent = None):
+        super(Qt.QLineEdit, self).__init__(parent)
+        self.connect(self, Qt.SIGNAL('textEdited(const QString &)'), self.textEdited)
+        self.connect(self, Qt.SIGNAL('focusLost(const QString &)'), self.textEdited)
+        self._attrConfig = None
+        self.__minAlarm = -float("inf")
+        self.__maxAlarm = float("inf")
+        self.__minLimit = -float("inf")
+        self.__maxLimit = float("inf")
+        self.setValidator(None)
+
+    def textEdited (self):
+        '''
+        Paints the text while typing.
+        
+        see :meth:`Qt.QLineEdit.textEdited`
+        '''
+        color, weight = 'gray', 'normal' #default case: the value is in normal range with no pending changes
+        v, b = self.displayText().toDouble()
+        try:
+            if float(self._attrConfig.getMinAlarm()) <= v <= float(self._attrConfig.getMaxAlarm()): #the value is invalid and can't be applied
+                color = 'blue'
+            elif float(self._attrConfig.getMinValue()) <= v <= float(self._attrConfig.getMaxValue()): #the value is valid but in alarm range...
+                color = 'orange'
+        except:
+            color = 'orange'
+
+        weight = 'bold'
+        self.setStyleSheet('TableInlineEdit {color: %s; font-weight: %s}'%(color,weight))
+
+    
+    def _updateValidator(self, attrinfo, datatype):
+        '''This method sets a validator depending on the data type
+        
+        :param attrinfo: (AttributeInfoEx)
+        :datatype: (numpy.dtype) type of the data being edited
+        '''
+        self._attrConfig = attrinfo
+        if numpy.issubdtype(datatype, int):
+            validator = Qt.QIntValidator(self) #initial range is -2147483648 to 2147483647 (and cannot be set larger)
+            if validator.bottom() < self.__minLimit < validator.top(): 
+                validator.setBottom(int(self.__minLimit))
+            if validator.bottom() < self.__maxLimit < validator.top():
+                validator.setTop(int(self.__maxLimit))
+            self.setValidator(validator)
+        elif numpy.issubdtype(datatype, float):
+            validator= Qt.QDoubleValidator(self)
+            validator.setBottom(self.__minLimit)
+            validator.setTop(self.__maxLimit)
+            self.setValidator(validator)
+        else: 
+            self.setValidator(None)
+    
+    def __decimalDigits(self, fmt):
+        '''returns the number of decimal digits from a format string
+        (or None if they are not defined)''' 
+        try:
+            if fmt[-1].lower() in ['f','g'] and '.' in fmt:
+                return int(fmt[:-1].split('.')[-1])
+            else:
+                return None
+        except:
+            return None
+    
+    
+class TaurusValuesTable(TaurusWidget):
+    '''
+    A table for displaying and/or editing 1D/2D Taurus attributes 
+    '''
+    _showQuality = False
+    
+    def __init__(self, parent = None, designMode = False):
+        TaurusWidget.__init__(self, parent = parent, designMode = designMode)
+        self._tableView = TaurusValuesIOTable() 
+        self._writeMode = None
+        l = Qt.QGridLayout()
+        l.addWidget(self._tableView,1,0)
+        self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"), self._onEditorCreated)
+        
+        self._label = TaurusLabel()
+        self._label.setBgRole('quality')
+        self._label.setFgRole('quality')
+        
+        self._applyBT = Qt.QPushButton('Apply')
+        self._cancelBT = Qt.QPushButton('Cancel')
+        self.connect(self._applyBT,Qt.SIGNAL("clicked()"),self.okClicked)
+        self.connect(self._cancelBT,Qt.SIGNAL("clicked()"),self.cancelClicked)
+        
+        self._rwModeCB = Qt.QCheckBox()
+        self._rwModeCB.setText('Write mode')
+        self.connect(self._rwModeCB, Qt.SIGNAL("toggled(bool)"),self.setWriteMode)
+        
+        l.addWidget(self._label,2,0)
+        l.addWidget(self._rwModeCB,0,0)
+        lv = Qt.QHBoxLayout()
+        lv.addWidget(self._applyBT)
+        lv.addWidget(self._cancelBT)
+        l.addLayout(lv,3,0)
+        self.setLayout(l)
+        self._initActions()
+        
+    def _initActions(self):
+        """Initializes the actions for this widget (currently, the pause action.)
+        """
+        self._pauseAction = Qt.QAction("&Pause", self)
+        self._pauseAction.setShortcuts([Qt.Qt.Key_P,Qt.Qt.Key_Pause])
+        self._pauseAction.setCheckable(True)
+        self._pauseAction.setChecked(False)
+        self.addAction(self._pauseAction)
+        self.connect(self._pauseAction, Qt.SIGNAL("toggled(bool)"), self.setPaused)
+        self.chooseModelAction = Qt.QAction("Choose &Model", self)
+        self.chooseModelAction.setEnabled(self.isModifiableByUser())
+        self.addAction(self.chooseModelAction)
+        self.connect(self.chooseModelAction, Qt.SIGNAL("triggered()"), self.chooseModel)
     
     def getModelClass(self):
-        return taurus.core.TaurusAttribute
-
-    def isReadOnly(self):
-        return True
-        
-    def handleEvent(self, src, evt_type, val):
-        if evt_type in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic] and val is not None:            
-            values=numpy.array(val.value)
-            #reshape the table
-            if val.data_format == PyTango.AttrDataFormat.SPECTRUM:
-                rows, columns = values.size, 1
-            elif val.data_format == PyTango.AttrDataFormat.IMAGE:
-                rows, columns = values.shape
-            else:
-                self.warning('unsupported data format %s'%str(val.data_format))
-                return
-            self.setRowCount(rows)
-            self.setColumnCount(columns)
-            
-            #fill the table
-            values = values.reshape(rows,columns) #make sure it is in matrix form (not a vector)
-            for j in xrange(columns):
-                for i in xrange(rows):
-                    self.setItem(i,j,Qt.QTableWidgetItem(str(values[i,j])) ) #extremely inefficient!! #@TODO
-            self.updateStyle()
-            
-    def eventHandle(self, *args):
-        '''Only here for backwards compatibility. It will disapear soon. Not supported'''
-        self.info('using deprecated event handling methods.')
-        model = self.getModelObj()
-        val = model.getValueObj()
-        self.handleEvent(model, taurus.core.TaurusEventType.Change, val)
-        
-    def updateStyle(self):
-        if self.getShowQuality():
-            val = self.getModelValueObj()
-            quality = getattr(val, 'quality', None)
-            stylesheet = "TaurusValuesTable {%s}"%ATTRIBUTE_QUALITY_PALETTE.qtStyleSheet(quality)
-        else:
-            stylesheet = "TaurusValuesTable {}"
-        self.setStyleSheet(stylesheet)
-        self.resizeColumnsToContents()
-        self.horizontalHeader().setStretchLastSection(True)
-
+        '''see :meth:`TaurusWidget.getModelClass`'''
+        return taurus.core.TaurusAttribute    
+    
     def setModel(self, model):
-        if isinstance(model, Qt.QAbstractItemModel):
-            return Qt.QTableWidget.setModel(self, model)
-        return TaurusBaseWidget.setModel(self, model)
+        '''Reimplemented from :meth:`TaurusWidget.setModel`'''
+        TaurusWidget.setModel(self, model)
+        value = self.getModelValueObj()
+        self._tableView.setModel([value.dim_x, value.dim_y])
+        self._label.setModel(value)
 
+    def handleEvent(self, evt_src, evt_type, evt_value):
+        '''see :meth:`TaurusWidget.handleEvent`'''
+        if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic) and evt_value is not None:            
+            self._tableView.model().setAttr(evt_value)
+            self._tableView.resizeColumnsToContents()
+        elif evt_type == taurus.core.TaurusEventType.Config:
+            #force a read to set an attr
+            self._tableView.model().setAttr(self.getModelValueObj())
+            self._tableView.model().setConfig(evt_src)
+            writable = bool(evt_value.writable)
+            self.setWriteMode(False)
+            self._rwModeCB.setVisible(writable)
+    
+    def contextMenuEvent(self, event):
+        '''Reimplemented from :meth:`QWidget.contextMenuEvent`'''
+        menu = Qt.QMenu()
+        globalPos = event.globalPos()
+        menu.addAction(self.chooseModelAction)        
+        menu.addAction(self._pauseAction)
+        if self._writeMode:
+            index = self._tableView.selectedIndexes()[0]
+            if index.isValid():
+                val = self._tableView.model().getReadValue(index)
+                if self._tableView.model().getModifiedDict().has_key((index.row(), index.column())):
+                    menu.addAction(getThemeIcon('edit-undo'),"Reset to original value (%s) "%repr(val), self._tableView.removeChange)
+                    menu.addSeparator()
+                menu.addAction(getThemeIcon('process-stop'), "Reset all table", self.askCancel)
+                menu.addSeparator()
+                menu.addAction(getThemeIcon('help-browser') ,"Help", self._tableView.showHelp)
+        menu.exec_(globalPos)
+        event.accept()       
+    
+    def applyChanges(self):        
+        '''
+        Writes table modifications to the device server.
+        '''
+        tab = self._tableView.model().getModifiedWriteData()
+        attr = self.getModelObj()
+        #attr.write(tab)
+        attr.write(tab.tolist()) #@fixme If I don't convert this to a list it segfaults when writing arrays of strings 
+        self._tableView.model().clearChanges()
+    
+        
+    def okClicked(self):
+        """This is a SLOT that is being triggered when ACCEPT button is clicked.
+        
+        .. note:: This SLOT is called, when user wants to apply table modifications. 
+                  When no cell was modified it will not be called. When
+                  modifications have been done, they will be writen to w_value
+                  of an attribute.
+        """
+        if self._tableView.model().isDirty():
+            self.applyChanges()
+            self.setWriteMode(False)
+        
+    def cancelClicked(self):
+        """This is a SLOT that is being triggered when CANCEL button is clicked.
+        
+        .. note:: This SLOT is called, when user does not want to apply table 
+                  modifications. When no cell was modified it will not be called.
+        """
+        if self._tableView.model().isDirty():
+            self.askCancel()
+    
+    def askCancel(self):        
+        '''
+        Shows a QMessageBox, asking if user wants to cancel all changes. Triggered when user clicks Cancel button.
+        '''
+        result = Qt.QMessageBox.warning(self,'Your changes will be lost!', 
+                                        'Do you want to cancel changes done to the whole table?',
+                                         Qt.QMessageBox.Ok | Qt.QMessageBox.Cancel)
+        if result == Qt.QMessageBox.Ok:
+            self._tableView.cancelChanges()
+            self.setWriteMode(False)
+    
+    def _onEditorCreated(self):
+        '''slot called when an editor has been created'''
+        self.setWriteMode(True)
+        
+    def setWriteMode(self, isWrite):
+        '''
+        Triggered when the read mode is changed to write mode. 
+        
+        :param isWrite: (bool)
+        '''
+        if isWrite == self._writeMode: return
+        self._writeMode = isWrite
+        
+        if isWrite:
+            valueObj = self.getModelValueObj()
+            w_value = valueObj.w_value
+            value = valueObj.value
+            if numpy.array(w_value).shape != numpy.array(value).shape:
+                ta = self.getModelObj()
+                v = ta.read()
+                ta.write(v.value) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
+                
+        self._tableView.model().setWriteMode(isWrite)
+        self._label.setVisible(isWrite)
+        self._applyBT.setVisible(isWrite)
+        self._cancelBT.setVisible(isWrite)
+        self._rwModeCB.setChecked(isWrite)
+        
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Item Widgets'
         ret['icon'] = ":/designer/table.png"
         return ret
-                
+    
+    def chooseModel(self):
+        '''shows a model chooser'''
+        from taurus.qt.qtgui.panel import  TaurusModelChooser
+        selectables=[taurus.core.TaurusElementType.Attribute]
+        models, ok = TaurusModelChooser.modelChooserDlg(selectables=selectables, singleModel=True)
+        if ok and len(models)==1:
+            self.setModel(models[0])
+            
+    def setModifiableByUser(self, modifiable):
+        '''Reimplemented from :meth:`TaurusWidget.setModifiableByUser`'''
+        self.chooseModelAction.setEnabled(modifiable)
+        TaurusWidget.setModifiableByUser(self, modifiable)
+        
+    def isReadOnly(self):
+        '''Reimplemented from :meth:`TaurusWidget.isReadOnly`'''
+        return False
+        
+                    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
-                                TaurusBaseWidget.setModel, 
-                                TaurusBaseWidget.resetModel)
+    model = Qt.pyqtProperty("QString", TaurusWidget.getModel, 
+                                    setModel, 
+                                    TaurusWidget.resetModel)
     
-    useParentModel = Qt.pyqtProperty("bool", 
-                                         TaurusBaseWidget.getUseParentModel, 
-                                         TaurusBaseWidget.setUseParentModel,
-                                         TaurusBaseWidget.resetUseParentModel)
-    
-    showQuality = Qt.pyqtProperty("bool", 
-                                      TaurusBaseWidget.getShowQuality,
-                                      TaurusBaseWidget.setShowQuality,
-                                      TaurusBaseWidget.resetShowQuality)
+#    useParentModel = Qt.pyqtProperty("bool", 
+#                                         TaurusWidget.getUseParentModel, 
+#                                         TaurusWidget.setUseParentModel,
+#                                         TaurusWidget.resetUseParentModel)
+#    
+#    showQuality = Qt.pyqtProperty("bool", 
+#                                      TaurusWidget.getShowQuality,
+#                                      TaurusWidget.setShowQuality,
+#                                      TaurusWidget.resetShowQuality)
 
+def taurusTableMain():
+    '''A launcher for TaurusEditTable.'''
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.core.util import argparse
+    import sys, os
+    
+    parser = argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [model]]")
+    parser.set_description("A table for viewing and editing 1D and 2D attribute values")
+    app = TaurusApplication(cmd_line_parser=parser,
+                            app_name="TaurusEditTable",
+                            app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+
+    dialog = TaurusEditTable()
+    dialog.setModifiableByUser(True)
+    dialog.setWindowTitle(app.applicationName())
+    
+    #set a model list from the command line or launch the chooser  
+    if len(args)==1:
+        model=args[0]
+        dialog.setModel(model)
+    else:
+        dialog.chooseModel()
+        #model = 'sys/tg_test/1/string_spectrum'
+        #model = 'sys/tg_test/1/wave'
+        #dialog.setModel(model)
+
+    dialog.show()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    import sys
-    app = Qt.QApplication([])
+    taurusTableMain()
     
-    if len(sys.argv) == 2:
-        model = sys.argv[1]
-    else:
-        model = 'bl97/pysignalsimulator/1/value1'
-     
-    w = TaurusValuesTable()
-        
-    w.setModel(model)
-    w.setShowQuality(True)
-    w.show()
-    sys.exit(app.exec_())
+    
+    
