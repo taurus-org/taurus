@@ -86,6 +86,8 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
            method to return a QObject to be used for emitting and connecting
            signals.
     """
+    _modifiableByUser = False
+    _showQuality = True
     
     def __init__(self, name, parent=None, designMode=False):
         """Initialization of TaurusBaseComponent"""
@@ -103,7 +105,6 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         # attributes storing property values
         self._localModelName = ''
         self._useParentModel = False
-        self._showQuality = True
         self._showText = True
         self._attached = False
         self._dangerMessage = ""
@@ -112,7 +113,6 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self._eventFilters = []
         self._isPaused = False
         self._operations = []
-        self._modifiableByUser = False
         self._modelInConfig = False
         self._autoProtectOperation = True
         
@@ -583,6 +583,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         
         :return: (bool) whether or not this component is read-only
         """
+        return True
     
     def isAttached(self):
         """Determines if this component is attached to the taurus model.
@@ -897,8 +898,8 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         return self._showQuality
 
     def resetShowQuality(self):
-        """Resets the show quality to False"""
-        self.setShowQuality(False)
+        """Resets the show quality to self.__class__._showQuality"""
+        self.setShowQuality(self.__class__._showQuality)
 
     @Qt.pyqtSignature("setShowText(bool)")
     def setShowText(self, showText):
@@ -943,7 +944,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self.taurusMenuData = ''
         
     def isModifiableByUser(self):
-        '''whether the user can change the contents of the form
+        '''whether the user can change the contents of the widget
         
         :return: (bool) True if the user is allowed to modify the look&feel'''
         return self._modifiableByUser
@@ -957,8 +958,8 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self._modifiableByUser = modifiable
     
     def resetModifiableByUser(self):
-        '''Equivalent to setModifiableByUser(True)'''
-        self.setModifiableByUser(False)
+        '''Equivalent to setModifiableByUser(self.__class__._modifiableByUser)'''
+        self.setModifiableByUser(self.__class__._modifiableByUser)
     
     def resetAutoProtectOperation(self):
         """Resets protecting operations"""
@@ -1287,7 +1288,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def setModifiableByUser(self, modifiable):
-        '''Reimplemented from to acept/reject drops based on whether the widget is modifiable by the user.
+        '''Reimplemented to acept/reject drops based on whether the widget is modifiable by the user.
         See :meth:`TaurusBaseComponent.setModifiableByUser()`'''
         TaurusBaseComponent.setModifiableByUser(self, modifiable)
         self.setAcceptDrops(modifiable)
