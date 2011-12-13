@@ -52,7 +52,7 @@ class SafeEvaluator:
                                'frexp', 'hypot', 'ldexp', 'linspace', 'log', 'log10', 'logspace', 
                                'modf', 'ones', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'tan', 
                                'tanh','zeros')
-        self._default_numpy_random = ('randn','rand') 
+        self._default_numpy_random = ('randn', 'rand', 'randint') 
         
         if safedict is None: safedict={}    
         self.safe_dict = safedict
