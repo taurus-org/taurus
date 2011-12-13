@@ -85,3 +85,7 @@ class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
     showQuality = Qt.pyqtProperty("bool", TaurusBaseContainer.getShowQuality,
                                   TaurusBaseContainer.setShowQuality,
                                   TaurusBaseContainer.resetShowQuality)
+    
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseContainer.isModifiableByUser,
+                                  TaurusBaseContainer.setModifiableByUser,
+                                  TaurusBaseContainer.resetModifiableByUser)
