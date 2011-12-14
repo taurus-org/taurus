@@ -386,25 +386,29 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     
     .. seealso:: :class:`TaurusImageWidget`
     '''
+    _rgbmode = False
     def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
         ImageDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusImageDialog')
         self.setWindowFlags(Qt.Qt.Widget)
         self.imgItem = None
-        self._rgbmode = False
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.add_tool(TaurusModelChooserTool, singleModel=True)
         self.setModifiableByUser(True)
     
     def setRGBmode(self,enable):
         self._rgbmode = enable
+        #enable the zaxis only when not in rgb mode
+        plot = self.get_plot()
+        zaxis = plot.colormap_axis
+        plot.enableAxis(zaxis, not enable)
         
     def getRGBmode(self):
         return self._rgbmode
     
     def resetRGBmode(self):
-        self.setRGBmode(False)
+        self.setRGBmode(self.__class__._rgbmode)
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -535,6 +539,7 @@ def taurusTrendDlgMain():
     
     w.show()
     sys.exit(app.exec_())      
+  
     
 def taurusImageDlgMain():
     from taurus.qt.qtgui.application import TaurusApplication
@@ -554,9 +559,9 @@ def taurusImageDlgMain():
     #check & process options
     if options.demo:
         if options.rgb_mode:
-            args.append('eval://randint(0,255,(10,20,3))')
+            args.append('eval://randint(0,256,(10,20,3))')
         else:
-            args.append('eval://rand(256,128,3)')
+            args.append('eval://rand(256,128)')
     w = TaurusImageDialog()
     
     w.setRGBmode(options.rgb_mode)
