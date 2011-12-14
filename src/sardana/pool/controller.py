@@ -62,13 +62,13 @@ class Controller(object):
     
     #: A :class:`dict` containning controller properties where:
     #:
-    #: - key : (:class:`str`) controller property name
-    #: - value : :class:`dict` with with three :class:`str` keys ("type",
+    #: - key : (:obj:`str`) controller property name
+    #: - value : :class:`dict` with with three :obj:`str` keys ("type",
     #:   "description" and "defaultvalue" case insensitive):
     #:
     #:     - for key="type", value is one of the values described in
     #:       :ref:`pool-controller-data-type`
-    #:     - for key="description", value is a :class:`str` description of the
+    #:     - for key="description", value is a :obj:`str` description of the
     #:       property.
     #:       if is not given it defaults to empty string.
     #:     - for key="defaultvalue", value is a python object or None if no
@@ -77,20 +77,20 @@ class Controller(object):
     
     #: A :class:`dict` containning controller extra attributes where:
     #:
-    #: - key : (:class:`str`) controller attribute name
-    #: - value : :class:`dict` with :class:`str` possible keys: "type",
+    #: - key : (:obj:`str`) controller attribute name
+    #: - value : :class:`dict` with :obj:`str` possible keys: "type",
     #:   "r/w type", "description", "fget" and "fset" (case insensitive):
     #:     
     #:     - for key="type", value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write"
     #:       (case insensitive)
-    #:     - for key="description", value is a :class:`str` description of the
+    #:     - for key="description", value is a :obj:`str` description of the
     #:       attribute
-    #:     - for key="fget", value is a :class:`str` with the method name for
+    #:     - for key="fget", value is a :obj:`str` with the method name for
     #:       the attribute getter
     #:       if is not given it defaults to "get"<controller attribute name>
-    #:     - for key="fset", value is a :class:`str` with the method name for
+    #:     - for key="fset", value is a :obj:`str` with the method name for
     #:       the attribute setter
     #:       if is not given and "r/w type"="read_write" it defaults to
     #:       "set"<controller attribute name>
@@ -104,15 +104,15 @@ class Controller(object):
     #: A :class:`dict` containning controller extra attributes for each axis
     #: where:
     #:
-    #: - key : (:class:`str`) axis attribute name
-    #: - value : :class:`dict` with three :class:`str` keys
+    #: - key : (:obj:`str`) axis attribute name
+    #: - value : :class:`dict` with three :obj:`str` keys
     #:   ("type", "r/w type", "description" case insensitive):
     #:     
     #:     - for key="type", value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:     - for key="r/w type", value is one of "read" or "read_write"
     #        (case insensitive)
-    #:     - for key="description", value is a :class:`str` description of the
+    #:     - for key="description", value is a :obj:`str` description of the
     #:       attribute
     #:     - for key="defaultvalue", value is a python object or None if no
     #:       default value exists for the attribute. If given, the attribute is
@@ -121,19 +121,19 @@ class Controller(object):
     #: .. versionadded:: 1.0
     axis_attributes = {}
     
-    #: A :class:`str` representing the controller gender
+    #: A :obj:`str` representing the controller gender
     gender = None
     
-    #: A :class:`str` representing the controller model name
+    #: A :obj:`str` representing the controller model name
     model = None
     
-    #: A :class:`str` representing the controller organization
+    #: A :obj:`str` representing the controller organization
     organization = None
     
-    #: A :class:`str` containning the path to the image file
+    #: A :obj:`str` containning the path to the image file
     image = None
     
-    #: A :class:`str` containning the path to the image logo file
+    #: A :obj:`str` containning the path to the image logo file
     logo = None
     
     #: A :class:`dict` containing the standard attributes present on each axis
