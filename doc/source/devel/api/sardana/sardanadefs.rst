@@ -31,8 +31,6 @@
 
 .. autodata:: sardana.sardanadefs.State
 
-.. autodata:: sardana.sardanadefs.ServerState
-
 .. autodata:: sardana.sardanadefs.DataType
 
 .. autodata:: sardana.sardanadefs.DataFormat

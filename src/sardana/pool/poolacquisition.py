@@ -27,7 +27,7 @@
 acquisition"""
 
 __all__ = [ "AcquisitionState", "AcquisitionMap", "PoolCTAcquisition", 
-            "Channel" ]
+            "Channel", "PoolIORAcquisition" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -63,8 +63,10 @@ class PoolAcquisition(PoolAction):
         PoolAction.__init__(self, name)
         ctname = name + ".CTAcquisition"
         zerodname = name + ".0DAcquisition"
+        iorname = name + ".OIRAcquisition"
         self._ct_acq = PoolCTAcquisition(name=ctname)
         self._0d_acq = Pool0DAcquisition(name=zerodname)
+        self._ior_acq = PoolIORAcquisition(name=iorname)
     
     def start_action(self, *args, **kwargs):
         pass
@@ -259,3 +261,70 @@ class PoolCTAcquisition(PoolAction):
                 acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)
 
+
+
+class PoolIORAcquisition(PoolAction):
+    
+    def __init__(self, pool, name="IORAcquisition"):
+        self._channels = None
+        PoolAction.__init__(self, pool, name)
+    
+    def start_action(self, *args, **kwargs):
+        pass
+        
+    def in_acquisition(self, states):
+        return True
+        pass
+         
+    @DebugIt()
+    def action_loop(self):
+        i = 0
+        
+        states, values = {}, {}
+        for element in self._channels:
+            states[element] = None
+            values[element] = None
+
+        # read values to send a first event when starting to acquire
+        self.read_value(ret=values)
+        for acquirable, value in values.items():
+            acquirable.put_value(value, propagate=2)
+            
+        while True:
+            self.read_state_info(ret=states)
+            
+            if not self.in_acquisition(states):
+                break
+            
+            # read value every n times
+            if not i % 5:
+                self.read_value(ret=values)
+                for acquirable, value in values.items():
+                    acquirable.put_value(value)
+                
+            i += 1
+            time.sleep(0.01)
+        
+        self.read_state_info(ret=states)
+        
+        # first update the element state so that value calculation
+        # that is done after takes the updated state into account
+        for acquirable, state_info in states.items():
+            acquirable.set_state_info(state_info, propagate=0)
+        
+        # Do NOT send events before we exit the OperationContext, otherwise
+        # we may be asked to start another action before we leave the context
+        # of the current action. Instead, send the events in the finish hook
+        # which is executed outside the OperationContext
+
+        def finish_hook(*args, **kwargs):
+            # read values and propagate the change to all listeners
+            self.read_value(ret=values)
+            for acquirable, value in values.items():
+                acquirable.put_value(value, propagate=2)
+            
+            # finally set the state and propagate to all listeners
+            for acquirable, state_info in states.items():
+                acquirable.set_state_info(state_info, propagate=2)
+        
+        self.set_finish_hook(finish_hook)

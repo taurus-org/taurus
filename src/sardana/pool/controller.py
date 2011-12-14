@@ -27,7 +27,8 @@
 
 __all__ = ["Type", "Access", "Description", "DefaultValue", "Read", "ReadWrite",
            "Controller", "Readable", "Startable",
-           "MotorController", "CounterTimerController", "PseudoMotorController"]
+           "MotorController", "CounterTimerController", "PseudoMotorController",
+           "IORegisterController"]
 
 __docformat__ = 'restructuredtext'
 
@@ -682,7 +683,7 @@ class CounterTimerController(Controller, Readable):
         returns True.
         
         :param int axis: axis number
-        :param float value: ---
+        :param float value: the value
         :return: True means a successfull pre-start or False for a failure
         :rtype: bool
         
@@ -697,7 +698,7 @@ class CounterTimerController(Controller, Readable):
         nothing.
         
         :param int axis: axis number
-        :param float value: ---"""
+        :param float value: the value"""
         return self.StartOneCT(axis)
     
     def StartAll(self):
@@ -990,4 +991,20 @@ class PseudoMotorController(Controller):
         pass
     
     def StopAll(self):
+        pass
+
+
+class IORegisterController(Controller, Readable):
+    """Base class for a IORegister controller. Inherit from this class to 
+    implement your own IORegister controller for the device pool.
+    """
+        #: .. deprecated:: 1.0
+    #:     Deprecated: use :attr:`~Controller.axis_attributes` instead
+    predefined_values = ()
+    
+    def __init__(self, inst, props, *args, **kwargs):
+        Controller.__init__(self, inst, props, *args, **kwargs)
+    
+    def WriteOne(self):
+        """**IORegister Controller API**. Overwrite as necessary."""
         pass

@@ -654,7 +654,7 @@ class Macro(Logger):
     def warning(self, *args, **kwargs):
         """**Macro API**.
            Record a warning message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :meth:`logging.Logger.warn`.
+           *kwargs* are the same as :meth:`logging.Logger.warning`.
         
            :param msg: (str) the message to be recorded
            :param args: list of arguments

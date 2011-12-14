@@ -93,10 +93,10 @@ class TypeNames:
     def __str__(self):
         return str(self._type_names.keys())
     
-#    def __getattr__(self, name):
-#        if name not in self._pending_type_names:
-#            self._pending_type_names[name] = name
-#        return self._pending_type_names[name]
+    def __getattr__(self, name):
+        if name not in self._pending_type_names:
+            self._pending_type_names[name] = name
+        return self._pending_type_names[name]
 
 
 # This instance of TypeNames is intended to provide access to types to the 

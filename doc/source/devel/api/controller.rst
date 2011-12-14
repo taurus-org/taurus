@@ -3,17 +3,15 @@
 
 .. _pool-controller-api:
 
-==================
-Controller API
-==================
+========================
+Controller API reference
+========================
 
-.. hlist::
-    :columns: 3
-
-    * :class:`Controller`
-    * :class:`MotorController`
-    * :class:`CounterTimerController`
-    * :class:`PseudoMotorController`
+    * :class:`Controller` - Base API for all controller types
+    * :class:`MotorController` - Motor controller API
+    * :class:`CounterTimerController` - Counter/Timer controller API
+    * :class:`PseudoMotorController` - PseudoMotor controller API
+    * :class:`IORegisterController` - IORegister controller API
 
 .. _pool-controller-data-type:
 
@@ -25,19 +23,19 @@ controller or/and per axis) as well as extra properties. This chapter describes
 how to describe the data type for each of this additional members.
 Controller data type definition has the following equivalences. This means you
 can use any of the given possibilities to describe a field data type. The
-possibilities are ordered by preference (example: usage of int is prefered
-to "int" or "PyTango.DevLong"):
+possibilities are ordered by preference (example: usage of :obj:`int` is
+prefered to "int" or "PyTango.DevLong"):
 
 - for 0D data types:
-   - **integer**: int   | DataType.Integer | "int"    | "integer" | "long" | long | [ "PyTango." ] "DevLong"
-   - **double**:  float | DataType.Double  | "double" | "float"   | [ "PyTango." ] "DevDouble"
-   - **string**:  str   | DataType.String  | "str"    | "string"  | [ "PyTango." ] "DevString"
-   - **boolean**: bool  | DataType.Boolean | "bool"   | "boolean" | [ "PyTango." ] "DevBoolean"
+   - **integer**: :obj:`int`   | :data:`DataType.Integer <sardana.sardanadefs.DataType>` | "int"    | "integer" | "long" | :obj:`long` | [ "PyTango." ] "DevLong"
+   - **double**:  :obj:`float` | :data:`DataType.Double <sardana.sardanadefs.DataType>`  | "double" | "float"   | [ "PyTango." ] "DevDouble"
+   - **string**:  :obj:`str`   | :data:`DataType.String <sardana.sardanadefs.DataType>`  | "str"    | "string"  | [ "PyTango." ] "DevString"
+   - **boolean**: :obj:`bool`  | :data:`DataType.Boolean <sardana.sardanadefs.DataType>` | "bool"   | "boolean" | [ "PyTango." ] "DevBoolean"
 - for 1D data types:
-   - **integer**: (int,)   | (DataType.Integer,) | ("int",)    | ("integer",) | (long,) | ("long",) | [ "PyTango." ] "DevVarLongArray" | ([ "PyTango." ] "DevLong",)
-   - **double**:  (float,) | (DataType.Double,)  | ("double",) | ("float",)   | [ "PyTango." ] "DevVarDoubleArray"  | ([ "PyTango." ] "DevDouble",)
-   - **string**:  (str,)   | (DataType.String,)  | ("str",)    | ("string",)  | [ "PyTango." ] "DevVarStringArray"  | ([ "PyTango." ] "DevString",)
-   - **boolean**: (bool,)  | (DataType.Boolean,) | ("bool",)   | ("boolean",) | [ "PyTango." ] "DevVarBooleanArray" | ([ "PyTango." ] "DevBoolean",)
+   - **integer**: (:obj:`int`,)   | (:data:`DataType.Integer <sardana.sardanadefs.DataType>`,) | ("int",)    | ("integer",) | (:obj:`long`,) | ("long",) | [ "PyTango." ] "DevVarLongArray" | ([ "PyTango." ] "DevLong",)
+   - **double**:  (:obj:`float`,) | (:data:`DataType.Double <sardana.sardanadefs.DataType>`,)  | ("double",) | ("float",)   | [ "PyTango." ] "DevVarDoubleArray"  | ([ "PyTango." ] "DevDouble",)
+   - **string**:  (:obj:`str`,)   | (:data:`DataType.String <sardana.sardanadefs.DataType>`,)  | ("str",)    | ("string",)  | [ "PyTango." ] "DevVarStringArray"  | ([ "PyTango." ] "DevString",)
+   - **boolean**: (:obj:`bool`,)  | (:data:`DataType.Boolean <sardana.sardanadefs.DataType>`,) | ("bool",)   | ("boolean",) | [ "PyTango." ] "DevVarBooleanArray" | ([ "PyTango." ] "DevBoolean",)
 
 .. deprecated:: 1.0
   [ "PyTango." ] "Dev"<concrete type string> types are considered deprecated.
@@ -51,7 +49,7 @@ Here is an example on how to define extra attributes per axis:
     
 ::
 
-    from sardana.pool import MotorController
+    from sardana.pool.controller import MotorController
 
     class MyMotorCtrl(MotorController):
 

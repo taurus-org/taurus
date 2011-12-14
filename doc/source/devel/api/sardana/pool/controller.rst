@@ -16,6 +16,7 @@
     * :class:`MotorController`
     * :class:`PseudoMotorController`
     * :class:`CounterTimerController`
+    * :class:`IORegisterController`
     
 Controller
 -----------
@@ -82,4 +83,14 @@ Counter Timer Controller API
     :show-inheritance:
     :members:
     :undoc-members:
+
+IO Register Controller API
+----------------------------
+
+.. inheritance-diagram:: IORegisterController
+    :parts: 1
     
+.. autoclass:: IORegisterController
+    :show-inheritance:
+    :members:
+    :undoc-members:

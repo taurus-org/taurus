@@ -696,7 +696,12 @@ class PoolController(PoolBaseController):
         return self.ctrl.DefinePosition(axis, position)
         
     # END SPECIFIC TO MOTOR CONTROLLER -----------------------------------------
+    # START SPECIFIC TO IOR CONTROLLER -------------
 
+    def write_one(self, value):
+        self.ctrl.WriteOne(self,value)
+
+    # END SPECIFIC TO IOR CONTROLLER ----------
 
 class PoolPseudoMotorController(PoolController):
     

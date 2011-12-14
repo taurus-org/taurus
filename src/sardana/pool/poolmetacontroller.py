@@ -51,8 +51,9 @@ from poolmotorgroup import PoolMotorGroup
 from poolmeasurementgroup import PoolMeasurementGroup
 from poolcountertimer import PoolCounterTimer
 from poolinstrument import PoolInstrument
+from poolioregister import PoolIORegister
 from controller import Controller, MotorController, CounterTimerController, \
-    PseudoMotorController
+    PseudoMotorController, IORegisterController
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -69,6 +70,7 @@ CTRL_TYPE_MAP = {
     ET.Motor        : PoolController,
     ET.CTExpChannel : PoolController,
     ET.PseudoMotor  : PoolPseudoMotorController,
+    ET.IORegister   : PoolController,
 }
 
 #: dictionary dict<:data:`~sardana.ElementType`, :class:`tuple`> 
@@ -87,6 +89,7 @@ TYPE_MAP = {
     ET.PseudoMotor      : ("PseudoMotor",      "Motor",            PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
     ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
     ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),
+    ET.IORegister       : ("IORegister",       "IORegister"      , PoolIORegister,         "ioregister/{ctrl_name}/{axis}", IORegisterController),
 }
 
 class TypeData(object):
@@ -241,6 +244,9 @@ class ControllerClass(SardanaMetaClass):
             self.pseudo_motor_roles = tuple(klass.pseudo_motor_roles)
             self.dict_extra['motor_roles'] = self.motor_roles
             self.dict_extra['pseudo_motor_roles'] = self.pseudo_motor_roles
+
+        if ElementType.IORegister in types:
+            self.dict_extra['predefined_values'] = klass.predefined_values
         
         init_args = inspect.getargspec(klass.__init__)
         if init_args.varargs is None or init_args.keywords is None:

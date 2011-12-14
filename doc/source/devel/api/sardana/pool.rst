@@ -24,6 +24,7 @@
     poolexception <pool/poolexception>
     poolgroupelement <pool/poolgroupelement>
     poolinstrument <pool/poolinstrument>
+    poolioregister <pool/poolioregister>
     poolmeasurementgroup <pool/poolmeasurementgroup>
     poolmetacontroller <pool/poolmetacontroller>
     poolmodulemanager <pool/poolmodulemanager>

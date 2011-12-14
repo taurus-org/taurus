@@ -10,32 +10,8 @@
 .. hlist::
     :columns: 3
 
-    * :class:`SardanaBaseManager`
-    * :class:`SardanaAttribute`
     * :class:`SardanaBaseObject`
 
-SardanaBaseManager
--------------------
-
-.. inheritance-diagram:: SardanaBaseManager
-    :parts: 1
-    
-.. autoclass:: SardanaBaseManager
-    :inherited-members:
-    :members:
-    :undoc-members:
-
-SardanaAttribute
-----------------
-
-.. inheritance-diagram:: SardanaAttribute
-    :parts: 1
-    
-.. autoclass:: SardanaAttribute
-    :inherited-members:
-    :members:
-    :undoc-members:
-    
 SardanaBaseObject
 ------------------
 

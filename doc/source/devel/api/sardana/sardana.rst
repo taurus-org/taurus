@@ -24,3 +24,5 @@
     sardanaevent <sardanaevent>
     sardanamodulemanager <sardanamodulemanager>
     sardanameta <sardanameta>
+    sardanamanager <sardanamanager>
+    sardanaattribute <sardanaattribute>
