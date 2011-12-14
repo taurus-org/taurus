@@ -396,7 +396,15 @@ class Controller(object):
                 exceptions.append(sys.exc_info())
         if len(exceptions) > 0:
             raise Exception(exceptions)
-
+    
+    def SendToCtrl(self, stream):
+        """**Controller API**. Overwrite as necessary.
+        Sends a string to the controller.
+        Default implementation raises :exc:`NotImplementedError`.
+        
+        :param str stream: stream to be sent"""
+        raise NotImplementedError("SendToCtrl not implemented")
+        
 
 class Startable(object):
     """A Startable interface. A controller for which it's axis are 'startable'
