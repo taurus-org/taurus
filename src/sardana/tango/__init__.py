@@ -38,4 +38,4 @@ def main_sardana(args=None, start_time=None, mode=None):
     return core.util.run(prepare_sardana, args=args, start_time=start_time,
                          mode=mode)
 
-
+run = main_sardana
