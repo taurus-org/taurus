@@ -400,6 +400,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
         self.connect(self, Qt.SIGNAL("toggled(bool)"), self.on_toggle)
         self.setCheckable(True)
         self.setAutoTooltip(False)
+        self.insertEventFilter(eventfilters.IGNORE_ALL)
         self.update_button()
         
     @classmethod
@@ -432,9 +433,6 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
         self.setToolTip(lock_info.status_msg)
         self.update()
         return lock_info
-    
-    def handleEvent(self, evt_src, evt_type, evt_value):
-        pass
     
     def _on_toggle(self, down):
         dev = self.getModelObj()
