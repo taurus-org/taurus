@@ -571,13 +571,16 @@ class TaurusValuesTable(TaurusWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         '''see :meth:`TaurusWidget.handleEvent`'''
+        model = self._tableView.model()
+        if model is None:
+            return
         if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic) and evt_value is not None:            
-            self._tableView.model().setAttr(evt_value)
+            model.setAttr(evt_value)
             self._tableView.resizeColumnsToContents()
         elif evt_type == taurus.core.TaurusEventType.Config:
             #force a read to set an attr
-            self._tableView.model().setAttr(self.getModelValueObj())
-            self._tableView.model().setConfig(evt_src)
+            model.setAttr(self.getModelValueObj())
+            model.setConfig(evt_src)
             writable = bool(evt_value.writable)
             self.setWriteMode(False)
             self._rwModeCB.setVisible(writable)
