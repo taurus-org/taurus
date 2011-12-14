@@ -64,16 +64,13 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             return
         lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
         if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
-        try:
-            self.set_data(evt_value.value, lut_range=lut_range)
-        except TypeError:
-            self.set_data(evt_value.value) #rgb images do not support lut_range
-            
+        self.set_data(evt_value.value, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
+
 
 class TaurusImageItem(ImageItem, TaurusBaseImageItem):
     '''A ImageItem that gets its data from a taurus attribute'''
@@ -81,11 +78,17 @@ class TaurusImageItem(ImageItem, TaurusBaseImageItem):
         ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
         TaurusBaseImageItem.__init__(self, self.__class__.__name__)
 
+
 class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
     '''A RGBImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
         RGBImageItem.__init__(self, numpy.zeros((1,1,3)), param=param)
         TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+        
+    def set_data(self, data, lut_range=None, **kwargs): 
+        '''dummy reimplementation to accept the lut_range kwarg (just ignoring it)'''
+        return RGBImageItem.set_data(self, data, **kwargs)
+
         
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
@@ -355,7 +358,6 @@ class TaurusTrend2DScanItem(TaurusTrend2DItem):
         
         
 
-
 def taurusImageMain():
     from guiqwt.tools import (RectangleTool, EllipseTool, HRangeTool, PlaceAxesTool,
                           MultiLineTool, FreeFormTool, SegmentTool, CircleTool,
@@ -404,6 +406,7 @@ def taurusImageMain():
         win.connect(img.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections) #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
         
     win.exec_()
+
 
 def test1():
     """Adapted from guiqwt cross_section.py example"""
