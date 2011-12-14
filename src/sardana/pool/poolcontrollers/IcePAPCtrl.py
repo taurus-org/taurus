@@ -20,14 +20,14 @@ class IcepapController(MotorController):
     Appart from the standard Pool motor interface per axis, it provides extra attributes for some
     firmware attributes of the driver.
     """
-
+    
     #ctrl_features = ['Encoder','Home_speed','Home_acceleration']
-
+    
     ## The properties used to connect to the ICEPAP motor controller
     class_prop = {
         'Host':{Type:str,Description:'The host name'},
-        'Port':{Type:int, Description:'The port number','DefaultValue':5000},
-        'Timeout':{Type:int, Description:'Connection timeout','DefaultValue':3}
+        'Port':{Type:int, Description:'The port number',DefaultValue:5000},
+        'Timeout':{Type:int, Description:'Connection timeout',DefaultValue:3}
     }
 
     ## The axis extra attributes that correspond to extra features from the Icepap drivers
