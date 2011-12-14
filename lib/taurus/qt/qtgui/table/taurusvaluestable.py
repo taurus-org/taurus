@@ -571,6 +571,7 @@ class TaurusValuesTable(TaurusWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         '''see :meth:`TaurusWidget.handleEvent`'''
+        #@fixme: in some situations, we may miss some config event because of the qmodel not being set. The whole handleEvent Method and setModel method should be re-thought
         model = self._tableView.model()
         if model is None:
             return
