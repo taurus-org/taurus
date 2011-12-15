@@ -1,0 +1,11 @@
+recursive-include src *.py
+
+graft src
+graft doc
+graft build/sphinx/html
+
+global-exclude *.pyc
+exclude setup.cfg
+exclude .project
+exclude .pydevproject
+exclude build_*

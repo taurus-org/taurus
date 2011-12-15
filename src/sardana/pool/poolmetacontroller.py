@@ -50,10 +50,11 @@ from poolpseudomotor import PoolPseudoMotor
 from poolmotorgroup import PoolMotorGroup
 from poolmeasurementgroup import PoolMeasurementGroup
 from poolcountertimer import PoolCounterTimer
+from poolzerodexpchannel import Pool0DExpChannel
 from poolinstrument import PoolInstrument
 from poolioregister import PoolIORegister
 from controller import Controller, MotorController, CounterTimerController, \
-    PseudoMotorController, IORegisterController
+    ZeroDController, PseudoMotorController, IORegisterController
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -86,6 +87,7 @@ TYPE_MAP = {
     ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                None),
     ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",   MotorController),
     ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
+    ET.ZeroDExpChannel  : ("ZeroDExpChannel",  "ExpChannel",       Pool0DExpChannel,       "expchan/{ctrl_name}/{axis}", ZeroDController),
     ET.PseudoMotor      : ("PseudoMotor",      "Motor",            PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
     ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
     ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),

@@ -428,7 +428,6 @@ class Pool(PyTango.Device_4Impl, Logger):
                 import traceback
                 traceback.print_exc()
         
-        
         util.create_device(elem_type_str, full_name, name, cb=create_element_cb)
         
         # Hack to register event abs change until tango bug #3151801 is solved
@@ -454,6 +453,10 @@ class Pool(PyTango.Device_4Impl, Logger):
             attr = elem_proxy.get_attribute_config_ex("value")[0]
             attr.events.ch_event.abs_change = "1.0"
             cfg.append(attr)
+        elif elem_type == ElementType.ZeroDExpChannel:
+            attr = elem_proxy.get_attribute_config_ex("value")[0]
+            attr.events.ch_event.abs_change = "1.0"
+            cfg.append(attr)
         elif elem_type == ElementType.PseudoMotor:
             attr = elem_proxy.get_attribute_config_ex("position")[0]
             attr.events.ch_event.abs_change = "1"
@@ -463,6 +466,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             attr.events.ch_event.abs_change = "1"
             cfg.append(attr)
         elem_proxy.set_attribute_config(cfg)
+        
         return
         
         # Determine which writtable attributes have default value and apply
