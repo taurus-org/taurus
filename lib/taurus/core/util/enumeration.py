@@ -82,9 +82,9 @@ class Enumeration(object):
         >>>print Volkswagen.whatis(homer_car)
         'PASSAT'
     """
-        
+    
     def __init__(self, name, enumList, flaggable=False):
-        self.__doc__ = name
+        self._name = name
         lookup = { }
         reverseLookup = { }
         uniqueNames = set()
@@ -94,7 +94,7 @@ class Enumeration(object):
         for x in enumList:
             if type(x) == types.TupleType:
                 if flaggable:
-                    raise EnumException("flagablle enum does not accept tuple items")
+                    raise EnumException("flagable enum does not accept tuple items")
                 x, i = x
                 if type(x) != types.StringType:
                     raise EnumException("enum name is not a string: %s" % str(x))
@@ -121,6 +121,7 @@ class Enumeration(object):
                 reverseLookup[i] = x
         self.lookup = lookup
         self.reverseLookup = reverseLookup
+        self.__doc_enum()
    
     def _generateUniqueId(self):
         if self._flaggable:
@@ -142,6 +143,28 @@ class Enumeration(object):
         if not self.has_key(attr):
             raise AttributeError
         return self.lookup[attr]
+    
+    def __doc_enum(self):
+        rl = self.reverseLookup
+        keys = rl.keys()
+        keys.sort()
+        values = "\n".join([ "    - {0} ({1})".format(rl[k],k) for k in keys ])
+        self.__doc__ = self._name + " enumeration. " + \
+                       "Possible values are:\n\n" + values
+    
+    def __str__(self):
+        rl = self.reverseLookup
+        keys = rl.keys()
+        keys.sort()
+        values = ", ".join([ rl[k] for k in keys ])
+        return self._name + "(" + values + ")"
+    
+    def __repr__(self):
+        rl = self.reverseLookup
+        keys = rl.keys()
+        keys.sort()
+        values = [ rl[k] for k in keys ]
+        return "Enumeration('" + self._name + "', " + str(values) + ")"
     
     def has_key(self, key):
         """Determines if the enumeration contains the given key
