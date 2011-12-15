@@ -1,7 +1,7 @@
 recursive-include src *.py
 
 graft src
-graft doc
+graft doc/source
 graft build/sphinx/html
 
 global-exclude *.pyc
