@@ -721,7 +721,7 @@ class TaurusValuesTable(TaurusWidget):
 #                                      TaurusWidget.resetShowQuality)
 
 def taurusTableMain():
-    '''A launcher for TaurusEditTable.'''
+    '''A launcher for TaurusValuesTable.'''
 
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.core.util import argparse
@@ -731,11 +731,11 @@ def taurusTableMain():
     parser.set_usage("%prog [options] [model]]")
     parser.set_description("A table for viewing and editing 1D and 2D attribute values")
     app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="TaurusEditTable",
+                            app_name="TaurusValuesTable",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
 
-    dialog = TaurusEditTable()
+    dialog = TaurusValuesTable()
     dialog.setModifiableByUser(True)
     dialog.setWindowTitle(app.applicationName())
     
