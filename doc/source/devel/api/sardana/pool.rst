@@ -22,12 +22,12 @@
     pooldefs <pool/pooldefs>
     poolelement <pool/poolelement>
     poolexception <pool/poolexception>
+    poolexternal <pool/poolexternal>
     poolgroupelement <pool/poolgroupelement>
     poolinstrument <pool/poolinstrument>
     poolioregister <pool/poolioregister>
     poolmeasurementgroup <pool/poolmeasurementgroup>
     poolmetacontroller <pool/poolmetacontroller>
-    poolmodulemanager <pool/poolmodulemanager>
     poolmonitor <pool/poolmonitor>
     poolmotion <pool/poolmotion>
     poolmotor <pool/poolmotor>
