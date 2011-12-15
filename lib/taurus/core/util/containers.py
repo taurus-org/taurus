@@ -1053,7 +1053,7 @@ class ArrayBuffer(object):
         
         It is equivalent to b[:]
         
-        :return: (numpy.array)
+        :return: (numpy.array) array of contents
         
         .. seealso:: :meth:`toArray`
         '''
@@ -1063,7 +1063,7 @@ class ArrayBuffer(object):
         '''returns a copy of the array of the contents. It is equivalent to
         ``b.contents.copy()``
         
-        :return: (numpy.array)
+        :return: (numpy.array) copy of array of contents
         
         .. seealso:: :meth:`contents`
         '''
