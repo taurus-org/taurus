@@ -248,8 +248,8 @@ autodoc_member_order = "bysource"
 # -- Options for Graphviz  -----------------------------------------------------
 
 inheritance_node_attrs = dict(shape='box', fontcolor='black', 
-                              height=0.5,
-                              color='dodgerblue1', style='rounded')
+                              height=0.4,
+                              color='brown', style='rounded')
 
 inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 

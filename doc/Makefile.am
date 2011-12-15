@@ -1,1 +1,1 @@
-dist_doc_DATA = ConfigUserGuide.pdf
+dist_doc_DATA = manuals/ConfigUserGuide.pdf
