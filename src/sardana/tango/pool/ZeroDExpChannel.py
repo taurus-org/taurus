@@ -65,7 +65,7 @@ class ZeroDExpChannel(PoolElementDevice):
     def delete_device(self):
         pass
         #self.pool.delete_element(self.element.get_name())
-        #self.ct = None
+        #self.zerod = None
 
     @DebugIt()
     def init_device(self):
@@ -75,7 +75,7 @@ class ZeroDExpChannel(PoolElementDevice):
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
         
-        if self.ct is None:
+        if self.zerod is None:
             full_name = self.get_name()
             name = self.alias or full_name
             zerod = self.pool.create_element(type="ZeroDExpChannel", name=name,
@@ -89,7 +89,7 @@ class ZeroDExpChannel(PoolElementDevice):
     def on_zerod_changed(self, event_source, event_type, event_value):
         t = time.time()
         name = event_type.name
-            
+        
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
@@ -105,7 +105,7 @@ class ZeroDExpChannel(PoolElementDevice):
                 self.set_state(event_value)
                 self.push_change_event(name)
             else:
-                state = to_tango_state(self.ct.get_state())
+                state = to_tango_state(self.zerod.get_state())
                 if name == "value":
                     if state == DevState.MOVING:
                         quality = AttrQuality.ATTR_CHANGING

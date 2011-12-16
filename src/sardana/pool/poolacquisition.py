@@ -66,12 +66,76 @@ class PoolAcquisition(PoolAction):
         iorname = name + ".IORAcquisition"
         self._ct_acq = PoolCTAcquisition(name=ctname)
         self._0d_acq = Pool0DAcquisition(name=zerodname)
-        self._ior_acq = PoolIORAcquisition(name=iorname)
     
-    def start_action(self, *args, **kwargs):
-        pass
+    def run(self, *args, **kwargs):
+        """Runs this action"""
+        self._ct_acq.run(*args, **kwargs)
+        self._0d_acq.run(*args, **kwargs)
+        
+#    def start_action(self, *args, **kwargs):
+#        pass
+    
+#    def action_loop(self):
+#        pass
+    
+    def _get_acq_for_element(self, element):
+        elem_type = element.get_type()
+        acq = None
+        if elem_type == ElementType.CTExpChannel:
+            acq = self._ct_acq
+        if elem_type == ElementType.ZeroDExpChannel:
+            acq = self._0d_acq
+        return acq
+    
+    def clear_elements(self):
+        """Clears all elements from this action"""
+        
+    def add_element(self, element):
+        """Adds a new element to this action.
+        
+        :param element: the new element to be added
+        :type element: sardana.pool.poolelement.PoolElement"""
+        return self._get_acq_for_element(element).add_element(element)
+        
+    def remove_element(self, element):
+        """Removes an element from this action. If the element is not part of
+        this action, a ValueError is raised.
+        
+        :param element: the new element to be removed
+        :type element: sardana.pool.poolelement.PoolElement
+        
+        :raises: ValueError"""
+        return self._get_acq_for_element(element).add_element(element)
+    
+    def get_elements(self, copy_of=False):
+        """Returns a sequence of all elements involved in this action.
+        
+        :param copy_of: If False (default) the internal container of elements is
+                        returned. If True, a copy of the internal container is
+                        returned instead
+        :type copy_of: bool
+        :return: a sequence of all elements involved in this action.
+        :rtype: seq<sardana.pool.poolelement.PoolElement>"""
+        return self._ct_acq.get_elements() + self._0d_acq.get_elements()
 
-
+    def get_pool_controller_list(self):
+        """Returns a list of all controller elements involved in this action.
+        
+        :return: a list of all controller elements involved in this action.
+        :rtype: list<sardana.pool.poolelement.PoolController>"""
+        return self._pool_ctrl_list
+    
+    def get_pool_controllers(self):
+        """Returns a dict of all controller elements involved in this action.
+        
+        :return: a dict of all controller elements involved in this action.
+        :rtype: dict<sardana.pool.poolelement.PoolController, seq<sardana.pool.poolelement.PoolElement>>"""
+        ret = {}
+        ret.update(self._ct_acq.get_pool_controllers())
+        ret.update(self._0d_acq.get_pool_controllers())
+        return ret
+    
+    
 class Channel(PoolActionItem):
     
     def __init__(self, acquirable, info=None):
@@ -100,7 +164,7 @@ class PoolCTAcquisition(PoolAction):
         self._aborted = False
         self._stopped = False
         
-        self._acq_sleep_time = kwargs.pop("motion_sleep_time",
+        self._acq_sleep_time = kwargs.pop("acq_sleep_time",
                                              pool.acq_loop_sleep_time)
         self._nb_states_per_value = \
             kwargs.pop("nb_states_per_value",
@@ -279,12 +343,12 @@ class Pool0DAcquisition(PoolAction):
         self._aborted = False
         self._stopped = False
         
-        self._acq_sleep_time = kwargs.pop("motion_sleep_time",
-                                             pool.acq_loop_sleep_time)
+        self._acq_sleep_time = kwargs.pop("acq_sleep_time",
+                                          pool.acq_loop_sleep_time)
         self._nb_states_per_value = \
             kwargs.pop("nb_states_per_value",
                        pool.acq_loop_states_per_value)
-
+        
         integ_time = kwargs.get("integ_time")
         mon_count = kwargs.get("monitor_count")
         if integ_time is None and mon_count is None:
@@ -296,25 +360,6 @@ class Pool0DAcquisition(PoolAction):
         if items is None:
             items = self.get_elements()
         cfg = kwargs['config']
-        
-        # determine which is the controller which olds the master channel
-        master_key, master_value = 'timer', integ_time
-
-        if mon_count is not None:
-            master_key = 'monitor'
-            master_value = - mon_count
-        
-        master = cfg[master_key]
-        master_ctrl = master.controller
-
-        pool_ctrls_dict = dict(cfg['controllers'])
-        pool_ctrls_dict.pop('__tango__', None)
-        pool_ctrls = pool_ctrls_dict.keys()
-        
-        # make sure the controller which has the master channel is the last to
-        # be called
-        pool_ctrls.remove(master_ctrl)
-        pool_ctrls.append(master_ctrl)
         
         # Determine which channels are active
         self._channels = channels = {}
@@ -329,52 +374,10 @@ class Pool0DAcquisition(PoolAction):
                 channel = Channel(element, info=element_info)
                 channels[element] = channel
         
-        #for channel in channels:
-        #    channel.prepare_to_acquire(self)
-        
         with ActionContext(self) as context:
-            
-            # PreLoadAll, PreLoadOne, LoadOne and LoadAll
-            for pool_ctrl in pool_ctrls:
-                ctrl = pool_ctrl.ctrl
-                pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
-                main_unit_data = pool_ctrl_data['units']['0']
-                ctrl.PreLoadAll()
-                master = main_unit_data[master_key]
-                axis = master.axis
-                res = ctrl.PreLoadOne(axis, master_value)
-                if not res:
-                    raise Exception("%s.PreLoadOne(%d) returns False" % (pool_ctrl.name, axis,))
-                ctrl.LoadOne(axis, master_value)
-                ctrl.LoadAll()
-
-            # PreStartAll on all controllers
-            for pool_ctrl in pool_ctrls:
-                pool_ctrl.ctrl.PreStartAll()
-            
-            # PreStartOne & StartOne on all elements
-            for pool_ctrl in pool_ctrls:
-                ctrl = pool_ctrl.ctrl
-                pool_ctrl_data = pool_ctrls_dict[pool_ctrl]
-                main_unit_data = pool_ctrl_data['units']['0']
-                elements = main_unit_data['channels']
-                for element in elements:
-                    axis = element.axis
-                    channel = channels[element]
-                    if channel.enabled:
-                        ret = ctrl.PreStartOne(axis, master_value)
-                        if not ret:
-                            raise Exception("%s.PreStartOne(%d) returns False" \
-                                            % (ctrl.name, axis))
-                        ctrl.StartOne(axis)
-            
             # set the state of all elements to  and inform their listeners
             for channel in channels:
                 channel.set_state(State.Moving, propagate=2)
-            
-            # StartAll on all controllers
-            for pool_ctrl in pool_ctrls:
-                pool_ctrl.ctrl.StartAll()
         
     def in_acquisition(self, states):
         """Determines if we are in acquisition or if the acquisition has ended
@@ -391,6 +394,8 @@ class Pool0DAcquisition(PoolAction):
             if self._is_in_action(s):
                 return True
     
+    
+    
     @DebugIt()
     def action_loop(self):
         i = 0
@@ -399,10 +404,10 @@ class Pool0DAcquisition(PoolAction):
         for element in self._channels:
             states[element] = None
             values[element] = None
-
+    
         nap = self._acq_sleep_time
         nb_states_per_value = self._nb_states_per_value
-
+    
         # read values to send a first event when starting to acquire
         with ActionContext(self) as context:
             self.raw_read_value(ret=values)

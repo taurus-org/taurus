@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 from sardana import ElementType
 from sardana.sardanaevent import EventType
 from poolelement import PoolElement
-#from poolacquisition import PoolCTAcquisition
+from poolacquisition import Pool0DAcquisition
 
 class Pool0DExpChannel(PoolElement):
 
@@ -41,7 +41,7 @@ class Pool0DExpChannel(PoolElement):
         PoolElement.__init__(self, **kwargs)
         self._value = None
         self._wvalue = None
-        #self.set_action_cache(PoolCTAcquisition("%s.Acquisition" % self._name))
+        self.set_action_cache(Pool0DAcquisition("%s.Acquisition" % self._name))
         self._aborted = False
     
     def get_type(self):
@@ -59,7 +59,9 @@ class Pool0DExpChannel(PoolElement):
     
     def get_value(self, cache=True, propagate=1):
         if not cache or self._value is None:
-            value = self.read_value()
+            value, exc_info = self.read_value()
+            if exc_info is not None:
+                raise exc_info[1]
             self._set_value(value, propagate=propagate)
         return self._value
     

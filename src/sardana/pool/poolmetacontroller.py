@@ -131,7 +131,15 @@ class ControllerLib(SardanaMetaLib):
     get_controller = SardanaMetaLib.get_meta_class
     get_controllers = SardanaMetaLib.get_meta_classes
     has_controller = SardanaMetaLib.has_meta_class
-
+    
+    def get_type(self):
+        """Returns this object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
+        return ElementType.ControllerLib
+    
     def serialize(self, *args, **kwargs):
         kwargs = SardanaMetaLib.serialize(self, *args, **kwargs)
         kwargs['pool'] = self.get_manager().name
@@ -263,6 +271,14 @@ class ControllerClass(SardanaMetaClass):
             if issubclass(klass, type_data.ctrl_klass):
                 types.append(_type)
         return types
+    
+    def get_type(self):
+        """Returns this object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
+        return ElementType.ControllerClass
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaMetaClass.serialize(self, *args, **kwargs)

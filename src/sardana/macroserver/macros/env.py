@@ -101,7 +101,8 @@ class lsenv(Macro):
             env = m.getAllDoorEnv(door_name)
             for k,v in env.iteritems():
                 str_val = self.reprValue(v)
-                out.appendRow([str(k), str_val, str(type(v))])
+                type_name = type(v).__name__
+                out.appendRow([str(k), str_val, type_name])
         else:
             # list the environment for the current door for the given macros
             out = List(['Macro', 'Name', 'Value', 'Type'])
@@ -109,7 +110,8 @@ class lsenv(Macro):
                 macro_env = m.getMacroClass(macro_name).env
                 env = m.getDoorMacroEnv(door_name, macro_name, macro_env)
                 for k, v in env.iteritems():
-                    out.appendRow([ macro_name, k, self.reprValue(v), str(type(v)) ])
+                    type_name = type(v).__name__
+                    out.appendRow([ macro_name, k, self.reprValue(v), type_name ])
 
         for line in out.genOutput():
             self.output(line)

@@ -38,7 +38,7 @@ import parameter
 
 from taurus.core.util import CodecFactory
 
-from sardana import InvalidId
+from sardana import InvalidId, ElementType
 from sardana.sardanameta import SardanaMetaLib, SardanaMetaClass
 
 MACRO_TEMPLATE = """class @macro_name@(Macro):
@@ -76,6 +76,14 @@ class MacroLib(SardanaMetaLib):
         kwargs['manager'] = kwargs.pop('macro_server')
         SardanaMetaLib.__init__(self, **kwargs)
     
+    def get_type(self):
+        """Returns this object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
+        return ElementType.MacroLib
+    
     def serialize(self, *args, **kwargs):
         kwargs = SardanaMetaLib.serialize(self, *args, **kwargs)
         kwargs['macro_server'] = self.get_manager().name
@@ -97,7 +105,15 @@ class MacroClass(SardanaMetaClass):
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
         SardanaMetaClass.__init__(self, **kwargs)
-
+    
+    def get_type(self):
+        """Returns this object type. Default implementation raises
+        NotImplementedError.
+        
+        :return: this pool object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
+        return ElementType.MacroClass
+    
     def serialize(self, *args, **kwargs):
         kwargs = SardanaMetaClass.serialize(self, *args, **kwargs)
         kwargs['macro_server'] = self.get_manager().name

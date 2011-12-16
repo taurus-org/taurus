@@ -105,13 +105,12 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._config = None
         self._config_dirty = True
         PoolGroupElement.__init__(self, **kwargs)
-        acq_name = "%s.CTAcquisition" % self._name
         self.set_configuration(kwargs.get('configuration'))
     
     def _create_action_cache(self):
         acq_name = "%s.CTAcquisition" % self._name
         return PoolCTAcquisition(self.pool, acq_name)
-        
+    
     def get_type(self):
         return ElementType.MeasurementGroup
     
@@ -212,15 +211,16 @@ class PoolMeasurementGroup(PoolGroupElement):
             ctrl_data['units'] = units = {}
             units['0'] = unit_data = {}
             unit_data['id'] = 0
-            if g_timer in elements:
-                unit_data['timer'] = g_timer
-            else:
-                unit_data['timer'] = elements[0]
-            if g_monitor in elements:
-                unit_data['monitor'] = g_monitor
-            else:
-                unit_data['monitor'] = elements[0]
-            unit_data['trigger_type'] = AcqTriggerType.Software
+            if ElementType.CTExpChannel in ctrl.get_types():
+                if g_timer in elements:
+                    unit_data['timer'] = g_timer
+                else:
+                    unit_data['timer'] = elements[0]
+                if g_monitor in elements:
+                    unit_data['monitor'] = g_monitor
+                else:
+                    unit_data['monitor'] = elements[0]
+                unit_data['trigger_type'] = AcqTriggerType.Software
             unit_data['channels'] = channels = {}
             for element in elements:
                 channels[element] = channel_data = {}
@@ -315,7 +315,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
-                if not external:
+                if not external and ElementType.CTExpChannel in ctrl.get_types():
                     unit_data['timer'] = pool.get_element_by_name(u_data['timer'])
                     unit_data['monitor'] = pool.get_element_by_name(u_data['monitor'])
                     unit_data['trigger_type'] = u_data['trigger_type']
@@ -380,16 +380,17 @@ class PoolMeasurementGroup(PoolGroupElement):
             if ctrl.operator == self and not force and not self._config_dirty:
                 continue
             ctrl.operator = self
-            for unit, unit_data in ctrl_data['units'].items():
-                #if ctrl == g_timer.controller:
-                #    ctrl.set_ctrl_par('timer', g_timer.axis)
-                #if ctrl == g_monitor.controller:
-                #    ctrl.set_ctrl_par('monitor', g_monitor.axis)
-                ctrl.set_ctrl_par('timer', unit_data['timer'].axis)
-                ctrl.set_ctrl_par('monitor', unit_data['monitor'].axis)
-                ctrl.set_ctrl_par('trigger_type', unit_data['trigger_type'])
+            if ElementType.CTExpChannel in ctrl.get_types():
+                for unit, unit_data in ctrl_data['units'].items():
+                    #if ctrl == g_timer.controller:
+                    #    ctrl.set_ctrl_par('timer', g_timer.axis)
+                    #if ctrl == g_monitor.controller:
+                    #    ctrl.set_ctrl_par('monitor', g_monitor.axis)
+                    ctrl.set_ctrl_par('timer', unit_data['timer'].axis)
+                    ctrl.set_ctrl_par('monitor', unit_data['monitor'].axis)
+                    ctrl.set_ctrl_par('trigger_type', unit_data['trigger_type'])
 
-                self._config_dirty = False
+        self._config_dirty = False
             
     def get_timer(self):
         return self.get_configuration()['timer']
@@ -407,7 +408,8 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._integration_time = integration_time
         if not propagate:
             return
-        self.fire_event(EventType("integration_time", priority=propagate), integration_time)
+        self.fire_event(EventType("integration_time", priority=propagate),
+                        integration_time)
         
     integration_time = property(get_integration_time, set_integration_time,
                                 doc="the current integration time")
@@ -423,7 +425,8 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._monitor_count = monitor_count
         if not propagate:
             return
-        self.fire_event(EventType("monitor_count", priority=propagate), monitor_count)
+        self.fire_event(EventType("monitor_count", priority=propagate),
+                        monitor_count)
         
     
     monitor_count = property(get_monitor_count, set_monitor_count,
@@ -440,7 +443,8 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._acquisition_mode = acquisition_mode
         if not propagate:
             return
-        self.fire_event(EventType("acquisition_mode", priority=propagate), acquisition_mode)
+        self.fire_event(EventType("acquisition_mode", priority=propagate),
+                        acquisition_mode)
     
     acquisition_mode = property(get_acquisition_mode, set_acquisition_mode,
                                 doc="the current acquisition mode")

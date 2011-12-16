@@ -34,6 +34,7 @@ import weakref
 
 from taurus.core.util import Logger
 
+from sardanadefs import ElementType
 from sardanaevent import EventGenerator, EventReceiver, EventType
 
 
@@ -64,36 +65,36 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         return self._manager()
     
     def get_name(self):
-        """Returns this pool object name
+        """Returns this sardana object name
         
-        :return: this pool object name
+        :return: this sardana object name
         :rtype: str"""
         return self._name
 
     def get_full_name(self):
-        """Returns this pool object full name
+        """Returns this sardana object full name
         
-        :return: this pool object full name
+        :return: this sardana object full name
         :rtype: str"""
         return self._full_name
     
     def get_type(self):
-        """Returns this pool object type. Default implementation raises
+        """Returns this sardana object type. Default implementation raises
         NotImplementedError.
         
-        :return: this pool object type
-        :rtype: :obj:'"""
+        :return: this sardana object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
         raise NotImplementedError
     
     def get_parent(self):
         """Returns this pool object parent.
         
         :return: this objects parent
-        :rtype: :obj:'"""
+        :rtype: :class:`~sardana.sardanabase.SardanaBaseObject`"""
         return self._parent()
 
     def get_parent_name(self):
-        """Returns this pool object parent's name.
+        """Returns this sardana object parent's name.
         
         :return: this objects parent
         :rtype: :obj:'"""
@@ -113,12 +114,9 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
 #            self.info("Error description: \n%s", traceback.format_exc())
     
     def serialize(self, *args, **kwargs):
-        cl_name = self.__class__.__name__
-        if cl_name.startswith("Pool"):
-            cl_name = cl_name[4:]
         kwargs['name'] = self.name
         kwargs['full_name'] = self.full_name
-        kwargs['type'] = cl_name
+        kwargs['type'] = ElementType.whatis(self.get_type())
         kwargs['manager'] = self.manager.name
         kwargs['parent'] = self.get_parent_name()
         return kwargs
