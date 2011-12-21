@@ -40,6 +40,36 @@ from taurus.core.util import Enumeration
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import TaurusMessageBox
 
+class _ButtonDialog(Qt.QDialog):
+    _widget = None
+    deleteWidgetOnClose = False
+    def __init__(self, parent=None):
+        Qt.QDialog.__init__(self, parent, Qt.Qt.WindowTitleHint)
+        l = Qt.QVBoxLayout()
+        self.setLayout(l)
+        
+    def setWidget(self, widget):
+        oldWidget = self.widget()
+        if oldWidget is not None:
+            try:
+                self._widget.setModel(None)
+            except:
+                pass
+            oldWidget.hide()
+            oldWidget.setParent(None)
+            oldWidget.deleteLater()
+        if widget is not None:
+            self.layout().addWidget(widget)
+        self._widget = widget
+    
+    def widget(self):
+        return self._widget
+        
+    def closeEvent(self, event):
+        if self.deleteWidgetOnClose:
+            self.setWidget(None)
+        Qt.QDialog.closeEvent(self, event)
+
 class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     '''This class provides a button that launches a modeless dialog containing
     a specified Taurus widget which gets the same model as the button.
@@ -62,7 +92,15 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         button.setModel('/attrname')
     
     '''
-    def __init__(self, parent = None, designMode = False, widget=None, icon = None, text = None):
+    
+    _className = None
+    _args = []
+    _kwargs = {}
+    _deleteWidgetOnClose = True
+    _icon = None
+    _text = None
+    
+    def __init__(self, parent = None, designMode = False, widget=None, icon=None, text = None):
         '''Constructor
         
         :param parent: (Qt.QWidget or None) parent of this widget
@@ -76,12 +114,16 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QPushButton, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
-        if icon is not None: self.setIcon(Qt.QIcon(icon))
+        if icon is None and self._icon is not None:
+            icon = getIcon(self._icon)
+        if icon is not None: 
+            self.setIcon(Qt.QIcon(icon))
+        if text is None: text = self._text
         self._text = text
         self.setText(self.getDisplayValue())
+        self._dialog = _ButtonDialog(self)
         self.setWidget(widget)
         self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
-        self._dialog = None
         self.setDefault(False)
         self.setAutoDefault(False)
         self.insertEventFilter(eventfilters.IGNORE_CHANGE_AND_PERIODIC) #no need to listen to change events!
@@ -91,7 +133,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         :class:`TaurusLauncherButton`, the class is completely dependent on the
         widget's class'''
         try:
-            return self._widget.getModelClass()
+            return self.widget().getModelClass()
         except:
             #return None  #@TODO: Uncommenting this avoids the exception when TaurusBaseWidget.getModelClass chokes with relative classes. But the thing should be solved at TaurusBaseWidget.getModelClass level
             return TaurusBaseWidget.getModelClass(self)
@@ -101,14 +143,34 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         self._text = text
         Qt.QPushButton.setText(self, text)
     
+    def getWidgetClassName(self):
+        return self._widgetClassName
+        
+    def setWidgetClassName(self, className, args=None, kwargs=None):
+        self._widgetClassName = str(className)
+        if args is not None: self._args = args
+        if kwargs is not None: self._kwargs = kwargs
+        
+    def resetWidgetClassName(self, className, args=None, kwargs=None):
+        self.setWidgetClassName(self.__class__._widgetClassName)
+    
+    def createWidget(self):
+        from taurus.qt.qtgui.util import TaurusWidgetFactory
+        klass = TaurusWidgetFactory().getWidgetClass(self._widgetClassName)
+        widget = klass(*self._args, **self._kwargs)
+        self.setWidget(widget)
+    
+    def widget(self):
+        return self._dialog.widget()
+    
     def setWidget(self, widget):
         '''sets the widget that will be shown when clicking the button
         
         :param widget: (Qt.QWidget)
         '''
-        self._widget = widget
-        if self._text is None and self._widget is not None:
-            self._text = self._widget.__class__.__name__
+        self._dialog.setWidget(widget)
+        if self._text is None and self.self.widget() is not None:
+            self._text = self.widget().__class__.__name__
         
     def displayValue(self,v):
         '''see :meth:`TaurusBaseComponent.displayValue`'''
@@ -135,15 +197,13 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         Slot called when the button is clicked.
         Note that the dialog will only be created once. Subsequent clicks on
         the button will only raise the existing dialog'''
-        self._widget.setModel(self.getModelName())
-        
-        if self._dialog is None:
-            self._dialog = Qt.QDialog(self, Qt.Qt.WindowTitleHint)
-            layout = Qt.QVBoxLayout(self._dialog)
-            layout.addWidget(self._widget)
-            #dialog.resize(400,300)
+        if self.widget() is None:
+            self.createWidget()
+        self.widget().setModel(self.getModelName())
+        self._dialog.deleteWidgetOnClose = self._deleteWidgetOnClose
+        #dialog.resize(400,300)
 
-        # Always is needed to put the title since the model could have changed
+        # It's always necessary to set the title since the model could have changed
         self._dialog.setWindowTitle(str(self.getModelName()))
         
         self._dialog.show()
@@ -162,7 +222,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     Model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, TaurusBaseWidget.setModel, TaurusBaseWidget.resetModel)    
     UseParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, TaurusBaseWidget.setUseParentModel, TaurusBaseWidget.resetUseParentModel)
-
+    widgetClassName = Qt.pyqtProperty("QString", setWidgetClassName, getWidgetClassName, resetWidgetClassName)
 
 
 class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
@@ -254,7 +314,6 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             raise
         self.emit(Qt.SIGNAL('commandExecuted'), result)
         return result
-    
     
     def _castParameters(self, parameters=None, command=None, dev=None):
         '''Internal method used to cast the command paramters to the appropriate
