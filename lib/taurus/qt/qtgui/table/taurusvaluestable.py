@@ -513,14 +513,19 @@ class TaurusValuesTable(TaurusWidget):
     A table for displaying and/or editing 1D/2D Taurus attributes 
     '''
     _showQuality = False
+    _writeMode = False
     
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent = None, designMode = False, defaultWriteMode=None):
         TaurusWidget.__init__(self, parent = parent, designMode = designMode)
-        self._tableView = TaurusValuesIOTable() 
-        self._writeMode = None
+        self._tableView = TaurusValuesIOTable()
         l = Qt.QGridLayout()
         l.addWidget(self._tableView,1,0)
         self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"), self._onEditorCreated)
+        
+        if defaultWriteMode is None:
+            self.defaultWriteMode = self._writeMode
+        else:
+            self.defaultWriteMode = defaultWriteMode
         
         self._label = TaurusLabel()
         self._label.setBgRole('quality')
@@ -583,7 +588,7 @@ class TaurusValuesTable(TaurusWidget):
             model.setAttr(self.getModelValueObj())
             model.setConfig(evt_src)
             writable = bool(evt_value.writable)
-            self.setWriteMode(False)
+            self.resetWriteMode()
             self._rwModeCB.setVisible(writable)
     
     def contextMenuEvent(self, event):
@@ -626,7 +631,7 @@ class TaurusValuesTable(TaurusWidget):
         """
         if self._tableView.model().isDirty():
             self.applyChanges()
-            self.setWriteMode(False)
+            self.resetWriteMode()
         
     def cancelClicked(self):
         """This is a SLOT that is being triggered when CANCEL button is clicked.
@@ -646,11 +651,17 @@ class TaurusValuesTable(TaurusWidget):
                                          Qt.QMessageBox.Ok | Qt.QMessageBox.Cancel)
         if result == Qt.QMessageBox.Ok:
             self._tableView.cancelChanges()
-            self.setWriteMode(False)
+            self.resetWriteMode()
     
     def _onEditorCreated(self):
         '''slot called when an editor has been created'''
         self.setWriteMode(True)
+    
+    def getWriteMode(self):
+        '''whether the widget is showing the read or write values
+        
+        :return: (bool)'''
+        return self._writeMode
         
     def setWriteMode(self, isWrite):
         '''
@@ -675,10 +686,15 @@ class TaurusValuesTable(TaurusWidget):
         self._applyBT.setVisible(isWrite)
         self._cancelBT.setVisible(isWrite)
         self._rwModeCB.setChecked(isWrite)
+    
+    def resetWriteMode(self):
+        '''equivalent to self.setWriteMode(self.defaultWriteMode)'''       
+        self.setWriteMode(self.defaultWriteMode)
         
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
+        '''Reimplemented from :meth:`TaurusWidget.getQtDesignerPluginInfo`'''
+        ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Item Widgets'
         ret['icon'] = ":/designer/table.png"
@@ -701,7 +717,6 @@ class TaurusValuesTable(TaurusWidget):
         '''Reimplemented from :meth:`TaurusWidget.isReadOnly`'''
         return False
         
-                    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -709,16 +724,8 @@ class TaurusValuesTable(TaurusWidget):
     model = Qt.pyqtProperty("QString", TaurusWidget.getModel, 
                                     setModel, 
                                     TaurusWidget.resetModel)
+    writeMode = Qt.pyqtProperty("bool", getWriteMode, setWriteMode, resetWriteMode)
     
-#    useParentModel = Qt.pyqtProperty("bool", 
-#                                         TaurusWidget.getUseParentModel, 
-#                                         TaurusWidget.setUseParentModel,
-#                                         TaurusWidget.resetUseParentModel)
-#    
-#    showQuality = Qt.pyqtProperty("bool", 
-#                                      TaurusWidget.getShowQuality,
-#                                      TaurusWidget.setShowQuality,
-#                                      TaurusWidget.resetShowQuality)
 
 def taurusTableMain():
     '''A launcher for TaurusValuesTable.'''
