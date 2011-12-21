@@ -29,7 +29,7 @@ taurusvalue.py:
 
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "DefaultLabelWidget",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
-           "TaurusValuesTableButton", "TaurusDevButton"]
+           "TaurusValuesTableButton", "TaurusValuesTableButton_W", "TaurusDevButton"]
 
 __docformat__ = 'restructuredtext'
 
@@ -147,66 +147,51 @@ class DefaultUnitsWidget(TaurusLabel):
     def getQtDesignerPluginInfo(cls):
         return None
 
-
-class TaurusPlotButton(TaurusLauncherButton):
-    '''A button that launches a TaurusPlot'''
+class _AbstractTaurusValueButton(TaurusLauncherButton):
+    _deleteWidgetOnClose = True
+    _text = 'Show'
     def __init__(self, parent = None, designMode = False):
-        import taurus.qt.qtgui.plot
-        TaurusPlot = taurus.qt.qtgui.plot.TaurusPlot
-        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusPlot(), icon=getIcon(':/designer/qwtplot.png'), text = 'Show')
+        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode)
         self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
+    
+class TaurusPlotButton(_AbstractTaurusValueButton):
+    '''A button that launches a TaurusPlot'''
+    _widgetClassName = 'TaurusPlot'
+    _icon = ':/designer/qwtplot.png'
+    
 
-
-class TaurusArrayEditorButton(TaurusLauncherButton):
+class TaurusArrayEditorButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusArrayEditor'''
-    def __init__(self, parent = None, designMode = False):
-        import taurus.qt.qtgui.plot
-        TaurusArrayEditor = taurus.qt.qtgui.plot.TaurusArrayEditor
-        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusArrayEditor(), icon=getIcon(':/designer/arrayedit.png'), text = 'Edit')
-        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
-        
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        return None
-
-class TaurusImageButton(TaurusLauncherButton):
+    _widgetClassName = 'TaurusArrayEditor'
+    _icon = ':/designer/arrayedit.png'
+    _text = 'Edit'
+    
+    
+class TaurusImageButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusPlot'''
-    def __init__(self, parent = None, designMode = False):
-        from taurus.qt.qtgui.extra_guiqwt.plot import TaurusImageDialog
-        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusImageDialog(), icon=getIcon(':/mimetypes/image-x-generic.svg'), text = 'Show')
-        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
+    _widgetClassName = 'TaurusImageDialog'
+    _icon = ':/mimetypes/image-x-generic.svg'
+    
 
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        return None
-
-class TaurusValuesTableButton(TaurusLauncherButton):
+class TaurusValuesTableButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusValuesTable'''
-    def __init__(self, parent = None, designMode = False):
-        import taurus.qt.qtgui.table
-        TaurusValuesTable = taurus.qt.qtgui.table.TaurusValuesTable
-        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusValuesTable(), icon=getIcon(':/designer/table.png'), text = 'Show')
-        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
+    _widgetClassName = 'TaurusValuesTable'
+    _icon  = ':/designer/table.png'
 
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        return None
+class TaurusValuesTableButton_W(TaurusValuesTableButton):
+    '''A button that launches a TaurusValuesTable'''
+    _text = 'Edit'
+    _kwargs={'defaultWriteMode':True}
 
-
-class TaurusDevButton(TaurusLauncherButton):
+class TaurusDevButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusAttrForm'''
-    def __init__(self, parent = None, designMode = False):
-        from taurus.qt.qtgui.panel.taurusform import TaurusAttrForm 
-        TaurusLauncherButton.__init__(self, parent = parent, designMode = designMode, widget = TaurusAttrForm(), icon=getIcon(':/places/folder-remote.svg'), text = 'Show Device')
-        self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Maximum)
-
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        return None
+    _widgetClassName = 'TaurusAttrForm'
+    _icon = ':/places/folder-remote.svg'
+    _text = 'Show Device'
 
 
 class TaurusStatusLabel(TaurusLabel):
@@ -398,7 +383,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                     result = [ExpandingLabel]
             elif config.isSpectrum():
                 if PyTango.is_numerical_type(configType):
-                    result = [TaurusPlotButton, ExpandingLabel]
+                    result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
@@ -449,10 +434,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             else:
                 result = [TaurusValueLineEdit, TaurusValueSpinBox, TaurusWheelEdit]
         elif config.isSpectrum():
-            result = [TaurusArrayEditorButton, TaurusValueLineEdit]
+            result = [TaurusArrayEditorButton, TaurusValuesTableButton_W, TaurusValueLineEdit]
+        elif config.isImage():
+            result = [TaurusValuesTableButton_W]
         else:
             self.debug('Unsupported attribute type for writting: %s'% str(config.getType()))
-            result = [None]
             
         if returnAll: return result
         else: return result[0]
@@ -1049,6 +1035,7 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/Current','bl97/pc/dummy-02/RemoteMode','bl97/pysignalsimulator/1/value1']
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
     #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
+    #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_spectrum'%s for s in ('float','short','string','long','boolean') ]
     #container.setModel(models)
     
     #container.getTaurusValueByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
