@@ -71,11 +71,11 @@ class BaseCumulation(object):
         self.buffer[0][idx] = value
         self.buffer[1][idx] = timestamp
         self.update_value(value, timestamp)
-        self.channel.info("adding value %s, new value is %s (nb points=%s)", value, self.value, self.nb_points)
 
     def update_value(self, value, timestamp):
         self.value = value
 
+LastCumulation = BaseCumulation
 
 class SumCumulation(BaseCumulation):
     
@@ -106,22 +106,18 @@ class IntegralCumulation(BaseCumulation):
         if self.nb_points == 1:
             self.last_value = value, timestamp
             self.start_time = timestamp
+            self.value = value
         else:
             last_value, last_timestamp = self.last_value
             dt = timestamp - last_timestamp
-            self.sum += (last_value + value) * dt/2.0
+            self.sum += dt*(last_value + value) / 2.0
             total_dt = timestamp - self.start_time
             self.value = self.sum / total_dt
+            self.last_value = value, timestamp
 
-
-CUMULATION_TYPES = CaselessDict({
-    "Sum" : SumCumulation,
-    "Average" : AverageCumulation,
-    "Integral" : IntegralCumulation,
-})
 
 def get_cumulation_class(ctype):
-    return CUMULATION_TYPES[ctype]
+    return globals()[ctype + "Cumulation"]
 
 
 class Pool0DExpChannel(PoolElement):

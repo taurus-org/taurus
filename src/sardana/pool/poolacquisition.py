@@ -426,11 +426,10 @@ class Pool0DAcquisition(PoolAction):
             states[element] = None
             values[element] = None
     
-        nap = self._acq_sleep_time / 10.0
+        nap = self._acq_sleep_time
     
         while True:
             if self._stopped or self._aborted:
-                self.debug("0D acquisition ended")
                 break
             self.read_value(ret=values)
             for acquirable, value_info in values.items():
@@ -438,7 +437,7 @@ class Pool0DAcquisition(PoolAction):
                 acquirable.put_value(value)
             
             i += 1
-            #time.sleep(nap)
+            time.sleep(nap)
         
         with ActionContext(self):
             self.raw_read_state_info(ret=states)
