@@ -670,7 +670,7 @@ class SScan(GScan):
         try:
             state, positions = motion.move(step['positions'])
         except:
-            self.dump_info(n, step)
+            self.dump_information(n, step)
             raise
         self.debug("[ END ] motion")
         
@@ -681,7 +681,7 @@ class SScan(GScan):
             except: pass
         
         if state != Ready:
-            self.dump_info(n, step)
+            self.dump_information(n, step)
             m = "Scan aborted after problematic motion: " \
                 "Motion ended with %s\n" % str(state)
             raise ScanException({ 'msg' : m })
@@ -729,12 +729,12 @@ class SScan(GScan):
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
 
-    def dump_info(self, n, step):
+    def dump_information(self, n, step):
         moveables = self.motion.moveable_list
         msg = ["Report: Stopped at step #" + str(n) + " with:"]
         tab, dtab = 4*' ', 8*' '
         for moveable in moveables:
-            msg.append(moveable.info())
+            msg.append(moveable.information())
         self.macro.info("\n".join(msg))
         
 class CScan(GScan):

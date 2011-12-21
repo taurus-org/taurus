@@ -79,6 +79,8 @@ class OperationInfo(object):
         """Initializes this operation with a certain count"""
         self.state_count = count
         self.state_event.clear()
+        if count == 0:
+            self.state_event.set()
     
     def wait(self, timeout=None):
         """waits for the operation to finish"""

@@ -291,8 +291,8 @@ def get_macroserver_for_door(door_name):
     full_door_name, door_name, door_alias = from_name_to_tango(door_name)
     db = get_tango_db()
     door_name = door_name.lower()
-    print door_name
-    server_list = db.get_server_list('MacroServer/*')
+    server_list = list(db.get_server_list('MacroServer/*'))
+    server_list += list(db.get_server_list('Sardana/*'))
     server_devs = None
     for server in server_list:
         server_devs = db.get_device_class_list(server)
@@ -881,7 +881,6 @@ def init_pre_spock(ip, macro_server, door):
     
     o = ip.options
     so = IPython.ipstruct.Struct()
-    
     full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
     #macro_server = get_ms_for_door(door_tg_name)
     full_ms_tg_name, ms_tg_name, ms_tg_alias = from_name_to_tango(macro_server)

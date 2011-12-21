@@ -364,7 +364,7 @@ class MotorClass(PoolElementDeviceClass):
 
     standard_attr_list = {
         'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ],
-                           { 'abs_change' : '0.5' } ],
+                           { 'abs_change' : '1.0' } ],
         'Acceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Deceleration' : [ [ DevDouble, SCALAR, READ_WRITE ] ],
         'Base_rate'    : [ [ DevDouble, SCALAR, READ_WRITE ],

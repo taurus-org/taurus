@@ -51,7 +51,7 @@ class PoolCounterTimer(PoolElement):
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------
-
+    
     def read_value(self):
         return self.acquisition.read_value()[self]
     
@@ -118,3 +118,5 @@ class PoolCounterTimer(PoolElement):
     
     def get_source(self):
         return "{0}/value".format(self.full_name)
+    
+    

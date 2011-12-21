@@ -194,7 +194,7 @@ class lsi(_lsobj):
 
 class lsa(_lsobj):
     """Lists all existing objects"""
-    type = (Type.Motor, Type.ComChannel, Type.ExpChannel, Type.IORegister)
+    type = Type.Motor, Type.ComChannel, Type.ExpChannel, Type.IORegister
     
 class lsmeas(_lsobj):
     """List existing measurement groups"""

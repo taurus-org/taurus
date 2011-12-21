@@ -564,6 +564,9 @@ class PoolController(PoolBaseController):
             self.warning("StopAll() raises exception", exc_info=1)
 
     def raw_stop_one(self, axis):
+        import traceback
+        print 80*"-"
+        traceback.print_stack()
         try:
             self.ctrl.StopOne(axis)
         except:

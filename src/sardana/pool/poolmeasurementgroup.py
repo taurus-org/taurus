@@ -38,7 +38,7 @@ from sardana.sardanaevent import EventType
 
 from pooldefs import AcqMode, AcqTriggerType
 from poolgroupelement import PoolGroupElement
-from poolacquisition import PoolCTAcquisition
+from poolacquisition import PoolAcquisition, PoolCTAcquisition
 from poolexternal import PoolExternalObject
 
 from sardana import State
@@ -108,8 +108,8 @@ class PoolMeasurementGroup(PoolGroupElement):
         self.set_configuration(kwargs.get('configuration'))
     
     def _create_action_cache(self):
-        acq_name = "%s.CTAcquisition" % self._name
-        return PoolCTAcquisition(self.pool, acq_name)
+        acq_name = "%s.Acquisition" % self._name
+        return PoolAcquisition(self.pool, acq_name)
     
     def get_type(self):
         return ElementType.MeasurementGroup
@@ -211,7 +211,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             ctrl_data['units'] = units = {}
             units['0'] = unit_data = {}
             unit_data['id'] = 0
-            if ElementType.CTExpChannel in ctrl.get_types():
+            if ElementType.CTExpChannel in ctrl.get_ctrl_types():
                 if g_timer in elements:
                     unit_data['timer'] = g_timer
                 else:
@@ -315,7 +315,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
-                if not external and ElementType.CTExpChannel in ctrl.get_types():
+                if not external and ElementType.CTExpChannel in ctrl.get_ctrl_types():
                     unit_data['timer'] = pool.get_element_by_name(u_data['timer'])
                     unit_data['monitor'] = pool.get_element_by_name(u_data['monitor'])
                     unit_data['trigger_type'] = u_data['trigger_type']
@@ -380,7 +380,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             if ctrl.operator == self and not force and not self._config_dirty:
                 continue
             ctrl.operator = self
-            if ElementType.CTExpChannel in ctrl.get_types():
+            if ElementType.CTExpChannel in ctrl.get_ctrl_types():
                 for unit, unit_data in ctrl_data['units'].items():
                     #if ctrl == g_timer.controller:
                     #    ctrl.set_ctrl_par('timer', g_timer.axis)
@@ -389,7 +389,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                     ctrl.set_ctrl_par('timer', unit_data['timer'].axis)
                     ctrl.set_ctrl_par('monitor', unit_data['monitor'].axis)
                     ctrl.set_ctrl_par('trigger_type', unit_data['trigger_type'])
-
+    
         self._config_dirty = False
             
     def get_timer(self):
@@ -427,7 +427,6 @@ class PoolMeasurementGroup(PoolGroupElement):
             return
         self.fire_event(EventType("monitor_count", priority=propagate),
                         monitor_count)
-        
     
     monitor_count = property(get_monitor_count, set_monitor_count,
                              doc="the current monitor count")
@@ -473,3 +472,4 @@ class PoolMeasurementGroup(PoolGroupElement):
         return self.get_action_cache()
     
     acquisition = property(get_acquisition, doc="acquisition object")
+    

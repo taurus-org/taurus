@@ -34,9 +34,9 @@ __docformat__ = 'restructuredtext'
 import time
 import weakref
 
-from taurus.core.util import Enumeration, DebugIt
+from taurus.core.util import Enumeration, DebugIt, InfoIt
 
-from sardana import State
+from sardana import State, ElementType
 from poolaction import ActionContext, PoolActionItem, PoolAction
 
 #: enumeration representing possible motion states
@@ -59,13 +59,13 @@ AcquisitionMap = {
 
 class PoolAcquisition(PoolAction):
     
-    def __init__(self, name="Acquisition"):
-        PoolAction.__init__(self, name)
+    def __init__(self, pool, name="Acquisition"):
+        PoolAction.__init__(self, pool, name)
         ctname = name + ".CTAcquisition"
         zerodname = name + ".0DAcquisition"
         iorname = name + ".IORAcquisition"
-        self._ct_acq = PoolCTAcquisition(name=ctname)
-        self._0d_acq = Pool0DAcquisition(name=zerodname)
+        self._0d_acq = zd_acq = Pool0DAcquisition(pool, name=zerodname)
+        self._ct_acq = PoolCTAcquisition(pool, name=ctname, slaves=(zd_acq,))
     
     def run(self, *args, **kwargs):
         """Runs this action"""
@@ -80,12 +80,10 @@ class PoolAcquisition(PoolAction):
     
     def _get_acq_for_element(self, element):
         elem_type = element.get_type()
-        acq = None
         if elem_type == ElementType.CTExpChannel:
-            acq = self._ct_acq
-        if elem_type == ElementType.ZeroDExpChannel:
-            acq = self._0d_acq
-        return acq
+            return self._ct_acq
+        elif elem_type == ElementType.ZeroDExpChannel:
+            return self._0d_acq
     
     def clear_elements(self):
         """Clears all elements from this action"""
@@ -149,8 +147,13 @@ class Channel(PoolActionItem):
 
 class PoolCTAcquisition(PoolAction):
     
-    def __init__(self, pool, name="CTAcquisition"):
+    def __init__(self, pool, name="CTAcquisition", slaves=None):
         self._channels = None
+
+        if slaves is None:
+            slaves = ()
+        self._slaves = slaves
+
         PoolAction.__init__(self, pool, name)
     
     def start_action(self, *args, **kwargs):
@@ -194,7 +197,10 @@ class PoolCTAcquisition(PoolAction):
 
         pool_ctrls_dict = dict(cfg['controllers'])
         pool_ctrls_dict.pop('__tango__', None)
-        pool_ctrls = pool_ctrls_dict.keys()
+        pool_ctrls = []
+        for ctrl, ctrl_info in pool_ctrls_dict.items():
+            if ElementType.CTExpChannel in ctrl.get_ctrl_types():
+                pool_ctrls.append(ctrl)
         
         # make sure the controller which has the master channel is the last to
         # be called
@@ -311,6 +317,14 @@ class PoolCTAcquisition(PoolAction):
             i += 1
             time.sleep(nap)
         
+        for slave in self._slaves:
+            try:
+                slave.stop_action()
+            except:
+                self.warning("Unable to stop slave acquisition %s",
+                             slave.getLogName())
+                self.debug("Details", exc_info=1)
+                
         with ActionContext(self):
             self.raw_read_state_info(ret=states)
             self.raw_read_value(ret=values)
@@ -324,13 +338,14 @@ class PoolCTAcquisition(PoolAction):
             with acquirable:
                 acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)
-
+        
 
 class Pool0DAcquisition(PoolAction):
     
     def __init__(self, pool, name="0DAcquisition"):
         self._channels = None
         PoolAction.__init__(self, pool, name)
+        
     
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
@@ -360,6 +375,13 @@ class Pool0DAcquisition(PoolAction):
         if items is None:
             items = self.get_elements()
         cfg = kwargs['config']
+    
+        pool_ctrls_dict = dict(cfg['controllers'])
+        pool_ctrls_dict.pop('__tango__', None)
+        pool_ctrls = []
+        for ctrl, ctrl_info in pool_ctrls_dict.items():
+            if ElementType.ZeroDExpChannel in ctrl.get_ctrl_types():
+                pool_ctrls.append(ctrl)
         
         # Determine which channels are active
         self._channels = channels = {}
@@ -377,6 +399,7 @@ class Pool0DAcquisition(PoolAction):
         with ActionContext(self) as context:
             # set the state of all elements to  and inform their listeners
             for channel in channels:
+                channel.clear_buffer()
                 channel.set_state(State.Moving, propagate=2)
         
     def in_acquisition(self, states):
@@ -394,8 +417,6 @@ class Pool0DAcquisition(PoolAction):
             if self._is_in_action(s):
                 return True
     
-    
-    
     @DebugIt()
     def action_loop(self):
         i = 0
@@ -405,46 +426,38 @@ class Pool0DAcquisition(PoolAction):
             states[element] = None
             values[element] = None
     
-        nap = self._acq_sleep_time
-        nb_states_per_value = self._nb_states_per_value
+        nap = self._acq_sleep_time / 10.0
     
-        # read values to send a first event when starting to acquire
-        with ActionContext(self) as context:
-            self.raw_read_value(ret=values)
+        while True:
+            if self._stopped or self._aborted:
+                self.debug("0D acquisition ended")
+                break
+            self.read_value(ret=values)
             for acquirable, value_info in values.items():
                 value, exc_info = value_info
-                acquirable.put_value(value, propagate=2)
-        
-        while True:
-            self.read_state_info(ret=states)
-            
-            if not self.in_acquisition(states):
-                break
-            
-            # read value every n times
-            if not i % nb_states_per_value:
-                self.read_value(ret=values)
-                for acquirable, value_info in values.items():
-                    value, exc_info = value_info
-                    acquirable.put_value(value)
+                acquirable.put_value(value)
             
             i += 1
-            time.sleep(nap)
+            #time.sleep(nap)
         
         with ActionContext(self):
             self.raw_read_state_info(ret=states)
-            self.raw_read_value(ret=values)
 
         for acquirable, state_info in states.items():
             # first update the element state so that value calculation
             # that is done after takes the updated state into account
             acquirable.set_state_info(state_info, propagate=0)
-            value, exc_info = values[acquirable]
-            acquirable.put_value(value, propagate=2)
             with acquirable:
                 acquirable.clear_operation()
                 acquirable.set_state_info(state_info, propagate=2)
-
+    
+    def stop_action(self, *args, **kwargs):
+        """Stop procedure for this action."""
+        self._stopped = True
+    
+    def abort_action(self, *args, **kwargs):
+        """Aborts procedure for this action"""
+        self._aborted = True
 
 
 class PoolIORAcquisition(PoolAction):
@@ -455,11 +468,11 @@ class PoolIORAcquisition(PoolAction):
     
     def start_action(self, *args, **kwargs):
         pass
-        
+    
     def in_acquisition(self, states):
         return True
         pass
-         
+    
     @DebugIt()
     def action_loop(self):
         i = 0

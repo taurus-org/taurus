@@ -113,25 +113,40 @@ class ZeroDExpChannel(PoolElementDevice):
         finally:
             if recover:
                 attr.set_change_event(True, True)
-
+    
     def always_executed_hook(self):
         #state = to_tango_state(self.zerod.get_state(cache=False))
         pass
-
+    
     def read_attr_hardware(self,data):
         pass
-
-    def read_Value(self, attr):
-        attr.set_value(self.zerod.get_value(cache=False))
     
-    def is_Value_allowed(self, req_type):
-        if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
-            return False
-        return True
+    def read_Value(self, attr):
+        acquiring = self.get_state() in self.BusyStates
+        attr.set_value(self.zerod.get_value())
     
     def Start(self):
         self.zerod.start_acquisition()
     
+    def read_ValueBuffer(self, attr):
+        attr.set_value(self.zerod.get_value_buffer())
+    
+    def read_TimeBuffer(self, attr):
+        attr.set_value(self.zerod.get_time_buffer())
+    
+    def read_CumulationType(self, attr):
+        attr.set_value(self.zerod.get_cumulation_type())
+    
+    def write_CumulationType(self, attr):
+        self.zerod.set_cumulation_type(attr.get_write_value())
+    
+    def _is_allowed(self, req_type):
+        return PoolElementDevice._is_allowed(self, req_type)
+        
+    is_Value_allowed = _is_allowed
+    is_CumulationType_allowed = _is_allowed
+    is_ValueBuffer_allowed = _is_allowed
+    is_TimeBuffer_allowed = _is_allowed
 
 class ZeroDExpChannelClass(PoolElementDeviceClass):
 
@@ -152,7 +167,14 @@ class ZeroDExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Value'          : [ [ DevDouble, SCALAR, READ ],
+                             { 'abs_change'     : "1.0" } ],
+        'ValueBuffer'    : [ [ DevDouble, SPECTRUM, READ, 16384 ] ],
+        'TimeBuffer'     : [ [ DevDouble, SPECTRUM, READ, 16384 ] ],
+        'CumulationType' : [ [ DevString, SCALAR, READ_WRITE ],
+                             { 'Memorized'     : "true",
+                               'label'         : "Cumulation Type",
+                               'Display level' : DispLevel.EXPERT } ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

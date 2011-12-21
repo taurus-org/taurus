@@ -42,6 +42,7 @@ class PoolIORegister(PoolElement):
         PoolElement.__init__(self, **kwargs)
         self._value = None
         self._wvalue = None
+        self._config = None
         acq_name = "%s.Acquisition" % self._name
         self.set_action_cache(PoolIORAcquisition(self.pool, name=acq_name))
     
@@ -51,7 +52,7 @@ class PoolIORegister(PoolElement):
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------
-
+    
     def read_value(self):
         return self.acquisition.read_value()[self]
     
@@ -88,33 +89,6 @@ class PoolIORegister(PoolElement):
     
     def get_default_acquisition_channel(self):
         return 'value'
-    
-    # --------------------------------------------------------------------------
-    # acquisition
-    # --------------------------------------------------------------------------
-    
-    def prepare_to_acquire(self, acquisition):
-        self._aborted = False
-        self._stopped = False
-        self.action = acquisition
-    
-    def finish_from_acquisition(self):
-        self._aborted = False
-        self._stopped = False
-        self.clear_action()
-    
-    def get_acquisition(self):
-        return self.get_action_cache()
-    
-    acquisition = property(get_acquisition, doc="acquisition object")
-    
-    def start_acquisition(self, value=None):
-        self._aborted = False
-        value = value or self.get_value_w()
-        if value is None:
-            raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
-        if not self._simulation_mode:
-            acq = self.acquisition.run()
     
     def get_source(self):
         return "{0}/value".format(self.full_name)
