@@ -179,7 +179,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         
         :param event: the popup menu event
         """
-        if not self.taurusMenu is None:
+        if self.taurusMenu is not None:
             self.taurusMenu.exec_(event.globalPos())
         else:
             event.ignore()
@@ -988,6 +988,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         inherit from QWidget (or from a QWidget derived class)"""
     
     ModelChangedSignal = 'modelChanged(const QString &)'
+    _dragEnabled = False
     
     def __init__(self, name, parent=None, designMode=False):
         self._disconnect_on_hide = False
@@ -1301,7 +1302,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         
         ..seealso: :meth:`setSupportedMimeTypes`
         
-        This provides only a very basic implementation. Reimplemented in derived classes if needed
+        This provides only a very basic implementation. Reimplement in derived classes if needed
         
         :return: (list<str>) list of MIME type names
         '''
@@ -1344,10 +1345,10 @@ class TaurusBaseWidget(TaurusBaseComponent):
         else:
             event.acceptProposedAction()
         
-    def handleMimeData(self, mimeData, method=None):
+    def handleMimeData(self, mimeData, method):
         '''Selects the most appropriate data from the given mimeData object
         (in the order returned by :meth:`getSupportedMimeTypes`) and passes 
-        it to the given method (by default is setModel)
+        it to the given method.
         
         :param mimeData: (QMimeData) the MIME data object from which the model
                          is to be extracted
@@ -1372,7 +1373,64 @@ class TaurusBaseWidget(TaurusBaseComponent):
                     self.traceback(taurus.Debug)
                     return None
     
-
+    def getModelMimeData(self):
+        '''Returns a MimeData object containing the model data. The default implementation 
+        fills the `TAURUS_MODEL_MIME_TYPE`. If the widget's Model class is
+        Attribute or Device, it also fills `TAURUS_ATTR_MIME_TYPE` or
+        `TAURUS_DEV_MIME_TYPE`, respectively
+        
+        :return: (QMimeData)
+        ''' 
+        mimeData = Qt.QMimeData()
+        modelname = self.getModelName()
+        mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
+        try:
+            modelclass = self.getModelClass()
+        except:
+            modelclass = None 
+        if modelclass == taurus.core.TaurusDevice:
+            mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
+        elif modelclass == taurus.core.TaurusAttribute:
+            mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
+        return mimeData        
+    
+    def mousePressEvent(self, event):
+        '''reimplemented to record the start position for drag events. See :class:`QWidget'''
+        if self._dragEnabled and event.button() == Qt.Qt.LeftButton:
+            self.dragStartPosition = event.pos()
+        self.getQtClass().mousePressEvent(self, event)
+        
+    def mouseMoveEvent(self, event):
+        '''reimplemented to provide drag events. See :class:`QWidget'''
+        if not self._dragEnabled or not event.buttons() & Qt.Qt.LeftButton:
+            return self.getQtClass().mouseMoveEvent(self, event)
+        if (event.pos() - self.dragStartPosition).manhattanLength()  < Qt.QApplication.startDragDistance():
+            return self.getQtClass().mouseMoveEvent(self, event)
+        ret = self.getQtClass().mouseMoveEvent(self, event) #call the superclass
+        event.accept() #we make sure we accept after having called the superclass so that it is not propagated (many default implementations of mouseMoveEvent call event.ignore())
+        drag = Qt.QDrag(self)
+        drag.setMimeData(self.getModelMimeData())
+        drag.exec_(Qt.Qt.CopyAction, Qt.Qt.CopyAction)
+        return ret
+    
+    def isDragEnabled(self):
+        '''whether the user can drag data from this widget
+        
+        :return: (bool) True if the user can drag data'''
+        return self._dragEnabled
+    
+    def setDragEnabled(self, enabled):
+        '''
+        sets whether the user is allowed to drag data from this widget
+        
+        :param modifiable: (bool)
+        '''
+        self._dragEnabled = enabled
+    
+    def resetDragEnabled(self):
+        '''Equivalent to setDragEnabled(self.__class__._dragEnabled)'''
+        self.setModifiableByUser(self.__class__._dragEnabled)
+        
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Pending operations related methods: default implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
