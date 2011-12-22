@@ -340,6 +340,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
             self._modelIndex = mi_value
         self._modelIndexStr = mi
         self.controllerUpdate()
+        
+    def getModelMimeData(self):
+        mimeData = TaurusBaseWidget.getModelMimeData(self)
+        mimeData.setText(self.text())
+        return mimeData
 
     def resetModelIndex(self):
         self.setModelIndex(self.DefaultModelIndex)
@@ -499,7 +504,19 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:     * :meth:`TaurusLabel.setAutoTrim`
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
-
+    
+    #: This property holds the 
+    #:
+    #: **Access functions:**
+    #:
+    #:     * :meth:`TaurusLabel.getAutoTrim`
+    #:     * :meth:`TaurusLabel.setAutoTrim`
+    #:     * :meth:`TaurusLabel.resetAutoTrim`
+    dragEnabled = Qt.pyqtProperty("bool", TaurusBaseWidget.isDragEnabled, 
+                                  TaurusBaseWidget.setDragEnabled,
+                                  TaurusBaseWidget.resetDragEnabled, 
+                                  doc="enable dragging")
+    
 def demo():
     "Label"
     import demo.tauruslabeldemo
