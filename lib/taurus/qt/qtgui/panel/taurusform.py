@@ -36,7 +36,8 @@ import PyTango
 
 import taurus.core
 
-from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_LIST_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, 
+                                       TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from taurusmodelchooser import TaurusModelChooser
@@ -114,7 +115,7 @@ class TaurusForm(TaurusWidget):
         self.connect(self.chooseModelsAction, Qt.SIGNAL("triggered()"), self.chooseModels)
         
         self.resetModifiableByUser()
-        self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, 'text/plain'])
+        self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
     
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
@@ -289,7 +290,7 @@ class TaurusForm(TaurusWidget):
         '''reimplemented to support dropping of modelnames in forms'''
         mtype = self.handleMimeData(event.mimeData(),self.addModels)
         if mtype is None:
-            self.info('Invalid model')
+            self.info('Invalid model in dropped data')
         else:
             event.acceptProposedAction() 
       
@@ -746,31 +747,21 @@ def test1():
     else: models = None
     app = Qt.QApplication(sys.argv)
     if models is None:
-        models = ['lab/op/ccd-01/CurrentlySavingMovie',
-                  'lab/op/ccd-01/MovieRemainingTime',
-                  'lab/op/ccd-01/Image',
-                  'lab/op/ccd-01/ExposureTime', 
-                  'lab/op/ccd-01/FrameRate', 
-                  'lab/op/ccd-01/ResultingFrameRate', 
-                  'lab/op/ccd-01/BitDepth', 
-                  'lab/op/ccd-01/SensorWidth', 
-                  'lab/op/ccd-01/SensorHeight', 
-                  'lab/op/ccd-01/ImageCounter', 
-                  'lab/op/ccd-01/BlackLevel', 
-                  'lab/op/ccd-01/Gain', 
-                  'lab/op/ccd-01/TriggerMode', 
-                  'lab/op/ccd-01/TriggerLine', 
-                  'lab/op/ccd-01/TriggerActivation', 
-                  'lab/op/ccd-01/InternalFrameRate', 
-                  'lab/op/ccd-01/Overruns', 
-                  'lab/op/ccd-01/InternalAcquisitionBuffers', 
-                  'lab/op/ccd-01/State', 
-                  'lab/op/ccd-01/Status']
+        models = ['sys/tg_test/1/state',
+                  'sys/tg_test/1/float_scalar',
+                  'sys/tg_test/1/boolean_image',
+                  'sys/tg_test/1/float_spectrum',
+                  'sys/tg_test/1/status']
     dialog = TaurusForm()
     dialog.setModel(models)
+    dialog.setModifiableByUser(True)
     for i,tv in enumerate(dialog.getItems()):
         tv.setDangerMessage("Booooo scaring %d!!!"%i)
     dialog.show()
+    
+    dialog2 = TaurusForm()
+    dialog2.show()
+    dialog2.setModifiableByUser(True)
     sys.exit(app.exec_())
 
 def test2():
@@ -872,8 +863,8 @@ def main():
     #test1()
     #test2()
     #test3()
-    test4()
-    #taurusFormMain()
+    #test4()
+    taurusFormMain()
     
 if __name__ == "__main__":
     main() 
