@@ -38,7 +38,7 @@ from taurus.qt import Qt
 import PyTango
 import taurus.core
 
-from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusFrame
@@ -62,6 +62,9 @@ class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
         return None
     
 class DefaultLabelWidget(TaurusLabel):
+    
+    _dragEnabled=True
+    
     def __init__(self,*args):
         TaurusLabel.__init__(self,*args)
         self.setAlignment(Qt.Qt.AlignRight)
@@ -69,6 +72,7 @@ class DefaultLabelWidget(TaurusLabel):
         self.setBgRole(None)
         self.autoTrim = False
         self.setStyleSheet('border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;')
+    
     def setModel(self, model):
         if model is None or model=='': 
             return TaurusLabel.setModel(self, None)
@@ -79,8 +83,10 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, model + "?configuration=%s"%config)
         elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
              TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
+    
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
+    
     def contextMenuEvent(self,event):   
         """ The label widget will be used for handling the actions of the whole TaurusValue
         
@@ -93,25 +99,16 @@ class DefaultLabelWidget(TaurusLabel):
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
         menu.exec_(event.globalPos())
         event.accept()
-    def mousePressEvent(self, event):
-        '''reimplemented to provide drag events'''
-        Qt.QLabel.mousePressEvent(self, event)
-        if event.button() == Qt.Qt.LeftButton:
-            self.dragStartPosition = event.pos()
-    def mouseMoveEvent(self, event):
-        '''reimplemented to provide drag events'''
-        if not event.buttons() & Qt.Qt.LeftButton:
-            return
-        mimeData = Qt.QMimeData()
+        
+    def getModelMimeData(self):
+        '''reimplemented to use the taurusValueBuddy model instead of its own model'''
+        mimeData = TaurusLabel.getModelMimeData(self)
+        mimeData.setData(TAURUS_MODEL_MIME_TYPE, self.taurusValueBuddy().getModelName())
         if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
             mimeData.setData(TAURUS_DEV_MIME_TYPE, self.taurusValueBuddy().getModelName())
         elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
             mimeData.setData(TAURUS_ATTR_MIME_TYPE, self.taurusValueBuddy().getModelName())
-        mimeData.setText(self.text())
-        drag = Qt.QDrag(self)
-        drag.setMimeData(mimeData)
-        drag.setHotSpot(event.pos() - self.rect().topLeft())
-        dropAction = drag.start(Qt.Qt.CopyAction)
+        return mimeData
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
