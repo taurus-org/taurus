@@ -56,8 +56,8 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         
         self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('activated (QString)'), self.onActiveMntGrpActivated)
         self.connect(self.ui.compressionCB, Qt.SIGNAL('currentIndexChanged (int)'), self.onCompressionCBChanged )
-        self.connect(self.ui.pathLE, Qt.SIGNAL('editingFinished ()'), self.onPathLEEdited )
-        self.connect(self.ui.filenameLE, Qt.SIGNAL('editingFinished ()'), self.onFilenameLEEdited )
+        self.connect(self.ui.pathLE, Qt.SIGNAL('textEdited (QString)'), self.onPathLEEdited )
+        self.connect(self.ui.filenameLE, Qt.SIGNAL('textEdited (QString)'), self.onFilenameLEEdited )
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('dataChanged (QModelIndex, QModelIndex)'), self._updateButtonBox )
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('modelReset ()'), self._updateButtonBox )
         
@@ -86,7 +86,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         TaurusBaseWidget.setModel(self, model)
         self._reloadConf(force=True)
-        
+
     def _reloadConf(self, force=False):
         if not force and self.isDataChanged():
             op = Qt.QMessageBox.question(self, "Reload info from door", 
@@ -165,9 +165,10 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         door = self.getModelObj()
         door.setExperimentConfiguration(conf, mnt_grps=self._dirtyMntGrps)
         self._originalConfiguration = copy.deepcopy(conf)
-        self._setDirty(False)
         self._dirtyMntGrps = set()
         self.ui.channelEditor.getQModel().setDataChanged(False)
+        self._setDirty(False)
+        self.emit(Qt.SIGNAL('experimentConfigurationChanged'), copy.deepcopy(conf))
         return True
         
     def onActiveMntGrpActivated(self, activeMntGrpName):
@@ -193,12 +194,12 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._localConfig['DataCompressionRank'] = idx - 1
         self._setDirty(True)
         
-    def onPathLEEdited(self):
-        self._localConfig['ScanDir'] = str(self.ui.pathLE.text())
+    def onPathLEEdited(self, text):
+        self._localConfig['ScanDir'] = str(text)
         self._setDirty(True)
         
-    def onFilenameLEEdited(self):
-        self._localConfig['ScanFile'] = [v.strip() for v in str(self.ui.filenameLE.text()).split(',')]
+    def onFilenameLEEdited(self, text):
+        self._localConfig['ScanFile'] = [v.strip() for v in str(text).split(',')]
         self._setDirty(True)
         
     
