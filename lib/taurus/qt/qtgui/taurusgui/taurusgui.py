@@ -260,6 +260,8 @@ class TaurusGui(TaurusMainWindow):
         self.showAllPanelsAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getIcon(':/actions/show.svg'),"Show all panels", self.showAllPanels)
         self.newPanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("window-new"),"New Panel...", self.createCustomPanel)
         self.removePanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("edit-clear"), "Remove Panel...", self.removePanel)
+        self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"Switch temporary/permanent status...", self.updatePermanentCustomPanels)
+        #temporary and permanent panels submenus
         self.__panelsMenu.addSeparator()
         self.__permPanelsMenu = Qt.QMenu('Permanent Panels', self)
         self.__panelsMenu.addMenu(self.__permPanelsMenu)
@@ -267,7 +269,6 @@ class TaurusGui(TaurusMainWindow):
         self.__tempPanelsMenu = Qt.QMenu('Temporary Panels', self)
         self.__panelsMenu.addMenu(self.__tempPanelsMenu)
         self.connect(self.__tempPanelsMenu, Qt.SIGNAL('aboutToShow()'), self.__updatePanelsMenu)
-        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"Switch temporary/permanent status...", self.updatePermanentCustomPanels)
         self.__panelsMenu.addSeparator()
         
     def __initViewMenu(self):
