@@ -42,6 +42,15 @@ from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
+from taurus.core.tango.sardana import PlotType, Normalization
+from taurus.core.tango.sardana.pool import getChannelConfigs
+from taurus.core.util import CaselessList
+
+class ChannelFilter(object):
+    def __init__(self,chlist):
+        self.chlist = tuple(chlist)
+    def __call__(self, x):
+        return x in self.chlist
 
 class MacroBroker(Qt.QObject, TaurusBaseComponent):
     def __init__(self, parent):
@@ -50,7 +59,8 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
         
         self._createPermanentPanels()
-        
+        self._trends1d={}
+        self._trends2d={}
         #connect the broker to shared data
         Qt.qApp.SDM.connectReader("doorName", self.setModel)
         Qt.qApp.SDM.connectReader("expConfChanged", self.onExpConfChanged)
@@ -79,7 +89,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         door = taurus.Device(doorname)
         if not isinstance(door, Qt.QObject):
             msg= "cannot connect to door %s"%doorname
-            Qt.QMessageBox.critical(self,'Door connection error', msg)
+            Qt.QMessageBox.critical(self.parent(),'Door connection error', msg)
             return
         self.__qdoor = door
         Qt.qApp.SDM.connectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
@@ -92,7 +102,16 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectWriter("expConfChanged", self.__qdoor, "experimentConfigurationChanged")
         
         expconf = self.__qdoor.getExperimentConfiguration()
-        self.onExpConfChanged(expconf) #@todo: we may be able to remove this once the experimentConfigurationChanged signals from the door is implemented
+        self.onExpConfChanged(expconf) 
+        
+        #check if JsonRecorder env var is set
+        if 'JsonRecorder' not in self.__qdoor.getEnvironment():
+            msg = 'JsonRecorder environment variable is not set, but it is needed for displaying trend plots. \nEnable it globally for %s?'%doorname
+            result = Qt.QMessageBox.question(self.parent(),'JsonRecorder not set', msg, Qt.QMessageBox.Yes|Qt.QMessageBox.No)
+            if result == Qt.QMessageBox.Yes:
+                self.__qdoor.setEnvironment('JsonRecorder',True)
+                self.info('JsonRecorder Enabled for %s'%doorname)
+                
         #@todo: connect as a writer of other data as well
         
     def _createPermanentPanels(self):
@@ -118,6 +137,10 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorName", self.__expDescriptionEditor.setModel)
         mainwindow.createPanel(self.__expDescriptionEditor, 'Experiment Config', registerconfig=True,
                                icon = getThemeIcon('preferences-system'))
+        ###############################
+        #@todo: These lines can be removed once the door does emit "experimentConfigurationChanged" signals
+        Qt.qApp.SDM.connectWriter("expConfChanged", self.__expDescriptionEditor, "experimentConfigurationChanged")
+        ################################
         
         #put a Macro Executor
         self.__macroExecutor = TaurusMacroExecutorWidget()
@@ -195,9 +218,6 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         self.emit(Qt.SIGNAL("newShortMessage"),"%s command sent to all pools"%cmd)      
         self.__lastAbortTime = now
         
-        
-        
-            
     def onExpConfChanged(self, expconf):
         '''
         slot to be called when experimental configuration changes. It should
@@ -207,22 +227,99 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                         :meth:`taurus.qt.qtcore.tango.sardana.QDoor.getExperimentDescription` 
                         for more details 
         '''
-        mainwindow = self.parent()
+        #print "@@@@@@@@", expconf
+        mgconfig = expconf['MntGrpConfigs'][expconf['ActiveMntGrp']]
+        channels = dict(getChannelConfigs(mgconfig, sort=False))        
+        #classify by type of plot:
+        trends1d = {}
+        trends2d = {}
+        plots1d = {}
+        images = {}
         
-        #extract the info of what to plot from the expconf (segregated by type of plot)
-          #for each trend1d, create a taurustrend and set the x and the plotablesfilter
-          #for each plot1d, create a taurusplot and set its source
-          #for each imageplot, create a taurusimage and set its source
+        for chname,chdata in channels.items():
+            ptype = chdata['plot_type']
+            if ptype == PlotType.No:
+                continue
+            elif ptype == PlotType.Spectrum:
+                axes = tuple(chdata['plot_axes'])
+                ndim = chdata.get('ndim',0) #@todo: hardcoded default for testing, but it should be obtained from the channel.
+                if ndim == 0: #this is a trend
+                    if axes in trends1d:
+                        trends1d[axes].append(chname)
+                    else:
+                        trends1d[axes] = CaselessList([chname])
+                elif ndim == 1:
+                    pass
+                else:
+                    self.warning('Cannot create plot for %s', chname)
+                    
+            elif ptype == PlotType.Image:
+                axes = tuple(chdata['plot_axes'])
+                ndim = chdata.get('ndim',1) #@todo: hardcoded default for testing, but it should be obtained from the channel.
+                if ndim == 0:
+                    pass
+                elif ndim == 1: #a 2d trend
+                    if axes in trends2d:
+                        trends2d[axes].append(chname)
+                    else:
+                        trends2d[axes] = CaselessList([chname])
+                elif ndim == 2:
+                    pass
+                else:
+                    self.warning('Cannot create plot for %s', chname)
+                    
+        self._updateTemporaryTrends1D(trends1d)
+#        self._updateTemporaryTrends2D(trends2d)
         
-        #puts a TaurusTrend connected to the door for showing scan trends
+    def _updateTemporaryTrends1D(self, trends1d):
         from taurus.qt.qtgui.plot import TaurusTrend
-        self.__scanTrend = TaurusTrend()
-        self.__scanTrend.setXIsTime(False)
-        self.__scanTrend.setScansAutoClear(False)
-        Qt.qApp.SDM.connectReader("doorName", self.__scanTrend.setScanDoor)
-        Qt.qApp.SDM.connectReader("plotablesFilter", self.__scanTrend.onScanPlotablesFilterChanged)
-        mainwindow.createPanel(self.__scanTrend, '1D Scans', registerconfig=True)
-        
+        mainwindow = self.parent()                
+        for i,(axes,plotables) in enumerate(trends1d.items()):
+            if axes not in self._trends1d:     
+                w = TaurusTrend()
+                w.setXIsTime(False)
+                w.setScansAutoClear(False)
+                w.setScanDoor(self.__qdoor.name())
+                w.setScansXDataKey(axes[0]) #@todo: use a standard key for <idx> and <mov>
+                pname = u'Trend1D - %s'%":".join(axes)
+                panel = mainwindow.createPanel(w, pname, registerconfig=False)
+                self._trends1d[axes] = pname
+            else:
+                panel = mainwindow.getPanel(self._trends1d[axes])
+            flt = ChannelFilter(plotables)
+            panel.widget().onScanPlotablesFilterChanged(flt)
+            
+    def _updateTemporaryTrends2D(self, trends2d):
+        try:
+            from taurus.qt.qtgui.extra_guiqwt.taurustrend2d import TaurusTrend2DDialog
+            from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DScanItem
+        except:
+            self.info('guiqwt extension cannot be loaded. 2D Trends will not be created')
+            raise
+            return
+        mainwindow = self.parent()
+        for i,(axes,plotables) in enumerate(trends2d.items()):
+            for chname in plotables:
+                pname =  u'Trend2D - %s'%chname
+                if pname in self._trends2d:
+                    self._trends2d[pname].widget().trendItem.clearTrend()
+                else:
+                    axis = axes[0]
+                    w = TaurusTrend2DDialog(stackMode='event')
+                    plot = w.get_plot()
+                    t2d = TaurusTrend2DScanItem(chname, axis, self.__qdoor.name())
+                    plot.add_item(t2d)
+                    mainwindow.createPanel(w, pname, registerconfig=False)
+                    self._trends2d[(axes,chname)] = pname
+    
+    def removeTemporaryPanels(self, names=None):
+        if names is None: 
+            names = self._trends1d.values() + self._trends2d.values()#@todo: the same for other temporary panels
+        mainwindow = self.parent()
+        for pname in names:
+            mainwindow.removePanel(pname)
+            
+                
         
 #class Trend1DDescription(PanelDescription):
 #    def __init__(self, ):      
