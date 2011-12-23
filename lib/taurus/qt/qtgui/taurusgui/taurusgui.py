@@ -342,7 +342,9 @@ class TaurusGui(TaurusMainWindow):
             if not ok:
                 return
         name = unicode(name)
-        if name not in self.__panels: return
+        if name not in self.__panels: 
+            self.debug('Cannot remove panel "%s" (not found)'%name)
+            return
         panel = self.__panels.pop(name)
         self.__panelsMenu.removeAction(panel.toggleViewAction())
         self.unregisterConfigurableItem(name, raiseOnError=False)
