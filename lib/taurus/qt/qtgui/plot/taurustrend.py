@@ -596,6 +596,8 @@ class ScanTrendsSet(TaurusTrendsSet):
                 self._autoXDataKey = datadesc['ref_moveables'][0]
             except KeyError, IndexError:
                 self._autoXDataKey = self.DEFAULT_X_DATA_KEY
+        elif self._xDataKey == "<idx>":
+            self._autoXDataKey = 'point_nb'
         else:
             self._autoXDataKey = self._xDataKey
         #set the x axis
