@@ -215,7 +215,8 @@ class TaurusGui(TaurusMainWindow):
         
         #Create a global SharedDataManager
         Qt.qApp.SDM =  SharedDataManager(self)
-        
+                
+        self.__initPanelsMenu()
         self.__initViewMenu()
         self.__initPanelsToolBar()
         self.__initQuickAccessToolBar()
@@ -239,22 +240,39 @@ class TaurusGui(TaurusMainWindow):
         try:
             self.__macroBroker.removeTemporaryPanels()
         except:
-            print 'nooop'
-            raise
+            pass
         TaurusMainWindow.closeEvent(self,event)
         
-    def __initViewMenu(self):        
-        #Panels view menu
-        self.__panelsMenu =  Qt.QMenu('Panels',self)
-        self.viewMenu.addSeparator()
+    def __updatePanelsMenu(self):
+        '''dynamically fill the panels menus'''
+        panelsmenu = self.sender()
+        permanent = (panelsmenu == self.__permPanelsMenu)
+        panelsmenu.clear()
+        panelnames =  sorted([n for n,p in self.__panels.items() if (p.isPermanent() == permanent)])
+        for name in panelnames:
+            panelsmenu.addAction(self.__panels[name].toggleViewAction())        
+            
+    def __initPanelsMenu(self):        
+        #Panels menu
+        self.__panelsMenu =  Qt.QMenu('Panels', self)
+        self.menuBar().insertMenu(self.helpMenu.menuAction(), self.__panelsMenu)
         self.hideAllPanelsAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getIcon(':/actions/hide.svg'),"Hide all panels", self.hideAllPanels)
         self.showAllPanelsAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getIcon(':/actions/show.svg'),"Show all panels", self.showAllPanels)
-        self.viewMenu.addSeparator()
-        self.viewMenu.addMenu(self.__panelsMenu)
         self.newPanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("window-new"),"New Panel...", self.createCustomPanel)
-        self.removePanelAction= self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("edit-clear"), "Remove Panel...", self.removePanel)
+        self.removePanelAction = self.__panelsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("edit-clear"), "Remove Panel...", self.removePanel)
         self.__panelsMenu.addSeparator()
-      
+        self.__permPanelsMenu = Qt.QMenu('Permanent Panels', self)
+        self.__panelsMenu.addMenu(self.__permPanelsMenu)
+        self.connect(self.__permPanelsMenu, Qt.SIGNAL('aboutToShow()'), self.__updatePanelsMenu)
+        self.__tempPanelsMenu = Qt.QMenu('Temporary Panels', self)
+        self.__panelsMenu.addMenu(self.__tempPanelsMenu)
+        self.connect(self.__tempPanelsMenu, Qt.SIGNAL('aboutToShow()'), self.__updatePanelsMenu)
+        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"Switch temporary/permanent status...", self.updatePermanentCustomPanels)
+        self.__panelsMenu.addSeparator()
+        
+    def __initViewMenu(self):
+        self.viewMenu.addSeparator() #the superclass may already have added stuff to the viewMenu
+        self.viewMenu.addMenu(self.__panelsMenu)
         #view locking
         self.viewMenu.addSeparator()
         self._lockviewAction = Qt.QAction(taurus.qt.qtgui.resource.getThemeIcon("system-lock-screen"),"Lock View", self)
@@ -296,7 +314,6 @@ class TaurusGui(TaurusMainWindow):
     def __initToolsMenu(self):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
-        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("preferences-desktop-personal"),"select panel Configuration", self.updatePermanentCustomPanels)
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/apps/preferences-system-session.svg"),"manage instrument-panel associations", self.onShowAssociationDialog)
         
     def setCustomWidgetMap(self, map):
@@ -337,7 +354,7 @@ class TaurusGui(TaurusMainWindow):
                      If None given, the user will be prompted
         '''
         if name is None:
-            items = self.getPanelNames()
+            items = sorted(self.getPanelNames())
             name,ok = Qt.QInputDialog.getItem (self, "Remove Panel", "Panel to be removed", items, 0, False)
             if not ok:
                 return
@@ -346,7 +363,6 @@ class TaurusGui(TaurusMainWindow):
             self.debug('Cannot remove panel "%s" (not found)'%name)
             return
         panel = self.__panels.pop(name)
-        self.__panelsMenu.removeAction(panel.toggleViewAction())
         self.unregisterConfigurableItem(name, raiseOnError=False)
         self.removeDockWidget(panel)
         panel.setParent(None)
@@ -363,7 +379,7 @@ class TaurusGui(TaurusMainWindow):
         :param floating: (bool) whether the panel should be docked or floating. (see note below)
         :param registerconfig: (bool) if True, the panel will be registered as a delegate for configuration
         :param custom: (bool) if True the panel is to be considered a "custom panel"
-        :param permanent: (bool) set this to True for custom panels that need to be recreated when restoring the app 
+        :param permanent: (bool) set this to True for panels that need to be recreated when restoring the app 
         :param icon: (QIcon) icon for the panel  
         :param instrumentkey: (str) name of an instrument to which this panel is to be associated
         
@@ -409,8 +425,6 @@ class TaurusGui(TaurusMainWindow):
             else:
                 self.setInstrumentAssociation(instrumentkey, name)
         
-        #add toggle view action for this panel to the panels menu  
-        self.__panelsMenu.addAction(panel.toggleViewAction())
         if icon is not None:
             panel.toggleViewAction().setIcon(icon)
         
@@ -456,7 +470,7 @@ class TaurusGui(TaurusMainWindow):
         ''' 
         returns a list of panel names for which the custom and permanent flags
         are True (i.e., those custom panels that should be stored in
-        configuration and/pr perspectives)
+        configuration and/or perspectives)
         
         :return: (list<str>) 
         '''        
@@ -465,8 +479,7 @@ class TaurusGui(TaurusMainWindow):
     def updatePermanentCustomPanels(self, showAlways=True):
         '''
         Shows a dialog for selecting which custom panels should be permanently
-        stored in the configuration. If showAlways is False, the dialog is only
-        shown if there are custom panels which may be not saved.
+        stored in the configuration. 
         
         :param showAlways: (bool) forces showing the dialog even if there are no new custom Panels  
         '''
@@ -512,7 +525,9 @@ class TaurusGui(TaurusMainWindow):
             w.setModifiableByUser(True)
             w.setModelInConfig(True)
         
-        self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True, registerconfig=False, instrumentkey=paneldesc.instrumentkey)
+        self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True, 
+                         registerconfig=False, instrumentkey=paneldesc.instrumentkey,
+                         permanent=False)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it'%w.name
         self.emit(Qt.SIGNAL('newShortMessage'), msg)
         
@@ -549,7 +564,8 @@ class TaurusGui(TaurusMainWindow):
             name = '%s_%i'%(prefix, i)
             i+=1
             
-        synopticpanel = self.createPanel(synoptic, name, icon=taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
+        synopticpanel = self.createPanel(synoptic, name, permanent=True,
+                                         icon=taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
         toggleSynopticAction = synopticpanel.toggleViewAction()
         self.quickAccessToolBar.addAction(toggleSynopticAction)
                 
@@ -694,7 +710,8 @@ class TaurusGui(TaurusMainWindow):
         MANUAL_URI = getattr(conf,'MANUAL_URI', self.__getVarFromXML(xmlroot,"MANUAL_URI", None))
         if MANUAL_URI is not None:
             self.setHelpManualURI(MANUAL_URI)
-            self.createPanel(self.helpManualBrowser, 'Manual', icon = taurus.qt.qtgui.resource.getThemeIcon('help-browser'))
+            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True, 
+                             icon = taurus.qt.qtgui.resource.getThemeIcon('help-browser'))
                     
         #configure the macro infrastructure       
         MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', self.__getVarFromXML(xmlroot,"MACROSERVER_NAME", None))
@@ -760,7 +777,7 @@ class TaurusGui(TaurusMainWindow):
                 if p.instrumentkey is None:
                     instrumentkey = self.IMPLICIT_ASSOCIATION
                 #create a panel
-                self.createPanel(w, p.name, floating=p.floating, instrumentkey=instrumentkey)
+                self.createPanel(w, p.name, floating=p.floating, instrumentkey=instrumentkey, permanent=True)
                 
             except Exception,e:
                 msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
@@ -769,8 +786,6 @@ class TaurusGui(TaurusMainWindow):
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
-        #add a separator in the panels view submenu (it separates the panels created from the config file from the user-created panels)
-        self.__panelsMenu.addSeparator()
         
         #get custom toolbars descriptions from the python config file      
         CUSTOM_TOOLBARS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, ToolBarDescription)]

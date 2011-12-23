@@ -136,7 +136,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         self.__expDescriptionEditor = ExpDescriptionEditor()
         Qt.qApp.SDM.connectReader("doorName", self.__expDescriptionEditor.setModel)
         mainwindow.createPanel(self.__expDescriptionEditor, 'Experiment Config', registerconfig=True,
-                               icon = getThemeIcon('preferences-system'))
+                               icon = getThemeIcon('preferences-system'), permanent=True)
         ###############################
         #@todo: These lines can be removed once the door does emit "experimentConfigurationChanged" signals
         Qt.qApp.SDM.connectWriter("expConfChanged", self.__expDescriptionEditor, "experimentConfigurationChanged")
@@ -151,7 +151,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectWriter("executionStarted", self.__macroExecutor, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__macroExecutor, "plotablesFilterChanged")
         Qt.qApp.SDM.connectWriter("shortMessage", self.__macroExecutor, "shortMessageEmitted")
-        mainwindow.createPanel(self.__macroExecutor, 'Macros', registerconfig=True)
+        mainwindow.createPanel(self.__macroExecutor, 'Macros', registerconfig=True, permanent=True)
         
         #put a Sequencer
         self.__sequencer = TaurusSequencerWidget()
@@ -163,13 +163,13 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectWriter("executionStarted", self.__sequencer, "macroStarted")
         Qt.qApp.SDM.connectWriter("plotablesFilter", self.__sequencer, "plotablesFilterChanged")
         Qt.qApp.SDM.connectWriter("shortMessage", self.__sequencer, "shortMessageEmitted")
-        mainwindow.createPanel(self.__sequencer, 'Sequences', registerconfig=True)
+        mainwindow.createPanel(self.__sequencer, 'Sequences', registerconfig=True, permanent=True)
         
         #puts a macrodescriptionviewer
         self.__macroDescriptionViewer = TaurusMacroDescriptionViewer()
         Qt.qApp.SDM.connectReader("macroserverName", self.__macroDescriptionViewer.setModel)
         Qt.qApp.SDM.connectReader("macroName", self.__macroDescriptionViewer.onMacroNameChanged)
-        mainwindow.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True)
+        mainwindow.createPanel(self.__macroDescriptionViewer, 'MacroDescription', registerconfig=True, permanent=True)
         
         #puts a doorOutput
         self.__doorOutput = DoorOutput()
@@ -177,17 +177,17 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorInfoChanged", self.__doorOutput.onDoorInfoChanged)
         Qt.qApp.SDM.connectReader("doorWarningChanged", self.__doorOutput.onDoorWarningChanged)
         Qt.qApp.SDM.connectReader("doorErrorChanged", self.__doorOutput.onDoorErrorChanged)
-        mainwindow.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False)
+        mainwindow.createPanel(self.__doorOutput, 'DoorOutput', registerconfig=False, permanent=True)
         
         #puts doorDebug
         self.__doorDebug = DoorDebug()
         Qt.qApp.SDM.connectReader("doorDebugChanged", self.__doorDebug.onDoorDebugChanged)
-        mainwindow.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False)
+        mainwindow.createPanel(self.__doorDebug, 'DoorDebug', registerconfig=False, permanent=True)
         
         #puts doorResult
         self.__doorResult = DoorResult(mainwindow)
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
-        mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False)
+        mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False, permanent=True)
         
         #add panic button for aborting the door
         self.doorAbortAction = mainwindow.jorgsBar.addAction(getIcon(":/actions/process-stop.svg"), "Panic Button: stops the pool (double-click for abort)", self.__onDoorAbort)
@@ -282,7 +282,8 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                 w.setScanDoor(self.__qdoor.name())
                 w.setScansXDataKey(axes[0]) #@todo: use a standard key for <idx> and <mov>
                 pname = u'Trend1D - %s'%":".join(axes)
-                panel = mainwindow.createPanel(w, pname, registerconfig=False)
+                panel = mainwindow.createPanel(w, pname, registerconfig=False, permanent=False)
+                panel.raise_()
                 self._trends1d[axes] = pname
             else:
                 panel = mainwindow.getPanel(self._trends1d[axes])
@@ -309,7 +310,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                     plot = w.get_plot()
                     t2d = TaurusTrend2DScanItem(chname, axis, self.__qdoor.name())
                     plot.add_item(t2d)
-                    mainwindow.createPanel(w, pname, registerconfig=False)
+                    mainwindow.createPanel(w, pname, registerconfig=False, permanent=False)
                     self._trends2d[(axes,chname)] = pname
     
     def removeTemporaryPanels(self, names=None):
