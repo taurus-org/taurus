@@ -101,8 +101,10 @@ class MacroServer(SardanaDevice):
                 self.warning(exc_info=1)
     
     def _calculate_environment_name(self, name):
-        u = PyTango.Util.instance()
-        return name % { 'ds_name' : u.get_ds_name() }
+        util = PyTango.Util.instance()
+        return name % { 'ds_name' : util.get_ds_name(),
+                        'ds_exec_name' : util.get_ds_exec_name(),
+                        'ds_inst_name' : util.get_ds_inst_name() }
     
     def always_executed_hook(self):
         pass
@@ -274,7 +276,7 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
         'EnvironmentDb':
             [PyTango.DevString,
             "The environment database (usualy a plain file).",
-            ["/tmp/tango/%(ds_name)s/macroserver.properties"] ],
+            ["/tmp/tango/%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"] ],
         'RConsolePort':
             [PyTango.DevLong,
             "The rconsole port number",

@@ -125,8 +125,9 @@ class EnvironmentManager(Singleton, Logger):
             except OSError, ose:
                 self.error("Creating environment: %s" % ose.strerror)
                 raise ose
+        self.info("Environment is being stored in %s", f_name)
         
-        self._env = shelve.open(self._env_name, flag='c', protocol=0, writeback=False)
+        self._env = shelve.open(f_name, flag='c', protocol=0, writeback=False)
         # fill the three environment caches
         self._fillEnvironmentCaches(self._env)
 
