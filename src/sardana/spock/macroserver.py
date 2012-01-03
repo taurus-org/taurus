@@ -323,9 +323,10 @@ class SpockBaseDoor(BaseDoor):
         try:
             return BaseDoor._runMacro(self, xml, **kwargs)
         except KeyboardInterrupt:
-            print '\nCtrl-C received: Aborting ...'
+            self.write('\nCtrl-C received: Stopping... ')
             self.block_lines = 0
-            self.abort()
+            self.command_inout("Abort")
+            self.writeln("Done!")
         except PyTango.DevFailed, e:
             if operator.isSequenceType(e.args) and not type(e.args) in types.StringTypes:
                 reason, desc = e.args[0].reason, e.args[0].desc

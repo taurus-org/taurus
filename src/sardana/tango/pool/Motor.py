@@ -164,26 +164,6 @@ class Motor(PoolElementDevice):
             if recover:
                 attr.set_change_event(True, True)
     
-    def calculate_tango_state(self, ctrl_state):
-        self._state = state = to_tango_state(ctrl_state)
-        self.set_state(state)
-        return state
-    
-    def calculate_tango_status(self, ctrl_status):
-        self._status = status = ctrl_status
-        self.set_status(status)
-        return status
-    
-    def dev_state(self):
-        ctrl_state = self.element.get_state(cache=False, propagate=0)
-        state = self.calculate_tango_state(ctrl_state)
-        return state
-    
-    def dev_status(self):
-        ctrl_status = self.element.get_status(cache=False, propagate=0)
-        status = self.calculate_tango_status(ctrl_status)
-        return status
-    
     def always_executed_hook(self):
         #state = to_tango_state(self.motor.get_state(cache=False))
         dev_class, multi_attr1 = self.get_device_class(), self.get_device_attr()

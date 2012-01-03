@@ -114,9 +114,21 @@ class PoolMeasurementGroup(PoolGroupElement):
     def get_type(self):
         return ElementType.MeasurementGroup
     
+    def _calculate_element_state(self, elem, elem_state_info):
+        if elem.get_type() == ElementType.ZeroDExpChannel:
+            if elem_state_info[0] == State.Moving:
+                elem_state_info = State.On, elem_state_info[1]
+        return PoolGroupElement._calculate_element_state(self, elem,
+                                                         elem_state_info)
+    
     def on_element_changed(self, evt_src, evt_type, evt_value):
         name = evt_type.name
         if name == 'state':
+            if evt_src.get_type() == ElementType.ZeroDExpChannel:
+                # 0D channels are "passive", which means they cannot contribute
+                # to set the measurement group into a moving state
+                if evt_value in (State.On, State.Moving):
+                    return
             state, status = self._calculate_states()
             propagate_state = name == 'state'
             self.set_state(state, propagate=2)
@@ -130,7 +142,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         for ctrl in self.get_pool_controllers():
             if ctrl.name.lower() == name:
                 return ctrl
-            
+    
     # --------------------------------------------------------------------------
     # configuration
     # --------------------------------------------------------------------------
@@ -147,9 +159,11 @@ class PoolMeasurementGroup(PoolGroupElement):
             name = channel.name
             full_name = channel.full_name
             source = channel.get_source()
-            instrument = channel.instrument
             ndim = None
+            instrument = None
             ctype = channel.get_type()
+            if ctype != ElementType.External:
+                instrument = channel.instrument
             if ctype == ElementType.CTExpChannel:
                 ndim = 0
             elif ctype == ElementType.ZeroDExpChannel:

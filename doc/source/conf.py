@@ -24,7 +24,8 @@
 ##
 ##############################################################################
 
-import sys, os
+import sys
+import os
 
 def set_src():
     import sys
@@ -38,6 +39,18 @@ except ImportError:
     # try to use code from src distribution
     set_src()
     import sardana
+
+def fix_sardana_for_doc():
+    
+    def type_getattr(self, name):
+        if name not in self._pending_type_names:
+            self._pending_type_names[name] = name
+        return self._pending_type_names[name]
+    
+    import sardana.macroserver.parameter
+    sardana.macroserver.parameter.TypeNames.__getattr__ = type_getattr
+
+fix_sardana_for_doc()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

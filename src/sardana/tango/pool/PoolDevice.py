@@ -41,7 +41,9 @@ from taurus.core.util import CaselessDict
 from sardana import InvalidId, InvalidAxis, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_type_format, to_tango_access, to_tango_attr_info
+    GenericImageAttr, to_tango_state, to_tango_type_format, to_tango_access, \
+    to_tango_attr_info
+
 
 class PoolDevice(SardanaDevice):
     """Base Tango Pool Device class"""
@@ -237,6 +239,18 @@ class PoolDevice(SardanaDevice):
     def _is_DynamicAttribute_allowed(self, req_type):
         return self.is_DynamicAttribute_allowed(req_type)
 
+    def calculate_tango_state(self, ctrl_state, update=True):
+        self._state = state = to_tango_state(ctrl_state)
+        if update:
+            self.set_state(state)
+        return state
+    
+    def calculate_tango_status(self, ctrl_status, update=True):
+        self._status = status = ctrl_status
+        if update:
+            self.set_status(status)
+        return status
+
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""
@@ -332,7 +346,7 @@ class PoolElementDevice(PoolDevice):
                 name, tg_info = to_tango_attr_info(attr_name, attr_info)
                 dyn_attrs[attr_name] = name, tg_info, attr_info
         return std_attrs, dyn_attrs
-
+    
     def read_DynamicAttribute(self, attr):
         name = attr.get_name()
         ctrl = self.ctrl
@@ -342,7 +356,7 @@ class PoolElementDevice(PoolDevice):
         if v is None:
             raise Exception("Cannot read %s. Controller returns %s" % (name, v))
         attr.set_value(v)
-
+    
     def write_DynamicAttribute(self, attr):
         name = attr.get_name()
         value = attr.get_write_value()
@@ -351,12 +365,23 @@ class PoolElementDevice(PoolDevice):
         if ctrl is None:
             raise Exception("Cannot write %s. Controller not build!" % name)
         ctrl.set_axis_attr(self.element.axis, name, value)
-
+    
     def read_SimulationMode(self, attr):
         attr.set_value(self.element.simulation_mode)
     
     def write_SimulationMode(self, attr):
         self.element.simulation_mode = attr.get_write_value()
+    
+    def dev_state(self):
+        ctrl_state = self.element.get_state(cache=False, propagate=0)
+        state = self.calculate_tango_state(ctrl_state)
+        print 
+        return state
+    
+    def dev_status(self):
+        ctrl_status = self.element.get_status(cache=False, propagate=0)
+        status = self.calculate_tango_status(ctrl_status)
+        return status
 
 
 class PoolElementDeviceClass(PoolDeviceClass):

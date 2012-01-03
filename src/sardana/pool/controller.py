@@ -735,7 +735,13 @@ class CounterTimerController(Controller, Readable):
 class ZeroDController(Controller, Readable):
     """Base class for a 0D controller. Inherit from this class to
     implement your own 0D controller for the device pool."""
-    pass
+
+    def AbortOne(self, axis):
+        """This method is not executed by the system.
+        Default implementation does nothing.
+        
+        :param int axis: axis number"""
+        pass
 
 
 class PseudoMotorController(Controller):

@@ -82,6 +82,14 @@ class PoolBaseGroup(PoolContainer):
                 action_cache.add_element(physical_element)
         return action_cache
     
+    def _calculate_element_state(self, elem, elem_state_info):
+        u_state, u_status = elem_state_info
+        if u_status is None:
+            u_status = '%s is None' % elem.name
+        else:
+            u_status = u_status[1].split("\n", 1)[0]
+        return u_state, u_status
+    
     def _calculate_states(self, state_info=None):
         user_elements = self.get_user_elements()
         none, unknown = set(), set()
@@ -90,20 +98,19 @@ class PoolBaseGroup(PoolContainer):
         if state_info is None:
             state_info = {}
             for elem in user_elements:
+                if elem.get_type() == ElementType.External:
+                    continue
                 # cannot call get_state(us) here since it may lead to dead lock!
                 si = elem.inspect_state(), elem.inspect_status()
                 state_info[elem] = si
         for elem, elem_state_info in state_info.items():
-            if elem.get_type() == ElementType.External:
+            elem_type = elem.get_type()
+            if elem_type == ElementType.External:
                 continue
-            u_state, u_status = elem_state_info
-            if u_status is None:
-                u_status = '%s is None' % elem.name
-            else:
-                u_status = u_status[1].split("\n", 1)[0]
+            u_state, u_status = self._calculate_element_state(elem, elem_state_info)
             if u_state == State.Moving:
                 moving.add(elem)
-            elif u_state == State.On: 
+            elif u_state == State.On:
                 on.add(elem)
             elif u_state == State.Fault:
                 fault.add(elem)

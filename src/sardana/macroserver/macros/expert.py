@@ -64,7 +64,7 @@ class defmeas(Macro):
     param_def = [
        ['name',  Type.String,       None, 'Measurement group name'],
        ['channel_list',
-            ParamRepeat(['channel', Type.ExpChannel, None, 'Measurement Channel'],),
+            ParamRepeat(['channel', Type.String, None, 'Measurement Channel'],),
             None, 'List of measurement channels'],
     ]
 
@@ -80,10 +80,8 @@ class defmeas(Macro):
         if len(pools) > 1:
             self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
         pool = pools[0]
-        channels = []
-        for c in channel_list:
-            channels.append(c.getName())
-        mg = pool.createMeasurementGroup(name, channels)
+
+        mg = pool.createMeasurementGroup(name, channel_list)
         print("Created %s" % str(mg))
 
 class udefmeas(Macro):

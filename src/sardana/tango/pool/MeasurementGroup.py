@@ -111,28 +111,42 @@ class MeasurementGroup(PoolGroupDevice):
         quality = AttrQuality.ATTR_VALID
         
         recover = False
-        if event_type.priority > 1:
+        if event_type.priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
         
+        my_name = self.alias.lower()
         try:
             if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                if my_name == "mg5":
+                    self.info("Sending state event %s", State[event_value])
+                state = self.calculate_tango_state(event_value)
+                attr.set_value(state)
+                attr.fire_change_event()
+                if my_name == "mg5":
+                    self.info("Sent state event %s", State[event_value])
+                #self.push_change_event(name, state)
             elif name == "status":
-                self.set_status(event_value)
-                self.push_change_event(name, event_value)
+                status = self.calculate_tango_status(event_value)
+                attr.set_value(status)
+                attr.fire_change_event()
+                #self.push_change_event(name, status)
             elif name == "acquisitionmode":
                 event_value = AcqMode.whatis(event_value)
-                self.push_change_event(name, event_value, t, quality)
+                attr.set_value_date_quality(event_value, t, quality)
+                attr.fire_change_event()
+                #self.push_change_event(name, event_value, t, quality)
             elif name == "configuration":
                 cfg = self.measurement_group.get_user_configuration()
                 codec = CodecFactory().getCodec('json')
                 _, event_value = codec.encode(('', cfg))
-                self.push_change_event(name, event_value)
+                attr.set_value(event_value)
+                attr.fire_change_event()
+                #self.push_change_event(name, event_value)
             else:
-                self.push_change_event(name, event_value, t, quality)
+                attr.set_value(event_value)
+                attr.fire_change_event()
+                #self.push_change_event(name, event_value, t, quality)
         finally:
             if recover:
                 attr.set_change_event(True, True)

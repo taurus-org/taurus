@@ -279,6 +279,7 @@ def mAPI(fn):
         return ret
     return new_fn
 
+
 class Macro(Logger):
     """ The Macro base class. All macros should inherit directly or indirectly
     from this class."""
