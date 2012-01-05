@@ -43,7 +43,6 @@ from taurus.core.util import CaselessDict, InfoIt, DebugIt
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import to_tango_type_format, to_tango_state
-
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 def exception_str(etype=None, value=None, sep='\n'):
@@ -74,9 +73,7 @@ class Motor(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.motor.get_name())
-        #self.motor = None
+        PoolElementDevice.delete_device(self)
     
     @DebugIt()
     def init_device(self):
@@ -140,26 +137,19 @@ class Motor(PoolElementDevice):
                 if isinstance(event_value, SardanaAttribute):
                     if event_value.error:
                         dev_failed = Except.to_dev_failed(*event_value.exc_info)
-                        self.fire_change_event(dev_failed)
+                        attr.fire_change_event(dev_failed)
                         return
+                    t = event_value.timestamp
                     event_value = event_value.value
                     
                 state = self.motor.get_state()
                 
-                if name == "position" or name == "dialposition":
-                    if state == State.Moving:
-                        quality = AttrQuality.ATTR_CHANGING
-                        attr.set_value_date_quality(event_value, t, quality)
-                        attr.fire_change_event()
-                        #self.push_change_event(name, event_value, t, quality)
-                    else:
-                        attr.set_value(event_value)
-                        attr.fire_change_event()
-                        #self.push_change_event(name, event_value)
-                else:
-                    attr.set_value(event_value)
-                    attr.fire_change_event()
-                    #self.push_change_event(name, event_value)
+                if state == State.Moving and name in ("position", "dialposition"):
+                    quality = AttrQuality.ATTR_CHANGING
+                
+                attr.set_value_date_quality(event_value, t, quality)
+                attr.fire_change_event()
+                #self.push_change_event(name, event_value, t, quality)
         finally:
             if recover:
                 attr.set_change_event(True, True)
@@ -271,7 +261,7 @@ class Motor(PoolElementDevice):
         self.motor.sign = attr.get_write_value()
     
     def read_Limit_switches(self, attr):
-        attr.set_value(self.motor.get_limit_switches(cache=False))
+        attr.set_value(self.motor.get_limit_switches(cache=False).value)
     
     def DefinePosition(self, argin):
         self.motor.define_position(argin)

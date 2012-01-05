@@ -46,7 +46,7 @@ from sardana.sardanamodulemanager import ModuleManager
 
 import controller
 from poolexception import UnknownController
-from poolmetacontroller import ControllerLib, ControllerClass
+from poolmetacontroller import ControllerLibrary, ControllerClass
 
 class ControllerManager(Singleton, Logger):
     """The singleton class responsible for managing controller plug-ins."""
@@ -72,9 +72,9 @@ class ControllerManager(Singleton, Logger):
         if self._state == ManagerState.INITED:
             return
         
-        #: dict<str, metacontroller.ControllerLib>
+        #: dict<str, metacontroller.ControllerLibray>
         #: key   - module name (without path and without extension)
-        #: value - ControllerLib object representing the module 
+        #: value - ControllerLibrary object representing the module 
         self._modules = {}
         
         #: dict<str, <metacontroller.ControllerClass>
@@ -390,7 +390,7 @@ class ControllerManager(Singleton, Logger):
                                 or module list changes [default: True]
         
         :return: the ControllerLib object for the reloaded controller lib
-        :rtype: sardana.pool.poolmetacontroller.ControllerLib
+        :rtype: sardana.pool.poolmetacontroller.ControllerLibrary
         """
         # Store how was the old list of modules to see if an event needs to be
         # fired
@@ -420,10 +420,10 @@ class ControllerManager(Singleton, Logger):
         params = dict(module=m, name=module_name, pool=self.get_pool())
         if m is None or exc_info is not None:
             params['exc_info'] = exc_info
-            controller_lib = ControllerLib(**params)
+            controller_lib = ControllerLibrary(**params)
             self._modules[module_name] = controller_lib
         else:
-            controller_lib = ControllerLib(**params)
+            controller_lib = ControllerLibrary(**params)
             lib_contains_controllers = False
             abs_file = controller_lib.file_path
             for name, klass in inspect.getmembers(m, inspect.isclass):

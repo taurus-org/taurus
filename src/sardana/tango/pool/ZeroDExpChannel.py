@@ -51,24 +51,22 @@ class ZeroDExpChannel(PoolElementDevice):
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
         ZeroDExpChannel.init_device(self)
-
+    
     def init(self, name):
         PoolElementDevice.init(self, name)
-
+    
     def get_zerod(self):
         return self.element
-
+    
     def set_zerod(self, zerod):
         self.element = zerod
-
+    
     zerod = property(get_zerod, set_zerod)
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.element.get_name())
-        #self.zerod = None
-
+        PoolElementDevice.delete_device(self)
+    
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)

@@ -39,6 +39,8 @@ import weakref
 from taurus.core.util import CaselessDict, Logger, ListEventGenerator
 from taurus.core.tango.sardana.pool import BaseElement
 
+from sardana import INTERFACES_EXPANDED
+from exception import UnknownMacro, UnknownLib
 
 class WrongParam(exception.MacroServerException):
     
@@ -154,17 +156,40 @@ class ElementParamType(ParamType):
     
     def __init__(self, name):
         ParamType.__init__(self, name)
+        self._interfaces = INTERFACES_EXPANDED.get(name)
         
     def getManager(self):
         import manager
         return manager.MacroServerManager()
     
     def accepts(self, elem):
-        return elem.getType() == self._name
+        elem_type = elem.getType()
+        elem_interfaces = INTERFACES_EXPANDED.get(elem_type)
+        if elem_interfaces is None:
+            return elem_type == self._name
+        return self._name in elem_interfaces
     
     def getObj(self, name, pool=ParamType.All, cache=False):
-        obj_dict = self.getObjDict(pool=pool, cache=cache)
-        return obj_dict.get(name, None)
+        if pool == ParamType.All:
+            pools = self.getManager().getPoolListObjs()
+        else:
+            pools = self.getManager().getPoolObj(pool),
+        for pool in pools:
+            elem_info = pool.getObj(name)
+            if elem_info is not None and self.accepts(elem_info):
+                return elem_info
+        # not a pool object, maybe it is a macro server object (perhaps a macro
+        # class or a macro library
+        manager = self.getManager()
+        try:
+            return manager.getMacroMetaClass(name).serialize()
+        except UnknownMacro:
+            pass
+        
+        try:
+            return manager.getMacroLib(name).serialize()
+        except UnknownLib:
+            pass
     
     def getObjDict(self, pool=ParamType.All, cache=False):
         objs = CaselessDict()
@@ -244,7 +269,7 @@ class ParamDecoder:
                     except ValueError, e:
                         raise WrongParamType, e.message
                     if val is None:
-                        msg = 'Could not create %s param "%s" from "%s"' % \
+                        msg = 'Could not create %s parameter "%s" for "%s"' % \
                               (par_type.getName(), name, par_str)
                         raise WrongParam, msg
                     dec_token = 1

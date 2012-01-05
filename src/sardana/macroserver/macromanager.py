@@ -92,9 +92,9 @@ class MacroManager(Singleton, Logger):
         if self._state == ManagerState.INITED:
             return
         
-        # dict<str, metamacro.MacroLib>
+        # dict<str, metamacro.MacroLibrary>
         # key   - module name (without path and without extension)
-        # value - MacroLib object representing the module 
+        # value - MacroLibrary object representing the module 
         self._modules = {}
         
         # dict<str, <metamacro.MacroClass>
@@ -207,7 +207,10 @@ class MacroManager(Singleton, Logger):
                 first line of code for the given macro name.
         """
         # if only given the module name
-        macro_lib = self.getMacroLib(lib_name)
+        try:
+            macro_lib = self.getMacroLib(lib_name)
+        except UnknownLib:
+            macro_lib = None
         
         if macro_name is None:
             line_nb = 0
@@ -375,7 +378,7 @@ class MacroManager(Singleton, Logger):
         :param fire_event: fire events in case something (macro list or
                            module list changes (optional, default=True)
         
-        :return: the MacroLib object for the reloaded macro lib
+        :return: the MacroLibrary object for the reloaded macro lib
         """
         # Store how was the old list of modules to see if an event needs to be
         # fired
@@ -408,7 +411,7 @@ class MacroManager(Singleton, Logger):
         params = dict(module=m, name=module_name,
                       macro_server=self.get_macro_server())
         if not m is None:
-            macro_lib = metamacro.MacroLib(**params)
+            macro_lib = metamacro.MacroLibrary(**params)
             lib_contains_macros = False
             abs_file = macro_lib.file_path
             for name, klass in inspect.getmembers(m, inspect.isclass):
@@ -485,7 +488,10 @@ class MacroManager(Singleton, Logger):
         return ret
     
     def getMacroLib(self, module_name):
-        return self._modules.get(module_name)
+        ret = self._modules.get(module_name)
+        if ret is None:
+            raise UnknownLib("Unknown macro library %s" % module_name)
+        return ret
         
     def getMacroListObj(self):
         return self._macro_list_obj

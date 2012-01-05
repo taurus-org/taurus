@@ -104,7 +104,7 @@ class MacroServer(SardanaDevice):
         util = PyTango.Util.instance()
         return name % { 'ds_name' : util.get_ds_name(),
                         'ds_exec_name' : util.get_ds_exec_name(),
-                        'ds_inst_name' : util.get_ds_inst_name() }
+                        'ds_inst_name' : util.get_ds_inst_name().lower() }
     
     def always_executed_hook(self):
         pass

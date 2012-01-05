@@ -31,7 +31,7 @@ __all__ = ["EpsilonError", "SardanaServer", "State",
            "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
-           "TYPE_PSEUDO_ELEMENTS",
+           "TYPE_PSEUDO_ELEMENTS", "INTERFACES", "INTERFACES_EXPANDED",
            "is_number", "ScalarNumberFilter"]
 
 __docformat__ = 'restructuredtext'
@@ -63,9 +63,15 @@ State = Enumeration("State", ( \
     "Invalid") )
 
 class _SardanaServer(object):
+    """Class representing the current sardana server state"""
+    
     def __init__(self):
         self.server_state = State.Invalid
-
+    
+    def __repr__(self):
+        return "SardanaServer()"
+    
+    
 #: the global object containing the SardanaServer information
 SardanaServer = _SardanaServer()
 
@@ -225,7 +231,7 @@ ElementType = Enumeration("ElementType", ( \
     "ZeroDExpChannel",
     "OneDExpChannel",
     "TwoDExpChannel",
-    "Communication",
+    "ComChannel",
     "IORegister",
     "PseudoMotor",
     "PseudoCounter",
@@ -234,39 +240,104 @@ ElementType = Enumeration("ElementType", ( \
     "MeasurementGroup",
     "Instrument",
     "ControllerClass",
-    "ControllerLib",
+    "ControllerLibrary",
     "MacroClass",
-    "MacroLib",
+    "MacroLibrary",
     "External",
     "Unknown") )
 
 ET = ElementType
 
-#: a set containning all "controllable" element types
+#: a set containning all "controllable" element types.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
-    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.ComChannel, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter, ET.Constraint))
 
-#: a set containing all group element types
+#: a set containing all group element types.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_GROUP_ELEMENTS = set((ET.MotorGroup, ET.MeasurementGroup))
 
-#: a set containing the type of elements which are moveable
+#: a set containing the type of elements which are moveable.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_MOVEABLE_ELEMENTS = set((ET.Motor, ET.PseudoMotor, ET.MotorGroup))
 
-#: a set containing the possible types of physical elements
+#: a set containing the possible types of physical elements.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_PHYSICAL_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
-    ET.Communication, ET.IORegister))
+    ET.ComChannel, ET.IORegister))
 
-#: a set containing the possible types of acquirable elements
+#: a set containing the possible types of acquirable elements.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
-    ET.Communication, ET.IORegister, ET.PseudoMotor, \
+    ET.ComChannel, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter))
 
-#: a set containing the possible types of pseudo elements
+#: a set containing the possible types of pseudo elements.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
+
+#: a dictionary containing the direct interfaces supported by each type
+INTERFACES = {
+    "Object" : set(),
+    "SardanaObject" : "Object",
+    "Element" : "Object",
+    "SardanaElement" : "Element",
+    "Class" : "SardanaObject",
+    "Library" : "SardanaObject",
+    "PoolObject" : "SardanaObject",
+    "PoolElement" : set(("SardanaElement", "PoolObject")),
+    "Pool" : "PoolElement",
+    "Controller" : "PoolElement",
+    "Moveable" : "PoolElement",
+    "Acquirable" : "PoolElement",
+    "Instrument" : "PoolElement",
+    "Motor" : set(("Moveable", "Acquirable")),
+    "PseudoMotor" : set(("Moveable", "Acquirable")),
+    "IORegister" : set(("Moveable", "Acquirable")),
+    "ExpChannel" : "Acquirable",
+    "CTExpChannel" : "ExpChannel",
+    "ZeroDExpChannel" : "ExpChannel",
+    "OneDExpChannel" : "ExpChannel",
+    "TwoDExpChannel" : "ExpChannel",
+    "PseudoCounter" : "ExpChannel",
+    "ComChannel" : "PoolElement",
+    "MotorGroup" : set(("Moveable", "Acquirable")),
+    "MeasurementGroup" : "PoolElement",
+    "ControllerLibrary" : set(("Library", "PoolObject")),
+    "ControllerClass" : set(("Class", "PoolObject")),
+    "Constraint" : "PoolObject",
+    "External" : "Object",
+    
+    "MacroServerObject" : "SardanaObject",
+    "MacroServerElement" : set(("SardanaElement", "MacroServerObject")),
+    "MacroServer" : "MacroServerElement",
+    "MacroLibrary" : set(("Library", "MacroServerObject")),
+    "MacroClass" : set(("Class", "MacroServerObject")),
+    "Macro" : "MacroClass",
+}
+
+#: a dictionary containing the *all* interfaces supported by each type
+INTERFACES_EXPANDED = {}
+
+def __expand(name):
+    direct_expansion = INTERFACES[name]
+    if isinstance(direct_expansion, (str, unicode)):
+        direct_expansion = direct_expansion,
+    exp = set(direct_expansion)
+    for e in direct_expansion:
+        if e in INTERFACES_EXPANDED:
+            exp.update(INTERFACES_EXPANDED[e])
+        else:
+            exp.update(__expand(e))
+    exp.add(name)
+    return exp
+
+for i in INTERFACES:
+    INTERFACES_EXPANDED[i] = __expand(i)
 
 try:
     import numpy

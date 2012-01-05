@@ -108,9 +108,18 @@ class SardanaAttribute(object):
     def timestamp(self):
         return self._r_timestamp
     
-    obj = property(get_obj)
-    value = property(get_value, set_value)
-    w_value = property(get_write_value, set_write_value)
+    obj = property(get_obj, "container object for this attribute")
+    value = property(get_value, set_value, "current value for this attribute")
+    w_value = property(get_write_value, set_write_value,
+                       "current write value for this attribute")
+    
+    def __repr__(self):
+        v = None
+        if self.in_error():
+            v = "<Error>"
+        elif self.has_value():
+            v = self.value
+        return "{0}(value={1})".format(self.name, v)
 
 
 class SardanaSoftwareAttribute(SardanaAttribute):
@@ -122,7 +131,7 @@ class SardanaSoftwareAttribute(SardanaAttribute):
                                    timestamp=timestamp)
         self.set_write_value(value, timestamp=self._r_timestamp)
     
-    value = property(get_value, set_value)
+    value = property(get_value, set_value, "current value for this attribute")
 
 
 class ScalarNumberAttribute(SardanaAttribute):

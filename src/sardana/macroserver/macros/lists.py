@@ -159,7 +159,7 @@ class lsexp(_lsobj):
     
 class lsct(lsexp):
     """Lists all Counter/Timers"""
-    subtype = 'CounterTimer'
+    subtype = 'CTExpChannel'
     
 class ls0d(lsexp):
     """Lists all 0D experiment channels"""

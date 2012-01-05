@@ -28,7 +28,7 @@ for"""
 
 __all__ = ["CONTROLLER_TEMPLATE", "CTRL_TYPE_MAP", "TYPE_MAP", "TYPE_MAP_OBJ",
            "TypeData", "DTYPE_MAP", "DACCESS_MAP", "DataInfo",
-           "ControllerLib", "ControllerClass"]
+           "ControllerLibrary", "ControllerClass"]
 
 __docformat__ = 'restructuredtext'
 
@@ -42,7 +42,7 @@ from taurus.core.util import CaselessDict, CodecFactory
 from sardana import DataType, DataFormat, DataAccess, \
     DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, \
     ElementType, TYPE_ELEMENTS, InvalidId
-from sardana.sardanameta import SardanaMetaLib, SardanaMetaClass
+from sardana.sardanameta import SardanaMetaLibrary, SardanaMetaClass
 
 from poolcontroller import PoolController, PoolPseudoMotorController
 from poolmotor import PoolMotor
@@ -109,7 +109,7 @@ for t, d in TYPE_MAP.items():
     TYPE_MAP_OBJ[t] = o
 
 
-class ControllerLib(SardanaMetaLib):
+class ControllerLibrary(SardanaMetaLibrary):
     """Object representing a python module containning controller classes.
     Public members:
     
@@ -125,12 +125,12 @@ class ControllerLib(SardanaMetaLib):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
-        SardanaMetaLib.__init__(self, **kwargs)
+        SardanaMetaLibrary.__init__(self, **kwargs)
     
-    add_controller = SardanaMetaLib.add_meta_class
-    get_controller = SardanaMetaLib.get_meta_class
-    get_controllers = SardanaMetaLib.get_meta_classes
-    has_controller = SardanaMetaLib.has_meta_class
+    add_controller = SardanaMetaLibrary.add_meta_class
+    get_controller = SardanaMetaLibrary.get_meta_class
+    get_controllers = SardanaMetaLibrary.get_meta_classes
+    has_controller = SardanaMetaLibrary.has_meta_class
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -138,10 +138,10 @@ class ControllerLib(SardanaMetaLib):
         
         :return: this pool object type
         :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.ControllerLib
+        return ElementType.ControllerLibrary
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaLib.serialize(self, *args, **kwargs)
+        kwargs = SardanaMetaLibrary.serialize(self, *args, **kwargs)
         kwargs['pool'] = self.get_manager().name
         kwargs['id'] = InvalidId
         return kwargs
@@ -215,7 +215,7 @@ class ControllerClass(SardanaMetaClass):
        
            - name - class name
            - klass - python class object
-           - lib - ControllerLib object representing the module where the
+           - lib - ControllerLibrary object representing the module where the
              controller is."""
     
     def __init__(self, **kwargs):

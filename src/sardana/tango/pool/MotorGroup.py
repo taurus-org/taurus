@@ -38,8 +38,9 @@ from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 
 from taurus.core.util.log import InfoIt, DebugIt
 
-from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
+from sardana import State, SardanaServer
 from sardana.tango.core.util import to_tango_state
+from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 class MotorGroup(PoolGroupDevice):
     
@@ -63,9 +64,7 @@ class MotorGroup(PoolGroupDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.motor_group.get_name())
-        #self.motor_group = None
+        PoolGroupDevice.delete_device(self)
     
     @DebugIt()
     def init_device(self):
@@ -85,6 +84,10 @@ class MotorGroup(PoolGroupDevice):
             self.motor_group = motor_group
 
     def on_motor_group_changed(self, event_source, event_type, event_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
         t = time.time()
         name = event_type.name
         
@@ -99,20 +102,24 @@ class MotorGroup(PoolGroupDevice):
         
         try:
             if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                state = self.calculate_tango_state(event_value)
+                attr.set_value(state)
+                attr.fire_change_event()
+                #self.push_change_event(name, state)
             elif name == "status":
-                self.set_status(event_value)
-                self.push_change_event(name, event_value)
+                status = self.calculate_tango_status(event_value)
+                attr.set_value(status)
+                attr.fire_change_event()
+                #self.push_change_event(name, status)
             else:
-                state = to_tango_state(self.motor_group.get_state())
+                state = self.motor_group.get_state()
                 if name == "position":
-                    if state == DevState.MOVING:
+                    if state == State.Moving:
                         quality = AttrQuality.ATTR_CHANGING
                     positions = self._to_motor_positions(event_value)
                 attr.set_value_date_quality(positions, t, quality)
-                self.push_change_event(name, positions, t, quality)
+                attr.fire_change_event()
+                #self.push_change_event(name, positions, t, quality)
         finally:
             if recover:
                 attr.set_change_event(True, True)

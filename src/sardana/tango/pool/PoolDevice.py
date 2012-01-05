@@ -81,7 +81,7 @@ class PoolDevice(SardanaDevice):
     
     def delete_device(self):
         SardanaDevice.delete_device(self)
-        self.pool.delete_element(self.element.get_name())
+        #self.pool.delete_element(self.element.get_name())
         
     def Abort(self):
         self.element.abort()
@@ -233,7 +233,6 @@ class PoolDevice(SardanaDevice):
         if hasattr(self, write_name):
             write = getattr(self, write_name)
             return write(attr)
-        
         return self.write_DynamicAttribute(attr)
 
     def _is_DynamicAttribute_allowed(self, req_type):
@@ -375,7 +374,6 @@ class PoolElementDevice(PoolDevice):
     def dev_state(self):
         ctrl_state = self.element.get_state(cache=False, propagate=0)
         state = self.calculate_tango_state(ctrl_state)
-        print 
         return state
     
     def dev_status(self):

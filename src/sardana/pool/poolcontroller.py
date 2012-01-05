@@ -564,9 +564,6 @@ class PoolController(PoolBaseController):
             self.warning("StopAll() raises exception", exc_info=1)
 
     def raw_stop_one(self, axis):
-        import traceback
-        print 80*"-"
-        traceback.print_stack()
         try:
             self.ctrl.StopOne(axis)
         except:
@@ -726,22 +723,34 @@ class PoolPseudoMotorController(PoolController):
     @check_ctrl
     def calc_all_pseudo(self, physical_pos, curr_pseudo_pos):
         ctrl = self.ctrl
-        return ctrl.CalcAllPseudo(physical_pos, curr_pseudo_pos)
+        try:
+            return ctrl.CalcAllPseudo(physical_pos, curr_pseudo_pos), None
+        except:
+            return None, sys.exc_info()
 
     @check_ctrl
     def calc_all_physical(self, pseudo_pos, curr_physical_pos):
         ctrl = self.ctrl
-        return ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos)
-    
+        try:
+            return ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos), None
+        except:
+            return None, sys.exc_info()
+
     @check_ctrl
     def calc_pseudo(self, axis, physical_pos, curr_pseudo_pos):
         ctrl = self.ctrl
-        return ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos)
-    
+        try:
+            return ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos), None
+        except:
+            return None, sys.exc_info()
+
     @check_ctrl
     def calc_physical(self, axis, pseudo_pos, curr_physical_pos):
         ctrl = self.ctrl
-        return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos)
+        try:
+            return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos), None
+        except:
+            return None, sys.exc_info()
 
 
 class PoolTangoController(PoolBaseController):

@@ -76,12 +76,13 @@ class dumpenv(Macro):
         for line in out.genOutput():
             self.output(line)
 
+
 class lsenv(Macro):
     """Lists the environment"""
     
     param_def = [
         ['macro_list',
-         ParamRepeat(['macro', Type.Macro, None, 'macro name'], min=0),
+         ParamRepeat(['macro', Type.MacroClass, None, 'macro name'], min=0),
          None, 'List of macros to show environment'],
     ]
     

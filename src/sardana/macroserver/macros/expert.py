@@ -62,7 +62,7 @@ class defmeas(Macro):
     """Create a new measurement group"""
 
     param_def = [
-       ['name',  Type.String,       None, 'Measurement group name'],
+       ['name',  Type.String, None, 'Measurement group name'],
        ['channel_list',
             ParamRepeat(['channel', Type.String, None, 'Measurement Channel'],),
             None, 'List of measurement channels'],
@@ -87,7 +87,7 @@ class defmeas(Macro):
 class udefmeas(Macro):
     """Deletes an existing measurement group"""
 
-    param_def = [ ['name',  Type.MeasurementGroup, None, 'Measurement group name'],]
+    param_def = [ ['name', Type.MeasurementGroup, None, 'Measurement group name'],]
 
     def run(self, mntgrp):
         pools = self.getManager().getPoolListObjs()
@@ -99,9 +99,9 @@ class udefmeas(Macro):
 class defelem(Macro):
     """Creates an element on a controller with an axis"""
     
-    param_def = [ ['name',  Type.String, None, 'new element name'],
-                  ['ctrl',  Type.Controller, None, 'existing controller'],
-                  ['axis',  Type.Integer, -1, 'axis in the controller (default is -1, meaning add to the end)'],]
+    param_def = [ ['name', Type.String, None, 'new element name'],
+                  ['ctrl', Type.Controller, None, 'existing controller'],
+                  ['axis', Type.Integer, -1, 'axis in the controller (default is -1, meaning add to the end)'],]
     
     def run(self, name, ctrl, axis):
         pool = ctrl.getPoolObj()
@@ -113,7 +113,7 @@ class defelem(Macro):
 class udefelem(Macro):
     """Deletes an existing element"""
     
-    param_def = [ ['name', Type.String, None, 'element name'],]
+    param_def = [ ['name', Type.Element, None, 'element name'],]
     
     def run(self, name):
         manager = self.getManager()
@@ -269,7 +269,7 @@ class prdef(Macro):
      """Returns the the macro code for the given macro name."""
 
      param_def = [
-          ['macro_name',  Type.Macro, None, 'macro name']
+          ['macro_name',  Type.MacroClass, None, 'macro name']
      ]
      
      def run(self,macro_name):
@@ -294,7 +294,7 @@ class prdef(Macro):
 #    """Returns the contents of the macro file which contains the macro code for
 #    the given macro name."""
 
-#    param_def = [['macro_name', Type.Macro, None, 'macro name'],
+#    param_def = [['macro_name', Type.MacroClass, None, 'macro name'],
 #                 ['module_name',
 #                  ParamRepeat(['module_name', Type.String, None, 'a string item'],min=0,max=1),
 #                  None, 'optional module name']]
@@ -352,20 +352,20 @@ class relmaclib(Macro):
     """Reloads the given macro library code from the macro server filesystem."""
 
     param_def = [
-        ['module name',  Type.String, None, 
+        ['module name', Type.MacroLibrary, None,
          'The module name to be reloaded (without extension)']
     ]
     
     def run(self, mod_name):
         self.reloadMacroLib(mod_name)
-     
-        
+    
+
 class relmac(Macro):
     """Reloads the given macro code from the macro server filesystem.
     Attention: All macros inside the same file will also be reloaded."""
        
     param_def = [
-        ['macro_name',  Type.Macro, None, 'macro name']
+        ['macro_name', Type.MacroClass, None, 'macro name']
     ]
     
     def run(self, macro_name):

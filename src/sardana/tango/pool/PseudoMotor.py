@@ -31,15 +31,17 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed, READ, READ_WRITE, SCALAR, SPECTRUM, \
-    DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, DevString, \
-    DevVarStringArray, DispLevel, DevState, AttrQuality
+from PyTango import Util, DevFailed, Except, READ, READ_WRITE, SCALAR, \
+    SPECTRUM, DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, \
+    DevString, DevVarStringArray, DispLevel, DevState, AttrQuality, TimeVal
 
 from taurus.core.util.log import InfoIt, DebugIt
 
+from sardana import State, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
+from sardana.tango.core.util import to_tango_type_format, to_tango_state
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
-from sardana.tango.core.util import to_tango_type_format, to_tango_state
 
 class PseudoMotor(PoolElementDevice):
 
@@ -63,9 +65,7 @@ class PseudoMotor(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.pseudo_motor.get_name())
-        #self.pseudo_motor = None
+        PoolElementDevice.delete_device(self)
     
     @DebugIt()
     def init_device(self):
@@ -87,32 +87,51 @@ class PseudoMotor(PoolElementDevice):
         self.set_state(DevState.ON)
         
     def on_pseudo_motor_changed(self, event_source, event_type, event_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
+
         t = time.time()
-        name = event_type.name
+        name = event_type.name.lower()
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
         
         recover = False
-        if event_type.priority > 1:
+        if event_type.priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
         
         try:
             if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name, event_value)
+                state = self.calculate_tango_state(event_value)
+                attr.set_value(state)
+                attr.fire_change_event()
+                #self.push_change_event(name, state)
             elif name == "status":
-                self.set_status(event_value)
-                self.push_change_event(name, event_value)
+                status = self.calculate_tango_status(event_value)
+                attr.set_value(status)
+                attr.fire_change_event()
+                #self.push_change_event(name, status)
             else:
-                state = to_tango_state(self.pseudo_motor.get_state())
-                #state = self.get_state()
-                if name == "position":
-                    if state == DevState.MOVING:
-                        quality = AttrQuality.ATTR_CHANGING
-                self.push_change_event(name, event_value, t, quality)
+                if isinstance(event_value, SardanaAttribute):
+                    if event_value.error:
+                        dev_failed = Except.to_dev_failed(*event_value.exc_info)
+                        attr.fire_change_event(dev_failed)
+                        return
+                    t = event_value.timestamp
+                    event_value = event_value.value
+                
+                state = self.pseudo_motor.get_state()
+                
+                if state == State.Moving and name == "position":
+                    quality = AttrQuality.ATTR_CHANGING
+                
+                attr.set_value_date_quality(event_value, t, quality)
+                attr.fire_change_event()
+                #self.push_change_event(name, event_value, t, quality)
+                
         finally:
             if recover:
                 attr.set_change_event(True, True)
@@ -151,10 +170,13 @@ class PseudoMotor(PoolElementDevice):
     def read_Position(self, attr):
         moving = self.get_state() == DevState.MOVING
         position = self.pseudo_motor.get_position(cache=moving)
-        attr.set_value(position)
+        if position.error:
+            Except.throw_python_exception(*position.exc_info)
+        attr.set_value(position.value)
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
-    
+        attr.set_date(TimeVal.fromtimestamp(position.timestamp))
+        
     def write_Position(self, attr):
         self.pseudo_motor.position = attr.get_write_value()
     

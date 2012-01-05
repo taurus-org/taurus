@@ -37,7 +37,7 @@ from sardana.sardanabase import SardanaBaseObject
 
 class PoolBaseObject(SardanaBaseObject):
     """The Pool most abstract object."""
-       
+    
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
         SardanaBaseObject.__init__(self, **kwargs)

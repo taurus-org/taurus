@@ -24,9 +24,9 @@
 ##############################################################################
 
 """This module is part of the Python Sardana libray. It defines the base classes
-for MetaLib and MetaClass"""
+for MetaLibrary and MetaClass"""
 
-__all__ = ["SardanaMetaLib", "SardanaMetaClass"]
+__all__ = ["SardanaMetaLibrary", "SardanaMetaClass"]
 
 __docformat__ = 'restructuredtext'
 
@@ -41,7 +41,7 @@ from taurus.core.util import CaselessDict, CodecFactory
 from sardanabase import SardanaBaseObject
 
 
-class SardanaMetaLib(SardanaBaseObject):
+class SardanaMetaLibrary(SardanaBaseObject):
     """Object representing a python module containning sardana classes.
        Public members:
        
@@ -144,7 +144,7 @@ class SardanaMetaLib(SardanaBaseObject):
     
     def get_name(self):
         """Returns the module name for this library (same as
-        :meth:~sardana.sardanameta.SardanaMetaLib.get_module_name).
+        :meth:~sardana.sardanameta.SardanaMetaLibrary.get_module_name).
         
         :return: the module name
         :rtype: str"""
@@ -152,7 +152,7 @@ class SardanaMetaLib(SardanaBaseObject):
     
     def get_module_name(self):
         """Returns the module name for this library (same as
-        :meth:~sardana.sardanameta.SardanaMetaLib.get_name).
+        :meth:~sardana.sardanameta.SardanaMetaLibrary.get_name).
         
         :return: the module name
         :rtype: str"""
@@ -261,11 +261,11 @@ class SardanaMetaClass(SardanaBaseObject):
     
     @property
     def lib(self):
-        """Returns the library :class:~`sardana.sardanameta.SardanaMetaLib` for
-        this class.
+        """Returns the library :class:~`sardana.sardanameta.SardanaMetaLibrary`
+        for this class.
         
         :return: a reference to the library where this class is located
-        :rtype: :class:~`sardana.sardanameta.SardanaMetaLib`"""
+        :rtype: :class:~`sardana.sardanameta.SardanaMetaLibrary`"""
         return self._lib()
     
     @property

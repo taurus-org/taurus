@@ -1,0 +1,281 @@
+#!/usr/bin/env python
+
+import sys
+import datetime
+
+import taurus
+from taurus.core.util.argparse import get_taurus_parser
+from taurus.core.util import CodecFactory
+from taurus.qt import Qt
+from taurus.qt.qtgui.application import TaurusApplication
+from taurus.qt.qtgui.container import QGroupWidget
+from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
+from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueSpinBoxEx
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
+from taurus.qt.qtgui.console import TaurusConsole
+from taurus.qt.qtgui.panel import TaurusAttrForm
+from taurus.qt.qtgui.button import TaurusCommandButton, TaurusLockButton, \
+    TaurusLauncherButton
+
+Spin = TaurusValueSpinBox
+
+class CmdButton(TaurusCommandButton):
+    
+    def getDisplayValue(self):
+        return ""
+
+class CfgButton(TaurusLauncherButton):
+
+    def getDisplayValue(self):
+        return ""
+
+DFT_STATE_ICON_SIZE = Qt.QSize(24, 24)
+DFT_BTN_ICON_SIZE = Qt.QSize(20, 20)
+LS_ICON_SIZE = Qt.QSize(16,16)
+DFT_BTN_STYLE = "QPushButton {margin: 0px; padding: 0px;}"
+
+def create_main_panel(tab, pool):
+    name = pool.getNormalName()
+    main_panel = Qt.QWidget(tab)
+    main_panel_l = Qt.QGridLayout()
+    main_panel.setLayout(main_panel_l)
+    
+    panel = QGroupWidget()
+    panel.title = "Emergency panel"
+    panel.titleIcon = getIcon(":/applications-system.svg")
+    content = panel.content()
+    panel_l = Qt.QGridLayout()
+    content.setLayout(panel_l)
+    
+    stop = TaurusCommandButton(parent=content, command='Stop')
+    stop.setIcon(getIcon(":/stop_sign.svg"))
+    stop.setIconSize(Qt.QSize(48, 48))
+    #stop.setStyleSheet(DFT_BTN_STYLE)
+    #stop.setFlat(True)
+    stop.Model = name
+    panel_l.addWidget(stop, 0, 0)
+    
+    abort = TaurusCommandButton(parent=content, command='Abort')
+    abort.setIcon(getIcon(":/panic_button.png"))
+    abort.setIconSize(Qt.QSize(48, 48))
+    #abort.setStyleSheet(DFT_BTN_STYLE)
+    #abort.setFlat(True)
+    abort.Model = name
+    panel_l.addWidget(abort, 0, 1)
+
+    main_panel_l.addWidget(panel, 0, 0)
+
+    return main_panel
+
+MOTION_TYPES = "Motor", "PseudoMotor"
+
+def get_elements(elements, e_type):
+    ret = [ data for data in elements if data['type'] == e_type ]
+    ret.sort(cmp = lambda a,b : cmp(a['name'], b['name']))
+    return ret
+
+def get_motor_elements(elements):
+    return get_elements(elements, "Motor")
+
+def get_pseudo_motor_elements(elements):
+    return get_elements(elements, "PseudoMotor")
+
+def get_elements_by_controller(elements):
+    ret = {}
+    for elem in elements:
+        ctrl = elem['controller']
+        ctrl_elems = ret.get(ctrl)
+        if ctrl_elems is None:
+            ret[ctrl] = ctrl_elems = []
+        ctrl_elems.append(elem)
+    return ret
+
+def create_motor_panel(elements):
+    m_panel = QGroupWidget()
+    m_panel.title = "Motors"
+    m_panel.titleIcon = getIcon(":/designer/extra_motor.png")
+    content = m_panel.content()
+    ctrl_elements = get_elements_by_controller(elements)
+    m_panel_l = create_motor_layout(content, ctrl_elements)
+    content.setLayout(m_panel_l)
+    return m_panel
+
+def create_motor_layout(content, ctrl_elements):
+    m_panel_l = Qt.QGridLayout()
+    m_panel_l.setMargin(4)
+    m_panel_l.setHorizontalSpacing(2)
+    m_panel_l.setVerticalSpacing(2)
+    
+    monospace = Qt.QFont("Monospace",10)
+    monospace_small = Qt.QFont("Monospace",8)
+    ctrl_element_names = ctrl_elements.keys()
+    ctrl_element_names.sort(cmp=lambda a,b : cmp(len(ctrl_elements[a]), len(ctrl_elements[b])),
+                            reverse=True)
+    
+    j = 0
+    for j, ctrl_name in enumerate(ctrl_element_names):
+        motors = ctrl_elements[ctrl_name]
+        motor_names = [ motor['name'] for motor in motors ]
+        
+        ctrl_panel = QGroupWidget(content)
+        m_panel_l.addWidget(ctrl_panel, j/2, j %2)
+        
+        ctrl_panel.title = "Motors in %s" % ctrl_name
+        ctrl_panel.titleIcon = getIcon(":/designer/extra_motor.png")
+        ctrl_content = ctrl_panel.content()
+        ctrl_panel_l = Qt.QGridLayout()
+        ctrl_content.setLayout(ctrl_panel_l)
+        ctrl_panel_l.setMargin(4)
+        ctrl_panel_l.setHorizontalSpacing(2)
+        ctrl_panel_l.setVerticalSpacing(2)
+        
+        i = 0
+        for i, name in enumerate(motor_names):
+            t = datetime.datetime.now()
+            row = i*2
+            motor = taurus.Device(name)
+            motor_attrs = [ attr.lower() for attr in motor.get_attribute_list() ]
+            
+            state = TaurusLed(ctrl_content)
+            state.setMinimumSize(DFT_STATE_ICON_SIZE)
+            state.setMaximumSize(DFT_STATE_ICON_SIZE)
+            state.model = motor.getNormalName() + "/state"
+            ctrl_panel_l.addWidget(  state, row, 0)
+            
+            label = TaurusLabel(ctrl_content)
+            label.model = name + "/position?configuration=dev_alias"
+            label.bgRole = None
+            ctrl_panel_l.addWidget(  label, row, 1)
+            
+            r_value = TaurusLabel(ctrl_content)
+            r_value.setMinimumWidth(80)
+            r_value.model = name + "/position"
+            ctrl_panel_l.addWidget(r_value, row, 2)
+            
+            w_value = Spin(ctrl_content)
+            w_value.setMinimumWidth(100)
+            w_value.model = name + "/position"
+            ctrl_panel_l.addWidget(w_value, row, 3)
+            
+            unit = TaurusLabel(ctrl_content)
+            unit.model = name + "/position?configuration=unit"
+            unit.bgRole = None
+            ctrl_panel_l.addWidget(unit, row, 4)
+            
+            stop = CmdButton(parent=ctrl_content, command='stop')
+            stop.setIcon(getIcon(":/stop_sign.svg"))
+            stop.setIconSize(DFT_BTN_ICON_SIZE)
+            stop.setStyleSheet(DFT_BTN_STYLE)
+            stop.setFlat(True)
+            stop.Model = name
+            ctrl_panel_l.addWidget(stop, row, 5)
+
+            abort = CmdButton(parent=ctrl_content, command='abort')
+            abort.setIcon(getIcon(":/panic_button.png"))
+            abort.setIconSize(DFT_BTN_ICON_SIZE)
+            abort.setStyleSheet(DFT_BTN_STYLE)
+            abort.setFlat(True)
+            abort.Model = name
+            ctrl_panel_l.addWidget(abort, row, 6)
+            
+#            lock = TaurusLockButton(ctrl_content)
+#            lock.setIconSize(DFT_BTN_ICON_SIZE)
+#            lock.setStyleSheet(DFT_BTN_STYLE)
+#            lock.setFlat(True)
+#            lock.model = name
+#            ctrl_panel_l.addWidget(lock, row, 7)
+            
+#            w = TaurusAttrForm()
+#            w.setMinimumSize(Qt.QSize(500,700))
+#            cfg = CfgButton(widget=w, icon=":/categories/preferences-system.svg")
+#            cfg.setIconSize(DFT_BTN_ICON_SIZE)
+#            cfg.setStyleSheet(DFT_BTN_STYLE)
+#            cfg.setModel(name)
+#            ctrl_panel_l.addWidget(cfg, row, 8)
+            
+            status = TaurusLabel(ctrl_content)
+            font = Qt.QFont(status.font())
+            font.setPointSize(8)
+            status.setFont(font)
+            status.model = name + "/status"
+            status.bgRole = None
+            ctrl_panel_l.addWidget(status, row+1, 3, 1, 6)
+            
+            if "dialposition" in motor_attrs:
+                dial = TaurusLabel(ctrl_content)
+                dial.model = name + "/dialposition"
+                ctrl_panel_l.addWidget(dial, row+1, 2)
+            
+            if "limit_switches" in motor_attrs:
+                limitswitches = TaurusLed(ctrl_content), TaurusLed(ctrl_content), TaurusLed(ctrl_content)
+                lmswtch_l = Qt.QVBoxLayout()
+                for n, lm_swtch_w in enumerate(limitswitches):
+                    lm_swtch_w.setMinimumSize(LS_ICON_SIZE)
+                    lm_swtch_w.setMaximumSize(LS_ICON_SIZE)
+                    lmswtch_l.addWidget(lm_swtch_w)
+                    lm_swtch_w.model = name + "/limit_switches"
+                    lm_swtch_w.modelIndex = n
+                    lm_swtch_w.onColor = "red"
+                ctrl_panel_l.addItem(lmswtch_l, row, 9, 2, 1)
+            
+            ctrl_panel_l.setRowStretch(row, 0)
+            ctrl_panel_l.setRowStretch(row+1, 0)
+            
+            print "Created", name,"took", datetime.datetime.now()-t
+        
+        ctrl_panel_l.setRowStretch(row+2, 1)
+        ctrl_panel_l.setColumnStretch(0, 0)
+        ctrl_panel_l.setColumnStretch(1, 0)
+        ctrl_panel_l.setColumnStretch(2, 1)
+        ctrl_panel_l.setColumnStretch(3, 1)
+        ctrl_panel_l.setColumnStretch(4, 0)
+        ctrl_panel_l.setColumnStretch(5, 0)
+        ctrl_panel_l.setColumnStretch(6, 0)
+        
+        m_panel_l.setRowStretch(j, 0)
+    
+    m_panel_l.setRowStretch(j+1, 1)
+    return m_panel_l
+
+def create_motion_panel(tab, pool, elements):
+    motion_panel = Qt.QWidget(tab)
+    motion_panel_l = Qt.QGridLayout()
+    motion_panel.setLayout(motion_panel_l)
+    motors = get_motor_elements(elements)
+    motor_panel = create_motor_panel(motors)
+    motion_panel_l.addWidget(motor_panel)
+    return motion_panel
+
+def gui(model):
+    pool = taurus.Device(model)
+    elements = CodecFactory().decode(pool.elements, ensure_ascii=True)['new']
+    window = Qt.QMainWindow()
+    window.setWindowTitle("Pool %s test" % pool.getSimpleName())
+    
+    tab = Qt.QTabWidget(window)
+    window.setCentralWidget(tab)
+    
+    main_panel = create_main_panel(tab, pool)
+    tab.addTab(main_panel, "Main")
+    
+    motion_panel = create_motion_panel(tab, pool, elements)
+    tab.addTab(motion_panel, "Motion")
+    
+    return window
+
+def main():
+    parser = get_taurus_parser()
+    parser.usage = "%prog [options] <pool device name>"
+
+    app = TaurusApplication(cmd_line_parser=parser)
+    app.setTaurusStyle("nebula")
+    args = app.get_command_line_args()
+    if len(args) < 1:
+        sys.stderr.write("Need to supply model attribute")
+        sys.exit(1)
+    window = gui(args[0])
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()

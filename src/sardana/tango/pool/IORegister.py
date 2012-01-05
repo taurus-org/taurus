@@ -64,9 +64,7 @@ class IORegister(PoolElementDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.element.get_name())
-        #self.ct = None
+        PoolElementDevice.delete_device(self)
 
     @InfoIt()
     def init_device(self):

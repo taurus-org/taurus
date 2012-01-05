@@ -27,12 +27,13 @@
 macros"""
 
 __all__ = ["Integer", "Float", "Boolean", "String", "User", "Filename",
-           "File", "Macro", "MacroLib", "Env", "Motor", "MotorParam",
+           "File", "Macro", "MacroLibrary", "Env", "Motor", "MotorParam",
            "MotorGroup", "ExpChannel", "MeasurementGroup", "ComChannel",
            "IORegister", "Controller", "Instrument", "ControllerClass" ]
 
 __docformat__ = 'restructuredtext'
 
+from sardana import INTERFACES
 from sardana.macroserver.parameter import ParamType, AttrParamType, ElementParamType
 
 # Basic types
@@ -70,14 +71,6 @@ class File(ParamType):
     def set(self, filename, data):
         self.filename = filename
         self.data = data
-        
-
-class Macro(ParamType):
-    type_class = str
-
-
-class MacroLib(ParamType):
-    type_class = str
 
 class Env(ParamType):
     type_class = str
@@ -104,69 +97,10 @@ class MotorParam(AttrParamType):
         return self.non_attr_item_list
 
 
-class Element(ElementParamType):
-    
-    def accepts(self, elem):
-        return True
+for sardana_type in INTERFACES:
+    class _(ElementParamType):
+        pass
+    _.__name__ = sardana_type
+    globals()[sardana_type] = _
 
-
-class PoolElement(ElementParamType):
-
-    def accepts(self, elem):
-        return hasattr(elem, 'pool')
-
-
-class Motor(ElementParamType):
-    """ Class designed to represend a generic movement parameter. Could in fact
-    be a Motor, PseudoMotor or even a MotorGroup object 
-    """
-    _types = "Motor", "PseudoMotor"
-    def accepts(self, elem):
-        return elem.getType() in self._types
-
-
-class MotorGroup(ElementParamType):
-    """ Class designed to represend a generic motor group."""
-    pass
-
-
-class ExpChannel(ElementParamType):
-    """ Class designed to represend a generic experiment channel parameter.
-    Could in fact be a Counter/Timer, 0D, 1D or 2D channel or a PseudoCounter
-    """
-    _types = "CounterTimer", "ZeroDExpChannel", "OneDExpChannel", \
-             "TwoDExpChannel", "PseudoCounter"
-
-    def accepts(self, elem):
-        return elem.getType() in self._types
-
-
-class MeasurementGroup(ElementParamType):
-    """ Class designed to represend a generic experiment."""
-    pass
-
-
-class ComChannel(ElementParamType):
-    """ Class designed to represend a generic communication channel."""
-    pass
-
-
-class IORegister(ElementParamType):
-    """ Class designed to represend a generic input/output register. """
-    pass
-
-
-class Controller(ElementParamType):
-    """ Class designed to represent a generic controller."""
-    pass
-
-
-class Instrument(ElementParamType):
-    """ Class designed to represent a generic instrument."""
-    pass
-
-
-class ControllerClass(ElementParamType):
-    """ Class designed to represent a generic controller class."""
-    pass
 

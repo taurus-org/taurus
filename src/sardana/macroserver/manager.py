@@ -206,18 +206,19 @@ class MacroServerManager(Singleton, Logger):
     def getPoolListStr(self):
         """Returns the list of device pool names"""
         return self._pools.keys()
-
+    
     def get_elements_info(self):
         ret = [ elem.serialize()
             for pool in self.getPoolListObjs()
                 for elem in pool.getElements() ]
-
-        ret += [ macrolib.serialize()
+        ret += self.get_local_elements_info()
+        return ret
+    
+    def get_local_elements_info(self):
+        ret = [ macrolib.serialize()
             for macrolib in self.getMacroLibs().values() ]
-
         ret += [ macro.serialize()
             for macro in self.getMacros() ]
-        
         return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -279,18 +280,18 @@ class MacroServerManager(Singleton, Logger):
         if type_class == MacroServerManager.All:
             type_name_list = self.getTypeListObj().read()
         else:
-            if type(type_class) in types.StringTypes:
+            if isinstance(type_class, (str, unicode)):
                 type_name_list = (type_class,)
             else:
                 type_name_list = type_class
-        obj_list = []
+        obj_set = set()
         param = [ '^%s$' % x for x in param]
         re_objs = map(re.compile, param, len(param)*(re.IGNORECASE,))
         re_subtype = re.compile(subtype, re.IGNORECASE)
         for type_name in type_name_list:
             type_class_name = type_name
             if type_class_name.endswith('*'):
-               type_class_name = type_class_name[:-1] 
+               type_class_name = type_class_name[:-1]
             type_inst = self.getTypeObj(type_class_name)
             if not type_inst.hasCapability(ParamType.ItemList):
                 continue
@@ -299,8 +300,8 @@ class MacroServerManager(Singleton, Logger):
                     if re_obj.match(name) is not None:
                         if subtype is MacroServerManager.All or \
                            re_subtype.match(obj.getType()):
-                            obj_list.append(obj)
-        return obj_list
+                            obj_set.add(obj)
+        return list(obj_set)
     
     def getMotion(self, elems, motion_source=None, read_only=False, cache=True,
                   decoupled=False):

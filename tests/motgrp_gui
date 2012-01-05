@@ -265,7 +265,7 @@ m2_panel = createMotorPanel(*motors)
 m2_panel.title = "Motors on DummyMotorCtrl2"
 panel1_l.addWidget(m2_panel, 0, 1, 3, 1)
 
-pm1_panel = createMotorPanel("GAP1", "OFFSET1", "GAP2", "OFFSET2")
+pm1_panel = createMotorPanel("GAP1", "OFFSET1")
 pm1_panel.title = "Pseudo motors"
 panel1_l.addWidget(pm1_panel, 2, 0, 1, 1)
 

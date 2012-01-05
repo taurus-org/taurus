@@ -170,7 +170,7 @@ class PoolMotor(PoolElement):
         :return:
             the motor limit switches state
         :rtype:
-            :class:`~sardana.sardanabase.SardanaAttribute`"""
+            :class:`~sardana.sardanaattribute.SardanaAttribute`"""
         self.get_state(cache=cache, propagate=propagate)
         return self._limit_switches
     
@@ -411,23 +411,23 @@ class PoolMotor(PoolElement):
             the dial position. If None (default), the current dial position is
             used to calculate the user position
         :type dial_position:
-            :class:`~sardana.sardanabase.SardanaAttribute` or
-            :obj:`tuple`<:class:`~numbers.Number`/None, exc_info/None>
+            :class:`~sardana.sardanaattribute.SardanaAttribute` or
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
         :param sign:
             the sign. If None (default), the current sign is
             used to calculate the user position
         :type sign:
-            :class:`~sardana.sardanabase.SardanaAttribute`
+            :class:`~sardana.sardanaattribute.SardanaAttribute`
         :param offset:
             the offset. If None (default), the current offset is
             used to calculate the user position
         :type offset:
-            :class:`~sardana.sardanabase.SardanaAttribute`
+            :class:`~sardana.sardanaattribute.SardanaAttribute`
         
         :return:
             a tuple with user position or None and exc_info or None
         :rtype:
-            :obj:`tuple`<:class:`~numbers.Number`/None, exc_info/None>"""
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
         if dial_position is None:
             dial_position = self.get_dial_position(propagate=0)
         if sign is None:
@@ -457,23 +457,23 @@ class PoolMotor(PoolElement):
             the user position. If None (default), the current user position is
             used to calculate the dial position
         :type position:
-            :class:`~sardana.sardanabase.SardanaAttribute` or
-            :obj:`tuple`<:class:`~numbers.Number`/None, exc_info/None>
+            :class:`~sardana.sardanaattribute.SardanaAttribute` or
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
         :param sign:
             the sign. If None (default), the current sign is
             used to calculate the dial position
         :type sign:
-            :class:`~sardana.sardanabase.SardanaAttribute`
+            :class:`~sardana.sardanaattribute.SardanaAttribute`
         :param offset:
             the offset. If None (default), the current offset is
             used to calculate the dial position
         :type offset:
-            :class:`~sardana.sardanabase.SardanaAttribute`
+            :class:`~sardana.sardanaattribute.SardanaAttribute`
         
         :return:
             a tuple with dial position or None and exc_info or None
         :rtype:
-            :obj:`tuple`<:class:`~numbers.Number`/None, exc_info/None>"""
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
         if position is None:
             position = self.get_position(propagate=0)
         if sign is None:
@@ -510,7 +510,7 @@ class PoolMotor(PoolElement):
         :return:
             the user position
         :rtype:
-            :class:`~sardana.sardanabase.SardanaAttribute`"""
+            :class:`~sardana.sardanaattribute.SardanaAttribute`"""
         if not cache or not self._position.has_value():
             dial_position_info = self.read_dial_position()
             self._set_dial_position(dial_position_info, propagate=propagate)
@@ -522,7 +522,7 @@ class PoolMotor(PoolElement):
         :param position:
             the user position to move to
         :type position:
-            :class:`numbers.Number`"""
+            :class:`~numbers.Number`"""
         self._position.set_write_value(position)
         self.start_move(position)
     
@@ -532,7 +532,7 @@ class PoolMotor(PoolElement):
         :param position_info:
             the new user position info
         :type position_info:
-            tuple<float/None, exc_info/None>
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
         :param propagate:
             0 for not propagating, 1 to propagate, 2 propagate with priority
         :type propagate:
@@ -549,7 +549,7 @@ class PoolMotor(PoolElement):
         :return:
             a tuple with dial position or None and exc_info or None
         :rtype:
-            tuple<float/None, exc_info/None>"""
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
         return self.motion.read_dial_position(serial=True)[self]
     
     def put_dial_position(self, dial_position_info, propagate=1):
@@ -558,7 +558,7 @@ class PoolMotor(PoolElement):
         :param dial_position_info:
             the new dial position info
         :type dial_position_info:
-            tuple<float/None, exc_info/None>
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
         :param propagate:
             0 for not propagating, 1 to propagate, 2 propagate with priority
         :type propagate:
@@ -580,7 +580,7 @@ class PoolMotor(PoolElement):
         :return:
             the dial position
         :rtype:
-            :class:`~sardana.sardanabase.SardanaAttribute`"""
+            :class:`~sardana.sardanaattribute.SardanaAttribute`"""
         if not cache or not self._dial_position.has_value():
             dial_position_info = self.read_dial_position()
             self._set_dial_position(dial_position_info, propagate=propagate)
@@ -592,7 +592,7 @@ class PoolMotor(PoolElement):
         :param dial_position_info:
             the new dial position
         :type dial_position_info:
-            tuple<float/None, exc_info/None>
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
         :param propagate:
             0 for not propagating, 1 to propagate, 2 propagate with priority
         :type propagate:

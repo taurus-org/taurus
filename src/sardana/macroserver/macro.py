@@ -1002,7 +1002,7 @@ class Macro(Logger):
            :param type_class: the type of object (optional, default is All)
            :param subtype: a string representing the subtype (optional,
                            default is All)
-                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
+                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CTExpChannel'
            :param pool: the pool to which the object should belong (optional,
                         default is All)
            :param reserve: automatically reserve the object for this macro
@@ -1030,7 +1030,7 @@ class Macro(Logger):
                              Example: Type.Motor, Type.ExpChannel
            :param subtype: a string representing the subtype (optional, 
                            default is All)
-                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
+                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CTExpChannel'
            :param pool: the pool to which the object should belong (optional, 
                         default is All)
            :param reserve: automatically reserve the object for this macro
@@ -1054,7 +1054,7 @@ class Macro(Logger):
            :param type_class: the type of object (optional, default is All)
            :param subtype: a string representing the subtype (optional, 
                            default is All)
-                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CounterTimer'
+                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CTExpChannel'
            :param pool: the pool to which the object should belong (optional, 
                         default is All)
            :param reserve: automatically reserve the object for this macro

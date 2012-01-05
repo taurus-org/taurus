@@ -26,7 +26,7 @@
 """This module contains the class definition for the MacroServer meta macro
 information"""
 
-__all__ = ["MACRO_TEMPLATE", "MacroLib", "MacroClass"]
+__all__ = ["MACRO_TEMPLATE", "MacroLibrary", "MacroClass"]
 
 __docformat__ = 'restructuredtext'
 
@@ -39,7 +39,7 @@ import parameter
 from taurus.core.util import CodecFactory
 
 from sardana import InvalidId, ElementType
-from sardana.sardanameta import SardanaMetaLib, SardanaMetaClass
+from sardana.sardanameta import SardanaMetaLibrary, SardanaMetaClass
 
 MACRO_TEMPLATE = """class @macro_name@(Macro):
     \"\"\"@macro_name@ description.\"\"\"
@@ -59,7 +59,7 @@ MACRO_TEMPLATE = """class @macro_name@(Macro):
 
 """
 
-class MacroLib(SardanaMetaLib):
+class MacroLibrary(SardanaMetaLibrary):
     """Object representing a python module containning macro classes and/or 
     macro functins. Public members:
         
@@ -74,7 +74,7 @@ class MacroLib(SardanaMetaLib):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
-        SardanaMetaLib.__init__(self, **kwargs)
+        SardanaMetaLibrary.__init__(self, **kwargs)
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -82,18 +82,18 @@ class MacroLib(SardanaMetaLib):
         
         :return: this pool object type
         :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.MacroLib
+        return ElementType.MacroLibrary
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaLib.serialize(self, *args, **kwargs)
+        kwargs = SardanaMetaLibrary.serialize(self, *args, **kwargs)
         kwargs['macro_server'] = self.get_manager().name
         kwargs['id'] = InvalidId
         return kwargs
     
-    add_macro = SardanaMetaLib.add_meta_class
-    get_macro = SardanaMetaLib.get_meta_class
-    get_macros = SardanaMetaLib.get_meta_classes
-    has_macro = SardanaMetaLib.has_meta_class
+    add_macro = SardanaMetaLibrary.add_meta_class
+    get_macro = SardanaMetaLibrary.get_meta_class
+    get_macros = SardanaMetaLibrary.get_meta_classes
+    has_macro = SardanaMetaLibrary.has_meta_class
 
     @property
     def macros(self):

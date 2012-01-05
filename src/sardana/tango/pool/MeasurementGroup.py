@@ -66,9 +66,7 @@ class MeasurementGroup(PoolGroupDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.measurement_group.get_name())
-        #self.measurement_group = None
+        PoolGroupDevice.delete_device(self)
     
     @DebugIt()
     def init_device(self):
@@ -118,13 +116,9 @@ class MeasurementGroup(PoolGroupDevice):
         my_name = self.alias.lower()
         try:
             if name == "state":
-                if my_name == "mg5":
-                    self.info("Sending state event %s", State[event_value])
                 state = self.calculate_tango_state(event_value)
                 attr.set_value(state)
                 attr.fire_change_event()
-                if my_name == "mg5":
-                    self.info("Sent state event %s", State[event_value])
                 #self.push_change_event(name, state)
             elif name == "status":
                 status = self.calculate_tango_status(event_value)

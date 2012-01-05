@@ -50,6 +50,7 @@ from PoolDevice import PoolDevice, PoolDeviceClass
 def to_bool(s):
     return s.lower() == "true"
 
+
 class Controller(PoolDevice):
 
     def __init__(self, dclass, name):
@@ -69,8 +70,7 @@ class Controller(PoolDevice):
     
     @DebugIt()
     def delete_device(self):
-        pass
-        #self.pool.delete_element(self.ctrl.get_name())
+        PoolDevice.delete_device(self)
     
     @DebugIt()
     def init_device(self):

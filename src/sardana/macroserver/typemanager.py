@@ -143,7 +143,7 @@ class TypeManager(Singleton, Logger):
         action = "Updating"
         self.debug("%s type %s", action, type_name)
         mod_types[type_name] = type_class
-        self._inst_dict[type_class] = type_obj
+        self._inst_dict[type_name] = type_obj
         
         Type.addType(type_name)
         
@@ -178,6 +178,4 @@ class TypeManager(Singleton, Logger):
         return None
     
     def getTypeObj(self, type_name):
-        for type_class_name, type_obj in self._inst_dict.items():
-            if type_obj.getName() == type_name:
-                return type_obj
+        return self._inst_dict.get(type_name)

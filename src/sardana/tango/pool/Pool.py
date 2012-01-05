@@ -191,7 +191,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         if cache and value is not None:
             return value
         value = dict(new=self.pool.get_elements_info())
-        value = CodecFactory().getCodec('json').encode(('', value))
+        value = CodecFactory().encode('json', ('', value))
         self.ElementsCache = value
         return value
     
@@ -415,7 +415,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 data = {}
                 if elem_type == ElementType.Motor:
                     data["position"] = { "abs_change" : "1.0"}
-                    data["dialposition"] = { "abs_change" : "1.0"}
+                    data["dialposition"] = { "abs_change" : "5.0"}
                     data["limit_switches"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.CTExpChannel:
                     data["value"] = { "abs_change" : "1.0"}
