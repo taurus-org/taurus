@@ -122,20 +122,18 @@ class ControllerClass(BaseElement):
     def __init__(self, **kw):
         self.__dict__.update(kw)
         self._name_lower = self.name
-        self.path, self.fname = os.path.split(self.filename)
-        self.libname, self.ext = os.path.splitext(self.fname)
-        
-        self._str_tuple = self.getName(), self.getType(), self.getLib(), self.getGender()
-
+        self.path, self.f_name = os.path.split(self.file_name)
+        self.lib_name, self.ext = os.path.splitext(self.f_name)
+    
     def __repr__(self):
         pd = self._pool_data
         return "ControllerClass({0})".format(pd['full_name'])
         
     def getSimpleFileName(self):
-        return self.fname
+        return self.f_name
 
     def getFileName(self):
-        return self.filename
+        return self.file_name
 
     def getClassName(self):
         return self.getName()
@@ -144,10 +142,10 @@ class ControllerClass(BaseElement):
         return self.getTypes()[0]
 
     def getTypes(self):
-        return self.type
+        return self.types
 
     def getLib(self):
-        return self.fname
+        return self.f_name
     
     def getGender(self):
         return self.gender
@@ -246,11 +244,6 @@ class PoolElement(BaseElement, TangoDevice):
                 
         # force the creation of a state attribute
         self.getStateEG()
-
-        self._str_tuple = self._create_str_tuple()
-
-    def _create_str_tuple(self):
-        return self.getName(), self.getType(), self.getControllerName(), self.getAxis()
 
     def cleanUp(self):
         TangoDevice.cleanUp(self)
@@ -412,17 +405,19 @@ class PoolElement(BaseElement, TangoDevice):
         finally:
             state.unlock()
     
-    def info(self, tab='    '):
+    def information(self, tab='    '):
         msg = [ self.getName() + ":" ]
         try:
             state = str(self.state())
         except:
-            state = traceback.format_exception_only(sys.exc_info()[:2])
+            e_info = sys.exc_info()[:2]
+            state = traceback.format_exception_only(*e_info)
         msg.append(tab + " State: " + state)
         try:
+            e_info = sys.exc_info()[:2]
             status = self.status().replace('\n', '\n' + tab + 8*' ')
         except:
-            status = traceback.format_exception_only(sys.exc_info()[:2])
+            status = traceback.format_exception_only(*e_info)
         msg.append(tab + "Status: " + status)
         try:
             position = self.read_attribute("position")
@@ -430,9 +425,11 @@ class PoolElement(BaseElement, TangoDevice):
             if position.quality != AttrQuality.ATTR_VALID:
                 pos += " [" + QUALITY[position.quality] + "]"
         except:
-            pos = traceback.format_exception_only(*sys.exc_info()[:2])
+            e_info = sys.exc_info()[:2]
+            pos = traceback.format_exception_only(*e_info)
         msg.append(tab + "   Pos: " + pos)
         return "\n".join(msg)
+
 
 class Controller(PoolElement):
     """ Class encapsulating Controller functionality."""
@@ -441,14 +438,17 @@ class Controller(PoolElement):
         """PoolElement initialization."""
         self.call__init__(PoolElement, name, **kw)
 
-    def _create_str_tuple(self):
-        return self.getName(), self.getType(), self.getClassName(), self.getModuleName()
-
     def getModuleName(self):
         return self._pool_data['module']
     
     def getClassName(self):
         return self._pool_data['klass']
+    
+    def getTypes(self):
+        return self._pool_data['types']
+    
+    def getMainType(self):
+        return self._pool_data['main_type']
     
     def addElement(self, elem):
         axis = elem.getAxis()
@@ -463,30 +463,23 @@ class Controller(PoolElement):
     
     def getElementByAxis(self, axis):
         pool = self.getPoolObj()
-        lst = pool.getObjList(self.getType())
-        for name, elem in lst.getObjNameDict().items():
-            if elem.getAxis() != axis:
-                continue
-            if elem.getControllerName() != self.getName():
+        for name, elem in pool.getElementsOfType(self.getMainType()).items():
+            if elem.controller != self.getName() or elem.getAxis() != axis:
                 continue
             return elem
     
     def getElementByName(self, name):
         pool = self.getPoolObj()
-        lst = pool.getObjList(self.getType())
-        for name, elem in lst.getObjNameDict().items():
-            if elem.getName() != name:
-                continue
-            if elem.getControllerName() != self.getName():
+        for name, elem in pool.getElementsOfType(self.getMainType()).items():
+            if elem.controller != self.getName() or elem.getName() != name:
                 continue
             return elem
     
     def getUsedAxis(self):
         pool = self.getPoolObj()
-        lst = pool.getObjList(self.getType())
         axis = []
-        for name, elem in lst.getObjNameDict().items():
-            if elem.getControllerName() != self.getName():
+        for name, elem in pool.getElementsOfType(self.getMainType()).items():
+            if elem.controller != self.getName():
                 continue
             axis.append(elem.getAxis())
         return sorted(axis)
@@ -1058,6 +1051,7 @@ class MGConfiguration(object):
         return ret
     
     def read(self):
+        self.prepare()
         ret = CaselessDict(self.cache)
         dev_replies = {}
         for dev_name, dev_data in self.tango_dev_channels.items():
@@ -1271,34 +1265,11 @@ class Instrument(BaseElement):
     def getPoolObj(self):
         return self._pool_obj
 
-HardwareObjNames   = [
-    'Controller',
-    'ExpChannel', 'ComChannel', 'Motor',
-    'IORegister', 'MotorGroup', 'MeasurementGroup']
-
-HardwareObjTypeNames   = [
-    'Controller',
-    'ComChannel', 'Motor', 'PseudoMotor',
-    'CTExpChannel','ZeroDExpChannel','OneDExpChannel', 'TwoDExpChannel',
-    'PseudoCounter', 'IORegister', 'MotorGroup', 'MeasurementGroup']
-HardwareObjTypeClasses = [globals()[x] for x in HardwareObjTypeNames]
-
-SoftwareObjNames   = ['ControllerClass', 'Instrument']
-
 
 class Pool(TangoDevice, MoveableSource):
     """ Class encapsulating device Pool functionality."""
-
-    SoftwareObjMap = [ (name, globals()[name]) for name in SoftwareObjNames ]
-    HardwareObjMap = [ (name, globals()[name]) for name in HardwareObjNames ]
-    HardwareObjTypeMap = [ (name, globals()[name]) for name in HardwareObjTypeNames ]
     
     def __init__(self, name, **kw):
-        # dict<string, HardwareObjList>
-        # key : the hardware object name
-        # value : the Hardware object list object
-        self._obj_dict = CaselessDict()
-        
         self.call__init__(TangoDevice, name, **kw)
         self.call__init__(MoveableSource)
         
@@ -1308,7 +1279,7 @@ class Pool(TangoDevice, MoveableSource):
     def getObject(self, element_info):
         elem_type = element_info.getType()
         data = element_info._data
-        if elem_type in ('ControllerClass', 'ControllerLib', 'Instrument'):
+        if elem_type in ('ControllerClass', 'ControllerLibrary', 'Instrument'):
             klass = globals()[elem_type]
             kwargs = dict(data)
             kwargs['_pool_data'] = data
@@ -1338,6 +1309,8 @@ class Pool(TangoDevice, MoveableSource):
             elems = CodecFactory().decode(evt_value.value, ensure_ascii=True)
         except:
             self.error("Could not decode element info")
+            self.info("value: '%s'", evt_value.value)
+            self.debug("Details:", exc_info=1)
             return
         elements = self.getElementsInfo()
         for element_data in elems.get('new', ()):
@@ -1370,7 +1343,7 @@ class Pool(TangoDevice, MoveableSource):
             elem_types = elem_type,
         else:
             elem_types = elem_type
-        for e_type in elem_type:
+        for e_type in elem_types:
             elems = self.getElementsOfType(e_type)
             elem = elems.get(name)
             if elem is not None:
@@ -1451,6 +1424,8 @@ class Pool(TangoDevice, MoveableSource):
             if timeout:
                 dt = time.time() - start
                 if dt > timeout:
+                    self.info("Timed out waiting for '%s' in container",
+                              elem_name)
                     return
             time.sleep(nap)
     
@@ -1467,65 +1442,55 @@ class Pool(TangoDevice, MoveableSource):
         self.command_inout('CreateMeasurementGroup', params)
         elements_info = self.getElementsInfo()
         return self._wait_for_element_in_container(elements_info, mg_name)
-        
+    
     def deleteMeasurementGroup(self, name):
-        self.debug('trying to delete measurement group: %s', name)
+        return self.deleteElement(name)
+    
+    def createElement(self, name, ctrl, axis=None):
+        ctrl_type = ctrl.types[0]
+        if axis is None:
+            axis = str(ctrl.getLastUsedAxis() + 1)
+        else:
+            axis = str(axis)
+        cmd = "CreateElement"
+        pars = ctrl_type, ctrl.name, axis, name
+        self.command_inout(cmd, pars)
+        elements_info = self.getElementsInfo()
+        return self._wait_for_element_in_container(elements_info, name)
+    
+    def deleteElement(self, name):
+        self.debug('trying to delete element: %s', name)
         self.command_inout('DeleteElement', name)
         elements_info = self.getElementsInfo()
         return self._wait_for_element_in_container(elements_info, name,
                                                    contains=False)
     
-    def createElement(self, name, ctrl, axis=None):
-        ctrl_type = ctrl.getType()
-        if axis is None:
-            axis = ctrl.getLastUsedAxis() + 1
-        else:
-            axis = int(axis)
-        elem_type = ctrl_type
-        if elem_type not in ("Motor", "IORegister", "ComChannel"):
-            elem_type = "ExpChannel"
-        cmd = "Create" + elem_type
-        lst = self.getListObj(elem_type)
-        self.command_inout(cmd, [[axis], [name, ctrl.getName()]])
-        lst.waitEvent(any=True, timeout=0.5)
-        return lst.getObjByName(name)
-
-    def deleteElement(self, name):
-        obj = None
-        for obj_list in self._obj_dict.values():
-            obj = obj_list.getObjByName(name)
-            if obj is not None:
-                break
-        if obj is None:
-            raise Exception("Element %s not found" % name)
-        elem_type = obj.getType()
-        if elem_type not in ("Motor", "IORegister", "ComChannel"):
-            elem_type = "ExpChannel"
-        cmd = "Delete" + elem_type
-        lst = self.getListObj(elem_type)
-        self.command_inout(cmd, name)
-        lst.waitEvent(any=True, timeout=0.5)
-
     def createController(self, class_name, name, *props):
-        ctrl_class = self.getObj('ControllerClass', class_name)
+        ctrl_class = self.getObj(class_name, elem_type='ControllerClass')
         if ctrl_class is None:
             raise Exception("Controller class %s not found" % class_name)
         cmd = "CreateController"
-        pars = [ctrl_class.getType(), ctrl_class.getSimpleFileName(), class_name, name]
+        pars = [ctrl_class.types[0], ctrl_class.file_name, class_name, name]
         pars.extend(map(str, props))
-        ctrl_list = self.getListObj('Controller')
         self.command_inout(cmd, pars)
-        ctrl_list.waitEvent(any=True, timeout=0.5)
-        return ctrl_list.getObjByName(name)
-
+        elements_info = self.getElementsInfo()
+        return self._wait_for_element_in_container(elements_info, name)
+    
     def deleteController(self, name):
-        ctrl_list = self.getListObj('Controller')
-        ctrl = ctrl_list.getObjByName(name)
-        self.command_inout('DeleteController', name)
-        ctrl_list.waitEvent(any=True, timeout=0.5)
-        
+        return self.deleteElement(name)
+
+
 def registerExtensions():
     factory = Factory()
     factory.registerDeviceClass("Pool", Pool)
-    for klass_name, klass in Pool.HardwareObjTypeMap:
+    
+    hw_type_names = [
+        'Controller',
+        'ComChannel', 'Motor', 'PseudoMotor',
+        'CTExpChannel','ZeroDExpChannel','OneDExpChannel', 'TwoDExpChannel',
+        'PseudoCounter', 'IORegister', 'MotorGroup', 'MeasurementGroup']
+    
+    hw_type_map = [ (name, globals()[name]) for name in hw_type_names ]
+    
+    for klass_name, klass in hw_type_map:
         factory.registerDeviceClass(klass_name, klass)
