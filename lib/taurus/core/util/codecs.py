@@ -570,7 +570,10 @@ class CodecFactory(Singleton, Logger):
         return ret
     
     def decode(self, data, *args, **kwargs):
-        return self.getCodec(data[0]).decode(data, *args, **kwargs)[1]
+        while len(data[0]):
+            data = self.getCodec(data[0]).decode(data, *args, **kwargs)
+        return data[1]
         
-    def encode(self, data, *args, **kwargs):
-        return self.getCodec(data[0]).encode(data, *args, **kwargs)[1]
+    def encode(self, format, data, *args, **kwargs):
+        return self.getCodec(format).encode(data, *args, **kwargs)
+    
