@@ -63,7 +63,7 @@ class Table:
         self.row_head_fmt = row_head_fmt
         if row_head_str is not None and len(row_head_str) != self.nr_row:
             msg = 'RowHeadStr nr (%d) and RowNr (%d) mistmatch' % \
-                  len(row_head_str), self.nr_row
+                  (len(row_head_str), self.nr_row)
             raise ValueError, msg
         if row_head_width is None:
             if row_head_str is not None:
