@@ -23,5 +23,5 @@
 ##
 #############################################################################
 
-from taurus.qt.qtgui.panel.taurusconfigbrowser import main
+from taurus.qt.qtgui.panel.taurusconfigeditor import main
 main()

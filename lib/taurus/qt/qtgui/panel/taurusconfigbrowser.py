@@ -31,6 +31,8 @@ __all__ = ["QConfigViewer"]
 
 __docformat__ = 'restructuredtext'
 
+raise DeprecationWarning("QConfigViewer is deprecated. Use QConfigEditor instead")
+
 from taurus.qt import Qt
 import cPickle as pickle
 import os
