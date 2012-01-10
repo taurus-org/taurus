@@ -98,27 +98,27 @@ class EditorToolBar(BaseToolBar):
         
         af = ActionFactory()
         self._addAction = af.createAction(self, "New item",
-                                          icon=getThemeIcon(":/actions/list-add"),
+                                          icon=getThemeIcon("list-add"),
                                           tip="Add new item",
                                           triggered=self.onAdd)
         self._removeAction = af.createAction(self, "Remove item",
-                                             icon=getThemeIcon(":/actions/list-remove"),
+                                             icon=getThemeIcon("list-remove"),
                                              tip="Remove item",
                                              triggered=self.onRemove)
         self._moveTopAction = af.createAction(self, "To top",
-                                              icon=getThemeIcon(":/actions/go-top"),
+                                              icon=getThemeIcon("go-top"),
                                               tip="Move selected item to top",
                                               triggered=self.onMoveTop)
         self._moveUpAction = af.createAction(self, "Move up",
-                                             icon=getThemeIcon(":/actions/go-up"),
+                                             icon=getThemeIcon("go-up"),
                                              tip="Move selected item up one level",
                                              triggered=self.onMoveUp)
         self._moveDownAction = af.createAction(self, "Move down",
-                                               icon=getThemeIcon(":/actions/go-down"),
+                                               icon=getThemeIcon("go-down"),
                                                tip="Move selected item down one level",
                                                triggered=self.onMoveDown)
         self._moveBottomAction = af.createAction(self, "To bottom",
-                                                 icon=getThemeIcon(":/actions/go-bottom"),
+                                                 icon=getThemeIcon("go-bottom"),
                                                  tip="Move selected item to bottom",
                                                  triggered=self.onMoveBottom)
         self.addAction(self._addAction)
