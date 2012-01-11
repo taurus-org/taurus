@@ -196,61 +196,19 @@ class AttributeHistoryAction(TaurusAction):
         dialog.exec_()
     
 
-class AttributeRangesAction(TaurusAction):
-    
-    menuID = "AttrRanges"
-    
-    def __init__(self, parent=None):
-        TaurusAction.__init__(self, parent)
-        self.setText("Ranges...")
-        
-    def actionTriggered(self):
-        taurus_widget = self.parent()
-        dialog = Qt.QDialog()
-        dialog.exec_()
-        
-
-class AttributeUnitsAction(TaurusAction):
-    
-    menuID = "AttrUnits"
-    
-    def __init__(self, parent=None):
-        TaurusAction.__init__(self, parent)
-        self.setText("Units...")
-        
-    def actionTriggered(self):
-        taurus_widget = self.parent()
-        dialog = Qt.QDialog()
-        dialog.exec_()
-
-
-class AttributeDisplayAction(TaurusAction):
-    
-    menuID = "AttrDisplay"
-    
-    def __init__(self, parent=None):
-        TaurusAction.__init__(self, parent)
-        self.setText("Display...")
-        
-    def actionTriggered(self):
-        taurus_widget = self.parent()
-        dialog = Qt.QDialog()
-        dialog.exec_()
-
-
 class AttributeAllConfigAction(TaurusAction):
     
     menuID = "AttrConfig"
     
     def __init__(self, parent=None):
         TaurusAction.__init__(self, parent)
-        self.setText("All...")
+        self.setText("Configure...")
         
     def actionTriggered(self):
-        raise NotImplementedError('This action is not yet implemented')
+        #raise NotImplementedError('This action is not yet implemented')
         taurus_widget = self.parent()
-        import dialog
-        d = dialog.AttributeConfigDialog()
+        from taurus.qt.qtgui.dialog.taurusconfigurationdialog import TaurusConfigurationDialog
+        d = TaurusConfigurationDialog()
         d.setModel(taurus_widget.getModelName())
         d.exec_()
 
@@ -324,11 +282,6 @@ class ConfigurationMenu(TaurusMenu):
     menuID = "AttrConfigMenu"
     menuData = "<Menu label='Configuration'>" \
     "<MenuItem class='AttrConfig'/>"\
-    "<MenuItem class='_Separator_'/>"\
-    "<MenuItem class='AttrRanges'/>"\
-    "<MenuItem class='AttrUnits'/>"\
-    "<MenuItem class='AttrDisplay'/>"\
-    "<MenuItem class='_Separator_'/>"\
     "</Menu>"
     
     def __init__(self, parent):

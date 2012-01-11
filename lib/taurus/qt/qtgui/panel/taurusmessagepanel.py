@@ -397,8 +397,8 @@ class TaurusMessagePanel(Qt.QWidget):
                 msgbox.setError(*exc_info)
                 msgbox.show()
         
-        :param err_type:
-            the exception type of the exception being handled (a class object)
+        :param err_type: the exception type of the exception being handled
+                         (a class object)
         :type error: class object
         :param err_value: exception object
         :type err_value: object
