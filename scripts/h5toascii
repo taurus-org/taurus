@@ -54,7 +54,7 @@ def main():
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
-        print "Usage:\npython h5toascii <nexusfilename> [<entryname1> [<entryname2>] ...] "
+        print "Usage:\nh5toascii <nexusfilename> [<entryname1> [<entryname2>] ...] "
         sys.exit(1)
         
     entrynames = sys.argv[2:] 
