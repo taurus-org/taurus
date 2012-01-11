@@ -54,9 +54,8 @@ def main():
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
-        print "Usage:\npython h52ascii.py <nexusfilename> [<entryname1> [<entryname2>] ...] "
+        print "Usage:\npython h5toascii <nexusfilename> [<entryname1> [<entryname2>] ...] "
         sys.exit(1)
-        #fname = '/home/cpascual/20110228_ccd_tests.h5'
         
     entrynames = sys.argv[2:] 
     
