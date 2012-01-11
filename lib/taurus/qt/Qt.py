@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-""""""
+"""This module exposes PyQt4.Qt module"""
 
 from taurusqtoptions import QT_API, QT_API_PYQT, QT_API_PYSIDE
 
