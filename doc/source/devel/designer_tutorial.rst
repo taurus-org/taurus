@@ -7,8 +7,6 @@ Taurus Qt Designer tutorial
 The Taurus Qt Designer tutorial is the first tutorial in the documentation 
 because it will allow you to create GUIs without writting any code at all!
 
-Before proceding make sure you have followed the :ref:`qtdesigner_config`.
-
 You should start the designer by executing on the command line::
   
   taurusdesigner
@@ -25,8 +23,8 @@ Qt designer version):
 .. figure:: /_static/designer01.png
   :scale: 75
 
-You can then design your application/widget using not only the standard Qt widgets
-but also the taurus widgets. 
+You can then design your application/widget using not only the standard Qt
+widgets but also the taurus widgets. 
 
 .. _generate-code:
 
