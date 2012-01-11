@@ -41,38 +41,46 @@ class DoorOutput(Qt.QTextEdit):
                 
     def onDoorOutputChanged(self, output):
         """call on output attribute changed"""
-        self.setTextColor(Qt.Qt.black)
+        txt ="<font color=\"Black\">"
         if output is None:
             return
         for line in output:
-            self.append("OUTPUT  " + line)
+            txt+="OUTPUT  " + line+"\n"
+        txt += "</font><br>"
+        self.insertHtml(txt)
         self.moveCursor(Qt.QTextCursor.End)
     
     def onDoorInfoChanged(self, info):        
         """call on info attribute changed"""
+        txt ="<font color=\"Black\">"
         if info is None:
             return
-        self.setTextColor(Qt.Qt.black)   
-        for line in info: 
-            self.append("INFO  " + line)
+        for line in info:
+            txt+="INFO  " + line+"\n"
+        txt += "</font><br>"
+        self.insertHtml(txt)
         self.moveCursor(Qt.QTextCursor.End)
         
     def onDoorWarningChanged(self, warning):
         """call on warning attribute changed"""        
+        txt ="<font color=\"Black\">"
         if warning is None:
             return
-        self.setTextColor(Qt.Qt.black)
         for line in warning:
-            self.append("WARNING  " + line)
+            txt+="WARNING  " + line+"\n"
+        txt += "</font><br>"
+        self.insertHtml(txt)
         self.moveCursor(Qt.QTextCursor.End)
     
     def onDoorErrorChanged(self, error):
         """call on error attribute changed"""
+        txt ="<font color=\"Red\">"
         if error is None:
             return
-        self.setTextColor(Qt.Qt.red)
         for line in error:
-            self.append("ERROR  " + line)
+            txt+="ERROR  " + line+"\n"
+        txt += "</font><br>"
+        self.insertHtml(txt)
         self.moveCursor(Qt.QTextCursor.End)
                         
     def contextMenuEvent(self,event):
