@@ -242,8 +242,8 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self._writeData("name",env['user'],'char')
         self.fd.closegroup()
         #prepare the measurement group
-        self.fd.makegroup("measurement","measurement")
-        self.fd.opengroup("measurement","measurement")
+        self.fd.makegroup("measurement","NXcollection")
+        self.fd.opengroup("measurement","NXcollection")
         if self.savemode==SaveModes.Record:
             #create extensible data elements
             for dd in self.datadesc:
@@ -348,7 +348,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if dd.instrument is not None:
                 #grab the ID of the data group
-                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:measurement",dd.label)
+                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:NXcollection",dd.label)
                 self.fd.openpath(datapath)
                 id=self.fd.getdataID()
                 self._createBranch(dd.instrument.getFullName())
