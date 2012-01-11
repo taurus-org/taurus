@@ -132,27 +132,31 @@ class BaseSardanaElement(object):
 class BaseSardanaElementContainer:
     
     def __init__(self):
-#        # dict<str, dict> where key is the owner name ( and value is:
-#        #     dict<str, MacroServerElement> where key is the element alias
-#        #                                   and value is the Element object
-#        self._pool_elems_dict = CaselessDict()
-        
         # dict<str, dict> where key is the type and value is:
         #     dict<str, MacroServerElement> where key is the element alias and
         #                                   value is the Element object
         self._type_elems_dict = CaselessDict()
+        
+        # dict<str, container> where key is the interface and value is the set
+        # of elements which implement that interface
+        self._interfaces_dict = {}
     
-    def addElement(self, e):
-        type = e.getType()
+    def addElement(self, elem):
+        elem_type = elem.getType()
+        elem_name = elem.getName()
         
         #update type_elems
-        if self._type_elems_dict.has_key(type):
-            type_elems = self._type_elems_dict.get(type)
-        else:
-            type_elems = CaselessDict()
-            self._type_elems_dict[type] = type_elems
+        type_elems = self._type_elems_dict.get(elem_type)
+        if type_elems is None:
+            self._type_elems_dict[elem_type] = type_elems = CaselessDict()
+        type_elems[elem_name] = elem
         
-        type_elems[e.name] = e
+        # update interfaces
+        for interface in elem.interfaces:
+            interface_elems = self._interfaces_dict.get(interface)
+            if interface_elems is None:
+                self._interfaces_dict[interface] = interface_elems = CaselessDict()
+            interface_elems[elem_name] = elem
     
     def removeElement(self, e):
         type = e.getType()
@@ -161,6 +165,11 @@ class BaseSardanaElementContainer:
         type_elems = self._type_elems_dict.get(type)
         if type_elems:
             del type_elems[e.name]
+        
+        # update interfaces
+        for interface in e.interfaces:
+            interface_elems = self._interfaces_dict.get(interface)
+            del interface_elems[e.name]
     
     def removeElementsOfType(self, t):
         for elem in self.getElementsOfType(t):
@@ -171,7 +180,14 @@ class BaseSardanaElementContainer:
         return elems
     
     def getElementNamesOfType(self, t):
-        return [ e.name for e in self._type_elems_dict.get(t, {}).values() ]
+        return [ e.name for e in self.getElementsOfType(t).values() ]
+    
+    def getElementsWithInterface(self, interface):
+        elems = self._interfaces_dict.get(interface, {})
+        return elems
+    
+    def getElementNamesWithInterface(self, interface):
+        return [ e.name for e in self.getElementsWithInterface(interface).values() ]
     
     def hasElementName(self, elem_name):
         return self.getElement(elem_name) != None
@@ -181,6 +197,9 @@ class BaseSardanaElementContainer:
             elem = elems.get(elem_name)
             if elem is not None:
                 return elem
+    
+    def getElementWithInterface(self, elem_name, interface):
+        return self._interfaces_dict.get(interface, {}).get(elem_name)
     
     def getElements(self):
         ret = set()

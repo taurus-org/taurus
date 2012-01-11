@@ -672,6 +672,12 @@ class BaseMacroServer(MacroServerDevice):
     def getElementNamesOfType(self, elem_type):
         return self.getElementsInfo().getElementNamesOfType(elem_type)
     
+    def getElementNamesWithInterface(self, interface):
+        return self.getElementsInfo().getElementNamesWithInterface(interface)
+
+    def getElementsWithInterface(self, interface):
+        return self.getElementsInfo().getElementsWithInterface(interface)
+    
     def getElementsOfType(self, elem_type):
         return self.getElementsInfo().getElementsOfType(elem_type)
     

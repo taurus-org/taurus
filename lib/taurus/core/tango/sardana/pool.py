@@ -1329,13 +1329,19 @@ class Pool(TangoDevice, MoveableSource):
     
     def getElementInfo(self, name):
         return self.getElementsInfo().getElement(name)
-
+    
     def getElementNamesOfType(self, elem_type):
         return self.getElementsInfo().getElementNamesOfType(elem_type)
     
     def getElementsOfType(self, elem_type):
         return self.getElementsInfo().getElementsOfType(elem_type)
-        
+    
+    def getElementsWithInterface(self, interface):
+        return self.getElementsInfo().getElementsWithInterface(interface)
+    
+    def getElementWithInterface(self, elem_name, interface):
+        return self.getElementsInfo().getElementWithInterface(elem_name, interface)
+    
     def getObj(self, name, elem_type=None):
         if elem_type is None:
             return self.getElementInfo(name)

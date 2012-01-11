@@ -37,8 +37,6 @@ __all__ = ["EnumException", "Enumeration"]
 
 __docformat__ = "restructuredtext"
 
-import types
-
 
 class EnumException(Exception):
     """Exception thrown by :class:`Enumeration` when trying to declare an 
@@ -83,7 +81,7 @@ class Enumeration(object):
         'PASSAT'
     """
     
-    def __init__(self, name, enumList, flaggable=False):
+    def __init__(self, name, enumList, flaggable=False, no_doc=False):
         self._name = name
         lookup = { }
         reverseLookup = { }
@@ -92,28 +90,28 @@ class Enumeration(object):
         self._uniqueValues = uniqueValues = set()
         self._uniqueId = 0
         for x in enumList:
-            if type(x) == types.TupleType:
+            if isinstance(x, tuple):
                 if flaggable:
                     raise EnumException("flagable enum does not accept tuple items")
                 x, i = x
-                if type(x) != types.StringType:
-                    raise EnumException("enum name is not a string: %s" % str(x))
-                if type(i) != types.IntType:
-                    raise EnumException("enum value is not an integer: %s" % str(i))
+                if not isinstance(x, (str, unicode)):
+                    raise EnumException("enum name is not a string: " + str(x))
+                if not isinstance(i, (int, long)):
+                    raise EnumException("enum value is not an integer: " + str(i))
                 if x in uniqueNames:
-                    raise EnumException("enum name is not unique: " % str(x))
+                    raise EnumException("enum name is not unique: " + str(x))
                 if i in uniqueValues:
-                    raise EnumException("enum value is not unique for " % str(x))
+                    raise EnumException("enum value is not unique for " + str(x))
                 uniqueNames.add(x)
                 uniqueValues.add(i)
                 lookup[x] = i
                 reverseLookup[i] = x
         for x in enumList:
-            if type(x) != types.TupleType:
-                if type(x) != types.StringType:
-                    raise EnumException("enum name is not a string: " % str(x))
+            if not isinstance(x, tuple):
+                if not isinstance(x, (str, unicode)):
+                    raise EnumException("enum name is not a string: " + str(x))
                 if x in uniqueNames:
-                    raise EnumException("enum name is not unique: " % str(x))
+                    raise EnumException("enum name is not unique: " + str(x))
                 uniqueNames.add(x)
                 i = self._generateUniqueId()
                 uniqueValues.add(i)
@@ -121,7 +119,8 @@ class Enumeration(object):
                 reverseLookup[i] = x
         self.lookup = lookup
         self.reverseLookup = reverseLookup
-        self.__doc_enum()
+        if not no_doc:
+            self.__doc_enum()
    
     def _generateUniqueId(self):
         if self._flaggable:
@@ -134,9 +133,9 @@ class Enumeration(object):
         return n
     
     def __getitem__(self, i):
-        if type(i) == types.IntType:
+        if isinstance(i, (int, long)):
             return self.whatis(i)
-        elif type(i) == types.StringType:
+        elif isinstance(i, (str, unicode)):
             return self.lookup[i]
     
     def __getattr__(self, attr):
@@ -186,3 +185,7 @@ class Enumeration(object):
         :return: a string representation of the given enumeration element
         :rtype: str"""
         return self.reverseLookup[value]
+    
+    def get(self, i):
+        """Returns the element for the given key/value"""
+        return self[i]
