@@ -34,6 +34,7 @@
     poolmotorgroup <pool/poolmotorgroup>
     poolmoveable <pool/poolmoveable>
     poolonedexpchannel <pool/poolonedexpchannel>
+    poolpseudocounter <pool/poolpseudocounter>
     poolpseudomotor <pool/poolpseudomotor>
     pooltwodexpchannel <pool/pooltwodexpchannel>
     poolutil <pool/poolutil>

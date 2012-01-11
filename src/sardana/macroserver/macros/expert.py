@@ -27,13 +27,14 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
            "edctrllib", "lsmac", "prdef", "relmac", "relmaclib", "send2ctrl",
-           "udefctrl", "udefelem", "udefmeas"]
+           "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
 import time
 import array
 import os
 
 from taurus.console.list import List
+from taurus.console.table import Table
 from sardana.macroserver.macro import *
 
 ################################################################################
@@ -127,7 +128,7 @@ class udefelem(Macro):
 class defctrl(Macro):
     """Creates a new controller"""
     
-    param_def = [ ['class',  Type.String, None, 'controller class'],
+    param_def = [ ['class',  Type.ControllerClass, None, 'controller class'],
                   ['name',  Type.String, None, 'new controller name'],
                   ['properties',
                    ParamRepeat(['property item', Type.String, None, 'a property item'],min=0),
@@ -138,7 +139,7 @@ class defctrl(Macro):
         if len(pools) > 1:
             self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
         pool = pools[0]
-        elem = pool.createController(ctrl_class, name, *props)
+        elem = pool.createController(ctrl_class.name, name, *props)
         print("Created %s" % str(elem))
 
 class udefctrl(Macro):
@@ -272,15 +273,8 @@ class prdef(Macro):
           ['macro_name',  Type.MacroClass, None, 'macro name']
      ]
      
-     def run(self,macro_name):
-        macro_data = self.getMacroInfo(macro_name)
-         
-        if macro_data == None:
-            self.output("Unknown macro")
-            return
-         
+     def run(self,macro_data):
         code_lines, first_line = macro_data.code
-         
         for code_line in code_lines:
             self.output(code_line.strip('\n'))
 
@@ -356,8 +350,8 @@ class relmaclib(Macro):
          'The module name to be reloaded (without extension)']
     ]
     
-    def run(self, mod_name):
-        self.reloadMacroLib(mod_name)
+    def run(self, module):
+        self.reloadMacroLib(module.name)
     
 
 class relmac(Macro):
@@ -368,5 +362,22 @@ class relmac(Macro):
         ['macro_name', Type.MacroClass, None, 'macro name']
     ]
     
-    def run(self, macro_name):
-        self.reloadMacro(macro_name)
+    def run(self, macro_data):
+        self.reloadMacro(macro_data.name)
+
+
+class sar_info(Macro):
+    """Prints details about the given sardana object"""
+    
+    param_def = [
+        ['obj', Type.Object, None, 'obj']
+    ]
+    
+    def run(self, obj):
+        data = obj.serialize()
+        
+        table = Table([data.values()], row_head_str=data.keys(),
+                      row_head_fmt='%*s', col_sep='  =  ')
+        for line in table.genOutput():
+            self.output(line)
+        

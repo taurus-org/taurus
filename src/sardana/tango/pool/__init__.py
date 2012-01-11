@@ -34,6 +34,7 @@ from .PseudoMotor import *
 from .MotorGroup import *
 from .CTExpChannel import *
 from .ZeroDExpChannel import *
+from .PseudoCounter import *
 from .MeasurementGroup import *
 from .IORegister import *
 from .Pool import *
@@ -43,12 +44,13 @@ def prepare_pool(util):
     util.add_class(ControllerClass, Controller)
     util.add_class(MotorClass, Motor)
     util.add_class(IORegisterClass, IORegister)
+    util.add_class(PseudoMotorClass, PseudoMotor)
     util.add_class(CTExpChannelClass, CTExpChannel)
     util.add_class(ZeroDExpChannelClass, ZeroDExpChannel)
-    util.add_class(PseudoMotorClass, PseudoMotor)
+    util.add_class(PseudoCounterClass, PseudoCounter)
     util.add_class(MotorGroupClass, MotorGroup)
     util.add_class(MeasurementGroupClass, MeasurementGroup)
-
+    
 def main_pool(args=None, start_time=None, mode=None):
     import sardana.tango.core.util
     return sardana.tango.core.util.run(prepare_pool, args=args,

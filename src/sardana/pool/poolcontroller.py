@@ -27,7 +27,7 @@
 for"""
 
 __all__ = [ "PoolController", "PoolPseudoMotorController",
-            "PoolTangoController" ]
+           "PoolPseudoCounterController", "PoolTangoController" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -112,7 +112,7 @@ class PoolBaseController(PoolBaseElement):
             elements = [ elements[id].name for id in sorted(elements) ]
             self.fire_event(EventType("elementlist", priority=propagate),
                             elements)
-            
+    
     def remove_element(self, elem, propagate=1):
         name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
         f = self._element_ids.has_key(id)
@@ -703,6 +703,7 @@ class PoolController(PoolBaseController):
 
     # END SPECIFIC TO IOR CONTROLLER ----------
 
+
 class PoolPseudoMotorController(PoolController):
     
     def __init__(self, **kwargs):
@@ -749,6 +750,32 @@ class PoolPseudoMotorController(PoolController):
         ctrl = self.ctrl
         try:
             return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos), None
+        except:
+            return None, sys.exc_info()
+
+
+class PoolPseudoCounterController(PoolController):
+    
+    def __init__(self, **kwargs):
+        self._motor_ids = kwargs.pop('role_ids')
+        super(PoolPseudoCounterController, self).__init__(**kwargs)
+    
+    def serialize(self, *args, **kwargs):
+        kwargs = PoolController.serialize(self, *args, **kwargs)
+        kwargs['type'] = 'Controller'
+        return kwargs
+        
+    def _create_ctrl_args(self):
+        pars = PoolController._create_ctrl_args(self)
+        name, klass, props, args, kwargs = pars
+        kwargs['motor_ids'] = tuple(self._motor_ids)
+        return pars
+    
+    @check_ctrl
+    def calc(self, axis, values):
+        ctrl = self.ctrl
+        try:
+            return ctrl.Calc(axis, values), None
         except:
             return None, sys.exc_info()
 

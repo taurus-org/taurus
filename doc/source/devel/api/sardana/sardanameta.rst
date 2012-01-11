@@ -10,16 +10,16 @@
 .. hlist::
     :columns: 3
 
-    * :class:`SardanaMetaLib`
+    * :class:`SardanaMetaLibrary`
     * :class:`SardanaMetaClass`
 
 SardanaMetaLib
 ---------------
 
-.. inheritance-diagram:: SardanaMetaLib
+.. inheritance-diagram:: SardanaMetaLibrary
     :parts: 1
     
-.. autoclass:: SardanaMetaLib
+.. autoclass:: SardanaMetaLibrary
     :inherited-members:
     :members:
     :undoc-members:

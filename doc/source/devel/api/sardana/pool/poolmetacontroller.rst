@@ -12,7 +12,7 @@
 
     * :class:`DataInfo`
     * :class:`TypeData`
-    * :class:`ControllerLib`
+    * :class:`ControllerLibrary`
     * :class:`ControllerClass`
 
 DataInfo
@@ -40,10 +40,10 @@ TypeData
 ControllerLib
 -------------------
 
-.. inheritance-diagram:: ControllerLib
+.. inheritance-diagram:: ControllerLibrary
     :parts: 1
     
-.. autoclass:: ControllerLib
+.. autoclass:: ControllerLibrary
     :show-inheritance:
     :members:
     :undoc-members:

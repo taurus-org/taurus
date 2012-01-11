@@ -12,7 +12,8 @@
 
     * :class:`PoolController`
     * :class:`PoolPseudoMotorController`
-
+    * :class:`PoolPseudoCounterController`
+    
 PoolController
 -------------------
 
@@ -34,3 +35,15 @@ PoolPseudoMotorController
     :show-inheritance:
     :members:
     :undoc-members:
+
+PoolPseudoCounterController
+----------------------------
+
+.. inheritance-diagram:: PoolPseudoCounterController
+    :parts: 1
+    
+.. autoclass:: PoolPseudoCounterController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+    

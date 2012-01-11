@@ -34,7 +34,8 @@ __all__ = ["Integer", "Float", "Boolean", "String", "User", "Filename",
 __docformat__ = 'restructuredtext'
 
 from sardana import INTERFACES
-from sardana.macroserver.parameter import ParamType, AttrParamType, ElementParamType
+from sardana.macroserver.parameter import ParamType, AttrParamType, \
+    ElementParamInterface
 
 # Basic types
 
@@ -98,7 +99,7 @@ class MotorParam(AttrParamType):
 
 
 for sardana_type in INTERFACES:
-    class _(ElementParamType):
+    class _(ElementParamInterface):
         pass
     _.__name__ = sardana_type
     globals()[sardana_type] = _

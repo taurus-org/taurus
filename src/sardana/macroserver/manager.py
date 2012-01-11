@@ -215,10 +215,20 @@ class MacroServerManager(Singleton, Logger):
         return ret
     
     def get_local_elements_info(self):
+        # fill macro library info
         ret = [ macrolib.serialize()
             for macrolib in self.getMacroLibs().values() ]
+        
+        # fill macro class info
         ret += [ macro.serialize()
             for macro in self.getMacros() ]
+        
+#        # fill data types info
+#        # ...but first make it json serializable
+#        ret["__types__"] = interfaces_ret = {}
+#        for interface, interfaces in INTERFACES_EXPANDED:
+#            interfaces_ret[interfaces] = tuple(interfaces)
+        
         return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

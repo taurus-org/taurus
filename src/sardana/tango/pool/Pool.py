@@ -43,13 +43,14 @@ from taurus import Factory
 from taurus.core.util import CaselessDict, CodecFactory
 from taurus.core.util.log import Logger, InfoIt, DebugIt, WarnIt
 
-from sardana import State, SardanaServer, ElementType, \
+from sardana import State, SardanaServer, ElementType, Interface, \
     TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
 from sardana.pool.poolmotorgroup import PoolMotorGroup
 from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
 from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
+
 
 class Pool(PyTango.Device_4Impl, Logger):
     
@@ -129,7 +130,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@DebugIt()
     def read_ControllerLibList(self, attr):
-        info = self.pool.get_elements_str_info(ElementType.ControllerLib)
+        info = self.pool.get_elements_str_info(ElementType.ControllerLibrary)
         attr.set_value(info)
 
     #@DebugIt()
@@ -199,21 +200,27 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_Elements(self, attr):
         element_list = self.getElements()
         attr.set_value(*element_list)
-
-    def _get_moveable_ids(self, *elem_names):
+    
+    def _get_interface_ids(self, interface, elem_names):
         _pool, motor_ids = self.pool, []
         for elem_name in elem_names:
             try:
                 element = _pool.get_element_by_name(elem_name)
             except:
                 element = _pool.get_element_by_full_name(elem_name)
-            elem_type = element.get_type()
-            if elem_type not in TYPE_MOVEABLE_ELEMENTS:
+            elem_interface = element.get_interface()
+            if not Interface.Moveable & elem_interface:
                 raise Exception("%s is a %s. It MUST be a moveable"
-                                % (element.name, ElementType.whatis(elem_type)))
+                                % (element.name, Interface[elem_interface]))
             motor_ids.append(element.id)
         return motor_ids
-
+    
+    def _get_moveable_ids(self, elem_names):
+        return self._get_interface_ids(Interface.Moveable, elem_names)
+    
+    def _get_acquirable_ids(self, elem_names):
+        return self._get_interface_ids(Interface.Acquirable, elem_names)
+    
     #@DebugIt()
     def CreateController(self, argin):
         kwargs = self._format_CreateController_arguments(argin)
@@ -271,8 +278,10 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         # for pseudo motor check that motors are given
         if elem_type == ElementType.PseudoMotor:
-            klass_roles = ctrl_class.motor_roles
-            klass_pseudo_roles = ctrl_class.pseudo_motor_roles
+            klass_roles = ctrl_class.controller_class.motor_roles
+            klass_pseudo_roles = ctrl_class.controller_class.pseudo_motor_roles
+            if not len(klass_pseudo_roles):
+                klass_pseudo_roles = class_name,
             roles = kwargs.get('roles')
             if roles is None:
                 raise Exception("Pseudo motor controller class %s needs motors "
@@ -282,18 +291,19 @@ class Pool(PyTango.Device_4Impl, Logger):
             motor_ids = []
             for klass_role in klass_roles:
                 if not klass_role in roles:
-                    raise Exception("Pseudo motor controller class %s needs motor"
-                                    "for role %s" % (class_name, klass_role))
+                    raise Exception("Pseudo motor controller class '%s' needs "
+                                    "motor(s) for role(s) %s"
+                                    % (class_name, klass_role))
                 motor_name = roles[klass_role]
-                motor_ids.extend(self._get_moveable_ids(motor_name))
+                motor_ids.extend(self._get_moveable_ids((motor_name,)))
             properties['motor_role_ids'] = motor_ids
             
             pseudo_motor_infos = {}
             pseudo_motor_ids = []
             for i, klass_pseudo_role in enumerate(klass_pseudo_roles):
                 if not klass_pseudo_role in roles:
-                    raise Exception("Pseudo motor controller class %s needs "
-                                    "pseudo motor name for role %s"
+                    raise Exception("Pseudo motor controller class '%s' needs "
+                                    "pseudo motor name for role '%s'"
                                     % (class_name, klass_pseudo_role))
                 pm_id = self.pool.get_new_id()
                 pm_name = roles[klass_pseudo_role]
@@ -305,6 +315,46 @@ class Pool(PyTango.Device_4Impl, Logger):
                 pseudo_motor_infos[klass_pseudo_role] = info
                 pseudo_motor_ids.append(pm_id)
             properties['pseudo_motor_role_ids'] = pseudo_motor_ids
+        # for pseudo counter check counters are given
+        elif elem_type == ElementType.PseudoCounter:
+            klass_roles = ctrl_class.controller_class.counter_roles
+            klass_pseudo_roles = ctrl_class.controller_class.pseudo_counter_roles
+            if not len(klass_pseudo_roles):
+                klass_pseudo_roles = class_name,
+            roles = kwargs.get('roles')
+            if roles is None:
+                raise Exception("Pseudo counter controller class '%s' needs "
+                                "counter(s) for role(s): %s and pseudo "
+                                "role(s): %s"
+                                % (class_name, ", ".join(klass_roles),
+                                   ", ".join(klass_pseudo_roles)))
+            counter_ids = []
+            for klass_role in klass_roles:
+                if not klass_role in roles:
+                    raise Exception("Pseudo counter controller class '%s' "
+                                    "needs counter name for role '%s'"
+                                    % (class_name, klass_role))
+                counter_name = roles[klass_role]
+                counter_ids.extend(self._get_acquirable_ids((counter_name,)))
+            properties['counter_role_ids'] = counter_ids
+            
+            pseudo_counter_infos = {}
+            pseudo_counter_ids = []
+            for i, klass_pseudo_role in enumerate(klass_pseudo_roles):
+                if not klass_pseudo_role in roles:
+                    raise Exception("Pseudo counter controller class %s needs "
+                                    "pseudo motor name for role %s"
+                                    % (class_name, klass_pseudo_role))
+                pc_id = self.pool.get_new_id()
+                pc_name = roles[klass_pseudo_role]
+                info = dict(id=pc_id, name=pc_name, ctrl_name=name, axis=i+1,
+                            type='PseudoCounter', elements=counter_ids)
+                if pc_name.count(',') > 0:
+                    n, fn = map(str.strip, pc_name.split(',', 1))
+                    info['name'], info['full_name'] = n, fn
+                pseudo_counter_infos[klass_pseudo_role] = info
+                pseudo_counter_ids.append(pc_id)
+            properties['pseudo_counter_role_ids'] = pseudo_counter_ids
             
         properties['type'] = type_str
         properties['library'] = lib
@@ -340,11 +390,15 @@ class Pool(PyTango.Device_4Impl, Logger):
                 self.warning("Error trying to write controller default value "
                              "for attribute(s)", exc_info=1)
         
-        # for pseudo motor controller also create pseudo motors automatically
+        # for pseudo motor/counter controller also create pseudo
+        # motor(s)/counter(s) automatically
         if elem_type == ElementType.PseudoMotor:
             for pseudo_motor_info in pseudo_motor_infos.values():
                 self._create_single_element(pseudo_motor_info)
-            
+        elif elem_type == ElementType.PseudoCounter:
+            for pseudo_counter_info in pseudo_counter_infos.values():
+                self._create_single_element(pseudo_counter_info)
+    
     #@DebugIt()
     def CreateInstrument(self, argin):
         instrument = self.pool.create_instrument(*argin)

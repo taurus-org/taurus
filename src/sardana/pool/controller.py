@@ -411,7 +411,7 @@ class Startable(object):
     """A Startable interface. A controller for which it's axis are 'startable'
     (like a motor, for example) should implement this interface
     
-    .. note: Do not inherit directly from Startable."""
+    .. note: Do not inherit directly from :class:`Startable`."""
     
     def PreStartAll(self):
         """**Controller API**. Overwrite as necessary.
@@ -744,7 +744,41 @@ class ZeroDController(Controller, Readable):
         pass
 
 
-class PseudoMotorController(Controller):
+class PseudoController(Controller):
+    """Base class for all pseudo controllers.
+    
+    .. note: Do not inherit directly from :class:`PseudoController`."""
+    
+    def _getElem(self, index_or_role, roles, local_cache, ids):
+        """*Iternal*."""
+        elem = local_cache.get(index_or_role)
+        if elem is None:
+            pool = self._getPoolController().pool
+            if type(index_or_role) == int:
+                index = axis_or_role
+                role = roles[index]
+            else:
+                role = index_or_role
+                index = roles.index(role)
+            motor_id = ids[index]
+            elem = pool.get_element_by_id(motor_id)
+            elems[index] = elems[role] = elem
+        return elem
+    
+    def AbortOne(self, axis):
+        pass
+    
+    def AbortAll(self):
+        pass
+
+    def StopOne(self, axis):
+        pass
+    
+    def StopAll(self):
+        pass
+
+
+class PseudoMotorController(PseudoController):
     """Base class for a pseudo motor controller. Inherit from this class to 
     implement your own pseudo motor controller for the device pool.
 
@@ -780,7 +814,7 @@ class PseudoMotorController(Controller):
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
         self.__pseudo_role_motor_elements = {}
-        Controller.__init__(self, inst, props, *args, **kwargs)
+        PseudoController.__init__(self, inst, props, *args, **kwargs)
     
     def CalcAllPseudo(self, physical_pos, curr_pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
@@ -934,22 +968,6 @@ class PseudoMotorController(Controller):
                instead"""
         raise NotImplementedError("CalcPhysical must be defined in the "
                                   "controller")
-
-    def _getElem(self, index_or_role, roles, local_cache, ids):
-        """*Iternal*."""
-        elem = local_cache.get(index_or_role)
-        if elem is None:
-            pool = self._getPoolController().pool
-            if type(index_or_role) == int:
-                index = axis_or_role
-                role = roles[index]
-            else:
-                role = index_or_role
-                index = roles.index(role)
-            motor_id = ids[index]
-            elem = pool.get_element_by_id(motor_id)
-            elems[index] = elems[role] = elem
-        return elem
     
     def GetMotor(self, index_or_role):
         """Returns the motor for a given role/index.
@@ -957,7 +975,7 @@ class PseudoMotorController(Controller):
         .. warning::
             * Use with care: Executing motor methods can be dangerous!
         
-            * Since any controller is built before any element (including
+            * Since the controller is built before any element (including
               motors), this method will **FAIL** when called from the controller
               constructor
         
@@ -975,7 +993,7 @@ class PseudoMotorController(Controller):
         .. warning::
             * Use with care: Executing pseudo motor methods can be dangerous!
         
-            * Since any controller is built before any element (including pseudo
+            * Since the controller is built before any element (including pseudo
               motors), this method will **FAIL** when called from the controller
               constructor
         
@@ -986,18 +1004,64 @@ class PseudoMotorController(Controller):
         return self._getElem(index_or_role, self.pseudo_motor_roles,
                              self.__pseudo_motor_role_elements,
                              self._kwargs['pseudo_motor_roles'])
-    
-    def AbortOne(self, axis):
-        pass
-    
-    def AbortAll(self):
-        pass
 
-    def StopOne(self, axis):
-        pass
+
+class PseudoCounterController(Controller):
+    """Base class for a pseudo counter controller. Inherit from this class to 
+    implement your own pseudo counter controller for the device pool.
+
+    Every Pseudo Counter implementation must be a subclass of this class.
+    Current procedure for a correct implementation of a Pseudo Counter class:
     
-    def StopAll(self):
-        pass
+    - mandatory:
+        - define the class level attributes
+          :attr:`~PseudoCounterController.counter_roles`,
+        - write :meth:`~PseudoCounterController.Calc` method"""
+    
+    #: a sequence of strings describing the role of each pseudo counter axis in
+    #: this controller
+    pseudo_counter_roles = ()
+    
+    #: a sequence of strings describing the role of each counter in this
+    #: controller
+    counter_roles = ()
+
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
+    standard_axis_attributes = {
+        'Value'       : { 'type' : float,
+                          'description' : 'Value', },
+    }
+
+    def Calc(self, axis, values):
+        """**Pseudo Counter Controller API**. Overwrite is **MANDATORY**.
+           Calculate pseudo counter position given the counter values.
+           
+           :param int axis: the pseudo counter role axis
+           :param sequence<float> values: a sequence containing current values
+                                          of underlying elements
+           :return: a pseudo counter value corresponding to the given axis
+                    pseudo counter role
+           :rtype: float
+           
+           .. versionadded:: 1.0"""
+        return self.calc(axis, values)
+    
+    def calc(self, axis, values):
+        """**Pseudo Counter Controller API**. Overwrite is **MANDATORY**.
+           Calculate pseudo counter position given the counter values.
+           
+           :param int axis: the pseudo counter role axis
+           :param sequence<float> values: a sequence containing current values
+                                          of underlying elements
+           :return: a pseudo counter value corresponding to the given axis
+                    pseudo counter role
+           :rtype: float
+           
+           .. deprecated:: 1.0
+               Deprecated: implement :meth:`PseudoCounterController.Calc`
+               instead"""
+        raise NotImplementedError("Calc must be defined in te controller")
 
 
 class IORegisterController(Controller, Readable):

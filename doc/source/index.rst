@@ -14,7 +14,7 @@ Sardana is the control program initially developed at ALBA_. Our mission stateme
     standard basis of collaborations in control.`
     
 
-An :ref:`sardana-introduction` guide will help you getting started with the 
+An :ref:`sardana-overview` guide will help you getting started with the 
 basic sardana concepts. The :ref:`sardana-faq` will answer many of your questions.
 
 For sampling, see the :ref:`screenshots` and :ref:`devel-examples` chapters.

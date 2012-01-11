@@ -1,7 +1,7 @@
 .. currentmodule:: sardana.pool.poolpseudomotor
 
 :mod:`~sardana.pool.poolpseudomotor`
-=========================================
+======================================
 
 .. automodule:: sardana.pool.poolpseudomotor
 
@@ -14,7 +14,7 @@
 
 
 PoolPseudoMotor
--------------------
+----------------
 
 .. inheritance-diagram:: PoolPseudoMotor
     :parts: 1

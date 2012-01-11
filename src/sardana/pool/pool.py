@@ -35,7 +35,8 @@ import logging.handlers
 from taurus.core import AttributeNameValidator
 from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 
-from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS
+from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
+    TYPE_PSEUDO_ELEMENTS
 from sardana.sardanamanager import SardanaBaseManager
 from sardana.sardanaevent import EventType
 
@@ -224,7 +225,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
             elem = "%s (%s)" % (ctrl_lib_info.getName(), ctrl_lib_info.getFileName())
             ret.append(elem)
         return ret
-
+    
     def get_controller_classes_summary_info(self):
         ctrl_classes = self.get_controller_classes()
         ret = []
@@ -243,7 +244,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
             objs.extend(self.get_controller_libs())
         elif obj_type == ElementType.ControllerClass:
             objs = self.get_controller_classes()
-        elif obj_type == ElementType.ControllerLib:
+        elif obj_type == ElementType.ControllerLibrary:
             objs = self.get_controller_libs()
         else:
             objs = self.get_elements_by_type(obj_type)
@@ -258,7 +259,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
             objs.append(self)
         elif obj_type == ElementType.ControllerClass:
             objs = self.get_controller_classes()
-        elif obj_type == ElementType.ControllerLib:
+        elif obj_type == ElementType.ControllerLibrary:
             objs = self.get_controller_libs()
         else:
             objs = self.get_elements_by_type(obj_type)
@@ -332,7 +333,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         
         # For pseudo controllers make sure 'role_ids' is given
         klass = klass_map.get(elem_type, PoolController)
-        if elem_type == ElementType.PseudoMotor:
+        if elem_type in TYPE_PSEUDO_ELEMENTS:
             motor_roles = kwargs['role_ids']
         
         # make sure the properties (that may have come from a case insensitive

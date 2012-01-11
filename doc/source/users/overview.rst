@@ -1,7 +1,7 @@
-.. _sardana-introduction:
+.. _sardana-overview:
 
 ============
-Introduction
+Overview
 ============
 
 Sardana is the control program initially developed at ALBA_. Our mission statement:

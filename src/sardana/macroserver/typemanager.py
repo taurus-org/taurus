@@ -115,6 +115,7 @@ class TypeManager(Singleton, Logger):
         
         self._modules[module_name] = {}
         
+        abs_file = inspect.getabsfile(m)
         for name in dir(m):
             if name.startswith("_"):
                 continue
@@ -126,6 +127,9 @@ class TypeManager(Singleton, Logger):
                 continue
             if klass in AbstractParamTypes:
                 continue
+            if inspect.getabsfile(klass) != abs_file:
+                continue
+
             t = klass(name)
             self.addType(t)
 

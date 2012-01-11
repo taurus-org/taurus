@@ -29,6 +29,7 @@ __all__ = ["EpsilonError", "SardanaServer", "State",
            "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
            "from_dtype_str", "from_access_str", "to_dtype_dformat",
            "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
+           "Interface", "Interfaces", "InterfacesExpanded",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
            "TYPE_PSEUDO_ELEMENTS", "INTERFACES", "INTERFACES_EXPANDED",
@@ -244,6 +245,7 @@ ElementType = Enumeration("ElementType", ( \
     "MacroClass",
     "MacroLibrary",
     "External",
+    "Meta",
     "Unknown") )
 
 ET = ElementType
@@ -280,47 +282,84 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
 #: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 
+##: An enumeration describing the all possible sardana interfaces
+#SardanaInterface = Enumeration("SardanaInterface", ( \
+#    ("Object",            0b0000000000000001),
+#    ("Element",           0b0000000000000011),
+#    ("Class",             0b0000000000000101),
+#    ("Library",           0b0000000000001001),
+#    ("PoolObject",        0b0000000000010001),
+#    ("PoolElement",       0b0000000000010011),
+#    ("Pool",              0b0000000000110011),
+#    ("Controller",        0b0000000001000001),
+#    ("Moveable",          0b0000000010000001),
+#    ("Acquirable",        0b0000000100000001),
+#    ("Instrument",        0b0000001000000001),
+#    ("Motor",             0b0000010000000001),
+#    ("PseudoMotor",       0b0000100000000001),
+#    ("IORegister",        0b0001000000000001),
+#    ("ExpChannel",        0b0010000000000001),
+#    ("CTExpChannel",      0b0100000000000001),
+#    ("ZeroDExpChannel",   0b1000000000000001),
+#    ("OneDExpChannel",    0b0000000000000001),
+#    ("TwoDExpChannel",    0b0000000000000001),
+#    ("PseudoCounter",     0b0000000000000001),
+#    ("ComChannel",        0b0000000000000001),
+#    ("MotorGroup",        0b0000000000000001),
+#    ("MeasurementGroup",  0b0000000000000001),
+#    ("ControllerLibrary", 0b0000000000000001),
+#    ("ControllerClass",   0b0000000000000001),
+#    ("Constraint",        0b0000000000000001),
+#    ("External",          0b0000000000000001),
+    
+#    ("MacroServerObject", 0b0000000000000001),
+#    ("MacroServerElement",0b0000000000000001),
+#    ("MacroServer",       0b0000000000000001),
+#    ("MacroLibrary",      0b0000000000000001),
+#    ("MacroClass",        0b0000000000000001),
+#    ("Macro",             0b0000000000000001), ) )
+
 #: a dictionary containing the direct interfaces supported by each type
+#: (:obj:`dict` <:obj:`str`, :obj:`set` < :obj:`str`> >)
 INTERFACES = {
     "Object" : set(),
-    "SardanaObject" : "Object",
-    "Element" : "Object",
-    "SardanaElement" : "Element",
-    "Class" : "SardanaObject",
-    "Library" : "SardanaObject",
-    "PoolObject" : "SardanaObject",
-    "PoolElement" : set(("SardanaElement", "PoolObject")),
-    "Pool" : "PoolElement",
-    "Controller" : "PoolElement",
-    "Moveable" : "PoolElement",
-    "Acquirable" : "PoolElement",
-    "Instrument" : "PoolElement",
+    "Element" : set(("Object",)),
+    "Class" : set(("Object",)),
+    "Library" : set(("Object",)),
+    "PoolObject" : set(("Object",)),
+    "PoolElement" : set(("Element", "PoolObject")),
+    "Pool" : set(("PoolElement",)),
+    "Controller" : set(("PoolElement",)),
+    "Moveable" : set(("PoolElement",)),
+    "Acquirable" : set(("PoolElement",)),
+    "Instrument" : set(("PoolElement",)),
     "Motor" : set(("Moveable", "Acquirable")),
     "PseudoMotor" : set(("Moveable", "Acquirable")),
     "IORegister" : set(("Moveable", "Acquirable")),
-    "ExpChannel" : "Acquirable",
-    "CTExpChannel" : "ExpChannel",
-    "ZeroDExpChannel" : "ExpChannel",
-    "OneDExpChannel" : "ExpChannel",
-    "TwoDExpChannel" : "ExpChannel",
-    "PseudoCounter" : "ExpChannel",
-    "ComChannel" : "PoolElement",
+    "ExpChannel" : set(("Acquirable",)),
+    "CTExpChannel" : set(("ExpChannel",)),
+    "ZeroDExpChannel" : set(("ExpChannel",)),
+    "OneDExpChannel" : set(("ExpChannel",)),
+    "TwoDExpChannel" : set(("ExpChannel",)),
+    "PseudoCounter" : set(("ExpChannel",)),
+    "ComChannel" : set(("PoolElement",)),
     "MotorGroup" : set(("Moveable", "Acquirable")),
-    "MeasurementGroup" : "PoolElement",
+    "MeasurementGroup" : set(("PoolElement",),),
     "ControllerLibrary" : set(("Library", "PoolObject")),
     "ControllerClass" : set(("Class", "PoolObject")),
-    "Constraint" : "PoolObject",
-    "External" : "Object",
+    "Constraint" : set(("PoolObject",)),
+    "External" : set(("Object",)),
     
-    "MacroServerObject" : "SardanaObject",
-    "MacroServerElement" : set(("SardanaElement", "MacroServerObject")),
-    "MacroServer" : "MacroServerElement",
+    "MacroServerObject" : set(("Object",)),
+    "MacroServerElement" : set(("Element", "MacroServerObject")),
+    "MacroServer" : set(("MacroServerElement",)),
     "MacroLibrary" : set(("Library", "MacroServerObject")),
     "MacroClass" : set(("Class", "MacroServerObject")),
-    "Macro" : "MacroClass",
+    "Macro" : set(("MacroClass",)),
 }
 
 #: a dictionary containing the *all* interfaces supported by each type
+#: (:obj:`dict` <:obj:`str`, :obj:`set` < :obj:`str`> >)
 INTERFACES_EXPANDED = {}
 
 def __expand(name):
@@ -329,15 +368,62 @@ def __expand(name):
         direct_expansion = direct_expansion,
     exp = set(direct_expansion)
     for e in direct_expansion:
-        if e in INTERFACES_EXPANDED:
-            exp.update(INTERFACES_EXPANDED[e])
-        else:
+        e_value = INTERFACES_EXPANDED.get(e)
+        if e_value is None:
             exp.update(__expand(e))
+        else:
+            exp.update(e_value)
     exp.add(name)
     return exp
 
 for i in INTERFACES:
     INTERFACES_EXPANDED[i] = __expand(i)
+
+def __expand_sardana_interface_data(si_map, name, curr_id):
+    if name in si_map:
+        return curr_id
+    d = 0
+    i_expanded = set(INTERFACES_EXPANDED[name])
+    i_expanded.remove(name)
+    for interface in i_expanded:
+        if interface not in si_map:
+            curr_id = __expand_sardana_interface_data(si_map, interface, curr_id)
+        d |= si_map[interface]
+    si_map[name] = d | curr_id
+    return 2*curr_id
+
+def __root_expand_sardana_interface_data():
+    curr_id = 1
+    si_map = {}
+    for interface in INTERFACES_EXPANDED:
+        curr_id = __expand_sardana_interface_data(si_map, interface, curr_id)
+    return si_map
+
+#: An enumeration describing the all possible sardana interfaces
+Interface = Enumeration("Interface",
+                        __root_expand_sardana_interface_data().items())
+
+def __create_sardana_interfaces():
+    interfaces, interfaces_expanded = {}, {}
+    for i in INTERFACES:
+        i_enum = Interface[i]
+        i_items, i_items_expanded = INTERFACES[i], INTERFACES_EXPANDED[i]
+        i_enum_items = set(map(Interface.get, i_items))
+        i_enum_items_expanded = set(map(Interface.get, i_items_expanded))
+        interfaces[i_enum] = i_enum_items
+        interfaces_expanded[i_enum] = i_enum_items_expanded
+    return interfaces, interfaces_expanded
+
+_Interfaces, _InterfacesExpanded = __create_sardana_interfaces()
+
+
+#: a dictionary containing the direct interfaces supported by each type
+#: (:obj:`dict` <:obj:`sardana.sardanadefs.Interface`, :obj:`set` < :obj:`sardana.sardanadefs.Interface`> >)
+Interfaces = _Interfaces
+
+#: a dictionary containing the *all* interfaces supported by each type. 
+#: (:obj:`dict` <:obj:`sardana.sardanadefs.Interface`, :obj:`set` < :obj:`sardana.sardanadefs.Interface`> >)
+InterfacesExpanded = _InterfacesExpanded
 
 try:
     import numpy

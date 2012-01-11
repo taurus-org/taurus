@@ -34,7 +34,7 @@ import weakref
 
 from taurus.core.util import Logger
 
-from sardanadefs import ElementType
+from sardanadefs import ElementType, Interface, InterfacesExpanded
 from sardanaevent import EventGenerator, EventReceiver, EventType
 
 
@@ -113,12 +113,41 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
 #            self.warning("Error firing event <%s,%s>", event_type, event_value)
 #            self.info("Error description: \n%s", traceback.format_exc())
     
+    def get_interfaces(self):
+        """Returns the set of interfaces this object implements.
+        
+        :return:
+            The set of interfaces this object implements.
+        :rtype:
+            class:`set` <:class:`sardana.sardanadefs.Interface`>"""
+        return InterfacesExpanded[self.get_interface()]
+    
+    def get_interface(self):
+        """Returns the interface this object implements.
+        
+        :return:
+            The interface this object implements.
+        :rtype:
+            :class:`sardana.sardanadefs.Interface`"""
+        return Interface[ElementType[self.get_type()]]
+    
+    def get_interface_names(self):
+        """Returns a sequence of interface names this object implements.
+        
+        :return:
+            The sequence of interfaces this object implements.
+        :rtype:
+            sequence<:obj:`str`>"""
+        return map(Interface.get, self.get_interfaces())
+    
     def serialize(self, *args, **kwargs):
         kwargs['name'] = self.name
         kwargs['full_name'] = self.full_name
         kwargs['type'] = ElementType.whatis(self.get_type())
         kwargs['manager'] = self.manager.name
         kwargs['parent'] = self.get_parent_name()
+        elem_type_str = ElementType[self.get_type()]
+        kwargs['interfaces'] = self.get_interface_names()
         return kwargs
     
     def serialized(self, *args, **kwargs):

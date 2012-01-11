@@ -44,6 +44,7 @@ class Position(SardanaAttribute):
 
 
 class PoolPseudoMotor(PoolBaseGroup, PoolElement):
+    """A class representing a Pseudo Motor in the Sardana Device Pool"""
     
     def __init__(self, **kwargs):
         self._physical_positions = {}

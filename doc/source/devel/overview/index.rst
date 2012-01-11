@@ -1,4 +1,4 @@
-.. _sardana-overview:
+.. _sardana-devel-overview:
 
 ==============
 Overview

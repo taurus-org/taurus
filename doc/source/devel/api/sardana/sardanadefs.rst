@@ -39,6 +39,15 @@
 
 .. autodata:: sardana.sardanadefs.ElementType
 
+.. autodata:: sardana.sardanadefs.Interface
+
+.. autodata:: sardana.sardanadefs.Interfaces
+
+.. autodata:: sardana.sardanadefs.InterfacesExpanded
+
+.. autodata:: sardana.sardanadefs.INTERFACES
+
+.. autodata:: sardana.sardanadefs.INTERFACES_EXPANDED
 
 .. rubric:: Functions
 

@@ -1,4 +1,4 @@
-.. _sardana-devel-overview:
+.. _sardana-devel-global-overview:
 
 ================
 Global overview
@@ -7,7 +7,7 @@ Global overview
 This chapter gives an overview of the sardana architecture and describes each of
 the different components in some detail.
 If you find this document to be to technical please consider reading the
-:ref:`sardana-introduction` guide first.
+:ref:`sardana-overview` guide first.
 
 The following chapters assume a that you have a minimum knowledge of the Tango_
 system and basic computer science.

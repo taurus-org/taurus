@@ -28,7 +28,8 @@ macros"""
 
 __all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
            "TypeNames", "Type", "ParamType", "ParamRepeat", "ElementParamType",
-           "AttrParamType", "AbstractParamTypes", "ParamDecoder" ]
+           "ElementParamInterface", "AttrParamType", "AbstractParamTypes",
+           "ParamDecoder" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -156,18 +157,13 @@ class ElementParamType(ParamType):
     
     def __init__(self, name):
         ParamType.__init__(self, name)
-        self._interfaces = INTERFACES_EXPANDED.get(name)
         
     def getManager(self):
         import manager
         return manager.MacroServerManager()
     
     def accepts(self, elem):
-        elem_type = elem.getType()
-        elem_interfaces = INTERFACES_EXPANDED.get(elem_type)
-        if elem_interfaces is None:
-            return elem_type == self._name
-        return self._name in elem_interfaces
+        return elem.getType() == self._name
     
     def getObj(self, name, pool=ParamType.All, cache=False):
         if pool == ParamType.All:
@@ -175,19 +171,19 @@ class ElementParamType(ParamType):
         else:
             pools = self.getManager().getPoolObj(pool),
         for pool in pools:
-            elem_info = pool.getObj(name)
+            elem_info = pool.getObj(name, elem_type=self._name)
             if elem_info is not None and self.accepts(elem_info):
                 return elem_info
         # not a pool object, maybe it is a macro server object (perhaps a macro
         # class or a macro library
         manager = self.getManager()
         try:
-            return manager.getMacroMetaClass(name).serialize()
+            return manager.getMacroMetaClass(name)
         except UnknownMacro:
             pass
         
         try:
-            return manager.getMacroLib(name).serialize()
+            return manager.getMacroLib(name)
         except UnknownLib:
             pass
     
@@ -212,11 +208,67 @@ class ElementParamType(ParamType):
         return obj_dict.values()
 
 
+class ElementParamInterface(ElementParamType):
+
+    def __init__(self, name):
+        ElementParamType.__init__(self, name)
+        self._interfaces = INTERFACES_EXPANDED.get(name)
+
+    def accepts(self, elem):
+        elem_type = elem.getType()
+        elem_interfaces = INTERFACES_EXPANDED.get(elem_type)
+        if elem_interfaces is None:
+            return ElementParamType.accepts(self, elem)
+        return self._name in elem_interfaces
+    
+    def getObj(self, name, pool=ParamType.All, cache=False):
+        if pool == ParamType.All:
+            pools = self.getManager().getPoolListObjs()
+        else:
+            pools = self.getManager().getPoolObj(pool),
+        for pool in pools:
+            elem_info = pool.getElementWithInterface(name, self._name)
+            if elem_info is not None and self.accepts(elem_info):
+                return elem_info
+        # not a pool object, maybe it is a macro server object (perhaps a macro
+        # class or a macro library
+        manager = self.getManager()
+        try:
+            return manager.getMacroMetaClass(name)
+        except UnknownMacro:
+            pass
+        
+        try:
+            return manager.getMacroLib(name)
+        except UnknownLib:
+            pass
+    
+    def getObjDict(self, pool=ParamType.All, cache=False):
+        objs = CaselessDict()
+        if pool == ParamType.All:
+            pools = self.getManager().getPoolListObjs()
+        else:
+            pools = self.getManager().getPoolObj(pool),
+        for pool in pools:
+            for elem_info in pool.getElementsWithInterface(self._name).values():
+                if self.accepts(elem_info):
+                    objs[elem_info.name] = elem_info
+        return objs
+    
+    def getObjListStr(self, pool=ParamType.All, cache=False):
+        obj_dict = self.getObjDict(pool=pool, cache=cache)
+        return obj_dict.keys()
+
+    def getObjList(self, pool=ParamType.All, cache=False):
+        obj_dict = self.getObjDict(pool=pool, cache=cache)
+        return obj_dict.values()
+
+
 class AttrParamType(ParamType):
     pass
 
 
-AbstractParamTypes = (ParamType, ElementParamType, AttrParamType)
+AbstractParamTypes = ParamType, ElementParamType, ElementParamInterface, AttrParamType
 
 
 class ParamDecoder:

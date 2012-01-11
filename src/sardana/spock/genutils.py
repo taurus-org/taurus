@@ -583,7 +583,7 @@ def _macro_completer(self, event):
     if possible_params:
         res = []
         for param in possible_params:
-            res.extend(ms.getElementNamesOfType(param['type']))
+            res.extend(ms.getElementNamesWithInterface(param['type']))
         return res
         
 def expose_magic(name, fn, completer_func=_macro_completer):

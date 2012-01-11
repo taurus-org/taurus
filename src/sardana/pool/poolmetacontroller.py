@@ -44,17 +44,20 @@ from sardana import DataType, DataFormat, DataAccess, \
     ElementType, TYPE_ELEMENTS, InvalidId
 from sardana.sardanameta import SardanaMetaLibrary, SardanaMetaClass
 
-from poolcontroller import PoolController, PoolPseudoMotorController
 from poolmotor import PoolMotor
 from poolpseudomotor import PoolPseudoMotor
 from poolmotorgroup import PoolMotorGroup
 from poolmeasurementgroup import PoolMeasurementGroup
 from poolcountertimer import PoolCounterTimer
 from poolzerodexpchannel import Pool0DExpChannel
+from poolpseudocounter import PoolPseudoCounter
 from poolinstrument import PoolInstrument
 from poolioregister import PoolIORegister
+from poolcontroller import PoolController, PoolPseudoMotorController, \
+    PoolPseudoCounterController
 from controller import Controller, MotorController, CounterTimerController, \
-    ZeroDController, PseudoMotorController, IORegisterController
+    ZeroDController, PseudoMotorController, PseudoCounterController, \
+    IORegisterController
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -68,10 +71,11 @@ ET = ElementType
 #: mapping element type enumeration with the corresponding controller pool class
 #: (:class:`~sardana.pool.poolcontroller.PoolController` or sub-class of it).
 CTRL_TYPE_MAP = {
-    ET.Motor        : PoolController,
-    ET.CTExpChannel : PoolController,
-    ET.PseudoMotor  : PoolPseudoMotorController,
-    ET.IORegister   : PoolController,
+    ET.Motor         : PoolController,
+    ET.CTExpChannel  : PoolController,
+    ET.PseudoMotor   : PoolPseudoMotorController,
+    ET.PseudoCounter : PoolPseudoCounterController,
+    ET.IORegister    : PoolController,
 }
 
 #: dictionary dict<:data:`~sardana.ElementType`, :class:`tuple`> 
@@ -89,6 +93,7 @@ TYPE_MAP = {
     ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
     ET.ZeroDExpChannel  : ("ZeroDExpChannel",  "ExpChannel",       Pool0DExpChannel,       "expchan/{ctrl_name}/{axis}", ZeroDController),
     ET.PseudoMotor      : ("PseudoMotor",      "Motor",            PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
+    ET.PseudoCounter    : ("PseudoCounter",    "ExpChannel",       PoolPseudoCounter,      "pc/{ctrl_name}/{axis}",      PseudoCounterController),
     ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
     ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),
     ET.IORegister       : ("IORegister",       "IORegister"      , PoolIORegister,         "ioregister/{ctrl_name}/{axis}", IORegisterController),

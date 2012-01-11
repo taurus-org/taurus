@@ -503,7 +503,7 @@ class MacroManager(Singleton, Logger):
         return self.getMacroMetaClass(macro_name).klass
 
     def getMacroInfo(self, macro_names, format='json'):
-        if isinstance(macro_names, str):
+        if isinstance(macro_names, (str, unicode)):
             macro_names = [macro_names]
         ret = []
         json_codec = CodecFactory().getCodec('json')

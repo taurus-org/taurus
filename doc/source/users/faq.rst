@@ -5,14 +5,15 @@
 FAQ
 ===
 
-What is the Sardana SCADA_ system and how do I get an overview over the different components?
---------------------------------------------------------------------------------------------------------
+What is the Sardana SCADA_ and how do I get an overview over the different components?
+---------------------------------------------------------------------------------------
 An overview over the different Sardana components can be found here **<LINK>**. 
-The basic Sardana SCADA_ philosophy can be found :ref:`here <sardana-introduction>`.
+The basic Sardana SCADA_ philosophy can be found :ref:`here <sardana-overview>`.
 
 How do I install Sardana?
 -------------------------
-The Sardan SCADA_ system consists of different components which have to be installed:
+The Sardan SCADA_ system consists of different components which have to be
+installed:
     
     * Tango_: The control system middleware and tools
     * PyTango_: The Python_ language binding for Tango_
