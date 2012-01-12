@@ -42,7 +42,7 @@ from PyTango import Util, DevFailed, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 
 from sardana import State, SardanaServer, DataType, DataFormat, \
-    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess
+    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release
 from sardana.pool.poolmetacontroller import DataInfo
 
 from taurus.core.util import Enumeration
@@ -172,7 +172,8 @@ def prepare_cmdline(parser=None, args=None):
     proc_args, tango_args = clean_tango_args(args)
     
     if parser is None:
-        parser = optparse.OptionParser()
+        version = "%s" % (Release.version)
+        parser = optparse.OptionParser(version=version)
     
     parser.usage = "usage: %prog instance_name [options]"
     log_level_choices = "critical", "error", "warning", "info", "debug", "trace", \
