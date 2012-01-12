@@ -53,7 +53,7 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (2,2,0,'dev',0)
+version_info = (3,0,0,'dev',0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
