@@ -43,8 +43,10 @@ class IoverI0(PseudoCounterController):
     
     counter_roles = "I", "I0"
 
-    def Calc(self,counter_values):
+    def Calc(self, axis, counter_values):
         i, i0 = counter_values
-        if i0 < 0.0000001:
-            return i
-        return float(i/i0)
+        try:
+            i = float(i/i0)
+        except ZeroDivisionError:
+            pass
+        return i

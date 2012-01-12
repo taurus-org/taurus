@@ -114,16 +114,12 @@ class defelem(Macro):
 class udefelem(Macro):
     """Deletes an existing element"""
     
-    param_def = [ ['name', Type.Element, None, 'element name'],]
+    param_def = [ ['element', Type.Element, None, 'element name'],]
     
-    def run(self, name):
-        manager = self.getManager()
-        obj = manager.getObj(name)
-        if obj is None:
-            raise Exception("No element named %s found" % name)
-        ctrl = manager.getObj(obj.getControllerName())
-        pool = obj.getPoolObj()
-        pool.deleteElement(name)
+    def run(self, element):
+        pool = element.getPoolObj()
+        pool.deleteElement(element.getName())
+
 
 class defctrl(Macro):
     """Creates a new controller"""

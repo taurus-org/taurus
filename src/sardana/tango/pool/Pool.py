@@ -44,7 +44,7 @@ from taurus.core.util import CaselessDict, CodecFactory
 from taurus.core.util.log import Logger, InfoIt, DebugIt, WarnIt
 
 from sardana import State, SardanaServer, ElementType, Interface, \
-    TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS
+    TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS, TYPE_PSEUDO_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolinstrument import PoolInstrument
 from sardana.pool.poolmotorgroup import PoolMotorGroup
@@ -462,8 +462,9 @@ class Pool(PyTango.Device_4Impl, Logger):
                 db = util.get_database()
                 data = { "id" : self.pool.get_new_id(),
                          "ctrl_id" : ctrl.get_id(), "axis" : axis, }
-                if elem_type == ElementType.PseudoMotor:
+                if elem_type in TYPE_PSEUDO_ELEMENTS:
                     data['elements'] = kwargs['elements']
+                    
                 db.put_device_property(device_name, data)
 
                 data = {}
@@ -475,6 +476,8 @@ class Pool(PyTango.Device_4Impl, Logger):
                     data["value"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.PseudoMotor:
                     data["position"] = { "abs_change" : "1.0"}
+                elif elem_type == ElementType.PseudoCounter:
+                    data["value"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.IORegister:
                     data["value"] = { "abs_change" : "1"}
                 db.put_device_attribute_property(device_name, data)
@@ -513,6 +516,10 @@ class Pool(PyTango.Device_4Impl, Logger):
             cfg.append(attr)
         elif elem_type == ElementType.PseudoMotor:
             attr = elem_proxy.get_attribute_config_ex("position")[0]
+            attr.events.ch_event.abs_change = "1"
+            cfg.append(attr)
+        elif elem_type == ElementType.PseudoCounter:
+            attr = elem_proxy.get_attribute_config_ex("value")[0]
             attr.events.ch_event.abs_change = "1"
             cfg.append(attr)
         elif elem_type == ElementType.IORegister:

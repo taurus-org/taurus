@@ -202,6 +202,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         """Builds a configuration object from the list of elements"""
         config = {}
         user_elements = self.get_user_elements()
+        physical_elements = self.get_physical_elements()
         ctrls = self.get_pool_controllers()
         
         # find the first CT
@@ -238,6 +239,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             unit_data['channels'] = channels = {}
             for element in elements:
                 channels[element] = channel_data = {}
+                #channel_data['index'] = physical_elements.get(element)
                 channel_data['index'] = user_elements.index(element)
                 channel_data = self._build_channel_defaults(channel_data, element)
         config['label'] = self.name

@@ -43,7 +43,7 @@ class _wm(Macro):
 
     param_def = [
         ['motor_list',
-         ParamRepeat(['motor', Type.Motor, None, 'Motor to move']),
+         ParamRepeat(['motor', Type.Moveable, None, 'Motor to move']),
          None, 'List of motor to show'],
     ]
 
@@ -78,7 +78,7 @@ class wa(Macro):
     """Show all motor positions"""
 
     def prepare(self, **opts):
-        self.all_motors = self.findObjs('.*', type_class=Type.Motor)
+        self.all_motors = self.findObjs('.*', type_class=Type.Moveable)
         self.table_opts = {}
     
     def run(self):
@@ -101,7 +101,7 @@ class pwa(Macro):
 class set_lim(Macro):
     """Sets the software limits on the specified motor hello"""
     param_def = [
-        ['motor', Type.Motor, None, 'Motor name'],
+        ['motor', Type.Moveable, None, 'Motor name'],
         ['low',   Type.Float, None, 'lower limit'],
         ['high',   Type.Float, None, 'upper limit']
     ]
@@ -145,7 +145,7 @@ class wm(Macro):
 
     param_def = [
         ['motor_list',
-         ParamRepeat(['motor', Type.Motor, None, 'Motor to move']),
+         ParamRepeat(['motor', Type.Moveable, None, 'Motor to see where it is']),
          None, 'List of motor to show'],
     ]
 
@@ -182,7 +182,7 @@ class pwm(Macro):
 
     param_def = [
         ['motor_list',
-         ParamRepeat(['motor', Type.Motor, None, 'Motor to move']),
+         ParamRepeat(['motor', Type.Moveable, None, 'Motor to move']),
          None, 'List of motor to show'],
     ]
 
@@ -194,7 +194,7 @@ class mv(Macro):
 
     param_def = [
        [ 'motor_pos_list',
-         ( [ 'motor', Type.Motor, None, 'Motor to move'],
+         ( [ 'motor', Type.Moveable, None, 'Motor to move'],
            [ 'pos',   Type.Float, None, 'Position to move to'],
            { 'min' : 1, 'max' : None } ),
         None, 'List of motor/position pairs'],
@@ -202,7 +202,7 @@ class mv(Macro):
 
     param_def = [
        ['motor_pos_list',
-        ParamRepeat(['motor', Type.Motor, None, 'Motor to move'],
+        ParamRepeat(['motor', Type.Moveable, None, 'Motor to move'],
                     ['pos',   Type.Float, None, 'Position to move to']),
         None, 'List of motor/position pairs'],
     ]
@@ -218,7 +218,7 @@ class mv(Macro):
 
 class mstate(Macro):
 
-        param_def = [['motor', Type.Motor, None, 'Motor to move']]
+        param_def = [['motor', Type.Moveable, None, 'Motor to check state']]
 
         def run(self, motor):
             self.info("Motor %s" % str(motor.getState()))
@@ -282,7 +282,7 @@ class mvr(Macro):
 
     param_def = [
        ['motor_disp_list',
-        ParamRepeat(['motor', Type.Motor, None, 'Motor to move'],
+        ParamRepeat(['motor', Type.Moveable, None, 'Motor to move'],
                     ['disp',  Type.Float, None, 'Relative displacement']),
         None, 'List of motor/displacement pairs'],
     ]
