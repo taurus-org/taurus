@@ -62,6 +62,9 @@ class FavouritesMacrosEditor(TaurusWidget):
         deleteButton = Qt.QToolButton()
         deleteButton.setDefaultAction(self.list.removeAction)
         layout.addWidget(deleteButton)
+        deleteAllButton = Qt.QToolButton()
+        deleteAllButton.setDefaultAction(self.list.removeAllAction)
+        layout.addWidget(deleteAllButton)
         moveUpButton = Qt.QToolButton()
         moveUpButton.setDefaultAction(self.list.moveUpAction)
         layout.addWidget(moveUpButton)
@@ -98,12 +101,16 @@ class FavouritesMacrosList(Qt.QListView, BaseConfigurableClass):
     def __init__(self, parent):
         Qt.QListView.__init__(self, parent)
         
-        self.setSelectionMode(Qt.QListView.SingleSelection)
+        self.setSelectionMode(Qt.QListView.ExtendedSelection)
         
         self.removeAction = Qt.QAction(Qt.QIcon(":/actions/list-remove.svg"), "Remove from favourites", self)
-        self.connect(self.removeAction, Qt.SIGNAL("triggered()"), self.removeMacro)
-        self.removeAction.setToolTip("Clicking this button will remove the macro from favourites.")
-            
+        self.connect(self.removeAction, Qt.SIGNAL("triggered()"), self.removeMacros)
+        self.removeAction.setToolTip("Clicking this button will remov selected macros from favourites.")
+        
+        self.removeAllAction = Qt.QAction(Qt.QIcon(":/places/user-trash.svg"), "Remove all from favourites", self)
+        self.connect(self.removeAllAction, Qt.SIGNAL("triggered()"), self.removeAllMacros)
+        self.removeAllAction.setToolTip("Clicking this button will remove all macros from favourites.")
+        
         self.moveUpAction = Qt.QAction(Qt.QIcon(":/actions/go-up.svg"), "Move up", self)
         self.connect(self.moveUpAction, Qt.SIGNAL("triggered()"), self.upMacro)
         self.moveUpAction.setToolTip("Clicking this button will move the macro up in the favourites hierarchy.")
@@ -115,19 +122,34 @@ class FavouritesMacrosList(Qt.QListView, BaseConfigurableClass):
         self.disableActions()
         
     def currentChanged(self, current, previous):
+       Qt.QListView.currentChanged(self, current, previous)
+
+    def selectionChanged(self,old,new):
         macro = None
-        if current.isValid():            
-            self.removeAction.setEnabled(True)  
-            self.moveUpAction.setEnabled(self.model().isUpRowAllowed(current))
-            self.moveDownAction.setEnabled(self.model().isDownRowAllowed(current))
-            macro = copy.deepcopy(current.internalPointer())
+        if self.currentIndex().isValid():            
+            self.removeAction.setEnabled(True)
+            self.removeAllAction.setEnabled(True)  
+            self.moveUpAction.setEnabled(self.model().isUpRowAllowed(self.currentIndex()))
+            self.moveDownAction.setEnabled(self.model().isDownRowAllowed(self.currentIndex()))
+            macro = copy.deepcopy(self.currentIndex().internalPointer())
         else: 
             self.disableActions()
         self.emit(Qt.SIGNAL("favouriteSelected"), macro)
-        Qt.QListView.currentChanged(self, current, previous)
+        Qt.QListView.selectionChanged(self, old, new)
+        if len(self.selectedIndexes()) > 1:
+            self.moveUpAction.setEnabled(False)
+            self.moveDownAction.setEnabled(False)
+    
+    def mousePressEvent(self, e):
+        clickedIndex = self.indexAt(e.pos())
+        if clickedIndex.isValid() and clickedIndex in self.selectedIndexes():
+            macro = copy.deepcopy(self.currentIndex().internalPointer())
+            self.emit(Qt.SIGNAL("favouriteSelected"), macro)
+        Qt.QListView.mousePressEvent(self, e)
         
     def disableActions(self):
         self.removeAction.setEnabled(False)
+        self.removeAllAction.setEnabled(False)
         self.moveUpAction.setEnabled(False)
         self.moveDownAction.setEnabled(False)
         
@@ -135,10 +157,18 @@ class FavouritesMacrosList(Qt.QListView, BaseConfigurableClass):
         idx = self.model().insertRow(macroNode)
         self.setCurrentIndex(idx)
             
-    def removeMacro(self):
-        row = self.currentIndex().row()
-        idx = self.model().removeRow(row)
+    def removeMacros(self):
+        slist = sorted(self.selectedIndexes(), key=lambda index: index.row(), reverse = True)
+        for index in slist:
+            row = index.row()
+            idx = self.model().removeRow(row)
         self.setCurrentIndex(idx)
+    
+    def removeAllMacros(self):
+        self.selectAll()
+        slist = sorted(self.selectedIndexes(), key=lambda index: index.row(), reverse = True)
+        for index in slist:
+            self.model().removeRow(index.row()) 
     
     def upMacro(self):
         row = self.currentIndex().row()
