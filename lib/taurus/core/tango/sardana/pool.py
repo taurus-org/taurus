@@ -1320,6 +1320,7 @@ class Pool(TangoDevice, MoveableSource):
         for element_data in elems.get('del', ()):
             element = self.getElementInfo(element_data['name'])
             elements.removeElement(element)
+        return elems
     
     def getElementsInfo(self):
         return self._elements
