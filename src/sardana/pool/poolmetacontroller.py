@@ -42,7 +42,7 @@ from taurus.core.util import CaselessDict, CodecFactory
 from sardana import DataType, DataFormat, DataAccess, \
     DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, \
     ElementType, TYPE_ELEMENTS, InvalidId
-from sardana.sardanameta import SardanaMetaLibrary, SardanaMetaClass
+from sardana.sardanameta import SardanaLibrary, SardanaClass
 
 from poolmotor import PoolMotor
 from poolpseudomotor import PoolPseudoMotor
@@ -114,7 +114,7 @@ for t, d in TYPE_MAP.items():
     TYPE_MAP_OBJ[t] = o
 
 
-class ControllerLibrary(SardanaMetaLibrary):
+class ControllerLibrary(SardanaLibrary):
     """Object representing a python module containning controller classes.
     Public members:
     
@@ -130,12 +130,12 @@ class ControllerLibrary(SardanaMetaLibrary):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
-        SardanaMetaLibrary.__init__(self, **kwargs)
+        SardanaLibrary.__init__(self, **kwargs)
     
-    add_controller = SardanaMetaLibrary.add_meta_class
-    get_controller = SardanaMetaLibrary.get_meta_class
-    get_controllers = SardanaMetaLibrary.get_meta_classes
-    has_controller = SardanaMetaLibrary.has_meta_class
+    add_controller = SardanaLibrary.add_meta_class
+    get_controller = SardanaLibrary.get_meta_class
+    get_controllers = SardanaLibrary.get_meta_classes
+    has_controller = SardanaLibrary.has_meta_class
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -146,7 +146,7 @@ class ControllerLibrary(SardanaMetaLibrary):
         return ElementType.ControllerLibrary
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaLibrary.serialize(self, *args, **kwargs)
+        kwargs = SardanaLibrary.serialize(self, *args, **kwargs)
         kwargs['pool'] = self.get_manager().name
         kwargs['id'] = InvalidId
         return kwargs
@@ -214,7 +214,7 @@ class DataInfo(object):
 #        DataInfo.__init__(self, name, dtype, dformat, access=DataAcces.ReadWrite,
 #                          description=description, default_value=None)
 
-class ControllerClass(SardanaMetaClass):
+class ControllerClass(SardanaClass):
     """Object representing a python controller class. 
        Public members:
        
@@ -225,7 +225,7 @@ class ControllerClass(SardanaMetaClass):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
-        SardanaMetaClass.__init__(self, **kwargs)
+        SardanaClass.__init__(self, **kwargs)
 
         self.types = []
         self.dict_extra = {}
@@ -286,7 +286,7 @@ class ControllerClass(SardanaMetaClass):
         return ElementType.ControllerClass
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaClass.serialize(self, *args, **kwargs)
+        kwargs = SardanaClass.serialize(self, *args, **kwargs)
         kwargs['id'] = InvalidId
         kwargs['pool'] = self.get_manager().name
         kwargs['gender'] = self.gender

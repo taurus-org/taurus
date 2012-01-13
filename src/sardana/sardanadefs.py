@@ -389,7 +389,7 @@ def __expand_sardana_interface_data(si_map, name, curr_id):
         if interface not in si_map:
             curr_id = __expand_sardana_interface_data(si_map, interface, curr_id)
         d |= si_map[interface]
-    si_map[name] = d | curr_id
+    si_map[name] = long(d | curr_id)
     return 2*curr_id
 
 def __root_expand_sardana_interface_data():

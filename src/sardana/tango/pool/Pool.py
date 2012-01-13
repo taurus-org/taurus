@@ -567,7 +567,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         
         self._check_element(name, full_name)
         
-        elem_ids = self._get_moveable_ids(*kwargs["elements"])
+        elem_ids = self._get_moveable_ids(kwargs["elements"])
         
         def create_motgrp_cb(device_name):
             db = util.get_database()

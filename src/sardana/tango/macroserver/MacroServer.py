@@ -70,7 +70,7 @@ class MacroServer(SardanaDevice):
         self.get_device_properties(dev_class)
         
         self.EnvironmentDb = self._calculate_environment_name(self.EnvironmentDb)
-
+        
         # Init MacroServer Manager
         # it is important that the MacroServerManager singleton be called
         # here for the first time. So don't call it in the main or 

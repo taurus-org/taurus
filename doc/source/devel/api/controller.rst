@@ -56,7 +56,7 @@ Here is an example on how to define extra attributes per axis:
         axis_attributes = {
             'EncoderSource' : { 'type' : str,
                                 'description' : 'motor encoder source', },
-            'ReflectionMatrix' : { 'type' : str,
+            'ReflectionMatrix' : { 'type' : ( (float,), ),
                                    'r/w type' : 'read',
                                    'fget' : 'getReflectionMatrix', },
         }

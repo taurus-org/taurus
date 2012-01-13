@@ -39,7 +39,7 @@ import parameter
 from taurus.core.util import CodecFactory
 
 from sardana import InvalidId, ElementType
-from sardana.sardanameta import SardanaMetaLibrary, SardanaMetaClass
+from sardana.sardanameta import SardanaLibrary, SardanaClass
 
 MACRO_TEMPLATE = """class @macro_name@(Macro):
     \"\"\"@macro_name@ description.\"\"\"
@@ -59,7 +59,7 @@ MACRO_TEMPLATE = """class @macro_name@(Macro):
 
 """
 
-class MacroLibrary(SardanaMetaLibrary):
+class MacroLibrary(SardanaLibrary):
     """Object representing a python module containning macro classes and/or 
     macro functins. Public members:
         
@@ -74,7 +74,7 @@ class MacroLibrary(SardanaMetaLibrary):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
-        SardanaMetaLibrary.__init__(self, **kwargs)
+        SardanaLibrary.__init__(self, **kwargs)
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -85,26 +85,26 @@ class MacroLibrary(SardanaMetaLibrary):
         return ElementType.MacroLibrary
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaLibrary.serialize(self, *args, **kwargs)
+        kwargs = SardanaLibrary.serialize(self, *args, **kwargs)
         kwargs['macro_server'] = self.get_manager().name
         kwargs['id'] = InvalidId
         return kwargs
     
-    add_macro = SardanaMetaLibrary.add_meta_class
-    get_macro = SardanaMetaLibrary.get_meta_class
-    get_macros = SardanaMetaLibrary.get_meta_classes
-    has_macro = SardanaMetaLibrary.has_meta_class
+    add_macro = SardanaLibrary.add_meta_class
+    get_macro = SardanaLibrary.get_meta_class
+    get_macros = SardanaLibrary.get_meta_classes
+    has_macro = SardanaLibrary.has_meta_class
 
     @property
     def macros(self):
         return self.meta_classes
 
 
-class MacroClass(SardanaMetaClass):
+class MacroClass(SardanaClass):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
-        SardanaMetaClass.__init__(self, **kwargs)
+        SardanaClass.__init__(self, **kwargs)
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -115,7 +115,7 @@ class MacroClass(SardanaMetaClass):
         return ElementType.MacroClass
     
     def serialize(self, *args, **kwargs):
-        kwargs = SardanaMetaClass.serialize(self, *args, **kwargs)
+        kwargs = SardanaClass.serialize(self, *args, **kwargs)
         kwargs['macro_server'] = self.get_manager().name
         kwargs['id'] = InvalidId
         kwargs['hints'] = self.klass.hints
