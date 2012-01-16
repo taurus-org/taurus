@@ -308,8 +308,10 @@ class MacroServerManager(Singleton, Logger):
             for name, obj in type_inst.getObjDict(pool=pool).items():
                 for re_obj in re_objs:
                     if re_obj.match(name) is not None:
-                        if subtype is MacroServerManager.All or \
-                           re_subtype.match(obj.getType()):
+                        obj_type = obj.getType()
+                        if (subtype is MacroServerManager.All or \
+                            re_subtype.match(obj.getType())) and \
+                           obj_type != "MotorGroup":
                             obj_set.add(obj)
         return list(obj_set)
     
