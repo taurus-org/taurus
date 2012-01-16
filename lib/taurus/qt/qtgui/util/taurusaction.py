@@ -202,7 +202,7 @@ class AttributeAllConfigAction(TaurusAction):
     
     def __init__(self, parent=None):
         TaurusAction.__init__(self, parent)
-        self.setText("Configure...")
+        self.setText("All...")
         
     def actionTriggered(self):
         #raise NotImplementedError('This action is not yet implemented')
