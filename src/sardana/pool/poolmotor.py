@@ -238,8 +238,9 @@ class PoolMotor(PoolElement):
     def set_offset(self, offset, propagate=1):
         self._offset.set_value(offset, propagate=propagate)
         # recalculate position and send event
-        position = self.to_user_position(offset=self._offset)
-        self._position.set_value(position, propagate=propagate)
+        position, exc_info = self.to_user_position(offset=self._offset)
+        self._position.set_value(position, exc_info=exc_info,
+                                 propagate=propagate)
     
     offset = property(get_offset, set_offset, doc="motor offset")
     
@@ -253,12 +254,15 @@ class PoolMotor(PoolElement):
     def set_sign(self, sign, propagate=1):
         self._sign.set_value(sign, propagate=propagate)
         # recalculate position and send event
-        position = self.to_user_position(sign=self._sign)
-        self._position.set_value(position, propagate=propagate)
+        position, exc_info = self.to_user_position(sign=self._sign)
+        self._position.set_value(position, exc_info=exc_info,
+                                 propagate=propagate)
         # invert lower with upper limit switches and send event in case of change
         ls = self._limit_switches
         if ls.has_value():
-            self._set_limit_switches((ls[0],ls[2],ls[1]), propagate=propagate)
+            value = ls.value
+            value = value[0], value[2], value[1]
+            self._set_limit_switches(value, propagate=propagate)
         
     sign = property(get_sign, set_sign, doc="motor sign")
     
