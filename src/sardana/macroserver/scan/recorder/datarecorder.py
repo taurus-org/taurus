@@ -114,11 +114,11 @@ class DataRecorder(Logger):
         pass
 
     def writeRecordList(self, recordlist):
-        """ Only in BLOCK_MODE. Will write whold RecordList """
+        """ Only in BLOCK_MODE. Will write whole RecordList """
         self._startRecordList( recordlist )
-        self._endRecordList( recordlist )
         for record in recordlist.records:
            self.writeRecord(record)
+        self._endRecordList( recordlist )
 
     def writeRecord(self, record):
         self._writeRecord( record )
