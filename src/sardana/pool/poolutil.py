@@ -36,6 +36,9 @@ class _PoolUtil(object):
     def __init__(self):
         self._ctrl_proxies = CaselessDict()
     
+    def __call__(self, *args, **kwargs):
+        return self
+    
     def get_device(self, *args, **kwargs):
         ctrl_name = args[0]
         device_name = args[1]
