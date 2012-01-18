@@ -54,7 +54,7 @@ class PoolIORegister(PoolElement):
     # --------------------------------------------------------------------------
     
     def read_value(self):
-        return self.acquisition.read_value()[self]
+        return self.get_action_cache().read_value()[self]
     
     def put_value(self, value, propagate=1):
         self._set_value(value, propagate=propagate)

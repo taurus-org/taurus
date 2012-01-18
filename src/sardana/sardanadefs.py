@@ -335,7 +335,7 @@ INTERFACES = {
     "Instrument" : set(("PoolElement",)),
     "Motor" : set(("Moveable", "Acquirable")),
     "PseudoMotor" : set(("Moveable", "Acquirable")),
-    "IORegister" : set(("Moveable", "Acquirable")),
+    "IORegister" : set(("Acquirable",)),
     "ExpChannel" : set(("Acquirable",)),
     "CTExpChannel" : set(("ExpChannel",)),
     "ZeroDExpChannel" : set(("ExpChannel",)),
