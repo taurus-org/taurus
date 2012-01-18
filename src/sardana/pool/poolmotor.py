@@ -589,7 +589,7 @@ class PoolMotor(PoolElement):
             dial_position_info = self.read_dial_position()
             self._set_dial_position(dial_position_info, propagate=propagate)
         return self._dial_position
-
+    
     def _set_dial_position(self, dial_position_info, propagate=1):
         """Sets a new dial position.
            
@@ -618,12 +618,12 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
     # motion
     # --------------------------------------------------------------------------
-
+    
     def get_motion(self):
         return self.get_action_cache()
     
     motion = property(get_motion, doc="motion object")
-
+    
     # --------------------------------------------------------------------------
     # motion calculation
     # --------------------------------------------------------------------------

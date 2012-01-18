@@ -340,7 +340,9 @@ class Controller(object):
         .. versionadded:: 1.0"""
         ret = copy.deepcopy(self.standard_axis_attributes)
         axis_attrs = copy.deepcopy(self.axis_attributes)
+        old_axis_attrs = copy.deepcopy(self.ctrl_extra_attributes)
         ret.update(axis_attrs)
+        ret.update(old_axis_attrs)
         return ret
     
     def AbortOne(self, axis):

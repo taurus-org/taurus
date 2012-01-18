@@ -976,7 +976,6 @@ class Macro(Logger):
            :param obj_list: list of objects to be controlled
            :type obj_list: sequence
         """
-        executor = self.getExecutor()
         for o in obj_list:
             self.addObj(o)
 
@@ -1009,7 +1008,7 @@ class Macro(Logger):
                            (optional, default is True)
            
            :return: the object or empty list if no compatible object is found"""
-        if not isinstance(name, str):
+        if not isinstance(name, (str, unicode)):
             raise self._buildWrongParamExp("getObj", "name", "string", str(type(name)))
         
         obj = self.getManager().getObj(name, type_class=type_class, subtype=subtype, pool=pool)

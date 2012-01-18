@@ -198,6 +198,11 @@ class DataInfo(object):
     def serialize(self, *args, **kwargs):
         kwargs.update(self.toDict())
         return kwargs
+
+    def __repr__(self):
+        return "{0}(name={1}, type={2}, format={3}, access={4})".format(
+            self.__class__.__name__, self.name, DataType[self.dtype],
+            DataFormat[self.dformat], DataAccess[self.access])
     
 #class PropertyInfo(DataInfo):
     

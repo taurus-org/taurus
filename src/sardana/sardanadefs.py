@@ -169,7 +169,7 @@ def from_access_str(access):
     :type dtype: str
     :return: a simple string for the given access
     :rtype: str"""
-    if type(access) == str:
+    if isinstance(access, (str, unicode)):
         access = access.lower()
         if access.startswith("pytango."):
             access = access[len("pytango."):]
@@ -204,7 +204,7 @@ def to_dtype_dformat(data):
     dtype = DTYPE_MAP.get(dtype, DataType.Invalid)
     return dtype, dformat
 
-def to_daccess(data):
+def to_daccess(daccess):
     """Transforms the given access parameter (string or None) into a
     :obj:`DataAccess`. If None is given returns :obj:`DataAccess.ReadWrite`
     
@@ -212,9 +212,10 @@ def to_daccess(data):
     :type dtype: str
     :return: a :obj:`DataAccess` for the given access
     :rtype: :obj:`DataAccess`"""
-    daccess = DataAccess.Invalid
-    if isinstance(data , (str, unicode)):
-        daccess = DACCESS_MAP.get(from_access_str(data), DataAccess.ReadWrite)
+    if daccess is None:
+        daccess = DataAccess.ReadWrite
+    elif isinstance(daccess , (str, unicode)):
+        daccess = DACCESS_MAP.get(from_access_str(daccess), DataAccess.ReadWrite)
     return daccess
 
 #: A constant representing  an invalid ID

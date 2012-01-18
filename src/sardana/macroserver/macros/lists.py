@@ -132,7 +132,10 @@ class _lsobj(_ls):
                    max_col_width=self.width)
         objs.sort()
         for obj in objs:
-            out.appendRow( self.obj2Row(obj) )
+            try:
+                out.appendRow( self.obj2Row(obj) )
+            except:
+                pass
         for line in out.genOutput():
             self.output(line)
     

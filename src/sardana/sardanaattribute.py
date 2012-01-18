@@ -60,18 +60,46 @@ class SardanaAttribute(object):
             self.set_value(initial_value)
     
     def get_obj(self):
+        """Returns the object which *owns* this attribute
+        
+        :return: the object which *owns* this attribute
+        :rtype: obj"""
         obj = self._obj
         if obj is not None:
             obj = obj()
         return obj
     
     def has_value(self):
+        """Determines if the attribute's read value has been read at least once
+        in the lifetime of the attribute.
+        
+        :return: True if the attribute has a read value stored or False otherwise
+        :rtype: bool"""
         return hasattr(self, '_r_value')
     
     def in_error(self):
+        """Determines if this attribute is in error state.
+        
+        :return: True if the attribute is in error state or False otherwise
+        :rtype: bool"""
         return self.error
     
     def set_value(self, value, exc_info=None, timestamp=None, propagate=1):
+        """Sets the current read value and propagates the event (if
+        propagate > 0).
+        
+        :param value: the new read value for this attribute
+        :type value: obj
+        :param exc_info: exception information as returned by
+                         :func:`sys.exc_info` [default: None, meaning no
+                         exception]
+        :type exc_info: tuple<3> or None
+        :param timestamp: timestamp of attribute readout [default: None, meaning
+                          create a 'now' timestamp]
+        :type timestamp: float or None
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate: int"""
         if timestamp is None:
             timestamp = time.time()
         self._r_timestamp = timestamp
@@ -81,21 +109,54 @@ class SardanaAttribute(object):
         self.fire_event(propagate=propagate)
     
     def get_value(self):
+        """Returns the last read value for this attribute.
+        
+        :return: the last read value for this attribute
+        :rtype: obj
+        
+        :raises: :exc:`Exception` if no read value has been set yet"""
+        if not self.has_value():
+            raise Exception("{0}.{1} doesn't have a read value yet".format(
+                            self.obj.name, self.name))
         return self._r_value
     
     def set_write_value(self, w_value, timestamp=None):
+        """Sets the current write value.
+        
+        :param w_value: the write read value for this attribute
+        :type w_value: obj
+        :param timestamp: timestamp of attribute write [default: None, meaning
+                          create a 'now' timestamp]
+        :type timestamp: float or None"""
         if timestamp is None:
             timestamp = time.time()
         self._w_value = w_value
         self._w_timestamp = timestamp
     
     def get_write_value(self):
+        """Returns the last write value for this attribute.
+        
+        :return: the last write value for this attribute or None if value has
+                 not been written yet
+        :rtype: obj"""
         return self._w_value
     
     def get_exc_info(self):
+        """Returns the exception information (like :func:`sys.exc_info`) about
+        last attribute readout or None if last read did not generate an
+        exception.
+        
+        :return: exception information or None
+        :rtype: tuple<3> or None"""
         return self._r_exc_info
     
     def fire_event(self, propagate=1):
+        """Fires an event to the listeners of the object which owns this
+        attribute.
+        
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate: int"""
         if propagate < 1:
             return
         if propagate > 1 or self.filter(self._r_value, self._last_event_value):
@@ -106,6 +167,11 @@ class SardanaAttribute(object):
     
     @property
     def timestamp(self):
+        """Returns the timestamp of the last readout or None if the attribute 
+        has never been read before
+        
+        :return: timestamp of the last readout or None
+        :rtype: float or None"""
         return self._r_timestamp
     
     obj = property(get_obj, "container object for this attribute")
@@ -123,10 +189,28 @@ class SardanaAttribute(object):
 
 
 class SardanaSoftwareAttribute(SardanaAttribute):
+    """Class representing a software attribute. The difference between this and
+    :class:`SardanaAttribute` is that, because it is a pure software attribute,
+    there is no difference ever between the read and write values."""
     
     get_value = SardanaAttribute.get_value
     
     def set_value(self, value, exc_info=None, timestamp=None, propagate=1):
+        """Sets the current read value and propagates the event (if
+        propagate > 0).
+        
+        :param value: the new read value for this attribute
+        :type value: obj
+        :param exc_info: exception information as returned by
+                         :func:`sys.exc_info` [default: None, meaning no
+                         exception]
+        :type exc_info: tuple<3> or None
+        :param timestamp: timestamp of attribute readout [default: None, meaning
+                          create a 'now' timestamp]
+        :type timestamp: float or None
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate: int"""
         SardanaAttribute.set_value(self, value, exc_info=exc_info,
                                    timestamp=timestamp)
         self.set_write_value(value, timestamp=self._r_timestamp)
@@ -135,6 +219,7 @@ class SardanaSoftwareAttribute(SardanaAttribute):
 
 
 class ScalarNumberAttribute(SardanaAttribute):
+    """A :class:`SardanaAttribute` speciallized for numbers"""
     
     def __init__(self, *args, **kwargs):
         SardanaAttribute.__init__(self, *args, **kwargs)
@@ -142,7 +227,7 @@ class ScalarNumberAttribute(SardanaAttribute):
 
 
 class SardanaAttributeConfiguration(object):
-
+    """Storage class for :class:`SardanaAttribute` information (like ranges)"""
     NoRange = float('-inf'), float('inf')
     
     def __init__(self):

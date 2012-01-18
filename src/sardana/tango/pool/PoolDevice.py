@@ -39,6 +39,7 @@ from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
 from sardana import InvalidId, InvalidAxis, ElementType
+from sardana.pool.poolmetacontroller import DataInfo
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
     GenericImageAttr, to_tango_state, to_tango_type_format, to_tango_access, \
@@ -342,8 +343,9 @@ class PoolElementDevice(PoolDevice):
                 tg_info = dev_class.standard_attr_list[attr_name]
                 std_attrs[attr_name] = attr_name, tg_info, attr_info
             else:
-                name, tg_info = to_tango_attr_info(attr_name, attr_info)
-                dyn_attrs[attr_name] = name, tg_info, attr_info
+                data_info = DataInfo.toDataInfo(attr_name, attr_info)
+                name, tg_info = to_tango_attr_info(attr_name, data_info)
+                dyn_attrs[attr_name] = name, tg_info, data_info
         return std_attrs, dyn_attrs
     
     def read_DynamicAttribute(self, attr):
