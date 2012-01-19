@@ -68,6 +68,28 @@ class ParamBase:
         model = self.index().model()
         model.setData(self.index(),Qt.QVariant(self.getValue()))
         
+class ComboBoxBoolean(ParamBase, Qt.QComboBox):
+    def __init__(self, parent=None, paramModel=None):
+        ParamBase.__init__(self, paramModel)
+        Qt.QComboBox.__init__(self, parent)
+        
+        self.addItems(['True', 'False'])
+        self.connect(self, Qt.SIGNAL("currentIndexChanged(int)"), self.onCurrentIndexChanged)
+        
+    def getValue(self):
+        return str(self.currentText())
+    
+    def setValue(self, value):
+        currentIdx = self.currentIndex()
+        idx = self.findText(value)
+        if currentIdx == idx:
+            self.emit(Qt.SIGNAL("currentIndexChanged(int)"), self.currentIndex())
+        else:
+            self.setCurrentIndex(idx)
+        
+    def onCurrentIndexChanged(self):
+        self.emit(Qt.SIGNAL("modelChanged()"))
+        
 class ComboBoxParam(ParamBase, Qt.QComboBox):
     
     def __init__(self, parent=None, paramModel=None):

@@ -30,7 +30,7 @@ delegate.py:
 from taurus.qt import Qt
 
 from parameditors import MSAttrListComboBoxParam, SpinBoxParam, \
-    DoubleSpinBoxParam, LineEditParam, FileDialogParam
+    DoubleSpinBoxParam, LineEditParam, FileDialogParam, ComboBoxParam, ComboBoxBoolean
 from taurus.qt.qtgui.extra_macroexecutor import globals
 from taurus.core.tango.sardana import macro
 
@@ -58,6 +58,8 @@ class ParamEditorDelegate(Qt.QStyledItemDelegate):
                     return LineEditParam(parent, node)
                 elif paramType in globals.EDITOR_FILEDIALOG_PARAMS:
                     return FileDialogParam(parent, node)
+                elif paramType in globals.EDITOR_BOOLEAN_PARAMS:
+                    return ComboBoxBoolean(parent, node)
         return Qt.QStyledItemDelegate.createEditor(self, parent, option, index)
     
     def setEditorData(self, editor, index):
@@ -105,6 +107,6 @@ class ParamEditorDelegate(Qt.QStyledItemDelegate):
                 editor.hide()
                 editor.setParent(None)
 #                editor.destroy()
-        else: 
+        else:
             size = Qt.QStyledItemDelegate.sizeHint(self, option, index)
         return size

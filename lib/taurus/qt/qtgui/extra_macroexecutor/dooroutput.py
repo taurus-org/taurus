@@ -29,8 +29,8 @@ dooroutput.py:
 
 from taurus.qt import Qt
 import taurus.core
-        
-        
+
+  
 class DoorOutput(Qt.QTextEdit):
     """Widget used for displaying changes of door's attributes: Output, Info, Warning and Error."""
     
@@ -38,6 +38,10 @@ class DoorOutput(Qt.QTextEdit):
         Qt.QTextEdit.__init__(self, parent)        
         self.setReadOnly(True)
         self.setFont(Qt.QFont("Courier",9))
+        self.stopAction = Qt.QAction("Stop scrolling",self)
+        self.stopAction.setCheckable(True)
+        self.stopAction.setChecked(False)
+        self._isStopped = False
                 
     def onDoorOutputChanged(self, output):
         """call on output attribute changed"""
@@ -45,21 +49,20 @@ class DoorOutput(Qt.QTextEdit):
         if output is None:
             return
         for line in output:
-            txt+="OUTPUT  " + line+"\n"
+            txt+="OUTPUT  " + line.replace(' ', '&nbsp;')+"\n"
         txt += "</font><br>"
-        self.insertHtml(txt)
-        self.moveCursor(Qt.QTextCursor.End)
+        self.insertHtmlText(txt)
     
     def onDoorInfoChanged(self, info):        
         """call on info attribute changed"""
         txt ="<font color=\"Black\">"
         if info is None:
             return
+        
         for line in info:
-            txt+="INFO  " + line+"\n"
+            txt+="INFO  " + line.replace(' ', '&nbsp;')+"\n"
         txt += "</font><br>"
-        self.insertHtml(txt)
-        self.moveCursor(Qt.QTextCursor.End)
+        self.insertHtmlText(txt)
         
     def onDoorWarningChanged(self, warning):
         """call on warning attribute changed"""        
@@ -67,10 +70,9 @@ class DoorOutput(Qt.QTextEdit):
         if warning is None:
             return
         for line in warning:
-            txt+="WARNING  " + line+"\n"
+            txt+="WARNING  " + line.replace(' ', '&nbsp;')+"\n"
         txt += "</font><br>"
-        self.insertHtml(txt)
-        self.moveCursor(Qt.QTextCursor.End)
+        self.insertHtmlText(txt)
     
     def onDoorErrorChanged(self, error):
         """call on error attribute changed"""
@@ -78,20 +80,29 @@ class DoorOutput(Qt.QTextEdit):
         if error is None:
             return
         for line in error:
-            txt+="ERROR  " + line+"\n"
+            txt+="ERROR  " + line.replace(' ', '&nbsp;')+"\n"
         txt += "</font><br>"
-        self.insertHtml(txt)
-        self.moveCursor(Qt.QTextCursor.End)
-                        
+        self.insertHtmlText(txt)
+    
+    def insertHtmlText(self, text):
+        self.insertHtml(text)
+        if not self._isStopped:
+            self.moveCursor(Qt.QTextCursor.End)
+    
     def contextMenuEvent(self,event):
         menu = self.createStandardContextMenu() 
         clearAction = Qt.QAction("Clear", menu)
         menu.addAction(clearAction)
+        menu.addAction(self.stopAction)
         if not len(self.toPlainText()):
             clearAction.setEnabled(False) 
         
-        Qt.QObject.connect(clearAction, Qt.SIGNAL("triggered()"), self.clear)               
+        Qt.QObject.connect(clearAction, Qt.SIGNAL("triggered()"), self.clear)
+        Qt.QObject.connect(self.stopAction, Qt.SIGNAL("toggled(bool)"), self.stopScrolling)    
         menu.exec_(event.globalPos())
+    
+    def stopScrolling(self, stop):
+        self._isStopped = stop
         
 class DoorDebug(Qt.QTextEdit):
     """Widget used for displaying changes of door's Debug attribute."""
@@ -100,6 +111,10 @@ class DoorDebug(Qt.QTextEdit):
         Qt.QTextEdit.__init__(self, parent)        
         self.setReadOnly(True)
         self.setFont(Qt.QFont("Courier",9))
+        self.stopAction = Qt.QAction("Stop scrolling",self)
+        self.stopAction.setCheckable(True)
+        self.stopAction.setChecked(False)
+        self._isStopped = False
         
     def onDoorDebugChanged(self, debug):
         """call on debug attribute changed"""
@@ -107,18 +122,25 @@ class DoorDebug(Qt.QTextEdit):
             return
         for line in debug: 
             self.append("DEBUG  " + line)
-        self.moveCursor(Qt.QTextCursor.End)
+        
+        if not self._isStopped:
+            self.moveCursor(Qt.QTextCursor.End)
         
     def contextMenuEvent(self,event):
         menu = self.createStandardContextMenu() 
         clearAction = Qt.QAction("Clear", menu)
         menu.addAction(clearAction)
+        menu.addAction(self.stopAction)
         if not len(self.toPlainText()):
             clearAction.setEnabled(False) 
         
-        Qt.QObject.connect(clearAction, Qt.SIGNAL("triggered()"), self.clear)               
+        Qt.QObject.connect(clearAction, Qt.SIGNAL("triggered()"), self.clear)
+        Qt.QObject.connect(self.stopAction, Qt.SIGNAL("toggled(bool)"), self.stopScrolling)               
         menu.exec_(event.globalPos())
-        
+    
+    def stopScrolling(self, stop):
+        self._isStopped = stop
+    
 class DoorResult(Qt.QTextEdit):
     """Widget used for displaying changes of door's Result attribute."""
     
