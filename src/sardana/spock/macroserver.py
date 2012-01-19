@@ -49,7 +49,6 @@ from taurus.core.util.console import NoTaurusSWDevStateColors, TermTaurusSWDevSt
 
 import genutils
 import exception
-import IPython.generics
 
 if genutils.get_gui_mode() == 'qt4':
     from taurus.qt import Qt

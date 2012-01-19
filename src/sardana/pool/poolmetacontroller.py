@@ -262,8 +262,18 @@ class ControllerClass(SardanaClass):
         if ElementType.PseudoMotor in types:
             self.motor_roles = tuple(klass.motor_roles)
             self.pseudo_motor_roles = tuple(klass.pseudo_motor_roles)
+            if len(self.pseudo_motor_roles) == 0:
+                self.pseudo_motor_roles = (klass.__name__,)
             self.dict_extra['motor_roles'] = self.motor_roles
             self.dict_extra['pseudo_motor_roles'] = self.pseudo_motor_roles
+
+        if ElementType.PseudoCounter in types:
+            self.counter_roles = tuple(klass.counter_roles)
+            self.pseudo_counter_roles = tuple(klass.pseudo_counter_roles)
+            if len(self.pseudo_counter_roles) == 0:
+                self.pseudo_counter_roles = (klass.__name__,)
+            self.dict_extra['counter_roles'] = self.counter_roles
+            self.dict_extra['pseudo_counter_roles'] = self.pseudo_counter_roles
 
         if ElementType.IORegister in types:
             self.dict_extra['predefined_values'] = klass.predefined_values
