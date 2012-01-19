@@ -320,11 +320,15 @@ def run_tango_server(util, start_time=None):
             taurus.info("Ready to accept request")
         tango_util.server_run()
         SardanaServer.server_state = State.Off
+        taurus.info("Exiting")
     except DevFailed:
+        taurus.info("Exiting")
         taurus.critical("Server exited with DevFailed", exc_info=1)
     except KeyboardInterrupt:
+        taurus.info("Exiting")
         taurus.critical("Interrupted by keyboard")
     except Exception:
+        taurus.info("Exiting")
         taurus.critical("Server exited with unforeseen exception", exc_info=1)
     taurus.info("Exited")
 
