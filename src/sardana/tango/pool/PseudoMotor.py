@@ -80,7 +80,7 @@ class PseudoMotor(PoolElementDevice):
                 axis=self.Axis, ctrl_id=self.Ctrl_id,
                 user_elements=self.Elements)
             if self.instrument is not None:
-                motor.set_instrument(self.instrument)
+                pseudo_motor.set_instrument(self.instrument)
             pseudo_motor.add_listener(self.on_pseudo_motor_changed)
             self.pseudo_motor = pseudo_motor
         # force a state read to initialize the state attribute
