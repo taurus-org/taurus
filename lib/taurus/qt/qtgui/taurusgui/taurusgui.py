@@ -580,7 +580,7 @@ class TaurusGui(TaurusMainWindow):
         instrument_dict = {}
         try:
             ms = taurus.Device(macroservername)
-            instruments = ms['InstrumentList'].value
+            instruments = ms.getElementsOfType('Instrument')
             if instruments is None: raise
         except Exception,e:
             msg = 'Could not fetch Instrument list from "%s"'%macroservername
@@ -589,8 +589,10 @@ class TaurusGui(TaurusMainWindow):
             if result == Qt.QMessageBox.Abort:
                 sys.exit()
             return []
-        for i in instruments:
-            i_name, i_unknown, i_type, i_pools = i.split()
+        for i in instruments.values():
+            i_name = i.full_name
+            print "ADD",i_name         
+            #i_name, i_unknown, i_type, i_pools = i.split()
             i_view = PanelDescription(i_name,classname='TaurusForm', floating=False, model=[])
             instrument_dict[i_name] = i_view
         
@@ -603,7 +605,8 @@ class TaurusGui(TaurusMainWindow):
             e = taurus.Device(e_name)
             instrument = e['Instrument'].value
             if instrument != '':
-                i_name = instrument[:instrument.find('(')]
+                i_name = instrument
+                print "SET INSTRUMENT",i_name
                 e_name = e.alias()
                 instrument_dict[i_name].model.append(e_name)
                 
