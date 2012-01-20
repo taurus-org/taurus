@@ -98,7 +98,7 @@ ALLOWS_HOOKS_FILTER = 'allowsHooks'
 
 PARAM_REPEAT           = "ParamRepeat"
 
-PARAM_MOTOR                 = "Motor"
+PARAM_MOTOR                 = "Moveable"
 PARAM_CONTROLLER_CLASS      = "ControllerClass"
 PARAM_CONTROLLER            = "Controller"
 PARAM_MOTOR_PARAM           = "MotorParam"

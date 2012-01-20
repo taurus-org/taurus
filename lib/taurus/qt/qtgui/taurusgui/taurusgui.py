@@ -591,7 +591,6 @@ class TaurusGui(TaurusMainWindow):
             return []
         for i in instruments.values():
             i_name = i.full_name
-            print "ADD",i_name         
             #i_name, i_unknown, i_type, i_pools = i.split()
             i_view = PanelDescription(i_name,classname='TaurusForm', floating=False, model=[])
             instrument_dict[i_name] = i_view
@@ -606,7 +605,6 @@ class TaurusGui(TaurusMainWindow):
             instrument = e['Instrument'].value
             if instrument != '':
                 i_name = instrument
-                print "SET INSTRUMENT",i_name
                 e_name = e.alias()
                 instrument_dict[i_name].model.append(e_name)
                 
