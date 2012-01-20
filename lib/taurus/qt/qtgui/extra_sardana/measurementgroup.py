@@ -353,7 +353,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             ch_name, ch_data = index.internalPointer().itemData()
             unitdict = self.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
             key = self.data_keys_map[taurus_role]
-            ret = unitdict[key]
+            ret = unitdict[key]            
             if taurus_role == ChannelView.Trigger:
                 ret = AcqTriggerType[ret]
             return Qt.QVariant(ret)
@@ -396,7 +396,11 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         ctrlsdict = self.dataSource()['controllers']
         if not ctrlsdict.has_key(ctrlname): ctrlsdict[ctrlname] = {'units':{}}
         unitsdict = ctrlsdict[ctrlname]['units']
-        if not unitsdict.has_key(unitname): unitsdict[unitname] = {'channels':{}}
+        if not unitsdict.has_key(unitname):
+            unitsdict[unitname] = unit = {'channels':{}}
+            unit['timer'] = chname
+            unit['monitor'] = chname
+            unit['trigger_type'] = AcqTriggerType.Software
         channelsdict = unitsdict[unitname]['channels']
         if channelsdict.has_key(chname):
             self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
