@@ -313,6 +313,7 @@ class ControllerClass(SardanaClass):
         else:
             kwargs['main_type'] = None
         kwargs['api_version'] = self.api_version
+        kwargs.update(self.dict_extra)
         return kwargs
     
     @property

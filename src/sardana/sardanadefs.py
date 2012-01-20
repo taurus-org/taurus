@@ -344,7 +344,7 @@ INTERFACES = {
     "TwoDExpChannel" : set(("ExpChannel",)),
     "PseudoCounter" : set(("ExpChannel",)),
     "ComChannel" : set(("PoolElement",)),
-    "MotorGroup" : set(("Moveable", "Acquirable")),
+    "MotorGroup" : set(("PoolElement",),),
     "MeasurementGroup" : set(("PoolElement",),),
     "ControllerLibrary" : set(("Library", "PoolObject")),
     "ControllerClass" : set(("Class", "PoolObject")),

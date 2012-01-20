@@ -103,7 +103,8 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.set_change_event("State", True, False)
         self.set_change_event("Status", True, False)
         self.set_change_event("Elements", True, False)
-        self.pool.monitor.resume()
+        #hold the monitor thread for now!
+        #self.pool.monitor.resume()
     
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)

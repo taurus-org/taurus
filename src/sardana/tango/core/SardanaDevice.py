@@ -31,7 +31,8 @@ __docformat__ = 'restructuredtext'
 
 import threading
 
-from PyTango import Device_4Impl, DeviceClass, Util, DevState
+from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
+    AttrQuality, TimeVal
 
 from taurus.core.util.log import Logger
 
@@ -92,6 +93,41 @@ class SardanaDevice(Device_4Impl, Logger):
     def initialize_dynamic_attributes(self):
         pass
     
+    def set_attribute(self, attr, value=None, timestamp=None, quality=None,
+                      error=None, priority=1):
+        fire_event = priority > 0
+        
+        recover = False
+        if priority > 1 and attr.is_check_change_criteria():
+            attr.set_change_event(True, False)
+            recover = True
+        
+        try:
+            if error is not None:
+                if fire_event:
+                    attr.fire_change_event(error)
+                return
+            
+            if value is None:
+                attr.set_quality(AttrQuality.ATTR_INVALID, fire_event)
+                return
+            
+            attr.set_value(value)
+            
+            if quality is not None:
+                attr.set_quality(quality)
+            
+            if timestamp is not None:
+                if not isinstance(timestamp, TimeVal):
+                    timestamp = TimeVal.fromtimestamp(timestamp)
+                attr.set_date(timestamp)
+            
+            if fire_event:
+                attr.fire_change_event()
+        finally:
+            if recover:
+                attr.set_change_event(True, True)
+        
 
 class SardanaDeviceClass(DeviceClass):
 
