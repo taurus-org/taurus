@@ -81,7 +81,8 @@ from taurus.core.tango.sardana.pool import getChannelConfigs
 #===============================================================================
 
 def createChannelDict(name, index=None, **kwargs):
-    ret = {'label': name, #channel label
+    ret = {'name': name,
+           'label': name, #channel label
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
            'plot_type': PlotType.No, # one of the PlotType enumeration members (as string)
@@ -100,8 +101,6 @@ def createChannelDict(name, index=None, **kwargs):
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     return ret
 
-
-                       
 def getElementTypeIcon(t):
     if t == ChannelView.Channel:
         return getIcon(":/actions/system-shutdown.svg")
