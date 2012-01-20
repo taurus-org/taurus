@@ -416,6 +416,8 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''
+        if self.getUseParentModel():
+            model ="/".join((str(self.getParentModelName()),str(model))) #@fixme: This assumes Tango models.
         plot = self.get_plot()
         if self.imgItem is not None:
             plot.del_item(self.imgItem)
@@ -452,6 +454,9 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     
     model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
     rgbmode = Qt.pyqtProperty("bool", getRGBmode, setRGBmode, resetRGBmode)
+    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel,
+                                     TaurusBaseWidget.setUseParentModel,
+                                     TaurusBaseWidget.resetUseParentModel)
     
     
     
