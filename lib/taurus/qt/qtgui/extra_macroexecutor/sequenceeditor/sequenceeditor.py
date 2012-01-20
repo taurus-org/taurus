@@ -442,6 +442,29 @@ class TaurusSequencerWidget(TaurusWidget):
         self.connect(self.macroComboBox, Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.tree, Qt.SIGNAL("macroChanged"), self.setMacroParametersRootIndex)
 
+
+    def contextMenuEvent(self,event):
+        menu = Qt.QMenu()
+        action = menu.addAction(getThemeIcon("view-refresh"), "Check door state", self.checkDoorState)
+        menu.exec_(event.globalPos())
+    
+    def checkDoorState(self):
+        door = Device(self.doorName())
+        doorState = door.state()
+        if doorState == PyTango.DevState.RUNNING:
+            self.playSequenceAction.setEnabled(False)
+            self.pauseSequenceAction.setEnabled(True)
+            self.stopSequenceAction.setEnabled(True)
+        elif doorState == PyTango.DevState.ON:
+            self.playSequenceAction.setEnabled(True)
+            self.pauseSequenceAction.setEnabled(False)
+            self.stopSequenceAction.setEnabled(False)
+        elif doorState == PyTango.DevState.STANDBY:
+            self.playSequenceAction.setEnabled(True)
+            self.pauseSequenceAction.setEnabled(False)
+            self.stopSequenceAction.setEnabled(True)
+    
+    
     def doorName(self):
         return self._doorName
         

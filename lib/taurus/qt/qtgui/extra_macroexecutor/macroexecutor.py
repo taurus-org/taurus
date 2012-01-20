@@ -154,13 +154,33 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         spockCommandLayout.addWidget(spockCommandLabel)
         spockCommandLayout.addWidget(self.spockCommand)
         self.layout().addLayout(spockCommandLayout)
-        
         self.connect(self.macroComboBox,Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.favouritesMacrosEditor.list, Qt.SIGNAL("favouriteSelected"), self.onFavouriteSelected)
         
     def macroId(self):
         return self._macroId
     
+    def contextMenuEvent(self,event):
+        menu = Qt.QMenu()
+        action = menu.addAction(getThemeIcon("view-refresh"), "Check door state", self.checkDoorState)
+        menu.exec_(event.globalPos())
+    
+    def checkDoorState(self):
+        door = Device(self.doorName())
+        doorState = door.state()
+        if doorState == PyTango.DevState.RUNNING:
+            self.playMacroAction.setEnabled(False)
+            self.pauseMacroAction.setEnabled(True)
+            self.stopMacroAction.setEnabled(True)
+        elif doorState == PyTango.DevState.ON:
+            self.playMacroAction.setEnabled(True)
+            self.pauseMacroAction.setEnabled(False)
+            self.stopMacroAction.setEnabled(False)
+        elif doorState == PyTango.DevState.STANDBY:
+            self.playMacroAction.setEnabled(True)
+            self.pauseMacroAction.setEnabled(False)
+            self.stopMacroAction.setEnabled(True)
+        
     def setMacroId(self, macroId):
         self._macroId = macroId
         
