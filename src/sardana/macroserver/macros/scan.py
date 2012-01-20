@@ -97,7 +97,7 @@ class aNscan(Hookable):
         if len(self.motors) == self.starts.size == self.finals.size:
             self.N = self.finals.size
         else:
-            raise ValueError('Motorlist, startlist and endlist must all be same length')
+            raise ValueError('Moveablelist, startlist and endlist must all be same length')
         
         self.nr_points = nr_interv+1
         self.interv_sizes = ( self.finals - self.starts) / nr_interv
@@ -128,7 +128,7 @@ class aNscan(Hookable):
         if len(self.motors) == self.starts.size == self.finals.size:
             self.N = self.finals.size
         else:
-            raise ValueError('Motorlist, startlist and endlist must all be same length')
+            raise ValueError('Moveablelist, startlist and endlist must all be same length')
         
         self.nr_waypoints = 2 #aNscans will only have two waypoints (the start and the final positions)
         self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
@@ -223,7 +223,7 @@ class ascan(aNscan, Macro):
     specifies seconds and if negative, specifies monitor counts. """
 
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
+       ['motor',      Type.Moveable,   None, 'Moveable to move'],
        ['start_pos',  Type.Float,   None, 'Scan start position'],
        ['final_pos',  Type.Float,   None, 'Scan final position'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -245,10 +245,10 @@ class a2scan(aNscan, Macro):
     Count time is given by time which if positive, specifies seconds and
     if negative, specifies monitor counts."""
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -271,13 +271,13 @@ class a3scan(aNscan, Macro):
     Count time is given by time which if positive, specifies seconds and
     if negative, specifies monitor counts."""
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['motor3',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -298,16 +298,16 @@ class a4scan(aNscan, Macro):
     Count time is given by time which if positive, specifies seconds and
     if negative, specifies monitor counts."""
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['motor3',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
-       ['motor4',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor4',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos4',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos4',  Type.Float,   None, 'Scan final position 3'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -331,7 +331,7 @@ class amultiscan(aNscan, Macro):
 
     param_def = [
        ['motor_start_end_list',
-        ParamRepeat(['motor', Type.Motor, None, 'Motor to move'],
+        ParamRepeat(['motor', Type.Moveable, None, 'Moveable to move'],
                     ['start',   Type.Float, None, 'Starting position'],
                     ['end',   Type.Float, None, 'Final position']),
         None, 'List of motor, start and end positions'],
@@ -361,7 +361,7 @@ class dmultiscan(dNscan, Macro):
     '''
     param_def = [
        ['motor_start_end_list',
-        ParamRepeat(['motor', Type.Motor, None, 'Motor to move'],
+        ParamRepeat(['motor', Type.Moveable, None, 'Moveable to move'],
                     ['start',   Type.Float, None, 'Starting position'],
                     ['end',   Type.Float, None, 'Final position']),
         None, 'List of motor, start and end positions'],
@@ -389,7 +389,7 @@ class dscan(dNscan, Macro):
     specifies monitor counts. """
 
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
+       ['motor',      Type.Moveable,   None, 'Moveable to move'],
        ['start_pos',  Type.Float,   None, 'Scan start position'],
        ['final_pos',  Type.Float,   None, 'Scan final position'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -412,10 +412,10 @@ class d2scan(dNscan,Macro):
     Count time is given by time which if positive, specifies seconds and
     if negative, specifies monitor counts."""
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -438,13 +438,13 @@ class d3scan(dNscan, Macro):
     Count time is given by time which if positive, specifies seconds and
     if negative, specifies monitor counts."""
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['motor3',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -469,16 +469,16 @@ class d4scan(dNscan, Macro):
     Upon termination, the motors are returned to their starting positions.
     """
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
        ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['motor3',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
-       ['motor4',      Type.Motor,   None, 'Motor 3 to move'],
+       ['motor4',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos4',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos4',  Type.Float,   None, 'Scan final position 3'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -505,11 +505,11 @@ class mesh(Macro,Hookable):
     env = ('ActiveMntGrp',)
     
     param_def = [
-       ['motor1',      Type.Motor,   None, 'First motor to move'],
+       ['motor1',      Type.Moveable,   None, 'First motor to move'],
        ['m1_start_pos',Type.Float,   None, 'Scan start position for first motor'],
        ['m1_final_pos',Type.Float,   None, 'Scan final position for first motor'],
        ['m1_nr_interv',Type.Integer, None, 'Number of scan intervals'],
-       ['motor2',      Type.Motor,   None, 'Second motor to move'],
+       ['motor2',      Type.Moveable,   None, 'Second motor to move'],
        ['m2_start_pos',Type.Float,   None, 'Scan start position for second motor'],
        ['m2_final_pos',Type.Float,   None, 'Scan final position for second motor'],
        ['m2_nr_interv',Type.Integer, None, 'Number of scan intervals'],
@@ -595,7 +595,7 @@ class fscan(Macro,Hookable):
     param_def = [
        ['indepvars',  Type.String, None, 'Independent Variables'],
        ['motor_funcs',
-        ParamRepeat(['motor', Type.Motor, None, 'motor'],
+        ParamRepeat(['motor', Type.Moveable, None, 'motor'],
                     ['func', Type.String, None, 'curve defining path']),
         None, 'List of motor and path curves'],
        ['integ_time', Type.String,   None, 'Integration time']
@@ -613,7 +613,7 @@ class fscan(Macro,Hookable):
         if len(self.motors)==len(self.paths)>0:
             self.N=len(self.motors)
         else:
-            raise ValueError('Motor and func lists must be non-empty and same length')
+            raise ValueError('Moveable and func lists must be non-empty and same length')
         npoints=len(self.paths[0])
         try:
             #if everything is OK, the following lines should return a 2D array
