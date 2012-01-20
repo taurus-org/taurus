@@ -140,8 +140,6 @@ extra_packages = [
     
     'taurus.qt.qtgui.extra_pool',
     
-    'taurus.qt.qtgui.extra_taurusservers',
-    
     'taurus.qt.qtgui.extra_xterm',
     
     'taurus.qt.qtgui.extra_guiqwt',
