@@ -331,7 +331,6 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             root = self._rootItem
         for row in range(root.childCount()):
             chname,chdata = root.child(row).itemData()
-            index = chdata['index']
             chdata['index'] = row
 
     def flags(self, index):
