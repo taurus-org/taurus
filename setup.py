@@ -136,6 +136,7 @@ extra_packages = [
     'taurus.qt.qtgui.extra_macroexecutor.sequenceeditor',
     
     'taurus.qt.qtgui.extra_sardana',
+    'taurus.qt.qtgui.extra_sardana.ui',
     
     'taurus.qt.qtgui.extra_nexus',
     
