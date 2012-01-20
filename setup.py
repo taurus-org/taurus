@@ -132,6 +132,7 @@ extra_packages = [
     'taurus.qt.qtgui.extra_macroexecutor',
     'taurus.qt.qtgui.extra_macroexecutor.favouriteseditor',
     'taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor',
+    'taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.customeditors',
     'taurus.qt.qtgui.extra_macroexecutor.sequenceeditor',
     
     'taurus.qt.qtgui.extra_sardana',
