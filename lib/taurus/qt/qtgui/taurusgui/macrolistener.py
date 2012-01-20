@@ -207,6 +207,8 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
             cmd = 'abort'
         else:
             cmd = 'stop'
+        #abort the door
+        self.__qdoor.command_inout('abort')
         #send stop/abort to all pools
         pools = self.__qdoor.macro_server.getElementsOfType('Pool')
         for pool in pools.values():
