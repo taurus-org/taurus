@@ -680,6 +680,9 @@ class SScan(GScan):
             try: step['extrainfo'].update(hook.getStepExtraInfo())
             except: pass
         
+        # allow scan to be stopped between motion and data acquisition
+        self.macro.checkPoint() 
+        
         if state != Ready:
             self.dump_information(n, step)
             m = "Scan aborted after problematic motion: " \
