@@ -48,12 +48,10 @@ class JsonRecorder(DataRecorder):
 
     def _startRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
-#+++
         title = recordlist.getEnvironValue('title')
         counters = recordlist.getEnvironValue('counters')
         scanfile = recordlist.getEnvironValue('ScanFile')
         serialno = recordlist.getEnvironValue('serialno')
-#+++
         column_desc = recordlist.getEnvironValue('datadesc')
         ref_moveables = recordlist.getEnvironValue('ref_moveables')
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
@@ -127,8 +125,8 @@ class OutputRecorder(DataRecorder):
         self._stream.info(msg)
 
         #labels = [ col.label for col in data_desc if numpy.prod(col.shape) == 1 ]
-        labels = [ col.label for col in data_desc ]
-        col_names = [ col.name for col in data_desc ]
+        labels = [ col.label for col in data_desc if col.output == True ]
+        col_names = [ col.name for col in data_desc if col.output == True ]
         
         cols = self._columns
         if operator.isSequenceType(cols):

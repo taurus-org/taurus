@@ -480,7 +480,8 @@ class GScan(Logger):
             channel_label = channel_info.label
             column = ColumnDesc(name=channel_name, label=channel_label,
                                 dtype=channel_type, shape=channel_shape,
-                                instrument=channel_instrument)
+                                instrument=channel_instrument,
+                                output=channel_info.output)
             data_desc.append(column)
             counters.append(channel_name)
         counters.remove(master['name'])

@@ -45,7 +45,8 @@ class ColumnDesc:
             - label (str, optional): column label (defaults to name)
             - dtype (str, optional): data type. Defaults to 'float64'
             - shape (seq, optional): data shape. Defaults to (1,)
-            - instrument (Instrument, optional): instrument object. Defaults to None"""
+            - instrument (Instrument, optional): instrument object. Defaults to None
+            - output (bool, optional): whether to output the channel in console or not. Default is True"""
         
         # string to be used as label (e.g. will be used as column header in an ascii output)
         self.name = kwargs.get('name')
@@ -61,6 +62,7 @@ class ColumnDesc:
         s = kwargs.get('shape', ()) 
         self.shape = self._simplifyShape(s)
         self.instrument = kwargs.get('instrument', None)
+        self.output = kwargs.get('output', True) 
     
     @staticmethod
     def _simplifyShape(s):
