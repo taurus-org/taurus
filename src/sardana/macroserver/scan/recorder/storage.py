@@ -348,7 +348,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if dd.instrument is not None:
                 #grab the ID of the data group
-                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:NXcollection",dd.label)
+                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:NXcollection",dd.label) #fixme: check if this is correct. (note the NXclass of the leaf group)
                 self.fd.openpath(datapath)
                 id=self.fd.getdataID()
                 self._createBranch(dd.instrument.getFullName())
