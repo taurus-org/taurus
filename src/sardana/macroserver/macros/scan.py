@@ -37,7 +37,7 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["a2scan", "a3scan", "a4scan", "amultiscan", "aNscan", "ascan",
            "d2scan", "d3scan", "d4scan", "dmultiscan", "dNScan", "dscan",
-           "fscan", "mesh", "scanhist"]
+           "fscan", "mesh", "scanhist", "getCallable", "UNCONSTRAINED"]
 
 import os
 import copy
