@@ -61,6 +61,12 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.add_tool(TaurusCurveChooserTool)
         self.setModifiableByUser(True)
+    
+    def keyPressEvent(self,event):
+        if(event.key() == Qt.Qt.Key_Escape):
+            event.ignore()
+        else:
+            ImageDialog.keyPressEvent(self,event)
   
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -194,6 +200,12 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         if taurusparam is None:
             taurusparam = TaurusTrendParam()
         self.defaultTaurusparam = taurusparam
+    
+    def keyPressEvent(self,event):
+        if(event.key() == Qt.Qt.Key_Escape):
+            event.ignore()
+        else:
+            ImageDialog.keyPressEvent(self,event)
         
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -396,6 +408,12 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.add_tool(TaurusModelChooserTool, singleModel=True)
         self.setModifiableByUser(True)
+        
+    def keyPressEvent(self,event):
+        if(event.key() == Qt.Qt.Key_Escape):
+            event.ignore()
+        else:
+            ImageDialog.keyPressEvent(self,event)
     
     def setRGBmode(self,enable):
         self._rgbmode = enable
