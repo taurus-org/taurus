@@ -595,9 +595,9 @@ class TaurusGui(TaurusMainWindow):
             i_view = PanelDescription(i_name,classname='TaurusForm', floating=False, model=[])
             instrument_dict[i_name] = i_view
         
-        motors = sorted(ms.getElementNamesOfType('Motor'))
-        channels = sorted(ms.getElementNamesOfType('ExpChannel'))
-        ioregisters = sorted(ms.getElementNamesOfType('IORegister'))
+        motors = sorted(ms.getElementNamesWithInterface('Moveable'))
+        channels = sorted(ms.getElementNamesWithInterface('ExpChannel'))
+        ioregisters = sorted(ms.getElementNamesWithInterface('IORegister'))
         
         pool_elements = motors + channels + ioregisters
         for e_name in pool_elements:
