@@ -727,7 +727,7 @@ def get_args(argv):
     door = None
     
     # Define the profile file
-    profile = session + "door"
+    profile = "spockdoor"
     try:
         profile_idx = argv.index('-p') + 1
         if len(argv) > profile_idx:
