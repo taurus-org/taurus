@@ -72,7 +72,7 @@ class PoolIORegister(PoolElement):
     
     def set_value(self, value, propagate=1):
         self._wvalue = value
-        self.controller.write_one(value)
+        self.controller.write_one(self.axis, value)
         self._set_value(value, propagate=propagate)
         
     def _set_value(self, value, propagate=1):
