@@ -36,32 +36,7 @@ from sardana.macroserver.macro import *
 #
 ################################################################################
 
-try:
-    from lxml import etree
-except ImportError:
-    try:
-        # Python 2.5
-        import xml.etree.cElementTree as etree
-        print "Using python native cElemenTree XML library"
-    except ImportError:
-        try:
-            # Python 2.5
-            import xml.etree.ElementTree as etree
-            print "Using python native ElemenTree XML library"
-        except ImportError:
-            try:
-                # normal cElementTree install
-                import cElementTree as etree
-                print "Using python normal cElemenTree XML library"
-            except ImportError:
-                try:
-                    # normal ElementTree install
-                    import elementtree.ElementTree as etree
-                    print "Using python normal ElemenTree XML library"
-                except ImportError:
-                    print "Could not find any suitable XML library"
-                    sys.exit(1)
-
+from lxml import etree
 
 class dumpenv(Macro):
     """Dumps the complete environment"""

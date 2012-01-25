@@ -34,8 +34,8 @@ import sys
 __requires__ = {
 #     module        minimum
     "Python"      : (2,6,0),
-    "PyTango"     : (7,2,0),
-    "taurus.core" : (2,1,0),
+    "PyTango"     : (7,2,2),
+    "taurus.core" : (3,0,0),
 }
 
 def check_requirements(exec_name=None):

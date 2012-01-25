@@ -282,8 +282,10 @@ def main():
     ]
 
     requires = [ 
-        'PyTango (>=7.1)',
+        'PyTango (>=7.2.2)',
         'taurus (>= 2.1)',
+        'lxml (>=2.1)',
+        'ipython (>=0.10, <0.11)'
     ]
      
     package_data = { 
