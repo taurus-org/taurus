@@ -80,6 +80,8 @@ class IORegister(PoolElementDevice):
             ior = self.pool.create_element(type="IORegister",
                 name=name, full_name=full_name, id=self.Id,
                 axis=self.Axis, ctrl_id=self.Ctrl_id)
+            if self.instrument is not None:
+                ior.set_instrument(self.instrument)
             ior.add_listener(self.on_ior_changed)
             self.ior = ior
         # force a state read to initialize the state attribute
