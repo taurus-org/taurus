@@ -355,7 +355,8 @@ class BaseDoor(MacroServerDevice):
         try:
             time_stamp = time.time()
             self.command_inout("Abort")
-            evt_wait.waitEvent(self.On, after=time_stamp, timeout=self.InteractiveTimeout)
+            evt_wait.waitEvent(self.Running, equal=False, after=time_stamp,
+                               timeout=self.InteractiveTimeout)
         finally:
             evt_wait.unlock()
             evt_wait.disconnect()
@@ -414,17 +415,18 @@ class BaseDoor(MacroServerDevice):
     def _runMacro(self, xml, synch=False):
         if not synch:
             return self.command_inout("RunMacro", [etree.tostring(xml)])
-        
+        timeout = self.InteractiveTimeout
         evt_wait = self._getEventWait()
         evt_wait.connect(self.getAttribute("state"))
         evt_wait.lock()
         try:
-            evt_wait.waitEvent(self.Running, equal=False, timeout=self.InteractiveTimeout)
+            evt_wait.waitEvent(self.Running, equal=False, timeout=timeout)
             ts = time.time()
             result = self.command_inout("RunMacro", [etree.tostring(xml)])
-            evt_wait.waitEvent(self.Running, after=ts, timeout=self.InteractiveTimeout)
+            evt_wait.waitEvent(self.Running, after=ts, timeout=timeout)
             if synch:
-                evt_wait.waitEvent(self.On, after=ts, timeout=self.InteractiveTimeout)
+                evt_wait.waitEvent(self.Running, equal=False, after=ts,
+                                   timeout=timeout)
         except:
             self._clearRunMacro()
             raise

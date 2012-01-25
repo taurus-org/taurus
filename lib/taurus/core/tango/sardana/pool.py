@@ -385,7 +385,8 @@ class PoolElement(BaseElement, TangoDevice):
         evt_wait = self._getEventWait()
         evt_wait.lock()
         try:
-            evt_wait.waitEvent(DevState.MOVING, after=id, equal=False, timeout=timeout)
+            evt_wait.waitEvent(DevState.MOVING, after=id, equal=False,
+                               timeout=timeout)
         finally:
             evt_wait.unlock()
             evt_wait.disconnect()
