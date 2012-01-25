@@ -490,6 +490,7 @@ def taurusCurveDlgMain():
     parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
     parser.set_description("a taurus application for plotting 1D data sets")
     parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    parser.add_option("--window-name", dest="window_name", default="Taurus Curve Dialog", help="Name of the window")
     app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Curve Dialog", app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
@@ -498,7 +499,7 @@ def taurusCurveDlgMain():
     if options.demo:
         args.append('eval://rand(128)')
         
-    w = TaurusCurveDialog(edit=False, wintitle="Taurus Curve Dialog")
+    w = TaurusCurveDialog(edit=False, wintitle=options.window_name)
     
     w.add_tool(TimeAxisTool)
      
@@ -528,6 +529,7 @@ def taurusTrendDlgMain():
                       help="maximum number of values to be plotted (when reached, the oldest values will be discarded)")
     parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
     parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    parser.add_option("--window-name", dest="window_name", default="Taurus Trend", help="Name of the window")
     app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Trend", app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
@@ -551,7 +553,7 @@ def taurusTrendDlgMain():
     taurusparam.maxBufferSize = int(options.max_buffer_size)
     taurusparam.useArchiving = options.use_archiving
     
-    w = TaurusTrendDialog(wintitle="Taurus Trend", taurusparam=taurusparam)
+    w = TaurusTrendDialog(wintitle=options.window_name, taurusparam=taurusparam)
     
     #set model
     if len(args) > 0:
@@ -575,6 +577,7 @@ def taurusImageDlgMain():
     parser.set_description('a Taurus application for plotting Image Attributes')
     parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
     parser.add_option("--rgb", action="store_true", dest="rgb_mode", default=False, help="assume image is RGB")
+    parser.add_option("--window-name", dest="window_name", default="Taurus Image", help="Name of the window")
     app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Image Dialog", app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
@@ -585,7 +588,7 @@ def taurusImageDlgMain():
             args.append('eval://randint(0,256,(10,20,3))')
         else:
             args.append('eval://rand(256,128)')
-    w = TaurusImageDialog()
+    w = TaurusImageDialog(wintitle=options.window_name)
     
     w.setRGBmode(options.rgb_mode)
         

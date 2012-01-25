@@ -834,14 +834,17 @@ def taurusFormMain():
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] [model1 [model2 ...]]")
     parser.set_description("the taurus form panel application")
+    parser.add_option("--window-name", dest="window_name", default="TaurusForm", help="Name of the window")
+    
     app = TaurusApplication(cmd_line_parser=parser,
                             app_name="taurusform",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
+    options = app.get_command_line_options()
 
     dialog = TaurusForm()
     dialog.setModifiableByUser(True)
-    dialog.setWindowTitle(os.path.basename(sys.argv[0]))
+    dialog.setWindowTitle(options.window_name)
     
     
     #set the default map for this installation

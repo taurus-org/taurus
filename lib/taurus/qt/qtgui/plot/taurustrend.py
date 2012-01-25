@@ -1491,6 +1491,7 @@ def main():
     parser.add_option("-r", "--forced-read", dest="forced_read_period", type="int", default=-1, metavar="MILLISECONDS",
                   help="force Taurustrend to re-read the attributes every MILLISECONDS ms")
     parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
+    parser.add_option("--window-name", dest="window_name", default="TaurusTrend", help="Name of the window")
 
     
     
@@ -1506,7 +1507,7 @@ def main():
     models = args
     
     w = TaurusTrend()
-    w.setWindowTitle('TaurusTrend')
+    w.setWindowTitle(options.window_name)
     
     #xistime option
     w.setXIsTime(options.x_axis_mode.lower() == 't')

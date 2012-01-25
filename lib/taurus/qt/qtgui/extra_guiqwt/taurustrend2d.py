@@ -210,6 +210,8 @@ def taurusTrend2DMain():
                       help="maximum number of values to be stacked (when reached, the oldest values will be discarded)")
     parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
     parser.add_option("--demo", action="store_true", dest="demo", default=False, help="show a demo of the widget")
+    parser.add_option("--window-name", dest="window_name", default="Taurus Trend 2D", help="Name of the window")
+    
     app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Trend 2D", app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
@@ -225,7 +227,7 @@ def taurusTrend2DMain():
     if options.demo:
         args.append('eval://sin(x+t)?x=linspace(0,3,40);t=rand()')
         
-    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle="Taurus Trend 2D", 
+    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle=options.window_name, 
                             buffersize=int(options.max_buffer_size))
     
     #set archiving

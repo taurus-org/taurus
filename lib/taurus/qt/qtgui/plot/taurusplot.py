@@ -2356,7 +2356,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         if self.DataImportDlg is None:
             self.DataImportDlg = Qt.QDialog(self)
-            self.DataImportDlg.setWindowTitle("Qwtplot - Import Data")
+            self.DataImportDlg.setWindowTitle("%s - Import Data"%(str(self.windowTitle())))
             self.DataImportDlg.modelChooser = TaurusModelChooser(selectables=[taurus.core.TaurusElementType.Attribute])
             self.DataImportDlg.rawDataChooser = QRawDataWidget()
 
@@ -3074,6 +3074,7 @@ def main():
                   help="use the given config file for initialization")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
                   help="use the given file to as output instead of showing the plot")
+    parser.add_option("--window-name", dest="window_name", default="TaurusPlot", help="Name of the window")
     
     
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
@@ -3088,7 +3089,7 @@ def main():
     models = args
     
     w = TaurusPlot()
-    w.setWindowTitle('TaurusPlot')
+    w.setWindowTitle(options.window_name)
     
     w.setXIsTime(options.x_axis_mode.lower() == 't')
     if options.config_file is not None: w.loadConfig(options.config_file)
