@@ -427,7 +427,7 @@ class PoolElement(BaseElement, TangoDevice):
         except:
             e_info = sys.exc_info()[:2]
             pos = traceback.format_exception_only(*e_info)
-        msg.append(tab + "   Pos: " + pos)
+        msg.append(tab + "   Pos: " + str(pos))
         return "\n".join(msg)
 
 
