@@ -139,6 +139,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
             self._alias = name
         self._simulation = None
         self._macro_server = None
+        self._last_result = ()
         taurus.core.util.Logger.__init__(self, self._alias)
         Door.init_device(self)
 
@@ -256,17 +257,28 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         self.push_change_event('status')
     
     def sendMacroStatus(self, format, data):
-        self.push_change_event('MacroStatus', format, data)
+        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
+        attr.set_value(format, data)
+        attr.fire_change_event()
     
     def sendEnvironment(self, format, data):
-        self.push_change_event('Environment', format, data)
+        attr = self.get_device_attr().get_attr_by_name('Environment')
+        attr.set_value(format, data)
+        attr.fire_change_event()
     
+    def sendResult(self, result):
+        print "sendResult", result
+        self._last_result = result
+        attr = self.get_device_attr().get_attr_by_name('Result')
+        attr.set_value(result)
+        attr.fire_change_event()
+
     def getLogAttr(self, name):
         return self._handler_dict.get(name)
     
     def read_Result(self, attr):
         #    Add your own code here
-        attr.set_value([], 0)
+        attr.set_value(self._last_result)
     
     def read_RecordData(self, attr):
         attr.set_value('', '')

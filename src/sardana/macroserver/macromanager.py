@@ -865,22 +865,22 @@ class MacroExecutor(Logger):
         self.main_manager.addJob(self.__runXML, self._jobEnded)
         #return the proper xml
         return self._xml
-
+    
     def _jobEnded(self, *args, **kw):
         self.debug("Job ended")
-
+    
     def __runXML(self):
         self.sendState(MacroManager.Running)
         try:
             self.__runStatelessXML()
-        except AbortException as ae:
-            pass
-        except Exception as e:
-            pass
+            self.sendState(MacroManager.Finished)
+        except AbortException:
+            self.sendState(MacroManager.Abort)
+        except Exception:
+            self.sendState(MacroManager.Abort)
         finally:
             self._macro_stack = None
             self._xml_stack = None
-            self.sendState(MacroManager.Finished)
     
     def __runStatelessXML(self, xml=None):
         if xml is None:
@@ -928,9 +928,9 @@ class MacroExecutor(Logger):
                 self.sendMacroStatus((step,))
                 
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
-                result = macro_obj.getResult()
-                door = self.getDoor()
-                door.push_change_event('Result', self.__preprocessResult(result))
+                result = self.__preprocessResult(macro_obj.getResult())
+                self.info("sending result %s", result)
+                self.getDoor().sendResult(result)
         except AbortException as ae:
             macro_exp = ae
         except MacroServerException as mse:
