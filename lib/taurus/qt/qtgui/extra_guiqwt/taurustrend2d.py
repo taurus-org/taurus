@@ -63,7 +63,13 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         #add some tools
         for toolklass in (TaurusModelChooserTool,AutoScrollTool):
             self.add_tool(toolklass)   
-            
+    
+    def keyPressEvent(self,event):
+        if(event.key() == Qt.Qt.Key_Escape):
+            event.ignore()
+        else:
+            ImageDialog.keyPressEvent(self,event)
+                    
     def setStackMode(self, mode):
         '''set the type of stack to be used. This determines how X values are interpreted:
           - as timestamps ('datetime')
