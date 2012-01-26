@@ -207,9 +207,11 @@ class WidgetPage(Qt.QWizardPage):
         
         #contents    
         available = TaurusWidgetFactory().getWidgetClassNames()
-        candidates=['TaurusForm','TaurusTrend', 'TaurusArrayEditor',
-                     'TaurusPlot', 'TaurusQubDataImageDisplay', 'TaurusNeXusBrowser',
-                     'TaurusDbTreeWidget', 'TaurusShell']
+        candidates=['TaurusForm','TaurusTrend',
+                     'TaurusPlot', 'TaurusImageDialog',
+                     'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
+                     'TaurusDbTreeWidget',
+                     'TaurusArrayEditor', 'TaurusShell']
         choices = []
         row=[]
         pixmaps={}
