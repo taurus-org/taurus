@@ -45,7 +45,7 @@ class QDoor(BaseDoor, Qt.QObject):
     
     def resultReceived(self, log_name, result):
         res = BaseDoor.resultReceived(self, log_name, result)
-        self.emit(Qt.SIGNAL("resultUpdated"))
+        self.emit(Qt.SIGNAL("resultUpdated"), res)
         return res
     
     def recordDataReceived(self, s, t, v):

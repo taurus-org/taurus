@@ -441,10 +441,10 @@ class BaseDoor(MacroServerDevice):
 
     def resultReceived(self, log_name, result):
         """Method invoked by the arrival of a change event on the Result attribute"""
-        
         if self._ignore_logs or self._running_macro is None: 
             return
         self._running_macro.setResult(result)
+        return result
     
     def environmentChanged(self, s, t, v):
         if t not in CHANGE_EVT_TYPES: return
