@@ -257,21 +257,23 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         self.push_change_event('status')
     
     def sendMacroStatus(self, format, data):
-        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
-        attr.set_value(format, data)
-        attr.fire_change_event()
+        self.push_change_event('MacroStatus', format, data)
+#        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
+#        attr.set_value(format, data)
+#        attr.fire_change_event()
     
     def sendEnvironment(self, format, data):
-        attr = self.get_device_attr().get_attr_by_name('Environment')
-        attr.set_value(format, data)
-        attr.fire_change_event()
+        self.push_change_event('Environment', format, data)
+#        attr = self.get_device_attr().get_attr_by_name('Environment')
+#        attr.set_value(format, data)
+#        attr.fire_change_event()
     
     def sendResult(self, result):
-        print "sendResult", result
         self._last_result = result
         attr = self.get_device_attr().get_attr_by_name('Result')
         attr.set_value(result)
-        attr.fire_change_event()
+#       attr.fire_change_event()
+        self.push_change_event('Result', result)
 
     def getLogAttr(self, name):
         return self._handler_dict.get(name)
