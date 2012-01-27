@@ -122,6 +122,9 @@ class TaurusDevPanel(TaurusMainWindow):
             Qt.QMessageBox.warning(self, "Device unreachable", msg)
             self.setModel('')
             return
+        self.setDevice(devname)
+        
+    def setDevice(self,devname):
         #try to connect with the device
         self.setModel(devname)
         dev = self.getModelObj()
@@ -156,23 +159,23 @@ def TaurusPanelMain():
     import sys
     
     parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [hostname]")
+    parser.set_usage("%prog [options] [devname]")
     parser.set_description("Taurus Application inspired in Jive and Atk Panel")
     app = TaurusApplication(cmd_line_parser=parser,app_name="tauruspanel",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
+    options = app.get_command_line_options()
     
-    if len(args)>0: 
-        host=args[0]
-    else: 
-        host = taurus.Database().getNormalName()
+    w = TaurusDevPanel()
     
-    dialog = TaurusDevPanel()
+    if options.tango_host is None:
+        options.tango_host = taurus.Database().getNormalName()
+    w.setTangoHost(options.tango_host)
+    if len(args) == 1: 
+        w.setDevice(args[0])
     
-    if host is not None:
-        dialog.setTangoHost(host)
-    dialog.show()
-        
+    w.show()
+    
     sys.exit(app.exec_()) 
     
 if __name__ == "__main__":
