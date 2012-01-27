@@ -102,7 +102,7 @@ class MacroServer(SardanaDevice):
     
     def _calculate_environment_name(self, name):
         util = PyTango.Util.instance()
-        return name % { 'ds_name' : util.get_ds_name(),
+        return name % { 'ds_name' : util.get_ds_name().lower(),
                         'ds_exec_name' : util.get_ds_exec_name(),
                         'ds_inst_name' : util.get_ds_inst_name().lower() }
     
