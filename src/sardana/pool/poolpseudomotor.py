@@ -130,10 +130,21 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # --------------------------------------------------------------------------
     
     def get_w_position(self, with_physical_positions=None):
+        """Get the last position requested by the user or the current position
+        (if the user never requested to move this pseudo motor before)
+        
+        :param with_physical_positions:
+            array of current physical positions. Only used when no write
+            position exists an returned position is the current position
+            [default: None, meaning fetch position(s) if necessary]
+        :type with_physical_positions:
+            :class:`dict` <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >
+        :rtype:
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
         w_pos = self._position.w_value
         if w_pos is None and with_physical_positions is not None:
             return self.calc_pseudo(with_physical_positions)
-        return w_pos
+        return w_pos, None
     
     def get_low_level_physical_positions(self, cache=True, propagate=1):
         """Get the positions for undelying low level elements.
