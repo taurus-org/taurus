@@ -1,11 +1,12 @@
 recursive-include src *.py
 
 graft src
-graft doc/source
+graft doc
 graft build/sphinx/html
 
-global-exclude *.pyc
+global-exclude *.pyc .cvsignore .svnignore
 exclude setup.cfg
 exclude .project
 exclude .pydevproject
+exclude .ropeproject
 exclude build_*
