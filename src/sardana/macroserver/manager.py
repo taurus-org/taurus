@@ -38,7 +38,7 @@ import types
 from taurus import Device
 from taurus.core import ManagerState, TaurusManager
 from taurus.core.util import Singleton, Logger, ListEventGenerator, \
-    CaselessDict, ThreadPool
+    CaselessDict, ThreadPool, CaselessDict
 from taurus.core.tango.sardana import pool
 from taurus.core.tango.sardana.motion import Motion, MotionGroup
 
@@ -324,6 +324,12 @@ class MacroServerManager(Singleton, Logger):
         if decoupled: # and len(elems)>1:
             motion_klass = MotionGroup
         return motion_klass(elems, motion_source)
+    
+    def getElementsWithInterface(self, interface):
+        ret=CaseLessDict({})
+        for pool in self.getPoolListObj():
+            ret.update(pool.getElementsWithInterface(self, interface))
+        return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Macro, Type and Module Manager Interfaces
