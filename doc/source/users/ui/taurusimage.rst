@@ -26,9 +26,9 @@ Many tools may be available, such as:
 - add/delete images 
 - ...
 
-.. note:: The :class:`TaurusImageDialog` widget is provided by the 
-          :mod:`taurus.qt.qtgui.extra_guiqwt` module which depends on the 
-          :mod:`guiqwt` module being installed. If guiqwt is not installed, 
+.. note:: The :class:`TaurusImageDialog` widget is provided by  
+          the :mod:`taurus.qt.qtgui.extra_guiqwt` module which depends on 
+          the :mod:`guiqwt` module being installed. If guiqwt is not installed, 
           the image widget will not be available.
 
 .. _standalonetaurusimage:

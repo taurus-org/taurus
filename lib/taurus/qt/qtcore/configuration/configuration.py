@@ -34,8 +34,8 @@ class configurableProperty:
     '''A dummy class used to handle properties with the configuration API
     
     .. warning:: this class is intended for internal use by the configuration
-                 package. Do not instantiate it directly in your code. Use
-                 :meth:`BaseConfigurableClass.registerConfigProperty` instead.
+                 package. Do not instantiate it directly in your code. 
+                 Use :meth:`BaseConfigurableClass.registerConfigProperty` instead.
     '''
     def __init__(self, name, fget, fset, obj=None):
         self.name = name

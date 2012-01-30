@@ -136,9 +136,9 @@ Also, some panels may be connected to a synoptic panel and will be shown (if
 hidden) when selecting a certain element in the synoptic. Refer to the `Synoptic
 Panels`_ section for more details.
 
-.. tip:: If, for some reason, you changed the panels too much and would like to
-         revert the changes, you can always load a previously saved
-         :ref:`perspective <perspectives>`.
+.. tip:: If, for some reason, you changed the panels too much and would like to 
+         revert the changes, you can always load a previously 
+         saved :ref:`perspective <perspectives>`.
 
 .. _panelcreation:
 

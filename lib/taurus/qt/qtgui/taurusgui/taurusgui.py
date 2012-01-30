@@ -188,7 +188,7 @@ class TaurusGui(TaurusMainWindow):
     TaurusMainWindow which is able to handle "panels" and load configuration
     files.
     
-    ..note:: 
+    .. note:: 
         Please be aware that TaurusGui has only recently being developed and it
         is still under intense development. The syntax of the configuration files
         may change at some point and more features and bug fixes are likely to
