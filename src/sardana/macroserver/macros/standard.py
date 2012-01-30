@@ -28,6 +28,7 @@ __all__ = ["ct", "mstate", "mv", "mvr", "pwa", "pwm", "set_lim", "set_lm",
 
 __docformat__ = 'restructuredtext'
 
+import datetime
 from taurus.console.table import Table
 
 from sardana.macroserver.macro import Macro, Type, ParamRepeat
@@ -87,7 +88,7 @@ class wa(Macro):
             self.output('No motor defined')
             return
 
-        self.output('Current Positions  (user, dial)')
+        self.output('Positions (user, dial) on %s'%datetime.datetime.now().isoformat(' '))
         self.output('')
         
         self.execMacro('_wm',*self.all_motors, **self.table_opts)
