@@ -275,4 +275,130 @@ class ascanc(Macro, Hookable):
     @property
     def data(self):
         return self._cScan.data
+
+
+class regscan(Macro):
+    """regscan.
+    Do an absolute scan of the specified motor with different number of intervals for each region.
+    It uses the gscan framework.
+
+    NOTE: Due to a ParamRepeat limitation, integration time has to be
+    specified before the regions.
+    """
+
+    hints = {'scan' : 'regscan'}
+    env = ('ActiveMntGrp',)
+
+    param_def = [
+        ['motor',      Type.Motor,   None, 'Motor to move'],
+        ['integ_time', Type.Float,   None, 'Integration time'],
+        ['start_pos',  Type.Float,   None, 'Start position'],
+        ['step_region',
+         ParamRepeat(['next_pos',  Type.Float,   None, 'next position'],
+                     ['region_nr_intervals',  Type.Float,   None, 'Region number of intervals']),
+         None, 'List of tuples: (next_pos, region_nr_intervals']
+    ]
+
+    def prepare(self, motor, integ_time, start_pos, *regions, **opts):
+        self.name='regscan'
+        self.integ_time = integ_time
+        self.start_pos = start_pos
+        self.regions = regions
+        self.regions_count = len(self.regions)/2
         
+        generator=self._generator
+        moveables=[motor]
+        env=opts.get('env',{})
+        constrains=[]
+        self._gScan=SScan(self, generator, moveables, env, constrains)
+
+    def _generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+        
+        point_id = 0
+        region_start = self.start_pos
+        for r in range(len(self.regions)):
+            region_stop, region_nr_intervals = self.regions[r][0], self.regions[r][1]
+            positions = numpy.linspace(region_start, region_stop, region_nr_intervals+1)
+            if region_start != self.start_pos:
+                # positions must be calculated from the start to the end of the region
+                # but after the first region, the 'start' point must not be repeated
+                positions = positions[1:]
+            for p in positions:
+                step['positions'] = [p]
+                step['point_id'] = point_id
+                point_id += 1
+                yield step
+            region_start = region_stop
+
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
+
+
+class a2scan_mod(Macro):
+    """a2scan_mod.
+    Do an a2scan with the particularity of different intervals per motor: int_mot1, int_mot2.
+    If int_mot2 < int_mot1, mot2 will change position every int(int_mot1/int_mot2) steps of mot1.
+    It uses the gscan framework.
+    """
+
+    hints = {'scan' : 'a2scan_mod'}
+    env = ('ActiveMntGrp',)
+
+    param_def = [
+       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['nr_interv1',  Type.Integer, None, 'Number of scan intervals of Motor 1'],
+       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['nr_interv2',  Type.Integer, None, 'Number of scan intervals of Motor 2'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+    
+    def prepare(self, motor1, start_pos1, final_pos1, nr_interv1, motor2, start_pos2, final_pos2, nr_interv2, integ_time,
+                **opts):
+        self.name='a2scan_mod'
+        self.integ_time = integ_time
+        self.start_pos1 = start_pos1
+        self.final_pos1 = final_pos1
+        self.nr_interv1 = nr_interv1
+        self.start_pos2 = start_pos2
+        self.final_pos2 = final_pos2
+        self.nr_interv2 = nr_interv2
+        
+        generator = self._generator
+        moveables = [motor1, motor2]
+        env = opts.get('env',{})
+        constraints = []
+        self._gScan=SScan(self, generator, moveables, env, constraints)
+
+    def _generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+
+        start1, end1, interv1 = self.start_pos1, self.final_pos1, self.nr_interv1
+        start2, end2, interv2 = self.start_pos2, self.final_pos2, self.nr_interv2
+        
+        # Prepare the positions
+        positions_m1 = numpy.linspace(start1, end1, interv1+1)
+        positions_m2 = numpy.linspace(start2, end2, interv2+1)
+
+        if interv1 > interv2:
+            positions_m2 = start2+(float(end2-start2)/interv2)*(numpy.arange(interv1+1)//(float(interv1)/float(interv2)))
+        elif interv2 > interv1:
+            positions_m1 = start1+(float(end1-start1)/interv1)*(numpy.arange(interv2+1)//(float(interv2)/float(interv1)))
+
+        point_id = 0
+        for pos1,pos2 in zip(positions_m1,positions_m2):
+            step['point_id'] = point_id
+            step['positions'] = [pos1, pos2]
+            yield step
+            point_id += 1
+ 
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
