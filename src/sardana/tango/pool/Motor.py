@@ -244,7 +244,8 @@ class Motor(PoolElementDevice):
         self.motor.sign = attr.get_write_value()
     
     def read_Limit_switches(self, attr):
-        attr.set_value(self.motor.get_limit_switches(cache=False).value)
+        moving = self.get_state() == DevState.MOVING
+        attr.set_value(self.motor.get_limit_switches(cache=moving).value)
     
     def DefinePosition(self, argin):
         self.motor.define_position(argin)

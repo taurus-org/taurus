@@ -38,7 +38,7 @@ from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
-from sardana import InvalidId, InvalidAxis, ElementType
+from sardana import State, InvalidId, InvalidAxis, ElementType
 from sardana.pool.poolmetacontroller import DataInfo
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
@@ -374,12 +374,15 @@ class PoolElementDevice(PoolDevice):
         self.element.simulation_mode = attr.get_write_value()
     
     def dev_state(self):
-        ctrl_state = self.element.get_state(cache=False, propagate=0)
+        ctrl_state = self.element.get_state()
+        if ctrl_state != State.Moving:
+            ctrl_state = self.element.get_state(cache=False, propagate=0)
         state = self.calculate_tango_state(ctrl_state)
         return state
     
     def dev_status(self):
-        ctrl_status = self.element.get_status(cache=False, propagate=0)
+        moving = self.element.get_state() != State.Moving
+        ctrl_status = self.element.get_status(cache=moving, propagate=0)
         status = self.calculate_tango_status(ctrl_status)
         return status
 
