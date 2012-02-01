@@ -44,7 +44,7 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, \
 _MOD, _CLS, _FNC, _TNG = ":/python-module.png", ":/class.png", ":/function.png", ":/tango.png"
 
 TYPE_MAP = {
-    "ControllerLib"        : ("Controller libraries", _MOD, "Controller library",),
+    "ControllerLibrary"    : ("Controller libraries", _MOD, "Controller library",),
     "ControllerClass"      : ("Controller classes", _CLS, "Controller class",),
     "Controller"           : ("Controllers", _TNG, "Controller",),
     "Motor"                : ("Motors", _TNG, "Motor",),
@@ -57,7 +57,7 @@ TYPE_MAP = {
     "MotorGroup"           : ("Motor groups", _TNG, "Motor group",),
     "MeasurementGroup"     : ("Measurement groups", _TNG, "Measurement group",),
     "CommunicationChannel" : ("Communication channels", _TNG, "Communication channel",),
-    "MacroLib"             : ("Macro libraries", _MOD, "Macro library",),
+    "MacroLibrary"         : ("Macro libraries", _MOD, "Macro library",),
     "MacroClass"           : ("Macro classes", _CLS, "Macro class",),
     "Instrument"           : ("Instruments", _TNG, "Instrument"),
     "MacroFunction"        : ("Macro functions", _FNC, "Macro function",),
@@ -205,6 +205,9 @@ class SardanaBaseElementModel(TaurusBaseModel):
             ret.setData(TAURUS_MODEL_MIME_TYPE, str(data[0]))
         return ret
     
+    def accept(self, element):
+        return True
+    
     def setupModelData(self, data):
         dev = self.dataSource()
         if dev is None:
@@ -216,12 +219,14 @@ class SardanaBaseElementModel(TaurusBaseModel):
         type_nodes = {}
         parent_elements = {}
         child_elements = set()
-        parent_types = "ControllerLib", "MacroLib", "Controller"
+        parent_types = "ControllerLibrary", "MacroLibrary", "Controller"
         child_types = "ControllerClass", "MacroClass", "MacroFunction", \
             "Motor", "CounterTimer", "PseudoMotor", "PseudoCounter", \
             "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel"
         
         for element in elements:
+            if not self.accept(element):
+                continue
             element_type = element.type
             type_item = type_nodes.get(element_type)
             if type_item is None:
