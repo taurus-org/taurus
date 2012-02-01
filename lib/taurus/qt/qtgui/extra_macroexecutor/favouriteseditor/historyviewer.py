@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-favouriteseditor.py: 
+historyviewer.py: 
 """
 import copy
 
@@ -33,24 +33,24 @@ from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from model import MacrosListModel
 
-class FavouritesMacrosEditor(TaurusWidget):
+class HistoryMacrosViewer(TaurusWidget):
     __pyqtSignals__ = ("modelChanged(const QString &)",)
     
     def __init__(self, parent=None, designMode = False):
         TaurusWidget.__init__(self, parent, designMode)
         self.setObjectName(self.__class__.__name__)
-        self.registerConfigProperty("toXmlString", "fromXmlString", "favourites")
+        self.registerConfigProperty("toXmlString", "fromXmlString", "history")
         self.initComponents()
         
     def initComponents(self):
         self.setLayout(Qt.QHBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         
-        self.list = FavouritesMacrosList(self)
+        self.list = HistoryMacrosList(self)
         self._model = MacrosListModel()
         self.list.setModel(self._model)
         
-#        self.registerConfigDelegate(self.list)
+#####        self.registerConfigDelegate(self.list)
         self.layout().addWidget(self.list)
                 
         actionBar = self.createActionBar()
@@ -59,18 +59,9 @@ class FavouritesMacrosEditor(TaurusWidget):
     def createActionBar(self):
         layout = Qt.QVBoxLayout()    
         layout.setContentsMargins(0,0,0,0)
-        deleteButton = Qt.QToolButton()
-        deleteButton.setDefaultAction(self.list.removeAction)
-        layout.addWidget(deleteButton)
         deleteAllButton = Qt.QToolButton()
         deleteAllButton.setDefaultAction(self.list.removeAllAction)
         layout.addWidget(deleteAllButton)
-        moveUpButton = Qt.QToolButton()
-        moveUpButton.setDefaultAction(self.list.moveUpAction)
-        layout.addWidget(moveUpButton)
-        moveDownButton = Qt.QToolButton()
-        moveDownButton.setDefaultAction(self.list.moveDownAction)
-        layout.addWidget(moveDownButton)
         spacerItem = Qt.QSpacerItem(0,0,Qt.QSizePolicy.Fixed,Qt.QSizePolicy.Expanding)
         layout.addItem(spacerItem)
         return layout
@@ -83,13 +74,12 @@ class FavouritesMacrosEditor(TaurusWidget):
 
     def fromXmlString(self, xmlString):
         self.list.fromXmlString(xmlString)
-        favouritesList = self.list.model().list
+        historyList = self.list.model().list
         macroServerObj = self.getModelObj() 
-        if macroServerObj is None:
-            self.debug("MS IS NONE")
+        if macroServerObj is None: 
             return
         
-        for macroNode in favouritesList:
+        for macroNode in historyList:
             macroServerObj.fillMacroNodeAdditionalInfos(macroNode)
     
     @classmethod
@@ -97,98 +87,47 @@ class FavouritesMacrosEditor(TaurusWidget):
         return None
 
     
-class FavouritesMacrosList(Qt.QListView, BaseConfigurableClass):
+class HistoryMacrosList(Qt.QListView, BaseConfigurableClass):
     
     def __init__(self, parent):
         Qt.QListView.__init__(self, parent)
-        
         self.setSelectionMode(Qt.QListView.ExtendedSelection)
-        
-        self.removeAction = Qt.QAction(Qt.QIcon(":/actions/list-remove.svg"), "Remove from favourites", self)
-        self.connect(self.removeAction, Qt.SIGNAL("triggered()"), self.removeMacros)
-        self.removeAction.setToolTip("Clicking this button will remov selected macros from favourites.")
-        
-        self.removeAllAction = Qt.QAction(Qt.QIcon(":/places/user-trash.svg"), "Remove all from favourites", self)
+        self.removeAllAction = Qt.QAction(Qt.QIcon(":/places/user-trash.svg"), "Remove all from history", self)
         self.connect(self.removeAllAction, Qt.SIGNAL("triggered()"), self.removeAllMacros)
-        self.removeAllAction.setToolTip("Clicking this button will remove all macros from favourites.")
-        
-        self.moveUpAction = Qt.QAction(Qt.QIcon(":/actions/go-up.svg"), "Move up", self)
-        self.connect(self.moveUpAction, Qt.SIGNAL("triggered()"), self.upMacro)
-        self.moveUpAction.setToolTip("Clicking this button will move the macro up in the favourites hierarchy.")
-        
-        self.moveDownAction = Qt.QAction(Qt.QIcon(":/actions/go-down.svg"), "Move up", self)
-        self.connect(self.moveDownAction, Qt.SIGNAL("triggered()"), self.downMacro)
-        self.moveDownAction.setToolTip("Clicking this button will move the macro down in the favourites hierarchy.")
-        
-        self.disableActions()
+        self.removeAllAction.setToolTip("Clicking this button will remove all macros from history.")
+        self.removeAllAction.setEnabled(False)
         
     def currentChanged(self, current, previous):
         macro = copy.deepcopy(self.currentIndex().internalPointer())
-        self.emit(Qt.SIGNAL("favouriteSelected"), macro)
+        self.emit(Qt.SIGNAL("historySelected"), macro)
         Qt.QListView.currentChanged(self, current, previous)
-
-    def selectionChanged(self,old,new):
-        macro = None
-        if self.currentIndex().isValid():            
-            self.removeAllAction.setEnabled(True)  
-            self.isIndexSelected()
-        else: 
-            self.disableActions()
-        Qt.QListView.selectionChanged(self, old, new)
-        if len(self.selectedIndexes()) > 1:
-            self.moveUpAction.setEnabled(False)
-            self.moveDownAction.setEnabled(False)
-    
-    def isIndexSelected(self):
-        if len(self.selectedIndexes()) > 0:
-            self.removeAction.setEnabled(True)
-            self.moveUpAction.setEnabled(self.model().isUpRowAllowed(self.currentIndex()))
-            self.moveDownAction.setEnabled(self.model().isDownRowAllowed(self.currentIndex()))
-        else:
-            self.removeAction.setEnabled(False)
-            self.moveUpAction.setEnabled(False)
-            self.moveDownAction.setEnabled(False)
-    
+        
     def mousePressEvent(self, e):
         clickedIndex = self.indexAt(e.pos())
         if clickedIndex.isValid():
             macro = copy.deepcopy(self.currentIndex().internalPointer())
-            self.emit(Qt.SIGNAL("favouriteSelected"), macro)
+            self.emit(Qt.SIGNAL("historySelected"), macro)
+            self.removeAllAction.setEnabled(True)
         Qt.QListView.mousePressEvent(self, e)
-        
-    def disableActions(self):
-        self.removeAction.setEnabled(False)
-        self.removeAllAction.setEnabled(False)
-        self.moveUpAction.setEnabled(False)
-        self.moveDownAction.setEnabled(False)
-        
+    
+    def focusInEvent(self, e):
+        if self.model().rowCount()>0:
+            self.removeAllAction.setEnabled(True)
+        else:
+            self.removeAllAction.setEnabled(False)
+
     def insertMacro(self, macroNode):
         idx = self.model().insertRow(macroNode)
         self.setCurrentIndex(idx)
+        self.removeAllAction.setEnabled(True)
             
-    def removeMacros(self):
-        slist = sorted(self.selectedIndexes(), key=lambda index: index.row(), reverse = True)
-        for index in slist:
-            row = index.row()
-            idx = self.model().removeRow(row)
-        self.setCurrentIndex(idx)
-    
     def removeAllMacros(self):
         self.selectAll()
         slist = sorted(self.selectedIndexes(), key=lambda index: index.row(), reverse = True)
         for index in slist:
             self.model().removeRow(index.row()) 
-    
-    def upMacro(self):
-        row = self.currentIndex().row()
-        idx = self.model().upRow(row)
-        self.setCurrentIndex(idx)
-        
-    def downMacro(self):
-        row = self.currentIndex().row()
-        idx = self.model().downRow(row)
-        self.setCurrentIndex(idx)
-    
+        self.removeAllAction.setEnabled(False) 
+                
     def toXmlString(self):
         return self.model().toXmlString()
             
@@ -202,14 +141,14 @@ def test():
     
     app = TaurusApplication(sys.argv)
         
-    favouritesEditor = FavouritesMacrosEditor()
+    historyViewer = HistoryMacrosViewer()
     
     args = app.get_command_line_args()
-    favouritesEditor.setModel(args[0])
+    historyViewer.setModel(args[0])
     time.sleep(1)
-    macroNode = favouritesEditor.getModelObj().getMacroNodeObj(str(args[1]))
-    favouritesEditor.addMacro(macroNode)
-    favouritesEditor.show()
+    macroNode = historyViewer.getModelObj().getMacroNodeObj(str(args[1]))
+    historyViewer.addMacro(macroNode)
+    historyViewer.show()
 
     sys.exit(app.exec_())
 

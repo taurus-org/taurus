@@ -24,3 +24,4 @@
 #############################################################################
 
 from favouriteseditor import FavouritesMacrosEditor
+from historyviewer import HistoryMacrosViewer

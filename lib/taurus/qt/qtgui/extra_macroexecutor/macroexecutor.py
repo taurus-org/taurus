@@ -38,7 +38,7 @@ from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusLed
 from taurus.qt.qtgui.dialog import TaurusMessageBox
 
-from favouriteseditor import FavouritesMacrosEditor
+from favouriteseditor import FavouritesMacrosEditor, HistoryMacrosViewer
 from common import MacroComboBox, MacroExecutionWindow, standardPlotablesFilter
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor import ParamEditorManager, ParamEditorModel, StandardMacroParametersEditor
 from taurus.core.tango.sardana.macro import MacroRunException
@@ -98,13 +98,13 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.playMacroAction = Qt.QAction(getIcon(":/actions/media_playback_start.svg"), "Start macro", self)
         self.connect(self.playMacroAction, Qt.SIGNAL("triggered()"), self.onPlayMacro)
         self.playMacroAction.setToolTip("Start macro")
-        
         actionsLayout = Qt.QHBoxLayout()
         actionsLayout.setContentsMargins(0,0,0,0)
         addToFavouritsButton = Qt.QToolButton()
         addToFavouritsButton.setDefaultAction(self.addToFavouritesAction)
         self.addToFavouritesAction.setEnabled(False)
         actionsLayout.addWidget(addToFavouritsButton)
+        
         self.macroComboBox = MacroComboBox()
         self.macroComboBox.setUseParentModel(True)
         self.macroComboBox.setModel("/MacroList")
@@ -140,8 +140,19 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.registerConfigDelegate(self.favouritesMacrosEditor)
         self.favouritesMacrosEditor.setUseParentModel(True)
         self.favouritesMacrosEditor.setFocusPolicy(Qt.Qt.NoFocus)
-        splitter.addWidget(self.favouritesMacrosEditor) 
         
+        self._historyBuffer = None
+        self.historyMacrosViewer = HistoryMacrosViewer(self)
+        self.registerConfigDelegate(self.historyMacrosViewer)
+        self.historyMacrosViewer.setUseParentModel(True)
+        self.historyMacrosViewer.setFocusPolicy(Qt.Qt.NoFocus)
+        
+        self.tabMacroListsWidget = Qt.QTabWidget(self)
+        self.tabMacroListsWidget.addTab(self.favouritesMacrosEditor, "Favourite list")
+        self.tabMacroListsWidget.addTab(self.historyMacrosViewer, "History Viewer")
+        splitter.addWidget(self.tabMacroListsWidget)
+    
+        self._isHistoryMacro = False
         self.macroProgressBar = MacroProgressBar(self)
         self.layout().addWidget(self.macroProgressBar)
         
@@ -156,7 +167,9 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.layout().addLayout(spockCommandLayout)
         self.connect(self.macroComboBox,Qt.SIGNAL("currentIndexChanged(QString)"), self.onMacroComboBoxChanged)
         self.connect(self.favouritesMacrosEditor.list, Qt.SIGNAL("favouriteSelected"), self.onFavouriteSelected)
-        
+        self.connect(self.historyMacrosViewer.list, Qt.SIGNAL("historySelected"), self.onHistorySelected)
+
+
     def macroId(self):
         return self._macroId
     
@@ -193,9 +206,16 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     def setFavouritesBuffer(self, favouritesMacro):
         self._favouritesBuffer = favouritesMacro
         
+    #History Widget
+    def historyBuffer(self):
+        return self._historyBuffer
+    
+    def setHistoryBuffer(self, favouritesMacro):
+        self._historyBuffer = favouritesMacro
+        
     def favouritesBuffer(self):
         return self._favouritesBuffer
-    
+        
     def paramEditorModel(self):
         return self._paramEditorModel
     
@@ -210,8 +230,15 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.playMacroAction.setEnabled(False)
             self.addToFavouritesAction.setEnabled(False)
         else:
-            macroNode = self.favouritesBuffer()
-            self.setFavouritesBuffer(None)
+            if self._isHistoryMacro:
+                macroNode = self.historyBuffer()
+                self.setHistoryBuffer(None)
+                self.favouritesMacrosEditor.list.clearSelection()
+            else:
+                macroNode = self.favouritesBuffer()
+                self.setFavouritesBuffer(None)
+                self.historyMacrosViewer.list.clearSelection()
+            self._isHistoryMacro = False
     
             if macroNode is None:
                 macroNode = self.getModelObj().getMacroNodeObj(macroName)
@@ -234,15 +261,27 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         
         self.emit(Qt.SIGNAL("macroNameChanged"), macroName)
         
-    def onFavouriteSelected(self, macroNode):   
+    def onFavouriteSelected(self, macroNode):
         self.setFavouritesBuffer(macroNode)
         name = ""
         if not macroNode is None: 
             name = macroNode.name()
+        self._isHistoryMacro = False
         self.macroComboBox.selectMacro(name)
-            
+        
+    def onHistorySelected(self, macroNode):
+        self.setHistoryBuffer(macroNode)
+        name = ""
+        if not macroNode is None: 
+            name = macroNode.name()
+        self._isHistoryMacro = True
+        self.macroComboBox.selectMacro(name)
+    
     def onAddToFavourites(self):
         self.favouritesMacrosEditor.addMacro(deepcopy(self.paramEditorModel().root()))
+    
+    def addToHistory(self):
+        self.historyMacrosViewer.addMacro(deepcopy(self.paramEditorModel().root()))
         
     def onDoorChanged(self, doorName):
         self.setDoorName(doorName)
@@ -263,7 +302,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         doorState = door.state()
         if doorState == PyTango.DevState.ON:
             paramEditorModel = self.paramEditorModel() 
-            macroNode = paramEditorModel.root()
+            macroNode = paramEditorModel.root()         
             id = macroNode.assignId()
             self.setMacroId(id)
             params, alerts = macroNode.toRun()
@@ -272,6 +311,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
                 Qt.QMessageBox.warning(self,"Macro parameters warning", alerts)
                 return
             door.runMacro(xmlString)
+            self.addToHistory()
 #            door.runMacro(str(macroNode.name()), params)
         elif doorState == PyTango.DevState.STANDBY:
             door.command_inout("ResumeMacro")
