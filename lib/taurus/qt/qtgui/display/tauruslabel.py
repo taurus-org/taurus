@@ -126,7 +126,7 @@ class TaurusLabelController(TaurusBaseController):
     def _updateToolTip(self, label):
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
-            toolTip = u"<p><b>Value:</b> %s</p><hr>%s" % (self._text, toolTip)
+            toolTip = u"<p><b>Value:</b> %s</p><hr>%s" % (unicode(self._text,errors='replace'), unicode(toolTip,errors='replace'))
         label.setToolTip(toolTip)
 
     _updateBackground = updateLabelBackground
