@@ -1202,7 +1202,6 @@ class PoolMotorTV(TaurusValue):
                 self.motor_dev.getAttribute('Position').removeListener(self.position_listener)
 
             if model == '' or model is None:
-                self.warning('poolmotor for %s has been reused for an empty model' % self.motor_dev.model)
                 self.motor_dev = None
                 return
 
