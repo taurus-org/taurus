@@ -82,6 +82,8 @@ class CTExpChannel(PoolElementDevice):
             ct = self.pool.create_element(type="CTExpChannel", name=name, 
                 full_name=full_name, id=self.Id, axis=self.Axis,
                 ctrl_id=self.Ctrl_id)
+            if self.instrument is not None:
+                ct.set_instrument(self.instrument)
             ct.add_listener(self.on_ct_changed)
             self.ct = ct
         # force a state read to initialize the state attribute
