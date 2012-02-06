@@ -733,6 +733,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                 self.helpManualBrowser = QWebView()
             except:
                 self.helpManualBrowser = Qt.QLabel('QWebkit is not available')
+                def dummyload(*args):pass
+                self.helpManualBrowser.load = dummyload
                 return
         try: url = Qt.QUrl.fromUserInput(uri) 
         except: url = Qt.QUrl(uri) #fallback for Qt<4.6
