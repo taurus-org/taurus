@@ -728,8 +728,12 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     def setHelpManualURI(self,uri):
         self.__helpManualURI = uri
         if self.helpManualBrowser is None:
-            from PyQt4.QtWebKit import QWebView
-            self.helpManualBrowser = QWebView()
+            try:
+                from PyQt4.QtWebKit import QWebView
+                self.helpManualBrowser = QWebView()
+            except:
+                self.helpManualBrowser = Qt.QLabel('QWebkit is not available')
+                return
         try: url = Qt.QUrl.fromUserInput(uri) 
         except: url = Qt.QUrl(uri) #fallback for Qt<4.6
         self.helpManualBrowser.load(url)
