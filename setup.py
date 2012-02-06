@@ -254,7 +254,8 @@ class build_resources(Command):
             self.out = sys.stdout
         else:
             self.out = StringIO.StringIO()
-
+        import PyQt4.Qt
+        self.app = PyQt4.Qt.QApplication([])
 
     def finalize_options (self):
         if self.logo is None:
