@@ -591,7 +591,6 @@ class TaurusSequencerWidget(TaurusWidget):
             self.setFirstMacroId(first)
             self.setLastMacroId(last)
             self.setMacroIds(ids)
-            print "first ", first, " last", last, "ids", ids
             self.tree.prepareMacroProgresses()
             self.setEmitExecutionStarted(True)
             door.runMacro(self.tree.toXmlString())
