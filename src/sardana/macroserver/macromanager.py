@@ -266,7 +266,7 @@ class MacroManager(Singleton, Logger):
         
         template = ''
         if create:
-            template += 'from macro import *\n\n'
+            template += 'from sardana.macroserver.macro import *\n\n'
             line_nb = 4
         else:
             template += '\n'
