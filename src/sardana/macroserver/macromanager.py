@@ -277,6 +277,7 @@ class MacroManager(Singleton, Logger):
             t.close()
             
         f = open(f_name, 'a+')
+        f_templ = None
         try:
             dir_name = os.path.realpath(__file__)
             dir_name = os.path.dirname(dir_name)
