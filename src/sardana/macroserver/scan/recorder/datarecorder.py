@@ -92,11 +92,13 @@ class DataRecorder(Logger):
         self.status = RecorderStatus.Idle
 
     def startRecordList(self, recordlist):
-
+        is_idle = self.status is RecorderStatus.Idle
+        if is_idle:
+            self.recordlist = recordlist
+            
         self._startRecordList(recordlist)
-
-        if self.status is RecorderStatus.Idle:
-           self.recordlist = recordlist
+        
+        if is_idle:
            return 0
         else:
            return -1
