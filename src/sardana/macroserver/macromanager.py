@@ -217,8 +217,8 @@ class MacroManager(Singleton, Logger):
             if macro_lib is None:
                 f_name, code = self.createMacroLib(lib_name), ''
             else:
-                full_name = macro_lib.file_path
-                f = file(full_name)
+                f_name = macro_lib.file_path
+                f = file(f_name)
                 code = f.read()
                 f.close()
         else:
