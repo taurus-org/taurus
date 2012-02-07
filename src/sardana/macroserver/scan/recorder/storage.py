@@ -61,8 +61,7 @@ class FIO_FileRecorder(BaseFileRecorder):
 
     def __init__(self, filename=None, macro=None, **pars):
         BaseFileRecorder.__init__(self)
-        if filename:
-            self.setFileName(filename)
+        self.base_filename = filename
         if macro:
             self.macro = macro
     
@@ -83,7 +82,7 @@ class FIO_FileRecorder(BaseFileRecorder):
         # construct the filename, e.g. : /dir/subdir/etcdir/prefix_00123.fio
         #
         tpl = filename.rpartition('.')
-        serial = ScanFactory().getSerialNo(); 
+        serial = self.recordlist.getEnvironValue('serialno')
         self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
 
     def getFormat(self):
@@ -91,9 +90,11 @@ class FIO_FileRecorder(BaseFileRecorder):
     
     def _startRecordList(self, recordlist):
         
-        if self.filename is None:
+        if self.base_filename is None:
               return
- 
+        
+        self.setFileName(self.base_filename)
+        
         envRec = recordlist.getEnviron()
 
         #datetime object
@@ -102,7 +103,7 @@ class FIO_FileRecorder(BaseFileRecorder):
         serialno = envRec['serialno']
         
         #store labels for performace reason
-        self.labels = [ e.label for e in envRec['datadesc'] ]
+        self.names = [ e.name for e in envRec['datadesc'] ]
         self.fd = open( self.filename,'w')
         #
         # write the comment section of the header
@@ -129,7 +130,7 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.fd.flush()
         i = 1
         for col in envRec[ 'datadesc']:
-            if col.label == 'point_nb':
+            if col.name == 'point_nb':
                 continue
             dType = 'FLOAT'
             if col.dtype == 'float64':
@@ -142,9 +143,9 @@ class FIO_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
               return
-        nan, labels, fd = float('nan'), self.labels, self.fd
+        nan, names, fd = float('nan'), self.names, self.fd
         outstr = ''
-        for c in labels:
+        for c in names:
             if c == 'point_nb':
                 continue
             outstr += ' ' + str(record.data.get(c, nan))
