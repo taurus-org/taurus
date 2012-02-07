@@ -815,7 +815,6 @@ def createSequencerWidget(args):
 def createSequencer(args):
     sequencer = TaurusSequencer()
     sequencer.setModelInConfig(True)
-    sequencer.setCustomMacroEditorPaths("/home/zreszela/workspace/Taurus/lib/taurus/qt/qtgui/extra_macroexecutor/macroparameterseditor/customeditors")
     Qt.QObject.connect(sequencer, Qt.SIGNAL("doorChanged"), sequencer.onDoorChanged)
     if len(args) == 2:
         sequencer.setModel(args[0])
