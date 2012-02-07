@@ -51,6 +51,7 @@ class JsonRecorder(DataRecorder):
         title = recordlist.getEnvironValue('title')
         counters = recordlist.getEnvironValue('counters')
         scanfile = recordlist.getEnvironValue('ScanFile')
+        scandir = recordlist.getEnvironValue('ScanDir')
         serialno = recordlist.getEnvironValue('serialno')
         column_desc = recordlist.getEnvironValue('datadesc')
         ref_moveables = recordlist.getEnvironValue('ref_moveables')
@@ -67,6 +68,7 @@ class JsonRecorder(DataRecorder):
                  'title': title,
                  'counters': counters,
                  'scanfile': scanfile,
+                 'scandir' : scandir,
                  'serialno': serialno}
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
     
