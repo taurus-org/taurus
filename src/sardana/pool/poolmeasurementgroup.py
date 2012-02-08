@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 from taurus.core import AttributeNameValidator
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
 
-from sardana import ElementType
+from sardana import ElementType, TYPE_EXP_CHANNEL_ELEMENTS
 from sardana.sardanaevent import EventType
 
 from pooldefs import AcqMode, AcqTriggerType
@@ -43,6 +43,9 @@ from poolexternal import PoolExternalObject
 
 from sardana import State
 
+#----------------------------------------------
+# Measurement Group Configuration information
+#----------------------------------------------
 # dict <str, obj> with (at least) keys:
 #    - 'timer' : the timer channel name / timer channel id
 #    - 'monitor' : the monitor channel name / monitor channel id
@@ -147,6 +150,9 @@ class PoolMeasurementGroup(PoolGroupElement):
     # configuration
     # --------------------------------------------------------------------------
     
+    def _is_managed_element(self, element):
+        return element.get_type() in TYPE_EXP_CHANNEL_ELEMENTS
+
     def _build_channel_defaults(self, channel_data, channel):
         """Fills the channel default values for the given channel dictionnary"""
         
@@ -176,7 +182,9 @@ class PoolMeasurementGroup(PoolGroupElement):
                 config = channel.get_config()
                 if config is not None:
                     ndim = int(config.data_format)
-        
+            elif ctype == ElementType.IORegister:
+                ndim = 0
+            
         # Definitively should be initialized by measurement group
         # index MUST be here already (asserting this in the following line)
         channel_data['index'] = channel_data['index']

@@ -32,7 +32,8 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core import AttributeNameValidator
 
-from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
+from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS, \
+    TYPE_EXP_CHANNEL_ELEMENTS
 from poolelement import PoolBaseElement
 from poolexternal import PoolExternalObject
 from poolcontainer import PoolContainer
@@ -135,6 +136,9 @@ class PoolBaseGroup(PoolContainer):
                                    State.Unknown : unknown, None : none }
         return state, "\n".join(status)
     
+    def _is_managed_element(self, element):
+        return True
+    
     def _build_elements(self):
         self._user_elements = user_elements = []
         self._physical_elements = physical_elements = {}
@@ -142,7 +146,8 @@ class PoolBaseGroup(PoolContainer):
         pool = self._get_pool()
         for user_element_id in self._user_element_ids:
             # an internal element
-            if type(user_element_id) is int:
+            internal = type(user_element_id) is int
+            if internal:
                 try:
                     user_element = pool.get_element(id=user_element_id)
                 except KeyError:
@@ -150,8 +155,12 @@ class PoolBaseGroup(PoolContainer):
                     self._user_elements = None
                     self._physical_elements = None
                     raise
-            # a tango channel
-            else:
+                internal = self._is_managed_element(user_element)
+                if not internal:
+                    user_element_id = user_element.get_source()
+            # a tango channel or non internal element (ex: ioregister or motor
+            # in measurement group)
+            if not internal:
                 validator = AttributeNameValidator()
                 params = validator.getParams(user_element_id)
                 params['pool'] = self.pool
@@ -185,7 +194,8 @@ class PoolBaseGroup(PoolContainer):
             index = len(user_elements)
         user_elements.insert(index, element)
         
-        if element.get_type() == ElementType.External:
+        elem_type = element.get_type()
+        if not elem_type in TYPE_EXP_CHANNEL_ELEMENTS:
             return index
         
         self.add_element(element)
