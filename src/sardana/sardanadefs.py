@@ -32,6 +32,7 @@ __all__ = ["EpsilonError", "SardanaServer", "State",
            "Interface", "Interfaces", "InterfacesExpanded",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
+           "TYPE_EXP_CHANNEL_ELEMENTS",
            "TYPE_PSEUDO_ELEMENTS", "INTERFACES", "INTERFACES_EXPANDED",
            "is_number", "ScalarNumberFilter"]
 
@@ -278,6 +279,9 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, \
     ET.ComChannel, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter))
+
+TYPE_EXP_CHANNEL_ELEMENTS = set((ET.CTExpChannel, ET.ZeroDExpChannel, \
+    ET.OneDExpChannel, ET.TwoDExpChannel, ET.PseudoCounter))
 
 #: a set containing the possible types of pseudo elements.
 #: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
