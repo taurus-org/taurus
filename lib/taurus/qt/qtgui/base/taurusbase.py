@@ -1397,7 +1397,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     def mousePressEvent(self, event):
         '''reimplemented to record the start position for drag events. See :class:`QWidget'''
         if self._dragEnabled and event.button() == Qt.Qt.LeftButton:
-            self.dragStartPosition = event.pos()
+            self.dragStartPosition = Qt.QPoint(event.pos()) #I need to copy it explicetely to avoid a bug with PyQt4.4 
         self.getQtClass().mousePressEvent(self, event)
         
     def mouseMoveEvent(self, event):
