@@ -646,14 +646,14 @@ class Pool(PyTango.Device_4Impl, Logger):
         if e: raise e
     
     def on_pool_changed(self, evt_src, evt_type, evt_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
+
         evt_name = evt_type.name.lower()
+
         if evt_name in ("elementcreated", "elementdeleted"):
-            
-            # during server startup and shutdown avoid processing element
-            # creation events
-            if SardanaServer.server_state != State.Running:
-                return
-            
             elem = evt_value
             elem_name, elem_type = elem.name, elem.get_type()
             td = TYPE_MAP_OBJ[elem_type]
@@ -678,7 +678,23 @@ class Pool(PyTango.Device_4Impl, Logger):
             value[key] = json_elem,
             value = CodecFactory().getCodec('json').encode(('', value))
             self.push_change_event('Elements', *value)
-
+        elif evt_name == "elementschanged":
+            pool_name = self.pool.full_name
+            new_values, changed_values, deleted_values = [], [], []
+            for elem in evt_value['new']:
+                json_elem = elem.serialize(pool=pool_name)
+                new_values.append(json_elem)
+            for elem in evt_value['change']:
+                json_elem = elem.serialize(pool=pool_name)
+                changed_values.append(json_elem)
+            for elem in evt_value['del']:
+                json_elem = elem.serialize(pool=pool_name)
+                deleted_values.append(json_elem)
+            value = { "new" : new_values, "change": changed_values,
+                      "del" : deleted_values }
+            value = CodecFactory().getCodec('json').encode(('', value))
+            self.push_change_event('Elements', *value)
+            
     def _format_create_json_arguments(self, argin):
         elems, ret = json.loads(argin[0]), []
         if operator.isMappingType(elems):

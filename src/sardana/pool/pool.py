@@ -559,17 +559,46 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     def reload_controller_lib(self, lib_name):
         manager = self.ctrl_manager
         
-        ctrl_infos = manager.getControllerLib(lib_name).get_controllers()
-        pool_ctrls = self.get_elements_by_type(ElementType.Controller)
-        init_pool_ctrls = []
-        for pool_ctrl in pool_ctrls:
-            if pool_ctrl.get_ctrl_info() in ctrl_infos:
-                init_pool_ctrls.append(pool_ctrl)
+        old_lib = manager.getControllerLib(lib_name)
+        new_elements, changed_elements, deleted_elements = [], [], []
+        old_ctrl_classes = ()
+        if old_lib is not None:
+            ctrl_infos = old_lib.get_controllers()
+            pool_ctrls = self.get_elements_by_type(ElementType.Controller)
+            init_pool_ctrls = []
+            for pool_ctrl in pool_ctrls:
+                if pool_ctrl.get_ctrl_info() in ctrl_infos:
+                    init_pool_ctrls.append(pool_ctrl)
+            old_ctrl_classes = ctrl_infos
+            changed_elements.append(old_lib)
         
-        manager.reloadControllerLib(lib_name)
+        new_lib = manager.reloadControllerLib(lib_name)
         
-        for pool_ctrl in init_pool_ctrls:
-            pool_ctrl.re_init()
+        if old_lib is None:
+            new_elements.extend(new_lib.get_controllers())
+            new_elements.append(new_lib)
+        else:
+            new_names = set([ ctrl.name for ctrl in new_lib.get_controllers() ])
+            old_names = set([ ctrl.name for ctrl in old_lib.get_controllers() ])
+            changed_names = set.intersection(new_names, old_names)
+            deleted_names = old_names.difference(new_names)
+            new_names = new_names.difference(old_names)
+            
+            for new_name in new_names:
+                new_elements.append(new_lib.get_controller(new_name))
+            for changed_name in changed_names:
+                changed_elements.append(new_lib.get_controller(changed_name))
+            for deleted_name in deleted_names:
+                deleted_elements.append(old_lib.get_controller(deleted_name))
+        
+        evt = { "new" : new_elements, "change" : changed_elements,
+                "del" : deleted_elements }
+        
+        self.fire_event(EventType("ElementsChanged"), evt)
+        
+        if old_lib is not None:
+            for pool_ctrl in init_pool_ctrls:
+                pool_ctrl.re_init()
     
     def reload_controller_class(self, class_name):
         ctrl_info = self.ctrl_manager.getControllerMetaClass(class_name)
