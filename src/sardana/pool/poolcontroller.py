@@ -699,7 +699,7 @@ class PoolController(PoolBaseController):
     # START SPECIFIC TO IOR CONTROLLER -------------
 
     def write_one(self, axis, value):
-        self.ctrl.WriteOne(self, axis, value)
+        self.ctrl.WriteOne(axis, value)
 
     # END SPECIFIC TO IOR CONTROLLER ----------
 
