@@ -497,7 +497,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             oldWidget.hide()
             oldWidget.setParent(None)
             # THIS HACK REDUCES THE STARTUP-HANGING RATE
-            oldWidget.setModel(None)
+            if hasattr(oldWidget,'setModel'):
+                oldWidget.setModel(None)
             
             # COULD NOT INVESTIGATE DEEPER, BUT THE STARTUP-HANGING
             # HAPPENS WITH SOME SIGNALS RELATED WITH THE LINEEDIT...
@@ -575,8 +576,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             
     def updateReadWidget(self):
         #get the class for the widget and replace it if necessary
-        klass = self.readWidgetClassFactory(self.readWidgetClassID)
-        self._readWidget = self._newSubwidget(self._readWidget, klass)
+        try:
+            klass = self.readWidgetClassFactory(self.readWidgetClassID)
+            self._readWidget = self._newSubwidget(self._readWidget, klass)
+        except Exception,e:
+            self._readWidget = Qt.QLabel('[Error]')
+            msg='Error creating read widget:\n'+str(e)
+            self._readWidget.setToolTip(msg)
+            self.debug(msg)
+        
         #take care of the layout
         self.addReadWidgetToLayout() 
         
