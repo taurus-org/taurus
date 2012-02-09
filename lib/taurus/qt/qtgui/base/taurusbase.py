@@ -1336,10 +1336,19 @@ class TaurusBaseWidget(TaurusBaseComponent):
                 if f in supported:
                     event.acceptProposedAction()
                     return
-            
+    
+    def getDropEventCallback(self):
+        '''returns the method to be called when a dropping event occurs. 
+        The default implementation returns `self.setModel`. Reimplement 
+        it subclasses to call different methods.
+        
+        :return: (callable)
+        '''
+        return self.setModel
+       
     def dropEvent(self, event):
         '''reimplemented to support drag&drop of models. See :class:`QWidget`'''
-        mtype = self.handleMimeData(event.mimeData(),self.setModel)
+        mtype = self.handleMimeData(event.mimeData(),self.getDropEventCallback())
         if mtype is None:
             self.info('Invalid model')
         else:
