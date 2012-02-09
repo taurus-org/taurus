@@ -47,6 +47,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     The widget shows a 3D plot (Z represented with colors) where the values in
     the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
+    _modifiableByUser = True
     def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
         defaultOptions = dict(lock_aspect_ratio=False)
@@ -123,7 +124,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             plot.set_axis_title('left', self.trendItem.getModelObj().getSimpleName())
         except:
             self.debug('cannot set title for left axis')
-            sef.traceback()
+            self.traceback()
         try:
             unit = self.trendItem.getModelObj().getConfig().getUnit() or ''
             plot.set_axis_unit(plot.colormap_axis, unit)
@@ -195,10 +196,17 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         ret['icon'] =':/designer/qwtplot.png'
         return ret  
     
+    def setModifiableByUser(self, modifiable):
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        self.get_tool(TaurusModelChooserTool).action.setEnabled(modifiable)
+        TaurusBaseWidget.setModifiableByUser(self, modifiable)
+    
     model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
     useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving) #@todo uncomment this when archiving is supported
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
     stackMode = Qt.pyqtProperty("QString", getStackMode, setStackMode, resetStackMode)
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, setModifiableByUser, TaurusBaseWidget.resetModifiableByUser) #@todo uncomment this when archiving is supported
+    
 
         
 def taurusTrend2DMain():
