@@ -40,7 +40,7 @@ at Taurus installation time.
 
 .. _standalonetaurusform:
 
-TaurusTrend as a stand-alone application
+TaurusForm as a stand-alone application
 -----------------------------------------
 
 You may also use TaurusForm as a stand-alone application for controlling some 
