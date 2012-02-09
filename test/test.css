@@ -1,0 +1,43 @@
+ 
+table.test {  
+           border-width: 3px;
+           border-style: outset ;
+           border-color: #BDBDBD; 
+		   border-spacing: 2px;
+           background-color: white; 
+           width : 100%;
+           -moz-border-radius:9px; }
+
+table.info {  
+           border-width: 3px;
+           border-style: outset ;
+           border-color: #BDBDBD; 
+		   border-spacing: 2px;
+           background-color: white; 
+           width : 100%;
+           -moz-border-radius:9px; }
+           
+caption.test { height: 26px;
+               background-color: #BDBDBD;
+               color: white;
+               border-style: outset;
+               border-width: 2px;
+               border-color: #BDBDBD;
+               -moz-border-radius: 6px;}
+
+td.testDescription { height: 30px;                background-color: white;   color : black;  }
+td.testStarted     { height: 30px; width : 100px; background-color: white;   color : black; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:inset;  }
+td.testFinished    { height: 30px; width : 100px; background-color: white;   color : black; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; }
+td.testSuccess     { height: 30px; width : 100px; background-color: green;   color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:green;}
+td.testError       { height: 30px; width : 100px; background-color: orange;  color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:orange;}
+td.testFailure     { height: 30px; width : 100px; background-color: red;     color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:red;}
+td.testSummary     { height: 30px; width : 100px; background-color: #BDBDBD; color : black; -moz-border-radius: 6px; border-width:2px; border-style:outset; }
+
+td.testsSucceeded  { background-color: green;   color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:green; }
+td.testsError      { background-color: orange;  color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:orange; }
+td.testsFailed     { background-color: red;     color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:red; }
+
+td.summaryErrors      { background-color: orange;  color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:orange; }
+td.summaryFailures    { background-color: red;     color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:red; }
+td.summaryDescription { background-color: blue;    color : white; text-align : center; -moz-border-radius: 6px; border-width:2px; border-style:outset; border-color:blue; }
+td.summaryDetails     { }

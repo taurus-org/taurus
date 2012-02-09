@@ -34,11 +34,12 @@ from PyTango import Util, DebugIt
 
 from taurus.core.util import Logger, CodecFactory
 
+from sardana import SardanaServer
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericSpectrumAttr
 from sardana.macroserver.exception import MacroServerException
 from sardana.macroserver.manager import MacroServerManager
-
+from sardana.macroserver.macroserver import MacroServer as MS
 
 class MacroServer(SardanaDevice):
     
@@ -47,7 +48,20 @@ class MacroServer(SardanaDevice):
     def __init__(self,cl, name):
         SardanaDevice.__init__(self,cl, name)
         MacroServer.init_device(self)
-
+    
+    def init(self, name):
+        SardanaDevice.init(self, name)
+        
+        if self._alias is None:
+            self._alias = PyTango.Util.instance().get_ds_inst_name()
+        
+        self._macro_server = ms = MS(self.name, self.alias)
+        ms.add_listener(self.on_macro_server_changed)
+    
+    @property
+    def macro_server(self):
+        return self._macro_server
+    
     def __getManager(self, *args):
         return MacroServerManager(*args)
     
@@ -105,6 +119,12 @@ class MacroServer(SardanaDevice):
         return name % { 'ds_name' : util.get_ds_name().lower(),
                         'ds_exec_name' : util.get_ds_exec_name(),
                         'ds_inst_name' : util.get_ds_inst_name().lower() }
+    
+    def on_macro_server_changed(self, evt_src, evt_type, evt_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
     
     def always_executed_hook(self):
         pass

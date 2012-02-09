@@ -35,8 +35,8 @@ import copy
 import operator
 import types
 
-from taurus import Device
-from taurus.core import ManagerState, TaurusManager
+from taurus import Device, Factory
+from taurus.core import ManagerState, TaurusManager, TaurusEventType
 from taurus.core.util import Singleton, Logger, ListEventGenerator, \
     CaselessDict, ThreadPool, CaselessDict
 from taurus.core.tango.sardana import pool
@@ -50,6 +50,15 @@ from envmanager import EnvironmentManager
 from parameter import ParamType
 
 from exception import UnknownEnv
+
+CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
+
+class PoolMS(pool.Pool):
+    def on_elements_changed(self, evt_src, evt_type, evt_value):
+        ret = pool.Pool.on_elements_changed(self, evt_src, evt_type, evt_value)
+        if evt_type not in CHANGE_EVT_TYPES:
+            return ret
+        MacroServerManager()._macro_server.push_change_event('Elements', *evt_value.value)
 
 class MacroServerManager(Singleton, Logger):
     """The MacroServer manager class. It is designed to be a singleton for the
@@ -68,7 +77,7 @@ class MacroServerManager(Singleton, Logger):
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
         self.call__init__(Logger, name)
-
+        
         # dictionary for registered doors
         # dict<string, PyTango.Device_3Impl> where:
         #  - key: door device name
@@ -77,7 +86,7 @@ class MacroServerManager(Singleton, Logger):
         
         # maximum number of parallel macros
         self._max_parallel_macros = 5
-
+        
         self._pool_list_obj = ListEventGenerator('PoolList')
         self._door_list_obj = ListEventGenerator('DoorList')
         
@@ -93,9 +102,12 @@ class MacroServerManager(Singleton, Logger):
         
         taurus_manager = TaurusManager()
         taurus_manager.reInit()
-        #taurus_manager.setSerializationMode(TaurusSerializationMode.Serial)
+
         pool.registerExtensions()
-        
+        #overwrite default taurus Pool extension with MacroServer specific one
+        factory = Factory()
+        factory.registerDeviceClass("Pool", PoolMS)
+
         if not pools is None:
             self.setPools(pools)
 
@@ -181,7 +193,7 @@ class MacroServerManager(Singleton, Logger):
                 self.error('Could not create Pool object for %s' % name)
                 continue
             self._pools[name] = p
-        
+
         self._firePoolEvent()
     
     def _firePoolEvent(self):
@@ -222,12 +234,6 @@ class MacroServerManager(Singleton, Logger):
         # fill macro class info
         ret += [ macro.serialize()
             for macro in self.getMacros() ]
-        
-#        # fill data types info
-#        # ...but first make it json serializable
-#        ret["__types__"] = interfaces_ret = {}
-#        for interface, interfaces in INTERFACES_EXPANDED:
-#            interfaces_ret[interfaces] = tuple(interfaces)
         
         return ret
     

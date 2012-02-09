@@ -459,17 +459,43 @@ class twice(Macro):
         return 2*n
 
 
-class th_exc(Macro):
+class show_regions(Macro):
     
     def run(self):
-        raise Exception("An exception in a macro!")
+        regions = self.getEnv('regions')
+        print "Current regions are", regions
 
 
-class ttt(Macro):
+class hello(Macro):
+    """hello description."""
+
+    # uncomment the following lines as necessary. Otherwise you may delete them
+    #param_def = []
+    #result_def = []
+    #hints = {}
+    #env = (,)
     
-    param_def = [ [ "ttt", Type.ExpChannel, None, "ttt" ] ]
-    
-    def run(self, channel):
-        print channel
+    # uncomment the following lines if need prepare. Otherwise you may delete them
+    #def prepare(self):
+    #    pass
         
+    def run(self):
+        pass
+
+
+class hello(Macro):
+    """hello description."""
+
+    # uncomment the following lines as necessary. Otherwise you may delete them
+    #param_def = []
+    #result_def = []
+    #hints = {}
+    #env = (,)
     
+    # uncomment the following lines if need prepare. Otherwise you may delete them
+    #def prepare(self):
+    #    pass
+        
+    def run(self):
+        pass
+

@@ -46,8 +46,8 @@ is able to talk to a Newport motor controller::
                                      'Description' : 'ControllerNumber',
                                      'DefaultValue' : 1 } }
 
-        def __init__(self,inst,props):
-            MotorController.__init__(self,inst,props)
+        def __init__(self, inst, props, *args, **kwargs):
+            MotorController.__init__(self, inst, props, *args, **kwargs)
                 
             self.serial = None
             self.serial_state_event_id = -1
@@ -55,20 +55,20 @@ is able to talk to a Newport motor controller::
             if self.SwitchBox:
                 self.MaxDevice = 8
 
-        def AddDevice(self,axis):
+        def AddDevice(self, axis):
             if axis > 1 and not self.SwitchBox:
                 raise Exception("Without using a Switchbox only axis 1 is allowed")
             
             if self.SwitchBox:
                 self._setCommand("MX", axis)
 
-        def DeleteDevice(self,axis):
+        def DeleteDevice(self, axis):
             pass
         
         _STATE_MAP = { NSC200.MOTOR_OFF : State.Off, NSC200.MOTOR_ON : State.On,
                        NSC200.MOTOR_MOVING : State.Moving }
         
-        def StateOne(self,axis):
+        def StateOne(self, axis):
             if self.SwitchBox:
                 self._setCommand("MX", axis)
                 
@@ -84,7 +84,7 @@ is able to talk to a Newport motor controller::
             elif upper == 1: switchstate = 2
             return status, "OK", switchstate
 
-        def ReadOne(self,axis):
+        def ReadOne(self, axis):
             try:
                 if self.SwitchBox:
                     self._setCommand("MX", axis)
@@ -92,10 +92,10 @@ is able to talk to a Newport motor controller::
             except:
                 raise Exception("Error reading position, axis not available")
 
-        def PreStartOne(self,axis,pos):
+        def PreStartOne(self, axis, pos):
             return True
 
-        def StartOne(self,axis,pos):
+        def StartOne(self, axis, pos):
             if self.SwitchBox:
                 self._setCommand("MX", axis)
             status = int(self._queryCommand("TS"))
@@ -107,7 +107,7 @@ is able to talk to a Newport motor controller::
         def StartAll(self):
             pass
 
-        def AbortOne(self,axis):
+        def AbortOne(self, axis):
             if self.SwitchBox:
                 self._setCommand("MX", axis)
             self._setCommand("ST", "")

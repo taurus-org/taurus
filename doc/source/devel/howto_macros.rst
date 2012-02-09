@@ -38,7 +38,7 @@ The simplest macro that you can write **MUST** obey the following rules:
 The :meth:`Macro.run` method is the place where you write the code of your macro.
 So, without further delay, here is the *Hello, World!* example::
 
-    from macro import *
+    from sardana.macroserver.macro import *
     
     class HelloWorld(Macro):
         """Hello, World! macro"""
@@ -58,7 +58,7 @@ adapt to your macro definition.
 Let's say you want to pass an integer parameter to your macro. All you have to
 do is declare the parameter by using the :attr:`Macro.param_def` Macro member::
 
-    from macro import *
+    from sardana.macroserver.macro import *
     
     class twice(Macro):
         """Macro twice. Prints the double of the given value"""
@@ -86,7 +86,7 @@ By default, the prepare method is an empty method.
 Here is an example on how to prepare HelloWorld to run only after year 1989::
 
     import datetime
-    from macro import *
+    from sardana.macroserver.macro import *
 
     class HelloWorld(Macro):
         """Hello, World! macro"""
@@ -185,7 +185,7 @@ The special :meth:`Macro.output` has the same effect as the print statement.
 
 Here is an example on how to write a logging information message::
 
-    from macro import *
+    from sardana.macroserver.macro import *
 
     class HelloWorld(Macro):
         """Hello, World! macro"""

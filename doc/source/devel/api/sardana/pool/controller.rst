@@ -13,9 +13,11 @@
     * :class:`Controller`
     * :class:`Readable`
     * :class:`Startable`
+    * :class:`PseudoController`
     * :class:`MotorController`
     * :class:`PseudoMotorController`
     * :class:`CounterTimerController`
+    * :class:`PseudoCounterController`
     * :class:`IORegisterController`
     
 Controller
@@ -51,6 +53,28 @@ Startable interface
     :members:
     :undoc-members:
 
+Stopable interface
+-------------------
+
+.. inheritance-diagram:: Stopable
+    :parts: 1
+    
+.. autoclass:: Stopable
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+Pseudo interface
+----------------
+
+.. inheritance-diagram:: PseudoController
+    :parts: 1
+    
+.. autoclass:: PseudoController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+    
 Motor Controller API
 ---------------------
 
@@ -80,6 +104,17 @@ Counter Timer Controller API
     :parts: 1
     
 .. autoclass:: CounterTimerController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+Pseudo Counter Controller API
+-----------------------------
+
+.. inheritance-diagram:: PseudoCounterController
+    :parts: 1
+    
+.. autoclass:: PseudoCounterController
     :show-inheritance:
     :members:
     :undoc-members:

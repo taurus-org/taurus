@@ -11,6 +11,7 @@ Controller API reference
     * :class:`MotorController` - Motor controller API
     * :class:`CounterTimerController` - Counter/Timer controller API
     * :class:`PseudoMotorController` - PseudoMotor controller API
+    * :class:`PseudoCounterController` - PseudoCounter controller API
     * :class:`IORegisterController` - IORegister controller API
 
 .. _pool-controller-data-type:

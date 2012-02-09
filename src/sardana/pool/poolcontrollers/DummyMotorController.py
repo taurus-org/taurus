@@ -545,7 +545,7 @@ class BasicDummyMotorController(MotorController):
         return int(state), status, switchstate
 
     def ReadOne(self, axis):
-        #self._log.debug("ReadOne(%d)", axis)
+        self._log.debug("ReadOne(%d)", axis)
         idx = axis - 1
         m = self.m[idx]
         return m.getCurrentUserPosition()

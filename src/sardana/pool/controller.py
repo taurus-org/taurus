@@ -26,7 +26,7 @@
 """This module contains the definition of the Controller base classes"""
 
 __all__ = ["Type", "Access", "Description", "DefaultValue", "Read", "ReadWrite",
-           "Controller", "Readable", "Startable",
+           "Controller", "Readable", "Startable", "Stopable",
            "MotorController", "CounterTimerController", "PseudoMotorController",
            "IORegisterController"]
 
@@ -345,6 +345,59 @@ class Controller(object):
         ret.update(old_axis_attrs)
         return ret
     
+    def SendToCtrl(self, stream):
+        """**Controller API**. Overwrite as necessary.
+        Sends a string to the controller.
+        Default implementation raises :exc:`NotImplementedError`.
+        
+        :param str stream: stream to be sent"""
+        raise NotImplementedError("SendToCtrl not implemented")
+        
+
+class Startable(object):
+    """A Startable interface. A controller for which it's axis are 'startable'
+    (like a motor, for example) should implement this interface
+    
+    .. note: Do not inherit directly from :class:`Startable`."""
+    
+    def PreStartAll(self):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a write of the position of all axis.
+        Default implementation does nothing."""
+        pass
+    
+    def PreStartOne(self, axis, position):
+        """**Controller API**. Overwrite as necessary.
+        Called to prepare a write of the position of a single axis.
+        Default implementation returns True.
+        
+        :param int axis: axis number
+        :param float position: new position
+        :return: True means a successfull pre-start or False for a failure
+        :rtype: bool"""
+        return True
+    
+    def StartOne(self, axis, position):
+        """**Controller API**. Overwrite as necessary.
+        Called to write the position of a selected axis
+        Default implementation does nothing.
+        
+        :param int axis: axis number
+        :param float position: new position"""
+        pass
+    
+    def StartAll(self):
+        """**Controller API**. Overwrite is MANDATORY!
+        Default implementation raises :exc:`NotImplementedError`"""
+        raise NotImplementedError("StartAll must be defined in the controller")
+
+
+class Stopable(object):
+    """A Stopable interface. A controller for which it's axis are 'stoppable'
+    (like a motor, for example) should implement this interface
+    
+    .. note: Do not inherit directly from :class:`Stopable`."""
+
     def AbortOne(self, axis):
         """**Controller API**. Overwrite is MANDATORY!
         Default implementation raises :exc:`NotImplementedError`.
@@ -399,52 +452,6 @@ class Controller(object):
                 exceptions.append(sys.exc_info())
         if len(exceptions) > 0:
             raise Exception(exceptions)
-    
-    def SendToCtrl(self, stream):
-        """**Controller API**. Overwrite as necessary.
-        Sends a string to the controller.
-        Default implementation raises :exc:`NotImplementedError`.
-        
-        :param str stream: stream to be sent"""
-        raise NotImplementedError("SendToCtrl not implemented")
-        
-
-class Startable(object):
-    """A Startable interface. A controller for which it's axis are 'startable'
-    (like a motor, for example) should implement this interface
-    
-    .. note: Do not inherit directly from :class:`Startable`."""
-    
-    def PreStartAll(self):
-        """**Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of all axis.
-        Default implementation does nothing."""
-        pass
-    
-    def PreStartOne(self, axis, position):
-        """**Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of a single axis.
-        Default implementation returns True.
-        
-        :param int axis: axis number
-        :param float position: new position
-        :return: True means a successfull pre-start or False for a failure
-        :rtype: bool"""
-        return True
-    
-    def StartOne(self, axis, position):
-        """**Controller API**. Overwrite as necessary.
-        Called to write the position of a selected axis
-        Default implementation does nothing.
-        
-        :param int axis: axis number
-        :param float position: new position"""
-        pass
-    
-    def StartAll(self):
-        """**Controller API**. Overwrite is MANDATORY!
-        Default implementation raises :exc:`NotImplementedError`"""
-        raise NotImplementedError("StartAll must be defined in the controller")
 
 
 class Readable(object):
@@ -484,7 +491,7 @@ class Readable(object):
         raise NotImplementedError("ReadOne must be defined in the controller")
 
 
-class MotorController(Controller, Startable, Readable):
+class MotorController(Controller, Startable, Stopable, Readable):
     """Base class for a motor controller. Inherit from this class to implement
     your own motor controller for the device pool.
     
@@ -607,7 +614,7 @@ class MotorController(Controller, Startable, Readable):
                                   "controller")
 
 
-class CounterTimerController(Controller, Readable):
+class CounterTimerController(Controller, Readable, Stopable):
     """Base class for a counter/timer controller. Inherit from this class to 
     implement your own counter/timer controller for the device pool.
     
@@ -734,7 +741,7 @@ class CounterTimerController(Controller, Readable):
         pass
 
 
-class ZeroDController(Controller, Readable):
+class ZeroDController(Controller, Readable, Stopable):
     """Base class for a 0D controller. Inherit from this class to
     implement your own 0D controller for the device pool."""
 
@@ -766,18 +773,6 @@ class PseudoController(Controller):
             elem = pool.get_element_by_id(motor_id)
             elems[index] = elems[role] = elem
         return elem
-    
-    def AbortOne(self, axis):
-        pass
-    
-    def AbortAll(self):
-        pass
-
-    def StopOne(self, axis):
-        pass
-    
-    def StopAll(self):
-        pass
 
 
 class PseudoMotorController(PseudoController):
