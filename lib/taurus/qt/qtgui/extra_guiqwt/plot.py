@@ -48,6 +48,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     
     .. seealso:: :class:`TaurusCurveWidget`
     '''
+    _modifiableByUser = True
     def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
@@ -60,7 +61,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE])
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.add_tool(TaurusCurveChooserTool)
-        self.setModifiableByUser(True)
+        self.setModifiableByUser(self._modifiableByUser)
     
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):
@@ -173,7 +174,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         return ret
     
     model = Qt.pyqtProperty("QStringList", getModel, setModel, TaurusBaseWidget.resetModel)
-
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, setModifiableByUser, TaurusBaseWidget.resetModifiableByUser)
 
 class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     '''A taurus widget for showing trends of scalar data.
@@ -183,6 +184,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     
     .. seealso:: :class:`TaurusTrendDialog`
     '''
+    _modifiableByUser = True
     def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
@@ -196,7 +198,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool,AutoScrollTool
         self.add_tool(TaurusModelChooserTool, singleModel=False)
         self.add_tool(AutoScrollTool)        
-        self.setModifiableByUser(True)
+        self.setModifiableByUser(self._modifiableByUser)
         if taurusparam is None:
             taurusparam = TaurusTrendParam()
         self.defaultTaurusparam = taurusparam
@@ -375,6 +377,10 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         self.get_plot().set_items_readonly(not modifiable)
         TaurusBaseWidget.setModifiableByUser(self, modifiable) 
         
+    def getDropEventCallback(self):
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        return self.addModels
+        
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -388,7 +394,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving)
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
     stackMode = Qt.pyqtProperty("QString", getStackMode, setStackMode, resetStackMode)
-    
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, setModifiableByUser, TaurusBaseWidget.resetModifiableByUser)
     
 class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     '''A taurus dialog for showing 2D data.
@@ -475,6 +481,9 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel,
                                      TaurusBaseWidget.setUseParentModel,
                                      TaurusBaseWidget.resetUseParentModel)
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, 
+                                       setModifiableByUser, 
+                                       TaurusBaseWidget.resetModifiableByUser)
     
     
     
@@ -605,6 +614,6 @@ def taurusImageDlgMain():
 
 if __name__ == "__main__":
 #    taurusCurveDlgMain()
-#    taurusTrendDlgMain()
-    taurusImageDlgMain()    
+    taurusTrendDlgMain()
+#    taurusImageDlgMain()    
     

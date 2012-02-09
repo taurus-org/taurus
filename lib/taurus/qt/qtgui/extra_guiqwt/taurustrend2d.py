@@ -63,7 +63,8 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         self.setWindowFlags(Qt.Qt.Widget)
         #add some tools
         for toolklass in (TaurusModelChooserTool,AutoScrollTool):
-            self.add_tool(toolklass)   
+            self.add_tool(toolklass)
+        self.setModifiableByUser(self._modifiableByUser)
     
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):
@@ -118,6 +119,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         self.trendItem = TaurusTrend2DItem(stackMode=self.getStackMode(), buffersize = self.buffersize)
         self.trendItem.setModel(model)
         plot.add_item(self.trendItem)
+        self.trendItem.set_readonly(not self.isModifiableByUser())
         plot.set_axis_title(plot.colormap_axis, 'value')
         plot.set_axis_unit('left', 'index')
         try:
@@ -199,13 +201,14 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     def setModifiableByUser(self, modifiable):
         """reimplemented from :class:`TaurusBaseWidget`"""
         self.get_tool(TaurusModelChooserTool).action.setEnabled(modifiable)
+        self.get_plot().set_items_readonly(not modifiable)
         TaurusBaseWidget.setModifiableByUser(self, modifiable)
     
     model = Qt.pyqtProperty("QString", getModel, setModel, TaurusBaseWidget.resetModel)
     useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving) #@todo uncomment this when archiving is supported
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
     stackMode = Qt.pyqtProperty("QString", getStackMode, setStackMode, resetStackMode)
-    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, setModifiableByUser, TaurusBaseWidget.resetModifiableByUser) #@todo uncomment this when archiving is supported
+    modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, setModifiableByUser, TaurusBaseWidget.resetModifiableByUser) 
     
 
         
