@@ -59,7 +59,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     '''    
     __pyqtSignals__ = ("itemsChanged","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
 
-    def __init__(self, parent = None, designMode = False, updateMode=None, alias = None):
+    def __init__(self, parent = None, designMode = False, updateMode=None, alias = None, resizable = True):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QGraphicsView, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
@@ -68,6 +68,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.w_scene = None
         self.h_scene = None
         self._fileName ="Root"
+        self.setResizable(resizable)
         self.setInteractive(True)
         self.setAlias(alias)
         
@@ -119,11 +120,14 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     def get_item_colors(self,emit = False):
         item_colors = {}
-        for item in self.scene().items():
-            if not getattr(item,'_name','') or not getattr(item,'_currBgBrush',None):
-                continue
-            item_colors[item._name] = item._currBgBrush.color().name()
-        if emit: self.emit(Qt.SIGNAL("itemsChanged"),self.modelName.split('/')[-1].split('.')[0],item_colors)
+        try:
+            for item in self.scene().items():
+                if not getattr(item,'_name','') or not getattr(item,'_currBgBrush',None):
+                    continue
+                item_colors[item._name] = item._currBgBrush.color().name()
+            if emit: self.emit(Qt.SIGNAL("itemsChanged"),self.modelName.split('/')[-1].split('.')[0],item_colors)
+        except:
+            self.warning('Unable to emitColors: %s'%traceback.format_exc())
         return item_colors
         
     #@Qt.pyqtSignature("selectGraphicItem(QString)")
@@ -138,6 +142,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
     @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
     def graphicSceneClicked(self,point):
+        self.info('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
         
     
@@ -146,26 +151,52 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         '''emit signal which is used to refresh the tree and colors of icons depend of the current status in jdrawSynoptic'''
         self.get_item_colors(True)
 
+    def get_sizes(self):
+        srect = self.scene().sceneRect()
+        sizes = [self.size(),self.sizeHint(),srect.size(),self.parent().size()]
+        return tuple([x for s in sizes for x in [s.width(),s.height()]])
+    
+    def fitting(self,ADJUST_FRAME = False):
+        """
+        Parent size is the size of the bigger panel (desn't keep ratio)
+        Rect size never changes (fixed by the graphics objects)
+        Size and SizeHint move one around the other
+        
+        the method works well until an object is clicked, then the whole reference changes and doesn't work again.
+        """
+        
+        srect = self.scene().sceneRect()
+        w,h = (srect.width(),srect.height())
+        offset = self.mapToGlobal(Qt.QPoint(srect.x(),srect.y()))
+        x0,y0 = (offset.x(),offset.y())
+
+        print '\n\nIn TauJDrawSynopticsView.fitting()'
+        print self.get_sizes()
+        print '\tAdjusting SizeHint: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes()
+        print '\toffset = %s,%s ; size = %s,%s'%(x0,y0,w,h)
+        self.fitInView(x0,y0,w,h,Qt.Qt.KeepAspectRatio)
+        
+        if ADJUST_FRAME: #This additional resizing adjust the "white" frame around the synoptic
+            print '\tResizing: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes()
+            self.resize(self.sizeHint())
+            print '\tFitting:: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes() 
+            self.fitInView(x0,y0,w,h,Qt.Qt.KeepAspectRatio) #Doesn't work
+        
+        print 'Done: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)\n\n'%self.get_sizes()
+        
     def resizeEvent(self, event):
         """ It has been needed to reimplent size policies """
-        if not self.scene() or isinstance(self.parent(),Qt.QScrollArea) or not self.isVisible():
-            self.debug('In TauJDrawSynopticsView('+self._fileName+').resizeEvent(): Disabled')
+        if not self.resizable() or not self.scene() or isinstance(self.parent(),Qt.QScrollArea) or not self.isVisible():
+            self.info('In TaurusJDrawSynopticsView('+self._fileName+').resizeEvent(): Disabled')
             return
         try:
-            self.debug('In TauJDrawSynopticsView('+self._fileName+').resizeEvent()')
-                
+            self.info('In TaurusJDrawSynopticsView('+self._fileName+').resizeEvent()')
+            if self.size() == self.sizeHint():
+                self.info('\tSize already fits: %s'%self.size())
+                return
             self.setVerticalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
             self.setHorizontalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
-            
-            # 2 or 3 iterations of this methods may be needed ...
-            srect = self.scene().sceneRect()
-            offset = self.mapToGlobal(Qt.QPoint(srect.x(),srect.y()))
-            #self.ensureVisible(offset.x(),offset.y(),rrect.width(),rrect.height()) # where rrect is the biggest object in the scene
-            
-            #@sergi_rubio: I disable the offset correction to show right proportions in TaurusGUI: to be tested in other applications
-            #self.fitInView(offset.x(),offset.y(),srect.width(),srect.height(),Qt.Qt.KeepAspectRatio)
-            self.fitInView(srect.x(),srect.y(),srect.width(),srect.height(),Qt.Qt.KeepAspectRatio)
-  
+            self.fitting()
             self.emitColors()
         except Exception,e:
             self.warning('Exception in JDrawView('+self._fileName+').resizeEvent: %s' % traceback.format_exc())
@@ -176,17 +207,38 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
 
     def updateStyle(self):
         self.repaint()
+        
+    def repaint(self):
+        Qt.QGraphicsView.repaint(self)
+        #self.fitting()        
 
-    def getGraphicsFactory(self):
+    def getGraphicsFactory(self,delayed=False):
         import jdraw
-        return jdraw.TaurusJDrawGraphicsFactory(self,alias=(self.alias or None)) #self.parent())
+        return jdraw.TaurusJDrawGraphicsFactory(self,alias=(self.alias or None),delayed=delayed) #self.parent())
+
+    ###########################################################################
+    
+    def getFramed(self):
+        try: parent = self.parent()
+        except: parent = None
+        frame = Qt.QFrame(parent)
+        self.setFrameStyle(self.StyledPanel|self.Raised)
+        self.setLineWidth(2)        
+        self.setParent(frame)
+        return frame      
+        
+    def setResizable(self,resizable):
+        self._resizable = resizable
+        
+    def resizable(self):
+        return self._resizable
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     @Qt.pyqtSignature("setModel(QString)")
-    def setModel(self, model, alias = None):
+    def setModel(self, model, alias = None, delayed = False):
         self.modelName = str(model)
         self._currF = str(model)
         if alias is not None: self.setAlias(alias)
@@ -197,7 +249,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             if os.path.isfile(filename):            
                 self.debug("Starting to parse %s" % filename)
                 self.path = os.path.dirname(filename)
-                factory = self.getGraphicsFactory()
+                factory = self.getGraphicsFactory(delayed=delayed)
                 scene = jdraw_parser.parse(filename, factory)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!"%(model,filename))
@@ -214,6 +266,13 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 #self.emit_signal()
             #The emitted signal contains the filename and a dictionary with the name of items and its color
             self.emitColors()#get_item_colors(emit=True)
+
+    def setModels(self):
+        """ This method triggers item.setModel(item._name) in all internal items. """
+        for item in self.scene().items():
+            if item._name and isinstance(item, tau.widget.TauGraphicsItem):
+                self.debug('JDrawTauGraphicsFactory.TauGraphicsScene(): calling item.setModel(%s)'%(item._name))
+                item.setModel(item._name)
 
     def getModel(self):
         return self._currF
@@ -247,7 +306,7 @@ if __name__ == "__main__":
     form = taurus.qt.qtgui.graphic.TaurusJDrawSynopticsView(designMode=False)
     form.setModel(sys.argv[1])
     
-    def kk(*args):print "!!!!!!!!!", args
+    def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
     form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
     
     SCROLL_BARS_WORK_PROPERLY = True
