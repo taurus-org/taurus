@@ -346,7 +346,8 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             self.info('Unsupported parameters type (%s). Casting to "str"'%str(param_type))
             cast_type = str
         if PyTango.is_scalar_type(param_type):
-            return cast_type(parameters[0])
+            if parameters: return cast_type(parameters[0])
+            else: return parameters
         else:
             return map(cast_type,parameters)
         
