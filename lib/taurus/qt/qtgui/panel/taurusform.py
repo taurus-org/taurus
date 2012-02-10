@@ -523,7 +523,12 @@ class TaurusCommandsForm(TaurusWidget):
                 pwidget = ParameterCB()
                 if c.cmd_name.lower() in self._defaultParameters:
                     for par in self._defaultParameters.get(c.cmd_name.lower(),[]): pwidget.addItem(par)
-                    pwidget.setEditable( (self._defaultParameters[c.cmd_name.lower()] or [''])[0] == '' )
+                    #pwidget.setEditable( (self._defaultParameters[c.cmd_name.lower()] or [''])[0] == '' )
+                    if (self._defaultParameters[c.cmd_name.lower()] or [''])[0] == '':
+                        pwidget.setEditable(True)
+                    else:
+                        pwidget.setEditable(False)
+                        button.setParameters(self._defaultParameters[c.cmd_name.lower()][0])
                 self.connect(pwidget, Qt.SIGNAL('editTextChanged (const QString&)'),button.setParameters)
                 self.connect(pwidget, Qt.SIGNAL('activated (int)'), button.setFocus)
                 self.connect(button, Qt.SIGNAL('commandExecuted'), pwidget.rememberCurrentText)
