@@ -70,11 +70,12 @@ TEXTHINT_JDW2QT = taurus.core.util.CaselessDict({
 
 class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsFactory, taurus.core.util.Logger):
     
-    def __init__(self,parent,alias = None):
+    def __init__(self,parent,alias = None, delayed = False):
         """ Initialization. Nothing to be done here for now."""
         self.myparent=parent
         self.call__init__wo_kw(TaurusBaseGraphicsFactory, parent)
         self._zBufferLevel = 0
+        self._delayed = delayed
         self.alias = alias if alias is not None else {}
 
     def init(self, *args, **kwargs):
@@ -177,7 +178,11 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
 
         txt = params.get('text')
         if txt:
+            if any(isinstance(txt,t) for t in (list,tuple,set)): #Parsing several lines of text
+                txt = '\n'.join(txt)            
             item.setPlainText(Qt.QString(txt))
+            item._currText = txt
+            
         fnt = params.get('font')
         if fnt:
             family,style,size = fnt
@@ -229,6 +234,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             elif hasattr(self.myparent,'path'):
                 #self.info('using path param ...')
                 fname = self.myparent.path+os.path.sep+fname
+            self.info('Opening JDImage(%s) = x,y,w,h=%f,%f,%f,%f' % (fname,x1,y1,x2-x1,y2-y1))
             pixmap = Qt.QPixmap(fname)
             item.setPixmap(pixmap.scaled(x2-x1,y2-y1))
             #item.scale(float(w)/pixmap.width(), float(h)/pixmap.height())
@@ -265,8 +271,10 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             pen.setWidth(params.get("lineWidth", 1))
             pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
             item.setPen(pen)
-        except:
+        except AttributeError,ae: 
             pass
+        except Exception,e:
+            self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
 
         fillStyle = FILLSTYLE_JDW2QT[params.get('fillStyle', 0)]
 
@@ -291,19 +299,25 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             bg = params.get('background',(255,255,255))
             brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
             item.setBrush(brush)
-        except:
-            pass
+        except AttributeError,ae: pass
+        except Exception,e:
+            self.warning('jdraw.set_common_params(%s(%s)).(background,gradient,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
 
         name = params.get('name')  
         if self.alias: 
             for k,v in self.alias.items():
                 name = str(name).replace(k,v)
 
-        if name and isinstance(item, TaurusGraphicsItem):
-            self.debug('JDrawTaurusGraphicsFactory.set_common_params(%s): calling setModel(%s)'%(item,name))
-            item.setModel(name)
-        else:  #Forcing not-Taurus items to have a name and be able to trigger events
-            setattr(item,'_name',name)
+        #Forcing not-Taurus items to have a name and be able to trigger events
+        setattr(item,'_name',name)
+        if name and not self._delayed:
+            if isinstance(item, TaurusGraphicsItem):
+                self.debug('TaurusJDrawGraphicsFactory.set_common_params(): %s.setModel(%s)'%(item,name))
+                item.setModel(name)
+            else:
+                self.debug('TaurusJDrawGraphicsFactory.set_common_params(%s): %s is not a TaurusGraphicsItem'%(name,type(item).__name__))
+        
+        self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))  
 
 if __name__ == "__main__":
     import sys
