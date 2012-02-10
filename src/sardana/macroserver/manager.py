@@ -38,7 +38,7 @@ import types
 from taurus import Device, Factory
 from taurus.core import ManagerState, TaurusManager, TaurusEventType
 from taurus.core.util import Singleton, Logger, ListEventGenerator, \
-    CaselessDict, ThreadPool, CaselessDict
+    CaselessDict, ThreadPool
 from taurus.core.tango.sardana import pool
 from taurus.core.tango.sardana.motion import Motion, MotionGroup
 
@@ -218,14 +218,18 @@ class MacroServerManager(Singleton, Logger):
     def getPoolListStr(self):
         """Returns the list of device pool names"""
         return self._pools.keys()
-    
+
     def get_elements_info(self):
+        ret = self.get_remote_elements_info()
+        ret += self.get_local_elements_info()
+        return ret
+
+    def get_remote_elements_info(self):
         ret = [ elem.serialize()
             for pool in self.getPoolListObjs()
                 for elem in pool.getElements() ]
-        ret += self.get_local_elements_info()
         return ret
-    
+        
     def get_local_elements_info(self):
         # fill macro library info
         ret = [ macrolib.serialize()
@@ -332,9 +336,9 @@ class MacroServerManager(Singleton, Logger):
         return motion_klass(elems, motion_source)
     
     def getElementsWithInterface(self, interface):
-        ret=CaseLessDict({})
-        for pool in self.getPoolListObj():
-            ret.update(pool.getElementsWithInterface(self, interface))
+        ret=CaselessDict({})
+        for pool in self.getPoolListObjs():
+            ret.update(pool.getElementsWithInterface(interface))
         return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
