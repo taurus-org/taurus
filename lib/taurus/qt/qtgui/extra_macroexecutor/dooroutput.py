@@ -31,7 +31,7 @@ from taurus.qt import Qt
 import taurus.core
 
   
-class DoorOutput(Qt.QTextEdit):
+class DoorOutput(Qt.QPlainTextEdit):
     """Widget used for displaying changes of door's attributes: Output, Info, Warning and Error."""
     
     def __init__(self, parent = None):
@@ -50,9 +50,9 @@ class DoorOutput(Qt.QTextEdit):
             return
         for line in output:
             txt+="OUTPUT  " + line.replace(' ', '&nbsp;')+"\n"
-        txt += "</font><br>"
-        self.insertHtmlText(txt)
-    
+        txt += "</font>"
+        self.appendHtmlText(txt)
+        
     def onDoorInfoChanged(self, info):        
         """call on info attribute changed"""
         txt ="<font color=\"Black\">"
@@ -61,8 +61,8 @@ class DoorOutput(Qt.QTextEdit):
         
         for line in info:
             txt+="INFO  " + line.replace(' ', '&nbsp;')+"\n"
-        txt += "</font><br>"
-        self.insertHtmlText(txt)
+        txt += "</font>"
+        self.appendHtmlText(txt)
         
     def onDoorWarningChanged(self, warning):
         """call on warning attribute changed"""        
@@ -71,8 +71,8 @@ class DoorOutput(Qt.QTextEdit):
             return
         for line in warning:
             txt+="WARNING  " + line.replace(' ', '&nbsp;')+"\n"
-        txt += "</font><br>"
-        self.insertHtmlText(txt)
+        txt += "</font>"
+        self.appendHtmlText(txt)
     
     def onDoorErrorChanged(self, error):
         """call on error attribute changed"""
@@ -81,11 +81,11 @@ class DoorOutput(Qt.QTextEdit):
             return
         for line in error:
             txt+="ERROR  " + line.replace(' ', '&nbsp;')+"\n"
-        txt += "</font><br>"
-        self.insertHtmlText(txt)
+        txt += "</font>"
+        self.appendHtmlText(txt)
     
-    def insertHtmlText(self, text):
-        self.insertHtml(text)
+    def appendHtmlText(self, text):
+        self.appendHtml(text)
         if not self._isStopped:
             self.moveCursor(Qt.QTextCursor.End)
     
@@ -96,7 +96,7 @@ class DoorOutput(Qt.QTextEdit):
         menu.addAction(self.stopAction)
         if not len(self.toPlainText()):
             clearAction.setEnabled(False) 
-        
+
         Qt.QObject.connect(clearAction, Qt.SIGNAL("triggered()"), self.clear)
         Qt.QObject.connect(self.stopAction, Qt.SIGNAL("toggled(bool)"), self.stopScrolling)    
         menu.exec_(event.globalPos())
@@ -104,7 +104,7 @@ class DoorOutput(Qt.QTextEdit):
     def stopScrolling(self, stop):
         self._isStopped = stop
         
-class DoorDebug(Qt.QTextEdit):
+class DoorDebug(Qt.QPlainTextEdit):
     """Widget used for displaying changes of door's Debug attribute."""
     
     def __init__(self, parent = None):
@@ -121,7 +121,7 @@ class DoorDebug(Qt.QTextEdit):
         if debug is None:
             return
         for line in debug: 
-            self.append("DEBUG  " + line)
+            self.appendPlainText("DEBUG  " + line)
         
         if not self._isStopped:
             self.moveCursor(Qt.QTextCursor.End)
@@ -141,7 +141,7 @@ class DoorDebug(Qt.QTextEdit):
     def stopScrolling(self, stop):
         self._isStopped = stop
     
-class DoorResult(Qt.QTextEdit):
+class DoorResult(Qt.QPlainTextEdit):
     """Widget used for displaying changes of door's Result attribute."""
     
     def __init__(self, parent = None):
@@ -154,7 +154,7 @@ class DoorResult(Qt.QTextEdit):
         if result is None:
             return
         for line in result:
-            self.append("RESULT  " + line)
+            self.appendPlainText("RESULT  " + line)
         self.moveCursor(Qt.QTextCursor.End)
         
     def contextMenuEvent(self,event):
@@ -191,3 +191,22 @@ class DoorAttrListener(Qt.QObject):
             type == taurus.core.TaurusEventType.Config):
             return
         self.emit(Qt.SIGNAL('door%sChanged' % self.attrName), value.value)
+        
+if __name__=="__main__":
+    import sys
+    import taurus
+    from taurus.qt.qtgui.application import TaurusApplication
+    
+    app = TaurusApplication(sys.argv)
+    args = app.get_command_line_args()
+
+    doorOutput = DoorOutput()
+    if len(args) == 1:
+        door = taurus.Device(args[0])
+        Qt.QObject.connect(door, Qt.SIGNAL("outputUpdated"), doorOutput.onDoorOutputChanged)            
+        Qt.QObject.connect(door, Qt.SIGNAL("infoUpdated"), doorOutput.onDoorInfoChanged)
+        Qt.QObject.connect(door, Qt.SIGNAL("warningUpdated"), doorOutput.onDoorWarningChanged)
+        Qt.QObject.connect(door, Qt.SIGNAL("errorUpdated"), doorOutput.onDoorErrorChanged)
+    doorOutput.show()
+    sys.exit(app.exec_())  
+    
