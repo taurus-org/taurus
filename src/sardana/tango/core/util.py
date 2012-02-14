@@ -33,19 +33,21 @@ __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
+import os.path
 import functools
+import string
 
-from PyTango import Util, DevFailed, \
+from PyTango import Util, Database, DbDevInfo, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
     DevVarLong64Array, DispLevel, DevState, \
     SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
 
+from taurus.core.util import Enumeration
+
 from sardana import State, SardanaServer, DataType, DataFormat, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release
 from sardana.pool.poolmetacontroller import DataInfo
-
-from taurus.core.util import Enumeration
 
 ServerRunMode = Enumeration("ServerRunMode", \
                             ("SynchPure", "SynchThread", "SynchProcess", \
@@ -124,6 +126,41 @@ def to_tango_attr_info(attr_name, attr_info):
     if desc is not None and len(desc) > 0:
         tg_attr_info.append( { 'description' : desc } )
     return attr_name, tg_attr_info
+
+def ask_yes_no(prompt,default=None):
+    """Asks a question and returns a boolean (y/n) answer.
+
+    If default is given (one of 'y','n'), it is used if the user input is
+    empty. Otherwise the question is repeated until an answer is given.
+
+    An EOF is treated as the default answer.  If there is no default, an
+    exception is raised to prevent infinite loops.
+
+    Valid answers are: y/yes/n/no (match is not case sensitive)."""
+    answers = {'y':True,'n':False,'yes':True,'no':False}
+    ans = None
+    if default is not None:
+        d_l = default.lower()
+        if d_l in ('y','yes'):
+            prompt += " (Y/n) ?"
+        elif d_l in ('n','no'):
+            prompt += " (N/y) ?"
+    
+    while ans not in answers.keys():
+        try:
+            ans = raw_input(prompt+' ').lower()
+            if not ans:  # response was an empty string
+                ans = default
+        except KeyboardInterrupt:
+            print
+        except EOFError:
+            if default in answers.keys():
+                ans = default
+                print
+            else:
+                raise
+
+    return answers[ans]
     
 def clean_tango_args(args):
     ret, ret_for_tango = [], []
@@ -207,8 +244,178 @@ def prepare_cmdline(parser=None, args=None):
     res = list( parser.parse_args(proc_args) )
     tango_args = res[1][:2] + tango_args
     res.append(tango_args)
-    
     return res
+
+def prepare_server(args, tango_args):
+    """Register a proper server if the user gave an unknown server"""
+    log_messages = []
+    _, bin_name = os.path.split(args[0])
+    if len(args) < 2:
+        valid = False
+        while not valid:
+            inst_name = raw_input("Please indicate %s instance name: " % bin_name)
+            #should be a instance name validator.
+            valid_set=string.letters + string.digits + '_'
+            out=''.join([c for c in inst_name if c not in valid_set])
+            valid = len(inst_name) > 0 and len(out)==0
+            if not valid:
+                print "We only accept alphanumeric combinations"
+        args.append(inst_name)
+        tango_args.append(inst_name)
+    else:
+        inst_name = args[1].lower()
+    db = Database()
+    known_inst=map(str.lower, db.get_instance_name_list(bin_name))
+    if inst_name not in known_inst:
+
+        if ask_yes_no('%s does not exist. Do you wish create a new one' % inst_name, default='y'):
+            devices = []
+            prefix = '%s/%s' % (bin_name, inst_name)
+
+            if bin_name == 'MacroServer' :
+                # build list of pools to which the MacroServer should connect to
+                pool_names = []
+                pools = get_dev_from_class(db, "Pool")
+                all_pools = pools.keys()
+                for pool in pools.values():
+                    pool_alias = pool[2]
+                    if pool_alias is not None:
+                        all_pools.append(pool_alias)
+                all_pools = map(str.lower, all_pools)
+                for i in pools:
+                    print pools[i][3]
+                while True:
+                    elem = raw_input("Please select pool to connect to (empty to continue): ").strip()
+                    if not len(elem):
+                        break
+                    if elem.lower() not in all_pools:
+                        print "Unknown pool element"
+                        print all_pools
+                    else:
+                        pool_names.append(elem)
+                props = {'PoolNames' : pool_names}
+                ms_alias = get_free_alias(db, "MS_" + inst_name)
+                devices.append(('MacroServer', None, ms_alias, props))
+                door_alias = get_free_alias(db, "Door_" + inst_name)
+                devices.append(("Door", None, door_alias, {}))                
+            elif bin_name == 'Pool':
+                pool_alias = get_free_alias(db, 'Pool_' + inst_name)
+                devices.append(('Pool', None, pool_alias, {}))
+            elif bin_name == 'Sardana':
+                pool_dev_name = get_free_device(db, 'pool/' + inst_name)
+                pool_alias = get_free_alias(db, 'Pool_' + inst_name)
+                devices.append(('Pool', pool_dev_name, pool_alias, {}))
+                ms_alias = get_free_alias(db, "MS_" + inst_name)
+                devices.append(('MacroServer', None, ms_alias,
+                                {'PoolNames' : [pool_dev_name]}))
+                door_alias = get_free_alias(db, "Door_" + inst_name)
+                devices.append(("Door", None, door_alias, {}))
+            register_server_with_devices(db, bin_name, inst_name, devices)
+            log_messages.append(("Registered server '%s/%s'", bin_name, inst_name))
+            for d in devices:
+                dev_class, dev_alias = d[0], d[2]
+                log_messages.append(("Registered %s %s", dev_class, dev_alias))
+    return log_messages
+
+
+def register_server_with_devices(db, server_name, server_instance, devices):
+    """Registers a new server with some devices in the Database.
+       Devices is a seq<tuple<str, str, str, dict>>> where each item is a
+       sequence of 4 elements :
+        - device class
+        - device name prefix
+        - device alias
+        - dictionary of properties
+
+       :param db: database where to register devices
+       :type db: PyTango.Database
+       :param server_name: server name
+       :type server_name: str
+       :param server_instance: server instance name
+       :type server_instance: str
+       :param devices: map of devices to create. 
+       :type devices: dict<str, seq<tuple<str, str, dict>>>
+    """
+    info = DbDevInfo()
+    info.server = server_name + "/" + server_instance
+    for dev_info in devices:
+        dev_class, prefix, alias, props = dev_info
+        if prefix is None:
+            prefix = dev_class + "/" + server_instance
+        if prefix.count("/") == 1:
+            prefix = get_free_device(db, prefix)
+        info._class = dev_class
+        info.name   = prefix
+        db.add_device(info)
+        if alias is None:
+            alias_prefix = dev_class + "_" + server_instance
+            alias = get_free_alias(db, alias_prefix)
+        db.put_device_alias(info.name, alias)
+        if props is not None:
+            db.put_device_property(info.name, props)
+    
+
+def from_name_to_tango(db, name):
+    alias = None
+    
+    c = name.count('/')
+    # if the db prefix is there, remove it first
+    if c == 3 or c == 1:
+        name = name[name.index("/")+1:]
+    
+    elems = name.split('/')
+    l = len(elems)
+    
+    if l == 3:
+        try:
+            alias = db.get_alias(name)
+            if alias.lower() == 'nada':
+                alias = None
+        except:
+            alias = None
+    elif l == 1:
+        alias = name
+        name = db.get_device_alias(alias)
+    else:
+        raise Exception("Invalid device name '%s'" % name)
+    
+    full_name = "%s:%s/%s" % (db.get_db_host(), db.get_db_port(), name)
+    return full_name, name, alias
+
+def get_dev_from_class(db, classname):
+    """Returns tuple<full device name, device name, alias, ouput string>"""
+    server_wildcard = '*'
+    try:
+        exp_dev_list = db.get_device_exported_for_class(classname)
+    except Exception,e: 
+        exp_dev_list = []
+    
+    res = {}
+    dev_list = db.get_device_name(server_wildcard, classname)
+    for dev in dev_list:
+        full_name, name, alias = from_name_to_tango(db, dev)
+        out = alias or name
+        if alias: out += ' (a.k.a. %s)' % name
+        out = "%-25s" % out 
+        if dev in exp_dev_list:
+            out += " (running)"
+        res[dev] = full_name, name, alias, out
+    return res
+
+def get_free_device(db, prefix, start_from=1):
+    members = db.get_device_member(prefix + "/*")
+    while str(start_from) in members:
+        start_from += 1
+    return prefix + "/" + str(start_from)
+
+def get_free_alias(db, prefix, start_from=1):
+    while True:
+        name = prefix + "_" + str(start_from)
+        try:
+            db.get_alias(name)
+            start_from += 1
+        except:
+            return name
 
 def prepare_taurus(options, args, tango_args):
     # make sure the polling is not active
@@ -216,7 +423,7 @@ def prepare_taurus(options, args, tango_args):
     factory = taurus.Factory()
     factory.disablePolling()
     
-def prepare_logging(options, args, tango_args, start_time=None):
+def prepare_logging(options, args, tango_args, start_time=None, log_messages=None):
     import os.path
     import logging
     import taurus
@@ -288,6 +495,11 @@ def prepare_logging(options, args, tango_args, start_time=None):
             taurus.warning("'%s' could not be created. Logs will not be stored",
                            log_file_name)
             taurus.debug("Error description", exc_info=1)
+    
+    if log_messages is None:
+        log_messages = ()
+    for log_message in log_messages:
+        taurus.info(*log_message)
 
     taurus.debug("Start args=%s", args)
     taurus.debug("Start options=%s", options)
@@ -371,12 +583,20 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
             task.join()
         return task
     
-    options, args, tango_args = prepare_cmdline(args=args)
+    log_messages = []
+    try:
+        options, args, tango_args = prepare_cmdline(args=args)
+        if mode == ServerRunMode.SynchPure:
+            log_messages.extend(prepare_server(args, tango_args))
+    except KeyboardInterrupt:
+        pass
+
     if tango_util == None:
         tango_util = Util(tango_args)
     
     prepare_taurus(options, args, tango_args)
-    prepare_logging(options, args, tango_args, start_time=start_time)
+    prepare_logging(options, args, tango_args, start_time=start_time,
+                    log_messages=log_messages)
     prepare_rconsole(options, args, tango_args)
     prepare_func(tango_util)
     
