@@ -35,7 +35,7 @@ from taurus.qt import Qt
 from PyQt4 import Qwt5
 import taurus
 from taurus.core import TaurusException, TaurusElementType
-from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon
 
 
@@ -144,8 +144,8 @@ class TaurusModelModel(Qt.QAbstractListModel):
     def flags(self, index):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         if not index.isValid():
-            return Qt.Qt.ItemIsEnabled
-        return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled |Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsDropEnabled | Qt.Qt.ItemIsSelectable)
+            return Qt.Qt.ItemIsEnabled|Qt.Qt.ItemIsDropEnabled
+        return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled |Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsSelectable)
                      
     def setData(self, index, value=None, role=Qt.Qt.EditRole):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -190,28 +190,39 @@ class TaurusModelModel(Qt.QAbstractListModel):
     def mimeTypes(self):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         result = list(Qt.QAbstractItemModel.mimeTypes(self))
-        result += [TAURUS_ATTR_MIME_TYPE, 'text/plain']
+        result += [TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 
+                   TAURUS_MODEL_LIST_MIME_TYPE, 'text/plain']
         return result
     
     def dropMimeData(self, data, action, row, column, parent):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
-        if row == -1:
-            if parent.isValid(): row = parent.row()
-            else: row = parent.rowCount()
+        if row == -1 and parent.isValid(): 
+            row = parent.row()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
-            self.setData(self.index(row), 
-                         value=Qt.QVariant(str(data.data(TAURUS_ATTR_MIME_TYPE))))
-            return True
+            items = [str(data.data(TAURUS_ATTR_MIME_TYPE))]
+        elif data.hasFormat(TAURUS_MODEL_MIME_TYPE):
+            items = [str(data.data(TAURUS_MODEL_MIME_TYPE))]
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
-            models = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
-            self.insertRows(row,len(models))
-            for i,m in enumerate(models):
-                self.setData(self.index(row+i), value=Qt.QVariant(m))
-            return True
+            items = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
         elif data.hasText():
-            self.setData(self.index(row), Qt.QVariant(data.text()))
-            return True
-        return False
+            items = [str(data.text())]
+        else:
+            return False
+        self.insertItems(row, items)
+        return True
+    
+    def insertItems(self, row, items):
+        '''convenience method to add new rows by passing a list of strings
+        
+        :param row: (int) the row of the list at which the item insertion 
+                         starts, if row==-1, items will be appended to the list
+        :param items: (seq<str>) a sequence of string items to add to the list
+        
+        '''
+        if row == -1: row=self.rowCount()
+        self.insertRows(row,len(items))
+        for i,item in enumerate(items):
+            self.setData(self.index(row+i), value=Qt.QVariant(item))
     
     def mimeData(self, indexes):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -236,19 +247,26 @@ class TaurusModelList(Qt.QListView):
         self._model = TaurusModelModel(items)
         self.setModel(self._model)
         self.setDragDropMode(self.DragDrop)
+        #self.setAcceptDrops(True)
         self.setSelectionMode(self.ExtendedSelection)
         
-        self._contextMenu = Qt.QMenu()
-        self.addRowAction = self._contextMenu.addAction(getThemeIcon('list-add'), 'Add new row', self._model.insertRows)
-        self.removeSelectedAction = self._contextMenu.addAction(getThemeIcon('list-remove'), 'Remove Selected', self.removeSelected)
-        self.removeAllAction = self._contextMenu.addAction(getThemeIcon('edit-clear'), 'Clear all', self._model.clearAll)
-        self.moveUpAction = self._contextMenu.addAction(getThemeIcon('go-up'), 'Move up in the list', self._onMoveUpAction)
-        self.moveDownAction = self._contextMenu.addAction(getThemeIcon('go-down'), 'Move down in the list', self._onMoveDownAction)
+        self._contextMenu = Qt.QMenu(self)
+        self.addRowAction = self._contextMenu.addAction(getThemeIcon('list-add'), 'Add new row', self.newRow, Qt.QKeySequence.New)
+        self.removeSelectedAction = self._contextMenu.addAction(getThemeIcon('list-remove'), 'Remove Selected', self.removeSelected, Qt.QKeySequence.Delete)
+        self.removeAllAction = self._contextMenu.addAction(getThemeIcon('edit-clear'), 'Clear all', self.clear, Qt.QKeySequence("Ctrl+Del"))
+        self.moveUpAction = self._contextMenu.addAction(getThemeIcon('go-up'), 'Move up in the list', self._onMoveUpAction,Qt.QKeySequence("Alt+Up"))
+        self.moveDownAction = self._contextMenu.addAction(getThemeIcon('go-down'), 'Move down in the list', self._onMoveDownAction,Qt.QKeySequence("Alt+Down"))
+        
+        self.addActions([self.addRowAction,self.removeSelectedAction,self.removeAllAction,self.moveUpAction,self.moveDownAction])
         
         #signal connections
         selectionmodel = self.selectionModel()
         self.connect(selectionmodel, Qt.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self._onSelectionChanged)
         self._onSelectionChanged(Qt.QItemSelection(),Qt.QItemSelection())
+    
+    def clear(self):
+        '''removes all items from the list'''
+        self._model.clearAll()
         
     def _onSelectionChanged(self, selected, deselected):
         '''updates the status of the actions that depend on the selection'''
@@ -256,7 +274,6 @@ class TaurusModelList(Qt.QListView):
         self.removeSelectedAction.setEnabled(len(selectedIndexes)>0)
         self.moveUpAction.setEnabled(len(selectedIndexes)==1 and selectedIndexes[0].row()>0)
         self.moveDownAction.setEnabled(len(selectedIndexes)==1 and (0 <= selectedIndexes[0].row() < self._model.rowCount()-1))
-        
         
     def contextMenuEvent(self, event):
         '''see :meth:`QWidget.contextMenuEvent`'''
@@ -282,6 +299,17 @@ class TaurusModelList(Qt.QListView):
         i2 = self._model.index(i1.row()+1)
         self._model.swapItems(i1, i2) 
         self.selectionModel().select(i2, Qt.QItemSelectionModel.ClearAndSelect) 
+        
+    def newRow(self,position=None):
+        if position is None:
+            selected = self.selectionModel().selectedIndexes()
+            if len(selected)==0:
+                position = -1
+            elif len(selected) == 1:
+                position = selected[0].row()
+            else:
+                return
+        self._model.insertItems(position,[''])
     
     def removeSelected(self):
         '''removes selected items from the list'''
@@ -327,4 +355,11 @@ class TaurusModelList(Qt.QListView):
             'module'    : 'taurus.qt.qtgui.panel'
              }
 
-        
+if __name__ == "__main__":
+    from taurus.qt.qtgui.application import TaurusApplication
+    import sys
+    app = TaurusApplication()  
+    w = TaurusModelList()
+    w.addModels(["item%i"%i for i in range(5)])
+    w.show()    
+    sys.exit(app.exec_()) 
