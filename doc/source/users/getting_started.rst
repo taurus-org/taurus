@@ -5,25 +5,31 @@
 Getting started
 ===============
 
-.. _installing:
-
 Installing
 ----------
 
-You will need super user previledges in linux to do this!
-
-#. From easy_install::
+#. From easy_install [1]_::
     
         easy_install -U sardana
 
 #. From latest source distribution:
-    #. Download the latest version of sardana from `here <http://pypi.python.org/pypi/sardana>`_.
+    #. Download the latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
     #. Extract the downloaded tar.gz into a temporary directory
-    #. type::
+    #. type [2]_::
            
            python setup.py build
            python setup.py install
-       
+
+#. From SVN snapshot:
+    #. Download the current `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
+    #. Extract the downloaded tar.gz into a temporary directory
+    #. type [2]_::
+           
+           python setup.py build
+           python setup.py install
+
+#. From SVN trunk checkout (please look :ref:`here <working-from-svn>` for instructions)
+
 #. test the installation::
        
        python -c "import sardana; print sardana.Release.version"
@@ -137,7 +143,7 @@ is basically a piece of code. You can write macros using the `Python`_ language
 to do all sorts of things. The sky is the limit here!
 
 Sardana comes with a catalog of *macros* that help users in a laboratory to run
-their experiments [1]_. Most of these *macros* involve interaction with sardana
+their experiments [3]_. Most of these *macros* involve interaction with sardana
 elements like motors and experimental channels. Therefore, the first step in
 a new sardana demo is to populate your system with some elements. Fortunately,
 sardana comes with a *macro* called *sar_demo* that does just that. To execute
@@ -160,20 +166,35 @@ You can type:
     2. :class:`~sardana.macroserver.macros.standard.mv` *mot01 100* - which will move mot01 to position 100
     3. :class:`~sardana.macroserver.macros.scan.ascan` *mot01 0 100 10 0.1* - will start an absolute step scan
 
+.. _working-from-svn:
+
 Working from SVN
 ----------------
 
 You can checkout sardana from SVN from the following location::
 
-    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk sardana
+    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
 
-Afterward, if you decide to work directly from SVN code (without installing):
+You can directly execute sardana binaries (Pool, MacroServer, Sardana or spock
+from the command line)::
 
-    1. add <sardana checkout dir>/src to PYTHONPATH
+    homer@pc001:~$ cd Sardana
+    homer@pc001:~/Sardana$ scripts/Sardana
 
 .. rubric:: Footnotes
 
-.. [1] The sardana standard macro catalog can be found
+.. [1] This command requires super user previledges on linux systems. If your
+       user has them you can usually prefix the command with *sudo*::
+       
+           homer@pc001:~$ sudo easy_install -U sardana
+
+.. [2] *setup.py install* requires user previledges on linux systems. If your
+       user has them you can usually prefix the command with *sudo*::
+       
+           homer@pc001:~$ sudo python setup.py install
+    
+
+.. [3] The sardana standard macro catalog can be found
        :ref:`here <standard-macro-catalog>` 
        
 .. _numpy: http://numpy.scipy.org/
@@ -181,6 +202,7 @@ Afterward, if you decide to work directly from SVN code (without installing):
 .. _Python(x,y): http://code.google.com/p/pythonxy/
 .. _Python: http://www.python.org/
 
+.. _SardanaPypi: http://pypi.python.org/pypi/sardana/
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
 .. _taurus: http://packages.python.org/taurus/
@@ -193,3 +215,4 @@ Afterward, if you decide to work directly from SVN code (without installing):
 .. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
 .. _Qub: http://www.blissgarden.org/projects/qub/
 .. _ESRF: http://www.esrf.eu/
+

@@ -21,7 +21,7 @@ installed:
     * The Sardana device pool, macro server and tools
 
 The complete sardana installation instructions can be found
-:ref:`here <installing>`.
+:ref:`here <getting-started>`.
 
 How to work with Taurus_ GUI?
 -----------------------------
