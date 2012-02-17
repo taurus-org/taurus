@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.util import Logger
 
-from sardana.sardanabase import SardanaBaseObject
+from sardana.sardanabase import SardanaBaseObject, SardanaObjectID
 
 
 class PoolBaseObject(SardanaBaseObject):
@@ -59,25 +59,17 @@ class PoolBaseObject(SardanaBaseObject):
                     doc="reference to the :class:`sardana.pool.pool.Pool`")
     
 
-class PoolObject(PoolBaseObject):
+class PoolObject(SardanaObjectID, PoolBaseObject):
     """A Pool object that besides the name and reference to the pool has:
        
        - _id : the internal identifier"""
     
     def __init__(self, **kwargs):
-        self._id = kwargs.pop('id')
+        SardanaObjectID.__init__(self, id=kwargs.pop('id'))
         PoolBaseObject.__init__(self, **kwargs)
-    
-    def get_id(self):
-        """Returns this pool object ID
-        
-        :return: this pool object ID
-        :rtype: int"""
-        return self._id
     
     def serialize(self, *args, **kwargs):
         kwargs = PoolBaseObject.serialize(self, *args, **kwargs)
-        kwargs['id'] = self.id
+        kwargs = SardanaObjectID.serialize(self, *args, **kwargs)
         return kwargs
     
-    id = property(get_id, doc="object ID")

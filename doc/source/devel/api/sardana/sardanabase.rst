@@ -11,6 +11,7 @@
     :columns: 3
 
     * :class:`SardanaBaseObject`
+    * :class:`SardanaObjectID`
 
 SardanaBaseObject
 ------------------
@@ -19,6 +20,17 @@ SardanaBaseObject
     :parts: 1
     
 .. autoclass:: SardanaBaseObject
+    :inherited-members:
+    :members:
+    :undoc-members:
+
+SardanaObjectID
+------------------
+
+.. inheritance-diagram:: SardanaObjectID
+    :parts: 1
+    
+.. autoclass:: SardanaObjectID
     :inherited-members:
     :members:
     :undoc-members:

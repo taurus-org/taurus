@@ -26,7 +26,7 @@
 """This module is part of the Python Sardana libray. It defines the base classes
 for Sardana object"""
 
-__all__ = ["SardanaBaseObject"]
+__all__ = ["SardanaBaseObject", "SardanaObjectID"]
 
 __docformat__ = 'restructuredtext'
 
@@ -34,7 +34,7 @@ import weakref
 
 from taurus.core.util import Logger
 
-from sardanadefs import ElementType, Interface, InterfacesExpanded
+from sardanadefs import ElementType, Interface, InterfacesExpanded, InvalidId
 from sardanaevent import EventGenerator, EventReceiver, EventType
 
 
@@ -103,15 +103,14 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
             return parent.name
     
     def fire_event(self, event_type, event_value, listeners=None):
-        return EventGenerator.fire_event(self, event_type, event_value,
-                                         listeners=listeners)
-#        try:
-#            return EventGenerator.fire_event(self, event_type, event_value,
-#                                             listeners=listeners)
-#        except:
-#            import traceback
-#            self.warning("Error firing event <%s,%s>", event_type, event_value)
-#            self.info("Error description: \n%s", traceback.format_exc())
+        #return EventGenerator.fire_event(self, event_type, event_value,
+        #                                 listeners=listeners)
+        try:
+            return EventGenerator.fire_event(self, event_type, event_value,
+                                             listeners=listeners)
+        except:
+            self.warning("Error firing event <%s, %s>", event_type, event_value)
+            self.debug("Details", exc_info=1)
     
     def get_interfaces(self):
         """Returns the set of interfaces this object implements.
@@ -166,4 +165,24 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
                        doc="reference to the :class:`sardana.Manager`")
     name = property(get_name, doc="object name")
     full_name = property(get_full_name, doc="object full name")
+
+
+class SardanaObjectID(object):
+    """To be used by sardana objects which have an ID associated to them."""
+    
+    def __init__(self, id=InvalidId):
+        self._id = id
+    
+    def get_id(self):
+        """Returns this sardana object ID
+        
+        :return: this sardana object ID
+        :rtype: int"""
+        return self._id
+    
+    def serialize(self, *args, **kwargs):
+        kwargs['id'] = self.id
+        return kwargs
+    
+    id = property(get_id, doc="object ID")
 

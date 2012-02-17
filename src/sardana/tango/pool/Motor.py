@@ -351,8 +351,3 @@ class MotorClass(PoolElementDeviceClass):
                               "False means not active. True means active" } ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
-
-    def __init__(self, name):
-        PoolElementDeviceClass.__init__(self, name)
-        self.set_type(name)
-

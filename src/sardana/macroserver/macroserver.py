@@ -445,6 +445,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             context is used]
         :type macro_name: str
         
+        :return: a :obj:`dict` containing the environment
+        :rtype: :obj:`dict`
+        
         :raises: UnknownEnv"""
         return self.environment_manager.getEnv(key=key, macro_name=macro_name,
                                                door_name=door_name)

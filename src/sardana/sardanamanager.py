@@ -26,15 +26,17 @@
 """This module is part of the Python Sardana libray. It defines the base class
 for Sardana manager"""
 
-__all__ = ["SardanaBaseManager"]
+__all__ = ["SardanaElementManager", "SardanaIDManager"]
 
 __docformat__ = 'restructuredtext'
 
-
 from taurus.core.util import CodecFactory
 
+from sardana import InvalidId
 
-class SardanaBaseManager(object):
+
+class SardanaElementManager(object):
+    """A class capable of manage elements"""
     
     SerializationProtocol = 'json'
     
@@ -64,3 +66,29 @@ class SardanaBaseManager(object):
         # TODO: use the active codec instead of hardcoded json
         return  CodecFactory().encode('json', ('', obj), *args, **kwargs)[1]
 
+
+class SardanaIDManager(object):
+    """A class capable of manage ids"""
+    
+    _last_id = InvalidId
+    
+    def get_new_id(self):
+        """Returns a new ID. The ID becomes reserved at this moment.
+        
+        :return: a new ID
+        :rtype: int"""
+        self._last_id += 1
+        return self._last_id
+    
+    def rollback_id(self):
+        """Free previously reserved ID"""
+        self._last_id -= 1
+    
+    def reserve_id(self, id):
+        """Marks the given ID as reserved
+        
+        :param id: the ID to be reserved
+        :type id: int"""
+        if id > self._last_id:
+            self._last_id = id
+    

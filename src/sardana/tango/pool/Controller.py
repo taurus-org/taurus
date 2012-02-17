@@ -265,6 +265,3 @@ class ControllerClass(PoolDeviceClass):
         }
     attr_list.update(PoolDeviceClass.attr_list)
 
-    def __init__(self, name):
-        PoolDeviceClass.__init__(self, name)
-        self.set_type(name)

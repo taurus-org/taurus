@@ -37,7 +37,7 @@ from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
     TYPE_PSEUDO_ELEMENTS
-from sardana.sardanamanager import SardanaBaseManager
+from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanaevent import EventType
 
 from poolbase import PoolObject
@@ -47,21 +47,21 @@ from poolmonitor import PoolMonitor
 from poolmetacontroller import TYPE_MAP_OBJ
 from poolcontrollermanager import ControllerManager
 
-__thread_pool = None
+__pool_thread_pool = None
 
 def get_thread_pool():
-    """Returns the global pool of threads
+    """Returns the global pool of threads for the Pool
     
     :return: the global pool of threads object
     :rtype: taurus.core.util.ThreadPool"""
     
-    global __thread_pool
-    if __thread_pool is None:
-        __thread_pool = ThreadPool(name="PoolTP", Psize=10)
-    return __thread_pool
+    global __pool_thread_pool
+    if __pool_thread_pool is None:
+        __pool_thread_pool = ThreadPool(name="PoolTP", Psize=10)
+    return __pool_thread_pool
 
 
-class Pool(PoolContainer, PoolObject, SardanaBaseManager):
+class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     """The central pool class."""
     
     #: Default value representing the number of state reads per position
@@ -79,7 +79,6 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     Default_AcqLoop_SleepTime = 0.01
     
     def __init__(self, full_name, name=None):
-        self._last_id = InvalidId
         self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
         self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
         self._acq_loop_states_per_value = self.Default_AcqLoop_StatesPerValue
@@ -181,18 +180,7 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     
     def get_type(self):
         return ElementType.Pool
-        
-    def get_new_id(self):
-        self._last_id += 1
-        return self._last_id
     
-    def rollback_id(self):
-        self._last_id -= 1
-    
-    def reserve_id(self, id):
-        if id > self._last_id:
-            self._last_id = id
-            
     @property
     def ctrl_manager(self):
         return ControllerManager()
@@ -280,25 +268,6 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
     
     def get_acquisition_elements_str_info(self):
         return map(self.str_object, self.get_acquisition_elements_info())
-    
-    def check_element(self, name, full_name):
-        raise_element_name = True
-        try:
-            self.get_element(name=name)
-        except:
-            raise_element_name = False
-        if raise_element_name:
-            raise Exception("An element with name '%s' already "
-                            "exists" % name)
-        
-        raise_element_full_name = True
-        try:
-            self.get_element(full_name=full_name)
-        except:
-            raise_element_full_name = False
-        if raise_element_full_name:
-            raise Exception("An element with full name '%s' already "
-                            "exists" % full_name)
     
     def create_controller(self, **kwargs):
         ctrl_type = kwargs['type']
@@ -555,6 +524,10 @@ class Pool(PoolContainer, PoolObject, SardanaBaseManager):
         controllers = self.get_elements_by_type(ElementType.Controller)
         for controller in controllers:
             controller.abort_all()
+    
+    # --------------------------------------------------------------------------
+    # (Re)load code
+    # --------------------------------------------------------------------------
     
     def reload_controller_lib(self, lib_name):
         manager = self.ctrl_manager

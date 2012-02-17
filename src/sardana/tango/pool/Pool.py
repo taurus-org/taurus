@@ -679,6 +679,9 @@ class Pool(PyTango.Device_4Impl, Logger):
             value = CodecFactory().getCodec('json').encode(('', value))
             self.push_change_event('Elements', *value)
         elif evt_name == "elementschanged":
+            # force the element list cache to be rebuild next time someone reads
+            # the element list
+            self.ElementsCache = None
             pool_name = self.pool.full_name
             new_values, changed_values, deleted_values = [], [], []
             for elem in evt_value['new']:

@@ -233,6 +233,3 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 
-    def __init__(self, name):
-        PoolGroupDeviceClass.__init__(self, name)
-        self.set_type(name)

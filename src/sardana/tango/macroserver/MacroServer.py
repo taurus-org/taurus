@@ -29,17 +29,21 @@ import copy
 import threading
 import logging.handlers
 
-import PyTango
-from PyTango import Util, DebugIt
+from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
+    DevLong64, DevDouble, DevBoolean, DevString, DevState, DevEncoded, \
+    DevVarStringArray, \
+    DispLevel, AttrQuality, TimeVal, AttrData, \
+    READ, READ_WRITE, SCALAR, SPECTRUM, \
+    DebugIt
 
 from taurus.core.util import Logger, CodecFactory
 
-from sardana import SardanaServer
+from sardana import State, SardanaServer, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericSpectrumAttr
-from sardana.macroserver.exception import MacroServerException
-from sardana.macroserver.manager import MacroServerManager
+from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macroserver import MacroServer as MS
+
 
 class MacroServer(SardanaDevice):
     
@@ -53,7 +57,7 @@ class MacroServer(SardanaDevice):
         SardanaDevice.init(self, name)
         
         if self._alias is None:
-            self._alias = PyTango.Util.instance().get_ds_inst_name()
+            self._alias = Util.instance().get_ds_inst_name()
         
         self._macro_server = ms = MS(self.name, self.alias)
         ms.add_listener(self.on_macro_server_changed)
@@ -62,16 +66,16 @@ class MacroServer(SardanaDevice):
     def macro_server(self):
         return self._macro_server
     
-    def __getManager(self, *args):
-        return MacroServerManager(*args)
+#   def __getManager(self, *args):
+#        return MacroServerManager(*args)
     
     def delete_device(self):
         SardanaDevice.delete_device(self)
-        self.__getManager().cleanUp()
+#        self.__getManager().cleanUp()
         
     def init_device(self):
         SardanaDevice.init_device(self)
-        self.set_state(PyTango.DevState.ON)
+        self.set_state(DevState.ON)
         self.set_change_event('State', True, False)
         self.set_change_event('Status', True, False)
         self.set_change_event('TypeList', True, False)
@@ -84,28 +88,12 @@ class MacroServer(SardanaDevice):
         self.get_device_properties(dev_class)
         
         self.EnvironmentDb = self._calculate_environment_name(self.EnvironmentDb)
-        
-        # Init MacroServer Manager
-        # it is important that the MacroServerManager singleton be called
-        # here for the first time. So don't call it in the main or 
-        # MacroServerClass
-        manager_params = self.PoolNames, self.MacroPath, self.EnvironmentDb, \
-            self.MaxParallelMacros, self
-        ms_manager = self.__getManager(*manager_params)
-        ms_manager.reInit(*manager_params)
-        
-        # if default directories are not in the MacroPath property, write them
-        # into the database
-        mpath = set(self.MacroPath)
-        default_mpath = set(ms_manager.DEFAULT_MACRO_DIRECTORIES)
-        if mpath & default_mpath != default_mpath:
-            db = Util.instance().get_database()
-            db.put_device_property(self.get_name(),
-                                   dict(MacroPath=ms_manager.getMacroPath()))
-        
-        dl = ms_manager.getDoorListObj()
-        if not dl.isSubscribed(self.doorsChanged):
-            dl.subscribeEvent(self.doorsChanged)
+
+        macro_server = self.macro_server
+        macro_server.set_max_parallel_macros(self.MaxParallelMacros)
+        macro_server.set_environment_db(self.EnvironmentDb)
+        macro_server.set_macro_path(self.MacroPath)
+        macro_server.set_pool_names(self.PoolNames)
         
         if self.RConsolePort:
             try:
@@ -115,7 +103,7 @@ class MacroServer(SardanaDevice):
                 self.warning(exc_info=1)
     
     def _calculate_environment_name(self, name):
-        util = PyTango.Util.instance()
+        util = Util.instance()
         return name % { 'ds_name' : util.get_ds_name().lower(),
                         'ds_exec_name' : util.get_ds_exec_name(),
                         'ds_inst_name' : util.get_ds_inst_name().lower() }
@@ -125,6 +113,56 @@ class MacroServer(SardanaDevice):
         # creation events
         if SardanaServer.server_state != State.Running:
             return
+        
+        evt_name = evt_type.name.lower()
+        
+        multi_attr = self.get_device_attr()
+        elems_attr = multi_attr.get_attr_by_name("Elements")
+        if evt_name == "poolelementschanged":
+            # force the element list cache to be rebuild next time someone reads
+            # the element list
+            self.ElementsCache = None
+            self.set_attribute(elems_attr, value=evt_value.value)
+            #self.push_change_event('Elements', *evt_value.value)
+        elif evt_name in ("elementcreated", "elementdeleted"):
+            # force the element list cache to be rebuild next time someone reads
+            # the element list
+            self.ElementsCache = None
+
+            elem = evt_value
+            elem_name, elem_type = elem.name, elem.get_type()
+            
+            value = { }
+            if "created" in evt_name:
+                key = 'new'
+            else:
+                key = 'del'
+            json_elem = elem.serialize(pool=self.pool.full_name)
+            value[key] = json_elem,
+            value = CodecFactory().getCodec('json').encode(('', value))
+            self.set_attribute(elems_attr, value=value)
+            #self.push_change_event('Elements', *value)
+        elif evt_name == "elementschanged":
+            # force the element list cache to be rebuild next time someone reads
+            # the element list
+            self.ElementsCache = None
+            
+            ms_name = self.macro_server.full_name
+            new_values, changed_values, deleted_values = [], [], []
+            for elem in evt_value['new']:
+                json_elem = elem.serialize(macro_server=ms_name)
+                new_values.append(json_elem)
+            for elem in evt_value['change']:
+                json_elem = elem.serialize(macro_server=ms_name)
+                changed_values.append(json_elem)
+            for elem in evt_value['del']:
+                json_elem = elem.serialize(macro_server=ms_name)
+                deleted_values.append(json_elem)
+            value = { "new" : new_values, "change": changed_values,
+                      "del" : deleted_values }
+            value = CodecFactory().getCodec('json').encode(('', value))
+            self.set_attribute(elems_attr, value=value)
+            #self.push_change_event('Elements', *value)
     
     def always_executed_hook(self):
         pass
@@ -133,33 +171,28 @@ class MacroServer(SardanaDevice):
         pass
     
     def read_DoorList(self, attr):
-        ms_manager = self.__getManager()
-        door_list_obj = ms_manager.getDoorListObj()
-        attr.set_value(door_list_obj.read())
+        door_names = self.macro_server.get_door_names()
+        attr.set_value(door_names)
         
     @DebugIt()
     def read_MacroList(self, attr):
-        self.info_stream("inside read_MacroList")
-        ms_manager = self.__getManager()
-        macro_list_obj = ms_manager.getMacroListObj()
-        attr.set_value(macro_list_obj.read())
+        macro_names = self.macro_server.get_macro_class_names()
+        attr.set_value(macro_names)
     
     def read_MacroLibList(self, attr):
-        ms_manager = self.__getManager()
-        macro_lib_list_obj = ms_manager.getMacroLibListObj()
-        attr.set_value(macro_lib_list_obj.read())
+        macro_lib_names = self.macro_server.get_macro_lib_names()
+        attr.set_value(macro_lib_names)
     
     def read_TypeList(self, attr):
-        ms_manager = self.__getManager()
-        type_list_obj = ms_manager.getTypeListObj()
-        attr.set_value(type_list_obj.read())
+        type_names = self.macro_server.get_type_names_with_asterisc()
+        attr.set_value(type_names)
         
     #@DebugIt()
     def getElements(self, cache=True):
         value = self.ElementsCache
         if cache and value is not None:
             return value
-        elements = self.__getManager().get_elements_info()
+        elements = self.macro_server.get_elements_info()
         value = dict(new=elements)
         value = CodecFactory().getCodec('json').encode(('', value))
         self.ElementsCache = value
@@ -170,160 +203,105 @@ class MacroServer(SardanaDevice):
         element_list = self.getElements()
         attr.set_value(*element_list)
     
-    def GetMacroInfo(self, argin):
+    def GetMacroInfo(self, macro_names):
         """GetMacroInfo(list<string> macro_names):
         
-           Returns a list of string representing macro information.
+           Returns a list of string containing macro information.
+           Each string is a JSON encoded.
            
            Params:
                - macro_name: a list of strings with the macro(s) name(s)
            Returns:
-               - list[0]: macro description (documentation)
-                 list[1]: macro hints, if any
-                 list[2]: number of parameters = N
-                 list[3...3+4*N]: parameter info: name, type, desc, default value
-                 list[4+4*N]: number of results = M
-                 list[5+4*N...5+4*N+4*M]: result info: name, type, desc, default value
-        """        
-        return self.__getManager().getMacroInfo(argin)
+               - a list of string containing macro information.
+        """
+        macro_server = self.macro_server
+        codec = CodecFactory().getCodec('json')
+        ret = [ codec.encode(('', macro.serialize()))[1]
+            for macro in macro_server.get_macro_classes()
+                if macro.name in macro_names ]
+        return ret
     
-    def ReloadMacro(self, argin):
+    def ReloadMacro(self, macro_names):
         """ReloadMacro(list<string> macro_names):"""
         try:
-            self.__getManager().reloadMacros(argin)
+            for macro_name in macro_names:
+                self.macro_server.reload_macro_class(macro_name)
         except MacroServerException, mse:
-            PyTango.Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
+            Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
         return ['OK']
     
-    def ReloadMacroLib(self, argin):
+    def ReloadMacroLib(self, lib_names):
         """ReloadMacroLib(sequence<string> lib_names):
         """
         try:
-            self.__getManager().reloadMacroLibs(argin)
+            for lib_name in lib_names:
+                self.macro_server.reload_macro_lib(lib_name)
         except MacroServerException, mse:
-            PyTango.Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
+            Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
         return ['OK']
     
     def GetMacroCode(self, argin):
         """GetMacroCode(<module name> [, <macro name>]) -> full filename, code, line_nb
         """
-        ret = self.__getManager().getOrCreateMacroLib(*argin)
-        ret = map(str, ret)
-        return ret
+        ret = self.macro_server.get_or_create_macro_lib(*argin)
+        return map(str, ret)
     
     def SetMacroCode(self, argin):
-        self.__getManager().setMacroLib(*argin)
+        lib_name, code = argin
+        self.macro_server.set_macro_lib(lib_name, code)
     
-    def dyn_attr(self):
-        ms_manager = self.__getManager()
-        type_list_obj = ms_manager.getTypeListObj()
-        type_list_obj.subscribeEvent(self.typesChanged)
-        macro_list_obj = ms_manager.getMacroListObj()
-        macro_list_obj.subscribeEvent(self.macrosChanged)
-        macro_lib_list_obj = ms_manager.getMacroLibListObj()
-        macro_lib_list_obj.subscribeEvent(self.macroLibsChanged)
-    
-    def typesChanged(self, data, type_data):
-        all_types, old_types, new_types = type_data
-        
-        for type_name in old_types:
-            if type_name[-1] == '*':
-                self.removeTypeAttribute(type_name[:-1])
 
-        #for type_name in new_types:
-        #    if type_name[-1] == '*':
-        #        self.addTypeAttribute(type_name[:-1])
-
-        self.push_change_event('TypeList', all_types)
-    
-    def addTypeAttribute(self, name):
-        self.trace("Adding dynamic attribute %s" % name)
-        attr_name = "%sList" % name
-        attr_data = (name, attr_name)
-        attr = GenericSpectrumAttr(attr_name, PyTango.DevString, PyTango.READ)
-        self.add_attribute(attr, MacroServer.read_GenericList)
-        
-        self.set_change_event(attr_name, True, False) 
-        
-        type_obj = self.__getManager().getTypeObj(name)
-        type_obj.subscribeEvent(self.genericListChanged, attr_data)
-    
-    def removeTypeAttribute(self, name):
-        pass
-    
-    def macrosChanged(self, data, macro_data):
-        all_macros, removed, added = macro_data
-        self.push_change_event('MacroList', all_macros)
-    
-    def macroLibsChanged(self, data, macro_lib_data):
-        all_macro_libs = macro_lib_data[0]
-        self.push_change_event('MacroLibList', all_macro_libs) 
-    
-    def genericListChanged(self, attr_data, data):
-        pass
-    
-    def doorsChanged(self, attr_data, data):
-        pass
-    
-    def read_GenericList(self, attr):
-        attr_name = attr.get_name()
-        type_name = attr_name[:attr_name.index('List')]
-        type_obj = self.__getManager().getTypeObj(type_name)
-        item_list = type_obj.read()
-        attr.set_value(item_list)
-
-
-class MacroServerClass(PyTango.DeviceClass, Logger):
+class MacroServerClass(SardanaDeviceClass):
 
     #    Class Properties
     class_property_list = {
-        }
+    }
 
     #    Device Properties
     device_property_list = {
         'PoolNames':
-            [PyTango.DevVarStringArray,
+            [DevVarStringArray,
             "Sardana device pool device names",
             [] ],
         'MacroPath':
-            [PyTango.DevVarStringArray,
+            [DevVarStringArray,
             "List of directories (absolute or relative path) that contain macro files.",
             [] ],
         'MaxParallelMacros':
-            [PyTango.DevLong,
+            [DevLong,
             "Maximum number of macros that can execute concurrently.",
             [10] ],
         'EnvironmentDb':
-            [PyTango.DevString,
+            [DevString,
             "The environment database (usualy a plain file).",
             ["/tmp/tango/%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"] ],
         'RConsolePort':
-            [PyTango.DevLong,
+            [DevLong,
             "The rconsole port number",
             None ],
-        }
+    }
 
     #    Command definitions
     cmd_list = {
         'GetMacroInfo':
-            [[PyTango.DevVarStringArray, "Macro(s) name(s)"],
-            [PyTango.DevVarStringArray, "Macro(s) description(s)"]],
+            [[DevVarStringArray, "Macro(s) name(s)"],
+            [DevVarStringArray, "Macro(s) description(s)"]],
         'ReloadMacro':
-            [[PyTango.DevVarStringArray, "Macro(s) name(s)"],
-            [PyTango.DevVarStringArray, "[OK] if successfull or a traceback " \
+            [[DevVarStringArray, "Macro(s) name(s)"],
+            [DevVarStringArray, "[OK] if successfull or a traceback " \
                 "if there was a error (one string with complete traceback of " \
                 "each error)"]],
         'ReloadMacroLib':
-            [[PyTango.DevVarStringArray, "MacroLib(s) name(s)"],
-            [PyTango.DevVarStringArray, "[OK] if successfull or a traceback " \
+            [[DevVarStringArray, "MacroLib(s) name(s)"],
+            [DevVarStringArray, "[OK] if successfull or a traceback " \
                 "if there was a error (one string with complete traceback of " \
                 "each error)" ]],
         'GetMacroCode':
-            [[PyTango.DevVarStringArray, "<MacroLib name> [, <Macro name>]"],
-            [PyTango.DevVarStringArray, "result is a sequence of 3 strings:\n"
+            [[DevVarStringArray, "<MacroLib name> [, <Macro name>]"],
+            [DevVarStringArray, "result is a sequence of 3 strings:\n"
                 "<full path and file name>, <code>, <line number>" ]],
         'SetMacroCode':
-            [[PyTango.DevVarStringArray, "<MacroLib name>, <code>\n" \
+            [[DevVarStringArray, "<MacroLib name>, <code>\n" \
                 "- if macro lib is a simple module name:\n" \
                 "  - if it exists, it is overwritten otherwise a new python " \
                 "file is created in the directory of the first element in "\
@@ -332,44 +310,18 @@ class MacroServerClass(PyTango.DeviceClass, Logger):
                 "  - if path is not in the MacroPath, an exception is thrown" \
                 "  - if file exists it is overwritten otherwise a new file " \
                 "is created"],
-            [PyTango.DevVoid, "" ]],
-        }
+            [DevVoid, "" ]],
+    }
 
     #    Attribute definitions
     attr_list = {
-        'DoorList':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 256]],
-        'MacroList':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 4096]],
-        'MacroLibList':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 1024]],
-        'TypeList':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 256]],
-        'Elements':
-            [[PyTango.DevEncoded,
-            PyTango.SCALAR,
-            PyTango.READ],
-            {
-                'label':"Elements",
-                'description':"the list of all elements (a JSON encoded dict)",
-            } ],
-        }
+        'DoorList'     : [ [ DevString,  SPECTRUM, READ, 256 ] ],
+        'MacroList'    : [ [ DevString,  SPECTRUM, READ, 4096 ] ],
+        'MacroLibList' : [ [ DevString,  SPECTRUM, READ, 1024 ] ],
+        'TypeList'     : [ [ DevString,  SPECTRUM, READ, 256 ] ],
+        'Elements'     : [ [ DevEncoded, SCALAR,   READ ],
+                           { 'label'      : "Elements",
+                             'description': "the list of all elements "
+                                            "(a JSON encoded dict)", } ],
+    }
     
-    def __init__(self, name):
-        PyTango.DeviceClass.__init__(self, name)
-        Logger.__init__(self, "%sClass" % name)
-        
-        self.set_type(name);
-
-        
-    def dyn_attr(self, dev_list):
-        for dev in dev_list:
-            dev.dyn_attr()

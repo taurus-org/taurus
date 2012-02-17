@@ -166,7 +166,4 @@ class CTExpChannelClass(PoolElementDeviceClass):
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 
-    def __init__(self, name):
-        PoolElementDeviceClass.__init__(self, name)
-        self.set_type(name);
 

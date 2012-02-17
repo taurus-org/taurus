@@ -42,8 +42,7 @@ from sardana import State, InvalidId, InvalidAxis, ElementType
 from sardana.pool.poolmetacontroller import DataInfo
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_state, to_tango_type_format, to_tango_access, \
-    to_tango_attr_info
+    GenericImageAttr, to_tango_attr_info
 
 
 class PoolDevice(SardanaDevice):
@@ -239,18 +238,6 @@ class PoolDevice(SardanaDevice):
     def _is_DynamicAttribute_allowed(self, req_type):
         return self.is_DynamicAttribute_allowed(req_type)
 
-    def calculate_tango_state(self, ctrl_state, update=True):
-        self._state = state = to_tango_state(ctrl_state)
-        if update:
-            self.set_state(state)
-        return state
-    
-    def calculate_tango_status(self, ctrl_status, update=True):
-        self._status = status = ctrl_status
-        if update:
-            self.set_status(status)
-        return status
-
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""
@@ -435,27 +422,23 @@ class PoolGroupDeviceClass(PoolDeviceClass):
     #    Class Properties
     class_property_list = {
     }
-
+    
     #    Device Properties
     device_property_list = {
         "Elements" :    [ DevVarStringArray, "elements in the group", [ ] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
-
+    
     #    Command definitions
     cmd_list = {
     }
     cmd_list.update(PoolDeviceClass.cmd_list)
-
+    
     #    Attribute definitions
     attr_list = {
         'ElementList'  : [ [ DevString, SPECTRUM, READ, 4096] ],
     }
     attr_list.update(PoolDeviceClass.attr_list)
-
-    def __init__(self, name):
-        PoolDeviceClass.__init__(self, name)
-        self.set_type(name)
-
+    
     def init_device(self):
         PoolDevice.init_device(self)

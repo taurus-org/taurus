@@ -32,10 +32,11 @@ __docformat__ = 'restructuredtext'
 import threading
 
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
-    AttrQuality, TimeVal
+    AttrQuality, TimeVal, ArgType
 
 from taurus.core.util.log import Logger
 
+from util import to_tango_state
 
 class SardanaDevice(Device_4Impl, Logger):
     
@@ -112,14 +113,18 @@ class SardanaDevice(Device_4Impl, Logger):
                 attr.set_quality(AttrQuality.ATTR_INVALID, fire_event)
                 return
             
-            attr.set_value(value)
+            if timestamp is not None and not isinstance(timestamp, TimeVal):
+                timestamp = TimeVal.fromtimestamp(timestamp)
+            
+            if attr.get_data_type() == ArgType.DevEncoded:
+                attr.set_value(*value)
+            else:
+                attr.set_value(value)
             
             if quality is not None:
                 attr.set_quality(quality)
             
             if timestamp is not None:
-                if not isinstance(timestamp, TimeVal):
-                    timestamp = TimeVal.fromtimestamp(timestamp)
                 attr.set_date(timestamp)
             
             if fire_event:
@@ -128,7 +133,18 @@ class SardanaDevice(Device_4Impl, Logger):
             if recover:
                 attr.set_change_event(True, True)
         
-
+    def calculate_tango_state(self, ctrl_state, update=True):
+        self._state = state = to_tango_state(ctrl_state)
+        if update:
+            self.set_state(state)
+        return state
+    
+    def calculate_tango_status(self, ctrl_status, update=True):
+        self._status = status = ctrl_status
+        if update:
+            self.set_status(status)
+        return status
+    
 class SardanaDeviceClass(DeviceClass):
 
     #    Class Properties
@@ -146,6 +162,10 @@ class SardanaDeviceClass(DeviceClass):
     attr_list = {
     }
 
+    def __init__(self, name):
+        DeviceClass.__init__(self, name)
+        self.set_type(name)
+        
     def dyn_attr(self, dev_list):
         for dev in dev_list:
             try:

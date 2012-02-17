@@ -10,15 +10,15 @@
 .. hlist::
     :columns: 3
 
-    * :class:`SardanaBaseManager`
+    * :class:`SardanaElementManager`
 
-SardanaManager
-----------------
+SardanaElementManager
+----------------------
 
-.. inheritance-diagram:: SardanaBaseManager
+.. inheritance-diagram:: SardanaElementManager
     :parts: 1
     
-.. autoclass:: SardanaBaseManager
+.. autoclass:: SardanaElementManager
     :inherited-members:
     :members:
     :undoc-members:

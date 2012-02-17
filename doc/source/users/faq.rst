@@ -7,7 +7,7 @@ FAQ
 
 What is the Sardana SCADA_ and how do I get an overview over the different components?
 ---------------------------------------------------------------------------------------
-An overview over the different Sardana components can be found here **<LINK>**. 
+An overview over the different Sardana components can be found here **<LINK>**.
 The basic Sardana SCADA_ philosophy can be found :ref:`here <sardana-overview>`.
 
 How do I install Sardana?
@@ -25,7 +25,7 @@ The complete sardana installation instructions can be found
 
 How to work with Taurus_ GUI?
 -----------------------------
-A user documentation for the Taurus_ GUI application can be found
+A user documentation for the Taurus_ :term:`GUI` application can be found
 `here <http://packages.python.org/taurus/>`_.
 
 How to produce your own Taurus_ GUI panel?

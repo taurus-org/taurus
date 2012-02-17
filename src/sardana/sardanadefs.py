@@ -244,6 +244,8 @@ ElementType = Enumeration("ElementType", ( \
     "Instrument",
     "ControllerClass",
     "ControllerLibrary",
+    "MacroServer",
+    "Door",
     "MacroClass",
     "MacroLibrary",
     "External",

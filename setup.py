@@ -279,6 +279,7 @@ def main():
         'sardana.pool',
         'sardana.macroserver',
         'sardana.spock',
+        'sardana.tango',
     ]
 
     requires = [ 

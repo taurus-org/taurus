@@ -47,8 +47,8 @@ def fix_sardana_for_doc():
             self._pending_type_names[name] = name
         return self._pending_type_names[name]
     
-    import sardana.macroserver.parameter
-    sardana.macroserver.parameter.TypeNames.__getattr__ = type_getattr
+    import sardana.macroserver.msparameter
+    sardana.macroserver.msparameter.TypeNames.__getattr__ = type_getattr
 
 fix_sardana_for_doc()
 
@@ -91,7 +91,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'sardana'
-copyright = u'2011, ALBA - CELLS, Creative Commons Attribution-Share Alike 3.0'
+copyright = u'2012, ALBA - CELLS, Creative Commons Attribution-Share Alike 3.0'
 copyright = u"""Except where otherwise noted, content on this site is
 licensed under a Creative Commons Attribution 3.0 License"""
 

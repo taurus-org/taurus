@@ -250,7 +250,11 @@ def prepare_server(args, tango_args):
     """Register a proper server if the user gave an unknown server"""
     log_messages = []
     _, bin_name = os.path.split(args[0])
-    if len(args) < 2:
+    
+    if "-?" in tango_args:
+        return log_messages
+    
+    if len(tango_args) < 2:
         valid = False
         while not valid:
             inst_name = raw_input("Please indicate %s instance name: " % bin_name)
@@ -263,7 +267,7 @@ def prepare_server(args, tango_args):
         args.append(inst_name)
         tango_args.append(inst_name)
     else:
-        inst_name = args[1].lower()
+        inst_name = tango_args[1].lower()
     db = Database()
     known_inst=map(str.lower, db.get_instance_name_list(bin_name))
     if inst_name not in known_inst:

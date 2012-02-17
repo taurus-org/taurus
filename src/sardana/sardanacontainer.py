@@ -31,7 +31,7 @@ __all__ = ["SardanaContainer"]
 __docformat__ = 'restructuredtext'
 
 from taurus.core.util import CaselessDict
-from sardanadefs import InvalidId
+from sardanadefs import InvalidId, ElementType
 
 class SardanaContainer(object):
     """A container class for sardana elements"""
@@ -222,3 +222,24 @@ class SardanaContainer(object):
            :type new_name: str
         """
         raise NotImplementedError
+
+    def check_element(self, name, full_name):
+        raise_element_name = True
+        try:
+            elem = self.get_element(name=name)
+        except:
+            raise_element_name = False
+        if raise_element_name:
+            elem_type = ElementType[elem.get_type()]
+            raise Exception("A %s with name '%s' already exists"
+                            % (elem_type, name))
+        
+        raise_element_full_name = True
+        try:
+            elem = self.get_element(full_name=full_name)
+        except:
+            raise_element_full_name = False
+        if raise_element_full_name:
+            elem_type = ElementType[elem.get_type()]
+            raise Exception("A %s with full name '%s' already exists"
+                            % (elem_type, full_name))

@@ -29,15 +29,22 @@ import time
 import copy
 import json
 
-import PyTango
+from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
+    DevLong64, DevDouble, DevBoolean, DevString, DevState, DevEncoded, \
+    DevVarStringArray, \
+    DispLevel, AttrQuality, TimeVal, AttrData, ArgType, \
+    READ, READ_WRITE, SCALAR, SPECTRUM
+
 import taurus
 import taurus.core.util
 from taurus.core.util import etree, CodecFactory
 
-from sardana.macroserver.exception import MacroServerException
-from sardana.macroserver.attributehandler import AttributeLogHandler
+from sardana import State, InvalidId, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
+from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macro import Macro
-
+from sardana.tango.core.attributehandler import AttributeLogHandler
+from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 
 class DoorSimulation(taurus.core.util.Logger):
     
@@ -126,22 +133,34 @@ class DoorSimulation(taurus.core.util.Logger):
                 del self._currentTimer
 
 
-class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
+class Door(SardanaDevice):
 
-    def __init__(self,cl, name):
-        PyTango.Device_4Impl.__init__(self,cl,name)
-        try:
-            db = taurus.Database()
-            self._alias = db.get_alias(name)
-            if self._alias.lower() == 'nada':
-                self._alias = name
-        except:
-            self._alias = name
-        self._simulation = None
-        self._macro_server = None
+    def __init__(self, dclass, name):
+        SardanaDevice.__init__(self, dclass, name)
         self._last_result = ()
-        taurus.core.util.Logger.__init__(self, self._alias)
         Door.init_device(self)
+
+    def init(self, name):
+        SardanaDevice.init(self, name)
+        self._simulation = None
+        self._door = None
+        self._macro_server_device = None
+    
+    def get_door(self):
+        return self._door
+    
+    def set_door(self, door):
+        self._door = door
+    
+    door = property(get_door, set_door)
+    
+    @property
+    def macro_server_device(self):
+        return self._macro_server_device
+    
+    @property
+    def macro_server(self):
+        return self.door.macro_server
 
     def delete_device(self):
         if self.getRunningMacro():
@@ -153,67 +172,101 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         
         for handler, filter, format in self._handler_dict.values():
             handler.finish()
-        
-        self.manager.removeDoor(self)
-
-    def init_device(self):
-        self.set_state(Macro.Ready)
-        self.get_device_properties(self.get_device_class())
-        self.set_change_event('State', True, False)
-        self.set_change_event('Status', True, False)
-        self.set_change_event('Result', True, False)
-        self.set_change_event('RecordData', True, False)
-        self.set_change_event('MacroStatus', True, False)
-        self.set_change_event('Environment', True, False)
-        
-        self.manager.addDoor(self)
-        
-        self._setupLogHandlers()
-        
-        self.push_change_event('State')
-        self.push_change_event('Status')
     
-    def _setupLogHandlers(self):
-        self._handler_dict = {}
-        levels = ('Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug')
+    def init_device(self):
+        SardanaDevice.init_device(self)
+        levels = 'Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug'
+        detect_evts = ()
+        non_detect_evts = ['State', 'Status', 'Result', 'RecordData',
+                           'MacroStatus', 'Environment'] + list(levels)
+        self.set_change_events(detect_evts, non_detect_evts)
+
+        util = Util.instance()
+        db = util.get_database()
         
+        # Find the macro server for this door
+        macro_servers = util.get_device_list_by_class("MacroServer")
+        if self.MacroServerName is None:
+            self._macro_server_device = macro_servers[0]
+        else:
+            ms_name = self.MacroServerName.lower()
+            for ms in macro_servers:
+                if ms.name.lower() == ms_name or ms.alias.lower() == ms_name:
+                    self._macro_server_device = ms
+                    break
+        
+        # support for old doors which didn't have ID
+        if self.Id == InvalidId:
+            self.Id = self.macro_server.get_new_id()
+            db.put_device_property(self.get_name(), dict(Id=self.Id))
+        
+        if self.door is None:
+            full_name = self.get_name()
+            name = self.alias or full_name
+            macro_server = self.macro_server_device.macro_server
+            door = macro_server.create_element(type="Door", name=name,
+                                               full_name=full_name, id=self.Id)
+            door.add_listener(self.on_door_changed)
+            self.door = door
+            
+        self._setupLogHandlers(levels)
+    
+    def _setupLogHandlers(self, levels):
+        self._handler_dict = {}
         for level in levels:
-            level_val = getattr(Door, level)
-            handler_klass = AttributeLogHandler
-            handler = handler_klass(self, level, max_buff_size=self.MaxMsgBufferSize)
-            filter = taurus.core.util.LogFilter(level=level_val)
+            handler = AttributeLogHandler(self, level,
+                                          max_buff_size=self.MaxMsgBufferSize)
+            filter = taurus.core.util.LogFilter(level=getattr(Door, level))
             handler.addFilter(filter)
             self.addLogHandler(handler)
             format = None
             self._handler_dict[level] = handler, filter, format
+    
+    def on_door_changed(self, event_source, event_type, event_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
         
-    @property
-    def manager(self):
-        import sardana.macroserver.manager
-        return sardana.macroserver.manager.MacroServerManager()
+        timestamp = time.time()
+        
+        name = event_type.name.lower()
+        
+        multi_attr = self.get_device_attr()
+        try:
+            attr = multi_attr.get_attr_by_name(name)
+        except DevFailed:
+            return
+        
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
+            
+            if attr.get_data_type() == ArgType.DevEncoded:
+                codec = CodecFactory().getCodec('json')
+                event_value = codec.encode(('', event_value))
+        self.set_attribute(attr, value=event_value, timestamp=timestamp)
     
     @property
     def macro_executor(self):
-        return self.manager.getMacroExecutor(self)
+        return self.door.macro_executor
     
     def getRunningMacro(self):
-        return self.macro_executor.getRunningMacro()
+        return self.door.running_macro
     
-    @property
-    def macro_server(self):
-        ms = self._macro_server
-        if ms is None:
-            util = PyTango.Util.instance()
-            self._macro_server = ms = \
-                util.get_device_list_by_class("MacroServer")[0]
-        return ms
-
     def always_executed_hook(self):
         pass
-
+    
     def read_attr_hardware(self,data):
         pass
-
+    
     def read_SimulationMode(self, attr):
         if not hasattr(self, '_simulation'):
             self._simulation = None
@@ -228,52 +281,52 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
             self._simulation = DoorSimulation(self)
         else:
             self._simulation = None
-
+    
     def is_SimulationMode_allowed(self, req_type):
-        return self.get_state() in [Macro.Ready, Macro.Abort]
+        return self.get_state() in (Macro.Ready, Macro.Abort)
     
     def readLogAttr(self, attr):
         name = attr.get_name()
         handler, filter, format = self._handler_dict[name]
         handler.read(attr)
-
+    
     read_Critical = read_Error = read_Warning = read_Info = read_Output = \
         read_Debug = read_Trace = readLogAttr 
-
+    
     #@DebugIt()
     def read_ElementList(self, attr):
-        element_list = self.macro_server.getElementList()
+        element_list = self.macro_server_device.getElementList()
         attr.set_value(*element_list)
-        
+    
     def sendRecordData(self, format, data):
         self.push_change_event('RecordData', format, data)
-
-    def sendState(self, state):
-        self.set_state(state)
-        self.push_change_event('state')
     
-    def sendStatus(self, status):
-        self.set_status(status)
-        self.push_change_event('status')
+#    def sendState(self, state):
+#        self.set_state(state)
+#        self.push_change_event('state')
     
-    def sendMacroStatus(self, format, data):
-        self.push_change_event('MacroStatus', format, data)
-#        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
-#        attr.set_value(format, data)
-#        attr.fire_change_event()
+#    def sendStatus(self, status):
+#        self.set_status(status)
+#        self.push_change_event('status')
     
-    def sendEnvironment(self, format, data):
-        self.push_change_event('Environment', format, data)
-#        attr = self.get_device_attr().get_attr_by_name('Environment')
-#        attr.set_value(format, data)
-#        attr.fire_change_event()
+#    def sendMacroStatus(self, format, data):
+#        self.push_change_event('MacroStatus', format, data)
+##        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
+##        attr.set_value(format, data)
+##        attr.fire_change_event()
     
-    def sendResult(self, result):
-        self._last_result = result
-        attr = self.get_device_attr().get_attr_by_name('Result')
-        attr.set_value(result)
-#       attr.fire_change_event()
-        self.push_change_event('Result', result)
+#    def sendEnvironment(self, format, data):
+#        self.push_change_event('Environment', format, data)
+##        attr = self.get_device_attr().get_attr_by_name('Environment')
+##        attr.set_value(format, data)
+##        attr.fire_change_event()
+    
+#    def sendResult(self, result):
+#        self._last_result = result
+#        attr = self.get_device_attr().get_attr_by_name('Result')
+#        attr.set_value(result)
+##       attr.fire_change_event()
+#        self.push_change_event('Result', result)
 
     def getLogAttr(self, name):
         return self._handler_dict.get(name)
@@ -289,7 +342,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         attr.set_value('', '')
     
     def read_Environment(self, attr):
-        env = self.manager.getAllDoorEnv(door_name=self.get_name())
+        env = self.door.get_env()
         env["__type__"] = "new"
         attr.set_value('json', json.dumps(env))
         return
@@ -298,7 +351,7 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         data = attr.get_write_value()
         codec = CodecFactory().getCodec('json')
         data = codec.decode(data, ensure_ascii=True)[1]
-        self.manager.setEnvObj(data)
+        self.macro_server.environment_manager.setEnvObj(data)
     
     def is_Environment_allowed(self, req_type):
         return True
@@ -378,9 +431,9 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         """ReloadMacro(list<string> macro_names):
         """
         try:
-            self.manager.reloadMacros(argin)
+            self.door.reload_macro_classes(argin)
         except MacroServerException, mse:
-            PyTango.Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
+            Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
         return ['OK']
 
     def is_ReloadMacro_allowed(self):
@@ -390,9 +443,9 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         """ReloadMacroLib(list<string> lib_names):
         """
         try:
-            self.manager.reloadMacroLibs(argin)
+            self.door.reload_macro_libs(argin)
         except MacroServerException, mse:
-            PyTango.Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
+            Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
         return ['OK']
     
     def is_ReloadMacroLib_allowed(self):
@@ -403,8 +456,8 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
         if len(argin) > 1:
             macro_env = argin[1:]
         else:
-            macro_env = self.manager.getMacroClass(macro_name).env
-        env = self.manager.getDoorMacroEnv(self.get_name(), macro_name, macro_env)
+            macro_env = self.door.get_macro_class_info(macro_name).env
+        env = self.door.get_env(macro_env, macro_name=macro_name)
         ret = []
         for k,v in env.iteritems():
             ret.extend((k,v))
@@ -412,8 +465,9 @@ class Door(PyTango.Device_4Impl, taurus.core.util.Logger):
     
     def is_GetMacroEnv_allowed(self):
         return self.get_state() in [Macro.Finished, Macro.Abort]
-    
-class DoorClass(PyTango.DeviceClass):
+
+
+class DoorClass(SardanaDeviceClass):
 
     #    Class Properties
     class_property_list = {
@@ -421,45 +475,52 @@ class DoorClass(PyTango.DeviceClass):
 
     #    Device Properties
     device_property_list = {
+        'Id': [DevLong64, "Internal ID", [ InvalidId ] ],
         'MaxMsgBufferSize':
-            [PyTango.DevLong,
-            'Maximum size for the Output, Result, Error, Warning, Debug and Info buffers',
+            [DevLong,
+            'Maximum size for the Output, Result, Error, Warning, Debug and '
+            'Info buffers',
             [512] ],
+        'MacroServerName':
+            [DevString,
+            'Name of the macro server device to connect to. [default: None, '
+            'meaning connect to the first registered macroserver',
+            None ],
         }
 
     #    Command definitions
     cmd_list = {
         'Abort':
-            [ [ PyTango.DevVoid, ""],
-              [ PyTango.DevVoid, ""] ],
+            [ [ DevVoid, ""],
+              [ DevVoid, ""] ],
         'PauseMacro':
-            [ [PyTango.DevVoid, ""],
-              [PyTango.DevVoid, ""] ],
+            [ [DevVoid, ""],
+              [DevVoid, ""] ],
         'StopMacro':
-            [ [PyTango.DevVoid, ""],
-              [PyTango.DevVoid, ""] ],
+            [ [DevVoid, ""],
+              [DevVoid, ""] ],
         'ResumeMacro':
-            [ [PyTango.DevVoid, ""],
-              [PyTango.DevVoid, ""] ],
+            [ [DevVoid, ""],
+              [DevVoid, ""] ],
         'RunMacro':
-            [ [PyTango.DevVarStringArray, 'Macro name and parameters'],
-              [PyTango.DevVarStringArray, 'Macro Result']],
+            [ [DevVarStringArray, 'Macro name and parameters'],
+              [DevVarStringArray, 'Macro Result']],
         'SimulateMacro':
-            [ [PyTango.DevVarStringArray, 'Macro name and parameters'],
-              [PyTango.DevVarStringArray, 'Macro statistics']],
+            [ [DevVarStringArray, 'Macro name and parameters'],
+              [DevVarStringArray, 'Macro statistics']],
         'GetMacroEnv':
-            [ [ PyTango.DevVarStringArray, 'Macro name followed by an ' \
+            [ [ DevVarStringArray, 'Macro name followed by an ' \
                 'optional list of environment names' ],
-              [ PyTango.DevVarStringArray, 'Macro environment as a list of '\
+              [ DevVarStringArray, 'Macro environment as a list of '\
                 'pairs keys, value'] ],
 #        'ReloadMacro':
-#            [[PyTango.DevVarStringArray, "Macro(s) name(s)"],
-#            [PyTango.DevVarStringArray, "[OK] if successfull or a traceback " \
+#            [[DevVarStringArray, "Macro(s) name(s)"],
+#            [DevVarStringArray, "[OK] if successfull or a traceback " \
 #                "if there was a error (one string with complete traceback of " \
 #                "each error)"]],
 #        'ReloadMacroLib':
-#            [[PyTango.DevVarStringArray, "MacroLib(s) name(s)"],
-#            [PyTango.DevVarStringArray, "[OK] if successfull or a traceback " \
+#            [[DevVarStringArray, "MacroLib(s) name(s)"],
+#            [DevVarStringArray, "[OK] if successfull or a traceback " \
 #                "if there was a error (one string with complete traceback of " \
 #                "each error)"]],
         }
@@ -467,94 +528,31 @@ class DoorClass(PyTango.DeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'SimulationMode':
-            [[PyTango.DevBoolean,
-            PyTango.SCALAR,
-            PyTango.READ_WRITE],
-            {
-                'label'     : 'Simulation mode',
-                'Memorized' : 'true',
-            } ],
-        'Result':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Result for the last macro',
-            } ],
-        'Critical':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro critical error message',
-            } ],
-        'Error':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro error message',
-            } ],
-        'Warning':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro warning message',
-            } ],
-        'Info':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro information message',
-            } ],
-        'Output':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro output message',
-            } ],
-        'Debug':
-            [[PyTango.DevString,
-            PyTango.SPECTRUM,
-            PyTango.READ, 512],
-            {
-                'label'     : 'Macro debug message',
-            } ],
-        'Environment':
-            [[PyTango.DevEncoded,
-            PyTango.SCALAR,
-            PyTango.READ_WRITE],
-            {
-                'label'     : 'Door environment',
-            } ],
-        'RecordData':
-            [[PyTango.DevEncoded,
-            PyTango.SCALAR,
-            PyTango.READ],
-            {
-                'label'     : 'Record Data',
-            } ],
-        'MacroStatus':
-            [[PyTango.DevEncoded,
-            PyTango.SCALAR,
-            PyTango.READ],
-            {
-                'label'     : 'Macro Status',
-            } ],
-        'ElementList':
-            [[PyTango.DevEncoded,
-            PyTango.SCALAR,
-            PyTango.READ],
-            {
-                'label':"Element list",
-                'description':"the list of all elements (a JSON encoded dict)",
-            } ],
+        'SimulationMode': [ [ DevBoolean, SCALAR, READ_WRITE] ,
+                            { 'label'     : 'Simulation mode',
+                              'Memorized' : 'true', } ],
+        'Result'        : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Result for the last macro', } ],
+        'Critical'      : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro critical error message', } ],
+        'Error'         : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro error message', } ],
+        'Warning'       : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro warning message', } ],
+        'Info'          : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro information message', } ],
+        'Output'        : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro output message', } ],
+        'Debug'         : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro debug message', } ],
+        'Environment'   : [ [ DevEncoded, SCALAR, READ_WRITE],
+                            { 'label'     : 'Door environment', } ],
+        'RecordData'    : [ [ DevEncoded, SCALAR, READ],
+                            { 'label'     : 'Record Data', } ],
+        'MacroStatus'   : [ [ DevEncoded, SCALAR, READ],
+                            { 'label'     : 'Macro Status', } ],
+        'ElementList'   : [ [ DevEncoded, SCALAR, READ],
+                            { 'label':"Element list",
+                              'description' : 'the list of all elements (a '
+                                              'JSON encoded dict)', } ],
         }
-
-    def __init__(self, name):
-        PyTango.DeviceClass.__init__(self, name)
-        self.set_type(name);

@@ -1,9 +1,9 @@
-.. currentmodule:: sardana.macroserver.manager
+.. currentmodule:: sardana.macroserver.macroserver
 
-:mod:`~sardana.macroserver.manager`
-===================================
+:mod:`~sardana.macroserver.macroserver`
+=======================================
 
-.. automodule:: sardana.macroserver.manager
+.. automodule:: sardana.macroserver.macroserver
 
 .. rubric:: Functions
 
@@ -12,15 +12,15 @@
 .. hlist::
     :columns: 3
 
-    * :class:`MacroServerManager`
+    * :class:`MacroServer`
 
-MacroServerManager
---------------------
+MacroServer
+------------
 
-.. inheritance-diagram:: MacroServerManager
+.. inheritance-diagram:: MacroServer
     :parts: 1
     
-.. autoclass:: MacroServerManager
+.. autoclass:: MacroServer
     :show-inheritance:
     :members:
     :undoc-members:
