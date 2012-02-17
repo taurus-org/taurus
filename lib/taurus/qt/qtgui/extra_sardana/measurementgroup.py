@@ -39,8 +39,10 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.table import TaurusBaseTableWidget
+from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
 from taurus.core.tango.sardana.pool import getChannelConfigs
+from taurus.core import TaurusElementType
 
 
 #===============================================================================
@@ -85,12 +87,12 @@ def createChannelDict(name, index=None, **kwargs):
            'label': name, #channel label
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
-           'plot_type': PlotType.No, # one of the PlotType enumeration members (as string)
+           'plot_type': PlotType.No, # one of the PlotType enumeration members
 #           'timer': '', #should contain a channel name
 #           'monitor': '', #should contain a channel name
 #           'trigger': '', #should contain a channel name
            'conditioning': '', #this is a python expresion to be evaluated for conditioning the data. The data for this channel can be referred as 'x' and data from other channels can be referred by channel name
-           'normalization': Normalization.No, # one of the Normalization enumeration members (as string)
+           'normalization': Normalization.No, # one of the Normalization enumeration members 
            'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
            }
     ret.update(kwargs) 
@@ -155,11 +157,11 @@ def getElementTypeToolTip(t):
     elif t == ChannelView.Trigger:
         return "The channel to be used for triggering the acquisition"
     elif t == ChannelView.Conditioning:
-        return "An expresion to evaluate on the data when displaying it"
+        return "An expression to evaluate on the data when displaying it"
     elif t == ChannelView.Normalization:
         return "Normalization mode for the data"
     elif t == ChannelView.NXPath:
-        return "Location of the data of this channel within the nexus tree"
+        return "Location of the data of this channel within the NeXus tree"
     return "Unknown"
 
 
@@ -647,10 +649,21 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             avail_channels = qmodel.getAvailableChannels()
             clist = [ ch_info['name'] for ch_name, ch_info in avail_channels.items()
                       if ch_name not in shown ]
-            chname,ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", sorted(clist), 0, False)
+            clist = sorted(clist) + ['(Other...)']
+            chname,ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", clist, 0, False)
             if not ok:
-                return       
-        qmodel.addChannel(chname=chname)
+                return
+        chname = str(chname)
+        if chname == '(Other...)':
+            raise NotImplementedError('Loading external channels is not yet supported')
+            models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=True, windowTitle='Choose source of data',
+                                                            selectables = [TaurusElementType.Attribute])
+            if not ok:
+                return
+            modelname = models[0]
+            qmodel.addTaurusChannel(modelname) #@todo
+        else:
+            qmodel.addChannel(chname=chname)
         
     def removeChannels(self, channels=None):
         if channels is None:

@@ -60,6 +60,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.connect(self.ui.filenameLE, Qt.SIGNAL('textEdited (QString)'), self.onFilenameLEEdited )
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('dataChanged (QModelIndex, QModelIndex)'), self._updateButtonBox )
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('modelReset ()'), self._updateButtonBox )
+        self.connect(self.ui.preScanList, Qt.SIGNAL('dataChanged'), self.onPreScanSnapshotChanged )
         
         if door is not None:
             self.setModel(door)
@@ -86,6 +87,13 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         TaurusBaseWidget.setModel(self, model)
         self._reloadConf(force=True)
+        #set the model of some child widgets
+        door = self.getModelObj()
+        if door is None: return
+        tghost = taurus.Database().getNormalName() #@todo: get the tghost from the door model instead
+        msname = door.macro_server.getFullName()
+        self.ui.taurusModelTree.setModel(tghost)
+        self.ui.sardanaElementTree.setModel(msname)
 
     def _reloadConf(self, force=False):
         if not force and self.isDataChanged():
@@ -127,6 +135,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
 
     def setLocalConfig(self, conf):
         '''gets a ExpDescription dictionary and sets up the widget'''
+    
         self._localConfig = conf
         
         #set the Channel Editor
@@ -139,6 +148,11 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.ui.activeMntGrpCB.addItems(sorted(self._localConfig['MntGrpConfigs'].keys()))
         idx = self.ui.activeMntGrpCB.findText(activeMntGrpName)
         self.ui.activeMntGrpCB.setCurrentIndex(idx)
+        
+        #set the system snapshot list
+        psl = self._localConfig.get('PreScanSnapshot') #I get it before clearing because clear() changes the _localConfig
+        self.ui.preScanList.clear()
+        self.ui.preScanList.addModels(psl)
         
         #other settings
         self.ui.filenameLE.setText(", ".join(self._localConfig['ScanFile']))
@@ -202,6 +216,9 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._localConfig['ScanFile'] = [v.strip() for v in str(text).split(',')]
         self._setDirty(True)
         
+    def onPreScanSnapshotChanged(self, items):  
+        self._localConfig['PreScanSnapshot'] = [(e.src,e.display) for e in items]
+        self._setDirty(True)    
     
         
             
