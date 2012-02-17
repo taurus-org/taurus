@@ -36,7 +36,7 @@ from PyQt4 import Qwt5
 import taurus
 from taurus.core import TaurusException, TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
-from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon
+from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getIcon
 
 
 #set some named constants
@@ -45,12 +45,13 @@ SRC_ROLE =  Qt.Qt.UserRole + 1
 class TaurusModelItem(object):
     '''An item object for :class:`TaurusModelModel`. Exposes `display` `icon` and `ok` 
     attributes which are calculated and kept in synch with the property `src`'''
-    def __init__(self, src=None):
-        self.display = ''
+    def __init__(self, src=None, display=None):
         self.icon = Qt.QIcon()
         self.ok = True
         self._src = None
-        self.setSrc(self.src)
+        self.setSrc(src)
+        if display is not None:
+            self.display = display
         
     def __repr__(self):
         ret = "TaurusModelItem('%s')"%(self.display)
@@ -66,6 +67,8 @@ class TaurusModelItem(object):
             self._src, self.display, self.icon, self.ok = '', '(Empty)', Qt.QIcon(),True
             return
         src = str(src).strip()
+        if src == self._src:
+            return
         self._src = src
         #empty
         if src == '':
@@ -153,17 +156,24 @@ class TaurusModelModel(Qt.QAbstractListModel):
             row = index.row()
             item = self.items[row]
             value = unicode(value.toString())
-            item.src = value
+            if role == Qt.Qt.EditRole:
+                item.src = value
+            elif role == Qt.Qt.DisplayRole:
+                item.display = value
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
-            return True
+            return True 
         return False
     
-    def insertRows(self, position=None,rows=1, parentindex=None):
+    def insertRows(self, position=None,rows=1, parentindex=None, items=None):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
-        if position is None: position = self.rowCount()
+        if position is None or position==-1: position = self.rowCount()
         if parentindex is None: parentindex = Qt.QModelIndex()
+        if items is None:
+            slice = [TaurusModelItem() for i in range(rows)]
+        else:
+            slice=list(items)
+            rows = len(slice) #note that the rows parameter is ignored if items is passed
         self.beginInsertRows(parentindex, position, position + rows -1)
-        slice = [TaurusModelItem() for i in range(rows)]
         self.items = self.items[:position]+slice+self.items[position:]
         self.endInsertRows()
         return True
@@ -212,17 +222,23 @@ class TaurusModelModel(Qt.QAbstractListModel):
         return True
     
     def insertItems(self, row, items):
-        '''convenience method to add new rows by passing a list of strings
+        '''convenience method to add new rows by passing a list of strings ()
         
         :param row: (int) the row of the list at which the item insertion 
                          starts, if row==-1, items will be appended to the list
-        :param items: (seq<str>) a sequence of string items to add to the list
-        
+        :param items: (seq) a sequence items to add to the list. The objects 
+                      in the sequence can be either strings, :class:`TaurusModelItem` objects
+                      or tuples of valid arguments for initializing :class:`TaurusModelItem` objects
         '''
-        if row == -1: row=self.rowCount()
-        self.insertRows(row,len(items))
-        for i,item in enumerate(items):
-            self.setData(self.index(row+i), value=Qt.QVariant(item))
+        itemobjs = []
+        for e in items:
+            if isinstance(e,TaurusModelItem): 
+                itemobjs.append(e)
+            elif isinstance(e,basestring):
+                itemobjs.append(TaurusModelItem(src=e))
+            else: #assuming it is a sequence of arguments that can be passed to the constructor of TaurusModelItem
+                itemobjs.append(TaurusModelItem(*e))
+        self.insertRows(position=row,items=itemobjs)
     
     def mimeData(self, indexes):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -254,26 +270,48 @@ class TaurusModelList(Qt.QListView):
         self.addRowAction = self._contextMenu.addAction(getThemeIcon('list-add'), 'Add new row', self.newRow, Qt.QKeySequence.New)
         self.removeSelectedAction = self._contextMenu.addAction(getThemeIcon('list-remove'), 'Remove Selected', self.removeSelected, Qt.QKeySequence.Delete)
         self.removeAllAction = self._contextMenu.addAction(getThemeIcon('edit-clear'), 'Clear all', self.clear, Qt.QKeySequence("Ctrl+Del"))
-        self.moveUpAction = self._contextMenu.addAction(getThemeIcon('go-up'), 'Move up in the list', self._onMoveUpAction,Qt.QKeySequence("Alt+Up"))
-        self.moveDownAction = self._contextMenu.addAction(getThemeIcon('go-down'), 'Move down in the list', self._onMoveDownAction,Qt.QKeySequence("Alt+Down"))
+        self.moveUpAction = self._contextMenu.addAction(getThemeIcon('go-up'), 'Move up in the list', self._onMoveUpAction, Qt.QKeySequence("Alt+Up"))
+        self.moveDownAction = self._contextMenu.addAction(getThemeIcon('go-down'), 'Move down in the list', self._onMoveDownAction, Qt.QKeySequence("Alt+Down"))
+        self.editDisplayAction = self._contextMenu.addAction(getIcon(':/actions/format-text-italic.svg'), 'Edit the display (leave the source)', self._onEditDisplay, Qt.QKeySequence("Alt+D"))
         
-        self.addActions([self.addRowAction,self.removeSelectedAction,self.removeAllAction,self.moveUpAction,self.moveDownAction])
+        self.addActions([self.addRowAction,self.removeSelectedAction,self.removeAllAction,self.moveUpAction,self.moveDownAction, self.editDisplayAction])
         
         #signal connections
         selectionmodel = self.selectionModel()
         self.connect(selectionmodel, Qt.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self._onSelectionChanged)
+        self.connect(self._model, Qt.SIGNAL("dataChanged (QModelIndex, QModelIndex)"), self._onDataChanged)
+        self.connect(self._model, Qt.SIGNAL("rowsInserted (QModelIndex, int, int)"), self._onDataChanged)
+        self.connect(self._model, Qt.SIGNAL("rowsRemoved (QModelIndex, int, int)"), self._onDataChanged)
         self._onSelectionChanged(Qt.QItemSelection(),Qt.QItemSelection())
     
     def clear(self):
         '''removes all items from the list'''
         self._model.clearAll()
         
+    def _onEditDisplay(self):
+        selected = self.selectionModel().selectedIndexes()
+        if len(selected)==1:
+            idx = selected[0]
+        else:
+            return
+        value = str(self._model.data(idx, role=Qt.Qt.DisplayRole).toString())
+        src = str(self._model.data(idx, role=SRC_ROLE).toString())
+        value,ok = Qt.QInputDialog.getText(self, "Display Value", "Display value for %s?"%src, Qt.QLineEdit.Normal, value)
+        if not ok:
+            return
+        self._model.setData(idx, Qt.QVariant(value), role=Qt.Qt.DisplayRole)
+    
     def _onSelectionChanged(self, selected, deselected):
         '''updates the status of the actions that depend on the selection'''
         selectedIndexes = self.selectionModel().selectedRows()
         self.removeSelectedAction.setEnabled(len(selectedIndexes)>0)
         self.moveUpAction.setEnabled(len(selectedIndexes)==1 and selectedIndexes[0].row()>0)
         self.moveDownAction.setEnabled(len(selectedIndexes)==1 and (0 <= selectedIndexes[0].row() < self._model.rowCount()-1))
+        self.editDisplayAction.setEnabled(len(selectedIndexes)>0)
+    
+    def _onDataChanged(self, *args):
+        '''emits a signal containing the current data as a list of strings'''
+        self.emit(Qt.SIGNAL("dataChanged"), self.getModelItems())
         
     def contextMenuEvent(self, event):
         '''see :meth:`QWidget.contextMenuEvent`'''
@@ -301,6 +339,11 @@ class TaurusModelList(Qt.QListView):
         self.selectionModel().select(i2, Qt.QItemSelectionModel.ClearAndSelect) 
         
     def newRow(self,position=None):
+        '''adds an empty row *before* the given position
+        
+        :param position: (int or None) position at which the new row will be added.
+                         If None passed, it will be added at the end.
+        '''
         if position is None:
             selected = self.selectionModel().selectedIndexes()
             if len(selected)==0:
@@ -322,11 +365,7 @@ class TaurusModelList(Qt.QListView):
         
         :param models: (list<str>) sequence of model names to be added
         '''
-        nmodels = len(models)
-        rowcount = self._model.rowCount()
-        self._model.insertRows(rowcount,nmodels)
-        for i,m in enumerate(models):
-            self._model.setData(self._model.index(rowcount+i), value=Qt.QVariant(m))
+        self._model.insertItems(-1, models)
             
     def getModelItems(self):
         '''returns the model item objects
@@ -360,6 +399,6 @@ if __name__ == "__main__":
     import sys
     app = TaurusApplication()  
     w = TaurusModelList()
-    w.addModels(["item%i"%i for i in range(5)])
+    w.addModels(["item%i"%i for i in range(3)]+[TaurusModelItem(src='src1',display='d1')]+[('src2','d2')])
     w.show()    
     sys.exit(app.exec_()) 
