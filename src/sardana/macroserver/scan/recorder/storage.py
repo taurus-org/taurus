@@ -224,7 +224,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         self.datadesc = env['datadesc']
         
-        #make a dictionary out of env['instrumentlist'] (use paths as keys)
+        #make a dictionary out of env['instrumentlist'] (use fullnames -paths- as keys)
         self.instrDict={}
         for inst in env.get('instrumentlist',[]):
             self.instrDict[inst.getFullName()]=inst
@@ -246,12 +246,21 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.fd.makegroup("measurement","NXcollection")
         self.fd.opengroup("measurement","NXcollection")
         if self.savemode==SaveModes.Record:
-            #create extensible data elements
+            #create extensible datasets
             for dd in self.datadesc:
                 self.fd.makedata(dd.label,dd.dtype, [nxs.UNLIMITED]+list(dd.shape)) #the first dimension is extensible
         else:
-            #leave the creation of the data elements to _writeRecordList (when we actually know the length of the data to write)
-            pass 
+            #leave the creation of the datasets to _writeRecordList (when we actually know the length of the data to write)
+            pass
+        
+        #write the pre-scan snapshot in the "measurement:NXcollection/preScanSnapShot:NXcollection" group
+        self.preScanSnapShot = env.get('preScanSnapShot',[])
+        self.fd.makegroup("pre_scan_snapshot","NXcollection")
+        self.fd.opengroup("pre_scan_snapshot","NXcollection")
+        for desc in self.preScanSnapShot: #desc is a ColumnDesc object
+            self._writeData(desc.label, desc.pre_scan_value, desc.dtype, desc.shape or (1,)) #@todo: fallback shape is hardcoded! 
+        self.fd.closegroup()
+        
         self.fd.flush()
         
     def _writeData(self, name, data, dtype, shape=None):
@@ -265,7 +274,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
             return
-        nxs = self.nxs
         for dd in self.datadesc:
             if record.data.has_key( dd.name ):
                 data = record.data[dd.name]
@@ -347,12 +355,20 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     def _populateInstrumentInfo(self):
         #create the link for each set in <entry>/data that has a datadesc.nxpath
         for dd in self.datadesc:
-            if dd.instrument is not None:
+            if getattr(dd,'instrument', None): #we don't link if it is None or it is empty
                 #grab the ID of the data group
-                datapath="/%s:NXentry/%s/%s:NX"%(self.entryname,"measurement:NXcollection",dd.label) #fixme: check if this is correct. (note the NXclass of the leaf group)
+                datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) #fixme: check if this is correct. (note the NXclass of the leaf group)
                 self.fd.openpath(datapath)
                 id=self.fd.getdataID()
-                self._createBranch(dd.instrument.getFullName())
+                self._createBranch(dd.instrument)
+                self.fd.makelink(id)
+                
+        for dd in self.preScanSnapShot:
+            if getattr(dd,'instrument', None):
+                datapath="/%s:NXentry/measurement:NXcollection/pre_scan_snapshot:NXcollection/%s"%(self.entryname,dd.label)
+                self.fd.openpath(datapath)
+                id=self.fd.getdataID()
+                self._createBranch(dd.instrument)
                 self.fd.makelink(id)
             
     def _createBranch(self, path):
@@ -366,7 +382,10 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             if len(g) == 0:
                 continue
             relpath = relpath + "/"+ g
-            group_type = self.instrDict[relpath].getType()
+            try:
+                group_type = self.instrDict[relpath].klass
+            except:
+                group_type = 'NXcollection'
             try:
                 self.fd.opengroup(g, group_type)
             except:

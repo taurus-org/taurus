@@ -32,37 +32,54 @@ from taurus.core.util import Singleton
 
 from recorder import DataHandler
 
-
 class ColumnDesc:
     """The description of a column for a Record"""
     
     _TYPE_MAP = { "short" : "int16",
                   "ushort" : "uint16", }
+    _shape = ()
+    _dtype = 'float64'
     
     def __init__(self, **kwargs):
-        """Expected keywords are:
+        """
+        Expected keywords are:
             - name (str, mandatory): unique column name
             - label (str, optional): column label (defaults to name)
             - dtype (str, optional): data type. Defaults to 'float64'
-            - shape (seq, optional): data shape. Defaults to (1,)
-            - instrument (Instrument, optional): instrument object. Defaults to None
-            - output (bool, optional): whether to output the channel in console or not. Default is True"""
+            - shape (seq, optional): data shape. Defaults to ()
+        Any keyword not in the previous list will be converted to a member of the :class:`ColumnDesc` 
+            """
         
-        # string to be used as label (e.g. will be used as column header in an ascii output)
-        self.name = kwargs.get('name')
-        if self.name is None:
-            raise TypeError("name parameter is mandatory")
-        self.label = kwargs.get('label', self.name)
+        #enforce that the mandatory arguments are present
+        try:
+            self.name = kwargs.pop('name')
+        except:
+            raise TypeError('"name" parameter is mandatory')
+                
+        #make sure that at least the required members exist
+        self.label = kwargs.pop('label', self.name)
+        self.setDtype(kwargs.pop('dtype', self.__class__._dtype))
+        self.setShape(kwargs.pop('shape', self.__class__._shape))
+
+        #create members of the ColumnDesc class using the remaining keyword args 
+        self.__dict__.update(kwargs)
     
-        # numpy-compatible description of data type
-        self.dtype = self.tr(kwargs.get('dtype', 'float64'))
+
+    def getShape(self):
+        return self._shape
+    
+    def setShape(self,shape):
+        self._shape = self._simplifyShape(shape)
         
-        # tuple describing the shape of the data:e.g. scalars-->() ;
-        # a 5 element vector-->(5,) ; a 3x4 Matrix-->(3,4)
-        s = kwargs.get('shape', ()) 
-        self.shape = self._simplifyShape(s)
-        self.instrument = kwargs.get('instrument', None)
-        self.output = kwargs.get('output', True) 
+    def getDtype(self):
+        return self._dtype
+    
+    def setDtype(self,dtype):
+        self._dtype = self.tr(dtype)    
+    
+    shape = property(getShape, setShape)
+    dtype = property(getDtype, setDtype)
+    
     
     @staticmethod
     def _simplifyShape(s):
@@ -88,12 +105,13 @@ class ColumnDesc:
         
     def toDict(self):
         '''creates a dictionary representation of the record'''
+        #@todo: maybe we want to add some extra info (e.g. the one coming from channel_info)
         d={}
         for k in ['name', 'label', 'dtype', 'shape']:
             d[k] = getattr(self, k)
-        if self.instrument is not None:
-            d['instrument'] = self.instrument.getFullName()
-            d['instrument_type'] = self.instrument.getType()
+#        if getattr(self,'instrument', None) is not None:
+#            d['instrument'] = self.instrument.getFullName()
+#            d['instrument_type'] = self.instrument.getType()
         return d
 
 

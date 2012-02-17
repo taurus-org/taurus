@@ -58,7 +58,7 @@ class JsonRecorder(DataRecorder):
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         total_scan_intervals = recordlist.getEnvironValue('total_scan_intervals')
         start_time = recordlist.getEnvironValue('starttime').ctime()
-        self.column_desc = [ e for e in column_desc if e.shape == () ]
+        self.column_desc = [ e for e in column_desc if e.shape == () ] #only scalar data is transmitted with json
         column_desc = [ d.toDict() for d in self.column_desc ]
         data = { 'column_desc' : column_desc,
                  'ref_moveables' : ref_moveables,
@@ -127,8 +127,8 @@ class OutputRecorder(DataRecorder):
         self._stream.info(msg)
 
         #labels = [ col.label for col in data_desc if numpy.prod(col.shape) == 1 ]
-        labels = [ col.label for col in data_desc if col.output == True ]
-        col_names = [ col.name for col in data_desc if col.output == True ]
+        labels = [ col.label for col in data_desc if getattr(col,'output',True) ]
+        col_names = [ col.name for col in data_desc if getattr(col,'output',True) ]
         
         cols = self._columns
         if operator.isSequenceType(cols):

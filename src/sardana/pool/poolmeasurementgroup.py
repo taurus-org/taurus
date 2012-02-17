@@ -154,7 +154,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         return element.get_type() in TYPE_EXP_CHANNEL_ELEMENTS
 
     def _build_channel_defaults(self, channel_data, channel):
-        """Fills the channel default values for the given channel dictionnary"""
+        """Fills the channel default values for the given channel dictionary"""
         
         external_from_name = isinstance(channel, (str, unicode))
         ndim = None
@@ -193,7 +193,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         channel_data['source'] = channel_data.get('source', source)
         channel_data['enabled'] = channel_data.get('enabled', True)
         channel_data['label'] = channel_data.get('label', channel_data['name'])
-        channel_data['instrument'] = channel_data.get('instrument', instrument)
+        channel_data['instrument'] = channel_data.get('instrument', getattr(instrument,'name',None))
         channel_data['ndim'] = ndim
         # Probably should be initialized by measurement group
         channel_data['output'] = channel_data.get('output', True)

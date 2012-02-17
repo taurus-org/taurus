@@ -91,8 +91,9 @@ class PoolBaseElement(PoolObject):
         return self._action_cache
     
     def serialize(self, *args, **kwargs):
-        return PoolObject.serialize(self, *args, **kwargs)
-    
+        ret = PoolObject.serialize(self, *args, **kwargs)
+        return ret
+     
     # --------------------------------------------------------------------------
     # state
     # --------------------------------------------------------------------------
@@ -241,8 +242,8 @@ class PoolBaseElement(PoolObject):
     # --------------------------------------------------------------------------
     
     def get_default_acquisition_channel(self):
-        raise NotImplementedError
-    
+        raise NotImplementedError("%s doesn't support default acquisition channel" % self.__class__.__name__)
+        
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------
@@ -325,6 +326,7 @@ class PoolElement(PoolBaseElement):
             kwargs['instrument'] = self.instrument.full_name
         else:
             kwargs['instrument'] = None
+        kwargs['source'] = self.get_source()
         return kwargs
     
     def get_parent(self):
@@ -344,7 +346,10 @@ class PoolElement(PoolBaseElement):
     def set_action_cache(self, action_cache):
         self._action_cache = action_cache
         action_cache.add_element(self)
-        
+
+    def get_source(self):
+        return "{0}/{1}".format(self.full_name, self.get_default_acquisition_channel())
+
     # --------------------------------------------------------------------------
     # instrument
     # --------------------------------------------------------------------------

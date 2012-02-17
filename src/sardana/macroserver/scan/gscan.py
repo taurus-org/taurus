@@ -39,7 +39,7 @@ import types
 import time
 
 import taurus
-from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt
+from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt, CaselessList, CaselessDict
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.console.table import Table
 
@@ -130,7 +130,7 @@ class GScan(Logger):
     The idea is that the scan macros create an instance of this Generic Scan, 
     supplying in the constructor a reference to the macro that created the scan,
     a generator function pointer, a list of moveable items, an extra 
-    environment and a sequence of contrains.
+    environment and a sequence of constrains.
     
     The generator must be a function yielding a dictionary with the following
     content (minimum) at each step of the scan:
@@ -190,7 +190,7 @@ class GScan(Logger):
         (at the end of the scan, extra keys 'endtime' and 'deadtime' will be added
         representing the time at the end of the scan and the dead time)
 
-        This object is passed to all recorders at the begining and at the end 
+        This object is passed to all recorders at the beginning and at the end 
         of the scan (when startRecordList and endRecordList is called)
     
     At each step of the scan, for each Recorder, the writeRecord method will
@@ -446,10 +446,10 @@ class GScan(Logger):
             
         env = ScanDataEnvironment(
                 { 'serialno' : serialno,
-                      'user' : USER_NAME,
+                      'user' : USER_NAME, #todo: this should be got from self.measurement_group.getChannelsInfo()
                      'title' : self.macro.getCommand() } )
         
-        # add point no column
+        # Initialize the data_desc list (and add the point number column)
         data_desc = [ ColumnDesc(name='point_nb', label='#Pt No',
                                  dtype='int64') ]
         
@@ -470,31 +470,50 @@ class GScan(Logger):
         label = master['label']
         name = master['name']
         
+        #add channels from measurement group
         channels_info = self.measurement_group.getChannelsInfo()
+#        import pprint
+#        pprint.pprint(channels_info[0].__dict__)
         counters = []
-        for channel_info in channels_info:
-            channel_name = channel_info.name
-            channel_type = channel_info.data_type_str
-            channel_shape = channel_info.shape
-            channel_instrument = channel_info.instrument
-            channel_label = channel_info.label
-            column = ColumnDesc(name=channel_name, label=channel_label,
-                                dtype=channel_type, shape=channel_shape,
-                                instrument=channel_instrument,
-                                output=channel_info.output)
+        for ci in channels_info:
+            instrument = ci.instrument or ''
+            try:
+                instrumentFullName = self.macro.findObjs(instrument, type_class=Type.Instrument)[0].getFullName()
+            except:
+                instrumentFullName = ''
+            column = ColumnDesc(name=ci.name,
+                                label = ci.label,
+                                dtype = ci.data_type_str,
+                                shape = ci.shape,
+                                instrument = instrumentFullName,
+                                source = ci.source,
+                                output = ci.output,
+                                conditioning = ci.conditioning,
+                                normalization = ci.normalization,
+                                plot_type = ci.plot_type,
+                                plot_axes = ci.plot_axes)
             data_desc.append(column)
-            counters.append(channel_name)
+            counters.append(column.name)
         counters.remove(master['name'])
+        env['counters'] = counters
         
         for extra_column in self._extra_columns:
             data_desc.append(extra_column.getColumnDesc())
-            
         # add extra columns 
         data_desc += self._extrainfodesc
+        env['datadesc'] = data_desc
+        
+        #take the pre-scan snapshot
+        try:
+            preScanSnapShot = self.macro.getEnv('PreScanSnapshot')
+        except UnknownEnv:
+            preScanSnapShot = []
+        excludelist = CaselessList(ref_moveables + [ci.name for ci in channels_info]) #we will exclude those that are implied in the scan
+        preScanSnapShot = [name for name in preScanSnapShot if name not in excludelist]
+        env['preScanSnapShot'] = self.takeSnapshot(elements=preScanSnapShot)
+        
         
         env['macro_id'] = self.macro.getID()
-        env['datadesc'] = data_desc
-        env['counters'] = counters
         try:
             env['ScanFile'] = self.macro.getEnv('ScanFile')
         except:
@@ -506,11 +525,48 @@ class GScan(Logger):
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
         env['instrumentlist'] = self._macro.findObjs('.*', type_class=Type.Instrument) 
 
+        #env.update(self._getExperimentConfiguration) #add all the info from the experiment configuration to the environment
         env.update(additional_env)
         self._env = env
         
         # Give the environment to the ScanData
         self.data.setEnviron(env)
+
+    def takeSnapshot(self, elements=[]):
+        '''reads the current values of the given elements and returns a dictionary with them
+        
+        :param elements: (list<str,str>) list of tuples of label,src for the elements to read
+                         (can be pool elements or Taurus attribute names).
+        
+        :return: (list<ColumnDesc>) a list of ColumnDesc objects including a 
+                 "pre_scan_value" attribute
+        '''
+        import PyTango,numpy
+        manager = self.macro.getManager()
+        all_elements_info = manager.getElementsWithInterface('Element')
+        ret = []
+        for src,label in elements:
+            try:
+                if src in all_elements_info:
+                    ei = all_elements_info[src]
+                    column = ColumnDesc(name=ei.name,
+                                        label=label,
+                                        instrument = ei.instrument,
+                                        source = ei.source)
+                else:
+                    column = ColumnDesc(name=src,
+                                        label=label,
+                                        source=src)
+                
+                v = PyTango.AttributeProxy(column.source).read().value #@Fixme: Tango-centric. It should work for any Taurus Attribute
+                column.pre_scan_value = v
+                column.shape = numpy.shape(v)
+                column.dtype = getattr(v, 'dtype', numpy.dtype(type(v))).name
+                ret.append(column)
+            except Exception,e:
+                self.macro.warning('Error taking pre-scan snapshot of %s (%s)',label,src)
+                self.debug('%s',e)
+        return ret
 
     MAX_ITER = 100000
 
