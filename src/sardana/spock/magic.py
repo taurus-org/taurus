@@ -26,7 +26,7 @@
 
 """Initial magic commands and hooks for the spock IPython environment"""
 
-__all__ = ['showscan', 'spsplot', 'status', 'bench', 'debug_completer',
+__all__ = ['expconf','showscan', 'spsplot', 'status', 'bench', 'debug_completer',
            'debug', 'www_completer', 'www', 'post_mortem_completer',
            'post_mortem', 'edmac', 'spock_input_prompt_hook',
            'spock_output_prompt_hook', 'spock_late_startup_hook',
@@ -34,6 +34,17 @@ __all__ = ['showscan', 'spsplot', 'status', 'bench', 'debug_completer',
 
 
 import IPython
+
+def expconf(self, parameter_s=''):
+    """Launches a GUI for configuring the environment variables 
+    for the experiments (scans)"""
+    try:
+        from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
+    except:
+        print "Error importing ExpDescriptionEditor (hint: is taurus extra_sardana installed?)"
+    doorname = _get_door().name()
+    w = ExpDescriptionEditor(door=doorname)
+    w.show()
 
 def showscan(self, parameter_s=''):
     """Shows a scan in a GUI.
