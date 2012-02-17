@@ -34,7 +34,7 @@ __all__ = ["Integer", "Float", "Boolean", "String", "User", "Filename",
 __docformat__ = 'restructuredtext'
 
 from sardana import INTERFACES
-from sardana.macroserver.parameter import ParamType, AttrParamType, \
+from sardana.macroserver.msparameter import ParamType, AttrParamType, \
     ElementParamInterface
 
 # Basic types
@@ -63,8 +63,8 @@ class Filename(ParamType):
 class File(ParamType):
     type_class = str
     
-    def __init__(self, name):
-        ParamType.__init__(self, name)
+    def __init__(self, macro_server, name):
+        ParamType.__init__(self, macro_server, name)
         self.filename = None
         #self.data is supposed to be a array.array object
         self.data = None
@@ -82,8 +82,8 @@ class MotorParam(AttrParamType):
     """ Class designed to represent a motor parameter name. Usual values
     are acceleration,deceleration,velocity,backlash,steps_per_unit,etc"""
     
-    def __init__(self, name):
-        AttrParamType.__init__(self, name)
+    def __init__(self, macro_server, name):
+        AttrParamType.__init__(self, macro_server, name)
         self.attr_item_list = ["Acceleration","Backlash","Base_rate","Step_per_unit",
                 "Deceleration","Velocity","Offset"]
         self.non_attr_item_list = ["Controller"]

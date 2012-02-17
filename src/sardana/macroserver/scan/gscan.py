@@ -43,8 +43,8 @@ from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt, CaselessLi
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.console.table import Table
 
-from sardana.macroserver.exception import MacroServerException, UnknownEnv
-from sardana.macroserver.parameter import Type
+from sardana.macroserver.msexception import MacroServerException, UnknownEnv
+from sardana.macroserver.msparameter import Type
 from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
 from recorder import OutputRecorder, JsonRecorder, SharedMemoryRecorder, \
     FileRecorder
@@ -298,7 +298,7 @@ class GScan(Logger):
         try:
             cols = self.macro.getEnv('ExtraColumns')
         except:
-            self.macro.info('ExtraColumns is not defined')
+            self.info('ExtraColumns is not defined')
             return ret
         
         try:
@@ -330,8 +330,8 @@ class GScan(Logger):
                 return JsonRecorder(self.macro)
         except:
             pass
-        self.macro.info('JsonRecorder is not defined. Use "senv JsonRecorder '
-                        'True" to enable it')
+        self.info('JsonRecorder is not defined. Use "senv JsonRecorder '
+                  'True" to enable it')
 
     def _getOutputRecorder(self):
         cols = None
@@ -381,8 +381,8 @@ class GScan(Logger):
         try:
             shm = macro.getEnv('SharedMemory')
         except Exception,e:
-            self.macro.info('SharedMemory is not defined. Use "senv '
-                            'SharedMemory sps" to enable it')
+            self.info('SharedMemory is not defined. Use "senv '
+                      'SharedMemory sps" to enable it')
             return
         
         if not shm: 
@@ -425,7 +425,7 @@ class GScan(Logger):
             
         shmRecorder = SharedMemoryRecorder(shm, **kwargs)
         if shmRecorder is None:
-            self.macro.info('SharedMemory %s is not available'%shm)
+            self.info('SharedMemory %s is not available'%shm)
         return shmRecorder
     
     def _secsToTimedelta(self, secs):

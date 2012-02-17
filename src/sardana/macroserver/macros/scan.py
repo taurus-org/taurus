@@ -49,7 +49,7 @@ from taurus.console import Alignment
 from taurus.console.list import List
 from taurus.console.table import Table
 
-from sardana.macroserver.exception import UnknownEnv
+from sardana.macroserver.msexception import UnknownEnv
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 

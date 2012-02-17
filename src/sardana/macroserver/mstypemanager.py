@@ -32,32 +32,21 @@ __docformat__ = 'restructuredtext'
 import os
 import inspect
 
-from taurus.core import ManagerState
-from taurus.core.util import InfoIt, Singleton, Logger, ListEventGenerator
-
 from sardana.sardanamodulemanager import ModuleManager
 
-from parameter import Type, ParamType, AbstractParamTypes
+from msparameter import Type, ParamType, AbstractParamTypes
+from msmanager import MacroServerManager
+
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TypeManager(Singleton, Logger):
-
-    def __init__(self):
-        """ Initialization. Nothing to be done here for now."""
-        pass
-
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        name = self.__class__.__name__
-        self._state = ManagerState.UNINITIALIZED
-        self._macro_server = None
-        self.call__init__(Logger, name)
-        self._type_list_obj = ListEventGenerator('TypeList')
-
-        self.reInit()
+class TypeManager(MacroServerManager):
+    
+    DEFAULT_TYPE_DIR = _BASE_DIR
+    DEFAULT_TYPE_MODULES = 'basetypes',
     
     def reInit(self):
-        if self._state == ManagerState.INITED:
+        if self.is_initialized():
             return
 
         # dict<str, dict<str,class<ParamType>>
@@ -72,10 +61,14 @@ class TypeManager(Singleton, Logger):
         # value - object which inherits from ParamType
         self._inst_dict = {}
         
-        self._state = ManagerState.INITED
+        path = [ self.DEFAULT_TYPE_DIR ]
+        for type_module in self.DEFAULT_TYPE_MODULES:
+            self.reloadTypeModule(type_module, path=path)
+        
+        MacroServerManager.reInit(self)
     
     def cleanUp(self):
-        if self._state == ManagerState.CLEANED:
+        if self.is_cleaned():
             return
         
         if self._modules:
@@ -88,14 +81,8 @@ class TypeManager(Singleton, Logger):
         self._modules = None
         self._inst_dict = None
         
-        self._state = ManagerState.CLEANED
-    
-    def set_macro_server(self, macro_server):
-        self._macro_server = macro_server
+        MacroServerManager.cleanUp(self)
         
-    def get_macro_server(self):
-        return self._macro_server
-    
     def getTypeListObj(self):
         return self._type_list_obj
     
@@ -116,6 +103,7 @@ class TypeManager(Singleton, Logger):
         self._modules[module_name] = {}
         
         abs_file = inspect.getabsfile(m)
+        ms = self.macro_server
         for name in dir(m):
             if name.startswith("_"):
                 continue
@@ -129,13 +117,11 @@ class TypeManager(Singleton, Logger):
                 continue
             if inspect.getabsfile(klass) != abs_file:
                 continue
-
-            t = klass(name)
+            
+            t = klass(ms, name)
             self.addType(t)
-
-        self._fireTypeEvent()
-        
-    def addType(self, type_obj, fire_event=False):
+    
+    def addType(self, type_obj):
         type_name = type_obj.getName()
         type_class = type_obj.__class__
         module_name = type_obj.__module__
@@ -150,10 +136,7 @@ class TypeManager(Singleton, Logger):
         self._inst_dict[type_name] = type_obj
         
         Type.addType(type_name)
-        
-        if fire_event:
-            self._fireTypeEvent()
-
+    
     def getTypeListStr(self):
         type_list_basic, type_list_obj = [], []
         
@@ -166,13 +149,7 @@ class TypeManager(Singleton, Logger):
         type_list = sorted(type_list_basic) + sorted(type_list_obj)
         
         return type_list
-
-    def _fireTypeEvent(self):
-        """Helper method that fires event for the current existing types"""
-        type_list = self.getTypeListStr()
-        self._type_list_obj.fireEvent(type_list)
-        return type_list
-        
+    
     def getTypeClass(self, type_name):
         for module_name, type_class_dict in self._modules.items():
             tklass = type_class_dict.get(type_name)
@@ -183,3 +160,9 @@ class TypeManager(Singleton, Logger):
     
     def getTypeObj(self, type_name):
         return self._inst_dict.get(type_name)
+    
+    def getTypes(self):
+        return self._inst_dict.values()
+    
+    def getTypeNames(self):
+        return self._inst_dict.keys()

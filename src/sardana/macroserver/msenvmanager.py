@@ -31,32 +31,30 @@ __all__ = ["EnvironmentManager"]
 __docformat__ = 'restructuredtext'
 
 import os
-import re
 import shelve
-import copy
 import operator
-import types
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, CaselessDict, CodecFactory
+from taurus.core.util import CaselessDict, CodecFactory
 
-from exception import UnknownEnv
+from msmanager import MacroServerManager
+from msexception import UnknownEnv
 
 
-class EnvironmentManager(Singleton, Logger):
+class EnvironmentManager(MacroServerManager):
     """The MacroServer environment manager class. It is designed to be a 
     singleton for the entire application.
     """
     
-    def __init__(self, *args):
-        """ Initialization. Nothing to be done here for now."""
-        pass
-
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        name = self.__class__.__name__
-        self._state = ManagerState.UNINITIALIZED
-        self.call__init__(Logger, name)
+    def __init__(self, macro_server, environment_db=None):
+        MacroServerManager.__init__(self, macro_server)
+        if environment_db is not None:
+            self.setEnvironmentDb(environment_db)
+    
+    def reInit(self):
+        """(Re)initializes the manager"""
+        if self.is_initialized():
+            return
         
         # a string containing the absolute filename containing the environment
         self._env_name = None
@@ -85,34 +83,27 @@ class EnvironmentManager(Singleton, Logger):
         #  - key: environment name
         #  - value: environment value
         self._global_env = None
-
-        self.reInit(*args)
-
-    def reInit(self):
-        """(Re)initializes the manager"""
-        if self._state == ManagerState.INITED:
-            return
         
         self._initEnv()
         
-        self._state = ManagerState.INITED
+        MacroServerManager.reInit(self)
     
     def cleanUp(self):
-        if self._state == ManagerState.CLEANED:
+        if self.is_cleaned():
             return
-
+        
         self._clearEnv()
-
-        self._state = ManagerState.CLEANED
-
+        
+        MacroServerManager.cleanUp(self)
+    
     def _initEnv(self):
         self._macro_env, self._global_env = {}, {}
         self._door_env = CaselessDict()
-
+    
     def _clearEnv(self):
         self._env = self._macro_env = self._global_env = self._door_env = None
-            
-    def setEnvironment(self, f_name):
+    
+    def setEnvironmentDb(self, f_name):
         """Sets up a new environment from a file"""
         self._initEnv()
         f_name = os.path.abspath(f_name)
@@ -130,13 +121,13 @@ class EnvironmentManager(Singleton, Logger):
         self._env = shelve.open(f_name, flag='c', protocol=0, writeback=False)
         # fill the three environment caches
         self._fillEnvironmentCaches(self._env)
-
+    
     def _fillEnvironmentCaches(self, env):
         # fill the three environment caches
+        env_dict = self._global_env
         for k, v in env.iteritems():
             k_parts = k.split('.', 1)
             key = k_parts[0]
-            env_dict = self._global_env
             
             # door or macro property
             if len(k_parts) == 2:
@@ -148,9 +139,9 @@ class EnvironmentManager(Singleton, Logger):
                 if not d.has_key(super_key):
                     d[super_key] = {}
                 env_dict = d[super_key]
-
+            
             env_dict[key] = v
-
+    
     def hasEnv(self, key, macro_name=None, door_name=None):
         #<door>.<macro>.<property name> (highest priority)
         if macro_name and door_name:
@@ -169,7 +160,7 @@ class EnvironmentManager(Singleton, Logger):
         
         # <property name> (less priority)
         return self._hasEnv(key)
-
+    
     def _getDoorMacroPropertyEnv(self, prop):
         """Returns the property value for a property which must have the format
         <door name>.<macro name>.<property name>"""
@@ -181,12 +172,12 @@ class EnvironmentManager(Singleton, Logger):
         if door_props is None:
             return None
         return door_props.get(macro_name_key)
-
+    
     def _hasDoorMacroPropertyEnv(self, prop):
         """Determines if the environment contains a property with the format
         <door name>.<macro name>.<property name>"""
         return not self._getDoorMacroPropertyEnv() is None
-
+    
     def _getMacroPropertyEnv(self, prop):
         """Returns the property value for a property which must have the format
         <macro name>.<property name>"""
@@ -198,7 +189,7 @@ class EnvironmentManager(Singleton, Logger):
         if macro_props is None:
             return None
         return macro_props.get(key)
-
+    
     def _hasMacroPropertyEnv(self, prop):
         """Determines if the environment contains a property with the format
         <macro name>.<property name>"""
@@ -215,7 +206,7 @@ class EnvironmentManager(Singleton, Logger):
         if door_props is None:
             return None
         return door_props.get(key)
-
+    
     def _hasDoorPropertyEnv(self, prop):
         """Determines if the environment contains a property with the format
         <door name>.<property name>"""
@@ -225,12 +216,12 @@ class EnvironmentManager(Singleton, Logger):
         """Returns the property value for a property which must have the format
         <property name>"""
         return self._global_env.get(prop)
-
+    
     def _hasEnv(self, prop):
         """Determines if the environment contains a property with the format
         <property name>"""
         return not self._getEnv(prop) is None
-
+    
     def getEnv(self, key=None, door_name=None, macro_name=None):
         """Gets the environment matching the given parameters:
         - If key is None it returns the complete environment for the given 
@@ -260,7 +251,7 @@ class EnvironmentManager(Singleton, Logger):
         if v is None:
             raise UnknownEnv("Unknown environment %s" % key)
         return v
-
+    
     def _getAllEnv(self, door_name=None, macro_name=None):
         """Gets the complete environment for the given macro and/or door. If 
         both are None the the complete environment is returned"""
@@ -272,7 +263,7 @@ class EnvironmentManager(Singleton, Logger):
             return self.getAllDoorMacroEnv(door_name, macro_name)
         elif not macro_name is None and door_name is None:
             return self._macro_env.get(macro_name, {})
-
+    
     def getAllDoorEnv(self, door_name):
         """Gets the complete environment for the given door."""
         door_name = door_name.lower()
@@ -283,10 +274,10 @@ class EnvironmentManager(Singleton, Logger):
         # Then go through the door specific environment
         ret.update( self._door_env.get(door_name, {}) )
         return ret
-
+    
     def getAllDoorMacroEnv(self, door_name, macro_name):
         """Gets the complete environment for the given macro in a specific door.
-
+        
         @param[in] door_name a string with the door name (case insensitive)
         @param[in] macro_name a string with the macro name
         
@@ -318,7 +309,7 @@ class EnvironmentManager(Singleton, Logger):
                     ret[key] = v
             
         return ret
-
+    
     def getDoorMacroEnv(self, door_name, macro_name, keys=None):
         """Gets the environment for the given macro in a specific door for the
         given key(s)
@@ -334,11 +325,11 @@ class EnvironmentManager(Singleton, Logger):
         if keys is None:
             return getAllDoorMacroEnv(door_name, macro_name)
         
-        if type(keys) in types.StringTypes:
+        if isinstance(keys, (str, unicode)):
             keys = (keys,)
         
         door_name = door_name.lower()
-
+        
         g_env = self._global_env
         # get the specific door environment
         d_env = self._door_env.get(door_name, {})
@@ -359,7 +350,7 @@ class EnvironmentManager(Singleton, Logger):
                 ret[k] = g_env[k]
         
         return ret
-
+    
     def _pairwise(self, iterable):
         itnext = iter(iterable).next
         while True:
@@ -367,11 +358,11 @@ class EnvironmentManager(Singleton, Logger):
             
     def _dictFromSequence(self, seq):
         return dict(self._pairwise(seq))
-
+    
     def _encode(self, d):
         ret = {}
         for k, v in d.iteritems():
-            if type(v) in types.StringTypes:
+            if isinstance(v, (str, unicode)):
                 try:
                     v = eval(v)
                 except:
@@ -382,7 +373,7 @@ class EnvironmentManager(Singleton, Logger):
                         pass
             ret[k] = v
         return ret
-
+    
     def _getCacheForKey(self, key):
         """Returns the cache dictionary object for the given key
         @param[in] key a string representing the key 
@@ -412,7 +403,7 @@ class EnvironmentManager(Singleton, Logger):
         self._env.sync()
         d, key = self._getCacheForKey(key)
         d[key] = value
-        
+    
     def _unsetOneEnv(self, key):
         if not self._env.has_key(key):
             raise UnknownEnv("Unknown environment %s" % key)
@@ -421,11 +412,11 @@ class EnvironmentManager(Singleton, Logger):
         d, key = self._getCacheForKey(key)
         if d.has_key(key):
             del d[key]
-        
+    
     def _unsetEnv(self, env_names):
         for key in env_names:
             self._unsetOneEnv(key)
-
+    
     def setEnvObj(self, obj):
         """Sets the environment for the given object. If object is a sequence 
         then each pair of elements k, v is added as env[k] = v.
@@ -439,7 +430,7 @@ class EnvironmentManager(Singleton, Logger):
         
         @return a dict representing the added environment"""
         
-        if operator.isSequenceType(obj) and not type(obj) in types.StringTypes:
+        if operator.isSequenceType(obj) and not isinstance(obj, (str, unicode)):
             obj = self._dictFromSequence(obj)
         elif not operator.isMappingType(obj):
             raise TypeError("obj parameter must be a sequence or a map")
@@ -450,26 +441,24 @@ class EnvironmentManager(Singleton, Logger):
         obj["__type__"] = "new"
         codec = CodecFactory().getCodec('json')
         data = codec.encode(('',obj))
-
-        # @TODO find another way to find existing doors without connecting to tango
-        import PyTango
-        for door in PyTango.Util.instance().get_device_list_by_class("Door"):
-            door.sendEnvironment(*data)
+        
         return obj
     
     def setEnv(self, key, value):
         """Sets the environment key to the new value and stores it persistently.
         
-        @param[in] key the key for the environment
-        @param[in] value the value for the environment
+        :param key: the key for the environment
+        :param value: the value for the environment
         
-        @return a tuple with the key and value objects stored"""
+        :return: a tuple with the key and value objects stored"""
         ret = self.setEnvObj((key,value))
         return key, ret[key]
-
+    
     def unsetEnv(self, key):
         """Unsets the environment for the given key.
-        @param[in] key the key for the environment to be unset"""
-        if type(key) in types.StringTypes:
+        
+        :param key: the key for the environment to be unset"""
+        if isinstance(key, (str, unicode)):
             key = (key,)
         self._unsetEnv(key)
+    

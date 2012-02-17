@@ -43,13 +43,14 @@ import weakref
 import functools
 import textwrap
 
-from PyTango import DevState
 from taurus.core.util import Logger, CodecFactory, propertx
 
 from taurus.core.tango.sardana.pool import PoolElement
 
-from parameter import Type, ParamType, ParamRepeat
-from exception import MacroServerException, AbortException, \
+from sardana.sardanadefs import State
+
+from msparameter import Type, ParamType, ParamRepeat
+from msexception import MacroServerException, AbortException, \
     MacroWrongParameterType, UnknownEnv
 
 
@@ -248,7 +249,7 @@ class MacroFinder:
             p_m = self.macro_obj
             p_m.syncLog()
             opts = { 'parent_macro' : p_m, 
-                     'executor'     : p_m.getExecutor() }
+                     'executor'     : p_m.executor }
             kwargs.update(opts)
             eargs = [name]
             eargs.extend(args)
@@ -285,14 +286,14 @@ class Macro(Logger):
     from this class."""
 
     # States
-    Init     = DevState.INIT
-    Running  = DevState.RUNNING
-    Pause    = DevState.STANDBY
-    Stop     = DevState.STANDBY
-    Fault    = DevState.FAULT
-    Finished = DevState.ON
-    Ready    = DevState.ON
-    Abort    = DevState.ALARM
+    Init     = State.Init
+    Running  = State.Running
+    Pause    = State.Standby
+    Stop     = State.Standby
+    Fault    = State.Fault
+    Finished = State.On
+    Ready    = State.On
+    Abort    = State.Alarm
 
     All      = ParamType.All
     
@@ -361,7 +362,7 @@ class Macro(Logger):
                                'state' : 'start',
                                'step' : 0.0 }
         self._pause_event = PauseEvent(self)
-        log_parent = self._parent_macro or self.getDoorObj() or self.getManager()
+        log_parent = self.parent_macro or self.door
         Logger.__init__(self, "Macro[%s]" % self._name, log_parent)
         self._reserveObjs(args)
 
@@ -442,16 +443,6 @@ class Macro(Logger):
         return self._macro_status
     
     @mAPI
-    def getManager(self):
-        """**Macro API**.
-           Returns the manager for this macro
-           
-           :return: MacroServerManager reference
-        """
-        import manager
-        return manager.MacroServerManager()
-    
-    @mAPI
     def getName(self):
         """**Macro API**.
            Returns this macro name
@@ -484,44 +475,68 @@ class Macro(Logger):
     @mAPI
     def getDescription(self):
         """**Macro API**.
-           Returns a string description of the macro.
-           
-           :return: the string description of the macro
-           :rtype: str"""
+        Returns a string description of the macro.
+        
+        :return: the string description of the macro
+        :rtype: str"""
         return self._desc
 
     @mAPI
     def getParameters(self):
         """**Macro API**.
-           Returns a the macro parameters.
-           
-           :return: the macro parameters"""
+        Returns a the macro parameters.
+        
+        :return: the macro parameters"""
         return self._in_pars
 
     @mAPI
     def getExecutor(self):
         """**Macro API**.
-           Returns the reference to the object that invoked this macro. Usually
-           is a Door object.
+        Returns the reference to the object that invoked this macro. Usually
+        is a MacroExecutor object.
         
-           :return: the reference to the object that invoked this macro"""
+        :return: the reference to the object that invoked this macro"""
         return self._executor
-
+    
+    executor = property(getExecutor)
+    
     @mAPI
     def getDoorObj(self):
         """**Macro API**.
-           Returns the reference to the Door that invoked this macro.
+        Returns the reference to the Door that invoked this macro.
+        
+        :return: the reference to the Door that invoked this macro."""
+        return self.executor.getDoor()
+    
+    door = property(getDoorObj)
+    
+    @mAPI
+    def getManager(self):
+        """**Macro API**.
+        Returns the manager for this macro (usually a MacroServer)
+        
+        :return: MacroServer reference"""
+        return self.door.manager
+    
+    manager = property(getManager)
+    
+    @mAPI
+    def getMacroServer(self):
+        """**Macro API**.
+        Returns the MacroServer for this macro
            
-           :return: the reference to the Door that invoked this macro."""
-        return self.getExecutor().getDoor()
-
+           :return: MacroServer reference"""
+        return self.door.macro_server
+    
+    macro_server = property(getMacroServer)
+    
     @mAPI
     def getDoorName(self):
         """**Macro API**.
-           Returns the string with the name of the Door that invoked this macro.
-           
-           :return: the string with the name of the Door that invoked this macro."""
-        return self.getDoorObj().get_name()
+        Returns the string with the name of the Door that invoked this macro.
+        
+        :return: the string with the name of the Door that invoked this macro."""
+        return self.door.name
     
     @mAPI
     def getCommand(self):
@@ -532,7 +547,7 @@ class Macro(Logger):
            :return: the macro command.
            :rtype: str"""
         return '%s %s' % (self.getName(), ' '.join([str(p) for p in self._in_pars]))
-
+    
     @mAPI
     def getDateString(self, time_format='%a %b %d %H:%M:%S %Y'):
         """**Macro API**.
@@ -549,23 +564,21 @@ class Macro(Logger):
     @mAPI
     def outputDate(self, time_format='%a %b %d %H:%M:%S %Y'):
         """**Macro API**.
-           Helper method. Outputs the current date into the output buffer
+        Helper method. Outputs the current date into the output buffer
         
-           :param time_format: (str) the format in which the date should be 
-                               returned (optional, default value is 
-                               '%a %b %d %H:%M:%S %Y'
-           :type time_format: str
-        """
+        :param time_format: (str) the format in which the date should be 
+                            returned (optional, default value is
+                            '%a %b %d %H:%M:%S %Y'
+        :type time_format: str"""
         self.output(self.getDateString(time_format=time_format))
-
+    
     @mAPI
-    def sendRecordData(self, *data):
+    def sendRecordData(self, data, codec=None):
         """**Macro API**.
-           Sends the given data to the RecordData attribute of the Door
-           
-           :param data: (sequence) the data to be sent
-        """
-        self.getExecutor().sendRecordData(*data)
+        Sends the given data to the RecordData attribute of the Door
+        
+        :param data: (sequence) the data to be sent"""
+        self.executor.sendRecordData(data, codec=codec)
     
     @mAPI
     def plot(self, *args, **kwargs):
@@ -575,11 +588,8 @@ class Macro(Logger):
         
            :param args: the plotting args
            :param kwargs: the plotting keyword args"""
-           
-        codec = CodecFactory().getCodec('bz2_json_plot')
         data = { 'args' : args, 'kwargs' : kwargs } 
-        data = codec.encode(data)
-        self.sendRecordData(*data)
+        self.sendRecordData(data, codec='bz2_json_plot')
 
     @property
     def data(self):
@@ -787,7 +797,7 @@ class Macro(Logger):
         # mixed outputs between this macro and the child macro
         self.syncLog()
         init_opts = { 'parent_macro' : self }
-        return self.getExecutor().prepareMacroObj(macro_name_or_klass, args, init_opts, kwargs)
+        return self.executor.prepareMacroObj(macro_name_or_klass, args, init_opts, kwargs)
 
     @mAPI
     def prepareMacro(self, *args, **kwargs):
@@ -817,7 +827,7 @@ class Macro(Logger):
         # mixed outputs between this macro and the child macro
         self.syncLog()
         init_opts = { 'parent_macro' : self }
-        return self.getExecutor().prepareMacro(args, init_opts, kwargs)
+        return self.executor.prepareMacro(args, init_opts, kwargs)
     
     @mAPI
     def runMacro(self, macro_obj):
@@ -838,7 +848,7 @@ class Macro(Logger):
         # sync our log before calling the child macro prepare in order to avoid
         # mixed outputs between this macro and the child macro
         self.syncLog()
-        return self.getExecutor().runMacro(macro_obj)
+        return self.executor.runMacro(macro_obj)
 
     @mAPI
     def execMacroObj(self, name, *args, **kwargs):
@@ -956,71 +966,77 @@ class Macro(Logger):
 
     @mAPI
     def addObj(self, obj, priority=0):
-        """**Macro API**. Adds the given object to the list of controlled objects of this macro.
-           In practice it means that if an abort is executed the abort method of
-           the given object will be called.
+        """**Macro API**. Adds the given object to the list of controlled
+        objects of this macro. In practice it means that if an abort is
+        executed the abort method of the given object will be called.
            
-           :param obj: the object to be controlled
-           :param priority: wheater or not reserve with priority. Default is 0
-                            meaning no priority
-           :type priority: int
-        """
-        self.getExecutor().reserveObj(obj, self, priority=priority)
+        :param obj: the object to be controlled
+        :type obj: object
+        :param priority:
+            wheater or not reserve with priority
+            [default: 0 meaning no priority ]
+       :type priority: int"""
+        self.executor.reserveObj(obj, self, priority=priority)
     
     @mAPI
     def addObjs(self, obj_list):
-        """**Macro API**. Adds the given objects to the list of controlled objects of this 
-           macro. In practice it means that if an abort is executed the abort 
-           method of the given object will be called
-           
-           :param obj_list: list of objects to be controlled
-           :type obj_list: sequence
-        """
+        """**Macro API**. Adds the given objects to the list of controlled
+        objects of this macro. In practice it means that if an abort is
+        executed the abort method of the given object will be called.
+        
+        :param obj_list: list of objects to be controlled
+        :type obj_list: sequence"""
         for o in obj_list:
             self.addObj(o)
 
     def returnObj(self, obj):
-        """Removes the given objects to the list of controlled objects of this 
-           macro.
-
-           :param obj: object to be released from the control"""
-        self.getExecutor().returnObj(obj)
+        """Removes the given objects to the list of controlled objects of this
+        macro.
+        
+        :param obj: object to be released from the control
+        :rtype: object"""
+        self.executor.returnObj(obj)
 
     @mAPI
     def getObj(self, name, type_class=All, subtype=All, pool=All, reserve=True):
-        """**Macro API**. Gets the object of the given type belonging to the given
-           pool with the given name. The object (if found) will automatically
-           become controlled by the macro.
-           
-           :raises: MacroWrongParameterType if name is not a string
-           :raises: AttributeError if more than one matching object is found
-           
-           :param name: string representing the name of the object.
-                        Can be a regular expression
-           :type name: str
-           :param type_class: the type of object (optional, default is All)
-           :param subtype: a string representing the subtype (optional,
-                           default is All)
-                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CTExpChannel'
-           :param pool: the pool to which the object should belong (optional,
-                        default is All)
-           :param reserve: automatically reserve the object for this macro
-                           (optional, default is True)
-           
-           :return: the object or empty list if no compatible object is found"""
-        if not isinstance(name, (str, unicode)):
-            raise self._buildWrongParamExp("getObj", "name", "string", str(type(name)))
+        """**Macro API**. Gets the object of the given type belonging to the
+        given pool with the given name. The object (if found) will automatically
+        become controlled by the macro.
         
-        obj = self.getManager().getObj(name, type_class=type_class, subtype=subtype, pool=pool)
+        :raises: MacroWrongParameterType if name is not a string
+        :raises: AttributeError if more than one matching object is found
+       
+        :param name:
+            string representing the name of the object. Can be a regular
+            expression
+        :type name: str
+        :param type_class:
+            the type of object [default: All]
+        :param subtype:
+            a string representing the subtype [default: All]
+            Ex.: if type_class is Type.ExpChannel, subtype could be
+            'CTExpChannel'
+        :param pool:
+            the pool to which the object should belong [default: All]
+        :param reserve:
+            automatically reserve the object for this macro [default: True]
+        
+        :return: the object or empty list if no compatible object is found"""
+        if not isinstance(name, (str, unicode)):
+            raise self._buildWrongParamExp("getObj", "name", "string",
+                                           str(type(name)))
+        
+        obj = self.door.get_object(name, type_class=type_class,
+                                   subtype=subtype, pool=pool)
         if obj and reserve:
             self.addObj(obj)
         return obj or []
     
     @mAPI
     def getObjs(self, names, type_class=All, subtype=All, pool=All, reserve=True):
-        """**Macro API**. Gets the objects of the given type belonging to the given
-           pool with the given names. The objects (if found) will automatically
-           become controlled by the macro.
+        """**Macro API**. Gets the objects of the given type belonging to the
+           given pool with the given names. The objects (if found) will
+           automatically become controlled by the macro.
            
            :param names: a string or a sequence of strings representing the 
                          names of the objects. Each string can be a regular 
@@ -1029,14 +1045,17 @@ class Macro(Logger):
                              Example: Type.Motor, Type.ExpChannel
            :param subtype: a string representing the subtype (optional, 
                            default is All)
-                           Ex.: if type_class is Type.ExpChannel, subtype could be 'CTExpChannel'
+                           Ex.: if type_class is Type.ExpChannel, subtype could
+                           be 'CTExpChannel'
            :param pool: the pool to which the object should belong (optional, 
                         default is All)
            :param reserve: automatically reserve the object for this macro
                            (optional, default is True)
            
-           :return: a list of objects or empty list if no compatible object is found"""
-        obj_list = self.getManager().getObjs(names, type_class=type_class, subtype=subtype, pool=pool)
+           :return: a list of objects or empty list if no compatible object is
+                    found"""
+        obj_list = self.door.get_objects(names, type_class=type_class,
+                                         subtype=subtype, pool=pool)
         if reserve:
             self.addObjs(obj_list)
         return obj_list or []
@@ -1061,7 +1080,8 @@ class Macro(Logger):
            
            :return: a list of objects or empty list if no compatible object 
                     is found"""
-        obj_list = self.getManager().findObjs(names, type_class=type_class, subtype=subtype, pool=pool)
+        obj_list = self.door.find_objects(names, type_class=type_class,
+                                          subtype=subtype, pool=pool)
         if reserve:
             self.addObjs(obj_list)
         return obj_list
@@ -1072,7 +1092,7 @@ class Macro(Logger):
            
            :return: a list of macro names
            :rtype: list<str>"""
-        return self.getManager().getMacroNames()
+        return self.door.get_macro_class_names()
 
     @mAPI
     def getMacros(self, filter=None):
@@ -1083,7 +1103,7 @@ class Macro(Logger):
             a regular expression for the macro name (optional, default is None
             meaning match all macros)
         :return: a sequence of MacroClass objects"""
-        return self.getManager().getMacros(filter=filter)
+        return self.door.get_macro_classes(filter=filter)
 
     @mAPI
     def getMacroInfo(self, macro_name):
@@ -1093,7 +1113,7 @@ class Macro(Logger):
         :type macro_name: str
         :return: a MacroClass object or None if the macro with the given name 
                 was not found"""
-        return self.getManager().getMacroMetaClass(macro_name)
+        return self.door.get_macro_class_info(macro_name)
 
     @mAPI
     def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
@@ -1122,17 +1142,17 @@ class Macro(Logger):
         except UnknownEnv:
             pass
         
-        motion = self.getManager().getMotion(elems, motion_source=motion_source,
-                                             read_only=read_only, cache=cache,
-                                             decoupled=decoupled)
+        motion = self.door.get_motion(elems, motion_source=motion_source,
+                                      read_only=read_only, cache=cache,
+                                      decoupled=decoupled)
         if motion is not None:
             self.addObj(motion, priority=1)
         return motion
-
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Handle macro environment
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
+    
     @mAPI
     def getEnv(self, key, macro_name=None, door_name=None):
         """**Macro API**. Returns the environment value for the given
@@ -1141,25 +1161,35 @@ class Macro(Logger):
         that executed the running macro."""
         door_name = door_name or self.getDoorName()
         macro_name = macro_name or self._name
-        return self.getManager().getEnv(key=key, macro_name=macro_name, door_name=door_name)
-
+        
+        return self.macro_server.get_env(key=key, macro_name=macro_name,
+                                         door_name=door_name)
+    
+    @mAPI
+    def getGlobalEnv(self):
+        """**Macro API**. Returns the environment global environment."""
+        return self.macro_server.get_env()
+    
     @mAPI
     def getAllEnv(self):
         """**Macro API**. Returns the enviroment for the current macro"""
-        door_name = self.getDoorName()
-        macro_name = self._name
-        return self.getManager().getEnv(macro_name=macro_name, door_name=door_name)
+        return self.getEnv(None)
+    
+    @mAPI
+    def getAllDoorEnv(self):
+        """**Macro API**. Returns the enviroment for the current door"""
+        return self.door.get_env()
     
     @mAPI
     def setEnv(self, key, value_str):
         """**Macro API**. Sets the environment key to the new value and stores it persistently.
         Returns a tuple with the key and value objects stored"""
-        return self.getManager().setEnv(key, value_str)
+        return self.macro_server.set_env(key, value_str)
 
     @mAPI
     def unsetEnv(self, key):
         """**Macro API**. Unsets the environment key."""
-        return self.getManager().unsetEnv(key)
+        return self.macro_server.unset_env(key)
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Reload API
@@ -1175,7 +1205,7 @@ class Macro(Logger):
         :param macro_name: macro name
         :type macro_name: str
         """
-        return self.getManager().reloadMacro(macro_name)
+        return self.door.reload_macro_class(macro_name)
     
     @mAPI
     def reloadMacros(self, macro_names):
@@ -1187,7 +1217,7 @@ class Macro(Logger):
         :param macro_names: a list of macro names
         :type macro_names: sequence<str>
         """
-        return self.getManager().reloadMacros(macro_names)
+        return self.reload_macro_classes(macro_names)
     
     @mAPI
     def reloadMacroLib(self, lib_name):
@@ -1200,8 +1230,8 @@ class Macro(Logger):
            :type lib_name: str
            
            :return: the MacroLib object for the reloaded library"""
-        return self.getManager().reloadMacroLib(lib_name)
-
+        return self.door.reload_macro_lib(lib_name)
+    
     @mAPI
     def reloadMacroLibs(self, lib_names):
         """**Macro API**. Reloads the given lib(=module) names
@@ -1212,7 +1242,7 @@ class Macro(Logger):
         param lib_names: a list of library(=module) names
         
         :return: a list of MacroLib objecst for the reloaded libraries"""
-        return self.getManager().reloadMacroLibs(lib_names)
+        return self.door.reload_macro_libs(lib_names)
     #@}
     
     ## @name Unofficial Macro API
@@ -1224,7 +1254,7 @@ class Macro(Logger):
     #  consider informing the MacroServer developer so he may expose this in a 
     #  safe way.
     #@{
-
+    
     @property
     def parent_macro(self):
         """**Unofficial Macro API**. Alternative to getParentMacro that does not
@@ -1246,7 +1276,7 @@ class Macro(Logger):
     def isPaused(self):
         """**Unofficial Macro API**."""
         return self._pause_event.isPaused()
-
+    
     @classmethod
     def hasResult(cls):
         """**Unofficial Macro API**. Returns True if the macro should return
@@ -1255,14 +1285,14 @@ class Macro(Logger):
         :return: (bool) True if the macro should return a result or False otherwise
         """
         return len(cls.result_def) > 0
-
+    
     def getResult(self):
         """**Unofficial Macro API**. Returns the macro result object (if any)
         
         :return: the macro result object or None
         """
         return self._out_pars
-
+    
     def setResult(self, result):
         """**Unofficial Macro API**. Sets the result of this macro
         
@@ -1281,7 +1311,7 @@ class Macro(Logger):
         s = "Macro.%s called with wrong parameter type in '%s'. " \
             "Expected %s got %s" % (method_name, param_name, expected, found)
         return MacroWrongParameterType(s)
-
+    
     def _getName(self):
         """**Internal method**. """
         return self._name
@@ -1307,7 +1337,7 @@ class Macro(Logger):
             for sub_obj in obj:
                 if isinstance(sub_obj, PoolElement):
                     self.addObj(sub_obj)
-
+    
     def exec_(self):
         """**Internal method**. Execute macro as an iterator"""
         self._macro_thread = threading.current_thread()
@@ -1348,7 +1378,7 @@ class Macro(Logger):
             macro_status['step'] = 100.0
         macro_status['state'] = 'stop'
         yield macro_status
-        
+    
     def __prepareResult(self,out):
         """**Internal method**. Decodes the given output in order to be able to
         send to the result channel
@@ -1364,7 +1394,7 @@ class Macro(Logger):
         else:
             out = (str(out),)
         return out
-        
+    
     def _abortOnError(self):
         """**Internal method**. The abort procedure. Calls the user 'on_abort'
         protecting it against exceptions"""
@@ -1373,17 +1403,17 @@ class Macro(Logger):
         except Exception, err:
             exc_info = traceback.format_exc()
             self.error("Error in on_abort(): %s" % exc_info)
-
+    
     def _pausePoint(self, timeout=None):
         """**Internal method**."""
         if self._pause_event.isPaused():
             self.on_pause()
         self._pause_event.wait(timeout)
-
+    
     def abort(self):
         """**Internal method**. Activates the abort flag on this macro."""
         self._aborted = True
-
+    
     def setProcessingAbort(self, yesno):
         """**Internal method**. Activates the processing abort flag on this macro"""
         self._processingAbort = yesno
@@ -1396,10 +1426,10 @@ class Macro(Logger):
         """**Internal method**. Pauses the macro execution. To be called by the Door running the
         macro to pause the current macro"""
         self._pause_event.pause(cb=cb)
-
+    
     def resume(self, cb=None):
         """**Internal method**. Resumes the macro execution. To be called by the Door running the
         macro to resume the current macro"""
         self._pause_event.resume(cb=cb)
-        
+    
     #@}

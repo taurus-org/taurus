@@ -36,68 +36,49 @@ import inspect
 import copy
 import traceback
 import operator
-import types
 import re
-import time
 import threading
 import json
 
-from PyTango import DevState, DevFailed
+from lxml import etree
+
+from PyTango import DevFailed
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, CodecFactory, InfoIt, \
-    ListEventGenerator, etree
+from taurus.core.util import Logger, CodecFactory
 
 from sardana.sardanamodulemanager import ModuleManager
 
-import macro
-import metamacro
-from exception import MacroServerExceptionList
-from exception import UnknownMacro, UnknownLib, MissingEnv, LibError
-from exception import MacroServerException, AbortException, MacroWrongParameterType
+from msmanager import MacroServerManager
+from msexception import MacroServerException, MacroServerExceptionList, \
+    UnknownMacro, UnknownLib, MissingEnv, LibError, \
+    AbortException, MacroWrongParameterType
 
+from macro import Macro
+from msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass
+from msparameter import ParamDecoder
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class MacroManager(Singleton, Logger):
-
-    # States
-    Init     = DevState.INIT
-    Running  = DevState.RUNNING
-    Pause    = DevState.STANDBY
-    Stop     = DevState.STANDBY
-    Fault    = DevState.FAULT
-    Finished = DevState.ON
-    Ready    = DevState.ON
-    Abort    = DevState.ALARM
-    
+class MacroManager(MacroServerManager):
     
     DEFAULT_MACRO_DIRECTORIES = os.path.join(_BASE_DIR, 'macros'),
     
-    def __init__(self):
-        """ Initialization. Nothing to be done here for now."""
-        pass
-
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        name = self.__class__.__name__
-        self._state = ManagerState.UNINITIALIZED
-        self._macro_server = None
-        self.call__init__(Logger, name)
-        self._macro_list_obj = ListEventGenerator('MacroList')
-        self._macro_lib_list_obj = ListEventGenerator('MacroLibList')
-        self.reInit()
+    def __init__(self, macro_server, macro_path=None):
+        MacroServerManager.__init__(self, macro_server)
+        if macro_path is not None:
+            self.setMacroPath(macro_path)
 
     def reInit(self):
-        if self._state == ManagerState.INITED:
+        if self.is_initialized():
             return
         
-        # dict<str, metamacro.MacroLibrary>
+        # dict<str, MacroLibrary>
         # key   - module name (without path and without extension)
         # value - MacroLibrary object representing the module 
         self._modules = {}
         
-        # dict<str, <metamacro.MacroClass>
+        # dict<str, <MacroClass>
         # key   - macro name
         # value - MacroClass object representing the macro
         self._macro_dict = {}
@@ -111,10 +92,10 @@ class MacroManager(Singleton, Logger):
         # value - MacroExecutor object for the door
         self._macro_executors = {}
         
-        self._state = ManagerState.INITED
+        MacroServerManager.reInit(self)
 
     def cleanUp(self):
-        if self._state == ManagerState.CLEANED:
+        if self.is_cleaned():
             return
         
         if self._modules:
@@ -124,13 +105,7 @@ class MacroManager(Singleton, Logger):
         self._macro_dict = None
         self._modules = None
         
-        self._state = ManagerState.CLEANED
-    
-    def set_macro_server(self, macro_server):
-        self._macro_server = macro_server
-        
-    def get_macro_server(self):
-        return self._macro_server
+        MacroServerManager.cleanUp(self)
     
     def setMacroPath(self, macro_path):
         """Registers a new list of macro directories in this manager.
@@ -195,17 +170,20 @@ class MacroManager(Singleton, Logger):
         name is not None, a macro template code for the given macro name is 
         appended to the end of the file.
         
-        @param[in] lib_name - module name, python file name, or full file name 
-                              (with path)
-        @param[in] macro_name - an optional macro name. If given a macro template
-                                code is appended to the end of the file
-                                (default is None meaning no macro code is added)
-        macro_lib = self.getMacroLib(lib_name)
+        :param lib_name:
+            module name, python file name, or full file name (with path)
+        :type lib_name: str
+        :param macro_name:
+            an optional macro name. If given a macro template code is appended
+            to the end of the file (default is None meaning no macro code is
+            added)
+        :type macro_name: str
         
-        @return a sequence with three items: full_filename, code, line number 
-                line number is 0 if no macro is created or n representing the 
-                first line of code for the given macro name.
-        """
+        :return:
+            a sequence with three items: full_filename, code, line number is 0
+            if no macro is created or n representing the first line of code for
+            the given macro name.
+        :rtype: seq<str, str, int>"""
         # if only given the module name
         try:
             macro_lib = self.getMacroLib(lib_name)
@@ -238,7 +216,7 @@ class MacroManager(Singleton, Logger):
                 
         return [ f_name, code, line_nb ]
 
-    def setMacroLib(self, lib_name, code):
+    def setMacroLib(self, lib_name, code, auto_reload=True):
         f_name = self._fromNameToFileName(lib_name)
         f = open(f_name, 'w')
         f.write(code)
@@ -246,7 +224,9 @@ class MacroManager(Singleton, Logger):
         f.close()
         p, name = os.path.split(f_name)
         mod, ext = os.path.splitext(name)
-        self.reloadMacroLib(mod)
+        if auto_reload:
+            self.reloadMacroLib(mod)
+        return mod
 
     def createMacroLib(self, lib_name, path=None):
         """Creates a new empty macro library (python module)"""
@@ -288,7 +268,7 @@ class MacroManager(Singleton, Logger):
             f_templ.close()
         except:
             self.debug("Failed to open template macro file. Using simplified template")
-            template += metamacro.MACRO_TEMPLATE
+            template += MACRO_TEMPLATE
             if f_templ:
                 f_templ.close()
                 
@@ -302,7 +282,7 @@ class MacroManager(Singleton, Logger):
             f.close()
         return f_name, code, line_nb
 
-    def reloadMacro(self, macro_name, path=None, fire_event=True):
+    def reloadMacro(self, macro_name, path=None):
         """Reloads the module corresponding to the given macro name
         
         :raises: MacroServerExceptionList in case the macro is unknown or the
@@ -311,33 +291,25 @@ class MacroManager(Singleton, Logger):
         :param macro_name: macro name
         :param path: a list of absolute path to search for libraries 
                      (optional, default=None, means the current MacroPath 
-                     will be used)
-        :param fire_event: fire events in case something (macro list or
-                           module list changes (optional, default=True)"""
-        self.reloadMacros([macro_name], path=path, fire_event=fire_event)
+                     will be used)"""
+        self.reloadMacros([macro_name], path=path)
         
-    def reloadMacros(self, macro_names, path=None, fire_event=True):
+    def reloadMacros(self, macro_names, path=None):
         """Reloads the modules corresponding to the given macro names
         
         :raises: MacroServerExceptionList in case the macro(s) are unknown or the
         reload process is not successfull
         
         :param macro_names: a list of macro names
-        :param path: a list of absolute path to search for libraries (optional, 
-                     default=None, means the current MacroPath will be used)
-        :param fire_event: fire events in case something (macro list or
-                           module list changes (optional, default=True)
-        """
+        :param path: a list of absolute path to search for libraries (optional,
+                     default=None, means the current MacroPath will be used)"""
         module_names = []
         for macro_name in macro_names:
             module_name = self.getMacroMetaClass(macro_name).module_name
             module_names.append(module_name)
-        self.reloadMacroLibs(module_names, path=path, fire_event=fire_event)
-        
-        if fire_event:
-            self._fireMacroEvent()
+        self.reloadMacroLibs(module_names, path=path)
     
-    def reloadMacroLibs(self, module_names, path=None, fire_event=True):
+    def reloadMacroLibs(self, module_names, path=None):
         """Reloads the given lib(=module) names
         
         :raises: MacroServerExceptionList in case the reload process is not 
@@ -346,27 +318,14 @@ class MacroManager(Singleton, Logger):
         :param module_names: a list of module names
         :param path: a list of absolute path to search for libraries 
                      (optional, default=None, means the current MacroPath 
-                     will be used)
-        :param fire_event: fire events in case something (macro list or
-                           module list changes (optional, default=True)
-        """
-        # Store how was the old list of modules to see if an event needs to be
-        # fired
-        old_modules = None
-        if fire_event:
-            old_modules = self.getMacroLibNames()
-
+                     will be used)"""
         ret = []
         for module_name in module_names:
-            m = self.reloadMacroLib(module_name, path, fire_event=False)
+            m = self.reloadMacroLib(module_name, path)
             if m: ret.append(m)
-        
-        if fire_event:
-            new_modules = self.getMacroLibNames()
-            self._fireMacroLibEvent(new_modules)
         return ret
         
-    def reloadMacroLib(self, module_name, path=None, fire_event=True):
+    def reloadMacroLib(self, module_name, path=None):
         """Reloads the given lib(=module) names
         
         :raises: MacroServerExceptionList in case the reload process is not 
@@ -376,17 +335,9 @@ class MacroManager(Singleton, Logger):
         :param path: a list of absolute path to search for libraries 
                      (optional, default=None, means the current MacroPath 
                      will be used)
-        :param fire_event: fire events in case something (macro list or
-                           module list changes (optional, default=True)
         
         :return: the MacroLibrary object for the reloaded macro lib
         """
-        # Store how was the old list of modules to see if an event needs to be
-        # fired
-        old_modules = None
-        if fire_event:
-            old_modules = self.getMacroLibNames()
-
         path = path or self.getMacroPath()
         # reverse the path order:
         # more priority elements last. This way if there are repeated elements
@@ -410,13 +361,13 @@ class MacroManager(Singleton, Logger):
         macro_lib = None
 
         params = dict(module=m, name=module_name,
-                      macro_server=self.get_macro_server())
+                      macro_server=self.macro_server)
         if not m is None:
-            macro_lib = metamacro.MacroLibrary(**params)
+            macro_lib = MacroLibrary(**params)
             lib_contains_macros = False
             abs_file = macro_lib.file_path
             for name, klass in inspect.getmembers(m, inspect.isclass):
-                if issubclass(klass, macro.Macro):
+                if issubclass(klass, Macro):
                     # if it is a class defined in some other class forget it to
                     # avoid replicating the same macro in different macro files
                     if inspect.getabsfile(klass) != abs_file:
@@ -430,46 +381,25 @@ class MacroManager(Singleton, Logger):
             
             if lib_contains_macros:
                 self._modules[module_name] = macro_lib
-
-        if fire_event:
-            self._fireMacroEvent()
-            self._fireMacroLibEvent()
-
         return macro_lib
     
-    def addMacro(self, macro_lib, klass, fire_event=False):
+    def addMacro(self, macro_lib, klass):
         macro_name = klass.__name__
         action = (macro_lib.has_macro(macro_name) and "Updating") or "Adding"
         self.debug("%s macro %s" % (action, macro_name))
         
-        params = dict(macro_server=self.get_macro_server(), lib=macro_lib,
+        params = dict(macro_server=self.macro_server, lib=macro_lib,
                       klass=klass)
-        macro_class = metamacro.MacroClass(**params)
+        macro_class = MacroClass(**params)
         macro_lib.add_macro(macro_class)
         self._macro_dict[macro_name] = macro_class
-        
-        if fire_event:
-            self._fireMacroEvent()
-   
+    
     def getMacroNames(self):
         return sorted(self._macro_dict.keys())
 
     def getMacroLibNames(self):
         return sorted(self._modules.keys())
 
-    def _fireMacroEvent(self, data=None):
-        """Helper method that fires event for the current existing macros"""
-        macro_list = data or self.getMacroNames()
-        self._macro_list_obj.fireEvent(macro_list)
-        return macro_list
-    
-    def _fireMacroLibEvent(self, data=None):
-        """Helper method that fires event for the current existing macro 
-        libraries(=modules)"""
-        macro_lib_list = data or self.getMacroLibNames()
-        self._macro_lib_list_obj.fireEvent(macro_lib_list)
-        return macro_lib_list
-    
     def getMacroLibs(self):
         return self._modules
 
@@ -488,17 +418,22 @@ class MacroManager(Singleton, Logger):
             raise UnknownMacro("Unknown macro %s" % macro_name)
         return ret
     
-    def getMacroLib(self, module_name):
+    def getMacroLib(self, name):
+        if os.path.isabs(name):
+            abs_file_name = name
+            for lib in self._modules.values():
+                if lib.file_path == abs_file_name:
+                    return lib
+        elif name.count(os.path.extsep):
+            file_name = name
+            for lib in self._modules.values():
+                if lib.file_name == file_name:
+                    return lib
+        module_name = name
         ret = self._modules.get(module_name)
         if ret is None:
             raise UnknownLib("Unknown macro library %s" % module_name)
         return ret
-        
-    def getMacroListObj(self):
-        return self._macro_list_obj
-    
-    def getMacroLibListObj(self):
-        return self._macro_lib_list_obj
 
     def getMacroClass(self, macro_name):
         return self.getMacroMetaClass(macro_name).klass
@@ -513,17 +448,16 @@ class MacroManager(Singleton, Logger):
             ret.append(json_codec.encode(('', macro_class.serialize()))[1])
         return ret
 
-    def decodeMacroParameters(self, in_par_list):
+    def decodeMacroParameters(self, door, in_par_list):
         if len(in_par_list) == 0:
             raise RuntimeError('Macro name not specified')
         macro_name_or_klass = in_par_list[0]
         macro_class = macro_name_or_klass
-        if type(macro_class) in types.StringTypes:
+        if isinstance(macro_class, (str, unicode)):
             macro_class = self.getMacroClass(macro_class)
         if macro_class is None:
             raise UnknownMacro("Unknown macro %s" % macro_name_or_klass)
-        import parameter
-        out_par_list = parameter.ParamDecoder(macro_class, in_par_list)
+        out_par_list = ParamDecoder(door, macro_class, in_par_list)
         return macro_class, in_par_list, out_par_list
 
     def strMacroParamValues(self,par_list):
@@ -559,7 +493,7 @@ class MacroManager(Singleton, Logger):
         
         r = []
         for env in macro_env:
-            if not environment.hasEnv(env):
+            if not environment.has_env(env):
                 r.append(env)
         if r:
             raise MissingEnv("The macro %s requires the following missing " \
@@ -567,7 +501,7 @@ class MacroManager(Singleton, Logger):
                              % (macro_name, str(r)))
         
         macro_opts = { 
-            'no_exec': True, 
+            'no_exec': True,
             'create_thread' : True,
             'external_prepare' : True 
         }
@@ -611,6 +545,24 @@ class MacroExecutor(Logger):
         self._macro_status_codec = CodecFactory().getCodec('json')
         self.call__init__(Logger, name)
     
+    def getDoor(self):
+        return self._door
+    
+    door = property(getDoor)
+
+    def getMacroServer(self):
+        return self.door.macro_server
+    
+    macro_server = property(getMacroServer)
+    
+    @property
+    def macro_manager(self):
+        return self.macro_server.macro_manager
+    
+    def getNewMacroID(self):
+        self._macro_counter -= 1
+        return self._macro_counter
+    
     def _preprocessParameters(self, par_str_list):
         if not par_str_list[0].lstrip().startswith('<'):
             xml_root = xml_seq = etree.Element('sequence')
@@ -633,7 +585,7 @@ class MacroExecutor(Logger):
     def __checkXMLSequence(self, macros):
         for macro in macros:
             name = macro.get('name')
-            self.manager.getMacroMetaClass(name)
+            self.macro_manager.getMacroMetaClass(name)
 
     def __fillXMLSequence(self, macros):
         for macro in macros:
@@ -660,7 +612,7 @@ class MacroExecutor(Logger):
         """
         if result is None:
             return ()
-        if operator.isSequenceType(result) and not type(result) in types.StringTypes:
+        if operator.isSequenceType(result) and not isinstance(result, (str, unicode)):
             result = map(str, result)
         else:
             result = (str(result),)
@@ -670,10 +622,10 @@ class MacroExecutor(Logger):
         str_params = [xml_macro.get('name')]
         for param in xml_macro.findall('.//param'):
             str_params.append(param.get('value'))
-        return self.manager.decodeMacroParameters(str_params)
+        return self._decodeMacroParameters(str_params)
     
     def _decodeMacroParameters(self, params):
-        return self.manager.decodeMacroParameters(params)
+        return self.macro_manager.decodeMacroParameters(self.door, params)
     
     def _prepareXMLMacro(self, xml_macro, parent_macro=None):
         macro_klass, str_params, params = self._decodeXMLMacroParameters(xml_macro)
@@ -697,23 +649,23 @@ class MacroExecutor(Logger):
     
     def _createMacroObj(self, macro_name_or_klass, pars, init_opts={}):
         macro_klass = macro_name_or_klass
-        if type(macro_klass) in types.StringTypes:
-            macro_klass = self.manager.getMacroClass(macro_klass)
+        if isinstance(macro_klass, (str, unicode)):
+            macro_klass = self.macro_manager.getMacroClass(macro_klass)
 
         macro_opts = {
             'executor'    : self,
-            'environment' : self.main_manager
+            'environment' : self.macro_server
         }
         macro_opts.update(init_opts)
         if not macro_opts.has_key('id'):
             macro_opts['id'] = str(self.getNewMacroID())
 
-        macroObj = self.manager.createMacroObj(macro_klass, pars, init_opts=macro_opts)
+        macroObj = self.macro_manager.createMacroObj(macro_klass, pars, init_opts=macro_opts)
         
         return macroObj
     
     def _prepareMacroObj(self, macro_obj, pars, prepare_opts={}):
-        return self.manager.prepareMacroObj(macro_obj, pars, prepare_opts=prepare_opts)
+        return self.macro_manager.prepareMacroObj(macro_obj, pars, prepare_opts=prepare_opts)
     
     def prepareMacroObj(self, macro_name_or_klass, pars, init_opts={}, prepare_opts={}):
         """Prepare a new macro for execution
@@ -751,7 +703,7 @@ class MacroExecutor(Logger):
         """
         par0 = pars[0]
         if len(pars) == 1:
-            if type(par0) in types.StringTypes :
+            if isinstance(par0, (str, unicode)):
                 pars = par0.split(' ')
             elif operator.isSequenceType(par0):
                 pars = par0
@@ -763,22 +715,6 @@ class MacroExecutor(Logger):
         if not init_opts.has_key('id'):
             init_opts['id'] = str(self.getNewMacroID())
         return self.prepareMacroObj(macro_klass, pars, init_opts, prepare_opts)
-        
-    @property
-    def manager(self):
-        return MacroManager()
-    
-    @property
-    def main_manager(self):
-        import manager
-        return manager.MacroServerManager()
-    
-    def getDoor(self):
-        return self._door
-
-    def getNewMacroID(self):
-        self._macro_counter -= 1
-        return self._macro_counter
     
     def getRunningMacro(self):
         return self._macro_pointer
@@ -796,7 +732,7 @@ class MacroExecutor(Logger):
                     self.debug("Unable to abort %s. Details:", obj, exc_info=1)
     
     def abort(self):
-        self.main_manager.addJob(self._abort, None)
+        self.macro_server.add_job(self._abort, None)
     
     def _abort(self):
         self._aborted, m = True, self.getRunningMacro()
@@ -816,7 +752,7 @@ class MacroExecutor(Logger):
     def _macroPaused(self, m):
         """Calback that is executed when the macro has efectively paused"""
         self.sendMacroStatusPause()
-        self.sendState(MacroManager.Pause)
+        self.sendState(Macro.Pause)
     
     def resume(self):
         if not self._paused:
@@ -830,7 +766,7 @@ class MacroExecutor(Logger):
         """Calback that is executed when the macro has efectively resumed 
         ejecution after being paused"""
         self.sendMacroStatusResume()
-        self.sendState(MacroManager.Running)
+        self.sendState(Macro.Running)
     
     def run(self, params):
         """Runs the given macro(s)
@@ -863,7 +799,7 @@ class MacroExecutor(Logger):
         self._xml = self._preprocessParameters(params)
 
         # start the job of actually running the macro
-        self.main_manager.addJob(self.__runXML, self._jobEnded)
+        self.macro_server.add_job(self.__runXML, self._jobEnded)
         #return the proper xml
         return self._xml
     
@@ -871,14 +807,14 @@ class MacroExecutor(Logger):
         self.debug("Job ended")
     
     def __runXML(self):
-        self.sendState(MacroManager.Running)
+        self.sendState(Macro.Running)
         try:
             self.__runStatelessXML()
-            self.sendState(MacroManager.Finished)
+            self.sendState(Macro.Finished)
         except AbortException:
-            self.sendState(MacroManager.Abort)
+            self.sendState(Macro.Abort)
         except Exception:
-            self.sendState(MacroManager.Abort)
+            self.sendState(Macro.Abort)
         finally:
             self._macro_stack = None
             self._xml_stack = None
@@ -900,7 +836,7 @@ class MacroExecutor(Logger):
         except AbortException as ae:
             raise ae
         except Exception as e:
-            door = self.getDoor()
+            door = self.door
             door.error("Error: %s", str(e))
             door.debug("Error details:", exc_info=1)
             raise e
@@ -916,6 +852,7 @@ class MacroExecutor(Logger):
     def runMacro(self, macro_obj):
         name = macro_obj._getName()
         desc = macro_obj._getDescription()
+        door = self.door
         if self._aborted:
             self.sendMacroStatusAbort()
             raise AbortException("aborted between macros (before %s)" % name)
@@ -931,7 +868,7 @@ class MacroExecutor(Logger):
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
                 result = self.__preprocessResult(macro_obj.getResult())
                 self.info("sending result %s", result)
-                self.getDoor().sendResult(result)
+                door.send_result(result)
         except AbortException as ae:
             macro_exp = ae
         except MacroServerException as mse:
@@ -970,7 +907,6 @@ class MacroExecutor(Logger):
                 self.sendMacroStatusException(exc_info)
             self.debug("[ENDEX] (%s) runMacro %s" % (macro_exp.__class__.__name__, name))
             if isinstance(macro_exp, MacroServerException) and macro_obj.parent_macro is None:
-                door = self.getDoor()
                 door.debug(macro_exp.traceback)
                 door.error("An error occured while running macro %s:\n%s" % (macro_obj.description, macro_exp.msg))
             self._popMacro()
@@ -988,10 +924,10 @@ class MacroExecutor(Logger):
             self._macro_pointer = None
 
     def sendState(self, state):
-        return self.getDoor().sendState(state)
+        return self.door.set_state(state)
     
     def sendStatus(self, status):
-        return self.getDoor().sendStatus(status)
+        return self.door.set_status(status)
 
     def getLastMacroStatus(self):
         return self._macro_pointer.getMacroStatus()
@@ -1030,12 +966,11 @@ class MacroExecutor(Logger):
 
     def sendMacroStatus(self, data):
         self._last_macro_status = data
-        data = self._macro_status_codec.encode(('', data))
-        return self.getDoor().sendMacroStatus(*data)
+        #data = self._macro_status_codec.encode(('', data))
+        return self.door.set_macro_status(data)
     
-    def sendRecordData(self, *data):
-        door = self.getDoor()
-        return door.sendRecordData(*data)
+    def sendRecordData(self, data, codec=None):
+        return self.door.set_record_data(data, codec=codec)
     
     def reserveObj(self, obj, macro_obj, priority=0):
         if obj is None or macro_obj is None: return

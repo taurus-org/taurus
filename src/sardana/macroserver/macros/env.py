@@ -42,8 +42,7 @@ class dumpenv(Macro):
     """Dumps the complete environment"""
     
     def run(self):
-        m = self.getManager()
-        env = m.getEnv()
+        env = self.getGlobalEnv()
         out = List(['Name','Value'])
         for k,v in env.iteritems():
             out.appendRow([str(k), str(v)])
@@ -65,16 +64,11 @@ class lsenv(Macro):
         self.table_opts = opts
         
     def run(self, *macro_list):
-        # we cannot use the macro.getEnv because by default it uses the 
-        # current macro name so we use the manager API directly
-        m = self.getManager()
-        door_name = self.getDoorName()
-        
         # list the environment for the current door
         if len(macro_list) == 0:
             # list All the environment for the current door
             out = List(['Name','Value','Type'])
-            env = m.getAllDoorEnv(door_name)
+            env = self.getAllDoorEnv()
             for k,v in env.iteritems():
                 str_val = self.reprValue(v)
                 type_name = type(v).__name__

@@ -34,12 +34,13 @@ import inspect
 import os
 import operator
 import types
-import parameter
 
 from taurus.core.util import CodecFactory
 
 from sardana import InvalidId, ElementType
 from sardana.sardanameta import SardanaLibrary, SardanaClass
+
+from msparameter import ParamRepeat
 
 MACRO_TEMPLATE = """class @macro_name@(Macro):
     \"\"\"@macro_name@ description.\"\"\"
@@ -153,7 +154,7 @@ class MacroClass(SardanaClass):
             t = p[1]
             ret_p = {'min': 1, 'max': None}
             # take care of old ParamRepeat
-            if isinstance(t, parameter.ParamRepeat):
+            if isinstance(t, ParamRepeat):
                 t = t.obj()
                 
             if operator.isSequenceType(t) and not type(t) in types.StringTypes:
@@ -175,7 +176,7 @@ class MacroClass(SardanaClass):
         
         info = [str(len(param_def))]
         for name, type_class, def_val, desc in param_def:
-            repeat = isinstance(type_class, parameter.ParamRepeat)
+            repeat = isinstance(type_class, ParamRepeat)
             info.append(name)
             type_name = (repeat and 'ParamRepeat') or type_class
             info.append(type_name)
@@ -197,7 +198,7 @@ class MacroClass(SardanaClass):
         
         info = [str(len(result_def))]
         for name, type_class, def_val, desc in result_def:
-            repeat = isinstance(type_class, parameter.ParamRepeat)
+            repeat = isinstance(type_class, ParamRepeat)
             info.append(name)
             type_name = (repeat and 'ParamRepeat') or type_class
             info.append(type_name)

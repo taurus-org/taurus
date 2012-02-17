@@ -33,20 +33,18 @@ __all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
 
 __docformat__ = 'restructuredtext'
 
-import copy
-import exception
 import weakref
 
-from taurus.core.util import CaselessDict, Logger, ListEventGenerator
+from taurus.core.util import CaselessDict, Logger
 from taurus.core.tango.sardana.pool import BaseElement
 
 from sardana import INTERFACES_EXPANDED
-from exception import UnknownMacro, UnknownLib
+from msexception import MacroServerException, UnknownMacro, UnknownLib
 
-class WrongParam(exception.MacroServerException):
+class WrongParam(MacroServerException):
     
     def __init__(self, *args):
-        exception.MacroServerException.__init__(self, *args)
+        MacroServerException.__init__(self, *args)
         self.type = 'Wrong parameter'
 
 
@@ -117,9 +115,14 @@ class ParamType(Logger):
     
     capabilities    = []
     
-    def __init__(self, name):
+    def __init__(self, macro_server, name):
+        self._macro_server = weakref.ref(macro_server)
         self._name = name
         Logger.__init__(self, '%sType' % name)
+    
+    @property
+    def macro_server(self):
+        return self._macro_server()
     
     def getName(self):
         return self._name
@@ -155,44 +158,42 @@ class ElementParamType(ParamType):
     
     capabilities = ParamType.ItemList, ParamType.ItemListEvents
     
-    def __init__(self, name):
-        ParamType.__init__(self, name)
-        
-    def getManager(self):
-        import manager
-        return manager.MacroServerManager()
+    def __init__(self, macro_server, name):
+        ParamType.__init__(self, macro_server, name)
+    
     
     def accepts(self, elem):
         return elem.getType() == self._name
     
     def getObj(self, name, pool=ParamType.All, cache=False):
+        macro_server = self.macro_server
         if pool == ParamType.All:
-            pools = self.getManager().getPoolListObjs()
+            pools = macro_server.get_pools()
         else:
-            pools = self.getManager().getPoolObj(pool),
+            pools = macro_server.get_pool(pool),
         for pool in pools:
             elem_info = pool.getObj(name, elem_type=self._name)
             if elem_info is not None and self.accepts(elem_info):
                 return elem_info
         # not a pool object, maybe it is a macro server object (perhaps a macro
         # class or a macro library
-        manager = self.getManager()
         try:
-            return manager.getMacroMetaClass(name)
+            return macro_server.get_macro_class_info(name)
         except UnknownMacro:
             pass
         
         try:
-            return manager.getMacroLib(name)
+            return macro_server.get_macro_lib(name)
         except UnknownLib:
             pass
     
     def getObjDict(self, pool=ParamType.All, cache=False):
+        macro_server = self.macro_server
         objs = CaselessDict()
         if pool == ParamType.All:
-            pools = self.getManager().getPoolListObjs()
+            pools = macro_server.get_pools()
         else:
-            pools = self.getManager().getPoolObj(pool),
+            pools = macro_server.get_pool(pool),
         for pool in pools:
             for elem_info in pool.getElements():
                 if self.accepts(elem_info):
@@ -210,8 +211,8 @@ class ElementParamType(ParamType):
 
 class ElementParamInterface(ElementParamType):
 
-    def __init__(self, name):
-        ElementParamType.__init__(self, name)
+    def __init__(self, macro_server, name):
+        ElementParamType.__init__(self, macro_server, name)
         self._interfaces = INTERFACES_EXPANDED.get(name)
 
     def accepts(self, elem):
@@ -222,10 +223,11 @@ class ElementParamInterface(ElementParamType):
         return self._name in elem_interfaces
     
     def getObj(self, name, pool=ParamType.All, cache=False):
+        macro_server = self.macro_server
         if pool == ParamType.All:
-            pools = self.getManager().getPoolListObjs()
+            pools = macro_server.get_pools()
         else:
-            pools = self.getManager().getPoolObj(pool),
+            pools = macro_server.get_pool(pool),
         for pool in pools:
             elem_info = pool.getElementWithInterface(name, self._name)
             if elem_info is not None and self.accepts(elem_info):
@@ -244,11 +246,12 @@ class ElementParamInterface(ElementParamType):
             pass
     
     def getObjDict(self, pool=ParamType.All, cache=False):
+        macro_server = self.macro_server
         objs = CaselessDict()
         if pool == ParamType.All:
-            pools = self.getManager().getPoolListObjs()
+            pools = macro_server.get_pools()
         else:
-            pools = self.getManager().getPoolObj(pool),
+            pools = macro_server.get_pool(pool),
         for pool in pools:
             for elem_info in pool.getElementsWithInterface(self._name).values():
                 if self.accepts(elem_info):
@@ -273,16 +276,17 @@ AbstractParamTypes = ParamType, ElementParamType, ElementParamInterface, AttrPar
 
 class ParamDecoder:
 
-    def __init__(self, macro_class, param_str_list):
+    def __init__(self, door, macro_class, param_str_list):
+        self.door = door
         self.macro_class = macro_class
         self.param_str_list = param_str_list
         self.param_list = None
         self.decode()
 
-    def getManager(self):
-        import manager
-        return manager.MacroServerManager()
-
+    @property
+    def type_manager(self):
+        return self.door.type_manager
+    
     def decode(self):
         dec_token, obj_list = self.decodeNormal(self.param_str_list[1:],
                                                 self.macro_class.param_def)
@@ -311,10 +315,10 @@ class ParamDecoder:
                     data = self.decodeRepeat(str_list[str_idx:], par_def)
                     dec_token, new_obj_list = data
                 else:
-                    mg = self.getManager()
+                    type_manager = self.type_manager
                     type_name = type_class
-                    type_class = mg.getTypeClass(type_name)
-                    par_type = mg.getTypeObj(type_name)
+                    type_class = type_manager.getTypeClass(type_name)
+                    par_type = type_manager.getTypeObj(type_name)
                     par_str = str_list[str_idx]
                     try:
                         val = par_type.getObj(par_str)
