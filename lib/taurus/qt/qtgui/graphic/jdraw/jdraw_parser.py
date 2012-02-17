@@ -27,7 +27,7 @@
 
 __all__ = ["parse"]
 
-import os,re
+import os,re,traceback
 
 import ply.lex as lex
 import ply.yacc as yacc
