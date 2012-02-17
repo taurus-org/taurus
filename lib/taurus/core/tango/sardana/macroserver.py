@@ -132,7 +132,8 @@ class ExperimentConfiguration(object):
         env = door.getEnvironment()
         
         ret = dict(ScanDir=env.get('ScanDir'),
-                   DataCompressionRank=env.get('DataCompressionRank', -1))
+                   DataCompressionRank=env.get('DataCompressionRank', -1),
+                   PreScanSnapshot=env.get('PreScanSnapshot', []))
         scan_file = env.get('ScanFile')
         if scan_file is None:
             scan_file = []
@@ -168,10 +169,10 @@ class ExperimentConfiguration(object):
         env = dict(ScanDir=conf.get('ScanDir'),
                    ScanFile=conf.get('ScanFile'),
                    DataCompressionRank=conf.get('DataCompressionRank', -1),
-                   ActiveMntGrp=conf.get('ActiveMntGrp'))
+                   ActiveMntGrp=conf.get('ActiveMntGrp'),
+                   PreScanSnapshot=conf.get('PreScanSnapshot'))
         if mnt_grps is None:
             mnt_grps = conf['MntGrpConfigs'].keys()
-        
         self._door.setEnvironments(env)
         
         codec = CodecFactory().getCodec('json')

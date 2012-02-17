@@ -835,7 +835,7 @@ class TangoChannelInfo(BaseChannelInfo):
     def __init__(self, data, info):
         BaseChannelInfo.__init__(self, data)
         
-        # PyTago.AttributeInfoEx
+        # PyTango.AttributeInfoEx
         self.raw_info = info
         
         self.data_type_str = FROM_TANGO_TO_STR_TYPE[self.data_type]
