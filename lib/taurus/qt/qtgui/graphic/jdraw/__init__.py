@@ -28,4 +28,4 @@
 __docformat__ = 'restructuredtext'
 
 from .jdraw import *
-from .jdraw_view import *
+from .jdraw_view import TaurusJDrawSynopticsView #*
