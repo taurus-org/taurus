@@ -106,7 +106,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
                     scene.addItem(item)
             except:
                 self.warning("Unable to add item %s to scene" % str(item))
-                self.traceback()
+                self.warning(traceback.format_exc()) #self.traceback()
         return scene
     
     def getObj(self,name,params):
