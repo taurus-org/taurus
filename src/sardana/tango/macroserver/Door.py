@@ -37,7 +37,7 @@ from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
 
 import taurus
 import taurus.core.util
-from taurus.core.util import etree, CodecFactory
+from taurus.core.util import etree, CodecFactory, InfoIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
@@ -173,6 +173,7 @@ class Door(SardanaDevice):
         for handler, filter, format in self._handler_dict.values():
             handler.finish()
     
+    @InfoIt()
     def init_device(self):
         SardanaDevice.init_device(self)
         levels = 'Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug'
@@ -191,7 +192,8 @@ class Door(SardanaDevice):
         else:
             ms_name = self.MacroServerName.lower()
             for ms in macro_servers:
-                if ms.name.lower() == ms_name or ms.alias.lower() == ms_name:
+                if ms.get_name().lower() == ms_name or \
+                   ms.alias.lower() == ms_name:
                     self._macro_server_device = ms
                     break
         
@@ -202,7 +204,7 @@ class Door(SardanaDevice):
         
         if self.door is None:
             full_name = self.get_name()
-            name = self.alias or full_name
+            name = full_name
             macro_server = self.macro_server_device.macro_server
             door = macro_server.create_element(type="Door", name=name,
                                                full_name=full_name, id=self.Id)
@@ -216,7 +218,7 @@ class Door(SardanaDevice):
         for level in levels:
             handler = AttributeLogHandler(self, level,
                                           max_buff_size=self.MaxMsgBufferSize)
-            filter = taurus.core.util.LogFilter(level=getattr(Door, level))
+            filter = taurus.core.util.LogFilter(level=getattr(self, level))
             handler.addFilter(filter)
             self.addLogHandler(handler)
             format = None

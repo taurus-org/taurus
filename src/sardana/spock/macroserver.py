@@ -270,7 +270,7 @@ class SpockBaseDoor(BaseDoor):
         self.call__init__(BaseDoor, name, **kw)
 
     def get_color_mode(self):
-        return genutils.get_config().InteractiveShell.colors
+        return genutils.get_ipapi().options.colors
     
     def _get_macroserver_for_door(self):
         ret = genutils.get_macro_server()
@@ -367,8 +367,8 @@ class SpockBaseDoor(BaseDoor):
                 line_nb = ret[3]
                 commit = CommitFile(commit_cmd, local_f_name, remote_f_name)
                 self.pending_commits.update( { remote_f_name : commit } )
-                shell = genutils.get_config().InteractiveShell
-                editor = shell.options.editor or 'vi'
+                ip = genutils.get_ipapi()
+                editor = ip.options.editor or 'vi'
                 
                 cmd = 'edit -x -n %s %s' % (line_nb, local_f_name)
                 if not editor in self.console_editors:
@@ -393,7 +393,6 @@ class SpockBaseDoor(BaseDoor):
         self._plotter.show_scan(scan_nb=scan_nb,
                                 scan_history_info=scan_history_info,
                                 directory_map=directory_map)
-
     
     def stateChanged(self, s, t, v):
         old_state, old_sw_state = self._old_door_state, self._old_sw_door_state
@@ -402,7 +401,7 @@ class SpockBaseDoor(BaseDoor):
         self._updateState(old_sw_state, new_sw_state)
     
     def _updateState(self, old_sw_state, new_sw_state, silent=False):
-        user_ns = genutils.get_shell().user_ns
+        user_ns = genutils.get_ipapi().user_ns
         if new_sw_state == TaurusSWDevState.Running:
             user_ns['DOOR_STATE'] = ""
         else:
@@ -507,12 +506,12 @@ class SpockMacroServer(BaseMacroServer):
     
     def __init__(self, name, **kw):
         self._local_magic = {}
+        self._local_var = set()
         self.call__init__(BaseMacroServer, name, **kw)
     
     def on_elements_changed(self, evt_src, evt_type, evt_value):
-        ret = added, removed = \
-            BaseMacroServer.on_elements_changed(self, evt_src, evt_type,
-                                                evt_value)
+        return BaseMacroServer.on_elements_changed(self, evt_src, evt_type,
+                                                   evt_value)
     
     _SKIP_ELEMENTS = 'controller', 'motorgroup', 'instrument', \
         'controllerclass', 'controllerlib', 'macrolib'
@@ -520,7 +519,7 @@ class SpockMacroServer(BaseMacroServer):
     def _addElement(self, element_data):
         element = BaseMacroServer._addElement(self, element_data)
         elem_type = element.type
-        if elem_type == "MacroClass":
+        if "MacroCode" in element.interfaces:
             self._addMacro(element)
         elif elem_type not in self.NO_CLASS_TYPES:
             # TODO: when it becomes possible to do:
@@ -532,10 +531,13 @@ class SpockMacroServer(BaseMacroServer):
     
     def _removeElement(self, element_data):
         element = BaseMacroServer._removeElement(self, element_data)
-        if element.type == "MacroClass":
-            self._removeMacro(self, element)
+        elem_type = element.type
+        if "MacroCode" in element.interfaces:
+            self._removeMacro(element)
+        elif elem_type not in self.NO_CLASS_TYPES:
+            genutils.unexpose_variable(element.name)
         return element
-        
+    
     def _addMacro(self, macro_info):
         macro_name = str(macro_info.name)
         
@@ -558,5 +560,5 @@ class SpockMacroServer(BaseMacroServer):
     
     def _removeMacro(self, macro_info):
         macro_name = macro_info.name
-        #genutils.unexpose_magic(macro_name)
+        genutils.unexpose_magic(macro_name)
         del self._local_magic[macro_name]
