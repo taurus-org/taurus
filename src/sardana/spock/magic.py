@@ -71,6 +71,14 @@ def _get_door():
     import sardana.spock.genutils
     return sardana.spock.genutils.get_door()
 
+def _get_config():
+    import sardana.spock.genutils
+    return sardana.spock.genutils.get_config()
+
+def _get_shell():
+    import sardana.spock.genutils
+    return sardana.spock.genutils.get_shell()
+
 def status(self, parameter_s=''):
     try:
         ms = MacroServer()
@@ -272,37 +280,40 @@ def edmac(self, parameter_s=''):
 def spock_input_prompt_hook(self, cont):
     try:
         return _get_door().spock_input_prompt(self.api, cont)
-    except Exception,e:
-        print e
-        return
-        import sardana.spock
-        return sardana.spock.Door.spock_offline_input_prompt(self.api, cont)
+    except:
+        import traceback
+        print "Exception in spock_input_prompt_hook:"
+        traceback.print_exc()
 
 def spock_output_prompt_hook(self):
     try:
         return _get_door().spock_output_prompt(self.api)
-    except Exception,e:
-        print e
-        return
-        import sardana.spock
-        return sardana.spock.Door.spock_offline_output_prompt(self.api)
-
+    except:
+        import traceback
+        print "Exception in spock_output_prompt_hook:"
+        traceback.print_exc()
+        
 def spock_late_startup_hook(self):
+    print "SPOCK LATE STARTUP KOOOK"
     import sardana.spock
     try:
-        ip = IPython.ipapi.get()
-        ip.ready = True
+        config = _get_config()
+        ip.Spock.ready = True
         _get_door().setConsoleReady(True)
     except:
-        pass
-
+        import traceback
+        print "Exception in spock_late_startup_hook:"
+        traceback.print_exc()
+        
 def spock_pre_prompt_hook(self):
     import sardana.spock
     try:
         _get_door().pre_prompt_hook(self)
     except:
-        pass
-
+        import traceback
+        print "Exception in spock_pre_prompt_hook:"
+        traceback.print_exc()
+ 
 #def spock_pre_runcode_hook(self):
 #    print "spock_pre_runcode_hook"
 #    return None

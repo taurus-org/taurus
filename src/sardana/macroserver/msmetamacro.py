@@ -26,7 +26,7 @@
 """This module contains the class definition for the MacroServer meta macro
 information"""
 
-__all__ = ["MACRO_TEMPLATE", "MacroLibrary", "MacroClass"]
+__all__ = ["MACRO_TEMPLATE", "MacroLibrary", "MacroClass", "MacroFunction"]
 
 __docformat__ = 'restructuredtext'
 
@@ -38,7 +38,7 @@ import types
 from taurus.core.util import CodecFactory
 
 from sardana import InvalidId, ElementType
-from sardana.sardanameta import SardanaLibrary, SardanaClass
+from sardana.sardanameta import SardanaLibrary, SardanaClass, SardanaFunction
 
 from msparameter import ParamRepeat
 
@@ -95,6 +95,16 @@ class MacroLibrary(SardanaLibrary):
     get_macro = SardanaLibrary.get_meta_class
     get_macros = SardanaLibrary.get_meta_classes
     has_macro = SardanaLibrary.has_meta_class
+
+    add_macro_class = SardanaLibrary.add_meta_class
+    get_macro_class = SardanaLibrary.get_meta_class
+    get_macro_classes = SardanaLibrary.get_meta_classes
+    has_macro_class = SardanaLibrary.has_meta_class
+    
+    add_macro_function = SardanaLibrary.add_meta_function
+    get_macro_function = SardanaLibrary.get_meta_function
+    get_macro_functions = SardanaLibrary.get_meta_functions
+    has_macro_function = SardanaLibrary.has_meta_function
 
     @property
     def macros(self):
@@ -195,6 +205,120 @@ class MacroClass(SardanaClass):
 
     def getResultInfo(self, result_def=None):
         result_def = result_def or self.klass.result_def
+        
+        info = [str(len(result_def))]
+        for name, type_class, def_val, desc in result_def:
+            repeat = isinstance(type_class, ParamRepeat)
+            info.append(name)
+            type_name = (repeat and 'ParamRepeat') or type_class
+            info.append(type_name)
+            info.append(desc)
+            if repeat:
+                rep = type_class
+                opts = sep = ''
+                for opt, val in rep.items():
+                    opts += '%s%s=%s' % (sep, opt, val)
+                    sep = ', '
+                info.append(opts)
+                info += self.getParamInfo(rep.param_def)
+            else:
+                info.append(str(def_val))
+        return info
+
+
+class MacroFunction(SardanaFunction):
+    
+    def __init__(self, **kwargs):
+        kwargs['manager'] = kwargs.pop('macro_server')
+        SardanaFunction.__init__(self, **kwargs)
+    
+    def get_type(self):
+        """Returns this object type.
+        
+        :return: this pool object type
+        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
+        return ElementType.MacroFunction
+    
+    def serialize(self, *args, **kwargs):
+        kwargs = SardanaFunction.serialize(self, *args, **kwargs)
+        kwargs['macro_server'] = self.get_manager().name
+        kwargs['id'] = InvalidId
+        kwargs['hints'] = self.function.hints
+        param, result = self.getParamObj(), self.getResultObj()
+        if param: kwargs['parameters'] = param
+        if result: kwargs['result'] = result
+        return kwargs
+    
+    @property
+    def macro_function(self):
+        return self.function
+
+    def get_brief_description(self, max_chars=60):
+        desc = self.description.replace('\n',' ')
+        if len(desc) > (max_chars-5):
+            desc = desc[:max_chars-5] + '[...]'
+        return desc
+
+    def getInfo(self):
+        function = self.macro_function
+        info = [self.full_name, self.description, str(function.hints)]
+        info += self.getParamInfo()
+        info += self.getResultInfo()
+        return info
+    
+    def getParamObj(self):
+        return self._getParamObj(self.function.param_def)
+
+    def getResultObj(self):
+        return self._getParamObj(self.function.result_def)
+
+    def _getParamObj(self, param_def):
+        ret = []
+        for p in param_def:
+            t = p[1]
+            ret_p = {'min': 1, 'max': None}
+            # take care of old ParamRepeat
+            if isinstance(t, ParamRepeat):
+                t = t.obj()
+                
+            if operator.isSequenceType(t) and not type(t) in types.StringTypes:
+                if operator.isMappingType(t[-1]):
+                    ret_p.update(t[-1])
+                    t = self._getParamObj(t[:-1])
+                else:
+                    t = self._getParamObj(t)
+                
+            ret_p['name'] = p[0]
+            ret_p['type'] = t
+            ret_p['default_value'] = p[2]
+            ret_p['description'] = p[3]
+            ret.append(ret_p)
+        return ret
+
+    def getParamInfo(self, param_def=None):
+        param_def = param_def or self.function.param_def
+        
+        info = [str(len(param_def))]
+        for name, type_class, def_val, desc in param_def:
+            repeat = isinstance(type_class, ParamRepeat)
+            info.append(name)
+            type_name = (repeat and 'ParamRepeat') or type_class
+            info.append(type_name)
+            info.append(desc)
+            if repeat:
+                rep = type_class
+                opts = sep = ''
+                for opt, val in rep.items():
+                    opts += '%s%s=%s' % (sep, opt, val)
+                    sep = ', '
+                info.append(opts)
+                info += self.getParamInfo(rep.param_def)
+            else:
+                info.append(str(def_val))
+        return info
+
+    def getResultInfo(self, result_def=None):
+        result_def = result_def or self.function.result_def
         
         info = [str(len(result_def))]
         for name, type_class, def_val, desc in result_def:

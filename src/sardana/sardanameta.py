@@ -26,7 +26,7 @@
 """This module is part of the Python Sardana libray. It defines the base classes
 for MetaLibrary and MetaClass"""
 
-__all__ = ["SardanaLibrary", "SardanaClass"]
+__all__ = ["SardanaLibrary", "SardanaClass", "SardanaFuction"]
 
 __docformat__ = 'restructuredtext'
 
@@ -73,6 +73,7 @@ class SardanaLibrary(SardanaBaseObject):
             self.path, self.file_name = os.path.split(self.file_path)
             name, _ = os.path.splitext(self.file_name)
         self.meta_classes = {}
+        self.meta_functions = {}
         if module is not None and module.__doc__:
             self.description = module.__doc__
         kwargs['name'] = name
@@ -141,6 +142,44 @@ class SardanaLibrary(SardanaBaseObject):
                  or False otherwise
         :rtype: bool"""
         return meta_class_name in self.meta_classes
+
+    def add_meta_function(self, meta_function):
+        """Adds a new :class:~`sardana.sardanameta.Sardanafunction` to this
+        library.
+        
+        :param meta_function: the meta function to be added to this library
+        :type meta_function: :class:~`sardana.sardanameta.SardanaFunction`"""
+        self.meta_functions[meta_function.name] = meta_function
+    
+    def get_meta_function(self, meta_function_name):
+        """Returns a :class:~`sardana.sardanameta.Sardanafunction` for the
+        given meta function name or None if the meta function does not exist in
+        this library.
+        
+        :param meta_function_name: the meta function name
+        :type meta_function_name: str
+        :return: a meta function or None
+        :rtype: :class:~`sardana.sardanameta.SardanaFunction`"""
+        return self.meta_functions.get(meta_function_name)
+    
+    def get_meta_functions(self):
+        """Returns a sequence of the meta functions that belong to this library.
+        
+        :return: a sequence of meta functions that belong to this library
+        :rtype: seq<:class:~`sardana.sardanameta.SardanaFunction`>"""
+        return self.meta_functions.values()
+    
+    def has_meta_function(self, meta_function_name):
+        """Returns True if the given meta function name belongs to this library
+        or False otherwise.
+        
+        :param meta_function_name: the meta function name
+        :type meta_function_name: str
+        
+        :return: True if the given meta function name belongs to this library
+                 or False otherwise
+        :rtype: bool"""
+        return meta_function_name in self.meta_functions
     
     def get_name(self):
         """Returns the module name for this library (same as
@@ -242,22 +281,26 @@ class SardanaLibrary(SardanaBaseObject):
         return kwargs
 
 
-class SardanaClass(SardanaBaseObject):
-    """Object representing a python class."""
+class SardanaCode(SardanaBaseObject):
+    """Object representing a python code (base for class and function)."""
     
     description = '<Undocumented>'
     
     def __init__(self, **kwargs):
         lib = kwargs.pop('lib')
         self._lib = weakref.ref(lib)
-        self.klass = kwargs.pop('klass')
-        doc = self.klass.__doc__
+        self._code_obj = kwargs.pop('code')
+        doc = self._code_obj.__doc__
         if doc:
             self.description = doc
-        kwargs['name'] = name = kwargs.pop('name', self.klass.__name__)
+        name = kwargs['name']
         kwargs['full_name'] = "{0}.{1}".format(lib.name, name)
         kwargs['parent'] = kwargs.pop('parent', self.lib)
         SardanaBaseObject.__init__(self, **kwargs)
+    
+    @property
+    def code_object(self):
+        return self._code_obj
     
     @property
     def lib(self):
@@ -316,7 +359,7 @@ class SardanaClass(SardanaBaseObject):
         """Returns a tuple (sourcelines, firstline) corresponding to the 
         definition of the controller class. sourcelines is a list of source code
         lines. firstline is the line number of the first source code line."""
-        return inspect.getsourcelines(self.klass)
+        return inspect.getsourcelines(self.code_object)
     
     def get_code(self):
         """Returns a tuple (sourcelines, firstline) corresponding to the 
@@ -337,4 +380,32 @@ class SardanaClass(SardanaBaseObject):
         kwargs['path'] = self.path
         kwargs['description'] = self.description
         return kwargs
+
+
+class SardanaClass(SardanaCode):
+    """Object representing a python class."""
     
+    def __init__(self, **kwargs):
+        klass = kwargs.pop('klass')
+        kwargs['code'] = klass
+        kwargs['name'] = name = kwargs.pop('name', klass.__name__)
+        SardanaCode.__init__(self, **kwargs)
+    
+    @property
+    def klass(self):
+        return self.code_object
+
+
+class SardanaFunction(SardanaCode):
+    """Object representing a python function."""
+    
+    def __init__(self, **kwargs):
+        function = kwargs.pop('function')
+        kwargs['code'] = function
+        kwargs['name'] = name = kwargs.pop('name', function.func_name)
+        SardanaCode.__init__(self, **kwargs)
+    
+    @property
+    def function(self):
+        return self.code_object
+        

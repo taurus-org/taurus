@@ -32,3 +32,4 @@ from IPython.utils.traitlets import Int, Float, Unicode, Bool
 class Spock(Configurable):
     macro_server_name = Unicode(config=True)
     door_name = Unicode(config=True)
+    ready = Bool(default_value=False, config=True)

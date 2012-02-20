@@ -29,7 +29,8 @@ scan"""
 from __future__ import with_statement
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
-           "MacroFinder", "Macro", "Type", "ParamRepeat"]
+           "MacroFinder", "Macro", "macro", "MacroFunc", "Type",
+           "ParamRepeat"]
 
 __docformat__ = 'restructuredtext'
 
@@ -41,6 +42,7 @@ import operator
 import types
 import weakref
 import functools
+import new
 import textwrap
 
 from taurus.core.util import Logger, CodecFactory, propertx
@@ -280,6 +282,13 @@ def mAPI(fn):
         return ret
     return new_fn
 
+def macro(fn):
+    fn.macro_data = data = {}
+    fn.param_def = ()
+    fn.result_def = ()
+    fn.hints = {}
+    fn.env = ()
+    return fn
 
 class Macro(Logger):
     """ The Macro base class. All macros should inherit directly or indirectly
@@ -1570,3 +1579,19 @@ class Macro(Logger):
         self._pause_event.resume(cb=cb)
     
     #@}
+
+class MacroFunc(Macro):
+    
+    def __init__(self, *args, **kwargs):
+        function = kwargs['function']
+        self._function = kwargs['function']
+        kwargs['as'] = self._function.func_name
+        Macro.__init__(self, *args, **kwargs)
+        
+    def run(self, *args):
+        g = globals()
+        g['self'] = self
+        print "Running macro function",args
+        new_run = new.function(self._function.func_code, g)
+        return new_run(*args)
+        

@@ -248,6 +248,7 @@ ElementType = Enumeration("ElementType", ( \
     "Door",
     "MacroClass",
     "MacroLibrary",
+    "MacroFunction",
     "External",
     "Meta",
     "Unknown") )
@@ -332,6 +333,7 @@ INTERFACES = {
     "Object" : set(),
     "Element" : set(("Object",)),
     "Class" : set(("Object",)),
+    "Function" : set(("Object",)),
     "Library" : set(("Object",)),
     "PoolObject" : set(("Object",)),
     "PoolElement" : set(("Element", "PoolObject")),
@@ -362,6 +364,7 @@ INTERFACES = {
     "MacroServer" : set(("MacroServerElement",)),
     "MacroLibrary" : set(("Library", "MacroServerObject")),
     "MacroClass" : set(("Class", "MacroServerObject")),
+    "MacroFunction" : set(("Function", "MacroServerObject")),
     "Macro" : set(("MacroClass",)),
 }
 

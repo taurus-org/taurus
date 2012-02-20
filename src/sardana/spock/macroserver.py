@@ -49,7 +49,7 @@ from taurus.core.util.console import NoTaurusSWDevStateColors, TermTaurusSWDevSt
 
 import genutils
 import exception
-import IPython.generics
+
 
 if genutils.get_gui_mode() == 'qt4':
     from taurus.qt import Qt
@@ -270,7 +270,7 @@ class SpockBaseDoor(BaseDoor):
         self.call__init__(BaseDoor, name, **kw)
 
     def get_color_mode(self):
-        return genutils.get_ipapi().options.colors
+        return genutils.get_config().InteractiveShell.colors
     
     def _get_macroserver_for_door(self):
         ret = genutils.get_macro_server()
@@ -367,8 +367,8 @@ class SpockBaseDoor(BaseDoor):
                 line_nb = ret[3]
                 commit = CommitFile(commit_cmd, local_f_name, remote_f_name)
                 self.pending_commits.update( { remote_f_name : commit } )
-                ip = genutils.get_ipapi()
-                editor = ip.options.editor or 'vi'
+                shell = genutils.get_config().InteractiveShell
+                editor = shell.options.editor or 'vi'
                 
                 cmd = 'edit -x -n %s %s' % (line_nb, local_f_name)
                 if not editor in self.console_editors:
@@ -402,11 +402,11 @@ class SpockBaseDoor(BaseDoor):
         self._updateState(old_sw_state, new_sw_state)
     
     def _updateState(self, old_sw_state, new_sw_state, silent=False):
-        ip = genutils.get_ipapi()
+        user_ns = genutils.get_shell().user_ns
         if new_sw_state == TaurusSWDevState.Running:
-            ip.user_ns['DOOR_STATE'] = ""
+            user_ns['DOOR_STATE'] = ""
         else:
-            ip.user_ns['DOOR_STATE'] = " (OFFLINE)"
+            user_ns['DOOR_STATE'] = " (OFFLINE)"
         
         if not self.isConsoleReady():
             self._spock_state = new_sw_state
@@ -560,4 +560,3 @@ class SpockMacroServer(BaseMacroServer):
         macro_name = macro_info.name
         #genutils.unexpose_magic(macro_name)
         del self._local_magic[macro_name]
-

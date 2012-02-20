@@ -197,7 +197,7 @@ class Door(SardanaDevice):
         
         # support for old doors which didn't have ID
         if self.Id == InvalidId:
-            self.Id = self.macro_server.get_new_id()
+            self.Id = self.macro_server_device.macro_server.get_new_id()
             db.put_device_property(self.get_name(), dict(Id=self.Id))
         
         if self.door is None:
