@@ -1,6 +1,5 @@
 graft doc
 graft lib/taurus
 graft scripts
-global-exclude *.pyc
+global-exclude *.pyc .cvsignore .svnignore
 recursive-exclude lib/taurus/qt/qtgui/resource *.rcc *.qrc qrc_*.py
-recursive-include lib/taurus/qt/qtgui/resource/tango-icons *
