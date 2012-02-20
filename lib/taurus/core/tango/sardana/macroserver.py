@@ -612,7 +612,7 @@ class BaseMacroServer(MacroServerDevice):
         data = element_info._data
         if elem_type in self.NO_CLASS_TYPES:
             obj = object()
-        elif elem_type == 'MacroClass':
+        elif "MacroCode" in element_info.interfaces:
             obj = self._createMacroClassObject(element_info)
         else:
             obj = self._createDeviceObject(element_info)
@@ -630,10 +630,10 @@ class BaseMacroServer(MacroServerDevice):
         except Exception, e:
             self.error("Exception occurred processing elements")
             self.error("Details:", exc_info=1)
-            return set(), set()
+            return set(), set(), set()
     
     def _on_elements_changed(self, evt_src, evt_type, evt_value):
-        ret = added, removed = set(), set()
+        ret = added, removed, changed = set(), set(), set()
         if evt_type not in CHANGE_EVT_TYPES:
             return ret
         try:
@@ -641,15 +641,21 @@ class BaseMacroServer(MacroServerDevice):
         except:
             self.error("Could not decode element info format=%s len=%s",
                        evt_value.value[0], len(evt_value.value[1]))
-            return
+            return ret
         
         for element_data in elems.get('new', ()):
             element_data['manager'] = self
             element = self._addElement(element_data)
             added.add(element)
         for element_data in elems.get('del', ()):
-            element = self.removeElement(element_data)
+            element = self._removeElement(element_data)
             removed.add(element)
+            pass
+        for element_data in elems.get('change', ()):
+            element = self._removeElement(element_data)
+            element_data['manager'] = self
+            element = self._addElement(element_data)
+            changed.add(element)
         return ret
     
     def _addElement(self, element_data):
@@ -700,15 +706,15 @@ class BaseMacroServer(MacroServerDevice):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getMacros(self):
-        return dict(self.getElementsInfo().getElementsOfType('MacroClass'))
+        return dict(self.getElementsInfo().getElementsWithInterface('MacroCode'))
 
     def getMacroInfoObj(self, macro_name):
         ret = self.getElementInfo(macro_name)
-        assert ret.type == 'MacroClass'
+        assert 'MacroCode' in ret.interfaces
         return ret
 
     def getMacroStrList(self):
-        return self.getElementNamesOfType('MacroClass')
+        return self.getElementNamesWithInterface('MacroCode')
     
     def getMacroNodeObj(self, macro_name):
         """

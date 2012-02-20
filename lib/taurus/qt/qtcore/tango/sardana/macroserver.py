@@ -92,10 +92,10 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
         return res
        
     def on_elements_changed(self, s, t, v):
-        ret = added, removed = BaseMacroServer.on_elements_changed(self, s, t, v)
+        ret = added, removed, changed = BaseMacroServer.on_elements_changed(self, s, t, v)
         
         macros, elements = 0, 0
-        for element in set.union(added, removed):
+        for element in set.union(added, removed, changed):
              if element.type == "MacroClass":
                 macros += 1
              elements += 1
