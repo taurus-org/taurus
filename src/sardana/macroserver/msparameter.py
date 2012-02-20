@@ -38,7 +38,7 @@ import weakref
 from taurus.core.util import CaselessDict, Logger
 from taurus.core.tango.sardana.pool import BaseElement
 
-from sardana import INTERFACES_EXPANDED
+from sardana import ElementType, INTERFACES_EXPANDED
 from msexception import MacroServerException, UnknownMacro, UnknownLib
 
 class WrongParam(MacroServerException):
@@ -234,14 +234,13 @@ class ElementParamInterface(ElementParamType):
                 return elem_info
         # not a pool object, maybe it is a macro server object (perhaps a macro
         # class or a macro library
-        manager = self.getManager()
         try:
-            return manager.getMacroMetaClass(name)
+            return macro_server.get_macro(name)
         except UnknownMacro:
             pass
         
         try:
-            return manager.getMacroLib(name)
+            return macro_server.get_macro_lib(name)
         except UnknownLib:
             pass
     
@@ -276,9 +275,9 @@ AbstractParamTypes = ParamType, ElementParamType, ElementParamInterface, AttrPar
 
 class ParamDecoder:
 
-    def __init__(self, door, macro_class, param_str_list):
+    def __init__(self, door, macro_meta, param_str_list):
         self.door = door
-        self.macro_class = macro_class
+        self.macro_meta = macro_meta
         self.param_str_list = param_str_list
         self.param_list = None
         self.decode()
@@ -288,9 +287,18 @@ class ParamDecoder:
         return self.door.type_manager
     
     def decode(self):
-        dec_token, obj_list = self.decodeNormal(self.param_str_list[1:],
-                                                self.macro_class.param_def)
-        self.param_list = obj_list
+        macro_meta = self.macro_meta
+        macro_type = macro_meta.get_type()
+        pars_str = self.param_str_list[1:]
+        pars_def = macro_meta.get_parameter_definition()
+        if macro_type == ElementType.MacroClass:
+            _, self.param_list = self.decodeNormal(pars_str, pars_def)
+        elif macro_type == ElementType.MacroFunction:
+            if macro_meta.function.param_def is None:
+                self.param_list = self.param_str_list[1:]
+            else:
+                _, self.param_list = self.decodeNormal(pars_str, pars_def)
+        return self.param_list
 
     def decodeNormal(self, str_list, def_list):
         str_len = len(str_list)

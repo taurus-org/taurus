@@ -35,10 +35,6 @@ from sardana.macroserver.macro import Macro, Type, ParamRepeat
 
 from sardana.macroserver.macro import macro
 
-@macro
-def example_macro():
-    print "Hello"
-
 ################################################################################
 #
 # Motion related macros

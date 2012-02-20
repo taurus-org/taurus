@@ -243,7 +243,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             for macrolib in self.get_macro_libs().values() ]
         # fill macro class info
         ret += [ macro.serialize()
-            for macro in self.get_macro_classes() ]
+            for macro in self.get_macros().values() ]
         return ret
     
     # --------------------------------------------------------------------------
@@ -283,10 +283,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         
         old_lib = manager.getMacroLib(lib_name)
         new_elements, changed_elements, deleted_elements = [], [], []
-        old_ctrl_classes = ()
         if old_lib is not None:
-            macro_infos = old_lib.get_macros()
-            old_macro_classes = macro_infos
             changed_elements.append(old_lib)
         
         new_lib = manager.reloadMacroLib(lib_name)
@@ -310,45 +307,41 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         
         evt = { "new" : new_elements, "change" : changed_elements,
                 "del" : deleted_elements }
-        
         self.fire_event(EventType("ElementsChanged"), evt)
     
     def reload_macro_libs(self, lib_names):
         for lib_name in lib_names:
             self.reload_macro_lib(lib_name)
     
-    def reload_macro_class(self, class_name):
-        macro_info = self.macro_manager.getMacroMetaClass(class_name)
+    def reload_macro(self, macro_name):
+        macro_info = self.macro_manager.getMacro(macro_name)
         lib_name = macro_info.module_name
         self.reload_macro_lib(lib_name)
-
-    def reload_macro_classes(self, class_names):
+    
+    def reload_macros(self, macro_names):
         lib_names = set()
-        for class_name in class_names:
-            macro_info = self.macro_manager.getMacroMetaClass(class_name)
+        for macro_name in macro_names:
+            macro_info = self.macro_manager.getMacro(macro_name)
             lib_names.add(macro_info.module_name)
         self.reload_macro_libs(lib_names)
     
-    def get_macro_lib(self):
-        return self.macro_manager.getMacroLib()
+    def get_macro_lib(self, lib_name):
+        return self.macro_manager.getMacroLib(lib_name)
     
-    def get_macro_libs(self):
-        return self.macro_manager.getMacroLibs()
+    def get_macro_libs(self, filter=None):
+        return self.macro_manager.getMacroLibs(filter=filter)
     
     def get_macro_lib_names(self):
         return self.macro_manager.getMacroLibNames()
     
-    def get_macro_class_names(self):
-        return self.macro_manager.getMacroNames()
-    
-    def get_macro_classes(self, filter=None):
+    def get_macro(self, name):
+        return self.macro_manager.getMacro(name)
+
+    def get_macros(self, filter=None):
         return self.macro_manager.getMacros(filter=filter)
     
-    def get_macro_class_info(self, name):
-        return self.macro_manager.getMacroMetaClass(name)
-    
-    def get_macro_classes_info(self, names):
-        return self.macro_manager.getMacroMetaClasses(names)
+    def get_macro_names(self):
+        return self.macro_manager.getMacroNames()
     
     def get_macro_libs_summary_info(self):
         libs = self.get_macro_libs()

@@ -362,10 +362,12 @@ INTERFACES = {
     "MacroServerObject" : set(("Object",)),
     "MacroServerElement" : set(("Element", "MacroServerObject")),
     "MacroServer" : set(("MacroServerElement",)),
+    "Door" : set(("MacroServerElement",)),
     "MacroLibrary" : set(("Library", "MacroServerObject")),
-    "MacroClass" : set(("Class", "MacroServerObject")),
-    "MacroFunction" : set(("Function", "MacroServerObject")),
-    "Macro" : set(("MacroClass",)),
+    "MacroCode" : set(("MacroServerObject",)),
+    "MacroClass" : set(("Class", "MacroCode")),
+    "MacroFunction" : set(("Function", "MacroCode")),
+    "Macro" : set(("MacroClass", "MacroFunction")),
 }
 
 #: a dictionary containing the *all* interfaces supported by each type

@@ -39,6 +39,7 @@ import operator
 import re
 import threading
 import json
+import functools
 
 from lxml import etree
 
@@ -59,6 +60,47 @@ from msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
 from msparameter import ParamDecoder
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def islambda(f):
+    """inspect doesn't come with islambda so I create one :-P"""
+    return inspect.isfunction(f) and \
+           f.__name__ == (lambda: True).__name__
+
+def is_macro(macro, abs_file=None, logger=None):
+    """Helper function to determine if a certain python object is a valid
+    macro"""
+    if inspect.isclass(macro):
+        if not issubclass(macro, Macro):
+            return False
+        # if it is a class defined in some other module forget it to
+        # avoid replicating the same macro in different macro files
+        if inspect.getabsfile(macro) != abs_file:
+            return False
+    elif callable(macro) and not islambda(macro):
+        # if it is a class defined in some other module forget it to
+        # avoid replicating the same macro in different macro files
+        if inspect.getabsfile(macro) != abs_file:
+            return False
+        
+        if not hasattr(macro, 'macro_data'):
+            return False
+        
+        args, varargs, keywords, defaults = inspect.getargspec(macro)
+        if keywords is not None:
+            if logger:
+                logger.debug("Could not add macro %s: Unsupported keyword "
+                             "parameters '%s'", macro.fn_name, keywords)
+            return False
+        if varargs and args:
+            if logger:
+                logger.debug("Could not add macro %s: Unsupported giving "
+                             "named parameters '%s' and varargs '%s'",
+                             macro.fn_name, args, varargs)
+            return False
+    else:
+        return False
+    return True
 
 
 class MacroManager(MacroServerManager):
@@ -306,7 +348,7 @@ class MacroManager(MacroServerManager):
                      default=None, means the current MacroPath will be used)"""
         module_names = []
         for macro_name in macro_names:
-            module_name = self.getMacroMetaClass(macro_name).module_name
+            module_name = self.getMacro(macro_name).module_name
             module_names.append(module_name)
         self.reloadMacroLibs(module_names, path=path)
     
@@ -367,36 +409,24 @@ class MacroManager(MacroServerManager):
             macro_lib = MacroLibrary(**params)
             lib_contains_macros = False
             abs_file = macro_lib.file_path
-            for name, klass in inspect.getmembers(m, inspect.isclass):
-                if issubclass(klass, Macro):
-                    # if it is a class defined in some other module forget it to
-                    # avoid replicating the same macro in different macro files
-                    if inspect.getabsfile(klass) != abs_file:
-                        continue
-                    try:
-                        self.addMacroClass(macro_lib, klass)
-                        lib_contains_macros = True
-                    except:
-                        self.error("Error adding macro class %s",
-                                   klass.__name__)
-                        self.debug("Details:", exc_info=1)
-            for name, func in inspect.getmembers(m, callable):
-                # if it is a class defined in some other module forget it to
-                # avoid replicating the same macro in different macro files
-                if inspect.getabsfile(func) != abs_file:
-                    continue
-                if not hasattr(func, 'macro_data'):
-                    continue
+            _is_macro = functools.partial(is_macro, abs_file=abs_file,
+                                          logger=self)
+            for name, macro in inspect.getmembers(m, _is_macro):
                 try:
-                    self.addMacroFunction(macro_lib, func)
+                    self.addMacro(macro_lib, macro)
                     lib_contains_macros = True
                 except:
-                    self.error("Error adding macro function %s", func.func_name)
+                    self.error("Error adding macro %s", macro.__name__)
                     self.debug("Details:", exc_info=1)
-            
             if lib_contains_macros:
                 self._modules[module_name] = macro_lib
         return macro_lib
+    
+    def addMacro(self, macro_lib, macro):
+        add = self.addMacroFunction
+        if inspect.isclass(macro):
+            add = self.addMacroClass
+        return add(macro_lib, macro)
     
     def addMacroClass(self, macro_lib, klass):
         macro_name = klass.__name__
@@ -406,7 +436,7 @@ class MacroManager(MacroServerManager):
         params = dict(macro_server=self.macro_server, lib=macro_lib,
                       klass=klass)
         macro_class = MacroClass(**params)
-        macro_lib.add_macro(macro_class)
+        macro_lib.add_macro_class(macro_class)
         self._macro_dict[macro_name] = macro_class
     
     def addMacroFunction(self, macro_lib, func):
@@ -420,35 +450,46 @@ class MacroManager(MacroServerManager):
         macro_lib.add_macro_function(macro_function)
         self._macro_dict[macro_name] = macro_function
     
-    def getMacroNames(self):
-        return sorted(self._macro_dict.keys())
-
     def getMacroLibNames(self):
         return sorted(self._modules.keys())
-
-    def getMacroLibs(self):
-        return self._modules
-
+    
+    def getMacroLibs(self, filter=None):
+        if filter is None:
+            return self._modules
+        expr = re.compile(filter, re.IGNORECASE)
+        ret = {}
+        for name, macro_lib in self._modules.iteritems():
+            if expr.match(name) is None:
+                continue
+            ret[name] = macro_lib
+        return ret
+    
     def getMacros(self, filter=None):
         if filter is None:
-            return sorted(self._macro_dict.values())
+            return self._macro_dict
         expr = re.compile(filter, re.IGNORECASE)
         
-        ret = [ kls for n, kls in self._macro_dict.iteritems() if not expr.match(n) is None ]
-        ret.sort()
+        ret = {}
+        for name, macro in self._macro_dict.iteritems():
+            if expr.match(name) is None:
+                continue
+            ret[name] = macro
         return ret
 
-    def getMacroMetaCode(self, macro_name):
+    def getMacroNames(self):
+        return sorted(self._macro_dict.keys())
+    
+    def getMacro(self, macro_name):
         ret = self._macro_dict.get(macro_name)
         if ret is None:
             raise UnknownMacro("Unknown macro %s" % macro_name)
         return ret
 
-    def getMacroMetaClass(self, macro_name):
-        return self.getMacroMetaCode(macro_name)
+    def getMacroClass(self, macro_name):
+        return self.getMacro(macro_name)
     
-    def getMacroMetaFunction(self, macro_name):
-        return self.getMacroMetaCode(macro_name)
+    def getMacroFunction(self, macro_name):
+        return self.getMacro(macro_name)
     
     def getMacroLib(self, name):
         if os.path.isabs(name):
@@ -468,13 +509,13 @@ class MacroManager(MacroServerManager):
         return ret
     
     def getMacroCode(self, macro_name):
-        return self.getMacroMetaCode(macro_name).code_object
-
-    def getMacroClass(self, macro_name):
-        return self.getMacroMetaClass(macro_name).klass
+        return self.getMacro(macro_name).code_object
     
-    def getMacroFunction(self, macro_name):
-        return self.getMacroMetaFunction(macro_name).function
+    def getMacroClassCode(self, macro_name):
+        return self.getMacroClass(macro_name).klass
+    
+    def getMacroFunctionCode(self, macro_name):
+        return self.getMacroFunction(macro_name).function
     
     def getMacroInfo(self, macro_names, format='json'):
         if isinstance(macro_names, (str, unicode)):
@@ -482,18 +523,18 @@ class MacroManager(MacroServerManager):
         ret = []
         json_codec = CodecFactory().getCodec('json')
         for macro_name in macro_names:
-            macro_class = self.getMacroMetaClass(macro_name)
-            ret.append(json_codec.encode(('', macro_class.serialize()))[1])
+            macro_meta = self.getMacro(macro_name)
+            ret.append(json_codec.encode(('', macro_meta.serialize()))[1])
         return ret
-
+    
     def decodeMacroParameters(self, door, in_par_list):
         if len(in_par_list) == 0:
             raise RuntimeError('Macro name not specified')
         macro_name = in_par_list[0]
-        macro_code = self.getMacroMetaCode(macro_name)
-        out_par_list = ParamDecoder(door, macro_code.code_object, in_par_list)
-        return macro_code, in_par_list, out_par_list
-
+        macro_meta = self.getMacro(macro_name)
+        out_par_list = ParamDecoder(door, macro_meta, in_par_list)
+        return macro_meta, in_par_list, out_par_list
+    
     def strMacroParamValues(self,par_list):
         """strMacroParamValues(list<string> par_list) -> list<string> 
         
@@ -510,7 +551,7 @@ class MacroManager(MacroServerManager):
                 param_str = param_str[:9] + "..."
             ret.append(param_str)
         return ret
-
+    
     def prepareMacro(self, macro_class, par_list, init_opts={}, prepare_opts={}):
         """Creates the macro object and calls its prepare method.
            The return value is a tuple (MacroObject, return value of prepare)
@@ -549,7 +590,7 @@ class MacroManager(MacroServerManager):
     
     def createMacroObjFromMeta(self, meta, par_list, init_opts={}):
         code = meta.code_object
-        macro_env = code.env
+        macro_env = code.env or ()
         
         environment = init_opts.get('environment')
         
@@ -632,9 +673,9 @@ class MacroExecutor(Logger):
                 xml_param = etree.SubElement(xml_macro, 'param', value=p)
         else:
             xml_root = etree.fromstring(par_str_list[0])
-
+        
         macro_nodes = xml_root.findall('.//macro')
-
+        
         # make sure macros exist
         self.__checkXMLSequence(macro_nodes)
         
@@ -646,7 +687,7 @@ class MacroExecutor(Logger):
     def __checkXMLSequence(self, macros):
         for macro in macros:
             name = macro.get('name')
-            self.macro_manager.getMacroMetaClass(name)
+            self.macro_manager.getMacro(name)
 
     def __fillXMLSequence(self, macros):
         for macro in macros:
@@ -696,7 +737,7 @@ class MacroExecutor(Logger):
             'parent_macro' : parent_macro,
         }
         
-        macro_obj = self._createMacroObjFromMeta(macro_meta, params, init_opts)
+        macro_obj = self._createMacroObj(macro_meta, params, init_opts)
         for macro in xml_macro.findall('macro'):
             hook = MacroExecutor.RunSubXMLHook(self, macro)
             hook_hints = macro.findall('hookPlace')
@@ -708,10 +749,10 @@ class MacroExecutor(Logger):
         prepare_result = self._prepareMacroObj(macro_obj, params)
         return macro_obj, prepare_result
     
-    def _createMacroObjFromMeta(self, macro_name_or_klass, pars, init_opts={}):
-        macro_klass = macro_name_or_klass
-        if isinstance(macro_klass, (str, unicode)):
-            macro_klass = self.macro_manager.getMacroClass(macro_klass)
+    def _createMacroObj(self, macro_name_or_meta, pars, init_opts={}):
+        macro_meta = macro_name_or_meta
+        if isinstance(macro_meta, (str, unicode)):
+            macro_meta = self.macro_manager.getMacro(macro_meta)
 
         macro_opts = {
             'executor'    : self,
@@ -721,8 +762,8 @@ class MacroExecutor(Logger):
         if not macro_opts.has_key('id'):
             macro_opts['id'] = str(self.getNewMacroID())
 
-        macroObj = self.macro_manager.createMacroObjFromMeta(macro_klass,
-            pars, init_opts=macro_opts)
+        macroObj = self.macro_manager.createMacroObjFromMeta(macro_meta, pars,
+                                                             init_opts=macro_opts)
         
         return macroObj
     
@@ -730,18 +771,18 @@ class MacroExecutor(Logger):
         return self.macro_manager.prepareMacroObj(macro_obj, pars,
                                                   prepare_opts=prepare_opts)
     
-    def prepareMacroObj(self, macro_name_or_klass, pars, init_opts={},
+    def prepareMacroObj(self, macro_name_or_meta, pars, init_opts={},
                         prepare_opts={}):
         """Prepare a new macro for execution
         
-        :param macro_name_or_klass name: name of the macro to be prepared or 
-                                         the macro class itself
+        :param macro_name_or_meta name: name of the macro to be prepared or 
+                                        the macro meta itself
         :param pars: list of parameter objects
         :param init_opts: keyword parameters for the macro constructor
         :param prepare_opts: keyword parameters for the macro prepare
            
         :return: a tuple of two elements: macro object, the result of preparing the macro"""
-        macroObj = self._createMacroObj(macro_name_or_klass, pars, init_opts=init_opts)
+        macroObj = self._createMacroObj(macro_name_or_meta, pars, init_opts=init_opts)
         prepare_result = self._prepareMacroObj(macroObj, pars, prepare_opts=prepare_opts)
         return macroObj, prepare_result
     

@@ -250,12 +250,11 @@ class lsmac(Macro):
     """Lists all macros."""
     
     def run(self):
-        manager = self.getManager()
-        macro_libs = manager.getMacroLibs()
+        macro_libs = self.getMacroLibs()
         
         out = List(['Name','Module'])
         
-        for macro_lib in macro_libs.values():
+        for macro_lib in macro_libs:
             for macro in macro_lib.get_macros():
                 out.appendRow([macro.name, macro.file_path])
         for line in out.genOutput():
@@ -266,7 +265,7 @@ class prdef(Macro):
      """Returns the the macro code for the given macro name."""
 
      param_def = [
-          ['macro_name',  Type.MacroClass, None, 'macro name']
+          ['macro_name', Type.MacroCode, None, 'macro name']
      ]
      
      def run(self,macro_data):
@@ -284,7 +283,7 @@ class prdef(Macro):
 #    """Returns the contents of the macro file which contains the macro code for
 #    the given macro name."""
 
-#    param_def = [['macro_name', Type.MacroClass, None, 'macro name'],
+#    param_def = [['macro_name', Type.MacroCode, None, 'macro name'],
 #                 ['module_name',
 #                  ParamRepeat(['module_name', Type.String, None, 'a string item'],min=0,max=1),
 #                  None, 'optional module name']]
@@ -355,7 +354,7 @@ class relmac(Macro):
     Attention: All macros inside the same file will also be reloaded."""
        
     param_def = [
-        ['macro_name', Type.MacroClass, None, 'macro name']
+        ['macro_name', Type.MacroCode, None, 'macro name']
     ]
     
     def run(self, macro_data):

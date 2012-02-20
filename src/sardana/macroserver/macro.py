@@ -282,13 +282,42 @@ def mAPI(fn):
         return ret
     return new_fn
 
-def macro(fn):
-    fn.macro_data = data = {}
-    fn.param_def = ()
-    fn.result_def = ()
-    fn.hints = {}
-    fn.env = ()
-    return fn
+
+class macro(object):
+    """Class designed to decorate a python function to transform it into a
+    macro. Examples::
+    
+        @macro()
+        def my_macro1():
+            self.output("Executing %s", self.getName())
+        
+        @macro([ ["moveable", Type.Moveable, None, "motor to watch"] ])
+        def where_moveable(moveable):
+            self.output("Moveable %s is at %s", moveable.getName(), moveable.getPosition())"""
+    
+    def __init__(self, param_def=None, result_def=None, env=None, hints=None):
+        self.param_def = param_def
+        self.result_def = result_def
+        self.env = env
+        self.hints = hints
+    
+    def __call__(self, fn):
+#        @functools.wraps(fn)
+#        def new_macro(*args, **kwargs):
+#            return fn(*args, **kwargs)
+#        new_macro.macro_data = data = {}
+#        new_macro.param_def = None
+#        new_macro.result_def = None
+#        new_macro.env = None
+#        new_macro.hints = None
+#        return new_macro
+        fn.macro_data = data = {}
+        fn.param_def = self.param_def
+        fn.result_def = self.result_def
+        fn.hints = self.env
+        fn.env = self.hints
+        return fn
+
 
 class Macro(Logger):
     """ The Macro base class. All macros should inherit directly or indirectly
@@ -1187,12 +1216,13 @@ class Macro(Logger):
            
            :return: a sequence of macro names
            :rtype: seq<:obj:`str`\>"""
-        return self.door.get_macro_class_names()
-
+        return self.door.get_macro_names()
+    
     @mAPI
     def getMacros(self, filter=None):
         """**Macro API**. Returns a sequence of
-        :class:`~sardana.macroserver.msmetamacro.MacroClass` objects for all
+        :class:`~sardana.macroserver.msmetamacro.MacroClass`
+        /:class:`~sardana.macroserver.msmetamacro.MacroFunction` objects for all
         known macros that obey the filter expression.
            
         :param filter:
@@ -1200,22 +1230,46 @@ class Macro(Logger):
             meaning match all macros)
         :return:
             a sequence of :class:`~sardana.macroserver.msmetamacro.MacroClass`
+            /:class:`~sardana.macroserver.msmetamacro.MacroFunction`
             objects
-        :rtype: seq<:class:`~sardana.macroserver.msmetamacro.MacroClass`\>"""
-        return self.door.get_macro_classes(filter=filter)
-
+        :rtype: seq<:class:`~sardana.macroserver.msmetamacro.MacroClass`
+                /:class:`~sardana.macroserver.msmetamacro.MacroFunction`\>"""
+        ret = self.door.get_macros(filter=filter).values()
+        ret.sort()
+        return ret
+    
+    @mAPI
+    def getMacroLibs(self, filter=None):
+        """**Macro API**. Returns a sequence of
+        :class:`~sardana.macroserver.msmetamacro.MacroLibrary` objects for all
+        known macros that obey the filter expression.
+           
+        :param filter:
+            a regular expression for the macro library [default: None meaning
+            match all macro libraries)
+        :return:
+            a sequence of :class:`~sardana.macroserver.msmetamacro.MacroLibrary`
+            objects
+        :rtype: seq<:class:`~sardana.macroserver.msmetamacro.MacroLibrary`\>"""
+        ret = self.door.get_macro_libs(filter=filter).values()
+        ret.sort()
+        return ret
+    
     @mAPI
     def getMacroInfo(self, macro_name):
         """**Macro API**. Returns the corresponding
-        :class:`~sardana.macroserver.msmetamacro.MacroClass` object.
+        :class:`~sardana.macroserver.msmetamacro.MacroClass`
+        /:class:`~sardana.macroserver.msmetamacro.MacroFunction` object.
 
         :param macro_name: a string with the desired macro name.
         :type macro_name: :obj:`str`
         :return:
-            a :class:`~sardana.macroserver.msmetamacro.MacroClass` object or
+            a :class:`~sardana.macroserver.msmetamacro.MacroClass`
+            /:class:`~sardana.macroserver.msmetamacro.MacroFunction` object or
             None if the macro with the given name was not found
-        :rtype: :class:`~sardana.macroserver.msmetamacro.MacroClass`"""
-        return self.door.get_macro_class_info(macro_name)
+        :rtype: :class:`~sardana.macroserver.msmetamacro.MacroClass`
+                /:class:`~sardana.macroserver.msmetamacro.MacroFunction`"""
+        return self.door.get_macro(macro_name)
 
     @mAPI
     def getMotion(self, elems, motion_source=None, read_only=False, cache=True):
@@ -1344,7 +1398,7 @@ class Macro(Logger):
         
         :param macro_name: macro name
         :type macro_name: :obj:`str`"""
-        return self.door.reload_macro_class(macro_name)
+        return self.door.reload_macro(macro_name)
     
     @mAPI
     def reloadMacros(self, macro_names):
@@ -1356,7 +1410,7 @@ class Macro(Logger):
         
         :param macro_names: a list of macro names
         :type macro_names: sequence<:obj:`str`\>"""
-        return self.reload_macro_classes(macro_names)
+        return self.reload_macros(macro_names)
     
     @mAPI
     def reloadMacroLib(self, lib_name):
@@ -1591,7 +1645,6 @@ class MacroFunc(Macro):
     def run(self, *args):
         g = globals()
         g['self'] = self
-        print "Running macro function",args
         new_run = new.function(self._function.func_code, g)
         return new_run(*args)
         

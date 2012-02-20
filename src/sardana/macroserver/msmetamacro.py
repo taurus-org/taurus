@@ -40,7 +40,7 @@ from taurus.core.util import CodecFactory
 from sardana import InvalidId, ElementType
 from sardana.sardanameta import SardanaLibrary, SardanaClass, SardanaFunction
 
-from msparameter import ParamRepeat
+from msparameter import Type, ParamRepeat
 
 MACRO_TEMPLATE = """class @macro_name@(Macro):
     \"\"\"@macro_name@ description.\"\"\"
@@ -91,10 +91,9 @@ class MacroLibrary(SardanaLibrary):
         kwargs['id'] = InvalidId
         return kwargs
     
-    add_macro = SardanaLibrary.add_meta_class
-    get_macro = SardanaLibrary.get_meta_class
-    get_macros = SardanaLibrary.get_meta_classes
-    has_macro = SardanaLibrary.has_meta_class
+    get_macro = SardanaLibrary.get_meta
+    get_macros = SardanaLibrary.get_metas
+    has_macro = SardanaLibrary.has_meta
 
     add_macro_class = SardanaLibrary.add_meta_class
     get_macro_class = SardanaLibrary.get_meta_class
@@ -108,14 +107,138 @@ class MacroLibrary(SardanaLibrary):
 
     @property
     def macros(self):
-        return self.meta_classes
+        ret = {}
+        ret.update(self.meta_classes)
+        ret.update(self.meta_functions)
+        return ret
 
 
-class MacroClass(SardanaClass):
+class Parameterizable(object):
+    """Helper class to handle parameter and result definition for a
+    :class:`~sardana.macroserver.msmetamacro.MacroClass` or a
+    :class:`~sardana.macroserver.msmetamacro.MacroFunction`"""
+    
+    def __init__(self):
+        self._parameter = self.build_parameter()
+        self._result = self.build_result()
+    
+    def get_parameter_definition(self):
+        raise NotImplementedError
+    
+    def get_result_definition(self):
+        raise NotImplementedError
+
+    def get_hints_definition(self):
+        raise NotImplementedError
+    
+    def get_parameter(self):
+        return self._parameter
+    
+    def get_result(self):
+        return self._result
+    
+    def build_parameter(self):
+        return self._build_parameter(self.get_parameter_definition())
+
+    def build_result(self):
+        return self._build_parameter(self.get_result_definition())
+        
+    def _build_parameter(self, param_def):
+        ret = []
+        param_def = param_def or ()
+        for p in param_def:
+            t = p[1]
+            ret_p = {'min': 1, 'max': None}
+            # take care of old ParamRepeat
+            if isinstance(t, ParamRepeat):
+                t = t.obj()
+                
+            if operator.isSequenceType(t) and not isinstance(t, (str, unicode)):
+                if operator.isMappingType(t[-1]):
+                    ret_p.update(t[-1])
+                    t = self._build_parameter(t[:-1])
+                else:
+                    t = self._build_parameter(t)
+                
+            ret_p['name'] = p[0]
+            ret_p['type'] = t
+            ret_p['default_value'] = p[2]
+            ret_p['description'] = p[3]
+            ret.append(ret_p)
+        return ret
+
+    def build_parameter_info(self, param_def=None):
+        param_def = param_def or self.get_parameter_definition()
+        
+        info = [str(len(param_def))]
+        for name, type_class, def_val, desc in param_def:
+            repeat = isinstance(type_class, ParamRepeat)
+            info.append(name)
+            type_name = (repeat and 'ParamRepeat') or type_class
+            info.append(type_name)
+            info.append(desc)
+            if repeat:
+                rep = type_class
+                opts = sep = ''
+                for opt, val in rep.items():
+                    opts += '%s%s=%s' % (sep, opt, val)
+                    sep = ', '
+                info.append(opts)
+                info += self.get_parameter_info(rep.param_def)
+            else:
+                info.append(str(def_val))
+        return info
+    
+    def build_result_info(self, result_def=None):
+        result_def = result_def or self.get_result_definition()
+        
+        info = [str(len(result_def))]
+        for name, type_class, def_val, desc in result_def:
+            repeat = isinstance(type_class, ParamRepeat)
+            info.append(name)
+            type_name = (repeat and 'ParamRepeat') or type_class
+            info.append(type_name)
+            info.append(desc)
+            if repeat:
+                rep = type_class
+                opts = sep = ''
+                for opt, val in rep.items():
+                    opts += '%s%s=%s' % (sep, opt, val)
+                    sep = ', '
+                info.append(opts)
+                info += self.get_parameter_info(rep.param_def)
+            else:
+                info.append(str(def_val))
+        return info
+    
+    def get_brief_description(self, max_chars=60):
+        desc = self.description.replace('\n',' ')
+        if len(desc) > (max_chars-5):
+            desc = desc[:max_chars-5] + '[...]'
+        return desc
+    
+    def get_info(self):
+        info = [self.full_name, self.description, str(self.code_object.hints)]
+        info += self.get_parameter_info()
+        info += self.get_result_info()
+        return info
+    
+    def serialize(self, *args, **kwargs):
+        kwargs['macro_server'] = self.get_manager().name
+        kwargs['id'] = InvalidId
+        kwargs['hints'] = self.code_object.hints
+        param, result = self.get_parameter(), self.get_result()
+        kwargs['parameters'] = param
+        kwargs['result'] = result
+        return kwargs
+
+
+class MacroClass(SardanaClass, Parameterizable):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
         SardanaClass.__init__(self, **kwargs)
+        Parameterizable.__init__(self)
     
     def get_type(self):
         """Returns this object type. Default implementation raises
@@ -127,110 +250,29 @@ class MacroClass(SardanaClass):
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaClass.serialize(self, *args, **kwargs)
-        kwargs['macro_server'] = self.get_manager().name
-        kwargs['id'] = InvalidId
-        kwargs['hints'] = self.klass.hints
-        param, result = self.getParamObj(), self.getResultObj()
-        if param: kwargs['parameters'] = param
-        if result: kwargs['result'] = result
+        kwargs = Parameterizable.serialize(self, *args, **kwargs)
         return kwargs
     
     @property
     def macro_class(self):
         return self.klass
     
-    def get_brief_description(self, max_chars=60):
-        desc = self.description.replace('\n',' ')
-        if len(desc) > (max_chars-5):
-            desc = desc[:max_chars-5] + '[...]'
-        return desc
-
-    def getInfo(self):
-        klass = self.klass
-        info = [self.full_name, self.description, str(klass.hints)]
-        info += self.getParamInfo()
-        info += self.getResultInfo()
-        return info
+    def get_parameter_definition(self):
+        return self.klass.param_def
     
-    def getParamObj(self):
-        return self._getParamObj(self.klass.param_def)
+    def get_result_definition(self):
+        return self.klass.result_def
 
-    def getResultObj(self):
-        return self._getParamObj(self.klass.result_def)
-
-    def _getParamObj(self, param_def):
-        ret = []
-        for p in param_def:
-            t = p[1]
-            ret_p = {'min': 1, 'max': None}
-            # take care of old ParamRepeat
-            if isinstance(t, ParamRepeat):
-                t = t.obj()
-                
-            if operator.isSequenceType(t) and not type(t) in types.StringTypes:
-                if operator.isMappingType(t[-1]):
-                    ret_p.update(t[-1])
-                    t = self._getParamObj(t[:-1])
-                else:
-                    t = self._getParamObj(t)
-                
-            ret_p['name'] = p[0]
-            ret_p['type'] = t
-            ret_p['default_value'] = p[2]
-            ret_p['description'] = p[3]
-            ret.append(ret_p)
-        return ret
-
-    def getParamInfo(self, param_def=None):
-        param_def = param_def or self.klass.param_def
-        
-        info = [str(len(param_def))]
-        for name, type_class, def_val, desc in param_def:
-            repeat = isinstance(type_class, ParamRepeat)
-            info.append(name)
-            type_name = (repeat and 'ParamRepeat') or type_class
-            info.append(type_name)
-            info.append(desc)
-            if repeat:
-                rep = type_class
-                opts = sep = ''
-                for opt, val in rep.items():
-                    opts += '%s%s=%s' % (sep, opt, val)
-                    sep = ', '
-                info.append(opts)
-                info += self.getParamInfo(rep.param_def)
-            else:
-                info.append(str(def_val))
-        return info
-
-    def getResultInfo(self, result_def=None):
-        result_def = result_def or self.klass.result_def
-        
-        info = [str(len(result_def))]
-        for name, type_class, def_val, desc in result_def:
-            repeat = isinstance(type_class, ParamRepeat)
-            info.append(name)
-            type_name = (repeat and 'ParamRepeat') or type_class
-            info.append(type_name)
-            info.append(desc)
-            if repeat:
-                rep = type_class
-                opts = sep = ''
-                for opt, val in rep.items():
-                    opts += '%s%s=%s' % (sep, opt, val)
-                    sep = ', '
-                info.append(opts)
-                info += self.getParamInfo(rep.param_def)
-            else:
-                info.append(str(def_val))
-        return info
+    def get_hints_definition(self):
+        return self.klass.hints
 
 
-class MacroFunction(SardanaFunction):
+class MacroFunction(SardanaFunction, Parameterizable):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
         SardanaFunction.__init__(self, **kwargs)
+        Parameterizable.__init__(self)
     
     def get_type(self):
         """Returns this object type.
@@ -241,100 +283,49 @@ class MacroFunction(SardanaFunction):
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaFunction.serialize(self, *args, **kwargs)
-        kwargs['macro_server'] = self.get_manager().name
-        kwargs['id'] = InvalidId
-        kwargs['hints'] = self.function.hints
-        param, result = self.getParamObj(), self.getResultObj()
-        if param: kwargs['parameters'] = param
-        if result: kwargs['result'] = result
+        kwargs = Parameterizable.serialize(self, *args, **kwargs)
         return kwargs
     
     @property
     def macro_function(self):
         return self.function
-
+    
     def get_brief_description(self, max_chars=60):
         desc = self.description.replace('\n',' ')
         if len(desc) > (max_chars-5):
             desc = desc[:max_chars-5] + '[...]'
         return desc
-
-    def getInfo(self):
-        function = self.macro_function
-        info = [self.full_name, self.description, str(function.hints)]
-        info += self.getParamInfo()
-        info += self.getResultInfo()
-        return info
     
-    def getParamObj(self):
-        return self._getParamObj(self.function.param_def)
-
-    def getResultObj(self):
-        return self._getParamObj(self.function.result_def)
-
-    def _getParamObj(self, param_def):
-        ret = []
-        for p in param_def:
-            t = p[1]
-            ret_p = {'min': 1, 'max': None}
-            # take care of old ParamRepeat
-            if isinstance(t, ParamRepeat):
-                t = t.obj()
-                
-            if operator.isSequenceType(t) and not type(t) in types.StringTypes:
-                if operator.isMappingType(t[-1]):
-                    ret_p.update(t[-1])
-                    t = self._getParamObj(t[:-1])
-                else:
-                    t = self._getParamObj(t)
-                
-            ret_p['name'] = p[0]
-            ret_p['type'] = t
-            ret_p['default_value'] = p[2]
-            ret_p['description'] = p[3]
-            ret.append(ret_p)
-        return ret
-
-    def getParamInfo(self, param_def=None):
-        param_def = param_def or self.function.param_def
+    def to_parameter_definition(self):
+        param_def = []
+        args, varargs, keywords, defaults = inspect.getargspec(self.function)
+        assert keywords is None
         
-        info = [str(len(param_def))]
-        for name, type_class, def_val, desc in param_def:
-            repeat = isinstance(type_class, ParamRepeat)
-            info.append(name)
-            type_name = (repeat and 'ParamRepeat') or type_class
-            info.append(type_name)
-            info.append(desc)
-            if repeat:
-                rep = type_class
-                opts = sep = ''
-                for opt, val in rep.items():
-                    opts += '%s%s=%s' % (sep, opt, val)
-                    sep = ', '
-                info.append(opts)
-                info += self.getParamInfo(rep.param_def)
-            else:
-                info.append(str(def_val))
-        return info
+        if varargs is None:
+            for arg in args:
+                param_def.append((arg, Type.Any, None, arg + " parameter"))
+            i = len(param_def)-1
+            if defaults is not None:
+                for default in reversed(defaults):
+                    param_def[i][2] = default
+                    i -= 1
+        else:
+            assert not args
+            param_def.append(
+                (varargs , [[ varargs, Type.Any, None, varargs + " parameter"]],
+                 None, "list of " + varargs))
+        return param_def
+    
+    def get_parameter_definition(self):
+        param_def = self.function.param_def
+        if param_def is None:
+            param_def = self.to_parameter_definition()
+        return param_def
+    
+    def get_result_definition(self):
+        result_def = self.function.result_def
+        return result_def
 
-    def getResultInfo(self, result_def=None):
-        result_def = result_def or self.function.result_def
-        
-        info = [str(len(result_def))]
-        for name, type_class, def_val, desc in result_def:
-            repeat = isinstance(type_class, ParamRepeat)
-            info.append(name)
-            type_name = (repeat and 'ParamRepeat') or type_class
-            info.append(type_name)
-            info.append(desc)
-            if repeat:
-                rep = type_class
-                opts = sep = ''
-                for opt, val in rep.items():
-                    opts += '%s%s=%s' % (sep, opt, val)
-                    sep = ', '
-                info.append(opts)
-                info += self.getParamInfo(rep.param_def)
-            else:
-                info.append(str(def_val))
-        return info
+    def get_hints_definition(self):
+        return self.function.hints or ()
+

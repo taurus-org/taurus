@@ -38,6 +38,8 @@ from sardana.macroserver.msparameter import ParamType, AttrParamType, \
     ElementParamInterface
 
 # Basic types
+class Any(ParamType):
+    type_class = lambda p : p
 
 class Integer(ParamType):
     type_class = int

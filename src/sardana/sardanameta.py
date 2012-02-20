@@ -144,7 +144,7 @@ class SardanaLibrary(SardanaBaseObject):
         return meta_class_name in self.meta_classes
 
     def add_meta_function(self, meta_function):
-        """Adds a new :class:~`sardana.sardanameta.Sardanafunction` to this
+        """Adds a new :class:~`sardana.sardanameta.SardanaFunction` to this
         library.
         
         :param meta_function: the meta function to be added to this library
@@ -152,7 +152,7 @@ class SardanaLibrary(SardanaBaseObject):
         self.meta_functions[meta_function.name] = meta_function
     
     def get_meta_function(self, meta_function_name):
-        """Returns a :class:~`sardana.sardanameta.Sardanafunction` for the
+        """Returns a :class:~`sardana.sardanameta.SardanaFunction` for the
         given meta function name or None if the meta function does not exist in
         this library.
         
@@ -181,6 +181,42 @@ class SardanaLibrary(SardanaBaseObject):
         :rtype: bool"""
         return meta_function_name in self.meta_functions
     
+    def get_meta(self, meta_name):
+        """Returns a :class:~`sardana.sardanameta.SardanaCode` for the
+        given meta name or None if the meta does not exist in this library.
+        
+        :param meta_name: the meta name (class, function)
+        :type meta_name: str
+        :return: a meta or None
+        :rtype: :class:~`sardana.sardanameta.SardanaCode`"""
+        ret = self.get_meta_class(meta_name)
+        if ret is None:
+            ret = self.get_meta_function(meta_name)
+        return ret
+    
+    def has_meta(self, meta_name):
+        """Returns True if the given meta name belongs to this library
+        or False otherwise.
+        
+        :param meta_name: the meta name
+        :type meta_name: str
+        
+        :return:
+            True if the given meta (class or function) name belongs to this
+            library or False otherwise
+        :rtype: bool"""
+        return self.has_meta_class(meta_name) or \
+               self.has_meta_function(meta_name)
+    
+    def get_metas(self):
+        """Returns a sequence of the meta (class and functions) that belong to
+        this library.
+        
+        :return:
+            a sequence of meta (class and functions) that belong to this library
+        :rtype: seq<:class:~`sardana.sardanameta.SardanaCode`>"""
+        return self.get_meta_classes() + self.get_meta_functions()
+        
     def get_name(self):
         """Returns the module name for this library (same as
         :meth:~sardana.sardanameta.SardanaLibrary.get_module_name).
@@ -255,6 +291,7 @@ class SardanaLibrary(SardanaBaseObject):
         self.exc_info = exc_info
         if exc_info is None:
             self.meta_classes = {}
+            self.meta_functions = {}
     
     def get_error(self):
         """Gets the error information for this library or None if no error

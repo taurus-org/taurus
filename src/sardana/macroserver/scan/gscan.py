@@ -543,7 +543,7 @@ class GScan(Logger):
         '''
         import PyTango,numpy
         manager = self.macro.getManager()
-        all_elements_info = manager.getElementsWithInterface('Element')
+        all_elements_info = manager.get_elements_with_interface('Element')
         ret = []
         for src,label in elements:
             try:
@@ -863,7 +863,7 @@ class CScan(GScan):
         
         # start move & acquisition as close as possible
         # from this point on synchronization becomes critical
-        manager.addJob(self.go_through_waypoints)
+        manager.add_job(self.go_through_waypoints)
         mg.startCount()
         
         while not self._stop:
