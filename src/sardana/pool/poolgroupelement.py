@@ -77,7 +77,6 @@ class PoolBaseGroup(PoolContainer):
             action_cache = self._create_action_cache()
         if physical_elements is None:
             physical_elements = self.get_physical_elements()
-        
         for ctrl, ctrl_physical_elements in physical_elements.items():
             for physical_element in ctrl_physical_elements:
                 action_cache.add_element(physical_element)
@@ -195,7 +194,7 @@ class PoolBaseGroup(PoolContainer):
         user_elements.insert(index, element)
         
         elem_type = element.get_type()
-        if not elem_type in TYPE_EXP_CHANNEL_ELEMENTS:
+        if not self._is_managed_element(element):
             return index
         
         self.add_element(element)
@@ -264,7 +263,7 @@ class PoolBaseGroup(PoolContainer):
             try:
                 ctrl.stop_elements(elements=elements)
             except:
-                self.warning("Unable to stop controller %s", ctrl.name)
+                self.error("Unable to stop controller %s", ctrl.name)
                 self.debug("Details:", exc_info=1)
     
     # --------------------------------------------------------------------------
@@ -277,7 +276,7 @@ class PoolBaseGroup(PoolContainer):
             try:
                 ctrl.abort_elements(elements=elements)
             except:
-                self.warning("Unable to abort controller %s", ctrl.name)
+                self.error("Unable to abort controller %s", ctrl.name)
                 self.debug("Details:", exc_info=1)
 
 

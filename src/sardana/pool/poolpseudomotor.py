@@ -162,6 +162,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             the physical positions
         :rtype:
             dict <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
+        self.info("Motion: %s", self.motion._elements)
         positions = self._low_level_physical_positions
         if cache and len(positions):
             return positions
