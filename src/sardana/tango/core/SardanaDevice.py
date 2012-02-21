@@ -43,10 +43,6 @@ class SardanaDevice(Device_4Impl, Logger):
     def __init__(self, dclass, name):
         Device_4Impl.__init__(self, dclass, name)
         self.init(name)
-        #if self.alias is not None:
-        #    name = "Tango_%s" % self.alias
-        #else:
-        #    name = "Tango_%s" % self.get_name()
         Logger.__init__(self, name)
         
         self._state = DevState.ON
