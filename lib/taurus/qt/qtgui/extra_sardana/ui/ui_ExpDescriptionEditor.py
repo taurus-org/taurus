@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpYoLx4X.ui'
+# Form implementation generated from reading ui file '/tmp/tmptywIDZ.ui'
 #
-# Created: Thu Feb 16 17:46:00 2012
+# Created: Tue Feb 21 16:04:29 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,25 +78,33 @@ class Ui_ExpDescriptionEditor(object):
         self.tabWidget.addTab(self.tab_2, "")
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName("tab_3")
-        self.gridLayout = QtGui.QGridLayout(self.tab_3)
-        self.gridLayout.setObjectName("gridLayout")
-        spacerItem1 = QtGui.QSpacerItem(20, 246, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem1, 0, 1, 1, 1)
+        self.formLayout = QtGui.QFormLayout(self.tab_3)
+        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
+        self.formLayout.setObjectName("formLayout")
         self.label_3 = QtGui.QLabel(self.tab_3)
         self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 1, 0, 1, 2)
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_3)
         self.filenameLE = QtGui.QLineEdit(self.tab_3)
         self.filenameLE.setObjectName("filenameLE")
-        self.gridLayout.addWidget(self.filenameLE, 1, 2, 1, 1)
+        self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.filenameLE)
         self.label_2 = QtGui.QLabel(self.tab_3)
         self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
-        self.pathLE = QtGui.QLineEdit(self.tab_3)
+        self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.widget = QtGui.QWidget(self.tab_3)
+        self.widget.setObjectName("widget")
+        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.widget)
+        self.horizontalLayout_2.setMargin(0)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.pathLE = QtGui.QLineEdit(self.widget)
         self.pathLE.setObjectName("pathLE")
-        self.gridLayout.addWidget(self.pathLE, 2, 2, 1, 1)
+        self.horizontalLayout_2.addWidget(self.pathLE)
+        self.choosePathBT = QtGui.QToolButton(self.widget)
+        self.choosePathBT.setObjectName("choosePathBT")
+        self.horizontalLayout_2.addWidget(self.choosePathBT)
+        self.formLayout.setWidget(3, QtGui.QFormLayout.FieldRole, self.widget)
         self.label_4 = QtGui.QLabel(self.tab_3)
         self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 3, 0, 1, 2)
+        self.formLayout.setWidget(4, QtGui.QFormLayout.LabelRole, self.label_4)
         self.compressionCB = QtGui.QComboBox(self.tab_3)
         self.compressionCB.setObjectName("compressionCB")
         self.compressionCB.addItem(QtCore.QString())
@@ -104,9 +112,7 @@ class Ui_ExpDescriptionEditor(object):
         self.compressionCB.addItem(QtCore.QString())
         self.compressionCB.addItem(QtCore.QString())
         self.compressionCB.addItem(QtCore.QString())
-        self.gridLayout.addWidget(self.compressionCB, 3, 2, 1, 1)
-        spacerItem2 = QtGui.QSpacerItem(20, 245, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem2, 4, 1, 1, 1)
+        self.formLayout.setWidget(5, QtGui.QFormLayout.FieldRole, self.compressionCB)
         self.tabWidget.addTab(self.tab_3, "")
         self.verticalLayout_3.addWidget(self.tabWidget)
         self.buttonBox = QtGui.QDialogButtonBox(ExpDescriptionEditor)
@@ -128,8 +134,19 @@ class Ui_ExpDescriptionEditor(object):
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab), QtGui.QApplication.translate("ExpDescriptionEditor", "External (Tango)", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "(Drag elements from the above selectors and drop them at the bottom list)", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("ExpDescriptionEditor", "Snapshot Group", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "File Name", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Ubuntu\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">comma separated list of file names in which to store the results of the scans. Use .h5 extension for NeXus files (preferred) and .dat for spec format (note: SPEC format is <span style=\" font-weight:600;\">not </span>supported)</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "File Name(s)", None, QtGui.QApplication.UnicodeUTF8))
+        self.filenameLE.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Ubuntu\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">comma separated list of file names in which to store the results of the scans. Use .h5 extension for NeXus files (preferred) and .dat for spec format (note: SPEC format is <span style=\" font-weight:600;\">not </span>supported)</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Path", None, QtGui.QApplication.UnicodeUTF8))
+        self.choosePathBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Data compression", None, QtGui.QApplication.UnicodeUTF8))
         self.compressionCB.setItemText(0, QtGui.QApplication.translate("ExpDescriptionEditor", "nowhere", None, QtGui.QApplication.UnicodeUTF8))
         self.compressionCB.setItemText(1, QtGui.QApplication.translate("ExpDescriptionEditor", "for all datasets", None, QtGui.QApplication.UnicodeUTF8))

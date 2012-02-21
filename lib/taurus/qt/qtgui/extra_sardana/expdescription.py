@@ -61,6 +61,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('dataChanged (QModelIndex, QModelIndex)'), self._updateButtonBox )
         self.connect(self.ui.channelEditor.getQModel(), Qt.SIGNAL('modelReset ()'), self._updateButtonBox )
         self.connect(self.ui.preScanList, Qt.SIGNAL('dataChanged'), self.onPreScanSnapshotChanged )
+        self.connect(self.ui.choosePathBT, Qt.SIGNAL('clicked ()'), self.onChooseScanDirButtonClicked)
         
         if door is not None:
             self.setModel(door)
@@ -69,6 +70,12 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.TaurusDevice
+    
+    def onChooseScanDirButtonClicked(self):
+        ret = Qt.QFileDialog.getExistingDirectory ( self, 'Choose directory for saving files', self.ui.pathLE.text())
+        if ret:
+            self.ui.pathLE.setText(ret)
+            self.ui.pathLE.emit(Qt.SIGNAL('textEdited (QString)'),ret)
         
     def onDialogButtonClicked(self, button):
         role = self.ui.buttonBox.buttonRole(button)
