@@ -237,6 +237,13 @@ class MacroSequenceTreeModel(Qt.QAbstractItemModel):
         self.reset()
         return newRoot
     
+    def fromPlainText(self, text):
+        newRoot = macro.SequenceNode(None)
+        newRoot.fromPlainText(text)
+        self.setRoot(newRoot)
+        self.reset()
+        return newRoot
+    
     def assignIds(self):
         """
         Assigns ids for all macros present in the sequence. If certain macro

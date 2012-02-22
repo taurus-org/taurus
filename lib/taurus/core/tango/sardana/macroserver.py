@@ -50,7 +50,7 @@ from taurus.core.util import etree, CodecFactory, CaselessDict, Logger, \
 from taurus.core.util.console import NoColors, TermColors
 from taurus.core.tango import TangoDevice
 
-from macro import MacroInfo, Macro, MacroNode, ParamFactory
+from macro import MacroInfo, Macro, MacroNode, ParamFactory, RepeatNode, RepeatParamNode, SingleParamNode, ParamNode
 from sardana import BaseSardanaElementContainer, BaseSardanaElement
 
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
@@ -695,6 +695,9 @@ class BaseMacroServer(MacroServerDevice):
         for elem_type in elem_types:
             elems.update(self.getElementsOfType(elem_type))
         return elems
+        
+    def getInterfaces(self):
+        return self.getElementsInfo().getInterfaces()
     
     def getExpChannelElements(self):
         channel_types = "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", \
@@ -742,6 +745,81 @@ class BaseMacroServer(MacroServerDevice):
             macroNode.addParam(param)
         return macroNode
     
+    def validateMacroName(self, macroName):
+        macroInfo = self.getElementInfo(macroName)
+        if macroInfo is None:
+            raise Exception("%s macro does not exist in this sardana system." % macroName)
+        elif macroInfo.type != 'MacroClass':
+            raise Exception("%s element is not a macro." % macroName)
+        
+    def validateMacroNode(self, macroNode):
+        paramNodes = macroNode.children()
+        for paramNode in paramNodes:
+            self.validateParamNode(paramNode)
+        return True
+    
+    def validateParamNode(self, paramNode):
+        assert isinstance(paramNode, ParamNode)
+        if isinstance(paramNode, SingleParamNode):
+            self.validateSingleParam(paramNode)
+        else:
+            self.validateRepeatParam(paramNode)
+        return True
+    
+    def validateSingleParam(self, singleParamNode):
+        name = singleParamNode.name()
+        type = singleParamNode.type()
+        value = singleParamNode.value()
+                
+        if type == "Boolean":
+            pass
+        elif type == "Env":
+            pass
+        elif type == "File":
+            pass
+        elif type == "Filename":
+            pass
+        elif type == "MotorParam":
+            pass
+        elif type == "String":
+            pass
+        elif type == "User":
+            pass 
+        elif type == "MotorParam":
+            pass
+        elif type == "Integer" or type == "Float":
+            min = singleParamNode.min()
+            max = singleParamNode.max()
+            if min != None and value < min:
+                raise  Exception("%s parameter value: %s is below minimum allowed value." % (name, value))
+            if max != None and value > max:
+                raise  Exception("%s parameter value: %s is above maximum allowed value." % (name, value))
+        else:
+            allowedInterfaces = self.getInterfaces().keys()
+            if not type in allowedInterfaces:
+                raise Exception("No element with %s interface exist in this sardana system." % type)
+            allowedValues = self.getElementNamesWithInterface(type)
+            if not value in allowedValues:
+                raise Exception("%s element with %s interface does not exist in this sardana system." % (value, type))
+        return True
+            
+    def validateRepeatParam(self, repeatParamNode):
+        paramName = repeatParamNode.name()
+        if repeatParamNode.isBelowMin():
+            raise  Exception("%s param repeats has not enough repeats." % (paramName))
+        if repeatParamNode.isAboveMax():
+            raise  Exception("%s param repeat has too many repeats." % (paramName))
+        repetitions = repeatParamNode.children()
+        for repeat in repetitions:
+            params = repeat.children()
+            for param in params:
+                if isinstance(param, SingleParamNode):
+                    self.validateSingleParam(param)
+                else:
+                    self.validateRepeatParam(param)
+        return True
+        
+                     
     def fillMacroNodeAdditionalInfos(self, macroNode):
         """
         This method filles macroNode information which couldn't be stored 
@@ -751,8 +829,10 @@ class BaseMacroServer(MacroServerDevice):
         
         See Also: getMacroNodeObj
         """
-        macroInfoObj = self.getMacroInfoObj(macroNode.name())
-        if macroInfoObj is None: return
+        macroName = macroNode.name()
+        macroInfoObj = self.getMacroInfoObj(macroName)
+        if macroInfoObj is None:
+            raise Exception("It was not possible to get information about %s macro.\nCheck if MacroServer is alive and if this macro exist." % macroName)
         allowedHookPlaces = []
         for hook in macroInfoObj.hints.get("allowsHooks", []):
             allowedHookPlaces.append(str(hook))
@@ -763,7 +843,7 @@ class BaseMacroServer(MacroServerDevice):
             paramList = macroInfoObj.getParamList()
             for paramNode, paramInfo in zip(macroNode.params(), paramList):
                 self.__fillParamNodeAdditionalInfos(paramNode, paramInfo)
-    
+                
     def __fillParamNodeAdditionalInfos(self, paramNode, paramInfo):
         """
         This is a protected method foreseen to use only internally by 
@@ -782,6 +862,91 @@ class BaseMacroServer(MacroServerDevice):
         else:
             paramNode.setType(str(type))
             paramNode.setDefValue(str(paramInfo.get("default_value")))
+            
+    def recreateMacroNodeAndFillAdditionalInfos(self, macroNode):
+        """
+        This method filles macroNode information which couldn't be stored 
+        in plain text file.
+        
+        :param macroNode: (MacroNode) macro node obj populated from plain text information
+        
+        See Also: getMacroNodeObj
+        """
+        macroName = macroNode.name()
+        self.validateMacroName(macroName)
+        macroInfoObj = self.getMacroInfoObj(macroName)
+        if macroInfoObj is None:
+            raise Exception("It was not possible to get information about %s macro.\nCheck if MacroServer is alive and if this macro exist." % macroName)
+        allowedHookPlaces = []
+        for hook in macroInfoObj.hints.get("allowsHooks", []):
+            allowedHookPlaces.append(str(hook))
+        macroNode.setAllowedHookPlaces(allowedHookPlaces)
+        hasParams = macroInfoObj.hasParams()
+        macroNode.setHasParams(hasParams)
+        if not hasParams:
+            return
+        paramInfosList = macroInfoObj.getParamList()
+        paramNodes = macroNode.params()
+        paramIndex = 0    
+        for paramNode, paramInfo in zip(paramNodes, paramInfosList):
+            paramType = paramInfo.get('type')
+            if isinstance(paramType,list):                    
+                paramNode = self.__recreateParamRepeatNodes(macroNode, paramIndex, paramInfo)
+            else:
+                paramNode.setName(paramInfo.get("name"))
+            self.__recreateParamNodeAdditionalInfos(paramNode, paramInfo)
+            paramIndex += 1
+        self.validateMacroNode(macroNode)
+
+    def __recreateParamRepeatNodes(self, macroNode, indexToStart, repeatParamInfo):
+        #extracting rest of the single params which have to be adopted to param repeats
+        paramNodes = []
+        while len(macroNode.params()) > indexToStart:
+            lastParam = macroNode.popParam()
+            paramNodes.append(lastParam)
+        paramNodes.reverse()
+        
+        nrOfSingleParams = len(paramNodes) 
+        paramName = repeatParamInfo.get("name")
+        min = repeatParamInfo.get("min")
+        max = repeatParamInfo.get("max")
+        repeatParamChildrenInfos = repeatParamInfo.get("type")
+        
+        if nrOfSingleParams % len(repeatParamChildrenInfos):
+            raise Exception("Param repeat %s doesn't have correct number of repetitions" % paramName)        
+        nrOfRepeats = nrOfSingleParams / len(repeatParamChildrenInfos)
+        repeatParamNode = RepeatParamNode(macroNode, repeatParamInfo)
+        for repeatIdx in range(nrOfRepeats):
+            repeatNode = RepeatNode(repeatParamNode)
+            for singleParamInfo in repeatParamChildrenInfos:
+                singleParamName = singleParamInfo.get('name')
+                singleParamNode = paramNodes.pop(0)
+                singleParamNode.setName(singleParamName)
+                repeatNode.insertChild(singleParamNode)
+            repeatParamNode.insertChild(repeatNode)
+        macroNode.addParam(repeatParamNode)
+        return repeatParamNode
+            
+    def __recreateParamNodeAdditionalInfos(self, paramNode, paramInfo):
+        """
+        This is a protected method foreseen to use only internally by 
+        fillMacroNodeAdditionaInfos, to be called for every param node obj."""
+        paramType = paramInfo.get('type')
+        min = paramInfo.get("min")
+        max = paramInfo.get("max")
+        paramNode.setMin(min)
+        paramNode.setMax(max)    
+        paramNode.setDescription(str(paramInfo.get("description")))
+        
+        if type(paramType) == list:
+            paramNode.setParamsInfo(paramType)
+            for repeatNode in paramNode.children():
+                for internalParamNode, internalParamInfo in zip(repeatNode.children(), paramType):
+                    self.__recreateParamNodeAdditionalInfos(internalParamNode, internalParamInfo)
+        else:
+            paramNode.setType(paramType)
+            paramNode.setDefValue(str(paramInfo.get("default_value")))
+    
     
     def getMacroPathObj(self, cache=False):
         if not hasattr(self, "_macro_path"):

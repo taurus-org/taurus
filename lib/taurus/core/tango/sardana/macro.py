@@ -415,13 +415,16 @@ class ParamNode(BaseNode):
     
     def __init__(self, parent=None, param=None):
         BaseNode.__init__(self, parent)
-        self.setMax(None)
-        self.setMin(None)
-        if param is None: return
-        self.setName(str(param.get('name')))
-        self.setDescription(str(param.get('description')))
-        self.setMin(str(param.get('min')))
-        self.setMax(str(param.get('max')))
+        if param is None:
+            self.setName(None)
+            self.setDescription(None)
+            self.setMin(None)
+            self.setMax(None)
+        else:
+            self.setName(str(param.get('name')))
+            self.setDescription(str(param.get('description')))
+            self.setMin(str(param.get('min')))
+            self.setMax(str(param.get('max')))
         
             
     def name(self):
@@ -561,8 +564,16 @@ class RepeatParamNode(ParamNode, BranchNode):
             return False
         return len(self) == self.max() 
         
+    def isAboveMax(self):
+        if self.max() is None:
+            return False
+        return len(self) > self.max() 
+
     def insertChild(self, child, row=-1):
-        if self.isReachedMax(): return
+        #this line was removed on purpose
+        #in case of importing sequences from plain text, it is possible that user introduced more repetitions than allowed
+        #in this case later validation will inform him about exceeding a limit
+        #if self.isReachedMax(): return
         return BranchNode.insertChild(self, child, row) 
         
     def removeChild(self, child):
@@ -797,6 +808,12 @@ class MacroNode(BranchNode):
     def addParam(self, param):
         param.setParent(self)
         self._params.append(param)
+    
+    def popParam(self, index=None):
+        if index == None:
+            return self._params.pop()
+        else:
+            return self._params.pop(index)
         
     def hooks(self):
         return self._hooks
@@ -1018,6 +1035,18 @@ class MacroNode(BranchNode):
                 hookPlaces.append(element.text)
         self.setHookPlaces(hookPlaces)
     
+    def fromPlainText(self, plainText):
+        words = plainText.split()
+        length = len(words)
+        if length == 0:
+            return
+        self.setName(words[0])
+        for index in range(1,length):
+            param = SingleParamNode(self)
+            param.setValue(words[index])
+            self.addParam(param)
+        
+    
 class SequenceNode(BranchNode):
     """Class to represent sequence element."""
         
@@ -1047,6 +1076,16 @@ class SequenceNode(BranchNode):
         for childElement in sequenceElement.iterchildren("macro"):
             macro = MacroNode(self)
             macro.fromXml(childElement)
+            self.insertChild(macro)
+
+    def fromPlainText(self, plainText):
+        plainMacros = plainText.split('\n')
+        for plainMacro in plainMacros:
+            #ignoring empty lines
+            if len(plainMacro) == 0:
+                continue
+            macro = MacroNode(self)
+            macro.fromPlainText(plainMacro)
             self.insertChild(macro)
             
 #    def descendantFromId(self, id):

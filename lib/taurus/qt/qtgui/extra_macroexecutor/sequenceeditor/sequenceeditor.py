@@ -175,6 +175,12 @@ class MacroSequenceTree(Qt.QTreeView, BaseConfigurableClass):
         self.expanded()
         return newRoot
     
+    def fromPlainText(self, plainText):
+        newRoot = self.model().fromPlainText(plainText)
+        self.expandAll()
+        self.expanded()
+        return newRoot
+    
     def root(self):
         return self.model().root()
     
@@ -527,19 +533,22 @@ class TaurusSequencerWidget(TaurusWidget):
                                        Qt.QMessageBox.Yes,
                                        Qt.QMessageBox.No) == Qt.QMessageBox.Yes:
                 self.onSaveSequence()
-                self.clearTree()
+                self.tree.clearTree()
                 
         sequencesPath = self.sequencesPath()
         fileName = str(Qt.QFileDialog.getOpenFileName(self,
                                                      "Choose a sequence to open...",
                                                      sequencesPath,
-                                                     "*.xml"))
+                                                     "*"))
         if fileName == "": return
         #@todo: reset macroComboBox to index 0
         try: 
             file = open(fileName,'r')
-            xmlString = file.read()
-            root = self.fromXmlString(xmlString)
+            string = file.read()
+            if fileName.endswith('.xml'):
+                root = self.fromXmlString(string)
+            else:
+                root = self.fromPlainText(string)
             self._sequenceModel.setRoot(root)
             self.sequenceProxyModel.invalidateFilter()
             self.tree.expandAll()
@@ -556,6 +565,12 @@ class TaurusSequencerWidget(TaurusWidget):
             self.tree.clearTree()
             self.newSequenceAction.setEnabled(False)
             self.saveSequenceAction.setEnabled(False)
+        except:
+            self.tree.clearTree()
+            self.playSequenceAction.setEnabled(False)
+            self.newSequenceAction.setEnabled(False)
+            self.saveSequenceAction.setEnabled(False)
+            raise
         finally:
             if not file is None: file.close()
             self.setSequencesPath(str.join("/", fileName.rsplit("/")[:-1]))
@@ -757,6 +772,13 @@ class TaurusSequencerWidget(TaurusWidget):
             macroServerObj.fillMacroNodeAdditionalInfos(macroNode)
         return newRoot
     
+    def fromPlainText(self, plainText):
+        newRoot = self.tree.fromPlainText(plainText)
+        macroServerObj = self.getModelObj()
+        for macroNode in newRoot.allMacros():
+            macroServerObj.recreateMacroNodeAndFillAdditionalInfos(macroNode)
+        return newRoot
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
