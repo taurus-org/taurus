@@ -52,10 +52,7 @@ class defm(Macro):
                  ['motor name', Type.String, None, 'motor name']]
     
     def run(self,controller, axis, name):
-        pools = self.getManager().getPoolListObjs()
-        if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
-        pool = pools[0]
+        pool = mntgrp.getPoolObj()
         pool.CreateMotor([[int(axis)],[name, controller]])
 
 
@@ -77,11 +74,11 @@ class defmeas(Macro):
             raise Exception('A measurement group with that name already exists')
         
     def run(self, name, *channel_list):
-        pools = self.getManager().getPoolListObjs()
+        pools = self.getPools()
         if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
+            self.warning('Server connected to more than 1 pool. This macro is '
+                         'not supported in this case for now')
         pool = pools[0]
-
         mg = pool.createMeasurementGroup(name, channel_list)
         print("Created %s" % str(mg))
 
@@ -91,10 +88,7 @@ class udefmeas(Macro):
     param_def = [ ['name', Type.MeasurementGroup, None, 'Measurement group name'],]
 
     def run(self, mntgrp):
-        pools = self.getManager().getPoolListObjs()
-        if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
-        pool = pools[0]
+        pool = mntgrp.getPoolObj()
         pool.deleteMeasurementGroup(mntgrp.getName())
 
 class defelem(Macro):
@@ -131,9 +125,10 @@ class defctrl(Macro):
                    None, 'property item'] ]
     
     def run(self, ctrl_class, name, *props):
-        pools = self.getManager().getPoolListObjs()
+        pools = self.getPools()
         if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is not supported in this case for now')
+            self.warning('Server connected to more than 1 pool. This macro is '
+                         'not supported in this case for now')
         pool = pools[0]
         elem = pool.createController(ctrl_class.name, name, *props)
         print("Created %s" % str(elem))
