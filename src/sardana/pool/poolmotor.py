@@ -71,7 +71,8 @@ class PoolMotor(PoolElement):
         self._sign = Sign(self, initial_value=1)
         self._backlash = 0
         self._step_per_unit = 1.0
-        self._limit_switches = LimitSwitches(self, name="Limit_switches")
+        self._limit_switches = LimitSwitches(self, name="Limit_switches",
+                                             initial_value=3*(False,))
         self._acceleration = None
         self._deceleration = None
         self._velocity = None
@@ -102,6 +103,8 @@ class PoolMotor(PoolElement):
     def _set_state_info(self, state_info, propagate=1):
         PoolElement._set_state_info(self, state_info, propagate=propagate)
         ls = state_info[-1]
+        if self._sign.value < 0:
+            ls = ls[0], ls[2], ls[1]
         self._set_limit_switches(ls, propagate=propagate)
     
     # --------------------------------------------------------------------------
@@ -152,7 +155,7 @@ class PoolMotor(PoolElement):
     def inspect_limit_switches(self):
         """returns the current (cached value of the limit switches
         
-        :"""
+        :return: the current limit switches flags"""
         return self._limit_switches
     
     def get_limit_switches(self, cache=True, propagate=1):
