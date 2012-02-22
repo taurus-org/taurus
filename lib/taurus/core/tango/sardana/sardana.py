@@ -206,6 +206,9 @@ class BaseSardanaElementContainer:
         for elems in self._type_elems_dict.values():
             ret.update(elems.values())
         return ret
+        
+    def getInterfaces(self):
+        return self._interfaces_dict
     
     def getTypes(self):
         return self._type_elems_dict
