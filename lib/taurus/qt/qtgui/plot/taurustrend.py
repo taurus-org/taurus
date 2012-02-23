@@ -299,17 +299,19 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                     stopdate = self._xBuffer[0] #Older value already read
                     try:
                         archived = getArchivedTrendValues(self,model,startdate,stopdate)
-                        del(archived[:-self._xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
-                        t = numpy.zeros(len(archived), dtype=float)
-                        y = numpy.zeros((len(archived), ntrends), dtype=float)#self._yBuffer.dtype)
-                        for i,v in enumerate(archived):
-                            t[i]=v.time.totime()
-                            y[i]=v.value
-                        self._xBuffer.extendLeft(t)
-                        self._yBuffer.extendLeft(y)
-                        if archived is not None and len(archived): self.replot()
+                        if archived is not None and len(archived): 
+                            del(archived[:-self._xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
+                            t = numpy.zeros(len(archived), dtype=float)
+                            y = numpy.zeros((len(archived), ntrends), dtype=float)#self._yBuffer.dtype)
+                            for i,v in enumerate(archived):
+                                t[i]=v.time.totime()
+                                y[i]=v.value
+                            self._xBuffer.extendLeft(t)
+                            self._yBuffer.extendLeft(y)
+                            self.parent().replot()
                     except Exception,e:
-                        self.trace('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),str(e)))     
+                        import traceback
+                        self.warning('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),traceback.format_exc()))     
         else:
             #add the event number to the x buffer
             try:
