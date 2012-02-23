@@ -1503,7 +1503,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 #        ey=rawdata.get("ey",numpy.zeros(len(y)))
 
         #at this point, both x and y must be valid
-        x,y = numpy.array(x), numpy.array(y)
+        if x != None: x = numpy.array(x)
+        y = numpy.array(y)
 
         if id is None:
             name = title
@@ -2334,7 +2335,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 converters[xcol] = isodatestr2float
                 kwargs['converters']=converters
             M=numpy.loadtxt(fname, **kwargs)
-            if len(M.shape)==1: M.reshape(M.size, 1) #make sure we are dealing with a 2D matrix even if it is just a colum
+            if len(M.shape)==1:M = M.reshape(M.size, 1) #make sure we are dealing with a 2D matrix even if it is just a colum
             if xcol is None:
                 rawdata["x"]=None
             else:
