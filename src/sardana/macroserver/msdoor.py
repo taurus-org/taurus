@@ -23,12 +23,64 @@
 ##
 ##############################################################################
 
+"""This module contains the class definition for the macro server door"""
+
+__all__ = ["MacroProxy", "MSDoor",]
+
+__docformat__ = 'restructuredtext'
+
+import weakref
+
 from taurus import Device, Factory
 
 from sardana import ElementType
 from sardana.sardanaevent import EventType
 
 from msbase import MSObject
+
+
+class MacroProxy(object):
+    
+    def __init__(self, door, macro_meta):
+        self._door = weakref.ref(door)
+        self._macro_meta = weakref.ref(macro_meta)
+
+    @property
+    def door(self):
+        return self._door()
+
+    @property
+    def macro_info(self):
+        return self._macro_meta()
+    
+    def __call__(self, *args, **kwargs):
+        door = self.door
+        parent_macro = door.get_running_macro()
+        parent_macro.syncLog()
+        executor = parent_macro.executor
+        opts=dict(parent_macro=parent_macro, executor=executor)
+        kwargs.update(opts)
+        eargs = [self.macro_info.name]
+        eargs.extend(args)
+        return parent_macro.execMacro(*eargs, **kwargs)
+    
+
+class MacroProxyCache(dict):
+    
+    def __init__(self, door):
+        self._door = weakref.ref(door)
+        self.rebuild()
+    
+    @property
+    def door(self):
+        return self._door()
+    
+    def rebuild(self):
+        self.clear()
+        door = self.door
+        macros = self.door.get_macros()
+        for macro_name, macro_meta in macros.items():
+            self[macro_name] = MacroProxy(door, macro_meta)
 
 
 class MSDoor(MSObject):
@@ -40,6 +92,7 @@ class MSDoor(MSObject):
         self._result = None
         self._macro_status = None
         self._record_data = None
+        self._macro_proxy_cache = None
         MSObject.__init__(self, **kwargs)
     
     def get_type(self):
@@ -123,7 +176,14 @@ class MSDoor(MSObject):
         :raises: UnknownEnv"""
         return self.macro_server.environment_manager.getAllDoorEnv(self.name)
     
+    def _build_macro_proxy_cache(self):
+        self._macro_proxy_cache = MacroProxyCache(self)
+    
+    def get_macro_proxies(self):
+        if self._macro_proxy_cache is None:
+            self._macro_proxy_cache = MacroProxyCache(self)
+        return self._macro_proxy_cache
+    
     def __getattr__(self, name):
         """Get methods from macro server"""
         return getattr(self.macro_server, name)
-    

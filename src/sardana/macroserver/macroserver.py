@@ -308,6 +308,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         evt = { "new" : new_elements, "change" : changed_elements,
                 "del" : deleted_elements }
         self.fire_event(EventType("ElementsChanged"), evt)
+    reload_macro_lib.__doc__ = MacroManager.reloadMacroLib
     
     def reload_macro_libs(self, lib_names):
         for lib_name in lib_names:
@@ -327,21 +328,27 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     
     def get_macro_lib(self, lib_name):
         return self.macro_manager.getMacroLib(lib_name)
+    get_macro_lib.__doc__ = MacroManager.getMacroLib.__doc__
     
     def get_macro_libs(self, filter=None):
         return self.macro_manager.getMacroLibs(filter=filter)
+    get_macro_libs.__doc__ = MacroManager.getMacroLibs.__doc__
     
     def get_macro_lib_names(self):
         return self.macro_manager.getMacroLibNames()
+    get_macro_lib_names.__doc__ = MacroManager.getMacroLibNames.__doc__
     
     def get_macro(self, name):
         return self.macro_manager.getMacro(name)
+    get_macro.__doc__ = MacroManager.getMacro.__doc__
 
     def get_macros(self, filter=None):
         return self.macro_manager.getMacros(filter=filter)
+    get_macros.__doc__ = MacroManager.getMacros.__doc__
     
     def get_macro_names(self):
         return self.macro_manager.getMacroNames()
+    get_macro_names.__doc__ = MacroManager.getMacroNames.__doc__
     
     def get_macro_libs_summary_info(self):
         libs = self.get_macro_libs()
@@ -380,27 +387,33 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :rtype: seq<str, str, int>"""
         return self.macro_manager.getOrCreateMacroLib(lib_name,
                                                       macro_name=macro_name)
+    get_or_create_macro_lib.__doc__ = MacroManager.getOrCreateMacroLib.__doc__
     
     def set_macro_lib(self, lib_name, code):
         module_name = self.macro_manager.setMacroLib(lib_name, code,
                                                      auto_reload=False)
         self.reload_macro_lib(module_name)
-        
+    set_macro_lib.__doc__ = MacroManager.setMacroLib.__doc__
+    
     # --------------------------------------------------------------------------
     # Data types
     # --------------------------------------------------------------------------
     
     def get_types(self):
         return self.type_manager.getTypes()
+    get_types.__doc__ = TypeManager.getTypes.__doc__
     
     def get_type(self, type_name):
         return self.type_manager.getTypeObj(type_name)
+    get_type.__doc__ = TypeManager.getTypeObj.__doc__
     
     def get_type_names(self):
         return self.type_manager.getTypeNames()
-
+    get_type_names.__doc__ = TypeManager.getTypeNames.__doc__
+    
     def get_type_names_with_asterisc(self):
         return self.type_manager.getTypeListStr()
+    get_type_names_with_asterisc.__doc__ = TypeManager.getTypeListStr.__doc__
     
     # --------------------------------------------------------------------------
     # Doors

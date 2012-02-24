@@ -176,9 +176,9 @@ class ElementParamType(ParamType):
             if elem_info is not None and self.accepts(elem_info):
                 return elem_info
         # not a pool object, maybe it is a macro server object (perhaps a macro
-        # class or a macro library
+        # code or a macro library
         try:
-            return macro_server.get_macro_class_info(name)
+            return macro_server.get_macro(name)
         except UnknownMacro:
             pass
         
@@ -198,6 +198,13 @@ class ElementParamType(ParamType):
             for elem_info in pool.getElements():
                 if self.accepts(elem_info):
                     objs[elem_info.name] = elem_info
+        for macro_lib_name, macro_lib in macro_server.get_macros().items():
+            if self.accepts(macro_lib):
+                objs[macro_lib_name] = macro_lib
+        for macro_name, macro in macro_server.get_macros().items():
+            if self.accepts(macro):
+                objs[macro_name] = macro
+        
         return objs
     
     def getObjListStr(self, pool=ParamType.All, cache=False):

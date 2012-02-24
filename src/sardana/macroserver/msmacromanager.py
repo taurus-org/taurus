@@ -80,7 +80,10 @@ def is_macro(macro, abs_file=None, logger=None):
     elif callable(macro) and not islambda(macro):
         # if it is a class defined in some other module forget it to
         # avoid replicating the same macro in different macro files
-        if inspect.getabsfile(macro) != abs_file:
+        try:
+            if inspect.getabsfile(macro) != abs_file:
+                return False
+        except TypeError:
             return False
         
         if not hasattr(macro, 'macro_data'):
@@ -465,6 +468,15 @@ class MacroManager(MacroServerManager):
         return ret
     
     def getMacros(self, filter=None):
+        """Returns a :obj:`dict` containing information about macros.
+        
+        :param filter:
+            a regular expression for macro names [default: None, meaning all
+            macros]
+        :type filter: str
+        :return: a :obj:`dict` containing information about macros
+        :rtype:
+            :obj:`dict`\<:obj:`str`\, :class:`~sardana.macroserver.msmetamacro.MacroCode`\>"""
         if filter is None:
             return self._macro_dict
         expr = re.compile(filter, re.IGNORECASE)

@@ -27,6 +27,7 @@
 scan"""
 
 from __future__ import with_statement
+from __future__ import print_function
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
            "MacroFinder", "Macro", "macro", "MacroFunc", "Type",
@@ -44,6 +45,7 @@ import weakref
 import functools
 import new
 import textwrap
+import StringIO
 
 from taurus.core.util import Logger, CodecFactory, propertx
 
@@ -54,7 +56,6 @@ from sardana.sardanadefs import State
 from msparameter import Type, ParamType, ParamRepeat
 from msexception import MacroServerException, AbortException, \
     MacroWrongParameterType, UnknownEnv
-
 
 class OverloadPrint(object):
     
@@ -81,13 +82,37 @@ class OverloadPrint(object):
         
     def flush(self):
         b = self._accum
-        if b is None or len(self._accum) == 0:
+        if b is None or len(b) == 0:
             return
         #take the '\n' because the output is a list of strings, each to be
         #interpreted as a separate line in the client
         if b[-1] == '\n': b = b[:-1]
         self._macro.output(b)
         self._accum = ""
+
+
+class PrintMacro(object):
+    
+    def __init__(self, macro):
+        self._macro = weakref.ref(macro)
+    
+    @property
+    def macro(self):
+        return self._macro()
+    
+    def __call__(self, *args, **kwargs):
+        macro = self.macro
+        fd = kwargs.get('file', sys.stdout)
+        if macro is not None and fd in (sys.stdout, sys.stderr):
+            out = StringIO.StringIO()
+            kwargs['file'] = out
+            end = kwargs.get('end', '\n')
+            if end == '\n':
+                kwargs['end'] = ''
+            ret = print(*args, **kwargs)
+            macro.output(out.getvalue())
+        else:
+            return print(*args, **kwargs)
 
 
 class PauseEvent(Logger):
@@ -587,8 +612,6 @@ class Macro(Logger):
         :rtype: :class:`~sardana.macroserver.macromanager.MacroExecutor`"""
         return self._executor
     
-    executor = property(getExecutor)
-    
     @mAPI
     def getDoorObj(self):
         """**Macro API**.
@@ -597,8 +620,6 @@ class Macro(Logger):
         :return: the reference to the Door that invoked this macro.
         :rype: :class:`~sardana.macroserver.door.Door`"""
         return self.executor.getDoor()
-    
-    door = property(getDoorObj)
     
     @mAPI
     def getManager(self):
@@ -1468,6 +1489,20 @@ class Macro(Logger):
     #@{
     
     @property
+    def executor(self):
+        """**Unofficial Macro API**. Alternative to :meth:`getExecutor` that
+        does not throw AbortException in case of an Abort. This should be
+        called only internally"""
+        return self._executor
+    
+    @property
+    def door(self):
+        """**Unofficial Macro API**. Alternative to :meth:`getDoorObj` that
+        does not throw AbortException in case of an Abort. This should be
+        called only internally"""
+        return self.executor.getDoor()
+    
+    @property
     def parent_macro(self):
         """**Unofficial Macro API**. Alternative to getParentMacro that does not
         throw AbortException in case of an Abort. This should be called only
@@ -1567,9 +1602,14 @@ class Macro(Logger):
         #    res = self.run(*self._in_pars)
         #finally:
         #    print = _orig_print
-            
-        with OverloadPrint(self):
-            res = self.run(*self._in_pars)
+
+#        with OverloadPrint(self):
+#            res = self.run(*self._in_pars)
+
+        orig_func = self.run
+        extra_globals = self._build_globals(orig_func.func_globals)
+        new_func = new.function(orig_func.func_code, extra_globals)
+        res = new_func(self, *self._in_pars)
         
         if type(res) == types.GeneratorType:
             it = iter(res)
@@ -1622,6 +1662,17 @@ class Macro(Logger):
             self.on_pause()
         self._pause_event.wait(timeout)
     
+    def _build_globals(self, *dictionaries):
+        """**Internal method**. Creates the globals env for macro execution"""
+        ret = dict()
+        for d in dictionaries:
+            ret.update(d)
+        ret.update(self.door.get_macro_proxies())
+        ret['self'] = self
+        ret['macros'] = self.macros
+        ret['print'] = PrintMacro(self)
+        return ret
+    
     def abort(self):
         """**Internal method**. Activates the abort flag on this macro."""
         self._aborted = True
@@ -1656,8 +1707,8 @@ class MacroFunc(Macro):
         Macro.__init__(self, *args, **kwargs)
         
     def run(self, *args):
-        extra_globals = dict(self=self, macros=self.macros)
-        extra_globals.update(globals())
-        new_run = new.function(self._function.func_code, extra_globals)
-        return new_run(*args)
+        orig_func = self._function
+        extra_globals = self._build_globals(orig_func.func_globals)
+        new_func = new.function(orig_func.func_code, extra_globals)
+        return new_func(*args)
         
