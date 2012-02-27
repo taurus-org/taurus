@@ -772,7 +772,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.layout().addWidget(self.lbl_alias)
 
         self.btn_poweron = Qt.QPushButton()
-        self.btn_poweron.setText('Set ON')
+        self.btn_poweron.setText('Power ON')
         self.layout().addWidget(self.btn_poweron)
 
         # Align everything on top
@@ -799,7 +799,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
     def setPowerOn(self):
         motor_dev = self.taurusValueBuddy().motor_dev
         if motor_dev is not None:
-            poweron = (self.btn_poweron.text() == 'Set ON')
+            poweron = (self.btn_poweron.text() == 'Power ON')
             motor_dev.getAttribute('PowerOn').write(poweron)
 
     def setModel(self, model):
@@ -1301,9 +1301,9 @@ class PoolMotorTV(TaurusValue):
         self.writeWidget().btn_to_neg_press.setEnabled(enabled)
 
     def updatePowerOn(self, poweron):
-        btn_text = 'Set ON'
+        btn_text = 'Power ON'
         if poweron:
-            btn_text = 'Set OFF'
+            btn_text = 'Power OFF'
 
         self.labelWidget().btn_poweron.setText(btn_text)
 
