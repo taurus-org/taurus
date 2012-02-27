@@ -22,5 +22,3 @@ MacroServer
     
 .. autoclass:: MacroServer
     :show-inheritance:
-    :members:
-    :undoc-members:

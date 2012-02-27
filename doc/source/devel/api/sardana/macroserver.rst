@@ -11,5 +11,14 @@
     :maxdepth: 1
     
     macros <macroserver/macros>
-    manager <macroserver/manager>
-    
+    macroserver <macroserver/macroserver>
+    msbase <macroserver/msbase>
+    mscontainer <macroserver/mscontainer>
+    msdoor <macroserver/msdoor>
+    msenvmanager <macroserver/msenvmanager>
+    msexception <macroserver/msexception>
+    msmacromanager <macroserver/msmacromanager>
+    msmanager <macroserver/msmanager>
+    msmetamacro <macroserver/msmetamacro>
+    msparameter <macroserver/msparameter>
+    mstypemanager <macroserver/mstypemanager>

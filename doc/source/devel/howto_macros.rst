@@ -1,5 +1,5 @@
 
-.. currentmodule:: MacroServer.macro
+.. currentmodule:: sardana.macroserver.macro
 
 .. _macroserver-macros:
 
@@ -15,19 +15,92 @@ Concept
 
 A macro in sardana describes a specific procedure that can be executed at any
 time. Macros run inside the *sardana sanbox*. This simply means that each time
-the user runs a Macro, the system makes sure the necessary environment for it to
-run safely is ready.
-Macros can only be written in Python_. Each macro is implemented by writting 
-a Python_ class which must inherit from a :class:`Macro` super-class.
-Macros are case sensitive. This means that *helloworld* is a different macro than
-*HelloWorld*
+you run a macro, the system makes sure the necessary environment for it to run
+safely is ready.
+
+Macros can only be written in Python_. A macro can be a function or a class.
+In order for a function to be recognized as a macro, it **must** be *decorated*
+with the specital :class:`macro` *decorator*. In the same way, for a class to be
+recognized as a macro, it must inherit from a :class:`Macro` super-class.
+Macros are case sensitive. This means that *helloworld* is a different macro
+than *HelloWorld*.
+
+The choice between writing a macro function or a macro class depends mostly
+on your background as a programmer.
+
+If you are a scientist, and you have a programming background on a functional
+language (like fortran, matlab, SPEC_), then you might prefer to write macro
+functions. Computer scientists (young ones, specially), on the other hand, often
+have a background on object oriented languages (Java, C++, C#) and feel more
+confortable writting macro classes.
+
+Classes tend to scale better with the size of a program or library. By writting
+a macro class you can benefit from all advantages of object-oriented
+programming. This means that, in theory:
+
+    - it would reduce the amount of code you need to write
+    - reduce the complexity of your code y by dividing it into small,
+      reasonably independent and re-usable components, that talk to each
+      other using only well-deﬁned interfaces
+    - Improvement of productivity by using easily adaptable pre-deﬁned
+      software components
+
+In practice, however, and specially if you don't come from a programming
+background, writing classes requires a different way of thinking. It will also
+require you to extend your knowledge in terms of syntax of a programming
+language.
+
+Furthermore, most tasks you will probably need to execute as macros, often
+don't fit the class paradigm that object-oriented languages offer. If you are
+writting a sequencial procedure to run an experiment then you are probably
+better of writting a python function which does the job plain and simple.
+
+One reason to write a macro as a class is if, for example, you want to extend
+the behaviour of the :class:`~sardana.macroserver.macros.standard.mv` macro. In
+this case, probably you would want to *extend* the existing macro by writting
+your own macro class which inherits from the original macro and this way benefit
+from most of the functionallity already existing in the original macro.
 
 .. _macro_writting:
 
-Writting a macro
-----------------
+Writting a macro function
+-------------------------
 
+As metioned before, macros are just simple Python_ functions which have been
+*labeled* as macros. In Python_, these labels are called *decorators*. Here is
+the macro function version of *Hello, World!*::
+    
+    from sardana.macroserver.macro import macro
+    
+    @macro()
+    def hello_world():
+        self.output("Hello, World!")
+    
 
+:line 1:
+    imports the *macro* symbol from the sardana macro package.
+    :mod:`sardana.macroserver.macro` is the package which contains most symbols
+    you will require from sardana to write your macros.
+
+:line 3:
+    this line *decorates* de following function as a macro. It is **crucial**
+    to use this decorator in order for your function to be recognized by
+    sardana as a valid macro.
+
+:line 4:
+    this line contains the hello_world function definition
+
+:line 5:
+    this line will print *Hello, World!* on your screen.
+    
+If you already know a little about Python_ your are probably wondering two
+thing:
+
+    - Why not use ``print "Hello, World!"``
+    - By now you may be wonder
+
+Writting a macro class
+----------------------
 
 The simplest macro that you can write **MUST** obey the following rules:
 
