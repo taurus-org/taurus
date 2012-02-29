@@ -1,1 +1,0 @@
-dist_doc_DATA = manuals/ConfigUserGuide.pdf
