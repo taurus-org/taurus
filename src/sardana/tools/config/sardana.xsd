@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema version="1.0" attributeFormDefault="unqualified" elementFormDefault="qualified" 
+  targetNamespace="http://sardana.cells.es/client/framework/config" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tango="http://tango.org/config" 
+  xmlns:sardana="http://sardana.cells.es/client/framework/config">
+
+  <xs:import namespace="http://tango.org/config"/>
+
+  <xs:element name="Sardana" type="sardana:Sardana"/>
+
+  <xs:complexType name="Sardana">
+    <xs:sequence>
+      <xs:element type="sardana:PoolServer" name="PoolServer" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:MacroServerServer" name="MacroServerServer" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:Simulators" name="Simulators" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:Description" name="Description" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Simulators">
+    <xs:sequence>
+        <xs:element type="sardana:DeviceServer" name="DeviceServer" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReferenceType">
+    <xs:attribute type="xs:string" name="name" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Role">
+    <xs:attribute type="xs:string" name="role" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Library">
+    <xs:sequence>
+      <xs:element type="sardana:LibElement" name="LibElement" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LibElement" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string"      name="Description"     minOccurs="0"/>
+      <xs:element type="sardana:Role"   name="MotorRole"       minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:Role"   name="PseudoMotorRole" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tango:Property" name="Property"        minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="type" use="required"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="alias" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="PoolServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="Pool">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:sequence>
+          <xs:element type="sardana:Library"          name="Library"          minOccurs="0" maxOccurs="1"        />
+          <xs:element type="sardana:Controller"       name="Controller"       minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element type="sardana:MotorGroup"       name="MotorGroup"       minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element type="sardana:MeasurementGroup" name="MeasurementGroup" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="Controller" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:Property"           name="Property"         minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:Motor"            name="Motor"            minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:PseudoMotor"      name="PseudoMotor"      minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:ExpChannel"       name="CTExpChannel"     minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:ExpChannel"       name="ZeroDExpChannel"  minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:ExpChannel"       name="OneDExpChannel"   minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:ExpChannel"       name="TwoDExpChannel"   minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="sardana:IORegister"       name="IORegister"       minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="type" use="required"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="lib" use="required"/>
+    <xs:attribute type="xs:string" name="class" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="ControllerRef">
+    <xs:complexContent>
+      <xs:extension base="sardana:ReferenceType">
+        <xs:attribute type="xs:int" name="index" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType name="Motor">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="PseudoMotor">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:sequence>
+          <xs:element type="sardana:ReferenceType" name="LibRef"   minOccurs="1" maxOccurs="1"        />
+          <xs:element type="sardana:ReferenceType" name="MotorRef" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="role" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="MotorGroup">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element type="sardana:ReferenceType" name="MotorRef"      />
+          <xs:element type="sardana:ReferenceType" name="PseudoMotorRef"/>
+          <xs:element type="sardana:ReferenceType" name="MotorGroupRef" />
+        </xs:choice>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ExpChannel">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:sequence>
+          <xs:element type="sardana:ControllerRef" name="ControllerRef" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="IORegister">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:sequence>
+          <xs:element type="sardana:ControllerRef" name="ControllerRef" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="MeasurementGroup">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element type="sardana:ReferenceType" name="ChannelRef"/>
+        </xs:choice>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!-- Macro server -->
+
+  <xs:complexType name="MacroServerServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="DoorServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="MacroServer">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="Door">
+    <xs:complexContent>
+      <xs:extension base="tango:Device">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+    
+  <xs:complexType name="SimuMotorServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="SimuMotorCtrl">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>  
+  
+  <xs:complexType name="SimuMotor">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType name="SimuCoTiServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>  
+
+  <xs:complexType name="SimuCoTiCtrl">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>  
+  
+  <xs:complexType name="SimuCounter">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>
+ 
+  <xs:complexType name="PySignalSimulatorServer">
+    <xs:complexContent>
+      <xs:extension base="tango:DeviceServer"/>
+    </xs:complexContent>
+  </xs:complexType>  
+  
+  <xs:complexType name="PySignalSimulator">
+    <xs:complexContent>
+      <xs:extension base="tango:Device"/>
+    </xs:complexContent>
+  </xs:complexType>  
+       
+</xs:schema>

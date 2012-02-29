@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema version="1.0" attributeFormDefault="unqualified" elementFormDefault="qualified" 
+  targetNamespace="http://tango.org/config" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tango="http://tango.org/config">
+
+  <xs:simpleType name="TangoHost">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9_\.]+\:{1}[0-9]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ServerName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9_\.]+\/{1}[a-zA-Z0-9_\.]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="DeviceName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9_\.]+\/{1}[a-zA-Z0-9_\.]+\/{1}[a-zA-Z0-9_\.]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="DeviceServer">
+    <xs:sequence>
+      <xs:element type="tango:Device" name="Device" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="tango:TangoHost" name="tangoHost" use="optional"/>
+    <xs:attribute type="tango:ServerName" name="serverName" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Device">
+    <xs:sequence>
+      <xs:element type="tango:Property"    name="Property"    minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tango:PollConfig"  name="Polling"     minOccurs="0" maxOccurs="1"        />
+      <xs:element type="tango:Logging"     name="Logging"     minOccurs="0" maxOccurs="1"        />
+      <xs:element type="tango:Attribute"   name="Attribute"   minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tango:Command"     name="Command"     minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tango:Description" name="Description" minOccurs="0" maxOccurs="1"        />
+    </xs:sequence>
+    <xs:attribute type="tango:DeviceName" name="deviceName" use="required"/>
+    <xs:attribute type="xs:string"        name="alias"      use="optional"/>
+    <xs:attribute type="xs:string"        name="class"      use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Description" />
+
+  <xs:complexType name="Property">
+    <xs:sequence>
+      <xs:element type="xs:string" name="Item" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"        use="required"/>
+    <xs:attribute type="xs:string" name="type"        use="optional"/>
+    <xs:attribute type="xs:string" name="description" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="PollConfig">
+    <xs:attribute type="xs:string" name="oldfactor" use="optional"/>
+    <xs:attribute type="xs:string" name="ringdepth" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Attribute" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:AttrValue"         name="Value"         minOccurs="0" maxOccurs="1"        />
+      <xs:element type="tango:Property"          name="Property"      minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tango:Polling"           name="Polling"       minOccurs="0" maxOccurs="1"        />
+      <xs:element type="tango:AttrEvents"        name="Events"        minOccurs="0" maxOccurs="1"        />
+      <xs:element type="tango:AttrConfiguration" name="Configuration" minOccurs="0" maxOccurs="1"        />
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Logging">
+    <xs:sequence>
+      <xs:element type="xs:string" name="LoggingTarget" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="xs:string" name="CurrentLoggingTarget" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="level" use="optional"/>
+    <xs:attribute type="xs:string" name="current_level" use="optional"/>
+    <xs:attribute type="xs:string" name="RFT" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Command" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:Polling" name="Polling" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrValue" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:Item" name="Item" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Item" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:Item" name="Item" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Polling" mixed="true">
+    <xs:attribute type="xs:boolean"         name="polled" use="optional"/>
+    <xs:attribute type="xs:int"             name="period" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrEvents" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:AttrChangeEvent"   name="ChangeEvent"   minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:AttrArchiveEvent"  name="ArchiveEvent"  minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:AttrPeriodicEvent" name="PeriodicEvent" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AttrChangeEvent" mixed="true">
+    <xs:attribute type="xs:string" name="absolute" use="optional"/>
+    <xs:attribute type="xs:string" name="relative" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrArchiveEvent" mixed="true">
+    <xs:attribute type="xs:string" name="absolute" use="optional"/>
+    <xs:attribute type="xs:string" name="relative" use="optional"/>
+    <xs:attribute type="xs:string" name="period"   use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrPeriodicEvent" mixed="true">
+    <xs:attribute type="xs:string" name="period"   use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrConfiguration" mixed="true">
+    <xs:sequence>
+      <xs:element type="tango:AttrDisplay" name="Display"     minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:AttrUnits"   name="Units"       minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:AttrRange"   name="Range"       minOccurs="0" maxOccurs="1"/>
+      <xs:element type="tango:AttrAlarms"  name="Alarms"      minOccurs="0" maxOccurs="1"/>
+      <xs:element type="xs:string"         name="Description" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AttrDisplay" mixed="true">
+    <xs:attribute type="xs:string" name="label"  use="optional"/>
+    <xs:attribute type="xs:string" name="format" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrUnits" mixed="true">
+    <xs:attribute type="xs:string" name="unit"          use="optional"/>
+    <xs:attribute type="xs:string" name="display_unit"  use="optional"/>
+    <xs:attribute type="xs:string" name="standard_unit" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrRange" mixed="true">
+    <xs:attribute type="xs:string" name="min" use="optional"/>
+    <xs:attribute type="xs:string" name="max" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="AttrAlarms" mixed="true">
+    <xs:attribute type="xs:string" name="min_alarm"   use="optional"/>
+    <xs:attribute type="xs:string" name="max_alarm"   use="optional"/>
+    <xs:attribute type="xs:string" name="min_warning" use="optional"/>
+    <xs:attribute type="xs:string" name="max_warning" use="optional"/>
+    <xs:attribute type="xs:string" name="delta_t"     use="optional"/>
+    <xs:attribute type="xs:string" name="delta_val"   use="optional"/>
+  </xs:complexType>
+</xs:schema>
