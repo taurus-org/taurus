@@ -420,7 +420,7 @@ class Door(SardanaDevice):
         if len(par_str_list) == 0:
             return []
         
-        xml_seq = self.macro_executor.run(par_str_list)
+        xml_seq = self.door.run_macro(par_str_list, asynch=True)
         return [etree.tostring(xml_seq, pretty_print=False)]
 
     def is_RunMacro_allowed(self):

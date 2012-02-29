@@ -225,6 +225,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         ret = self.add_element(elem)
         self.fire_event(EventType("ElementCreated"), elem)
         return ret
+    
+    def create_door(self, **kwargs):
+        return self.create_element(type="Door", **kwargs)
         
     # --------------------------------------------------------------------------
     # General access to elements

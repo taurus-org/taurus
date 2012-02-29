@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 import weakref
 
 from taurus import Device, Factory
+from taurus.core.util import Logger
 
 from sardana import ElementType
 from sardana.sardanaevent import EventType
@@ -183,6 +184,37 @@ class MSDoor(MSObject):
         if self._macro_proxy_cache is None:
             self._macro_proxy_cache = MacroProxyCache(self)
         return self._macro_proxy_cache
+    
+    def run_macro(self, par_str_list, asynch=False):
+        if isinstance(par_str_list, (str, unicode)):
+            par_str_list = par_str_list,
+
+        if not hasattr(self, "Output"):
+            import sys, logging
+            import taurus.core.util
+            Logger.addLevelName(15, "OUTPUT")
+            
+            def output(loggable, msg, *args, **kw):
+                loggable.getLogObj().log(Logger.Output, msg, *args, **kw)
+            Logger.output = output
+            
+            Logger.disableLogOutput()
+            Logger.setLogLevel(Logger.Output)
+            #filter = taurus.core.util.LogFilter(level=Logger.Output)
+            formatter = logging.Formatter(fmt="%(message)s")
+            Logger.setLogFormat("%(message)s")
+            handler = logging.StreamHandler(stream=sys.stdout)
+            #handler.addFilter(filter)
+            Logger.addRootLogHandler(handler)
+            #handler.setFormatter(formatter)
+            #logger.addHandler(handler)
+            #logger.addFilter(filter)
+            self.__logging_info = handler, filter, formatter
+            
+            # result of a macro
+            #Logger.addLevelName(18, "RESULT")
+
+        return self.macro_executor.run(par_str_list, asynch=asynch)
     
     def __getattr__(self, name):
         """Get methods from macro server"""

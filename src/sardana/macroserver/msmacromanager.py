@@ -894,7 +894,7 @@ class MacroExecutor(Logger):
         self.sendMacroStatusResume()
         self.sendState(Macro.Running)
     
-    def run(self, params):
+    def run(self, params, asynch=True):
         """Runs the given macro(s)
         
         :param params: (sequence<str>) can be either a sequence of <macro name> [, <macro_parameter> ]
@@ -923,11 +923,15 @@ class MacroExecutor(Logger):
         
         # convert given parameters into an xml
         self._xml = self._preprocessParameters(params)
-
-        # start the job of actually running the macro
-        self.macro_server.add_job(self.__runXML, self._jobEnded)
-        #return the proper xml
-        return self._xml
+        
+        if asynch:
+            # start the job of actually running the macro
+            self.macro_server.add_job(self.__runXML, self._jobEnded)
+            #return the proper xml
+            return self._xml
+        else:
+            self.__runXML()
+            #return self._macro_pointer.getResult()
     
     def _jobEnded(self, *args, **kw):
         self.debug("Job ended")
