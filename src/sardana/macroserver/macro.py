@@ -1796,7 +1796,8 @@ class Macro(Logger):
         ret.update(self.door.get_macro_proxies())
         ret['self'] = self
         ret['macros'] = self.macros
-        ret['print'] = PrintMacro(self)
+        printf = functools.partial(Macro.print, self)
+        ret['print'] = printf
         return ret
     
     def abort(self):

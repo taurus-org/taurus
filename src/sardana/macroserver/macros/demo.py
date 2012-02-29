@@ -49,29 +49,31 @@ def get_free_names(db, prefix, nb, start_at=1):
     return ret
 
 @macro()
-def clear_sar_demo():
+def clear_sar_demo(self):
     try:
         SAR_DEMO = self.getEnv("SAR_DEMO")
     except:
         self.error("No demo has been prepared yet on this sardana!")
         return
     
-    print("Removing measurement groups...")
+    self.print("Removing measurement groups...")
     for mg in SAR_DEMO.get("measurement_groups", ()):
-        udefmeas(mg)
+        self.udefmeas(mg)
     
-    print("Removing measurement elements...")
+    self.print("Removing measurement elements...")
     for elem in SAR_DEMO.get("elements", ()):
-        udefelem(elem)
+        self.udefelem(elem)
     
-    print("Removing measurement controllers...")
+    self.print("Removing measurement controllers...")
     for ctrl in SAR_DEMO.get("controllers", ()):
-        udefctrl(ctrl)
+        self.udefctrl(ctrl)
     
     self.unsetEnv("SAR_DEMO")
-
+    
+    self.print("DONE!")
+    
 @macro()
-def sar_demo():
+def sar_demo(self):
     
     try:
         SAR_DEMO = self.getEnv("SAR_DEMO")
@@ -84,12 +86,12 @@ def sar_demo():
     
     mot_ctrl_name = get_free_names(db, "motctrl", 1)[0]
     ct_ctrl_name = get_free_names(db, "ctctrl", 1)[0]
-    zerod_ctrl_name = get_free_names(db, "0dctrl", 1)[0]
+    zerod_ctrl_name = get_free_names(db, "zerodctrl", 1)[0]
     pm_ctrl_name = get_free_names(db, "slitctrl", 1)[0]
     
     motor_names = get_free_names(db, "mot", 4)
     ct_names = get_free_names(db, "ct", 4)
-    zerod_names = get_free_names(db, "0d", 4)
+    zerod_names = get_free_names(db, "zerod", 4)
     gap, offset = get_free_names(db, "gap", 1) + get_free_names(db, "offset", 1)
     
     mg_name = get_free_names(db, "mntgrp", 1)[0]
@@ -102,32 +104,31 @@ def sar_demo():
         return
     pool = pools[0]
     
-    print("Creating motor controller", mot_ctrl_name, "...")
-    defctrl("DummyMotorController", mot_ctrl_name)
+    self.print("Creating motor controller", mot_ctrl_name, "...")
+    self.defctrl("DummyMotorController", mot_ctrl_name)
     for axis, motor_name in enumerate(motor_names, 1):
-        print("Creating motor", motor_name, "...")
-        defelem(motor_name , mot_ctrl_name, axis)
+        self.print("Creating motor", motor_name, "...")
+        self.defelem(motor_name , mot_ctrl_name, axis)
         
-    print("Creating counter controller", ct_ctrl_name, "...")
-    defctrl("DummyCounterTimerController", ct_ctrl_name)
+    self.print("Creating counter controller", ct_ctrl_name, "...")
+    self.defctrl("DummyCounterTimerController", ct_ctrl_name)
     for axis, ct_name in enumerate(ct_names, 1):
-        print("Creating counter channel", ct_name, "...")
-        defelem(ct_name , ct_ctrl_name, axis)
+        self.print("Creating counter channel", ct_name, "...")
+        self.defelem(ct_name , ct_ctrl_name, axis)
     
-    print("Creating counter controller", zerod_ctrl_name, "...")
-    defctrl("DummyZeroDController", zerod_ctrl_name)
+    self.print("Creating 0D controller", zerod_ctrl_name, "...")
+    self.defctrl("DummyZeroDController", zerod_ctrl_name)
     for axis, zerod_name in enumerate(zerod_names, 1):
-        print("Creating 0D channel", zerod_name, "...")
-        defelem(zerod_name , zerod_ctrl_name, axis)
+        self.print("Creating 0D channel", zerod_name, "...")
+        self.defelem(zerod_name , zerod_ctrl_name, axis)
     
-    print("Creating Slit", pm_ctrl_name, "with", gap, ",", offset, "...")
+    self.print("Creating Slit", pm_ctrl_name, "with", gap, ",", offset, "...")
     sl2t, sl2b = motor_names[:2]
-    defctrl("Slit", pm_ctrl_name,
-            "sl2t="+sl2t, "sl2b="+sl2b,
-            "Gap="+gap, "Offset="+offset)
+    self.defctrl("Slit", pm_ctrl_name, "sl2t="+sl2t, "sl2b="+sl2b,
+                 "Gap="+gap, "Offset="+offset)
    
-    print("Creating measurement group", mg_name, "...")
-    defmeas(mg_name, *ct_names)
+    self.print("Creating measurement group", mg_name, "...")
+    self.defmeas(mg_name, *ct_names)
     
     d = dict(controllers=(pm_ctrl_name, mot_ctrl_name, ct_ctrl_name, zerod_ctrl_name),
              elements=[gap, offset] + motor_names+ct_names+zerod_names,
@@ -135,5 +136,5 @@ def sar_demo():
     
     self.setEnv("SAR_DEMO", d)
     
-    print("DONE!")
+    self.print("DONE!")
     

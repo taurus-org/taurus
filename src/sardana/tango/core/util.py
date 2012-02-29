@@ -376,7 +376,7 @@ def prepare_server(args, tango_args):
                 for i in pools:
                     print pools[i][3]
                 while True:
-                    elem = raw_input("Please select pool to connect to (empty to continue): ").strip()
+                    elem = raw_input("Please select pool to connect to (return to finish): ").strip()
                     if not len(elem):
                         break
                     if elem.lower() not in all_pools:

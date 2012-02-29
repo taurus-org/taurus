@@ -160,7 +160,8 @@ class SardanaDevice(Device_4Impl, Logger):
         if update:
             self.set_status(status)
         return status
-    
+
+
 class SardanaDeviceClass(DeviceClass):
 
     #    Class Properties

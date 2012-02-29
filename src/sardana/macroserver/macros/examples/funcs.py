@@ -23,6 +23,8 @@
 
 """Examples of macro functions"""
 
+from __future__ import print_function
+
 __all__ = ["mfunc1", "mfunc2", "mfunc3", "mfunc4", "mfunc5"]
 
 __docformat__ = 'restructuredtext'
@@ -31,11 +33,11 @@ from sardana.macroserver.macro import Type, Macro, macro
 
 
 @macro()
-def mfunc1(ctx):
+def mfunc1(self):
     """First macro function. No parameters whatsoever"""
-    ctx.output("Executing %s", self.getName())
-    print("Hello",1)
-    ctx.wa()
+    self.output("Executing %s", self.getName())
+    self.print("Hello",1)
+    self.wa()
 
 @macro()
 def mfunc2(self, p1):
@@ -46,8 +48,8 @@ def mfunc2(self, p1):
 def mfunc3(self, moveable):
     """Third macro function. A proper moveable parameter"""
     self.output("Moveable %s is at %s", moveable.getName(), moveable.getPosition())
-    macros.ascan(moveable, 0, 10, 10, 0.1)
-    mfunc1()
+    self.ascan(moveable, 0, 10, 10, 0.1)
+    self.mfunc1()
     
 @macro()
 def mfunc4(self, *args):

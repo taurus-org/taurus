@@ -282,7 +282,6 @@ class PoolCTAcquisition(PoolAction):
             if self._is_in_action(s):
                 return True
     
-    @DebugIt()
     def action_loop(self):
         i = 0
         
@@ -417,7 +416,6 @@ class Pool0DAcquisition(PoolAction):
             if self._is_in_action(s):
                 return True
     
-    @DebugIt()
     def action_loop(self):
         i = 0
         
