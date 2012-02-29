@@ -50,6 +50,8 @@ name = 'sardana'
 #: bdist_deb does not accept underscores (a Debian convention).
 version_info = (1,0,0,'dev', '$Rev$')
 version = '.'.join(map(str, version_info[:3]))
+
+#: svn revision number
 revision = str(version_info[4])
 
 description = "Sardana is a generic program for control applications in large and small installations"
