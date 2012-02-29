@@ -36,7 +36,9 @@ from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
 
 from taurus.core.util.log import Logger
 
-from util import to_tango_state
+from sardana import InvalidId
+from util import to_tango_state, NO_DB_MAP
+
 
 class SardanaDevice(Device_4Impl, Logger):
     
@@ -55,13 +57,16 @@ class SardanaDevice(Device_4Impl, Logger):
     def init(self, name):
         util = Util.instance()
         db = util.get_database()
-        try:
-            
-            self._alias = db.get_alias(name)
-            if self._alias.lower() == 'nada':
+        if db is None:
+            self._alias = self._get_nodb_device_info()[0]
+        else:
+            try:
+                
+                self._alias = db.get_alias(name)
+                if self._alias.lower() == 'nada':
+                    self._alias = None
+            except:
                 self._alias = None
-        except:
-            self._alias = None
     
     @property
     def alias(self):
@@ -69,12 +74,29 @@ class SardanaDevice(Device_4Impl, Logger):
     
     def init_device(self):
         self.set_state(self._state)
-        
-        self.get_device_properties(self.get_device_class())
+        util = Util.instance()
+        db = util.get_database()
+        if db is None:
+            self.init_device_nodb()
+        else:
+            self.get_device_properties(self.get_device_class())
         
         detect_evts = "state", "status"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
+    
+    def _get_nodb_device_info(self):
+        name = self.get_name()
+        tango_class = self.get_device_class().get_name()
+        devices = NO_DB_MAP.get(tango_class, ())
+        for dev_info in devices:
+            if dev_info[1] == name:
+                return dev_info
+    
+    def init_device_nodb(self):
+        alias, dev_name, props = self._get_nodb_device_info()
+        for prop_name, prop_value in props.items():
+            setattr(self, prop_name, prop_value)
     
     def delete_device(self):
         pass
@@ -167,4 +189,10 @@ class SardanaDeviceClass(DeviceClass):
             except:
                 dev.warning("Failed to initialize dynamic attributes",
                             exc_info=1)
-
+    
+    def device_name_factory(self, dev_name_list):
+        tango_class = self.get_name()
+        devices = NO_DB_MAP.get(tango_class, ())
+        for dev_info in devices:
+            dev_name_list.append(dev_info[1])
+        

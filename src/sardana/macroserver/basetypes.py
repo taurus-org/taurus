@@ -81,7 +81,7 @@ class Env(ParamType):
 # Hardware types
 
 class MotorParam(AttrParamType):
-    """ Class designed to represent a motor parameter name. Usual values
+    """Class designed to represent a motor parameter name. Usual values
     are acceleration,deceleration,velocity,backlash,steps_per_unit,etc"""
     
     def __init__(self, macro_server, name):
@@ -100,10 +100,12 @@ class MotorParam(AttrParamType):
         return self.non_attr_item_list
 
 
-for sardana_type in INTERFACES:
-    class _(ElementParamInterface):
-        pass
-    _.__name__ = sardana_type
-    globals()[sardana_type] = _
+def __build_base_types():
+    for sardana_type, info in INTERFACES.items():
+        bases, doc = info
+        class _I(ElementParamInterface):
+            __doc__ = doc
+            __name__ = sardana_type
+        globals()[sardana_type] = _I
 
-
+__build_base_types()

@@ -251,6 +251,7 @@ ElementType = Enumeration("ElementType", ( \
     "MacroFunction",
     "External",
     "Meta",
+    "ParameterType",
     "Unknown") )
 
 ET = ElementType
@@ -328,46 +329,49 @@ TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 #    ("Macro",             0b0000000000000001), ) )
 
 #: a dictionary containing the direct interfaces supported by each type
-#: (:obj:`dict` <:obj:`str`, :obj:`set` < :obj:`str`> >)
+#: (:obj:`dict`\<:obj:`str`\, :obj:`tuple`\<:obj:`set`\<:obj:`str`\, :obj:`str`\>>>)
 INTERFACES = {
-    "Object" : set(),
-    "Element" : set(("Object",)),
-    "Class" : set(("Object",)),
-    "Function" : set(("Object",)),
-    "Library" : set(("Object",)),
-    "PoolObject" : set(("Object",)),
-    "PoolElement" : set(("Element", "PoolObject")),
-    "Pool" : set(("PoolElement",)),
-    "Controller" : set(("PoolElement",)),
-    "Moveable" : set(("PoolElement",)),
-    "Acquirable" : set(("PoolElement",)),
-    "Instrument" : set(("PoolElement",)),
-    "Motor" : set(("Moveable", "Acquirable")),
-    "PseudoMotor" : set(("Moveable", "Acquirable")),
-    "IORegister" : set(("Acquirable",)),
-    "ExpChannel" : set(("Acquirable",)),
-    "CTExpChannel" : set(("ExpChannel",)),
-    "ZeroDExpChannel" : set(("ExpChannel",)),
-    "OneDExpChannel" : set(("ExpChannel",)),
-    "TwoDExpChannel" : set(("ExpChannel",)),
-    "PseudoCounter" : set(("ExpChannel",)),
-    "ComChannel" : set(("PoolElement",)),
-    "MotorGroup" : set(("PoolElement",),),
-    "MeasurementGroup" : set(("PoolElement",),),
-    "ControllerLibrary" : set(("Library", "PoolObject")),
-    "ControllerClass" : set(("Class", "PoolObject")),
-    "Constraint" : set(("PoolObject",)),
-    "External" : set(("Object",)),
+    "Meta" : (set(), "A generic sardana meta object"),
+    "Object" : (set(), "A generic sardana object"),
+    "Element" : (set(("Object",)), "A generic sardana element"),
+    "Class" : (set(("Object",)), "A generic sardana class"),
+    "Function" : (set(("Object",)), "A generic sardana function"),
+    "Library" : (set(("Object",)), "A generic sardana library"),
+    "PoolObject" : (set(("Object",)), "A Pool object"),
+    "PoolElement" : (set(("Element", "PoolObject")), "A Pool element"),
+    "Pool" : (set(("PoolElement",)), "A Pool"),
+    "Controller" : (set(("PoolElement",)), "A controller"),
+    "Moveable" : (set(("PoolElement",)), "A moveable element"),
+    "Acquirable" : (set(("PoolElement",)), "An acquirable element"),
+    "Instrument" : (set(("PoolElement",)), "An instrument"),
+    "Motor" : (set(("Moveable", "Acquirable")), "a motor"),
+    "PseudoMotor" : (set(("Moveable", "Acquirable")), "A pseudo motor"),
+    "IORegister" : (set(("Acquirable",)), "An IO register"),
+    "ExpChannel" : (set(("Acquirable",)), "A generic experimental channel"),
+    "CTExpChannel" : (set(("ExpChannel",)), "A counter/timer experimental channel"),
+    "ZeroDExpChannel" : (set(("ExpChannel",)), "A 0D experimental channel"),
+    "OneDExpChannel" : (set(("ExpChannel",)), "A 1D experimental channel"),
+    "TwoDExpChannel" : (set(("ExpChannel",)), "A 2D experimental channel"),
+    "PseudoCounter" : (set(("ExpChannel",)), "A pseudo counter"),
+    "ComChannel" : (set(("PoolElement",)), "A communication channel"),
+    "MotorGroup" : (set(("PoolElement",),), "A motor group"),
+    "MeasurementGroup" : (set(("PoolElement",),), "A measurement group"),
+    "ControllerLibrary" : (set(("Library", "PoolObject")), "A controller library"),
+    "ControllerClass" : (set(("Class", "PoolObject")), "A controller class"),
+    "Constraint" : (set(("PoolObject",)), "A constraint"),
+    "External" : (set(("Object",)), "An external object"),
     
-    "MacroServerObject" : set(("Object",)),
-    "MacroServerElement" : set(("Element", "MacroServerObject")),
-    "MacroServer" : set(("MacroServerElement",)),
-    "Door" : set(("MacroServerElement",)),
-    "MacroLibrary" : set(("Library", "MacroServerObject")),
-    "MacroCode" : set(("MacroServerObject",)),
-    "MacroClass" : set(("Class", "MacroCode")),
-    "MacroFunction" : set(("Function", "MacroCode")),
-    "Macro" : set(("MacroClass", "MacroFunction")),
+    "MacroServerObject" : (set(("Object",)), "A generic macro server object"),
+    "MacroServerElement" : (set(("Element", "MacroServerObject")), "A generic macro server element"),
+    "MacroServer" : (set(("MacroServerElement",)), "A MacroServer"),
+    "Door" : (set(("MacroServerElement",)), "A macro server door"),
+    "MacroLibrary" : (set(("Library", "MacroServerObject")), "A macro server library"),
+    "MacroCode" : (set(("MacroServerObject",)), "A macro server macro code"),
+    "MacroClass" : (set(("Class", "MacroCode")), "A macro server macro class"),
+    "MacroFunction" : (set(("Function", "MacroCode")), "A macro server macro function"),
+    "Macro" : (set(("MacroClass", "MacroFunction")), "A macro server macro"),
+    
+    "ParameterType" : (set(("Meta",)), "A generic macro server parameter type"),
 }
 
 #: a dictionary containing the *all* interfaces supported by each type
@@ -375,7 +379,7 @@ INTERFACES = {
 INTERFACES_EXPANDED = {}
 
 def __expand(name):
-    direct_expansion = INTERFACES[name]
+    direct_expansion, description = INTERFACES[name]
     if isinstance(direct_expansion, (str, unicode)):
         direct_expansion = direct_expansion,
     exp = set(direct_expansion)
@@ -384,18 +388,22 @@ def __expand(name):
         if e_value is None:
             exp.update(__expand(e))
         else:
-            exp.update(e_value)
+            exp.update(e_value[0])
     exp.add(name)
     return exp
 
-for i in INTERFACES:
-    INTERFACES_EXPANDED[i] = __expand(i)
+def __build_interfaces_expanded():
+    global INTERFACES_EXPANDED
+    for i in INTERFACES:
+        INTERFACES_EXPANDED[i] = __expand(i), INTERFACES[i][1]
+
+__build_interfaces_expanded()
 
 def __expand_sardana_interface_data(si_map, name, curr_id):
     if name in si_map:
         return curr_id
     d = 0
-    i_expanded = set(INTERFACES_EXPANDED[name])
+    i_expanded = set(INTERFACES_EXPANDED[name][0])
     i_expanded.remove(name)
     for interface in i_expanded:
         if interface not in si_map:
@@ -419,7 +427,7 @@ def __create_sardana_interfaces():
     interfaces, interfaces_expanded = {}, {}
     for i in INTERFACES:
         i_enum = Interface[i]
-        i_items, i_items_expanded = INTERFACES[i], INTERFACES_EXPANDED[i]
+        i_items, i_items_expanded = INTERFACES[i][0], INTERFACES_EXPANDED[i][0]
         i_enum_items = set(map(Interface.get, i_items))
         i_enum_items_expanded = set(map(Interface.get, i_items_expanded))
         interfaces[i_enum] = i_enum_items

@@ -3,10 +3,20 @@
 
 .. _macroserver-macro-api:
 
-==================
-Macro API
-==================
+===================
+Macro API reference
+===================
+
+Macro class
+-----------
 
 .. autoclass:: Macro
+    :members:
+    :undoc-members:
+
+macro decorator
+---------------
+
+.. autoclass:: macro
     :members:
     :undoc-members:

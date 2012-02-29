@@ -162,7 +162,7 @@ class TypeManager(MacroServerManager):
         return self._inst_dict.get(type_name)
     
     def getTypes(self):
-        return self._inst_dict.values()
+        return self._inst_dict
     
     def getTypeNames(self):
         return self._inst_dict.keys()

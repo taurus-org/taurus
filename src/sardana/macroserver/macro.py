@@ -55,7 +55,7 @@ from sardana.sardanadefs import State
 
 from msparameter import Type, ParamType, ParamRepeat
 from msexception import MacroServerException, AbortException, \
-    MacroWrongParameterType, UnknownEnv
+    MacroWrongParameterType, UnknownEnv, UnknownMacro
 
 class OverloadPrint(object):
     
@@ -313,11 +313,11 @@ class macro(object):
     macro. Examples::
     
         @macro()
-        def my_macro1():
+        def my_macro1(self):
             self.output("Executing %s", self.getName())
         
         @macro([ ["moveable", Type.Moveable, None, "motor to watch"] ])
-        def where_moveable(moveable):
+        def where_moveable(self, moveable):
             self.output("Moveable %s is at %s", moveable.getName(), moveable.getPosition())"""
     
     def __init__(self, param_def=None, result_def=None, env=None, hints=None):
@@ -704,7 +704,7 @@ class Macro(Logger):
         :param kwargs: the plotting keyword args"""
         data = { 'args' : args, 'kwargs' : kwargs }
         self.sendRecordData(data, codec='bz2_json_plot')
-
+    
     @property
     def data(self):
         """**Macro API**.
@@ -717,7 +717,27 @@ class Macro(Logger):
         :rtype: object"""
         self.checkPoint()
         raise Exception("Macro '%s' does not produce any data" % self.getName())
-
+    
+    @mAPI
+    def print(self,  *args, **kwargs):
+        """**Macro API**.
+        Prints a message. Accepted *args* and
+        *kwargs* are the same as :func:`print`. Example::
+        
+            self.print("this is a print for macro", self.getName())
+        """
+        fd = kwargs.get('file', sys.stdout)
+        if fd in (sys.stdout, sys.stderr):
+            out = StringIO.StringIO()
+            kwargs['file'] = out
+            end = kwargs.get('end', '\n')
+            if end == '\n':
+                kwargs['end'] = ''
+            ret = print(*args, **kwargs)
+            self.output(out.getvalue())
+        else:
+            return print(*args, **kwargs)
+    
     @mAPI
     def output(self, *args, **kwargs):
         """**Macro API**.
@@ -732,7 +752,7 @@ class Macro(Logger):
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
         return Logger.output(self, *args, **kwargs)
-
+    
     @mAPI
     def log(self, *args, **kwargs):
         """**Macro API**.
@@ -1338,6 +1358,118 @@ class Macro(Logger):
             self.addObj(motion, priority=1)
         return motion
     
+    @mAPI
+    def getElementsWithInterface(self, interface):
+        return self.door.get_elements_with_interface(interface)
+    
+    @mAPI
+    def getControllers(self):
+        return self.door.get_controllers()
+    
+    @mAPI
+    def getMoveables(self):
+        return self.door.get_moveables()
+    
+    @mAPI
+    def getMotors(self):
+        return self.door.get_motors()
+    
+    @mAPI
+    def getPseudoMotors(self):
+        return self.door.get_pseudo_motors()
+    
+    @mAPI
+    def getIORegisters(self):
+        return self.door.get_io_registers()
+    
+    @mAPI
+    def getMeasurementGroups(self):
+        return self.door.get_measurement_groups()
+    
+    @mAPI
+    def getExpChannels(self):
+        return self.door.get_exp_channels()
+    
+    @mAPI
+    def getCounterTimers(self):
+        return self.door.get_counter_timers()
+    
+    @mAPI
+    def get0DExpChannels(self):
+        return self.door.get_0d_exp_channels()
+    
+    @mAPI
+    def get1DExpChannels(self):
+        return self.door.get_1d_exp_channels()
+    
+    @mAPI
+    def get2DExpChannels(self):
+        return self.door.get_2d_exp_channels()
+    
+    @mAPI
+    def getPseudoCounters(self):
+        return self.door.get_pseudo_counters()
+    
+    @mAPI
+    def getInstruments(self):
+        return self.door.get_instruments()
+    
+    @mAPI
+    def getElementWithInterface(self, interface, name):
+        return self.door.get_element_with_interface(interface, name)
+    
+    @mAPI
+    def getController(self, name):
+        return self.door.get_controller(name)
+    
+    @mAPI
+    def getMoveable(self, name):
+        return self.door.get_moveable(name)
+    
+    @mAPI
+    def getMotor(self, name):
+        return self.door.get_motor(name)
+    
+    @mAPI
+    def getPseudoMotor(self, name):
+        return self.door.get_pseudo_motor(name)
+    
+    @mAPI
+    def getIORegister(self, name):
+        return self.door.get_io_register(name)
+    
+    @mAPI
+    def getMeasurementGroup(self, name):
+        return self.door.get_measurement_group(name)
+    
+    @mAPI
+    def getExpChannel(self, name):
+        return self.door.get_exp_channel(name)
+    
+    @mAPI
+    def getCounterTimer(self, name):
+        return self.door.get_counter_timer(name)
+    
+    @mAPI
+    def get0DExpChannel(self, name):
+        return self.door.get_0d_exp_channel(name)
+    
+    @mAPI
+    def get1DExpChannel(self, name):
+        return self.door.get_1d_exp_channel(name)
+    
+    @mAPI
+    def get2DExpChannel(self, name):
+        return self.door.get_2d_exp_channel(name)
+    
+    @mAPI
+    def getPseudoCounter(self, name):
+        return self.door.get_pseudo_counter(name)
+    
+    @mAPI
+    def getInstrument(self, name):
+        return self.door.get_instrument(name)
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Handle macro environment
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -1596,20 +1728,14 @@ class Macro(Logger):
         # allow any macro to be paused at the beginning of its execution
         self.pausePoint()
         
-        #global print
-        #print = self.output
-        #try:
-        #    res = self.run(*self._in_pars)
-        #finally:
-        #    print = _orig_print
-
 #        with OverloadPrint(self):
 #            res = self.run(*self._in_pars)
 
-        orig_func = self.run
-        extra_globals = self._build_globals(orig_func.func_globals)
-        new_func = new.function(orig_func.func_code, extra_globals)
-        res = new_func(self, *self._in_pars)
+        #orig_func = self.run
+        #extra_globals = self._build_globals(orig_func.func_globals)
+        #new_func = new.function(orig_func.func_code, extra_globals)
+        #res = new_func(self, *self._in_pars)
+        res = self.run(*self._in_pars)
         
         if type(res) == types.GeneratorType:
             it = iter(res)
@@ -1697,6 +1823,26 @@ class Macro(Logger):
         self._pause_event.resume(cb=cb)
     
     #@}
+    
+    def __getattr__(self, name):
+        macro = None
+        try:
+            macro = self.door.get_macro(name)
+        except UnknownMacro:
+            raise AttributeError("%r object has no attribute %r" %
+                                 (type(self).__name__, name))
+        
+        def f(*args, **kwargs):
+            self.syncLog()
+            opts = dict(parent_macro=self, executor=self.executor)
+            kwargs.update(opts)
+            eargs = [name]
+            eargs.extend(args)
+            return self.execMacro(*eargs, **kwargs)
+        
+        setattr(self, name, f)
+        return f
+
 
 class MacroFunc(Macro):
     
@@ -1707,8 +1853,9 @@ class MacroFunc(Macro):
         Macro.__init__(self, *args, **kwargs)
         
     def run(self, *args):
-        orig_func = self._function
-        extra_globals = self._build_globals(orig_func.func_globals)
-        new_func = new.function(orig_func.func_code, extra_globals)
-        return new_func(*args)
+        #orig_func = self._function
+        #extra_globals = self._build_globals(orig_func.func_globals)
+        #new_func = new.function(orig_func.func_code, extra_globals)
+        #return new_func(*args)
+        return self._function(self, *args)
         

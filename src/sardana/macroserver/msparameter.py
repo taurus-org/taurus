@@ -39,6 +39,7 @@ from taurus.core.util import CaselessDict, Logger
 from taurus.core.tango.sardana.pool import BaseElement
 
 from sardana import ElementType, INTERFACES_EXPANDED
+from sardana.macroserver.msbase import MSBaseObject
 from msexception import MacroServerException, UnknownMacro, UnknownLib
 
 class WrongParam(MacroServerException):
@@ -105,7 +106,7 @@ class TypeNames:
 Type = TypeNames()
 
 
-class ParamType(Logger):
+class ParamType(MSBaseObject):
     
     All             = 'All'
     
@@ -116,16 +117,14 @@ class ParamType(Logger):
     capabilities    = []
     
     def __init__(self, macro_server, name):
-        self._macro_server = weakref.ref(macro_server)
-        self._name = name
-        Logger.__init__(self, '%sType' % name)
-    
-    @property
-    def macro_server(self):
-        return self._macro_server()
+        MSBaseObject.__init__(self, name=name, full_name=name,
+                              macro_server=macro_server)
+
+    def get_type(self):
+        return ElementType.ParameterType
     
     def getName(self):
-        return self._name
+        return self.name
 
     def getObj(self, str_repr):
         return self.type_class(str_repr)
@@ -134,8 +133,13 @@ class ParamType(Logger):
     def hasCapability(cls, cap):
         return cap in cls.capabilities
 
+    def serialize(self, *args, **kwargs):
+        kwargs = MSBaseObject.serialize(self, *args, **kwargs)
+        kwargs['composed'] = False
+        return kwargs
 
-class ParamRepeat:
+
+class ParamRepeat(object):
     # opts: min, max
     def __init__(self, *param_def, **opts):
         self.param_def = param_def
@@ -160,7 +164,6 @@ class ElementParamType(ParamType):
     
     def __init__(self, macro_server, name):
         ParamType.__init__(self, macro_server, name)
-    
     
     def accepts(self, elem):
         return elem.getType() == self._name
@@ -215,16 +218,22 @@ class ElementParamType(ParamType):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.values()
 
+    def serialize(self, *args, **kwargs):
+        kwargs = ParamType.serialize(self, *args, **kwargs)
+        kwargs['composed'] = True
+        return kwargs
+
 
 class ElementParamInterface(ElementParamType):
 
     def __init__(self, macro_server, name):
         ElementParamType.__init__(self, macro_server, name)
-        self._interfaces = INTERFACES_EXPANDED.get(name)
-
+        bases, doc = INTERFACES_EXPANDED.get(name)
+        self._interfaces = bases
+    
     def accepts(self, elem):
         elem_type = elem.getType()
-        elem_interfaces = INTERFACES_EXPANDED.get(elem_type)
+        elem_interfaces = INTERFACES_EXPANDED.get(elem_type)[0]
         if elem_interfaces is None:
             return ElementParamType.accepts(self, elem)
         return self._name in elem_interfaces
@@ -267,7 +276,7 @@ class ElementParamInterface(ElementParamType):
     def getObjListStr(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.keys()
-
+    
     def getObjList(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.values()

@@ -23,13 +23,13 @@ installed:
 The complete sardana installation instructions can be found
 :ref:`here <getting-started>`.
 
-How to work with Taurus_ GUI?
------------------------------
+How to work with Taurus_ :term:`GUI`?
+-------------------------------------
 A user documentation for the Taurus_ :term:`GUI` application can be found
 `here <http://packages.python.org/taurus/>`_.
 
-How to produce your own Taurus_ GUI panel?
--------------------------------------------
+How to produce your own Taurus_ :term:`GUI` panel?
+--------------------------------------------------
 
 The basic philosophy of Taurus_ :term:`GUI` is to provide automatic
 :term:`GUI` s which are automatically replaced by more and more specific

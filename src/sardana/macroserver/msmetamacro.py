@@ -300,6 +300,7 @@ class MacroFunction(SardanaFunction, Parameterizable):
         param_def = []
         args, varargs, keywords, defaults = inspect.getargspec(self.function)
         assert keywords is None
+        assert len(args) > 0
         
         if varargs is None:
             for arg in args:
@@ -310,7 +311,6 @@ class MacroFunction(SardanaFunction, Parameterizable):
                     param_def[i][2] = default
                     i -= 1
         else:
-            assert not args
             param_def.append(
                 (varargs , [[ varargs, Type.Any, None, varargs + " parameter"]],
                  None, "list of " + varargs))

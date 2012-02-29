@@ -75,10 +75,13 @@ def is_macro(macro, abs_file=None, logger=None):
             return False
         # if it is a class defined in some other module forget it to
         # avoid replicating the same macro in different macro files
-        if inspect.getabsfile(macro) != abs_file:
+        try:
+            if inspect.getabsfile(macro) != abs_file:
+                return False
+        except TypeError:
             return False
     elif callable(macro) and not islambda(macro):
-        # if it is a class defined in some other module forget it to
+        # if it is a function defined in some other module forget it to
         # avoid replicating the same macro in different macro files
         try:
             if inspect.getabsfile(macro) != abs_file:
@@ -90,16 +93,22 @@ def is_macro(macro, abs_file=None, logger=None):
             return False
         
         args, varargs, keywords, defaults = inspect.getargspec(macro)
+        if not len(args):
+            if logger:
+                logger.debug("Could not add macro %s: Needs at least one "
+                             "parameter (usually called 'self')",
+                             macro.func_name)
+            return False
         if keywords is not None:
             if logger:
                 logger.debug("Could not add macro %s: Unsupported keyword "
-                             "parameters '%s'", macro.fn_name, keywords)
+                             "parameters '%s'", macro.func_name, keywords)
             return False
-        if varargs and args:
+        if varargs and len(args) > 1:
             if logger:
                 logger.debug("Could not add macro %s: Unsupported giving "
                              "named parameters '%s' and varargs '%s'",
-                             macro.fn_name, args, varargs)
+                             macro.func_name, args, varargs)
             return False
     else:
         return False

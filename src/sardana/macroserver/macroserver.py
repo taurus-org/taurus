@@ -229,6 +229,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     # --------------------------------------------------------------------------
     # General access to elements
     # --------------------------------------------------------------------------
+    
     def get_elements_info(self):
         return self.get_remote_elements_info() + self.get_local_elements_info()
     
@@ -241,9 +242,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         # fill macro library info
         ret = [ macrolib.serialize()
             for macrolib in self.get_macro_libs().values() ]
-        # fill macro class info
+        # fill macro info
         ret += [ macro.serialize()
             for macro in self.get_macros().values() ]
+        # fill parameter type info
+        ret += [ paramtype.serialize()
+            for paramtype in self.get_data_types().values() ]
+        
         return ret
     
     # --------------------------------------------------------------------------
@@ -273,7 +278,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     @property
     def type_manager(self):
         return self._type_manager
-        
+    
     # --------------------------------------------------------------------------
     # (Re)load code
     # --------------------------------------------------------------------------
@@ -399,21 +404,21 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     # Data types
     # --------------------------------------------------------------------------
     
-    def get_types(self):
+    def get_data_types(self):
         return self.type_manager.getTypes()
-    get_types.__doc__ = TypeManager.getTypes.__doc__
+    get_data_types.__doc__ = TypeManager.getTypes.__doc__
     
-    def get_type(self, type_name):
+    def get_data_type(self, type_name):
         return self.type_manager.getTypeObj(type_name)
-    get_type.__doc__ = TypeManager.getTypeObj.__doc__
+    get_data_type.__doc__ = TypeManager.getTypeObj.__doc__
     
-    def get_type_names(self):
+    def get_data_type_names(self):
         return self.type_manager.getTypeNames()
-    get_type_names.__doc__ = TypeManager.getTypeNames.__doc__
+    get_data_type_names.__doc__ = TypeManager.getTypeNames.__doc__
     
-    def get_type_names_with_asterisc(self):
+    def get_data_type_names_with_asterisc(self):
         return self.type_manager.getTypeListStr()
-    get_type_names_with_asterisc.__doc__ = TypeManager.getTypeListStr.__doc__
+    get_data_type_names_with_asterisc.__doc__ = TypeManager.getTypeListStr.__doc__
     
     # --------------------------------------------------------------------------
     # Doors
@@ -424,7 +429,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     
     def get_door_names(self):
         return [ door.full_name for door in self.get_doors() ]
-
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Environment access methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -498,7 +503,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             param = param,
         
         if type_class == MacroServer.All:
-            type_name_list = self.get_type_names()
+            type_name_list = self.get_data_type_names()
         else:
             if isinstance(type_class, (str, unicode)):
                 type_name_list = type_class,
@@ -512,7 +517,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             type_class_name = type_name
             if type_class_name.endswith('*'):
                type_class_name = type_class_name[:-1]
-            type_inst = self.get_type(type_class_name)
+            type_inst = self.get_data_type(type_class_name)
             if not type_inst.hasCapability(ParamType.ItemList):
                 continue
             for name, obj in type_inst.getObjDict(pool=pool).items():
@@ -536,7 +541,91 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return motion_klass(elems, motion_source)
     
     def get_elements_with_interface(self, interface):
-        ret=CaselessDict({})
+        ret=CaselessDict()
         for pool in self.get_pools():
             ret.update(pool.getElementsWithInterface(interface))
         return ret
+
+    def get_element_with_interface(self, interface, name):
+        for pool in self.get_pools():
+            element = pool.getElementWithInterface(interface)
+            if element is not None:
+                return element
+    
+    def get_controllers(self):
+        return self.get_elements_with_interface("Controller")
+    
+    def get_moveables(self):
+        return self.get_elements_with_interface("Moveable")
+    
+    def get_motors(self):
+        return self.get_elements_with_interface("Motor")
+    
+    def get_pseudo_motors(self):
+        return self.get_elements_with_interface("PseudoMotor")
+    
+    def get_io_registers(self):
+        return self.get_elements_with_interface("IORegister")
+    
+    def get_measurement_groups(self):
+        return self.get_elements_with_interface("MeasurementGroup")
+    
+    def get_exp_channels(self):
+        return self.get_elements_with_interface("ExpChannel")
+        
+    def get_counter_timers(self):
+        return self.get_elements_with_interface("CTExpChannel")
+    
+    def get_0d_exp_channels(self):
+        return self.get_elements_with_interface("ZeroDExpChannel")
+    
+    def get_1d_exp_channels(self):
+        return self.get_elements_with_interface("OneDExpChannel")
+    
+    def get_2d_exp_channels(self):
+        return self.get_elements_with_interface("TwoDExpChannel")
+    
+    def get_pseudo_counters(self):
+        return self.get_elements_with_interface("PseudoCounter")
+    
+    def get_instruments(self):
+        return self.get_elements_with_interface("Instrument")
+    
+    def get_controller(self, name):
+        return self.get_element_with_interface("Controller", name)
+    
+    def get_moveable(self, name):
+        return self.get_element_with_interface("Moveable", name)
+    
+    def get_motor(self, name):
+        return self.get_element_with_interface("Motor", name)
+    
+    def get_pseudo_motor(self, name):
+        return self.get_element_with_interface("PseudoMotor", name)
+    
+    def get_io_register(self, name):
+        return self.get_element_with_interface("IORegister", name)
+    
+    def get_measurement_group(self, name):
+        return self.get_element_with_interface("MeasurementGroup", name)
+    
+    def get_exp_channel(self, name):
+        return self.get_element_with_interface("ExpChannel", name)
+        
+    def get_counter_timer(self, name):
+        return self.get_element_with_interface("CTExpChannel", name)
+    
+    def get_0d_exp_channel(self, name):
+        return self.get_element_with_interface("ZeroDExpChannel", name)
+    
+    def get_1d_exp_channel(self, name):
+        return self.get_element_with_interface("OneDExpChannel", name)
+    
+    def get_2d_exp_channel(self, name):
+        return self.get_element_with_interface("TwoDExpChannel", name)
+    
+    def get_pseudo_counter(self, name):
+        return self.get_element_with_interface("PseudoCounter", name)
+    
+    def get_instrument(self, name):
+        return self.get_element_with_interface("Instrument", name)

@@ -33,6 +33,7 @@ __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
+import sys
 import os.path
 import functools
 import string
@@ -41,17 +42,94 @@ from PyTango import Util, Database, DbDevInfo, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
     DevVarLong64Array, DispLevel, DevState, \
     SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
-    READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr
+    READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr, \
+    DeviceClass
 
 from taurus.core.util import Enumeration
 
-from sardana import State, SardanaServer, DataType, DataFormat, \
+from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release
 from sardana.pool.poolmetacontroller import DataInfo
 
 ServerRunMode = Enumeration("ServerRunMode", \
                             ("SynchPure", "SynchThread", "SynchProcess", \
                              "AsynchThread", "AsynchProcess"))
+
+NO_DB_MAP = {
+    "Pool" : (
+        ("pool_demo", "sardana/pool/demo", dict(Version="1.0.0"), ),
+    ),
+    "Controller" : (
+        ("motctrl", "controller/dummymotorcontroller/motctrl",
+         dict(Id=1, Type="Motor", Klass="DummyMotorController",
+              Library="DummyMotorController.py", Role_ids=(), ), ),
+        ("iorctrl", "controller/dummyiorcontroller/iorctrl",
+         dict(Id=2, Type="IORegister", Klass="DummyIORController",
+              Library="DummyIORController.py", Role_ids=(), ), ),
+        ("ctctrl", "controller/dummycountertimercontroller/ctctrl",
+         dict(Id=3, Type="CTExpChannel", Klass="DummyCounterTimerController",
+              Library="DummyCounterTimerController.py", Role_ids=(), ), ),
+        ("zerodctrl", "controller/dummyzerodcontroller/zerodctrl",
+         dict(Id=4, Type="ZeroDExpChannel", Klass="DummyZeroDController",
+              Library="DummyZeroDController.py", Role_ids=(), ), ),
+        ("slitctrl", "controller/slit/slitctrl",
+         dict(Id=5, Type="PseudoMotor", Klass="Slit",
+              Library="Slit.py", Role_ids=(), ), ),
+        ("ioi0ctrl", "controller/ioveri0/ioi0ctrl",
+         dict(Id=6, Type="PseudoCounter", Klass="IoverI0",
+              Library="IoverI0.py", Role_ids=(), ), ),
+    ),
+    "Motor" : (
+        ("slt",  "motor/motctrl/1",  dict(Id=101, Axis=1,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("slb",  "motor/motctrl/2",  dict(Id=102, Axis=2,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("mot1", "motor/motctrl/3",  dict(Id=103, Axis=3,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("mot2", "motor/motctrl/4",  dict(Id=104, Axis=4,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("mot3", "motor/motctrl/5",  dict(Id=105, Axis=5,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("mot4", "motor/motctrl/6",  dict(Id=106, Axis=6,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("th",   "motor/motctrl/7",  dict(Id=107, Axis=7,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("tth",  "motor/motctrl/8",  dict(Id=108, Axis=8,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("chi",  "motor/motctrl/9",  dict(Id=109, Axis=9,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("phi",  "motor/motctrl/10", dict(Id=110, Axis=10, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+    ),
+    "IORegister" : (
+        ("ior1", "ioregister/iorctrl/1", dict(Id=201, Axis=1, Ctrl_id=2, Instrument_id=InvalidId), ),
+        ("ior2", "ioregister/iorctrl/2", dict(Id=202, Axis=2, Ctrl_id=2, Instrument_id=InvalidId), ),
+        ("ior3", "ioregister/iorctrl/3", dict(Id=203, Axis=3, Ctrl_id=2, Instrument_id=InvalidId), ),
+        ("ior4", "ioregister/iorctrl/4", dict(Id=204, Axis=4, Ctrl_id=2, Instrument_id=InvalidId), ),
+    ),
+    "CTExpChannel" : (
+        ("ct1", "expchan/ctctrl/1", dict(Id=301, Axis=1, Ctrl_id=3, Instrument_id=InvalidId), ),
+        ("ct2", "expchan/ctctrl/2", dict(Id=302, Axis=2, Ctrl_id=3, Instrument_id=InvalidId), ),
+        ("ct3", "expchan/ctctrl/3", dict(Id=303, Axis=3, Ctrl_id=3, Instrument_id=InvalidId), ),
+        ("ct4", "expchan/ctctrl/4", dict(Id=304, Axis=4, Ctrl_id=3, Instrument_id=InvalidId), ),
+    ),
+    "ZeroDExpChannel" : (
+        ("zerod1", "expchan/zerodctrl/1", dict(Id=401, Axis=1, Ctrl_id=4, Instrument_id=InvalidId), ),
+        ("zerod2", "expchan/zerodctrl/2", dict(Id=402, Axis=2, Ctrl_id=4, Instrument_id=InvalidId), ),
+        ("zerod3", "expchan/zerodctrl/3", dict(Id=403, Axis=3, Ctrl_id=4, Instrument_id=InvalidId), ),
+        ("zerod4", "expchan/zerodctrl/4", dict(Id=404, Axis=4, Ctrl_id=4, Instrument_id=InvalidId), ),
+    ),
+    "PseudoMotor" : (
+        ("gap",    "pm/slitctrl/1",  dict(Id=501, Axis=1,  Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",) ), ),
+        ("offset", "pm/slitctrl/2",  dict(Id=502, Axis=2,  Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",) ), ),
+    ),
+    "PseudoCounter" : (
+        ("inorm", "pc/ioi0ctrl/1",  dict(Id=601, Axis=1,  Ctrl_id=6, Instrument_id=InvalidId, Elements=("301", "302",) ), ),
+    ),
+    "MotorGroup" : (
+        ("motgrp1", "mg/pool_demo/motgrp1",  dict(Id=701, Elements=("103", "104",) ), ),
+    ),
+    "MeasurementGroup" : (
+        ("mntgrp1", "mntgrp/pool_demo/mntgrp1",  dict(Id=701, Elements=("301", "302", "303", "401",) ), ),
+    ),
+    "MacroServer" : (
+        ("MS_demo", "sardana/ms/demo",  dict(PoolNames=["sardana/pool/demo"] ), ),
+    ),
+    "Door" : (
+        ("Door_demo", "sardana/door/demo",
+         dict(Id=1001, MacroServerName="sardana/ms/demo", MaxMsgBufferSize=512), ),
+    ),
+}
 
 class GenericScalarAttr(Attr):
     pass
@@ -254,6 +332,11 @@ def prepare_server(args, tango_args):
     if "-?" in tango_args:
         return log_messages
     
+    nodb = "-nodb" in tango_args
+    if nodb and not hasattr(DeviceClass, "device_name_factory"):
+        print "In order to start %s with 'nodb' you need PyTango >= 7.2.3" % bin_name
+        sys.exit(1)
+    
     if len(tango_args) < 2:
         valid = False
         while not valid:
@@ -268,6 +351,10 @@ def prepare_server(args, tango_args):
         tango_args.append(inst_name)
     else:
         inst_name = tango_args[1].lower()
+    
+    if "-nodb" in tango_args:
+        return log_messages
+    
     db = Database()
     known_inst=map(str.lower, db.get_instance_name_list(bin_name))
     if inst_name not in known_inst:
@@ -321,7 +408,6 @@ def prepare_server(args, tango_args):
                 log_messages.append(("Registered %s %s", dev_class, dev_alias))
     return log_messages
 
-
 def register_server_with_devices(db, server_name, server_instance, devices):
     """Registers a new server with some devices in the Database.
        Devices is a seq<tuple<str, str, str, dict>>> where each item is a
@@ -357,7 +443,6 @@ def register_server_with_devices(db, server_name, server_instance, devices):
         db.put_device_alias(info.name, alias)
         if props is not None:
             db.put_device_property(info.name, props)
-    
 
 def from_name_to_tango(db, name):
     alias = None
@@ -506,6 +591,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
         taurus.info(*log_message)
 
     taurus.debug("Start args=%s", args)
+    taurus.debug("Start tango args=%s", args)
     taurus.debug("Start options=%s", options)
 
 def prepare_rconsole(options, args, tango_args):
@@ -557,7 +643,6 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
         if mode != ServerRunMode.SynchPure:
             raise Exception("When running in separate thread/process, " \
                             "'args' must be given")
-        import sys
         args = sys.argv
     
     name = args[0]

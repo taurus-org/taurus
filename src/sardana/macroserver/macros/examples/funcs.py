@@ -23,8 +23,6 @@
 
 """Examples of macro functions"""
 
-from __future__ import print_function
-
 __all__ = ["mfunc1", "mfunc2", "mfunc3", "mfunc4", "mfunc5"]
 
 __docformat__ = 'restructuredtext'
@@ -33,30 +31,37 @@ from sardana.macroserver.macro import Type, Macro, macro
 
 
 @macro()
-def mfunc1():
+def mfunc1(ctx):
     """First macro function. No parameters whatsoever"""
-    self.output("Executing %s", self.getName())
+    ctx.output("Executing %s", self.getName())
     print("Hello",1)
-    wa()
+    ctx.wa()
 
 @macro()
-def mfunc2(p1):
+def mfunc2(self, p1):
     """Second macro function. One parameter of unknown type"""
     self.output("parameter: %s", p1)
 
 @macro([ ["moveable", Type.Moveable, None, "motor to watch"] ])
-def mfunc3(moveable):
+def mfunc3(self, moveable):
     """Third macro function. A proper moveable parameter"""
     self.output("Moveable %s is at %s", moveable.getName(), moveable.getPosition())
-    ascan(moveable, 0, 10, 10, 0.1)
+    macros.ascan(moveable, 0, 10, 10, 0.1)
     mfunc1()
     
 @macro()
-def mfunc4(*args):
+def mfunc4(self, *args):
     """Fourth macro function. A list of parameters of unknown type"""
     self.output("parameters %s", args)
     
 @macro()
-def mfunc5(*args):
+def mfunc5(self, *args):
     """Fifth macro function. A list of parameters of unknown type"""
     self.output("parameters %s", args)
+
+@macro([ ["moveable", Type.Moveable, None, "moveable to move"],
+         ["position", Type.Float, None, "absolute position"] ])
+def move(self, moveable, position):
+    """This macro moves a motor to the specified position"""
+    moveable.move(position)
+    self.print("Motor ended at ", moveable.getPosition())

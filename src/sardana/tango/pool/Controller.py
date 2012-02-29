@@ -79,7 +79,6 @@ class Controller(PoolDevice):
         detect_evts = "state", "status"
         non_detect_evts = "elementlist",
         self.set_change_events(detect_evts, non_detect_evts)
-        
         ctrl = self.ctrl
         if ctrl is None:
             full_name = self.get_name()
@@ -95,7 +94,7 @@ class Controller(PoolDevice):
             self.set_status(ctrl.get_status())
         else:
             ctrl.re_init()
-        
+    
     def _get_ctrl_properties(self):
         try:
             ctrl_info = self.pool.get_controller_class_info(self.Klass)
@@ -103,6 +102,9 @@ class Controller(PoolDevice):
         except:
             return {}
         db = Util.instance().get_database()
+        
+        if db is None:
+            return {}
         
         props = {}
         if prop_infos:
@@ -241,9 +243,9 @@ class ControllerClass(PoolDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'Type':           [DevString, "", [] ],
-        'Library':        [DevString, "", [] ],
-        'Klass':          [DevString, "", [] ],
+        'Type':           [DevString, "", None ],
+        'Library':        [DevString, "", None ],
+        'Klass':          [DevString, "", None ],
         'Role_ids':       [DevVarLongArray, "", [] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)

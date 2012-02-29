@@ -166,6 +166,8 @@ You can type:
     2. :class:`~sardana.macroserver.macros.standard.mv` *mot01 100* - which will move mot01 to position 100
     3. :class:`~sardana.macroserver.macros.scan.ascan` *mot01 0 100 10 0.1* - will start an absolute step scan
 
+.. hint:: for clearing sardana from the elements created by the demo, execute ``clear_sar_demo``
+
 .. _working-from-svn:
 
 Working from SVN
