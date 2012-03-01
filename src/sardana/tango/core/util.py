@@ -30,6 +30,7 @@ __docformat__ = 'restructuredtext'
 __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "tango_protect", "to_tango_state", "to_tango_type_format",
            "to_tango_type", "to_tango_access", "to_tango_attr_info",
+           "from_tango_state_to_state",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
@@ -156,6 +157,9 @@ def tango_protect(wrapped, *args, **kwargs):
 
 def to_tango_state(state):
     return DevState(state)
+
+def from_tango_state_to_state(state):
+    return int(state)
 
 #: dictionary dict<:class:`sardana.DataType`, :class:`PyTango.CmdArgType`>
 TTYPE_MAP = {
