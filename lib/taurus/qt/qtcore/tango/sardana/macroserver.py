@@ -96,7 +96,7 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
         
         macros, elements = 0, 0
         for element in set.union(added, removed, changed):
-             if element.type == "MacroClass":
+             if "MacroCode" in element.interfaces:
                 macros += 1
              elements += 1
              if elements and macros:

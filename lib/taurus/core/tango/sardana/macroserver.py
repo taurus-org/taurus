@@ -605,7 +605,7 @@ class BaseMacroServer(MacroServerDevice):
         attr.setSerializationMode(TaurusSerializationMode.Concurrent)
     
     NO_CLASS_TYPES = 'ControllerClass', 'ControllerLibrary', \
-                     'MacroLibrary', 'Instrument'
+                     'MacroLibrary', 'Instrument', 'Meta', 'ParameterType'
     
     def getObject(self, element_info):
         elem_type = element_info.getType()
