@@ -998,7 +998,7 @@ class MacroExecutor(Logger):
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
                 result = self.__preprocessResult(macro_obj.getResult())
                 self.info("sending result %s", result)
-                door.send_result(result)
+                self.sendResult(result)
         except AbortException as ae:
             macro_exp = ae
         except MacroServerException as mse:
@@ -1058,7 +1058,10 @@ class MacroExecutor(Logger):
     
     def sendStatus(self, status):
         return self.door.set_status(status)
-
+    
+    def sendResult(self, result):
+        return self.door.set_result(result)
+    
     def getLastMacroStatus(self):
         return self._macro_pointer.getMacroStatus()
 
