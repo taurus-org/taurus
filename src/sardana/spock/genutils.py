@@ -228,7 +228,10 @@ def get_ipython_profiles():
 
 def get_spock_profiles(ipython_profiles=None):
     """Helper function to find all spock ipython profiles"""
+    ret = []
     ipydir = get_ipython_dir()
+    if not os.path.isdir(ipydir):
+        return ret
     if ipython_profiles is None:
         ipython_profiles = get_ipython_profiles()
     ret = []
@@ -745,6 +748,15 @@ def get_args(argv):
     # default IPython dir
     #userdir = os.path.realpath(os.path.curdir)
     ipythondir = get_ipython_dir()
+    
+    if not os.path.isdir(ipythondir):
+        # Platform-dependent suffix.
+        if os.name == 'posix':
+            rc_suffix = ''
+        else:
+            rc_suffix = '.ini'
+        IPython.iplib.user_setup(ipythondir, rc_suffix, mode='install',
+                                 interactive=False)
     
     try:
         f, name, t = imp.find_module(profile_modulename, [ipythondir])
