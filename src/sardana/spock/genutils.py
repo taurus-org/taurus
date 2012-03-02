@@ -334,7 +334,7 @@ def get_device_from_user(expected_class, dft = None):
 
 def get_tango_db():
     import PyTango
-    tg_host = os.getenv("TANGO_HOST", None)
+    tg_host = PyTango.ApiUtil.get_env_var("TANGO_HOST")
 
     db = None
     if tg_host is None:
