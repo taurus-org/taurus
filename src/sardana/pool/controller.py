@@ -58,7 +58,7 @@ class Controller(object):
     ctrl_features = []
     
     #: .. deprecated:: 1.0
-    #:     Deprecated: use :attr:`~Controller.axis_attributes` instead
+    #:     use :attr:`~Controller.axis_attributes` instead
     ctrl_extra_attributes = {}
     
     #: A :class:`dict` containning controller properties where:
@@ -184,7 +184,7 @@ class Controller(object):
         """**Controller API**. The controller instance name.
         
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.GetName` instead"""
+            use :meth:`~Controller.GetName` instead"""
         return self._inst_name
     
     def GetName(self):
@@ -296,7 +296,7 @@ class Controller(object):
         :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.SetAxisPar` instead"""
+            use :meth:`~Controller.SetAxisPar` instead"""
         raise NotImplementedError("SetAxisPar must be defined in the "
                                   "controller")
 
@@ -305,7 +305,7 @@ class Controller(object):
         axis. Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.GetAxisPar` instead"""
+            use :meth:`~Controller.GetAxisPar` instead"""
         raise NotImplementedError("GetAxisPar must be defined in the "
                                   "controller")
 
@@ -314,7 +314,7 @@ class Controller(object):
         given axis. Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.SetAxisExtraPar` instead"""
+            use :meth:`~Controller.SetAxisExtraPar` instead"""
         raise NotImplementedError("SetAxisExtraPar must be defined in the "
                                   "controller")
 
@@ -323,7 +323,7 @@ class Controller(object):
         axis. Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~Controller.GetAxisExtraPar` instead"""
+            use :meth:`~Controller.GetAxisExtraPar` instead"""
         raise NotImplementedError("GetAxisExtraPar must be defined in the "
                                   "controller")
     
@@ -637,7 +637,7 @@ class CounterTimerController(Controller, Readable, Stopable):
         Default implementation does nothing.
         
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~CounterTimerController.PreStartAll` instead"""
+            use :meth:`~CounterTimerController.PreStartAll` instead"""
         pass
     
     def PreStartOneCT(self, axis):
@@ -650,7 +650,7 @@ class CounterTimerController(Controller, Readable, Stopable):
         :rtype: bool
         
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~CounterTimerController.PreStartOne` instead"""
+            use :meth:`~CounterTimerController.PreStartOne` instead"""
         return True
     
     def StartOneCT(self, axis):
@@ -661,7 +661,7 @@ class CounterTimerController(Controller, Readable, Stopable):
         :param int axis: axis number
 
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~CounterTimerController.StartOneCT` instead"""
+            use :meth:`~CounterTimerController.StartOneCT` instead"""
         pass
 
     def StartAllCT(self):
@@ -670,7 +670,7 @@ class CounterTimerController(Controller, Readable, Stopable):
         Default implementation does nothing.
         
         .. deprecated:: 1.0
-            Deprecated: use :meth:`~CounterTimerController.StartAll` instead"""
+            use :meth:`~CounterTimerController.StartAll` instead"""
         raise NotImplementedError("StartAllCT must be defined in the "
                                   "controller")
     
@@ -905,8 +905,7 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. deprecated:: 1.0
-               Deprecated: implement :meth:`PseudoMotorController.CalcAllPseudo`
-               instead"""
+               implement :meth:`PseudoMotorController.CalcAllPseudo` instead"""
         ret = []
         for i in range(len(self.pseudo_motor_roles)):
             ret.append(self.calc_pseudo(i+1, physical_pos))
@@ -926,8 +925,8 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. deprecated:: 1.0
-               Deprecated: implement
-               :meth:`PseudoMotorController.CalcAllPhysical` instead"""
+               implement :meth:`PseudoMotorController.CalcAllPhysical`
+               instead"""
         ret = []
         for i in range(len(self.motor_roles)):
             pos = self.calc_physical(i+1, pseudo_pos)
@@ -945,8 +944,7 @@ class PseudoMotorController(PseudoController):
            :rtype: float
            
            .. deprecated:: 1.0
-               Deprecated: implement :meth:`PseudoMotorController.CalcPseudo`
-               instead"""
+               implement :meth:`PseudoMotorController.CalcPseudo` instead"""
         raise NotImplementedError("CalcPseudo must be defined in te controller")
     
     def calc_physical(self, axis, pseudo_pos):
@@ -961,8 +959,7 @@ class PseudoMotorController(PseudoController):
            :rtype: float
            
            .. deprecated:: 1.0
-               Deprecated: implement :meth:`PseudoMotorController.CalcPhysical`
-               instead"""
+               implement :meth:`PseudoMotorController.CalcPhysical` instead"""
         raise NotImplementedError("CalcPhysical must be defined in the "
                                   "controller")
     
@@ -1056,8 +1053,7 @@ class PseudoCounterController(Controller):
            :rtype: float
            
            .. deprecated:: 1.0
-               Deprecated: implement :meth:`PseudoCounterController.Calc`
-               instead"""
+               implement :meth:`PseudoCounterController.Calc` instead"""
         raise NotImplementedError("Calc must be defined in te controller")
 
 
@@ -1065,8 +1061,9 @@ class IORegisterController(Controller, Readable):
     """Base class for a IORegister controller. Inherit from this class to 
     implement your own IORegister controller for the device pool.
     """
-        #: .. deprecated:: 1.0
-    #:     Deprecated: use :attr:`~Controller.axis_attributes` instead
+    
+    #: .. deprecated:: 1.0
+    #:     use :attr:`~Controller.axis_attributes` instead
     predefined_values = ()
     
     def __init__(self, inst, props, *args, **kwargs):
