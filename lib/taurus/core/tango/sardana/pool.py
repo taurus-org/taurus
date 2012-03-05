@@ -718,7 +718,7 @@ class PseudoMotor(PoolElement, Moveable):
         if operator.isSequenceType(new_pos):
            new_pos = new_pos[0]
         try:
-            self.getPositionObj().write(new_pos)
+            self.write_attribute('position', new_pos)
         except DevFailed, df:
             for err in df:
                 if err.reason == 'API_AttrNotAllowed':
