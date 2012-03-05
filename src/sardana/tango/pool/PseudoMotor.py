@@ -184,7 +184,7 @@ class PseudoMotor(PoolElementDevice):
         raise NotImplementedError
     
     def is_MoveRelative_allowed(self):
-        if self.get_state() in [PyTango.DevState.FAULT, DevState.MOVING, DevState.UNKNOWN]:
+        if self.get_state() in (DevState.FAULT, DevState.MOVING, DevState.UNKNOWN):
             return False
         return True
     
