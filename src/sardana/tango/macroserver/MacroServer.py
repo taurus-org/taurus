@@ -176,7 +176,7 @@ class MacroServer(SardanaDevice):
         
     @DebugIt()
     def read_MacroList(self, attr):
-        macro_names = self.macro_server.get_macro_class_names()
+        macro_names = self.macro_server.get_macro_names()
         attr.set_value(macro_names)
     
     def read_MacroLibList(self, attr):
@@ -184,7 +184,7 @@ class MacroServer(SardanaDevice):
         attr.set_value(macro_lib_names)
     
     def read_TypeList(self, attr):
-        type_names = self.macro_server.get_type_names_with_asterisc()
+        type_names = self.macro_server.get_data_type_names_with_asterisc()
         attr.set_value(type_names)
         
     #@DebugIt()
