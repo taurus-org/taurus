@@ -393,7 +393,7 @@ class Door(SardanaDevice):
         else:
             self._simulation.stopMacro()
     
-    def is_PauseMacro_allowed(self):
+    def is_StopMacro_allowed(self):
         return self.get_state() == Macro.Running
     
     def ResumeMacro(self):

@@ -34,9 +34,9 @@ import time
 import math
 
 from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
-from PyTango import DispLevel, DevState, AttrQuality
-from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, \
+    DevString, DispLevel, DevState, AttrQuality, \
+    Except, READ, READ_WRITE, SCALAR, SPECTRUM
 
 from taurus.core.util.log import InfoIt, DebugIt
 
