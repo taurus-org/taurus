@@ -80,7 +80,7 @@ class PseudoCounter(PoolElementDevice):
                 axis=self.Axis, ctrl_id=self.Ctrl_id,
                 user_elements=self.Elements)
             if self.instrument is not None:
-                motor.set_instrument(self.instrument)
+                pseudo_counter.set_instrument(self.instrument)
             pseudo_counter.add_listener(self.on_pseudo_counter_changed)
             self.pseudo_counter = pseudo_counter
         # force a state read to initialize the state attribute
