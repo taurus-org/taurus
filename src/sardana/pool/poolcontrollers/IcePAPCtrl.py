@@ -47,14 +47,14 @@ class IcepapController(MotorController):
     #ctrl_features = ['Encoder','Home_speed','Home_acceleration']
     
     ## The properties used to connect to the ICEPAP motor controller
-    class_prop = {
+    ctrl_properties = {
         'Host':{Type:str,Description:'The host name'},
         'Port':{Type:int, Description:'The port number',DefaultValue:5000},
         'Timeout':{Type:int, Description:'Connection timeout',DefaultValue:3}
     }
 
     ## The axis extra attributes that correspond to extra features from the Icepap drivers
-    ctrl_extra_attributes = {
+    axis_attributes = {
         'Indexer':{Type:str,Access:ReadWrite},
         'PowerOn':{Type:bool,Access:ReadWrite},
         'InfoA':{Type:str,Access:ReadWrite},
