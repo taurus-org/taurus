@@ -181,7 +181,7 @@ class ControllerManager(Singleton, Logger):
                 elems = os.listdir(p)
                 for f in os.listdir(p):
                     name,ext = os.path.splitext(f)
-                    if name.startswith("_"):
+                    if not name[0].isalpha():
                         continue
                     if ext.endswith('py'):
                         ret.append(name)
