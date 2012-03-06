@@ -36,7 +36,7 @@ class AbortException(Exception):
 
 class PoolException(Exception):
     
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args)
         if args:
             a1 = args[0]
@@ -48,6 +48,7 @@ class PoolException(Exception):
                 self.msg = str(a1)
                 self.traceback = None
                 self.type = self.__class__.__name__
+        self.exc_info = kwargs.get('exc_info')
 
     def __str__(self):
         return "%s: %s" % (self.type, self.msg)

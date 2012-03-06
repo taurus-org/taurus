@@ -379,9 +379,13 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             curr_physical_positions.append(physical_positions[user_element].value)
         physical_positions = self.controller.calc_all_physical(
                                 pseudo_positions, curr_physical_positions)[0]
+        
         if items is None:
             items = {}
         for new_position, element in zip(physical_positions, user_elements):
+            if new_position is None:
+                raise PoolException("Cannot calculate motion: %s reports "
+                                    "position to be None")
             element.calculate_motion(new_position, items=items)
         return items
     
