@@ -146,6 +146,12 @@ class ZeroDExpChannel(PoolElementDevice):
         acquiring = self.get_state() in self.BusyStates
         attr.set_value(self.zerod.get_value())
     
+    def read_CurrentValue(self, attr):
+        val, exc_info = self.zerod.read_value()
+        if exc_info is not None:
+            Except.throw_python_exception(*exc_info)
+        attr.set_value(val)
+    
     def Start(self):
         self.zerod.start_acquisition()
     
@@ -163,8 +169,9 @@ class ZeroDExpChannel(PoolElementDevice):
     
     def _is_allowed(self, req_type):
         return PoolElementDevice._is_allowed(self, req_type)
-        
+    
     is_Value_allowed = _is_allowed
+    is_CurrentValue_allowed = _is_allowed
     is_CumulationType_allowed = _is_allowed
     is_ValueBuffer_allowed = _is_allowed
     is_TimeBuffer_allowed = _is_allowed
@@ -190,6 +197,8 @@ class ZeroDExpChannelClass(PoolElementDeviceClass):
     #    Attribute definitions
     attr_list = {
         'Value'          : [ [ DevDouble, SCALAR, READ ],
+                             { 'abs_change'     : "1.0" } ],
+        'CurrentValue'   : [ [ DevDouble, SCALAR, READ ],
                              { 'abs_change'     : "1.0" } ],
         'ValueBuffer'    : [ [ DevDouble, SPECTRUM, READ, 16384 ] ],
         'TimeBuffer'     : [ [ DevDouble, SPECTRUM, READ, 16384 ] ],

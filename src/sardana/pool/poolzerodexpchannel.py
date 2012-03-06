@@ -147,7 +147,7 @@ class Pool0DExpChannel(PoolElement):
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------
-
+    
     def read_value(self):
         return self.acquisition.read_value()[self]
     
