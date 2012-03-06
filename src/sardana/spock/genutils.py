@@ -612,8 +612,8 @@ def expose_variable(name, value):
     get_ipapi().to_user_ns({ name : value })
 
 def unexpose_variable(name):
-    ip = get_ipapi()
-    delattr(ip.IP, name)
+    user_ns = get_ipapi().user_ns
+    del user_ns[name]
     
 def expose_variables(d):
     get_ipapi().to_user_ns(d)
