@@ -23,33 +23,27 @@
 ##
 ##############################################################################
 
-import sys
-import os
-import copy
-import threading
-import logging.handlers
+"""The MacroServer tango module"""
 
-from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
-    DevLong64, DevDouble, DevBoolean, DevString, DevState, DevEncoded, \
-    DevVarStringArray, \
-    DispLevel, AttrQuality, TimeVal, AttrData, \
-    READ, READ_WRITE, SCALAR, SPECTRUM, \
-    DebugIt
+from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
+    DevEncoded, DevVarStringArray, READ, SCALAR, SPECTRUM, DebugIt
 
-from taurus.core.util import Logger, CodecFactory
+#from taurus.core.util import Logger
+from taurus.core.util import CodecFactory
 
-from sardana import State, SardanaServer, ElementType
+from sardana import State, SardanaServer #, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
-from sardana.tango.core.util import GenericSpectrumAttr
 from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macroserver import MacroServer as MS
 
 
 class MacroServer(SardanaDevice):
+    """The MacroServer tango class"""
     
     ElementsCache = None
     
     def __init__(self,cl, name):
+        self._macro_server = None
         SardanaDevice.__init__(self,cl, name)
         MacroServer.init_device(self)
     
@@ -66,13 +60,9 @@ class MacroServer(SardanaDevice):
     def macro_server(self):
         return self._macro_server
     
-#   def __getManager(self, *args):
-#        return MacroServerManager(*args)
-    
     def delete_device(self):
         SardanaDevice.delete_device(self)
-#        self.__getManager().cleanUp()
-        
+
     def init_device(self):
         SardanaDevice.init_device(self)
         self.set_state(DevState.ON)
@@ -87,7 +77,8 @@ class MacroServer(SardanaDevice):
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
         
-        self.EnvironmentDb = self._calculate_environment_name(self.EnvironmentDb)
+        self.EnvironmentDb = \
+            self._calculate_environment_name(self.EnvironmentDb)
 
         macro_server = self.macro_server
         macro_server.set_max_parallel_macros(self.MaxParallelMacros)
@@ -99,7 +90,7 @@ class MacroServer(SardanaDevice):
             try:
                 import rfoo.utils.rconsole
                 rfoo.utils.rconsole.spawn_server(port=self.RConsolePort)
-            except:
+            except Exception:
                 self.warning(exc_info=1)
     
     def _calculate_environment_name(self, name):
@@ -130,7 +121,6 @@ class MacroServer(SardanaDevice):
             self.ElementsCache = None
 
             elem = evt_value
-            elem_name, elem_type = elem.name, elem.get_type()
             
             value = { }
             if "created" in evt_name:
@@ -200,8 +190,8 @@ class MacroServer(SardanaDevice):
     
     #@DebugIt()
     def read_Elements(self, attr):
-        element_list = self.getElements()
-        attr.set_value(*element_list)
+        fmt, data = self.getElements()
+        attr.set_value(fmt, data)
     
     def GetMacroInfo(self, macro_names):
         """GetMacroInfo(list<string> macro_names):
@@ -217,7 +207,7 @@ class MacroServer(SardanaDevice):
         macro_server = self.macro_server
         codec = CodecFactory().getCodec('json')
         ret = [ codec.encode(('', macro.serialize()))[1]
-            for macro in macro_server.get_macro_classes()
+            for macro in macro_server.get_macros()
                 if macro.name in macro_names ]
         return ret
     
@@ -225,7 +215,7 @@ class MacroServer(SardanaDevice):
         """ReloadMacro(list<string> macro_names):"""
         try:
             for macro_name in macro_names:
-                self.macro_server.reload_macro_class(macro_name)
+                self.macro_server.reload_macro(macro_name)
         except MacroServerException, mse:
             Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
         return ['OK']
@@ -247,12 +237,16 @@ class MacroServer(SardanaDevice):
         return map(str, ret)
     
     def SetMacroCode(self, argin):
-        lib_name, code = argin
-        self.macro_server.set_macro_lib(lib_name, code)
+        lib_name, code = argin[:2]
+        auto_reload = True
+        if len(argin) > 2:
+            auto_reload = argin[2].lower() in ('true', 'yes')
+        self.macro_server.set_macro_lib(lib_name, code, auto_reload=auto_reload)
     
 
 class MacroServerClass(SardanaDeviceClass):
-
+    """MacroServer Tango class class"""
+    
     #    Class Properties
     class_property_list = {
     }
@@ -265,7 +259,8 @@ class MacroServerClass(SardanaDeviceClass):
             [] ],
         'MacroPath':
             [DevVarStringArray,
-            "List of directories (absolute or relative path) that contain macro files.",
+            "List of directories (absolute or relative path) that contain "
+            "macro files.",
             [] ],
         'MaxParallelMacros':
             [DevLong,
@@ -301,9 +296,9 @@ class MacroServerClass(SardanaDeviceClass):
             [DevVarStringArray, "result is a sequence of 3 strings:\n"
                 "<full path and file name>, <code>, <line number>" ]],
         'SetMacroCode':
-            [[DevVarStringArray, "<MacroLib name>, <code>\n" \
+            [[DevVarStringArray, "<MacroLib name>, <code> [, <Auto reload>=True]\n" \
                 "- if macro lib is a simple module name:\n" \
-                "  - if it exists, it is overwritten otherwise a new python " \
+                "  - if it exists, it is overwritten, otherwise a new python " \
                 "file is created in the directory of the first element in "\
                 "the MacroPath property" \
                 "- if macro lib is the full path name:\n" \

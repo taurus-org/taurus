@@ -212,16 +212,6 @@ class Pool0DExpChannel(PoolElement):
     # acquisition
     # --------------------------------------------------------------------------
     
-    def prepare_to_acquire(self, acquisition):
-        self._aborted = False
-        self._stopped = False
-        self.action = acquisition
-    
-    def finish_from_acquisition(self):
-        self._aborted = False
-        self._stopped = False
-        self.clear_action()
-    
     def get_acquisition(self):
         return self.get_action_cache()
     
@@ -230,7 +220,6 @@ class Pool0DExpChannel(PoolElement):
     def start_acquisition(self, value=None):
         self._aborted = False
         self.clear_buffer()
-        value = value or self.get_value_w()
         if value is None:
             raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
         if not self._simulation_mode:

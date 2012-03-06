@@ -148,7 +148,7 @@ class SardanaAttribute(object):
         
         :return: exception information or None
         :rtype: tuple<3> or None"""
-        return self._r_exc_info
+        return self.exc_info
     
     def fire_event(self, propagate=1):
         """Fires an event to the listeners of the object which owns this

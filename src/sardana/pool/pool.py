@@ -209,7 +209,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     def get_controller_libs_summary_info(self):
         libs = self.get_controller_libs()
         ret = []
-        for module_name, ctrl_lib_info in libs.items():
+        for ctrl_lib_info in libs:
             elem = "%s (%s)" % (ctrl_lib_info.getName(), ctrl_lib_info.getFileName())
             ret.append(elem)
         return ret

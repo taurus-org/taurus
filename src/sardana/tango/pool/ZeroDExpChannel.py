@@ -169,6 +169,7 @@ class ZeroDExpChannel(PoolElementDevice):
     is_ValueBuffer_allowed = _is_allowed
     is_TimeBuffer_allowed = _is_allowed
 
+
 class ZeroDExpChannelClass(PoolElementDeviceClass):
 
     #    Class Properties

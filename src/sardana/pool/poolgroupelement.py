@@ -162,7 +162,7 @@ class PoolBaseGroup(PoolContainer):
             if not internal:
                 validator = AttributeNameValidator()
                 params = validator.getParams(user_element_id)
-                params['pool'] = self.pool
+                params['pool'] = self._get_pool()
                 user_element = PoolExternalObject(**params)
             self.add_user_element(user_element)
         self._pending = False

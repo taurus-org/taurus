@@ -764,14 +764,14 @@ class PseudoController(Controller):
         if elem is None:
             pool = self._getPoolController().pool
             if type(index_or_role) == int:
-                index = axis_or_role
+                index = index_or_role
                 role = roles[index]
             else:
                 role = index_or_role
                 index = roles.index(role)
             motor_id = ids[index]
             elem = pool.get_element_by_id(motor_id)
-            elems[index] = elems[role] = elem
+            local_cache[index] = local_cache[role] = elem
         return elem
 
 
@@ -810,7 +810,7 @@ class PseudoMotorController(PseudoController):
     
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
-        self.__pseudo_role_motor_elements = {}
+        self.__pseudo_motor_role_elements = {}
         PseudoController.__init__(self, inst, props, *args, **kwargs)
     
     def CalcAllPseudo(self, physical_pos, curr_pseudo_pos):

@@ -40,6 +40,7 @@ __docformat__ = 'restructuredtext'
 
 import functools
 import numbers
+import math
 
 from taurus.core.util import Enumeration
 
@@ -469,6 +470,6 @@ class ScalarNumberFilter(object):
     
     def __call__(self, a, b):
         try:
-            return fabs(a-b) > EpsilonError
+            return math.fabs(a-b) > EpsilonError
         except:
             return a != b

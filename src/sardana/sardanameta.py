@@ -417,6 +417,12 @@ class SardanaCode(SardanaBaseObject):
         kwargs['path'] = self.path
         kwargs['description'] = self.description
         return kwargs
+    
+    def get_brief_description(self, max_chars=60):
+        desc = self.description.replace('\n',' ')
+        if len(desc) > (max_chars-5):
+            desc = desc[:max_chars-5] + '[...]'
+        return desc
 
 
 class SardanaClass(SardanaCode):

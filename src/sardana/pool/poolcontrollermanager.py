@@ -48,6 +48,23 @@ import controller
 from poolexception import UnknownController
 from poolmetacontroller import ControllerLibrary, ControllerClass
 
+CONTROLLER_TEMPLATE = '''
+
+class @controller_name@(MotorController):
+    """This class representes a Sardana motor controller."""
+    
+    ctrl_features = []
+    MaxDevice = 1024
+    
+    ctrl_properties = {}
+    ctrl_attributes = {}
+    axis_attributes = {}
+    
+    def __init__(self, inst, props, *args, **kwargs):
+        MotorController.__init__(self, inst, props, *args, **kwargs)
+
+'''
+
 class ControllerManager(Singleton, Logger):
     """The singleton class responsible for managing controller plug-ins."""
     
@@ -595,35 +612,4 @@ class ControllerManager(Singleton, Logger):
                 param_str = param_str[:9] + "..."
             ret.append(param_str)
         return ret
-
-    def prepareController(self, controller_class, par_list, init_opts={}, prepare_opts={}):
-        """Creates the controller object and calls its prepare method.
-           The return value is a tuple (ControllerObject, return value of prepare)
-        """
-        
-        controller_env = controller_class.env
-        controller_name = controller_class.__name__
-        
-        environment = init_opts.get('environment')
-        
-        r = []
-        for env in controller_env:
-            if not environment.hasEnv(env):
-                r.append(env)
-        if r:
-            raise MissingEnv("The controller %s requires the following missing " \
-                             "environment to be defined: %s" 
-                             % (controller_name, str(r)))
-        
-        controller_opts = { 
-            'no_exec': True, 
-            'create_thread' : True,
-            'external_prepare' : True 
-        }
-        
-        controller_opts.update(init_opts)
-        
-        controller = controller_class(*par_list, **controller_opts)
-        prepare_result = controller.prepare(*par_list, **prepare_opts)
-        return controller, prepare_result
 

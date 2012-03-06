@@ -41,7 +41,7 @@ class Slit(PseudoMotorController):
     organization = "CELLS - ALBA"
     image = "slit.png"
     logo = "ALBA_logo.png"
-
+    
     pseudo_motor_roles = ("Gap", "Offset")
     motor_roles = ("sl2t", "sl2b")
     

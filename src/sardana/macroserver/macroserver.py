@@ -367,10 +367,10 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return ret
     
     def get_macro_classes_summary_info(self):
-        macro_classes = self.get_macro_classes()
+        macros = self.get_macros()
         ret = []
-        for macro_class_info in macro_classes:
-            elem = "%s (%s)" % (macro_class_info.name, macro_class_info.file_path)
+        for macro_info in macros:
+            elem = "%s (%s)" % (macro_info.name, macro_info.file_path)
             ret.append(elem)
         return ret
     
@@ -397,10 +397,12 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
                                                       macro_name=macro_name)
     get_or_create_macro_lib.__doc__ = MacroManager.getOrCreateMacroLib.__doc__
     
-    def set_macro_lib(self, lib_name, code):
+    def set_macro_lib(self, lib_name, code, auto_reload=True):
         module_name = self.macro_manager.setMacroLib(lib_name, code,
                                                      auto_reload=False)
-        self.reload_macro_lib(module_name)
+        if auto_reload:
+            self.reload_macro_lib(module_name)
+        
     set_macro_lib.__doc__ = MacroManager.setMacroLib.__doc__
     
     # --------------------------------------------------------------------------

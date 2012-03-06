@@ -52,6 +52,8 @@ class SardanaDevice(Device_4Impl, Logger):
         
         # access to some tango API (like MultiAttribute and Attribute) is 
         # still not thread safe so we have this lock to protect
+        # Wa can't always use methods which use internally the
+        # C++ AutoTangoMonitor because it blocks the entire tango device.
         self.tango_lock = threading.Lock()
         
     def init(self, name):

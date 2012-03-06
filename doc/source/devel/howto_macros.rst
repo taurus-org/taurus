@@ -26,8 +26,8 @@ macro, it must inherit from a :class:`Macro` super-class. Macros are case
 sensitive. This means that *helloworld* is a different macro than *HelloWorld*.
 
 The choice between writing a macro function or a macro class depends not only
-on the type of procedure you want to write, but also (and most importantly) on
-the type of programming you are most confortable with.
+on the type of procedure you want to write, but also (and probably, most
+importantly) on the type of programming you are most confortable with.
 
 If you are a scientist, and you have a programming background on a functional
 language (like fortran, matlab, SPEC_), then you might prefer to write macro
@@ -71,52 +71,73 @@ As metioned before, macros are just simple Python_ functions which have been
 *labeled* as macros. In Python_, these labels are called *decorators*. Here is
 the macro function version of *Hello, World!*::
     
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro()
-    def hello_world():
+    def hello_world(self):
         """This is an hello world macro"""
-        print("Hello, World!")
+        self.output("Hello, World!")
 
 **line 1**
-    activates the new style print function. You **must** include this line if
-    your macro needs to write something to the output and you use a Python_
-    version < 3.0 [#f1]_
-
-**line 3**
     imports the *macro* symbol from the sardana macro package.
     :mod:`sardana.macroserver.macro` is the package which contains most symbols
     you will require from sardana to write your macros.
 
-**line 5**
+**line 3**
     this line *decorates* de following function as a macro. It is **crucial**
     to use this decorator in order for your function to be recognized by
     sardana as a valid macro.
 
-**line 6**
-    this line contains the hello_world function definition
+**line 4**
+    this line contains the hello_world function definition. Every macro needs
+    **at least** one parameter. The first parameter is the macro execution
+    context. It is usually called ``self`` but you can name it anything. This
+    parameter gives you access to the entire context where the macro is being
+    run. Through it, you'll be able to do all sorts of things, from sending text
+    to the output to ask for motors or even execute other macros.
 
-**line 7**
+**line 5**
     Documentation for this macro. You should **always** document your macro!
 
-**line 8**
+**line 6**
     this line will print *Hello, World!* on your screen.
     
 If you already know a little about Python_ your are probably wondering why not
 use ``print "Hello, World!"``?
 
-    Remember that your macro will be executed by a MacroServer which may be
-    in a different computer than the computer you are working on. Part of the
-    process of converting a function into a macro is too rewrite the original
-    :class:`macro` *decorator* to print in your screen instead of the
-    screen of the computer where the server is running. The :class:`macro`
-    *decorator* can do this for the new :func:`print` function but
-    not for the old `print` statement. Anyway, since the old `print`
-    statement will disappear soon, it is good practice to always use
-    :func:`print` function. [#f2]_
+    Remember that your macro will be executed by a Sardana server which may be
+    running in a different computer than the computer you are working on. If
+    you prefer, you can use the context version of Python_ :func:`print`
+    function (it is a bit more powerful than
+    :meth:`~sardana.macroserver.macro.Macro.output`\, and has a slightly
+    different syntax) ::
     
+        # mandatory first line in your code if you use Python_ < 3.0
+        from __future__ import print_function
+        
+        from sardana.macroserver.macro import macro
+        
+        @macro()
+        def hello_world(self):
+            """This is an hello world macro"""
+            self.print("Hello, World!")
+    
+    The following footnote describes how to discover your Python_ version [#f1]_.
+
+Remeber that a macro is, for all purposes, a normal Python_ function. This means
+you **CAN** inside a macro execute **ANY** valid Python_ code. This includes
+:keyword:`for` and :keyword:`while` loops, :keyword:`if` ... 
+:keyword:`elif` ... :keyword:`else` conditional execution, etc... ::
+
+        import numpy.fft
+        
+        @macro()
+        def fft_my_wave(self):
+            wave_device = self.getDevice("sys/tg_test/1")
+            wave = wave_device.wave
+            wave_fft = numpy.fft.fft(wave)
+            
+
 Adding parameters to your macro
 --------------------------------
 
@@ -136,15 +157,12 @@ apreciate clear benefits soon enough. Here are some of them:
 
 So, here is an example on how to define a macro that needs one parameter::
 
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
-    def where_moveable(moveable):
+    def where_moveable(self, moveable):
         """This macro prints the current moveable position"""
-        print("Motor is at ", moveable.getPosition())
-
+        self.output("%s is now at %s", moveable.getName(), moveable.getPosition())
 
 Here is another example on how to define a macro that needs two parameters:
 
@@ -153,16 +171,14 @@ Here is another example on how to define a macro that needs two parameters:
 
 ::
 
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro([ ["moveable", Type.Moveable, None, "moveable to move"],
              ["position", Type.Float, None, "absolute position"] ])
-    def move(moveable, position):
+    def move(self, moveable, position):
         """This macro moves a moveable to the specified position"""
         moveable.move(position)
-        print("Motor ended at ", moveable.getPosition())
+        self.output("%s is now at %s", moveable.getName(), moveable.getPosition())
 
 The parameter information is a :obj:`list` of :obj:`list`\s. Each :obj:`list`
 being a composed of four elements:
@@ -172,9 +188,26 @@ being a composed of four elements:
     - parameter default value (None means no default value)
     - parameter description
     
-Here is a list of allowed parameter types::
+Here is a list of the most common allowed parameter types:
 
-    - 
+    - Integer: an integer number
+    - Float: a real number
+    - Boolean: a boolean True or False
+    - String: a string
+    - Moveable: a moveable element (motor, pseudo-motor)
+    - Motor: a pure motor
+    - ExpChannel: an experimental channel (counter/timer, 0D, pseudo-counter, ...)
+    - Controller: a controller
+    - ControllerClass: an existing controller class plugin
+    - MacroCode: a macro
+    - MeasurementGroup: a measurement group
+    - Any: anything, really
+
+The complete list of types distributed with sardana is made up by these five
+simple types: Integer, Float, Boolean, String, Any, plus all available sardana
+interfaces (:obj:`~sardana.sardanadefs.Interface`)
+
+.. _macro_calling:
 
 Calling other macros from inside your macro
 --------------------------------------------
@@ -191,34 +224,31 @@ two of the macros that exist in the standard macro catalog
 
 Here is the new version of *where_moveable* ::
 
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
-    def where_moveable(moveable):
+    def where_moveable(self, moveable):
         """This macro prints the current moveable position"""
-        wm(moveable)
+        self.wm(moveable)
 
 ... and the new version of *move* ::
 
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro([ ["moveable", Type.Moveable, None, "moveable to move"],
              ["position", Type.Float, None, "absolute position"] ])
-    def move(moveable, position):
+    def move(self, moveable, position):
         """This macro moves a moveable to the specified position"""
-        mv(moveable, position)
-        print("Motor ended at ", moveable.getPosition())
+        self.mv(moveable, position)
+        self.output("%s is now at %s", moveable.getName(), moveable.getPosition())
 
 Macro context
 --------------
 
 One of the most powerfull features of macros is that the entire context of
 sardana is at your disposal. Simply put, it means you have access to all sardana
-elements by means of a variable called ``self``.
+elements by means of the first parameter on your macro (you can give this 
+parameter any name but usually, by convention it is called ``self``).
 
 ``self`` provides access to an extensive catalog of functions you can use in
 your macro to do all kinds of things. The complete catalog of functions can be
@@ -231,17 +261,16 @@ which motor you will move. Instead, a better solution would be to *ask* sardana
 for a motor named "theta" and use it directly. Here is how you can acomplish
 that::
 
-... and the new version of *move* ::
-
-    from __future__ import print_function
-    
     from sardana.macroserver.macro import macro
     
     @macro([["position", Type.Float, None, "absolute position"]])
-    def move_theta(moveable, position):
+    def move_theta(self, position):
         """This macro moves theta to the specified position"""
-        mv(moveable, position)
-        print("Motor ended at ", moveable.getPosition())
+        th = self.getMotor("th")
+        th.move(position)
+        self.output("Motor ended at %s", moveable.getPosition())
+
+
 
 Writting a macro class
 ----------------------
@@ -249,10 +278,11 @@ Writting a macro class
 This chapter describes an advanced alternative to writting macros as Python_
 classes.
 If words like *inheritance*, *polimorphism* sound like a lawyer's horror movie
-then you probably should only read on if someone expert in sardana told you that
-the task you intend to do cannot be accomplished by writting macro functions.
+then you probably should only read this if someone expert in sardana already
+told you that the task you intend to do cannot be accomplished by writting
+macro functions.
 
-The simplest macro that you can write **MUST** obey the following rules:
+The simplest macro class that you can write **MUST** obey the following rules:
 
     * Inherit from :class:`Macro`
     * Implement the :meth:`Macro.run` method
@@ -273,7 +303,7 @@ So, without further delay, here is the *Hello, World!* example::
 Let's say you want to pass an integer parameter to your macro. All you have to
 do is declare the parameter by using the :attr:`Macro.param_def` Macro member::
 
-    from sardana.macroserver.macro import *
+    from sardana.macroserver.macro import Macro, Type
     
     class twice(Macro):
         """Macro twice. Prints the double of the given value"""
@@ -281,7 +311,7 @@ do is declare the parameter by using the :attr:`Macro.param_def` Macro member::
         param_def = [ [ "value", Type.Float, None, "value to be doubled" ] ]
             
         def run(self, value):
-            print 2*value
+            self.output(2*value)
 
 .. note::
     As soon as you add a :attr:`Macro.param_def` you also need to
@@ -313,70 +343,44 @@ Here is an example on how to prepare HelloWorld to run only after year 1989::
         def run(self):
             print "Hello, World!"
 
-.. _macro_documentation:
+.. _advanced_macro_calling:
 
-Writting macro documentation
-------------------------------
+Advanced macro calls
+----------------------
 
-.. todo:: document how to write macro documentation
+As previously explained (:ref:`macro_calling`), you can use the Macro
+:term:`API` to call other macros from inside your own macro::
 
-.. _macro_calling:
+    @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
+    def fixed_ascan(self, moveable):
+        """This does an ascan starting at 0 ending at 100, in 10 intervals
+        with integration time of 0.1s"""
+        self.ascan(moveable, 0, 100, 10, 0.1)
 
-Calling other macros from inside your macro
-------------------------------------------------
+An explicit call to :meth:`~Macro.execMacro` would have the same effect::
 
-The Macro :term:`API` makes it possible to call other macros from inside your macro code.
-The simplest way to execute a macro from inside your macro is through the :meth:`Macro.macros`
-member. This is the macro container for all existing macros.
-Here is an example on how to call a macro for the *call_wa* macro::
-
-    class call_wa(Macro):
-        """call_wa macro"""
+    @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
+    def fixed_ascan(self, moveable):
+        """This does an ascan starting at 0 ending at 100, in 10 intervals
+        with integration time of 0.1s"""
+        self.execMacro('ascan', moveable, '0', '100', '10', '0.2')
     
-        def run(self):
-            self.macros.wa()
-            
-Another example calling a macro with parameters (the wm macro which receives a list
-of motors as parameters)::
-
-    class call_wm(Macro):
-        """call_wm macro"""
-        
-        param_def = [
-            ['motors', [ ['motor', Type.Motor, None, 'a motor'] ], None, 'motors to show'],
-        ]
-
-        def run(self, *m):
-            self.macros.wm(*m)
-
-An explicit call to :meth:`Macro.execMacro` would have the same effect::
-
-    class call_scan1(Macro):
-        """call_scan1 macro"""
-        
-        param_def = [ [ "motor", Type.Motor, None, "a motor" ] ]
-        
-        def run(self, motor):
-            self.execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')
-    
-:meth:`Macro.execMacro` supports passing parameters as different *flavors*:
+:meth:`~Macro.execMacro` supports passing parameters as different *flavors*:
     
     * parameters as strings: ``execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')``
     * parameters as concrete types: ``self.execMacro(['ascan', motor, 0, 100, 10, 0.2])``
     * parameters as space separated string: ``self.execMacro('ascan %s 0 100 10 0.2' % motor.getName())``
 
-Let's say that now you need access to the data generated by the sub-macro. In this
-case you need to use a lower level macro call :term:`API`::
+Let's say that now you need access to the data generated by the sub-macro. In
+this case you need to use a lower level macro :term:`API` call::
 
-    class call_ascan(Macro):
-        """call_wm macro"""
-        
-        param_def = ascan.param_def
-
-        def run(self, *args):
-            my_scan = self.createMacro('ascan', *args)
-            self.runMacro(my_scan)
-            print len(my_scan.data)
+    @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
+    def fixed_ascan(self, moveable):
+        """This does an ascan starting at 0 ending at 100, in 10 intervals
+        with integration time of 0.1s"""
+        my_scan = self.createMacro('ascan', moveable, '0', '100', '10', '0.2')
+        self.runMacro(my_scan)
+        print len(my_scan.data)
 
 A set of macro call examples can be found :ref:`here <devel-macro-call-examples>`.
 
@@ -388,27 +392,24 @@ Logging
 The Macro :term:`API` includes a set of methods that allow you to write log messages with
 different levels:
 
-    * :meth:`Macro.debug`
-    * :meth:`Macro.info`
-    * :meth:`Macro.warning`
-    * :meth:`Macro.error`
-    * :meth:`Macro.critical`
-    * :meth:`Macro.log`
-    * :meth:`Macro.output`
+    * :meth:`~Macro.debug`
+    * :meth:`~Macro.info`
+    * :meth:`~Macro.warning`
+    * :meth:`~Macro.error`
+    * :meth:`~Macro.critical`
+    * :meth:`~Macro.log`
+    * :meth:`~Macro.output`
     
-The special :meth:`Macro.output` has the same effect as the print statement.
+As you've seen, the special :meth:`~Macro.output` function has the same effect
+as a print statement (with slightly different arguments).
 
 Here is an example on how to write a logging information message::
 
-    from sardana.macroserver.macro import *
-
-    class HelloWorld(Macro):
-        """Hello, World! macro"""
-        
-        def run(self):
-            self.info("Starting to execute %s", self.__class__.__name__)
-            print "Hello, World!"
-            self.info("Finished to executing %s", self.__class__.__name__)
+    @macro()
+    def lets_log(self):
+        self.info("Starting to execute %s", self.getName())
+        self.output("Hello, World!")
+        self.info("Finished to executing %s", self.getName())
 
 .. rubric:: Footnotes
 
@@ -419,15 +420,6 @@ Here is an example on how to write a logging information message::
              2.7.1+ (r271:86832, Apr 11 2011, 18:05:24)
              [GCC 4.5.2]
 
-.. [#f2] An alternative to :func:`print` is the usage of :meth:`~Macro.output`.
-         Hello, World! would look like this::
-         
-             from sardana.macroserver.macro import macro
-            
-             @macro()
-             def hello_world():
-                 self.output("Hello, World!")
-        
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
 .. _ELETTRA: http://http://www.elettra.trieste.it/
@@ -437,7 +429,6 @@ Here is an example on how to write a logging information message::
 .. _MAX-lab: http://www.maxlab.lu.se/maxlab/max4/index.html
 .. _SOLEIL: http://www.synchrotron-soleil.fr/
 
-
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
 .. _Taurus: http://packages.python.org/taurus/
@@ -446,7 +437,7 @@ Here is an example on how to write a logging information message::
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _PyQwt: http://pyqwt.sourceforge.net/
 .. _Python: http://www.python.org/
-.. _IPython: http://ipython.scipy.org/
+.. _IPython: http://ipython.org/
 .. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
 .. _Qub: http://www.blissgarden.org/projects/qub/
 .. _numpy: http://numpy.scipy.org/

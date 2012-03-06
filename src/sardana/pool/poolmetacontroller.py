@@ -320,12 +320,6 @@ class ControllerClass(SardanaClass):
     def controller_class(self):
         return self.klass
     
-    def getBriefDescription(self, max_chars=60):
-        d = self.getControllerClass().__doc__ or ControllerClass.NoDoc
-        d = d.replace('\n',' ')
-        if len(d) > max_chars: d = d[:max_chars-5] + '[...]'
-        return d
-    
     @property
     def gender(self):
         return self.klass.gender

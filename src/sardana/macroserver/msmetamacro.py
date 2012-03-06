@@ -211,12 +211,6 @@ class Parameterizable(object):
                 info.append(str(def_val))
         return info
     
-    def get_brief_description(self, max_chars=60):
-        desc = self.description.replace('\n',' ')
-        if len(desc) > (max_chars-5):
-            desc = desc[:max_chars-5] + '[...]'
-        return desc
-    
     def get_info(self):
         info = [self.full_name, self.description, str(self.code_object.hints)]
         info += self.get_parameter_info()
@@ -289,12 +283,6 @@ class MacroFunction(SardanaFunction, Parameterizable):
     @property
     def macro_function(self):
         return self.function
-    
-    def get_brief_description(self, max_chars=60):
-        desc = self.description.replace('\n',' ')
-        if len(desc) > (max_chars-5):
-            desc = desc[:max_chars-5] + '[...]'
-        return desc
     
     def to_parameter_definition(self):
         param_def = []

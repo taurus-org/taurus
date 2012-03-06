@@ -8,27 +8,29 @@ Getting started
 Installing
 ----------
 
-#. From easy_install [1]_::
-    
-        easy_install -U sardana
+#. Get the sardana code
 
-#. From latest source distribution:
-    #. Download the latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
-    #. Extract the downloaded tar.gz into a temporary directory
-    #. type [2]_::
-           
-           python setup.py build
-           python setup.py install
+    #. From easy_install [1]_::
+        
+            easy_install -U sardana
 
-#. From SVN snapshot:
-    #. Download the current `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
-    #. Extract the downloaded tar.gz into a temporary directory
-    #. type [2]_::
-           
-           python setup.py build
-           python setup.py install
+    #. From latest source distribution:
+        #. Download the latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
+        #. Extract the downloaded tar.gz into a temporary directory
+        #. type [2]_::
+               
+               python setup.py build
+               python setup.py install
 
-#. From SVN trunk checkout (please look :ref:`here <working-from-svn>` for instructions)
+    #. From SVN snapshot:
+        #. Download the current `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
+        #. Extract the downloaded tar.gz into a temporary directory
+        #. type [2]_::
+               
+               python setup.py build
+               python setup.py install
+
+    #. From SVN trunk checkout (please look :ref:`here <working-from-svn>` for instructions)
 
 #. test the installation::
        
@@ -40,27 +42,35 @@ Windows installation shortcut
 This chapter provides a quick shortcut to all windows packages which are
 necessary to run sardana on your windows machine
 
-#. from `Python(x,y)`_
-    #. Download and install a python 2.6/2.7 compatible version of python(x,y)
-       from `here <http://code.google.com/p/pythonxy>`_
+#. Install all dependencies:
 
-#. from scratch:
-    #. Download and install `PyQwt`_ < 6.0 from `PyQwt downdoad page <http://pyqwt.sourceforge.net/download.html>`_
-        #. Download and install compatible python with from link in the same `PyQwt`_ page
-        #. Download and install compatible `numpy`_ from link in the same `PyQwt`_ page.
-        #. Download and install compatible `PyQt`_ from link in the same `PyQwt`_ page.
+    #. from `Python(x,y)`_ (by far the easiest choise)
+        #. Download and install a python 2.6/2.7 compatible version of python(x,y)
+           from `here <http://code.google.com/p/pythonxy>`_
 
-#. Finally:
-    #. Download and install latest `PLY`_ from `PLY downdoad page <http://www.dabeaz.com/ply>`_ (necessary for jdraw synoptics only)
-    #. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
-    #. Download and install latest `taurus`_ from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
-    #. Download and install latest sardana from `Sardana downdoad page <http://pypi.python.org/pypi/sardana>`_
+    #. from scratch:
+        #. Download and install `PyQwt`_ < 6.0 from `PyQwt downdoad page <http://pyqwt.sourceforge.net/download.html>`_
+            #. Download and install compatible python with from link in the same `PyQwt`_ page
+            #. Download and install compatible `numpy`_ from link in the same `PyQwt`_ page.
+            #. Download and install compatible `PyQt`_ from link in the same `PyQwt`_ page.
+
+.. #. Download and install latest `PLY`_ from `PLY downdoad page <http://www.dabeaz.com/ply>`_ (necessary for jdraw synoptics only)
+
+#. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
+#. Download and install latest `taurus`_ from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
+
+#. Finally download and install latest sardana from `Sardana downdoad page <http://pypi.python.org/pypi/sardana>`_
 
 
-.. _getting_started_running_server:
+.. _getting-started-running-server:
 
-Running the server
-------------------
+Running the Sardana tango server
+---------------------------------
+
+.. note::
+    if you have Tango <= 7.2.6 without all patches applied, Sardana server
+    will not work due to a known bug. Please follow in instructions from
+    :ref:`getting-started-running-servers-separately` instead.
 
 Sardana is based on a client-server architecture. On the server part, sardana
 can be setup with many different configurations. Advanced details on sardana
@@ -89,6 +99,59 @@ That't it! You now have a running sardana server. Not very impressive, is it?
 The next chapter describes how to start up a :term:`CLI` application
 called *spock* which connects to the sardana server you have just started
 through an object of type *Door* called *Door_lab-01_1*.
+
+You can skip the next chapter and go directly to
+:ref:`getting-started-running-cli`.
+
+.. _getting-started-running-servers-separately:
+
+Running Pool and MacroServer tango servers separately
+--------------------------------------------------------
+
+.. note::
+    You should only read this chapter if you are if you have Tango <= 7.2.6
+    without all patches applied. If you do, please follow in instructions from
+    :ref:`getting-started-running-server` instead.
+
+It is possible to separate sardana server into two different servers (in the
+first sardana versions, this was actually the only way start the sardana
+system). These servers are called *Pool* and *MacroServer*. The *Pool* server
+takes care of hardware communication and *MacroServer* executes procedures
+(macros) using a connection to Pool(s) server(s).
+
+To start the Pool server just type in the command line::
+
+    homer@pc001:~$ Pool lab-01
+
+The first time the server is executed, it will inform you that server *lab-01*
+is not registered and it will offer to register it. Just answer 'y'. This will
+register a new instance of Pool called *lab-01* and the server will be
+started. You should get an output like this::
+
+    homer@pc001:~$ Pool lab-01
+    lab-01 does not exist. Do you wish create a new one (Y/n) ? y
+    DServer/Pool/Lab-01 has no event channel defined in the database - creating it
+
+Next, start the MacroServer server in the command line::
+
+    homer@pc001:~$ MacroServer lab-01
+
+The first time the server is executed, it will inform you that server *lab-01*
+is not registered and it will offer to register it. Just answer 'y'. Next, it
+will ask you to which Pool(s) you want your MacroServer to communicate with.
+Select the previously created Pool from the list, press :kbd:`Return` once and
+:kbd:`Return` again to finish with Pool selection. This will register a new
+instance of MacroServer called *lab-01* and the server will be started.
+You should get an output like this::
+
+    homer@pc001:~$ MacroServer lab-01
+    lab-01 does not exist. Do you wish create a new one (Y/n) ? 
+    Pool_lab-01_1 (a.k.a. Pool/lab-01/1) (running)
+    Please select pool to connect to (return to finish): Pool_lab-01_1
+    Please select pool to connect to (return to finish): 
+    DServer/MacroServer/lab-01 has no event channel defined in the database - creating it
+
+.. _getting-started-running-cli:
 
 Running a :term:`CLI` client
 ----------------------------
@@ -189,12 +252,27 @@ from the command line)::
        user has them you can usually prefix the command with *sudo*::
        
            homer@pc001:~$ sudo easy_install -U sardana
+       
+       Alternatively, if you don't have adminstrator previledges, you can
+       install locally in your user directory with::
+       
+           homer@pc001:~$ easy_install --user sardana
+       
+       In this case the executables are located at <HOME_DIR>/.local/bin. Make
+       sure the PATH is pointing there or you execute from there.
 
 .. [2] *setup.py install* requires user previledges on linux systems. If your
        user has them you can usually prefix the command with *sudo*::
        
            homer@pc001:~$ sudo python setup.py install
     
+       Alternatively, if you don't have adminstrator previledges, you can
+       install locally in your user directory with::
+       
+           homer@pc001:~$ python setup.py install --user
+       
+       In this case the executables are located at <HOME_DIR>/.local/bin. Make
+       sure the PATH is pointing there or you execute from there.
 
 .. [3] The sardana standard macro catalog can be found
        :ref:`here <standard-macro-catalog>` 

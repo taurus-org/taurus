@@ -26,8 +26,8 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolController", "PoolPseudoMotorController",
-           "PoolPseudoCounterController", "PoolTangoController" ]
+__all__ = ["PoolController", "PoolPseudoMotorController",
+           "PoolPseudoCounterController"]
 
 __docformat__ = 'restructuredtext'
 
@@ -51,6 +51,7 @@ from poolelement import PoolBaseElement
 class PoolBaseController(PoolBaseElement):
     """Base class for all controllers"""
     def __init__(self, **kwargs):
+        self._ctrl = None
         self._ctrl_error = None
         self._element_ids = {}
         self._pending_element_ids = {}
@@ -227,7 +228,6 @@ class PoolController(PoolBaseController):
         self._lib_name = kwargs.pop('library')
         self._class_name = kwargs.pop('klass')
         self._properties = kwargs.pop('properties')
-        self._ctrl = None
         super(PoolController, self).__init__(**kwargs)
         self.re_init()
 
@@ -779,15 +779,3 @@ class PoolPseudoCounterController(PoolController):
         except:
             return None, sys.exc_info()
 
-
-class PoolTangoController(PoolBaseController):
-    """Controller class mediator for tango based items"""
-    
-    def __init__(self, **kwargs):
-        kwargs['name'] = kwargs['full_name'] = 'tango'
-        kwargs['id'] = InvalidId
-        super(PoolTangoController, self).__init__(**kwargs)
-        self.reInit()
-    
-    def get_ctrl_types(self):
-        return ElementType.External,
