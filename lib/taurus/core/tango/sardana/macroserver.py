@@ -428,10 +428,8 @@ class BaseDoor(MacroServerDevice):
             if synch:
                 evt_wait.waitEvent(self.Running, equal=False, after=ts,
                                    timeout=timeout)
-        except:
-            self._clearRunMacro()
-            raise
         finally:
+            self._clearRunMacro()
             evt_wait.unlock()
             evt_wait.disconnect()
         return result
@@ -713,7 +711,8 @@ class BaseMacroServer(MacroServerDevice):
 
     def getMacroInfoObj(self, macro_name):
         ret = self.getElementInfo(macro_name)
-        assert 'MacroCode' in ret.interfaces
+        if ret is not None and not 'MacroCode' in ret.interfaces:
+            return None
         return ret
 
     def getMacroStrList(self):
