@@ -105,9 +105,8 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.addToFavouritesAction.setEnabled(False)
         actionsLayout.addWidget(addToFavouritsButton)
         
-        self.macroComboBox = MacroComboBox()
+        self.macroComboBox = MacroComboBox(self)
         self.macroComboBox.setUseParentModel(True)
-        self.macroComboBox.setModel("/MacroList")
         self.macroComboBox.setModelColumn(0)        
         actionsLayout.addWidget(self.macroComboBox)
         stopMacroButton = Qt.QToolButton()
@@ -401,7 +400,12 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         self.playMacroAction.setEnabled(False)
 
     def setModel(self, model):
+        oldModelObj = self.getModelObj()
+        if oldModelObj is not None:
+            self.disconnect(oldModelObj,Qt.SIGNAL("macrosUpdated"), self.macroComboBox.onMacrosUpdated)
         TaurusWidget.setModel(self, model)
+        newModelObj = self.getModelObj()
+        self.connect(newModelObj, Qt.SIGNAL("macrosUpdated"), self.macroComboBox.onMacrosUpdated)
     
     @classmethod
     def getQtDesignerPluginInfo(cls):

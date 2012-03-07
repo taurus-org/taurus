@@ -388,9 +388,8 @@ class TaurusSequencerWidget(TaurusWidget):
         macroLayout.setContentsMargins(0,0,0,0)
         macroLabel = Qt.QLabel("Macro:")
         macroLayout.addWidget(macroLabel)
-        self.macroComboBox = MacroComboBox()
+        self.macroComboBox = MacroComboBox(self)
         self.macroComboBox.setUseParentModel(True)
-        self.macroComboBox.setModel("/MacroList")
         self.macroComboBox.setModelColumn(0)
         self.macroComboBox.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum)
         macroLayout.addWidget(self.macroComboBox)
@@ -778,6 +777,14 @@ class TaurusSequencerWidget(TaurusWidget):
         for macroNode in newRoot.allMacros():
             macroServerObj.recreateMacroNodeAndFillAdditionalInfos(macroNode)
         return newRoot
+    
+    def setModel(self, model):
+        oldModelObj = self.getModelObj()
+        if oldModelObj is not None:
+            self.disconnect(oldModelObj,Qt.SIGNAL("macrosUpdated"), self.macroComboBox.onMacrosUpdated)
+        TaurusWidget.setModel(self, model)
+        newModelObj = self.getModelObj()
+        self.connect(newModelObj, Qt.SIGNAL("macrosUpdated"), self.macroComboBox.onMacrosUpdated)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

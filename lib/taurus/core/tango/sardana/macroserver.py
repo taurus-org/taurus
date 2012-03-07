@@ -734,11 +734,14 @@ class BaseMacroServer(MacroServerDevice):
         macroInfoObj = self.getMacroInfoObj(macro_name)
         if macroInfoObj is None: return
         allowedHookPlaces = []
-        for hook in macroInfoObj.hints.get('allowsHooks', []):
-            allowedHookPlaces.append(str(hook))
+        hints = macroInfoObj.hints
+        if hints is not None:
+            for hook in hints.get('allowsHooks', []):
+                allowedHookPlaces.append(str(hook))
         macroNode.setAllowedHookPlaces(allowedHookPlaces)
-        macroNode.setHasParams(macroInfoObj.hasParams())
-        paramsInfo = macroInfoObj.getParamList()
+        hasParams = bool(len(macroInfoObj.parameters))
+        macroNode.setHasParams(hasParams)
+        paramsInfo = macroInfoObj.parameters
         for paramInfo in paramsInfo:
             param = ParamFactory(paramInfo)
             macroNode.addParam(param)

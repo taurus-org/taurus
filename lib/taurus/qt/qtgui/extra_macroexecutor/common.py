@@ -25,7 +25,9 @@
 
 import PyTango
 import taurus
-from taurus.core import TaurusEventType
+
+from taurus.qt.qtgui.base import TaurusBaseWidget
+from taurus.core import TaurusEventType, TaurusDevice
 from taurus.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.container import TaurusMainWindow
@@ -71,20 +73,43 @@ class MSAttrListComboBox(TaurusAttrListComboBox):
         self._elementType = MSAttrListComboBox._elementType
         
     elementType = Qt.pyqtProperty("QString", getElementType, setElementType, resetElementType)
+    
 
-class MacroComboBox(TaurusAttrListComboBox):
-    """Combobox with inherited from TaurusAttrListComboBox for MacroList attribute 
-       of the MacroServer with one special blank item at the beginning"""
+class MacroComboBox(Qt.QComboBox, TaurusBaseWidget):
+    """ComboBox representing list of macros"""
        
+    
     def __init__(self, parent=None):
-        TaurusAttrListComboBox.__init__(self, parent)
+        name = self.__class__.__name__
+        self.call__init__wo_kw(Qt.QComboBox, parent)
+        self.call__init__(TaurusBaseWidget, name)
         self.setSizeAdjustPolicy(Qt.QComboBox.AdjustToContentsOnFirstShow)
         self.setToolTip("Choose a macro name...")
         
-    def addBlankField(self):
-        """This method adds an extra empty field in the combobox"""
-        self.insertItem(0,"")
-        self.setCurrentIndex(0)
+    def setModel(self, model):
+        if isinstance(model, Qt.QAbstractItemModel):
+            Qt.QAbstractItemView.setModel(self, model)
+        else:
+            TaurusBaseWidget.setModel(self, model)
+            self.__loadMacroNames()
+            
+    def parentModelChanged(self, parentmodel_name):
+        TaurusBaseWidget.parentModelChanged(self, parentmodel_name)
+        self.__loadMacroNames()   
+        
+    def onMacrosUpdated(self):
+        self.__loadMacroNames()
+    
+    def __loadMacroNames(self):
+        self.clear()
+        ms = self.getModelObj()
+        if ms == None: return
+        macros = ms.getElementsWithInterface('MacroCode')
+        macroNames = macros.keys()
+        macroNames.sort()
+        macroNames.insert(0, '') #adding blank item
+        self.addItems(macroNames)
+        self.updateStyle()
         
     def selectMacro(self, macroName):
         currentIdx = self.currentIndex()
@@ -93,9 +118,6 @@ class MacroComboBox(TaurusAttrListComboBox):
         if currentIdx == index:
             self.emit(Qt.SIGNAL("currentIndexChanged(QString)"), macroName)
         
-    def handleEvent(self, src, type, value):
-        TaurusAttrListComboBox.handleEvent(self, src, type, value)
-        self.addBlankField() 
 
 class TaurusMacroConfigurationDialog(Qt.QDialog):
     
@@ -298,11 +320,18 @@ class MacroExecutionWindow(TaurusMainWindow):
         :param msg: (str) the short descriptive message to be handled 
         '''
         self.statusBar().showMessage(msg)
+
+def test_macrocombobox(ms_name):
+    mcb = MacroComboBox()
+    mcb.setModel(ms_name)
+    mcb.show()
                     
 if __name__ == "__main__": 
-    import sys    
-    app = Qt.QApplication(sys.argv)
-    dialog = MacroExecutionWindow()
-    dialog.show()
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication()
+    args = app.get_command_line_args() 
+    ms_name = args[0]
+    test_macrocombobox(ms_name)
     sys.exit(app.exec_())
         
