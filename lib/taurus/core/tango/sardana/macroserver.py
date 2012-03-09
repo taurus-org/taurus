@@ -753,6 +753,7 @@ class BaseMacroServer(MacroServerDevice):
             raise Exception("%s macro does not exist in this sardana system." % macroName)
         elif macroInfo.type != 'MacroClass':
             raise Exception("%s element is not a macro." % macroName)
+        return True
         
     def validateMacroNode(self, macroNode):
         paramNodes = macroNode.children()
@@ -789,7 +790,16 @@ class BaseMacroServer(MacroServerDevice):
             pass 
         elif type == "MotorParam":
             pass
-        elif type == "Integer" or type == "Float":
+        elif type == "Integer":
+            int(value)
+            min = singleParamNode.min()
+            max = singleParamNode.max()
+            if min != None and value < min:
+                raise  Exception("%s parameter value: %s is below minimum allowed value." % (name, value))
+            if max != None and value > max:
+                raise  Exception("%s parameter value: %s is above maximum allowed value." % (name, value))
+        elif type == "Float":
+            float(value)
             min = singleParamNode.min()
             max = singleParamNode.max()
             if min != None and value < min:

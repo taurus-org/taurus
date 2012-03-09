@@ -66,6 +66,22 @@ class HistoryMacrosViewer(TaurusWidget):
         layout.addItem(spacerItem)
         return layout
     
+    def listElementUp(self):
+        indexPos = self.list.currentIndex()
+        if indexPos.isValid() and indexPos.row() >= 1:
+            self.list.setCurrentIndex(indexPos.sibling(indexPos.row()-1,indexPos.column()))
+        else:
+            self.selectFirstElement()
+            
+    def listElementDown(self):
+        indexPos = self.list.currentIndex()
+        if indexPos.isValid() and indexPos.row() < self._model.rowCount() - 1:
+            self.list.setCurrentIndex(indexPos.sibling(indexPos.row()+1,indexPos.column()))
+        elif indexPos.row() == self._model.rowCount() - 1:
+            return
+        else:
+            self.selectFirstElement()
+            
     def addMacro(self, macroNode):
         self.list.insertMacro(macroNode)
         
@@ -82,6 +98,11 @@ class HistoryMacrosViewer(TaurusWidget):
         for macroNode in historyList:
             macroServerObj.fillMacroNodeAdditionalInfos(macroNode)
     
+    def selectFirstElement(self):
+        self.list.removeAllAction.setEnabled(True)
+        self.list.setCurrentIndex(self._model.index(0))
+
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
@@ -91,7 +112,7 @@ class HistoryMacrosList(Qt.QListView, BaseConfigurableClass):
     
     def __init__(self, parent):
         Qt.QListView.__init__(self, parent)
-        self.setSelectionMode(Qt.QListView.ExtendedSelection)
+        self.setSelectionMode(Qt.QListView.SingleSelection)
         self.removeAllAction = Qt.QAction(Qt.QIcon(":/places/user-trash.svg"), "Remove all from history", self)
         self.connect(self.removeAllAction, Qt.SIGNAL("triggered()"), self.removeAllMacros)
         self.removeAllAction.setToolTip("Clicking this button will remove all macros from history.")

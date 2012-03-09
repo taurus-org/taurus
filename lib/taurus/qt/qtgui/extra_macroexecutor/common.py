@@ -53,7 +53,10 @@ class MSAttrListComboBox(TaurusAttrListComboBox):
             return
         text = str(self.currentText())
         self.clear()
-        items = self.getParentModelObj().getElementNamesWithInterface(self._elementType)
+        parentModelObj = self.getParentModelObj()
+        if parentModelObj == None:
+            return
+        items = parentModelObj.getElementNamesWithInterface(self._elementType)
         items.sort()
         self.addItems(items)
         if text in items:

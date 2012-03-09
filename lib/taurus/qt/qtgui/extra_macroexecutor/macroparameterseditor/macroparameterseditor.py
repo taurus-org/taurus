@@ -125,6 +125,7 @@ class MacroParametersTree(Qt.QTreeView):
         
         self.disableActions()
         
+        
     def disableActions(self):
         self.addAction.setEnabled(False)
         self.deleteAction.setEnabled(False)
@@ -149,102 +150,143 @@ class MacroParametersTree(Qt.QTreeView):
     def currentChanged(self, current, previous):
         self.manageActions(current)
         Qt.QTreeView.currentChanged(self, current, previous)
-    
-#    def focusInEvent(self, event):
-#        reason = event.reason()
-#        if (reason == Qt.Qt.TabFocusReason) | (reason == Qt.Qt.BacktabFocusReason):  
-#            if reason == Qt.Qt.TabFocusReason:
-#                idx = self.forwardIdx(0, 1, Qt.QModelIndex())
-#            elif reason == Qt.Qt.BacktabFocusReason:
-#                idx = self.backwardIdx(len(self.root()) - 1, 1, Qt.QModelIndex())
-#            self.setCurrentIndex(idx)
-#            self.edit(idx)
-#        else: 
-#            Qt.QTreeView.focusInEvent(self, event)
-#            
-#    def forwardIdx(self, row, col, parentIdx):
-#        try:            
-#            proposalIdx = self.model().index(row, col, parentIdx)
-#        except AssertionError:
-#            if parentIdx.row() == -1:
-#                return Qt.QModelIndex() 
-#            grandParentIdx = parentIdx.parent()
-#            return self.forwardIdx(parentIdx.row() + 1, col, grandParentIdx)
-#        proposalNode = self.model().nodeFromIndex(proposalIdx)
-#        if isinstance(proposalNode, macro.SingleParamNode):
-#            return proposalIdx
-#        elif isinstance(proposalNode, macro.RepeatNode):
-#            return self.forwardIdx(0, 1, proposalIdx)
-#        elif isinstance(proposalNode, macro.RepeatParamNode):
-#            if len(proposalNode) > 0:
-#                return self.forwardIdx(0, 1, proposalIdx)
-#            else:
-#                return self.forwardIdx(row + 1, col, proposalIdx)
-#    
-#    def backwardIdx(self, row, col, parentIdx):
-#        try:            
-#            proposalIdx = self.model().index(row, col, parentIdx)
-#        except AssertionError:
-#            if parentIdx.row() == -1:
-#                return Qt.QModelIndex()
-#            grandParentIdx = parentIdx.parent()
-#            return self.backwardIdx(parentIdx.row() - 1, col, grandParentIdx)
-#        proposalNode = self.model().nodeFromIndex(proposalIdx)
-#        if isinstance(proposalNode, macro.SingleParamNode):
-#            return proposalIdx
-#        elif isinstance(proposalNode, macro.RepeatNode):
-#            return self.backwardIdx(self.model().rowCount(proposalIdx) - 1, 1, proposalIdx)
-#        elif isinstance(proposalNode, macro.RepeatParamNode):
-#            return self.backwardIdx(self.model().rowCount(proposalIdx) - 1, 1, proposalIdx)
-#            
-#        
-#    def moveCursor (self, cursorAction, modifiers):
-#        ix=self.currentIndex()
-#        self.manageActions(ix)
-#        (col, row, parentIdx)=(ix.column(), ix.row(), ix.parent())
-#        #to start from second column
-#        if col == -1 and row == -1:
-#            if cursorAction == Qt.QAbstractItemView.MoveNext:
-#                return self.forwardIdx(0, 1, parentIdx)
-#            elif cursorAction == Qt.QAbstractItemView.MovePrevious:
-#                return self.backwardIdx(self.model().rowCount(parentIdx) - 1, 1, parentIdx)
-#
-#    
-#        if (cursorAction == Qt.QAbstractItemView.MoveNext and
-#            modifiers == Qt.Qt.NoModifier):
-#            #This condition in case we start tabbing with cursor on first column
-#            if col == 0:
-#                currentNode = self.model().nodeFromIndex(ix)
-#                if isinstance(currentNode, macro.SingleParamNode): 
-#                    nextIdx = self.forwardIdx(row, 1, parentIdx)
-#                else:
-#                    nextIdx = self.forwardIdx(0, 1, ix)
-#            else:
-#                nextIdx = self.forwardIdx(row + 1, 1, parentIdx)
-#            #this condition in case there is no next index and we want to pass focus 
-#            #to next widget in parent obj
-#            if not nextIdx.isValid():
-#                self.parent().focusNextChild()
-#            #this condition in case the next index is valid and we want to 
-#            #refresh state of buttons 
-#            else:
-#                self.manageActions(nextIdx)
-#            return nextIdx
-#                        
-#        elif (cursorAction == Qt.QAbstractItemView.MovePrevious and
-#            modifiers == Qt.Qt.NoModifier):
-#            backwardIdx = self.backwardIdx(row - 1, 1, parentIdx)
-#            #this contion in case there is no previous index and we want to pass focus 
-#            #to previous widget in parent obj
-#            if not backwardIdx.isValid():
-#                self.parent().focusPreviousChild()
-#            else:                
-#                self.manageActions(backwardIdx)
-#            return backwardIdx 
         
-#    def expanded(self):
-#        for column in range(self.model().columnCount(Qt.QModelIndex())):
-#            self.resizeColumnToContents(column)
+    #def focusInEvent(self, event):
+    #    reason = event.reason()
+    #    if (reason == Qt.Qt.TabFocusReason) | (reason == Qt.Qt.BacktabFocusReason):  
+    #        if reason == Qt.Qt.TabFocusReason:
+    #            idx = self.forwardIdx(0, 1, Qt.QModelIndex())
+    #        elif reason == Qt.Qt.BacktabFocusReason:
+    #            idx = self.backwardIdx(len(self.root()) - 1, 1, Qt.QModelIndex())
+    #        self.setCurrentIndex(idx)
+    #        self.edit(idx)
+    #    else:
+    #        Qt.QTreeView.focusInEvent(self, event)
+    #        
+    #def forwardIdx(self, row, col, parentIdx):
+    #    try:
+    #        proposalIdx = self.model().index(row, col, parentIdx)
+    #    except AssertionError:
+    #        if parentIdx.row() == -1:
+    #            return Qt.QModelIndex() 
+    #        grandParentIdx = parentIdx.parent()
+    #        return self.forwardIdx(parentIdx.row() + 1, col, grandParentIdx)
+    #    
+    #    proposalNode = self.model().nodeFromIndex(proposalIdx)
+    #
+    #    if isinstance(proposalNode, macro.SingleParamNode):
+    #        return proposalIdx
+    #    elif isinstance(proposalNode, macro.RepeatNode):
+    #        return self.forwardIdx(0, 1, proposalIdx)
+    #    elif isinstance(proposalNode, macro.RepeatParamNode):
+    #        if len(proposalNode) > 0:
+    #            return self.forwardIdx(0, 1, proposalIdx)
+    #        else:
+    #            return self.forwardIdx(row + 1, col, proposalIdx)
+    #    elif not proposalIdx.isValid():
+    #        proposalIdx = parentIdx.sibling(parentIdx.row()+1, 0)
+    #        if proposalIdx.isValid():
+    #            proposalIdx = proposalIdx.child(0,1)
+    #        else:
+    #            while not proposalIdx.isValid():
+    #                parentIdx = parentIdx.parent()
+    #                if not parentIdx.isValid():
+    #                    return Qt.QModelIndex()
+    #                proposalIdx = parentIdx.sibling(parentIdx.row()+1, 1)
+    # 
+    #        return proposalIdx
+    #            
+    #    elif isinstance(proposalNode, macro.MacroNode):
+    #        ##self.model().setRoot(proposalNode)
+    #        return self.forwardIdx(0,1,proposalIdx)
+    #    
+    #def backwardIdx(self, row, col, parentIdx):
+    #    try:            
+    #        proposalIdx = self.model().index(row, col, parentIdx)
+    #    except AssertionError:
+    #        if parentIdx.row() == -1:
+    #            return Qt.QModelIndex()
+    #        grandParentIdx = parentIdx.parent()
+    #        return self.backwardIdx(parentIdx.row() - 1, col, grandParentIdx)
+    #    proposalNode = self.model().nodeFromIndex(proposalIdx)
+    #    if isinstance(proposalNode, macro.SingleParamNode):
+    #        return proposalIdx
+    #    elif isinstance(proposalNode, macro.RepeatNode):
+    #        return self.backwardIdx(self.model().rowCount(proposalIdx) - 1, 1, proposalIdx)
+    #    elif isinstance(proposalNode, macro.RepeatParamNode):
+    #        return self.backwardIdx(self.model().rowCount(proposalIdx) - 1, 1, proposalIdx)    
+    #    
+    #    elif not proposalIdx.isValid():
+    #        proposalIdx = parentIdx.sibling(parentIdx.row()-1, 0)
+    #        if proposalIdx.isValid():
+    #            tempRow = 0
+    #            proposalIdx = proposalIdx.child(tempRow,1)
+    #            while proposalIdx.sibling(tempRow+1, 1).isValid():
+    #                proposalIdx = proposalIdx.sibling(tempRow+1, 1)
+    #                tempRow +=1
+    #        else:
+    #            while not proposalIdx.isValid():
+    #                parentIdx = parentIdx.parent()
+    #                if not parentIdx.isValid():
+    #                    return Qt.QModelIndex()
+    #                proposalIdx = parentIdx.sibling(parentIdx.row()-1, 1)
+    #                
+    #        return proposalIdx
+    #    
+    #def moveCursor (self, cursorAction, modifiers):
+    #    ix=self.currentIndex()
+    #    self.manageActions(ix)
+    #    (col, row, parentIdx)=(ix.column(), ix.row(), ix.parent())
+    #    #to start from second column
+    #    if col == -1 and row == -1:
+    #        if cursorAction == Qt.QAbstractItemView.MoveNext:
+    #            return self.forwardIdx(0, 1, parentIdx)
+    #        elif cursorAction == Qt.QAbstractItemView.MovePrevious:
+    #            return self.backwardIdx(self.model().rowCount(parentIdx) - 1, 1, parentIdx)
+    #    if (cursorAction == Qt.QAbstractItemView.MoveNext and
+    #        modifiers == Qt.Qt.NoModifier):
+    #        #This condition in case we start tabbing with cursor on first column
+    #        if col == 0:
+    #            currentNode = self.model().nodeFromIndex(ix)
+    #            if isinstance(currentNode, macro.SingleParamNode):
+    #                nextIdx = self.forwardIdx(row, 1, parentIdx)
+    #            else:
+    #                nextIdx = self.forwardIdx(0, 1, ix)
+    #        else:
+    #            nextIdx = self.forwardIdx(row + 1, 1, parentIdx)
+    #        #this condition in case there is no next index and we want to pass focus 
+    #        #to next widget in parent obj
+    #        
+    #        if nextIdx == "term":
+    #            self.focusNextPrevChild(True)
+    #            return Qt.QModelIndex()
+    #        
+    #        if not nextIdx.isValid():
+    #            self.parent().focusNextChild()
+    #        #this condition in case the next index is valid and we want to 
+    #        #refresh state of buttons 
+    #        else:
+    #            self.manageActions(nextIdx)
+    #        return nextIdx
+    #                    
+    #    elif (cursorAction == Qt.QAbstractItemView.MovePrevious and
+    #        modifiers == Qt.Qt.NoModifier):
+    #        backwardIdx = self.backwardIdx(row - 1, 1, parentIdx)
+    #        #this contion in case there is no previous index and we want to pass focus 
+    #        #to previous widget in parent obj
+    #        if backwardIdx == "term":
+    #            self.focusNextPrevChild(False)
+    #            return Qt.QModelIndex()
+    #            
+    #        if not backwardIdx.isValid():
+    #            self.parent().focusPreviousChild()
+    #        else:                
+    #            self.manageActions(backwardIdx)
+    #        return backwardIdx 
+    #      
+    #def expanded(self):
+    #    for column in range(self.model().columnCount(Qt.QModelIndex())):
+    #        self.resizeColumnToContents(column)
     
     def onAddRepeat(self):
         index = self.currentIndex()
@@ -285,8 +327,7 @@ class MacroParametersTree(Qt.QTreeView):
             newIndex = self.model()._downRow(index)
         self.setCurrentIndex(newIndex)
         self.expandAll()
-    
-        
+           
 class ParamEditorManager(Singleton):
     
     def init(self):

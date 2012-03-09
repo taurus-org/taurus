@@ -868,7 +868,8 @@ class MacroNode(BranchNode):
     def toSpockCommand(self):
         values, alerts = self.toRun()
         return "%s %s" % (self.name(), str.join(' ',values)) 
-                                                
+
+
     def value(self):
         values, alerts = self.toRun()
         if len(values) == 0:
@@ -1104,10 +1105,11 @@ class SequenceNode(BranchNode):
             
 def ParamFactory(paramInfo):
     """Factory method returning param element, depends of the paramInfo argument."""
-    
+
     if isinstance(paramInfo.get('type'),list):
         param = RepeatParamNode(param=paramInfo)
-        param.addRepeat()
+        if param.min() > 0:
+            param.addRepeat()
     else:
         param = SingleParamNode(param=paramInfo)
     return param
