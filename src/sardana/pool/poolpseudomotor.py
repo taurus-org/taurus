@@ -37,6 +37,7 @@ from sardana.sardanaattribute import SardanaAttribute
 from poolelement import PoolBaseElement, PoolElement
 from poolgroupelement import PoolBaseGroup
 from poolmotion import PoolMotion
+from poolexception import PoolException
 
 
 class Position(SardanaAttribute):
@@ -381,7 +382,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
                                 pseudo_positions, curr_physical_positions)[0]
         if physical_positions is None:
             raise PoolException("Cannot calculate motion: calc_all_physical "
-                                "returns None")
+                                "throws exception or returns invalid value")
         
         if items is None:
             items = {}
