@@ -301,7 +301,7 @@ class MacroManager(MacroServerManager):
         
         template = ''
         if create:
-            template += 'from sardana.macroserver.macro import *\n\n'
+            template += 'from sardana.macroserver.macro import Macro, macro, Type\n\n'
             line_nb = 4
         else:
             template += '\n'
