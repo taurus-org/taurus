@@ -60,6 +60,13 @@ MACRO_TEMPLATE = """class @macro_name@(Macro):
 
 """
 
+MACRO_TEMPLATE = """\
+@macro()
+def @macro_name@(self):
+    self.output("Running @macro_name@...")
+
+"""
+
 class MacroLibrary(SardanaLibrary):
     """Object representing a python module containning macro classes and/or 
     macro functins. Public members:

@@ -1,16 +1,6 @@
-class @macro_name@(Macro):
-    """@macro_name@ description."""
+@macro()
+def @macro_name@(self):
+    """Macro @macro_name@"""
+    self.output("Running @macro_name@...")
 
-    # uncomment the following lines as necessary. Otherwise you may delete them
-    #param_def = []
-    #result_def = []
-    #hints = {}
-    #env = (,)
-    
-    # uncomment the following lines if need prepare. Otherwise you may delete them
-    #def prepare(self):
-    #    pass
-        
-    def run(self):
-        pass
 
