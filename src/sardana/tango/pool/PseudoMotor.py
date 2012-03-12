@@ -40,7 +40,8 @@ from taurus.core.util.log import InfoIt, DebugIt
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import to_tango_type_format, to_tango_state
+from sardana.tango.core.util import to_tango_type_format, to_tango_state, \
+    throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 
@@ -182,9 +183,7 @@ class PseudoMotor(PoolElementDevice):
         try:
             self.pseudo_motor.position = attr.get_write_value()
         except PoolException, pe:
-            if pe.exc_info is None:
-                raise
-            Except.throw_python_exception(*pe.exc_info)
+            throw_sardana_exception(pe)
     
     def MoveRelative(self, argin):
         raise NotImplementedError
