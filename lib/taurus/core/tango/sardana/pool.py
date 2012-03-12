@@ -486,7 +486,7 @@ class Controller(PoolElement):
         return sorted(axis)
     
     def getLastUsedAxis(self):
-        return max(self.getUsedAxis())
+        return max([1] + self.getUsedAxis())
     
     def __cmp__(self, o):
         return cmp(self.getName(), o.getName())
