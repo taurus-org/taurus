@@ -14,7 +14,7 @@ What is a macro
 ----------------
 
 A macro in sardana describes a specific procedure that can be executed at any
-time. Macros run inside the *sardana sanbox*. This simply means that each time
+time. Macros run inside the *sardana sandbox*. This simply means that each time
 you run a macro, the system makes sure the necessary environment for it to run
 safely is ready.
 
@@ -125,7 +125,7 @@ use ``print "Hello, World!"``?
     The following footnote describes how to discover your Python_ version [#f1]_.
 
 Remeber that a macro is, for all purposes, a normal Python_ function. This means
-you **CAN** inside a macro execute **ANY** valid Python_ code. This includes
+you **CAN** inside a macro write **ANY** valid Python_ code. This includes
 :keyword:`for` and :keyword:`while` loops, :keyword:`if` ... 
 :keyword:`elif` ... :keyword:`else` conditional execution, etc... ::
 

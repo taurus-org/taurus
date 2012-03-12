@@ -30,7 +30,7 @@ __docformat__ = 'restructuredtext'
 __all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "tango_protect", "to_tango_state", "to_tango_type_format",
            "to_tango_type", "to_tango_access", "to_tango_attr_info",
-           "from_tango_state_to_state",
+           "from_tango_state_to_state", "throw_sardana_exception",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
@@ -44,12 +44,13 @@ from PyTango import Util, Database, DbDevInfo, DevFailed, \
     DevVarLong64Array, DispLevel, DevState, \
     SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr, \
-    DeviceClass
+    DeviceClass, Except
 
 from taurus.core.util import Enumeration
 
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release
+from sardana.sardanaexception import SardanaException
 from sardana.pool.poolmetacontroller import DataInfo
 
 ServerRunMode = Enumeration("ServerRunMode", \
@@ -208,6 +209,16 @@ def to_tango_attr_info(attr_name, attr_info):
     if desc is not None and len(desc) > 0:
         tg_attr_info.append( { 'description' : desc } )
     return attr_name, tg_attr_info
+
+def throw_sardana_exception(exc):
+    if isinstance(exc, SardanaException):
+        if exc.exc_info and not None in exc.exc_info:
+            Except.throw_python_exception(*exc.exc_info)
+        else:
+            tb = "<Unknown>"
+            if exc.traceback is not None:
+                tb = str(exc.traceback)
+            Except.throw_exception(exc.msg, tb, exc.type)
 
 def ask_yes_no(prompt,default=None):
     """Asks a question and returns a boolean (y/n) answer.

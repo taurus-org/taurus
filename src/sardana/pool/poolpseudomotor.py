@@ -378,12 +378,17 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             pseudo_positions[pseudo.axis-1] = position[0]
         for user_element in user_elements:
             curr_physical_positions.append(physical_positions[user_element].value)
-        physical_positions = self.controller.calc_all_physical(
-                                pseudo_positions, curr_physical_positions)[0]
+        physical_positions, exc_info = \
+            self.controller.calc_all_physical(pseudo_positions,
+                                              curr_physical_positions)
         if physical_positions is None:
-            raise PoolException("Cannot calculate motion: calc_all_physical "
-                                "throws exception or returns invalid value")
-        
+            if exc_info is None:
+                raise PoolException("Cannot calculate motion: "
+                                    "calc_all_physical returns None")
+            else:
+                raise PoolException("calc_all_physical raises exception",
+                                    exc_info=exc_info)
+            
         if items is None:
             items = {}
         for new_position, element in zip(physical_positions, user_elements):
