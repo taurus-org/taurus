@@ -551,9 +551,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             ret.update(pool.getElementsWithInterface(interface))
         return ret
 
-    def get_element_with_interface(self, interface, name):
+    def get_element_with_interface(self, name, interface):
         for pool in self.get_pools():
-            element = pool.getElementWithInterface(interface)
+            element = pool.getElementWithInterface(name, interface)
             if element is not None:
                 return element
     
@@ -597,40 +597,40 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return self.get_elements_with_interface("Instrument")
     
     def get_controller(self, name):
-        return self.get_element_with_interface("Controller", name)
+        return self.get_element_with_interface(name, "Controller")
     
     def get_moveable(self, name):
-        return self.get_element_with_interface("Moveable", name)
+        return self.get_element_with_interface(name, "Moveable")
     
     def get_motor(self, name):
-        return self.get_element_with_interface("Motor", name)
+        return self.get_element_with_interface(name, "Motor")
     
     def get_pseudo_motor(self, name):
-        return self.get_element_with_interface("PseudoMotor", name)
+        return self.get_element_with_interface(name, "PseudoMotor")
     
     def get_io_register(self, name):
-        return self.get_element_with_interface("IORegister", name)
+        return self.get_element_with_interface(name, "IORegister")
     
     def get_measurement_group(self, name):
-        return self.get_element_with_interface("MeasurementGroup", name)
+        return self.get_element_with_interface(name, "MeasurementGroup")
     
     def get_exp_channel(self, name):
-        return self.get_element_with_interface("ExpChannel", name)
+        return self.get_element_with_interface(name, "ExpChannel")
         
     def get_counter_timer(self, name):
-        return self.get_element_with_interface("CTExpChannel", name)
+        return self.get_element_with_interface(name, "CTExpChannel")
     
     def get_0d_exp_channel(self, name):
-        return self.get_element_with_interface("ZeroDExpChannel", name)
+        return self.get_element_with_interface(name, "ZeroDExpChannel")
     
     def get_1d_exp_channel(self, name):
-        return self.get_element_with_interface("OneDExpChannel", name)
+        return self.get_element_with_interface(name, "OneDExpChannel")
     
     def get_2d_exp_channel(self, name):
-        return self.get_element_with_interface("TwoDExpChannel", name)
+        return self.get_element_with_interface(name, "TwoDExpChannel")
     
     def get_pseudo_counter(self, name):
-        return self.get_element_with_interface("PseudoCounter", name)
+        return self.get_element_with_interface(name, "PseudoCounter")
     
     def get_instrument(self, name):
-        return self.get_element_with_interface("Instrument", name)
+        return self.get_element_with_interface(name, "Instrument")
