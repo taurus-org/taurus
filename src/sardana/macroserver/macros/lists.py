@@ -121,7 +121,10 @@ class _lsobj(_ls):
         nb = len(objs)
         if nb is 0:
             if self.subtype is Macro.All:
-                t = self.type.lower()
+                if isinstance(self.type, (str, unicode)):
+                    t = self.type.lower()
+                else:
+                    t = ", ".join(self.type).lower()
             else:
                 t = self.subtype.lower()
             self.output('No %ss defined' % t)
