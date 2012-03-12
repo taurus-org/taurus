@@ -222,14 +222,15 @@ def edmac(self, parameter_s=''):
         if macro_info is None:
             print "Macro '%s' could not be found" % macro_name
             return
-        macro_lib = macro_info.module_name
+        macro_lib = macro_info.module
     else:
         macro_name, macro_lib = pars
-    
-    print 'Editing %s.%s...' % (macro_lib,macro_name)
+
+    macro_info = (macro_lib,macro_name)
+    print 'Opening %s.%s...' % macro_info
     
     try:
-        remote_fname, code, line_nb = ms.GetMacroCode([macro_lib, macro_name])
+        remote_fname, code, line_nb = ms.GetMacroCode(macro_info)
     except PyTango.DevFailed, e:
         taurus.core.util.print_DevFailed(e)
         return
@@ -257,6 +258,8 @@ def edmac(self, parameter_s=''):
         except:
             print 'Could not open file \'%s\' for safe transfer to the server' % local_fname
             print 'Did you forget to save?'
+    else:
+        print "Discarding changes..."
     
     #if os.path.exists(local_fname):
     #    if sardana.spock.genutils.ask_yes_no('Delete temporary file \'%s\'?' % local_fname, 'y'):
