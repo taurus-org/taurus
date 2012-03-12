@@ -830,11 +830,10 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. versionadded:: 1.0"""
-        return self.calc_all_pseudo(physical_pos)
-        #ret = []
-        #for i in range(len(self.pseudo_motor_roles)):
-        #    ret.append(self.CalcPseudo(i+1, physical_pos, curr_pseudo_pos))
-        #return ret
+        ret = []
+        for i in range(len(self.pseudo_motor_roles)):
+            ret.append(self.CalcPseudo(i+1, physical_pos, curr_pseudo_pos))
+        return ret
     
     def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
         """**Pseudo Motor Controller API**. Overwrite as necessary.
@@ -852,12 +851,11 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. versionadded:: 1.0"""
-        return self.calc_all_physical(pseudo_pos)
-        #ret = []
-        #for i in range(len(self.motor_roles)):
-        #    pos = self.CalcPhysical(i+1, pseudo_pos, curr_physical_pos)
-        #    ret.append(pos)
-        #return ret
+        ret = []
+        for i in range(len(self.motor_roles)):
+            pos = self.CalcPhysical(i+1, pseudo_pos, curr_physical_pos)
+            ret.append(pos)
+        return ret
     
     def CalcPseudo(self, axis, physical_pos, curr_pseudo_pos):
         """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
