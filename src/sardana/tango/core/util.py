@@ -595,7 +595,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
         taurus.info(*log_message)
 
     taurus.debug("Start args=%s", args)
-    taurus.debug("Start tango args=%s", args)
+    taurus.debug("Start tango args=%s", tango_args)
     taurus.debug("Start options=%s", options)
 
 def prepare_rconsole(options, args, tango_args):
@@ -679,18 +679,17 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
     log_messages = []
     try:
         options, args, tango_args = prepare_cmdline(args=args)
-        if mode == ServerRunMode.SynchPure:
-            log_messages.extend(prepare_server(args, tango_args))
     except KeyboardInterrupt:
         pass
-
+    
     if tango_util == None:
         tango_util = Util(tango_args)
+    log_messages.extend(prepare_server(args, tango_args))
     
+    prepare_func(tango_util)
     prepare_taurus(options, args, tango_args)
     prepare_logging(options, args, tango_args, start_time=start_time,
                     log_messages=log_messages)
     prepare_rconsole(options, args, tango_args)
-    prepare_func(tango_util)
     
     run_tango_server(tango_util, start_time=start_time)
