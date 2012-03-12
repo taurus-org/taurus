@@ -31,7 +31,7 @@ from __future__ import print_function
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
            "MacroFinder", "Macro", "macro", "MacroFunc", "Type",
-           "ParamRepeat"]
+           "ParamRepeat", "Table", "List"]
 
 __docformat__ = 'restructuredtext'
 
@@ -48,6 +48,8 @@ import textwrap
 import StringIO
 
 from taurus.core.util import Logger, CodecFactory, propertx
+from taurus.console.table import Table
+from taurus.console.list import List
 
 from taurus.core.tango.sardana.pool import PoolElement
 
