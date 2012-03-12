@@ -192,7 +192,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         return ControllerManager()
     
     def set_path(self, path):
-        self.ctrl_manager.setControllerPath(path)
+        self.ctrl_manager.setControllerPath(path, reload=False)
     
     def get_controller_libs(self):
         return self.ctrl_manager.getControllerLibs()

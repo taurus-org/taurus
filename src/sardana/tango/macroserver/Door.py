@@ -37,7 +37,7 @@ from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
 
 import taurus
 import taurus.core.util
-from taurus.core.util import etree, CodecFactory, InfoIt
+from taurus.core.util import etree, CodecFactory, DebugIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
@@ -173,7 +173,7 @@ class Door(SardanaDevice):
         for handler, filter, format in self._handler_dict.values():
             handler.finish()
     
-    @InfoIt()
+    @DebugIt()
     def init_device(self):
         SardanaDevice.init_device(self)
         levels = 'Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug'

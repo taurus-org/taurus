@@ -35,7 +35,7 @@ import os
 import imp
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, ListEventGenerator
+from taurus.core.util import Singleton, Logger
 
 class ModuleManager(Singleton, Logger):
     
@@ -48,7 +48,6 @@ class ModuleManager(Singleton, Logger):
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
         self.call__init__(Logger, name)
-        self._module_list_obj = ListEventGenerator('ModuleList')
         self.reInit()
     
     def reInit(self):
@@ -72,13 +71,12 @@ class ModuleManager(Singleton, Logger):
 
         self._state = ManagerState.CLEANED
     
-    def reloadModule(self, module_name, path=None):
+    def reloadModule(self, module_name, path=None, reload=True):
         """Loads/reloads the given module name"""
-
-        # Store how was the old list of modules to see if an event needs to be
-        # fired
-        old_modules = self.getModuleListStr()
-
+        
+        if not reload:
+            return self.loadModule(module_name, path=path)
+        
         self.unloadModule(module_name)
         
         m, trace, file = None, None, None
@@ -99,30 +97,46 @@ class ModuleManager(Singleton, Logger):
         
         self._modules[module_name] = m
         
-        new_modules = self.getModuleListStr()
+        return m
+    
+    def loadModule(self, module_name, path=None):
+        """Loads the given module name"""
         
-        if old_modules != new_modules:
-            self._fireModuleEvent(new_modules)
+        if module_name in sys.modules:
+            return sys.modules[module_name]
+        
+        orig_path = list(sys.path)
+        try:
+            added = 0
+            if path is not None:
+                sys.path = path + sys.path
+            self.info("loading module %s...", module_name)
+            m = __import__(module_name, globals(), locals(), [], -1)
+        except:
+            self.error("Error loading module %s", module_name)
+            self.debug("Details:", exc_info=1)
+            raise
+        
+        if m is None:
+            return
+        
+        self._modules[module_name] = m
         
         return m
     
-    def unloadModule(self, module_name, fire_event=True):
+    def unloadModule(self, module_name):
         """Unloads the given module name"""
         if self._modules.has_key(module_name):
             self.debug("unloading module %s" % module_name)
             assert(sys.modules.has_key(module_name))
             self._modules.pop(module_name)
             del sys.modules[module_name]
-            if fire_event:
-                self._fireModuleEvent()
-            
-    def unloadModules(self, module_list = None, fire_event=True):
+    
+    def unloadModules(self, module_list = None):
         """Unloads the given module name"""
         modules = module_list or self._modules.keys()
         for module in modules:
             self.unloadModule(module, False)
-        if fire_event:
-            self._fireModuleEvent()
     
     def getModule(self, module_name):
         """Returns the module object for the given module name"""
@@ -131,14 +145,8 @@ class ModuleManager(Singleton, Logger):
             m = self.reloadModule(module_name)
         return m
 
-    def getModuleListStr(self):
+    def getModuleNames(self):
         module_names = self._modules.keys()
         module_names.sort()
         return module_names
-    
-    def _fireModuleEvent(self, data=None):
-        """Helper method that fires event for the current existing macros"""
-        module_list = data or self.getModuleListStr()
-        self._module_list_obj.fireEvent(module_list)
-        return module_list
     

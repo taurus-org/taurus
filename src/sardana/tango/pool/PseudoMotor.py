@@ -178,7 +178,7 @@ class PseudoMotor(PoolElementDevice):
         if moving:
             attr.set_quality(AttrQuality.ATTR_CHANGING)
         attr.set_date(TimeVal.fromtimestamp(position.timestamp))
-        
+    
     def write_Position(self, attr):
         try:
             self.pseudo_motor.position = attr.get_write_value()

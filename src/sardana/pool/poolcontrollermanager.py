@@ -39,7 +39,7 @@ import types
 import re
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, InfoIt, ListEventGenerator
+from taurus.core.util import Singleton, Logger, InfoIt
 
 from sardana import ElementType
 from sardana.sardanamodulemanager import ModuleManager
@@ -80,8 +80,6 @@ class ControllerManager(Singleton, Logger):
         self._state = ManagerState.UNINITIALIZED
         self.call__init__(Logger, name)
         self._pool = None
-        self._controller_list_obj = ListEventGenerator('ControllerClassList')
-        self._controller_lib_list_obj = ListEventGenerator('ControllerLibList')
         self.reInit()
 
     def reInit(self):
@@ -132,7 +130,7 @@ class ControllerManager(Singleton, Logger):
     def get_pool(self):
         return self._pool
     
-    def setControllerPath(self, controller_path):
+    def setControllerPath(self, controller_path, reload=True):
         """Registers a new list of controller directories in this manager.
         
         :param seq<str> controller_path: a sequence of absolute paths where this
@@ -160,7 +158,7 @@ class ControllerManager(Singleton, Logger):
         
         for controller_file_name in controller_file_names:
             try:
-                self.reloadControllerLib(controller_file_name)
+                self.reloadControllerLib(controller_file_name, reload=reload)
             except Exception,e:
                 pass
         
@@ -320,7 +318,7 @@ class ControllerManager(Singleton, Logger):
             f.close()
         return f_name, code, line_nb
 
-    def reloadController(self, controller_name, path=None, fire_event=True):
+    def reloadController(self, controller_name, path=None):
         """Reloads the module corresponding to the given controller name
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
@@ -330,12 +328,10 @@ class ControllerManager(Singleton, Logger):
         :param str controller_name: controller class name
         :param seq<str> path: a list of absolute path to search for libraries 
                               [default: None, meaning the current ControllerPath
-                              will be used]
-        :param bool fire_event: fire events in case something (controller list
-                                or module list changes [default: True]"""
-        self.reloadControllers([controller_name], path=path, fire_event=fire_event)
+                              will be used]"""
+        self.reloadControllers([controller_name], path=path)
         
-    def reloadControllers(self, controller_names, path=None, fire_event=True):
+    def reloadControllers(self, controller_names, path=None):
         """Reloads the modules corresponding to the given controller names
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
@@ -345,19 +341,14 @@ class ControllerManager(Singleton, Logger):
         :param seq<str> controller_names: a list of controller class names
         :param seq<str> path: a list of absolute path to search for libraries
                               [default: None, meaning the current ControllerPath
-                              will be used]
-        :param bool fire_event: fire events in case something (controller list
-                                or module list changes [default: True]"""
+                              will be used]"""
         module_names = []
         for controller_name in controller_names:
             module_name = self.getControllerMetaClass(controller_name).get_module_name()
             module_names.append(module_name)
-        self.reloadControllerLibs(module_names, path=path, fire_event=fire_event)
-        
-        if fire_event:
-            self._fireControllerEvent()
+        self.reloadControllerLibs(module_names, path=path)
     
-    def reloadControllerLibs(self, module_names, path=None, fire_event=True):
+    def reloadControllerLibs(self, module_names, path=None, reload=True):
         """Reloads the given lib(=module) names
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
@@ -367,32 +358,20 @@ class ControllerManager(Singleton, Logger):
         :param seq<str> module_names: a list of module names
         :param seq<str> path: a list of absolute path to search for libraries
                               [default: None, meaning the current ControllerPath
-                              will be used]
-        :param bool fire_event: fire events in case something (controller list
-                                or module list changes [default: True]"""
-        # Store how was the old list of modules to see if an event needs to be
-        # fired
-        old_modules = None
-        if fire_event:
-            old_modules = self.getControllerLibNames()
-
+                              will be used]"""
         ret = []
         for module_name in module_names:
             try:
-                m = self.reloadControllerLib(module_name, path,
-                                             fire_event=False)
+                m = self.reloadControllerLib(module_name, path, reload=reload)
                 if m: ret.append(m)
             except:
                 self.info("Failed to reload controller lib %s", module_name)
                 self.debug("Failed to reload controller lib %s details",
                            module_name, exc_info=1)
         
-        if fire_event:
-            new_modules = self.getControllerLibNames()
-            self._fireControllerLibEvent(new_modules)
         return ret
 
-    def reloadControllerLib(self, module_name, path=None, fire_event=True):
+    def reloadControllerLib(self, module_name, path=None, reload=True):
         """Reloads the given lib(=module) names
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
@@ -403,18 +382,10 @@ class ControllerManager(Singleton, Logger):
         :param seq<str> path: a list of absolute path to search for libraries
                               [default: None, meaning the current ControllerPath
                               will be used]
-        :param bool fire_event: fire events in case something (controller list
-                                or module list changes [default: True]
         
         :return: the ControllerLib object for the reloaded controller lib
         :rtype: sardana.pool.poolmetacontroller.ControllerLibrary
         """
-        # Store how was the old list of modules to see if an event needs to be
-        # fired
-        old_modules = None
-        if fire_event:
-            old_modules = self.getControllerLibNames()
-
         path = path or self.getControllerPath()
         # reverse the path order:
         # more priority elements last. This way if there are repeated elements
@@ -429,7 +400,7 @@ class ControllerManager(Singleton, Logger):
         
         m, exc_info = None, None
         try:
-            m = ModuleManager().reloadModule(module_name, path)
+            m = ModuleManager().reloadModule(module_name, path, reload=reload)
         except:
             exc_info = sys.exc_info()
             
@@ -455,23 +426,10 @@ class ControllerManager(Singleton, Logger):
             
             if lib_contains_controllers:
                 self._modules[module_name] = controller_lib
-
-        if fire_event:
-            self._fireControllerEvent()
-            self._fireControllerLibEvent()
         
         return controller_lib
-
-#    def _setControllerTypes(self, klass, info):
-#        types = []
-#        for _type, type_data in TYPE_MAP_OBJ.items():
-#            if not _type in TYPE_ELEMENTS:
-#                continue
-#            if issubclass(klass, type_data.ctrl_klass):
-#                types.append(_type)
-#        info.setTypes(types)
-        
-    def addController(self, controller_lib, klass, fire_event=False):
+    
+    def addController(self, controller_lib, klass):
         """Adds a new controller class"""
         controller_name = klass.__name__
         exists = controller_lib.has_controller(controller_name)
@@ -479,7 +437,7 @@ class ControllerManager(Singleton, Logger):
             action = "Updating"
         else:
             action = "Adding"
-
+        
         self.debug("%s controller %s" % (action, controller_name))
         
         try:
@@ -489,12 +447,10 @@ class ControllerManager(Singleton, Logger):
             controller_lib.add_controller(controller_class)
             self._controller_dict[controller_name] = controller_class
             
-            if fire_event:
-                self._fireControllerEvent()
         except:
             self.warning("Faild to add controller class %s", controller_name,
                          exc_info=1)
-
+        
         if exists:
             action = "Updated"
         else:
@@ -506,19 +462,6 @@ class ControllerManager(Singleton, Logger):
 
     def getControllerLibNames(self):
         return sorted(self._modules.keys())
-
-    def _fireControllerEvent(self, data=None):
-        """Helper method that fires event for the current existing controllers"""
-        controller_list = data or self.getControllerNames()
-        self._controller_list_obj.fireEvent(controller_list)
-        return controller_list
-    
-    def _fireControllerLibEvent(self, data=None):
-        """Helper method that fires event for the current existing controller 
-        libraries(=modules)"""
-        controller_lib_list = data or self.getControllerLibNames()
-        self._controller_lib_list_obj.fireEvent(controller_lib_list)
-        return controller_lib_list
     
     def getControllerLibs(self, filter=None):
         ret, expr = [], None
@@ -530,7 +473,7 @@ class ControllerManager(Singleton, Logger):
             ret.append(lib)
         ret.sort()
         return ret
-
+    
     def getControllers(self, filter=None):
         if filter is None:
             return sorted(self._controller_dict.values())
@@ -539,7 +482,7 @@ class ControllerManager(Singleton, Logger):
         ret = [ kls for n, kls in self._controller_dict.iteritems() if not expr.match(n) is None ]
         ret.sort()
         return ret
-
+    
     def getControllerMetaClass(self, controller_name):
         ret = self._controller_dict.get(controller_name)
         if ret is None:
@@ -551,7 +494,7 @@ class ControllerManager(Singleton, Logger):
         for name in controller_names:
             ret[name] = self._controller_dict.get(name)
         return ret
-        
+    
     def getControllerLib(self, name):
         if os.path.isabs(name):
             abs_file_name = name
@@ -565,13 +508,7 @@ class ControllerManager(Singleton, Logger):
                     return lib
         module_name = name
         return self._modules.get(module_name)
-        
-    def getControllerListObj(self):
-        return self._controller_list_obj
     
-    def getControllerLibListObj(self):
-        return self._controller_lib_list_obj
-
     def getControllerClass(self, controller_name):
         return self.getControllerMetaClass(controller_name).klass
     
