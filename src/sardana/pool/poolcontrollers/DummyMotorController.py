@@ -341,10 +341,10 @@ class Motion(BaseMotion):
         assert(self.curr_dsplmnt_reach_max_vel >= 0.0)
         assert(self.curr_dsplmnt_reach_min_vel >= 0.0)
         
-        assert(self.final_instant > self.start_instant)
+        assert(self.final_instant >= self.start_instant)
         assert(self.curr_max_vel <= self.max_vel)
-        assert(self.start_instant < self.curr_max_vel_instant)
-        assert(self.final_instant > self.curr_min_vel_instant)
+        assert(self.start_instant <= self.curr_max_vel_instant)
+        assert(self.final_instant >= self.curr_min_vel_instant)
         
         assert(self.curr_max_vel_time > 0.0)
         assert(self.curr_min_vel_time > 0.0)
