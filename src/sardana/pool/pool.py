@@ -41,6 +41,7 @@ from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
     TYPE_PSEUDO_ELEMENTS
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
+from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaevent import EventType
 
 from poolbase import PoolObject
@@ -85,6 +86,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     Default_AcqLoop_SleepTime = 0.01
     
     def __init__(self, full_name, name=None):
+        self._path_id = None
         self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
         self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
         self._acq_loop_states_per_value = self.Default_AcqLoop_StatesPerValue
@@ -190,6 +192,12 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     @property
     def ctrl_manager(self):
         return ControllerManager()
+    
+    def set_python_path(self, path):
+        mod_man = ModuleManager()
+        if self._path_id is not None:
+            mod_man.remove_python_path(self._path_id)
+        self._path_id = mod_man.add_python_path(path)
     
     def set_path(self, path):
         self.ctrl_manager.setControllerPath(path, reload=False)

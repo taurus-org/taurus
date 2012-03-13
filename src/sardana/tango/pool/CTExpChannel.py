@@ -119,20 +119,16 @@ class CTExpChannel(PoolElementDevice):
                     quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority)
-
+    
     def always_executed_hook(self):
         #state = to_tango_state(self.ct.get_state(cache=False))
         pass
-
+    
     def read_attr_hardware(self,data):
         pass
 
     def read_Value(self, attr):
         attr.set_value(self.ct.get_value(cache=False))
-    
-    def write_Value(self, attr):
-        value = attr.get_write_value()
-        self.ct.set_value(value)
     
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
@@ -162,7 +158,7 @@ class CTExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Value'     : [ [ DevDouble, SCALAR, READ ] ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

@@ -517,21 +517,21 @@ class MotorController(Controller, Startable, Stopable, Readable):
     #: You can *OR* two or more switches together. For example, to say both
     #: upper and lower limit switches are active::
     #:
-    #:    limit_switches = MotorController.HomeLimitSwitch | MotorController.LowerLimitSwitch
+    #:    limit_switches = self.HomeLimitSwitch | self.LowerLimitSwitch
     HomeLimitSwitch  = 1
 
     #: A constant representing an active *upper limit* switch.
     #: You can *OR* two or more switches together. For example, to say both 
     #: upper and lower limit switches are active::
     #:
-    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    #:    limit_switches = self.UpperLimitSwitch | self.LowerLimitSwitch
     UpperLimitSwitch = 2
 
     #: A constant representing an active *lower limit* switch.
     #: You can *OR* two or more switches together. For example, to say both 
     #: upper and lower limit switches are active::
     #:
-    #:    limit_switches = MotorController.UpperLimitSwitch | MotorController.LowerLimitSwitch
+    #:    limit_switches = self.UpperLimitSwitch | self.LowerLimitSwitch
     LowerLimitSwitch = 4
     
     #: A :class:`dict` containing the standard attributes present on each axis
@@ -557,7 +557,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
                              'description' : 'Velocity', },
         'Backlash'       : { 'type' : float,
                              'description' : 'Backlash', },
-        'Limit_switches' : { 'type' : float,
+        'Limit_switches' : { 'type' : (bool,),
                              'description' : "This attribute is the motor "\
                               "limit switches state. It's an array with 3 \n"\
                               "elements which are:\n"\
@@ -905,7 +905,7 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. deprecated:: 1.0
-               implement :meth:`PseudoMotorController.CalcAllPseudo` instead"""
+               implement :meth:`~PseudoMotorController.CalcAllPseudo` instead"""
         ret = []
         for i in range(len(self.pseudo_motor_roles)):
             ret.append(self.calc_pseudo(i+1, physical_pos))
@@ -925,7 +925,7 @@ class PseudoMotorController(PseudoController):
            :rtype: sequence<float>
            
            .. deprecated:: 1.0
-               implement :meth:`PseudoMotorController.CalcAllPhysical`
+               implement :meth:`~PseudoMotorController.CalcAllPhysical`
                instead"""
         ret = []
         for i in range(len(self.motor_roles)):
@@ -944,7 +944,7 @@ class PseudoMotorController(PseudoController):
            :rtype: float
            
            .. deprecated:: 1.0
-               implement :meth:`PseudoMotorController.CalcPseudo` instead"""
+               implement :meth:`~PseudoMotorController.CalcPseudo` instead"""
         raise NotImplementedError("CalcPseudo must be defined in te controller")
     
     def calc_physical(self, axis, pseudo_pos):
@@ -959,7 +959,7 @@ class PseudoMotorController(PseudoController):
            :rtype: float
            
            .. deprecated:: 1.0
-               implement :meth:`PseudoMotorController.CalcPhysical` instead"""
+               implement :meth:`~PseudoMotorController.CalcPhysical` instead"""
         raise NotImplementedError("CalcPhysical must be defined in the "
                                   "controller")
     
@@ -976,7 +976,7 @@ class PseudoMotorController(PseudoController):
         :param index_or_role: index number or role name
         :type index_or_role: int or str
         :return: Motor object for the given role/index
-        :rtype: :class:`~sardana.pool.poolpseudomotor.PoolMotor`"""
+        :rtype: :class:`~sardana.pool.poolmotor.PoolMotor`"""
         return self._getElem(index_or_role, self.motor_roles,
                              self.__motor_role_elements,
                              self._kwargs['motor_ids'])
@@ -1053,7 +1053,7 @@ class PseudoCounterController(Controller):
            :rtype: float
            
            .. deprecated:: 1.0
-               implement :meth:`PseudoCounterController.Calc` instead"""
+               implement :meth:`~PseudoCounterController.Calc` instead"""
         raise NotImplementedError("Calc must be defined in te controller")
 
 

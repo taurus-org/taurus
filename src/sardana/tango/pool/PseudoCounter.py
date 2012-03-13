@@ -199,7 +199,7 @@ class PseudoCounterClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     standard_attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Value'     : [ [ DevDouble, SCALAR, READ ] ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
 

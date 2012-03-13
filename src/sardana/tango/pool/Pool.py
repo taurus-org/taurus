@@ -76,20 +76,22 @@ class Pool(PyTango.Device_4Impl, Logger):
             
         self._pool = POOL(full_name, alias)
         self._pool.add_listener(self.on_pool_changed)
-
+    
     @property
     def pool(self):
         return self._pool
     
     @DebugIt()
     def delete_device(self):
-        self.pool.monitor.pause()
-
+        #self.pool.monitor.pause()
+        pass
+    
     @DebugIt()
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
         p = self.pool
+        p.set_python_path(self.PythonPath)
         p.set_path(self.PoolPath)
         p.set_motion_loop_sleep_time(self.MotionLoop_SleepTime / 1000.0)
         p.set_motion_loop_states_per_position(self.MotionLoop_StatesPerPosition)
@@ -105,7 +107,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.set_change_event("Elements", True, False)
         #hold the monitor thread for now!
         #self.pool.monitor.resume()
-    
+        
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)
         p = self.pool
@@ -930,7 +932,7 @@ class PoolClass(PyTango.DeviceClass):
             [] ],
         'PythonPath':
             [PyTango.DevVarStringArray,
-            "list of directories to be appended to sys.path at startup  (path "
+            "list of directories to be appended to sys.path at startup (path "
             "separators can be '\n' or ':')",
             [] ],
         'MotionLoop_SleepTime':

@@ -81,6 +81,7 @@ class MacroServer(SardanaDevice):
             self._calculate_environment_name(self.EnvironmentDb)
 
         macro_server = self.macro_server
+        macro_server.set_python_path(self.PythonPath)
         macro_server.set_max_parallel_macros(self.MaxParallelMacros)
         macro_server.set_environment_db(self.EnvironmentDb)
         macro_server.set_macro_path(self.MacroPath)
@@ -259,8 +260,13 @@ class MacroServerClass(SardanaDeviceClass):
             [] ],
         'MacroPath':
             [DevVarStringArray,
-            "List of directories (absolute or relative path) that contain "
-            "macro files.",
+            "list of directories to search for macros (path separators "
+            "can be '\n' or ':')",
+            [] ],
+        'PythonPath':
+            [DevVarStringArray,
+            "list of directories to be appended to sys.path at startup (path "
+            "separators can be '\n' or ':')",
             [] ],
         'MaxParallelMacros':
             [DevLong,

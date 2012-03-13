@@ -26,6 +26,8 @@
 """This module is part of the Python Sardana libray. It defines the base classes
 for module manager"""
 
+from __future__ import with_statement
+
 __all__ = ["ModuleManager"]
 
 __docformat__ = 'restructuredtext'
@@ -33,11 +35,76 @@ __docformat__ = 'restructuredtext'
 import sys
 import os
 import imp
+import threading
 
 from taurus.core import ManagerState
 from taurus.core.util import Singleton, Logger
 
+from sardanamanager import SardanaIDManager
+
+class PathManager(SardanaIDManager):
+    
+    def __init__(self):
+        SardanaIDManager.__init__(self)
+        self._orig_path = list(sys.path)
+        self._path_lock = threading.Lock()
+        #: dict<int(path_id), list<int(path start index), list<str(path)>>
+        self._path_info = {}
+    
+    @staticmethod
+    def _decode_path(path):
+        p = []
+        for item in path:
+            p.extend(item.split(":"))
+        return p
+    
+    def add_python_path(self, path):
+        """Adds a new path to the python path.
+        
+        :param path:
+            a sequence of strings each string may contain an absolute path or a
+            list of ":" or "\n" separated absolute paths
+        :type path: list<str>
+        :return:
+            a path id identifying the changes that were made to sys.path. This
+            ID can be used in :meth:`remove_path` to remove only the added path
+        :rtype: int"""
+        path = self._decode_path(path)
+        path_len = len(path)
+        pif = self._path_info
+        
+        with self._path_lock:
+            path_id = self.get_new_id()
+            
+            for p_id, p_info in pif.items():
+                p_info[0] += path_len
+            
+            pif[path_id] = [0, path]
+            sys.path = path + sys.path
+        return path_id
+    
+    def remove_python_path(self, path_id):
+        """Removes the path given by the path_id
+        
+        :param path_id:
+            a path id identifying specific changes that were made to sys.path
+        :type path_id: int"""
+        pif = self._path_info
+        start, path = pif[path_id]
+        path_len = len(path)
+        
+        with self._path_lock:
+            sys.path = sys.path[:start+1] + sys.path[start+path_len:]
+            del pif[path_id]
+    
+    def reset_python_path(self):
+        with self._path_lock:
+            sys.path = list(self._orig_path)
+            self._path_info = {}
+        
+
 class ModuleManager(Singleton, Logger):
+    """This class handles python module loading/reloading and unloading."""
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -47,6 +114,7 @@ class ModuleManager(Singleton, Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self._state = ManagerState.UNINITIALIZED
+        self._path_manager = PathManager()
         self.call__init__(Logger, name)
         self.reInit()
     
@@ -64,12 +132,21 @@ class ModuleManager(Singleton, Logger):
     def cleanUp(self):
         if self._state == ManagerState.CLEANED:
             return
-
+        
         self.unloadModules()
-
+        
         self._modules = None
-
+        
         self._state = ManagerState.CLEANED
+    
+    def reset_python_path(self):
+        return self._path_manager.reset_python_path()
+    
+    def remove_python_path(self, path_id):
+        return self._path_manager.remove_python_path(path_id)
+    
+    def add_python_path(self, path):
+        return self._path_manager.add_python_path(path)
     
     def reloadModule(self, module_name, path=None, reload=True):
         """Loads/reloads the given module name"""
@@ -100,7 +177,16 @@ class ModuleManager(Singleton, Logger):
         return m
     
     def loadModule(self, module_name, path=None):
-        """Loads the given module name"""
+        """Loads the given module name. If the module has been already loaded
+        into this python interpreter, nothing is done.
+        
+        :param module_name: the module to be loaded.
+        :type module_name: str
+        :param path: list of paths to look for modules [default: None]
+        :type path: seq<str> or None
+        :return: python module
+        
+        :raises: ImportError"""
         
         if module_name in sys.modules:
             return sys.modules[module_name]
@@ -116,9 +202,8 @@ class ModuleManager(Singleton, Logger):
             self.error("Error loading module %s", module_name)
             self.debug("Details:", exc_info=1)
             raise
-        
-        if m is None:
-            return
+        finally:
+            sys.path = orig_path
         
         self._modules[module_name] = m
         

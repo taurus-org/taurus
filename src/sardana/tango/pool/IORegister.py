@@ -157,7 +157,8 @@ class IORegisterClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevLong, SCALAR, READ_WRITE ] ],
+        'Value'     : [ [ DevLong, SCALAR, READ_WRITE ],
+                        { 'Memorized'     : "true_without_hard_applied", }, ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 

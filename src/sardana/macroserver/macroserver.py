@@ -33,6 +33,7 @@ from taurus.core.tango.sardana.pool import registerExtensions
 
 from sardana import InvalidId, ElementType
 from sardana.sardanaevent import EventType
+from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 
 from msbase import MSObject
@@ -85,6 +86,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         # value - Pool object representing the device name
         self._pools = CaselessDict()
         self._max_parallel_macros = self.MaxParalellMacros
+        self._path_id = None
         
         MSContainer.__init__(self)
         MSObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
@@ -133,6 +135,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         """
         self.environment_manager.setEnvironmentDb(environment_db)
     
+    def set_python_path(self, path):
+        mod_man = ModuleManager()
+        if self._path_id is not None:
+            mod_man.remove_python_path(self._path_id)
+        self._path_id = mod_man.add_python_path(path)
+
+        
     def set_macro_path(self, macro_path):
         """Sets the macro path.
         

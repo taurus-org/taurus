@@ -169,7 +169,9 @@ class MotorGroupClass(PoolGroupDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Position'     : [ [ DevDouble, SPECTRUM, READ_WRITE, 4096 ] ],
+        'Position'     : [ [ DevDouble, SPECTRUM, READ_WRITE, 4096 ], ],
+                           # Position is not scalar and can not be memorized
+                           #{ 'Memorized'     : "true_without_hard_applied", }, ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 

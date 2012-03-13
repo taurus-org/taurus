@@ -216,7 +216,8 @@ class PseudoMotorClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     standard_attr_list = {
-        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ] ],
+        'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ],
+                           { 'Memorized'     : "true_without_hard_applied", }, ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
 

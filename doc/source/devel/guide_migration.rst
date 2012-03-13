@@ -10,6 +10,39 @@ Sardana migration guide
 This chapter describes how to migrate different sardana components between the
 different API versions.
 
+How to migrate your macro code
+===================================
+
+This chapter describes the necessary steps to fully migrate your macros
+from *API v0* ( sardana 0.x ) to *API v1* ( sardana 1.x )
+
+Mandatory changes
+"""""""""""""""""
+
+The following are the 2 necessary changes to make your macros work in
+sardana *API v1*:
+
+1. from::
+        
+        from macro import Macro, Type, Table, List
+    
+   to::
+        
+        from sardana.macroserver.macro import Macro, Type, Table, List
+
+2. Parameter type ``Type.Motor`` should be changed ``Type.Moveable``.
+   In **v0** the `Motor` meant any motor (including physical motor, pseudo
+   motor). In **v1**, for consistency, `Motor` means only physical motor
+   and `Moveable` means all moveable elements (including physical motor, pseudo
+   motor).
+
+New features in API v1
+"""""""""""""""""""""""
+
+This chapter is a summary of all new features in *API v1*.
+
+1. Macros can now be functions(see :ref:`macroserver-macros`).
+
 How to migrate your controller code
 ===================================
 

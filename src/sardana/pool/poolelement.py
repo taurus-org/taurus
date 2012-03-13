@@ -31,6 +31,7 @@ __all__ = [ "PoolBaseElement", "PoolElement" ]
 __docformat__ = 'restructuredtext'
 
 import weakref
+import threading
 
 from taurus.core.util.lock import TaurusLock
 
@@ -61,7 +62,7 @@ class PoolBaseElement(PoolObject):
         lock_name = kwargs['name'] + "Lock"
         
         # A lock for high level operations: monitoring, motion or acquisition
-        self._lock = TaurusLock(name=lock_name)
+        self._lock = TaurusLock(name=lock_name, lock=threading.RLock())
         
         # The operation context in which the element is involved
         self._operation = None
