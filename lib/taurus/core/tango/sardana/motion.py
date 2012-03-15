@@ -196,6 +196,13 @@ class MotionGroup(BaseMotion):
                 moveable.abort(wait_ready=wait_ready, timeout=timeout)
             except:
                 pass
+
+    def stop(self, wait_ready=True, timeout=None):
+        for moveable in self.moveable_list:
+            try:
+                moveable.stop(wait_ready=wait_ready, timeout=timeout)
+            except:
+                pass
     
     def read(self):
         pass
@@ -352,6 +359,10 @@ class Motion(BaseMotion):
         for moveable in self.moveable_list:
             moveable.abort(wait_ready=wait_ready, timeout=timeout)
     
+    def stop(self, wait_ready=True, timeout=None):
+        for moveable in self.moveable_list:
+            moveable.stop(wait_ready=wait_ready, timeout=timeout)
+
     def read(self):
         pass
 

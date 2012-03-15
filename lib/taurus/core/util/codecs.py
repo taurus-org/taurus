@@ -216,6 +216,61 @@ class BZ2Codec(Codec):
         return format, bz2.decompress(data[1])
 
 
+class PickleCodec(Codec):
+    """A codec able to encode/decode to/from pickle format. It uses the
+    :mod:`pickle` module.
+    
+    Example::
+        
+        >>> from taurus.core.util import CodecFactory
+        
+        >>> cf = CodecFactory()
+        >>> codec = cf.getCodec('pickle')
+        >>>
+        >>> # first encode something
+        >>> data = { 'hello' : 'world', 'goodbye' : 1000 }
+        >>> format, encoded_data = codec.encode(("", data))
+        >>>
+        >>> # now decode it
+        >>> format, decoded_data = codec.decode((format, encoded_data))
+        >>> print decoded_data
+        {'hello': 'world', 'goodbye': 1000}"""
+    
+    def encode(self, data, *args, **kwargs):
+        """encodes the given data to a pickle string. The given data **must** be
+        a python object that :mod:`pickle` is able to convert.
+            
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        import pickle
+        format = 'pickle'
+        if len(data[0]): format += '_%s' % data[0]
+        # make it compact by default
+        kwargs['protocol'] = kwargs.get('protocol', pickle.HIGHEST_PROTOCOL)
+        return format, pickle.dumps(data[1], *args, **kwargs)
+    
+    def decode(self, data, *args, **kwargs):
+        """decodes the given data from a pickle string.
+            
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object"""
+        import pickle
+        if not data[0].startswith('pickle'):
+            return data
+        format = data[0].partition('_')[2]
+        
+        if isinstance(data[1], buffer):
+            data = data[0], str(data[1])
+        
+        return format, pickle.loads(data[1])
+
+
 class JSONCodec(Codec):
     """A codec able to encode/decode to/from json format. It uses the
     :mod:`json` module.
@@ -494,14 +549,15 @@ class CodecFactory(Singleton, Logger):
     
     #: Default minimum map of registered codecs
     CODEC_MAP = CaselessDict({
-        'json' : JSONCodec,
-        'bson' : BSONCodec,
-        'bz2'  : BZ2Codec,
-        'zip'  : ZIPCodec,
-        'plot' : PlotCodec,
-        'null' : NullCodec,
-        'none' : NullCodec,
-        ''     : NullCodec })
+        'json'   : JSONCodec,
+        'bson'   : BSONCodec,
+        'bz2'    : BZ2Codec,
+        'zip'    : ZIPCodec,
+        'pickle' : PickleCodec,
+        'plot'   : PlotCodec,
+        'null'   : NullCodec,
+        'none'   : NullCodec,
+        ''       : NullCodec })
 
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""

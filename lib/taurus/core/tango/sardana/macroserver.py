@@ -224,7 +224,6 @@ class BaseDoor(MacroServerDevice):
         self._debug = kw.get("debug", False)
         self._output_stream = kw.get("output", sys.stdout)
         self._writeLock = threading.Lock()
-        self._env = {}
 
         self.call__init__(MacroServerDevice, name, **kw)
         
@@ -241,11 +240,6 @@ class BaseDoor(MacroServerDevice):
             else:
                 attr.subscribeEvent(self.logReceived, log_name)
             self._log_attr[log_name] = attr
-        
-        self._environment_attr = attr = self.getAttribute('Environment')
-        attr.setSerializationMode(TaurusSerializationMode.Serial)
-        self._environment_attr.addListener(self.environmentChanged)
-        attr.setSerializationMode(TaurusSerializationMode.Concurrent)
         
         record_data_attr = self.getAttribute('RecordData')
         record_data_attr.addListener(self.recordDataReceived)
@@ -334,9 +328,6 @@ class BaseDoor(MacroServerDevice):
     def isSilent(self):
         return self._silent
     
-    def getEnvironmentObj(self):
-        return self._environment_attr
-
     def getLogObj(self, log_name='Debug'):
         return self._log_attr.get(log_name, None)
 
@@ -348,14 +339,30 @@ class BaseDoor(MacroServerDevice):
 
     def abort(self, synch=True):
         if not synch:
-            self.command_inout("Abort")
+            self.command_inout("AbortMacro")
             return
         
         evt_wait = AttributeEventWait(self.getAttribute("state"))
         evt_wait.lock()
         try:
             time_stamp = time.time()
-            self.command_inout("Abort")
+            self.command_inout("AbortMacro")
+            evt_wait.waitEvent(self.Running, equal=False, after=time_stamp,
+                               timeout=self.InteractiveTimeout)
+        finally:
+            evt_wait.unlock()
+            evt_wait.disconnect()
+
+    def stop(self, synch=True):
+        if not synch:
+            self.command_inout("StopMacro")
+            return
+        
+        evt_wait = AttributeEventWait(self.getAttribute("state"))
+        evt_wait.lock()
+        try:
+            time_stamp = time.time()
+            self.command_inout("StopMacro")
             evt_wait.waitEvent(self.Running, equal=False, after=time_stamp,
                                timeout=self.InteractiveTimeout)
         finally:
@@ -450,35 +457,14 @@ class BaseDoor(MacroServerDevice):
         return self._processEnvironmentData(v)
     
     def setEnvironment(self, name, value):
-        self.setEnvironments({ name : value })
+        self.macro_server.setEnvironment(name, value)
 
     def setEnvironments(self, obj):
-        obj['__type__'] = 'new'
-        codec = CodecFactory().getCodec('json')
-        self.write_attribute('Environment', codec.encode(('', obj)))
+        self.macro_server.setEnvironments(obj)
     
     def getEnvironment(self, name=None):
-        if name is None:
-            return self._env
-        else:
-            return getattr(self._env, name)
-    
-    def _processEnvironmentData(self, data):
-        if data is None: return
-        # make sure we get it as string since PyTango 7.1.4 returns a buffer
-        # object and json.loads doesn't support buffer objects (only str)
-        data = map(str, data.value)
-        
-        size = len(data[1])
-        if size == 0: return
-        format = data[0]
-        codec = CodecFactory().getCodec(format)
-        obj = codec.decode(data, ensure_ascii=True)[1]
-        env_type = obj.get("__type__")
-        if env_type == 'new':
-            self._env.update(obj)
-        return obj
-    
+        return self.macro_server.getEnvironment(name=name)
+
     def recordDataReceived(self, s, t, v):
         if t not in CHANGE_EVT_TYPES: return
         return self._processRecordData(v)
@@ -590,10 +576,33 @@ class MacroPath(object):
         self.rel_macro_path = [ osp.relpath for p in mp, self.base_macro_path ]
 
 
+class Environment(dict):
+    
+    def __init__(self, macro_server):
+        dict.__setattr__(self, "_macro_server_", weakref.ref(macro_server))
+    
+    def __setattr__(self, key, value):
+        ms = self._macro_server_()
+        if ms is not None:
+            ms.putEnvironment(key, value)
+    
+    def __getattr__(self, key):
+        return self[key]
+    
+    def __delattr__(self, key):
+        ms = self._macro_server_()
+        if ms is not None:
+            ms.removeEnvironment(key)
+    
+    def __dir__(self):
+        return [ key for key in self.keys() if not key.startswith("_") ]
+
+
 class BaseMacroServer(MacroServerDevice):
     """Class encapsulating Macro Server device functionality."""
     
     def __init__(self, name, **kw):
+        self._env = Environment(self)
         self._elements = BaseSardanaElementContainer()
         self.call__init__(MacroServerDevice, name, **kw)
 
@@ -601,9 +610,73 @@ class BaseMacroServer(MacroServerDevice):
         attr.setSerializationMode(TaurusSerializationMode.Serial)
         attr.addListener(self.on_elements_changed)
         attr.setSerializationMode(TaurusSerializationMode.Concurrent)
+
+        attr = self.getAttribute('Environment')
+        attr.setSerializationMode(TaurusSerializationMode.Serial)
+        attr.addListener(self.on_environment_changed)
+        attr.setSerializationMode(TaurusSerializationMode.Concurrent)
     
     NO_CLASS_TYPES = 'ControllerClass', 'ControllerLibrary', \
                      'MacroLibrary', 'Instrument', 'Meta', 'ParameterType'
+    
+    def on_environment_changed(self, evt_src, evt_type, evt_value):
+        try:
+            return self._on_environment_changed(evt_src, evt_type, evt_value)
+        except Exception, e:
+            self.error("Exception occurred processing environment")
+            self.error("Details:", exc_info=1)
+            return set(), set(), set()
+    
+    def _on_environment_changed(self, evt_src, evt_type, evt_value):
+        ret = added, removed, changed = set(), set(), set()
+        if evt_type not in CHANGE_EVT_TYPES:
+            return ret
+        
+        env = CodecFactory().decode(evt_value.value)
+        
+        for key, value in env.get('new', {}).items():
+            self._addEnvironment(key, value)
+            added.add(key)
+        for key in env.get('del', []):
+            self._removeEnvironment(key)
+            removed.add(key)
+        for key, value in env.get('change', {}).items():
+            self._removeEnvironment(key)
+            self._addEnvironment(key, value)
+            changed.add(key)
+        return ret
+    
+    def _addEnvironment(self, key, value):
+        self._env[key] = value
+    
+    def _removeEnvironment(self, key):
+        try:
+            self._env.pop(key)
+        except KeyError:
+            pass
+        
+    def putEnvironment(self, name, value):
+        self.putEnvironments({ name : value })
+    
+    def putEnvironments(self, obj):
+        obj = dict(new=obj)
+        codec = CodecFactory().getCodec('pickle')
+        self.write_attribute('Environment', codec.encode(('', obj)))
+    
+    def getEnvironment(self, name=None):
+        if name is None:
+            return self._env
+        else:
+            return self._env[name]
+    
+    def removeEnvironment(self, key):
+        keys = key,
+        return self.removeEnvironments(keys)
+    
+    def removeEnvironments(self, keys):
+        obj = { 'del' : keys }
+        codec = CodecFactory().getCodec('pickle')
+        self.write_attribute('Environment', codec.encode(('', obj)))
     
     def getObject(self, element_info):
         elem_type = element_info.getType()
@@ -648,7 +721,6 @@ class BaseMacroServer(MacroServerDevice):
         for element_data in elems.get('del', ()):
             element = self._removeElement(element_data)
             removed.add(element)
-            pass
         for element_data in elems.get('change', ()):
             element = self._removeElement(element_data)
             element_data['manager'] = self

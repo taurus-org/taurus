@@ -505,8 +505,12 @@ class AttributeEventWait(object):
             lock = getattr(self._cond, "_Condition__lock")
             th = getattr(lock, "_RLock__owner")
             curr_th = threading.current_thread()
+            if th is not None:
+                name = th.name
+            else:
+                name = "<unknown>"
             print "WARNING: Thread %s trying to unlock condition previously " \
-                  "locked by thread %s" % (curr_th.name, th.name)
+                  "locked by thread %s" % (curr_th.name, name)
 
     def clearEventSet(self):
         "Clears the internal event buffer"

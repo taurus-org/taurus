@@ -25,7 +25,8 @@
 
 """The device pool submodule. It contains specific part of sardana device pool"""
 
-__all__ = ["AbortException", "BaseElement", "ControllerClass",
+__all__ = ["InterruptException", "StopException", "AbortException",
+           "BaseElement", "ControllerClass",
            "PoolElement", "Controller", "ComChannel", "ExpChannel",
            "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel",
            "PseudoCounter", "Motor", "PseudoMotor", "MotorGroup",
@@ -73,7 +74,13 @@ QUALITY = {
     None : 'UNKNOWN'
 }
 
-class AbortException(Exception):
+class InterruptException(Exception):
+    pass
+
+class StopException(InterruptException):
+    pass
+
+class AbortException(InterruptException):
     pass
 
 class BaseElement(object):
@@ -217,14 +224,21 @@ class TangoAttributeEG(Logger, EventGenerator):
         return getattr(self._attr, name)
     
     
-
 def reservedOperation(fn):
     def new_fn(*args, **kwargs):
         self = args[0]
         wr = self.getReservedWR()
-        if wr is not None and wr().isAborted():
-            raise AbortException("aborted when calling %s" % fn.__name__)
-        return fn(*args, **kwargs)
+        if wr is not None:
+            if wr().isStopped():
+                raise StopException("stopped before calling %s" % fn.__name__)
+            elif wr().isAborted():
+                raise AbortException("aborted before calling %s" % fn.__name__)
+        try:
+            return fn(*args, **kwargs)
+        except:
+            print "Exception occured in reserved operation: clearing events..."
+            self._clearEventWait()
+            raise
     return new_fn
 
 
@@ -234,6 +248,7 @@ class PoolElement(BaseElement, TangoDevice):
     def __init__(self, name, **kw):
         """PoolElement initialization."""
         self._reserved = None
+        self._evt_wait = None
         self.call__init__(TangoDevice, name, **kw)
         self._name_lower = self.getName().lower()
         
@@ -304,11 +319,14 @@ class PoolElement(BaseElement, TangoDevice):
         return attrEG
     
     def _getEventWait(self):
-        if not hasattr(self, '_evt_wait'):
+        if self._evt_wait is None:
             # create an object that waits for attribute events.
             # each time we use it we have to connect and disconnect to an attribute
             self._evt_wait = AttributeEventWait()
         return self._evt_wait
+    
+    def _clearEventWait(self):
+        self._evt_wait = None
     
     def getStateEG(self):
         return self._getAttrEG('state')
@@ -401,6 +419,16 @@ class PoolElement(BaseElement, TangoDevice):
         state.lock()
         try:
             self.command_inout("Abort")
+            if wait_ready:
+                self.waitReady(timeout=timeout)
+        finally:
+            state.unlock()
+
+    def stop(self, wait_ready=True, timeout=None):
+        state = self.getStateEG()
+        state.lock()
+        try:
+            self.command_inout("Stop")
             if wait_ready:
                 self.waitReady(timeout=timeout)
         finally:
@@ -614,7 +642,6 @@ class Motor(PoolElement, Moveable):
            new_pos = new_pos[0]
         try:
             self.write_attribute('position', new_pos)
-            #self.getPositionObj().write(new_pos)
         except DevFailed, df:
             for err in df:
                 if err.reason == 'API_AttrNotAllowed':
