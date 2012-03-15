@@ -26,7 +26,7 @@
 """The MacroServer tango module"""
 
 from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
-    DevEncoded, DevVarStringArray, READ, SCALAR, SPECTRUM, DebugIt
+    DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
 #from taurus.core.util import Logger
 from taurus.core.util import CodecFactory
@@ -41,6 +41,7 @@ class MacroServer(SardanaDevice):
     """The MacroServer tango class"""
     
     ElementsCache = None
+    EnvironmentCache = None
     
     def __init__(self,cl, name):
         self._macro_server = None
@@ -73,6 +74,7 @@ class MacroServer(SardanaDevice):
         self.set_change_event('MacroList', True, False)
         self.set_change_event('MacroLibList', True, False)
         self.set_change_event('Elements', True, False)
+        self.set_change_event('Environment', True, False)
         
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
@@ -154,6 +156,12 @@ class MacroServer(SardanaDevice):
             value = CodecFactory().getCodec('json').encode(('', value))
             self.set_attribute(elems_attr, value=value)
             #self.push_change_event('Elements', *value)
+        elif evt_name == "environmentchanged":
+            self.EnvironmentCache = None
+            env_attr = multi_attr.get_attr_by_name("Environment")
+            value = CodecFactory().getCodec('pickle').encode(('', evt_value))
+            self.set_attribute(env_attr, value=value)
+            
     
     def always_executed_hook(self):
         pass
@@ -243,7 +251,30 @@ class MacroServer(SardanaDevice):
         if len(argin) > 2:
             auto_reload = argin[2].lower() in ('true', 'yes')
         self.macro_server.set_macro_lib(lib_name, code, auto_reload=auto_reload)
+
+    #@DebugIt()
+    def getEnvironment(self, cache=True):
+        value = self.EnvironmentCache
+        if cache and value is not None:
+            return value
+        env = self.macro_server.get_env()
+        value = dict(new=env)
+        value = CodecFactory().getCodec('pickle').encode(('', value))
+        self.EnvironmentCache = value
+        return value
     
+    def read_Environment(self, attr):
+        fmt, data = self.getEnvironment()
+        attr.set_value(fmt, data)
+    
+    def write_Environment(self, attr):
+        data = attr.get_write_value()
+        data = CodecFactory().getCodec('pickle').decode(data)[1]
+        self.macro_server.change_env(data)
+    
+    def is_Environment_allowed(self, req_type):
+        return True
+
 
 class MacroServerClass(SardanaDeviceClass):
     """MacroServer Tango class class"""
@@ -321,8 +352,12 @@ class MacroServerClass(SardanaDeviceClass):
         'MacroLibList' : [ [ DevString,  SPECTRUM, READ, 1024 ] ],
         'TypeList'     : [ [ DevString,  SPECTRUM, READ, 256 ] ],
         'Elements'     : [ [ DevEncoded, SCALAR,   READ ],
-                           { 'label'      : "Elements",
-                             'description': "the list of all elements "
-                                            "(a JSON encoded dict)", } ],
+                           { 'label'       : "Elements",
+                             'description' : "the list of all elements "
+                                             "(a JSON encoded dict)", } ],
+        'Environment'  : [ [ DevEncoded, SCALAR, READ_WRITE],
+                           { 'label'       : 'Environment',
+                             'description' : "The macro server environment "
+                                             "(a JSON encoded dict)", } ],
     }
     

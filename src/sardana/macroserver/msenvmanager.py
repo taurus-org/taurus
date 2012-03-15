@@ -115,6 +115,7 @@ class EnvironmentManager(MacroServerManager):
                 os.makedirs(dir_name)
             except OSError, ose:
                 self.error("Creating environment: %s" % ose.strerror)
+                self.debug("Details:", exc_info=1)
                 raise ose
         self.info("Environment is being stored in %s", f_name)
         
@@ -438,10 +439,6 @@ class EnvironmentManager(MacroServerManager):
         obj = self._encode(obj)
         for k, v in obj.iteritems():
             self._setOneEnv(k, v)
-        obj["__type__"] = "new"
-        codec = CodecFactory().getCodec('json')
-        data = codec.encode(('',obj))
-        
         return obj
     
     def setEnv(self, key, value):
@@ -457,8 +454,10 @@ class EnvironmentManager(MacroServerManager):
     def unsetEnv(self, key):
         """Unsets the environment for the given key.
         
-        :param key: the key for the environment to be unset"""
+        :param key: the key for the environment to be unset
+        :return: the sequence of keys which have been removed"""
         if isinstance(key, (str, unicode)):
             key = (key,)
         self._unsetEnv(key)
+        return key
     

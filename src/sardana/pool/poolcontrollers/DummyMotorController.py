@@ -532,6 +532,7 @@ class BasicDummyMotorController(MotorController):
         if m.isInMotion():
             state = State.Moving
             status = "Motor HW is MOVING"
+            #raise Exception("Exception while moving StateOne")
         p = m.getCurrentUserPosition()
         switchstate = 0
         if m.hitLowerLimit():
@@ -542,7 +543,10 @@ class BasicDummyMotorController(MotorController):
             switchstate |= MotorController.UpperLimitSwitch
             state = State.Alarm
             status = "Motor HW is in ALARM. Hit hardware upper limit switch"
-        return int(state), status, switchstate
+        if state != State.Alarm and not m.hasPower():
+            state = State.Off
+            status = "Motor is powered off"
+        return state, status, switchstate
 
     def ReadOne(self, axis):
         self._log.debug("ReadOne(%d)", axis)
@@ -551,21 +555,28 @@ class BasicDummyMotorController(MotorController):
         return m.getCurrentUserPosition()
     
     def PreStartAll(self):
+        #raise Exception("Cannot move on PreStartAll")
         self.motions = {}
         
     def PreStartOne(self, axis, pos):
-        return True
+        #raise Exception("Cannot move on PreStartOne")
+        idx = axis - 1
+        m = self.m[idx]
+        return m.hasPower()
 
     def StartOne(self, axis, pos):
+        #raise Exception("Cannot move on StartOne")
         idx = axis - 1
         self.motions[self.m[idx]] = pos
         
     def StartAll(self):
+        #raise Exception("Cannot move on StartAll")
         t = time.time()
         for motion, pos in self.motions.items():
             motion.startMotion(motion.getCurrentUserPosition(t), pos, t)
         
     def AbortOne(self, axis):
+        print "AbortOne",axis
         idx = axis - 1
         self.m[idx].abortMotion()
 

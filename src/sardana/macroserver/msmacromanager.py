@@ -53,13 +53,14 @@ from sardana.sardanamodulemanager import ModuleManager
 from msmanager import MacroServerManager
 from msexception import MacroServerException, MacroServerExceptionList, \
     UnknownMacro, UnknownLib, MissingEnv, LibError, \
-    AbortException, MacroWrongParameterType
+    StopException, AbortException, MacroWrongParameterType
 
 from macro import Macro, MacroFunc
 from msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
 from msparameter import ParamDecoder
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 
 def islambda(f):
@@ -93,7 +94,7 @@ def is_macro(macro, abs_file=None, logger=None):
             return False
         
         args, varargs, keywords, defaults = inspect.getargspec(macro)
-        if not len(args):
+        if len(args) == 0:
             if logger:
                 logger.debug("Could not add macro %s: Needs at least one "
                              "parameter (usually called 'self')",
@@ -657,13 +658,29 @@ class MacroExecutor(Logger):
     
     def __init__(self, door):
         self._door = door
-        self._macro_stack = None
-        self._xml_stack = None
-        self._macro_pointer = None
         self._macro_counter = 0
+        
+        # dict<PoolElement, set<Macro>>
+        # key PoolElement - reserved object
+        # value set<Macro> macros that reserved the object
+        self._reserved_objs = {}
+        
+        # dict<Macro, seq<PoolElement>>
+        # key Macro - macro object
+        # value - sequence of reserverd objects by the macro
+        self._reserved_macro_objs = {}
+
+        # reset the stacks
+#        self._macro_stack = None
+#        self._xml_stack = None
+        self._macro_stack = []
+        self._xml_stack = []
+        self._macro_pointer = None
         self._aborted = False
+        self._stopped = False
         self._paused = False
         self._last_macro_status = None
+        
         name = "%s.%s" % (str(door), self.__class__.__name__)
         self._macro_status_codec = CodecFactory().getCodec('json')
         self.call__init__(Logger, name)
@@ -845,6 +862,18 @@ class MacroExecutor(Logger):
     def getRunningMacro(self):
         return self._macro_pointer
 
+    def __stopObjects(self):
+        """Stops all the reserved objects in the executor"""
+        for macro, objs in self._reserved_macro_objs.items():
+            for obj in objs:
+                try:
+                    obj.stop()
+                except AttributeError:
+                    pass
+                except Exception, e:
+                    self.warning("Unable to stop %s" % obj)
+                    self.debug("Details:", exc_info=1)
+
     def __abortObjects(self):
         """Aborts all the reserved objects in the executor"""
         for macro, objs in self._reserved_macro_objs.items():
@@ -855,19 +884,29 @@ class MacroExecutor(Logger):
                     pass
                 except Exception, e:
                     self.warning("Unable to abort %s" % obj)
-                    self.debug("Unable to abort %s. Details:", obj, exc_info=1)
+                    self.debug("Details:", exc_info=1)
     
     def abort(self):
         self.macro_server.add_job(self._abort, None)
     
+    def stop(self):
+        self.macro_server.add_job(self._stop, None)
+    
     def _abort(self):
-        self._aborted, m = True, self.getRunningMacro()
-        
+        m = self.getRunningMacro()
         if m is not None:
+            self._aborted = True
             m.abort()
+        self.__abortObjects()
+        
+    def _stop(self):
+        m = self.getRunningMacro()
+        if m is not None:
+            self._stopped = True
+            m.stop()
             if m.isPaused():
                 m.resume(cb=self._macroResumed)
-        self.__abortObjects()
+        self.__stopObjects()
     
     def pause(self):
         self._paused = True
@@ -918,6 +957,7 @@ class MacroExecutor(Logger):
         self._xml_stack = []
         self._macro_pointer = None
         self._aborted = False
+        self._stopped = False
         self._paused = False
         self._last_macro_status = None
         
@@ -934,7 +974,8 @@ class MacroExecutor(Logger):
             #return self._macro_pointer.getResult()
     
     def _jobEnded(self, *args, **kw):
-        self.debug("Job ended")
+        self.debug("Job ended (stopped=%s, aborted=%s)",
+                   self._stopped, self._aborted)
     
     def __runXML(self):
         self.sendState(Macro.Running)
@@ -986,21 +1027,26 @@ class MacroExecutor(Logger):
         if self._aborted:
             self.sendMacroStatusAbort()
             raise AbortException("aborted between macros (before %s)" % name)
+        elif self._stopped:
+            self.sendMacroStatusStop()
+            raise StopException("stopped between macros (before %s)" % name)
         macro_exp, tb, result = None, None, None
         try:
             self.debug("[START] runMacro %s" % desc)
             self._macro_pointer = macro_obj
             self._macro_stack.append(macro_obj)
-
             for step in macro_obj.exec_():
                 self.sendMacroStatus((step,))
-                
+            
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
                 result = self.__preprocessResult(macro_obj.getResult())
                 self.info("sending result %s", result)
                 self.sendResult(result)
         except AbortException as ae:
+            traceback.print_exc()
             macro_exp = ae
+        except StopException as se:
+            macro_exp = se
         except MacroServerException as mse:
             exc_info = sys.exc_info()
             macro_exp = mse
@@ -1025,7 +1071,10 @@ class MacroExecutor(Logger):
         
         # make sure the macro's on_abort is called and that a proper macro
         # status is sent
-        if self._aborted:
+        if self._stopped:
+            macro_obj._stopOnError()
+            self.sendMacroStatusStop()
+        elif self._aborted:
             macro_obj._abortOnError()
             self.sendMacroStatusAbort()
         
@@ -1033,7 +1082,7 @@ class MacroExecutor(Logger):
         # of the mAPI (methods decorated with @mAPI) to avoid throwing an
         # AbortException if an Abort has been performed.
         if macro_exp is not None:
-            if not self._aborted:
+            if not self._stopped and not self._aborted:
                 self.sendMacroStatusException(exc_info)
             self.debug("[ENDEX] (%s) runMacro %s" % (macro_exp.__class__.__name__, name))
             if isinstance(macro_exp, MacroServerException) and macro_obj.parent_macro is None:
@@ -1063,7 +1112,23 @@ class MacroExecutor(Logger):
         return self.door.set_result(result)
     
     def getLastMacroStatus(self):
-        return self._macro_pointer.getMacroStatus()
+        return self._macro_pointer._getMacroStatus()
+
+    def sendMacroStatusFinish(self):
+        ms = self.getLastMacroStatus()
+        if ms is not None:
+            ms['state'] = 'finish'
+            
+            self.debug("Sending finish event")
+            self.sendMacroStatus((ms,))
+
+    def sendMacroStatusStop(self):
+        ms = self.getLastMacroStatus()
+        if ms is not None:
+            ms['state'] = 'stop'
+            
+            self.debug("Sending stop event")
+            self.sendMacroStatus((ms,))
 
     def sendMacroStatusAbort(self):
         ms = self.getLastMacroStatus()
@@ -1072,7 +1137,7 @@ class MacroExecutor(Logger):
             
             self.debug("Sending abort event")
             self.sendMacroStatus((ms,))
-
+            
     def sendMacroStatusException(self, exc_info):
         ms = self.getLastMacroStatus()
         if ms is not None:

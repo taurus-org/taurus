@@ -28,11 +28,13 @@ manager"""
 
 __all__ = ["MacroServerException", "MacroServerExceptionList", "MissingEnv",
            "UnknownEnv", "UnknownMacro", "UnknownLib",
-           "MacroWrongParameterType", "LibError"]
+           "MacroWrongParameterType", "LibError",
+           "InterruptException", "StopException", "AbortException"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.tango.sardana.pool import AbortException
+from taurus.core.tango.sardana.pool import InterruptException, \
+    StopException, AbortException
 
 class MacroServerException(Exception):
     

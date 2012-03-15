@@ -179,7 +179,7 @@ class Door(SardanaDevice):
         levels = 'Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug'
         detect_evts = ()
         non_detect_evts = ['State', 'Status', 'Result', 'RecordData',
-                           'MacroStatus', 'Environment'] + list(levels)
+                           'MacroStatus', ] + list(levels)
         self.set_change_events(detect_evts, non_detect_evts)
 
         util = Util.instance()
@@ -343,22 +343,11 @@ class Door(SardanaDevice):
     def read_MacroStatus(self, attr):
         attr.set_value('', '')
     
-    def read_Environment(self, attr):
-        env = self.door.get_env()
-        env["__type__"] = "new"
-        attr.set_value('json', json.dumps(env))
-        return
-        
-    def write_Environment(self, attr):
-        data = attr.get_write_value()
-        codec = CodecFactory().getCodec('json')
-        data = codec.decode(data, ensure_ascii=True)[1]
-        self.macro_server.environment_manager.setEnvObj(data)
-    
-    def is_Environment_allowed(self, req_type):
-        return True
-    
     def Abort(self):
+        self.debug("Abort is deprecated. Use StopMacro instead")
+        return self.StopMacro()
+    
+    def AbortMacro(self):
         if self._simulation is None:
             self.debug("Aborting")
             self.macro_executor.abort()
@@ -388,7 +377,7 @@ class Door(SardanaDevice):
             macro = self.getRunningMacro()
             if macro is None:
                 return
-            self.debug("stoping macro %s" % macro.getDescription())
+            self.debug("stopping macro %s" % macro._getDescription())
             self.macro_executor.stop()
         else:
             self._simulation.stopMacro()
@@ -401,7 +390,7 @@ class Door(SardanaDevice):
             macro = self.getRunningMacro()
             if macro is None:
                 return
-            self.debug("resume macro %s" % macro.getDescription())
+            self.debug("resume macro %s" % macro._getDescription())
             self.macro_executor.resume()
         else:
             self._simulation.resumeMacro()
@@ -429,30 +418,6 @@ class Door(SardanaDevice):
     def SimulateMacro(self, par_str_list):
         raise Exception("Not implemented yet")
     
-    def ReloadMacro(self, argin):
-        """ReloadMacro(list<string> macro_names):
-        """
-        try:
-            self.door.reload_macro_classes(argin)
-        except MacroServerException, mse:
-            Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
-        return ['OK']
-
-    def is_ReloadMacro_allowed(self):
-        return self.get_state() in [Macro.Finished, Macro.Abort]
-    
-    def ReloadMacroLib(self, argin):
-        """ReloadMacroLib(list<string> lib_names):
-        """
-        try:
-            self.door.reload_macro_libs(argin)
-        except MacroServerException, mse:
-            Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
-        return ['OK']
-    
-    def is_ReloadMacroLib_allowed(self):
-        return self.get_state() in [Macro.Finished, Macro.Abort]
-
     def GetMacroEnv(self, argin):
         macro_name = argin[0]
         if len(argin) > 1:
@@ -498,6 +463,9 @@ class DoorClass(SardanaDeviceClass):
         'PauseMacro':
             [ [DevVoid, ""],
               [DevVoid, ""] ],
+        'AbortMacro':
+            [ [DevVoid, ""],
+              [DevVoid, ""] ],
         'StopMacro':
             [ [DevVoid, ""],
               [DevVoid, ""] ],
@@ -527,7 +495,6 @@ class DoorClass(SardanaDeviceClass):
 #                "each error)"]],
         }
 
-
     #    Attribute definitions
     attr_list = {
         'SimulationMode': [ [ DevBoolean, SCALAR, READ_WRITE] ,
@@ -547,8 +514,6 @@ class DoorClass(SardanaDeviceClass):
                             { 'label'     : 'Macro output message', } ],
         'Debug'         : [ [ DevString, SPECTRUM, READ, 512],
                             { 'label'     : 'Macro debug message', } ],
-        'Environment'   : [ [ DevEncoded, SCALAR, READ_WRITE],
-                            { 'label'     : 'Door environment', } ],
         'RecordData'    : [ [ DevEncoded, SCALAR, READ],
                             { 'label'     : 'Record Data', } ],
         'MacroStatus'   : [ [ DevEncoded, SCALAR, READ],

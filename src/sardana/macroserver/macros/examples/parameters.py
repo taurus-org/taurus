@@ -146,3 +146,19 @@ class pt9(Macro):
     
     def run(self, *args, **kwargs):
         pass
+    
+class twice(Macro):
+    """twice description."""
+
+    # uncomment the following lines as necessary. Otherwise you may delete them
+    param_def = [ [ "value", Type.Float, 23, "value to be doubled" ] ]
+    result_def = [ [ "result", Type.Float, 23, "the double of the given value" ] ]
+    #hints = {}
+    #env = (,)
+    
+    # uncomment the following lines if need prepare. Otherwise you may delete them
+    #def prepare(self):
+    #    pass
+        
+    def run(self, n):
+        return 2*n

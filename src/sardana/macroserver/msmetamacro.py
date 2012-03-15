@@ -298,7 +298,7 @@ class MacroFunction(SardanaFunction, Parameterizable):
         assert len(args) > 0
         
         if varargs is None:
-            for arg in args:
+            for arg in args[1:]:
                 param_def.append((arg, Type.Any, None, arg + " parameter"))
             i = len(param_def)-1
             if defaults is not None:

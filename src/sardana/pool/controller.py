@@ -1065,6 +1065,13 @@ class IORegisterController(Controller, Readable):
     #: .. deprecated:: 1.0
     #:     use :attr:`~Controller.axis_attributes` instead
     predefined_values = ()
+
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
+    standard_axis_attributes = {
+        'Value'       : { 'type' : float,
+                          'description' : 'Value', },
+    }
     
     def __init__(self, inst, props, *args, **kwargs):
         Controller.__init__(self, inst, props, *args, **kwargs)
@@ -1072,3 +1079,4 @@ class IORegisterController(Controller, Readable):
     def WriteOne(self):
         """**IORegister Controller API**. Overwrite as necessary."""
         pass
+    

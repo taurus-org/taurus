@@ -484,14 +484,69 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :param value: the value for the environment
         
         :return: a tuple with the key and value objects stored"""
-        return self.environment_manager.setEnv(key, value)
+        env_man = self.environment_manager
+        if env_man.hasEnv(key):
+            evt_type = "change"
+        else:
+            evt_type = "new"
+        
+        k,v = self.environment_manager.setEnv(key, value)
+        
+        evt = { evt_type : { k : v } }
+        self.fire_event(EventType("EnvironmentChanged"), evt)
+        return k,v
+    
+    def set_env_obj(self, data):
+        """Sets the environment key to the new value and stores it persistently.
+        
+        :param key: the key for the environment
+        :param value: the value for the environment
+        
+        :return: a tuple with the key and value objects stored"""
+        env_man = self.environment_manager
+        
+        new, change = {}, {}
+        for key, value in data.items():
+            d = new
+            if env_man.hasEnv(key):
+                d = change
+            d[key] = value
+        
+        ret = env_man.setEnvObj(data)
+        
+        evt = dict(new=new, change=change)
+        self.fire_event(EventType("EnvironmentChanged"), evt)
+        return ret
+    
+    def change_env(self, data):
+        env_man = self.environment_manager
+        new_change_env = data.get('new', {})
+        new_change_env.update(data.get('change', {}))
+        del_env = data.get('del', [])
+        
+        new, change = {}, {}
+        for key, value in new_change_env.items():
+            d = new
+            if env_man.hasEnv(key):
+                d = change
+            d[key] = value
+        
+        del_keys = env_man.unsetEnv(del_env)
+        env_man.setEnvObj(new_change_env)
+        
+        evt = dict(new=new, change=change)
+        evt['del'] = del_keys
+        self.fire_event(EventType("EnvironmentChanged"), evt)
     
     def unset_env(self, key):
         """Unsets the environment for the given key.
         
         :param key: the key for the environment to be unset"""
-        return self.environment_manager.unsetEnv(key)
-    
+        ret = self.environment_manager.unsetEnv(key)
+        evt = { 'del' : { key : None } }
+        self.fire_event(EventType("EnvironmentChanged"), evt)
+        return ret
+        
     def has_env(self, key, macro_name=None, door_name=None):
         return self.environment_manager.hasEnv(key,
             macro_name=macro_name, door_name=door_name)

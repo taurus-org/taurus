@@ -85,12 +85,20 @@ class PoolDevice(SardanaDevice):
         
     def Abort(self):
         self.element.abort()
+        try:
+            self.element.get_state(cache=False, propagate=2)
+        except:
+            self.info("Abort: failed to read state")
     
     def is_Abort_allowed(self):
         return self.get_state() != DevState.UNKNOWN
     
     def Stop(self):
         self.element.stop()
+        try:
+            self.element.get_state(cache=False, propagate=2)
+        except:
+            self.info("Stop: failed to read state")
     
     def is_Stop_allowed(self):
         return self.get_state() != DevState.UNKNOWN
@@ -368,7 +376,7 @@ class PoolElementDevice(PoolDevice):
         return state
     
     def dev_status(self):
-        moving = self.element.get_state() != State.Moving
+        moving = self.element.get_state() == State.Moving
         ctrl_status = self.element.get_status(cache=moving, propagate=0)
         status = self.calculate_tango_status(ctrl_status)
         return status

@@ -31,6 +31,8 @@ import PyTango
 
 from sardana.macroserver.macro import macro
 
+_ENV = "_SAR_DEMO"
+
 def get_free_names(db, prefix, nb, start_at=1):
     ret = []
     i = start_at
@@ -51,7 +53,7 @@ def get_free_names(db, prefix, nb, start_at=1):
 @macro()
 def clear_sar_demo(self):
     try:
-        SAR_DEMO = self.getEnv("SAR_DEMO")
+        SAR_DEMO = self.getEnv(_ENV)
     except:
         self.error("No demo has been prepared yet on this sardana!")
         return
@@ -60,15 +62,15 @@ def clear_sar_demo(self):
     for mg in SAR_DEMO.get("measurement_groups", ()):
         self.udefmeas(mg)
     
-    self.print("Removing measurement elements...")
+    self.print("Removing elements...")
     for elem in SAR_DEMO.get("elements", ()):
         self.udefelem(elem)
     
-    self.print("Removing measurement controllers...")
+    self.print("Removing controllers...")
     for ctrl in SAR_DEMO.get("controllers", ()):
         self.udefctrl(ctrl)
     
-    self.unsetEnv("SAR_DEMO")
+    self.unsetEnv(_ENV)
     
     self.print("DONE!")
     
@@ -76,7 +78,7 @@ def clear_sar_demo(self):
 def sar_demo(self):
     
     try:
-        SAR_DEMO = self.getEnv("SAR_DEMO")
+        SAR_DEMO = self.getEnv(_ENV)
         self.error("A demo has already been prepared on this sardana")
         return
     except:
@@ -134,7 +136,7 @@ def sar_demo(self):
              elements=[gap, offset] + motor_names+ct_names+zerod_names,
              measurement_groups=[mg_name])
     
-    self.setEnv("SAR_DEMO", d)
+    self.setEnv(_ENV, d)
     
     self.print("DONE!")
     

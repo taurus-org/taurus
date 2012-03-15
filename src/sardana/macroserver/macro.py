@@ -46,6 +46,7 @@ import functools
 import new
 import textwrap
 import StringIO
+import ctypes
 
 from taurus.core.util import Logger, CodecFactory, propertx
 from taurus.console.table import Table
@@ -56,8 +57,13 @@ from taurus.core.tango.sardana.pool import PoolElement
 from sardana.sardanadefs import State
 
 from msparameter import Type, ParamType, ParamRepeat
-from msexception import MacroServerException, AbortException, \
+from msexception import MacroServerException, StopException, AbortException, \
     MacroWrongParameterType, UnknownEnv, UnknownMacro
+
+asyncexc = ctypes.pythonapi.PyThreadState_SetAsyncExc
+# first define the async exception function args. This is
+# absolutely necessary for 64 bits machines.
+asyncexc.argtypes = (ctypes.c_long, ctypes.py_object)
 
 class OverloadPrint(object):
     
@@ -119,12 +125,14 @@ class PrintMacro(object):
 
 class PauseEvent(Logger):
     
-    def __init__(self, macro_obj):
+    def __init__(self, macro_obj, abort_timeout = 0.2):
         self._name = self.__class__.__name__
         self._pause_cb = None
         self._resume_cb = None
         self._macro_obj_wr = weakref.ref(macro_obj)
         self._macro_name = macro_obj._getName()
+        self._wait_for_abort_exception = False
+        self._wait_for_abort_timeout = abort_timeout
         Logger.__init__(self, "Macro_%s %s" % (self._macro_name, self._name))
         # we create an event object that is automatically set
         self._event = threading.Event()
@@ -146,12 +154,26 @@ class PauseEvent(Logger):
             self._resume_cb = cb
             self._event.set()
             self.debug("[ END ] Resume")
-
+            
+    def resumeForAbort(self):
+        if self.isPaused():
+            self.debug("[RESUME] (Abort)")
+            self._wait_for_abort_exception = True
+            self._event.set()
+            
     def wait(self,timeout=None):
         pauseit = not self._event.isSet()
         if pauseit and self._pause_cb is not None:
             self._pause_cb(self.macro_obj)
         self._event.wait(timeout)
+        # if an event is set because an abort has been issued during a paused
+        # macro wait for the ashyncronous AbortException to arrive at this thread
+        if self._wait_for_abort_exception:
+            self._wait_for_abort_exception = False
+            time.sleep(self._wait_for_abort_timeout)
+            self.debug('Abort exception did not occured in pause for %ss.' \
+                       'Performing a Forced Abort.' % self._wait_for_abort_timeout)
+            raise AbortException("Forced")
         if pauseit and self._resume_cb is not None:
             self._resume_cb(self.macro_obj)
         
@@ -289,7 +311,7 @@ class MacroFinder:
         return f
 
 def mAPI(fn):
-    """Wraps the given Macro method as being protected by the abort procedure.
+    """Wraps the given Macro method as being protected by the stop procedure.
     To be used by the :class:`Macro` as a decorator for all methods.
     :param: macro method
     :return: wrapped macro method"""
@@ -297,15 +319,15 @@ def mAPI(fn):
     def new_fn(*args, **kwargs):
         self = args[0]
         is_macro_th = self._macro_thread == threading.current_thread()
-        if self._shouldRaiseAbortException():
+        if self._shouldRaiseStopException():
             if is_macro_th:
-                self.setProcessingAbort(True)
-            raise AbortException("aborted before calling %s" % fn.__name__)
+                self.setProcessingStop(True)
+            raise StopException("stopped before calling %s" % fn.__name__)
         ret = fn(*args, **kwargs)
-        if self._shouldRaiseAbortException():
+        if self._shouldRaiseStopException():
             if is_macro_th:
-                self.setProcessingAbort(True)
-            raise AbortException("aborted after calling %s" % fn.__name__)
+                self.setProcessingStop(True)
+            raise StopException("stopped after calling %s" % fn.__name__)
         return ret
     return new_fn
 
@@ -445,7 +467,8 @@ class Macro(Logger):
         self._in_pars = args
         self._out_pars = None
         self._aborted = False
-        self._processingAbort = False
+        self._stopped = False
+        self._processingStop = False
         self._parent_macro = kwargs.get('parent_macro')
         self._executor = kwargs.get('executor')
         self._macro_line = kwargs.get('macro_line')
@@ -494,8 +517,9 @@ class Macro(Logger):
 
     def on_stop(self):
         """**Macro API**. Hook executed when a stop occurs.
-        Overwrite as necessary. Default implementation does nothing"""
-        pass
+        Overwrite as necessary. Default implementation calls
+        :meth:`~Macro.on_abort`"""
+        return self.on_abort()
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API
@@ -505,7 +529,7 @@ class Macro(Logger):
     def checkPoint(self):
         """**Macro API**.
         Empty method that just performs a checkpoint. This can be used
-        to check for the abort. Usually you won't need to call this method"""
+        to check for the stop. Usually you won't need to call this method"""
         pass
 
     @mAPI
@@ -1143,8 +1167,8 @@ class Macro(Logger):
     @mAPI
     def addObj(self, obj, priority=0):
         """**Macro API**. Adds the given object to the list of controlled
-        objects of this macro. In practice it means that if an abort is
-        executed the abort method of the given object will be called.
+        objects of this macro. In practice it means that if a stop is
+        executed the stop method of the given object will be called.
         
         :param obj: the object to be controlled
         :type obj: object
@@ -1157,8 +1181,8 @@ class Macro(Logger):
     @mAPI
     def addObjs(self, obj_list):
         """**Macro API**. Adds the given objects to the list of controlled
-        objects of this macro. In practice it means that if an abort is
-        executed the abort method of the given object will be called.
+        objects of this macro. In practice it means that if a stop is
+        executed the stop method of the given object will be called.
         
         :param obj_list: list of objects to be controlled
         :type obj_list: sequence"""
@@ -1478,14 +1502,15 @@ class Macro(Logger):
     
     @mAPI
     def getEnv(self, key, macro_name=None, door_name=None):
-        """Gets the environment matching the given parameters:
+        """**Macro API**. Gets the local environment matching the given
+        parameters:
         
-               - door_name and macro_name define the context where to look for
-                 the environment. If both are None, the global environment is
-                 used. If door name is None but macro name not, the given macro
-                 environment is used and so on...
-               - If key is None it returns the complete environment, otherwise
-                 key must be a string containing the environment variable name.
+           - door_name and macro_name define the context where to look for
+             the environment. If both are None, the global environment is
+             used. If door name is None but macro name not, the given macro
+             environment is used and so on...
+           - If key is None it returns the complete environment, otherwise
+             key must be a string containing the environment variable name.
         
         :raises: UnknownEnv
         
@@ -1511,7 +1536,7 @@ class Macro(Logger):
     
     @mAPI
     def getGlobalEnv(self):
-        """**Macro API**. Returns the environment global environment.
+        """**Macro API**. Returns the global environment.
         
         :return: a :obj:`dict` containing the global environment
         :rtype: :obj:`dict`"""
@@ -1519,7 +1544,7 @@ class Macro(Logger):
     
     @mAPI
     def getAllEnv(self):
-        """**Macro API**. Returns the enviroment for the macro
+        """**Macro API**. Returns the enviroment for the macro.
 
         :return: a :obj:`dict` containing the environment for the macro
         :rtype: :obj:`dict`"""
@@ -1528,20 +1553,20 @@ class Macro(Logger):
     @mAPI
     def getAllDoorEnv(self):
         """**Macro API**. Returns the enviroment for the door where the macro
-        is running
+        is running.
 
         :return: a :obj:`dict` containing the environment
         :rtype: :obj:`dict`"""
         return self.door.get_env()
     
     @mAPI
-    def setEnv(self, key, value_str):
+    def setEnv(self, key, value):
         """**Macro API**. Sets the environment key to the new value and
         stores it persistently.
         
         :return: a :obj:`tuple` with the key and value objects stored
         :rtype: :obj:`tuple`\<:obj:`str`\, object>"""
-        return self.macro_server.set_env(key, value_str)
+        return self.door.set_env(key, value)
 
     @mAPI
     def unsetEnv(self, key):
@@ -1625,28 +1650,28 @@ class Macro(Logger):
     @property
     def executor(self):
         """**Unofficial Macro API**. Alternative to :meth:`getExecutor` that
-        does not throw AbortException in case of an Abort. This should be
+        does not throw StopException in case of a Stop. This should be
         called only internally"""
         return self._executor
     
     @property
     def door(self):
         """**Unofficial Macro API**. Alternative to :meth:`getDoorObj` that
-        does not throw AbortException in case of an Abort. This should be
+        does not throw StopException in case of a Stop. This should be
         called only internally"""
         return self.executor.getDoor()
     
     @property
     def parent_macro(self):
         """**Unofficial Macro API**. Alternative to getParentMacro that does not
-        throw AbortException in case of an Abort. This should be called only
+        throw StopException in case of a Stop. This should be called only
         internally by the *Executor*"""
         return self._parent_macro
     
     @property
     def description(self):
         """**Unofficial Macro API**. Alternative to :meth:`getDescription` that
-        does not throw AbortException in case of an Abort. This should be
+        does not throw StopException in case of a Stop. This should be
         called only internally by the *Executor*"""
         return self._desc
     
@@ -1654,6 +1679,10 @@ class Macro(Logger):
         """**Unofficial Macro API**."""
         return self._aborted
 
+    def isStopped(self):
+        """**Unofficial Macro API**."""
+        return self._stopped
+    
     def isPaused(self):
         """**Unofficial Macro API**."""
         return self._pause_event.isPaused()
@@ -1704,8 +1733,25 @@ class Macro(Logger):
     # Macro execution methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
-    def _shouldRaiseAbortException(self):
-        return self.isAborted() and not self.isProcessingAbort()
+    def _getMacroStatus(self):
+        """**Internal method**.
+        Returns the current macro status. Macro status is a :obj:`dict` where
+        keys are the strings:
+
+            * *id* - macro ID (internal usage only)
+            * *range* - the full progress range of a macro (usually a
+              :obj:`tuple` of two numbers (0, 100))
+            * *state* - the current macro state, a string which can have values
+              *start*, *step*, *stop* and *abort*
+            * *step* - the current step in macro. Should be a value inside the
+              allowed macro range
+        
+        :return: the macro status
+        :rtype: :obj:`dict`"""
+        return self._macro_status
+    
+    def _shouldRaiseStopException(self):
+        return self.isStopped() and not self.isProcessingStop()
     
     def _reserveObjs(self, args):
         """**Internal method**. Used to reserve a set of objects for this
@@ -1756,7 +1802,7 @@ class Macro(Logger):
         else:
             self._out_pars = res
             macro_status['step'] = 100.0
-        macro_status['state'] = 'stop'
+        macro_status['state'] = 'finish'
         yield macro_status
     
     def __prepareResult(self,out):
@@ -1775,14 +1821,23 @@ class Macro(Logger):
             out = (str(out),)
         return out
     
+    def _stopOnError(self):
+        """**Internal method**. The stop procedure. Calls the user 'on_abort'
+        protecting it against exceptions"""
+        try:
+            self.on_stop()
+        except Exception, err:
+            Logger.error(self, "Error in on_stop(): %s", traceback.format_exc())
+            Logger.debug(self, "Details: ", exc_info=1)
+
     def _abortOnError(self):
-        """**Internal method**. The abort procedure. Calls the user 'on_abort'
+        """**Internal method**. The stop procedure. Calls the user 'on_abort'
         protecting it against exceptions"""
         try:
             self.on_abort()
         except Exception, err:
-            exc_info = traceback.format_exc()
-            self.error("Error in on_abort(): %s" % exc_info)
+            Logger.error(self, "Error in on_abort(): %s", traceback.format_exc())
+            Logger.debug(self, "Details: ", exc_info=1)
     
     def _pausePoint(self, timeout=None):
         """**Internal method**."""
@@ -1802,18 +1857,45 @@ class Macro(Logger):
         ret['print'] = printf
         return ret
     
+    def stop(self):
+        """**Internal method**. Activates the stop flag on this macro."""
+        self._stopped = True
+    
     def abort(self):
-        """**Internal method**. Activates the abort flag on this macro."""
+        """**Internal method**. Aborts the macro abruptly."""
+        # carefull: Inside this method never call a method that has the
+        # mAPI decorator
+        Logger.debug(self, "Aborting...")
         self._aborted = True
-    
-    def setProcessingAbort(self, yesno):
-        """**Internal method**. Activates the processing abort flag on this
+        ret, i = 0, 0
+        while ret != 1:
+            self.__resumeForAbort()
+            th = self._macro_thread
+            th_id = ctypes.c_long(th.ident)
+            Logger.debug(self, "Sending AbortException to %s", th.name)
+            ret = asyncexc(th_id, ctypes.py_object(AbortException))
+            i += 1
+            if ret == 0:
+                # try again
+                if i > 2:
+                    self.error("Failed to abort after three tries!")
+                    break
+                time.sleep(0.1)
+            if ret > 1:
+                # if it returns a number greater than one, you're in trouble, 
+                # and you should call it again with exc=NULL to revert the effect
+                asyncexc(th_id, None)
+                Logger.error(self, "Failed to abort (unknown error code %d)" % ret)
+                break
+            
+    def setProcessingStop(self, yesno):
+        """**Internal method**. Activates the processing stop flag on this
         macro"""
-        self._processingAbort = yesno
+        self._processingStop = yesno
     
-    def isProcessingAbort(self):
-        """**Internal method**. Checks if this macro is processing abort"""
-        return self._processingAbort
+    def isProcessingStop(self):
+        """**Internal method**. Checks if this macro is processing stop"""
+        return self._processingStop
     
     def pause(self, cb=None):
         """**Internal method**. Pauses the macro execution. To be called by the
@@ -1824,7 +1906,14 @@ class Macro(Logger):
         """**Internal method**. Resumes the macro execution. To be called by
         the Door running the macro to resume the current macro"""
         self._pause_event.resume(cb=cb)
-    
+
+    def __resumeForAbort(self):
+        """Called internally to resume the macro execution in case of an abort.
+        The macro is resumed but instead of allowing the next user instruction
+        to proceed it just waits for an ashyncronous AbortException to be
+        thrown"""
+        self._pause_event.resumeForAbort()
+        
     #@}
     
     def __getattr__(self, name):

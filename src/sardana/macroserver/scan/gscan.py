@@ -43,7 +43,8 @@ from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt, CaselessLi
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.console.table import Table
 
-from sardana.macroserver.msexception import MacroServerException, UnknownEnv
+from sardana.macroserver.msexception import MacroServerException, UnknownEnv, \
+    InterruptException
 from sardana.macroserver.msparameter import Type
 from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
 from recorder import OutputRecorder, JsonRecorder, SharedMemoryRecorder, \
@@ -122,7 +123,9 @@ class TangoExtraData(ExtraData):
     def read(self):
         try:
             return self.attribute.read(cache=False).value
-        except:
+        except InterruptException:
+            raise
+        except Exception:
             return None
 
 class GScan(Logger):
@@ -297,6 +300,8 @@ class GScan(Logger):
         ret = []
         try:
             cols = self.macro.getEnv('ExtraColumns')
+        except InterruptException:
+            raise
         except:
             self.info('ExtraColumns is not defined')
             return ret
@@ -311,13 +316,14 @@ class GScan(Logger):
                         if instrument:
                             kw['instrument'] = instrument
                     ret.append(TangoExtraData(**kw))
+                except InterruptException:
+                    raise
                 except Exception, colexcept:
-                    try:
-                        colname = kw['label']
-                    except:
-                        colname = str(i)
+                    colname = kw.get('label', str(i))
                     self.macro.warning("Extra column %s is invalid: %s",
                                        colname, str(colexcept))
+        except InterruptException:
+            raise
         except Exception, envexcept:
             self.macro.warning('ExtraColumns has invalid value. Must be a '
                                'sequence of maps')
@@ -328,7 +334,9 @@ class GScan(Logger):
             json_enabled = self.macro.getEnv('JsonRecorder')
             if json_enabled:
                 return JsonRecorder(self.macro)
-        except:
+        except InterruptException:
+            raise
+        except Exception:
             pass
         self.info('JsonRecorder is not defined. Use "senv JsonRecorder '
                   'True" to enable it')
@@ -337,6 +345,8 @@ class GScan(Logger):
         cols = None
         try:
             cols = self.macro.getEnv('OutputCols')
+        except InterruptException:
+            raise
         except:
             pass
         return OutputRecorder(self.macro, cols=cols, number_fmt='%g')
@@ -345,14 +355,18 @@ class GScan(Logger):
         macro = self.macro
         try:
             scan_dir = macro.getEnv('ScanDir')
-        except:
+        except InterruptException:
+            raise
+        except Exception:
             macro.warning('ScanDir is not defined. This operation will not be '
                           'stored persistently. Use "senv ScanDir '
                           '<abs directory>" to enable it')
             return ()
         try:
             file_names = macro.getEnv('ScanFile')
-        except:
+        except InterruptException:
+            raise
+        except Exception:
             macro.warning('ScanFile is not defined. This operation will not '
                           'be stored persistently. Use "senv ScanDir <scan '
                           'file(s)>" to enable it')
@@ -367,7 +381,9 @@ class GScan(Logger):
             try:
                 file_recorder = FileRecorder(abs_file_name, macro=macro)
                 file_recorders.append(file_recorder)
-            except:
+            except InterruptException:
+                raise
+            except Exception:
                 macro.warning("Error creating recorder for %s", abs_file_name)
                 macro.debug("Details:", exc_info=1)
         
@@ -380,7 +396,9 @@ class GScan(Logger):
         macro, mg, shm = self.macro, self.measurement_group, False
         try:
             shm = macro.getEnv('SharedMemory')
-        except Exception,e:
+        except InterruptException:
+            raise
+        except Exception:
             self.info('SharedMemory is not defined. Use "senv '
                       'SharedMemory sps" to enable it')
             return
@@ -399,13 +417,19 @@ class GScan(Logger):
             
             try:
                 oned_nb = len(mg.OneDExpChannels)
+            except InterruptException:
+                raise
             except:
                 oned_nb = 0
+            
             twod_nb = 0
             try:
                 twod_nb = len(mg.TwoDExpChannels)
+            except InterruptException:
+                raise
             except:
                 twod_nb = 0
+            
             if id == 0:
                 cols += (ch_nb - oned_nb - twod_nb)    # counter/timer & 0D channel columns
             elif id == 1:
@@ -479,6 +503,8 @@ class GScan(Logger):
             instrument = ci.instrument or ''
             try:
                 instrumentFullName = self.macro.findObjs(instrument, type_class=Type.Instrument)[0].getFullName()
+            except InterruptException:
+                raise
             except:
                 instrumentFullName = ''
             column = ColumnDesc(name=ci.name,
@@ -516,10 +542,14 @@ class GScan(Logger):
         env['macro_id'] = self.macro.getID()
         try:
             env['ScanFile'] = self.macro.getEnv('ScanFile')
+        except InterruptException:
+            raise
         except:
             env['ScanFile'] = None
         try:
             env['ScanDir'] = self.macro.getEnv('ScanDir')
+        except InterruptException:
+            raise
         except:
             env['ScanDir'] = None
         env['estimatedtime'], env['total_scan_intervals'] = self._estimate()
@@ -703,6 +733,8 @@ class SScan(GScan):
                 hook()
         
         for i, step in self.steps:
+            # allow scan to be stopped between points
+            self.macro.checkPoint()
             self.stepUp(i, step, lstep)
             lstep = step
             if scream: yield ((i+1) / nr_points) * 100.0
@@ -719,13 +751,19 @@ class SScan(GScan):
         #pre-move hooks
         for hook in step.get('pre-move-hooks',()):
             hook()
-            try: step['extrainfo'].update(hook.getStepExtraInfo())
-            except: pass
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
         
         # Move
         self.debug("[START] motion")
         try:
             state, positions = motion.move(step['positions'])
+        except InterruptException:
+            raise
         except:
             self.dump_information(n, step)
             raise
@@ -734,11 +772,15 @@ class SScan(GScan):
         #post-move hooks
         for hook in step.get('post-move-hooks',()):
             hook()
-            try: step['extrainfo'].update(hook.getStepExtraInfo())
-            except: pass
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
         
         # allow scan to be stopped between motion and data acquisition
-        self.macro.checkPoint() 
+        self.macro.checkPoint()
         
         if state != Ready:
             self.dump_information(n, step)
@@ -749,7 +791,10 @@ class SScan(GScan):
         #pre-acq hooks
         for hook in step.get('pre-acq-hooks',()):
             hook()
-            try: step['extrainfo'].update(hook.getStepExtraInfo())
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
             except: pass
         
         # Acquire data
@@ -762,16 +807,26 @@ class SScan(GScan):
         #post-acq hooks
         for hook in step.get('post-acq-hooks',()):
             hook()
-            try: step['extrainfo'].update(hook.getStepExtraInfo())
-            except: pass
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
         
         #hooks for backwards compatibility:
         if step.has_key('hooks'):
-            self.macro.info('Deprecation warning: you should use "post-acq-hooks" instead of "hooks" in the step generator')
+            self.macro.info('Deprecation warning: you should use '
+                            '"post-acq-hooks" instead of "hooks" in the step '
+                            'generator')
             for hook in step.get('hooks',()):
                 hook()
-                try: step['extrainfo'].update(hook.getStepExtraInfo())
-                except: pass
+                try:
+                    step['extrainfo'].update(hook.getStepExtraInfo())
+                except InterruptException:
+                    raise
+                except:
+                    pass
         
         # Add final moveable positions
         data_line['point_nb'] = n
@@ -786,8 +841,12 @@ class SScan(GScan):
         #post-step hooks
         for hook in step.get('post-step-hooks',()):
             hook()
-            try: step['extrainfo'].update(hook.getStepExtraInfo())
-            except: pass
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
 
     def dump_information(self, n, step):
         moveables = self.motion.moveable_list
@@ -800,8 +859,11 @@ class SScan(GScan):
 class CScan(GScan):
     """Continuos scan"""
     
-    def __init__(self, macro, waypointGenerator=None, periodGenerator=None, moveables=[], env={}, constraints=[], extrainfodesc=[]):
-        GScan.__init__(self, macro, generator=waypointGenerator, moveables=moveables, env=env, constraints=constraints, extrainfodesc=extrainfodesc)
+    def __init__(self, macro, waypointGenerator=None, periodGenerator=None,
+                 moveables=[], env={}, constraints=[], extrainfodesc=[]):
+        GScan.__init__(self, macro, generator=waypointGenerator,
+                       moveables=moveables, env=env, constraints=constraints,
+                       extrainfodesc=extrainfodesc)
         self._periodGenerator = periodGenerator
         self._stop = False
 
@@ -872,7 +934,8 @@ class CScan(GScan):
             except StopIteration, si:
                 break
             
-            # start/stop Count here according to the 'acquire' key given by the generator
+            # start/stop Count here according to the 'acquire' key given by 
+            #the generator
             
             #execute pre-acq hooks
             for hook in step.get('pre-acq-hooks',[]): hook()

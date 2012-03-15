@@ -67,29 +67,12 @@ TermColors = colors.TermColors
 requirements = {
 #     module     minimum  recommended 
     "IPython"     : ("0.10.0", "0.10.0"),
-    "Python"      : ("2.5.0", "2.6.0"),
-    "PyTango"     : ("7.1.2", "7.1.2"),
-    "taurus.core" : ("2.0.0", "2.0.0")
+    "Python"      : ("2.6.0", "2.6.0"),
+    "PyTango"     : ("7.1.2", "7.2.0"),
+    "taurus.core" : ("2.0.0", "2.1.0")
 }
 
-ENV_NAME = "_env"
-
-class _DoorEnvWrapper(object):
-    
-    def __setattr__(self, n, v):
-        self.__dict__[n] = v
-        door = get_door()
-        codec = taurus.core.util.CodecFactory().getCodec('json')
-        data = codec.encode(('', v))
-        print "@TODO: write attribute to DOOR!"
-
-    def update(self, d):
-        self.__dict__.update(d)
-     
-    def __str__(self):
-        return str(self.__dict__)
-
-    __repr__ = __str__
+ENV_NAME = "_E"
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # IPython utilities
@@ -919,9 +902,6 @@ def init_pre_spock(ip, macro_server, door):
 {Blue}Spock's sardana extension %s loaded with profile: %s (linked to door '%s'){Normal}
 """ % (v, profile, alias)
 
-    # Initialize the environment
-    expose_variable(ENV_NAME, _DoorEnvWrapper())
-
     # the CodecFactory is not thread safe. There are two attributes who will
     # request for it in the first event at startup in different threads
     # therefore this small hack: make sure CodecFactory is initialized.
@@ -941,6 +921,10 @@ def init_pre_spock(ip, macro_server, door):
     
     door = get_door()
     macro_server = get_macro_server()
+    
+    # Initialize the environment
+    expose_variable(ENV_NAME, macro_server.getEnvironment())
+
 
 def init_post_spock(ip):
     init_console(ip)
