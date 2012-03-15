@@ -256,7 +256,7 @@ def ask_yes_no(prompt,default=None):
     return answers[ans]
     
 def clean_tango_args(args):
-    ret, ret_for_tango = [], []
+    ret, ret_for_tango, ret_for_ORB = [], [], []
     
     tango_args = "-?", "-nodb", "-file="
     nb_args = len(args)
@@ -269,9 +269,11 @@ def clean_tango_args(args):
         except:
             pass
         if arg.startswith('-ORB'):
+            ret_for_ORB.append(arg)
             ret_for_tango.append(arg)
             i += 1
             if i < nb_args:
+                ret_for_ORB.append(args[i])
                 ret_for_tango.append(args[i])
                 i += 1
             continue
@@ -287,7 +289,7 @@ def clean_tango_args(args):
                 i += 1
             continue
         ret.append(arg)
-    return ret, ret_for_tango
+    return ret, ret_for_tango, ret_for_ORB
         
 def prepare_cmdline(parser=None, args=None):
     """Prepares the command line separating tango options from server specific
@@ -299,7 +301,7 @@ def prepare_cmdline(parser=None, args=None):
     if args is None:
         args = []
     
-    proc_args, tango_args = clean_tango_args(args)
+    proc_args, tango_args, ORB_args = clean_tango_args(args)
     
     if parser is None:
         version = "%s" % (Release.version)
@@ -337,7 +339,24 @@ def prepare_cmdline(parser=None, args=None):
     res = list( parser.parse_args(proc_args) )
     tango_args = res[1][:2] + tango_args
     res.append(tango_args)
+    res.append(ORB_args)
     return res
+
+def prepare_environment(args, tango_args, ORB_args):
+    """Since we have to create a Tango Database object before the Tango Util,
+    omniORB doesn't recognize parameters on the command line anymore
+    (tango, omniORB bug?), so we export these parameters as environment
+    variables (this workaround seems to work)"""
+    log_messages = []
+    ORB_args_len = len(ORB_args)
+    for i in range(ORB_args_len):
+        arg = ORB_args[i]
+        if arg.startswith("-ORB") and i+1 < ORB_args_len:
+            env_name = arg[1:]
+            env_val = ORB_args[i+1]
+            os.environ[env_name] = env_val
+            log_messages.append(("setting %s=%s", env_name, env_val))
+    return log_messages
 
 def prepare_server(args, tango_args):
     """Register a proper server if the user gave an unknown server"""
@@ -689,13 +708,15 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
     
     log_messages = []
     try:
-        options, args, tango_args = prepare_cmdline(args=args)
+        options, args, tango_args, ORB_args = prepare_cmdline(args=args)
     except KeyboardInterrupt:
         pass
     
+    log_messages.extend(prepare_environment(args, tango_args, ORB_args))
+    log_messages.extend(prepare_server(args, tango_args))
+
     if tango_util == None:
         tango_util = Util(tango_args)
-    log_messages.extend(prepare_server(args, tango_args))
     
     prepare_func(tango_util)
     prepare_taurus(options, args, tango_args)
