@@ -600,7 +600,7 @@ class TaurusSequencerWidget(TaurusWidget):
     def onPlaySequence(self):
         door = Device(self.doorName())
         doorState = door.state()
-        if doorState == PyTango.DevState.ON:
+        if doorState == PyTango.DevState.ON or doorState == PyTango.DevState.ALARM:
             first, last, ids = self.tree.prepareMacroIds()
             self.setFirstMacroId(first)
             self.setLastMacroId(last)
@@ -618,7 +618,7 @@ class TaurusSequencerWidget(TaurusWidget):
         door = Device(self.doorName())
         doorState = door.state() 
         if doorState in (PyTango.DevState.RUNNING,PyTango.DevState.STANDBY):
-            door.command_inout("Abort")
+            door.command_inout("StopMacro")
         else:
             Qt.QMessageBox.warning(self,"Error while stopping sequence", 
                                    "It was not possible to stop sequence, because state of the door was different than RUNNING or STANDBY")
@@ -668,7 +668,7 @@ class TaurusSequencerWidget(TaurusWidget):
             self.playSequenceAction.setEnabled(False)
             self.pauseSequenceAction.setEnabled(True)
             shortMessage = "Macro %s resumed." % macroName
-        elif state == "stop":
+        elif state == "stop" or state == "finish":
             shortMessage = "Macro %s finished." % macroName
             if id == self.lastMacroId():
                 self.playSequenceAction.setEnabled(True)

@@ -793,7 +793,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     def onPlayMacro(self):
         door = Device(self.doorName())
         doorState = door.state()
-        if doorState == PyTango.DevState.ON:
+        if doorState == PyTango.DevState.ON or doorState == PyTango.DevState.ALARM:
             paramEditorModel = self.paramEditorModel() 
             macroNode = paramEditorModel.root()         
             id = macroNode.assignId()
@@ -817,7 +817,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
         doorState = door.state()
         
         if doorState in (PyTango.DevState.RUNNING, PyTango.DevState.STANDBY):
-            door.command_inout("Abort")
+            door.command_inout("StopMacro")
         else:
             Qt.QMessageBox.warning(self,"Error while stopping macro", 
                                    "It was not possible to stop macro, because state of the door was different than RUNNING or STANDBY")
@@ -863,7 +863,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.playMacroAction.setEnabled(False)
             self.pauseMacroAction.setEnabled(True)
             shortMessage = "Macro %s resumed." % macroName
-        elif state == "stop":
+        elif state == "stop" or state == "finish":
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
