@@ -171,6 +171,82 @@ class PoolMotion(PoolAction):
         self._motion_sleep_time = None
         self._nb_states_per_position = None
     
+    def _recover_start_error(self, ctrl, meth_name, read_state=False):
+        self.warning("%s throws exception on %s. Stopping...", ctrl, meth_name)
+        self.debug("Details:", exc_info=1)
+        try:
+            self.stop_action()
+        except:
+            self.error("Could not stop. Trying an abort!")
+            self.debug("Details:", exc_info=1)
+            try:
+                self.abort_action()
+            except:
+                self.critical("Could not abort!")
+                self.debug("Details:", exc_info=1)
+        if read_state:
+            states = {}
+            self.read_state_info(ret=states)
+            for moveable, state_info in states.items():
+                state_info = moveable._from_ctrl_state_info(state_info)
+                moveable._set_state_info(state_info)
+            
+    def pre_start_all(self, pool_ctrls):
+        # PreStartAll on all controllers
+        for pool_ctrl in pool_ctrls:
+            try:
+                pool_ctrl.ctrl.PreStartAll()
+            except:
+                self._recover_start_error(pool_ctrl, "PreStartAll")
+                raise
+    
+    def pre_start_one(self, moveables, items):
+        # PreStartOne on all elements
+        for moveable in moveables:
+            pool_ctrl = moveable.controller
+            ctrl, axis = pool_ctrl.ctrl, moveable.axis
+            dial = items[moveable][1]
+            ret = ctrl.PreStartOne(axis, dial)
+            if not ret:
+                try:
+                    msg = "%s.PreStartOne(%s(%d), %f) returns False" \
+                           % (pool_ctrl.name, moveable.name, axis, dial)
+                    raise Exception(msg)
+                except:
+                    self._recover_start_error(pool_ctrl, "PreStartOne")
+                    raise
+    
+    def start_one(self, moveables, motion_info):
+        # StartOne on all elements
+        for moveable in moveables:
+            pool_ctrl = moveable.controller
+            ctrl = pool_ctrl.ctrl
+            axis = moveable.axis
+            dial_position = motion_info[moveable].dial_position
+            try:
+                ctrl.StartOne(axis, dial_position)
+            except:
+                self._recover_start_error(pool_ctrl, "StartOne")
+                raise
+
+    def start_all(self, pool_ctrls, moveables, motion_info):
+        # Change the state to Moving
+        for moveable in moveables:
+            moveable_info = motion_info[moveable]
+            moveable.set_state(State.Moving, propagate=2)
+            state_info = moveable.inspect_state(), \
+                moveable.inspect_status(), \
+                moveable.inspect_limit_switches()
+            moveable_info.on_state_switch(state_info)
+        
+        # StartAll on all controllers
+        for pool_ctrl in pool_ctrls:
+            try:
+                pool_ctrl.ctrl.StartAll()
+            except:
+                self._recover_start_error(pool_ctrl, "StartOne", read_state=True)
+                raise
+
     def start_action(self, *args, **kwargs):
         """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
         
@@ -195,41 +271,13 @@ class PoolMotion(PoolAction):
         
         pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
-
+        
         with ActionContext(self) as context:
-            # PreStartAll on all controllers
-            for pool_ctrl in pool_ctrls:
-                pool_ctrl.ctrl.PreStartAll()
+            self.pre_start_all(pool_ctrls)
+            self.pre_start_one(moveables, items)
+            self.start_one(moveables, motion_info)
+            self.start_all(pool_ctrls, moveables, motion_info)
             
-            # PreStartOne on all elements
-            for moveable in moveables:
-                controller = moveable.controller
-                ctrl, axis = controller.ctrl, moveable.axis
-                dial_position = items[moveable][1]
-                ret = ctrl.PreStartOne(axis, dial_position)
-                if not ret:
-                    raise Exception("%s.PreStartOne(%d, %f) returns False" \
-                                    % (controller.name, axis, dial_position))
-            
-            # StartOne on all elements
-            for moveable in moveables:
-                ctrl = moveable.controller.ctrl
-                axis = moveable.axis
-                dial_position = motion_info[moveable].dial_position
-                ctrl.StartOne(axis, dial_position)
-            
-            for moveable in moveables:
-                moveable_info = motion_info[moveable]
-                moveable.set_state(State.Moving, propagate=2)
-                state_info = moveable.inspect_state(), \
-                    moveable.inspect_status(), \
-                    moveable.inspect_limit_switches()
-                moveable_info.on_state_switch(state_info)
-            
-            # StartAll on all controllers
-            for pool_ctrl in pool_ctrls:
-                pool_ctrl.ctrl.StartAll()
-    
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable
         controller = moveable.controller
