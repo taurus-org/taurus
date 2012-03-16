@@ -92,7 +92,8 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
         return res
        
     def on_elements_changed(self, s, t, v):
-        ret = added, removed, changed = BaseMacroServer.on_elements_changed(self, s, t, v)
+        ret = added, removed, changed = \
+            BaseMacroServer.on_elements_changed(self, s, t, v)
         
         macros, elements = 0, 0
         for element in set.union(added, removed, changed):
@@ -106,8 +107,16 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
         if macros:
             self.emit(Qt.SIGNAL("macrosUpdated"))
         return ret
-        
     
+    def on_environment_changed(self, s, t, v):
+        ret = added, removed, changed = \
+            BaseMacroServer.on_environment_changed(self, s, t, v)
+        
+        if added or removed or changed:
+            self.emit(Qt.SIGNAL("environmentChanged"))
+        return ret
+
+
 # ugly access to qtgui level: in future find a better way to register error
 # handlers, maybe in TangoFactory & TaurusManager
 
