@@ -440,7 +440,15 @@ class PoolController(PoolBaseController):
         for axis in axises:
             element = self.get_element(axis=axis)
             ctrl_states[element] = state_info
-
+    
+    @staticmethod
+    def _format_exception(exc_info):
+        fmt_exc = traceback.format_exception_only(*exc_info[:2])
+        fmt_exc = "".join(fmt_exc)
+        if fmt_exc.endswith("\n"):
+            fmt_exc = fmt_exc[:-1]
+        return fmt_exc
+    
     def raw_read_axis_states(self, axises=None, ctrl_states=None):
         """**Unsafe method**. Reads the state for the given axises. If axises
         is None, reads the state of all active axises.
@@ -448,8 +456,10 @@ class PoolController(PoolBaseController):
         :param axises: the list of axis to get the state. Default is None meaning
                        all active axis in this controller
         :type axises: seq<int> or None
-        :return: a map containing the controller state information for each axis
-        :rtype: dict<PoolElement, state info>"""
+        :return:
+            a tuple of two elements: a map containing the controller state
+            information for each axis and a boolean telling if an error occured
+        :rtype: dict<PoolElement, state info>, bool"""
         if axises is None:
             axises = self._element_axis.keys()
         if ctrl_states is None:
@@ -464,28 +474,29 @@ class PoolController(PoolBaseController):
             ctrl.StateAll()
         except:
             exc_info = sys.exc_info()
-            status = "".join(traceback.format_exception(*exc_info))
-            state_info = State.Fault, status
+            status = self._format_exception(exc_info)
+            state_info = (State.Fault, status), exc_info
             for axis in axises:
                 element = self.get_element(axis=axis)
                 ctrl_states[element] = state_info
-            return ctrl_states, { InvalidAxis : exc_info }
+            return ctrl_states, True
         
-        ret_exc_info = {}
+        error = False
         for axis in axises:
             element = self.get_element(axis=axis)
             try:
                 state_info = ctrl.StateOne(axis)
+                if state_info is None:
+                    raise Exception("%s.StateOne(%s(%d)) returns 'None'"
+                                    % (self.name, element.name, axis))
+                state_info = state_info, None
             except:
-                ret_exc_info[axis] = exc_info = sys.exc_info()
-                status = "".join(traceback.format_exception(*exc_info))
-                state_info = State.Fault, status
-            
-            if state_info is None:
-                msg = "%s.StateOne(%d) returns 'None'" % (self.name, axis)
-                state_info = State.Fault, msg
+                exc_info = sys.exc_info()
+                status = self._format_exception(exc_info)
+                state_info = (State.Fault, status), exc_info
+                error = True
             ctrl_states[element] = state_info
-        return ctrl_states, ret_exc_info
+        return ctrl_states, error
     
     @check_ctrl
     def read_axis_states(self, axises=None):
@@ -559,19 +570,32 @@ class PoolController(PoolBaseController):
     
     def raw_stop_all(self):
         try:
+            return self._raw_stop_all()
+        except:
+            pass
+    
+    def raw_stop_one(self, axis):
+        try:
+            self._raw_stop_one(axis)
+        except:
+            pass
+    
+    def _raw_stop_all(self):
+        try:
             return self.ctrl.StopAll()
         except:
-            self.warning("StopAll() raises exception", exc_info=1)
-
-    def raw_stop_one(self, axis):
+            self.warning("StopAll() raises exception")
+            self.debug("Details:", exc_info=1)
+            raise
+    
+    def _raw_stop_one(self, axis):
         try:
             self.ctrl.StopOne(axis)
         except:
-            try:
-                self.warning("StopOne(%d) raises exception", axis, exc_info=1)
-            except:
-                pass
-
+            self.warning("StopOne(%d) raises exception", axis)
+            self.debug("Details:", exc_info=1)
+            raise
+    
     @check_ctrl
     def stop_all(self):
         self.raw_stop_all()
@@ -609,21 +633,34 @@ class PoolController(PoolBaseController):
         
         for element in elements:
             self.raw_stop_one(element.axis)
-            
+    
     def raw_abort_all(self):
+        try:
+            return self._raw_abort_all()
+        except:
+            pass
+    
+    def raw_abort_one(self, axis):
+        try:
+            self._raw_abort_one(axis)
+        except:
+            pass
+    
+    def _raw_abort_all(self):
         try:
             return self.ctrl.AbortAll()
         except:
-            self.warning("AbortAll() raises exception", exc_info=1)
-
-    def raw_abort_one(self, axis):
+            self.warning("AbortAll() raises exception")
+            self.debug("Details:", exc_info=1)
+            raise
+    
+    def _raw_abort_one(self, axis):
         try:
             self.ctrl.AbortOne(axis)
         except:
-            try:
-                self.warning("AbortOne(%d) raises exception", axis, exc_info=1)
-            except:
-                pass
+            self.warning("AbortOne(%d) raises exception", axis)
+            self.debug("Details:", exc_info=1)
+            raise
 
     @check_ctrl
     def abort_all(self):
@@ -663,6 +700,27 @@ class PoolController(PoolBaseController):
     
     abort = abort_all
     
+    @check_ctrl
+    def emergency_break(self, elements=None):
+        """Stops the given elements. If axises is None, stops all active axises.
+        If stop raises exception, an abort is attempted.
+        
+        :param elements: the list of elements to stop. Default is None
+                         meaning all active axis in this controller
+        :type axises: seq<PoolElement> or None
+        """
+        if elements is None:
+            try:
+                return self._raw_stop_all()
+            except:
+                return self.raw_abort_all()
+        
+        for element in elements:
+            try:
+                self._raw_stop_one(element.axis)
+            except:
+                self.raw_abort_one(element.axis)
+
     # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------

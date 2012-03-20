@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed
+from PyTango import Util, DevFailed, Except
 from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
@@ -88,41 +88,31 @@ class MotorGroup(PoolGroupDevice):
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-        t = time.time()
+        timestamp = time.time()
         name = event_type.name
         
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
-        
-        recover = False
-        if event_type.priority:
-            attr.set_change_event(True, False)
-            recover = True
-        
-        try:
-            if name == "state":
-                state = self.calculate_tango_state(event_value)
-                attr.set_value(state)
-                attr.fire_change_event()
-                #self.push_change_event(name, state)
-            elif name == "status":
-                status = self.calculate_tango_status(event_value)
-                attr.set_value(status)
-                attr.fire_change_event()
-                #self.push_change_event(name, status)
-            else:
-                state = self.motor_group.get_state()
-                if name == "position":
-                    if state == State.Moving:
-                        quality = AttrQuality.ATTR_CHANGING
-                    positions = self._to_motor_positions(event_value)
-                attr.set_value_date_quality(positions, t, quality)
-                attr.fire_change_event()
-                #self.push_change_event(name, positions, t, quality)
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
+        priority = event_type.priority
+        error = None
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            state = self.motor_group.get_state()
+            
+            if name == "position":
+                if state == State.Moving:
+                    quality = AttrQuality.ATTR_CHANGING
+                try:
+                    event_value = self._to_motor_positions(event_value)
+                except DevFailed, df:
+                    error = df
+
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error)
     
     def always_executed_hook(self):
         pass 
@@ -132,7 +122,13 @@ class MotorGroup(PoolGroupDevice):
         pass
     
     def _to_motor_positions(self, pos):
-        return [ pos[elem].value for elem in self.motor_group.get_user_elements() ]
+        positions = []
+        for elem in self.motor_group.get_user_elements():
+            position = pos[elem]
+            if position.in_error():
+                Except.throw_python_exception(*position.exc_info)
+            positions.append(position.value)
+        return positions
     
     def read_Position(self, attr):
         # if motors are moving their position is already being updated with a

@@ -104,12 +104,12 @@ class PoolDevice(SardanaDevice):
         return self.get_state() != DevState.UNKNOWN
     
     def _is_allowed(self, req_type):
-        state = self.get_state()
-        if state in self.ExtremeErrorStates:
-            return False
-        if req_type == AttReqType.WRITE_REQ:
-            if state in self.BusyStates:
-                return False
+#        state = self.get_state()
+#        if state in self.ExtremeErrorStates:
+#            return False
+#        if req_type == AttReqType.WRITE_REQ:
+#            if state in self.BusyStates:
+#                return False
         return True
 
     def get_dynamic_attributes(self):
@@ -246,6 +246,29 @@ class PoolDevice(SardanaDevice):
     def _is_DynamicAttribute_allowed(self, req_type):
         return self.is_DynamicAttribute_allowed(req_type)
 
+    def dev_state(self):
+        try:
+            ctrl_state = self.element.get_state()
+            if ctrl_state != State.Moving:
+                ctrl_state = self.element.get_state(cache=False, propagate=0)
+            state = self.calculate_tango_state(ctrl_state)
+            return state
+        except:
+            self.error("Exception trying to return state")
+            self.debug("Details:", exc_info=1)
+            return DevState.FAULT
+            
+    def dev_status(self):
+        try:
+            moving = self.element.get_state() == State.Moving
+            ctrl_status = self.element.get_status(cache=moving, propagate=0)
+            status = self.calculate_tango_status(ctrl_status)
+            return status
+        except Except, e:
+            msg = "Exception trying to return status: %s" % str(e)
+            self.error(msg)
+            self.debug("Details:", exc_info=1)
+            return msg
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""
@@ -368,19 +391,6 @@ class PoolElementDevice(PoolDevice):
     def write_SimulationMode(self, attr):
         self.element.simulation_mode = attr.get_write_value()
     
-    def dev_state(self):
-        ctrl_state = self.element.get_state()
-        if ctrl_state != State.Moving:
-            ctrl_state = self.element.get_state(cache=False, propagate=0)
-        state = self.calculate_tango_state(ctrl_state)
-        return state
-    
-    def dev_status(self):
-        moving = self.element.get_state() == State.Moving
-        ctrl_status = self.element.get_status(cache=moving, propagate=0)
-        status = self.calculate_tango_status(ctrl_status)
-        return status
-
 
 class PoolElementDeviceClass(PoolDeviceClass):
     """Base Tango Pool Element Device Class class"""
@@ -422,7 +432,7 @@ class PoolGroupDevice(PoolDevice):
     
     def elements_changed(self, evt_src, evt_type, evt_value):
         self.push_change_event("ElementList", self.get_element_names())
-    
+
 
 class PoolGroupDeviceClass(PoolDeviceClass):
     """Base Tango Pool Group Device Class class"""

@@ -135,14 +135,12 @@ class Motor(PoolElementDevice):
             if state == State.Moving and name in ("position", "dialposition"):
                 quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority)
+                           quality=quality, priority=priority, error=error)
     
     def always_executed_hook(self):
-        #state = to_tango_state(self.motor.get_state(cache=False))
-        dev_class, multi_attr1 = self.get_device_class(), self.get_device_attr()
         pass
     
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
     
     def initialize_dynamic_attributes(self):

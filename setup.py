@@ -260,6 +260,7 @@ def main():
         
         'sardana.macroserver',
         'sardana.macroserver.macros',
+        'sardana.macroserver.macros.examples',
         'sardana.macroserver.scan',
         'sardana.macroserver.scan.recorder',
         

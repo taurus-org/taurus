@@ -88,7 +88,8 @@ class ascanr(Macro, Hookable):
         moveables=[motor]
         env=opts.get('env',{})
         constrains=[]
-        extrainfodesc=[ColumnDesc(label='repetition', dtype='int64', shape=(1,))] #!!!
+        extrainfodesc=[ColumnDesc(name='repetition',
+                                  dtype='int64', shape=(1,))] #!!!
                 
         self._gScan=SScan(self, generator, moveables, env, constrains, extrainfodesc) #!!!
   
@@ -163,9 +164,9 @@ class ToothedTriangle(Macro):
         moveables=[moveable]
         env=opts.get('env',{})
         constrains=[]
-        extrainfodesc=[ColumnDesc(label='cycle', dtype='int64', shape=(1,)),
-                       ColumnDesc(label='interval', dtype='int64', shape=(1,)),
-                       ColumnDesc(label='sample', dtype='int64', shape=(1,))] #!!!
+        extrainfodesc=[ColumnDesc(name='cycle', dtype='int64', shape=(1,)),
+                       ColumnDesc(name='interval', dtype='int64', shape=(1,)),
+                       ColumnDesc(name='sample', dtype='int64', shape=(1,))] #!!!
                 
         self._gScan=SScan(self, generator, moveables, env, constrains, extrainfodesc) #!!!
   

@@ -66,7 +66,7 @@ Macro writers might also find the following documentation interesting:
       and use many utilities provided. The macro :term:`API` can be found 
       :class:`here <MacroServer.macro.Macro>`.
     * Documentation how to document your macros can be found 
-      :ref:`here <macro_documentation>`
+      :ref:`here <macro_writting>`
 
 How to write scan procedures?
 -----------------------------

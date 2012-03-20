@@ -350,7 +350,13 @@ class PoolAction(Logger):
         self._aborted = True
         for pool_ctrl, elements in self._pool_ctrl_dict.items():
             pool_ctrl.abort_elements(elements)
-
+    
+    def emergency_break(self):
+        """Tries to execute a stop. If it fails try an abort"""
+        self._stopped = True
+        for pool_ctrl, elements in self._pool_ctrl_dict.items():
+            pool_ctrl.emergency_break(elements)
+    
     def was_stopped(self):
         """Determines if the action has been stopped from outside
         
@@ -460,13 +466,18 @@ class PoolAction(Logger):
         parameter"""
         try:
             axises = [ elem.axis for elem in self._pool_ctrl_dict[pool_ctrl] ]
-            state_infos, exc_info = pool_ctrl.raw_read_axis_states(axises)
-            if len(exc_info):
-                self.info("STATE ERROR %s", exc_info)
+            state_infos, error = pool_ctrl.raw_read_axis_states(axises)
+            if error:
+                pool_ctrl.warning("Read state error")
+                for elem, (state_info, exc_info) in state_infos.items():
+                    if exc_info is not None:
+                        pool_ctrl.debug("Axis %s error details:", elem.axis,
+                                        exc_info=exc_info)
             ret.update( state_infos )
         except:
             self.error("Something wrong happend: Error should have been caught"
-                       "by ctrl.read_axis_states", exc_info=1)
+                       "by ctrl.read_axis_states")
+            self.debug("Details: ", exc_info=1)
             state_info = self._get_ctrl_error_state_info(pool_ctrl)
             for elem in self._pool_ctrl_dict[pool_ctrl]:
                 ret[elem] = state_info

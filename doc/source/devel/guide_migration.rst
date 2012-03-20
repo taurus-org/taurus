@@ -13,6 +13,9 @@ different API versions.
 How to migrate your macro code
 ===================================
 
+API v0 -> v1
+-------------
+
 This chapter describes the necessary steps to fully migrate your macros
 from *API v0* ( sardana 0.x ) to *API v1* ( sardana 1.x )
 
@@ -120,7 +123,7 @@ The following changes are not necessary to make your controller work. The
     #. :meth:`~Controller.StateOne` **return type**: Previously
        :meth:`~Controller.StateOne` had to return a member of 
        :class:`PyTango.DevState`. Now it **can** instead return a member of
-       :class:`sardana.State`. This eliminates the need to import
+       :class:`~sardana.sardanadefs.State`. This eliminates the need to import
        :mod:`PyTango`.
     #. In *API v0* class member (like :attr:`~Controller.ctrl_extra_attributes`)
        value for key *type* had to be a string (like 'PyTango.DevString' or
@@ -134,8 +137,8 @@ The following changes are not necessary to make your controller work. The
     #. from: :meth:`~Controller.GetExtraAttributePar` to: :meth:`~Controller.GetAxisExtraPar`
     #. from: :meth:`~Controller.SetExtraAttributePar` to: :meth:`~Controller.SetAxisExtraPar`
     #. new feature in *API v1*: :meth:`~Controller.GetCtrlPar`, :meth:`~Controller.SetCtrlPar`
-    #. new feature in *API v1*: :meth:`~Controller.AbortAll` (has default 
-       implementation which calls :meth:`~Controller.AbortOne` for each axis)
+    #. new feature in *API v1*: :meth:`~Stopable.AbortAll` (has default 
+       implementation which calls :meth:`~Stopable.AbortOne` for each axis)
 
 5. **pseudo motor controller method names**:
 
@@ -167,14 +170,14 @@ This chapter is a summary of all new features in *API v1*.
        - new keys 'fget' and 'fset' override default method calls
 3. no need to import :mod:`PyTango` (:meth:`~Controller.StateOne` can return
    sardana.State.On instead of PyTango.DevState.ON)
-4. PseudoMotorController has new :meth:`~PseudoMotorController.getMotor` and 
-   :meth:`~PseudoMotorController.getPseudoMotor`
-5. new :meth:`~Controller.AbortAll` (with default implementation which calls
-   :meth:`~Controller.AbortOne` for each axis)
-6. new :meth:`~Controller.StopOne` (with default implementation which calls
-   :meth:`~Controller.AbortOne`)
-7. new :meth:`~Controller.StopAll` (with default implementation which calls
-   :meth:`~Controller.StoptOne` for each axis)
+4. PseudoMotorController has new :meth:`~PseudoMotorController.GetMotor` and 
+   :meth:`~PseudoMotorController.GetPseudoMotor`
+5. new :meth:`~Stopable.AbortAll` (with default implementation which calls
+   :meth:`~Stopable.AbortOne` for each axis)
+6. new :meth:`~Stopable.StopOne` (with default implementation which calls
+   :meth:`~Stopable.AbortOne`)
+7. new :meth:`~Stopable.StopAll` (with default implementation which calls
+   :meth:`~Stopable.StoptOne` for each axis)
 8. new :meth:`~Controller.GetAxisAttributes` allows features like:
     1. per axis customized dynamic attributes
     2. Basic interface (example: motor without velocity or acceleration)

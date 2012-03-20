@@ -89,6 +89,7 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
     
     def _from_ctrl_state_info(self, state_info):
+        state_info, error = state_info
         if len(state_info) > 2:
             state, status, ls = state_info[:3]
         else:
@@ -632,8 +633,6 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
     
     def calculate_motion(self, new_position, items=None):
-        old_position = self.get_position(propagate=0).value
-        old_dial = self.get_dial_position(propagate=0).value
         
         step_per_unit, backlash = self._step_per_unit, self._backlash
         
@@ -645,16 +644,24 @@ class PoolMotor(PoolElement):
         
         # add backlash if necessary
         do_backlash = False
-        displacement = new_dial - old_dial
-        if self.has_backlash() and \
-           math.fabs(displacement) > EpsilonError and \
-           not ctrl.has_backlash():
-           
-            positive_displacement = displacement > 0
-            positive_backlash = self.is_backlash_positive()
-            do_backlash = positive_backlash != positive_displacement
-            if do_backlash:
-                new_dial = new_dial - backlash / step_per_unit
+        
+        if self.has_backlash() and not ctrl.has_backlash():
+            # get the current dial position from HW (just in case the motor was
+            # moved outside sardana)
+            old_dial = self.get_dial_position(cache=False, propagate=0)
+            
+            if old_dial.in_error():
+                raise old_dial.get_exc_info()[1]
+            
+            old_dial = old_dial.value
+            displacement = new_dial - old_dial
+            
+            if math.fabs(displacement) > EpsilonError:
+                positive_displacement = displacement > 0
+                positive_backlash = self.is_backlash_positive()
+                do_backlash = positive_backlash != positive_displacement
+                if do_backlash:
+                    new_dial = new_dial - backlash / step_per_unit
         
         # compute a rounding value if necessary
         if ctrl.wants_rounding():

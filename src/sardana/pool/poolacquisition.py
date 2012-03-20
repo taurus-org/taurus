@@ -277,8 +277,8 @@ class PoolCTAcquisition(PoolAction):
         :type states: dict<PoolElement, State>
         :return: returns True if in acquisition or False otherwise
         :rtype: bool"""
-        for state in states:
-            s = states[state][0]
+        for elem in states:
+            s = states[elem][0][0]
             if self._is_in_action(s):
                 return True
     
@@ -336,6 +336,7 @@ class PoolCTAcquisition(PoolAction):
             acquirable.put_value(value, propagate=2)
             with acquirable:
                 acquirable.clear_operation()
+                state_info = acquirable._from_ctrl_state_info(state_info)
                 acquirable.set_state_info(state_info, propagate=2)
         
 

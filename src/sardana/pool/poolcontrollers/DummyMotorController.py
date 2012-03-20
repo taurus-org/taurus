@@ -525,6 +525,7 @@ class BasicDummyMotorController(MotorController):
     
     def StateOne(self, axis):
         #self._log.debug("StateOne(%d)", axis)
+        #raise Exception("Cannot StateOne %d" % axis)
         idx = axis - 1
         m = self.m[idx]
         state = State.On
@@ -532,7 +533,6 @@ class BasicDummyMotorController(MotorController):
         if m.isInMotion():
             state = State.Moving
             status = "Motor HW is MOVING"
-            #raise Exception("Exception while moving StateOne")
         p = m.getCurrentUserPosition()
         switchstate = 0
         if m.hitLowerLimit():
@@ -546,10 +546,13 @@ class BasicDummyMotorController(MotorController):
         if state != State.Alarm and not m.hasPower():
             state = State.Off
             status = "Motor is powered off"
+        #self._log.debug("StateOne returns %s, %s, %s", state, status, switchstate)
+        return None
         return state, status, switchstate
 
     def ReadOne(self, axis):
-        self._log.debug("ReadOne(%d)", axis)
+        #self._log.debug("ReadOne(%d)", axis)
+        #raise Exception("Cannot ReadOne")
         idx = axis - 1
         m = self.m[idx]
         return m.getCurrentUserPosition()
@@ -570,7 +573,7 @@ class BasicDummyMotorController(MotorController):
         self.motions[self.m[idx]] = pos
         
     def StartAll(self):
-        #raise Exception("Cannot move on StartAll")
+        raise Exception("Cannot move on StartAll")
         t = time.time()
         for motion, pos in self.motions.items():
             motion.startMotion(motion.getCurrentUserPosition(t), pos, t)

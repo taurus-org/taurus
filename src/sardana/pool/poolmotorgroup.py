@@ -78,9 +78,12 @@ class PoolMotorGroup(PoolGroupElement):
         name = evt_type.name.lower()
         if name in ('state', 'position'):
             state, status = self._calculate_states()
-            propagate_state = name == 'state'
+            if name == 'state':
+                propagate_state = evt_type.priority
+            else:
+                propagate_state = 0
             self.set_state(state, propagate=propagate_state)
-            self.set_status("\n".join(status), propagate=propagate_state)
+            self.set_status(status, propagate=propagate_state)
             if name == 'position':
                 self.put_element_position(evt_src, evt_value, propagate=1)
     
@@ -96,25 +99,6 @@ class PoolMotorGroup(PoolGroupElement):
             
         PoolGroupElement.add_user_element(self, element, index=index)
     
-    # --------------------------------------------------------------------------
-    # state information
-    # --------------------------------------------------------------------------
-    
-    def read_state_info(self):
-        state_info = {}
-        ctrl_state_info = self.motion.read_state_info(serial=True)
-        for elem, ctrl_elem_state_info in ctrl_state_info.items():
-            elem_state_info = elem._from_ctrl_state_info(ctrl_elem_state_info)
-            state_info[elem] = elem_state_info[:2]
-            elem.put_state_info(elem_state_info)
-        return state_info
-        
-    def _set_state_info(self, state_info, propagate=1):
-        state_info = self._calculate_states(state_info)
-        state, status = state_info
-        self._set_status(status, propagate=propagate)
-        self._set_state(state, propagate=propagate)
-        
     # --------------------------------------------------------------------------
     # position
     # --------------------------------------------------------------------------

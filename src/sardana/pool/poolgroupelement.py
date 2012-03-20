@@ -87,7 +87,7 @@ class PoolBaseGroup(PoolContainer):
         if u_status is None:
             u_status = '%s is None' % elem.name
         else:
-            u_status = u_status[1].split("\n", 1)[0]
+            u_status = u_status.split("\n", 1)[0]
         return u_state, u_status
     
     def _calculate_states(self, state_info=None):
@@ -133,7 +133,8 @@ class PoolBaseGroup(PoolContainer):
         self._state_statistics = { State.On : on, State.Fault : fault,
                                    State.Alarm : alarm, State.Moving : moving,
                                    State.Unknown : unknown, None : none }
-        return state, "\n".join(status)
+        status = "\n".join(status)
+        return state, status
     
     def _is_managed_element(self, element):
         return True
@@ -307,6 +308,27 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     def set_action_cache(self, action_cache):
         self._set_action_cache(action_cache)
 
+    # --------------------------------------------------------------------------
+    # state information
+    # --------------------------------------------------------------------------
+    
+    def read_state_info(self):
+        state_info = {}
+        ctrl_state_info = self.get_action_cache().read_state_info(serial=True)
+        for elem, ctrl_elem_state_info in ctrl_state_info.items():
+            elem_state_info = elem._from_ctrl_state_info(ctrl_elem_state_info)
+            elem.put_state_info(elem_state_info)
+            state = elem.get_state(cache=True, propagate=0)
+            status = elem.get_status(cache=True, propagate=0)
+            state_info[elem] = state, status
+        return state_info
+        
+    def _set_state_info(self, state_info, propagate=1):
+        state_info = self._calculate_states(state_info)
+        state, status = state_info
+        self._set_status(status, propagate=propagate)
+        self._set_state(state, propagate=propagate)
+    
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------

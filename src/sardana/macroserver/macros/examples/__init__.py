@@ -23,8 +23,7 @@
 ##
 ##############################################################################
 
-"""This package contains the standard macroserver macros"""
+"""This package contains the macroserver example macros"""
 
 __docformat__ = 'restructuredtext'
-
 

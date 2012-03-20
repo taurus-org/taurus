@@ -31,9 +31,8 @@ __docformat__ = 'restructuredtext'
 import datetime
 from taurus.console.table import Table
 
-from sardana.macroserver.macro import Macro, Type, ParamRepeat
-
-from sardana.macroserver.macro import macro
+from PyTango import DevState
+from sardana.macroserver.macro import macro, Macro, Type, ParamRepeat
 
 ################################################################################
 #
@@ -217,7 +216,13 @@ class mv(Macro):
             positions.append(pos)
             self.debug("Starting %s movement to %s", motor.getName(), pos)
         motion = self.getMotion(motors)
-        motion.move(positions)
+        state, pos = motion.move(positions)
+        if state != DevState.ON:
+            self.warning("Motion ended in %s", state)
+            msg = []
+            for motor in motors:
+                msg.append(motor.information())
+            self.info("\n".join(msg))
 
 class mstate(Macro):
 

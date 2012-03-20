@@ -10,25 +10,10 @@
 .. hlist::
     :columns: 3
 
-    * :exc:`AbortException`
     * :exc:`PoolException`
-    * :exc:`PoolExceptionList`
     * :exc:`UnknownController`
-    * :exc:`UnknownLib`
-    * :exc:`LibError`
-    * :exc:`ControllerOfflineException`
+    * :exc:`UnknownControllerLibrary`
 
-
-AbortException
----------------
-
-.. inheritance-diagram:: AbortException
-    :parts: 1
-    
-.. autoexception:: AbortException
-    :inherited-members:
-    :members:
-    :undoc-members:
 
 PoolException
 ---------------
@@ -37,17 +22,6 @@ PoolException
     :parts: 1
     
 .. autoexception:: PoolException
-    :inherited-members:
-    :members:
-    :undoc-members:
-
-PoolExceptionList
---------------------
-
-.. inheritance-diagram:: PoolExceptionList
-    :parts: 1
-    
-.. autoexception:: PoolExceptionList
     :inherited-members:
     :members:
     :undoc-members:
@@ -63,35 +37,14 @@ UnknownController
     :members:
     :undoc-members:
 
-UnknownLib
---------------------
+UnknownControllerLibrary
+-------------------------
 
-.. inheritance-diagram:: UnknownLib
+.. inheritance-diagram:: UnknownControllerLibrary
     :parts: 1
     
-.. autoexception:: UnknownLib
+.. autoexception:: UnknownControllerLibrary
     :inherited-members:
     :members:
     :undoc-members:
 
-LibError
---------------------
-
-.. inheritance-diagram:: LibError
-    :parts: 1
-    
-.. autoexception:: LibError
-    :inherited-members:
-    :members:
-    :undoc-members:
-
-ControllerOfflineException
-----------------------------
-
-.. inheritance-diagram:: ControllerOfflineException
-    :parts: 1
-    
-.. autoexception:: ControllerOfflineException
-    :inherited-members:
-    :members:
-    :undoc-members:

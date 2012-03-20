@@ -277,6 +277,7 @@ class PoolBaseElement(PoolObject):
         self.set_state_info(state_info, propagate=0)
         
     def _from_ctrl_state_info(self, state_info):
+        state_info, error = state_info
         state, status = state_info[:2]
         state = int(state)
         return state, status
