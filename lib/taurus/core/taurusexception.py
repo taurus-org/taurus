@@ -35,4 +35,5 @@ class TaurusException(Exception):
         self.code = code
         self.description = description
         
-class DoubleRegistration(TaurusException): pass
+class DoubleRegistration(TaurusException):
+    pass
