@@ -209,6 +209,8 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         try:
             dev = self.getParentObj()
             name, value = self.getSimpleName(), self.encode(value)
+            if self.isUsingEvents():
+                with_read = False
             if with_read:
                 try:
                     result = dev.write_read_attribute(name, value)
