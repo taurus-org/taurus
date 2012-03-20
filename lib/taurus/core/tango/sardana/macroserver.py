@@ -145,7 +145,7 @@ class ExperimentConfiguration(object):
         active_mnt_grp = env.get('ActiveMntGrp')
         if active_mnt_grp is None and len(mnt_grps):
             active_mnt_grp = mnt_grps[0]
-            door.setEnvironment('ActiveMntGrp',  active_mnt_grp)
+            door.putEnvironment('ActiveMntGrp',  active_mnt_grp)
         
         ret['ActiveMntGrp'] = active_mnt_grp
         ret['MntGrpConfigs'] = mnt_grp_configs = CaselessDict()
@@ -173,7 +173,7 @@ class ExperimentConfiguration(object):
                    PreScanSnapshot=conf.get('PreScanSnapshot'))
         if mnt_grps is None:
             mnt_grps = conf['MntGrpConfigs'].keys()
-        self._door.setEnvironments(env)
+        self._door.putEnvironments(env)
         
         codec = CodecFactory().getCodec('json')
         for mnt_grp in mnt_grps:
@@ -456,11 +456,11 @@ class BaseDoor(MacroServerDevice):
         if t not in CHANGE_EVT_TYPES: return
         return self._processEnvironmentData(v)
     
-    def setEnvironment(self, name, value):
-        self.macro_server.setEnvironment(name, value)
+    def putEnvironment(self, name, value):
+        self.macro_server.putEnvironment(name, value)
 
-    def setEnvironments(self, obj):
-        self.macro_server.setEnvironments(obj)
+    def putEnvironments(self, obj):
+        self.macro_server.putEnvironments(obj)
     
     def getEnvironment(self, name=None):
         return self.macro_server.getEnvironment(name=name)

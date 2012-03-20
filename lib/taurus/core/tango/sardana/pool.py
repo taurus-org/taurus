@@ -435,29 +435,41 @@ class PoolElement(BaseElement, TangoDevice):
             state.unlock()
     
     def information(self, tab='    '):
+        msg = self._information(tab=tab)
+        return "\n".join(msg)
+    
+    def _information(self, tab='    '):
+        indent = "\n" + tab + 10*' '
         msg = [ self.getName() + ":" ]
         try:
-            state = str(self.state())
+            state = str(self.state()).capitalize()
+        except DevFailed, df:
+            if len(df.args):
+                state =  df.args[0].desc
+            else:
+                e_info = sys.exc_info()[:2]
+                state = traceback.format_exception_only(*e_info)
         except:
             e_info = sys.exc_info()[:2]
             state = traceback.format_exception_only(*e_info)
-        msg.append(tab + " State: " + state)
+        msg.append(tab + "   State: " + state)
+
         try:
             e_info = sys.exc_info()[:2]
-            status = self.status().replace('\n', '\n' + tab + 8*' ')
+            status = self.status()
+            status = status.replace('\n', indent)
+        except DevFailed, df:
+            if len(df.args):
+                status =  df.args[0].desc
+            else:
+                e_info = sys.exc_info()[:2]
+                status = traceback.format_exception_only(*e_info)
         except:
+            e_info = sys.exc_info()[:2]
             status = traceback.format_exception_only(*e_info)
-        msg.append(tab + "Status: " + status)
-        try:
-            position = self.read_attribute("position")
-            pos = str(position.value)
-            if position.quality != AttrQuality.ATTR_VALID:
-                pos += " [" + QUALITY[position.quality] + "]"
-        except:
-            e_info = sys.exc_info()[:2]
-            pos = traceback.format_exception_only(*e_info)
-        msg.append(tab + "   Pos: " + str(pos))
-        return "\n".join(msg)
+        msg.append(tab + "  Status: " + status)
+        
+        return msg
 
 
 class Controller(PoolElement):
@@ -715,6 +727,26 @@ class Motor(PoolElement, Moveable):
     # End of Moveable interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
+    def _information(self, tab='    '):
+        msg = PoolElement._information(self, tab=tab)
+        try:
+            position = self.read_attribute("position")
+            pos = str(position.value)
+            if position.quality != AttrQuality.ATTR_VALID:
+                pos += " [" + QUALITY[position.quality] + "]"
+        except DevFailed, df:
+            if len(df.args):
+                pos =  df.args[0].desc
+            else:
+                e_info = sys.exc_info()[:2]
+                pos = traceback.format_exception_only(*e_info)
+        except:
+            e_info = sys.exc_info()[:2]
+            pos = traceback.format_exception_only(*e_info)
+
+        msg.append(tab + "Position: " + str(pos))
+        return msg
+
 
 class PseudoMotor(PoolElement, Moveable):
     """ Class encapsulating PseudoMotor functionality."""
@@ -759,8 +791,8 @@ class PseudoMotor(PoolElement, Moveable):
         return self.getStateEG().readValue(), self.readPosition()
         
     startMove = PoolElement.start
-    waitMove = PoolElement.waitFinish    
-    move = go   
+    waitMove = PoolElement.waitFinish
+    move = go
     
     def readPosition(self, force=False):
         return [ self.getPosition(force=force) ]
@@ -778,6 +810,27 @@ class PseudoMotor(PoolElement, Moveable):
     #
     # End of Moveable interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    def _information(self, tab='    '):
+        msg = PoolElement._information(self, tab=tab)
+        try:
+            position = self.read_attribute("position")
+            pos = str(position.value)
+            if position.quality != AttrQuality.ATTR_VALID:
+                pos += " [" + QUALITY[position.quality] + "]"
+        except DevFailed, df:
+            if len(df.args):
+                pos =  df.args[0].desc
+            else:
+                e_info = sys.exc_info()[:2]
+                pos = traceback.format_exception_only(*e_info)
+        except:
+            e_info = sys.exc_info()[:2]
+            pos = traceback.format_exception_only(*e_info)
+
+        msg.append(tab + "Position: " + str(pos))
+        return msg
+
 
 class MotorGroup(PoolElement, Moveable):
     """ Class encapsulating MotorGroup functionality."""
@@ -846,6 +899,26 @@ class MotorGroup(PoolElement, Moveable):
     #
     # End of Moveable interface
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+
+    def _information(self, tab='    '):
+        msg = PoolElement._information(self, tab=tab)
+        try:
+            position = self.read_attribute("position")
+            pos = str(position.value)
+            if position.quality != AttrQuality.ATTR_VALID:
+                pos += " [" + QUALITY[position.quality] + "]"
+        except DevFailed, df:
+            if len(df.args):
+                pos =  df.args[0].desc
+            else:
+                e_info = sys.exc_info()[:2]
+                pos = traceback.format_exception_only(*e_info)
+        except:
+            e_info = sys.exc_info()[:2]
+            pos = traceback.format_exception_only(*e_info)
+            
+        msg.append(tab + "Position: " + str(pos))
+        return msg
 
 
 class BaseChannelInfo(object):
