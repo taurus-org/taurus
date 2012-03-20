@@ -524,12 +524,12 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         name, alias = dev.getFullName(), dev.getSimpleName()
         exists = self.tango_devs.get(name)
         if not exists is None:
-            if exists == dev: 
-                self.debug("%s has already been registered before" % name)
-                raise DoubleRegistration
+            if exists == dev:
+                msg = "%s has already been registered before" % name
             else:
-                self.debug("%s has already been registered before with a different object!" % name)
-                raise DoubleRegistration
+                msg = "%s has already been registered before with a different object!" % name
+            self.debug(msg)
+            raise DoubleRegistration(msg)
         self.tango_devs[name] = dev
         if not alias is None and len(alias): 
             self.tango_alias_devs[alias] = dev
@@ -539,11 +539,11 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         exists = self.tango_attrs.get(name)
         if not exists is None:
             if exists == attr: 
-                self.debug("%s has already been registered before" % name)
-                raise DoubleRegistration
+                msg = "%s has already been registered before" % name
             else:
-                self.debug("%s has already been registered before with a different object!" % name)
-                raise DoubleRegistration
+                msg = "%s has already been registered before with a different object!" % name
+            self.debug(msg)
+            raise DoubleRegistration(msg)
         self.tango_attrs[name] = attr
         
     def getExistingAttribute(self, attr_name):
