@@ -168,10 +168,11 @@ class PseudoMotor(PoolElementDevice):
             data_info[0][0] = ttype
         return PoolElementDevice.add_standard_attribute(self, attr_name,
             data_info, attr_info, read, write, is_allowed)
-    
+
     def read_Position(self, attr):
-        moving = self.get_state() == DevState.MOVING
-        position = self.pseudo_motor.get_position(cache=moving)
+        pseudo_motor = self.pseudo_motor
+        moving = self.get_state() == DevState.MOVING and pseudo_motor.is_in_operation()
+        position = pseudo_motor.get_position(cache=moving)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
         attr.set_value(position.value)

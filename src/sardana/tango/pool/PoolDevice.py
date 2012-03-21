@@ -247,10 +247,10 @@ class PoolDevice(SardanaDevice):
         return self.is_DynamicAttribute_allowed(req_type)
 
     def dev_state(self):
+        element = self.element
         try:
-            ctrl_state = self.element.get_state()
-            if ctrl_state != State.Moving:
-                ctrl_state = self.element.get_state(cache=False, propagate=0)
+            moving = self.get_state() == DevState.MOVING and element.is_in_operation()
+            ctrl_state = element.get_state(cache=moving, propagate=0)
             state = self.calculate_tango_state(ctrl_state)
             return state
         except:
@@ -259,8 +259,9 @@ class PoolDevice(SardanaDevice):
             return DevState.FAULT
             
     def dev_status(self):
+        element = self.element
         try:
-            moving = self.element.get_state() == State.Moving
+            moving = self.get_state() == DevState.MOVING and element.is_in_operation()
             ctrl_status = self.element.get_status(cache=moving, propagate=0)
             status = self.calculate_tango_status(ctrl_status)
             return status
@@ -269,6 +270,7 @@ class PoolDevice(SardanaDevice):
             self.error(msg)
             self.debug("Details:", exc_info=1)
             return msg
+
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""

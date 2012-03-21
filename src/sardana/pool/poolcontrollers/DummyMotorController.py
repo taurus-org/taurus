@@ -547,7 +547,6 @@ class BasicDummyMotorController(MotorController):
             state = State.Off
             status = "Motor is powered off"
         #self._log.debug("StateOne returns %s, %s, %s", state, status, switchstate)
-        return None
         return state, status, switchstate
 
     def ReadOne(self, axis):
@@ -573,7 +572,7 @@ class BasicDummyMotorController(MotorController):
         self.motions[self.m[idx]] = pos
         
     def StartAll(self):
-        raise Exception("Cannot move on StartAll")
+        #raise Exception("Cannot move on StartAll")
         t = time.time()
         for motion, pos in self.motions.items():
             motion.startMotion(motion.getCurrentUserPosition(t), pos, t)

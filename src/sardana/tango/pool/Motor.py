@@ -169,8 +169,9 @@ class Motor(PoolElementDevice):
             data_info, attr_info, read, write, is_allowed)
     
     def read_Position(self, attr):
-        moving = self.get_state() == DevState.MOVING
-        position = self.motor.get_position(cache=moving)
+        motor = self.motor
+        moving = self.get_state() == DevState.MOVING and motor.is_in_operation()
+        position = motor.get_position(cache=moving)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
         attr.set_value(position.value)
@@ -212,7 +213,8 @@ class Motor(PoolElementDevice):
         self.motor.offset = attr.get_write_value()
     
     def read_DialPosition(self, attr):
-        moving = self.get_state() == DevState.MOVING
+        motor = self.motor
+        moving = motor.get_state() == State.Moving and motor.is_in_operation()
         dial_position = self.motor.get_dial_position(cache=moving)
         if dial_position.error:
             Except.throw_python_exception(*dial_position.exc_info)
