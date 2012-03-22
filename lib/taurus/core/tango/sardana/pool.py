@@ -1151,7 +1151,7 @@ class MGConfiguration(object):
                 ret.append(ch_info[ch_name][2])
         return ret
     
-    def read(self):
+    def read_parallel(self):
         self.prepare()
         ret = CaselessDict(self.cache)
         dev_replies = {}
@@ -1178,6 +1178,23 @@ class MGConfiguration(object):
                 continue
         return ret
 
+    def read(self):
+        self.prepare()
+        ret = CaselessDict(self.cache)
+        for dev_name, dev_data in self.tango_dev_channels.items():
+            dev, attrs = dev_data
+            try:
+                data = dev.read_attributes(attrs.keys())
+                for data_item in data:
+                    channel_data = attrs[data_item.name]
+                    if data_item.has_failed:
+                        value = None
+                    else:
+                        value = data_item.value
+                    ret[channel_data['name']] = value
+            except:
+                continue
+        return ret
 
 class MeasurementGroup(PoolElement):
     """ Class encapsulating MeasurementGroup functionality."""

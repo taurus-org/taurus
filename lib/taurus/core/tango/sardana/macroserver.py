@@ -303,7 +303,8 @@ class BaseDoor(MacroServerDevice):
         door"""
         db = self.factory().getDatabase()
         door_name = self.dev_name()
-        server_list = db.get_server_list('MacroServer/*')
+        server_list = list(db.get_server_list('MacroServer/*'))
+        server_list += list(db.get_server_list('Sardana/*'))
         server_devs = None
         for server in server_list:
             server_devs = db.get_device_class_list(server)
@@ -461,6 +462,9 @@ class BaseDoor(MacroServerDevice):
 
     def putEnvironments(self, obj):
         self.macro_server.putEnvironments(obj)
+    
+    setEnvironment = putEnvironment
+    setEnvironments = putEnvironments
     
     def getEnvironment(self, name=None):
         return self.macro_server.getEnvironment(name=name)
@@ -662,6 +666,9 @@ class BaseMacroServer(MacroServerDevice):
         obj = dict(new=obj)
         codec = CodecFactory().getCodec('pickle')
         self.write_attribute('Environment', codec.encode(('', obj)))
+    
+    setEnvironment = putEnvironment
+    setEnvironments = putEnvironments
     
     def getEnvironment(self, name=None):
         if name is None:
