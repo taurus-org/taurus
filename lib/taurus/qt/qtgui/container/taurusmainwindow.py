@@ -776,15 +776,15 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             username = getSystemUserName()
             appname = unicode(Qt.QApplication.applicationName())
             key = "__socket_%s-%s__"%(username,appname)
-        
-        socket = Qt.QLocalSocket(self) 
+        from PyQt4 import QtNetwork       
+        socket = QtNetwork.QLocalSocket(self) 
         socket.connectToServer(key)
         alive = socket.waitForConnected(3000)
         if alive:
             self.info('Another application with key "%s" is already running', key)
             return False
         else:
-            self.socketServer = Qt.QLocalServer(self)
+            self.socketServer = QtNetwork.QLocalServer(self)
             self.connect(self.socketServer, Qt.SIGNAL("newConnection()"), self.onIncommingSocketConnection)
             ok = self.socketServer.listen(key)
             if not ok:
