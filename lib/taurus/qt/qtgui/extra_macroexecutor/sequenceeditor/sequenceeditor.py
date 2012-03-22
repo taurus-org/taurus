@@ -460,7 +460,7 @@ class TaurusSequencerWidget(TaurusWidget):
             self.playSequenceAction.setEnabled(False)
             self.pauseSequenceAction.setEnabled(True)
             self.stopSequenceAction.setEnabled(True)
-        elif doorState == PyTango.DevState.ON:
+        elif doorState == PyTango.DevState.ON or doorState == PyTango.DevState.ON:
             self.playSequenceAction.setEnabled(True)
             self.pauseSequenceAction.setEnabled(False)
             self.stopSequenceAction.setEnabled(False)

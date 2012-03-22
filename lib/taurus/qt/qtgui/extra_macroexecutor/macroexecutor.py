@@ -663,7 +663,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             self.playMacroAction.setEnabled(False)
             self.pauseMacroAction.setEnabled(True)
             self.stopMacroAction.setEnabled(True)
-        elif doorState == PyTango.DevState.ON:
+        elif doorState == PyTango.DevState.ON or doorState == PyTango.DevState.ALARM:
             self.playMacroAction.setEnabled(True)
             self.pauseMacroAction.setEnabled(False)
             self.stopMacroAction.setEnabled(False)
