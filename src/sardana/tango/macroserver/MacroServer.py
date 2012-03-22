@@ -25,6 +25,8 @@
 
 """The MacroServer tango module"""
 
+import os.path
+
 from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
@@ -85,7 +87,21 @@ class MacroServer(SardanaDevice):
         macro_server = self.macro_server
         macro_server.set_python_path(self.PythonPath)
         macro_server.set_max_parallel_macros(self.MaxParallelMacros)
-        macro_server.set_environment_db(self.EnvironmentDb)
+        
+        # if it is not possible to store/retrieve the environment from the 
+        # current path then setup a new unique path and store the environment 
+        # there forever
+        try:
+            macro_server.set_environment_db(self.EnvironmentDb)
+        except:
+            import tempfile
+            env_db = os.path.join(tempfile.mkdtemp(),
+                                  MacroServerClass.DefaultEnvRelDir)
+            db = Util.instance().get_database()
+            db.put_device_property(self.get_name(), dict(EnvironmentDb=envdb))
+            self.EnvironmentDb = self._calculate_environment_name(env_db)
+            macro_server.set_environment_db(self.EnvironmentDb)
+            
         macro_server.set_macro_path(self.MacroPath)
         macro_server.set_pool_names(self.PoolNames)
         
@@ -282,7 +298,10 @@ class MacroServerClass(SardanaDeviceClass):
     #    Class Properties
     class_property_list = {
     }
-
+    
+    DefaultEnvBaseDir = "/tmp/tango"
+    DefaultEnvRelDir = "%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"
+    
     #    Device Properties
     device_property_list = {
         'PoolNames':
@@ -306,7 +325,7 @@ class MacroServerClass(SardanaDeviceClass):
         'EnvironmentDb':
             [DevString,
             "The environment database (usualy a plain file).",
-            ["/tmp/tango/%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"] ],
+            os.path.join(DefaultEnvBaseDir, DefaultEnvRelDir) ],
         'RConsolePort':
             [DevLong,
             "The rconsole port number",

@@ -117,9 +117,15 @@ class EnvironmentManager(MacroServerManager):
                 self.error("Creating environment: %s" % ose.strerror)
                 self.debug("Details:", exc_info=1)
                 raise ose
+        try:
+            self._env = shelve.open(f_name, flag='c', protocol=0, writeback=False)
+        except:
+            self.error("Failed to create/access environment in %s", f_name)
+            self.debug("Details:", exc_info=1)
+            raise
+
         self.info("Environment is being stored in %s", f_name)
         
-        self._env = shelve.open(f_name, flag='c', protocol=0, writeback=False)
         # fill the three environment caches
         self._fillEnvironmentCaches(self._env)
     

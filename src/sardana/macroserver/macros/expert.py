@@ -23,6 +23,8 @@
 
 """Expert macros"""
 
+from __future__ import print_function
+
 __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
@@ -80,7 +82,7 @@ class defmeas(Macro):
                          'not supported in this case for now')
         pool = pools[0]
         mg = pool.createMeasurementGroup(name, channel_list)
-        print("Created %s" % str(mg))
+        self.print("Created %s" % str(mg))
 
 class udefmeas(Macro):
     """Deletes an existing measurement group"""
@@ -103,7 +105,7 @@ class defelem(Macro):
         if axis == -1:
             axis = None
         elem = pool.createElement(name, ctrl, axis)
-        print("Created %s" % str(elem))
+        self.print("Created %s" % str(elem))
 
 class udefelem(Macro):
     """Deletes an existing element"""
@@ -131,7 +133,7 @@ class defctrl(Macro):
                          'not supported in this case for now')
         pool = pools[0]
         elem = pool.createController(ctrl_class.name, name, *props)
-        print("Created %s" % str(elem))
+        self.print("Created %s" % str(elem))
 
 class udefctrl(Macro):
     """Deletes an existing controller"""
