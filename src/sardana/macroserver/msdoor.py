@@ -178,7 +178,7 @@ class MSDoor(MSObject):
         return self.macro_server.environment_manager.getAllDoorEnv(self.name)
     
     def set_env(self, key, value):
-        self.macro_server.set_env(key, value)
+        return self.macro_server.set_env(key, value)
     
     def _build_macro_proxy_cache(self):
         self._macro_proxy_cache = MacroProxyCache(self)
