@@ -70,10 +70,6 @@ class IORegister(PoolElementDevice):
     def init_device(self):
         PoolElementDevice.init_device(self)
 
-        detect_evts = "state", "value"
-        non_detect_evts = ()
-        self.set_change_events(detect_evts, non_detect_evts)
-        
         if self.ior is None:
             full_name = self.get_name()
             name = self.alias or full_name
@@ -122,6 +118,20 @@ class IORegister(PoolElementDevice):
     def read_attr_hardware(self,data):
         pass
 
+    def initialize_dynamic_attributes(self):
+        attrs = PoolElementDevice.initialize_dynamic_attributes(self)
+        
+        detect_evts = "value",
+        non_detect_evts = ()
+        
+        for attr_name in detect_evts:
+            if attrs.has_key(attr_name):
+                self.set_change_event(attr_name, True, True)
+        for attr_name in non_detect_evts:
+            if attrs.has_key(attr_name):
+                self.set_change_event(attr_name, True, False)
+        return
+        
     def read_Value(self, attr):
         attr.set_value(self.ior.get_value(cache=False))
     
@@ -156,10 +166,11 @@ class IORegisterClass(PoolElementDeviceClass):
     cmd_list.update(PoolElementDeviceClass.cmd_list)
 
     #    Attribute definitions
-    attr_list = {
+    attr_list = {}
+    attr_list.update(PoolElementDeviceClass.attr_list)
+
+    standard_attr_list = {
         'Value'     : [ [ DevLong, SCALAR, READ_WRITE ],
                         { 'Memorized'     : "true_without_hard_applied", }, ],
     }
-    attr_list.update(PoolElementDeviceClass.attr_list)
-
-
+    standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
