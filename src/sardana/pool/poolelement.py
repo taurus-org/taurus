@@ -321,6 +321,10 @@ class PoolBaseElement(PoolObject):
     # involved in an operation
     # --------------------------------------------------------------------------
     
+    def is_action_running(self):
+        """Determines if the element action is running or not."""
+        return self.get_action_cache().is_running()
+    
     def is_in_operation(self):
         """Returns True if this element is involved in any operation"""
         return self._operation is not None

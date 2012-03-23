@@ -42,6 +42,7 @@ from sardana import State, SardanaServer
 from sardana.tango.core.util import to_tango_state
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
+
 class MotorGroup(PoolGroupDevice):
     
     def __init__(self, dclass, name):
@@ -110,7 +111,7 @@ class MotorGroup(PoolGroupDevice):
                     event_value = self._to_motor_positions(event_value)
                 except DevFailed, df:
                     error = df
-
+        
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error)
     
@@ -134,12 +135,14 @@ class MotorGroup(PoolGroupDevice):
         # if motors are moving their position is already being updated with a
         # high frequency so don't bother overloading and just get the cached
         # values
-        moving = self.get_state() == DevState.MOVING
-        positions = self.motor_group.get_position(cache=moving)
+        motor_group = self.motor_group
+        use_cache = motor_group.is_action_running() and not self.Force_HW_Read
+        positions = motor_group.get_position(cache=use_cache)
         positions = self._to_motor_positions(positions)
-        if moving:
-            attr.set_quality(AttrQuality.ATTR_CHANGING)
-        attr.set_value(positions)
+        quality = None
+        if self.get_state() == DevState.MOVING:
+            quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=positions, quality=quality, priority=0)
     
     def write_Position(self, attr):
         self.motor_group.position = attr.get_write_value()

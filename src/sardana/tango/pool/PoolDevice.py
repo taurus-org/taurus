@@ -280,7 +280,10 @@ class PoolDeviceClass(SardanaDeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'Id': [DevLong64, "Internal ID", [ InvalidId ] ],
+        'Id'            : [DevLong64, "Internal ID", InvalidId ],
+        'Force_HW_Read' : [DevBoolean, "Force a hardware read of value even "
+                                       "when in operation (motion/acquisition",
+                           False],
     }
     device_property_list.update(SardanaDeviceClass.device_property_list)
     

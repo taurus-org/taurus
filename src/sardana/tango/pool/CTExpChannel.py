@@ -128,7 +128,14 @@ class CTExpChannel(PoolElementDevice):
         pass
 
     def read_Value(self, attr):
-        attr.set_value(self.ct.get_value(cache=False))
+        ct = self.ct
+        #use_cache = ct.is_action_running() and not self.Force_HW_Read
+        use_cache = self.get_state() == DevState.MOVING and not self.Force_HW_Read
+        value = self.ct.get_value(cache=use_cache)
+        quality = None
+        if self.get_state() == DevState.MOVING:
+            quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=value, quality=quality, priority=0)
     
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:

@@ -116,6 +116,13 @@ class SardanaDevice(Device_4Impl, Logger):
     
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1):
+        with self.tango_lock:
+            return self._set_attribute(attr, value=value, timestamp=timestamp,
+                                       quality=quality, error=error,
+                                       priority=priority)
+    
+    def _set_attribute(self, attr, value=None, timestamp=None, quality=None,
+                      error=None, priority=1):
         fire_event = priority > 0
         
         recover = False

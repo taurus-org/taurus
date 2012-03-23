@@ -170,14 +170,15 @@ class Motor(PoolElementDevice):
     
     def read_Position(self, attr):
         motor = self.motor
-        moving = self.get_state() == DevState.MOVING and motor.is_in_operation()
-        position = motor.get_position(cache=moving)
+        use_cache = motor.is_action_running() and not self.Force_HW_Read
+        position = motor.get_position(cache=use_cache)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
-        attr.set_value(position.value)
-        if moving:
-            attr.set_quality(AttrQuality.ATTR_CHANGING)
-        attr.set_date(TimeVal.fromtimestamp(position.timestamp))
+        quality = None
+        if self.get_state() == DevState.MOVING:
+            quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=position.value, quality=quality,
+                           priority=0, timestamp=position.timestamp)
     
     def write_Position(self, attr):
         self.motor.position = attr.get_write_value()
@@ -214,14 +215,15 @@ class Motor(PoolElementDevice):
     
     def read_DialPosition(self, attr):
         motor = self.motor
-        moving = motor.get_state() == State.Moving and motor.is_in_operation()
-        dial_position = self.motor.get_dial_position(cache=moving)
+        use_cache = motor.is_action_running() and not self.Force_HW_Read
+        dial_position = self.motor.get_dial_position(cache=use_cache)
         if dial_position.error:
             Except.throw_python_exception(*dial_position.exc_info)
-        attr.set_value(dial_position.value)
-        if moving:
-            attr.set_quality(AttrQuality.ATTR_CHANGING)
-        attr.set_date(TimeVal.fromtimestamp(dial_position.timestamp))
+        quality = None
+        if self.get_state() == DevState.MOVING:
+            quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=dial_position.value, quality=quality,
+                           priority=0, timestamp=dial_position.timestamp)
         
     def read_Step_per_unit(self, attr):
         attr.set_value(self.motor.get_step_per_unit(cache=False))

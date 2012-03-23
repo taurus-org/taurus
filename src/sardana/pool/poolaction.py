@@ -209,6 +209,7 @@ class PoolAction(Logger):
         self._pool_ctrl_dict = {}
         self._pool_ctrl_list = []
         self._finish_hook = None
+        self._running = False
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
     
@@ -295,14 +296,26 @@ class PoolAction(Logger):
         :rtype: bool"""
         return state == State.Moving or state == State.Running
     
+    def is_running(self):
+        """Determines if this action is running or not
+        
+        :return: True if action is running or False otherwise
+        :rtype: bool"""
+        return self._running
+    
     def run(self, *args, **kwargs):
-        """Runs this action"""
+        if self._running:
+            raise Exception("already running")
+        self._running = True
         synch = kwargs.pop("synch", False)
         
         if synch:
-            with OperationContext(self) as context:
-                self.start_action(*args, **kwargs)
-                self.action_loop()
+            try:
+                with OperationContext(self) as context:
+                    self.start_action(*args, **kwargs)
+                    self.action_loop()
+            finally:
+                self._running = False
         else:
             context = OperationContext(self)
             context.enter()
@@ -310,6 +323,7 @@ class PoolAction(Logger):
                 self.start_action(*args, **kwargs)
             except:
                 context.exit()
+                self._running = False
                 raise
             get_thread_pool().add(self._asynch_action_loop, None, context)
     
@@ -386,6 +400,7 @@ class PoolAction(Logger):
             self.action_loop()
         finally:
             context.exit()
+            self._running = False
     
     def action_loop(self):
         """Action loop for this action. Default implementation raises

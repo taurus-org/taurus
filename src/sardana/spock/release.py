@@ -60,4 +60,4 @@ download_url = ''
 
 platforms = ['Linux','Windows XP/2000/NT','Windows 95/98/ME']
 
-keywords = ['Interactive','MacroServer','Tango','Shell']
+keywords = ['Sardana', 'Interactive', 'MacroServer', 'Tango', 'Shell']
