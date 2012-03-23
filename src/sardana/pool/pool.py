@@ -73,14 +73,14 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     
     #: Default value representing the number of state reads per position
     #: read during a motion loop
-    Default_MotionLoop_StatesPerPosition = 5
+    Default_MotionLoop_StatesPerPosition = 10
 
     #: Default value representing the sleep time for each motion loop
     Default_MotionLoop_SleepTime = 0.01
 
     #: Default value representing the number of state reads per value
     #: read during a motion loop
-    Default_AcqLoop_StatesPerValue = 5
+    Default_AcqLoop_StatesPerValue = 10
 
     #: Default value representing the sleep time for each acquisition loop
     Default_AcqLoop_SleepTime = 0.01
