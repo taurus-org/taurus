@@ -504,6 +504,9 @@ class ScanTrendsSet(TaurusTrendsSet):
         self.setModel(name)
         self._endMacroMarkerEnabled = True
         
+    def setAutoClear(self, enable):
+        self._autoClear = enable
+        
     def setXDataKey(self, key):
         if key == self._xDataKey: return
         self._xDataKey = key
@@ -759,7 +762,6 @@ class TaurusTrend(TaurusPlot):
         self._maxDataBufferSize = self.DEFAULT_MAX_BUFFER_SIZE 
         self.__qdoorname = None
         self._scansXDataKey = None
-        self._scansAutoClear = True
         self.__initActions()
         self._startingTime = time.time()
         self._archivingWarningLocked = False
@@ -789,6 +791,10 @@ class TaurusTrend(TaurusPlot):
         self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL("triggered()"), self.setForcedReadingPeriod)
         self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
         self.connect(self._clearBuffersAction, Qt.SIGNAL("triggered()"), self.clearBuffers)
+        self._autoClearOnScanAction = Qt.QAction("Auto Clear on new Scans", None)
+        self._autoClearOnScanAction.setCheckable(True)
+        self._autoClearOnScanAction.setChecked(True)
+        self.connect(self._autoClearOnScanAction, Qt.SIGNAL("toggled(bool)"), self._onAutoClearOnScanAction)
     
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
@@ -830,7 +836,19 @@ class TaurusTrend(TaurusPlot):
         
         .. seealso:: :meth:`setScanDoor` and :class:`ScanTrendsSet`
         '''
-        self._scansAutoClear = enable
+        self._autoClearOnScanAction.setChecked(enable)
+    
+    def _onAutoClearOnScanAction(self,enable, scanname=None):
+        self.info('Autoclear on Scan set to %s',bool(enable))
+        if scanname is None:
+            if self.__qdoorname is None:
+                return
+            scanname = "scan://%s"%self.__qdoorname
+        tset = self.getTrendSet(scanname)
+        tset.setAutoClear(enable)
+        
+    def getScansAutoClear(self):
+        return self._autoClearOnScanAction.isChecked()
         
     def setScansUsePointNumber(self, enable):
         '''
@@ -942,9 +960,9 @@ class TaurusTrend(TaurusPlot):
                 if not self.trendSets.has_key(name):
                     matchScan = re.search(r"scan:\/\/(.*)", name) #check if the model name is of scan type and provides a door
                     if matchScan:
-                        tset = ScanTrendsSet(name, parent=self, autoClear=self._scansAutoClear, xDataKey=self._scansXDataKey)
-                        qdoor = matchScan.group(1) #the name of the door
-                        tset.connectWithQDoor(qdoor)
+                        tset = ScanTrendsSet(name, parent=self, autoClear=self.getScansAutoClear(), xDataKey=self._scansXDataKey)
+                        self.__qdoorname = matchScan.group(1) #the name of the door
+                        tset.connectWithQDoor(self.__qdoorname)                        
                     else:
                         tset = TaurusTrendsSet(name, parent=self)
                         if self._forcedReadingPeriod is not None: 
@@ -1350,6 +1368,8 @@ class TaurusTrend(TaurusPlot):
         menu.insertAction(self._setCurvesTitleAction, self._usePollingBufferAction)
         menu.insertAction(self._setCurvesTitleAction, self._setForcedReadingPeriodAction)
         menu.insertAction(self._setCurvesTitleAction, self._clearBuffersAction)
+        if self.__qdoorname is not None:
+            menu.insertAction(self._setCurvesTitleAction, self._autoClearOnScanAction)
         return menu
     
     def _axisContextMenu(self,axis=None):

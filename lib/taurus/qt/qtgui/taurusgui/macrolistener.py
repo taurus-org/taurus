@@ -280,7 +280,6 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
             if axes not in self._trends1d:     
                 w = TaurusTrend()
                 w.setXIsTime(False)
-                w.setScansAutoClear(False)
                 w.setScanDoor(self.__qdoor.name())
                 w.setScansXDataKey(axes[0]) #@todo: use a standard key for <idx> and <mov>
                 pname = u'Trend1D - %s'%":".join(axes)
