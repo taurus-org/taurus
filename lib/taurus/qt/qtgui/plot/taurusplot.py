@@ -1485,7 +1485,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if fx is None:
             if y is None: raise ValueError() #There must be either f(x) or y. TODO: deal with this exception properly.
             title=str(rawdata.get("title","rawdata"))
-            x=rawdata.get("x",None)
+            x=numpy.array(rawdata.get("x",numpy.arange(len(y)))) #if no x is given, the indices will be used
         else:
             if y is not None: raise ValueError() #We do not want both y and f(x) being passed. TODO: deal with this exception properly.
             title=str(rawdata.get("title",fx))
@@ -1503,7 +1503,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 #        ey=rawdata.get("ey",numpy.zeros(len(y)))
 
         #at this point, both x and y must be valid
-        if x != None: x = numpy.array(x)
         y = numpy.array(y)
 
         if id is None:
@@ -1529,7 +1528,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 curve.attachMaxMarker(self)
             if self._showMinPeaks:
                 curve.attachMinMarker(self)
-            if x is None: x=numpy.arange(len(y))
             curve._xValues, curve._yValues = x, y
             curve.setData(x,y)
             curve.setTitle(title) #note that the title and the name may differ
