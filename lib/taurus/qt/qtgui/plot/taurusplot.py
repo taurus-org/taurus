@@ -508,8 +508,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if evt_type == taurus.core.TaurusEventType.Config:
             self.updateTitle()
 
-        value = val if isinstance(val, PyTango.DeviceAttribute) else self.getModelValueObj()
-        if not isinstance(value, PyTango.DeviceAttribute):
+        value = val if isinstance(val, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)) else self.getModelValueObj()
+        if not isinstance(value, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)):
             self.debug("Could not get DeviceAttribute value for this event. Dropping")
             return
 
