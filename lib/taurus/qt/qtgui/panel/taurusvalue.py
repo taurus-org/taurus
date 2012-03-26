@@ -204,7 +204,11 @@ class TaurusStatusLabel(TaurusLabel):
 
 
 class TaurusValue(Qt.QWidget, TaurusBaseWidget):
-    
+    '''
+    .. warning:: :class:`TaurusValue` (and any derived class from it) should never be instantiated directly. 
+                 It is designed to be instantiated by a :class:`TaurusForm` class, since it
+                 breaks some conventions on the way it manages layouts of its parent model.
+    '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
     
     def __init__(self, parent = None, designMode = False, customWidgetMap=None):
