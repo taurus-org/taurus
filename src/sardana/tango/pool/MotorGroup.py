@@ -138,12 +138,13 @@ class MotorGroup(PoolGroupDevice):
         motor_group = self.motor_group
         use_cache = motor_group.is_action_running() and not self.Force_HW_Read
         positions = motor_group.get_position(cache=use_cache)
+        state = motor_group.get_state(cache=use_cache)
         positions = self._to_motor_positions(positions)
         quality = None
-        if self.get_state() == DevState.MOVING:
+        if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=positions, quality=quality, priority=0)
-    
+        
     def write_Position(self, attr):
         self.motor_group.position = attr.get_write_value()
         

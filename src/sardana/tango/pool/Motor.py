@@ -171,11 +171,12 @@ class Motor(PoolElementDevice):
     def read_Position(self, attr):
         motor = self.motor
         use_cache = motor.is_action_running() and not self.Force_HW_Read
+        state = motor.get_state(cache=use_cache)
         position = motor.get_position(cache=use_cache)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
         quality = None
-        if self.get_state() == DevState.MOVING:
+        if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=position.value, quality=quality,
                            priority=0, timestamp=position.timestamp)
