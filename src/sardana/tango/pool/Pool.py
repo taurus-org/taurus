@@ -890,9 +890,15 @@ class Pool(PyTango.Device_4Impl, Logger):
     
     def Stop(self):
         self.pool.stop()
-
+    
     def Abort(self):
         self.pool.abort()
+    
+    def SendToController(self, stream):
+        ctrl_name, stream = stream[:2]
+        ctrl = self.pool.get_element_by_name(ctrl_name)
+        return ctrl.send_to_controller(stream)
+
 
 CREATE_CTRL_DESC = \
 """Must give either:
@@ -1023,6 +1029,9 @@ class PoolClass(PyTango.DeviceClass):
         'Abort':
             [[PyTango.DevVoid, ""],
              [PyTango.DevVoid, ""]],
+        'SendToController':
+            [[PyTango.DevVarStringArray, ""],
+             [PyTango.DevString, ""]],
     }
 
 

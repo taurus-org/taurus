@@ -720,7 +720,11 @@ class PoolController(PoolBaseController):
                 self._raw_stop_one(element.axis)
             except:
                 self.raw_abort_one(element.axis)
-
+    
+    @check_ctrl
+    def send_to_controller(self, stream):
+        return self.ctrl.SendToCtrl(stream)
+    
     # END API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) -----------
     
     # START SPECIFIC TO MOTOR CONTROLLER ---------------------------------------
