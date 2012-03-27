@@ -314,7 +314,7 @@ class SardanaLibrary(SardanaBaseObject):
         kwargs['file_name'] = self.file_name
         kwargs['path'] = self.path
         kwargs['description'] = self.description
-        kwargs['elements'] = self.meta_classes.keys()
+        kwargs['elements'] = self.meta_classes.keys() + self.meta_functions.keys()
         return kwargs
 
 
