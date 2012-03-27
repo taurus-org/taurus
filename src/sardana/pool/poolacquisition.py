@@ -444,6 +444,7 @@ class Pool0DAcquisition(PoolAction):
         for acquirable, state_info in states.items():
             # first update the element state so that value calculation
             # that is done after takes the updated state into account
+            state_info = acquirable._from_ctrl_state_info(state_info)
             acquirable.set_state_info(state_info, propagate=0)
             with acquirable:
                 acquirable.clear_operation()

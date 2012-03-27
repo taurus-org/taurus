@@ -144,9 +144,7 @@ class ZeroDExpChannel(PoolElementDevice):
     
     def read_Value(self, attr):
         zerod = self.zerod
-        #use_cache = zerod.is_action_running() and not self.Force_HW_Read
-        use_cache = self.get_state() == DevState.MOVING and not self.Force_HW_Read
-        value = zerod.get_value(cache=use_cache)
+        value = zerod.get_value()
         quality = None
         if self.get_state() == DevState.MOVING:
             quality = AttrQuality.ATTR_CHANGING
