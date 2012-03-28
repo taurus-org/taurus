@@ -371,8 +371,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             #print "---------ATTRIBUTE OBJECT:----------\n",modelobj.read()
             try: configType = config.getType()
             except: configType = None
-            if config.isBoolean():
-                result = [CenteredLed, ExpandingLabel]
+            try:
+                if config.isBoolean():
+                    result = [CenteredLed, ExpandingLabel]
+            except:
+                pass
             if config.isScalar():
                 if  configType == PyTango.ArgType.DevBoolean:
                     result = [CenteredLed, ExpandingLabel]
@@ -588,6 +591,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             msg='Error creating read widget:\n'+str(e)
             self._readWidget.setToolTip(msg)
             self.debug(msg)
+            #self.traceback(30) #warning level=30
         
         #take care of the layout
         self.addReadWidgetToLayout() 
