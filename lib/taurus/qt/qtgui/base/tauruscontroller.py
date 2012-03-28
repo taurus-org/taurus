@@ -111,6 +111,11 @@ class TaurusBaseController(object):
             self._last_config_value = evt_value
         else:
             self._last_error_value = evt_value
+            #In case of error, modify the last_value as well
+            try:
+                self._last_value = self.modelObj().getValueObj()
+            except:
+                pass
         self.update()
 
     def eventReceived(self, evt_src, evt_type, evt_value):
