@@ -109,7 +109,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
             msg = 'JsonRecorder environment variable is not set, but it is needed for displaying trend plots. \nEnable it globally for %s?'%doorname
             result = Qt.QMessageBox.question(self.parent(),'JsonRecorder not set', msg, Qt.QMessageBox.Yes|Qt.QMessageBox.No)
             if result == Qt.QMessageBox.Yes:
-                self.__qdoor.setEnvironment('JsonRecorder',True)
+                self.__qdoor.putEnvironment('JsonRecorder',True)
                 self.info('JsonRecorder Enabled for %s'%doorname)
                 
         #@todo: connect as a writer of other data as well
