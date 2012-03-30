@@ -235,7 +235,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
             obj = self.itemAt(x,y)
             obj_name = getattr(obj,'_name', '')
-            self.info('mouse clicked on %s (%s,%s)' % (type(obj).__name__,x,y))
+            self.debug('mouse clicked on %s (%s,%s)' , type(obj).__name__,x,y)
             
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 self.selectGraphicItem(obj_name) # A null obj_name should deselect all, we don't send obj because we want all similar to be matched
@@ -258,7 +258,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 
             if (mouseEvent.button() == Qt.Qt.RightButton):
                 ''' This function is called when right clicking on TaurusDevTree area. A pop up menu will be shown with the available options. '''
-                self.info('RightButton Mouse Event on %s (%s,%s)'%(obj_name,x,y))
+                self.debug('RightButton Mouse Event on %s (%s,%s)',obj_name,x,y)
                 if isinstance(obj,TaurusGraphicsItem) and (obj_name or obj.contextMenu() or obj.getExtensions()):
                     menu = Qt.QMenu(None)#self.parent)    
                     last_was_separator = False
@@ -305,7 +305,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         A blue circle is drawn around the matching item name.
         If the item_name is empty, or it is a reserved keyword, or it has the "noSelect" extension, then the blue circle is removed from the synoptic.
         """      
-        self.info('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
+        #self.info('In TaurusGraphicsScene.selectGraphicItem(%s))',item_name)
         retval = False
         self.clearSelection()
         if any(isinstance(item_name,t) for t in (TaurusGraphicsItem,Qt.QGraphicsItem)):
@@ -483,7 +483,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return
 
     def getClass(self,clName,clParam,objName,standAlone=False):
-        self.info('getClass(%s,%s,%s)'%(clName,clParam,objName))
+        #self.info('getClass(%s,%s,%s)'%(clName,clParam,objName))
         if clName in globals():
             myclass = globals()[clName]
         elif clName in locals():
@@ -613,7 +613,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def setModel(self,model):
-        self.info('In %s.setModel(%s)'%(type(self).__name__,model))
+        #self.info('In %s.setModel(%s)'%(type(self).__name__,model))
         self._name = str(model)
         if taurus.core.TaurusManager().findObjectClass(self._name) == taurus.core.tango.TangoDevice:
             model = self._name+'/state'
@@ -737,7 +737,7 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
         states = {'ON':0,'OFF':1,'CLOSE':2,'OPEN':3,'INSERT':4,'EXTRACT':5,'MOVING':6,'STANDBY':7,'FAULT':8,'INIT':9,'RUNNING':10,'ALARM':11,'DISABLE':12,'UNKNOWN':13}
         #Parsing _map to manage visibility (a list of values for which the item is visible or not)
         if v and not self._map is None and self._currText in states:
-            self.info('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
+            #self.info('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
             if states[self._currText] == self._map[1]:
                 self.setVisible(self._map[2])
                 self._visible = self._map[2]
