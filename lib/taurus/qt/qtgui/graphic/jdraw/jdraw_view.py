@@ -250,13 +250,13 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
         if model:
             if DeviceNameValidator().getParams(model): 
-                self.info('getMimeData(): DeviceModel at %s: %s'%(self.mousePos,model))
+                self.debug('getMimeData(): DeviceModel at %s: %s',self.mousePos,model)
                 mimeData.setData(TAURUS_DEV_MIME_TYPE,model)
             elif AttributeNameValidator().getParams(model):
-                self.info('getMimeData(): AttributeModel at %s: %s'%(self.mousePos,model))
+                self.debug('getMimeData(): AttributeModel at %s: %s',self.mousePos,model)
                 mimeData.setData(TAURUS_ATTR_MIME_TYPE,model)
             else:
-                self.info('getMimeData(): UnknownModel at %s: %s'%(self.mousePos,model))
+                self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
         return mimeData
         
 
@@ -278,7 +278,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
                 scene = jdraw_parser.parse(filename, factory)
-                self.info("Obtained %s(%s)" % (type(scene).__name__,filename))
+                self.debug("Obtained %s(%s)", type(scene).__name__,filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!"%(model,filename))
                 elif self.w_scene is None and scene.sceneRect():

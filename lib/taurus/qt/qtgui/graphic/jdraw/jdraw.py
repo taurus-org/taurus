@@ -234,7 +234,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             elif hasattr(self.myparent,'path'):
                 #self.info('using path param ...')
                 fname = self.myparent.path+os.path.sep+fname
-            self.info('Opening JDImage(%s) = x,y,w,h=%f,%f,%f,%f' % (fname,x1,y1,x2-x1,y2-y1))
+            self.debug('Opening JDImage(%s) = x,y,w,h=%f,%f,%f,%f' % (fname,x1,y1,x2-x1,y2-y1))
             pixmap = Qt.QPixmap(fname)
             item.setPixmap(pixmap.scaled(x2-x1,y2-y1))
             #item.scale(float(w)/pixmap.width(), float(h)/pixmap.height())
