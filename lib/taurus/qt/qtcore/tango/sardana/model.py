@@ -29,7 +29,8 @@ __all__ = ["SardanaBaseElementModel", "SardanaElementTypeModel",
            "SardanaElementPlainModel", "SardanaBaseProxyModel",
            "SardanaTypeProxyModel",
            "SardanaBaseTreeItem", "SardanaRootTreeItem",
-           "SardanaElementTreeItem", "SardanaTypeTreeItem"]
+           "SardanaElementTreeItem", "SardanaTypeTreeItem",
+           "SardanaEnvironmentModel"]
 
 __docformat__ = 'restructuredtext'
 
@@ -316,3 +317,118 @@ class SardanaTypeProxyModel(TaurusBaseProxyModel):
         if isinstance(treeItem, SardanaElementTreeItem):
             return treeItem.itemData().type in self._types
         return False
+
+
+class EnvironmentTreeItem(TaurusBaseTreeItem):
+    """An environment node"""
+
+    def role(self):
+        return self.itemData().type
+    
+    def data(self, index):
+        column, model = index.column(), index.model()
+        role = model.role(column, self.depth())
+        obj = self.itemData()
+        if role == "key":
+            return obj[0]
+        elif role == "value":
+            return obj[1]
+        elif role == "datatype":
+            return type(obj[1]).__name__
+    
+    def toolTip(self, index):
+        return "environment '%s'" % self.itemData()[0]
+    
+    def icon(self, index):
+        if index.column() > 0:
+            return None
+        return ":/class.png"
+
+
+class SardanaEnvironmentModel(TaurusBaseModel):
+    
+    ColumnNames = ["Environment", "Value", "Data Type"]
+    ColumnRoles = ('Root', 'key'), 'value', 'datatype'
+    
+    def __init__(self, parent=None, data=None):
+        TaurusBaseModel.__init__(self, parent=parent, data=data)
+        self.setSelectables(self.ColumnRoles[0])
+    
+    def setDataSource(self, data_source):
+        old_ds = self.dataSource()
+        if old_ds is not None:
+            Qt.QObject.disconnect(old_ds, Qt.SIGNAL('environmentChanged'),
+                                  self.on_environment_changed)
+        if data_source is not None:
+            Qt.QObject.connect(data_source, Qt.SIGNAL('environmentChanged'),
+                               self.on_environment_changed)
+        TaurusBaseModel.setDataSource(self, data_source)
+    
+    def on_environment_changed(self):
+        self.refresh()
+
+    def createNewRootItem(self):
+        return SardanaRootTreeItem(self, self.ColumnNames)
+    
+    def roleIcon(self, role):
+        return ":/tango.png"
+    #    return getElementTypeIcon(role)
+    
+    #def columnIcon(self, column):
+    #    return self.roleIcon(self.role(column))
+    
+    def roleToolTip(self, role):
+        cr = self.ColumnRoles
+        if role == cr[0][1]:
+            return "Environment name"
+        elif role == cr[1]:
+            return "Environment value"
+        elif role == cr[2]:
+            return "Environment value data type"
+
+    #def columnToolTip(self, column):
+    #    return self.roleToolTip(self.role(column))
+    
+    def roleSize(self, role):
+        return Qt.QSize(200,24)
+    
+    def columnSize(self, column):
+        role = self.role(column)
+        s = self.roleSize(role)
+        return s
+    
+    def mimeTypes(self):
+        return "text/plain", TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
+    
+    def mimeData(self, indexes):
+        ret = Qt.QMimeData()
+        data = []
+        for index in indexes:
+            if not index.isValid(): continue
+            tree_item = index.internalPointer()
+            mime_data_item = tree_item.mimeData(index)
+            if mime_data_item is None:
+                continue
+            data.append(mime_data_item)
+        ret.setData(TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
+        ret.setText(", ".join(data))
+        if len(data)==1:
+            ret.setData(TAURUS_MODEL_MIME_TYPE, str(data[0]))
+        return ret
+    
+    def accept(self, environment):
+        return True
+    
+    def setupModelData(self, data):
+        dev = self.dataSource()
+        if dev is None:
+            return
+        
+        env = dev.getEnvironment()
+        root = self._rootItem
+        
+        for key, value in env.items():
+            if not self.accept(key):
+                continue
+            env_item = EnvironmentTreeItem(self, (key, value), root)
+            root.appendChild(env_item)

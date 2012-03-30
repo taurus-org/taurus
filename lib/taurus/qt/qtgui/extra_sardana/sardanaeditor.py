@@ -42,7 +42,9 @@ from taurus.qt.qtgui.editor import TaurusBaseEditor
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from macrotree import MacroTreeWidget, MacroSelectionDialog
-from elementtree import SardanaElementTreeWidget, SardanaBaseProxyModel, \
+from elementtree import SardanaElementTreeWidget
+
+from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, \
     SardanaElementTypeModel, SardanaTypeTreeItem, SardanaRootTreeItem
 
 from sardanawizard import SardanaBaseWizard, SardanaBasePage
@@ -55,10 +57,37 @@ __all__ = []
 __docformat__ = 'restructuredtext'
 
 {non_sardana_imports}
-from sardana.macroserver.macro import Macro
-from sardana.macroserver.parameter import Type, ParamRepeat
+from sardana.macroserver.macro import macro, Macro, Type
 {sardana_imports}
 # Place your code here!
+
+"""
+
+_MACRO_CLASS_TEMPLATE = """
+
+class {macro_name}(Macro):
+    \"\"\"{macro_name} description.\"\"\"
+
+    # uncomment the following lines as necessary. Otherwise you may delete them
+    #param_def = []
+    #result_def = []
+    #hints = {}
+    #env = (,)
+    
+    # uncomment the following lines if need prepare. Otherwise you may delete them
+    #def prepare(self):
+    #    pass
+        
+    def run(self):
+        pass
+
+"""
+
+_MACRO_FUNCTION_TEMPLATE = """
+
+@macro()
+def {macro_name}(self):
+    self.output("Running {macro_name}...")
 
 """
 
@@ -78,7 +107,7 @@ class ChooseElementTypePage(SardanaBasePage):
 
 class SardanaLibProxyModel(SardanaBaseProxyModel):
     
-    ALLOWED_TYPES = 'ControllerLib', 'MacroLib'
+    ALLOWED_TYPES = 'ControllerLibrary', 'MacroLibrary'
     
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()
@@ -130,7 +159,9 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
     
     def createMenuActions(self):
         af = ActionFactory()
+        on_save = functools.partial(self.on_save, apply=False)
         on_save_apply = functools.partial(self.on_save, apply=True)
+        
         self.new_action = af.createAction(self, "New...",
                 icon='document-new', tip="Create a new macro or controller class",
                 triggered=self.on_new)
@@ -139,7 +170,7 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
                 triggered=self.on_open)
         self.save_action = af.createAction(self, "Save",
                 icon='document-save', tip="Save the current selected item",
-                triggered=self.on_save)
+                triggered=on_save)
         self.save_and_apply_action = af.createAction(self, "Save && apply",
                 triggered=on_save_apply, icon='document-save',
                 tip="Save the current selected item and apply the new code")
@@ -168,7 +199,7 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
     @ProtectTaurusMessageBox(title="A error occured trying to create a class")
     def on_new(self):
         
-        elem_types = "Macro class", "Macro function", "Macro library", \
+        elem_types = "Macro function", "Macro class", "Macro library", \
             "Motor controller class", "Counter/Timer controller class", \
             "Pseudo motor controller class"
         
@@ -180,17 +211,19 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
         
         idx = elem_types.index(elem_type)
         if idx == 0:
+            return self.new_macro_function()
+        elif idx == 1:
             return self.new_macro_class()
         elif idx == 2:
             return self.new_macro_library()
         raise NotImplementedError("Sorry! Not implemented yet.")
     
-    def new_macro_class(self):
+    def new_macro(self, template):
         macro_server = self.getModelObj()
         
         msg = "Please select the library where you want to place the new macro"
         
-        macro_libraries = macro_server.getElementsOfType("MacroLib")
+        macro_libraries = macro_server.getElementsOfType("MacroLibrary")
         macro_lib_names = macro_libraries.keys()
         macro_lib_names.sort()
         macro_lib_name, ok = Qt.QInputDialog.getItem(self, "Macro library", msg,
@@ -200,9 +233,32 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
         macro_lib_name = str(macro_lib_name)
         macro_lib = macro_libraries[macro_lib_name]
         
-        fname, path = macro_lib.filename, macro_lib.path
+        fname, path = macro_lib.file_path, macro_lib.path
         fname = fname[fname.index(osp.sep)+1:] # transform into relative path
         local_filename = osp.join(self._tmp_dir, fname)
+        
+        msg = "Please give new macro name"
+        
+        macros = macro_lib.elements
+        valid = False
+        while not valid:
+            macro_name, ok = Qt.QInputDialog.getText(self, "Macro name", msg)
+            if not ok:
+                return
+            if macro_name in macros:
+                res = Qt.QMessageBox.information(self, "Macro already exists",
+                    "A macro named '%s' already exists in '%s'.\n"
+                    "Please give a different macro name"
+                    % (macro_name, macro_lib_name),
+                    Qt.QMessageBox.Ok | Qt.QMessageBox.Cancel, Qt.QMessageBox.Ok)
+                if res == Qt.QMessageBox.Cancel:
+                    return
+                continue
+            valid = True
+
+        pars = dict(macro_name=macro_name)
+        code = template.format(**pars)
+        
         editorstack = self.editorStack()
         idx = editorstack.has_filename(local_filename)
         if idx is None:
@@ -218,9 +274,23 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
         else:
             pass
         editorstack.set_current_filename(local_filename)
-        #TODO open "new macro dialog" which shows how to give a macro name and
-        # define macro parameters
+        editor = editorstack.get_current_editor()
+        editor.set_cursor_position(editor.get_position("eof"))
+        editor.append(code)
+        return macro_lib, macro_name
+
+    def new_macro_class(self):
+        macro_info = self.new_macro(_MACRO_CLASS_TEMPLATE)
+        if macro_info is None:
+            return
+        macro_lib, macro_name = macro_info
     
+    def new_macro_function(self):
+        macro_info = self.new_macro(_MACRO_FUNCTION_TEMPLATE)
+        if macro_info is None:
+            return
+        macro_lib, macro_name = macro_info
+        
     def new_macro_library(self):
         ms = self.getModelObj()
         ms_path = ms.getMacroPathObj()
@@ -322,7 +392,7 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
                 
     
     @ProtectTaurusMessageBox(msg="A error occured trying to save")
-    def on_save(self, apply=False):
+    def on_save(self, apply=True):
         editorstack = self.editorStack()
         # Save the currently edited file
         if not editorstack.get_stack_count():
@@ -337,11 +407,7 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
         code = fd.read()
         fd.close()
         remote_filename = local_filename[len(self._tmp_dir):]
-        self.setMacroCode(remote_filename, code)
-        if apply:
-            _, module_name = osp.split(local_filename)
-            module_name, _ = osp.splitext(module_name)
-            self.reloadMacroLib(module_name)
+        self.set_macro_code(remote_filename, code, apply)
     
     def on_revert(self):
         self.editorStack().revert()
@@ -349,9 +415,13 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
     def reload_macro_lib(self, module_name):
         pass
 
-    def set_macro_code(self, filename, code):
+    def set_macro_code(self, filename, code, apply=True):
         ms = self.getModelObj()
-        return ms.SetMacroCode((filename, code))
+        if apply:
+            apply = "true"
+        else:
+            apply = "false"
+        return ms.SetMacroCode((filename, code, apply))
 
     def get_macro_code(self, module_name, macro_name):
         ms = self.getModelObj()

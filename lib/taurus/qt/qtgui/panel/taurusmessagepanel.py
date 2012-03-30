@@ -46,10 +46,9 @@ except:
 # show PyTango exceptions
 import PyTango
 
+from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.qt import Qt
-
-import taurus.core.util
-import taurus.qt.qtgui.resource
+from taurus.qt.qtgui.resource import getThemePixmap
 import ui.ui_TaurusMessagePanel
 
 
@@ -165,6 +164,57 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
         msgbox.setOriginHtml(html)
 
 
+
+def is_report_handler(report, abs_file=None):
+    """Helper function to determine if a certain python object is a valid
+    report handler"""
+    import inspect
+    if not inspect.isclass(report):
+        return False
+    if not issubclass(report, TaurusMessageReportHandler):
+        return False
+    try:
+        if inspect.getabsfile(report) != abs_file:
+            return False
+    except:
+        return False
+    return True
+
+_REPORT_HANDLERS = None
+def get_report_handlers():
+    global _REPORT_HANDLERS
+    if not _REPORT_HANDLERS is None:
+        return _REPORT_HANDLERS
+    
+    import os.path
+    import sys
+    import functools
+    import inspect
+    
+    this = os.path.abspath(__file__)
+    report_path = os.path.join(os.path.dirname(this), "report")
+    sys.path.insert(0, report_path)
+    
+    _REPORT_HANDLERS = {}
+    try:
+        for elem in os.listdir(report_path):
+            if not elem[0].isalpha():
+                continue
+            full_elem = os.path.join(report_path, elem)
+            if not os.path.isfile(full_elem):
+                continue
+            if not elem.endswith('.py'):
+                continue
+            elem, _ = os.path.splitext(elem)
+            _is_report_handler = functools.partial(is_report_handler, abs_file=full_elem)
+            report_lib = __import__(elem, globals(), locals(), [], -1)
+            for name, obj in inspect.getmembers(report_lib, _is_report_handler):
+                _REPORT_HANDLERS[name] = obj
+    finally:
+        sys.path.pop(0)
+    
+    return _REPORT_HANDLERS
+
 _REPORT = """\
 -- Description -----------------------------------------------------------------
 An error occured in '{appName} {appVersion}' on {time}
@@ -207,24 +257,44 @@ class TaurusMessagePanel(Qt.QWidget):
     def __init__(self, err_type=None, err_value=None, err_traceback=None, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
         self._exc_info = err_type, err_value, err_traceback
-        self._ui = ui.ui_TaurusMessagePanel.Ui_TaurusMessagePanel()
-        self._ui.setupUi(self)
-        self._ui.detailsWidget.setVisible(False)
-        self._ui.checkBox.setVisible(False)
-        self._ui.checkBox.setCheckState(Qt.Qt.Unchecked)
-        self.addButton(self._ui.showDetailsButton)
-        self.addButton(self._ui.copyClipboardButton)
+        self._ui = _ui = ui.ui_TaurusMessagePanel.Ui_TaurusMessagePanel()
+        _ui.setupUi(self)
+        _ui.detailsWidget.setVisible(False)
+        _ui.checkBox.setVisible(False)
+        _ui.checkBox.setCheckState(Qt.Qt.Unchecked)
+        self._initReportCombo()
         
-        Qt.QObject.connect(self._ui.showDetailsButton, Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
-        Qt.QObject.connect(self._ui.copyClipboardButton, Qt.SIGNAL("clicked()"), self._onCopyToClipboard)
+        Qt.QObject.connect(_ui.showDetailsButton, Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
+        Qt.QObject.connect(_ui.reportComboBox, Qt.SIGNAL("activated(int)"), self._onReportTriggered)
         
-        pixmap = taurus.qt.qtgui.resource.getThemePixmap("emblem-important")
+        pixmap = getThemePixmap("emblem-important")
         self.setIconPixmap(pixmap)
         
         if err_value is not None:
             self.setError(*self._exc_info)
         self.adjustSize()
-
+    
+    def _initReportCombo(self):
+        report_handlers = get_report_handlers()
+        combo = self.reportComboBox()
+        for name, report_handler in report_handlers.items():
+            combo.addItem(report_handler.Label, name)
+    
+    def _onReportTriggered(self, index):
+        report_handlers = get_report_handlers()
+        combo = self.reportComboBox()
+        name = str(combo.itemData(index).toString())
+        report_handler = report_handlers[name]
+        report = report_handler(self)
+        app = Qt.QApplication.instance()
+        txt = _REPORT.format(appName=app.applicationName(),
+                             appVersion=app.applicationVersion(),
+                             time=datetime.datetime.now().ctime(),
+                             text=self.getText(),
+                             detail=self.getDetailedText(),
+                             origin=self.getOriginText())
+        report.report(txt)
+    
     def _onShowDetails(self, show):
         self._ui.detailsWidget.setVisible(show)
         if show:
@@ -235,16 +305,8 @@ class TaurusMessagePanel(Qt.QWidget):
         self.adjustSize()
         self.emit(Qt.SIGNAL("toggledDetails(bool)"), show)
     
-    def _onCopyToClipboard(self):
-        app = Qt.QApplication.instance()
-        clipboard = app.clipboard()
-        txt = _REPORT.format(appName=app.applicationName(),
-                             appVersion=app.applicationVersion(),
-                             time=datetime.datetime.now().ctime(),
-                             text=self.getText(),
-                             detail=self.getDetailedText(),
-                             origin=self.getOriginText())
-        clipboard.setText(txt)
+    def reportComboBox(self):
+        return self._ui.reportComboBox
     
     def checkBox(self):
         """Returns the check box from this panel
@@ -487,6 +549,7 @@ def tg_exc():
 
 def tg_serv_exc():
     """Shows a tango exception from a server in a TaurusMessagePanel"""
+    import taurus
     dev = taurus.Device("sys/tg_test/1")
     exc_info = None
     try:

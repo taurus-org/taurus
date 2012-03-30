@@ -94,10 +94,10 @@ class TaurusBaseEditor(Qt.QSplitter):
 
     def load(self, filename, goto=None):
         editorstack = self.editorStack()
-        editor = editorstack.load(filename)
+        fileinfo = editorstack.load(filename)
         editorstack.analyze_script()
         if goto is not None:
-            editor.go_to_line(goto)
+            fileinfo.editor.go_to_line(goto)
     
     def reload(self, idx=None, filename=None, goto=None):
         if idx is None:

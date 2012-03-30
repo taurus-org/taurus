@@ -113,7 +113,7 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
             BaseMacroServer.on_environment_changed(self, s, t, v)
         
         if added or removed or changed:
-            self.emit(Qt.SIGNAL("environmentChanged"))
+            self.emit(Qt.SIGNAL("environmentChanged"), ret)
         return ret
 
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>548</width>
-    <height>614</height>
+    <height>616</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,7 +87,7 @@
    </item>
    <item row="3" column="0" colspan="3">
     <widget class="QWidget" name="buttonPanelWidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0">
       <property name="margin">
        <number>0</number>
       </property>
@@ -115,9 +115,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="copyClipboardButton">
-        <property name="text">
-         <string>Copy to Clipboard</string>
+       <widget class="QComboBox" name="reportComboBox">
+        <property name="toolTip">
+         <string>Report error message</string>
         </property>
        </widget>
       </item>

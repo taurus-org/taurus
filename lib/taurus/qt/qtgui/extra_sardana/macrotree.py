@@ -183,7 +183,7 @@ class MacroBaseModel(TaurusBaseModel):
         macro_modules = {}
         macro_dict = ms.getMacros()
         for macro_name, macro in macro_dict.items():
-            module_name = macro.module_name
+            module_name = macro.module
             moduleNode = macro_modules.get(module_name)
             if moduleNode is None:
                 moduleNode = MacroModuleTreeItem(self, module_name, root)
