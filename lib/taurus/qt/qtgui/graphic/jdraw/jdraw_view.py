@@ -149,7 +149,6 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
     
-    @Qt.pyqtSignature("emitColors")
     def emitColors(self): 
         '''emit signal which is used to refresh the tree and colors of icons depend of the current status in jdrawSynoptic'''
         self.get_item_colors(True)

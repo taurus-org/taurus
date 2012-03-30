@@ -242,7 +242,6 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         try: self.getSignaller().emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
         except: pass #self.error('%s.fireEvent(...) failed!'%type(self))
         
-    #@Qt.pyqtSignature("taurusEvent")
     def filterEvent(self, evt_src=-1, evt_type=-1, evt_value=-1):
         """The event is processed by each and all filters in strict order
         unless one of them returns None (in which case the event is discarded)

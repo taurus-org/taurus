@@ -832,7 +832,6 @@ class TaurusMacroExecutorWidget(TaurusWidget):
             Qt.QMessageBox.warning(self,"Error while pausing macro", 
                                    "It was not possible to pause macro, because state of the door was different than RUNNING")
             
-    #@Qt.pyqtSignature("macroStatusUpdated")
     def onMacroStatusUpdated(self, data):
         macro = data[0]
         if macro is None: return        
