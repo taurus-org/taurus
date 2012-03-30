@@ -225,7 +225,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             if re.match(target.lower(),k.lower()):
                 #self.debug('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
-        return result or None
+        return result
 
     def mousePressEvent(self,mouseEvent):
         #self.debug('In TaurusGraphicsScene.mousePressEvent(%s))'%str(mouseEvent.button()))
@@ -314,11 +314,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 return False
             items = [item_name]
         else:
-            from tau.widget.synoptic import jdraw_parser
+            from taurus.qt.qtgui.graphic import jdraw_parser
             if not item_name or (str(item_name).startswith('JD') and str(item_name) in jdraw_parser.reserved):
                 self.warning('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
                 return False
-            items = self.getItemByName(item_name)        
+            items = self.getItemByName(item_name)       
             self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
         for item in items:
