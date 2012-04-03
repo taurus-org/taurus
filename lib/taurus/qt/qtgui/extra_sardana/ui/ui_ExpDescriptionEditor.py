@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmptywIDZ.ui'
+# Form implementation generated from reading ui file '/tmp/tmpVtpHAy.ui'
 #
-# Created: Tue Feb 21 16:04:29 2012
+# Created: Mon Apr  2 09:20:30 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -126,7 +126,7 @@ class Ui_ExpDescriptionEditor(object):
         QtCore.QMetaObject.connectSlotsByName(ExpDescriptionEditor)
 
     def retranslateUi(self, ExpDescriptionEditor):
-        ExpDescriptionEditor.setWindowTitle(QtGui.QApplication.translate("ExpDescriptionEditor", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        ExpDescriptionEditor.setWindowTitle(QtGui.QApplication.translate("ExpDescriptionEditor", "Experiment Configuration", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Active Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
         self.mntGrpOptionBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mntGrpTab), QtGui.QApplication.translate("ExpDescriptionEditor", "Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
