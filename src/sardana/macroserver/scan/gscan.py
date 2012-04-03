@@ -507,6 +507,21 @@ class GScan(Logger):
                 raise
             except:
                 instrumentFullName = ''
+            #substitute the axis placeholder by the corresponding moveable.
+            plotAxes = []
+            i = 0
+            for a in ci.plot_axes:
+                if a=='<mov>':
+                    plotAxes.append(ref_moveables[i])
+                    i+=1
+                else: plotAxes.append(a)
+            #retrieve data units info
+            try:
+                data_units = getattr(ci,'data_units',PyTango.AttributeProxy(ci.source).get_config().unit)
+            except:
+                data_units = 'No unit' #@todo: this should be read from some module
+                
+            #create the ColumnDesc object
             column = ColumnDesc(name=ci.name,
                                 label = ci.label,
                                 dtype = ci.data_type_str,
@@ -517,7 +532,8 @@ class GScan(Logger):
                                 conditioning = ci.conditioning,
                                 normalization = ci.normalization,
                                 plot_type = ci.plot_type,
-                                plot_axes = ci.plot_axes)
+                                plot_axes = plotAxes,
+                                data_units = data_units)
             data_desc.append(column)
             counters.append(column.name)
         counters.remove(master['name'])
