@@ -83,9 +83,14 @@ from taurus.core import TaurusElementType
 #===============================================================================
 
 def createChannelDict(name, index=None, **kwargs):
-    ret = {'name': name,
-           'label': name, #channel label
-           #'full_name': name,
+    ret = { 
+           ##@fixme: UGLY HACK! I am doing this for compatibility with the way Sardana creates the
+           ##        pool.ch_info dictionary for external tango channels.
+           ##        This should be fixed by using the full name (or maybe the source?) as the keys
+           #'name': name,
+           'name' : name.split('/')[-1], #@fixme: to make things uglier, I lazily assume Tango attribute naming
+           'label': name.split('/')[-1], #channel label #@fixme (same as above)
+           'full_name': name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
            'plot_type': PlotType.No, # one of the PlotType enumeration members
@@ -96,7 +101,7 @@ def createChannelDict(name, index=None, **kwargs):
            'normalization': Normalization.No, # one of the Normalization enumeration members 
            'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
            }
-    ret.update(kwargs) 
+    ret.update(kwargs)
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
     if 'plot_axes' not in ret: 
@@ -426,9 +431,15 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self._dirty = True
         self.beginResetModel() #we are altering the internal data here, so we need to protect it
         for chname in chnames:
-            desc = self.getAvailableChannels()[chname]
-            ctrlname = desc['controller']
-            unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+            avail_channels = self.getAvailableChannels()
+            if chname in avail_channels:
+                desc = self.getAvailableChannels()[chname]
+                ctrlname = desc['controller']
+                unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+            else:
+                #@todo: This assumes that if it is not in the list of avail_channels, it must be an external tango channel
+                ctrlname = '__tango__'
+                unitname = '0'
             try:
                 self.dataSource()['controllers'][ctrlname]['units'][unitname]['channels'].pop(chname)
             except:
@@ -660,7 +671,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
                 return
         chname = str(chname)
         if chname == '(Other...)':
-            raise NotImplementedError('Loading external channels is not yet supported')
+            #raise NotImplementedError('Loading external channels is not yet supported')
             models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=True, windowTitle='Choose source of data',
                                                             selectables = [TaurusElementType.Attribute])
             if not ok:
