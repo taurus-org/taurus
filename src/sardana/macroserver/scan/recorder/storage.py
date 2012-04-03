@@ -36,7 +36,7 @@ import itertools
 import numpy
 
 from datarecorder import DataRecorder, DataFormats, SaveModes
-
+from taurus.core.tango.sardana import PlotType
 
 class BaseFileRecorder(DataRecorder):
     
@@ -234,7 +234,11 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.debug("starting new recording %d on file %s", env['serialno'], self.filename)
 
         #populate the entry with some data
-        self._writeData("start_time",env['starttime'].isoformat(),'char') #note: the type should be NX_DATE_TIME, but the nxs python api does not recognice it
+        self._writeData('definition', 'NXscan', 'char') #this is the Application Definition for NeXus Generic Scans
+        import sardana.release
+        program_name = "%s (%s)"%(sardana.release.name, self.__class__.__name__)
+        self._writeData('program_name', program_name, 'char', attrs={'version':sardana.release.version})
+        self._writeData("start_time",env['starttime'].isoformat(),'char') #note: the type should be NX_DATE_TIME, but the nxs python api does not recognize it
         self.fd.putattr("epoch",time.mktime(env['starttime'].timetuple()))
         self._writeData("title",env['title'],'char')
         self._writeData("entry_identifier",str(env['serialno']),'char')
@@ -242,13 +246,19 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.fd.opengroup("user","NXuser")
         self._writeData("name",env['user'],'char')
         self.fd.closegroup()
-        #prepare the measurement group
+        
+        #prepare the "measurement" group
         self.fd.makegroup("measurement","NXcollection")
         self.fd.opengroup("measurement","NXcollection")
         if self.savemode==SaveModes.Record:
             #create extensible datasets
             for dd in self.datadesc:
                 self.fd.makedata(dd.label,dd.dtype, [nxs.UNLIMITED]+list(dd.shape)) #the first dimension is extensible
+                if hasattr(dd,'data_units'):
+                    self.fd.opendata(dd.label)
+                    self.fd.putattr('units', dd.data_units)
+                    self.fd.closedata()
+                    
         else:
             #leave the creation of the datasets to _writeRecordList (when we actually know the length of the data to write)
             pass
@@ -263,12 +273,18 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         self.fd.flush()
         
-    def _writeData(self, name, data, dtype, shape=None):
+    def _writeData(self, name, data, dtype, shape=None, attrs=None):
         if shape is None:
-            if dtype=='char': shape=[len(data)]
+            if dtype=='char': 
+                shape=[len(data)]
+            else:
+                shape = getattr(data,'shape',[1])
         self.fd.makedata(name, dtype, shape)
         self.fd.opendata(name)
         self.fd.putdata(data)
+        if attrs is not None:
+            for k,v in attrs.items():
+                self.fd.putattr(k,v)
         self.fd.closedata()
 
     def _writeRecord(self, record):
@@ -304,8 +320,10 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         if self.filename is None:
             return
         
-        env=self.currentlist.getEnviron()
         self._populateInstrumentInfo()
+        self._createNXData()
+        
+        env=self.currentlist.getEnviron()
         self.fd.openpath("/%s:NXentry" % self.entryname)
         self._writeData("end_time",env['endtime'].isoformat(),'char')
         self.fd.flush()
@@ -357,7 +375,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         for dd in self.datadesc:
             if getattr(dd,'instrument', None): #we don't link if it is None or it is empty
                 #grab the ID of the data group
-                datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) #fixme: check if this is correct. (note the NXclass of the leaf group)
+                datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) 
                 self.fd.openpath(datapath)
                 id=self.fd.getdataID()
                 self._createBranch(dd.instrument)
@@ -370,6 +388,68 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 id=self.fd.getdataID()
                 self._createBranch(dd.instrument)
                 self.fd.makelink(id)
+                
+    def _createNXData(self):
+        '''Creates groups of type NXdata by making links to the corresponding datasets 
+        '''        
+        #classify by type of plot:
+        plots1d = {}
+        plots1d_names = {}
+        i = 1
+        for dd in self.datadesc:
+            print dd.label, getattr(dd, 'plot_type','---')
+            ptype = getattr(dd, 'plot_type', PlotType.No)
+            if ptype == PlotType.No:
+                continue
+            elif ptype == PlotType.Spectrum:
+                axes = ":".join(dd.plot_axes) #converting the list into a colon-separated string
+                if axes in plots1d:
+                    plots1d[axes].append(dd)
+                else:
+                    plots1d[axes] = [dd]
+                    plots1d_names[axes] = 'plot_%i'%i #Note that datatesc ordering determines group name indexing
+                    i+=1
+            else:
+                continue  #@todo: implement support for images and other
+        
+        #write the 1D NXdata group
+        for axes,v in plots1d.items():
+            self.fd.openpath("/%s:NXentry"%(self.entryname))
+            groupname = plots1d_names[axes]
+            self.fd.makegroup(groupname,'NXdata')
+            #write the signals
+            for i,dd in enumerate(v):
+                src = "/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label)
+                dst = "/%s:NXentry/%s:NXdata"%(self.entryname,groupname)
+                self._nxln(src, dst)
+                self.fd.opendata(dd.label)
+                self.fd.putattr('signal',min(i+1,2))
+                self.fd.putattr('axes',axes)
+                self.fd.putattr('interpretation','spectrum')
+            #write the axes
+            for axis in axes.split(':'):
+                src = "/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,axis)
+                dst = "/%s:NXentry/%s:NXdata"%(self.entryname,groupname)
+                try:
+                    self._nxln(src, dst)
+                except:
+                    self.warning("cannot create link for '%s'. Skipping",axis)
+                
+    def _nxln(self, src, dst):
+        '''convenience function to create NX links with just one call. On successful return, dst will be open.
+        
+        :param src: (str) the nxpath to the source group or dataset
+        :param dst: (str) the nxpath to the group that will hold the link
+        
+        .. note:: `groupname:nxclass` notation can be used for both paths for better performance
+        '''
+        self.fd.openpath(src)
+        try:
+            id=self.fd.getdataID()
+        except NeXusError:
+            id=self.fd.getgroupID()
+        self.fd.openpath(dst)
+        self.fd.makelink(id)
             
     def _createBranch(self, path):
         """navigates the nexus tree starting in the current <entry> and finishing in <entry>/path.
