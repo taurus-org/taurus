@@ -85,6 +85,7 @@ from taurus.core import TaurusElementType
 def createChannelDict(name, index=None, **kwargs):
     ret = {'name': name,
            'label': name, #channel label
+           #'full_name': name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
            'plot_type': PlotType.No, # one of the PlotType enumeration members
@@ -336,7 +337,9 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
 
     def flags(self, index):
         flags = TaurusBaseModel.flags(self, index)
-        flags |= Qt.Qt.ItemIsEditable
+        taurus_role = self.role(index.column())
+        if taurus_role != ChannelView.Channel:
+            flags |= Qt.Qt.ItemIsEditable #all except the channel column are editable
         return flags
     
     def data(self, index, role=Qt.Qt.DisplayRole):
@@ -355,7 +358,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             ch_name, ch_data = index.internalPointer().itemData()
             unitdict = self.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
             key = self.data_keys_map[taurus_role]
-            ret = unitdict[key]            
+            ret = unitdict.get(key, None)     
             if taurus_role == ChannelView.Trigger:
                 ret = AcqTriggerType[ret]
             return Qt.QVariant(ret)
@@ -385,14 +388,16 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                   index, index)
         return True
         
-    def addChannel(self, chname=None): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
+    def addChannel(self, chname=None, ctrlname=None, unitname=None): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
         
-        #@todo: @fixme: THIS WILL BE UNNECESSARY WHEN WE USE PROPER *TAURUS* SARDANA DEVICES
         chname = str(chname)
-        desc = self.getAvailableChannels()[chname]
-        ctrlname = desc['controller']
-        unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
-        
+        if ctrlname is None:
+            desc = self.getAvailableChannels()[chname]
+            ctrlname = desc['controller']
+        if unitname is None:
+            desc = self.getAvailableChannels()[chname]
+            unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+    
         #update the internal data 
         self.beginResetModel() #we are altering the internal data here, so we need to protect it
         ctrlsdict = self.dataSource()['controllers']
@@ -413,8 +418,8 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here... 
         
-        #newchannels = [(chname,chdata)]
-        #self.insertChannels(newchannels)      
+        #import pprint
+        #pprint.pprint(self.dataSource())   
 
     def removeChannels(self, chnames): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows            
         #update the internal data 
@@ -661,7 +666,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             if not ok:
                 return
             modelname = models[0]
-            qmodel.addTaurusChannel(modelname) #@todo
+            qmodel.addChannel(chname=models[0], ctrlname='__tango__', unitname='0')
         else:
             qmodel.addChannel(chname=chname)
         
