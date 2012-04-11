@@ -32,3 +32,4 @@ __docformat__ = 'restructuredtext'
 from .measurementgroup import *
 from .expdescription import *
 from .elementtree import *
+from .sardanaeditor import *

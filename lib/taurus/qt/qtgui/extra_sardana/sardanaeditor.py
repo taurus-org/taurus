@@ -25,7 +25,7 @@
 
 """This module contains a taurus text editor widget."""
 
-__all__ = ["SardanaEditor", "MacroEditor"]
+__all__ = ["SardanaEditor"]
 
 __docformat__ = 'restructuredtext'
 
@@ -47,7 +47,7 @@ from elementtree import SardanaElementTreeWidget
 from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, \
     SardanaElementTypeModel, SardanaTypeTreeItem, SardanaRootTreeItem
 
-from sardanawizard import SardanaBaseWizard, SardanaBasePage
+from sardanabasewizard import SardanaBaseWizard, SardanaBasePage
 
 _MACRO_LIB_TEMPLATE = """#!/usr/bin/env python
 {copyright}
@@ -120,6 +120,7 @@ class SardanaLibProxyModel(SardanaBaseProxyModel):
             return treeItem.itemData() in self.ALLOWED_TYPES
         return True
 
+
 class SardanaLibTreeWidget(SardanaElementTreeWidget):
     
     KnownPerspectives = { "Type" : {
@@ -164,16 +165,17 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
         
         self.new_action = af.createAction(self, "New...",
                 icon='document-new', tip="Create a new macro or controller class",
-                triggered=self.on_new)
+                triggered=self.on_new, shortcut=Qt.QKeySequence.New)
         self.open_action = af.createAction(self, "Open...",
                 icon='document-open', tip="Open macro(s) or controller(s)",
-                triggered=self.on_open)
+                triggered=self.on_open, shortcut=Qt.QKeySequence.Open)
         self.save_action = af.createAction(self, "Save",
                 icon='document-save', tip="Save the current selected item",
                 triggered=on_save)
         self.save_and_apply_action = af.createAction(self, "Save && apply",
                 triggered=on_save_apply, icon='document-save',
-                tip="Save the current selected item and apply the new code")
+                tip="Save the current selected item and apply the new code",
+                shortcut=Qt.QKeySequence.Save)
         self.revert_action = af.createAction(self, "Revert",
                 icon='edit-undo', tip="Revert the current selected item code",
                 triggered=self.on_revert)
@@ -192,10 +194,14 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
     def refresh_save_and_apply_action(self):
         self.save_and_apply_action.setEnabled(self.save_action.isEnabled())
     
-    def on_element_clicked(self,item, item_column):
-        macro_info = item.itemData()
-        self.open_macros([macro_info])
-    
+    def on_element_clicked(self, item, item_column):
+        item_data = item.itemData()
+        interfaces = item_data.interfaces
+        if 'MacroCode' in interfaces:
+            self.open_macros([item_data])
+        elif 'MacroLibrary' in interfaces:
+            self.open_macro_libraries([item_data])
+            
     @ProtectTaurusMessageBox(title="A error occured trying to create a class")
     def on_new(self):
         
@@ -389,7 +395,54 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
                     self.reload(idx, filename=local_filename, goto=line)
             elif last_answer in no_any:
                 self.set_current_filename(local_filename)
-                
+    
+    @ProtectTaurusMessageBox(title="An error occured trying to open macro(s)")
+    def open_macro_libraries(self, macro_libraries):
+        editorstack = self.editorStack()
+
+        all_any = Qt.QMessageBox.YesToAll, Qt.QMessageBox.NoToAll
+        yes_any = Qt.QMessageBox.Yes, Qt.QMessageBox.YesToAll
+        no_any = Qt.QMessageBox.No, Qt.QMessageBox.NoToAll
+        
+        last_answer = Qt.QMessageBox.No
+        for macro_library in macro_libraries:
+            name, fname = macro_library.name, macro_library.file_path
+            module = macro_library.module
+            fname = fname[fname.index(osp.sep)+1:] # transform into relative path
+            local_filename = osp.join(self._tmp_dir, fname)
+            
+            idx = editorstack.has_filename(local_filename)
+            if idx is not None and last_answer not in all_any:
+                last_answer = Qt.QMessageBox.question(self,
+                    "Macro file '{0}' already opened".format(module),
+                    "All changes to <b>{0}</b> will be lost."
+                    "<br>Do you want to revert file from the server ignoring "
+                    "any possible changes you (may) have made?".format(module),
+                    Qt.QMessageBox.Yes | Qt.QMessageBox.YesToAll | \
+                    Qt.QMessageBox.No  | Qt.QMessageBox.NoToAll,
+                    Qt.QMessageBox.No)
+            
+            if idx is None or last_answer in yes_any:
+                if not self._prepare_path(macro_library.path):
+                    Qt.QMessageBox.warning(self,
+                        "Error trying to prepare '{0}'".format(module),
+                        "An error occured trying to prepare '{0}'".format(module),
+                        Qt.QMessageBox.Ok, Qt.QMessageBox.Ok)
+                    continue
+                _, code, line = self.get_macro_code(module)
+                line = int(line)
+                self.debug("Creating local file %s...", local_filename)
+                fd = file(local_filename, "w")
+                fd.write(code)
+                fd.close()
+                if idx is None:
+                    self.debug("Loading local file %s...", local_filename)
+                    self.load(local_filename,goto=line)
+                else:
+                    self.debug("Reloading local file %s...", local_filename)
+                    self.reload(idx, filename=local_filename, goto=line)
+            elif last_answer in no_any:
+                self.set_current_filename(local_filename)
     
     @ProtectTaurusMessageBox(msg="A error occured trying to save")
     def on_save(self, apply=True):
@@ -414,7 +467,7 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
     
     def reload_macro_lib(self, module_name):
         pass
-
+    
     def set_macro_code(self, filename, code, apply=True):
         ms = self.getModelObj()
         if apply:
@@ -423,9 +476,12 @@ class SardanaEditor(TaurusBaseEditor, TaurusBaseWidget):
             apply = "false"
         return ms.SetMacroCode((filename, code, apply))
 
-    def get_macro_code(self, module_name, macro_name):
+    def get_macro_code(self, module_name, macro_name=None):
         ms = self.getModelObj()
-        return ms.GetMacroCode((module_name, macro_name))
+        pars = [ module_name ]
+        if macro_name is not None:
+            pars.append(macro_name)
+        return ms.GetMacroCode(pars)
     
     def setModel(self, model_name):
         TaurusBaseWidget.setModel(self, model_name)
@@ -488,7 +544,7 @@ def main():
     args = app.get_command_line_args()
 
     if len(args) == 0:
-        w = demo()
+        parser.error("must give a macroserver device name")
     else:
         w = demo(args[0])
     

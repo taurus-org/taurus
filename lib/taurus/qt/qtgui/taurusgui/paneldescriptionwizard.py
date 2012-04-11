@@ -207,11 +207,11 @@ class WidgetPage(Qt.QWizardPage):
         
         #contents    
         available = TaurusWidgetFactory().getWidgetClassNames()
-        candidates=['TaurusForm','TaurusTrend',
-                     'TaurusPlot', 'TaurusImageDialog',
-                     'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
-                     'TaurusDbTreeWidget',
-                     'TaurusArrayEditor', 'TaurusShell']
+        candidates=['TaurusForm','TaurusTrend', 'TaurusPlot',
+                    'TaurusImageDialog', 'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
+                    'TaurusDbTreeWidget', 'TaurusArrayEditor',
+                    'TaurusShell', 'SardanaEditor']
+        
         choices = []
         row=[]
         pixmaps={}
@@ -230,7 +230,7 @@ class WidgetPage(Qt.QWizardPage):
         
         self.widgetTypeLB = Qt.QLabel("<b>Widget Type:</b>")
         
-        self.connect(self.choiceWidget, Qt.SIGNAL('choiceMade'),self.onChoiceMade)        
+        self.connect(self.choiceWidget, Qt.SIGNAL('choiceMade'),self.onChoiceMade)
         
         layout = Qt.QVBoxLayout()
         layout.addLayout(nameLayout)
@@ -572,7 +572,8 @@ class PanelDescriptionWizard(Qt.QWizard):
 #------------------------------------------------------------------------------ 
 
 def test():
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(sys.argv)
     form = PanelDescriptionWizard()
     
     def kk(d):print d
@@ -584,14 +585,16 @@ def test():
     sys.exit(app.exec_())
     
 def test2():
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(sys.argv)
     print  ExpertWidgetChooserDlg.getDialog()
     sys.exit()
     
 
 
 def main():
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(sys.argv)
     from taurus.qt.qtgui.container import TaurusMainWindow
     form = Qt.QMainWindow()
         

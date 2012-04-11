@@ -119,7 +119,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         from taurus.qt.qtgui.extra_macroexecutor import TaurusMacroExecutorWidget, TaurusSequencerWidget,  TaurusMacroConfigurationDialog, \
                                                      TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
 
-        from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
+        from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor, SardanaEditor
         from taurus.qt.qtgui.button import TaurusCommandButton
         
         mainwindow = self.parent()
@@ -189,6 +189,11 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
         mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False, permanent=True)
         
+	#puts sardanaEditor
+	self.__sardanaEditor = SardanaEditor()
+        Qt.qApp.SDM.connectReader("macroserverName", self.__sardanaEditor.setModel)
+        mainwindow.createPanel(self.__sardanaEditor, 'SardanaEditor', registerconfig=False, permanent=True)
+
         #add panic button for aborting the door
         self.doorAbortAction = mainwindow.jorgsBar.addAction(getIcon(":/actions/process-stop.svg"), "Panic Button: stops the pool (double-click for abort)", self.__onDoorAbort)
         self.__lastAbortTime = datetime.datetime(1,1,1) #beginning of times

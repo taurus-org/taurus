@@ -34,6 +34,14 @@ __all__ = ["SardanaBaseElementModel", "SardanaElementTypeModel",
 
 __docformat__ = 'restructuredtext'
 
+try:
+    import pygments
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer, PythonTracebackLexer
+except:
+    pygments = None
+
 from taurus.core import TaurusDevice
 from taurus.qt import Qt
 from taurus.core.util import Enumeration
@@ -133,8 +141,24 @@ class SardanaElementTreeItem(SardanaBaseTreeItem):
     def toolTip(self, index):
         if index.column() > 0:
             return self.data(index)
-        data = self.itemData()
-        return "{0} '{1}'".format(getElementTypeToolTip(data.type), data.name)
+        obj = self.itemData()
+        if hasattr(obj, "exc_info") and obj.exc_info is not None:
+            html_orig = '<html><head><style type="text/css">{style}' \
+                        '</style></head><body>'
+            formatter, style = None, ""
+            if pygments is not None:
+                formatter = HtmlFormatter()
+                style = formatter.get_style_defs()
+            txt = html_orig.format(style=style)
+            if formatter is None:
+                txt += "<pre>%s</pre>" % obj.exc_info
+            else:
+                txt += highlight(obj.exc_info, PythonTracebackLexer(),
+                                 formatter)
+            txt += "</body></html>"
+        else:
+            txt = "{0} {1}".format(getElementTypeToolTip(obj.type), obj.name)
+        return txt
     
     def icon(self, index):
         if index.column() > 0:
@@ -267,7 +291,7 @@ class SardanaElementPlainModel(SardanaBaseElementModel):
         info = dev.getElementsInfo()
         elements = info.getElements()
         root = self._rootItem
-        skip_types = "ControllerLib", "MacroLib"
+        skip_types = "ControllerLibrary", "MacroLibrary"
         
         for element in elements:
             element_type = element.type
