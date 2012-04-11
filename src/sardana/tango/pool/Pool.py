@@ -79,7 +79,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self._pool.add_listener(self.on_pool_changed)
 
     def get_full_name(self):
-        db = Util.instance().get_database()
+        db = PyTango.Util.instance().get_database()
         db_name = db.get_db_host() + ":" + db.get_db_port()
         return db_name + "/" + self.get_name()
     

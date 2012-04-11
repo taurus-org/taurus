@@ -31,12 +31,13 @@ __all__ = ["SardanaDevice", "SardanaDeviceClass"]
 
 __docformat__ = 'restructuredtext'
 
+import time
 import threading
 
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
     AttrQuality, TimeVal, ArgType
 
-from taurus.core.util.log import Logger
+from taurus.core.util.log import Logger, DebugIt, InfoIt
 
 from sardana import InvalidId
 from util import to_tango_state, NO_DB_MAP
@@ -45,6 +46,8 @@ from util import to_tango_state, NO_DB_MAP
 class SardanaDevice(Device_4Impl, Logger):
     
     def __init__(self, dclass, name):
+        self._in_write = False
+        self._event_stack = []
         Device_4Impl.__init__(self, dclass, name)
         self.init(name)
         Logger.__init__(self, name)
@@ -122,11 +125,26 @@ class SardanaDevice(Device_4Impl, Logger):
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1):
         with self.tango_lock:
-            return self._set_attribute(attr, value=value, timestamp=timestamp,
-                                       quality=quality, error=error,
-                                       priority=priority)
+            stack = self._event_stack
+            stack.append((attr, value, timestamp, quality, error, priority))
+            if self._in_write:
+                return
+            for event in stack:
+                self._set_attribute(*event)
+            #return self._set_attribute(attr, value=value, timestamp=timestamp,
+            #                           quality=quality, error=error,
+            #                           priority=priority)
+            self._event_stack = []
     
-    def _set_attribute(self, attr, value=None, timestamp=None, quality=None,
+    def set_attribute(self, attr, value=None, timestamp=None, quality=None,
+                      error=None, priority=1):
+        set_attr = self._set_attribute_fire
+        with self.tango_lock:
+            return set_attr(attr, value=value, timestamp=timestamp,
+                            quality=quality, error=error, priority=priority)
+    
+    #@InfoIt()
+    def _set_attribute_fire(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1):
         fire_event = priority > 0
         
@@ -164,7 +182,48 @@ class SardanaDevice(Device_4Impl, Logger):
         finally:
             if recover:
                 attr.set_change_event(True, True)
+    
+    def _set_attribute_push(self, attr, value=None, timestamp=None, quality=None,
+                      error=None, priority=1):
+        fire_event = priority > 0
         
+        recover = False
+        if priority > 1 and attr.is_check_change_criteria():
+            attr.set_change_event(True, False)
+            recover = True
+        
+        attr_name = attr.get_name()
+        
+        try:
+            if error is not None and fire_event:
+                self.push_change_event(attr_name, error)
+                return
+            
+            if timestamp is None:
+                timestamp = time.time()
+            elif isinstance(timestamp, TimeVal):
+                timestamp = TimeVal.totime(timestamp)
+
+            if quality is None:
+                quality = AttrQuality.ATTR_VALID
+            
+            data_type = attr.get_data_type()
+            if fire_event:
+                if data_type == ArgType.DevEncoded:
+                    fmt, data = value
+                    self.push_change_event(attr_name, fmt, data, timestamp, quality)
+                else:
+                    self.push_change_event(attr_name, value, timestamp, quality)
+            else:
+                if data_type == ArgType.DevEncoded:
+                    fmt, data = value
+                    attr.set_value_date_quality(fmt, data, timestamp, quality)
+                else:
+                    attr.set_value_date_quality(value, timestamp, quality)
+        finally:
+            if recover:
+                attr.set_change_event(True, True)
+    
     def calculate_tango_state(self, ctrl_state, update=True):
         self._state = state = to_tango_state(ctrl_state)
         if update:
