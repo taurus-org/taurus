@@ -27,8 +27,8 @@
 manager"""
 
 __all__ = ["MacroServerException", "MacroServerExceptionList", "MissingEnv",
-           "UnknownEnv", "UnknownMacro", "UnknownLib",
-           "MacroWrongParameterType", "LibError",
+           "UnknownEnv", "UnknownMacro", "UnknownMacroLibrary",
+           "MacroWrongParameterType", "LibraryError",
            "InterruptException", "StopException", "AbortException"]
 
 __docformat__ = 'restructuredtext'
@@ -36,29 +36,16 @@ __docformat__ = 'restructuredtext'
 from taurus.core.tango.sardana.pool import InterruptException, \
     StopException, AbortException
 
-class MacroServerException(Exception):
-    
-    def __init__(self, *args):
-        Exception.__init__(self, *args)
-        if args:
-            a1 = args[0]
-            if isinstance(a1, dict):
-                self.msg = a1.get("message", a1.get("msg", None))
-                self.traceback = a1.get("traceback", a1.get("tb", None))
-                self.type = a1.get("type", self.__class__.__name__) 
-            else:
-                self.msg = str(a1)
-                self.traceback = None
-                self.type = self.__class__.__name__
-
-    def __str__(self):
-        return "{0}: {1}".format(self.type, self.msg)
+from sardana.sardanaexception import SardanaException, SardanaExceptionList, \
+    UnknownCode, UnknownLibrary, LibraryError
 
 
-class MacroServerExceptionList(MacroServerException):
-    def __init__(self, *args):
-        MacroServerException.__init__(self, *args)
-        self.exceptions = args[0]
+class MacroServerException(SardanaException):
+    pass
+
+
+class MacroServerExceptionList(SardanaExceptionList):
+    pass
 
 
 class MissingEnv(MacroServerException):
@@ -69,17 +56,14 @@ class UnknownEnv(MacroServerException):
     pass
 
 
-class UnknownMacro(MacroServerException):
+class UnknownMacro(UnknownCode):
     pass
 
 
-class UnknownLib(MacroServerException):
+class UnknownMacroLibrary(UnknownLibrary):
     pass
 
 
 class MacroWrongParameterType(MacroServerException):
     pass
 
-
-class LibError(MacroServerException):
-    pass

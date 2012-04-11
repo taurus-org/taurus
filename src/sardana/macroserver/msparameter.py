@@ -40,7 +40,7 @@ from taurus.core.tango.sardana.pool import BaseElement
 
 from sardana import ElementType, INTERFACES_EXPANDED
 from sardana.macroserver.msbase import MSBaseObject
-from msexception import MacroServerException, UnknownMacro, UnknownLib
+from msexception import MacroServerException, UnknownMacro, UnknownMacroLibrary
 
 class WrongParam(MacroServerException):
     
@@ -187,7 +187,7 @@ class ElementParamType(ParamType):
         
         try:
             return macro_server.get_macro_lib(name)
-        except UnknownLib:
+        except UnknownMacroLibrary:
             pass
     
     def getObjDict(self, pool=ParamType.All, cache=False):
@@ -257,7 +257,7 @@ class ElementParamInterface(ElementParamType):
         
         try:
             return macro_server.get_macro_lib(name)
-        except UnknownLib:
+        except UnknownMacroLibrary:
             pass
     
     def getObjDict(self, pool=ParamType.All, cache=False):

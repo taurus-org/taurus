@@ -148,6 +148,15 @@ class ModuleManager(Singleton, Logger):
     def add_python_path(self, path):
         return self._path_manager.add_python_path(path)
     
+    def findFullModuleName(self, module_name, path=None):
+        file = None
+        try:
+            file, pathname, desc = imp.find_module(module_name, path)
+        finally:
+            if file is not None:
+                file.close()
+        return pathname
+    
     def reloadModule(self, module_name, path=None, reload=True):
         """Loads/reloads the given module name"""
         

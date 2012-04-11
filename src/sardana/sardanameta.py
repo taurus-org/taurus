@@ -35,6 +35,7 @@ import inspect
 import weakref
 import operator
 import types
+import traceback
 
 from taurus.core.util import CaselessDict, CodecFactory
 
@@ -76,8 +77,10 @@ class SardanaLibrary(SardanaBaseObject):
         self.meta_functions = {}
         if module is not None and module.__doc__:
             self.description = module.__doc__
+        else:
+            self.description = name + " in error!"
         kwargs['name'] = name
-        kwargs['full_name'] = file_path
+        kwargs['full_name'] = file_path or name
         SardanaBaseObject.__init__(self, **kwargs)
     
     def __cmp__(self, o):
@@ -315,6 +318,12 @@ class SardanaLibrary(SardanaBaseObject):
         kwargs['path'] = self.path
         kwargs['description'] = self.description
         kwargs['elements'] = self.meta_classes.keys() + self.meta_functions.keys()
+        if self.exc_info is None:
+            kwargs['exc_summary'] = None
+            kwargs['exc_info'] = None
+        else:
+            kwargs['exc_summary'] = "".join(traceback.format_exception_only(*self.exc_info[:2]))
+            kwargs['exc_info'] = "".join(traceback.format_exception(*self.exc_info))
         return kwargs
 
 

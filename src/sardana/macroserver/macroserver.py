@@ -43,6 +43,7 @@ from msmacromanager import MacroManager
 from mstypemanager import TypeManager
 from msenvmanager import EnvironmentManager
 from msparameter import ParamType
+from msexception import UnknownMacroLibrary, UnknownMacro
 
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
@@ -298,10 +299,12 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     def reload_macro_lib(self, lib_name):
         manager = self.macro_manager
         
-        old_lib = manager.getMacroLib(lib_name)
+        try:
+            old_lib = manager.getMacroLib(lib_name)
+        except UnknownMacroLibrary:
+            old_lib = None
+        
         new_elements, changed_elements, deleted_elements = [], [], []
-        if old_lib is not None:
-            changed_elements.append(old_lib)
         
         new_lib = manager.reloadMacroLib(lib_name)
         
@@ -309,6 +312,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             new_elements.extend(new_lib.get_macros())
             new_elements.append(new_lib)
         else:
+            changed_elements.append(new_lib)
             new_names = set([ macro.name for macro in new_lib.get_macros() ])
             old_names = set([ macro.name for macro in old_lib.get_macros() ])
             changed_names = set.intersection(new_names, old_names)

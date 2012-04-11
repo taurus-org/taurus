@@ -195,14 +195,6 @@ class mv(Macro):
     """Move motor(s) to the specified position(s)"""
 
     param_def = [
-       [ 'motor_pos_list',
-         ( [ 'motor', Type.Moveable, None, 'Motor to move'],
-           [ 'pos',   Type.Float, None, 'Position to move to'],
-           { 'min' : 1, 'max' : None } ),
-        None, 'List of motor/position pairs'],
-    ]
-
-    param_def = [
        ['motor_pos_list',
         ParamRepeat(['motor', Type.Moveable, None, 'Motor to move'],
                     ['pos',   Type.Float, None, 'Position to move to']),

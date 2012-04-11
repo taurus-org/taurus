@@ -64,7 +64,7 @@ class SardanaException(Exception):
 
 class SardanaExceptionList(SardanaException):
     def __init__(self, *args):
-        PoolException.__init__(self, *args)
+        SardanaException.__init__(self, *args)
         self.exceptions = args[0]
 
 

@@ -52,7 +52,7 @@ from sardana.sardanamodulemanager import ModuleManager
 
 from msmanager import MacroServerManager
 from msexception import MacroServerException, MacroServerExceptionList, \
-    UnknownMacro, UnknownLib, MissingEnv, LibError, \
+    UnknownMacro, UnknownMacroLibrary, MissingEnv, LibraryError, \
     StopException, AbortException, MacroWrongParameterType
 
 from macro import Macro, MacroFunc
@@ -181,19 +181,33 @@ class MacroManager(MacroServerManager):
         self._macro_path = p
         
         macro_file_names = self._findMacroLibNames()
-        for macro_file_name in macro_file_names:
+        for mod_name in macro_file_names:
             try:
-                self.reloadMacroLib(macro_file_name)
+                self.reloadMacroLib(mod_name)
             except:
                 pass
         
     def getMacroPath(self):
         return self._macro_path
 
+    def _findMacroLibName(self, lib_name, path=None):
+        path = path or self.getMacroPath()
+        f_name = lib_name
+        if not f_name.endswith('.py'):
+            f_name += '.py'
+        for p in path:
+            try:
+                elems = os.listdir(p)
+                if f_name in elems:
+                    return os.path.abspath(os.path.join(p, f_name))
+            except:
+                self.debug("'%s' is not a valid path" % p)
+        return None
+
     def _findMacroLibNames(self, path=None):
         path = path or self.getMacroPath()
-        ret = []
-        for p in path:
+        ret = {}
+        for p in reversed(path):
             try:
                 elems = os.listdir(p)
                 for f in os.listdir(p):
@@ -201,7 +215,7 @@ class MacroManager(MacroServerManager):
                     if name.startswith("_"):
                         continue
                     if ext.endswith('py'):
-                        ret.append(name)
+                        ret[name] = os.path.abspath(os.path.join(p, f))
             except:
                 self.debug("'%s' is not a valid path" % p)
         return ret
@@ -243,7 +257,7 @@ class MacroManager(MacroServerManager):
         # if only given the module name
         try:
             macro_lib = self.getMacroLib(lib_name)
-        except UnknownLib:
+        except UnknownMacroLibrary:
             macro_lib = None
         
         if macro_name is None:
@@ -377,62 +391,67 @@ class MacroManager(MacroServerManager):
                      will be used)"""
         ret = []
         for module_name in module_names:
-            m = self.reloadMacroLib(module_name, path)
+            m = self.reloadMacroLib(module_name, path=path)
             if m: ret.append(m)
         return ret
         
     def reloadMacroLib(self, module_name, path=None):
-        """Reloads the given lib(=module) names
+        """Reloads the given lib(=module) names.
         
-        :raises: MacroServerExceptionList in case the reload process is not 
-        successfull
+        :raises:
+            LibraryError in case the reload process is not successfull
         
         :param module_name: macro library name (=python module name)
-        :param path: a list of absolute path to search for libraries 
-                     (optional, default=None, means the current MacroPath 
-                     will be used)
+        :param path:
+            a list of absolute path to search for libraries [default: None,
+            means the current MacroPath will be used]
         
-        :return: the MacroLibrary object for the reloaded macro lib
-        """
+        :return: the MacroLibrary object for the reloaded macro lib"""
         path = path or self.getMacroPath()
         # reverse the path order:
         # more priority elements last. This way if there are repeated elements
         # they first ones (lower priority) will be overwritten by the last ones
-        if path: 
+        if path:
             path = copy.copy(path)
             path.reverse()
         
         # if there was previous Macro Lib info remove it
-        if self._modules.has_key(module_name):
-            self._modules.pop(module_name)
-
-        try:
-            m = ModuleManager().reloadModule(module_name, path)
-        except Exception, e:
-            exp_pars = { 'type' : e.__class__.__name__,
-                         'msg' :  str(e),
-                         'args' : e.args }
-            raise LibError(exp_pars)
+        old_macro_lib = self._modules.pop(module_name, None)
+        if old_macro_lib is not None:
+            for macro in old_macro_lib.get_macros():
+                self._macro_dict.pop(macro.name)
         
+        mod_manager = ModuleManager()
+        m, exc_info = None, None
+        try:
+            m = mod_manager.reloadModule(module_name, path)
+        except:
+            exc_info=sys.exc_info()
         macro_lib = None
-
+        
         params = dict(module=m, name=module_name,
-                      macro_server=self.macro_server)
-        if not m is None:
+                      macro_server=self.macro_server, exc_info=exc_info)
+        if m is None:
+            file_name = self._findMacroLibName(module_name)
+            if file_name is None:
+                e = exc_info[1]
+                exp_pars = dict(type=exc_info[0].__name__, msg=str(e),
+                                args=e.args)
+                raise LibraryError(exp_pars, exc_info=exc_info)
+            params['file_path'] = file_name
             macro_lib = MacroLibrary(**params)
-            lib_contains_macros = False
+        else:
+            macro_lib = MacroLibrary(**params)
             abs_file = macro_lib.file_path
             _is_macro = functools.partial(is_macro, abs_file=abs_file,
                                           logger=self)
             for name, macro in inspect.getmembers(m, _is_macro):
                 try:
                     self.addMacro(macro_lib, macro)
-                    lib_contains_macros = True
                 except:
                     self.error("Error adding macro %s", macro.__name__)
                     self.debug("Details:", exc_info=1)
-            if lib_contains_macros:
-                self._modules[module_name] = macro_lib
+        self._modules[module_name] = macro_lib
         return macro_lib
     
     def addMacro(self, macro_lib, macro):
@@ -513,6 +532,9 @@ class MacroManager(MacroServerManager):
     def getMacroFunction(self, macro_name):
         return self.getMacro(macro_name)
     
+    def removeMacro(self, macro_name):
+        self._macro_dict.pop(macro_name)
+    
     def getMacroLib(self, name):
         if os.path.isabs(name):
             abs_file_name = name
@@ -527,7 +549,7 @@ class MacroManager(MacroServerManager):
         module_name = name
         ret = self._modules.get(module_name)
         if ret is None:
-            raise UnknownLib("Unknown macro library %s" % module_name)
+            raise UnknownMacroLibrary("Unknown macro library %s" % module_name)
         return ret
     
     def getMacroCode(self, macro_name):
