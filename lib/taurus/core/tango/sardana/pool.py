@@ -934,18 +934,19 @@ class TangoChannelInfo(BaseChannelInfo):
     
     def __init__(self, data, info):
         BaseChannelInfo.__init__(self, data)
-        
         # PyTango.AttributeInfoEx
         self.raw_info = info
         
-        self.data_type_str = FROM_TANGO_TO_STR_TYPE[self.data_type]
+        if 'data_type' not in data:
+            self.data_type = FROM_TANGO_TO_STR_TYPE[info.data_type]
         
-        shape = ()
-        if info.data_format == AttrDataFormat.SPECTRUM:
-            shape = (info.max_dim_x,)
-        elif info.data_format == AttrDataFormat.IMAGE:
-            shape = (info.max_dim_x, info.max_dim_y)
-        self.shape = shape
+        if 'shape' not in data:
+            shape = ()
+            if info.data_format == AttrDataFormat.SPECTRUM:
+                shape = (info.max_dim_x,)
+            elif info.data_format == AttrDataFormat.IMAGE:
+                shape = (info.max_dim_x, info.max_dim_y)
+            self.shape = shape
         
     def __getattr__(self, name):
         return getattr(self.raw_info, name)

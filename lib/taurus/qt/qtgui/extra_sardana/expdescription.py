@@ -120,7 +120,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         channels = door.macro_server.getExpChannelElements()
         avail_channels = {}
         for ch_info in door.macro_server.getExpChannelElements().values():
-            avail_channels[ch_info.name] = ch_info.getData()
+            avail_channels[ch_info.name] = ch_info.getData()  #@todo: Once it changes in the Pool, this should use full_name!
         self.ui.channelEditor.getQModel().setAvailableChannels(avail_channels)
     
     def _setDirty(self,dirty):

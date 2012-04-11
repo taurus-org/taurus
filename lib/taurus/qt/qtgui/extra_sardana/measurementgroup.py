@@ -44,7 +44,6 @@ from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqT
 from taurus.core.tango.sardana.pool import getChannelConfigs
 from taurus.core import TaurusElementType
 
-
 #===============================================================================
 # some dummydict for developing the "Experimental Configuration widget"
 # This block is to be removed and the dictionaries will be defined and 
@@ -83,6 +82,9 @@ from taurus.core import TaurusElementType
 #===============================================================================
 
 def createChannelDict(name, index=None, **kwargs):
+    from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
+    import PyTango
+    import numpy
     ret = { 
            ##@fixme: UGLY HACK! I am doing this for compatibility with the way Sardana creates the
            ##        pool.ch_info dictionary for external tango channels.
@@ -93,6 +95,9 @@ def createChannelDict(name, index=None, **kwargs):
            'full_name': name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
+           'shape':(),
+           'data_type':'float64',
+           'data_units': 'No unit',
            'plot_type': PlotType.No, # one of the PlotType enumeration members
 #           'timer': '', #should contain a channel name
 #           'monitor': '', #should contain a channel name
@@ -101,13 +106,40 @@ def createChannelDict(name, index=None, **kwargs):
            'normalization': Normalization.No, # one of the Normalization enumeration members 
            'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
            }
+    #If the channel is a Tango one, try to guess data_type, shape and data_units
+    try:
+        attrproxy = PyTango.AttributeProxy(name) #@todo: maybe we could check whether this is a Tango attribute in a less crude way...
+        try: #attempt to fill data using the attribute configuration info
+            attrconf = attrproxy.get_config()
+            ret['data_units'] = attrconf.unit
+            ret['shape'] = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
+            ret['data_type'] = FROM_TANGO_TO_STR_TYPE[attrconf.data_type]
+        except:
+            pass
+        try: #now try to get more accurate info by reading the value 
+            v = attrproxy.read().value
+            ret['shape'] = numpy.shape(v)
+            ret['data_type'] = getattr(v, 'dtype', numpy.dtype(type(v))).name
+        except:
+            pass
+    except PyTango.DevFailed: 
+        pass 
+    
+    #now overwrite using the arguments
     ret.update(kwargs)
+    
+    #...calculate the index
     if index is not None:
         ret['index']= index  #an integer used for ordering the channel in this measurement group
+    
+    #...and the fallback value for plot_axes
     if 'plot_axes' not in ret: 
         default_axes = {PlotType.No:[], PlotType.Spectrum:['<idx>'], PlotType.Image:['<idx>','<idx>']}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
+    
     return ret
+
+                
 
 def getElementTypeIcon(t):
     if t == ChannelView.Channel:
@@ -152,6 +184,10 @@ def getElementTypeToolTip(t):
         return "Channel active or not"
     elif t == ChannelView.Output:
         return "Channel output active or not"
+    elif t == ChannelView.Shape:
+        return "Shape of the data (using numpy convention). For example, a scalar will have shape=(), a spectrum of 10 elements will have shape=(10,) and an image of 20x30 will be shape=(20,30)"
+    elif t == ChannelView.DataType:
+        return "Type of data for storing (valid types are: char, float32, float64, [u]int{8|16|32|64})",
     elif t == ChannelView.PlotType:
         return "Plot type for this channel "
     elif t == ChannelView.PlotAxes:
@@ -196,6 +232,8 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
     itemdata_keys_map = {ChannelView.Channel:'label',
                          ChannelView.Enabled:'enabled',
                          ChannelView.Output:'output',
+                         ChannelView.Shape:'shape',
+                         ChannelView.DataType:'data_type',
                          ChannelView.PlotType:'plot_type',
                          ChannelView.PlotAxes:'plot_axes',
 #                         ChannelView.Timer:'timer',
@@ -221,11 +259,14 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
             ret = Normalization[ret]   
         elif taurus_role == ChannelView.PlotAxes:
             ret = ":".join(ret)
+        elif taurus_role == ChannelView.Shape:
+            ret = str(ret)
         return ret
 
     def setData(self, index, qvalue):
         taurus_role = index.model().role(index.column())
-        if taurus_role in (ChannelView.Channel, ChannelView.Conditioning, ChannelView.NXPath) :
+        if taurus_role in (ChannelView.Channel, ChannelView.Conditioning, 
+                           ChannelView.NXPath, ChannelView.DataType) :
             data = str(qvalue.toString())
         elif taurus_role in (ChannelView.Enabled, ChannelView.Output) :
             data = qvalue.toBool()
@@ -235,6 +276,16 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
             data = Normalization[str(qvalue.toString())]
         elif taurus_role == ChannelView.PlotAxes:
             data = [a for a in str(qvalue.toString()).split(':')]
+        elif taurus_role == ChannelView.Shape:
+            s = str(qvalue.toString())
+            try:
+                data = eval(s,{},{})
+                if not isinstance(data,(tuple,list)):
+                    raise ValueError
+            except:
+                from taurus.core.util import Logger
+                Logger(self.__class__.__name__).error('Invalid shape %s',s )
+                data = ()
         else:
             raise UnimplementedError('Unknown role')
         ch_name, ch_data = self.itemData()
@@ -258,10 +309,10 @@ class MntGrpUnitItem(TaurusBaseTreeItem):
 
 
 class BaseMntGrpChannelModel(TaurusBaseModel):
-    ColumnNames = ("Channel", "enabled", "output", "Plot Type", "Plot Axes", "Timer", 
+    ColumnNames = ("Channel", "enabled", "output", "Shape", "Data Type", "Plot Type", "Plot Axes", "Timer", 
                   "Monitor", "Trigger", "Conditioning", "Normalization","NeXus Path")
     ColumnRoles = ((ChannelView.Channel, ChannelView.Channel), ChannelView.Enabled, 
-                  ChannelView.Output, ChannelView.PlotType,
+                  ChannelView.Output, ChannelView.Shape, ChannelView.DataType, ChannelView.PlotType,
                   ChannelView.PlotAxes, ChannelView.Timer, ChannelView.Monitor,
                   ChannelView.Trigger, ChannelView.Conditioning,
                   ChannelView.Normalization, ChannelView.NXPath)
