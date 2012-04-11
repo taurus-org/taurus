@@ -84,7 +84,7 @@ class MeasurementGroup(PoolGroupDevice):
             except:
                 pass
         if self.measurement_group is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = self.alias or full_name
             mg = self.pool.create_measurement_group(name=name,
                 full_name=full_name, id=self.Id, user_elements=self.Elements)

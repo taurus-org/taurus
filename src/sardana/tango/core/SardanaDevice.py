@@ -76,6 +76,11 @@ class SardanaDevice(Device_4Impl, Logger):
     def alias(self):
         return self._alias
     
+    def get_full_name(self):
+        db = Util.instance().get_database()
+        db_name = db.get_db_host() + ":" + db.get_db_port()
+        return db_name + "/" + self.get_name()
+    
     def init_device(self):
         self.set_state(self._state)
         util = Util.instance()

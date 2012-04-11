@@ -56,7 +56,7 @@ class MacroServer(SardanaDevice):
         if self._alias is None:
             self._alias = Util.instance().get_ds_inst_name()
         
-        self._macro_server = ms = MS(self.get_name(), self.alias)
+        self._macro_server = ms = MS(self.get_full_name(), self.alias)
         ms.add_listener(self.on_macro_server_changed)
     
     @property

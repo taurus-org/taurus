@@ -81,7 +81,7 @@ class Controller(PoolDevice):
         self.set_change_events(detect_evts, non_detect_evts)
         ctrl = self.ctrl
         if ctrl is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = self.alias or full_name
             args = dict(type=self.Type, name=name, full_name=full_name,
                         library=self.Library, klass=self.Klass,

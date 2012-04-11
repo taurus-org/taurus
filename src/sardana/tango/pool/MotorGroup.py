@@ -77,7 +77,7 @@ class MotorGroup(PoolGroupDevice):
 
         self.Elements = map(int, self.Elements)
         if self.motor_group is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = self.alias or full_name
             motor_group = self.pool.create_motor_group(name=name, id=self.Id,
                 full_name=full_name, user_elements=self.Elements)

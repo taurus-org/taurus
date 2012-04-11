@@ -203,7 +203,7 @@ class Door(SardanaDevice):
             db.put_device_property(self.get_name(), dict(Id=self.Id))
         
         if self.door is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = full_name
             macro_server = self.macro_server_device.macro_server
             door = macro_server.create_element(type="Door", name=name,

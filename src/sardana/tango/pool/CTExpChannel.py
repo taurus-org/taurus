@@ -77,7 +77,7 @@ class CTExpChannel(PoolElementDevice):
         self.set_change_events(detect_evts, non_detect_evts)
         
         if self.ct is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = self.alias or full_name
             ct = self.pool.create_element(type="CTExpChannel", name=name, 
                 full_name=full_name, id=self.Id, axis=self.Axis,

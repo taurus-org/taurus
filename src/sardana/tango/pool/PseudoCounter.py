@@ -73,7 +73,7 @@ class PseudoCounter(PoolElementDevice):
 
         self.Elements = map(int, self.Elements)
         if self.pseudo_counter is None:
-            full_name = self.get_name()
+            full_name = self.get_full_name()
             name = self.alias or full_name
             pseudo_counter = self.pool.create_element(type="PseudoCounter",
                 name=name, full_name=full_name, id=self.Id,
