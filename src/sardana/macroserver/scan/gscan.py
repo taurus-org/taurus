@@ -515,16 +515,11 @@ class GScan(Logger):
                     plotAxes.append(ref_moveables[i])
                     i+=1
                 else: plotAxes.append(a)
-            #retrieve data units info
-            try:
-                data_units = getattr(ci,'data_units',PyTango.AttributeProxy(ci.source).get_config().unit)
-            except:
-                data_units = 'No unit' #@todo: this should be read from some module
                 
             #create the ColumnDesc object
             column = ColumnDesc(name=ci.name,
                                 label = ci.label,
-                                dtype = ci.data_type_str,
+                                dtype = ci.data_type,
                                 shape = ci.shape,
                                 instrument = instrumentFullName,
                                 source = ci.source,
@@ -533,7 +528,7 @@ class GScan(Logger):
                                 normalization = ci.normalization,
                                 plot_type = ci.plot_type,
                                 plot_axes = plotAxes,
-                                data_units = data_units)
+                                data_units = ci.unit)
             data_desc.append(column)
             counters.append(column.name)
         counters.remove(master['name'])
@@ -579,13 +574,13 @@ class GScan(Logger):
         self.data.setEnviron(env)
 
     def takeSnapshot(self, elements=[]):
-        '''reads the current values of the given elements and returns a dictionary with them
+        '''reads the current values of the given elements
         
         :param elements: (list<str,str>) list of tuples of label,src for the elements to read
                          (can be pool elements or Taurus attribute names).
         
-        :return: (list<ColumnDesc>) a list of ColumnDesc objects including a 
-                 "pre_scan_value" attribute
+        :return: (list<ColumnDesc>) a list of :class:`ColumnDesc`, each including a 
+                 "pre_scan_value" attribute with the read value for that attr
         '''
         import PyTango,numpy
         manager = self.macro.getManager()
