@@ -116,6 +116,8 @@ class ParamType(MSBaseObject):
     
     capabilities    = []
     
+    type_class = str
+    
     def __init__(self, macro_server, name):
         MSBaseObject.__init__(self, name=name, full_name=name,
                               macro_server=macro_server)

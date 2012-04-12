@@ -1062,7 +1062,7 @@ class MacroExecutor(Logger):
             
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
                 result = self.__preprocessResult(macro_obj.getResult())
-                self.info("sending result %s", result)
+                door.debug("sending result %s", result)
                 self.sendResult(result)
         except AbortException as ae:
             traceback.print_exc()

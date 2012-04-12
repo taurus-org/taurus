@@ -325,7 +325,7 @@ class SpockBaseDoor(BaseDoor):
         except KeyboardInterrupt:
             self.write('\nCtrl-C received: Stopping... ')
             self.block_lines = 0
-            self.command_inout("Abort")
+            self.command_inout("StopMacro")
             self.writeln("Done!")
         except PyTango.DevFailed, e:
             if operator.isSequenceType(e.args) and not type(e.args) in types.StringTypes:
@@ -541,13 +541,13 @@ class SpockMacroServer(BaseMacroServer):
     def _addMacro(self, macro_info):
         macro_name = str(macro_info.name)
         
-        def macro_fn(self, parameter_s='', name=macro_name):
+        def macro_fn(shell, parameter_s='', name=macro_name):
             parameters = genutils.arg_split(parameter_s, posix=True)
             door = genutils.get_door()
             ret = door.runMacro(macro_name, parameters, synch=True)
-            macro = door.getRunningMacro()
+            macro = door.getLastRunningMacro()
             if macro is not None: # maybe none if macro was aborted
-                return door.getRunningMacro().getResult()
+                return macro.getResult()
         
         macro_fn.func_name = macro_name
         macro_fn.__doc__ = macro_info.doc

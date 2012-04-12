@@ -68,16 +68,34 @@ class File(ParamType):
     def __init__(self, macro_server, name):
         ParamType.__init__(self, macro_server, name)
         self.filename = None
-        #self.data is supposed to be a array.array object
+        #self.data is supposed to be an array.array object
         self.data = None
     
     def set(self, filename, data):
         self.filename = filename
         self.data = data
 
+class JSON(ParamType):
+
+    def getObj(self, str_repr):
+        import json
+        return json.loads(str_repr)
+    
 class Env(ParamType):
     type_class = str
 
+class TangoDevice(ParamType):
+
+    def getObj(self, str_repr):
+        import PyTango
+        return PyTango.DeviceProxy(str_repr)
+
+class Device(ParamType):
+
+    def getObj(self, str_repr):
+        import taurus
+        return taurus.Device(str_repr)
+ 
 # Hardware types
 
 class MotorParam(AttrParamType):
