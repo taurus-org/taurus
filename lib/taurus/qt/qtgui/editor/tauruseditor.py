@@ -36,7 +36,9 @@ from taurus.qt import Qt
 
 try:
     import spyderlib
-    if int(spyderlib.__version__.split(".")[0]) < 2:
+    v = spyderlib.__version__.split('.', 2)[:2]
+    v = map(int, v)
+    if v < [2,1]:
         raise Exception("TaurusEditor needs spyderlib >= 2.1")
 except ImportError: 
     raise Exception("TaurusEditor needs spyderlib >= 2.1")
