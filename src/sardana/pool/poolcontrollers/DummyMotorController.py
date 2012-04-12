@@ -578,7 +578,7 @@ class BasicDummyMotorController(MotorController):
             motion.startMotion(motion.getCurrentUserPosition(t), pos, t)
         
     def AbortOne(self, axis):
-        print "AbortOne",axis
+        self._log.info("AbortOne(%d)", axis)
         idx = axis - 1
         self.m[idx].abortMotion()
 
