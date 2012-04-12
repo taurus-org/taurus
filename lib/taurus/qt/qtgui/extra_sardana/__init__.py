@@ -32,4 +32,11 @@ __docformat__ = 'restructuredtext'
 from .measurementgroup import *
 from .expdescription import *
 from .elementtree import *
-from .sardanaeditor import *
+
+try:
+    from .sardanaeditor import *
+except:
+    from taurus.qt.qtgui.display import create_taurus_fallback as __create
+    SardanaEditor = __create("SardanaEditor")
+
+
