@@ -121,7 +121,8 @@ class BaseMotion(Moveable):
             moveable = source.getMoveable(name)
             if moveable is not None:
                 return moveable
-    
+   
+
 class MotionGroup(BaseMotion):
     """ A virtual motion group object """
     
@@ -275,7 +276,7 @@ class Motion(BaseMotion):
     def getElemNamesByMoveableSource(self, names, moveable_sources, 
                                     allow_repeat,
                                     allow_unknown):
-        """ getElemNamesByMoveableSource(list<string>names, 
+        """ getElemNamesByMoveableSource(list<str>names, 
                                         list<MoveableSource> moveable_sources, 
                                         bool allow_repeat, bool allow_unknown)
         
@@ -330,11 +331,33 @@ class Motion(BaseMotion):
             moveable.waitMove(timeout=timeout, id=id[i])
 
     def move(self, new_pos, timeout=None):
-        assert len(self.moveable_list) == 1, "for now we support only 'simple' motions!!!!"
+        #assert len(self.moveable_list) == 1, "for now we support only 'simple' motions!!!!"
+        if len(self.moveable_list) == 1:
+            moveable = self.moveable_list[0]
+            return moveable.move(new_pos, timeout=timeout)
+        else:
+            start, ids = 0, []
+            for moveable in self.moveable_list:
+                end = start + moveable.getSize()
+                pos = new_pos[start:end]
+                id = moveable.startMove(pos, timeout=timeout)
+                ids.append(id)
+                start = end
+            for moveable, id in zip(self.moveable_list, ids):
+                moveable.waitMove(id=id, timeout=timeout)
+            states, positions = self.readState(), self.readPosition()
+            import PyTango
+            state = PyTango.DevState.ON
+            if PyTango.DevState.FAULT in states:
+                state = PyTango.DevState.FAULT
+            elif PyTango.DevState.ALARM in states:
+                state = PyTango.DevState.ALARM
+            elif PyTango.DevState.UNKNOWN in states:
+                state = PyTango.DevState.UNKNOWN
+            elif PyTango.DevState.MOVING in states:
+                state = PyTango.DevState.MOVING
+            return state, positions
         
-        moveable = self.moveable_list[0]
-        return moveable.move(new_pos, timeout=timeout)
-
     def iterMove(self, new_pos, timeout=None):
         """ generator for motor positions"""
         assert len(self.moveable_list) == 1, "for now we support only 'simple' motions!!!!"
