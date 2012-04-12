@@ -218,6 +218,7 @@ class BaseDoor(MacroServerDevice):
 
         self._running_macros = None
         self._running_macro = None
+        self._last_running_macro = None
         self._user_xml =None
         self._ignore_logs = kw.get("ignore_logs", False)
         self._silent = kw.get("silent", True)
@@ -337,6 +338,9 @@ class BaseDoor(MacroServerDevice):
 
     def getRunningMacro(self):
         return self._running_macro
+
+    def getLastRunningMacro(self):
+        return self._last_running_macro
 
     def abort(self, synch=True):
         if not synch:
@@ -504,11 +508,12 @@ class BaseDoor(MacroServerDevice):
         fmt, data = codec.decode(v)
         for macro_status in data:
             id = macro_status.get('id')
-            self._running_macro = macro = self._running_macros.get(id)
+            macro = self._running_macros.get(id)
+            self._last_running_macro = self._running_macro = macro
             # if we don't have the ID it's because the macro is running a submacro
             # or another client is connected to the same door (shame on him!) and
             # executing a macro we discard this event
-            if not macro is None:
+            if macro is not None:
                 macro.__dict__.update(macro_status)
         return data
 
