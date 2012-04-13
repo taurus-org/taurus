@@ -35,6 +35,9 @@ __all__ = ['expconf','showscan', 'spsplot', 'status', 'bench', 'debug_completer'
 
 import IPython
 
+from genutils import page, get_door, get_macro_server, ask_yes_no, arg_split
+from genutils import MSG_DONE, MSG_FAILED
+
 def expconf(self, parameter_s=''):
     """Launches a GUI for configuring the environment variables 
     for the experiments (scans)"""
@@ -42,7 +45,7 @@ def expconf(self, parameter_s=''):
         from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
     except:
         print "Error importing ExpDescriptionEditor (hint: is taurus extra_sardana installed?)"
-    doorname = _get_door().name()
+    doorname = get_door().name()
     w = ExpDescriptionEditor(door=doorname)
     w.show()
 
@@ -51,7 +54,7 @@ def showscan(self, parameter_s=''):
     
     :param scan_id: scan number [default: None, meaning show last scan]"""
     params = parameter_s.split()
-    door = _get_door()
+    door = get_door()
     online, scan_nb = False, None
     if len(params) > 0:
         if params[0].lower() == 'online':
@@ -61,15 +64,7 @@ def showscan(self, parameter_s=''):
     door.show_scan(scan_nb, online=online)
 
 def spsplot(self, parameter_s=''):
-    _get_door().plot()
-
-def _get_macro_server():
-    import sardana.spock.genutils
-    return sardana.spock.genutils.get_macro_server()
-    
-def _get_door():
-    import sardana.spock.genutils
-    return sardana.spock.genutils.get_door()
+    get_door().plot()
 
 def status(self, parameter_s=''):
     try:
@@ -117,7 +112,7 @@ def bench(self, parameter_s=''):
     parameter_s = string.join(params[1:])
     
     t0 = time.time()
-    door = _get_door()
+    door = get_door()
     door.runMacro(name, parameter_s)
     t = time.time()
     print "Execution time: %.3f sec" % (t - t0)
@@ -132,7 +127,7 @@ def debug_completer(self, event):
 def debug(self, parameter_s=''):
     """Activate/Deactivate macro server debug output"""
     params = parameter_s.split()
-    door = _get_door()
+    door = get_door()
     if len(params) == 0:
         s = door.getDebugMode() and 'on' or 'off'
         print "debug mode is %s" % s
@@ -152,7 +147,7 @@ def www_completer(self, event):
     param_idx = len(event.line.split()) - 1
     if not event.line.endswith(' '): param_idx -= 1
     if param_idx == 0:
-        return _get_door().log_streams
+        return get_door().log_streams
 
 def www(self, parameter_s=''):
     """What went wrong. Reads the stream. If no stream is specified, it reads
@@ -160,14 +155,14 @@ def www(self, parameter_s=''):
     debug, result"""
     import PyTango
     params = parameter_s.split() or ('debug',)
-    door = _get_door()
+    door = get_door()
     logger = door.getLogObj(params[0])
     try:
         # force=True -> make sure we read the latest value from the Door server
         v = logger.getLogBuffer()
         if not v: return
         msg = "\n".join(v)
-        IPython.genutils.page(msg)
+        page(msg)
     except PyTango.DevFailed, df:
         post_mortem(self, parameter_s, True)
     except Exception,e:
@@ -183,7 +178,7 @@ def post_mortem(self, parameter_s='', from_www=False):
     specified, it reads 'debug' stream. Valid values are output, critical, 
     error, warning, info, debug, result"""
     params = parameter_s.split() or ['debug']
-    door = _get_door()
+    door = get_door()
     logger = door.getLogObj(params[0])
     msg = ""
     
@@ -196,7 +191,7 @@ def post_mortem(self, parameter_s='', from_www=False):
     for line in logger.getLogBuffer():
         if line:
             msg += "\n".join(line)
-    IPython.genutils.page(msg)
+    page(msg)
 
 def edmac(self, parameter_s=''):
     """edmac <macro name> [<module>]
@@ -209,12 +204,10 @@ def edmac(self, parameter_s=''):
     import tempfile
     import PyTango
     import taurus.core.util
-    import sardana.spock.genutils
     
-    ms = _get_macro_server()
+    ms = get_macro_server()
     
-    import sardana.spock.genutils
-    pars = sardana.spock.genutils.arg_split(parameter_s, posix=True)
+    pars = arg_split(parameter_s, posix=True)
     
     if len(pars) == 1:
         macro_name = pars[0]
@@ -240,19 +233,18 @@ def edmac(self, parameter_s=''):
     os.close(fd)
 
     cmd = 'edit -x -n %s %s' % (line_nb, local_fname)
-    ip = IPython.ipapi.get()
-    ip.magic(cmd)
+    self.magic(cmd)
     
-    if sardana.spock.genutils.ask_yes_no('Do you want to apply the new code on the server?', 'y'):
+    if ask_yes_no('Do you want to apply the new code on the server?', 'y'):
         print 'Storing...',
         try:
             f = file(local_fname)
             try:
                 new_code = f.read()
                 ms.SetMacroCode([remote_fname, new_code])
-                print sardana.spock.genutils.MSG_DONE
+                print MSG_DONE
             except Exception, e:
-                print sardana.spock.genutils.MSG_FAILED
+                print MSG_FAILED
                 print 'Reason:', str(e)
             f.close()
         except:
@@ -262,7 +254,7 @@ def edmac(self, parameter_s=''):
         print "Discarding changes..."
     
     #if os.path.exists(local_fname):
-    #    if sardana.spock.genutils.ask_yes_no('Delete temporary file \'%s\'?' % local_fname, 'y'):
+    #    if ask_yes_no('Delete temporary file \'%s\'?' % local_fname, 'y'):
     #        os.remove(local_fname)
     #        bkp = '%s~' % local_fname
     #        if os.path.exists(bkp):
@@ -274,14 +266,14 @@ def edmac(self, parameter_s=''):
 
 def spock_input_prompt_hook(self, cont):
     try:
-        return _get_door().spock_input_prompt(self.api, cont)
+        return get_door().spock_input_prompt(self.api, cont)
     except:
         import sardana.spock
         return sardana.spock.Door.spock_offline_input_prompt(self.api, cont)
 
 def spock_output_prompt_hook(self):
     try:
-        return _get_door().spock_output_prompt(self.api)
+        return get_door().spock_output_prompt(self.api)
     except:
         import sardana.spock
         return sardana.spock.Door.spock_offline_output_prompt(self.api)
@@ -289,9 +281,9 @@ def spock_output_prompt_hook(self):
 def spock_late_startup_hook(self):
     import sardana.spock
     try:
-        ip = IPython.ipapi.get()
-        ip.ready = True
-        _get_door().setConsoleReady(True)
+        #ip = IPython.ipapi.get()
+        #ip.ready = True
+        get_door().setConsoleReady(True)
     except:
         import traceback
         print "Exception in spock_late_startup_hook:"
@@ -300,7 +292,7 @@ def spock_late_startup_hook(self):
 def spock_pre_prompt_hook(self):
     import sardana.spock
     try:
-        _get_door().pre_prompt_hook(self)
+        get_door().pre_prompt_hook(self)
     except:
         import traceback
         print "Exception in spock_pre_prompt_hook:"

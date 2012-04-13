@@ -24,13 +24,16 @@
 ##
 ##############################################################################
 
-"""This package provides the spock generic utilities"""
+"""This package provides the spock's ipython configuration class"""
 
-from PyTango.ipython import get_ipython_version, get_ipython_version_list
+__all__ = ['Spock']
 
-ipv = get_ipython_version_list()
-if ipv >= [0, 10] and ipv < [0, 11]:
-    from ipython_00_10.genutils import *
-else:
-    from ipython_00_11.genutils import *
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Int, Float, Unicode, Bool
 
+class Spock(Configurable):
+    macro_server_name = Unicode(config=True)
+    door_name = Unicode(config=True)
+    macro_server_alias = Unicode(config=True)
+    door_alias = Unicode(config=True)
+    ready = Bool(default_value=False, config=True)

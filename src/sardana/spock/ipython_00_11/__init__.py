@@ -24,13 +24,4 @@
 ##
 ##############################################################################
 
-"""This package provides the spock generic utilities"""
-
-from PyTango.ipython import get_ipython_version, get_ipython_version_list
-
-ipv = get_ipython_version_list()
-if ipv >= [0, 10] and ipv < [0, 11]:
-    from ipython_00_10.genutils import *
-else:
-    from ipython_00_11.genutils import *
-
+"""This package provides the spock generic utilities for ipython > 0.10"""

@@ -270,7 +270,7 @@ class SpockBaseDoor(BaseDoor):
         self.call__init__(BaseDoor, name, **kw)
 
     def get_color_mode(self):
-        return genutils.get_ipapi().options.colors
+        return genutils.get_color_mode()
     
     def _get_macroserver_for_door(self):
         ret = genutils.get_macro_server()
@@ -368,7 +368,7 @@ class SpockBaseDoor(BaseDoor):
                 commit = CommitFile(commit_cmd, local_f_name, remote_f_name)
                 self.pending_commits.update( { remote_f_name : commit } )
                 ip = genutils.get_ipapi()
-                editor = ip.options.editor or 'vi'
+                editor = genutils.get_editor()
                 
                 cmd = 'edit -x -n %s %s' % (line_nb, local_f_name)
                 if not editor in self.console_editors:
@@ -393,7 +393,7 @@ class SpockBaseDoor(BaseDoor):
         self._plotter.show_scan(scan_nb=scan_nb,
                                 scan_history_info=scan_history_info,
                                 directory_map=directory_map)
-    
+
     def stateChanged(self, s, t, v):
         old_state, old_sw_state = self._old_door_state, self._old_sw_door_state
         BaseDoor.stateChanged(self, s, t, v)
