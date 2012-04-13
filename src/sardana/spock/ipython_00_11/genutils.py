@@ -833,6 +833,15 @@ def load_config(config):
     gui_mode = get_gui_mode()
     if gui_mode == 'qt4':
         gui_mode = 'qt'
+
+    banner = """\
+%(Purple)sSpock %(version)s%(Normal)s -- An interactive laboratory application.
+
+help      -> Spock's help system.
+object?   -> Details about 'object'. ?object also works, ?? prints more.
+"""
+    banner = banner % d
+    banner = banner.format(**d)
     
     # ------------------------------------
     # Application
@@ -902,6 +911,13 @@ def load_config(config):
     ipython_widget.paging = 'inside'
     ipython_widget.pylab = 'inline'
     #zmq_i_shell = config.ZMQInteractiveShell
+    #ipython_widget.banner = banner
+    
+    # ------------------------------------
+    # FrontendWidget
+    # ------------------------------------
+    frontend_widget = config.FrontendWidget
+    frontend_widget.banner = banner
     
     # ------------------------------------
     # TerminalInteractiveShell
@@ -912,14 +928,6 @@ def load_config(config):
     #term_i_shell.editor = 'gedit'
     #term_i_shell.editor = 'nano'
     
-    banner = """\
-%(Purple)sSpock %(version)s%(Normal)s -- An interactive laboratory application.
-
-help      -> Spock's help system.
-object?   -> Details about 'object'. ?object also works, ?? prints more.
-"""
-    banner = banner % d
-    banner = banner.format(**d)
     term_i_shell.banner1 = banner
     term_i_shell.banner2 = "Connected to " + door_alias + "\n"
     #term_app.banner1 = banner
