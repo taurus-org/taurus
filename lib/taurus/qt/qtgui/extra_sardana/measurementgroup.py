@@ -444,7 +444,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                   index, index)
         return True
         
-    def addChannel(self, chname=None, ctrlname=None, unitname=None): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
+    def addChannel(self, chname=None, ctrlname=None, unitname=None, external=False): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
         
         chname = str(chname)
         if ctrlname is None:
@@ -461,9 +461,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         unitsdict = ctrlsdict[ctrlname]['units']
         if not unitsdict.has_key(unitname):
             unitsdict[unitname] = unit = {'channels':{}}
-            unit['timer'] = chname
-            unit['monitor'] = chname
-            unit['trigger_type'] = AcqTriggerType.Software
+            if not external:
+                unit['timer'] = chname
+                unit['monitor'] = chname
+                unit['trigger_type'] = AcqTriggerType.Software
         channelsdict = unitsdict[unitname]['channels']
         if channelsdict.has_key(chname):
             self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
@@ -728,7 +729,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             if not ok:
                 return
             modelname = models[0]
-            qmodel.addChannel(chname=models[0], ctrlname='__tango__', unitname='0')
+            qmodel.addChannel(chname=models[0], ctrlname='__tango__', unitname='0', external=True)
         else:
             qmodel.addChannel(chname=chname)
         

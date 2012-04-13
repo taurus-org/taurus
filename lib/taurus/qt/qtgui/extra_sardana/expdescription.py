@@ -54,7 +54,9 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._dirty = False
         self._dirtyMntGrps = set()
         
-        self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('activated (QString)'), self.onActiveMntGrpActivated)
+        self.connect(self.ui.activeMntGrpCB, Qt.SIGNAL('activated (QString)'), self.changeActiveMntGrp)
+        self.connect(self.ui.createMntGrpBT, Qt.SIGNAL('clicked ()'), self.createMntGrp)
+        self.connect(self.ui.deleteMntGrpBT, Qt.SIGNAL('clicked ()'), self.deleteMntGrp)
         self.connect(self.ui.compressionCB, Qt.SIGNAL('currentIndexChanged (int)'), self.onCompressionCBChanged )
         self.connect(self.ui.pathLE, Qt.SIGNAL('textEdited (QString)'), self.onPathLEEdited )
         self.connect(self.ui.filenameLE, Qt.SIGNAL('textEdited (QString)'), self.onFilenameLEEdited )
@@ -70,7 +72,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.TaurusDevice
-    
+        
     def onChooseScanDirButtonClicked(self):
         ret = Qt.QFileDialog.getExistingDirectory ( self, 'Choose directory for saving files', self.ui.pathLE.text())
         if ret:
@@ -117,7 +119,6 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._setDirty(False)
         self._dirtyMntGrps = set()
         #set a list of available channels
-        channels = door.macro_server.getExpChannelElements()
         avail_channels = {}
         for ch_info in door.macro_server.getExpChannelElements().values():
             avail_channels[ch_info.name] = ch_info.getData()  #@todo: Once it changes in the Pool, this should use full_name!
@@ -193,7 +194,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.emit(Qt.SIGNAL('experimentConfigurationChanged'), copy.deepcopy(conf))
         return True
         
-    def onActiveMntGrpActivated(self, activeMntGrpName):
+    def changeActiveMntGrp(self, activeMntGrpName):
         activeMntGrpName = str(activeMntGrpName)
         if self._localConfig is None: 
             return
@@ -207,8 +208,60 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
             self._dirtyMntGrps.add(self._localConfig['ActiveMntGrp'])
                             
         self._localConfig['ActiveMntGrp'] = activeMntGrpName
+        
+        i = self.ui.activeMntGrpCB.findText(activeMntGrpName, Qt.Qt.MatchExactly)
+        self.ui.activeMntGrpCB.setCurrentIndex(i)
         mgconfig = self._localConfig['MntGrpConfigs'][activeMntGrpName]
         self.ui.channelEditor.getQModel().setDataSource(mgconfig)
+        self._setDirty(True)
+        
+    def createMntGrp(self):
+        '''creates a new Measurement Group'''
+        import pprint
+        pprint.pprint(self._localConfig['MntGrpConfigs'])
+        
+        mntGrpName, ok = Qt.QInputDialog.getText(self, "New Measurement Group", 
+                                                 "Enter a name for the new measurement Group")
+        if not ok: return
+        if self._localConfig is None:
+            return
+        mntGrpName = str(mntGrpName)
+        if mntGrpName in self._localConfig['MntGrpConfigs']:
+            Qt.QMessageBox.warning(self, "%s already exists"%mntGrpName, 
+                'A measurement group named "%s" already exists. A new one will not be created'%mntGrpName)
+            return
+        
+        #add an empty configuration dictionary to the local config        
+        mgconfig = {'label': mntGrpName, 'controllers':{} }
+        self._localConfig['MntGrpConfigs'][mntGrpName] = mgconfig
+        #add the new measurement group to the list of "dirty" groups
+        self._dirtyMntGrps.add(mntGrpName)
+        #add the name to the combobox
+        self.ui.activeMntGrpCB.addItem(mntGrpName)
+        #make it the Active MntGrp
+        self.changeActiveMntGrp(mntGrpName)
+        
+    def deleteMntGrp(self):
+        '''creates a new Measurement Group'''
+        activeMntGrpName = str(self.ui.activeMntGrpCB.currentText())
+        op = Qt.QMessageBox.question(self, "Delete Measurement Group", 
+                "Remove the measurement group '%s'?"%activeMntGrpName, 
+                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+        if op != Qt.QMessageBox.Yes: 
+            return
+        currentIndex = self.ui.activeMntGrpCB.currentIndex()
+        if self._localConfig is None:
+            return
+        if activeMntGrpName not in self._localConfig['MntGrpConfigs']: 
+            raise KeyError('Unknown measurement group "%s"'%activeMntGrpName)
+        
+        #add the current measurement group to the list of "dirty" groups
+        self._dirtyMntGrps.add(activeMntGrpName)
+        
+        self._localConfig['MntGrpConfigs'][activeMntGrpName] = None
+        self.ui.activeMntGrpCB.setCurrentIndex(-1)
+        self.ui.activeMntGrpCB.removeItem(currentIndex)
+        self.ui.channelEditor.getQModel().setDataSource({})
         self._setDirty(True)
         
     def onCompressionCBChanged(self, idx):

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpVtpHAy.ui'
+# Form implementation generated from reading ui file '/tmp/tmphqZmgI.ui'
 #
-# Created: Mon Apr  2 09:20:30 2012
+# Created: Thu Apr 12 14:55:14 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,9 +29,12 @@ class Ui_ExpDescriptionEditor(object):
         self.activeMntGrpCB = QtGui.QComboBox(self.mntGrpTab)
         self.activeMntGrpCB.setObjectName("activeMntGrpCB")
         self.horizontalLayout.addWidget(self.activeMntGrpCB)
-        self.mntGrpOptionBT = QtGui.QToolButton(self.mntGrpTab)
-        self.mntGrpOptionBT.setObjectName("mntGrpOptionBT")
-        self.horizontalLayout.addWidget(self.mntGrpOptionBT)
+        self.createMntGrpBT = QtGui.QToolButton(self.mntGrpTab)
+        self.createMntGrpBT.setObjectName("createMntGrpBT")
+        self.horizontalLayout.addWidget(self.createMntGrpBT)
+        self.deleteMntGrpBT = QtGui.QToolButton(self.mntGrpTab)
+        self.deleteMntGrpBT.setObjectName("deleteMntGrpBT")
+        self.horizontalLayout.addWidget(self.deleteMntGrpBT)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -128,7 +131,11 @@ class Ui_ExpDescriptionEditor(object):
     def retranslateUi(self, ExpDescriptionEditor):
         ExpDescriptionEditor.setWindowTitle(QtGui.QApplication.translate("ExpDescriptionEditor", "Experiment Configuration", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "Active Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
-        self.mntGrpOptionBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.activeMntGrpCB.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "Selects the active Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
+        self.createMntGrpBT.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "Create a new Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
+        self.createMntGrpBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "+", None, QtGui.QApplication.UnicodeUTF8))
+        self.deleteMntGrpBT.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "Delete the current Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
+        self.deleteMntGrpBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "-", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mntGrpTab), QtGui.QApplication.translate("ExpDescriptionEditor", "Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QtGui.QApplication.translate("ExpDescriptionEditor", "Sardana Elements", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab), QtGui.QApplication.translate("ExpDescriptionEditor", "External (Tango)", None, QtGui.QApplication.UnicodeUTF8))
