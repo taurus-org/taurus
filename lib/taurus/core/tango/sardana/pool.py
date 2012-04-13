@@ -970,6 +970,7 @@ def getChannelConfigs(mgconfig, ctrls=None, units=None, sort=True):
     :return: (list<tuple>) A list of channelname,channeldata pairs. 
     '''
     chconfigs = []
+    if not mgconfig: return []
     for ctrl_name, ctrl_data in mgconfig['controllers'].items():
         if ctrls is None or ctrl_name in ctrls:
             for unit_id, unit_data in ctrl_data['units'].items():
