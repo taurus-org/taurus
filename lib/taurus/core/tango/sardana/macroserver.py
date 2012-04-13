@@ -52,7 +52,7 @@ from taurus.core.tango import TangoDevice
 
 from macro import MacroInfo, Macro, MacroNode, ParamFactory, RepeatNode, RepeatParamNode, SingleParamNode, ParamNode
 from sardana import BaseSardanaElementContainer, BaseSardanaElement
-
+from pool import getChannelConfigs
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
 
@@ -178,13 +178,33 @@ class ExperimentConfiguration(object):
         codec = CodecFactory().getCodec('json')
         for mnt_grp in mnt_grps:
             mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
-            mnt_grp_dev = Device(mnt_grp)
-            # TODO when we start using measurement group extension change the
-            # code below with the following:
-            # mnt_grp.setConfiguration(mnt_grp_cfg)
-            data = codec.encode(('', mnt_grp_cfg))[1]
-            mnt_grp_dev.write_attribute('configuration', data)
-
+            if mnt_grp_cfg is None: #a deleted mntGrp
+                self._pool.DeleteElement(mnt_grp)
+            else:
+                try:
+                    mnt_grp_dev = Device(mnt_grp)
+                except: #if the mnt_grp did not already exist, create it now
+                    chconfigs = getChannelConfigs(mnt_grp_cfg)
+                    chnames,chinfos = zip(*chconfigs) #unzipping
+                    self._pool.createMeasurementGroup([mnt_grp]+list(chnames))
+                    mnt_grp_dev = Device(mnt_grp)
+                
+                # TODO when we start using measurement group extension change the
+                # code below with the following:
+                # mnt_grp.setConfiguration(mnt_grp_cfg)
+                data = codec.encode(('', mnt_grp_cfg))[1]
+                mnt_grp_dev.write_attribute('configuration', data)
+    
+    @property
+    def _pool(self):
+        pooldict = self._door.macro_server.getElementsOfType('Pool')
+        if len(pooldict)==0:
+            raise ValueError('Cannot access the Pool')
+        elif len(pooldict)>1:
+            raise ValueError('Multiple pools are not supported')
+        poolinfo = pooldict.values()[0]
+        return poolinfo
+    
 
 class BaseDoor(MacroServerDevice):
     """ Class encapsulating Door device functionality."""
