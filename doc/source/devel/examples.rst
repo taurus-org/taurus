@@ -179,48 +179,12 @@ code::
     
 *Now it seems a little bit more useful, doesn't it?*
 
-The standard attribute display widget
--------------------------------------
+A higher level of abstraction: forms
+------------------------------------
 
-Getting tired of writing all that code just to represent one attribute? Taurus provides
-a better option: The :class:`panel.TaurusValue`.
-
-.. image:: /_static/taurusvalue01.png
-  :align: center
-
-This time we show the entire code because the **panel** needs to be changed to
-contain a GridLayout::
-
-    import sys
-    from PyQt4 import Qt
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.panel import TaurusValue
-
-    app = TaurusApplication(sys.argv)
-    panel = Qt.QWidget()
-    layout = Qt.QGridLayout()
-    panel.setLayout(layout)
-
-    w = TaurusValue(panel)
-    layout.addWidget(w)
-    w.model = 'sys/taurustest/1/position'
-
-    panel.show()
-    sys.exit(app.exec_())
-
-
-...and don't worry: TaurusValue manages all attribute flavors: all tango data 
-types (float, string, bool, ...), data formats (scalar, spectrum, image) and 
-permissions (R, RW)
-
-*I should increase the gap because it's getting close to the limit ;-)*
-
-Using forms
------------
-
-Now let's say you want not only one but a dozen attributes! lines 11, 12 and 13
-of the previous example would have to be replicated for all twelve attributes.
-Taurus provides a better way: the :class:`panel.TaurusForm`.
+Now let's say you want to display not only one but a dozen attributes... the
+programming becomes quite tedious. Taurus provides a higher level of
+abstraction: the :class:`panel.TaurusForm`.
 
 .. image:: /_static/forms01.png
   :align: center
@@ -234,9 +198,11 @@ code::
     model = [ 'sys/taurustest/1/%s' % p for p in props ]
     panel.setModel(model)
 
-...and don't worry: :class:`panel.TaurusForm` properly aligns the labels, 
-manages the apply buttons and because it uses :class:`panel.TaurusValue` behind
-it also manages all attribute flavors.
+...and don't worry: :class:`panel.TaurusForm` properly aligns the labels,
+manages the apply buttons and most important, it automagically decides which are the most appropriate
+widgets to use depending on the kind of attribute (you do not need to worry
+about whether the attribute is a scalar or a spectrum; or if it is read-only or
+writable; a boolean or a float, etc).
 
 *I specially enjoyed this one... let's see what's next!*
 
@@ -252,15 +218,14 @@ default widget for some attributes according to the user needs.
 code::
     
     from taurus.qt.qtgui.panel import TaurusForm
-    from taurus.qt.qtgui.display import TaurusValueLabel
-    from taurus.qt.qtgui.input import TaurusWheelEdit
+    from taurus.qt.qtgui.display import TaurusLabel
 
     panel = TaurusForm()
     props = [ 'state', 'status', 'position', 'velocity', 'acceleration' ]
     model = [ 'sys/taurustest/1/%s' % p for p in props ]
     panel.setModel(model)
-    panel.getItemByIndex(0).setReadWidgetClass(TaurusValueLabel)
-    panel.getItemByIndex(2).setWriteWidgetClass(TaurusWheelEdit)
+    panel.getItemByIndex(0).setReadWidgetClass(TaurusLabel)        # you can provide an arbitrary class...
+    panel.getItemByIndex(2).setWriteWidgetClass('TaurusWheelEdit') # ...or, if Taurus knows it, just give its name
 
 *A little configuration goes a long way!*
 
