@@ -71,6 +71,7 @@ packages = [
     'taurus.core.util',
     'taurus.core.util.argparse',
     'taurus.core.util.decorator',
+    'taurus.core.util.report',
     'taurus.core.resource',
     'taurus.core.simulation',
     'taurus.core.evaluation',
