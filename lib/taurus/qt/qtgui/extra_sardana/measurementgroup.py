@@ -693,12 +693,6 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         self.connect(self._editorBar, Qt.SIGNAL("removeTriggered"), self.removeChannels)
         self.connect(self._editorBar, Qt.SIGNAL("moveUpTriggered"), self.moveUpChannel)
         self.connect(self._editorBar, Qt.SIGNAL("moveDownTriggered"), self.moveDownChannel)
-        
-        ########################
-        #@todo: remove this once the new pool allows to edit the measurement groups
-        #self._editorBar.setEnabled(False)
-        #self.info("Editing measurement groups is temporarily disabled until it is supported by the new pool") 
-        ########################
         return tableView
 
     def createToolArea(self):
@@ -723,7 +717,6 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
                 return
         chname = str(chname)
         if chname == '(Other...)':
-            #raise NotImplementedError('Loading external channels is not yet supported')
             models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=True, windowTitle='Choose source of data',
                                                             selectables = [TaurusElementType.Attribute])
             if not ok:
@@ -784,12 +777,12 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
 
 class MntGrpChannelPanel(Qt.QWidget):
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
         l = Qt.QVBoxLayout()
         l.setContentsMargins(0,0,0,0)
         self.setLayout(l)
-        self._editor = MntGrpChannelEditor(parent=self)
+        self._editor = MntGrpChannelEditor(parent=self, designMode=designMode)
         self.connect(self._editor.getQModel(),
                      Qt.SIGNAL("dataChanged(const QModelIndex &, const QModelIndex &)"),
                      self.onDataChanged)
