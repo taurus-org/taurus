@@ -173,6 +173,14 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         
         :param ask: (bool) If True (default) prompts the user before saving.
         '''
+
+        if ask:
+            op = Qt.QMessageBox.question(self, "Save configuration?", 
+                                        'Do you want to save the current configuration?\n(if not, any changes will be lost)', 
+                                        Qt.QMessageBox.Yes|Qt.QMessageBox.No)
+            if op != Qt.QMessageBox.Yes:
+                return False
+        
         conf = self.getLocalConfig()
         
         #make sure that no empty measurement groups are written
@@ -182,13 +190,6 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
                 "The measurement group '%s' is empty. Fill it (or delete it) before applying"%mgname, 
                 Qt.QMessageBox.Ok)
                 self.changeActiveMntGrp(mgname)
-                return False
-        
-        if ask:
-            op = Qt.QMessageBox.question(self, "Save configuration?", 
-                                        'Do you want to save the current configuration?\n(if not, any changes will be lost)', 
-                                        Qt.QMessageBox.Yes|Qt.QMessageBox.No)
-            if op != Qt.QMessageBox.Yes:
                 return False
         
         #check if the currently displayed mntgrp is changed
