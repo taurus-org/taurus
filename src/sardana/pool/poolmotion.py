@@ -297,30 +297,34 @@ class PoolMotion(PoolAction):
         emergency_stop = set()
         
         # read positions to send a first event when starting to move
-        with ActionContext(self) as context:
-            positions = self.raw_read_dial_position()
-            position_error_occured = self._error_occured(positions)
-            if position_error_occured:
-                self.error("Pre-loop read position error")
-                self.emergency_break()
-                
-                # send position
-                for moveable, position_info in positions.items():
-                    moveable.put_dial_position(position_info, propagate=2)
-                    position = moveable.get_position(propagate=0)
-                    if position.in_error():
-                        emergency_stop.add(moveable)
-                
-                # send state
-                self.read_state_info(ret=states)
-                for moveable, state_info in states.items():
-                    state_info = list(moveable._from_ctrl_state_info(state_info))
-                    state_info[0] = State.Fault
-                    moveable.set_state_info(state_info, propagate=2)
-                return
-            else:
-                for moveable, position_info in positions.items():
-                    moveable.put_dial_position(position_info)
+        #with ActionContext(self) as context:
+        #    positions = self.raw_read_dial_position()
+        #    position_error_occured = self._error_occured(positions)
+        #    if position_error_occured:
+        #        self.error("Pre-loop read position error")
+        #        self.emergency_break()
+        #        for moveable, position_info in positions.items():
+        #            if position_info[1] is not None:
+        #                self.error("%s error reading position", moveable.name)
+        #                self.debug("Details:", exc_info=position_info[1])
+        #        
+        #        # send position
+        #        for moveable, position_info in positions.items():
+        #            moveable.put_dial_position(position_info, propagate=2)
+        #            position = moveable.get_position(propagate=0)
+        #            if position.in_error():
+        #                emergency_stop.add(moveable)
+        #        
+        #        # send state
+        #        self.read_state_info(ret=states)
+        #        for moveable, state_info in states.items():
+        #            state_info = list(moveable._from_ctrl_state_info(state_info))
+        #            state_info[0] = State.Fault
+        #            moveable.set_state_info(state_info, propagate=2)
+        #        return
+        #    else:
+        #        for moveable, position_info in positions.items():
+        #            moveable.put_dial_position(position_info)
 
         while True:
             self.read_state_info(ret=states)
