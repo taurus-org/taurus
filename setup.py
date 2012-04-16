@@ -270,6 +270,8 @@ def main():
         'sardana.tango.macroserver',
         
         'sardana.spock',
+        'sardana.spock.ipython_00_10',
+        'sardana.spock.ipython_00_11',
     ]
 
     extra_packages = [
