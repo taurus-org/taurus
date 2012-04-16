@@ -947,10 +947,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.panel'
-        ret['icon'] = ":/designer/label.png"
-        return ret
+        return None
+        #ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        #ret['module'] = 'taurus.qt.qtgui.panel'
+        #ret['icon'] = ":/designer/label.png"
+        #return ret
         
     ########################################################
     ## Qt properties (for designer)
@@ -966,7 +967,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, TaurusBaseWidget.setModifiableByUser, TaurusBaseWidget.resetModifiableByUser)
 
 class TaurusValuesFrame(TaurusFrame):
-    '''This is a container specialiced into containing TaurusValue widgets.
+    '''This is a container specialized into containing TaurusValue widgets.
     It should be used Only for TaurusValues'''
     
     _model = []
