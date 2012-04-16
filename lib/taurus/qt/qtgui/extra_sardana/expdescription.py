@@ -173,6 +173,17 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         
         :param ask: (bool) If True (default) prompts the user before saving.
         '''
+        conf = self.getLocalConfig()
+        
+        #make sure that no empty measurement groups are written
+        for mgname, mgconfig in conf.get('MntGrpConfigs',{}).items():
+            if mgconfig is not None and not mgconfig.get('controllers'):
+                Qt.QMessageBox.information(self, "Empty Measurement group", 
+                "The measurement group '%s' is empty. Fill it (or delete it) before applying"%mgname, 
+                Qt.QMessageBox.Ok)
+                self.changeActiveMntGrp(mgname)
+                return False
+        
         if ask:
             op = Qt.QMessageBox.question(self, "Save configuration?", 
                                         'Do you want to save the current configuration?\n(if not, any changes will be lost)', 
@@ -183,8 +194,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         #check if the currently displayed mntgrp is changed
         if self.ui.channelEditor.getQModel().isDataChanged():
             self._dirtyMntGrps.add(self._localConfig['ActiveMntGrp'])
-            
-        conf = self.getLocalConfig()
+                   
         door = self.getModelObj()
         door.setExperimentConfiguration(conf, mnt_grps=self._dirtyMntGrps)
         self._originalConfiguration = copy.deepcopy(conf)
@@ -216,10 +226,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._setDirty(True)
         
     def createMntGrp(self):
-        '''creates a new Measurement Group'''
-        import pprint
-        pprint.pprint(self._localConfig['MntGrpConfigs'])
-        
+        '''creates a new Measurement Group'''        
         mntGrpName, ok = Qt.QInputDialog.getText(self, "New Measurement Group", 
                                                  "Enter a name for the new measurement Group")
         if not ok: return
