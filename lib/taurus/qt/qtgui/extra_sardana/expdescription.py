@@ -31,6 +31,29 @@ from taurus.qt import Qt
 import copy
 import taurus
 from taurus.qt.qtgui.base import TaurusBaseWidget
+from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, SardanaTypeTreeItem
+
+## Using a plain model and filtering and checking 'Acquirable' in item.itemData().interfaces is more elegant, but things don't get properly sorted...
+#from taurus.qt.qtcore.tango.sardana.model import SardanaElementPlainModel
+        
+class SardanaAcquirableProxyModel(SardanaBaseProxyModel):
+#    ALLOWED_TYPES = 'Acquirable'
+#    
+#    def filterAcceptsRow(self, sourceRow, sourceParent):
+#        sourceModel = self.sourceModel()
+#        idx = sourceModel.index(sourceRow, 0, sourceParent)
+#        item = idx.internalPointer()
+#        return 'Acquirable' in item.itemData().interfaces
+
+    ALLOWED_TYPES = ('Motor', 'CTExpChannel') #@todo: add IORegisters too!
+    
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        sourceModel = self.sourceModel()
+        idx = sourceModel.index(sourceRow, 0, sourceParent)
+        treeItem = idx.internalPointer()
+        if isinstance(treeItem, SardanaTypeTreeItem):
+            return treeItem.itemData() in self.ALLOWED_TYPES
+        return True
 
 class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     '''
@@ -48,6 +71,11 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self.ui.setupUi(self)
         BB = Qt.QDialogButtonBox
         self.ui.buttonBox.setStandardButtons(Qt.QDialogButtonBox.Reset | Qt.QDialogButtonBox.Apply)
+        newperspectivesDict = copy.deepcopy(self.ui.sardanaElementTree.KnownPerspectives)
+        #newperspectivesDict[self.ui.sardanaElementTree.DftPerspective]['model'] = [SardanaAcquirableProxyModel, SardanaElementPlainModel]
+        newperspectivesDict[self.ui.sardanaElementTree.DftPerspective]['model'][0] = SardanaAcquirableProxyModel
+        self.ui.sardanaElementTree.KnownPerspectives = newperspectivesDict #assign a copy because if just a key of this class memberwas modified, all instances of this class would be affected 
+        self.ui.sardanaElementTree._setPerspective(self.ui.sardanaElementTree.DftPerspective)
         
         self._localConfig = None
         self._originalConfiguration = None
