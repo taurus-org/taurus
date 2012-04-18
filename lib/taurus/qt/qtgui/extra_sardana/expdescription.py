@@ -96,6 +96,9 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         if door is not None:
             self.setModel(door)
         self.connect(self.ui.buttonBox, Qt.SIGNAL("clicked(QAbstractButton *)"), self.onDialogButtonClicked)
+        
+        #Taurus Configuration properties and delegates
+        self.registerConfigDelegate(self.ui.channelEditor)
              
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpkTEyPx.ui'
+# Form implementation generated from reading ui file '/tmp/tmpSE27_q.ui'
 #
-# Created: Mon Apr 16 11:27:45 2012
+# Created: Mon Apr 16 15:17:09 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!

@@ -95,10 +95,8 @@ def createChannelDict(name, index=None, **kwargs):
            'full_name': name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
-           'shape':(),
            'data_type':'float64',
            'data_units': 'No unit',
-           'plot_type': PlotType.No, # one of the PlotType enumeration members
 #           'timer': '', #should contain a channel name
 #           'monitor': '', #should contain a channel name
 #           'trigger': '', #should contain a channel name
@@ -128,13 +126,21 @@ def createChannelDict(name, index=None, **kwargs):
     #now overwrite using the arguments
     ret.update(kwargs)
     
-    #...calculate the index
+    #Calculate the index
     if index is not None:
-        ret['index']= index  #an integer used for ordering the channel in this measurement group
+        ret['index'] = index  #an integer used for ordering the channel in this measurement group
     
-    #...and the fallback value for plot_axes
+    #Choose a default plot_type for the channel
+    if 'plot_type' not in ret:
+        default_plot_type = {0:PlotType.Spectrum, 2:PlotType.Image, None:PlotType.No}
+        try: rank = len(ret['shape'])
+        except KeyError: 
+            rank = None #if shape is not known, use the default plot_type
+        ret['plot_type'] = default_plot_type.get(rank, PlotType.No)
+    
+    #And a default value for plot_axes
     if 'plot_axes' not in ret: 
-        default_axes = {PlotType.No:[], PlotType.Spectrum:['<idx>'], PlotType.Image:['<idx>','<idx>']}
+        default_axes = {PlotType.No:[], PlotType.Spectrum:['<mov>'], PlotType.Image:['<idx>','<idx>']}
         ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute  
     
     return ret
@@ -682,6 +688,37 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     }
 
     DftPerspective = "Channel"
+    _simpleViewColumns = (ChannelView.Channel, ChannelView.Output, ChannelView.Shape, ChannelView.PlotType, ChannelView.PlotAxes)
+    _simpleView = False
+    
+    def __init__(self,parent=None, designMode=False, with_filter_widget=True, perspective=None):
+        TaurusBaseTableWidget.__init__(self, parent=parent, designMode=designMode, 
+                                       with_filter_widget=with_filter_widget,
+                                       perspective=perspective, proxy=None)
+        self.setContextMenuPolicy(Qt.Qt.ActionsContextMenu)        
+        self._simpleViewAction = Qt.QAction("Simple View", self)
+        self._simpleViewAction.setCheckable(True)
+        self.connect(self._simpleViewAction, Qt.SIGNAL("toggled(bool)"), self.setSimpleView)
+        self.addAction(self._simpleViewAction)
+        self.registerConfigProperty(self.isSimpleView, self.setSimpleView, "simpleView")
+        
+    def isSimpleView(self):
+        return self._simpleView
+    
+    def setSimpleView(self, simpleview):
+        if simpleview == self.isSimpleView():
+            return
+        columnRoles = list(self.getQModel().ColumnRoles)
+        columnRoles[0] = columnRoles[0][-1] #account for the fact that the first element is a tuple instead of a role
+        columnIndexes = [columnRoles.index(r) for r in self._simpleViewColumns]
+        for i in range(self.getQModel().columnCount()):
+            hide = simpleview and (i not in columnIndexes)
+            self.tableView().setColumnHidden(i, hide)
+        self._simpleView = simpleview
+        self._simpleViewAction.setChecked(simpleview)
+        
+    def resetSimpleView(self):
+        self.setSimpleView(False)
     
     def createViewWidget(self):
         tableView = TaurusBaseTableWidget.createViewWidget(self)
@@ -773,7 +810,8 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         ret['group'] = 'Taurus Extra Sardana'
         ret['icon'] = ":/designer/table.png"
         return ret
-
+    
+    simpleView = Qt.pyqtProperty("bool", isSimpleView, setSimpleView, resetSimpleView)
 
 class MntGrpChannelPanel(Qt.QWidget):
     
