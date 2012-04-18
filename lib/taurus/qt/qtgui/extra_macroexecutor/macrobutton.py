@@ -37,6 +37,8 @@ from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.core.util import DEVICE_STATE_PALETTE
 
+import functools
+
 from ui_macrobutton import Ui_MacroButton
 
 class DoorStateListener(Qt.QObject):
@@ -106,7 +108,7 @@ class MacroButton(TaurusWidget):
 
         # In case state is not ON, and macro not triggered by the button, disable it
         door_available = True
-        if state != PyTango.DevState.ON and not self.ui.button.isChecked():
+        if state not in [PyTango.DevState.ON, PyTango.DevState.ALARM] and not self.ui.button.isChecked():
             door_available = False
             self.ui.progress.setValue(0)
             
@@ -122,7 +124,7 @@ class MacroButton(TaurusWidget):
 
         # QUESTIONS: THIS MACRO OBJECT HAS ALOS STEP, RANGE, ...
         # AND ALSO THE STATUS DICT... WHICH SHOULD I USE?
-        
+
         first_tuple = args[0]
         self.running_macro = first_tuple[0]
 
@@ -138,7 +140,7 @@ class MacroButton(TaurusWidget):
         self.ui.progress.setMaximum(step_range[1])
         self.ui.progress.setValue(step)
 
-        if state in ['stop', 'abort']:
+        if state in ['stop', 'abort', 'finish', 'alarm']:
             self.ui.button.setChecked(False)
         
         self.emit(Qt.SIGNAL('statusUpdated'), status_dict)
@@ -149,18 +151,23 @@ class MacroButton(TaurusWidget):
         if self.running_macro is None:
             return
         result = self.running_macro.getResult()
-        
         self.emit(Qt.SIGNAL('resultUpdated'), result)
+
+    def setText(self, text):
+        self.setButtonText(text)
 
     def setButtonText(self, text):
         # SHOULD ALSO BE POSSIBLE TO SET AN ICON
         self.ui.button.setText(text)
 
     def setMacroName(self, macro_name):
-        self.macro_name = macro_name
+        self.macro_name = str(macro_name)
 
-    def setMacroArgs(self, args):
-        self.macro_args = args
+    def updateMacroArgument(self, index, value):
+        while len(self.macro_args) < index + 1:
+            self.macro_args.append('')
+            
+        self.macro_args[index] = str(value)
 
     def button_clicked(self):
         if self.ui.button.isChecked():
@@ -183,6 +190,7 @@ class MacroButton(TaurusWidget):
     def abort(self):
         if self.door is None:
             return
+        self.door.PauseMacro()
         # Since this could be done by error (impatient users clicking more than once)
         # we provide a warning message that does not make the process too slow
         # It may also be useful and 'ABORT' at TaurusApplication level (macros+motions+acquisitions)
@@ -196,52 +204,104 @@ class MacroButton(TaurusWidget):
             self.door.abort(synch=True)
         else:
             self.ui.button.setChecked(True)
+            self.door.ResumeMacro()
 
 if __name__ == '__main__':
     import sys
     app = Qt.QApplication(sys.argv)
 
-    form = Qt.QWidget()
-    form.setLayout(Qt.QVBoxLayout())
+    w = Qt.QWidget()
+    w.setLayout(Qt.QGridLayout())
 
-    macro_cmd = Qt.QLineEdit()
-    form.layout().addWidget(macro_cmd)
+    col = 0
+    clear_button = Qt.QPushButton('clear')
+    w.layout().addWidget(clear_button, 0, col, 2, 1)
+    
+    col += 1
+    w.layout().addWidget(Qt.QLabel('macro name'), 0, col)
+    macro_name = Qt.QLineEdit()
+    w.layout().addWidget(macro_name, 1, col)
+
+    col += 1
+    w.layout().addWidget(Qt.QLabel('arg0'), 0, col)
+    arg0 = Qt.QLineEdit()
+    w.layout().addWidget(arg0, 1, col)
+
+    col += 1
+    w.layout().addWidget(Qt.QLabel('arg1'), 0, col)
+    arg1 = Qt.QLineEdit()
+    w.layout().addWidget(arg1, 1, col)
+
+    col += 1
+    w.layout().addWidget(Qt.QLabel('arg2'), 0, col)
+    arg2 = Qt.QLineEdit()
+    w.layout().addWidget(arg2, 1, col)
+
+    col += 1
+    w.layout().addWidget(Qt.QLabel('arg3'), 0, col)
+    arg3 = Qt.QLineEdit()
+    w.layout().addWidget(arg3, 1, col)
+
+    col += 1
+    w.layout().addWidget(Qt.QLabel('arg4'), 0, col)
+    arg4 = Qt.QLineEdit()
+    w.layout().addWidget(arg4, 1, col)
 
     from taurus.qt.qtcore.tango.sardana.macroserver import registerExtensions
     registerExtensions()
     mb = MacroButton()
-    mb.setModel('door/gcuni/1')
+    mb.setModel('door/gc/1')
 
-    form.layout().addWidget(mb)
+    w.layout().addWidget(mb, 2, 0, 2, 7)
+
+    w.layout().addWidget(Qt.QLabel('Result:'), 4, 0)
 
     result_label = Qt.QLabel()
-    form.layout().addWidget(result_label)
+    w.layout().addWidget(result_label, 4, 1, 1, 5)
 
     show_progress = Qt.QCheckBox('Progress')
     show_progress.setChecked(True)
-    form.layout().addWidget(show_progress)
+    w.layout().addWidget(show_progress, 5, 0)
 
-    def update_macro(text):
-        splitted = map(str,text.split(' '))
-        macro_name = splitted[0]
-        macro_args = splitted[1:]
+    # Change macro name
+    Qt.QObject.connect(macro_name, Qt.SIGNAL('textChanged(QString)'), mb.setMacroName)
+    Qt.QObject.connect(macro_name, Qt.SIGNAL('textChanged(QString)'), mb.setButtonText)
 
-        mb.setMacroName(macro_name)
-        mb.setMacroArgs(macro_args)
-
-        mb.setButtonText(macro_name)
+    # Change Nth macro argument
+    Qt.QObject.connect(arg0, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,0))
+    Qt.QObject.connect(arg1, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,1))
+    Qt.QObject.connect(arg2, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,2))
+    Qt.QObject.connect(arg3, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,3))
+    Qt.QObject.connect(arg4, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,4))
 
     def update_result(result):
         result_label.setText(str(result))
-
+    
     def toggle_progress(showProgress):
         visible = show_progress.isChecked()
         mb.toggleProgress(visible)
 
-    Qt.QObject.connect(macro_cmd, Qt.SIGNAL('textChanged(QString)'), update_macro)
-    Qt.QObject.connect(mb, Qt.SIGNAL('resultUpdated'), update_result)
-    Qt.QObject.connect(show_progress, Qt.SIGNAL('stateChanged(int)'), toggle_progress)
+    def clear_params():
+        for line_edit in [macro_name, arg0, arg1, arg2, arg3, arg4]:
+            line_edit.setText('')
 
-    macro_cmd.setText('ascan gc_dmot1 0 1 10 0.1')
-    form.show()
+    # Toggle progressbar
+    Qt.QObject.connect(show_progress, Qt.SIGNAL('stateChanged(int)'), toggle_progress)
+    # Update possible macro result
+    Qt.QObject.connect(mb, Qt.SIGNAL('resultUpdated'), update_result)
+    # Clear parameters
+    Qt.QObject.connect(clear_button, Qt.SIGNAL('clicked()'), clear_params)
+    
+    # Since everything is now connected, the parameters will be updated
+    macro_name.setText('ascan')
+    arg0.setText('gcdmot1')
+    arg1.setText('1')
+    arg2.setText('5')
+    arg3.setText('3')
+    arg4.setText('0.1')
+
+    #macro_name.setText('twice')
+    #arg0.setText('2')
+
+    w.show()
     sys.exit(app.exec_())
