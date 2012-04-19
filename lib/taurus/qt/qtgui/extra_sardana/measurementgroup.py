@@ -80,6 +80,7 @@ from taurus.core import TaurusElementType
 
 
 #===============================================================================
+DEFAULT_STRING_LENGTH = 80 #just an arbitrary value to use as default string length... 
 
 def createChannelDict(name, index=None, **kwargs):
     from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
@@ -104,25 +105,34 @@ def createChannelDict(name, index=None, **kwargs):
            'normalization': Normalization.No, # one of the Normalization enumeration members 
            'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
            }
-    #If the channel is a Tango one, try to guess data_type, shape and data_units
-    try:
-        attrproxy = PyTango.AttributeProxy(name) #@todo: maybe we could check whether this is a Tango attribute in a less crude way...
-        try: #attempt to fill data using the attribute configuration info
-            attrconf = attrproxy.get_config()
-            ret['data_units'] = attrconf.unit
-            ret['shape'] = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
-            ret['data_type'] = FROM_TANGO_TO_STR_TYPE[attrconf.data_type]
-        except:
-            pass
-        try: #now try to get more accurate info by reading the value 
-            v = attrproxy.read().value
-            ret['shape'] = numpy.shape(v)
-            ret['data_type'] = getattr(v, 'dtype', numpy.dtype(type(v))).name
-        except:
-            pass
-    except PyTango.DevFailed: 
-        pass 
     
+    #If the channel is a Tango one, try to guess data_type, shape and data_units
+    attrproxy = attrconf = value = None
+    try: 
+        attrproxy = PyTango.AttributeProxy(name)
+        attrconf = attrproxy.get_config()
+        value = attrproxy.read().value
+    except: 
+        pass
+    if value is not None:
+        shape = numpy.shape(value)
+        dtype = getattr(value, 'dtype', numpy.dtype(type(value))).name
+        ret['data_units'] = attrconf.unit
+    elif attrconf is not None:
+        shape = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
+        dtype = FROM_TANGO_TO_STR_TYPE[attrconf.data_type]
+        ret['data_units'] = attrconf.unit
+        
+    if dtype is not None:
+#        if dtype.startswith('str'):
+#            dtype='char'
+#            shape = list(shape)+[DEFAULT_STRING_LENGTH] 
+#        elif dtype == 'bool':
+#            dtype='int8'
+        ret['data_type'] = dtype 
+    if shape is not None:
+        ret['shape'] = shape     
+
     #now overwrite using the arguments
     ret.update(kwargs)
     
@@ -754,12 +764,12 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
                 return
         chname = str(chname)
         if chname == '(Other...)':
-            models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=True, windowTitle='Choose source of data',
+            models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=False, windowTitle='Choose source of data',
                                                             selectables = [TaurusElementType.Attribute])
             if not ok:
                 return
-            modelname = models[0]
-            qmodel.addChannel(chname=models[0], ctrlname='__tango__', unitname='0', external=True)
+            for m in models:
+                qmodel.addChannel(chname=m, ctrlname='__tango__', unitname='0', external=True)
         else:
             qmodel.addChannel(chname=chname)
         
