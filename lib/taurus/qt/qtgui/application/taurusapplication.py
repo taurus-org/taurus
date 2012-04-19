@@ -194,6 +194,9 @@ class TaurusApplication(Qt.QApplication, Logger):
             self.setOrganizationName(org_name)
         if org_domain is not None:
             self.setOrganizationDomain(org_domain)
+
+        self._out = None
+        self._err = None
         
         # if the constructor was called without a parser or with a parser that
         # doesn't contain version information and with an application
@@ -237,11 +240,13 @@ class TaurusApplication(Qt.QApplication, Logger):
     def __redirect_std(self):
         """Internal method to redirect stdout and stderr to log messages"""
         Logger.addLevelName(Logger.Critical + 10, 'CONSOLE')
-        self._out = STD(name="OUT", std=sys.stdout)
-        sys.stdout = self._out
-        self._err = STD(name="ERR", std=sys.stderr)
-        sys.stderr = self._err
-    
+        # only redirect if display hook has not been set (IPython does it)
+        if sys.displayhook == sys.__displayhook__:
+            self._out = STD(name="OUT", std=sys.stdout)
+            sys.stdout = self._out
+            self._err = STD(name="ERR", std=sys.stderr)
+            sys.stderr = self._err
+            
     def __buildLogFileName(self, prefix="/tmp", name=None):
         appName = str(self.applicationName())
         if not appName:
@@ -305,10 +310,12 @@ class TaurusApplication(Qt.QApplication, Logger):
                                                        maxBytes=maxBytes,
                                                        backupCount=backupCount)
             Logger.addRootLogHandler(f_h)
-            self._out.std = sys.__stdout__
-            self._out.addLogHandler(f_h)
-            self._err.std = sys.__stderr__
-            self._err.addLogHandler(f_h)
+            if self._out is not None:            
+                self._out.std = sys.__stdout__
+                self._out.addLogHandler(f_h)
+            if self._out is not None:            
+                self._err.std = sys.__stderr__
+                self._err.addLogHandler(f_h)
             self.info("Logs will be saved in %s", log_file_name)
         except:
             self.warning("'%s' could not be created. Logs will not be stored",
