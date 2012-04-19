@@ -57,7 +57,16 @@ class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseContainer, name, designMode=designMode)
-
+    
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        ret = TaurusBaseContainer.getQtDesignerPluginInfo()
+        if cls is TaurusWidget:
+            ret['module'] = 'taurus.qt.qtgui.container'
+            ret['group'] = 'Taurus Containers'
+            ret['icon'] = ":/designer/frame.png"
+            ret['container'] = True
+        return ret
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

@@ -188,6 +188,7 @@ class QGroupWidget(Qt.QWidget):
         
         ret = TaurusBaseContainer.getQtDesignerPluginInfo()
         ret['icon'] = ":/designer/groupwidget.png"
+        ret['container'] = cls is QGroupWidget
         return ret
         
     def content(self):

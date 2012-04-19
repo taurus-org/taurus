@@ -74,7 +74,11 @@ class TaurusFrame(Qt.QFrame, TaurusBaseContainer):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseContainer.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/frame.png"
+        if cls is TaurusFrame:
+            ret['module'] = 'taurus.qt.qtgui.container'
+            ret['group'] = 'Taurus Containers'
+            ret['icon'] = ":/designer/frame.png"
+            ret['container'] = True
         return ret
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

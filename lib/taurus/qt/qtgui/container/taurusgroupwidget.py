@@ -75,7 +75,11 @@ class TaurusGroupWidget(QGroupWidget, TaurusBaseContainer):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseContainer.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/groupwidget.png"
+        if cls is TaurusGroupWidget:
+            ret['module'] = 'taurus.qt.qtgui.container'
+            ret['group'] = 'Taurus Containers'
+            ret['icon'] = ":/designer/groupwidget.png"
+            ret['container'] = True
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

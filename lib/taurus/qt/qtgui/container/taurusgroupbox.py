@@ -111,7 +111,11 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseContainer.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/groupbox.png"
+        if cls is TaurusGroupBox:
+            ret['module'] = 'taurus.qt.qtgui.container'
+            ret['group'] = 'Taurus Containers'
+            ret['icon'] = ":/designer/groupbox.png"
+            ret['container'] = True
         return ret
 
     model = Qt.pyqtProperty("QString", TaurusBaseContainer.getModel, 

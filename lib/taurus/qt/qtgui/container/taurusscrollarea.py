@@ -97,7 +97,11 @@ class TaurusScrollArea(Qt.QScrollArea, TaurusBaseContainer):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseContainer.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/scrollarea.png"
+        if cls is TaurusScrollArea:
+            ret['module'] = 'taurus.qt.qtgui.container'
+            ret['group'] = 'Taurus Containers'
+            ret['icon'] = ":/designer/scrollarea.png"
+            ret['container'] = True
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
