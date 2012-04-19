@@ -176,6 +176,9 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     formats = { DataFormats.w5 : '.h5', 
                 DataFormats.w4 : '.h4', 
                 DataFormats.wx : '.xml' }
+    supported_dtypes = ('float32','float64','int8',
+                        'int16','int32','int64','uint8',
+                        'uint16','uint32','uint64') #note that 'char' is not supported yet!
         
     def __init__(self, filename=None, macro=None, overwrite=False, **pars):
         BaseFileRecorder.__init__(self, **pars)
@@ -222,8 +225,19 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.fd.makegroup(self.entryname,"NXentry") 
         self.fd.opengroup(self.entryname,"NXentry") 
         
-        self.datadesc = env['datadesc']
         
+        #adapt the datadesc to the NeXus requirements
+        self.datadesc = []
+        for dd in env['datadesc']:
+            dd.label = self.sanitizeName(dd.label)
+            if dd.dtype == 'bool':
+                dd.dtype = 'int8'
+                self.debug('%s will be stored with type=%s',dd.name,dd.dtype)
+            if dd.dtype in self.supported_dtypes:
+                self.datadesc.append(dd)
+            else:
+                self.warning('%s will not be stored. Reason: type %s not supported',dd.name,dd.dtype)
+                        
         #make a dictionary out of env['instrumentlist'] (use fullnames -paths- as keys)
         self.instrDict={}
         for inst in env.get('instrumentlist',[]):
@@ -297,6 +311,10 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 
                 if not hasattr(data, 'shape'):
                     data = numpy.array([data], dtype=dd.dtype)
+                elif dd.dtype != data.dtype.name:
+                    self.debug('%s casted to %s (was %s)',dd.label, dd.dtype, data.dtype.name)
+                    data = data.astype(dd.dtype)
+                    
                 slab_offset = [record.recordno]+[0]*len(dd.shape)
                 shape = [1]+list(numpy.shape(data))
                 try:
@@ -397,7 +415,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         plots1d_names = {}
         i = 1
         for dd in self.datadesc:
-            print dd.label, getattr(dd, 'plot_type','---')
+            #print dd.label, getattr(dd, 'plot_type','---')
             ptype = getattr(dd, 'plot_type', PlotType.No)
             if ptype == PlotType.No:
                 continue
@@ -471,6 +489,14 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             except:
                 self.fd.makegroup(g, group_type)
                 self.fd.opengroup(g, group_type)
+                
+    def sanitizeName(self, name):
+        '''It returns a version of the given name that can be used as a python
+        variable (and conforms to NeXus best-practices for dataset names'''
+        #make sure the name does not start with a digit 
+        if name[0].isdigit(): name="_%s"%name 
+        #substitute whitespaces by underscores and remove other non-alphanumeric characters
+        return "".join(x for x in name.replace(' ','_') if x.isalnum() or x=='_')
 
 
 class SPEC_FileRecorder(BaseFileRecorder):
