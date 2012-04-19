@@ -59,13 +59,13 @@ AcquisitionMap = {
 
 class PoolAcquisition(PoolAction):
     
-    def __init__(self, pool, name="Acquisition"):
-        PoolAction.__init__(self, pool, name)
+    def __init__(self, main_element, name="Acquisition"):
+        PoolAction.__init__(self, main_element, name)
         ctname = name + ".CTAcquisition"
         zerodname = name + ".0DAcquisition"
         iorname = name + ".IORAcquisition"
-        self._0d_acq = zd_acq = Pool0DAcquisition(pool, name=zerodname)
-        self._ct_acq = PoolCTAcquisition(pool, name=ctname, slaves=(zd_acq,))
+        self._0d_acq = zd_acq = Pool0DAcquisition(main_element, name=zerodname)
+        self._ct_acq = PoolCTAcquisition(main_element, name=ctname, slaves=(zd_acq,))
     
     def run(self, *args, **kwargs):
         """Runs this action"""
@@ -147,21 +147,21 @@ class Channel(PoolActionItem):
 
 class PoolCTAcquisition(PoolAction):
     
-    def __init__(self, pool, name="CTAcquisition", slaves=None):
+    def __init__(self, main_element, name="CTAcquisition", slaves=None):
         self._channels = None
 
         if slaves is None:
             slaves = ()
         self._slaves = slaves
 
-        PoolAction.__init__(self, pool, name)
+        PoolAction.__init__(self, main_element, name)
     
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
         
            :param: config"""
         
-        pool = self._pool
+        pool = self.pool
         
         # prepare data structures
         self._aborted = False
@@ -342,9 +342,9 @@ class PoolCTAcquisition(PoolAction):
 
 class Pool0DAcquisition(PoolAction):
     
-    def __init__(self, pool, name="0DAcquisition"):
+    def __init__(self, main_element, name="0DAcquisition"):
         self._channels = None
-        PoolAction.__init__(self, pool, name)
+        PoolAction.__init__(self, main_element, name)
         
     
     def start_action(self, *args, **kwargs):
@@ -352,7 +352,7 @@ class Pool0DAcquisition(PoolAction):
         
            :param: config"""
         
-        pool = self._pool
+        pool = self.pool
         
         # prepare data structures
         self._aborted = False

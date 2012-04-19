@@ -149,7 +149,14 @@ class MotorGroup(PoolGroupDevice):
     def write_Position(self, attr):
         position = attr.get_write_value()
         self.debug("write_Position(%s)", position)
-        self.motor_group.position = position
+        try:
+            self.wait_for_operation()
+        except:
+            raise Exception("Cannot move: already in motion")
+        try:
+            self.motor_group.position = position
+        except PoolException, pe:
+            throw_sardana_exception(pe)
         
     is_Position_allowed = _is_allowed
     

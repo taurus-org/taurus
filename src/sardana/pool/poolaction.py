@@ -200,10 +200,10 @@ class PoolAction(Logger):
     """A generic class to handle any type of operation (like motion or
     acquisition)"""
     
-    def __init__(self, pool, name="GlobalAction"):
+    def __init__(self, main_element, name="GlobalAction"):
         Logger.__init__(self, name)
         self._action_run_lock = threading.Lock()
-        self._pool = pool
+        self._main_element = weakref.ref(main_element)
         self._aborted = False
         self._stopped = False
         self._elements = []
@@ -213,6 +213,16 @@ class PoolAction(Logger):
         self._running = False
         self._state_info = OperationInfo()
         self._value_info = OperationInfo()
+    
+    def get_main_element(self):
+        return self._main_element()
+    
+    main_element = property(get_main_element)
+    
+    def get_pool(self):
+        return self.main_element.pool
+    
+    pool = property(get_pool)
     
     def clear_elements(self):
         """Clears all elements from this action"""

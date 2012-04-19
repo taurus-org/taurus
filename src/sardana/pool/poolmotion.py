@@ -165,8 +165,8 @@ class PoolMotionItem(PoolActionItem):
 class PoolMotion(PoolAction):
     """This class manages motion actions"""
     
-    def __init__(self, pool, name="GlobalMotion"):
-        PoolAction.__init__(self, pool, name)
+    def __init__(self, main_element, name="GlobalMotion"):
+        PoolAction.__init__(self, main_element, name)
         self._motion_info = None
         self._motion_sleep_time = None
         self._nb_states_per_position = None
@@ -245,7 +245,7 @@ class PoolMotion(PoolAction):
         
         items = kwargs.pop("items")
         
-        pool = self._pool
+        pool = self.pool
         
         # prepare data structures
         self._aborted = False

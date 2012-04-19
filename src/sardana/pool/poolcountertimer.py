@@ -36,6 +36,7 @@ from sardana.sardanaevent import EventType
 from poolelement import PoolElement
 from poolacquisition import PoolCTAcquisition
 
+
 class PoolCounterTimer(PoolElement):
 
     def __init__(self, **kwargs):
@@ -43,7 +44,7 @@ class PoolCounterTimer(PoolElement):
         self._value = None
         self._wvalue = None
         acq_name = "%s.Acquisition" % self._name
-        self.set_action_cache(PoolCTAcquisition(self.pool, name=acq_name))
+        self.set_action_cache(PoolCTAcquisition(self, name=acq_name))
     
     def get_type(self):
         return ElementType.CTExpChannel

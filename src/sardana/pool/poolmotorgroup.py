@@ -69,7 +69,7 @@ class PoolMotorGroup(PoolGroupElement):
     
     def _create_action_cache(self):
         motion_name = "%s.Motion" % self._name
-        return PoolMotion(self.pool, motion_name)
+        return PoolMotion(self, motion_name)
         
     def get_type(self):
         return ElementType.MotorGroup

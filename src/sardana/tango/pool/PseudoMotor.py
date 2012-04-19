@@ -186,10 +186,11 @@ class PseudoMotor(PoolElementDevice):
     def write_Position(self, attr):
         position = attr.get_write_value()
         self.debug("write_Position(%s)", position)
+        try:
+            self.wait_for_operation()
+        except:
+            raise Exception("Cannot move: already in motion")
         pseudo_motor = self.pseudo_motor
-        while pseudo_motor.is_in_operation():
-            pseudo_motor.info("wait for motion to finish")            
-            time.sleep(0.01)
         try:
             pseudo_motor.position = position
         except PoolException, pe:

@@ -74,7 +74,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     
     def _create_action_cache(self):
         motion_name = "%s.Motion" % self._name
-        return PoolMotion(self.pool, motion_name)
+        return PoolMotion(self, motion_name)
 
     def get_action_cache(self):
         return self._get_action_cache()

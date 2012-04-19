@@ -79,7 +79,7 @@ class PoolMotor(PoolElement):
         self._base_rate = None
         self._instability_time = None
         motion_name = "%s.Motion" % self._name
-        self.set_action_cache(PoolMotion(self.pool, motion_name))
+        self.set_action_cache(PoolMotion(self, motion_name))
     
     def get_type(self):
         return ElementType.Motor

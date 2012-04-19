@@ -31,6 +31,8 @@ __all__ = ["PoolDevice", "PoolDeviceClass",
 
 __docformat__ = 'restructuredtext'
 
+import time
+
 from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
     DevDouble, DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
     IMAGE, READ_WRITE, READ, AttReqType, AttrData
@@ -51,6 +53,8 @@ class PoolDevice(SardanaDevice):
     ExtremeErrorStates = DevState.FAULT, DevState.UNKNOWN
     BusyStates = DevState.MOVING, DevState.RUNNING
 
+    BusyRetries = 3    
+    
     def __init__(self, dclass, name):
         SardanaDevice.__init__(self, dclass, name)
     
@@ -270,7 +274,14 @@ class PoolDevice(SardanaDevice):
             self.error(msg)
             self.debug("Details:", exc_info=1)
             return msg
-
+    
+    def wait_for_operation(self):
+        element, n = self.element, self.BusyRetries
+        while element.is_in_operation():
+            if n == 0:
+                raise Exception("Wait for operation timedout")
+            time.sleep(0.01)
+            n = n - 1
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""

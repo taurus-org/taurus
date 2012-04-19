@@ -112,7 +112,7 @@ class PoolMeasurementGroup(PoolGroupElement):
     
     def _create_action_cache(self):
         acq_name = "%s.Acquisition" % self._name
-        return PoolAcquisition(self.pool, acq_name)
+        return PoolAcquisition(self, acq_name)
     
     def get_type(self):
         return ElementType.MeasurementGroup

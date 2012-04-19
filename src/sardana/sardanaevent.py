@@ -32,9 +32,9 @@ __docformat__ = 'restructuredtext'
 
 import weakref
 import operator
+import collections
 
 from taurus.core.util import CallableRef, BoundMethodWeakref
-
 
 def _get_callable_ref(listener, callback=None):
     """Returns a callable reference for the given listener"""
@@ -48,8 +48,9 @@ def _get_callable_ref(listener, callback=None):
 class EventGenerator(object):
     """A class capable of generating events to their listeners"""
     
-    def __init__(self):
+    def __init__(self, max_queue_len=10):
         self._listeners = []
+        self._event_queue = collections.deque(maxlen=max_queue_len)
     
     def _listener_died(self, weak_listener):
         """Callback executed when a listener dies"""
@@ -97,6 +98,10 @@ class EventGenerator(object):
         return len(self._listeners) > 0
         
     def fire_event(self, event_type, event_value, listeners=None):
+        self.flush_queue()
+        self._fire_event(event_type, event_value, listeners=listeners)
+
+    def _fire_event(self, event_type, event_value, listeners=None):
         """Sends an event to all listeners or a specific one"""
         if listeners is None:
             listeners = self._listeners
@@ -118,6 +123,17 @@ class EventGenerator(object):
             elif operator.isCallable(real_listener):
                 real_listener(self, event_type, event_value)
 
+    def queue_event(self, event_type, event_value, listeners=None):
+        queue = self._event_queue
+        queue.append((event_type, event_value, listeners))
+    
+    def flush_queue(self):
+        queue = self._event_queue
+        n = len(queue)
+        while n>0:
+            self._fire_event(*queue.pop())
+            n = n - 1
+            
 
 class EventReceiver(object):
     """A simple class that implements usefull features for a class which is 

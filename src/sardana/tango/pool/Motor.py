@@ -166,7 +166,7 @@ class Motor(PoolElementDevice):
     
     def read_Position(self, attr):
         motor = self.motor
-        use_cache = motor.is_action_running() and not self.Force_HW_Read
+        use_cache = motor.is_in_operation() and not self.Force_HW_Read
         self.debug("read_Position(cache=%s)", use_cache)
         state = motor.get_state(cache=use_cache, propagate=0)
         position = motor.get_position(cache=use_cache, propagate=0)
@@ -181,7 +181,14 @@ class Motor(PoolElementDevice):
     def write_Position(self, attr):
         position = attr.get_write_value()
         self.debug("write_Position(%s)", position)
-        self.motor.position = position
+        try:
+            self.wait_for_operation()
+        except:
+            raise Exception("Cannot move: already in motion")
+        try:
+            self.motor.position = position
+        except PoolException, pe:
+            throw_sardana_exception(pe)
     
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
@@ -215,7 +222,7 @@ class Motor(PoolElementDevice):
     
     def read_DialPosition(self, attr):
         motor = self.motor
-        use_cache = motor.is_action_running() and not self.Force_HW_Read
+        use_cache = motor.is_in_operation() and not self.Force_HW_Read
         state = motor.get_state(cache=use_cache, propagate=0)
         dial_position = motor.get_dial_position(cache=use_cache, propagate=0)
         if dial_position.error:

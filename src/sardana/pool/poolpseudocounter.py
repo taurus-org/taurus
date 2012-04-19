@@ -72,7 +72,7 @@ class PoolPseudoCounter(PoolBaseGroup, PoolElement):
     
     def _create_action_cache(self):
         acq_name = "%s.Acquisition" % self._name
-        return PoolAcquisition(self.pool, acq_name)
+        return PoolAcquisition(self, acq_name)
     
     def get_action_cache(self):
         return self._get_action_cache()

@@ -126,7 +126,8 @@ class Pool0DExpChannel(PoolElement):
         PoolElement.__init__(self, **kwargs)
         self._aborted = False
         self.set_cumulation_type("Average")
-        self.set_action_cache(Pool0DAcquisition("%s.Acquisition" % self._name))
+        acq_name = "%s.Acquisition" % self._name
+        self.set_action_cache(Pool0DAcquisition(self, acq_name))
         
     def get_type(self):
         return ElementType.ZeroDExpChannel
