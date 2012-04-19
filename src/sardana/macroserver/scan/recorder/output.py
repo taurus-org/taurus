@@ -185,6 +185,8 @@ class OutputRecorder(DataRecorder):
                 cell = str(cell_data.shape)
             elif cell_data is None:
                 cell = "<no data>"
+            elif isinstance(cell_data, basestring):
+                cell = " <string>"
             else:
                 cell %= record.data
             scan_line += '%s%s%s' % (sep, string.center(cell, c_nb), sep)
