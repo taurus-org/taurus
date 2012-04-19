@@ -27,7 +27,8 @@
 
 __docformat__ = 'restructuredtext'
 
-__all__ = ["GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
+__all__ = ["exception_str",
+           "GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "tango_protect", "to_tango_state", "to_tango_type_format",
            "to_tango_type", "to_tango_access", "to_tango_attr_info",
            "from_tango_state_to_state", "throw_sardana_exception",
@@ -38,6 +39,7 @@ import sys
 import os.path
 import functools
 import string
+import traceback
 
 from PyTango import Util, Database, DbDevInfo, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
@@ -182,6 +184,11 @@ TACCESS_MAP = {
     DataAccess.ReadOnly  : READ,
     DataAccess.ReadWrite : READ_WRITE,
 }
+
+def exception_str(etype=None, value=None, sep='\n'):
+    if etype is None:
+        etype, value = sys.exc_info()[:2]
+    return sep.join(traceback.format_exception_only(etype, value))
 
 def to_tango_access(access):
     return TACCESS_MAP.get(access, READ_WRITE)

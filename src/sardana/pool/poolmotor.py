@@ -122,7 +122,7 @@ class PoolMotor(PoolElement):
             state_str = "Stopped"
         elif state == State.Moving:
             state_str = "Moving"
-            motion = self.operation
+            motion = self.get_operation()
             if motion is None:
                 state_str += " (external)"
             else:

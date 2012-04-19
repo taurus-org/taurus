@@ -59,7 +59,7 @@ class SardanaDevice(Device_4Impl, Logger):
         # still not thread safe so we have this lock to protect
         # Wa can't always use methods which use internally the
         # C++ AutoTangoMonitor because it blocks the entire tango device.
-        self.tango_lock = threading.Lock()
+        self.tango_lock = threading.RLock()
         
     def init(self, name):
         util = Util.instance()
@@ -162,6 +162,20 @@ class SardanaDevice(Device_4Impl, Logger):
             if value is None:
                 attr.set_quality(AttrQuality.ATTR_INVALID, fire_event)
                 return
+            
+            # some versions of Tango have a memory leak if you do:
+            #     state_attr.set_value(DevState.ON)
+            #     state_attr.fire_change_event()
+            # so this workaround solves the memory leak:
+            attr_name = attr.get_name().lower()
+            if attr_name == "state":
+                self.set_state(value)
+                attr.fire_change_event()
+                return
+            elif attr_name == "status":
+                self.set_status(value)
+                attr.fire_change_event()
+                return 
             
             if timestamp is not None and not isinstance(timestamp, TimeVal):
                 timestamp = TimeVal.fromtimestamp(timestamp)

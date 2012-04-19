@@ -422,3 +422,10 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         #surpass the PoolElement.abort because it doesn't do what we want
         PoolBaseElement.abort(self)
         PoolBaseGroup.abort(self)
+
+    # --------------------------------------------------------------------------
+    # involved in an operation
+    # --------------------------------------------------------------------------
+    
+    def get_operation(self):
+        return PoolBaseGroup.get_operation(self)

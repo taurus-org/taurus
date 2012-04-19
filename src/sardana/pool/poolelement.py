@@ -327,7 +327,10 @@ class PoolBaseElement(PoolObject):
     
     def is_in_operation(self):
         """Returns True if this element is involved in any operation"""
-        return self._operation is not None
+        return self.get_operation() is not None
+    
+    def is_in_local_operation(self):
+        return self.get_operation() == self.get_action_cache()
     
     def get_operation(self):
         return self._operation
@@ -343,10 +346,6 @@ class PoolBaseElement(PoolObject):
     
     def clear_operation(self):
         return self.set_operation(None)
-        
-    
-    operation = property(get_operation, set_operation,
-                         doc="operation in which the element is involved")
 
 
 class PoolElement(PoolBaseElement):

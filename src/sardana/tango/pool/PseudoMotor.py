@@ -29,6 +29,7 @@ __all__ = ["PseudoMotor", "PseudoMotorClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 
 from PyTango import Util, DevFailed, Except, READ, READ_WRITE, SCALAR, \
@@ -40,8 +41,8 @@ from taurus.core.util.log import InfoIt, DebugIt
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import to_tango_type_format, to_tango_state, \
-    throw_sardana_exception
+from sardana.tango.core.util import exception_str, \
+    to_tango_type_format, to_tango_state, throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 
@@ -87,57 +88,56 @@ class PseudoMotor(PoolElementDevice):
             self.pseudo_motor = pseudo_motor
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
-        
+
     def on_pseudo_motor_changed(self, event_source, event_type, event_value):
+        try:
+            self._on_pseudo_motor_changed(event_source, event_type, event_value)
+        except:
+            import taurus.core.util.tb
+            dump = "".join(taurus.core.util.tb.format_frame_stacks())
+            msg = 'Error occured "on_pseudo_motor_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.pseudo_motor.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+            self.debug("Process dump:\n%s", dump)
+            sys.exit()
+
+    def _on_pseudo_motor_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-
-        t = time.time()
+        
+        timestamp = time.time()
         name = event_type.name.lower()
         multi_attr = self.get_device_attr()
-        attr = multi_attr.get_attr_by_name(name)
-        quality = AttrQuality.ATTR_VALID
-        
-        recover = False
-        if event_type.priority > 1 and attr.is_check_change_criteria():
-            attr.set_change_event(True, False)
-            recover = True
-        
         try:
-            if name == "state":
-                state = self.calculate_tango_state(event_value)
-                attr.set_value(state)
-                attr.fire_change_event()
-                #self.push_change_event(name, state)
-            elif name == "status":
-                status = self.calculate_tango_status(event_value)
-                attr.set_value(status)
-                attr.fire_change_event()
-                #self.push_change_event(name, status)
-            else:
-                if isinstance(event_value, SardanaAttribute):
-                    if event_value.error:
-                        dev_failed = Except.to_dev_failed(*event_value.exc_info)
-                        attr.fire_change_event(dev_failed)
-                        return
-                    t = event_value.timestamp
-                    event_value = event_value.value
+            attr = multi_attr.get_attr_by_name(name)
+        except DevFailed:
+            return
+        quality = AttrQuality.ATTR_VALID
+        priority = event_type.priority
+        error = None
+        
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
                 
-                state = self.pseudo_motor.get_state()
-                
-                if state == State.Moving and name == "position":
-                    quality = AttrQuality.ATTR_CHANGING
-                
-                attr.set_value_date_quality(event_value, t, quality)
-                attr.fire_change_event()
-                #self.push_change_event(name, event_value, t, quality)
-                
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
-
+            state = self.pseudo_motor.get_state(propagate=0)
+            
+            if state == State.Moving and name == "position":
+                quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error)
+                           
     def always_executed_hook(self):
         #state = to_tango_state(self.pseudo_motor.get_state(cache=False))
         pass
@@ -168,12 +168,13 @@ class PseudoMotor(PoolElementDevice):
             data_info[0][0] = ttype
         return PoolElementDevice.add_standard_attribute(self, attr_name,
             data_info, attr_info, read, write, is_allowed)
-        
+
     def read_Position(self, attr):
         pseudo_motor = self.pseudo_motor
-        use_cache = pseudo_motor.is_action_running() and not self.Force_HW_Read
-        position = pseudo_motor.get_position(cache=use_cache)
-        state = pseudo_motor.get_state(cache=use_cache)
+        use_cache = pseudo_motor.is_in_operation() and not self.Force_HW_Read
+        self.debug("read_Position(cache=%s)", use_cache)
+        position = pseudo_motor.get_position(cache=use_cache, propagate=0)
+        state = pseudo_motor.get_state(cache=use_cache, propagate=0)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
         quality = None
@@ -183,8 +184,14 @@ class PseudoMotor(PoolElementDevice):
                            priority=0, timestamp=position.timestamp)
     
     def write_Position(self, attr):
+        position = attr.get_write_value()
+        self.debug("write_Position(%s)", position)
+        pseudo_motor = self.pseudo_motor
+        while pseudo_motor.is_in_operation():
+            pseudo_motor.info("wait for motion to finish")            
+            time.sleep(0.01)
         try:
-            self.pseudo_motor.position = attr.get_write_value()
+            pseudo_motor.position = position
         except PoolException, pe:
             throw_sardana_exception(pe)
     

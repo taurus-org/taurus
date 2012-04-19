@@ -102,7 +102,7 @@ class MotorGroup(PoolGroupDevice):
         elif name == "status":
             event_value = self.calculate_tango_status(event_value)
         else:
-            state = self.motor_group.get_state()
+            state = self.motor_group.get_state(propagate=0)
             
             if name == "position":
                 if state == State.Moving:
@@ -130,15 +130,16 @@ class MotorGroup(PoolGroupDevice):
                 Except.throw_python_exception(*position.exc_info)
             positions.append(position.value)
         return positions
-    
+
     def read_Position(self, attr):
         # if motors are moving their position is already being updated with a
         # high frequency so don't bother overloading and just get the cached
         # values
         motor_group = self.motor_group
-        use_cache = motor_group.is_action_running() and not self.Force_HW_Read
-        positions = motor_group.get_position(cache=use_cache)
-        state = motor_group.get_state(cache=use_cache)
+        use_cache = motor_group.is_in_operation() and not self.Force_HW_Read
+        self.debug("read_Position(cache=%s)", use_cache)
+        positions = motor_group.get_position(cache=use_cache, propagate=0)
+        state = motor_group.get_state(cache=use_cache, propagate=0)
         positions = self._to_motor_positions(positions)
         quality = None
         if state == State.Moving:
@@ -146,7 +147,9 @@ class MotorGroup(PoolGroupDevice):
         self.set_attribute(attr, value=positions, quality=quality, priority=0)
         
     def write_Position(self, attr):
-        self.motor_group.position = attr.get_write_value()
+        position = attr.get_write_value()
+        self.debug("write_Position(%s)", position)
+        self.motor_group.position = position
         
     is_Position_allowed = _is_allowed
     

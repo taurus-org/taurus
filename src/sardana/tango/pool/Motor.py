@@ -42,13 +42,9 @@ from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import to_tango_type_format, to_tango_state
+from sardana.tango.core.util import exception_str, \
+    to_tango_type_format, to_tango_state
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
-
-def exception_str(etype=None, value=None, sep='\n'):
-    if etype is None:
-        etype, value = sys.exc_info()[:2]
-    return sep.join(traceback.format_exception_only(etype, value))
 
 
 class Motor(PoolElementDevice):
@@ -130,7 +126,7 @@ class Motor(PoolElementDevice):
                 timestamp = event_value.timestamp
                 event_value = event_value.value
                 
-            state = self.motor.get_state()
+            state = self.motor.get_state(propagate=0)
             
             if state == State.Moving and name in ("position", "dialposition"):
                 quality = AttrQuality.ATTR_CHANGING
@@ -171,8 +167,9 @@ class Motor(PoolElementDevice):
     def read_Position(self, attr):
         motor = self.motor
         use_cache = motor.is_action_running() and not self.Force_HW_Read
-        state = motor.get_state(cache=use_cache)
-        position = motor.get_position(cache=use_cache)
+        self.debug("read_Position(cache=%s)", use_cache)
+        state = motor.get_state(cache=use_cache, propagate=0)
+        position = motor.get_position(cache=use_cache, propagate=0)
         if position.error:
             Except.throw_python_exception(*position.exc_info)
         quality = None
@@ -182,7 +179,9 @@ class Motor(PoolElementDevice):
                            priority=0, timestamp=position.timestamp)
     
     def write_Position(self, attr):
-        self.motor.position = attr.get_write_value()
+        position = attr.get_write_value()
+        self.debug("write_Position(%s)", position)
+        self.motor.position = position
     
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
@@ -217,11 +216,12 @@ class Motor(PoolElementDevice):
     def read_DialPosition(self, attr):
         motor = self.motor
         use_cache = motor.is_action_running() and not self.Force_HW_Read
-        dial_position = self.motor.get_dial_position(cache=use_cache)
+        state = motor.get_state(cache=use_cache, propagate=0)
+        dial_position = motor.get_dial_position(cache=use_cache, propagate=0)
         if dial_position.error:
             Except.throw_python_exception(*dial_position.exc_info)
         quality = None
-        if self.get_state() == DevState.MOVING:
+        if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=dial_position.value, quality=quality,
                            priority=0, timestamp=dial_position.timestamp)

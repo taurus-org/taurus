@@ -280,6 +280,18 @@ class PoolBaseGroup(PoolContainer):
                 self.error("Unable to abort controller %s", ctrl.name)
                 self.debug("Details:", exc_info=1)
 
+    # --------------------------------------------------------------------------
+    # involved in an operation
+    # --------------------------------------------------------------------------
+    
+    def get_operation(self):
+        for ctrl, elements in self.get_physical_elements().items():
+            for element in elements:
+                op = element.get_operation()
+                if op is not None:
+                    return op
+        return None
+
 
 class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     
@@ -344,3 +356,11 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     def abort(self):
         PoolBaseElement.abort(self)
         PoolBaseGroup.abort(self)
+
+    # --------------------------------------------------------------------------
+    # involved in an operation
+    # --------------------------------------------------------------------------
+    
+    def get_operation(self):
+        return PoolBaseGroup.get_operation(self)
+        

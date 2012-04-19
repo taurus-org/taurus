@@ -38,7 +38,7 @@ import threading
 import copy
 
 from taurus.core.util import Logger
-#from taurus.core.util import DebugIt, InfoIt
+from taurus.core.util import DebugIt, InfoIt
 
 from sardana import State
 from poolbase import PoolObject
@@ -202,6 +202,7 @@ class PoolAction(Logger):
     
     def __init__(self, pool, name="GlobalAction"):
         Logger.__init__(self, name)
+        self._action_run_lock = threading.Lock()
         self._pool = pool
         self._aborted = False
         self._stopped = False
@@ -302,10 +303,8 @@ class PoolAction(Logger):
         :return: True if action is running or False otherwise
         :rtype: bool"""
         return self._running
-    
+
     def run(self, *args, **kwargs):
-        if self._running:
-            raise Exception("already running")
         self._running = True
         synch = kwargs.pop("synch", False)
         
@@ -351,7 +350,7 @@ class PoolAction(Logger):
         try:
             hook()
         except:
-            self.warning("Exception running faction finish hook", exc_info=1)
+            self.warning("Exception running function finish hook", exc_info=1)
     
     def stop_action(self, *args, **kwargs):
         """Stop procedure for this action."""
