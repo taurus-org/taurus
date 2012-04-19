@@ -809,7 +809,7 @@ class TaurusTrend(TaurusPlot):
         #call the parent class method
         TaurusPlot.setXIsTime(self, enable, axis=axis) #the axis is changed here
         #set the replot timer if needed
-        if enable:
+        if enable and not self._designMode:
             if self._replotTimer is None:
                 self._dirtyPlot = True
                 self._replotTimer = Qt.QTimer()
