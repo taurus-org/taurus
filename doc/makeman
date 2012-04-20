@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#This is a helper script for creating the man pages of the taurus scripts 
+#It requires the help2man utility to be installed
+#This is a quick-and-dirty solution for taurus maintenance only --don't complain about bugs!
+
+DOCDIR=`pwd`
+SCRIPTSDIR="$DOCDIR/../scripts"
+
+cd $SCRIPTSDIR
+
+echo $SCRIPTSDIR
+for f in `ls`
+  do echo "--------------------"
+  echo help2man -N -o "$DOCDIR/man/$f.1" $f
+  help2man -N -o "$DOCDIR/man/$f.1" $f
+  done
