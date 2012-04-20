@@ -513,10 +513,10 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
 class TaurusDbDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements is a 3 level tree organized
        as:
+       
            - <domain>
-               - <family>
-                   - <member>
-    """
+           - <family>
+           - <member>"""
     ColumnRoles = (ElemType.Device, ElemType.Domain, ElemType.Family, ElemType.Member, ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
@@ -560,13 +560,14 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
     
     
 class TaurusDbServerModel(TaurusDbBaseModel):
-    """A Qt model that structures server elements in a tree organized as:
-       - <Server name>
-           - <Server instance>
-               - <Class>
-                   - <Device>
-                       - <Attribute>
-    """
+    """A Qt model that structures server elements in a tree organized
+    as:
+        
+        - <Server name>
+        - <Server instance>
+        - <Class>
+        - <Device>
+        - <Attribute>"""
 
     ColumnNames = "Server", "Alive", "Host"
     ColumnRoles = (ElemType.Server, ElemType.ServerName, ElemType.ServerInstance, ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
@@ -583,7 +584,7 @@ class TaurusDbServerModel(TaurusDbBaseModel):
         server_dict = {}
         
         server_names = data.getServerNames()
-        for server_name in data.getServerNames():
+        for server_name in server_names:
             server = servers[server_name]
             name, instance = server.serverName(), server.serverInstance()
             

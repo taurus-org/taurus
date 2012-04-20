@@ -292,6 +292,7 @@ class CurvesAppearanceChooser(Qt.QWidget,ui_curvesAppearanceChooser.Ui_curvesApp
         
     def onApply(self):
         """Apply does 2 things:
+        
             - It updates `self.curvePropDict` using the current values
               choosen in the dialog
             - It emits a curveAppearanceChanged signal that indicates the names

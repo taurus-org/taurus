@@ -30,7 +30,6 @@ __all__ = ["SardanaElementTreeWidget"]
 __docformat__ = 'restructuredtext'
 
 from taurus.core import TaurusDevice
-from taurus.qt import Qt
 from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, \
     SardanaElementTypeModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget

@@ -31,6 +31,8 @@ __all__ = ["TaurusBaseComponent", "TaurusBaseWidget", "TaurusBaseWritableWidget"
 
 __docformat__ = 'restructuredtext'
 
+import sys
+
 import PyTango
 
 from taurus.qt import Qt
@@ -208,12 +210,14 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        """The basic implementation of the event handling chain is as follows:
-               - eventReceived just calls :meth:`fireEvent` which emits a "taurusEvent"
-                 PyQt signal that is connected (by :meth:`preAttach`) to the
-                 :meth:`filterEvent` method.
-               - After filtering, :meth:`handleEvent` is invoked with the resulting
-                 filtered event
+        """The basic implementation of the event handling chain is as
+        follows:
+               
+            - eventReceived just calls :meth:`fireEvent` which emits a "taurusEvent"
+              PyQt signal that is connected (by :meth:`preAttach`) to the
+              :meth:`filterEvent` method.
+            - After filtering, :meth:`handleEvent` is invoked with the resulting
+              filtered event
         
         .. note::
             in the earlier steps of the chain (i.e., in :meth:`eventReceived`/:meth:`fireEvent`),
@@ -1403,13 +1407,15 @@ class TaurusBaseWidget(TaurusBaseComponent):
         return mimeData        
     
     def mousePressEvent(self, event):
-        '''reimplemented to record the start position for drag events. See :class:`QWidget'''
+        '''reimplemented to record the start position for drag events.
+        See :class:`~PyQt4.QtGui.QWidget`'''
         if self._dragEnabled and event.button() == Qt.Qt.LeftButton:
             self.dragStartPosition = Qt.QPoint(event.pos()) #I need to copy it explicetely to avoid a bug with PyQt4.4 
         self.getQtClass().mousePressEvent(self, event)
         
     def mouseMoveEvent(self, event):
-        '''reimplemented to provide drag events. See :class:`QWidget'''
+        '''reimplemented to provide drag events.
+        See :class:`~PyQt4.QtGui.QWidget`'''
         if not self._dragEnabled or not event.buttons() & Qt.Qt.LeftButton:
             return self.getQtClass().mouseMoveEvent(self, event)
         if (event.pos() - self.dragStartPosition).manhattanLength()  < Qt.QApplication.startDragDistance():

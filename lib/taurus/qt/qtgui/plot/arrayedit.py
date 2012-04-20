@@ -98,7 +98,7 @@ class ArrayEditor(Qt.QWidget, ui_ArrayEditor.Ui_ArrayEditor):
         self.ctrlLayout = Qt.QHBoxLayout(self.controllersContainer)
         self.ctrlLayout.setContentsMargins ( 5, 0, 5, 0 )
         self.ctrlLayout.setSpacing(1)
-        
+
         #implement scroll bars for the controllers container
         self.scrollArea = Qt.QScrollArea(self)
         self.scrollArea.setWidget(self.controllersContainer)
@@ -206,7 +206,7 @@ class ArrayEditor(Qt.QWidget, ui_ArrayEditor.Ui_ArrayEditor):
         xp = taurusplot.invTransform(taurusplot.getCurve('Control Points').xAxis(), event.x())
         if xp<self.xp[0] or xp>self.xp[-1]: return #we dont want to create control points out of the curve range
         if Qt.QMessageBox.question(self, 'Create Control Point?', 'Insert a new control point at x=%g?'%xp, 'Yes', 'No') == 0:
-            index = self.insertController(xp)
+            self.insertController(xp)
             self.changeCPointSelection(xp)
             Qt.QTimer.singleShot(1, self.makeControllerVisible) #singleshot is used as a hack to get out of the eventhandler
             
@@ -439,11 +439,12 @@ class ArrayEditor(Qt.QWidget, ui_ArrayEditor.Ui_ArrayEditor):
         return self.xp.copy(), self.corrp.copy()
         
     def setCorrection(self, xp=None, corrp=None):
-        '''sets control points at the points specified by xp and with the values specified by corrp.
-        Example::
+        '''sets control points at the points specified by xp and with the
+        values specified by corrp. Example::
         
-            setCorrection([1,2,8,9], [0,0,0,0] would set 4 control points
-            with initial value 0 at x=1, 2, 8 and 9s
+            setCorrection([1,2,8,9], [0,0,0,0])
+        
+        would set 4 control points with initial value 0 at x=1, 2, 8 and 9s
         '''
         for c in self._controllers: c.setParent(None) #destroy previous controllers
         self._controllers = []

@@ -28,12 +28,13 @@ Extension of :mod:`guiqwt.plot`
 """
 __all__=["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
-from taurus.qt import Qt
+import copy
+
 from guiqwt.plot import ImageDialog, CurveDialog
 
-import copy
 import taurus.core
-from guiqwt.curve import CurveParam
+from taurus.qt import Qt
+
 from taurus.core.util import CaselessList
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
@@ -331,10 +332,12 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         self.setMaxDataBufferSize(16384) 
 
     def setStackMode(self, mode):
-        '''set the type of stack to be used. This determines how X values are interpreted:
-          - as timestamps ('datetime')
-          - as time deltas ('timedelta')
-          - as event numbers ('event')
+        '''set the type of stack to be used. This determines how X values are
+        interpreted:
+
+            - as timestamps ('datetime')
+            - as time deltas ('timedelta')
+            - as event numbers ('event')
         
         :param mode:(one of 'datetime', 'timedelta' or 'event')
         '''
@@ -488,9 +491,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     
     
 def taurusCurveDlgMain():
-    from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
-    from guiqwt.plot import CurveDialog
     from taurus.qt.qtgui.extra_guiqwt.tools import TimeAxisTool
     import taurus.core.util.argparse
     import sys

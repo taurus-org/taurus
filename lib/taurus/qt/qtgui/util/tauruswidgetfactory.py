@@ -56,9 +56,8 @@ def getWidgetsOfType(widget, class_or_type_or_tuple):
     :param class-or-type-or-tuple: type to be checked
     :type class-or-type-or-tuple: type class or a tuple of type classes
     
-    :return:
-        a sequence containning all widgets in the hierarchy that match the given
-        type
+    :return: a sequence containning all widgets in the hierarchy that match the
+             given type
     :rtype: seq<Qt.QWidget>"""
     widgets = []
     _getWidgetsOfType(widget, widgets, class_or_type_or_tuple)

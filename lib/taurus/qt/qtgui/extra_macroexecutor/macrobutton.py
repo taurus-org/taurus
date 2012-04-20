@@ -55,13 +55,20 @@ class DoorStateListener(Qt.QObject):
 class MacroButton(TaurusWidget):
     ''' This class is intended to be used as a button to execute macros.
     The model must be a valid door.
-    NOTE: Not implemented but will be needed: set an icon
-    NOTE: It may be useful to have a slot update_macro_param that any qwidget signal may be
-          connected to. The only condition might be that the sender widget should have an
-          attribute 'widget.macro_param_index' in order to determine where the value has
-          to be added.
-    NOTE: It may be useful to have all the streams from qdoor available somehow (right-click?)
     
+    ..note:: Not implemented but will be needed: set an icon
+
+    ..note::
+        
+        It may be useful to have a slot update_macro_param that any qwidget signal may be
+        connected to. The only condition might be that the sender widget should have an
+        attribute 'widget.macro_param_index' in order to determine where the value has
+        to be added.
+ 
+    ..note::
+        
+        It may be useful to have all the streams from qdoor available somehow
+        (right-click?)
     '''
 
     __pyqtSignals__ = ['statusUpdated', 'resultUpdated']

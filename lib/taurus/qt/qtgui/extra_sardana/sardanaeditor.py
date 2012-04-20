@@ -41,7 +41,7 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.editor import TaurusBaseEditor
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
-from macrotree import MacroTreeWidget, MacroSelectionDialog
+from macrotree import MacroSelectionDialog
 from elementtree import SardanaElementTreeWidget
 
 from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, \
@@ -101,13 +101,13 @@ class ChooseElementTypePage(SardanaBasePage):
         SardanaBasePage.__init__(self, parent)
     
         self.setTitle('Please select type of element you wish to create')
-        layout = QtGui.QVBoxLayout()
+        layout = Qt.QVBoxLayout()
         self.setLayout(layout)
 
 
 class SardanaLibProxyModel(SardanaBaseProxyModel):
     
-    ALLOWED_TYPES = 'ControllerLibrary', 'MacroLibrary'
+    ALLOWED_TYPES =  'MacroLibrary', #'ControllerLibrary',
     
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()

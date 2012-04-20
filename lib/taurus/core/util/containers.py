@@ -37,8 +37,9 @@ __docformat__ = "restructuredtext"
 
 import weakref
 import copy
-import collections
 import numpy
+import time
+import operator
 
 class CaselessList(list):
     """A case insensitive lists that has some caseless methods. Only allows 
@@ -424,15 +425,24 @@ class LoopList(object):
     The index can be accessed by setCurrentIndex() and getCurrentIndex()  (setCurrentIndex(i) additionally returns new current item)
     Items can be accessed ***without modifying the current index*** by using llist[i]  and llist[i]=x syntax
     len(llist) returns the **period** of the list.
-    Note: only basic methods of lists are implemented for llists. In particular, the following are **not** implemented:
-        slicing
-        resizing (append, insert, del,...)
-        binary operators (+,*,...)
+    
+    .. note::
         
-    Note: it can be used for loops, but the loop will be infinite unless other condition is used for exiting it:
-        for item in llist: print item  # This is a infinite loop!!
-        for i in range(len(llist)):print  llist[i]  #This is not infinite since len(llist) returns the period of the list
-    '''
+        only basic methods of lists are implemented for llists. In particular,
+        the following are **not** implemented:
+        
+            - slicing
+            - resizing (append, insert, del,...)
+            - binary operators (+,*,...)
+        
+    ..note::
+    
+        it can be used for loops, but the loop will be infinite unless other
+        condition is used for exiting it:
+            
+            - for item in llist: print item  # This is a infinite loop!!
+            - for i in range(len(llist)):print  llist[i]  #This is not infinite
+              since len(llist) returns the period of the list'''
     def __init__(self, itemlist=[]):
         self.setItemList(itemlist)
     def setItemList(self,itemlist):
@@ -479,6 +489,7 @@ class CircBuf(object):
     """A circular buffer of Python values.
 
     Examples::
+        
         >>> cb = CircBuf(3)
         >>> cb.is_empty()
         1
@@ -497,81 +508,30 @@ class CircBuf(object):
         >>> cb.get()
         'fourth'
         >>> cb.is_empty()
-        1
-
-    inv::
-        # there can be from 0 to max items inclusive on the buffer
-        0 <= self.len <= len(self.buf)
-
-        # g is a valid index into buf
-        0 <= self.g < len(self.buf)
-
-        # p is also a valid index into buf
-        0 <= self.p < len(self.buf)
-
-        # there are len items between get and put
-        (self.p - self.g) % len(self.buf) == self.len % len(self.buf)
-    """
+        1"""
     def __init__(self, leng):
-        """Construct an empty circular buffer.
-
-        pre::
-            leng > 0
-        post[self]::
-            self.is_empty() and len(self.buf) == leng
-        """
+        """Construct an empty circular buffer."""
 
         self.buf = leng*[None]
         self.len = self.g = self.p = 0
 
     def is_empty(self):
-        """Returns true only if CircBuf has no items.
-
-        post[]::
-            __return__ == (self.len == 0)
-        """
+        """Returns true only if CircBuf has no items."""
         return self.len == 0
 
     def is_full(self):
-        """Returns true only if CircBuf has no space.
-
-        post[]::
-            __return__ == (self.len == len(self.buf))
-        """
+        """Returns true only if CircBuf has no space."""
         return self.len == len(self.buf)
 
     def get(self):
-        """Retrieves an item from a non-empty circular buffer.
-
-        pre::
-            not self.is_empty()
-        post[self.len, self.g]::
-            self.len == __old__.self.len - 1
-            __return__ == self.buf[__old__.self.g]
-        """
+        """Retrieves an item from a non-empty circular buffer."""
         result = self.buf[self.g]
         self.g = (self.g + 1) % len(self.buf)
         self.len -= 1
         return result
 
     def put(self, item):
-        """Puts an item onto a circular buffer.
-
-        post[self.len, self.p, self.g, self.buf]::
-            # if the CircBuf was full on entry, then an entry
-            # was bumped
-            implies(__old__.self.len == len(self.buf),
-                    self.len == __old__.self.len,
-                    self.len == __old__.self.len + 1 and \
-                      self.g == __old__.self.g)
-
-            # item is now in the buffer
-            self.buf[__old__.self.p] == item
-            # but no other part of the buffer has changed
-            self.buf[:__old__.self.p] == __old__.self.buf[:__old__.self.p]
-            self.buf[__old__.self.p+1:] == __old__.self.buf[__old__.self.p+1:]
-            __return__ is None
-        """
+        """Puts an item onto a circular buffer."""
         self.buf[self.p] = item
         self.p = (self.p + 1) % len(self.buf)
         if self.len == len(self.buf):
@@ -663,12 +623,15 @@ class TimedQueue(list):
     
 
 def self_locked(func,reentrant=True):
-    ''' Decorator to make thread-safe class members
-    Decorator to create thread-safe objects.
-    reentrant: CRITICAL:
-        With Lock() this decorator should not be used to decorate nested functions; it will cause Deadlock!
-        With RLock this problem is avoided ... but you should rely more on python threading.
-    '''
+    '''Decorator to make thread-safe class members
+       Decorator to create thread-safe objects.
+       
+       .. warning::
+            
+            - With Lock() this decorator should not be used to decorate
+              nested functions; it will cause Deadlock!
+            - With RLock this problem is avoided ... but you should rely more
+              on python threading'''
     import threading
     def lock_fun(self,*args,**kwargs):
         if not hasattr(self,'lock'):
@@ -703,26 +666,7 @@ class ThreadDict(dict):
     Briefing::
     
         a[2] equals to a[2]=read_method(2)
-        a[2]=1 equals to a[2]=write_method(2,1)
-    
-    threadkeys(): 
-        returns the list of keys that are being automatically updated in a background thread
-    append(key): 
-        adds a new key to the dictionary and to the list of keys to be updated
-    __setitem__(key,value):tdict[key]=value 
-        will also add a new key to the dictionary, but this key value will not be automatically updated.
-    
-    timewait is a pause inserted between readings
-    
-    If read_method defined:
-        If threaded: the Thread inserts data in the dictionary, __getitem__ retrieves this data
-        else: __getitem__ directly executes read_method
-    else: __getitem__ as a normal thread-safe dictionary
-    If write_method defined:
-        any __setitem__ call executes the write_method (dictionary is no affected)
-    else: __setitem__ as a normal thread-safe dictionary
-    
-    '''
+        a[2]=1 equals to a[2]=write_method(2,1)'''
     
     def __init__(self,other=None,read_method=None,write_method=None,timewait=0.1,threaded=True):
         self.read_method = read_method
@@ -929,7 +873,7 @@ class CaselessDefaultDict(defaultdict_fromkey,CaselessDict):
 
 
 class DefaultThreadDict(defaultdict_fromkey,ThreadDict):
-    """ a join venture between thread and default dict
+    """a join venture between thread and default dict
     This class merges the two previous ones.
     @todo This two classes are not yet well integrated ... the way a new key is added to the dict must be rewritten explicitly.
     """
@@ -940,16 +884,10 @@ class DefaultThreadDict(defaultdict_fromkey,ThreadDict):
     
 
 def getDictAsTree(dct):
-    """This method will print a recursive dict in a tree-like shape::
-    
-       >>> print getDictAsTree({'A':{'B':[1,2],'C':[3]}})
-       A
-            C
-                3
-            B
-                1
-                2"""
-    level = 0
+    """This method will print a recursive dict in a tree-like
+       shape::
+       
+           >>> print getDictAsTree({'A':{'B':[1,2],'C':[3]}})"""
     def add_to_level(l,d):
         lines = []
         if isinstance(d,dict):

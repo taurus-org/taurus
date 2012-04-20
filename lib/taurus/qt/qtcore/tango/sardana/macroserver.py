@@ -140,10 +140,8 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
         style = ""
         try:
             import pygments
-            import pygments.highlight
             import pygments.formatters
             import pygments.lexers
-
         except:
             pygments = None
         if pygments is not None:

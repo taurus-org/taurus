@@ -32,12 +32,9 @@ import shutil
 import imp
 import StringIO
 
-from distutils.core import setup, Extension, Command
-from distutils.dist import Distribution
+from distutils.core import setup, Command
 from distutils.command.build import build as dftbuild
 from distutils.command.install import install as dftinstall
-
-import distutils.sysconfig
 
 try:
     import sphinx
@@ -101,12 +98,14 @@ packages = [
     'taurus.qt.qtgui.application',
     'taurus.qt.qtgui.base',
     'taurus.qt.qtgui.button',
-    'taurus.qt.qtgui.console',
+#    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
     'taurus.qt.qtgui.dialog',
     'taurus.qt.qtgui.display',
     'taurus.qt.qtgui.display.demo',
+    'taurus.qt.qtgui.editor',
     'taurus.qt.qtgui.gauge',
+    'taurus.qt.qtgui.gauge.demo',
     'taurus.qt.qtgui.graphic',
     'taurus.qt.qtgui.graphic.jdraw',
     'taurus.qt.qtgui.image',
@@ -117,7 +116,7 @@ packages = [
     'taurus.qt.qtgui.plot',
     'taurus.qt.qtgui.plot.ui',
     'taurus.qt.qtgui.resource',
-    'taurus.qt.qtgui.shell',
+#    'taurus.qt.qtgui.shell',
     'taurus.qt.qtgui.style',
     'taurus.qt.qtgui.table',
     'taurus.qt.qtgui.taurusgui',
@@ -150,7 +149,7 @@ extra_packages = [
     'taurus.qt.qtgui.extra_guiqwt.ui',
     
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01',
-    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01.images',
+    #'taurus.qt.qtgui.taurusgui.conf.tgconf_example01.images',
     'taurus.qt.qtgui.taurusgui.conf.tgconf_macrogui',
 ]
 
@@ -172,15 +171,15 @@ requires = [
 
 def get_resource_package_data():
     data = ['*.rcc']
-    tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
-                              'tango-icons')
-    for tango_icon_item in os.listdir(tango_icons_dir):
-        if tango_icon_item.startswith("."):
-            continue
-        abs_item = os.path.join(tango_icons_dir, tango_icon_item)
-        if not os.path.isdir(abs_item):
-            continue
-        data.append('tango-icons/%s/*' % tango_icon_item)
+#    tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
+#                              'tango-icons')
+#    for tango_icon_item in os.listdir(tango_icons_dir):
+#        if tango_icon_item.startswith("."):
+#            continue
+#        abs_item = os.path.join(tango_icons_dir, tango_icon_item)
+#        if not os.path.isdir(abs_item):
+#            continue
+#        data.append('tango-icons/%s/*' % tango_icon_item)
     return data
  
 package_data = { 
@@ -317,7 +316,6 @@ class build_resources(Command):
     def _build_general_res(self):
         qrc_filename = 'general.qrc'
         rcc_filename = 'qrc_general.rcc'
-        pyrcc_filename = 'qrc_general.py'
         out = self.out
         print("Generating %s... " % qrc_filename, file=out, end='')
         out.flush()
@@ -381,13 +379,11 @@ class build_resources(Command):
                 local_elems.append(elem)
         
         if local_elems and local_bases[1:]:
-            base_name = "_".join(local_bases)
             base_dir = os.path.join(*local_bases[1:])
             base_filename = "_".join(local_bases[1:])
             base_filename = base_filename.replace('-','_')
             qrc_filename = base_filename + ".qrc"
             rcc_filename = 'qrc_' + base_filename + ".rcc"
-            pyrcc_filename = 'qrc_' + base_filename + ".py"
             
             # Generate qrc file
             print("Generating %s... " % qrc_filename, file=out, end='')
@@ -666,7 +662,6 @@ if sphinx:
                 out = StringIO.StringIO()
 
             resource = abspath('lib','taurus','qt','qtgui','resource')
-            tango_icons = os.path.join(resource, 'tango-icons')
             tango_catalog = os.path.join(resource, 'catalog.html')
             build_dir = os.path.abspath(self.builder_target_dir)
             target = abspath('doc', 'source', 'devel')
@@ -704,16 +699,15 @@ if sphinx:
                         if refresh or not os.path.isfile(target_file):
                             print("copying",abs_elem,'->',target_file,file=out)
                         shutil.copyfile(abs_elem, target_file)
-                if not os.path.isdir(abs_elem):
-                    continue
-                target_dir = os.path.join(target, elem)
-                target_dir_exists = os.path.isdir(target_dir)
-                copy_dir = refresh or not target_dir_exists
-                if copy_dir:
-                    if target_dir_exists:
-                        shutil.rmtree(target_dir)
-                    print("copying",abs_elem,'->',target_dir,file=out)
-                    shutil.copytree(abs_elem, target_dir)
+                elif os.path.isdir(abs_elem):
+                    target_dir = os.path.join(target, elem)
+                    target_dir_exists = os.path.isdir(target_dir)
+                    copy_dir = refresh or not target_dir_exists
+                    if copy_dir:
+                        if target_dir_exists:
+                            shutil.rmtree(target_dir)
+                        print("copying",abs_elem,'->',target_dir,file=out)
+                        shutil.copytree(abs_elem, target_dir)
     
     cmdclass['build_doc'] = build_doc
 

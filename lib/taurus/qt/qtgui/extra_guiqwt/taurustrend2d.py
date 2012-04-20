@@ -73,10 +73,12 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             ImageDialog.keyPressEvent(self,event)
                     
     def setStackMode(self, mode):
-        '''set the type of stack to be used. This determines how X values are interpreted:
-          - as timestamps ('datetime')
-          - as time deltas ('timedelta')
-          - as event numbers ('event')
+        '''set the type of stack to be used. This determines how X values are
+        interpreted:
+            
+            - as timestamps ('datetime')
+            - as time deltas ('timedelta')
+            - as event numbers ('event')
         
         :param mode:(one of 'datetime', 'timedelta' or 'event')
         '''

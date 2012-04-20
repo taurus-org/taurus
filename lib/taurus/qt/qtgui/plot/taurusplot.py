@@ -1400,9 +1400,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def toggleCurveState(self, curve):
         '''cycles through 3 possible states for a curve:
-            -invisible
-            -attached to Y1
-            -attached to Y2
+        
+            - invisible
+            - attached to Y1
+            - attached to Y2
 
         :param curve: (TaurusCurve) the curve object
         '''
