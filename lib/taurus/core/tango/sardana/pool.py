@@ -212,12 +212,16 @@ class TangoAttributeEG(Logger, EventGenerator):
         try:
             self.last_val = self._attr.read(cache=not force).value
         except:
+            self.error("Read error")
+            self.debug("Details:", exc_info=1)
             self.last_val = None
         return EventGenerator.read(self)
     
     def readValue(self, force=False):
         r = self.read(force=force)
-        if r is None: return None
+        if r is None:
+            # do a retry
+            r = self.read(force=force)
         return r
     
     def __getattr__(self, name):
