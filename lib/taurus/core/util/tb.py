@@ -40,30 +40,6 @@ def _get_thread(ident=None):
 
 def _get_frames():
     return sys._current_frames()
-
-def dump_frames():
-    threads = threading.enumerate()
-    curr_thread = threading.current_thread()
-    frames = sys._current_frames()
-    for pid, frame in frames.items():
-        print 80*"="
-        if pid == curr_thread.ident:
-            print "- Current thread",
-        else:
-            print "- Thread",
-        for th in threads:
-            if th.ident == pid:
-                break
-        frame_info = inspect.getframeinfo(frame)
-        print ":", th.name, ";", frame_info
-        if frame_info.function != 'wait':
-            print
-            traceback.print_stack(frame)
-
-#def print_frame_stacks(frames=None, limit=None, file=None):
-#    if frames is None:
-#        frames = _get_frames()
-            
     
 def format_frame_stacks(frames=None, limit=None):
     if frames is None:
