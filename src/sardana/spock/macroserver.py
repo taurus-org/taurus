@@ -29,30 +29,17 @@
 __all__ = ['GUIViewer', 'SpockBaseDoor', 'QSpockDoor', 'SpockDoor',
            'SpockMacroServer']
 
-import sys
 import os
-import re
-import weakref
-import threading
 import operator
-import types
-import posixpath
 
 import PyTango
 
-import taurus
-import taurus.core.util
 from taurus.core import TaurusSWDevState
-from taurus.core.util.console import NoColors, TermColors
-from taurus.core.util.console import NoTangoColors, TermTangoColors
-from taurus.core.util.console import NoTaurusSWDevStateColors, TermTaurusSWDevStateColors
 
 import genutils
-import exception
 
 
 if genutils.get_gui_mode() == 'qt4':
-    from taurus.qt import Qt
     from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
     BaseDoor = QDoor
     BaseMacroServer = QMacroServer
@@ -116,7 +103,7 @@ class GUIViewer(BaseGUIViewer):
         if directory_map is None or not scan_dir in directory_map:
             if os.path.isdir(scan_dir):
                 if scan_file in os.listdir(scan_dir):
-                    local_file = os.path.join(scan_dir, scan_file)
+                    local_file = remote_file
         else:
             local_directories = directory_map[scan_dir]
             if isinstance(scan_file, (str, unicode)):
@@ -148,7 +135,7 @@ class GUIViewer(BaseGUIViewer):
         windowTitle = scan_file + "[" + entry_name + "]"
         
         try:
-            entry_index = taurus_nexus_widget.findNodeIndex(local_file, entry_name)
+            #entry_index = taurus_nexus_widget.findNodeIndex(local_file, entry_name)
             measurement_index = taurus_nexus_widget.findNodeIndex(local_file, measurement_name)
             #nexus_widget.setRootIndex(entry_index)
             nexus_widget.setCurrentIndex(measurement_index)
@@ -277,7 +264,7 @@ class SpockBaseDoor(BaseDoor):
         return ret
 
     def _preprocessParameters(self, parameters):
-        if type(parameters) in types.StringTypes:
+        if isinstance(parameters, (str, unicode)):
             inside_str = False
             pars = []
             par = ''
@@ -328,7 +315,8 @@ class SpockBaseDoor(BaseDoor):
             self.command_inout("StopMacro")
             self.writeln("Done!")
         except PyTango.DevFailed, e:
-            if operator.isSequenceType(e.args) and not type(e.args) in types.StringTypes:
+            if operator.isSequenceType(e.args) and \
+               not isinstance(e.args, (str, unicode)):
                 reason, desc = e.args[0].reason, e.args[0].desc
                 macro_obj = self.getRunningMacro()
                 if reason == 'MissingParam':
@@ -468,21 +456,12 @@ class SpockBaseDoor(BaseDoor):
     def _processRecordData(self, data):
         if data is None: return
         value = data.value
-        format = value[0]
         size = len(value[1])
         if size > self._RECORD_DATA_THRESOLD:
             sizekb = size / 1024
             self.logReceived(self.Info, ['Received long data record (%d Kb)' % sizekb, 
                 'It may take some time to process. Please wait...'])
         return BaseDoor._processRecordData(self, data)
-
-    def _processEnvironmentData(self, data):
-        obj = BaseDoor._processEnvironmentData(self, data)
-        env_type = obj.get("__type__")
-        if env_type == 'set_env':
-            ip = genutils.get_ipapi()
-            g_env = ip.user_ns.get(genutils.ENV_NAME)
-            g_env.update(obj)
 
 
 class QSpockDoor(SpockBaseDoor):
@@ -544,7 +523,7 @@ class SpockMacroServer(BaseMacroServer):
         def macro_fn(shell, parameter_s='', name=macro_name):
             parameters = genutils.arg_split(parameter_s, posix=True)
             door = genutils.get_door()
-            ret = door.runMacro(macro_name, parameters, synch=True)
+            door.runMacro(macro_name, parameters, synch=True)
             macro = door.getLastRunningMacro()
             if macro is not None: # maybe none if macro was aborted
                 return macro.getResult()

@@ -33,7 +33,6 @@ __all__ = ["ModuleManager"]
 __docformat__ = 'restructuredtext'
 
 import sys
-import os
 import imp
 import threading
 
@@ -202,7 +201,6 @@ class ModuleManager(Singleton, Logger):
         
         orig_path = list(sys.path)
         try:
-            added = 0
             if path is not None:
                 sys.path = path + sys.path
             self.info("loading module %s...", module_name)
@@ -226,11 +224,11 @@ class ModuleManager(Singleton, Logger):
             self._modules.pop(module_name)
             del sys.modules[module_name]
     
-    def unloadModules(self, module_list = None):
+    def unloadModules(self, module_list=None):
         """Unloads the given module name"""
         modules = module_list or self._modules.keys()
         for module in modules:
-            self.unloadModule(module, False)
+            self.unloadModule(module)
     
     def getModule(self, module_name):
         """Returns the module object for the given module name"""

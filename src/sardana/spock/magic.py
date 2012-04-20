@@ -28,8 +28,7 @@
 
 __all__ = ['expconf','showscan', 'spsplot', 'status', 'bench', 'debug_completer',
            'debug', 'www_completer', 'www', 'post_mortem_completer',
-           'post_mortem', 'edmac', 'spock_input_prompt_hook',
-           'spock_output_prompt_hook', 'spock_late_startup_hook',
+           'post_mortem', 'edmac', 'spock_late_startup_hook',
            'spock_pre_prompt_hook']
 
 
@@ -68,7 +67,7 @@ def spsplot(self, parameter_s=''):
 
 def status(self, parameter_s=''):
     try:
-        ms = MacroServer()
+        ms = get_macro_server()
     except:
         print "Not connected. Door is offline"
         return
@@ -264,20 +263,6 @@ def edmac(self, parameter_s=''):
     except:
         pass
 
-def spock_input_prompt_hook(self, cont):
-    try:
-        return get_door().spock_input_prompt(self.api, cont)
-    except:
-        import sardana.spock
-        return sardana.spock.Door.spock_offline_input_prompt(self.api, cont)
-
-def spock_output_prompt_hook(self):
-    try:
-        return get_door().spock_output_prompt(self.api)
-    except:
-        import sardana.spock
-        return sardana.spock.Door.spock_offline_output_prompt(self.api)
-        
 def spock_late_startup_hook(self):
     import sardana.spock
     try:

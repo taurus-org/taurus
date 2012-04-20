@@ -373,17 +373,19 @@ class PoolMeasurementGroup(PoolGroupElement):
             ctrl_name = c
             if not isinstance(c, (str, unicode)):
                 ctrl_name = c.name
+            external = ctrl_name.startswith('__')
             controllers[ctrl_name] = ctrl_data = {}
             ctrl_data['units'] = units = {}
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = {}
                 unit_data['id'] = u_data['id']
-                if u_data.has_key('timer'):
-                    unit_data['timer'] = u_data['timer'].name
-                if u_data.has_key('monitor'):
-                    unit_data['monitor'] = u_data['monitor'].name
-                if u_data.has_key('trigger_type'):
-                    unit_data['trigger_type'] = u_data['trigger_type']
+                if not external:
+                    if u_data.has_key('timer'):
+                        unit_data['timer'] = u_data['timer'].name
+                    if u_data.has_key('monitor'):
+                        unit_data['monitor'] = u_data['monitor'].name
+                    if u_data.has_key('trigger_type'):
+                        unit_data['trigger_type'] = u_data['trigger_type']
                 unit_data['channels'] = channels = {}
                 for ch, ch_data in u_data['channels'].items():
                     channels[ch.name] = channel_data = dict(ch_data)
