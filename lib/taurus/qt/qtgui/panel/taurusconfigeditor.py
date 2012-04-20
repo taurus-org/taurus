@@ -429,6 +429,8 @@ class QConfigEditor(TaurusWidget):
             if self.tree.originalFile is None: path = Qt.QDir.homePath()
             else: path = self.tree.originalFile
             iniFileName = Qt.QFileDialog.getOpenFileName ( self, 'Select a settings file', path, 'Ini Files (*.ini)')
+            if not iniFileName:
+                return
         self.tree.loadFile(iniFileName)
         self.treeview.setModel(self.tree)
         self.setWindowTitle('TaurusConfigEditor - %s'%os.path.basename(self.tree.originalFile))
