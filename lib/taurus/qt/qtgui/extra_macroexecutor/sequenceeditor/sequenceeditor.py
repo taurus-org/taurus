@@ -853,10 +853,11 @@ def createSequencer(args):
       
 def main():      
     from taurus.qt.qtgui.application import TaurusApplication
+    import taurus
 #    from rfoo.utils import rconsole
 #    rconsole.spawn_server()
     
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, app_version=taurus.Release.version)
     args = app.get_command_line_args()
 
     app.setOrganizationName(globals.ORGANIZATION_NAME)

@@ -964,9 +964,10 @@ def createMacroExecutor(args):
     return macroExecutor
     
 def main():
-    from taurus.qt.qtgui.application import TaurusApplication  
+    from taurus.qt.qtgui.application import TaurusApplication
+    import taurus
     
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, app_version=taurus.Release.version)
     args = app.get_command_line_args()    
     
     app.setOrganizationName("Taurus")
