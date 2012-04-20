@@ -25,11 +25,9 @@
 
 """A pure Qt led widget"""
 
-__all__ = ["LedColor", "LedStatus", "LedSize", "QLed", "QLedOld"]
+__all__ = ["LedColor", "LedStatus", "LedSize", "QLed"]
 
 __docformat__ = 'restructuredtext'
-
-import sys
 
 from taurus.qt import Qt
 import taurus.core.util
@@ -237,90 +235,6 @@ class QLed(qpixmapwidget.QPixmapWidget):
     #:     * :meth:`QLed.resetLedPatternName`
     ledPattern = Qt.pyqtProperty("QString", getLedPatternName, setLedPatternName,
                                  resetLedPatternName, doc="led pattern name")
-    
-class QLedOld(Qt.QLabel):
-    ledDirPattern = ":leds/images%(size)d"
-
-    def __init__(self, parent = None, ledsize = LedSize.SMALL, ledcolor = LedColor.GREEN):
-
-        Qt.QLabel.__init__(self, parent)
-        
-        self.ledsize = ledsize
-        self.status = LedStatus.OFF
-        self.ledcolor = ledcolor
-        
-        self.setObjectName("Led")
-        sizePolicy = Qt.QSizePolicy(Qt.QSizePolicy.Policy(0),Qt.QSizePolicy.Policy(0))
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-        self.setSizePolicy(sizePolicy)
-        
-        # no need to call changeColor. changeSize calls it for us
-        self.changeSize(ledsize)
-        
-        self.retranslateUi(self)
-        Qt.QMetaObject.connectSlotsByName(self)
-
-    def toLedName(self,status,color):
-        name = "led" + LedColor.whatis(color).lower()
-        if status == LedStatus.OFF:
-            name += LedStatus.whatis(status).lower()
-        return name
-    
-    def toCompleteLedName(self,size,status,color):
-        ret = self.ledDirPattern % { "size" : size} 
-        ret += "/" + self.toLedName(status,color) + ".png"
-        return ret
-
-    def tr(self, string):
-        return Qt.QApplication.translate("Led", string, None, Qt.QApplication.UnicodeUTF8)
-
-    def retranslateUi(self, Led):
-        Led.setWindowTitle(self.tr("Form"))
-    
-    def on(self):
-        if self.status == LedStatus.OFF:
-            self.status = LedStatus.ON
-            self.setPixmap(self.onled)
-    
-    def off(self):
-        if self.status == LedStatus.ON:
-            self.status = LedStatus.OFF
-            self.setPixmap(self.offled)  
-    
-    def changeSize(self, ledSize):
-        self.ledsize = ledSize
-        self.resize(ledSize,ledSize)
-        self.setMinimumSize(Qt.QSize(ledSize,ledSize))
-        self.setMaximumSize(Qt.QSize(ledSize,ledSize))
-        
-        # force a call to led color to change the place from which the images are fetched
-        self.changeColor(self.ledcolor)
-        
-    def changeColor(self, ledColor):
-        self.ledcolor = ledColor
-        
-        off_pixmap_name = self.toCompleteLedName(self.ledsize, LedStatus.OFF, ledColor)
-        self.offled = Qt.QPixmap(off_pixmap_name)
-        on_pixmap_name = self.toCompleteLedName(self.ledsize, LedStatus.ON, ledColor)
-        self.onled = Qt.QPixmap(on_pixmap_name)
-        
-        if self.status == LedStatus.OFF:
-            self.setPixmap(self.offled)
-        else:
-            self.setPixmap(self.onled)
-    
-    def _setProblemsBackground(self, doIt=True):
-        if doIt:
-            self.setAutoFillBackground(True)
-            bg_brush = Qt.QBrush()
-            bg_brush.setStyle(Qt.Qt.BDiagPattern)
-            palette = self.palette()
-            palette.setBrush(Qt.QPalette.Window, bg_brush)
-            palette.setBrush(Qt.QPalette.Base, bg_brush)
-        else:
-            self.setAutoFillBackground(False)
 
 def main():
     """hello"""
