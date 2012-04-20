@@ -1,0 +1,128 @@
+Taurus is Free Software by the CELLS / ALBA Synchrotron, Bellaterra, Spain
+
+SECTION 1: GENERAL LICENSE FOR TAURUS SOURCE CODE
+=================================================
+
+The files in Taurus, except for the cases described in SECTION 2
+are distributed under the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version.
+See <http://www.gnu.org/licenses/>
+
+SECTION 2: EXCEPTIONS
+=====================
+
+Some files (e.g., those authored by 3rd parties or the documentation 
+sources) are distributed under Free Software / docmentation licenses 
+that may differ from the the general one defined in SECTION 1.
+
+The following is a list of these exceptions:
+
+2.1: Explicit licenses in header.
+---------------------------------
+ 
+If a file contains an explicit license in its header that differs from 
+the one defined in SECTION 1, the license mentioned in the header prevails.
+
+2.2: Documentation:
+-------------------
+
+The .py scripts in the doc directory are treated as per SECTION 1, but
+and the rest of the files are distributed under a Creative Commons 
+Attribution 3.0 License 
+See <http://creativecommons.org/licenses/by/3.0/>
+
+2.3: Tango Icons:
+-----------------
+
+The icons in the lib/qt/qtgui/resource/tango-icons directory and its 
+subdirectories are from the Tango-freedesktop icons set 
+(http://tango.freedesktop.org). They are in the Public Domain.
+
+2.4: RRZE Icons:
+----------------
+The icons in the lib/qt/qtgui/resource/rrze-icons directory and its 
+subdirectories are from the RRZE icons set (http://rrze-icon-set.berlios.de/). 
+They are distributed under the Creative Commons Attribution 
+Share-Alike license 3.0.
+See <http://creativecommons.org/licenses/by-sa/3.0/>
+
+2.5: Designer Icons:
+--------------------
+The following icons in the lib/qt/qtgui/resource/extra-icons/designer 
+directory have been created in ALBA/CELLS and are licensed under the 
+Creative Commons Attribution 3.0 License
+See: <http://creativecommons.org/licenses/by/3.0/>
+
+wheeledit.png
+tau.png
+extra_motor.png 
+circular_gauge.png 
+groupwidget.png 
+horizontal_linear_gauge.png 
+vertical_linear_gauge.png
+state.png 
+
+The following icons in the lib/qt/qtgui/resource/extra-icons/designer 
+directory have been copied/derived from Qt open-source code, distributed
+under the LGPL v 2.1 license.
+See <http://qt.nokia.com/products/licensing/licensing> for more info
+
+datetimeedit.png
+mdiarea.png
+vspacer.png
+dialogbuttonbox.png
+vscrollbar.png
+toolbutton.png
+lcdnumber.png
+pushbutton.png
+vline.png
+spacer.png
+plaintextedit.png
+line.png
+columnview.png
+textedit.png
+frame.png
+minus.png
+wizard.png
+hsplit.png
+progress.png
+timeedit.png
+listview.png
+calendarwidget.png
+widget.png
+dockwidget.png
+toolbox.png
+hslider.png
+hscrollbar.png
+tabbar.png
+lineedit.png
+fontcombobox.png
+groupbox.png
+down.png
+vslider.png
+editdelete.png
+combobox.png
+tabwidget.png
+doublespinbox.png
+groupboxcollapsible.png
+spinbox.png
+plus.png
+table.png
+back.png
+forward.png
+dial.png
+widgetstack.png
+label.png
+dateedit.png
+listbox.png
+up.png
+checkbox.png
+scrollarea.png
+commandlinkbutton.png
+radiobutton.png
+graphicsview.png
+devs_tree.png
+devs_table.png
+props_table.png
+
