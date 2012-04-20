@@ -93,7 +93,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     
     '''
     
-    _className = None
+    _widgetClassName = ''
     _args = []
     _kwargs = {}
     _deleteWidgetOnClose = True
@@ -222,7 +222,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     Model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, TaurusBaseWidget.setModel, TaurusBaseWidget.resetModel)    
     UseParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, TaurusBaseWidget.setUseParentModel, TaurusBaseWidget.resetUseParentModel)
-    widgetClassName = Qt.pyqtProperty("QString", setWidgetClassName, getWidgetClassName, resetWidgetClassName)
+    widgetClassName = Qt.pyqtProperty("QString", getWidgetClassName, setWidgetClassName, resetWidgetClassName)
 
 
 class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
