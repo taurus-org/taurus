@@ -54,7 +54,6 @@ import sys
 import os
 import socket
 import imp
-import getopt
 
 import IPython
 import IPython.genutils
@@ -131,7 +130,7 @@ def translate_version_str2int(version_str):
             v += int(parts[i])*int(math.pow(10,(2-i)*2))
             l -= 1
             i += 1
-        except ValueError,ve:
+        except ValueError:
             return v
         if not l: return v
     return v
@@ -139,21 +138,21 @@ def translate_version_str2int(version_str):
     try:
         v += 10000*int(parts[0])
         l -= 1
-    except ValueError,ve:
+    except ValueError:
         return v
     if not l: return v
     
     try:
         v += 100*int(parts[1])
         l -= 1
-    except ValueError,ve:
+    except ValueError:
         return v
     if not l: return v
 
     try:
         v += int(parts[0])
         l -= 1
-    except ValueError,ve:
+    except ValueError:
         return v
     if not l: return v
 
@@ -163,12 +162,12 @@ def get_ipython_version():
     try:
         try:
             v = IPython.Release.version
-        except Exception, e1:
+        except Exception:
             try:
                 v = IPython.release.version
-            except Exception, e2:
+            except Exception:
                 pass
-    except Exception, e3:
+    except Exception:
         pass
     return v
 
@@ -196,7 +195,7 @@ def get_ipython_dir():
     
     # Try to find the profile in the current directory and then in the 
     # default IPython dir
-    userdir = os.path.realpath(os.path.curdir)
+    #userdir = os.path.realpath(os.path.curdir)
     home_dir = IPython.genutils.get_home_dir()
     
     if os.name == 'posix':
@@ -366,7 +365,7 @@ def get_tango_host_from_user():
                     socket.gethostbyname(host)
                     try:
                         db = PyTango.Database(host,port)
-                        return (host,port)
+                        return db.get_db_host(), db.get_db_port()
                     except:
                         exp = "No tango database found at %s:%d" % (host,port)
                 except:
@@ -386,7 +385,7 @@ def print_dev_from_class(classname, dft = None):
         server_wildcard = '*'
         try:
             exp_dev_list = db.get_device_exported_for_class(classname)
-        except Exception,e: 
+        except Exception:
             exp_dev_list = []
     else:
         server_wildcard = '%'
@@ -720,7 +719,7 @@ def get_args(argv):
     script_name = argv[0]
     script_dir, session = os.path.split(script_name)
     script_name = os.path.realpath(script_name)
-    script_dir = os.path.dirname(script_name)
+    #script_dir = os.path.dirname(script_name)
     
     macro_server = None
     door = None
@@ -753,8 +752,7 @@ def get_args(argv):
     try:
         f, name, t = imp.find_module(profile_modulename, [ipythondir])
         check_for_upgrade(f, ipythondir, session, profile)
-        
-    except ImportError,e:
+    except ImportError:
         # Create a new profile
         r = ''
         while not r in ['y','n']:
@@ -898,7 +896,6 @@ def init_magic(ip):
     ip.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
 
 def init_pre_spock(ip, macro_server, door):
-    o = ip.options
     so = IPython.ipstruct.Struct()
     full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
     #macro_server = get_ms_for_door(door_tg_name)

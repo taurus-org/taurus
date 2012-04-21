@@ -405,6 +405,14 @@ class PoolMotion(PoolAction):
                     
                     # send positions
                     self.read_dial_position(ret=positions)
+                    position_error_occured = self._error_occured(positions)
+                    if position_error_occured:
+                        self.error("Loop final read position error. Retrying...")
+                        self.read_dial_position(ret=positions)
+                        position_error_occured = self._error_occured(positions)
+                        if position_error_occured:
+                            self.error("Loop final read position error 2. Cannot send final position event!!!")
+                        
                     for moveable, position_info in positions.items():
                         moveable.put_dial_position(position_info, propagate=2)
                     
@@ -424,23 +432,18 @@ class PoolMotion(PoolAction):
                 position_error_occured = self._error_occured(positions)
                 if position_error_occured:
                     self.error("Loop read position error")
-                    self.emergency_break()
-                    
-                    # send position
-                    for moveable, position_info in positions.items():
-                        moveable.put_dial_position(position_info, propagate=2)
-                        position = moveable.get_position(propagate=0)
-                        if position.in_error():
-                            emergency_stop.add(moveable)
-                    
-                    # send state
-                    self.read_state_info(ret=states)
-                    for moveable, state_info in states.items():
-                        state_info = moveable._from_ctrl_state_info(state_info)
-                        moveable.set_state_info(real_state_info, propagate=2)
-                else:
-                    for moveable, position_info in positions.items():
-                        moveable.put_dial_position(position_info)
+                    self.read_dial_position(ret=positions)
+                    position_error_occured = self._error_occured(positions)
+                    if position_error_occured:
+                        self.error("Loop read position error 2!!!")
+
+                # send position
+                for moveable, position_info in positions.items():
+                    moveable.put_dial_position(position_info, propagate=0)
+                    position = moveable.get_position(propagate=0)
+                    if position.in_error():
+                        moveable.warning("  Loop read position error")
+                    moveable.put_dial_position(position_info)
             i += 1
             time.sleep(nap)
     
