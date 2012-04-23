@@ -339,6 +339,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         #3. After ParamRepeatNode there are other nodes
         
         macroNode = self.getModelObj().getMacroNodeObj(str(value))
+        if macroNode is None: return False
         t = [child for child in macroNode.children() if isinstance(child, macro.RepeatParamNode)]
         if len(t) > 1:
             self.disableEditMode = True
