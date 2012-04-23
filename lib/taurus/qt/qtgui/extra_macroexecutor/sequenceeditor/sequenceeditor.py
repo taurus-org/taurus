@@ -788,10 +788,10 @@ class TaurusSequencerWidget(TaurusWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_macroexecutor'
-        ret['container'] = False
-        return ret
+        return {'container': False, 
+                'group': 'Taurus Extra Sardana', 
+                'module': 'taurus.qt.qtgui.extra_macroexecutor', 
+                'icon': ':/designer/frame.png'}
 
 
 class TaurusSequencer(MacroExecutionWindow):
