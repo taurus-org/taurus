@@ -1297,14 +1297,17 @@ class OutroPage(BasePage):
         f.close()
         logfile.write('python init file created: "%s"\n'%initfilename)
         #write launcher script
-        launcherfilename = os.path.join(pdir, self.wizard().__getitem__("guiName"))
-        f = open(launcherfilename, 'w')
-        f.write(('#!/bin/sh\n'
-                 '#Make sure to give this file execution permisions\n'
-                 'taurusgui %s $*')%os.path.basename(pdir.rstrip('/')))
-        f.close()
-        logfile.write('Unix launcher created: "%s"\n'%launcherfilename)
-
+        try:
+            launcherfilename = os.path.join(pdir, self.wizard().__getitem__("guiName"))
+            f = open(launcherfilename, 'w')
+            f.write(('#!/bin/sh\n'
+                     '#Make sure to give this file execution permisions\n'
+                     'taurusgui %s $*')%os.path.basename(pdir.rstrip('/')))
+            f.close()
+            os.chmod(launcherfilename,0755)
+            logfile.write('Unix launcher created: "%s"\n'%launcherfilename)
+        except:
+            logfile.write('Error creating Unix launcher: "%s"\n'%launcherfilename)
         #if all went ok...
         msg = 'Application project was successfully created. You can find the files in: "%s"'%pdir
         msg += '\nTip: copy this directory into a directory that is in your Python path.'
