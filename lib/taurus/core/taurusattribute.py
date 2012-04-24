@@ -238,7 +238,6 @@ class TaurusAttribute(taurusmodel.TaurusModel):
                 ret = str(value)
         except:
             # if cannot calculate value based on the format just return the value
-            raise
             ret = str(value)
         return ret
     
