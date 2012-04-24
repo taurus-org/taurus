@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-scales.py: Custom scales used by taurus.widget.qwt module
+scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
 __all__=["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine", 
          "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw", 

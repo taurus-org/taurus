@@ -173,34 +173,6 @@ class TaurusArrayEditor(TaurusWidget):
         ret['icon'] =':/designer/arrayedit.png'
         ret['container'] = False
         return ret
-  
-if __name__ == "__main__":
-    import sys
-    app = Qt.QApplication(sys.argv)
-    form = TaurusArrayEditor()
-    
-    #form.setModel('bl97/pc/dummy-03/waveform')
-    #form.setModel('bl97/pyattributeprocessor/1/a|bl97/pyattributeprocessor/1/b')
-    #form.setModel('bl97/pc/dummy-03/waveabscissa|bl97/pc/dummy-03/waveform')
-    #form.setModel('bo03/pc/corh-04/wavex|bo03/pc/corh-04/waveform')
-        
-    ##set a model list  
-    if len(sys.argv)==2:
-        model=sys.argv[1]
-        form.setModel(model)
-    else:
-        models = None
-    form.show()
-    
-    #show an Attributechooser dialog if no model was given
-    if models is None:
-        from taurus.widget.dialog import AttrChooser
-        attrChooser = AttrChooser()
-        attrChooser.setSingleAttrMode(True)
-        setModel = lambda  x: form.setModel(x[0]) 
-        form.connect(attrChooser, Qt.SIGNAL("UpdateAttrs"), setModel)
-        attrChooser.show()
-    
-    sys.exit(app.exec_())
+
 
 
