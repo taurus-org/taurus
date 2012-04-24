@@ -1243,7 +1243,7 @@ class PoolMotorTV(TaurusValue):
         try: return hasattr(self.motor_dev, 'Limit_Switches')
         except: return False
 
-    def updateLimits(self, limits):
+    def updateLimits(self, limits, position=None):
         if isinstance(limits, dict): limits = limits["limits"]
         limits = list(limits)
         HOME = 0
@@ -1253,17 +1253,18 @@ class PoolMotorTV(TaurusValue):
         # Check also if the software limit is 'active'
         if self.motor_dev is not None:
             position_attribute = self.motor_dev.getAttribute('Position')
-            pos = position_attribute.read().value
+            if position is None:
+                position = position_attribute.read().value
             max_value_str = position_attribute.max_value
             min_value_str = position_attribute.min_value
             try:
                 max_value = float(max_value_str)
-                limits[POS] = limits[POS] or (pos >= max_value)
+                limits[POS] = limits[POS] or (position >= max_value)
             except:
                 pass
             try:
                 min_value = float(min_value_str)
-                limits[NEG] = limits[NEG] or (pos <= min_value)
+                limits[NEG] = limits[NEG] or (position <= min_value)
             except:
                 pass
             
@@ -1322,7 +1323,7 @@ class PoolMotorTV(TaurusValue):
             limit_switches = [False, False, False]
             if self.hasHwLimits():
                 limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
-            self.updateLimits(limit_switches)
+            self.updateLimits(limit_switches, position=position)
         
     def hasEncoder(self):
         try: return hasattr(self.motor_dev, 'Encoder')
