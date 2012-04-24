@@ -238,14 +238,8 @@ class build_resources(Command):
     description = "\"build\" Qt resource files"
     
     user_options = [('logo=', None, "alternative logo file (default is taurus.png)"),]
-
-    AllowedExt = ('svg', 'png', 'jpg', 'jpeg', 'gif')
     
-    HTML_IL = """<tr height="80"><td width="80" align="center"><img width="48" height="48" src="%s" alt="%s"/></td><td width="400">%s%s</td><td width="400">%s</td><td width="200">%s</td></tr>\n"""
-    HTML_IL_SVG = """<tr height="80"><td width="80" align="center"><object data="%s" alt="%s" type="image/svg+xml" style="width:48px;height:48px;border:0;"/></td><td width="400">%s%s</td><td width="400">%s</td><td width="200">%s</td></tr>\n"""
-    HTML_T = '<table border="1" cellspacing="0" cellpadding="2">\n' \
-             '<th colspan="4">Resource: "%s" Directory: "%s"</th>\n' \
-             '<tr><th>Preview</th><th>Resouce</th><th>File name</th><th>Theme</th></tr>\n'
+    AllowedExt = ('svg', 'png', 'jpg', 'jpeg', 'gif')
     
     def initialize_options (self):
         self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource')
@@ -255,8 +249,6 @@ class build_resources(Command):
             self.out = sys.stdout
         else:
             self.out = StringIO.StringIO()
-        import PyQt4.Qt
-        self.app = PyQt4.Qt.QApplication([])
 
     def finalize_options (self):
         if self.logo is None:
@@ -272,11 +264,6 @@ class build_resources(Command):
     def run(self):
         orig_dir = os.path.abspath(os.curdir)
         os.chdir(self.resource_dir)
-        
-        catalog = file('catalog.html', 'w')
-        catalog.write("<html><head>\n<title>taurus Icon Catalog</title>\n" \
-        "<style>table { border-collapse: collapse; }</style>\n</head>\n<body>\n")
-        
         try:
             cur_dir = os.path.abspath(os.curdir)
             
@@ -285,34 +272,9 @@ class build_resources(Command):
             
             result[0].extend(result2[0])
             result[1].extend(result2[1])
-            result[2].extend(result2[2])
-            result[3].extend(result2[3])
-
-            catalog.write("<h1>Index</h1>\n<ul>")
-            for anchor in result[3]:
-                catalog.write("<li>%s</li>\n" % anchor)
-            catalog.write("</ul>\n")
-            catalog.writelines(result[2])
         finally:
-            catalog.write("""</body></html>""")
-            catalog.close()
             os.chdir(orig_dir)
-
-    def getThemeIcon(self, resource):
-        try:
-            import PyQt4.Qt
-            if not hasattr(PyQt4.Qt.QIcon, "hasThemeIcon"):
-                return "Unknown"
-            i = resource.rfind("/")
-            if i >= 0: resource = resource[i+1:]
-            i = resource.rfind(".")
-            if i >= 0: resource = resource[:i]
-            if PyQt4.Qt.QIcon.hasThemeIcon(resource):
-                return resource
-            return "No"
-        except:
-            return "Unknown"
-
+    
     def _build_general_res(self):
         qrc_filename = 'general.qrc'
         rcc_filename = 'qrc_general.rcc'
@@ -320,9 +282,6 @@ class build_resources(Command):
         print("Generating %s... " % qrc_filename, file=out, end='')
         out.flush()
         f = file(qrc_filename, 'w')
-        html = '<h2><a name="_base">Base icons</a></h2>\n'
-        html += self.HTML_T % (':/','')
-        anchor = '<a href="#_base">Base icons</a>'
         try:
             logo_relpath = os.path.relpath(self.logo)
             taurus_relpath = os.path.relpath(self.taurus)
@@ -331,13 +290,10 @@ class build_resources(Command):
             f.write('        <file alias="taurus.png">%s</file>\n' % taurus_relpath)
             f.write('    </qresource>\n')
             f.write('</RCC>\n')
-            html += self.HTML_IL % (logo_relpath, logo_relpath, ":/", "logo.png", logo_relpath, self.getThemeIcon("logo.png"))
-            html += self.HTML_IL % (taurus_relpath, taurus_relpath, ":/", taurus_relpath, taurus_relpath, self.getThemeIcon("taurus.png"))
         except Exception, e:
             print("[FAILED]\nDescription:\n%s" % str(e), file=out)
             raise e
         finally:
-            html += '</table>\n'
             f.close()
         print("[DONE]", file=out)
         
@@ -350,18 +306,15 @@ class build_resources(Command):
         else:
             print("[DONE]", file=out)
         
-        return [ [qrc_filename], [rcc_filename], [html], [anchor] ]
+        return [ [qrc_filename], [rcc_filename]]
     
     def _build_res(self, abs_dir, bases=list()):
         """Builds the resources in the abs_dir recursively.
         The result is a list of 5 items:
             - a list of generated qrc files
             - a list of generated rcc files
-            - a list of generated py files
-            - a list of HTML strings
-            - a list of HTML anchors
         """
-        result = [[], [], [], [], []]
+        result = [[], []]
         res_name = os.path.basename(abs_dir)
         local_elems, local_bases = [], copy.copy(bases)
         local_bases.append(res_name)
@@ -373,8 +326,6 @@ class build_resources(Command):
                 ret = self._build_res(abs_elem, local_bases)
                 result[0].extend(ret[0])
                 result[1].extend(ret[1])
-                result[2].extend(ret[2])
-                result[3].extend(ret[3])
             elif os.path.splitext(abs_elem)[1][1:].lower() in build_resources.AllowedExt:
                 local_elems.append(elem)
         
@@ -389,8 +340,6 @@ class build_resources(Command):
             print("Generating %s... " % qrc_filename, file=out, end='')
             out.flush()
             f = file(qrc_filename, 'w')
-            html = ''
-            anchor = ''
             try:
                 qresource_prefix = ""
                 if len(local_bases) > 2:
@@ -399,27 +348,17 @@ class build_resources(Command):
                 else:
                     f.write('<RCC>\n    <qresource>\n')
                 qresource_prefix = ":" + qresource_prefix
-                html += '<h2><a name="%s">%s (%s)</a></h2>\n' % (base_dir, qresource_prefix, base_dir)
-                html += self.HTML_T % (qresource_prefix , base_dir)
-                anchor = '<a href="#%s">%s (%s)</a>' % (base_dir, base_dir, qresource_prefix)
                 qresource_prefix += "/"
                 for elem in local_elems:
                     rel_elem = os.path.join(base_dir, elem)
                     f.write('        <file alias="%s">%s</file>\n' % (elem, rel_elem))
-                    if elem.endswith(".svg"):
-                        html += self.HTML_IL_SVG % (rel_elem, rel_elem, qresource_prefix, elem, rel_elem, self.getThemeIcon(elem))
-                    else:
-                        html += self.HTML_IL % (rel_elem, rel_elem, qresource_prefix, elem, rel_elem, self.getThemeIcon(elem))
                 f.write('    </qresource>\n</RCC>')
             except Exception, e:
                 print("[FAILED]\nDescription:\n%s" % str(e), file=out)
                 raise e
             finally:
-                html += '</table>\n'
                 f.close()
             result[0].append(qrc_filename)
-            result[2].append(html)
-            result[3].append(anchor)
             print("[DONE]", file=out)
             
             # Generate binary rcc file
@@ -439,17 +378,15 @@ class build(dftbuild):
 
     user_options = dftbuild.user_options + \
         [('logo=', None, "alternative logo file (default is taurus.png)"),
-         ('tauv1', None, "generate tau v1 compatible code" ),
          ('with-extra-widgets', None, "distribute extra widgets"),
          ('no-doc', None, "do not build documentation")]
 
-    boolean_options = dftbuild.boolean_options + ['tauv1', 'with-extra-widgets', 'no-doc']
+    boolean_options = dftbuild.boolean_options + ['with-extra-widgets', 'no-doc']
 
     def initialize_options (self):
         dftbuild.initialize_options(self)
         self.logo = None
         self.doc_fmt = None
-        self.tauv1 = None
         self.no_doc = None
         self.with_extra_widgets = True
 
@@ -459,26 +396,11 @@ class build(dftbuild):
             self.logo = abspath('lib','taurus','qt','qtgui','resource','taurus.png')
       
     def run(self):
-        if self.tauv1:
-            self.distribution.packages.append('taurus.core.tauv1')
-            self.distribution.packages.append('taurus.widget')
-            self.distribution.packages.append('taurus.core.utils')
-
         if self.with_extra_widgets:
             self.distribution.packages.extend(extra_packages)
 
         dftbuild.run(self)
 
-        if self.tauv1:
-            # make a relative symbolic link from taurus to tau
-            build_lib = os.path.abspath(self.build_lib)
-            orig_dir = os.path.abspath(os.curdir)
-            os.chdir(build_lib)
-            try:
-                os.symlink('taurus', 'tau')
-            finally:
-                os.chdir(orig_dir)
-            
     def has_doc(self):
         if self.no_doc:
             return False
@@ -641,6 +563,130 @@ cmdclass = { 'build' : build,
 if sphinx:
     from sphinx.setup_command import BuildDoc
 
+    class build_catalog(object):
+
+        AllowedExt = build_resources.AllowedExt
+        
+        HTML_IL = """<tr height="30"><td width="30" align="center"><img width="24" src="%s" alt="%s"/></td><td width="400">%s%s</td><td width="400">%s</td><td width="200">%s</td></tr>\n"""
+        HTML_T = '<table border="1" cellspacing="0" cellpadding="2">\n' \
+                 '<th colspan="4">Resource: "%s" Directory: "%s"</th>\n' \
+                 '<tr><th>Preview</th><th>Resouce</th><th>File name</th><th>Theme</th></tr>\n'
+        
+        def run(self):
+            self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource')
+            self.taurus = os.path.join(self.resource_dir, 'taurus.png')
+            import PyQt4.Qt
+            orig_dir = os.path.abspath(os.curdir)
+            os.chdir(self.resource_dir)
+            
+            catalog = file('catalog.html', 'w')
+            catalog.write("<html><head>\n<title>taurus Icon Catalog</title>\n" \
+            "<style>table { border-collapse: collapse; }</style>\n</head>\n<body>\n")
+            
+            try:
+                cur_dir = os.path.abspath(os.curdir)
+                
+                result = self._build_general_res()
+                result2 = self._build_res(cur_dir)
+                
+                result[0].extend(result2[0])
+                result[1].extend(result2[1])
+
+                catalog.write("<h1>Index</h1>\n<ul>")
+                for anchor in result[1]:
+                    catalog.write("<li>%s</li>\n" % anchor)
+                catalog.write("</ul>\n")
+                catalog.writelines(result[0])
+            finally:
+                catalog.write("""</body></html>""")
+                catalog.close()
+                os.chdir(orig_dir)
+
+        def getThemeIcon(self, resource):
+            try:
+                import PyQt4.Qt
+                if not hasattr(PyQt4.Qt.QIcon, "hasThemeIcon"):
+                    return "Unknown"
+                i = resource.rfind("/")
+                if i >= 0: resource = resource[i+1:]
+                i = resource.rfind(".")
+                if i >= 0: resource = resource[:i]
+                if PyQt4.Qt.QIcon.hasThemeIcon(resource):
+                    return resource
+                return "No"
+            except:
+                return "Unknown"
+
+        def _build_general_res(self):
+            out = self.out
+            html = '<h2><a name="_base">Base icons</a></h2>\n'
+            html += self.HTML_T % (':/','')
+            anchor = '<a href="#_base">Base icons</a>'
+            try:
+                taurus_relpath = os.path.relpath(self.taurus)
+                html += self.HTML_IL % (taurus_relpath, taurus_relpath, ":/", taurus_relpath, taurus_relpath, self.getThemeIcon("taurus.png"))
+            except Exception, e:
+                print("[FAILED]\nDescription:\n%s" % str(e), file=out)
+                import traceback
+                traceback.print_exc()
+                raise e
+            finally:
+                html += '</table>\n'
+            
+            return [ [html], [anchor] ]
+        
+        def _build_res(self, abs_dir, bases=list()):
+            """Builds the resources in the abs_dir recursively.
+            The result is a list of 5 items:
+                - a list of HTML strings
+                - a list of HTML anchors
+            """
+            result = [[], []]
+            res_name = os.path.basename(abs_dir)
+            local_elems, local_bases = [], copy.copy(bases)
+            local_bases.append(res_name)
+            out = self.out
+            for elem in os.listdir(abs_dir):
+                if elem.startswith('.'): continue
+                abs_elem = os.path.abspath(os.path.join(abs_dir, elem))
+                if os.path.isdir(abs_elem):
+                    ret = self._build_res(abs_elem, local_bases)
+                    result[0].extend(ret[0])
+                    result[1].extend(ret[1])
+                elif os.path.splitext(abs_elem)[1][1:].lower() in build_resources.AllowedExt:
+                    local_elems.append(elem)
+            
+            if local_elems and local_bases[1:]:
+                base_dir = os.path.join(*local_bases[1:])
+                base_filename = "_".join(local_bases[1:])
+                base_filename = base_filename.replace('-','_')
+                
+                html = ''
+                anchor = ''
+                try:
+                    qresource_prefix = ""
+                    if len(local_bases) > 2:
+                        qresource_prefix = "/" + "/".join(local_bases[2:])
+                    qresource_prefix = ":" + qresource_prefix
+                    qresource_prefix += "/"
+
+                    html += '<h2><a name="%s">%s (%s)</a></h2>\n' % (base_dir, qresource_prefix, base_dir)
+                    html += self.HTML_T % (qresource_prefix , base_dir)
+                    anchor = '<a href="#%s">%s (%s)</a>' % (base_dir, base_dir, qresource_prefix)
+                    for elem in local_elems:
+                        rel_elem = os.path.join(base_dir, elem)
+                        base_elem, _ = os.path.splitext(rel_elem)
+                        rel_png_elem = base_elem + ".png"
+                        html += self.HTML_IL % (rel_png_elem, rel_elem, qresource_prefix, elem, rel_elem, self.getThemeIcon(elem))
+                except Exception, e:
+                    print("[FAILED]\nDescription:\n%s" % str(e), file=out)
+                    raise e
+                finally:
+                    html += '</table>\n'
+                result[0].append(html)
+                result[1].append(anchor)
+            return result
+
     class build_doc(BuildDoc):
         
         def has_doc_api(self):
@@ -649,6 +695,9 @@ if sphinx:
         sub_commands = BuildDoc.sub_commands + [(('build_doc_api', has_doc_api))]
         
         def run(self):
+            import PyQt4.Qt
+            if PyQt4.Qt.qApp.instance() is None:
+                self.app = PyQt4.Qt.QApplication([])
             
             try:
                 return self.doit()
@@ -661,6 +710,11 @@ if sphinx:
             else:
                 out = StringIO.StringIO()
 
+            catalog = build_catalog()
+            catalog.verbose = self.distribution.verbose
+            catalog.out = out
+            catalog.run()
+            
             resource = abspath('lib','taurus','qt','qtgui','resource')
             tango_catalog = os.path.join(resource, 'catalog.html')
             build_dir = os.path.abspath(self.builder_target_dir)
@@ -688,22 +742,33 @@ if sphinx:
             
             # copy the tango icons to the build directory of documentation
             target = os.path.join(build_dir, 'devel')
+            
+            os.path.walk(resource, svg_to_png, (resource, target))
+            return
+        
             elems = os.listdir(resource)
             for elem in elems:
                 if elem.startswith("."):
                     continue
                 abs_elem = os.path.join(resource, elem)
                 if os.path.isfile(abs_elem):
-                    if os.path.splitext(elem)[1][1:] in build_resources.AllowedExt:
+                    if os.path.splitext(elem)[1][1:] in build_catalog.AllowedExt:
                         target_file = os.path.join(target, elem)
+                        target_base, target_ext = os.path.splitext(target_file)
+                        target_file = target_base + ".png"
                         if refresh or not os.path.isfile(target_file):
                             print("copying",abs_elem,'->',target_file,file=out)
-                        shutil.copyfile(abs_elem, target_file)
+                        #shutil.copyfile(abs_elem, target_file)
+                        pixmap = PyQt4.Qt.QPixmap(abs_elem)
+                        pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
+                        pix.save(target_file)
                 elif os.path.isdir(abs_elem):
                     target_dir = os.path.join(target, elem)
                     target_dir_exists = os.path.isdir(target_dir)
                     copy_dir = refresh or not target_dir_exists
                     if copy_dir:
+                        
+                        
                         if target_dir_exists:
                             shutil.rmtree(target_dir)
                         print("copying",abs_elem,'->',target_dir,file=out)
@@ -711,6 +776,24 @@ if sphinx:
     
     cmdclass['build_doc'] = build_doc
 
+def svg_to_png(arg, dirname, fnames):
+    import PyQt4.Qt
+    resource, target = arg
+    relpath = os.path.relpath(dirname, start=resource)
+    path = os.path.join(target, relpath)
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    for fname in fnames:
+        fbase, f_ext  = os.path.splitext(fname)
+        if f_ext[1:] in build_catalog.AllowedExt:
+            full_source_fname = os.path.join(dirname, fname)
+            target_fname = fbase + ".png"
+            full_target_fname = os.path.join(path, target_fname)
+            if not os.path.isfile(full_target_fname):
+                pixmap = PyQt4.Qt.QPixmap(full_source_fname)
+                pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
+                ret = pix.save(full_target_fname)
+                print("\tBuilding PNG",full_source_fname,'->',full_target_fname, "(%s)" % ret)
 
 setup(name             = 'taurus',
       version          = Release.version,
