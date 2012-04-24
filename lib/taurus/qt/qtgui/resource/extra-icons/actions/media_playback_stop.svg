@@ -18,11 +18,16 @@
    enable-background="new 0 0 800 600"
    xml:space="preserve"
    id="svg2"
-   inkscape:version="0.48.1 r9760"
+   inkscape:version="0.48.0 r9654"
    sodipodi:docname="media_playback_stop.svg"><metadata
    id="metadata206"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title><cc:license
+         rdf:resource="http://creativecommons.org/licenses/publicdomain/" /></cc:Work><cc:License
+       rdf:about="http://creativecommons.org/licenses/publicdomain/"><cc:permits
+         rdf:resource="http://creativecommons.org/ns#Reproduction" /><cc:permits
+         rdf:resource="http://creativecommons.org/ns#Distribution" /><cc:permits
+         rdf:resource="http://creativecommons.org/ns#DerivativeWorks" /></cc:License></rdf:RDF></metadata><defs
    id="defs204" /><sodipodi:namedview
    pagecolor="#ffffff"
    bordercolor="#666666"
@@ -41,10 +46,10 @@
    fit-margin-right="0"
    fit-margin-bottom="0"
    inkscape:zoom="6.0151217"
-   inkscape:cx="5.6167536"
+   inkscape:cx="-21.31537"
    inkscape:cy="28.263968"
-   inkscape:window-x="0"
-   inkscape:window-y="25"
+   inkscape:window-x="649"
+   inkscape:window-y="0"
    inkscape:window-maximized="0"
    inkscape:current-layer="svg2" />
 <g
