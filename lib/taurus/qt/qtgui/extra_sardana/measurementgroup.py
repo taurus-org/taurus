@@ -108,12 +108,13 @@ def createChannelDict(name, index=None, **kwargs):
     
     #If the channel is a Tango one, try to guess data_type, shape and data_units
     attrproxy = attrconf = value = None
+    dtype = shape = None
     try: 
         attrproxy = PyTango.AttributeProxy(name)
         attrconf = attrproxy.get_config()
         value = attrproxy.read().value
-    except: 
-        pass
+    except Exception,e:
+        print str(e)
     if value is not None:
         shape = numpy.shape(value)
         dtype = getattr(value, 'dtype', numpy.dtype(type(value))).name
