@@ -477,10 +477,6 @@ class BaseDoor(MacroServerDevice):
         self._running_macro.setResult(result)
         return result
     
-    def environmentChanged(self, s, t, v):
-        if t not in CHANGE_EVT_TYPES: return
-        return self._processEnvironmentData(v)
-    
     def putEnvironment(self, name, value):
         self.macro_server.putEnvironment(name, value)
 
@@ -788,7 +784,10 @@ class BaseMacroServer(MacroServerDevice):
 
     def getElementsWithInterface(self, interface):
         return self.getElementsInfo().getElementsWithInterface(interface)
-    
+   
+    def getElementsWithInterfaces(self, interfaces):
+        return self.getElementsInfo().getElementsWithInterfaces(interfaces)
+        
     def getElementsOfType(self, elem_type):
         return self.getElementsInfo().getElementsOfType(elem_type)
     

@@ -186,7 +186,13 @@ class BaseSardanaElementContainer:
     def getElementsWithInterface(self, interface):
         elems = self._interfaces_dict.get(interface, {})
         return elems
-    
+
+    def getElementsWithInterfaces(self, interfaces):
+        ret = CaselessDict()
+        for interface in interfaces:
+            ret.update(self.getElementsWithInterface(interface))
+        return return
+
     def getElementNamesWithInterface(self, interface):
         return [ e.name for e in self.getElementsWithInterface(interface).values() ]
     
