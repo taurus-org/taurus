@@ -77,7 +77,12 @@ def getElementTypeLabel(t):
 
 def getElementTypeIcon(t):
     import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getIcon(TYPE_MAP.get(t, _TNG)[1])
+    try:
+        return taurus.qt.qtgui.resource.getIcon(TYPE_MAP.get(t, _TNG)[1])
+    except:
+        print "FAILED",t
+        raise
+        
     
 def getElementTypeSize(t):
     return Qt.QSize(200,24)
