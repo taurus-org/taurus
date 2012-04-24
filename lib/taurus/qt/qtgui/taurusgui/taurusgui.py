@@ -595,21 +595,29 @@ class TaurusGui(TaurusMainWindow):
             i_view = PanelDescription(i_name,classname='TaurusForm', floating=False, model=[])
             instrument_dict[i_name] = i_view
         
-        motors = sorted(ms.getElementNamesWithInterface('Moveable'))
-        channels = sorted(ms.getElementNamesWithInterface('ExpChannel'))
-        ioregisters = sorted(ms.getElementNamesWithInterface('IORegister'))
+#        motors = sorted(ms.getElementNamesWithInterface('Moveable'))
+#        channels = sorted(ms.getElementNamesWithInterface('ExpChannel'))
+#        ioregisters = sorted(ms.getElementNamesWithInterface('IORegister'))
         
-        pool_elements = motors + channels + ioregisters
-        for e_name in pool_elements:
-            e = taurus.Device(e_name)
-            instrument = e['Instrument'].value
-            if instrument != '':
+#        pool_elements = motors + channels + ioregisters
+#        for e_name in pool_elements:
+#            e = taurus.Device(e_name)
+#            instrument = e['Instrument'].value
+#            if instrument != '':
+#                i_name = instrument
+#                e_name = e.alias()
+#                instrument_dict[i_name].model.append(e_name)
+
+        pool_elements = ms.getElementsWithInterfaces(('Moveable', 'ExpChannel', 'IORegister'))
+        for elem_name, elem in pool_elements.items():
+            instrument = elem.instrument
+            if instrument:
                 i_name = instrument
-                e_name = e.alias()
+                e_name = elem.full_name
                 instrument_dict[i_name].model.append(e_name)
-                
+
         return instrument_dict.values()
-      
+
     def __getVarFromXML(self, root, nodename, default=None):
         name = root.find(nodename)
         if name is None or name.text is None:
