@@ -112,6 +112,7 @@ packages = [
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
     'taurus.qt.qtgui.panel',
+    'taurus.qt.qtgui.panel.report',
     'taurus.qt.qtgui.panel.ui',
     'taurus.qt.qtgui.plot',
     'taurus.qt.qtgui.plot.ui',
@@ -171,15 +172,17 @@ requires = [
 
 def get_resource_package_data():
     data = ['*.rcc']
-#    tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
-#                              'tango-icons')
-#    for tango_icon_item in os.listdir(tango_icons_dir):
-#        if tango_icon_item.startswith("."):
-#            continue
-#        abs_item = os.path.join(tango_icons_dir, tango_icon_item)
-#        if not os.path.isdir(abs_item):
-#            continue
-#        data.append('tango-icons/%s/*' % tango_icon_item)
+    import PyQt4.Qt
+    if not hasattr(PyQt4.Qt.QIcon, "fromTheme"):
+        tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
+                                  'tango-icons')
+        for tango_icon_item in os.listdir(tango_icons_dir):
+            if tango_icon_item.startswith("."):
+                continue
+            abs_item = os.path.join(tango_icons_dir, tango_icon_item)
+            if not os.path.isdir(abs_item):
+                continue
+            data.append('tango-icons/%s/*' % tango_icon_item)
     return data
  
 package_data = { 
