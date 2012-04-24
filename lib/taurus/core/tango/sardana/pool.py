@@ -372,13 +372,13 @@ class PoolElement(BaseElement, TangoDevice):
     
     def getInstrumentName(self, force=False):
         instr_name = self._getAttrValue('instrument', force=force)
-        if len(instr_name) == 0: return instr_name
+        if not instr_name: return ''
         #instr_name = instr_name[:instr_name.index('(')]
         return instr_name
     
     def getInstrument(self):
         instr_name = self.getInstrumentName()
-        if len(instr_name) == 0: return None
+        if not instr_name: return None
         return self.getPoolObj().getObj("Instrument", instr_name)
     
     @reservedOperation
