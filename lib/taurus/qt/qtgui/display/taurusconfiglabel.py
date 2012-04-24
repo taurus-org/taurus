@@ -170,11 +170,12 @@ class TaurusConfigLabel(Qt.QLabel, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.display'
-        ret['group'] = 'Taurus Widgets [Old]'
-        ret['icon'] = ":/designer/label.png"
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.display'
+#        ret['group'] = 'Taurus Widgets [Old]'
+#        ret['icon'] = ":/designer/label.png"
+#        return ret
     
     model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, setModel, 
                             TaurusBaseWidget.resetModel)

@@ -156,7 +156,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return { 
-            'group'     : 'Taurus Input Widgets',
+            'group'     : 'Taurus Input',
             'icon'      : ':/designer/spinbox.png',
             'module'    : 'taurus.qt.qtgui.input',
             'container' : False }

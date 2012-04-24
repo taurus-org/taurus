@@ -131,11 +131,12 @@ class TaurusStateLed(QLed, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['group'] = 'Taurus Widgets [Old]'
-        ret['module'] = 'taurus.qt.qtgui.display'
-        ret['icon'] = ":/designer/ledred.png"
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['group'] = 'Taurus Widgets [Old]'
+#        ret['module'] = 'taurus.qt.qtgui.display'
+#        ret['icon'] = ":/designer/ledred.png"
+#        return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties

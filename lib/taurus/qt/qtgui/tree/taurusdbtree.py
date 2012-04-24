@@ -89,7 +89,7 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.tree'
-        ret['group'] = 'Taurus Item Widgets'
+        ret['group'] = 'Taurus Views'
         ret['icon'] = ":/designer/listview.png"
         return ret
 

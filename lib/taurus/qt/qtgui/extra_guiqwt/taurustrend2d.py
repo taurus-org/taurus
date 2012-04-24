@@ -196,7 +196,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.plot'
-        ret['group'] = 'Taurus Display Widgets'
+        ret['group'] = 'Taurus Display'
         ret['icon'] =':/designer/qwtplot.png'
         return ret  
     

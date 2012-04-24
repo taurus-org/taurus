@@ -904,7 +904,7 @@ class TaurusMacroExecutorWidget(TaurusWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return {'container': False, 
-                'group': 'Taurus Extra Sardana', 
+                'group': 'Taurus Sardana', 
                 'module': 'taurus.qt.qtgui.extra_macroexecutor', 
                 'icon': ':/designer/frame.png'}
     

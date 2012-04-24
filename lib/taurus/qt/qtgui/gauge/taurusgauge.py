@@ -109,6 +109,7 @@ class TaurusLinearGauge(qtcontrols.ELinearGauge, TaurusBaseWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['group'] = 'Taurus Display'
         ret['module'] = 'taurus.qt.qtgui.gauge'
         ret['icon'] = ":/designer/vertical_linear_gauge.png"
         return ret
@@ -224,6 +225,7 @@ class TaurusCircularGauge(qtcontrols.ECircularGauge, TaurusBaseWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['group'] = 'Taurus Display'
         ret['module'] = 'taurus.qt.qtgui.gauge'
         ret['icon'] = ":/designer/circular_gauge.png"
         return ret

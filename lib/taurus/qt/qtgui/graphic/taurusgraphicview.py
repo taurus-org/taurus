@@ -60,6 +60,6 @@ class TaurusGraphicsView(Qt.QGraphicsView, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.graphic'
-        ret['group'] = 'Taurus Display Widgets'
+        ret['group'] = 'Taurus Display'
         ret['icon'] = ":/designer/graphicsview.png"
         return ret

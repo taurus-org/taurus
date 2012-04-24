@@ -388,7 +388,7 @@ class TaurusModelList(Qt.QListView):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return { 
-            'group'     : 'Taurus Input Widgets',
+            'group'     : 'Taurus Input',
             'icon'      : ':/designer/taurus.png',
             'container' : False,
             'module'    : 'taurus.qt.qtgui.panel'

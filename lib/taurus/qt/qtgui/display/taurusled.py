@@ -48,7 +48,7 @@ from qled import QLed
 
 _QT_PLUGIN_INFO = {
     'module' : 'taurus.qt.qtgui.display',
-    'group' : 'Taurus Display Widgets',
+    'group' : 'Taurus Display',
     'icon' : ":/designer/ledgreen.png",
 }
 

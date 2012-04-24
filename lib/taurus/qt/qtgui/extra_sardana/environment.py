@@ -53,7 +53,7 @@ class SardanaEnvironmentTreeWidget(TaurusBaseTreeWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseTreeWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_sardana'
-        ret['group'] = 'Taurus Extra Sardana'
+        ret['group'] = 'Taurus Sardana'
         ret['icon'] = ":/designer/listview.png"
         return ret
 

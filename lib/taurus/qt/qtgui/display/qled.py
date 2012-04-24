@@ -108,7 +108,7 @@ class QLed(qpixmapwidget.QPixmapWidget):
     def getQtDesignerPluginInfo(cls):
         return {
             'module' : 'taurus.qt.qtgui.display',
-            'group' : 'Taurus Widgets',
+            'group' : 'Taurus Display',
             'icon' : ":/designer/ledred.png",
             'container' : False,
         }

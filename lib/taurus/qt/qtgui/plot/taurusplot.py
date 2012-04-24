@@ -3038,7 +3038,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :return: (dict) a map with pertinent designer information"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.plot'
-        ret['group'] = 'Taurus Display Widgets'
+        ret['group'] = 'Taurus Display'
         ret['icon'] =':/designer/qwtplot.png'
         return ret
             

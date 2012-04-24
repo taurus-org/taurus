@@ -1522,13 +1522,13 @@ class TaurusBaseWidget(TaurusBaseComponent):
         
         This default implementation returns the following dictionary::
         
-            { 'group'     : 'Taurus Widgets',
+            { 'group'     : 'Taurus [Unclassified]',
               'icon'      : ':/designer/taurus.png',
               'container' : False }
         
         :return: (dict) a map with pertinent designer information"""
         return { 
-            'group'     : 'Taurus Widgets',
+            'group'     : 'Taurus [Unclassified]',
             'icon'      : ':/designer/taurus.png',
             'container' : False }
 
@@ -1706,5 +1706,5 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['group'] = 'Taurus Input Widgets'
+        ret['group'] = 'Taurus Input'
         return ret

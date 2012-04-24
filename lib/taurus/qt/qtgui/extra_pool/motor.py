@@ -64,11 +64,12 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        return ret
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
@@ -122,11 +123,12 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        return ret
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
@@ -180,11 +182,12 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        return ret
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
@@ -234,11 +237,12 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        return ret
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 

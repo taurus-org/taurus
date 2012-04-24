@@ -87,6 +87,10 @@ class PoolIORegisterReadWidget(TaurusLabel):
             pass
         return taurus_label_tooltip
     ##########################################################
+    
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return None
 
 class PoolIORegisterWriteWidget(TaurusValueComboBox):
     ''' This class is intended to be used as a write widget of a TaurusValue with IORegister devices.
@@ -112,6 +116,9 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
             self.writeValueNames.append((label, value))
 
         self.setValueNames(self.writeValueNames)
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return None
 
 class PoolIORegisterTV(TaurusValue):
     ''' A widget that displays and controls a pool IORegister device.  It

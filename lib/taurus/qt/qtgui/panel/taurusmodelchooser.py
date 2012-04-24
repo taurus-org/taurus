@@ -118,7 +118,7 @@ class TaurusModelSelectorTree(TaurusWidget):
         ret['module'] = 'taurus.qt.qtgui.panel'
         ret['icon'] = ":/designer/listview.png"
         ret['container'] = False
-        ret['group'] = 'Taurus Composite Widgets'
+        ret['group'] = 'Taurus Views'
         return ret
         
         
@@ -307,7 +307,7 @@ class TaurusModelChooser(TaurusWidget):
         ret['module'] = 'taurus.qt.qtgui.panel'
         ret['icon'] = ":/designer/listview.png"
         ret['container'] = False
-        ret['group'] = 'Taurus Composite Widgets'
+        ret['group'] = 'Taurus Views'
         return ret
     
     singleModelMode = Qt.pyqtProperty("bool", isSingleModelMode, setSingleModelMode, resetSingleModelMode)

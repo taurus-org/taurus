@@ -119,11 +119,12 @@ class TaurusLCDValue(Qt.QLCDNumber, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.display'
-        ret['group'] = 'Taurus Widgets [Old]'
-        ret['icon'] = ":/designer/lcdnumber.png"
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.display'
+#        ret['group'] = 'Taurus Widgets [Old]'
+#        ret['icon'] = ":/designer/lcdnumber.png"
+#        return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 

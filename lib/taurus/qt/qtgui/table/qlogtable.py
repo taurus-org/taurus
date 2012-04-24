@@ -308,7 +308,7 @@ class QLoggingTable(Qt.QTableView):
     def getQtDesignerPluginInfo(cls):
         return { 
             'module'    : 'taurus.qt.qtgui.table',
-            'group'     : 'Taurus Item Widgets',
+            'group'     : 'Taurus Views',
             'icon'      : ':/designer/table.png',
             'container' : False }
 
@@ -335,9 +335,10 @@ class QLoggingWidget(Qt.QWidget):
         tb = self._toolbar = Qt.QToolBar("Taurus logger toolbar")
         tb.setFloatable(False)
         
-        self._scrollLockButton = Qt.QPushButton(getIcon(":/scroll_lock.png"),"")
+        self._scrollLockButton = Qt.QPushButton(getIcon(":/emblems/lock.svg"),"")
         self._scrollLockButton.setCheckable(True)
         self._scrollLockButton.setChecked(table.getScrollLock())
+        self._scrollLockButton.setToolTip('Scroll lock')
         self._scrollLockButton.setFlat(True)
         Qt.QObject.connect(self._scrollLockButton, Qt.SIGNAL("toggled(bool)"), table.setScrollLock)
         
@@ -357,7 +358,7 @@ class QLoggingWidget(Qt.QWidget):
     def getQtDesignerPluginInfo(cls):
         return { 
             'module'    : 'taurus.qt.qtgui.table',
-            'group'     : 'Taurus Item Widgets',
+            'group'     : 'Taurus Views',
             'icon'      : ':/designer/table.png',
             'container' : False }
 

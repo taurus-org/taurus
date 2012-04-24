@@ -99,7 +99,7 @@ class QPixmapWidget(Qt.QWidget):
     def getQtDesignerPluginInfo(cls):
         return {
             'module' : 'taurus.qt.qtgui.display',
-            'group' : 'Taurus Widgets',
+            'group' : 'Taurus Display',
             'icon' : ":/designer/graphicsview.png",
             'container' : False,
         }

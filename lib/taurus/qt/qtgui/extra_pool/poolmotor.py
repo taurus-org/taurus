@@ -600,12 +600,13 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        ret['container'] = False
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        ret['container'] = False
+#        return ret
 
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)

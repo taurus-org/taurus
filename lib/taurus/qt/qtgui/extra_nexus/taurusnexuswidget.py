@@ -173,7 +173,7 @@ class TaurusNeXusBrowser(TaurusWidget):
         ret['module'] = 'taurus.qt.qtgui.extra_nexus'
         ret['icon'] = ":/designer/listview.png"
         ret['container'] = False
-        ret['group'] = 'Taurus Composite Widgets'
+        ret['group'] = 'Taurus Views'
         return ret
     
     

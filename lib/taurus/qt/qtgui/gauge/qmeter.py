@@ -667,7 +667,7 @@ class QManoMeter(QBaseMeter):
     def getQtDesignerPluginInfo(cls):
         return {
             'module' : 'taurus.qt.qtgui.gauge',
-            'group' : 'Taurus Display Widgets',
+            'group' : 'Taurus Display',
             'icon' : ":/designer/circular_gauge.png",
             'container' : False,
         }

@@ -696,7 +696,7 @@ class TaurusValuesTable(TaurusWidget):
         '''Reimplemented from :meth:`TaurusWidget.getQtDesignerPluginInfo`'''
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
-        ret['group'] = 'Taurus Item Widgets'
+        ret['group'] = 'Taurus Views'
         ret['icon'] = ":/designer/table.png"
         return ret
     

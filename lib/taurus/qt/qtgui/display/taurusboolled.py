@@ -154,11 +154,12 @@ class TaurusBoolLed(QLed, TaurusBaseWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.display'
-        ret['group'] = 'Taurus Widgets [Old]'
-        ret['icon'] = ":/designer/ledgreen.png"
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.display'
+#        ret['group'] = 'Taurus Widgets [Old]'
+#        ret['icon'] = ":/designer/ledgreen.png"
+#        return ret
         
     model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
                             TaurusBaseWidget.setModel,

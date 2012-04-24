@@ -817,7 +817,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseTableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_sardana'
-        ret['group'] = 'Taurus Extra Sardana'
+        ret['group'] = 'Taurus Sardana'
         ret['icon'] = ":/designer/table.png"
         return ret
     

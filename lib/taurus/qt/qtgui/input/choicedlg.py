@@ -220,7 +220,7 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         :return: (dict) a map with pertinent designer information"""
         return {
             'module'    : 'taurus.qt.qtgui.input',     
-            'group'     : 'Taurus Input Widgets',
+            'group'     : 'Taurus Input',
             'icon'      : ':/designer/taurus.png',
             'container' : False }
 

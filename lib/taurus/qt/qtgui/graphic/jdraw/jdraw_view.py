@@ -308,7 +308,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['group'] = 'Taurus Display Widgets'
+        ret['group'] = 'Taurus Display'
         ret['module'] = 'taurus.qt.qtgui.graphic'
         ret['icon'] = ":/designer/graphicsview.png"
         return ret

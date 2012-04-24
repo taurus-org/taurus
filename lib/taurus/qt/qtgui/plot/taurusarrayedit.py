@@ -169,7 +169,7 @@ class TaurusArrayEditor(TaurusWidget):
         
         :return: (dict) a map with pertinent designer information"""
         ret = TaurusWidget.getQtDesignerPluginInfo()
-        ret['group'] = 'Taurus Composite Widgets'
+        ret['group'] = 'Taurus Input'
         ret['icon'] =':/designer/arrayedit.png'
         ret['container'] = False
         return ret
