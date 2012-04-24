@@ -447,7 +447,10 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
             model ="/".join((str(self.getParentModelName()),str(model))) #@fixme: This assumes Tango models.
         plot = self.get_plot()
         if self.imgItem is not None:
-            plot.del_item(self.imgItem)
+            try:
+                plot.del_item(self.imgItem)
+            except:
+                self.info("Unable to delete item from plot")
         if self.rgbmode:
             self.imgItem = make.rgbimage(taurusmodel=model)
         else:
