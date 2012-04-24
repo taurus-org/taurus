@@ -66,6 +66,11 @@ class TaurusArrayEditor(TaurusWidget):
         
     def setModel(self, model):
         '''returns True if a curve could be set from the attribute. Flase otherwise'''
+        if not model:
+            self._xAttr = self._yAttr = None
+            self.error('Invalid model for %s'%str(self.__class__))
+            self.fromAttrBT.setEnabled(False)
+            return
         attrs = str(model).split("|")
         self._yAttr = taurus.Attribute(attrs[-1])
         if self._yAttr is None or len(attrs) not in (1,2):
