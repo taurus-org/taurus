@@ -1400,9 +1400,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             modelclass = self.getModelClass()
         except:
             modelclass = None 
-        if modelclass == taurus.core.TaurusDevice:
+        if issubclass(modelclass, taurus.core.TaurusDevice):
             mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
-        elif modelclass == taurus.core.TaurusAttribute:
+        elif issubclass(modelclass, taurus.core.TaurusAttribute):
             mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData        
     
