@@ -537,6 +537,7 @@ class build_doc_api(Command):
         pass 
         
     def run(self):
+        #print("SKIPPING API");return
         buildcmd = self.get_finalized_command('build_doc')
         name = "auto_rst4api"
         data = imp.find_module(name, [abspath('doc')])
@@ -691,6 +692,14 @@ if sphinx:
             return result
 
     class build_doc(BuildDoc):
+        user_options = BuildDoc.user_options + \
+                     [('use-inkscape', None, 
+                       "Use inkscape for building the icon catalog (useful if QApplication cannot be used when building, but requires inkscape)")]
+        boolean_options = BuildDoc.boolean_options + ['use-inkscape']
+        
+        def initialize_options (self):
+            BuildDoc.initialize_options(self)
+            self.use_inkscape = False
         
         def has_doc_api(self):
             return True
@@ -698,10 +707,6 @@ if sphinx:
         sub_commands = BuildDoc.sub_commands + [(('build_doc_api', has_doc_api))]
         
         def run(self):
-            import PyQt4.Qt
-            if PyQt4.Qt.qApp.instance() is None:
-                self.app = PyQt4.Qt.QApplication([])
-            
             try:
                 return self.doit()
             except Exception,e:
@@ -746,42 +751,21 @@ if sphinx:
             # copy the tango icons to the build directory of documentation
             target = os.path.join(build_dir, 'devel')
             
-            os.path.walk(resource, svg_to_png, (resource, target))
+            if not self.use_inkscape:
+                import PyQt4.Qt
+                if PyQt4.Qt.qApp.instance() is None:
+                    self.app = PyQt4.Qt.QApplication([])
+            
+            print("\tBuilding PNGs for icon catalog")   
+            os.path.walk(resource, svg_to_png, (resource, target, self.use_inkscape))
             return
-        
-            elems = os.listdir(resource)
-            for elem in elems:
-                if elem.startswith("."):
-                    continue
-                abs_elem = os.path.join(resource, elem)
-                if os.path.isfile(abs_elem):
-                    if os.path.splitext(elem)[1][1:] in build_catalog.AllowedExt:
-                        target_file = os.path.join(target, elem)
-                        target_base, target_ext = os.path.splitext(target_file)
-                        target_file = target_base + ".png"
-                        if refresh or not os.path.isfile(target_file):
-                            print("copying",abs_elem,'->',target_file,file=out)
-                        #shutil.copyfile(abs_elem, target_file)
-                        pixmap = PyQt4.Qt.QPixmap(abs_elem)
-                        pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
-                        pix.save(target_file)
-                elif os.path.isdir(abs_elem):
-                    target_dir = os.path.join(target, elem)
-                    target_dir_exists = os.path.isdir(target_dir)
-                    copy_dir = refresh or not target_dir_exists
-                    if copy_dir:
-                        
-                        
-                        if target_dir_exists:
-                            shutil.rmtree(target_dir)
-                        print("copying",abs_elem,'->',target_dir,file=out)
-                        shutil.copytree(abs_elem, target_dir)
     
     cmdclass['build_doc'] = build_doc
 
 def svg_to_png(arg, dirname, fnames):
-    import PyQt4.Qt
-    resource, target = arg
+    resource, target, use_inkscape = arg
+    if not use_inkscape:
+        import PyQt4.Qt
     relpath = os.path.relpath(dirname, start=resource)
     path = os.path.join(target, relpath)
     if not os.path.isdir(path):
@@ -793,10 +777,16 @@ def svg_to_png(arg, dirname, fnames):
             target_fname = fbase + ".png"
             full_target_fname = os.path.join(path, target_fname)
             if not os.path.isfile(full_target_fname):
-                pixmap = PyQt4.Qt.QPixmap(full_source_fname)
-                pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
-                ret = pix.save(full_target_fname)
-                print("\tBuilding PNG",full_source_fname,'->',full_target_fname, "(%s)" % ret)
+                if use_inkscape:
+                    cmd = "inkscape -z -e '%s' -w 24 '%s' &>/dev/null"%(full_target_fname, full_source_fname)
+                    ok = not(os.system(cmd))
+                else:
+                    pixmap = PyQt4.Qt.QPixmap(full_source_fname)
+                    pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
+                    ok = pix.save(full_target_fname)
+                print(ok and "[OK]" or "[FAIL]", full_source_fname,'->',full_target_fname)
+                
+                
 
 setup(name             = 'taurus',
       version          = Release.version,
