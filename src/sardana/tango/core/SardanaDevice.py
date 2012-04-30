@@ -146,12 +146,26 @@ class SardanaDevice(Device_4Impl, Logger):
             attr.set_change_event(True, False)
             recover = True
         
-        attr_name = attr.get_name()
+        attr_name = attr.get_name().lower()
         
         try:
             if error is not None and fire_event:
                 self.push_change_event(attr_name, error)
                 return
+            
+            # some versions of Tango have a memory leak if you do
+            # push_change_event(attr_name, value [, ...]) on state or status.
+            # This solves the problem.
+            if attr_name == "state":
+                self.set_state(value)
+                if fire_event:
+                    self.push_change_event(attr_name)
+                return
+            elif attr_name == "status":
+                self.set_status(value)
+                if fire_event:
+                    self.push_change_event(attr_name)
+                return 
             
             if timestamp is None:
                 timestamp = time.time()
