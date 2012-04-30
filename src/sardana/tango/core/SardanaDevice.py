@@ -37,28 +37,11 @@ import threading
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
     AttrQuality, TimeVal, ArgType
 
-from taurus.core.util import ThreadPool
-from taurus.core.util.log import Logger, DebugIt, InfoIt
+from taurus.core.util.log import Logger
 
-from sardana import InvalidId
-
+from sardana.sardanathreadpool import get_thread_pool
 from util import to_tango_state, NO_DB_MAP
 
-__thread_pool_lock = threading.Lock()
-__thread_pool = None
-
-def get_thread_pool():
-    """Returns the global pool of threads for Sardana
-    
-    :return: the global pool of threads object
-    :rtype: taurus.core.util.ThreadPool"""
-    
-    global __thread_pool
-    global __thread_pool_lock
-    with __thread_pool_lock:
-        if __thread_pool is None:
-            __thread_pool = ThreadPool(name="TangoEVT", Psize=1)
-        return __thread_pool
 
 class SardanaDevice(Device_4Impl, Logger):
     
@@ -143,9 +126,8 @@ class SardanaDevice(Device_4Impl, Logger):
                       error=None, priority=1, synch=True):
         set_attr = self.set_attribute_push
         if synch:
-            self.set_attribute_push(attr, value=value, timestamp=timestamp,
-                                    quality=quality, error=error,
-                                    priority=priority)
+            set_attr(attr, value=value, timestamp=timestamp, quality=quality,
+                     error=error, priority=priority)
         else:
             th_pool = get_thread_pool()
             th_pool.add(set_attr, None, attr, value=value, timestamp=timestamp,
