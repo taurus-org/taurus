@@ -29,20 +29,15 @@ __all__ = ["CTExpChannel", "CTExpChannelClass"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import time
-import math
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, \
-    DevString, DispLevel, DevState, AttrQuality, \
-    Except, READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import DevVoid, DevDouble, DevState, AttrQuality, \
+    Except, READ, SCALAR
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import to_tango_state
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -118,7 +113,8 @@ class CTExpChannel(PoolElementDevice):
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority)
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
     
     def always_executed_hook(self):
         #state = to_tango_state(self.ct.get_state(cache=False))
@@ -131,7 +127,7 @@ class CTExpChannel(PoolElementDevice):
         ct = self.ct
         #use_cache = ct.is_action_running() and not self.Force_HW_Read
         use_cache = self.get_state() == DevState.MOVING and not self.Force_HW_Read
-        value = self.ct.get_value(cache=use_cache)
+        value = ct.get_value(cache=use_cache)
         quality = None
         if self.get_state() == DevState.MOVING:
             quality = AttrQuality.ATTR_CHANGING

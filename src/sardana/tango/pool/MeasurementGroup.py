@@ -31,19 +31,15 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed, \
-    DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, \
-    DevString, DevEncoded, \
+from PyTango import DevVoid, DevLong, DevDouble, DevString, \
     DispLevel, DevState, AttrQuality, \
-    READ, READ_WRITE, SCALAR, SPECTRUM
-from PyTango.constants import DescNotSet
+    READ_WRITE, SCALAR
 
 from taurus.core.util import CodecFactory
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.pool import AcqMode
-from sardana.tango.core.util import to_tango_state
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -113,7 +109,6 @@ class MeasurementGroup(PoolGroupDevice):
             attr.set_change_event(True, False)
             recover = True
         
-        my_name = self.alias.lower()
         try:
             if name == "state":
                 state = self.calculate_tango_state(event_value)

@@ -31,19 +31,19 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble
+from PyTango import Util, DevFailed, Except
+from PyTango import DevVoid, DevLong, DevString
 from PyTango import DevVarStringArray, DevVarLongArray
-from PyTango import DispLevel, DevState
-from PyTango import SCALAR, SPECTRUM, IMAGE
+from PyTango import DispLevel, DevState, AttrQuality
+from PyTango import SCALAR, SPECTRUM
 from PyTango import READ_WRITE, READ
-from PyTango import Attr, SpectrumAttr, ImageAttr
 
-from taurus.core.util import CaselessDict, InfoIt, DebugIt
+from taurus.core.util import CaselessDict, DebugIt
 
 from sardana import DataType, DataFormat
-from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
-    GenericImageAttr, to_tango_attr_info, to_tango_state
+from sardana import State, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
+from sardana.tango.core.util import to_tango_attr_info, to_tango_state
 
 from PoolDevice import PoolDevice, PoolDeviceClass
 
@@ -176,32 +176,35 @@ class Controller(PoolDevice):
         return [ elements[id].get_name() for id in sorted(elements) ]
     
     def on_controller_changed(self, event_src, event_type, event_value):
-        name = event_type.name
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
+        timestamp = time.time()
+        name = event_type.name.lower()
         multi_attr = self.get_device_attr()
         try:
             attr = multi_attr.get_attr_by_name(name)
         except DevFailed:
             return
+        quality = AttrQuality.ATTR_VALID
+        priority = event_type.priority
+        error = None
         
-        recover = False
-        if event_type.priority > 1:
-            attr.set_change_event(True, False)
-            recover = True
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
         
-        try:
-            if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name, event_value)
-            elif name == "status":
-                self.set_status(event_value)
-                self.push_change_event(name, event_value)
-            else:
-                self.push_change_event(name, event_value)
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
-    
     def get_dynamic_attributes(self):
         if hasattr(self, "_dynamic_attributes_cache"):
             return self._standard_attributes_cache, self._dynamic_attributes_cache

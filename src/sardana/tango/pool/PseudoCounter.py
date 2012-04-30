@@ -31,15 +31,14 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed, Except, READ, READ_WRITE, SCALAR, \
-    SPECTRUM, DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, \
-    DevString, DevVarStringArray, DispLevel, DevState, AttrQuality, TimeVal
+from PyTango import Except, READ, SCALAR, DevDouble, \
+    DevVarStringArray, DevState, AttrQuality, TimeVal
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import to_tango_type_format, to_tango_state
+from sardana.tango.core.util import to_tango_type_format
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 

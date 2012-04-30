@@ -32,17 +32,16 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import Util, DevFailed, Except, READ, READ_WRITE, SCALAR, \
-    SPECTRUM, DevVoid, DevShort, DevLong, DevLong64, DevDouble, DevBoolean, \
-    DevString, DevVarStringArray, DispLevel, DevState, AttrQuality, TimeVal
+from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, DevDouble, \
+    DevVarStringArray, DevState, AttrQuality
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
 from sardana.tango.core.util import exception_str, \
-    to_tango_type_format, to_tango_state, throw_sardana_exception
+    to_tango_type_format, throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 
@@ -136,7 +135,8 @@ class PseudoMotor(PoolElementDevice):
             if state == State.Moving and name == "position":
                 quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error)
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
                            
     def always_executed_hook(self):
         #state = to_tango_state(self.pseudo_motor.get_state(cache=False))

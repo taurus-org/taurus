@@ -29,11 +29,8 @@ __all__ = ["Pool", "PoolClass"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import json
 import operator
-import types
-import time
 import os.path
 import logging.handlers
 
@@ -41,14 +38,11 @@ import PyTango
 
 from taurus import Factory
 from taurus.core.util import CaselessDict, CodecFactory
-from taurus.core.util.log import Logger, InfoIt, DebugIt, WarnIt
+from taurus.core.util.log import Logger, DebugIt
 
 from sardana import State, SardanaServer, ElementType, Interface, \
-    TYPE_MOVEABLE_ELEMENTS, TYPE_ACQUIRABLE_ELEMENTS, TYPE_PSEUDO_ELEMENTS
+    TYPE_ACQUIRABLE_ELEMENTS, TYPE_PSEUDO_ELEMENTS
 from sardana.pool.pool import Pool as POOL
-from sardana.pool.poolinstrument import PoolInstrument
-from sardana.pool.poolmotorgroup import PoolMotorGroup
-from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
 from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
 
 
@@ -246,7 +240,6 @@ class Pool(PyTango.Device_4Impl, Logger):
         kwargs['module'] = mod_name
         
         td = TYPE_MAP_OBJ[ElementType.Controller]
-        klass = td.klass
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
 
@@ -438,9 +431,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         name = kwargs['name']
 
         td = TYPE_MAP_OBJ[elem_type]
-        klass = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
         
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
@@ -490,7 +481,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 elif elem_type == ElementType.IORegister:
                     data["value"] = { "abs_change" : "1"}
                 db.put_device_attribute_property(device_name, data)
-            except Exception,e:
+            except:
                 import traceback
                 traceback.print_exc()
         
@@ -568,9 +559,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         kwargs['pool_name'] = self.pool.name
 
         td = TYPE_MAP_OBJ[ElementType.MotorGroup]
-        klass = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
 
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
@@ -603,9 +592,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         kwargs['pool_name'] = self.pool.name
 
         td = TYPE_MAP_OBJ[ElementType.MeasurementGroup]
-        klass = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
 
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         
@@ -838,9 +825,6 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         td = TYPE_MAP_OBJ[elem_type]
         type_name = td.name
-        klass = td.klass
-        auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
         
         full_name = elem.get_full_name()
         

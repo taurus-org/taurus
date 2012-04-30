@@ -45,8 +45,8 @@ from poolbase import PoolObject
 
 def get_thread_pool():
     """Returns the global pool of threads"""
-    from sardana.pool.pool import get_thread_pool as gtp
-    return gtp()
+    import sardana.sardanathreadpool
+    return sardana.sardanathreadpool.get_thread_pool()
 
 
 class PoolActionItem(object):

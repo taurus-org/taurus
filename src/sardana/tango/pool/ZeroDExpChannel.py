@@ -29,19 +29,17 @@ __all__ = ["ZeroDExpChannel", "ZeroDExpChannelClass"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import time
-import math
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
+from PyTango import Except
+from PyTango import DevVoid, DevDouble, DevString
 from PyTango import DispLevel, DevState, AttrQuality
 from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
-from sardana.tango.core.util import to_tango_state
+from sardana.sardanaattribute import SardanaAttribute
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -85,56 +83,39 @@ class ZeroDExpChannel(PoolElementDevice):
             self.zerod = zerod
         # force a state read to initialize the state attribute
         state = self.zerod.state
-    
+
     def on_zerod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
         
-        t = time.time()
+        timestamp = time.time()
         name = event_type.name
-        
-        multi_attr = self.get_device_attr()
-        attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
-        
-        recover = False
-        if event_type.priority > 1 and attr.is_check_change_criteria():
-            attr.set_change_event(True, False)
-            recover = True
-        
-        try:
-            if name == "state":
-                state = self.calculate_tango_state(event_value)
-                attr.set_value(state)
-                attr.fire_change_event()
-                #self.push_change_event(name, state)
-            elif name == "status":
-                status = self.calculate_tango_status(event_value)
-                attr.set_value(status)
-                attr.fire_change_event()
-                #self.push_change_event(name, status)
-            else:
+        priority = event_type.priority
+        error = None
+        attr = self.get_device_attr().get_attr_by_name(name)
+
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
+            
+            if name == "value":
                 state = self.zerod.get_state()
-                if name == "value":
-                    if state == State.Moving:
-                        quality = AttrQuality.ATTR_CHANGING
-                        attr.set_value_date_quality(event_value, t, quality)
-                        attr.fire_change_event()
-                        #self.push_change_event(name, event_value, t, quality)
-                    else:
-                        attr.set_value(event_value)
-                        attr.fire_change_event()
-                        #self.push_change_event(name, event_value)
-                else:
-                    attr.set_value(event_value)
-                    attr.fire_change_event()
-                    #self.push_change_event(name, event_value)
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
-    
+                if state == State.Moving:
+                    quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
+        
     def always_executed_hook(self):
         #state = to_tango_state(self.zerod.get_state(cache=False))
         pass

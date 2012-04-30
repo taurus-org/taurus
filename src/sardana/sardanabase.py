@@ -35,7 +35,7 @@ import weakref
 from taurus.core.util import Logger
 
 from sardanadefs import ElementType, Interface, InterfacesExpanded, InvalidId
-from sardanaevent import EventGenerator, EventReceiver, EventType
+from sardanaevent import EventGenerator, EventReceiver
 
 
 class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
@@ -145,7 +145,6 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         kwargs['type'] = ElementType.whatis(self.get_type())
         kwargs['manager'] = self.manager.name
         kwargs['parent'] = self.get_parent_name()
-        elem_type_str = ElementType[self.get_type()]
         kwargs['interfaces'] = self.get_interface_names()
         return kwargs
     

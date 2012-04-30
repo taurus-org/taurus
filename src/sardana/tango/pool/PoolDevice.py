@@ -33,14 +33,14 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevVoid, DevLong, DevLong64, DevBoolean, DevString, \
-    DevDouble, DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ, AttReqType, AttrData
+from PyTango import Util, DevVoid, DevLong64, DevBoolean, DevString, \
+    DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
+    IMAGE, READ_WRITE, READ, AttrData
     
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
 
-from sardana import State, InvalidId, InvalidAxis, ElementType
+from sardana import InvalidId, InvalidAxis, ElementType
 from sardana.pool.poolmetacontroller import DataInfo
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
@@ -160,7 +160,6 @@ class PoolDevice(SardanaDevice):
         multi_class_attr = dev_class.get_class_attr()
         static_attr_names = map(str.lower, dev_class.attr_list.keys())
         static_attr_names.extend(('state', 'status'))
-        standard_attr_names = map(str.lower, dev_class.standard_attr_list.keys())
         
         device_attr_names = []
         for i in range(multi_attr.get_attr_nb()):
@@ -181,7 +180,6 @@ class PoolDevice(SardanaDevice):
         for ind in range(len(klass_attrs)):
             klass_attr_names.append(klass_attrs[ind].get_name())
         
-        klass_name = dev_class.get_name()
         for attr_name in klass_attr_names:
             attr_name_lower = attr_name.lower()
             if attr_name_lower in static_attr_names:

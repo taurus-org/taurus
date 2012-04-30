@@ -31,15 +31,14 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from PyTango import Util, DevFailed, Except
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
-from PyTango import DispLevel, DevState, AttrQuality
-from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import DevFailed, Except, \
+    DevDouble, AttrQuality, READ_WRITE, SPECTRUM
 
-from taurus.core.util.log import InfoIt, DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
-from sardana.tango.core.util import to_tango_state
+from sardana.pool.poolexception import PoolException
+from sardana.tango.core.util import throw_sardana_exception
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -113,7 +112,8 @@ class MotorGroup(PoolGroupDevice):
                     error = df
         
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error)
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
     
     def always_executed_hook(self):
         pass 

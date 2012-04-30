@@ -27,16 +27,15 @@
 
 from __future__ import with_statement
 
-__all__ = ["Pool", "get_thread_pool"]
+__all__ = ["Pool"]
 
 __docformat__ = 'restructuredtext'
 
 import os.path
 import logging.handlers
-import threading
 
 from taurus.core import AttributeNameValidator
-from taurus.core.util import CaselessDict, ThreadPool, InfoIt, DebugIt
+from taurus.core.util import CaselessDict, InfoIt, DebugIt
 
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
     TYPE_PSEUDO_ELEMENTS
@@ -50,22 +49,6 @@ from poolcontroller import PoolController
 from poolmonitor import PoolMonitor
 from poolmetacontroller import TYPE_MAP_OBJ
 from poolcontrollermanager import ControllerManager
-
-__pool_thread_pool_lock = threading.Lock()
-__pool_thread_pool = None
-
-def get_thread_pool():
-    """Returns the global pool of threads for the Pool
-    
-    :return: the global pool of threads object
-    :rtype: taurus.core.util.ThreadPool"""
-    
-    global __pool_thread_pool
-    global __pool_thread_pool_lock
-    with __pool_thread_pool_lock:
-        if __pool_thread_pool is None:
-            __pool_thread_pool = ThreadPool(name="PoolTP", Psize=10)
-        return __pool_thread_pool
 
 
 class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):

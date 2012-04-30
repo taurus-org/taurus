@@ -35,6 +35,7 @@ from sardana import InvalidId, ElementType
 from sardana.sardanaevent import EventType
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
+from sardana.sardanathreadpool import get_thread_pool
 
 from msbase import MSObject
 from mscontainer import MSContainer
@@ -93,10 +94,6 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         MSObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                           macro_server=self)
         
-        self._thread_pool = ThreadPool(name="MacServTP",
-                                       Psize=self.get_max_parallel_macros(),
-                                       Qsize=50)
-        
         registerExtensions()
         
         self._type_manager = TypeManager(self)
@@ -114,17 +111,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     def get_type(self):
         return ElementType.MacroServer
     
-    def get_thread_pool(self):
-        """Returns the global pool of threads for the Pool
-        
-        :return: the global pool of threads object
-        :rtype: taurus.core.util.ThreadPool"""
-        return self._thread_pool
-    
-    thread_pool = property(get_thread_pool)
-    
     def add_job(self, job, callback=None, *args, **kw):
-        self._thread_pool.add(job, callback, *args, **kw)
+        th_pool = get_thread_pool()
+        th_pool.add(job, callback, *args, **kw)
     
     def set_environment_db(self, environment_db):
         """Sets the environment database.
@@ -270,7 +259,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     
     def set_max_parallel_macros(self, nb):
         assert nb > 0, "max parallel macros number must be > 0"
-        self.thread_pool.size = nb
+        th_pool = get_thread_pool()
+        if th_pool.size + 5 < nb:
+            th_pool.size = nb
         self._max_parallel_macros = nb
         
     def get_max_parallel_macros(self):

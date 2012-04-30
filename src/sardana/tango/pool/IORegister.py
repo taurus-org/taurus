@@ -29,20 +29,20 @@ __all__ = ["IORegister", "IORegisterClass"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import time
-import math
 
-from PyTango import Util, DevFailed
-from PyTango import DevVoid, DevLong, DevLong64, DevDouble, DevBoolean, DevString
-from PyTango import DispLevel, DevState, AttrQuality
-from PyTango import READ, READ_WRITE, SCALAR, SPECTRUM
+from PyTango import DevFailed, Except
+from PyTango import DevVoid, DevLong
+from PyTango import DevState, AttrQuality
+from PyTango import READ_WRITE, SCALAR
 
 
-from taurus.core.util import CaselessDict, InfoIt, DebugIt
+from taurus.core.util import InfoIt, DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
-from sardana.tango.core.util import to_tango_type_format, to_tango_state
+
+from sardana import State, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
 
 
 class IORegister(PoolElementDevice):
@@ -82,35 +82,43 @@ class IORegister(PoolElementDevice):
             self.ior = ior
         # force a state read to initialize the state attribute
         state = self.ior.get_state(cache=False)
-    
-    def on_ior_changed(self, event_source, event_type, event_value):
-        t = time.time()
-        name = event_type.name
-            
-        multi_attr = self.get_device_attr()
-        attr = multi_attr.get_attr_by_name(name)
-        quality = AttrQuality.ATTR_VALID
-        
-        recover = False
-        if event_type.priority > 1:
-            attr.set_change_event(True, False)
-            recover = True
-        
-        try:
-            if name == "state":
-                event_value = to_tango_state(event_value)
-                self.set_state(event_value)
-                self.push_change_event(name)
-            else:
-                state = to_tango_state(self.ior.get_state())
-                if name == "value":
-                    if state == DevState.MOVING:
-                        quality = AttrQuality.ATTR_CHANGING
-                self.push_change_event(name, event_value, t, quality)
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
 
+    def on_ior_changed(self, event_source, event_type, event_value):
+        # during server startup and shutdown avoid processing element
+        # creation events
+        if SardanaServer.server_state != State.Running:
+            return
+        
+        timestamp = time.time()
+        name = event_type.name.lower()
+        multi_attr = self.get_device_attr()
+        try:
+            attr = multi_attr.get_attr_by_name(name)
+        except DevFailed:
+            return
+        quality = AttrQuality.ATTR_VALID
+        priority = event_type.priority
+        error = None
+        
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
+                
+            state = self.ior.get_state(propagate=0)
+            
+            if state == State.Moving and name == "value":
+                quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
+        
     def always_executed_hook(self):
         #state = to_tango_state(self.ior.get_state(cache=False))
         pass

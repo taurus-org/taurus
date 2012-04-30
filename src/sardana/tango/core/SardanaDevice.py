@@ -37,11 +37,28 @@ import threading
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
     AttrQuality, TimeVal, ArgType
 
+from taurus.core.util import ThreadPool
 from taurus.core.util.log import Logger, DebugIt, InfoIt
 
 from sardana import InvalidId
+
 from util import to_tango_state, NO_DB_MAP
 
+__thread_pool_lock = threading.Lock()
+__thread_pool = None
+
+def get_thread_pool():
+    """Returns the global pool of threads for Sardana
+    
+    :return: the global pool of threads object
+    :rtype: taurus.core.util.ThreadPool"""
+    
+    global __thread_pool
+    global __thread_pool_lock
+    with __thread_pool_lock:
+        if __thread_pool is None:
+            __thread_pool = ThreadPool(name="TangoEVT", Psize=1)
+        return __thread_pool
 
 class SardanaDevice(Device_4Impl, Logger):
     
@@ -123,82 +140,23 @@ class SardanaDevice(Device_4Impl, Logger):
         pass
     
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1):
-        with self.tango_lock:
-            stack = self._event_stack
-            stack.append((attr, value, timestamp, quality, error, priority))
-            if self._in_write:
-                return
-            for event in stack:
-                self._set_attribute(*event)
-            #return self._set_attribute(attr, value=value, timestamp=timestamp,
-            #                           quality=quality, error=error,
-            #                           priority=priority)
-            self._event_stack = []
+                      error=None, priority=1, synch=True):
+        set_attr = self.set_attribute_push
+        if synch:
+            self.set_attribute_push(attr, value=value, timestamp=timestamp,
+                                    quality=quality, error=error,
+                                    priority=priority)
+        else:
+            th_pool = get_thread_pool()
+            th_pool.add(set_attr, None, attr, value=value, timestamp=timestamp,
+                        quality=quality, error=error, priority=priority)
     
-    def set_attribute(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1):
-        set_attr = self._set_attribute_fire
-        with self.tango_lock:
-            return set_attr(attr, value=value, timestamp=timestamp,
-                            quality=quality, error=error, priority=priority)
-    
-    #@InfoIt()
-    def _set_attribute_fire(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1):
-        fire_event = priority > 0
-        
-        recover = False
-        if priority > 1 and attr.is_check_change_criteria():
-            attr.set_change_event(True, False)
-            recover = True
-        
-        try:
-            if error is not None:
-                if fire_event:
-                    attr.fire_change_event(error)
-                return
+    def set_attribute_push(self, *args, **kwargs):
+        #with self.tango_lock:
+        return self._set_attribute_push(*args, **kwargs)
             
-            if value is None:
-                attr.set_quality(AttrQuality.ATTR_INVALID, fire_event)
-                return
-            
-            # some versions of Tango have a memory leak if you do:
-            #     state_attr.set_value(DevState.ON)
-            #     state_attr.fire_change_event()
-            # so this workaround solves the memory leak:
-            attr_name = attr.get_name().lower()
-            if attr_name == "state":
-                self.set_state(value)
-                attr.fire_change_event()
-                return
-            elif attr_name == "status":
-                self.set_status(value)
-                attr.fire_change_event()
-                return 
-            
-            if timestamp is not None and not isinstance(timestamp, TimeVal):
-                timestamp = TimeVal.fromtimestamp(timestamp)
-            
-            if attr.get_data_type() == ArgType.DevEncoded:
-                attr.set_value(*value)
-            else:
-                attr.set_value(value)
-            
-            if quality is not None:
-                attr.set_quality(quality)
-            
-            if timestamp is not None:
-                attr.set_date(timestamp)
-            
-            if fire_event:
-                attr.fire_change_event()
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
-    
-    def _set_attribute_push(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1):
+    def _set_attribute_push(self, attr, value=None, timestamp=None,
+                            quality=None, error=None, priority=1):
         fire_event = priority > 0
         
         recover = False
@@ -225,9 +183,11 @@ class SardanaDevice(Device_4Impl, Logger):
             if fire_event:
                 if data_type == ArgType.DevEncoded:
                     fmt, data = value
-                    self.push_change_event(attr_name, fmt, data, timestamp, quality)
+                    args = attr_name, fmt, data, timestamp, quality
+                    
                 else:
-                    self.push_change_event(attr_name, value, timestamp, quality)
+                    args = attr_name, value, timestamp, quality
+                self.push_change_event(*args)
             else:
                 if data_type == ArgType.DevEncoded:
                     fmt, data = value
