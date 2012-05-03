@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the class for a
 motion"""
 
-__all__ = [ "MotionState", "MotionMap", "PoolMotion", "PoolMotionItem" ]
+__all__ = ["MotionState", "MotionMap", "PoolMotion", "PoolMotionItem"]
 
 __docformat__ = 'restructuredtext'
 
@@ -45,7 +45,7 @@ MotionState = Enumeration("MotionSate", ( \
     "Moving",
     "MovingBacklash",
     "MovingInstability",
-    "Invalid") )
+    "Invalid"))
 
 MS = MotionState
 MovingStates = MS.Moving, MS.MovingBacklash, MS.MovingInstability
@@ -61,7 +61,7 @@ StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
 #MA = MotionAction
 
 MotionMap = {
-    #MS.Stopped           : State.On,
+    #MS.Stopped          : State.On,
     MS.Moving            : State.Moving,
     MS.MovingBacklash    : State.Moving,
     MS.MovingInstability : State.Moving,
@@ -71,7 +71,7 @@ MotionMap = {
 
 class PoolMotionItem(PoolActionItem):
     """An item involved in the motion. Maps directly to a motor object"""
-    
+
     def __init__(self, moveable, position, dial_position, do_backlash,
                  backlash, instability_time=None):
         PoolActionItem.__init__(self, moveable)
@@ -86,9 +86,10 @@ class PoolMotionItem(PoolActionItem):
         self.start_time = None
         self.stop_time = None
         self.stop_final_time = None
-        self.old_state_info = State.Invalid, "Uninitialized", (False,False,False)
-        self.state_info = State.On, "Uninitialized", (False,False,False)
-        
+        self.old_state_info = State.Invalid, "Uninitialized", \
+            (False, False, False)
+        self.state_info = State.On, "Uninitialized", (False, False, False)
+
     def has_instability_time(self):
         return self.instability_time is not None
 
@@ -97,7 +98,7 @@ class PoolMotionItem(PoolActionItem):
 
     def get_moveable(self):
         return self.element
-    
+
     moveable = property(fget=get_moveable)
 
     def get_state_info(self):
@@ -116,7 +117,7 @@ class PoolMotionItem(PoolActionItem):
         else:
             new_ms = MS.MovingInstability
         return new_ms
-    
+
     def handle_instability(self, timestamp):
         new_ms = MS.MovingInstability
         dt = timestamp - self.stop_time
@@ -124,7 +125,7 @@ class PoolMotionItem(PoolActionItem):
             self.stop_final_time = timestamp
             new_ms = MS.Stopped
         return new_ms
-    
+
     def on_state_switch(self, state_info, timestamp=None):
         if timestamp is None:
             timestamp = time.time()
@@ -135,7 +136,7 @@ class PoolMotionItem(PoolActionItem):
         new_ms = ms = self.motion_state
         moveable = self.moveable
         self.interrupted = moveable.was_interrupted()
-        
+
         if self.interrupted:
             if ms == MS.MovingInstability:
                 new_ms = self.handle_instability(timestamp)
@@ -160,30 +161,30 @@ class PoolMotionItem(PoolActionItem):
             new_ms = self.handle_instability(timestamp)
         self.old_motion_state, self.motion_state = ms, new_ms
         return ms, new_ms
-    
-    
+
+
 class PoolMotion(PoolAction):
     """This class manages motion actions"""
-    
+
     def __init__(self, main_element, name="GlobalMotion"):
         PoolAction.__init__(self, main_element, name)
         self._motion_info = None
         self._motion_sleep_time = None
         self._nb_states_per_position = None
-    
+
     def _recover_start_error(self, ctrl, meth_name, read_state=False):
         self.error("%s throws exception on %s. Stopping...", ctrl, meth_name)
         self.debug("Details:", exc_info=1)
-        
+
         self.emergency_break()
-        
+
         if read_state:
             states = {}
             self.read_state_info(ret=states)
             for moveable, state_info in states.items():
                 state_info = moveable._from_ctrl_state_info(state_info)
                 moveable._set_state_info(state_info)
-            
+
     def pre_start_all(self, pool_ctrls):
         # PreStartAll on all controllers
         for pool_ctrl in pool_ctrls:
@@ -192,7 +193,7 @@ class PoolMotion(PoolAction):
             except:
                 self._recover_start_error(pool_ctrl, "PreStartAll")
                 raise
-    
+
     def pre_start_one(self, moveables, items):
         # PreStartOne on all elements
         for moveable in moveables:
@@ -208,7 +209,7 @@ class PoolMotion(PoolAction):
                 except:
                     self._recover_start_error(pool_ctrl, "PreStartOne")
                     raise
-    
+
     def start_one(self, moveables, motion_info):
         # StartOne on all elements
         for moveable in moveables:
@@ -231,22 +232,23 @@ class PoolMotion(PoolAction):
                 moveable.inspect_status(), \
                 moveable.inspect_limit_switches()
             moveable_info.on_state_switch(state_info)
-        
+
         # StartAll on all controllers
         for pool_ctrl in pool_ctrls:
             try:
                 pool_ctrl.ctrl.StartAll()
             except:
-                self._recover_start_error(pool_ctrl, "StartOne", read_state=True)
+                self._recover_start_error(pool_ctrl, "StartOne",
+                                          read_state=True)
                 raise
 
     def start_action(self, *args, **kwargs):
         """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
-        
+
         items = kwargs.pop("items")
-        
+
         pool = self.pool
-        
+
         # prepare data structures
         self._aborted = False
         self._stopped = False
@@ -255,47 +257,47 @@ class PoolMotion(PoolAction):
         self._nb_states_per_position = \
             kwargs.pop("nb_states_per_position",
                        pool.motion_loop_states_per_position)
-        
+
         self._motion_info = motion_info = {}
         for moveable, motion_data in items.items():
             it = moveable.instability_time
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
-        
+
         pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
-        
-        with ActionContext(self) as context:
+
+        with ActionContext(self):
             self.pre_start_all(pool_ctrls)
             self.pre_start_one(moveables, items)
             self.start_one(moveables, motion_info)
             self.start_all(pool_ctrls, moveables, motion_info)
-            
+
     def backlash_item(self, motion_item):
         moveable = motion_item.moveable
         controller = moveable.controller
         axis = moveable.axis
         position = motion_item.backlash
         try:
-            controller.move({axis:position})
+            controller.move({axis: position})
         except:
             self.warning("could not start backlash on %s", moveable.name,
                          exc_info=1)
-    
+
     @DebugIt()
     def action_loop(self):
         i = 0
-        
+        self.debug("master in operation = %s", self.main_element.is_in_operation())
         states, positions = {}, {}
         for k in self.get_elements():
             states[k] = None
             positions[k] = None
-        
+
         nap = self._motion_sleep_time
         nb_states_per_pos = self._nb_states_per_position
         motion_info = self._motion_info
         emergency_stop = set()
-        
+
         # read positions to send a first event when starting to move
         #with ActionContext(self) as context:
         #    positions = self.raw_read_dial_position()
@@ -305,20 +307,21 @@ class PoolMotion(PoolAction):
         #        self.emergency_break()
         #        for moveable, position_info in positions.items():
         #            if position_info[1] is not None:
-        #                self.error("%s error reading position", moveable.name)
+        #                self.error("%s error reading position",moveable.name)
         #                self.debug("Details:", exc_info=position_info[1])
-        #        
+        #
         #        # send position
         #        for moveable, position_info in positions.items():
         #            moveable.put_dial_position(position_info, propagate=2)
         #            position = moveable.get_position(propagate=0)
         #            if position.in_error():
         #                emergency_stop.add(moveable)
-        #        
+        #
         #        # send state
         #        self.read_state_info(ret=states)
         #        for moveable, state_info in states.items():
-        #            state_info = list(moveable._from_ctrl_state_info(state_info))
+        #            state_info = moveable._from_ctrl_state_info(state_info)
+        #            state_info = list(state_info)
         #            state_info[0] = State.Fault
         #            moveable.set_state_info(state_info, propagate=2)
         #        return
@@ -334,32 +337,31 @@ class PoolMotion(PoolAction):
             for moveable, state_info in states.items():
                 motion_item = motion_info[moveable]
                 state_info = moveable._from_ctrl_state_info(state_info)
-                
+
                 state, status, limit_switches = state_info
                 old_motion_state, motion_state = \
-                    motion_item.on_state_switch(state_info, timestamp=timestamp)
+                    motion_item.on_state_switch(state_info,
+                                                timestamp=timestamp)
                 real_state_info = motion_item.get_state_info()
-                interrupted = moveable.was_interrupted()
-                well_stopped = state == State.On and not interrupted
                 moving = motion_item.in_motion()
-                
+
                 # Something wrong happened: Stop all motors and report
                 if state_error_occured:
                     in_motion = False
                     emergency_stop.add(moveable)
-                    
+
                 start_backlash = motion_state == MS.MovingBacklash and \
                     old_motion_state != MS.MovingBacklash
                 start_instability = motion_state == MS.MovingInstability and \
                     old_motion_state != MS.MovingInstability
                 stopped_now = not moving and old_motion_state in MovingStates
-                
+
                 # make sure the state is placed in the motor
                 moveable.put_state_info(real_state_info)
-                
+
                 if emergency_stop:
                     continue
-                
+
                 # if motor stopped 'well' and there is a backlash to do...
                 if start_backlash:
                     moveable.debug("Starting backlash")
@@ -375,47 +377,48 @@ class PoolMotion(PoolAction):
                     moveable.get_position(cache=False, propagate=2)
                 elif stopped_now:
                     moveable.debug("Stopped")
-                    
+
                     # try to read a last position to force an event
                     moveable.get_position(cache=False, propagate=2)
-                    
+
                     ## free the motor from the OperationContext so we can send
-                    ## a state event. Otherwise we may be asked to move the motor
-                    ## again which would result in an exception saying that the
-                    ## motor is already involved in an operation
+                    ## a state event. Otherwise we may be asked to move the
+                    ## motor again which would result in an exception saying
+                    ## that the motor is already involved in an operation
                     ## ... but before protect the motor so that the monitor
                     ## doesn't come in between the two instructions below and
                     ## send a state event on it's own
                     #with moveable:
                     #    moveable.clear_operation()
-                    #    moveable.set_state_info(real_state_info, propagate=2)
                     moveable.set_state_info(real_state_info, propagate=2)
-                    
+
                 # Then update the state
                 if not stopped_now:
                     moveable.set_state_info(real_state_info, propagate=1)
-                
+
                 if moving:
                     in_motion = True
-                
+
             if not in_motion:
                 if state_error_occured:
                     self.error("Loop read state error")
                     self.emergency_break()
-                    
+
                     # send positions
                     self.read_dial_position(ret=positions)
                     position_error_occured = self._error_occured(positions)
                     if position_error_occured:
-                        self.error("Loop final read position error. Retrying...")
+                        self.error("Loop final read position error. "
+                                   "Retrying...")
                         self.read_dial_position(ret=positions)
                         position_error_occured = self._error_occured(positions)
                         if position_error_occured:
-                            self.error("Loop final read position error 2. Cannot send final position event!!!")
-                        
+                            self.error("Loop final read position error 2. "
+                                       "Cannot send final position event!!!")
+
                     for moveable, position_info in positions.items():
                         moveable.put_dial_position(position_info, propagate=2)
-                    
+
                     # send state
                     for moveable in states:
                         if moveable not in emergency_stop:
@@ -423,9 +426,10 @@ class PoolMotion(PoolAction):
                         else:
                             motion_item = motion_info[moveable]
                             real_state_info = motion_item.get_state_info()
-                            moveable.set_state_info(real_state_info, propagate=2)
+                            moveable.set_state_info(real_state_info,
+                                                    propagate=2)
                 break
-            
+
             # read position every n times
             if not i % nb_states_per_pos:
                 self.read_dial_position(ret=positions)
@@ -446,7 +450,7 @@ class PoolMotion(PoolAction):
                     moveable.put_dial_position(position_info)
             i += 1
             time.sleep(nap)
-    
+
     def _error_occured(self, d):
         for item_info in d.values():
             if item_info[1] is not None:
@@ -454,18 +458,20 @@ class PoolMotion(PoolAction):
         return False
 
     def _recover_moving_error(self, location, emergency_stop):
-        emergency_names = [ moveable.name for moveable in emergency_stop ]
+        emergency_names = [moveable.name for moveable in emergency_stop]
         self.error("%s: error on %s", location, emergency_names)
 
         # stop everything
         self.emergency_break()
-    
-    def _recover_position_moving_error(self, location, emergency_stop, positions):
+
+    def _recover_position_moving_error(self, location, emergency_stop,
+                                       positions):
         self._recover_moving_error(location, emergency_stop)
-        
+
         # send state
         states = {}
         self.read_state_info(ret=states)
+        motion_info = self._motion_info
         for moveable in states:
             if moveable not in emergency_stop:
                 moveable.get_state(cache=False, propagate=2)
@@ -473,16 +479,16 @@ class PoolMotion(PoolAction):
                 motion_item = motion_info[moveable]
                 real_state_info = motion_item.get_state_info()
                 moveable.set_state_info(real_state_info, propagate=2)
-    
+
     def _recover_state_moving_error(self, location, emergency_stop, states):
         self._recover_moving_error(location, emergency_stop)
-        
+
         # send positions
         positions = {}
         self.read_dial_position(ret=positions)
         for moveable, position_info in positions.items():
             moveable.put_dial_position(position_info, propagate=2)
-        
+
         motion_info = self._motion_info
         # send state
         for moveable in states:
@@ -492,10 +498,9 @@ class PoolMotion(PoolAction):
                 motion_item = motion_info[moveable]
                 real_state_info = motion_item.get_state_info()
                 moveable.set_state_info(real_state_info, propagate=2)
-    
+
     def read_dial_position(self, ret=None, serial=False):
         return self.read_value(ret=ret, serial=serial)
 
     def raw_read_dial_position(self, ret=None, serial=False):
         return self.raw_read_value(ret=ret, serial=serial)
-    

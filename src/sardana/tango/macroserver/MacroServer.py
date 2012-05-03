@@ -98,7 +98,7 @@ class MacroServer(SardanaDevice):
             env_db = os.path.join(tempfile.mkdtemp(),
                                   MacroServerClass.DefaultEnvRelDir)
             db = Util.instance().get_database()
-            db.put_device_property(self.get_name(), dict(EnvironmentDb=envdb))
+            db.put_device_property(self.get_name(), dict(EnvironmentDb=env_db))
             self.EnvironmentDb = self._calculate_environment_name(env_db)
             macro_server.set_environment_db(self.EnvironmentDb)
             
@@ -110,7 +110,8 @@ class MacroServer(SardanaDevice):
                 import rfoo.utils.rconsole
                 rfoo.utils.rconsole.spawn_server(port=self.RConsolePort)
             except Exception:
-                self.warning(exc_info=1)
+                self.warning("Failed to start rconsole")
+                self.debug("Details:", exc_info=1)
     
     def _calculate_environment_name(self, name):
         util = Util.instance()

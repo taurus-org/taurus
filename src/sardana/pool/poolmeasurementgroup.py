@@ -31,14 +31,14 @@ __all__ = [ "PoolMeasurementGroup" ]
 __docformat__ = 'restructuredtext'
 
 from taurus.core import AttributeNameValidator
-from taurus.core.tango.sardana import ChannelView, PlotType, Normalization
+from taurus.core.tango.sardana import PlotType, Normalization
 
 from sardana import ElementType, TYPE_EXP_CHANNEL_ELEMENTS
 from sardana.sardanaevent import EventType
 
 from pooldefs import AcqMode, AcqTriggerType
 from poolgroupelement import PoolGroupElement
-from poolacquisition import PoolAcquisition, PoolCTAcquisition
+from poolacquisition import PoolAcquisition
 from poolexternal import PoolExternalObject
 
 from sardana import State
@@ -133,7 +133,6 @@ class PoolMeasurementGroup(PoolGroupElement):
                 if evt_value in (State.On, State.Moving):
                     return
             state, status = self._calculate_states()
-            propagate_state = name == 'state'
             self.set_state(state, propagate=2)
             self.set_status("\n".join(status))
     
@@ -143,7 +142,7 @@ class PoolMeasurementGroup(PoolGroupElement):
     def get_pool_controller_by_name(self, name):
         name = name.lower()
         for ctrl in self.get_pool_controllers():
-            if ctrl.name.lower() == name:
+            if ctrl.name.lower() == name or ctrl.full_name.lower() == name:
                 return ctrl
     
     # --------------------------------------------------------------------------
@@ -286,7 +285,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                         element = id = channel_data['full_name']
                         channel_data['source'] = id
                     else:
-                        element = pool.get_element_by_name(channel_data['name'])
+                        element = pool.get_element_by_full_name(channel_data['full_name'])
                         id = element.id
                     user_elem_ids[channel_data['index']] = id
                     channel_data = self._build_channel_defaults(channel_data, element)
@@ -321,10 +320,10 @@ class PoolMeasurementGroup(PoolGroupElement):
         ctrls = self.get_pool_controllers()
         pool = self.pool
         
-        timer_name = cfg.get('timer', user_elements[0].name)
-        monitor_name = cfg.get('monitor', user_elements[0].name)
-        config['timer'] = pool.get_element_by_name(timer_name)
-        config['monitor'] = pool.get_element_by_name(monitor_name)
+        timer_name = cfg.get('timer', user_elements[0].full_name)
+        monitor_name = cfg.get('monitor', user_elements[0].full_name)
+        config['timer'] = pool.get_element_by_full_name(timer_name)
+        config['monitor'] = pool.get_element_by_full_name(monitor_name)
         config['controllers'] = controllers = {}
         
         for c_name, c_data in cfg['controllers'].items():
@@ -332,7 +331,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             if external:
                 ctrl = c_name
             else:
-                ctrl = pool.get_element_by_name(c_name)
+                ctrl = pool.get_element_by_full_name(c_name)
                 assert ctrl.get_type() == ElementType.Controller
             controllers[ctrl] = ctrl_data = {}
             ctrl_data['units'] = units = {}
@@ -340,8 +339,8 @@ class PoolMeasurementGroup(PoolGroupElement):
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
                 if not external and ElementType.CTExpChannel in ctrl.get_ctrl_types():
-                    unit_data['timer'] = pool.get_element_by_name(u_data['timer'])
-                    unit_data['monitor'] = pool.get_element_by_name(u_data['monitor'])
+                    unit_data['timer'] = pool.get_element_by_full_name(u_data['timer'])
+                    unit_data['monitor'] = pool.get_element_by_full_name(u_data['monitor'])
                     unit_data['trigger_type'] = u_data['trigger_type']
                 unit_data['channels'] = channels = {}
                 for ch_name, ch_data in u_data['channels'].items():
@@ -351,7 +350,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                         params['pool'] = self.pool
                         channel = PoolExternalObject(**params)
                     else:
-                        channel = pool.get_element_by_name(ch_data['name'])
+                        channel = pool.get_element_by_full_name(ch_name)
                     channels[channel] = channel_data = dict(ch_data)
         
         config['label'] = cfg.get('label', self.name)
@@ -365,14 +364,14 @@ class PoolMeasurementGroup(PoolGroupElement):
         cfg = self.get_configuration()
         config = {}
         
-        config['timer'] = cfg['timer'].name
-        config['monitor'] = cfg['monitor'].name
+        config['timer'] = cfg['timer'].full_name
+        config['monitor'] = cfg['monitor'].full_name
         config['controllers'] = controllers = {}
         
         for c, c_data in cfg['controllers'].items():
             ctrl_name = c
             if not isinstance(c, (str, unicode)):
-                ctrl_name = c.name
+                ctrl_name = c.full_name
             external = ctrl_name.startswith('__')
             controllers[ctrl_name] = ctrl_data = {}
             ctrl_data['units'] = units = {}
@@ -381,14 +380,14 @@ class PoolMeasurementGroup(PoolGroupElement):
                 unit_data['id'] = u_data['id']
                 if not external:
                     if u_data.has_key('timer'):
-                        unit_data['timer'] = u_data['timer'].name
+                        unit_data['timer'] = u_data['timer'].full_name
                     if u_data.has_key('monitor'):
-                        unit_data['monitor'] = u_data['monitor'].name
+                        unit_data['monitor'] = u_data['monitor'].full_name
                     if u_data.has_key('trigger_type'):
                         unit_data['trigger_type'] = u_data['trigger_type']
                 unit_data['channels'] = channels = {}
                 for ch, ch_data in u_data['channels'].items():
-                    channels[ch.name] = channel_data = dict(ch_data)
+                    channels[ch.full_name] = channel_data = dict(ch_data)
         
         config['label'] = cfg['label']
         config['description'] = cfg['description']

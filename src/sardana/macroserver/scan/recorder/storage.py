@@ -415,7 +415,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         plots1d_names = {}
         i = 1
         for dd in self.datadesc:
-            #print dd.label, getattr(dd, 'plot_type','---')
             ptype = getattr(dd, 'plot_type', PlotType.No)
             if ptype == PlotType.No:
                 continue

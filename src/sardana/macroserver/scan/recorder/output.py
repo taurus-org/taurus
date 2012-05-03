@@ -34,7 +34,7 @@ import datetime
 import operator
 import string
 
-from taurus.core.util import json, CodecFactory
+from taurus.core.util import CodecFactory, CaselessList
 
 from datarecorder import DataRecorder
 from storage import BaseFileRecorder
@@ -91,7 +91,8 @@ class JsonRecorder(DataRecorder):
         #data = self._codec.encode(('', kwargs))
         #self._stream.sendRecordData(*data)
         self._stream.sendRecordData(kwargs)
-    
+
+
 class OutputRecorder(DataRecorder):
     
     def __init__(self, stream, cols=None, number_fmt='%8.4f', col_sep=' ', **pars):
@@ -100,7 +101,7 @@ class OutputRecorder(DataRecorder):
         if not number_fmt.startswith('%'): number_fmt = '%%s' % number_fmt
         self._number_fmt = number_fmt
         self._col_sep = col_sep
-        if operator.isSequenceType(cols) and not type(cols) in types.StringTypes:
+        if operator.isSequenceType(cols) and not isinstance(cols, (str, unicode)):
             cols = CaselessList(cols)
         elif operator.isNumberType(cols):
             cols = cols
@@ -141,12 +142,11 @@ class OutputRecorder(DataRecorder):
         self._labels = labels
         self._col_names = col_names
         
-        col_size = max(map(len, self._col_names))
+        col_size = max(map(len, labels))
         number_size = len(self._number_fmt % float())
         self._col_size = max(col_size, number_size)
         
         cell_t_number = '%%%%(%%s)%s' % self._number_fmt[1:]
-        cell_t_str = '%%%%(%s)%s'
         
         self._scan_line_t  = [(col_names[0], '%%(%s)4d' % col_names[0])]
         self._scan_line_t += [ (name, cell_t_number % name) for name in col_names[1:] ]

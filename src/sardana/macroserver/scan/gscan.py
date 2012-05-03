@@ -492,7 +492,7 @@ class GScan(Logger):
         master = self._master
         instrument = master['instrument']
         label = master['label']
-        name = master['name']
+        name = master['full_name']
         
         #add channels from measurement group
         channels_info = self.measurement_group.getChannelsInfo()
@@ -517,7 +517,7 @@ class GScan(Logger):
                 else: plotAxes.append(a)
                 
             #create the ColumnDesc object
-            column = ColumnDesc(name=ci.name,
+            column = ColumnDesc(name=ci.full_name,
                                 label = ci.label,
                                 dtype = ci.data_type,
                                 shape = ci.shape,
@@ -531,7 +531,7 @@ class GScan(Logger):
                                 data_units = ci.unit)
             data_desc.append(column)
             counters.append(column.name)
-        counters.remove(master['name'])
+        counters.remove(master['full_name'])
         env['counters'] = counters
         
         for extra_column in self._extra_columns:
@@ -590,7 +590,7 @@ class GScan(Logger):
             try:
                 if src in all_elements_info:
                     ei = all_elements_info[src]
-                    column = ColumnDesc(name=ei.name,
+                    column = ColumnDesc(name=ei.full_name,
                                         label=label,
                                         instrument = ei.instrument,
                                         source = ei.source)
