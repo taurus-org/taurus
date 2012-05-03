@@ -41,9 +41,9 @@ __docformat__ = 'restructuredtext'
 
 import socket
 
-import time
 import PyTango
 
+import taurus
 from taurus.core.util import Enumeration, Singleton, Logger, CaselessDict, \
     CodecFactory
 
@@ -134,8 +134,8 @@ class BaseSardanaElementContainer:
     
     def __init__(self):
         # dict<str, dict> where key is the type and value is:
-        #     dict<str, MacroServerElement> where key is the element alias and
-        #                                   value is the Element object
+        #     dict<str, MacroServerElement> where key is the element full name
+        #                                   and value is the Element object
         self._type_elems_dict = CaselessDict()
         
         # dict<str, container> where key is the interface and value is the set
@@ -160,10 +160,10 @@ class BaseSardanaElementContainer:
             interface_elems[elem_name] = elem
     
     def removeElement(self, e):
-        type = e.getType()
+        elem_type = e.getType()
         
         # update type_elems
-        type_elems = self._type_elems_dict.get(type)
+        type_elems = self._type_elems_dict.get(elem_type)
         if type_elems:
             del type_elems[e.name]
         
@@ -354,8 +354,6 @@ class ControllerInfo(object):
 
     def get_icon(self):
         return self._ctrl_class_info.get_icon()
-    
-        return properties
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # T E M P O R A R Y   I M P L E M E N T A T I O N
@@ -623,7 +621,7 @@ class DatabaseSardana(object):
         
     def remove_sardana(self, name):
         try:
-            sardana = self._sardanas.pop(name)
+            self._sardanas.pop(name)
         except KeyError:
             raise Exception("Sardana '%s' does NOT exist" % name)
         self._db.unregister_service("Sardana", name)

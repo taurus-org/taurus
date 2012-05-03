@@ -38,14 +38,12 @@ __docformat__ = 'restructuredtext'
 import sys
 import os
 import weakref
-import re
-import thread
 import time
 import operator
 import traceback
 
 from PyTango import DevState, AttrDataFormat, AttrQuality, DevFailed, \
-    DeviceProxy, AttributeProxy
+    DeviceProxy
 
 from taurus import Factory
 from taurus.core import TaurusEventType, AttributeNameValidator
@@ -1006,7 +1004,6 @@ class MGConfiguration(object):
         for ctrl_name, ctrl_data in self.controllers.items():
             for unit_id, unit_data in ctrl_data['units'].items():
                 for channel_name, channel_data in unit_data['channels'].items():
-                    data_source = channel_data['source']
                     channels[channel_name] = channel_data
                     
         #####################
@@ -1017,7 +1014,7 @@ class MGConfiguration(object):
         # seq<dict> each element is the channel data in form of a dict as
         # receveid by the MG configuration attribute. This seq is just a cache
         # ordered by channel index in the MG.
-        self.channel_list = channel_list = len(channels)*[None]
+        self.channel_list = len(channels)*[None]
         
         for channel in channels.values():
             self.channel_list[channel['index']] = channel
@@ -1146,13 +1143,13 @@ class MGConfiguration(object):
     
     def getChannelsInfoList(self):
         ch_info = self.getChannelsInfo()
-        return [ ch_info[ch['name']][2] for ch in self.channel_list ]
+        return [ ch_info[ch['full_name']][2] for ch in self.channel_list ]
     
     def getCountersInfoList(self):
         ch_info = self.getChannelsInfo()
         ret = []
         for ch in self.channel_list:
-            ch_name = ch['name']
+            ch_name = ch['full_name']
             if ch_name != self.timer:
                 ret.append(ch_info[ch_name][2])
         return ret
@@ -1179,7 +1176,7 @@ class MGConfiguration(object):
                         value = None
                     else:
                         value = data_item.value
-                    ret[channel_data['name']] = value
+                    ret[channel_data['full_name']] = value
             except:
                 continue
         return ret
@@ -1197,7 +1194,7 @@ class MGConfiguration(object):
                         value = None
                     else:
                         value = data_item.value
-                    ret[channel_data['name']] = value
+                    ret[channel_data['full_name']] = value
             except:
                 continue
         return ret
@@ -1240,7 +1237,7 @@ class MeasurementGroup(PoolElement):
         self._setConfiguration(evt_value.value)
     
     def getTimerName(self):
-        return self.getConfiguration().timer
+        return self.getTimer()['name']
     
     def getTimer(self):
         cfg = self.getConfiguration()
@@ -1250,7 +1247,7 @@ class MeasurementGroup(PoolElement):
         return self.getTimerName()
 
     def getMonitorName(self):
-        return self.getConfiguration().monitor
+        return self.getMonitor()['name']
 
     def getMonitor(self):
         cfg = self.getConfiguration()
@@ -1258,7 +1255,7 @@ class MeasurementGroup(PoolElement):
 
     def setTimer(self, timer_name):
         try:
-            channel = self.getChannel(timer_name)
+            self.getChannel(timer_name)
         except KeyError:
             raise Exception("%s does not contain a channel named '%s'"
                             % (str(self),timer_name))
@@ -1272,13 +1269,12 @@ class MeasurementGroup(PoolElement):
     
     def getCounters(self):
         cfg = self.getConfiguration()
-        return [ ch for ch in self.getChannels() if ch['name'] != cfg.timer ]
+        return [ ch for ch in self.getChannels() if ch['full_name'] != cfg.timer ]
     
     def getChannelNames(self):
         return [ ch['name'] for ch in self.getChannels() ]
     
     def getCounterNames(self):
-        cfg = self.getConfiguration()
         return [ ch['name'] for ch in self.getCounters() ]
     
     def getChannel(self, name):
@@ -1443,7 +1439,11 @@ class Pool(TangoDevice, MoveableSource):
             elements.addElement(element)
         for element_data in elems.get('del', ()):
             element = self.getElementInfo(element_data['name'])
-            elements.removeElement(element)
+            try:
+                elements.removeElement(element)
+            except:
+                self.warning("Failed to remove %s", element_data)
+                
         return elems
     
     def getElementsInfo(self):
