@@ -381,15 +381,19 @@ class PoolController(PoolBaseController):
     def get_ctrl_attr(self, name):
         ctrl_info = self.ctrl_info
         attr_info = ctrl_info.ctrl_attributes[name]
-        fget = getattr(self.ctrl, attr_info.fget)
-        return fget()
+        if hasattr(self.ctrl, attr_info.fget):
+            return getattr(self.ctrl, attr_info.fget)()
+        else:
+            return self.ctrl.GetCtrlPar(name)
     
     @check_ctrl
     def set_ctrl_attr(self, name, value):
         ctrl_info = self.ctrl_info
         attr_info = ctrl_info.ctrl_attributes[name]
-        fset = getattr(self.ctrl, attr_info.fset)
-        fset(value)
+        if hasattr(self.ctrl, attr_info.fset):
+            return getattr(self.ctrl, attr_info.fset)(value)
+        else:
+            return self.ctrl.SetCtrlPar(name, value)
     
     @check_ctrl
     def get_axis_attr(self, axis, name):
