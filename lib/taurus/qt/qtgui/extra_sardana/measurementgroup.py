@@ -26,7 +26,7 @@
 """This module provides a base widget that can be used to display a taurus 
 model in a table widget"""
 
-__all__ = ["MntGrpChannelEditor", "MntGrpChannelPanel"]
+__all__ = ["MntGrpChannelEditor"]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,7 +35,6 @@ from taurus.qt import Qt
 import taurus
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
-from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.table import TaurusBaseTableWidget
@@ -82,18 +81,38 @@ from taurus.core import TaurusElementType
 #===============================================================================
 DEFAULT_STRING_LENGTH = 80 #just an arbitrary value to use as default string length... 
 
-def createChannelDict(name, index=None, **kwargs):
+def createChannelDict(channel, index=None, **kwargs):
     from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
     import PyTango
     import numpy
+    
+    if isinstance(channel, (str, unicode)):
+        #@fixme: to make things uglier, I lazily assume Tango attribute namin
+        dev_name, attr_name = channel.rsplit('/', 1)
+        name = attr_name
+        try:
+            dev = PyTango.DeviceProxy(dev_name)
+            db = dev.get_device_db()
+            try:
+                alias = db.get_alias(dev.name())
+            except:
+                # no alias...
+                alias = dev.name()
+            label = alias + "/" + attr_name
+        except:
+            label = channel
+        full_name = channel
+        source = channel
+    else:
+        name = channel['name']
+        label = name
+        full_name = channel['full_name']
+        source = channel['source']
+    
     ret = { 
-           ##@fixme: UGLY HACK! I am doing this for compatibility with the way Sardana creates the
-           ##        pool.ch_info dictionary for external tango channels.
-           ##        This should be fixed by using the full name (or maybe the source?) as the keys
-           #'name': name,
-           'name' : name.split('/')[-1], #@fixme: to make things uglier, I lazily assume Tango attribute naming
-           'label': name.split('/')[-1], #channel label #@fixme (same as above)
-           'full_name': name,
+           'name' : name,
+           'label': label,
+           'full_name': full_name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
            'output': True,   # bool. Whether to show output in the stdout 
            'data_type':'float64',
@@ -103,24 +122,30 @@ def createChannelDict(name, index=None, **kwargs):
 #           'trigger': '', #should contain a channel name
            'conditioning': '', #this is a python expresion to be evaluated for conditioning the data. The data for this channel can be referred as 'x' and data from other channels can be referred by channel name
            'normalization': Normalization.No, # one of the Normalization enumeration members 
-           'nexus_path': '' #string indicating the location of the data of this channel within the nexus tree
+           'nexus_path': '', #string indicating the location of the data of this channel within the nexus tree
            }
     
     #If the channel is a Tango one, try to guess data_type, shape and data_units
     attrproxy = attrconf = value = None
     dtype = shape = None
     try: 
-        attrproxy = PyTango.AttributeProxy(name)
+        attrproxy = PyTango.AttributeProxy(source)
         attrconf = attrproxy.get_config()
-        value = attrproxy.read().value
+        # avoid trying to read for scalars. We know that their shape must be ()
+        if attrconf.data_format != PyTango.AttrDataFormat.SCALAR:
+            value = attrproxy.read().value
     except Exception,e:
         print str(e)
+
     if value is not None:
-        shape = numpy.shape(value)
+        shape = list(numpy.shape(value))
         dtype = getattr(value, 'dtype', numpy.dtype(type(value))).name
         ret['data_units'] = attrconf.unit
     elif attrconf is not None:
-        shape = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
+        if attrconf.data_format == PyTango.AttrDataFormat.SCALAR:
+            shape = []
+        else:
+            shape = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
         dtype = FROM_TANGO_TO_STR_TYPE[attrconf.data_type]
         ret['data_units'] = attrconf.unit
         
@@ -304,7 +329,7 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
                 Logger(self.__class__.__name__).error('Invalid shape %s',s )
                 data = ()
         else:
-            raise UnimplementedError('Unknown role')
+            raise NotImplementedError('Unknown role')
         ch_name, ch_data = self.itemData()
         key = self.itemdata_keys_map[taurus_role]
         ch_data[key] = data
@@ -411,8 +436,24 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
     def flags(self, index):
         flags = TaurusBaseModel.flags(self, index)
         taurus_role = self.role(index.column())
-        if taurus_role != ChannelView.Channel:
-            flags |= Qt.Qt.ItemIsEditable #all except the channel column are editable
+        if taurus_role == ChannelView.Channel: #channel column is not editable
+            return flags
+        elif taurus_role == ChannelView.Trigger:
+            ch_name, ch_data = index.internalPointer().itemData()
+            if not ch_data['_controller_name'].startswith("__"):
+                ch_info = self.getAvailableChannels()[ch_name]
+                #only timer/monitor columns of counter timers are editable
+                if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'): 
+                    flags |= Qt.Qt.ItemIsEditable
+        elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
+            ch_name, ch_data = index.internalPointer().itemData()
+            if not ch_data['_controller_name'].startswith("__"):
+                #ch_info = self.getAvailableChannels()[ch_name]
+                #if 'CTExpChannel' == ch_info['type']: #only timer/monitor columns of counter timers are editable
+                #    flags |= Qt.Qt.ItemIsEditable
+                flags |= Qt.Qt.ItemIsEditable
+        else:
+            flags |= Qt.Qt.ItemIsEditable
         return flags
     
     def data(self, index, role=Qt.Qt.DisplayRole):
@@ -427,14 +468,30 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             pass
         #For those things which are inter-item, we handle them here
         taurus_role = self.role(index.column())
-        if taurus_role in (ChannelView.Timer, ChannelView.Monitor, ChannelView.Trigger):
+        if taurus_role == ChannelView.Trigger:
             ch_name, ch_data = index.internalPointer().itemData()
             unitdict = self.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
             key = self.data_keys_map[taurus_role]
-            ret = unitdict.get(key, None)     
-            if taurus_role == ChannelView.Trigger:
-                ret = AcqTriggerType[ret]
-            return Qt.QVariant(ret)
+            return Qt.QVariant(AcqTriggerType[unitdict.get(key, None)])
+        elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
+            ch_name, ch_data = index.internalPointer().itemData()
+            ctrlname = ch_data['_controller_name']
+            if ctrlname.startswith("__"):
+                return Qt.QVariant()
+            ch_info = self.getAvailableChannels()[ch_name]
+            if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                unitdict = self.getPyData(ctrlname=ctrlname, unitid=ch_data['_unit_id'])
+                key = self.data_keys_map[taurus_role]
+                master_full_name = unitdict.get(key, None)
+            else:
+                key = taurus_role == ChannelView.Timer and 'timer' or 'monitor'
+                master_full_name = self._mgconfig.get(key, None)
+            if master_full_name is None:
+                return Qt.QVariant()
+            else:
+                master_info = self.getAvailableChannels()[master_full_name]
+                return Qt.QVariant(master_info['name'])
+                
         return Qt.QVariant()
     
     def setData(self, index, qvalue, role=Qt.Qt.EditRole):
@@ -442,16 +499,24 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         taurus_role = self.role(index.column())
         if taurus_role in (ChannelView.Timer, ChannelView.Monitor, ChannelView.Trigger):
             ch_name, ch_data = index.internalPointer().itemData()
+            ch_info = self.getAvailableChannels()[ch_name]
             unit_data = self.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
             key = self.data_keys_map[taurus_role]
             data = str(qvalue.toString())
             if taurus_role == ChannelView.Trigger:
                 data = AcqTriggerType[data]
             self._dirty = True
-            self.beginResetModel()
-            unit_data[key] = data
+            key = taurus_role == ChannelView.Timer and 'timer' or 'monitor'
+            data = str(qvalue.toString())
+            self.beginResetModel() 
+            if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                if unit_data[key] == self._mgconfig[key]:
+                    self._mgconfig[key] = data
+                unit_data[key] = data
+            else:
+                self._mgconfig[key] = data
             self.endResetModel()
-            return True
+            return True                
         #for the rest, we use the regular TaurusBaseModel item-oriented approach
         #ret = self._setData(index, qvalue, role) #@todo we do not use _setData because it is not Qt4.4-compatible
         item = index.internalPointer()
@@ -461,8 +526,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                   index, index)
         return True
         
-    def addChannel(self, chname=None, ctrlname=None, unitname=None, external=False): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
+    def addChannel(self, chname=None, chinfo=None, ctrlname=None, unitname=None, external=False): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows 
         
+        if chname is None:
+            chname = chinfo['full_name']
         chname = str(chname)
         if ctrlname is None:
             desc = self.getAvailableChannels()[chname]
@@ -488,7 +555,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             return
         
         self._dirty = True
-        channelsdict[chname] = createChannelDict(chname)
+        if external:
+            channelsdict[chname] = createChannelDict(chname)
+        else:
+            channelsdict[chname] = createChannelDict(chinfo)
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here... 
         
@@ -632,10 +702,7 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
     def setEditorData(self, editor, index):
         model = index.model()
         taurus_role = model.role(index.column())
-        if taurus_role == ChannelView.Channel:
-            editor.addItems(sorted(model.availableChannels.keys()))
-            editor.setCurrentIndex(editor.findText(pydata))
-        elif taurus_role == ChannelView.PlotType:
+        if taurus_role == ChannelView.PlotType:
             editor.addItems(PlotType.keys())
             current = model.data(index).toString()
             editor.setCurrentIndex(editor.findText(current))
@@ -644,12 +711,26 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             current = model.data(index).toString()
             editor.setCurrentIndex(editor.findText(current))
         elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
+            key = taurus_role == ChannelView.Timer and 'timer' or 'monitor'
             ch_name, ch_data = index.internalPointer().itemData()
             ctrl_filterlist = [ch_data['_controller_name']]
-            selectables = [n for n,d in getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)] 
-            editor.addItems(selectables)
-            current = model.data(index).toString()
-            editor.setCurrentIndex(editor.findText(current))
+            ctrl_dict = getChannelConfigs(model.dataSource(), ctrls=ctrl_filterlist)
+            all_channels = model.getAvailableChannels()
+            # if it is a timer capable type of element
+            if all_channels[ch_name]['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                for full_name, channel_data in ctrl_dict:
+                    editor.addItem(channel_data['name'], Qt.QVariant(full_name))
+                current = model.data(index).toString()
+                editor.setCurrentIndex(editor.findText(current))
+            else:
+                data = model.dataSource()
+                for ctrl_data in data['controllers'].values():
+                    for unit_data in ctrl_data['units'].values():
+                        if key in unit_data:
+                            channel = all_channels[unit_data[key]]
+                            editor.addItem(channel['name'], Qt.QVariant(channel['full_name']))
+                current = data.get(key) # current global timer/monitor
+                editor.setCurrentIndex(editor.findData(Qt.QVariant(current)))
         elif taurus_role == ChannelView.Trigger:
             editor.addItems(AcqTriggerType.keys())
             current = model.data(index).toString()
@@ -667,17 +748,73 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
         if taurus_role in (ChannelView.Channel, ChannelView.PlotType, ChannelView.Normalization):
             data = Qt.QVariant(editor.currentText())
             model.setData(index, data)
-        elif taurus_role in (ChannelView.Timer, ChannelView.Monitor, ChannelView.Trigger):
+        elif taurus_role == ChannelView.Trigger:
+            old_value = str(model.data(index).toString())
+            new_value = str(editor.currentText())
+            if new_value == old_value:
+                return
             ch_name, ch_data = index.internalPointer().itemData()
-            affected = [n for n,d in getChannelConfigs(model.dataSource(), ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']]) ]
+            channels = getChannelConfigs(model.dataSource(), ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']])
+            affected = [d['name'] for n,d in channels]
             if len(affected) >1:
                 op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
                                             "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected), 
                                             Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
                 if op != Qt.QMessageBox.Yes: 
                     return
-            data = Qt.QVariant(editor.currentText())
+            data = Qt.QVariant(new_value)
             model.setData(index, data)
+        elif taurus_role in (ChannelView.Timer, ChannelView.Monitor):
+            key = taurus_role == ChannelView.Timer and 'timer' or 'monitor'
+            old_value = str(model.data(index).toString())
+            new_value = str(editor.currentText())
+            if new_value == old_value:
+                return
+            ch_name, ch_data = index.internalPointer().itemData()
+            all_channels = model.getAvailableChannels()
+            # if it is a timer capable type of element
+            ch_info = all_channels[ch_name]
+            selected_master = editor.itemData(editor.currentIndex())
+            if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                affected = []
+                unit_data = model.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
+                channels = getChannelConfigs(model.dataSource(), ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']])
+                for n, d in channels:
+                    affected.append(d['name'])
+                # if old timer/monitor was also the global, then non
+                # timerable/monitorable channels must be changed
+                if unit_data[key] == model.dataSource()[key]:
+                    for n, d in getChannelConfigs(model.dataSource()):
+                        if d['_controller_name'].startswith("__"):
+                            continue
+                        ch_info = all_channels[n]
+                        if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                            continue
+                        affected.append(d['name'])
+                    
+                if len(affected) >1:
+                    op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
+                                                "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected), 
+                                                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                    if op != Qt.QMessageBox.Yes: 
+                        return
+            else:
+                affected = []
+                channels = getChannelConfigs(model.dataSource())
+                for n, d in channels:
+                    if d['_controller_name'].startswith("__"):
+                        continue
+                    ch_info = all_channels[n]
+                    if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
+                        continue
+                    affected.append(d['name'])
+                if len(affected) >1:
+                    op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
+                                                "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected), 
+                                                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                    if op != Qt.QMessageBox.Yes: 
+                        return
+            model.setData(index, selected_master)
         elif taurus_role == ChannelView.PlotAxes:
             data = Qt.QVariant(editor.text())
             model.setData(index, data)
@@ -772,7 +909,9 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             for m in models:
                 qmodel.addChannel(chname=m, ctrlname='__tango__', unitname='0', external=True)
         else:
-            qmodel.addChannel(chname=chname)
+            for ch_info in avail_channels.values():
+                if ch_info['name'] == chname:
+                    qmodel.addChannel(chinfo=ch_info)
         
     def removeChannels(self, channels=None):
         if channels is None:
@@ -824,110 +963,4 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     
     simpleView = Qt.pyqtProperty("bool", isSimpleView, setSimpleView, resetSimpleView)
 
-class MntGrpChannelPanel(Qt.QWidget):
-    
-    def __init__(self, parent=None, designMode=False):
-        Qt.QWidget.__init__(self, parent)
-        l = Qt.QVBoxLayout()
-        l.setContentsMargins(0,0,0,0)
-        self.setLayout(l)
-        self._editor = MntGrpChannelEditor(parent=self, designMode=designMode)
-        self.connect(self._editor.getQModel(),
-                     Qt.SIGNAL("dataChanged(const QModelIndex &, const QModelIndex &)"),
-                     self.onDataChanged)
-        self.connect(self._editor.getQModel(),
-                     Qt.SIGNAL("modelReset()"),
-                     self.onDataReset)
-        self._editor.show()
-        l.addWidget(self._editor, 1)
-        BB = Qt.QDialogButtonBox
-        bts = BB.Ok | BB.Cancel | BB.Reset | BB.Apply
-        bb = self._buttonBox = Qt.QDialogButtonBox(bts, Qt.Qt.Horizontal, self)
-        self.connect(bb, Qt.SIGNAL("clicked(QAbstractButton *)"),
-                     self.onDialogButtonClicked)
-        l.addWidget(self._buttonBox, 0, Qt.Qt.AlignRight)
 
-    def getEditor(self):
-        return self._editor
-
-    def setModel(self, m):
-        self.getEditor().setModel(m)
-    
-    def getEditorQModel(self):
-        return self.getEditor().getQModel()
-
-    def onDialogButtonClicked(self, button):
-        role = self._buttonBox.buttonRole(button)
-        qmodel = self.getEditorQModel()
-        if role == Qt.QDialogButtonBox.ApplyRole:
-            qmodel.writeSourceData()
-        elif role == Qt.QDialogButtonBox.ResetRole:
-            qmodel.refresh()
-
-    def onDataChanged(self, i1, i2):
-        self._updateButtonBox()
-    
-    def onDataReset(self):
-        self._updateButtonBox()
-    
-    def _updateButtonBox(self):
-        qmodel = self.getEditorQModel()
-        changed = qmodel.isDataChanged()
-        bb = self._buttonBox
-        for button in bb.buttons():
-            role = bb.buttonRole(button)
-            if role == Qt.QDialogButtonBox.ApplyRole:
-                button.setEnabled(changed)
-            elif role == Qt.QDialogButtonBox.ResetRole:
-                button.setEnabled(changed)
-
-
-def main_MntGrpChannelEditor(perspective="Channel"):
-    w = MntGrpChannelEditor( perspective=perspective)
-    w.setWindowTitle("A Taurus Measurement Group editor example")
-    w.getQModel().setDataSource(DUMMY_MNGRPCFG_1)
-    w.resize(1200,500)
-    return w
-
-def main_MntGrpChannelPanel(mg, perspective="Channel"):
-    w = MntGrpChannelPanel()
-    w.setWindowIcon(getIcon(":/actions/system-shutdown.svg"))
-    w.setWindowTitle("A Taurus Sardana measurement group Example")
-    w.setModel(mg)
-    w.show()
-    return w
-
-
-def demo(model="mg2"):
-    """Table panels"""
-#    w = main_MntGrpChannelPanel(model)
-    w = main_MntGrpChannelEditor()
-    return w
-
-
-def main():
-    import sys
-    import taurus.qt.qtgui.application
-    Application = taurus.qt.qtgui.application.TaurusApplication
-    
-    app = Application.instance()
-    owns_app = app is None
-    
-    if owns_app:
-        app = Application(app_name="Meas. group channel demo", app_version="1.0",
-                          org_domain="Sardana", org_name="Tango community")
-    
-    args = app.get_command_line_args()
-    if len(args)==1:
-        w = demo(model=args[0])
-    else:
-        w = demo()
-    w.show()
-    
-    if owns_app:
-        sys.exit(app.exec_())
-    else:
-        return w
-    
-if __name__ == "__main__":
-    main()

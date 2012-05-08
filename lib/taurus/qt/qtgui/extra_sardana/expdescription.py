@@ -69,7 +69,6 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         from ui.ui_ExpDescriptionEditor import Ui_ExpDescriptionEditor
         self.ui = Ui_ExpDescriptionEditor()
         self.ui.setupUi(self)
-        BB = Qt.QDialogButtonBox
         self.ui.buttonBox.setStandardButtons(Qt.QDialogButtonBox.Reset | Qt.QDialogButtonBox.Apply)
         newperspectivesDict = copy.deepcopy(self.ui.sardanaElementTree.KnownPerspectives)
         #newperspectivesDict[self.ui.sardanaElementTree.DftPerspective]['model'] = [SardanaAcquirableProxyModel, SardanaElementPlainModel]
@@ -152,7 +151,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         #set a list of available channels
         avail_channels = {}
         for ch_info in door.macro_server.getExpChannelElements().values():
-            avail_channels[ch_info.name] = ch_info.getData()  #@todo: Once it changes in the Pool, this should use full_name!
+            avail_channels[ch_info.full_name] = ch_info.getData()
         self.ui.channelEditor.getQModel().setAvailableChannels(avail_channels)
     
     def _setDirty(self,dirty):
@@ -319,19 +318,21 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
     def onPreScanSnapshotChanged(self, items):  
         self._localConfig['PreScanSnapshot'] = [(e.src,e.display) for e in items]
         self._setDirty(True)    
-    
-        
-            
-
-
-  
-            
-def demo(model="mydoor"):
-    """Table panels"""
+       
+   
+def demo(model=None):
+    """Experiment configuration"""
     #w = main_ChannelEditor()
-    w = ExpDescriptionEditor(door=model)
+    w = ExpDescriptionEditor()
+    if model is None:
+        from taurus.qt.qtgui.extra_macroexecutor import TaurusMacroConfigurationDialog
+        dialog = TaurusMacroConfigurationDialog(w)
+        accept = dialog.exec_()
+        if accept:
+            model = str(dialog.doorComboBox.currentText())
+    if model is not None:
+        w.setModel(model)
     return w
-
 
 def main():
     import sys
