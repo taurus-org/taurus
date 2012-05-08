@@ -367,7 +367,7 @@ class PoolElement(PoolBaseElement):
     
     def serialize(self, *args, **kwargs):
         kwargs = PoolBaseElement.serialize(self, *args, **kwargs)
-        kwargs['controller'] = self.controller.name
+        kwargs['controller'] = self.controller.full_name
         kwargs['unit'] = '0' #TODO: hardcoded unit to 0
         kwargs['axis'] = self.axis
         if self.instrument is not None:

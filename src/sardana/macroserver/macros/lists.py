@@ -110,9 +110,12 @@ class _lsobj(_ls):
         cols = cols or self.get_column_members()
         ret = []
         for col in cols:
-            value = getattr(o, col)
-            if value is None:
-                value = '-----'
+            if col == 'controller':
+                value = self.getController(o.controller).name
+            else:
+                value = getattr(o, col)
+                if value is None:
+                    value = '-----'
             ret.append(value)
         return ret
     

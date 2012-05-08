@@ -32,16 +32,13 @@ __all__ = ["ScanSetupError", "ScanException", "ExtraData", "TangoExtraData",
 __docformat__ = 'restructuredtext'
 
 import os
-import sys
 import datetime
-import operator
 import types
 import time
 
 import taurus
-from taurus.core.util import Enumeration, USER_NAME, Logger, DebugIt, CaselessList, CaselessDict
+from taurus.core.util import USER_NAME, Logger, CaselessList
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
-from taurus.console.table import Table
 
 from sardana.macroserver.msexception import MacroServerException, UnknownEnv, \
     InterruptException
@@ -50,8 +47,7 @@ from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
 from recorder import OutputRecorder, JsonRecorder, SharedMemoryRecorder, \
     FileRecorder
 
-from taurus.core.tango.sardana.pool import Ready, Standby, Counting, \
-    Acquiring, Moving, Alarm, Fault
+from taurus.core.tango.sardana.pool import Ready
 
 class ScanSetupError(Exception): pass
 
@@ -324,7 +320,7 @@ class GScan(Logger):
                                        colname, str(colexcept))
         except InterruptException:
             raise
-        except Exception, envexcept:
+        except Exception:
             self.macro.warning('ExtraColumns has invalid value. Must be a '
                                'sequence of maps')
         return ret
@@ -491,13 +487,10 @@ class GScan(Logger):
         # add master column
         master = self._master
         instrument = master['instrument']
-        label = master['label']
         name = master['full_name']
         
         #add channels from measurement group
         channels_info = self.measurement_group.getChannelsInfo()
-#        import pprint
-#        pprint.pprint(channels_info[0].__dict__)
         counters = []
         for ci in channels_info:
             instrument = ci.instrument or ''
@@ -678,7 +671,7 @@ class GScan(Logger):
     def end(self):
         env = self._env
         env['endts'] = end_ts = time.time()
-        env['endtime'] = end = datetime.datetime.fromtimestamp(end_ts)
+        env['endtime'] = datetime.datetime.fromtimestamp(end_ts)
         total_time = end_ts - env['startts']
         estimated = env['estimatedtime']
         env['deadtime'] = 100.0 * (total_time-estimated) / total_time
@@ -942,7 +935,7 @@ class CScan(GScan):
         while not self._stop:
             try:
                 point_nb, step = period_steps.next()
-            except StopIteration, si:
+            except StopIteration:
                 break
             
             # start/stop Count here according to the 'acquire' key given by 

@@ -127,17 +127,25 @@ class SardanaDevice(Device_4Impl, Logger):
         set_attr = self.set_attribute_push
         if synch:
             set_attr(attr, value=value, timestamp=timestamp, quality=quality,
-                     error=error, priority=priority)
+                     error=error, priority=priority, synch=synch)
         else:
             th_pool = get_thread_pool()
             th_pool.add(set_attr, None, attr, value=value,
                         timestamp=timestamp, quality=quality, error=error,
-                        priority=priority)
+                        priority=priority, synch=synch)
 
-    def set_attribute_push(self, *args, **kwargs):
-        #with self.tango_lock:
-        return self._set_attribute_push(*args, **kwargs)
-
+    def set_attribute_push(self, attr, value=None, timestamp=None, quality=None,
+                      error=None, priority=1, synch=True):
+        if priority > 0 and not synch:
+            with self.tango_lock:
+                return self._set_attribute_push(attr, value=value,
+                                                timestamp=timestamp,
+                                                quality=quality, error=error,
+                                                priority=priority)
+        return self._set_attribute_push(attr, value=value, timestamp=timestamp,
+                                        quality=quality, error=error,
+                                        priority=priority)
+        
     def _set_attribute_push(self, attr, value=None, timestamp=None,
                             quality=None, error=None, priority=1):
         fire_event = priority > 0
@@ -158,16 +166,14 @@ class SardanaDevice(Device_4Impl, Logger):
             # push_change_event(attr_name, value [, ...]) on state or status.
             # This solves the problem.
             if attr_name == "state":
-                with self.tango_lock:
-                    self.set_state(value)
-                    if fire_event:
-                        self.push_change_event(attr_name)
+                self.set_state(value)
+                if fire_event:
+                    self.push_change_event(attr_name)
                 return
             elif attr_name == "status":
-                with self.tango_lock:
-                    self.set_status(value)
-                    if fire_event:
-                        self.push_change_event(attr_name)
+                self.set_status(value)
+                if fire_event:
+                    self.push_change_event(attr_name)
                 return
 
             if timestamp is None:

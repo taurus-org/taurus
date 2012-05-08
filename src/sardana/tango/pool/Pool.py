@@ -804,10 +804,21 @@ class Pool(PyTango.Device_4Impl, Logger):
                 ret.append(d)
             return ret
         ret = { 'name' : argin[0] }
-        if argin[-1].count('/') == 2:
-            ret['full_name'] = argin[-1]
-            del argin[-1]
-        ret['elements'] = argin[1:]
+        #if argin[-1].count('/') == 2:
+        #    ret['full_name'] = argin[-1]
+        #    del argin[-1]
+        channels = []
+        for arg in argin[1:]:
+            try:
+                channel = self.pool.get_element_by_full_name(arg)
+                channels.append(channel.name)
+            except:
+                try:
+                    channel = self.pool.get_element_by_name(arg)
+                    channels.append(channel.name)
+                except:
+                    channels.append(arg)
+        ret['elements'] = channels
         return [ret]
         
     #@DebugIt()

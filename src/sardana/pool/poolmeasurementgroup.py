@@ -378,7 +378,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = {}
                 unit_data['id'] = u_data['id']
-                if not external:
+                if not external and ElementType.CTExpChannel in c.get_ctrl_types():
                     if u_data.has_key('timer'):
                         unit_data['timer'] = u_data['timer'].full_name
                     if u_data.has_key('monitor'):
