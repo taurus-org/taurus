@@ -937,8 +937,19 @@ class TangoChannelInfo(BaseChannelInfo):
     def __init__(self, data, info):
         BaseChannelInfo.__init__(self, data)
         # PyTango.AttributeInfoEx
+        self.set_info(info)    
+    
+    def has_info(self):
+        return self.raw_info is not None
+    
+    def set_info(self, info):
         self.raw_info = info
-
+        
+        if info is None:
+            return
+        
+        data = self.raw_data
+        
         if 'data_type' not in data:
             self.data_type = FROM_TANGO_TO_STR_TYPE[info.data_type]
 
@@ -949,9 +960,15 @@ class TangoChannelInfo(BaseChannelInfo):
             elif info.data_format == AttrDataFormat.IMAGE:
                 shape = (info.max_dim_x, info.max_dim_y)
             self.shape = shape
-
+        else:
+            shape = self.shape
+        self.shape = list(shape)
+        
     def __getattr__(self, name):
-        return getattr(self.raw_info, name)
+        if self.has_info():
+            return getattr(self.raw_info, name)
+        cls_name = self.__class__.__name__
+        raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))
 
 
 def getChannelConfigs(mgconfig, ctrls=None, units=None, sort=True):
@@ -1095,11 +1112,21 @@ class MGConfiguration(object):
                 else:
                     try:
                         tg_attr_info = dev.get_attribute_config_ex(attr_name)[0]
-                        attr_info = TangoChannelInfo(channel_data, tg_attr_info)
                     except:
+                        tg_attr_info = \
+                            self._build_empty_tango_attr_info(channel_data)
                         self.tango_channels_info_in_error += 1
+                    attr_info = TangoChannelInfo(channel_data, tg_attr_info)
+                        
                 tg_chs_info[channel_name] = dev_name, attr_name, attr_info
-
+    
+    def _build_empty_tango_attr_info(self, channel_data):
+        import PyTango
+        ret = PyTango.AttributeInfoEx()
+        ret.name = channel_data['name']
+        ret.label = channel_data['label']
+        return ret
+        
     def prepare(self):
         # first time? build everything
         if self.tango_dev_channels is None:
@@ -1119,20 +1146,17 @@ class MGConfiguration(object):
         if self.tango_channels_info_in_error > 0:
             for channel_name, attr_data in self.tango_channels_info.items():
                 dev_name, attr_name, attr_info = attr_data
-                if attr_info is not None:
+                if attr_info.has_info():
                     continue
                 dev = self.tango_dev_channels[dev_name]
                 if dev is None:
                     continue
                 try:
                     tg_attr_info = dev.get_attribute_config_ex(attr_name)[0]
-                    channel_data = self.channels[channel_name]
-                    attr_info = attr_info = TangoChannelInfo(channel_data, tg_attr_info)
-                    attr_data[2] = attr_info
+                    attr_info.set_info(tg_attr_info)
                     self.tango_channels_info_in_error -= 1
                 except:
-                    continue
-
+                    pass
 
     def getChannelInfo(self, channel_name):
         try:
@@ -1171,6 +1195,8 @@ class MGConfiguration(object):
         self.prepare()
         ret = CaselessDict(self.cache)
         dev_replies = {}
+
+        # deposit read requests
         for dev_name, dev_data in self.tango_dev_channels.items():
             dev, attrs = dev_data
             if dev is None:
@@ -1178,7 +1204,9 @@ class MGConfiguration(object):
             try:
                 dev_replies[dev] = dev.read_attributes_asynch(attrs.keys()), attrs
             except:
-                continue
+                dev_replies[dev] = None, attrs
+                
+        # gather all replies
         for dev, reply_data in dev_replies.items():
             reply, attrs = reply_data
             try:
@@ -1191,7 +1219,9 @@ class MGConfiguration(object):
                         value = data_item.value
                     ret[channel_data['full_name']] = value
             except:
-                continue
+                for attr_name, channel_data in attrs.items():
+                    ret[channel_data['full_name']] = None
+                
         return ret
 
     def read(self):
@@ -1209,7 +1239,8 @@ class MGConfiguration(object):
                         value = data_item.value
                     ret[channel_data['full_name']] = value
             except:
-                continue
+                for attr_name, channel_data in attrs.items():
+                    ret[channel_data['full_name']] = None
         return ret
 
 class MeasurementGroup(PoolElement):
@@ -1289,6 +1320,12 @@ class MeasurementGroup(PoolElement):
 
     def getCounterNames(self):
         return [ ch['name'] for ch in self.getCounters() ]
+
+    def getChannelLabels(self):
+        return [ ch['label'] for ch in self.getChannels() ]
+
+    def getCounterLabels(self):
+        return [ ch['label'] for ch in self.getCounters() ]
 
     def getChannel(self, name):
         return self.getConfiguration().channels[name]
