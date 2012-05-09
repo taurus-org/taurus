@@ -543,7 +543,7 @@ class build_doc_api(Command):
         pass 
         
     def run(self):
-        print("SKIPPING API");return
+        #print("SKIPPING API");return
         buildcmd = self.get_finalized_command('build_doc')
         name = "auto_rst4api"
         data = imp.find_module(name, [abspath('doc')])
