@@ -19,8 +19,6 @@
 
     * :class:`Pool`
 
-.. autofunction:: get_thread_pool
-
 Pool
 -----
 
