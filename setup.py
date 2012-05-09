@@ -473,12 +473,14 @@ class install(dftinstall):
     
     user_options = list(dftinstall.user_options)
     user_options.extend([
-        ('install-man=', None, 'installation directory for Unix man pages'),
-        ('install-html=', None, "installation directory for HTML documentation")])
+            ('install-man=', None, 'installation directory for Unix man pages'),
+            ('install-html=', None, "installation directory for HTML documentation"),
+            ('no-doc', None, "do not install HTML documentation")])
 
     def initialize_options(self):
         self.install_man = None
         self.install_html = None
+        self.no_doc = None
         dftinstall.initialize_options(self)
     
     def finalize_options(self):
@@ -503,6 +505,8 @@ class install(dftinstall):
                 self.install_man = os.path.join(self.install_data, 'share', 'man')
         if self.install_html is None:
             self.install_html = os.path.join(self.install_data, 'share', 'doc', 'taurus', 'html')
+        if self.no_doc is None:
+            self.no_doc = False
         self.dump_dirs("Installation directories")
 
     def expand_dirs(self):
@@ -513,6 +517,8 @@ class install(dftinstall):
         return os.name == "posix"
     
     def has_html(self):
+        if self.no_doc:
+            return False
         return sphinx is not None
     
     sub_commands = list(dftinstall.sub_commands)
@@ -693,13 +699,13 @@ if sphinx:
 
     class build_doc(BuildDoc):
         user_options = BuildDoc.user_options + \
-                     [('use-inkscape', None, 
-                       "Use inkscape for building the icon catalog (useful if QApplication cannot be used when building, but requires inkscape)")]
-        boolean_options = BuildDoc.boolean_options + ['use-inkscape']
+                     [('external-img-tools', None, 
+                       "Use external tools for converting the icon catalog (useful if QApplication cannot be used while building, but requires inkscape and imagemagick)")]
+        boolean_options = BuildDoc.boolean_options + ['external-img-tools']
         
         def initialize_options (self):
             BuildDoc.initialize_options(self)
-            self.use_inkscape = False
+            self.external_img_tools = False
         
         def has_doc_api(self):
             return True
@@ -751,20 +757,20 @@ if sphinx:
             # copy the tango icons to the build directory of documentation
             target = os.path.join(build_dir, 'devel')
             
-            if not self.use_inkscape:
+            if not self.external_img_tools:
                 import PyQt4.Qt
                 if PyQt4.Qt.qApp.instance() is None:
                     self.app = PyQt4.Qt.QApplication([])
             
             print("\tBuilding PNGs for icon catalog")   
-            os.path.walk(resource, svg_to_png, (resource, target, self.use_inkscape))
+            os.path.walk(resource, svg_to_png, (resource, target, self.external_img_tools))
             return
     
     cmdclass['build_doc'] = build_doc
 
 def svg_to_png(arg, dirname, fnames):
-    resource, target, use_inkscape = arg
-    if not use_inkscape:
+    resource, target, external_img_tools = arg
+    if not external_img_tools:
         import PyQt4.Qt
     relpath = os.path.relpath(dirname, start=resource)
     path = os.path.join(target, relpath)
@@ -777,9 +783,12 @@ def svg_to_png(arg, dirname, fnames):
             target_fname = fbase + ".png"
             full_target_fname = os.path.join(path, target_fname)
             if not os.path.isfile(full_target_fname):
-                if use_inkscape:
-                    cmd = "inkscape -z -e '%s' -w 24 '%s' &>/dev/null"%(full_target_fname, full_source_fname)
+                if external_img_tools:
+                    cmd = "inkscape -z '%s' -e '%s' -w 24 >/dev/null 2>/dev/null"%(full_source_fname, full_target_fname)
                     ok = not(os.system(cmd))
+                    if not ok:
+                        cmd = "convert -resize 24 '%s' '%s' >/dev/null 2>/dev/null"%(full_source_fname, full_target_fname)
+                        ok = not(os.system(cmd))
                 else:
                     pixmap = PyQt4.Qt.QPixmap(full_source_fname)
                     pix = pixmap.scaledToWidth(24, PyQt4.Qt.Qt.SmoothTransformation)
