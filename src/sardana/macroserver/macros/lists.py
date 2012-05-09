@@ -27,7 +27,7 @@
 scan"""
 
 
-__all__ = ["ls0d", "ls1d", "ls2d", "lsa", "ls", "lscom", "lsct", "lsctrl",
+__all__ = ["ls0d", "ls1d", "ls2d", "lsa", "lscom", "lsct", "lsctrl",
            "lsctrllib", "lsdef", "lsexp", "lsi", "lsior", "lsm", "lsmeas",
            "lspc", "lspm"]
 
@@ -225,5 +225,5 @@ class lsmeas(_lsobj):
             active = '*'
         else:
             active = ' '
-        return active, o.name, o.getTimerName(), ", ".join(o.getChannelNames())
+        return active, o.name, o.getTimerName(), ", ".join(o.getChannelLabels())
 

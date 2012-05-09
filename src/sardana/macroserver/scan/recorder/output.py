@@ -95,12 +95,14 @@ class JsonRecorder(DataRecorder):
 
 class OutputRecorder(DataRecorder):
     
-    def __init__(self, stream, cols=None, number_fmt='%8.4f', col_sep=' ', **pars):
+    def __init__(self, stream, cols=None, number_fmt='%8.4f', col_width=8,
+                 col_sep='  ', **pars):
         DataRecorder.__init__(self, **pars)
         self._stream = stream
         if not number_fmt.startswith('%'): number_fmt = '%%s' % number_fmt
         self._number_fmt = number_fmt
         self._col_sep = col_sep
+        self._col_width = col_width
         if operator.isSequenceType(cols) and not isinstance(cols, (str, unicode)):
             cols = CaselessList(cols)
         elif operator.isNumberType(cols):
@@ -114,10 +116,13 @@ class OutputRecorder(DataRecorder):
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         data_desc = recordlist.getEnvironValue('datadesc')
         serialno = recordlist.getEnvironValue('serialno')
-        
+        col_sep = self._col_sep
+        cols = self._columns
+        number_fmt = self._number_fmt
+        col_width = self._col_width
         dh = recordlist.getDataHandler()
         
-        for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
+        for fr in [r for r in dh.recorders if isinstance(r, BaseFileRecorder)]:
             self._stream.info('Operation will be saved in %s (%s)', 
                               fr.getFileName(), fr.getFormat())
 
@@ -127,35 +132,52 @@ class OutputRecorder(DataRecorder):
             msg += " It will take at least %s" % estimatedtime
         self._stream.info(msg)
 
-        #labels = [ col.label for col in data_desc if numpy.prod(col.shape) == 1 ]
-        labels = [ col.label for col in data_desc if getattr(col,'output',True) ]
-        col_names = [ col.name for col in data_desc if getattr(col,'output',True) ]
+        labels, col_names, col_sizes = [], [], []
+        header_rows, header_len = 1, 0
+        for col, column in enumerate(data_desc):
+            if not getattr(column, 'output', True):
+                continue
+            name = column.name
+            if operator.isSequenceType(cols) and name not in cols:
+                continue
+            if operator.isNumberType(cols) and col >= cols:
+                break
+            col_names.append(name)
+            label = column.label.strip()
+            if len(label) > col_width:
+                label = label.split("/")
+            else:
+                label = [label]
+            header_rows = max(header_rows, len(label))
+            labels.append(label)
+            col_size = max(col_width, max(map(len, label)))
+            header_len += col_size
+            col_sizes.append(col_size)
         
-        cols = self._columns
-        if operator.isSequenceType(cols):
-            labels = [labels[0]] + [ l for l in labels[1:] if l in cols ]
-            col_names = [col_names[0]] + [ l for l in col_names[1:] if l in cols ]
-        elif operator.isNumberType(cols):
-            labels = labels[:cols]
-            col_names = col_names[:cols]
-        
+        nb_cols = len(col_names)
+        header_len += (nb_cols - 1) * len(col_sep)
         self._labels = labels
         self._col_names = col_names
-        
-        col_size = max(map(len, labels))
-        number_size = len(self._number_fmt % float())
-        self._col_size = max(col_size, number_size)
-        
-        cell_t_number = '%%%%(%%s)%s' % self._number_fmt[1:]
-        
-        self._scan_line_t  = [(col_names[0], '%%(%s)4d' % col_names[0])]
-        self._scan_line_t += [ (name, cell_t_number % name) for name in col_names[1:] ]
-        header = ''
-        for l in self._labels:
-            header += '%s%s%s' % (self._col_sep,
-                                  string.center(l, self._col_size),
-                                  self._col_sep)
+        self._col_sizes = col_sizes
+
+        header = [[] for i in range(header_rows)]
+        for col, (label, col_size) in enumerate(zip(labels, col_sizes)):
+            empty_row_nb = header_rows - len(label)
+            for row in range(empty_row_nb):
+                header[row].append(col_size*" ")
+            for i, l in enumerate(label):
+                header[i+empty_row_nb].append(string.center(l, col_size))
+        head = []
+        for header_row in header:
+            head.append(col_sep.join(header_row))
             
+        header = "\n".join(head)
+            
+        cell_t_number = '%%%%(%%s)%s' % number_fmt[1:]
+        
+        self._scan_line_t  = [(col_names[0], '%%(%s)8d' % col_names[0])]
+        self._scan_line_t += [(name, cell_t_number % name) for name in col_names[1:]]
+        
         self._stream.output(header)
         self._stream.flushOutput()
     
@@ -178,18 +200,20 @@ class OutputRecorder(DataRecorder):
                           % (serialno, endtime, deltatime, deadtime))
     
     def _writeRecord(self, record):
-        scan_line, sep, c_nb = '', self._col_sep, self._col_size
-        for name, cell in self._scan_line_t:
+        cells = []
+        for i, (name, cell) in enumerate(self._scan_line_t):
             cell_data = record.data[name]
             if isinstance(cell_data, numpy.ndarray):
                 cell = str(cell_data.shape)
             elif cell_data is None:
-                cell = "<no data>"
-            elif isinstance(cell_data, basestring):
-                cell = " <string>"
+                cell = "<nodata>"
+            elif isinstance(cell_data, (str, unicode)):
+                cell = "<string>"
             else:
                 cell %= record.data
-            scan_line += '%s%s%s' % (sep, string.center(cell, c_nb), sep)
+            cell = string.center(cell.strip(), self._col_sizes[i])
+            cells.append(cell)
+        scan_line = self._col_sep.join(cells)
             
         self._stream.output(scan_line)
         self._stream.flushOutput()

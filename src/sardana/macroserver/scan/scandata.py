@@ -37,7 +37,7 @@ class ColumnDesc:
     
     _TYPE_MAP = { "short" : "int16",
                   "ushort" : "uint16", }
-    _shape = ()
+    _shape = []
     _dtype = 'float64'
     
     def __init__(self, **kwargs):
@@ -46,7 +46,7 @@ class ColumnDesc:
             - name (str, mandatory): unique column name
             - label (str, optional): column label (defaults to name)
             - dtype (str, optional): data type. Defaults to 'float64'
-            - shape (seq, optional): data shape. Defaults to ()
+            - shape (seq, optional): data shape. Defaults to []
         Any keyword not in the previous list will be converted to a member of the :class:`ColumnDesc` 
             """
         
@@ -96,9 +96,10 @@ class ColumnDesc:
             - (1,1,1,2,3) -> (2,3)
             - (3,1,1) -> (3,1,1)
         '''
+        s = list(s)
         for i,e in enumerate(s):
             if e>1: return s[i:]
-        return ()
+        return []
 
     def tr(self, dtype):
         return self._TYPE_MAP.get(dtype, dtype)

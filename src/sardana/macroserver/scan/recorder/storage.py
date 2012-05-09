@@ -37,6 +37,7 @@ import numpy
 
 from datarecorder import DataRecorder, DataFormats, SaveModes
 from taurus.core.tango.sardana import PlotType
+from sardana.macroserver.macro import Type
 
 class BaseFileRecorder(DataRecorder):
     
@@ -99,8 +100,6 @@ class FIO_FileRecorder(BaseFileRecorder):
 
         #datetime object
         start_time = envRec['starttime']
-        epoch = time.mktime(start_time.timetuple())
-        serialno = envRec['serialno']
         
         #store labels for performace reason
         self.names = [ e.name for e in envRec['datadesc'] ]
@@ -304,23 +303,31 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
             return
+        # most used variables in the loop
+        fd, debug, warning = self.fd, self.debug, self.warning
+        nparray, npshape = numpy.array, numpy.shape
+        rec_data, rec_nb = record.data, record.recordno
+        
         for dd in self.datadesc:
             if record.data.has_key( dd.name ):
-                data = record.data[dd.name]
-                self.fd.opendata(dd.label)
+                data = rec_data[dd.name]
+                fd.opendata(dd.label)
                 
+                if data is None:
+                    data = numpy.zeros(dd.shape, dtype=dd.dtype)
                 if not hasattr(data, 'shape'):
-                    data = numpy.array([data], dtype=dd.dtype)
+                    data = nparray([data], dtype=dd.dtype)
                 elif dd.dtype != data.dtype.name:
-                    self.debug('%s casted to %s (was %s)',dd.label, dd.dtype, data.dtype.name)
+                    debug('%s casted to %s (was %s)', dd.label, dd.dtype,
+                                                      data.dtype.name)
                     data = data.astype(dd.dtype)
                     
-                slab_offset = [record.recordno]+[0]*len(dd.shape)
-                shape = [1]+list(numpy.shape(data))
+                slab_offset = [rec_nb]+[0]*len(dd.shape)
+                shape = [1]+list(npshape(data))
                 try:
-                    self.fd.putslab(data,slab_offset,shape)
+                    fd.putslab(data, slab_offset, shape)
                 except:
-                    self.warning("Could not write <%s> with shape %s", data, shape)
+                    warning("Could not write <%s> with shape %s", data, shape)
                     raise
                     
                 ###Note: the following 3 lines of code were substituted by the one above.
@@ -353,7 +360,6 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     def writeRecordList(self, recordlist):
         """Called when in BLOCK writing mode"""
         self._startRecordList( recordlist )
-        labels = self.currentlist.getEnvironValue('labels')
         for dd in self.datadesc:
             self.fd.makedata(dd.label, dd.dtype, [len(recordlist.records)]+list(dd.shape))
             self.fd.opendata(dd.label)
@@ -463,7 +469,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.fd.openpath(src)
         try:
             id=self.fd.getdataID()
-        except NeXusError:
+        except self.nxs.NeXusError:
             id=self.fd.getgroupID()
         self.fd.openpath(dst)
         self.fd.makelink(id)

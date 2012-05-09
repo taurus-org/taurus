@@ -124,6 +124,7 @@ class TangoExtraData(ExtraData):
         except Exception:
             return None
 
+
 class GScan(Logger):
     """Generic Scan object. 
     The idea is that the scan macros create an instance of this Generic Scan, 
@@ -407,7 +408,7 @@ class GScan(Logger):
         if shm.lower() == 'sps':
             cols  = 1                            # Point nb column
             cols += len(self.moveables)          # motor columns
-            ch_nb = len(mg.getChannelNames())
+            ch_nb = len(mg.getChannels())
             oned_nb = 0
             array_prefix = mg.getName().upper()
             

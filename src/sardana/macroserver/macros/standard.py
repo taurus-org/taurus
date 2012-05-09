@@ -350,9 +350,12 @@ class ct(Macro):
         state, data = self.mnt_grp.count(integ_time)
 
         names, counts = [], []
-        for ch_name in self.mnt_grp.getChannelNames():
-            names.append('  %s' % ch_name)
-            counts.append(data.get(ch_name))
+        for ch_info in self.mnt_grp.getChannelsInfo():
+            names.append('  %s' % ch_info.label)
+            if ch_info.shape > [1]:
+                counts.append(ch_info.shape)
+            else:
+                counts.append(data.get(ch_info.full_name))
         
         table = Table([counts], row_head_str=names, row_head_fmt='%*s',
                       col_sep='  =  ')
@@ -379,7 +382,7 @@ class uct(Macro):
         if self.mnt_grp is None:
             return
 
-        names, nan = self.mnt_grp.getChannelNames(), float('nan')
+        names, nan = self.mnt_grp.getChannelLabels(), float('nan')
         self.names    = [ [n] for n in names ]
         
         self.values   = len(names)*[ [nan] ]
