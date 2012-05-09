@@ -315,8 +315,17 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._localConfig['ScanFile'] = [v.strip() for v in str(text).split(',')]
         self._setDirty(True)
         
-    def onPreScanSnapshotChanged(self, items):  
-        self._localConfig['PreScanSnapshot'] = [(e.src,e.display) for e in items]
+    def onPreScanSnapshotChanged(self, items):
+        door = self.getModelObj()
+        ms = door.macro_server
+        preScanList = []
+        for e in items:
+            nfo = ms.getElementInfo(e.src)
+            if nfo is None:
+                preScanList.append((e.src,e.display)) 
+            else:
+                preScanList.append((nfo.full_name,nfo.name))
+        self._localConfig['PreScanSnapshot'] = preScanList
         self._setDirty(True)    
        
    
