@@ -543,7 +543,7 @@ class build_doc_api(Command):
         pass 
         
     def run(self):
-        #print("SKIPPING API");return
+        print("SKIPPING API");return
         buildcmd = self.get_finalized_command('build_doc')
         name = "auto_rst4api"
         data = imp.find_module(name, [abspath('doc')])
@@ -585,7 +585,6 @@ if sphinx:
         def run(self):
             self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource')
             self.taurus = os.path.join(self.resource_dir, 'taurus.png')
-            import PyQt4.Qt
             orig_dir = os.path.abspath(os.curdir)
             os.chdir(self.resource_dir)
             
