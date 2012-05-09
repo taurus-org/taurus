@@ -794,6 +794,7 @@ def load_ipython_extension(ipython):
     expose_magic('spsplot', magic.spsplot, None)
     expose_magic('edmac', magic.edmac, None)
     expose_magic('showscan', magic.showscan, None)
+    expose_magic('expconf', magic.expconf, None)
 
     door.setConsoleReady(True)
 

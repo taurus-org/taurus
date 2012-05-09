@@ -27,12 +27,12 @@
    
    Available Macros are:
      ascanr
-     ToothedTriangle
+     toothedtriangle
      ascanc
      
 """
 
-__all__ = ["ascanc", "ascanr", "ToothedTriangle"]
+__all__ = ["ascanc", "ascanr", "toothedtriangle", "regscan", "a2scan_mod"]
 
 __docformat__ = 'restructuredtext'
 
@@ -43,9 +43,6 @@ from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 
 class ascanr(Macro, Hookable):
-    hints = { 'scan' : 'ascanr', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
-    env = ('ActiveMntGrp',)
-    
     """This is an example of how to handle adding extra info columns in a scan.
     Does the same than ascan but repeats the acquisitions "repeat" times for each step. 
     It could be implemented deriving from aNscan, but I do it like this for clarity.
@@ -60,13 +57,16 @@ class ascanr(Macro, Hookable):
     will be (nr_interv+1)*repeat. Count time for each acquisition is given by time which if positive,
     specifies seconds and if negative, specifies monitor counts. """
 
+    hints = { 'scan' : 'ascanr', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
+    env = ('ActiveMntGrp',)
+
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
-       ['start_pos',  Type.Float,   None, 'Scan start position'],
-       ['final_pos',  Type.Float,   None, 'Scan final position'],
-       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time', Type.Float,   None, 'Integration time'],
-       ['repeat',     Type.Integer, None, 'Number of Repetitions']
+       ['motor',      Type.Moveable, None, 'Motor to move'],
+       ['start_pos',  Type.Float,    None, 'Scan start position'],
+       ['final_pos',  Type.Float,    None, 'Scan final position'],
+       ['nr_interv',  Type.Integer,  None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,    None, 'Integration time'],
+       ['repeat',     Type.Integer,  None, 'Number of Repetitions']
     ]
 
 
@@ -118,8 +118,8 @@ class ascanr(Macro, Hookable):
         return self._gScan.data
         
 
-class ToothedTriangle(Macro):
-    """ToothedTriangle macro implemented with the gscan framework.
+class toothedtriangle(Macro):
+    """toothedtriangle macro implemented with the gscan framework.
     It performs nr_cycles cycles, each consisting of two stages: the first half
     of the cycle it behaves like the ascan macro (from start_pos to stop_pos in
     nr_interv+1 steps).For the second half of the cycle it steps back until
@@ -127,17 +127,17 @@ class ToothedTriangle(Macro):
     At each step, nr_samples acquisitions are performed.
     The total number of points in the scan is nr_interv*2*nr_cycles*nr_samples+1"""
 
-    hints = { 'scan' : 'ToothedTriangle', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'toothedtriangle', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq') }
     env = ('ActiveMntGrp',)
 
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
-       ['start_pos',  Type.Float,   None, 'start position'],
-       ['final_pos',  Type.Float,   None, 'position after half cycle'],
-       ['nr_interv',  Type.Integer, None, 'Number of intervals in half cycle'],
-       ['integ_time', Type.Float,   None, 'Integration time'],
-       ['nr_cycles',  Type.Integer, None, 'Number of cycles'],
-       ['nr_samples', Type.Integer, 1 , 'Number of samples at each point']
+       ['motor',      Type.Moveable, None, 'Motor to move'],
+       ['start_pos',  Type.Float,    None, 'start position'],
+       ['final_pos',  Type.Float,    None, 'position after half cycle'],
+       ['nr_interv',  Type.Integer,  None, 'Number of intervals in half cycle'],
+       ['integ_time', Type.Float,    None, 'Integration time'],
+       ['nr_cycles',  Type.Integer,  None, 'Number of cycles'],
+       ['nr_samples', Type.Integer,  1 , 'Number of samples at each point']
     ]
 
     def prepare(self, motor, start_pos, final_pos, nr_interv, integ_time,
@@ -154,7 +154,7 @@ class ToothedTriangle(Macro):
         self.nr_points = cycle_nr_points*nr_samples*nr_cycles+nr_samples
         
         self.interv_size = ( self.final_pos - self.start_pos) / nr_interv
-        self.name='ToothedTriangle'
+        self.name='toothedtriangle'
         
         generator=self._generator
         moveables = []
@@ -213,17 +213,16 @@ class ToothedTriangle(Macro):
         return self._gScan.data
 
 class ascanc(Macro, Hookable):
-    
-    hints = { 'scan' : 'ascanc', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
-    env = ('ActiveMntGrp',)
-    
     """Simplest example of continuous scan: a continuous ascan giving a compact table"""
 
+    hints = { 'scan' : 'ascanc', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step') }
+    env = ('ActiveMntGrp',)
+
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
-       ['start_pos',  Type.Float,   None, 'Scan start position'],
-       ['final_pos',  Type.Float,   None, 'Scan final position'],
-       ['acq_period', Type.Float,   None, 'Period between acquisitions']
+       ['motor',      Type.Moveable, None, 'Motor to move'],
+       ['start_pos',  Type.Float,    None, 'Scan start position'],
+       ['final_pos',  Type.Float,    None, 'Scan final position'],
+       ['acq_period', Type.Float,    None, 'Period between acquisitions']
     ]
 
     def prepare(self, motor, start_pos, final_pos, acq_period, 
@@ -291,9 +290,9 @@ class regscan(Macro):
     env = ('ActiveMntGrp',)
 
     param_def = [
-        ['motor',      Type.Motor,   None, 'Motor to move'],
-        ['integ_time', Type.Float,   None, 'Integration time'],
-        ['start_pos',  Type.Float,   None, 'Start position'],
+        ['motor',      Type.Moveable, None, 'Motor to move'],
+        ['integ_time', Type.Float,    None, 'Integration time'],
+        ['start_pos',  Type.Float,    None, 'Start position'],
         ['step_region',
          ParamRepeat(['next_pos',  Type.Float,   None, 'next position'],
                      ['region_nr_intervals',  Type.Float,   None, 'Region number of intervals']),
@@ -349,15 +348,15 @@ class a2scan_mod(Macro):
     env = ('ActiveMntGrp',)
 
     param_def = [
-       ['motor1',      Type.Motor,   None, 'Motor 1 to move'],
-       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
-       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
-       ['nr_interv1',  Type.Integer, None, 'Number of scan intervals of Motor 1'],
-       ['motor2',      Type.Motor,   None, 'Motor 2 to move'],
-       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
-       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['nr_interv2',  Type.Integer, None, 'Number of scan intervals of Motor 2'],
-       ['integ_time', Type.Float,   None, 'Integration time']
+       ['motor1',      Type.Moveable, None, 'Motor 1 to move'],
+       ['start_pos1',  Type.Float,    None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,    None, 'Scan final position 1'],
+       ['nr_interv1',  Type.Integer,  None, 'Number of scan intervals of Motor 1'],
+       ['motor2',      Type.Moveable, None, 'Motor 2 to move'],
+       ['start_pos2',  Type.Float,    None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,    None, 'Scan final position 2'],
+       ['nr_interv2',  Type.Integer,  None, 'Number of scan intervals of Motor 2'],
+       ['integ_time',  Type.Float,    None, 'Integration time']
     ]
     
     def prepare(self, motor1, start_pos1, final_pos1, nr_interv1, motor2, start_pos2, final_pos2, nr_interv2, integ_time,
