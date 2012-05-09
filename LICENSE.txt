@@ -13,7 +13,7 @@ SECTION 2: EXCEPTIONS
 =====================
 
 Some files (e.g., those authored by 3rd parties or the documentation 
-sources) are distributed under Free Software / docmentation licenses 
+sources) are distributed under Free Software / documentation licenses 
 that may differ from the the general one defined in SECTION 1.
 
 The following is a list of these exceptions:
