@@ -228,6 +228,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         #adapt the datadesc to the NeXus requirements
         self.datadesc = []
         for dd in env['datadesc']:
+            dd = dd.clone()
             dd.label = self.sanitizeName(dd.label)
             if dd.dtype == 'bool':
                 dd.dtype = 'int8'
@@ -548,11 +549,11 @@ class SPEC_FileRecorder(BaseFileRecorder):
         labels = []
         names = []
         for e in env['datadesc']:
-            if e.shape == ():
+            dims = len(e.shape)
+            if not dims or (dims==1 and e.shape[0] == 1):
                 labels.append(e.label)
                 names.append(e.name)
         self.names = names
-
         data = {
                 'serialno':  serialno,
                 'title':     env['title'],
