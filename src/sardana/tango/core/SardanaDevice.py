@@ -53,6 +53,10 @@ def get_thread_pool():
     :rtype: taurus.core.util.ThreadPool"""
     
     global __thread_pool
+    
+    if __thread_pool:
+        return __thread_pool
+    
     global __thread_pool_lock
     with __thread_pool_lock:
         if __thread_pool is None:
@@ -76,6 +80,8 @@ class SardanaDevice(Device_4Impl, Logger):
         # Wa can't always use methods which use internally the
         # C++ AutoTangoMonitor because it blocks the entire tango device.
         self.tango_lock = threading.RLock()
+        
+        self._event_thread_pool = get_thread_pool()
 
     def init(self, name):
         util = Util.instance()
@@ -137,6 +143,9 @@ class SardanaDevice(Device_4Impl, Logger):
 
     def initialize_dynamic_attributes(self):
         pass
+    
+    def get_event_thread_pool(self):
+        return self._event_thread_pool
 
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1, synch=True):
@@ -145,7 +154,7 @@ class SardanaDevice(Device_4Impl, Logger):
             set_attr(attr, value=value, timestamp=timestamp, quality=quality,
                      error=error, priority=priority, synch=synch)
         else:
-            th_pool = get_thread_pool()
+            th_pool = self.get_event_thread_pool()
             th_pool.add(set_attr, None, attr, value=value,
                         timestamp=timestamp, quality=quality, error=error,
                         priority=priority, synch=synch)
