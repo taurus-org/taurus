@@ -1,0 +1,207 @@
+#!/usr/bin/env python
+
+'''
+Script for extracting "scans" from Sardana NeXus files into Sardana Spec Files.
+
+Usage:
+h5spec <nexusfilename> [> <your_spec_file_name>] [2><your error/log file]
+
+Note: only scalar values are extracted, Images and 1D (MCA..) are ignored (notified to stderr)   
+'''
+
+import nxs
+import sys,os,re,time
+
+
+def h52spectime(mydate):
+    '''
+    this function returns the time in format SPEC (from a hdf5 recorded by the sardanan recorder)
+    '''
+    #equivalent to ascii time
+    #return time.strftime("%a %b %d %H:%M:%S %Y",_d)
+    _a = time.asctime(time.strptime(mydate.split('.')[0],"%Y-%m-%dT%H:%M:%S"))
+    return _a
+
+def _getMovables(mystr):
+    '''
+    this internal function gets the movables from the "scan/mesh" command. 
+    Movables should go first in SPEC columns
+    '''
+    #gets the movables from the command line (starting not with a number)
+    _m = []
+    _a = mystr.split(' ') 
+    _a.pop(0)
+    for i in _a:
+        if re.match('[^-_0-9\.\+\\n]',i):
+           _m.append(i)
+    return _m 
+
+def getMetadata(fd, entry):
+    '''
+    This gets the metatdata from the Sardana h5 file. Format is kind of free, 
+    but nevertheless is very convenient the user/scientist makes sure all motors 
+    (and motor positions) are there
+    ''' 
+    _mdata = {}
+    try:
+        fd.openpath("/%s/measurement/pre_scan_snapshot" % entry)
+        _mdata = fd.getentries()
+        for i in _mdata.keys():
+            fd.openpath("/%s/measurement/pre_scan_snapshot/%s" % (entry, i))
+            _mdata[i] = fd.getdata()
+            #print >> sys.stderr, entry
+    except:
+        print >> sys.stderr, 'Cannot open hdf5 path "%s/pre_scan_snapshot". Skipping.'%entry
+    return _mdata
+
+def processEntry(fd, entry):
+
+    '''
+    process one entry from a hdf5 file
+    it creates a string with all the data and prints it to the stdout in the end. 
+    It could be evenually easily modified to return the values and to be introduced 
+    in a class (to get it out from this simple script)
+
+    '''
+
+    #_myMovables = [] # This gets the motors in order to write them in the first columns
+    mystring = "" # the string will construct the scan (and printed at the end)
+
+    try:
+        fd.openpath("/%s/entry_identifier" % entry)
+        mystring = "#S %s " % str(fd.getdata())
+        fd.openpath("/%s/title" % entry)
+        _mycmd = str(fd.getdata())
+        mystring += " %s \n" % _mycmd
+        _myMovables= _getMovables(_mycmd)
+        fd.openpath("/%s/start_time" % entry)
+        mystring += "#D %s \n" % h52spectime(fd.getdata())
+        # need to know here the timer for the counting time. In the mean time 
+        # I use the last value of the cmd line (usually the ct time!!, not always ojo). 
+        mystring += "#T %s  (seconds)\n" % _mycmd.split(' ').pop()
+        #print mytime
+    except:
+        print >> sys.stderr,  'Error opening/processing hdf5 path "%s/...". Skipping.'% entry
+
+    mystring += "#P0 " 
+    _metadata =  getMetadata(fd, entry)
+    for i in _metadata.values(): 
+        mystring += ' ' + str(i)   
+    mystring += '\n'
+
+    tmp = "/%s/measurement/point_nb" % entry
+    tmp2= "/%s/measurement/Pt_No" % entry
+
+    try:
+        fd.openpath(tmp)
+    except:
+        #print 'Cannot open hdf5 path "%s". Skipping.'%tmp
+        try:
+            fd.openpath(tmp2)
+        except:
+            #print 'Cannot open hdf5 path "%s". Skipping.'%tmp
+            return False 
+    ptnb = fd.getdata()
+    fd.closedata()
+
+    headers = [] 
+    data = {} 
+
+    for name,nxclass in fd.entries():
+        if name == 'point_nb' or name == "#Pt No": continue
+        if name == 'pre_scan_snapshot' : continue
+        dshape,dtype = fd.getinfo()
+
+        if tuple(dshape) != ptnb.shape: 
+            print >> sys.stderr, "Skipping (no data or not a scalar ???) %s in %s" % (name, entry),
+            print >> sys.stderr, ptnb.shape
+            continue #not a scalar (incompatible shape)
+
+        #insert data and headers in the rigth order (movables first)
+        mydata = fd.getdata().flatten()
+        if name in _myMovables:
+            headers.insert(_myMovables.index(name), name)
+        else:
+            headers.append(name)
+        data[name] = mydata 
+    
+    mystring += "#N  %d \n" % len(headers)
+    mystring += "#L " 
+    for i in headers:
+        mystring += '  ' + i
+    mystring += "\n" 
+
+    #print >>sys.stderr, headers
+    #print >>sys.stderr, _myMovables
+    #print >>sys.stderr, ptnb.size
+    #print >>sys.stderr, data
+    #print >>sys.stderr, ptnb
+
+    for i in range(ptnb.size):
+        # Movables (motors) come first. Then the other columns  (exp channels)
+        for n in [channel for channel in _myMovables if channel in headers]: 
+            mystring += ' ' + str(data[n][i])
+        for n in [channel for channel in headers if channel not in _myMovables]: 
+            mystring += ' ' + str(data[n][i])
+        mystring += '\n'
+
+    try:
+        fd.openpath("/%s/end_time" % entry)
+        mystring += "#C Scan ended at %s \n" % h52spectime(fd.getdata())
+    except:
+        print >> sys.stderr, 'Cannot open hdf5 path "%s/end_time". Skipping.'% entry
+
+    print mystring
+    
+
+def measurement2spec(fd):
+    """
+    Takes a file (hdf5) as an inputProcess a hdf5 file and outputs the result to the stdout. 
+    One can redirect the output to create the file.
+    Information and error messages are output to stderr, in order not to pollute the file 
+
+    """
+
+    mystring = ""
+    mystring += "#F %s\n" % fd.filename
+    outFileAttrs =  "#CCC original Nexus hdf5 file: %s\n" % fd.getattrs()
+    outCurrentDate = "#C conversion date: %s\n" % time.asctime()
+
+    entrynames = [name for name,c in fd.entries() if c=='NXentry']
+    
+    mystring += "#E %s\n" % fd.getattrs()['epoch']
+    mystring += "#D %s\n" % time.asctime(time.localtime(fd.getattrs()['epoch']))
+    mystring += "#C User \n" 
+
+    # Gets metadata headers (motor names usually) from the first entry (asuming all the same!)
+    _metadata = getMetadata(fd,entrynames[0])
+    mystring += "#O0" 
+    for i in _metadata.keys(): 
+        mystring += '   ' + i 
+
+    mystring += '\n' + outFileAttrs 
+    mystring += outCurrentDate 
+    print mystring 
+  
+    #Sort entry2 before entry10 (otherwhise, it was strictly alphabetic) 
+    for entry in sorted(entrynames, key = len):
+        processEntry(fd, entry)
+
+def main():
+    '''
+    process the entire file (todo: many things. Do only the selected entries, convert it to a class)
+    '''
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+    else:
+        print "Usage:\npython h5tospec <nexusfilename> [> <your_spec_file_(or_to_console)> ] [2> log/error file]"
+        sys.exit(1)
+        
+    fd = nxs.open(fname,'r')
+    
+    measurement2spec(fd)
+    
+    fd.close()
+
+if __name__ == "__main__":
+    main()

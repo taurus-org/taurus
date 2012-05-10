@@ -19,20 +19,33 @@ import numpy
 
 
 def measurement2ascii(fd, entryname, ofname):
-    #read the measurement/point_nb data 
-    tmp = "/%s/measurement/point_nb"%entryname
+    #check if there is a measurement datagroup
+    tmp = "/%s/measurement"%entryname
     try:
         fd.openpath(tmp)
     except:
         print 'Cannot open hdf5 path "%s". Skipping.'%tmp
         return False 
+        
+    #read the point number data 
+    ptnb_names = ('Pt_No','point_nb','#Pt No') #possible ways of storing the point number (along different versions)
+    for i,ptnb_name in enumerate(ptnb_names):
+        try: 
+            fd.opendata(ptnb_name)
+            break
+        except:
+            print  'cannot open %s'%ptnb_name
+            if i == len(ptnb_names)-1: #if this was not the last choice
+                print 'I give up!'
+                return False 
     ptnb = fd.getdata()
     fd.closedata()
     #prepare a list with column names and a table made of data "columns" 
-    namelist=['point_nb']
+    namelist=[ptnb_name]
     table = [ptnb.copy().flatten()]
     for name,nxclass in fd.entries():
-        if name == 'point_nb': continue
+        if name == ptnb_name: continue
+        if nxclass != 'SDS': continue #not a dataset
         dshape,dtype = fd.getinfo()
         if tuple(dshape) != ptnb.shape: continue #not a scalar (incompatible shape)
         table.append(fd.getdata().flatten())
