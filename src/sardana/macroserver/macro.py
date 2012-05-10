@@ -1221,7 +1221,7 @@ class Macro(Logger):
         :param reserve:
             automatically reserve the object for this macro [default: True]
         
-        :return: the object or empty list if no compatible object is found"""
+        :return: the object or None if no compatible object is found"""
         if not isinstance(name, (str, unicode)):
             raise self._buildWrongParamExp("getObj", "name", "string",
                                            str(type(name)))
@@ -1230,7 +1230,7 @@ class Macro(Logger):
                                    subtype=subtype, pool=pool)
         if obj and reserve:
             self.addObj(obj)
-        return obj or []
+        return obj
     
     @mAPI
     def getObjs(self, names, type_class=All, subtype=All, pool=All, reserve=True):
