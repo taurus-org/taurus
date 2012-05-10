@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import os
 import datetime
-import types
+import operator
 import time
 
 import taurus
@@ -229,7 +229,6 @@ class GScan(Logger):
         # ----------------------------------------------------------------------
         try:
             mnt_grp_name = macro.getEnv('ActiveMntGrp')
-            mnt_grp = macro.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
         except UnknownEnv:
             mnt_grps = macro.getObjs(".*", type_class=Type.MeasurementGroup)
             if len(mnt_grps) == 0:
@@ -237,9 +236,17 @@ class GScan(Logger):
             mnt_grp = mnt_grps[0]
             macro.info("ActiveMntGrp not defined. Using %s", mnt_grp)
             macro.setEnv('ActiveMntGrp', mnt_grp.getName())
+        else:
+            if not isinstance(mnt_grp_name, (str, unicode)):
+                t = type(mnt_grp_name).__name__
+                raise TypeError("ActiveMntGrp MUST be string. It is '%s'" % t)
+
+            mnt_grp = macro.getObj(mnt_grp_name,
+                                   type_class=Type.MeasurementGroup)
 
         if mnt_grp is None:
-            raise ScanSetupError('ActiveMntGrp is not defined or has invalid value')
+            raise ScanSetupError("ActiveMntGrp has invalid value: '%s'"
+                                 % mnt_grp_name)
 
         self._master = mnt_grp.getTimer()
 
@@ -359,6 +366,11 @@ class GScan(Logger):
                           'stored persistently. Use "senv ScanDir '
                           '<abs directory>" to enable it')
             return ()
+        
+        if not isinstance(scan_dir, (str, unicode)):
+            scan_dir_t = type(scan_dir).__name__
+            raise TypeError("ScanDir MUST be string. It is '%s'" % scan_dir_t)
+        
         try:
             file_names = macro.getEnv('ScanFile')
         except InterruptException:
@@ -368,10 +380,14 @@ class GScan(Logger):
                           'be stored persistently. Use "senv ScanDir <scan '
                           'file(s)>" to enable it')
             return ()
-        
-        if type(file_names) in types.StringTypes:
+
+        if isinstance(file_names, (str, unicode)):
             file_names = (file_names,)
-        
+        elif not operator.isSequenceType(file_names):
+            scan_file_t = type(file_names).__name__
+            raise TypeError("ScanFile MUST be string or sequence of strings."\
+                            " It is '%s'" % scan_file_t)
+            
         file_recorders = []
         for file_name in file_names:
             abs_file_name = os.path.join(scan_dir, file_name)
@@ -542,7 +558,6 @@ class GScan(Logger):
         excludelist = CaselessList(ref_moveables + [ci.name for ci in channels_info]) #we will exclude those that are implied in the scan
         preScanSnapShot = [name for name in preScanSnapShot if name not in excludelist]
         env['preScanSnapShot'] = self.takeSnapshot(elements=preScanSnapShot)
-        
         
         env['macro_id'] = self.macro.getID()
         try:
