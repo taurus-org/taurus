@@ -56,9 +56,10 @@ Currently, the known options are:
     #. ``--tango-host`` sets the default tango host
     #. ``--taurus-polling-period`` sets the default taurus global polling period (milliseconds)
     #. ``--taurus-serialization-mode`` sets the default taurus serialization mode
+    #. ``--remote-console-port`` enables remote debugging using the given port
    
 You can easily extend the taurus options with your application specific options.
-Supose you want to add an option like ``--model=<model name>``::
+Suppose you want to add an option like ``--model=<model name>``::
     
     def main():
         import taurus.core.util.argparse as argparse
@@ -104,6 +105,7 @@ def get_taurus_parser(parser=None):
         help_tauruspolling = "taurus global polling period in milliseconds"
         help_taurusserial= "taurus serialization mode. Allowed values are (case insensitive): "\
                            "serial, concurrent (default)"
+        help_rcport = "enables remote debugging using the given port"
         group.add_option("--taurus-log-level", dest="taurus_log_level", metavar="LEVEL",
                          help=help_tauruslog, type="str", default="info")
         group.add_option("--taurus-polling-period", dest="taurus_polling_period", metavar="MILLISEC",
@@ -112,6 +114,8 @@ def get_taurus_parser(parser=None):
                          help=help_taurusserial, type="str", default="Concurrent")
         group.add_option("--tango-host", dest="tango_host", metavar="TANGO_HOST",
                          help=help_tangohost, type="str", default=None)
+        group.add_option("--remote-console-port", dest="remote_console_port", metavar="PORT",
+                         help=help_rcport, type="int", default=None)
         parser.add_option_group(group)
     return parser
     
@@ -175,6 +179,15 @@ def init_taurus_args(parser=None, args=None, values=None):
         if hasattr(taurus.core.TaurusSerializationMode, m):
             m = getattr(taurus.core.TaurusSerializationMode, m)
             taurus.Manager().setSerializationMode(m)
-        
+            
+    # initialize remote console port
+    if options.remote_console_port is not None:
+        try:
+            import rfoo.utils.rconsole
+            rfoo.utils.rconsole.spawn_server(port=options.remote_console_port)
+            taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d", options.remote_console_port)
+        except Exception, e:
+            taurus.warning("Cannot spawn debugger. Reason: %s",str(e))
+            
     return parser, options, args
     
