@@ -27,7 +27,7 @@ import PyTango
 import taurus
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from taurus.core import TaurusEventType, TaurusDevice
+from taurus.core import TaurusEventType
 from taurus.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.container import TaurusMainWindow
@@ -108,7 +108,7 @@ class MacroComboBox(Qt.QComboBox, TaurusBaseWidget):
         ms = self.getModelObj()
         if ms == None: return
         macros = ms.getElementsWithInterface('MacroCode')
-        macroNames = macros.keys()
+        macroNames = [macro.name for macro in macros.values()]
         macroNames.sort()
         macroNames.insert(0, '') #adding blank item
         self.addItems(macroNames)
