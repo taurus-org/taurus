@@ -118,7 +118,9 @@ class ColumnDesc:
         return d
 
     def clone(self):
-        return self.__class__(**self.toDict())
+        import copy
+        return copy.deepcopy(self)
+        #return self.__class__(**self.toDict())
 
 
 class MoveableDesc(ColumnDesc):

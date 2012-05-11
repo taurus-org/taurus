@@ -281,8 +281,19 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.preScanSnapShot = env.get('preScanSnapShot',[])
         self.fd.makegroup("pre_scan_snapshot","NXcollection")
         self.fd.opengroup("pre_scan_snapshot","NXcollection")
-        for desc in self.preScanSnapShot: #desc is a ColumnDesc object
-            self._writeData(desc.label, desc.pre_scan_value, desc.dtype, desc.shape or (1,)) #@todo: fallback shape is hardcoded! 
+        for dd in self.preScanSnapShot: #desc is a ColumnDesc object
+            label = self.sanitizeName(dd.label)
+            dtype = dd.dtype
+            pre_scan_value = dd.pre_scan_value
+            if dd.dtype == 'bool':
+                dtype = 'int8'
+                pre_scan_value = numpy.int8(dd.pre_scan_value)
+                self.debug('Pre-scan snapshot of %s will be stored with type=%s',dd.name, dtype)
+            if dtype in self.supported_dtypes:
+                self._writeData(label, pre_scan_value, dtype, dd.shape or (1,)) #@todo: fallback shape is hardcoded! 
+            else:
+                self.warning('Pre-scan snapshot of %s will not be stored. Reason: type %s not supported',dd.name, dtype)
+            
         self.fd.closegroup()
         
         self.fd.flush()
