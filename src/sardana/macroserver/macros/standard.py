@@ -32,7 +32,7 @@ import datetime
 from taurus.console.table import Table
 
 from PyTango import DevState
-from sardana.macroserver.macro import macro, Macro, Type, ParamRepeat
+from sardana.macroserver.macro import Macro, Type, ParamRepeat
 
 ################################################################################
 #
@@ -61,7 +61,8 @@ class _wm(Macro):
         for motor in motor_list:
             name = motor.getName()
             motor_names.append([name])
-            pos, dial_pos = motor.getPosition(force=True), motor.getDialPosition()
+            pos = motor.getPosition(force=True)
+            dial_pos = motor.getDialPosition(force=True)
             if pos is None: pos = float('NAN')
             if dial_pos is None: dial_pos = float('NAN')
             motor_pos.append((pos,dial_pos))
