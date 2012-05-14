@@ -1113,7 +1113,7 @@ class TaurusTrend(TaurusPlot):
 
     def doReplot(self):
         '''calls :meth:`replot` only if there is new data to be plotted'''
-        self.debug('Replotting? %s',self._dirtyPlot)
+        #self.debug('Replotting? %s',self._dirtyPlot)
         if self._dirtyPlot:
             self.replot()
             self._dirtyPlot = False
