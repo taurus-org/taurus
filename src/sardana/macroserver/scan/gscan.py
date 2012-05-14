@@ -555,8 +555,6 @@ class GScan(Logger):
             preScanSnapShot = self.macro.getEnv('PreScanSnapshot')
         except UnknownEnv:
             preScanSnapShot = []
-        excludelist = CaselessList(ref_moveables + [ci.name for ci in channels_info]) #we will exclude those that are implied in the scan
-        preScanSnapShot = [name for name in preScanSnapShot if name not in excludelist]
         env['preScanSnapShot'] = self.takeSnapshot(elements=preScanSnapShot)
         
         env['macro_id'] = self.macro.getID()
