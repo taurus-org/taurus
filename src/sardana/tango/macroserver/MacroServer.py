@@ -94,6 +94,8 @@ class MacroServer(SardanaDevice):
         try:
             macro_server.set_environment_db(self.EnvironmentDb)
         except:
+            self.error("Failed to set environment DB to %s", self.EnvironmentDb)
+            self.debug("Details:", exc_info=1)
             import tempfile
             env_db = os.path.join(tempfile.mkdtemp(),
                                   MacroServerClass.DefaultEnvRelDir)

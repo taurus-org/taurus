@@ -38,14 +38,23 @@ from sardana.macroserver.macro import *
 
 from lxml import etree
 
+def reprValue(v, max=74):
+    # cut long strings
+    v = str(v)
+    if len(v) > max:
+        v = v[:max] + ' [...]'
+    return v
+
 class dumpenv(Macro):
     """Dumps the complete environment"""
     
     def run(self):
         env = self.getGlobalEnv()
-        out = List(['Name','Value'])
+        out = List(['Name','Value','Type'])
         for k,v in env.iteritems():
-            out.appendRow([str(k), str(v)])
+            str_v = reprValue(v)
+            type_v = type(v).__name__
+            out.appendRow([str(k), str_v, type_v])
 
         for line in out.genOutput():
             self.output(line)
@@ -67,10 +76,10 @@ class lsenv(Macro):
         # list the environment for the current door
         if len(macro_list) == 0:
             # list All the environment for the current door
-            out = List(['Name','Value','Type'])
+            out = List(['Name', 'Value', 'Type'])
             env = self.getAllDoorEnv()
             for k,v in env.iteritems():
-                str_val = self.reprValue(v)
+                str_val = reprValue(v)
                 type_name = type(v).__name__
                 out.appendRow([str(k), str_val, type_name])
         else:

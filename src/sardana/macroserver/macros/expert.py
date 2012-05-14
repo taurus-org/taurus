@@ -31,9 +31,7 @@ __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
            "edctrllib", "lsmac", "prdef", "relmac", "relmaclib", "send2ctrl",
            "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
-import time
 import array
-import os
 
 from taurus.console.list import List
 from taurus.console.table import Table
@@ -77,9 +75,6 @@ class defmeas(Macro):
         
     def run(self, name, *channel_list):
         pools = self.getPools()
-        if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is '
-                         'not supported in this case for now')
         pool = pools[0]
         mg = pool.createMeasurementGroup(name, channel_list)
         self.print("Created %s" % str(mg))
