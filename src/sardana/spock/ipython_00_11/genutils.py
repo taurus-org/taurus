@@ -796,7 +796,6 @@ def load_ipython_extension(ipython):
     expose_magic('debug', magic.debug, magic.debug_completer)
     expose_magic('www', magic.www, magic.www_completer)
     expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
-    expose_magic('bench', magic.bench, None)
     expose_magic('spsplot', magic.spsplot, None)
     expose_magic('edmac', magic.edmac, None)
     expose_magic('showscan', magic.showscan, None)

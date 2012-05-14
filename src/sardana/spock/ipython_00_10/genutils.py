@@ -827,7 +827,7 @@ def init_console(ip):
     o.color_info = 1
     o.confirm_exit = 0
     o.deep_reload = 0
-    o.editor = 'gedit'
+    #o.editor = 'gedit'
     o.log = 0
     o.logfile = ''
     o.messages = 1
@@ -887,7 +887,6 @@ def init_magic(ip):
     expose_magic('debug', magic.debug, magic.debug_completer)
     expose_magic('www', magic.www, magic.www_completer)
     expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
-    expose_magic('bench', magic.bench, None)
     expose_magic('spsplot', magic.spsplot, None)
     expose_magic('edmac', magic.edmac, None)
     expose_magic('showscan', magic.showscan, None)
