@@ -878,7 +878,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     i_shell.deep_reload = True
     i_shell.confirm_exit = False
 
-    if ipy_ver >= 001200:
+    if ipy_ver >= 1200:
         # ------------------------------------
         # PromptManager (ipython >= 0.12)
         # ------------------------------------
@@ -930,6 +930,8 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     ipython_widget.in_prompt  = ' Spock [<span class="in-prompt-number">%i</span>]: '
     ipython_widget.out_prompt = 'Result [<span class="out-prompt-number">%i</span>]: '
     ipython_widget.input_sep = '\n'
+    ipython_widget.output_sep = ''
+    ipython_widget.output_sep2 = ''
     ipython_widget.enable_calltips = True
     ipython_widget.gui_completion = True
     ipython_widget.ansi_codes = True
