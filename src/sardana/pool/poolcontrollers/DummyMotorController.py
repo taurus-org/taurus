@@ -689,7 +689,7 @@ class DummyMotorController(BasicDummyMotorController):
                                'description' : 'lower limit switch position',
                                'fget' : 'getLowerLimitSwitch',
                                'fset' : 'setLowerLimitSwitch',
-                               'defaultvalue': -9999.9999 },
+                               'defaultvalue': -9999.9999, },
         'UpperLimitSwitch' : { 'type' : float,
                                'description' : 'upper limit switch position',
                                'defaultvalue': 8888.8888 }

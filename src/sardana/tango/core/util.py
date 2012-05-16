@@ -204,17 +204,23 @@ def to_tango_attr_info(attr_name, attr_info):
         data_type, data_format = attr_info.dtype, attr_info.dformat
         data_access = attr_info.access
         desc = attr_info.description
+        memorized = attr_info.memorized
     else:
         data_type, data_format = to_dtype_dformat(attr_info.get('type'))
         data_access = to_daccess(attr_info.get('r/w type'))
         desc = attr_info.get('description')
+        memorized = attr_info.get('memorized')
     
     tg_type, tg_format = to_tango_type_format(data_type, data_format)
     tg_access = to_tango_access(data_access)
     tg_attr_info = [ [ tg_type, tg_format, tg_access ] ]
 
+    extra = {}
+    tg_attr_info.append(extra)
+
     if desc is not None and len(desc) > 0:
-        tg_attr_info.append( { 'description' : desc } )
+        extra['description'] = desc
+    extra['memorized'] = memorized
     return attr_name, tg_attr_info
 
 def throw_sardana_exception(exc):

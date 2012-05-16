@@ -207,8 +207,13 @@ class PoolDevice(SardanaDevice):
 
         attr = klass(attr_name, tg_type, tg_access)
         if tg_access == READ_WRITE and tg_format == SCALAR:
-            attr.set_memorized()
-            attr.set_memorized_init(True)
+            memorized = attr_info.memorized.lower()
+            if memorized == 'true':
+                attr.set_memorized()
+                attr.set_memorized_init(True)
+            elif memorized == 'true_without_hard_applied':
+                attr.set_memorized()
+                attr.set_memorized_init(False)                
         attr.set_disp_level(DispLevel.EXPERT)
         return self.add_attribute(attr, read, write, is_allowed)
 
