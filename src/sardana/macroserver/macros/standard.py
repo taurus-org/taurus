@@ -166,7 +166,7 @@ class wm(Macro):
             posObj = motor.getPositionObj()
             upos = map(str, [posObj.getMaxValue(), motor.getPosition(force=True), posObj.getMinValue()])
             dPosObj = motor.getDialPositionObj()
-            dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(), dPosObj.getMinValue()])
+            dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(force=True), dPosObj.getMinValue()])
             pos_data = [''] + upos + [''] + dpos
             
             motor_pos.append(pos_data)
