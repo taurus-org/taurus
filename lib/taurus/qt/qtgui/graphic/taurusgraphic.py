@@ -519,11 +519,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
 
     def getTaurusDevicePanel(self,obj,standAlone=False):
         try:
-            try:
-                from taurusDevicePanel import taurusDevicePanel
-            except:
-                from taurusPanel.taurusDevicePanel import taurusDevicePanel
-            nameclass = taurusDevicePanel()
+            from taurus.qt.qtgui.panel import TaurusDevicePanel
+            nameclass = TaurusDevicePanel()
             name = "TaurusDevicePanel"
             nameclass.setModel(obj._name)
             nameclass.setSpectraAtkMode(True)
@@ -959,14 +956,3 @@ class TaurusBaseGraphicsFactory:
            Overwrite has necessary."""
         pass
     
-#if __name__ == "__main__":
-#    import sys
-#    app = Qt.QApplication(sys.argv)
-#    try:
-#        from taurusDevicePanel import *
-#    except:
-#        from taurusPanel.taurusDevicePanel import *
-#    cos = taurusDevicePanel()
-#    print "ala ma kota"
-#    cos.show()
-#    sys.exit(app.exec_())
