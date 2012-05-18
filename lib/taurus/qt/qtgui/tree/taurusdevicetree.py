@@ -27,7 +27,7 @@
 taurusdevicetree.py: 
 """
 
-__all__ = ["TaurusDevTree,TaurusTreeNode"]
+__all__ = ["TaurusDevTree","TaurusTreeNode"]
 
 import random,time,os,re,traceback,Queue
 import PyTango # to change!!
