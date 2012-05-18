@@ -318,7 +318,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             if not item_name or (str(item_name).startswith('JD') and str(item_name) in jdraw_parser.reserved):
                 self.warning('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
                 return False
-            items = self.getItemByName(item_name) or []       
+            items = self.getItemByName(item_name) or []
             self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
         for item in items:
