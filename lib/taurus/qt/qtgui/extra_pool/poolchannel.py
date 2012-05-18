@@ -65,7 +65,9 @@ class PoolChannelTV(TaurusValue):
         return _ParentDevButton
         
     def setModel(self,model):
-        TaurusValue.setModel(self, "%s/value"%model) #@todo: change this (it assumes tango naming!)
+        if model is not None:
+            model = "%s/value"%model #@todo: change this (it assumes tango naming!)
+        TaurusValue.setModel(self, model)
 
     def showEvent(self, event):
         TaurusValue.showEvent(self, event)
@@ -110,17 +112,18 @@ class PoolChannel(TaurusWidget):
         self._devButton.setModel(m)
         
 
-if __name__ == '__main__':
-    import sys
-    app = Qt.QApplication(sys.argv)
-    
-    form = PoolChannel()
-
-    model = 'tango://controls02:10000/expchan/bl97_simucotictrl_1/1'
-    if len(sys.argv)>1:
-        model = sys.argv[1]
-    form.setModel(model)
-    
-     
-    form.show()
-    sys.exit(app.exec_())
+#if __name__ == '__main__':
+#    import sys
+#    app = Qt.QApplication(sys.argv)
+#    
+#    form = PoolChannel()
+#
+#    #model = 'tango://controls02:10000/expchan/bl97_simucotictrl_1/1'
+#    model = 'ct_cp1_1'
+#    if len(sys.argv)>1:
+#        model = sys.argv[1]
+#    form.setModel(model)
+#    
+#     
+#    form.show()
+#    sys.exit(app.exec_())
