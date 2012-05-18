@@ -252,9 +252,8 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             mapping_type = visibilitymapper['mapping_type']
             mode = visibilitymapper['mode']
             default = visibilitymapper['default']
-            map = visibilitymapper['map']
             item._default = default
-            item._map = map      
+            item._map = visibilitymapper['map']
 
         visible = params.get('visible')
         if not visible is None:
