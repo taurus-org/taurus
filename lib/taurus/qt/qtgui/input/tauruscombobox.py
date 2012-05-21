@@ -202,6 +202,15 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
                              model.getValueObj()
             )
 
+    def setQModel(self, *args, **kwargs):
+        Qt.QComboBox.setModel(self, *args, **kwargs)
+
+    def setModel(self, m):
+        if isinstance(m, Qt.QAbstractItemModel):
+            self.warning("Deprecation warning: use setQModel() if you want to set a Qt Item Model. The setModel() method is reserved for Taurus models")
+            return Qt.QComboBox.setModel(self, m)
+        return TaurusBaseWritableWidget.setModel(self, m)
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
