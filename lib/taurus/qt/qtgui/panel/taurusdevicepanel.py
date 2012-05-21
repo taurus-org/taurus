@@ -323,7 +323,6 @@ class TaurusDevicePanel(WIDGET_CLASS):
             self.warning('Unable to setModel for TaurusDevicePanel.comms_form!!: %s'%traceback.format_exc())
         return form
 
-# Main
 
 def TaurusDevicePanelMain():
     '''A launcher for TaurusDevicePanel.'''
@@ -359,13 +358,12 @@ def TaurusDevicePanelMain():
     
     sys.exit(app.exec_())             
 
-###############################################################################
-# Unused TaurusDevPanel
 
 def filterNonExported(obj):
     if not isinstance(obj,taurus.core.TaurusDevInfo) or obj.exported():
         return obj
     return None
+
 
 class TaurusDevPanel(TaurusMainWindow):
     '''
@@ -476,36 +474,34 @@ class TaurusDevPanel(TaurusMainWindow):
         ret['module'] = 'taurus.qt.qtgui.panel'
         return ret
 
-###############################################################################
-# Unused Main
+
+def TaurusPanelMain():
+    '''A launcher for TaurusPanel.'''
+    ## NOTE: DON'T PUT TEST CODE HERE.
+    ## THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/tauruspanel)
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.core.util import argparse
+    import sys
     
-#def TaurusPanelMain():
-    #'''A launcher for TaurusPanel.'''
-    ### NOTE: DON'T PUT TEST CODE HERE.
-    ### THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/tauruspanel)
-    #from taurus.qt.qtgui.application import TaurusApplication
-    #from taurus.core.util import argparse
-    #import sys
+    parser = argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [devname]")
+    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
+    app = TaurusApplication(cmd_line_parser=parser,app_name="tauruspanel",
+                            app_version=taurus.Release.version)
+    args = app.get_command_line_args()
+    options = app.get_command_line_options()
     
-    #parser = argparse.get_taurus_parser()
-    #parser.set_usage("%prog [options] [devname]")
-    #parser.set_description("Taurus Application inspired in Jive and Atk Panel")
-    #app = TaurusApplication(cmd_line_parser=parser,app_name="tauruspanel",
-                            #app_version=taurus.Release.version)
-    #args = app.get_command_line_args()
-    #options = app.get_command_line_options()
+    w = TaurusDevPanel()
     
-    #w = TaurusDevPanel()
+    if options.tango_host is None:
+        options.tango_host = taurus.Database().getNormalName()
+    w.setTangoHost(options.tango_host)
+    if len(args) == 1: 
+        w.setDevice(args[0])
     
-    #if options.tango_host is None:
-        #options.tango_host = taurus.Database().getNormalName()
-    #w.setTangoHost(options.tango_host)
-    #if len(args) == 1: 
-        #w.setDevice(args[0])
+    w.show()
     
-    #w.show()
-    
-    #sys.exit(app.exec_()) 
+    sys.exit(app.exec_()) 
 
 ###############################################################################
     
