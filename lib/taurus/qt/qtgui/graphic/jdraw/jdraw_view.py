@@ -241,7 +241,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             self.mousePos = event.scenePos().x(),event.scenePos().y()
         except:
             self.mousePos = event.x(), event.y()
-            self.warning('Unable to get scene pos, using %s'%str(self.mousePos))
+            self.debug('MouseEvent received is not a GraphicsScene event, using raw position %s'%str(self.mousePos))
         TaurusBaseWidget.mousePressEvent(self,event)
         
     def getModelMimeData(self):
