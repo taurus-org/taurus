@@ -38,8 +38,6 @@ import taurus.core
 from taurus.qt.qtgui.container import TaurusMainWindow
 
 import taurus.qt.qtgui.resource
-from taurus.qt.qtgui.resource.qrc_tango_icons_actions import *
-from taurus.qt.qtgui.resource.qrc_external import *
                     
 from taurus.qt.qtgui.container import TaurusWidget as WIDGET_CLASS
 from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS
@@ -84,7 +82,7 @@ def str_to_filter(seq):
     if isinstance(f,basestring): return {'.*':[f]}
     elif isinstance(f,list): return {'.*':f}
     else: return f
-    
+    taurus.qt.qtgui.resource.getPixmap(':/actions/window-new.svg')
 #Stacked palette
 def get_White_palette():
         palette = Qt.QPalette()
