@@ -235,7 +235,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
             obj = self.itemAt(x,y)
             obj_name = getattr(obj,'_name', '')
-            self.debug('mouse clicked on %s (%s,%s)' , type(obj).__name__,x,y)
+            self.debug('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
             
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 self.selectGraphicItem(obj_name) # A null obj_name should deselect all, we don't send obj because we want all similar to be matched
