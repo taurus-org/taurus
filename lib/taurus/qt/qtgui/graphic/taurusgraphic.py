@@ -310,13 +310,13 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self.clearSelection()
         if any(isinstance(item_name,t) for t in (TaurusGraphicsItem,Qt.QGraphicsItem)):
             if not getattr(item_name,'_name', ''): 
-                self.warning('In TauGraphicsScene.selectGraphicItem(%s): item name not found.'%item_name)
+                self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found.'%item_name)
                 return False
             items = [item_name]
         else:
             from taurus.qt.qtgui.graphic import jdraw_parser
             if not item_name or (str(item_name).startswith('JD') and str(item_name) in jdraw_parser.reserved):
-                self.warning('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
+                self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
                 return False
             items = self.getItemByName(item_name) or []
             self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
