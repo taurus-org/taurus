@@ -82,7 +82,7 @@ def str_to_filter(seq):
     if isinstance(f,basestring): return {'.*':[f]}
     elif isinstance(f,list): return {'.*':f}
     else: return f
-    taurus.qt.qtgui.resource.getPixmap(':/actions/window-new.svg')
+    
 #Stacked palette
 def get_White_palette():
         palette = Qt.QPalette()
@@ -333,10 +333,6 @@ def TaurusDevicePanelMain():
     from taurus.core.util import argparse
     
     taurus.setLogLevel(taurus.core.util.Logger.Debug)
-    #app = Qt.QApplication(sys.argv)
-    #assert len(sys.argv)>1, '\n\nUsage:\n\t> python widgets.py a/device/name [attr_regexp]'
-    #model = sys.argv[1]
-    #filters = sys.argv[2]
         
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] devname [attrs]")
@@ -354,6 +350,9 @@ def TaurusDevicePanelMain():
         options.tango_host = taurus.Database().getNormalName()
     try: w.setTangoHost(options.tango_host)
     except: pass
+    if len(args)<1:
+        parser.print_help() #@todo use modelchooser instead of printing the help
+        return
     w.setModel(args[0])
     w.setAttributeFilters({args[0]:args[1:]})
     w.show()
