@@ -340,9 +340,6 @@ def TaurusDevicePanelMain():
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
-        
-    print 'options: %s'%options
-    print 'args: %s'%args
     
     w = TaurusDevicePanel()
     if options.tango_host is None:
