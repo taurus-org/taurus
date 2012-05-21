@@ -39,4 +39,5 @@ from .taurusform import *
 from .taurusmessagepanel import *
 from .taurusmodellist import *
 from .taurusconfigeditor import *
+from .qdoublelist import *
 
