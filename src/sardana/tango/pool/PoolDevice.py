@@ -187,14 +187,14 @@ class PoolDevice(SardanaDevice):
             # if new dynamic attribute is in class attribute then delete it
             # from class attribute to be later on added again (eventually 
             # with diffent data type or data format)
-            #if attr_name_lower in new_attr_names:
-            try:
-                attr = multi_class_attr.get_attr(attr_name)
-                multi_class_attr.remove_attr(attr.get_name(),
-                                             attr.get_cl_name())
-            except Exception, e:
-                self.warning("Error removing dynamic attribute %s from "\
-                             " device class (%s)", attr_name, e)
+            if attr_name_lower in new_attr_names:
+                try:
+                    attr = multi_class_attr.get_attr(attr_name)
+                    multi_class_attr.remove_attr(attr.get_name(),
+                                                 attr.get_cl_name())
+                except Exception, e:
+                    self.warning("Error removing dynamic attribute %s from "\
+                                 " device class (%s)", attr_name, e)
 
     def add_dynamic_attribute(self, attr_name, data_info, attr_info, read,
                               write, is_allowed):
