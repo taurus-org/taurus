@@ -39,4 +39,4 @@ from .taurusmessagepanel import *
 from .taurusmodellist import *
 from .taurusconfigeditor import *
 from .qdoublelist import *
-
+from .taurusdevicepanel import *
