@@ -39,7 +39,6 @@ from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseComponent
 from taurus.qt.qtgui.container import TaurusMainWindow
-from taurus.qt.qtgui.input import GraphicalChoiceDlg
 
 try:
     from taurus.qt.qtgui.extra_pool import PoolMotorSlim, IORegisterTV, PoolChannelTV
@@ -48,7 +47,7 @@ except ImportError:
     HAS_EXTRA_POOL = False
 
 from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, ToolBarDescription, AppletDescription
-from PermanentCustomPanelsDlg import PermanentCustomPanelsDlg
+from taurus.qt.qtgui.panel import QDoubleListDlg
 import taurus.qt.qtgui.resource
 from taurus.core.util import etree
 
@@ -204,7 +203,6 @@ class TaurusGui(TaurusMainWindow):
         self.__synoptics = []
         self.__instrumentToPanelMap = {}
         self.__panelToInstrumentMap = {}
-        
         self.setDockNestingEnabled(True)
         
         self.registerConfigProperty(self._getPermanentCustomPanels, self._setPermanentCustomPanels, 'permanentCustomPanels')
@@ -316,6 +314,8 @@ class TaurusGui(TaurusMainWindow):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/apps/preferences-system-session.svg"),"manage instrument-panel associations", self.onShowAssociationDialog)
+        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("document-save"),"Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
+        
         
     def setCustomWidgetMap(self, map):
         '''
@@ -488,18 +488,20 @@ class TaurusGui(TaurusMainWindow):
         perm = self._getPermanentCustomPanels()
         temp = [n for n,p in self.__panels.iteritems() if (p.isCustom() and not p.isPermanent())]
         if len(temp)>0 or showAlways:
-            dlg = PermanentCustomPanelsDlg(temporaryList=temp, permanentList=perm)
+            dlg = QDoubleListDlg(winTitle='Stored panels', 
+                     mainLabel='Select which of the panels should be stored',
+                     label1='Temporary (to be discarded)', label2='Permanent (to be stored)', 
+                     list1=temp, list2=perm )
             result = dlg.exec_()
             if result == Qt.QDialog.Accepted:
                 #update the permanent Custom Panels
                 registered = self.getConfigurableItemNames()
-                perm = dlg.getPermanentPanels()
-                for name in perm:
+                for name in dlg.getAll2():
                     if name not in registered:
                         self.__panels[name].setPermanent(True)
                         self.registerConfigDelegate(self.__panels[name], name)
                 #unregister any panel that is temporary
-                for name in dlg.getTemporaryPanels():
+                for name in dlg.getAll1():
                     self.__panels[name].setPermanent(False)
                     self.unregisterConfigurableItem(name, raiseOnError=False)
             
@@ -663,6 +665,10 @@ class TaurusGui(TaurusMainWindow):
         
         #Get the xml root node from the xml configuration file 
         XML_CONFIG = getattr(conf,'XML_CONFIG', None)
+        if XML_CONFIG is None:
+            self._xmlConfigFileName = None
+        else:
+            self._xmlConfigFileName = os.path.join(self._confDirectory, XML_CONFIG)
         xmlroot = etree.fromstring('<root></root>') #default fallback (in case of I/O or parse errors)
         if XML_CONFIG is not None:
             try:
@@ -906,54 +912,6 @@ class TaurusGui(TaurusMainWindow):
         '''
         self.statusBar().showMessage(msg)
     
-#    def onDoorNameChanged(self, doorname):
-#        ''' Slot to be called when the door name has changed
-#        
-#        :param doorname: (str) the tango name of the door device 
-#        '''
-#        if getattr(self, '__qdoor',None) is not None: #disconnect it from *all* shared data providing
-#            Qt.qApp.SDM.disconnectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
-#            Qt.qApp.SDM.disconnectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
-#             
-#        if doorname == "": return #@todo send signal with doorName to macroExecutorWidget in case of "" also send it to disconnect doorstateled
-#        door = taurus.Device(doorname)
-#        if not isinstance(door, Qt.QObject):
-#            msg= "cannot connect to door %s"%doorname
-#            Qt.QMessageBox.critical(self,'Door connection error', msg)
-#            return
-#        self.__qdoor = door
-#        Qt.qApp.SDM.connectWriter("macroStatus", self.__qdoor, "macroStatusUpdated")
-#        Qt.qApp.SDM.connectWriter("doorOutputChanged", self.__qdoor, "outputUpdated")
-#        Qt.qApp.SDM.connectWriter("doorInfoChanged", self.__qdoor, "infoUpdated")
-#        Qt.qApp.SDM.connectWriter("doorWarningChanged", self.__qdoor, "warningUpdated")
-#        Qt.qApp.SDM.connectWriter("doorErrorChanged", self.__qdoor, "errorUpdated")
-#        Qt.qApp.SDM.connectWriter("doorDebugChanged", self.__qdoor, "debugUpdated")
-#        Qt.qApp.SDM.connectWriter("doorResultChanged", self.__qdoor, "resultUpdated")
-#        #@todo: connect as a writer of other data as well
-    
-#    def onSelectedInstrumentChanged(self, instrumentname):
-#        ''' Slot to be called when the selected instrument has changed (e.g. by user
-#        clicking in the synoptic)
-#        
-#        :param instrumentname: (str) The name that identifies the instrument.
-#                               This name must be unique within the panels in the
-#                               GUI. This is also the name to be used for the
-#                               corresponding object in the jdraw synoptic
-#        '''
-#        instrumentname=unicode(instrumentname)
-#        try:
-#            inst = self.__panels[instrumentname]
-#            inst.show()
-#            inst.setFocus()
-#            inst.raise_()
-#        except KeyError:
-#            pass
-    
     def hideAllPanels(self):
         '''hides all current panels'''
         for panel in self.__panels.itervalues():
@@ -1092,7 +1050,86 @@ class TaurusGui(TaurusMainWindow):
         '''reimplemented from :class:`TaurusMainWindow` to show the manual in a panel (not just a dockwidget)'''
         self.setFocusToPanel('Manual')
 
-
+    def onExportCurrentPanelConfiguration(self, fname=None):
+        
+        if fname is None:
+            fname = self._xmlConfigFileName
+        
+        from taurus.core.util import etree
+        
+        if self._xmlConfigFileName is None:
+            xmlroot = etree.Element("taurusgui_config")
+        else:
+            try:
+                f = open(self._xmlConfigFileName,'r')
+                xmlroot = etree.fromstring(f.read())
+                f.close()
+            except Exception,e:
+                self.error('Cannot parse file "%s": %s',self._xmlConfigFileName, str(e))
+                return
+        
+        #retrieve/create the PanelDescriptions node
+        panelDescriptionsNode = xmlroot.find("PanelDescriptions")
+        if panelDescriptionsNode is None:
+            panelDescriptionsNode = etree.SubElement(xmlroot, "PanelDescriptions")
+        
+        #Get all custom panels
+        dlg = QDoubleListDlg(winTitle='Export Panels to XML', 
+                             mainLabel='Select which of the custom panels you want to export as xml configuration',
+                             label1='Not Exported', label2='Exported', 
+                             list1=[n for n,p in self.__panels.iteritems() if p.isCustom()], list2=[] )
+        result = dlg.exec_()
+        if result != Qt.QDialog.Accepted:
+            return
+        exportlist = dlg.getAll2()
+        
+        #create xml for those to be exported
+        registered = self.getConfigurableItemNames()
+        for name in exportlist:
+            panel = self.__panels[name]
+            if name not in registered:
+                panel.setPermanent(True)
+                self.registerConfigDelegate(panel, name)
+            panelxml = PanelDescription.fromPanel(panel).toXml()
+            panelDescriptionsNode.append(etree.fromstring(panelxml))
+        xml = etree.tostring(xmlroot, pretty_print=True)
+        
+        #write to file
+        while True: 
+            if fname is None:
+                fname = Qt.QFileDialog.getOpenFileName(self, "Open File", fname or self._confDirectory, self.tr("XML files (*.xml)"))
+                if not fname:
+                    return
+            fname = str(fname)
+            #backup the file   
+            if os.path.exists(fname):
+                import shutil
+                try:
+                    bckname = "%s.orig"%fname
+                    shutil.copy(fname,bckname)
+                except:
+                    self.warning("%s will be overwritten but I could not create a backup in %s", fname,bckname)
+            #write the data
+            try:     
+                f = open(fname,'w')
+                f.write(xml)
+                f.close()
+                break
+            except Exception,e:
+                msg = 'Cannot write to %s: %s'%(fname,str(e))
+                self.error(msg)
+                Qt.QMessageBox.warning(self, "I/O problem", msg+'\nChoose a different location.', Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
+                fname = None
+        
+        
+        hint = "XML_CONFIG = %s"%os.path.relpath(fname, self._confDirectory)
+        msg = 'Configuration written in %s'%fname 
+        self.info(msg)
+        Qt.QMessageBox.information(self, "Configuration updated", 
+                                   msg+'\nMake sure that the .py configuration file in %s contains\n%s'%(self._confDirectory, hint), 
+                                   Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
+        
+        return
 #------------------------------------------------------------------------------ 
 def main():
     import sys

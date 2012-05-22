@@ -346,6 +346,23 @@ class PanelDescription(TaurusGuiComponentDescription):
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
         
+    @staticmethod
+    def fromPanel(panel):
+        name = str(panel.objectName())
+        classname = panel.getWidgetClassName()
+        modulename = None
+        widgetname = None
+        floating = panel.isFloating()
+        sharedDataWrite = None
+        sharedDataRead = None
+        model = getattr(panel.widget(),'model',None)
+        if model is not None and not isinstance(model,basestring):#if it is not a string or None, we assume it is a sequence of strings,...
+            model = " ".join(model)                                            #...and we convert it to a space-separated string
+            
+        return PanelDescription(name, classname=classname, modulename=modulename, widgetname=widgetname, 
+                                floating=floating, sharedDataWrite=sharedDataWrite, sharedDataRead=sharedDataRead, 
+                                model=model)
+        
 
 class ToolBarDescription(TaurusGuiComponentDescription):
     '''

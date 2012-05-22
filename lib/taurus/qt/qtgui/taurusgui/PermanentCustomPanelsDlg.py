@@ -29,65 +29,13 @@ PermanentCustomPanelDlg.py:
 """
 
 from taurus.qt import Qt
-from ui.ui_PermanentCustomPanelsDlg import Ui_PermanentCustomPanelsDlg
 
-class PermanentCustomPanelsDlg(Qt.QDialog):
-    '''Dialog to define which Custom panels should be permanently stored in the configuration
+class PermanentCustomPanelsDlg(object):
     '''
-    #@todo: drag&drop is disabled because Qt<4.6 does not have QList.setDefaultDragAndDropMode() 
-    def __init__(self, parent=None, designMode=False, temporaryList=None, permanentList=None):
-        super(PermanentCustomPanelsDlg,self).__init__(parent)
+    .. warning:: This class is deprecated. Use class:`taurus.qt.qtgui.panel.QDoubleList` instead
+    '''
+    def __init__(self, *args, **kwargs):
+        raise DeprecationWarning('PermanentCustomPanelsDlg is deprecated. Use taurus.qt.qtgui.panel.QDoubleList instead')
         
-        self.ui = Ui_PermanentCustomPanelsDlg()
-        self.ui.setupUi(self)
-        
-        self.setPermanentPanels(permanentList)
-        self.setTemporaryPanels(temporaryList)
-        
-        self.connect(self.ui.toTemporaryBT, Qt.SIGNAL('clicked(bool)'), self.onToTemp)
-        self.connect(self.ui.toPermanentBT, Qt.SIGNAL('clicked(bool)'), self.onToPerm)
-        
-    
-    def setPermanentPanels(self, permanentList):
-        self.ui.permanentPanelsList.clear()
-        self.ui.permanentPanelsList.addItems(permanentList)
-        
-    def setTemporaryPanels(self, tempList):
-        self.ui.temporaryPanelsList.clear()
-        self.ui.temporaryPanelsList.addItems(tempList)
-    
-    def _moveItem(self, fromlist, tolist):
-        selected = fromlist.selectedItems()
-        for item in selected:
-            fromlist.takeItem(fromlist.row(item))
-            tolist.addItem(item)
-        
-    def onToTemp(self, *args):
-        self._moveItem(self.ui.permanentPanelsList, self.ui.temporaryPanelsList)
-
-    def onToPerm(self, *args):
-        self._moveItem(self.ui.temporaryPanelsList, self.ui.permanentPanelsList)
-        
-    def getTemporaryPanels(self):
-        return [unicode(self.ui.temporaryPanelsList.item(row).text()) for row in xrange(self.ui.temporaryPanelsList.count())]
-    
-    def getPermanentPanels(self):
-        return [unicode(self.ui.permanentPanelsList.item(row).text()) for row in xrange(self.ui.permanentPanelsList.count())]
-
-
-#------------------------------------------------------------------------------ 
-
-def main():
-    app = Qt.QApplication(sys.argv)
-    
-    
-    form = PermanentCustomPanelsDlg(temporaryList=['11','22'], permanentList=['123','33'])
-    form.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    import sys
-    main()    
         
         
