@@ -55,6 +55,13 @@
    <item row="3" column="0" colspan="2" >
     <widget class="QPlainTextEdit" name="plainTextEditText" />
    </item>
+   <item row="4" column="0" colspan="2" >
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

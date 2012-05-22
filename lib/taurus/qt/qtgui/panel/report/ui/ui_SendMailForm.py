@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'SendMailForm.ui'
 #
-# Created: Tue May 22 16:33:36 2012
+# Created: Tue May 22 17:06:40 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,6 +39,10 @@ class Ui_SendMailForm(object):
         self.plainTextEditText = QtGui.QPlainTextEdit(SendMailForm)
         self.plainTextEditText.setObjectName("plainTextEditText")
         self.mainLayout.addWidget(self.plainTextEditText, 3, 0, 1, 2)
+        self.buttonBox = QtGui.QDialogButtonBox(SendMailForm)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.mainLayout.addWidget(self.buttonBox, 4, 0, 1, 2)
 
         self.retranslateUi(SendMailForm)
         QtCore.QMetaObject.connectSlotsByName(SendMailForm)
