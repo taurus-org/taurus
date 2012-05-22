@@ -33,7 +33,6 @@ from .qdataexportdialog import *
 from .taurusattributechooser import TaurusAttributeChooser as TaurusAttributeChooserOLD
 from .taurusmodelchooser import *
 TaurusAttributeChooser = TaurusModelChooser #for backwards compatibility
-from .taurusdevicepanel import *
 from .taurusvalue import *
 from .taurusform import *
 from .taurusmessagepanel import *

@@ -29,8 +29,7 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt, Qwt5
 from ui import ui_curvesAppearanceChooser
 from taurus.qt.qtgui.resource import getIcon
 from taurus.core.util import CaselessDict
@@ -159,7 +158,7 @@ class CurvesAppearanceChooser(Qt.QWidget,ui_curvesAppearanceChooser.Ui_curvesApp
     
     def onItemChanged(self, item):
         '''slot used when an item data has changed'''
-        name = str(item.data(self.NAME_ROLE).toString())
+        name = Qt.from_qvariant(item.data(self.NAME_ROLE), str)
         previousTitle = self.curvePropDict[name].title
         currentTitle = item.text()
         if previousTitle!=currentTitle:
@@ -188,7 +187,7 @@ class CurvesAppearanceChooser(Qt.QWidget,ui_curvesAppearanceChooser.Ui_curvesApp
         
         :return: (string_list) the names of the selected curves
         '''     
-        return [str(item.data(self.NAME_ROLE).toString()) for item in self.curvesLW.selectedItems()]
+        return [Qt.from_qvariant(item.data(self.NAME_ROLE), str) for item in self.curvesLW.selectedItems()]
         
       
     def showProperties(self,prop=None):

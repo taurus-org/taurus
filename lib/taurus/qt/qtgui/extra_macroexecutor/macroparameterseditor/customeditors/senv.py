@@ -219,7 +219,7 @@ class ExtraColumnsDelegate(Qt.QItemDelegate):
     
     def setEditorData(self, editor, index):
         if index.column() == 2:
-            text = index.model().data(index, Qt.Qt.DisplayRole).toString()
+            text = Qt.from_qvariant(index.model().data(index, Qt.Qt.DisplayRole), str)
             editor.setCurrentText(text)
         else:
             Qt.QItemDelegate.setEditorData(self, editor, index)
@@ -241,7 +241,7 @@ class ExtraColumnsDelegate(Qt.QItemDelegate):
     def sizeHint(self, option, index):
         if index.column() == 0:
             fm = option.fontMetrics
-            text = index.model().data(index,Qt.Qt.DisplayRole).toString()
+            text = Qt.from_qvariant(index.model().data(index,Qt.Qt.DisplayRole), str)
             document = Qt.QTextDocument()
             document.setDefaultFont(option.font)
             document.setHtml(text)
@@ -320,10 +320,10 @@ class ExtraColumnsModel(Qt.QAbstractTableModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             column = index.column()
-            value = unicode(value.toString())  
-            if column == 0: self.__columns[row]['label'] = str(value)
-            elif column == 1: self.__columns[row]['model'] = str(value)
-            elif column == 2: self.__columns[row]['instrument'] = str(value)                
+            value = Qt.from_qvariant(value, str)
+            if column == 0: self.__columns[row]['label'] = value
+            elif column == 1: self.__columns[row]['model'] = value
+            elif column == 2: self.__columns[row]['instrument'] = value         
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
             return True
         return False

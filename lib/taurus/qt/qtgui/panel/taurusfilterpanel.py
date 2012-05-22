@@ -254,7 +254,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         g_layout = self.layout()
         header = g_layout.itemAt(0).widget()
         headerCombo = header.layout().itemAt(1).widget()
-        return headerCombo.itemData(headerCombo.currentIndex()).toPyObject()
+        return Qt.from_qvariant(headerCombo.itemData(headerCombo.currentIndex()))
 
     def calculate(self):
         db = self.getModelObj()
@@ -269,7 +269,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
             comboBox = field_layout.itemAt(1).widget()
             edit = field_layout.itemAt(2).widget()
             
-            type = comboBox.itemData(comboBox.currentIndex()).toPyObject()
+            type = Qt.from_qvariant(comboBox.itemData(comboBox.currentIndex()))
             expr = str(edit.text())
             f = getFilter(type, expr)
             filters.append(f)

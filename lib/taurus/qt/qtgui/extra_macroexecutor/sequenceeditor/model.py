@@ -173,7 +173,7 @@ class MacroSequenceTreeModel(Qt.QAbstractItemModel):
         node = self.nodeFromIndex(index)
         if index.column() == 1:
             if isinstance(node, macro.SingleParamNode):
-                node.setValue(str(value.toString()))
+                node.setValue(Qt.from_qvariant(value, str))
                 self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
                 while True:
                     index = index.parent()
@@ -182,12 +182,11 @@ class MacroSequenceTreeModel(Qt.QAbstractItemModel):
                         self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index.sibling(index.row(), self.columnCount(index)))
                         break
         elif index.column() == 2:
-            progress,ok = value.toDouble()
-            if not ok: progress = 0
+            progress = Qt.from_qvariant(value, float)
             node.setProgress(progress)
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
         elif index.column() == 3:  
-            node.setPause(value.toBool())
+            node.setPause(Qt.from_qvariant(value, bool))
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
         return True
 

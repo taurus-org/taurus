@@ -27,8 +27,7 @@
 qwtdialog.py: Dialogs for Taurusplot
 """
 
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt, Qwt5
 import time
 
 from ui.ui_TaurusPlotConfigDialog import Ui_TaurusPlotConfigDialog
@@ -316,7 +315,10 @@ class TaurusPlotConfigDialog(Qt.QDialog):
                 rg = abs(self.str2deltatime(str(self.ui.xRangeCB.currentText())))
                 ok1= (rg is not None)
             else:
-                rg,ok1=self.ui.xRangeCB.currentText().toDouble()
+                try:
+                    rg, ok1 = float(self.ui.xRangeCB.currentText()), True
+                except:
+                    rg, ok1 = 0.0, False
             xMin=xMax-rg
             if not ok1 or (xMin >= xMax):
                 Qt.QMessageBox.warning(self, "Invalid parameters for X axis range")
@@ -328,8 +330,14 @@ class TaurusPlotConfigDialog(Qt.QDialog):
                 ok1= (xMin is not None)
                 ok2= (xMax is not None)
             else: #XY mode
-                xMin,ok1 = self.ui.xEditMin.text().toDouble()
-                xMax,ok2 = self.ui.xEditMax.text().toDouble()
+                try:
+                    xMin, ok1 = float(self.ui.xEditMin.text()), True
+                except:
+                    xMin, ok1 = 0.0, False
+                try:
+                    xMax, ok2 = float(self.ui.xEditMax.text()), True
+                except:
+                    xMax, ok2 = 0.0, False
             if not (ok1 and ok2) or (xMin >= xMax):
                 Qt.QMessageBox.warning(self, "Invalid parameters for X axis",
                                         "Min value must be strictly less than max value")
@@ -337,8 +345,14 @@ class TaurusPlotConfigDialog(Qt.QDialog):
             
         #Validating Y1 axis values
         if self.ui.y1AutoGroupBox.isChecked():
-            y1Min,ok1=self.ui.y1EditMin.text().toDouble()
-            y1Max,ok2=self.ui.y1EditMax.text().toDouble()
+            try:
+                y1Min, ok1 = float(self.ui.y1EditMin.text()), True
+            except:
+                y1Min, ok1 = 0.0, False
+            try:
+                y1Max, ok2 = float(self.ui.y1EditMax.text()), True
+            except:
+                y1Max, ok2 = 0.0, False
             if not(ok1 and ok2) or (y1Min >= y1Max):
                 Qt.QMessageBox.warning(self, "Invalid parameters for Y1 axis",
                                         "Min value must be strictly less than max value")
@@ -346,8 +360,14 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         
         #Validating Y2 axis values
         if self.ui.y2AutoGroupBox.isChecked():
-            y2Min,ok1=self.ui.y2EditMin.text().toDouble()
-            y2Max,ok2=self.ui.y2EditMax.text().toDouble()
+            try:
+                y2Min, ok1 = float(self.ui.y2EditMin.text()), True
+            except:
+                y2Min, ok1 = 0.0, False
+            try:
+                y2Max, ok2 = float(self.ui.y2EditMax.text()), True
+            except:
+                y2Max, ok2 = 0.0, False
             if not (ok1 and ok2) or (y2Min >= y2Max):
                 Qt.QMessageBox.warning(self, "Invalid parameters for Y2 axis",
                                         "Min value must be strictly less than max value")

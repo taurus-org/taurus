@@ -31,8 +31,7 @@ __all__=['CurveConf','CurvesTableModel','ExtendedSelectionModel','CurvePropertie
 
 import copy, re
 
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt, Qwt5
 import taurus
 import taurus.core
 from taurus.qt.qtgui.resource import getThemeIcon
@@ -241,7 +240,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                 self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.index(row,0), self.index(row,self.ncolumns-1))
             else:
                 column = index.column()
-                value = unicode(value.toString())
+                value = Qt.from_qvariant(value, unicode)
                 if column == X: curve.x.setSrc(value)
                 elif column == Y: curve.y.setSrc(value)
                 elif column == TITLE: curve.title = value
@@ -303,8 +302,10 @@ class CurvesTableModel(Qt.QAbstractTableModel):
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes)==1:
-#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, str(self.data(indexes[0]).toString()))
-            mimedata.setText(self.data(indexes[0],role=SRC_ROLE).toString())
+#            txt = Qt.from_qvariant(self.data(indexes[0], str)
+#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, txt)
+            txt = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            mimedata.setText(txt)
         return mimedata
         #mimedata.setData()
 

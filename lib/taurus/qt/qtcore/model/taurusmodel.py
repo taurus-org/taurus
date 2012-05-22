@@ -285,7 +285,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
 
     def _setData(self, index, qvalue, role=Qt.Qt.EditRole):
         item = index.internalPointer()
-        pyobj = qvalue.toPyObject()
+        pyobj = Qt.from_qvariant(qvalue)
         if pyobj is NotImplemented:
             self.warning("Failed attempt to convert a QValue. Maybe it is due to Qt<4.6")
         item.setData(index, pyobj)

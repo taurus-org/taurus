@@ -91,7 +91,7 @@ class QConfigViewer(Qt.QWidget):
 
     def getTaurusConfigFromSettings(self, key='TaurusConfig'):
         result = None
-        qstate = self.settings.value(key).toByteArray()
+        qstate = Qt.from_qvariant(self.settings.value(key), 'toByteArray')
         if not qstate.isNull(): 
             try: result = pickle.loads(qstate.data())
             except Exception,e: 

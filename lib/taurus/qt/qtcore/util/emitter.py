@@ -27,10 +27,8 @@
 emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusDevTree widgets
 """
 
-from functools import partial
-from PyQt4 import Qt
-import taurus
-from taurus.core.util import Logger,Singleton
+from taurus.qt import Qt
+from taurus.core.util import Logger
 import Queue,traceback
 
 ###############################################################################
@@ -197,7 +195,7 @@ class TaurusEmitterThread(Qt.QThread):
                 Qt.QApplication.instance().restoreOverrideCursor()
                 self._cursor = False        
                 
-        except Queue.Empty,e:
+        except Queue.Empty:
             self.log.warning(traceback.format_exc())
             pass
         except: 
@@ -274,7 +272,7 @@ class SingletonWorker():#Qt.QObject):
                 i+=1
             self.log.info('%d Items added to emitter queue' % i)
             self.thread.emitter.emit(Qt.SIGNAL("newQueue"))
-        except Queue.Empty,e:
+        except Queue.Empty:
             self.log.warning(traceback.format_exc())
             pass
         except: 

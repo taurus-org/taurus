@@ -26,9 +26,9 @@
 import sys
 import os.path
 import optparse 
-from PyQt4 import Qt as Qt
 
 import taurus
+from taurus.qt import Qt
 
 def env_index(env, env_name):
     env_name = str(env_name)
@@ -90,12 +90,12 @@ if len(options.tauruspath) > 0:
 #print "PYQTDESIGNERPATH=%s" % get_env(env, "PYQTDESIGNERPATH")
 
 # Start Designer.
-designer_bin = Qt.QLibraryInfo.location(Qt.QLibraryInfo.BinariesPath)
+designer_bin = str(Qt.QLibraryInfo.location(Qt.QLibraryInfo.BinariesPath))
 
 if sys.platform == "darwin":
-    designer_bin.append("/Designer.app/Contents/MacOS/Designer")
+    designer_bin += "/Designer.app/Contents/MacOS/Designer"
 else:
-    designer_bin.append("/designer")
+    designer_bin += "/designer"
 
 designer = Qt.QProcess()
 designer.setProcessChannelMode(Qt.QProcess.ForwardedChannels)

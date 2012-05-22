@@ -31,8 +31,7 @@ __all__=['TaurusCurveItemTableModel','CurveItemConf', 'CurveItemConfDlg']
 
 import copy
 
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt,Qwt5
 import taurus
 from taurus.core import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
@@ -216,7 +215,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             row = index.row()
             curve = self.curves[row]
             column = index.column()
-            value = str(value.toString())
+            value = Qt.from_qvariant(value, str)
             if column == X: 
                 curve.taurusparam.xModel = value
                 curve.x.processSrc(value)
@@ -284,8 +283,10 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes)==1:
-#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, str(self.data(indexes[0]).toString()))
-            mimedata.setText(self.data(indexes[0],role=SRC_ROLE).toString())
+#            data = Qt.from_qvariant(self.data(indexes[0], str)
+#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
+            data = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            mimedata.setText(data)
         return mimedata
         #mimedata.setData()
     

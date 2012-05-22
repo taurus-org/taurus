@@ -83,7 +83,6 @@ class _DownArrowButton(_ArrowButton):
     def __init__(self, id, parent = None):
         _ArrowButton.__init__(self, id, parent)
         self._inc = -self._inc
-        i=self.icon()
 
     def getPixmap(self):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
@@ -727,7 +726,7 @@ class QWheelEdit(Qt.QFrame):
         Slot called when the user finishes editing
         """
         ed = self.getEditWidget()
-        v,ok = ed.text().toDouble()
+        v = float(ed.text())
         self._setValue(v)
         self._updateValue()
         

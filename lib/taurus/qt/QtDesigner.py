@@ -23,12 +23,12 @@
 ##
 #############################################################################
 
-"""This package contains a collection of taurus console widgets"""
+"""This module exposes PyQt4.QtSvg module"""
 
-__docformat__ = 'restructuredtext'
+from taurusqtoptions import QT_API, QT_API_PYQT, QT_API_PYSIDE
 
-try:
-    from .taurusconsole import *
-except Exception,e:
-    from taurus.qt.qtgui.display import create_taurus_fallback as __create
-    TaurusConsole = __create("TaurusConsole")
+# Now peform the imports.
+if QT_API == QT_API_PYQT:
+    from PyQt4.QtDesigner import *
+elif QT_API == QT_API_PYSIDE:
+    from PySide.QtDesigner import *

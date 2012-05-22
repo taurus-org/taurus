@@ -95,7 +95,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         elif role == Qt.Qt.DecorationRole:
             status = self.getStatus(index)
             if (self._modifiedDict.has_key((index.row(), index.column()))) and (self._writeMode):
-                if self.inAlarmRange(self._modifiedDict[(index.row(), index.column())].toDouble()[0]):
+                float_data = Qt.from_qvariant(self._modifiedDict[(index.row(), index.column())], float)
+                if self.inAlarmRange(float_data):
                     icon = getThemeIcon('document-save')
                     #return Qt.QVariant(Qt.QColor('blue'))
                 else:
@@ -118,7 +119,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 return Qt.QVariant(Qt.QColor('white'))
         elif role == Qt.Qt.ForegroundRole:
             if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
-                if self.inAlarmRange(self._modifiedDict[(index.row(), index.column())].toDouble()[0]):
+                float_data = Qt.from_qvariant(self._modifiedDict[(index.row(), index.column())], float)
+                if self.inAlarmRange(float_data):
                     return Qt.QVariant(Qt.QColor('blue'))
                 else:
                     return Qt.QVariant(Qt.QColor('orange'))
@@ -128,8 +130,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
         elif role == Qt.Qt.ToolTipRole:
             if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+                float_data = Qt.from_qvariant(self._modifiedDict[index.row(), index.column()], float)
                 return Qt.QVariant('Original value: %d.\nNew value that will be saved: %d' 
-                                   %(tabledata[index.row(), index.column()],self._modifiedDict[index.row(), index.column()].toDouble()[0]))
+                                   %(tabledata[index.row(), index.column()], float_data))
         return Qt.QVariant()
     
     def setAttr(self, attr):
@@ -228,16 +231,16 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         if kind in 'SU':
             table = table.tolist() #we want to allow the strings to be larger than the original ones
             for (r,c),v in self._modifiedDict.items():
-                table[r][c] = str(v.toString())
+                table[r][c] = Qt.from_qvariant(v, str)
             table = numpy.array(table)
         else:        
             for k,v in self._modifiedDict.items():
                 if kind == 'f':
-                    table[k],ok = v.toDouble()
+                    table[k] = Qt.from_qvariant(v, float)
                 elif kind in 'iu':
-                    table[k],ok = v.toInt()
+                    table[k] = Qt.from_qvariant(v, int)
                 elif kind == 'b':
-                    table[k] = v.toBool()
+                    table[k] = Qt.from_qvariant(v, bool)
                 else:
                     raise TypeError('Unknown data type "%s"'%kind)
         #reshape if needed
@@ -410,13 +413,13 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         self._initialText = None
         if index.model().getType() == bool:
             editor.addItems(['true', 'false'])
-            a = str(index.data().toBool()).lower()
+            a = str(Qt.from_qvariant(index.data(), bool)).lower()
             self._initialText = a
             editor.setCurrentIndex(editor.findText(a))
         else:
             data = index.model().data(index, Qt.Qt.EditRole)
-            self._initialText = data.toString()
-            editor.setText(data.toString())
+            self._initialText = Qt.from_qvariant(data, str)
+            editor.setText(self._initialText)
     
     def setModelData(self, editor, model,index):
         '''
@@ -461,7 +464,10 @@ class TableInlineEdit(Qt.QLineEdit):
         see :meth:`Qt.QLineEdit.textEdited`
         '''
         color, weight = 'gray', 'normal' #default case: the value is in normal range with no pending changes
-        v, b = self.displayText().toDouble()
+        try:
+            v = float(self.displayText())
+        except:
+            v = 0.0
         try:
             if float(self._attrConfig.getMinAlarm()) <= v <= float(self._attrConfig.getMaxAlarm()): #the value is invalid and can't be applied
                 color = 'blue'

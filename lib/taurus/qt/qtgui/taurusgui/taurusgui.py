@@ -1114,7 +1114,7 @@ def main():
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
-    
+
     if options.new_gui: #launch app settings wizard instead of taurusgui
         from taurus.qt.qtgui.taurusgui import AppSettingsWizard
         Qt.QMessageBox.information(None, 'Alpha-quality warning', 

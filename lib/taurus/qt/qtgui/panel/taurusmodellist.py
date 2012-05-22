@@ -32,7 +32,6 @@ __all__=['TaurusModelModel','TaurusModelItem', 'TaurusModelList']
 import copy
 
 from taurus.qt import Qt
-from PyQt4 import Qwt5
 import taurus
 from taurus.core import TaurusException, TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -155,7 +154,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             item = self.items[row]
-            value = unicode(value.toString())
+            value = Qt.from_qvariant(value, unicode)
             if role == Qt.Qt.EditRole:
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
@@ -244,8 +243,9 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         mimedata = Qt.QAbstractListModel.mimeData(self, indexes)
         if len(indexes)==1:
-#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, str(self.data(indexes[0]).toString()))
-            mimedata.setText(self.data(indexes[0],role=SRC_ROLE).toString())
+#            mimedata.setData(TAURUS_ATTR_MIME_TYPE, Qt.from_qvariant(self.data(indexes[0]), str)))
+            txt = Qt.from_qvariant(self.data(indexes[0],role=SRC_ROLE), str)
+            mimedata.setText(txt)
         return mimedata
         #mimedata.setData()
     
@@ -294,8 +294,8 @@ class TaurusModelList(Qt.QListView):
             idx = selected[0]
         else:
             return
-        value = str(self._model.data(idx, role=Qt.Qt.DisplayRole).toString())
-        src = str(self._model.data(idx, role=SRC_ROLE).toString())
+        value = Qt.from_qvariant(self._model.data(idx, role=Qt.Qt.DisplayRole), str)
+        src = Qt.from_qvariant(self._model.data(idx, role=SRC_ROLE), str)
         value,ok = Qt.QInputDialog.getText(self, "Display Value", "Display value for %s?"%src, Qt.QLineEdit.Normal, value)
         if not ok:
             return

@@ -256,7 +256,7 @@ class WidgetPage(Qt.QWizardPage):
             if not isinstance(w, Qt.QWidget): 
                 raise ValueError
             #set the name now because it might have changed since the PanelDescription was created
-            paneldesc.name = str(self.field('panelname').toString())
+            paneldesc.name = Qt.from_qvariant(self.field('panelname'), str)
             #allow the wizard to proceed
             return True
         except Exception,e:
@@ -455,7 +455,7 @@ class CommTableModel(Qt.QAbstractTableModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             column = index.column()
-            value = str(value.toString())
+            value = Qt.from_qvariant(value, str)
             self.__table[row][column] = value
             self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index, index)
             return True

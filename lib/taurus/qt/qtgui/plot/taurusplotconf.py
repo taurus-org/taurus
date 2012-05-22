@@ -32,8 +32,7 @@ __all__ = ['TaurusPlotConfDlg']
 raise NotImplementedError('Under Construction!')
 
 import taurus.core
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt, Qwt5
 from ui.ui_TaurusPlotConf import Ui_TaurusPlotConfDlg
 import curveprops
 try:

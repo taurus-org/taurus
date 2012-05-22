@@ -31,7 +31,6 @@ __docformat__ = 'restructuredtext'
 
 
 from taurus.qt import Qt
-from PyQt4 import Qwt5
 from guiqwt.tools import CommandTool, ToggleTool, DefaultToolbarID, QActionGroup, add_actions
 from guiqwt.signals import SIG_ITEMS_CHANGED
 

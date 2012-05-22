@@ -42,7 +42,6 @@ from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.dialog import protectTaurusMessageBox
 
-import cPickle as pickle
 
 class CommandArgsLineEdit(Qt.QLineEdit):
     ''' An specialized QLineEdit that can transform its text from/to command argument lists'''
@@ -488,21 +487,25 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None: 
             settings.beginGroup(group)
         if not ignoreGeometry: 
-            self.restoreGeometry(settings.value("MainWindow/Geometry").toByteArray()) 
+            ba = Qt.from_qvariant(settings.value("MainWindow/Geometry"), 'toByteArray')
+            self.restoreGeometry(ba) 
         #restore the Taurus config
         try:
-            self.applyQConfig(settings.value('TaurusConfig').toByteArray())
+            ba = Qt.from_qvariant(settings.value("TaurusConfig"), 'toByteArray')
+            self.applyQConfig(ba)
         except Exception,e:
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s'%(unicode(settings.fileName()), repr(e))
             self.error(msg)
             Qt.QMessageBox.warning(self,'Error Loading settings', msg, Qt.QMessageBox.Ok)
-        self.restoreState(settings.value("MainWindow/State").toByteArray()) 
+        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray')
+        self.restoreState(ba) 
         #hide all dockwidgets (so that they are shown only if they were present in the settings)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
         for d in dockwidgets:
             r = self.restoreDockWidget(d)
             d.hide()
-        self.restoreState(settings.value("MainWindow/State").toByteArray()) 
+        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray')
+        self.restoreState(ba) 
         
         if group is not None: 
             settings.endGroup()
@@ -729,7 +732,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__helpManualURI = uri
         if self.helpManualBrowser is None:
             try:
-                from PyQt4.QtWebKit import QWebView
+                from taurus.qt.QtWebKit import QWebView
                 self.helpManualBrowser = QWebView()
             except:
                 self.helpManualBrowser = Qt.QLabel('QWebkit is not available')
@@ -776,7 +779,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             username = getSystemUserName()
             appname = unicode(Qt.QApplication.applicationName())
             key = "__socket_%s-%s__"%(username,appname)
-        from PyQt4 import QtNetwork       
+        from taurus.qt import QtNetwork       
         socket = QtNetwork.QLocalSocket(self) 
         socket.connectToServer(key)
         alive = socket.waitForConnected(3000)
@@ -859,8 +862,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 #---------
 
 if __name__ == "__main__":
-    
-    import sys
+
     import taurus.qt.qtgui.application
     app = taurus.qt.qtgui.application.TaurusApplication()
     app.setApplicationName('TaurusMainWindow-test')

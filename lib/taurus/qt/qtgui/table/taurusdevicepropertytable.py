@@ -30,11 +30,9 @@ taurusdevicepropertytable.py:
 __all__ = ["TaurusPropTable"]
 
 from taurus.qt import Qt, QtCore, QtGui
-from PyQt4 import Qwt5
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import taurus.core
 import PyTango
-import traceback
 
 class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     ''' 

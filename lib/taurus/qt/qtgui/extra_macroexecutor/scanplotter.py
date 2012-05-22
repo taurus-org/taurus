@@ -35,13 +35,11 @@ scanplotter.py:
 import taurus
 import taurus.core
 
-from taurus.qt import QtGui, QtCore
+from taurus.qt import QtGui, Qwt5
 from taurus.qt.Qt import *
-from PyQt4 import Qwt5
 
 from taurus.qt.qtgui.plot import TaurusTrend
 
-from taurus.core import TaurusManager
 from taurus.core.util import dictFromSequence, CaselessDict, eventfilters
     
 class ScanPlotter(TaurusTrend):

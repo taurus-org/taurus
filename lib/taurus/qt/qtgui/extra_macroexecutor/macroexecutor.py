@@ -234,11 +234,15 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                     self.model().setData(self.currentIndex, Qt.QVariant(propValue))
                 except Exception as e:
                     self.model().setData(self.currentIndex, Qt.QVariant('None'))
-                    message = "<b>"+ix.sibling(ix.row(),0).data().toString()+ "</b> "+e[0]
+                    txt = Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str)
+                    message = "<b>" + txt + "</b> " + e[0]
                     problems.append(message)
             except IndexError:
-                problems.append("<b>"+ix.sibling(ix.row(),0).data().toString()+ "</b> is missing!")
-                if ix.data().toString() != Qt.QString('None'):
+                txt = Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str)
+                problems.append("<b>" + txt + "</b> is missing!")
+                
+                data = Qt.from_qvariant(ix.data(), str)
+                if data != 'None':
                     self.model().setData(self.currentIndex, Qt.QVariant('None'))
             counter+=1
             ix = self.getIndex()
@@ -324,10 +328,11 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         if not self.disableEditMode and self.disableSpockCommandUpdate:
             self.validateAllExpresion()
         else:
-            txt = self.text().split(' ', Qt.QString.SkipEmptyParts)
-            if txt.count() == 0: return
+            txt_parts = str(self.text()).split()
+            if len(txt_parts) == 0:
+                return
             try:
-                if self.validateMacro(txt[0]):
+                if self.validateMacro(txt_parts[0]):
                     self.validateAllExpresion()
             except:
                 self.setToolTip("Read Mode")
@@ -477,9 +482,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             type = "Macro"
         
         if type == "Float":
-            value = current.toDouble()[0]+0.1
+            value = Qt.from_qvariant(current, float) + 0.1
         elif type == "Integer":
-            value = current.toInt()[0]+1
+            value = Qt.from_qvariant(current, int) + 1
         elif type == "Boolean":
             value = True
         else:
@@ -504,9 +509,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             type = "Macro"
         
         if type == "Float":
-            value = current.toDouble()[0]-0.1
+            value = Qt.from_qvariant(current, float) - 0.1
         elif type == "Integer":
-            value = current.toInt()[0]-1
+            value = Qt.from_qvariant(current, int) - 1
         elif type == "Boolean":
             value = True
         else:

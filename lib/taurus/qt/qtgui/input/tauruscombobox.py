@@ -99,17 +99,16 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             return None
 
         if PyTango.is_int_type(model.data_type):
-            new_value, ok = new_value.toInt()
+            func = int
         elif PyTango.is_float_type(model.data_type):
-            new_value, ok = new_value.toDouble()
-        elif model.data_type in [ PyTango.DevString ]:
-            new_value, ok = str(new_value.toString()), True
-        elif model.data_type in [ PyTango.DevBoolean ]:
-            new_value, ok = new_value.toBool(), True
+            func = float
+        elif model.data_type in (PyTango.DevString,):
+            func = str
+        elif model.data_type in (PyTango.DevBoolean,):
+            func = bool
         else:
             return None
-        if not ok:
-            return None
+        new_value = Qt.from_qvariant(new_value, func)
         return new_value
 
     def setValue(self, value):

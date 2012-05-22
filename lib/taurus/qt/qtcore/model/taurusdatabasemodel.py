@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -83,10 +83,10 @@ class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
     def data(self, index):
         column = index.column()
         if column > 0: return
-        
+
         model = index.model()
         role = model.role(column, self.depth())
-        
+
         if role == self.role():
             return self._itemData
 
@@ -102,7 +102,7 @@ class TaurusTreeDeviceDomainItem(TaurusTreeDevicePartItem):
     def role(self):
         return ElemType.Domain
 
-        
+
 class TaurusTreeDeviceFamilyItem(TaurusTreeDevicePartItem):
     """A node designed to represent a the family part of a device name"""
 
@@ -123,10 +123,10 @@ class TaurusTreeDeviceMemberItem(TaurusTreeDevicePartItem):
 
 class TaurusTreeSimpleDeviceItem(TaurusTreeDbBaseItem):
     """A node designed to represent a device (without any child nodes)"""
-    
+
     def hasChildren(self):
         return False
-    
+
     def childCount(self):
         return 0
 
@@ -162,7 +162,7 @@ class TaurusTreeSimpleDeviceItem(TaurusTreeDbBaseItem):
 
 class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
     """A node designed to represent a device"""
-    
+
     SearchForAttributeHealth = DevHealth.Exported, DevHealth.ExportedAlive, \
                                DevHealth.NotExportedAlive
 
@@ -179,7 +179,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
         if not data.health() in self.SearchForAttributeHealth:
             return False
         return True
-    
+
     def childCount(self):
         nb = super(TaurusTreeDeviceItem, self).childCount()
         if nb > 0:
@@ -189,7 +189,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
             return 0
         self.updateChilds()
         return super(TaurusTreeDeviceItem, self).childCount()
-    
+
     def updateChilds(self):
         if len(self._childItems) > 0:
             return
@@ -230,7 +230,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
 
 class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
     """A node designed to represent an attribute"""
-    
+
     def data(self, index):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
@@ -241,7 +241,7 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
             if data_info and hasattr(data_info, 'label'):
                 ret = "'" + data_info.label + "' (" + ret + ")"
             return ret
-    
+
     def toolTip(self, index):
         if index.column() > 0:
             return TaurusTreeDbBaseItem.toolTip(self, index)
@@ -257,28 +257,28 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
             limits = "[%s, %s]" % (di.min_value, di.max_value),
             alarms = "[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
             warnings = "[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
-        
+
         for id, value in items.items():
             ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (id.capitalize(), value)
         ret += '</TABLE>'
         return ret
-        
+
     def mimeData(self, index):
         return self.itemData().fullName()
-    
+
     def role(self):
         return ElemType.Attribute
-    
-        
+
+
 class TaurusTreeServerNameItem(TaurusTreeDbBaseItem):
     """A node designed to represent the server name part of a server"""
-    
+
     DisplayFunc = str
-    
+
     def data(self, index):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
-        
+
         if role == ElemType.ServerName or role == ElemType.Name:
             return self._itemData
 
@@ -288,11 +288,11 @@ class TaurusTreeServerNameItem(TaurusTreeDbBaseItem):
 
 class TaurusTreeServerItem(TaurusTreeDbBaseItem):
     """A node designed to represent a server"""
-    
+
     def data(self, index):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
-        
+
         if role == ElemType.Server or role == ElemType.Name:
             return self._itemData.name()
         elif role == ElemType.ServerName:
@@ -303,7 +303,7 @@ class TaurusTreeServerItem(TaurusTreeDbBaseItem):
             return self._itemData.health()
         elif role == ElemType.Host:
             return self._itemData.host()
-    
+
     def mimeData(self, index):
         return self.itemData().fullName()
 
@@ -313,11 +313,11 @@ class TaurusTreeServerItem(TaurusTreeDbBaseItem):
 
 class TaurusTreeFullServerItem(TaurusTreeDbBaseItem):
     """A node designed to represent a server"""
-    
+
     def data(self, index):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
-        
+
         if role == ElemType.Server or role == ElemType.Name:
             return self._itemData.fullName()
         elif role == ElemType.ServerName:
@@ -338,11 +338,11 @@ class TaurusTreeFullServerItem(TaurusTreeDbBaseItem):
 
 class TaurusTreeDeviceClassItem(TaurusTreeDbBaseItem):
     """A node designed to represent a device class"""
-    
+
     def data(self, index):
         column, model = index.column(), index.model()
         role = model.role(column, self.depth())
-        
+
         if role == ElemType.Name or role == ElemType.DeviceClass:
             return self._itemData.name()
 
@@ -357,31 +357,31 @@ class TaurusDbBaseModel(TaurusBaseModel):
     """The base class for all Taurus database Qt models.
     By default, this model represents a plain device perspective of the underlying
     database."""
-    
+
     ColumnNames = "Device", "Alias", "Server", "Class", "Alive", "Host"
     ColumnRoles = (ElemType.Device, ElemType.Device), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
     def createNewRootItem(self):
         return TaurusTreeDbBaseItem(self, self.ColumnNames)
-        
+
     def refresh(self, refresh_source=False):
         data = self.dataSource()
         if refresh_source and data is not None:
             data.refreshCache()
         TaurusBaseModel.refresh(self, refresh_source=refresh_source)
-    
+
     def roleIcon(self, taurus_role):
         return getElementTypeIcon(taurus_role)
-    
+
     def columnIcon(self, column):
         return self.roleIcon(self.role(column))
-    
+
     def roleToolTip(self, taurus_role):
         return getElementTypeToolTip(taurus_role)
 
     def columnToolTip(self, column):
         return self.roleToolTip(self.role(column))
-    
+
     def roleSize(self, taurus_role):
         return getElementTypeSize(taurus_role)
 
@@ -389,7 +389,7 @@ class TaurusDbBaseModel(TaurusBaseModel):
         taurus_role = self.role(column)
         s = self.roleSize(taurus_role)
         return s
-    
+
     def mimeTypes(self):
         return ["text/plain", taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE]
 
@@ -415,11 +415,11 @@ class TaurusDbBaseModel(TaurusBaseModel):
     def pyData(self, index, role):
         if not index.isValid():
             return None
-        
+
         item = index.internalPointer()
         row, column, depth = index.row(), index.column(), item.depth()
         taurus_role = self.role(column, depth)
-        
+
         ret = None
         if role == Qt.Qt.DisplayRole:
             if taurus_role != ElemType.Exported:
@@ -451,7 +451,7 @@ class TaurusDbBaseModel(TaurusBaseModel):
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
         devices = data.devices()
-        
+
         rootItem = self._rootItem
         for dev_name in data.getDeviceNames():
             dev = devices[dev_name]
@@ -462,25 +462,25 @@ class TaurusDbBaseModel(TaurusBaseModel):
 class TaurusDbSimpleDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements in 1 level tree with
     device name as node leafs. This model contains only 1 column."""
-    
+
     ColumnNames = "Device",
     ColumnRoles = (ElemType.Device, ElemType.Device),
-    
+
 
 class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
     """A Qt model that structures device elements in 1 level tree with
     device alias as node leafs. This model contains only 1 column."""
-    
+
     ColumnNames = "Alias",
     ColumnRoles = (ElemType.DeviceAlias, ElemType.DeviceAlias),
-    
+
     def setupModelData(self, data):
         if data is None:
             return
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
         devices = data.devices()
-        
+
         rootItem = self._rootItem
         for dev_name in data.getDeviceNames():
             dev = devices[dev_name]
@@ -492,7 +492,7 @@ class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
 class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements in 1 level tree. Device
     nodes will have attribute child nodes if the device is running."""
-    
+
     ColumnNames = "Device", "Alias", "Server", "Class", "Alive", "Host"
     ColumnRoles = (ElemType.Device, ElemType.Device, ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
@@ -502,18 +502,18 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
         devices = data.devices()
-        
+
         rootItem = self._rootItem
         for dev_name in data.getDeviceNames():
             dev = devices[dev_name]
             devItem = TaurusTreeDeviceItem(self, dev, rootItem)
             rootItem.appendChild(devItem)
-            
+
 
 class TaurusDbDeviceModel(TaurusDbBaseModel):
     """A Qt model that structures device elements is a 3 level tree organized
        as:
-       
+
            - <domain>
            - <family>
            - <member>"""
@@ -524,7 +524,7 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             return
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.deviceTree()
-            
+
         rootItem = self._rootItem
         for domain in sorted(data.keys()):
             families = data[domain]
@@ -543,26 +543,26 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
 class TaurusDbPlainServerModel(TaurusDbBaseModel):
     ColumnNames = "Server", "Alive", "Host"
     ColumnRoles = (ElemType.Server, ElemType.ServerInstance), ElemType.Exported, ElemType.Host
-    
+
     def setupModelData(self, data):
         if data is None:
             return
 
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
-        
+
         servers = data.servers()
         rootItem = self._rootItem
-        
+
         for server_name, server in servers.items():
             serverInstanceItem = TaurusTreeFullServerItem(self, server, rootItem)
             rootItem.appendChild(serverInstanceItem)
-    
-    
+
+
 class TaurusDbServerModel(TaurusDbBaseModel):
     """A Qt model that structures server elements in a tree organized
     as:
-        
+
         - <Server name>
         - <Server instance>
         - <Class>
@@ -571,33 +571,33 @@ class TaurusDbServerModel(TaurusDbBaseModel):
 
     ColumnNames = "Server", "Alive", "Host"
     ColumnRoles = (ElemType.Server, ElemType.ServerName, ElemType.ServerInstance, ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
-    
+
     def setupModelData(self, data):
         if data is None:
             return
 
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
-        
+
         servers, klasses, devices = data.servers(), data.klasses(), data.devices()
         rootItem = self._rootItem
         server_dict = {}
-        
+
         server_names = data.getServerNames()
         for server_name in server_names:
             server = servers[server_name]
             name, instance = server.serverName(), server.serverInstance()
-            
+
             serverNameItem = server_dict.get(name)
             if serverNameItem is None:
                 serverNameItem = TaurusTreeServerNameItem(self, name, rootItem)
                 rootItem.appendChild(serverNameItem)
                 server_dict[name] = serverNameItem
                 #rootItem.appendChild(serverNameItem)
-            
+
             serverInstanceItem = TaurusTreeServerItem(self, server, serverNameItem)
             serverNameItem.appendChild(serverInstanceItem)
-            
+
             klass_names = server.getClassNames()
             device_names = server.getDeviceNames()
             for klass_name in klass_names:
@@ -613,20 +613,20 @@ class TaurusDbServerModel(TaurusDbBaseModel):
 
 class TaurusDbDeviceClassModel(TaurusDbBaseModel):
     """A Qt model that structures class elements in a tree organized as:
-       
+
        * <Class>
            * <Device>
                * <Attribute>"""
     ColumnNames = "Class", "Alive", "Host"
     ColumnRoles = (ElemType.DeviceClass, ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
-    
+
     def setupModelData(self, data):
         if data is None:
             return
-        
+
         if isinstance(data, taurus.core.TaurusDatabase):
             data = data.cache()
-        
+
         rootItem = self._rootItem
         klasses, devices = data.klasses(), data.devices()
         dev_nb = 0
@@ -651,76 +651,81 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
            - TaurusDbDeviceModel
            - TaurusDbSimpleDeviceModel
            - TaurusDbPlainDeviceModel"""
-    
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()
         idx = sourceModel.index(sourceRow, 0, sourceParent)
         treeItem = idx.internalPointer()
-        expr = self.filterRegExp()
-        
+        regexp = self.filterRegExp()
+
         # if domain node, check if it will potentially have any children
         if isinstance(treeItem, TaurusTreeDeviceDomainItem):
             domain = treeItem.display()
             devices = sourceModel.getDomainDevices(domain)
             for device in devices:
-                if self.deviceMatches(device, expr):
+                if self.deviceMatches(device, regexp):
                     return True
             return False
-        
+
         # if family node, check if it will potentially have any children
         if isinstance(treeItem, TaurusTreeDeviceFamilyItem):
             domain = treeItem.parent().display()
             family = treeItem.display()
             devices = sourceModel.getFamilyDevices(domain, family)
             for device in devices:
-                if self.deviceMatches(device, expr):
+                if self.deviceMatches(device, regexp):
                     return True
             return False
-        
+
         if isinstance(treeItem, TaurusTreeDeviceItem) or \
            isinstance(treeItem, TaurusTreeSimpleDeviceItem) or \
            isinstance(treeItem, TaurusTreeDeviceMemberItem):
             device = treeItem.itemData()
-            return self.deviceMatches(device, expr)
+            return self.deviceMatches(device, regexp)
         return True
-    
-    def deviceMatches(self, device, expr):
+
+    def deviceMatches(self, device, regexp):
         name = device.name()
-        if Qt.QString(name).contains(expr):
+        
+        # if Qt.QString(name).contains(regexp):
+        if regexp.indexIn(name) != -1:
             return True
         name = device.alias()
         if name is None:
             return False
-        return Qt.QString(name).contains(expr)
+        #return Qt.QString(name).contains(regexp)
+        return regexp.indexIn(name) != -1
 
 
 class TaurusDbServerProxyModel(TaurusDbBaseProxyModel):
     """A Qt filter & sort model for the TaurusDbServerModel"""
-    
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()
         idx = sourceModel.index(sourceRow, 0, sourceParent)
         treeItem = idx.internalPointer()
-        expr = self.filterRegExp()
-        
+        regexp = self.filterRegExp()
+
         # if server name node, check if it will potentially have any children
         if isinstance(treeItem, TaurusTreeServerNameItem):
             serverName = treeItem.display()
             serverInstances = sourceModel.getServerNameInstances(serverName)
             for serverInstance in serverInstances:
-                if Qt.QString(serverInstance.name()).contains(expr):
+                #if Qt.QString(serverInstance.name()).contains(regexp):
+                if regexp.indexIn(serverInstance.name()) != -1:
                     return True
             return False
-        
+
         if isinstance(treeItem, TaurusTreeServerItem):
-            return treeItem.qdisplay().contains(expr)
+            #return treeItem.qdisplay().contains(regexp)
+            return regexp.indexIn(treeItem.qdisplay()) != -1
 
         return True
 
 
 class TaurusDbDeviceClassProxyModel(TaurusDbBaseProxyModel):
     """A Qt filter & sort model for the TaurusDbDeviceClassModel"""
-    
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()
         idx = sourceModel.index(sourceRow, 0, sourceParent)
@@ -728,7 +733,8 @@ class TaurusDbDeviceClassProxyModel(TaurusDbBaseProxyModel):
 
         if not isinstance(treeItem, TaurusTreeDeviceClassItem):
             return True
-        
-        expr = self.filterRegExp()
 
-        return treeItem.qdisplay().contains(expr)
+        regexp = self.filterRegExp()
+
+        #return treeItem.qdisplay().contains(regexp)
+        return regexp.indexIn(treeItem.qdisplay()) != -1

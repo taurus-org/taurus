@@ -27,10 +27,8 @@
 tauruspluginplugin.py: 
 """
 
-import os
+from taurus.qt import QtDesigner
 
-from taurus.qt import Qt
-from PyQt4 import QtDesigner
 
 def build_qtdesigner_widget_plugin(klass):
     import taurusplugin
@@ -49,7 +47,7 @@ def main():
     import taurus
     import taurus.core.util
     import taurus.qt.qtgui.util
-    #taurus.setLogLevel(taurus.Debug)
+    taurus.setLogLevel(taurus.Debug)
     _log = taurus.core.util.Logger(__name__)
     
     taurus.Manager().setOperationMode(taurus.core.OperationMode.OFFLINE)

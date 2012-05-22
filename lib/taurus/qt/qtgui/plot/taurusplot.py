@@ -33,8 +33,7 @@ import copy
 from datetime import datetime
 import time
 import numpy
-from taurus.qt import Qt
-from PyQt4 import Qwt5
+from taurus.qt import Qt, Qwt5
 
 import PyTango
 

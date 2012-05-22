@@ -113,6 +113,86 @@ taurus::
     if __name__ == "__main__":
         main()
 
+Special notes about Qt programming
+-----------------------------------
+
+The following Qt guidelines are intended to ensure compatibility between all 
+PyQt4/PySide versions.
+
+1. Avoid importing PyQt4/PySide directly.
+   Imports like::
+   
+       from PyQt4 import Qt
+       from PyQt4 import QtCore
+       from PyQt4 import QtGui
+       from PyQt4 import QtNetwork
+       from PyQt4 import QtWebKit
+       from PyQt4 import Qwt5
+   
+   Should be replaced by::
+   
+       from taurus.qt import Qt
+       from taurus.qt import QtCore
+       from taurus.qt import QtGui
+       from taurus.qt import QtNetwork
+       from taurus.qt import QtWebKit
+       from taurus.qt import Qwt5
+
+2. Usage of :class:`~PyQt4.QString` is **discouraged**. You should always use
+   :class:`str`. QString objects don't exist in PySide or in the new PyQt4
+   API 2. Code like::
+   
+       my_string = Qt.QString(" hello ")
+       my_string2 = my_string.trimmed()
+       label.setText(my_string2)
+       print label.text()
+   
+   Should be replaced by::
+   
+       my_string = " hello "
+       my_string2 = my_string.strip()
+       label.setText(my_string2)
+       print str(label.text())         # never assume Qt objects return str.
+
+   For compatibility reasons, QString and QStringList are always available
+   (even when using PySide or PyQt4 with API >=2) from :mod:`taurus.qt.Qt`.
+   Note that if you are using PySide or PyQt4 with API >=2 then QString is 
+   actually :class:`str` and QStringList is actually :class:`list`!
+   
+3. Usage of :class:`~PyQt4.QVariant` is **discouraged**. QVariant objects
+   don't exist in PySide or in the new PyQt4 API 2. Code like::
+   
+       def setData(self, index, qvalue, role=Qt.Qt.EditRole):
+           value = qvalue.toString()
+           self.buffer[index.column()] = value
+       
+       def data(self, index, role=Qt.Qt.DisplayRole):
+           value = self.buffer[index.column()]
+           
+           if role == Qt.Qt.DisplayRole:
+               return Qt.QVariant(value)
+           else:
+               return Qt.QVariant()
+
+   Should be replaced by::
+   
+       def setData(self, index, qvalue, role=Qt.Qt.EditRole):
+           value = Qt.from_qvariant(qvalue, str)
+           self.buffer[index.column()] = value
+       
+       def data(self, index, role=Qt.Qt.DisplayRole):
+           value = self.buffer[index.column()]
+           
+           if role == Qt.Qt.DisplayRole:
+               return Qt.to_qvariant(value)
+           else:
+               return Qt.from_qvariant()
+
+   For compatibility reasons, QVariant are always available
+   (even when using PySide or PyQt4 with API >=2) from :mod:`taurus.qt.Qt`.
+   Note that if you are using PySide or PyQt4 with API >=2 then QVariant(pyobj)
+   if function that returns actually pyobj (exactly the same as
+   :func:`~taurus.qt.Qt.from_qvariant`.)
 
 .. _Tango: http://www.tango-controls.org/
 .. _tango_cs: https://sourceforge.net/projects/tango-cs/
