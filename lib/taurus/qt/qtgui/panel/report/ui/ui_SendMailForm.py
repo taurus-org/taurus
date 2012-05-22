@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'SendMailForm.ui'
 #
-# Created: Tue May 22 16:04:02 2012
+# Created: Tue May 22 16:33:36 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,32 +13,32 @@ class Ui_SendMailForm(object):
     def setupUi(self, SendMailForm):
         SendMailForm.setObjectName("SendMailForm")
         SendMailForm.resize(400, 300)
-        self.gridLayout = QtGui.QGridLayout(SendMailForm)
-        self.gridLayout.setObjectName("gridLayout")
+        self.mainLayout = QtGui.QGridLayout(SendMailForm)
+        self.mainLayout.setObjectName("mainLayout")
         self.labelFrom = QtGui.QLabel(SendMailForm)
         self.labelFrom.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelFrom.setObjectName("labelFrom")
-        self.gridLayout.addWidget(self.labelFrom, 0, 0, 1, 1)
+        self.mainLayout.addWidget(self.labelFrom, 0, 0, 1, 1)
         self.lineEditFrom = QtGui.QLineEdit(SendMailForm)
         self.lineEditFrom.setObjectName("lineEditFrom")
-        self.gridLayout.addWidget(self.lineEditFrom, 0, 1, 1, 1)
+        self.mainLayout.addWidget(self.lineEditFrom, 0, 1, 1, 1)
         self.labelTo = QtGui.QLabel(SendMailForm)
         self.labelTo.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelTo.setObjectName("labelTo")
-        self.gridLayout.addWidget(self.labelTo, 1, 0, 1, 1)
+        self.mainLayout.addWidget(self.labelTo, 1, 0, 1, 1)
         self.lineEditTo = QtGui.QLineEdit(SendMailForm)
         self.lineEditTo.setObjectName("lineEditTo")
-        self.gridLayout.addWidget(self.lineEditTo, 1, 1, 1, 1)
+        self.mainLayout.addWidget(self.lineEditTo, 1, 1, 1, 1)
         self.labelSubject = QtGui.QLabel(SendMailForm)
         self.labelSubject.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelSubject.setObjectName("labelSubject")
-        self.gridLayout.addWidget(self.labelSubject, 2, 0, 1, 1)
+        self.mainLayout.addWidget(self.labelSubject, 2, 0, 1, 1)
         self.lineEditSubject = QtGui.QLineEdit(SendMailForm)
         self.lineEditSubject.setObjectName("lineEditSubject")
-        self.gridLayout.addWidget(self.lineEditSubject, 2, 1, 1, 1)
+        self.mainLayout.addWidget(self.lineEditSubject, 2, 1, 1, 1)
         self.plainTextEditText = QtGui.QPlainTextEdit(SendMailForm)
         self.plainTextEditText.setObjectName("plainTextEditText")
-        self.gridLayout.addWidget(self.plainTextEditText, 3, 0, 1, 2)
+        self.mainLayout.addWidget(self.plainTextEditText, 3, 0, 1, 2)
 
         self.retranslateUi(SendMailForm)
         QtCore.QMetaObject.connectSlotsByName(SendMailForm)
