@@ -278,7 +278,6 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         td = TYPE_MAP_OBJ[ElementType.Controller]
         klass_map = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
         kwargs['full_name'] = full_name = \
             kwargs.get("full_name", auto_full_name.format(**kwargs))
         self.check_element(name, full_name)
@@ -346,7 +345,6 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         td = TYPE_MAP_OBJ[elem_type]
         klass = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
 
         self.check_element(name, full_name)
@@ -414,7 +412,6 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         td = TYPE_MAP_OBJ[ElementType.MeasurementGroup]
         klass = td.klass
         auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
         
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         kwargs.pop('pool_name')
@@ -480,10 +477,10 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         is_root = full_name.count('/') == 1
         
         if is_root:
-            parent_full_name, name = '', full_name[1:]
+            parent_full_name, simple_name = '', full_name[1:]
             parent = None
         else:
-            parent_full_name, name = full_name.rsplit('/', 1)
+            parent_full_name, simple_name = full_name.rsplit('/', 1)
             try:
                 parent = self.get_element_by_full_name(parent_full_name)
             except:
@@ -493,19 +490,17 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
                 raise Exception("%s is not an instrument as expected"
                                 % parent_full_name)
             
-        self.check_element(name, full_name)
+        self.check_element(full_name, full_name)
         
         td = TYPE_MAP_OBJ[ElementType.Instrument]
         klass = td.klass
-        auto_full_name = td.auto_full_name
-        ctrl_class = td.ctrl_klass
 
         if id is None:
             id = self.get_new_id()
         else:
             self.reserve_id(id)
-        elem = klass(id=id, name=name, full_name=full_name, parent=parent,
-                     klass=klass_name, pool=self)
+        elem = klass(id=id, name=full_name, full_name=full_name,
+                     parent=parent, klass=klass_name, pool=self)
         if parent:
             parent.add_instrument(elem)
         ret = self.add_element(elem)
