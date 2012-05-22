@@ -144,7 +144,6 @@ class TaurusDevicePanel(WIDGET_CLASS):
     
     def __init__(self,parent=None,model=None,palette=None,bound=True):
         WIDGET_CLASS.__init__(self,parent)
-        self.info('In TaurusDevicePanel.__init__()')
         if palette: self.setPalette(palette)
         self.setLayout(Qt.QGridLayout())
         self.bound = bound
@@ -179,7 +178,6 @@ class TaurusDevicePanel(WIDGET_CLASS):
         self._attrsframe = Qt.QTabWidget(self)
         
         self._splitter = Qt.QSplitter(Qt.Qt.Vertical,self) ##Horizontal will not allow to show labels of attributes!
-        self._splitter.setChildrenCollapsible(False)        
         
         self._attrs,self._comms = None,None
         
@@ -207,6 +205,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         self._splitter.setStretchFactor(0,15)
         self._splitter.setStretchFactor(1,65)
         self._splitter.setStretchFactor(2,20)
+        self._splitter.setCollapsible(1,False)
         
         if model: self.setModel(model)
         
@@ -217,10 +216,8 @@ class TaurusDevicePanel(WIDGET_CLASS):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        self.info('In TaurusDevicePanel.setModel(%s)'%model)
         if not model: return None
         model = str(model).split()[0].strip()
-        self.debug( 'In TaurusDevicePanel.setModel(%s)'%model)
         if model == self.getModel():
           pass
         else:
@@ -229,7 +226,6 @@ class TaurusDevicePanel(WIDGET_CLASS):
                 WIDGET_CLASS.setModel(self,model)
                 self.setWindowTitle(str(model).upper())
                 model = self.getModel()
-                self.info('TaurusDevicePanel model set to %s'%model)
                 self._label.setText(model.upper())
                 font = self._label.font()
                 font.setPointSize(15)
@@ -301,7 +297,6 @@ class TaurusDevicePanel(WIDGET_CLASS):
         if not params: #By default an unknown device type will display no commands
             self.debug('TaurusDevicePanel.get_comms_form(%s): By default an unknown device type will display no commands'% device)
             return None 
-        self.info('params: %s'%str(params))
         if not form: 
             form = COMMAND_CLASS(parent)
         elif hasattr(form,'setModel'): 
