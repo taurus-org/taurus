@@ -186,7 +186,7 @@ class TaurusValuesTableButton_W(TaurusValuesTableButton):
 
 class TaurusDevButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusAttrForm'''
-    _widgetClassName = 'TaurusAttrForm'
+    _widgetClassName = 'TaurusDevicePanel'
     _icon = ':/places/folder-remote.svg'
     _text = 'Show Device'
 
