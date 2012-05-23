@@ -137,6 +137,10 @@ class BlackListValidator(Qt.QValidator):
         if blackList is None: blackList = []
         self.blackList = blackList
         self._previousState = None
+        #check the signature of the validate method (it changed from old to new versions)
+        #see :http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/python_v3.html#qvalidator
+        dummyValidator = Qt.QDoubleValidator(None) 
+        self._oldMode = len(dummyValidator.validate('',0)) < 3
         
     def validate(self, input, pos):
         if str(input) in self.blackList:
@@ -146,8 +150,11 @@ class BlackListValidator(Qt.QValidator):
         if state != self._previousState:
             self.emit(Qt.SIGNAL('stateChanged'), state, self._previousState)
             self._previousState = state
-        return state, pos
-
+        if self._oldMode: #for backwards compatibility with older versions of PyQt
+            return state, pos
+        else:
+            return state, input, pos
+        
 #class NamePage(Qt.QWizardPage):
 #    
 #    def __init__(self, parent = None):
