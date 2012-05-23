@@ -144,8 +144,7 @@ class MoveableDesc(ColumnDesc):
         name = moveable.getName()
         kwargs['name'] = kwargs.get('name', name)
         kwargs['label'] = kwargs.get('label', name)
-        kwargs['instrument'] = kwargs.get('instrument',
-                                          moveable.getInstrument())
+        kwargs['instrument'] = kwargs.get('instrument', moveable.instrument)
 
         self.min_value = kwargs.get('min_value')
         self.max_value = kwargs.get('max_value')
