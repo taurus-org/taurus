@@ -58,7 +58,17 @@ class JsonRecorder(DataRecorder):
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
         total_scan_intervals = recordlist.getEnvironValue('total_scan_intervals')
         start_time = recordlist.getEnvironValue('starttime').ctime()
-        self.column_desc = [ e for e in column_desc if e.shape == () ] #only scalar data is transmitted with json
+        self.column_desc = []
+        discarded = []
+        for e in column_desc:
+            if len(e.shape)==0:
+                self.column_desc.append(e)
+            else:
+                discarded.append(e.label)
+        if discarded:
+            self.info('The following data will not be json-serialized: %s', " ".join(discarded) )
+            
+        self.column_desc = [ e for e in column_desc if len(e.shape)==0 ] #only scalar data is transmitted with json
         column_desc = [ d.toDict() for d in self.column_desc ]
         data = { 'column_desc' : column_desc,
                  'ref_moveables' : ref_moveables,
