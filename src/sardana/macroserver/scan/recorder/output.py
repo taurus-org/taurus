@@ -67,8 +67,6 @@ class JsonRecorder(DataRecorder):
                 discarded.append(e.label)
         if discarded:
             self.info('The following data will not be json-serialized: %s', " ".join(discarded) )
-            
-        self.column_desc = [ e for e in column_desc if len(e.shape)==0 ] #only scalar data is transmitted with json
         column_desc = [ d.toDict() for d in self.column_desc ]
         data = { 'column_desc' : column_desc,
                  'ref_moveables' : ref_moveables,
