@@ -530,7 +530,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         #I had to make the macroname lowered as macros in comboBox (with macros), has names with all letter low.
         #Because of that sometimes it was not loading macros in MacroEditor
         #TO FIX
-        self.emit(Qt.SIGNAL("spockComboBox"), macroName.toLower())
+        self.emit(Qt.SIGNAL("spockComboBox"), str(macroName).lower())
     
     def measureSelection(self, position):
         s = self.text()+" "
