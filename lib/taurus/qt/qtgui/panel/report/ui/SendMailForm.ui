@@ -24,7 +24,7 @@
     </widget>
    </item>
    <item row="0" column="1" >
-    <widget class="QLineEdit" name="lineEditFrom" />
+    <widget class="QLineEdit" name="editFrom" />
    </item>
    <item row="1" column="0" >
     <widget class="QLabel" name="labelTo" >
@@ -37,7 +37,7 @@
     </widget>
    </item>
    <item row="1" column="1" >
-    <widget class="QLineEdit" name="lineEditTo" />
+    <widget class="QLineEdit" name="editTo" />
    </item>
    <item row="2" column="0" >
     <widget class="QLabel" name="labelSubject" >
@@ -50,10 +50,10 @@
     </widget>
    </item>
    <item row="2" column="1" >
-    <widget class="QLineEdit" name="lineEditSubject" />
+    <widget class="QLineEdit" name="editSubject" />
    </item>
    <item row="3" column="0" colspan="2" >
-    <widget class="QPlainTextEdit" name="plainTextEditText" />
+    <widget class="QPlainTextEdit" name="editMessage" />
    </item>
    <item row="4" column="0" colspan="2" >
     <widget class="QDialogButtonBox" name="buttonBox" >

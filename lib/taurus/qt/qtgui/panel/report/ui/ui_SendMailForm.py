@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'SendMailForm.ui'
 #
-# Created: Tue May 22 17:06:40 2012
+# Created: Wed May 23 10:10:22 2012
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -19,26 +19,26 @@ class Ui_SendMailForm(object):
         self.labelFrom.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelFrom.setObjectName("labelFrom")
         self.mainLayout.addWidget(self.labelFrom, 0, 0, 1, 1)
-        self.lineEditFrom = QtGui.QLineEdit(SendMailForm)
-        self.lineEditFrom.setObjectName("lineEditFrom")
-        self.mainLayout.addWidget(self.lineEditFrom, 0, 1, 1, 1)
+        self.editFrom = QtGui.QLineEdit(SendMailForm)
+        self.editFrom.setObjectName("editFrom")
+        self.mainLayout.addWidget(self.editFrom, 0, 1, 1, 1)
         self.labelTo = QtGui.QLabel(SendMailForm)
         self.labelTo.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelTo.setObjectName("labelTo")
         self.mainLayout.addWidget(self.labelTo, 1, 0, 1, 1)
-        self.lineEditTo = QtGui.QLineEdit(SendMailForm)
-        self.lineEditTo.setObjectName("lineEditTo")
-        self.mainLayout.addWidget(self.lineEditTo, 1, 1, 1, 1)
+        self.editTo = QtGui.QLineEdit(SendMailForm)
+        self.editTo.setObjectName("editTo")
+        self.mainLayout.addWidget(self.editTo, 1, 1, 1, 1)
         self.labelSubject = QtGui.QLabel(SendMailForm)
         self.labelSubject.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelSubject.setObjectName("labelSubject")
         self.mainLayout.addWidget(self.labelSubject, 2, 0, 1, 1)
-        self.lineEditSubject = QtGui.QLineEdit(SendMailForm)
-        self.lineEditSubject.setObjectName("lineEditSubject")
-        self.mainLayout.addWidget(self.lineEditSubject, 2, 1, 1, 1)
-        self.plainTextEditText = QtGui.QPlainTextEdit(SendMailForm)
-        self.plainTextEditText.setObjectName("plainTextEditText")
-        self.mainLayout.addWidget(self.plainTextEditText, 3, 0, 1, 2)
+        self.editSubject = QtGui.QLineEdit(SendMailForm)
+        self.editSubject.setObjectName("editSubject")
+        self.mainLayout.addWidget(self.editSubject, 2, 1, 1, 1)
+        self.editMessage = QtGui.QPlainTextEdit(SendMailForm)
+        self.editMessage.setObjectName("editMessage")
+        self.mainLayout.addWidget(self.editMessage, 3, 0, 1, 2)
         self.buttonBox = QtGui.QDialogButtonBox(SendMailForm)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
