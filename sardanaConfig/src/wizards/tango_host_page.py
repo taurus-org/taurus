@@ -42,7 +42,7 @@ class SelectTangoHostBasePage(wiz.SardanaBasePage):
                      QtCore.SIGNAL('completeChanged()'))
                          
     def _getDatabase(self):
-        host = str(self.hostEdit.text().toLower())
+        host = str(self.hostEdit.text()).lower()
         port = str(self.portEdit.text())
         return tau.Database("%s:%s" % (host, port))
 

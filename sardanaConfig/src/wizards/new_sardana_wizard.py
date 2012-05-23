@@ -104,13 +104,13 @@ class SelectTangoHostPage(wiz.SardanaBasePage):
         self.checkButton.hide()
 
     def _getPort(self):
-        return str(self.portEdit.text().toLower())
+        return str(self.portEdit.text()).lower()
     
     def _getHost(self):
-        return str(self.hostEdit.text().toLower())
+        return str(self.hostEdit.text()).lower()
     
     def _getDatabase(self):
-        host = str(self.hostEdit.text().toLower())
+        host = str(self.hostEdit.text()).lower()
         port = str(self.portEdit.text())
         
         return taurus.Database("%s:%s" % (host, port))
