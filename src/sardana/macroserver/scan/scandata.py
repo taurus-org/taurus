@@ -28,6 +28,8 @@
 __all__ = ["ColumnDesc", "MoveableDesc", "Record", "RecordEnvironment",
            "ScanDataEnvironment", "RecordList", "ScanData", "ScanFactory"]
 
+
+import copy
 from taurus.core.util import Singleton
 
 from recorder import DataHandler
@@ -64,6 +66,7 @@ class ColumnDesc:
 
         # create members of the ColumnDesc class using the remaining keyword
         # args
+        self._extra_kwargs = kwargs 
         self.__dict__.update(kwargs)
 
     def getShape(self):
@@ -107,18 +110,12 @@ class ColumnDesc:
 
     def toDict(self):
         '''creates a dictionary representation of the record'''
-        #@todo: maybe we want to add some extra info (e.g. the one coming from
-        #       channel_info)
-        d={}
+        d = copy.deepcopy(self._extra_kwargs)
         for k in ['name', 'label', 'dtype', 'shape']:
             d[k] = getattr(self, k)
-#        if getattr(self,'instrument', None) is not None:
-#            d['instrument'] = self.instrument.getFullName()
-#            d['instrument_type'] = self.instrument.getType()
         return d
 
     def clone(self):
-        import copy
         return copy.deepcopy(self)
         #return self.__class__(**self.toDict())
 
