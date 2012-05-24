@@ -267,8 +267,8 @@ class SardanaDeviceClass(DeviceClass):
             try:
                 dev.initialize_dynamic_attributes()
             except:
-                dev.warning("Failed to initialize dynamic attributes",
-                            exc_info=1)
+                dev.warning("Failed to initialize dynamic attributes")
+                dev.debug("Details:", exc_info=1)
 
     def device_name_factory(self, dev_name_list):
         tango_class = self.get_name()

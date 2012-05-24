@@ -35,10 +35,10 @@ import time
 
 from PyTango import Util, DevVoid, DevLong64, DevBoolean, DevString, \
     DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ, AttrData
+    IMAGE, READ_WRITE, READ, AttrData, DevFailed, CmdArgType
 
 from taurus.core.util import CaselessDict
-from taurus.core.util.log import DebugIt, InfoIt
+#from taurus.core.util.log import DebugIt, InfoIt
 
 from sardana import InvalidId, InvalidAxis, ElementType
 from sardana.pool.poolmetacontroller import DataInfo
@@ -126,6 +126,8 @@ class PoolDevice(SardanaDevice):
         std_attrs, dyn_attrs = attr_data
         self.remove_unwanted_dynamic_attributes(std_attrs, dyn_attrs)
 
+        multi_class_attr = self.get_device_class().get_class_attr()
+
         if std_attrs is not None:
             read = self.__class__._read_DynamicAttribute
             write = self.__class__._write_DynamicAttribute
@@ -158,8 +160,8 @@ class PoolDevice(SardanaDevice):
         static_attr_names = map(str.lower, dev_class.attr_list.keys())
         static_attr_names.extend(('state', 'status'))
 
-        new_attr_names = map(str.lower, \
-            new_std_attrs.keys() + new_dyn_attrs.keys() )
+        new_attrs = CaselessDict(new_std_attrs)
+        new_attrs.update(new_dyn_attrs)
 
         device_attr_names = []
         for i in range(multi_attr.get_attr_nb()):
@@ -171,9 +173,10 @@ class PoolDevice(SardanaDevice):
                 continue
             try:
                 self.remove_attribute(attr_name)
-            except Exception, e:
-                self.warning("Error removing dynamic attribute %s (%s)",
-                             attr_name_lower, e)
+            except:
+                self.warning("Error removing dynamic attribute %s",
+                             attr_name_lower)
+                self.debug("Details:", exc_info=1)
 
         klass_attr_names = []
         klass_attrs = multi_class_attr.get_attr_list()
@@ -185,16 +188,35 @@ class PoolDevice(SardanaDevice):
             if attr_name_lower in static_attr_names:
                 continue
             # if new dynamic attribute is in class attribute then delete it
-            # from class attribute to be later on added again (eventually 
+            # from class attribute to be later on added again (eventually
             # with diffent data type or data format)
-            if attr_name_lower in new_attr_names:
+            if attr_name_lower in new_attrs:
                 try:
                     attr = multi_class_attr.get_attr(attr_name)
-                    multi_class_attr.remove_attr(attr.get_name(),
-                                                 attr.get_cl_name())
-                except Exception, e:
+
+                    old_type = CmdArgType(attr.get_type())
+                    old_format = attr.get_format()
+                    old_access = attr.get_writable()
+
+                    new_attr = new_attrs[attr_name]
+                    new_type, new_format, new_access = new_attr[1][0][:3]
+                    differ = new_type != old_type or \
+                             new_format != old_format or \
+                             new_access != old_access
+                    if differ:
+                        self.info("Replacing dynamic attribute %s", attr_name)
+                        self.debug("old type: %s, new type: %s",
+                                   old_type, new_type)
+                        self.debug("old format: %s, new format: %s",
+                                   old_format, new_format)
+                        self.debug("old access: %s, new access: %s",
+                                   old_access, new_access)
+                        multi_class_attr.remove_attr(attr.get_name(),
+                                                     attr.get_cl_name())
+                except:
                     self.warning("Error removing dynamic attribute %s from "\
-                                 " device class (%s)", attr_name, e)
+                                 " device class", attr_name)
+                    self.debug("Details:", exc_info=1)
 
     def add_dynamic_attribute(self, attr_name, data_info, attr_info, read,
                               write, is_allowed):
@@ -216,7 +238,7 @@ class PoolDevice(SardanaDevice):
                 attr.set_memorized_init(True)
             elif memorized == 'true_without_hard_applied':
                 attr.set_memorized()
-                attr.set_memorized_init(False)                
+                attr.set_memorized_init(False)
         attr.set_disp_level(DispLevel.EXPERT)
         return self.add_attribute(attr, read, write, is_allowed)
 

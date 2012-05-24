@@ -144,7 +144,20 @@ class PseudoMotor(PoolElementDevice):
 
     def read_attr_hardware(self,data):
         pass
-
+    
+    def get_dynamic_attributes(self):
+        std_attrs, dyn_attrs = \
+            PoolElementDevice.get_dynamic_attributes(self)
+        
+        # For position attribute, listen to what the controller says for data
+        # type (between long and float)
+        pos = std_attrs.get('position')
+        if pos is not None:
+            attr_name, data_info, attr_info = pos
+            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            data_info[0][0] = ttype
+        return std_attrs, dyn_attrs
+    
     def initialize_dynamic_attributes(self):
         attrs = PoolElementDevice.initialize_dynamic_attributes(self)
         
@@ -161,11 +174,6 @@ class PseudoMotor(PoolElementDevice):
     
     def add_standard_attribute(self, attr_name, data_info, attr_info, read,
                                write, is_allowed):
-        # For position attribute, listen to what the controller says for data
-        # type (between long and float)
-        if attr_name.lower() == 'position':
-            ttype, tformat = to_tango_type_format(attr_info.get('type'))
-            data_info[0][0] = ttype
         return PoolElementDevice.add_standard_attribute(self, attr_name,
             data_info, attr_info, read, write, is_allowed)
 
