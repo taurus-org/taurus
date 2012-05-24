@@ -1563,12 +1563,17 @@ class Pool(TangoDevice, MoveableSource):
         # if none exists create one
         if moveable is None:
             mgs = self.getElementsOfType('MotorGroup')
-            i, cont = 1, True
+            i = 1
             pid = os.getpid()
-            while cont:
+            while True:
                 name = "_mg_ms_{0}_{1}".format(pid, i)
-                if name not in mgs:
-                    cont = False
+                exists = False
+                for mg in mgs.values():
+                    if mg.name == name:
+                        exists = True
+                        break
+                if not exists:
+                    break
                 i += 1
             moveable = self.createMotorGroup(name, names)
         return moveable
