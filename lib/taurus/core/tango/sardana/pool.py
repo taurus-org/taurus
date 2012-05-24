@@ -45,7 +45,7 @@ import traceback
 from PyTango import DevState, AttrDataFormat, AttrQuality, DevFailed, \
     DeviceProxy
 
-from taurus import Factory
+from taurus import Factory, Device
 from taurus.core import TaurusEventType, AttributeNameValidator
 from taurus.core.util import Logger, CaselessDict, CodecFactory, \
     EventGenerator, AttributeEventWait, AttributeEventIterator
@@ -85,23 +85,17 @@ class BaseElement(object):
     """ The base class for elements in the Pool (Pool itself, Motor,
     ControllerClass, ExpChannel all should inherit from this class directly or
     indirectly)
-
-    - At the object level:
-      self._name_lower - the lower case string name of the object (used for
-                         __cmp__)
-      self._full_pool_name - the original string coming from the Pool
-      self._pool - the pool object
     """
 
     def __repr__(self):
-        pd = self._pool_data
+        pd = self.getPoolData()
         return "{0}({1})".format(pd['type'], pd['full_name'])
 
     def __str__(self):
         return self.getName()
 
     def serialize(self):
-        return self._pool_data
+        return self.getPoolData()
 
     def str(self, n=0):
         """Returns a sequence of strings representing the object in 'consistent'
@@ -113,25 +107,30 @@ class BaseElement(object):
         return self._str_tuple[:n]
 
     def __cmp__(self,o):
-        return cmp(self._name_lower, o._name_lower)
+        return cmp(self.getPoolData()['full_name'], o.getPoolData()['full_name'])
 
     def getName(self):
-        return self._pool_data['name']
+        return self.getPoolData()['name']
 
     def getPoolObj(self):
         return self._pool
 
+    def getPoolData(self):
+        try:
+            return self._pool_data
+        except AttributeError:
+            self._pool_data = self._find_pool_data()
+            return self._pool_data
 
 class ControllerClass(BaseElement):
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
-        self._name_lower = self.name
         self.path, self.f_name = os.path.split(self.file_name)
         self.lib_name, self.ext = os.path.splitext(self.f_name)
 
     def __repr__(self):
-        pd = self._pool_data
+        pd = self.getPoolData()
         return "ControllerClass({0})".format(pd['full_name'])
 
     def getSimpleFileName(self):
@@ -173,7 +172,6 @@ class ControllerLib(BaseElement):
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
-        self._name_lower = self.name
 
     def getType(self):
         return self.getTypes()[0]
@@ -244,15 +242,21 @@ def reservedOperation(fn):
     return new_fn
 
 
+def get_pool_for_device(db, device):
+    server_devs = db.get_device_class_list(device.info().server_id)
+    for dev_name, klass_name in zip(server_devs[0::2], server_devs[1::2]):
+        if klass_name == "Pool":
+            return Device(dev_name)
+
+
 class PoolElement(BaseElement, TangoDevice):
     """Base class for a Pool element device."""
 
-    def __init__(self, name, **kw):
+    def __init__(self, name, **kwargs):
         """PoolElement initialization."""
         self._reserved = None
         self._evt_wait = None
-        self.call__init__(TangoDevice, name, **kw)
-        self._name_lower = self.getName().lower()
+        self.call__init__(TangoDevice, name, **kwargs)
 
         # dict<string, TangoAttributeEG>
         # key : the attribute name
@@ -261,6 +265,10 @@ class PoolElement(BaseElement, TangoDevice):
 
         # force the creation of a state attribute
         self.getStateEG()
+
+    def _find_pool_data(self):
+        pool = get_pool_for_device(self.getParentObj(), self.getHWObj())
+        return pool.getElementInfo(self.getFullName())._data
 
     def cleanUp(self):
         TangoDevice.cleanUp(self)
@@ -333,20 +341,17 @@ class PoolElement(BaseElement, TangoDevice):
     def getStateEG(self):
         return self._getAttrEG('state')
 
-    def __cmp__(self,o):
-        return cmp(self._name_lower, o._name_lower)
-
     def getControllerName(self):
-        return self._pool_data['controller']
+        return self.getPoolData()['controller']
 
     def getControllerObj(self):
         return self.getPoolObj().getObj("Controller", self.getControllerName())
 
     def getAxis(self):
-        return self._pool_data['axis']
+        return self.getPoolData()['axis']
 
     def getType(self):
-        return self._pool_data['type']
+        return self.getPoolData()['type']
 
     def getPoolObj(self):
         return self._pool_obj
@@ -482,16 +487,16 @@ class Controller(PoolElement):
         self.call__init__(PoolElement, name, **kw)
 
     def getModuleName(self):
-        return self._pool_data['module']
+        return self.getPoolData()['module']
 
     def getClassName(self):
-        return self._pool_data['klass']
+        return self.getPoolData()['klass']
 
     def getTypes(self):
-        return self._pool_data['types']
+        return self.getPoolData()['types']
 
     def getMainType(self):
-        return self._pool_data['main_type']
+        return self.getPoolData()['main_type']
 
     def addElement(self, elem):
         axis = elem.getAxis()
@@ -722,7 +727,7 @@ class Motor(PoolElement, Moveable):
         return 1
 
     def getIndex(self, name):
-        if name.lower() == self._name_lower:
+        if name.lower() == self.getName().lower():
             return 0
         return -1
     #
@@ -806,7 +811,7 @@ class PseudoMotor(PoolElement, Moveable):
         return 1
 
     def getIndex(self, name):
-        if name.lower() == self._name_lower:
+        if name.lower() == self.getName().lower():
             return 0
         return -1
     #
@@ -846,7 +851,7 @@ class MotorGroup(PoolElement, Moveable):
         return 3*["TODO"]
 
     def getMotorNames(self):
-        return self._pool_data['elements']
+        return self.getPoolData()['elements']
 
     def hasMotor(self, name):
         motor_names = map(str.lower, self.getMotorNames())
@@ -1410,7 +1415,6 @@ class Instrument(BaseElement):
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
-        self._name_lower = self.full_name.lower()
 
     def getFullName(self):
         return self.full_name
