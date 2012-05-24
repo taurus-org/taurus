@@ -562,7 +562,8 @@ class SPEC_FileRecorder(BaseFileRecorder):
         for e in env['datadesc']:
             dims = len(e.shape)
             if not dims or (dims==1 and e.shape[0] == 1):
-                labels.append(e.label)
+                sanitizedlabel = "".join(x for x in e.label.replace(' ','_') if x.isalnum() or x=='_') #substitute whitespaces by underscores and remove other non-alphanumeric characters
+                labels.append(sanitizedlabel)
                 names.append(e.name)
         self.names = names
         data = {
