@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -29,10 +29,9 @@ __all__ = ["TaurusDevice"]
 
 __docformat__ = "restructuredtext"
 
-import weakref
 import sys
 
-from enums import TaurusSWDevState, TaurusEventType, LockStatus
+from enums import TaurusSWDevState, TaurusEventType
 from taurusbasetypes import TaurusLockInfo
 import taurusmodel
 
@@ -40,8 +39,8 @@ DFT_DEVICE_DESCRIPTION = "A device"
 
 
 class TaurusDevice(taurusmodel.TaurusModel):
-    
-    SHUTDOWNS = (TaurusSWDevState.Shutdown, TaurusSWDevState.Crash, 
+
+    SHUTDOWNS = (TaurusSWDevState.Shutdown, TaurusSWDevState.Crash,
                  TaurusSWDevState.EventSystemShutdown)
 
     """A Device object representing an abstraction of the PyTango.DeviceProxy
@@ -53,13 +52,13 @@ class TaurusDevice(taurusmodel.TaurusModel):
         storeCallback = kw.pop('storeCallback', None)
         self.__dict__.update(kw)
         self.call__init__(taurusmodel.TaurusModel, name, parent)
-        
+
         self._deviceObj = self._createHWObject()
         self._deviceStateObj = None
         self._lock_info = TaurusLockInfo()
         self._descr = None
         self._deviceSwState = self.decode(TaurusSWDevState.Uninitialized)
-        
+
         if storeCallback:
             storeCallback(self)
 
@@ -76,10 +75,16 @@ class TaurusDevice(taurusmodel.TaurusModel):
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
     def __getattr__(self, name):
-        if not self._deviceObj is None: 
-            return getattr(self._deviceObj,name)
-        return None
-    
+        if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
+            return getattr(self._deviceObj, name)
+        cls_name = self.__class__.__name__
+        raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))
+
+    def __setattr__(self, name, value):
+        if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
+            return setattr(self._deviceObj, name, value)
+        super(TaurusDevice, self).__setattr__(name, value)
+
     # Export the 'act like dictionary' feature of PyTango.DeviceProxy
     def __getitem__(self, key):
         attr = self.getAttribute(key)
@@ -94,10 +99,10 @@ class TaurusDevice(taurusmodel.TaurusModel):
         if hw is None:
             return False
         return hw.__contains__(key)
-    
+
     def getHWObj(self):
         return self._deviceObj
-    
+
     def getStateObj(self):
         if self._deviceStateObj is None:
             self._deviceStateObj = self.factory().getAttribute("%s/state" % self.getFullName())
@@ -108,13 +113,13 @@ class TaurusDevice(taurusmodel.TaurusModel):
         if not stateAttrValue is None:
             return stateAttrValue.value
         return None
-        
+
     def getSWState(self, cache=True):
         return self.getValueObj(cache=cache).value
 
     def getAttribute(self, attrname):
         """Returns the attribute object given its name"""
-        
+
         slashnb = attrname.count('/')
         if slashnb == 0:
             attrname = "%s/%s" % (self.getFullName(), attrname)
@@ -122,10 +127,10 @@ class TaurusDevice(taurusmodel.TaurusModel):
             attrname = "%s%s" % (self.getFullName(), attrname)
         import taurusattribute
         return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
-    
+
     def isValidDev(self):
         """returns True if the device is in "working conditions
-        
+
         The default implementation always returns True. Reimplement it in
         subclasses if there are cases in which the device cannot be queried
         (e.g. in Tango, the TangoDevice object may exist even if there is not a real
@@ -144,23 +149,23 @@ class TaurusDevice(taurusmodel.TaurusModel):
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory implementation in sub class
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
     def _createHWObject(self):
         raise NotImplementedError
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getTaurusElementType(self):
         import taurus.core
         return taurus.core.TaurusElementType.Device
-        
+
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
         """build an 'absolute' model name from the parent model and the 'relative'
-        name. 
+        name.
         - If parent_model is a TaurusDatabase, the return is a composition of
         the database model name and is device name
         - If parent_model is a TaurusDevice, the relative name is ignored and
@@ -173,8 +178,8 @@ class TaurusDevice(taurusmodel.TaurusModel):
             return relative_name
         if isinstance(parent_model, cls):
             return parent_name
-        return '%s/%s' % (parent_name,relative_name)   
-    
+        return '%s/%s' % (parent_name,relative_name)
+
     @classmethod
     def getNameValidator(cls):
         import taurusvalidator
@@ -188,7 +193,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
                 v = sys.exc_info()[1]
             self._deviceSwState = self.decode(v)
         return self._deviceSwState
-    
+
     def getDisplayValue(self,cache=True):
         return TaurusSWDevState.whatis(self.getValueObj(cache).value)
 
@@ -201,7 +206,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         obj.append(('device state', self.getStateObj().getDisplayValue()) or self.getNoneValue())
         obj.append(('SW state', self.getDisplayValue()))
         return obj
-    
+
     def getDescription(self,cache=True):
         if self._descr is None or not cache:
             try:
@@ -209,19 +214,19 @@ class TaurusDevice(taurusmodel.TaurusModel):
             except:
                 self._descr = self._getDefaultDescription()
         return self._descr
-    
+
     def removeListener(self, listener):
         ret = taurusmodel.TaurusModel.removeListener(self, listener)
         if not ret or self.hasListeners():
             return ret # False, None or True
         return self.getStateObj().removeListener(self)
-    
+
     def addListener(self, listener):
         weWereListening = self.hasListeners()
         ret = taurusmodel.TaurusModel.addListener(self, listener)
         if not ret:
             return ret
-        
+
         # We are only listening to State if someone is listening to us
         if weWereListening:
             # We were listening already, so we must fake an event to the new
@@ -231,7 +236,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
             # We were not listening to events, but now we have to
             self.getStateObj().addListener(self)
         return ret
-    
+
     def getChildObj(self, child_name):
         if child_name is None or len(child_name) == 0:
             return None
@@ -254,7 +259,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         return DFT_DEVICE_DESCRIPTION
 
     def poll(self, attrs):
-        '''Polling certain attributes of the device. This default 
+        '''Polling certain attributes of the device. This default
         implementation simply polls each attribute one by one'''
         for attr in attrs.values():
             attr.poll()
