@@ -638,7 +638,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                 name = dd["name"]
                 if name not in self._curves and self._plotablesFilter(name) and name != self._autoXDataKey:
                     rawdata["title"] = dd["label"]
-                    curve = self.parent().attachRawData(rawdata)
+                    curve = self.parent().attachRawData(rawdata,id=name)
                     prop = curve.getAppearanceProperties()
                     prop.sColor = prop.lColor
                     prop.sStyle = Qwt5.QwtSymbol.Ellipse
