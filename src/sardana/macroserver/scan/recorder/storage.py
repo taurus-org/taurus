@@ -410,20 +410,26 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         #create the link for each set in <entry>/data that has a datadesc.nxpath
         for dd in self.datadesc:
             if getattr(dd,'instrument', None): #we don't link if it is None or it is empty
-                #grab the ID of the data group
-                datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) 
-                self.fd.openpath(datapath)
-                id=self.fd.getdataID()
-                self._createBranch(dd.instrument)
-                self.fd.makelink(id)
-                
+                try:
+                    datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) 
+                    self.fd.openpath(datapath)
+                    id=self.fd.getdataID()
+                    self._createBranch(dd.instrument)
+                    self.fd.makelink(id)
+                except Exception,e:
+                    self.warning("Could not create link to '%s' in '%s'. Reason: %s",datapath, dd.instrument, repr(e))
+                    
         for dd in self.preScanSnapShot:
             if getattr(dd,'instrument', None):
-                datapath="/%s:NXentry/measurement:NXcollection/pre_scan_snapshot:NXcollection/%s"%(self.entryname,dd.label)
-                self.fd.openpath(datapath)
-                id=self.fd.getdataID()
-                self._createBranch(dd.instrument)
-                self.fd.makelink(id)
+                try:
+                    label = self.sanitizeName(dd.label)
+                    datapath="/%s:NXentry/measurement:NXcollection/pre_scan_snapshot:NXcollection/%s"%(self.entryname,label)
+                    self.fd.openpath(datapath)
+                    id=self.fd.getdataID()
+                    self._createBranch(dd.instrument)
+                    self.fd.makelink(id)
+                except Exception,e:
+                    self.warning("Could not create link to '%s' in '%s'. Reason: %s",datapath, dd.instrument, repr(e))
                 
     def _createNXData(self):
         '''Creates groups of type NXdata by making links to the corresponding datasets 
