@@ -37,6 +37,7 @@ try:import icons_dev_tree
 except:icons_dev_tree = None
 
 from taurus.qt import Qt, QtCore, QtGui
+from PyQt4 import Qwt5
 
 import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
@@ -107,7 +108,7 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
         this method can be used to connect TauDevTree with another widget such as LineEdit.
         '''
         self.clear()
-        self.setTree(self,self.getDeviceDict(filters))
+        self.setTree(self,self.getTangoDict(filters))
 
     def setTree(self,parent,diction):
         """
@@ -487,7 +488,30 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
     # @{
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
-    def getDeviceDict(self,filters):	
+    def getTangoDict(self,filters):
+        self.info('In TaurusDevTree.getTangoDict(%s)'%filters)
+        result = {}
+        self._filters = filters
+        self.db = self.getModelObj()
+        if type(filters)==type("") or isinstance(filters,QtCore.QString):
+            filters = str(filters).split(',')
+        elif isinstance(filters,QtCore.QStringList):
+            filters = list(filters)
+        elif type(filters)!=type([]):
+            self.info("'filters' has to be a string or the list type!")
+        if any(s in f for f in filters for s in '*?([^'):
+            devs = self.db.get_device_exported("*")
+            targets = [d for d in devs if any(re.match(f.lower(),d.lower()) for f in filters)]
+        else:
+            targets = filters
+        targets = [t.upper() for t in targets]
+        domains = set(t.split('/')[0] for t in targets)
+        for d in domains:
+            families = set(t.split('/')[1] for t in targets if t.startswith('%s/'%d))
+            result[d] = dict((f,dict.fromkeys(t for t in targets if t.startswith('%s/%s/'%(d,f)))) for f in families)
+        return result
+        
+    def getDeviceDict(self,filters):
         '''
         This method build a dictionary of instances and devices depending on the given servers,devices or instances in QTProperty or in another widget
         --- filters is a string with names of devices/servers such as "LT/VC/ALL,LT02/VC/IP-01" or "modbus,pyplc"
