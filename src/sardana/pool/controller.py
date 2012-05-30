@@ -112,7 +112,7 @@ class Controller(object):
     #:
     #:     - for key="memorized", value is a :obj:`str` with possible values:
     #:       "true" (default), "true_without_hard_applied", "false"
-    #:       
+    #:
     #:       .. versionadded:: 1.1
     #:
     #: .. versionadded:: 1.0

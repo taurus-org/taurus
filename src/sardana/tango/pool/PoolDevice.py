@@ -35,7 +35,7 @@ import time
 
 from PyTango import Util, DevVoid, DevLong64, DevBoolean, DevString, \
     DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ, AttrData, DevFailed, CmdArgType
+    IMAGE, READ_WRITE, READ, AttrData, CmdArgType
 
 from taurus.core.util import CaselessDict
 #from taurus.core.util.log import DebugIt, InfoIt
@@ -125,8 +125,6 @@ class PoolDevice(SardanaDevice):
 
         std_attrs, dyn_attrs = attr_data
         self.remove_unwanted_dynamic_attributes(std_attrs, dyn_attrs)
-
-        multi_class_attr = self.get_device_class().get_class_attr()
 
         if std_attrs is not None:
             read = self.__class__._read_DynamicAttribute
@@ -503,6 +501,3 @@ class PoolGroupDeviceClass(PoolDeviceClass):
         'ElementList'  : [ [ DevString, SPECTRUM, READ, 4096] ],
     }
     attr_list.update(PoolDeviceClass.attr_list)
-
-    def init_device(self):
-        PoolDevice.init_device(self)

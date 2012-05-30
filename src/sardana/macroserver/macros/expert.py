@@ -47,17 +47,20 @@ from sardana.macroserver.macro import *
 class defm(Macro):
     """Creates a new motor in the active pool"""
     
-    param_def = [['controller', Type.String, None, 'Controller name'],
+    param_def = [['controller', Type.Controller, None, 'Controller name'],
                  ['axis', Type.Integer, None, 'motor axis'],
                  ['motor name', Type.String, None, 'motor name']]
     
-    def run(self,controller, axis, name):
-        pool = mntgrp.getPoolObj()
-        pool.CreateMotor([[int(axis)],[name, controller]])
+    def run(self, controller, axis, name):
+        pool = controller.getPoolObj()
+        pool.CreateMotor([[int(axis)],[name, controller.getName()]])
 
 
 class defmeas(Macro):
-    """Create a new measurement group"""
+    """Create a new measurement group. First channel in channel_list MUST
+    be an internal sardana channel. At least one channel MUST be a
+    Counter/Timer (by default, the first Counter/Timer in the list will
+    become the master)."""
 
     param_def = [
        ['name',  Type.String, None, 'Measurement group name'],
@@ -74,10 +77,11 @@ class defmeas(Macro):
             raise Exception('A measurement group with that name already exists')
         
     def run(self, name, *channel_list):
-        pools = self.getPools()
-        pool = pools[0]
+        channel0 = self.getObj(channel_list[0])
+        pool = channel0.getPoolObj()
         mg = pool.createMeasurementGroup(name, channel_list)
         self.print("Created %s" % str(mg))
+
 
 class udefmeas(Macro):
     """Deletes an existing measurement group"""
@@ -87,6 +91,7 @@ class udefmeas(Macro):
     def run(self, mntgrp):
         pool = mntgrp.getPoolObj()
         pool.deleteMeasurementGroup(mntgrp.getName())
+
 
 class defelem(Macro):
     """Creates an element on a controller with an axis"""
@@ -101,6 +106,7 @@ class defelem(Macro):
             axis = None
         elem = pool.createElement(name, ctrl, axis)
         self.print("Created %s" % str(elem))
+
 
 class udefelem(Macro):
     """Deletes an existing element"""
@@ -129,6 +135,7 @@ class defctrl(Macro):
         pool = pools[0]
         elem = pool.createController(ctrl_class.name, name, *props)
         self.print("Created %s" % str(elem))
+
 
 class udefctrl(Macro):
     """Deletes an existing controller"""

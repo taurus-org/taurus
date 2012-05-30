@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -32,8 +32,8 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, DevDouble, \
-    DevVarStringArray, DevState, AttrQuality
+from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, \
+    DevDouble, DevVarStringArray, DevState, AttrQuality
 
 from taurus.core.util.log import DebugIt
 
@@ -64,11 +64,11 @@ class PseudoMotor(PoolElementDevice):
         self.element = pseudo_motor
 
     pseudo_motor = property(get_pseudo_motor, set_pseudo_motor)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
-    
+
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
@@ -90,24 +90,21 @@ class PseudoMotor(PoolElementDevice):
 
     def on_pseudo_motor_changed(self, event_source, event_type, event_value):
         try:
-            self._on_pseudo_motor_changed(event_source, event_type, event_value)
+            self._on_pseudo_motor_changed(event_source, event_type,
+                                          event_value)
         except:
-            import taurus.core.util.tb
-            dump = "".join(taurus.core.util.tb.format_frame_stacks())
             msg = 'Error occured "on_pseudo_motor_changed(%s.%s): %s"'
             exc_info = sys.exc_info()
             self.error(msg, self.pseudo_motor.name, event_type.name,
                        exception_str(*exc_info[:2]))
             self.debug("Details", exc_info=exc_info)
-            self.debug("Process dump:\n%s", dump)
-            sys.exit()
 
     def _on_pseudo_motor_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-        
+
         timestamp = time.time()
         name = event_type.name.lower()
         multi_attr = self.get_device_attr()
@@ -118,7 +115,7 @@ class PseudoMotor(PoolElementDevice):
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
-        
+
         if name == "state":
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -129,26 +126,26 @@ class PseudoMotor(PoolElementDevice):
                     error = Except.to_dev_failed(*event_value.exc_info)
                 timestamp = event_value.timestamp
                 event_value = event_value.value
-                
+
             state = self.pseudo_motor.get_state(propagate=0)
-            
+
             if state == State.Moving and name == "position":
                 quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-                           
+
     def always_executed_hook(self):
         #state = to_tango_state(self.pseudo_motor.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
-    
+
     def get_dynamic_attributes(self):
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         # For position attribute, listen to what the controller says for data
         # type (between long and float)
         pos = std_attrs.get('position')
@@ -157,25 +154,20 @@ class PseudoMotor(PoolElementDevice):
             ttype, tformat = to_tango_type_format(attr_info.get('type'))
             data_info[0][0] = ttype
         return std_attrs, dyn_attrs
-    
+
     def initialize_dynamic_attributes(self):
         attrs = PoolElementDevice.initialize_dynamic_attributes(self)
-        
+
         detect_evts = "position",
         non_detect_evts = ()
-            
+
         for attr_name in detect_evts:
-            if attrs.has_key(attr_name):
+            if attr_name in attrs:
                 self.set_change_event(attr_name, True, True)
         for attr_name in non_detect_evts:
-            if attrs.has_key(attr_name):
+            if attr_name in attrs:
                 self.set_change_event(attr_name, True, False)
         return
-    
-    def add_standard_attribute(self, attr_name, data_info, attr_info, read,
-                               write, is_allowed):
-        return PoolElementDevice.add_standard_attribute(self, attr_name,
-            data_info, attr_info, read, write, is_allowed)
 
     def read_Position(self, attr):
         pseudo_motor = self.pseudo_motor
@@ -190,7 +182,7 @@ class PseudoMotor(PoolElementDevice):
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=position.value, quality=quality,
                            priority=0, timestamp=position.timestamp)
-    
+
     def write_Position(self, attr):
         position = attr.get_write_value()
         self.debug("write_Position(%s)", position)
@@ -203,15 +195,16 @@ class PseudoMotor(PoolElementDevice):
             pseudo_motor.position = position
         except PoolException, pe:
             throw_sardana_exception(pe)
-    
+
     def MoveRelative(self, argin):
         raise NotImplementedError
-    
+
     def is_MoveRelative_allowed(self):
-        if self.get_state() in (DevState.FAULT, DevState.MOVING, DevState.UNKNOWN):
+        if self.get_state() in (DevState.FAULT, DevState.MOVING,
+                                DevState.UNKNOWN):
             return False
         return True
-    
+
     is_Position_allowed = _is_allowed
 
 
