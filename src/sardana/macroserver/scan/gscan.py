@@ -550,6 +550,12 @@ class GScan(Logger):
         data_desc += self._extrainfodesc
         env['datadesc'] = data_desc
         
+        #set the data compression default
+        try:
+            env['DataCompressionRank'] = self.macro.getEnv('DataCompressionRank')
+        except UnknownEnv:
+            env['DataCompressionRank'] = -1
+        
         #take the pre-scan snapshot
         try:
             preScanSnapShot = self.macro.getEnv('PreScanSnapshot')

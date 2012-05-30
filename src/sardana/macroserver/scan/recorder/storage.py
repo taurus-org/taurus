@@ -178,6 +178,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
     supported_dtypes = ('float32','float64','int8',
                         'int16','int32','int64','uint8',
                         'uint16','uint32','uint64') #note that 'char' is not supported yet!
+    _dataCompressionRank = -1
         
     def __init__(self, filename=None, macro=None, overwrite=False, **pars):
         BaseFileRecorder.__init__(self, **pars)
@@ -216,6 +217,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         self.currentlist = recordlist
         env = self.currentlist.getEnviron()
         serialno = env["serialno"]
+        self._dataCompressionRank = env.get("DataCompressionRank", self._dataCompressionRank)
         
         if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
         self.fd = nxs.open(self.filename, nxfilemode)
@@ -267,7 +269,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         if self.savemode==SaveModes.Record:
             #create extensible datasets
             for dd in self.datadesc:
-                self.fd.makedata(dd.label,dd.dtype, [nxs.UNLIMITED]+list(dd.shape)) #the first dimension is extensible
+                self._makedata(dd.label,dd.dtype, [nxs.UNLIMITED]+list(dd.shape), chunks=[1]+list(dd.shape)) #the first dimension is extensible
                 if hasattr(dd,'data_units'):
                     self.fd.opendata(dd.label)
                     self.fd.putattr('units', dd.data_units)
@@ -290,7 +292,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 pre_scan_value = numpy.int8(dd.pre_scan_value)
                 self.debug('Pre-scan snapshot of %s will be stored with type=%s',dd.name, dtype)
             if dtype in self.supported_dtypes:
-                self._writeData(label, pre_scan_value, dtype, dd.shape or (1,)) #@todo: fallback shape is hardcoded! 
+                self._writeData(label, pre_scan_value, dtype, shape=dd.shape or (1,)) #@todo: fallback shape is hardcoded! 
             else:
                 self.warning('Pre-scan snapshot of %s will not be stored. Reason: type %s not supported',dd.name, dtype)
             
@@ -298,13 +300,37 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         self.fd.flush()
         
-    def _writeData(self, name, data, dtype, shape=None, attrs=None):
+    def _makedata(self, name, dtype=None, shape=None, mode='lzw', chunks=None, comprank=None):
+        '''
+        combines :meth:`nxs.NeXus.makedata` and :meth:`nxs.NeXus.compmakedata` by selecting between 
+        using compression or not based on the comprank parameter and the rank of the data.
+        Compression will be used only if the shape of the data is given and its length is larger 
+        than comprank. If comprank is not passed (or None is passed) the default dataCompressionRank 
+        will be used
+        '''
+        if comprank is None: 
+            comprank = self._dataCompressionRank
+        
+        if shape is None or comprank<0 or (len(shape) < comprank):
+            return self.fd.makedata(name, dtype=dtype, shape=shape)
+        else:
+            try:
+                self.fd.compmakedata(name, dtype=dtype, shape=shape, mode=mode, chunks=chunks)
+            except ValueError: #workaround for bug in nxs<4.3 (compmakedatafails if chunks is not explicitly passed)
+                chunks = [1]*len(shape)
+                chunks[-1] = shape[-1]
+                self.fd.compmakedata(name, dtype=dtype, shape=shape, mode=mode, chunks=chunks)
+            
+        
+    
+    def _writeData(self, name, data, dtype, shape=None, chunks=None, attrs=None):
         if shape is None:
             if dtype=='char': 
-                shape=[len(data)]
+                shape = [len(data)]
+                chunks = chunks or list(shape) #for 'char', write the whole block in one chunk
             else:
                 shape = getattr(data,'shape',[1])
-        self.fd.makedata(name, dtype, shape)
+        self._makedata(name, dtype=dtype, shape=shape, chunks=chunks)
         self.fd.opendata(name)
         self.fd.putdata(data)
         if attrs is not None:
@@ -373,7 +399,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         """Called when in BLOCK writing mode"""
         self._startRecordList( recordlist )
         for dd in self.datadesc:
-            self.fd.makedata(dd.label, dd.dtype, [len(recordlist.records)]+list(dd.shape))
+            self._makedata(dd.label, dd.dtype, [len(recordlist.records)]+list(dd.shape), chunks=[1]+list(dd.shape))
             self.fd.opendata(dd.label)
             try:
                 #try creating a single block to write it at once
