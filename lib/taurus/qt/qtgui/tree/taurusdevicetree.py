@@ -217,6 +217,12 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
         
     def getSelectedNodes(self):
         return self.selectedItems()
+    
+    def getNodeList(self):
+        return self.item_index.keys()
+    
+    def getNodeByName(self,key):
+        return self.item_index[key]
         
     def getNodeText(self,node=None,full=False):
         if node is None: node = self.currentItem()
@@ -228,7 +234,6 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
     def getNodeDeviceName(self,node = None):
         if node is None: node = self.currentItem()
         return str(getattr(node,'DeviceName','')) or self.getNodeText(node)
-        
 
     def getNodeParentName(self,node=None):
         if node is None: node = self.currentItem()
