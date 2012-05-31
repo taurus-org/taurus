@@ -177,33 +177,44 @@ class ExperimentConfiguration(object):
         
         codec = CodecFactory().getCodec('json')
         for mnt_grp in mnt_grps:
-            mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
-            if mnt_grp_cfg is None: #a deleted mntGrp
-                self._pool.DeleteElement(mnt_grp)
-            else:
-                try:
-                    mnt_grp_dev = Device(mnt_grp)
-                except: #if the mnt_grp did not already exist, create it now
-                    chconfigs = getChannelConfigs(mnt_grp_cfg)
-                    chnames,chinfos = zip(*chconfigs) #unzipping
-                    self._pool.createMeasurementGroup([mnt_grp]+list(chnames))
-                    mnt_grp_dev = Device(mnt_grp)
-                
-                # TODO when we start using measurement group extension change the
-                # code below with the following:
-                # mnt_grp.setConfiguration(mnt_grp_cfg)
-                data = codec.encode(('', mnt_grp_cfg))[1]
-                mnt_grp_dev.write_attribute('configuration', data)
+            try:
+                mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
+                if mnt_grp_cfg is None: #a mntGrp to be deleted
+                    pool = self._getPoolOfElement(mnt_grp)
+                    pool.DeleteElement(mnt_grp)
+                else:
+                    try:
+                        mnt_grp_dev = Device(mnt_grp)
+                    except: #if the mnt_grp did not already exist, create it now
+                        chconfigs = getChannelConfigs(mnt_grp_cfg)
+                        chnames,chinfos = zip(*chconfigs) #unzipping
+                        pool = self._getPoolOfElement(chnames[0]) #We assume that all the channels belong to the same pool!
+                        pool.createMeasurementGroup([mnt_grp]+list(chnames))
+                        mnt_grp_dev = Device(mnt_grp)
+                    
+                    # TODO when we start using measurement group extension change the
+                    # code below with the following:
+                    # mnt_grp.setConfiguration(mnt_grp_cfg)
+                    data = codec.encode(('', mnt_grp_cfg))[1]
+                    mnt_grp_dev.write_attribute('configuration', data)
+            except Exception,e:
+                self.error('Could not create/delete/modify Measurement group "%s": %s',mnt_grp,repr(e))
     
-    @property
-    def _pool(self):
-        pooldict = self._door.macro_server.getElementsOfType('Pool')
-        if len(pooldict)==0:
-            raise ValueError('Cannot access the Pool')
-        elif len(pooldict)>1:
-            raise ValueError('Multiple pools are not supported')
-        poolinfo = pooldict.values()[0]
-        return poolinfo
+    def _getPoolOfElement(self, elementname):
+        ms = self._door.macro_server
+        einfo = ms.getElementInfo(elementname)
+        poolname = einfo.pool
+        return ms.getElementInfo(poolname)
+
+#    @property
+#    def _pool(self):
+#        pooldict = self._door.macro_server.getElementsOfType('Pool')
+#        if len(pooldict)==0:
+#            raise ValueError('Cannot access the Pool')
+#        elif len(pooldict)>1:
+#            raise ValueError('Multiple pools are not supported')
+#        poolinfo = pooldict.values()[0]
+#        return poolinfo
     
 
 class BaseDoor(MacroServerDevice):
