@@ -256,7 +256,7 @@ class PoolCTAcquisition(PoolAction):
                         ret = ctrl.PreStartOne(axis, master_value)
                         if not ret:
                             raise Exception("%s.PreStartOne(%d) returns False" \
-                                            % (ctrl.name, axis))
+                                            % (pool_ctrl.name, axis))
                         ctrl.StartOne(axis)
             
             # set the state of all elements to  and inform their listeners
