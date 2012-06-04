@@ -43,12 +43,11 @@ import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.util.emitter import TaurusEmitterThread,SingletonWorker
-from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.core.utils import CaselessDict
 
 
 class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
-    ''' This widget display the list of servers, devices or instances. '''
+    ''' This widget displays a list of servers, devices or instances. '''
     __pyqtSignals__ = (
         "modelChanged(const QString &)",
         "deviceSelected(QString)",
@@ -429,6 +428,7 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
         
     def showPanel(self):
         '''Display widget taurusDevicePanel'''
+        from taurus.qt.qtgui.panel import TaurusDevicePanel
         device = self.getNodeText()
         nameclass = TaurusDevicePanel()
         nameclass.setModel(device)
