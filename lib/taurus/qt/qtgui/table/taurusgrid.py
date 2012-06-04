@@ -353,7 +353,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     #---------------------------------------------------------------------------
     # Write your own code here for your own widget properties
     
-    @QtCore.pyqtSignature("setModel(QStringList)")
     def setModel(self,model,devsInRows=False,delayed=False,append=False,load=True):
         '''The model can be initialized as a list of devices or hosts or ...'''
         #self.setModelCheck(model) ##It must be included
@@ -416,7 +415,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.updateFromList(self._modelNames)
         return
     
-    @QtCore.pyqtSignature("setTitle(QString)")    
+   
     def setTitle(self,title):
         self.title = str(title)
         if hasattr(self,'title_widget'):
@@ -438,7 +437,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             labels = [(':' in e and (e.split(':',1)[0].strip(),e.split(':',1)[-1].strip()) or (e,e)) for e in exprs]
             return labels
         
-    @QtCore.pyqtSignature("setRowLabels(QStringList)")
     def setRowLabels(self,rows):
         '''The model can be initialized as a list of devices or hosts or ...'''
         #self.setModelCheck(model) ##It must be included
@@ -459,7 +457,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.row_labels = []
         return       
     
-    @QtCore.pyqtSignature("setColumnLabels(QStringList)")
     def setColumnLabels(self,columns):
         '''The model can be initialized as a list of devices or hosts or ...'''
         #self.setModelCheck(model) ##It must be included
