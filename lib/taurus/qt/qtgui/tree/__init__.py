@@ -30,7 +30,4 @@ __docformat__ = 'restructuredtext'
 from .qtree import *
 from .taurustree import *
 from .taurusdbtree import *
-try:
- from .taurusdevicetree import *
-except:
- pass
+from .taurusdevicetree import *

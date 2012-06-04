@@ -694,7 +694,7 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
     ###########################################################################
     # New expand/search methods
             
-    @QtCore.pyqtSignature("expandNode")
+    #@QtCore.pyqtSignature("expandNode")
     def expandNode(self,node,expand=True):
         """ Needed to do threaded expansion of the tree """
         if isinstance(node,basestring,Qt.QString): name,node = str(node),self.getNode(node)
@@ -762,7 +762,7 @@ class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
     ###########################################################################
     # Update node colors
     
-    @QtCore.pyqtSignature("setIcons")
+    #@QtCore.pyqtSignature("setIcons")
     def setIcons(self,dct={},root_name=None,regexps=True):
         '''
         This method change the icons depending of the status of the devices
