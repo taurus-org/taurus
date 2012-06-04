@@ -446,7 +446,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         elif config.isImage():
             result = [TaurusValuesTableButton_W]
         else:
-            self.debug('Unsupported attribute type for writting: %s'% str(config.getType()))
+            self.debug('Unsupported attribute type for writing: %s'% str(config.getType()))
+            result = [None]
             
         if returnAll: return result
         else: return result[0]
