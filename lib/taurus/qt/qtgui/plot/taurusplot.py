@@ -43,8 +43,6 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
                            DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
-from taurus.qt.qtgui.panel import QDataExportDialog, QRawDataWidget
-from taurus.qt.qtgui.panel import TaurusModelChooser
 from curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 def isodatestr2float(s, sep='_'):
@@ -824,10 +822,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._supportedConfigVersions = ["tpc-1","tpc-1.1"] #the latest element of this list is considered the current version
 #        Logger.__init__(self)
 #        Qwt5.QwtPlot.__init__(self, parent)
-        
-        #The class to be used for the data export dialog (for allowing customization the data export dialog)
-        #See the exportAscii method for details on how the dialog widget will be instantiated.
-        self.exportDlgClass = QDataExportDialog
 
         #dictionary for default axes naming
         self._axesnames = {Qwt5.QwtPlot.xBottom:'X',Qwt5.QwtPlot.xTop:'X2',
@@ -2289,7 +2283,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 frozendata[k]=self.getCurveData(k)
         finally:
             self.curves_lock.release()
-        dialog = self.exportDlgClass(parent=self, datadict=frozendata)
+        klass = getattr(self,'exportDlgClass', None)
+        if klass is None:
+            from taurus.qt.qtgui.panel import QDataExportDialog
+            klass = QDataExportDialog
+        dialog = klass(parent=self, datadict=frozendata)
         dialog.setXIsTime(self.getXIsTime())
         return dialog.exec_()
 
@@ -2354,9 +2352,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         from files
         '''
         if self.DataImportDlg is None:
+            from taurus.qt.qtgui.panel import TaurusModelChooser
             self.DataImportDlg = Qt.QDialog(self)
             self.DataImportDlg.setWindowTitle("%s - Import Data"%(str(self.windowTitle())))
             self.DataImportDlg.modelChooser = TaurusModelChooser(selectables=[taurus.core.TaurusElementType.Attribute])
+            from taurus.qt.qtgui.panel import QRawDataWidget
             self.DataImportDlg.rawDataChooser = QRawDataWidget()
 
             tabs=Qt.QTabWidget()
