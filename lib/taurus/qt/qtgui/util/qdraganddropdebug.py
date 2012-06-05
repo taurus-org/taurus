@@ -23,6 +23,8 @@
 ##
 #############################################################################
 
+__all__ = ["DropDebugger"]
+__docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
 

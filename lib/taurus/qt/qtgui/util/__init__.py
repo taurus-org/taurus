@@ -33,3 +33,4 @@ from .taurusaction import *
 from .tauruscolor import *
 from .tauruswidgetfactory import *
 from .taurusscreenshot import *
+from .qdraganddropdebug import *
