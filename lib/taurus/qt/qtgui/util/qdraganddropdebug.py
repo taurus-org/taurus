@@ -46,9 +46,10 @@ class DropDebugger(Qt.QLabel):
     def dropEvent(self, event):
         '''reimplemented to support drag&drop of models. See :class:`QWidget`'''
         msg = '<b>MIMETYPE</b>: DATA. <ul>'
+        mimedata = event.mimeData()
         for format in mimedata.formats():
             data = mimedata.data(format)
-            msg += '<li><b>%s</b>: "%s"</li>'% (format, unicode(data))
+            msg += '<li><b>{0}</b>: "{1}"</li>'.format(format, data)
         msg+='</ul>'
         Qt.QMessageBox.information( self, "Drop event received", msg)
         
