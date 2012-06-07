@@ -92,6 +92,9 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         self._dev_hw_obj = self._getDev().getHWObj()
             
         self._subscribeEvents()
+
+    def __str__(self):
+        return self.getFullName()
         
     def _subscribeEvents(self):
         pass
