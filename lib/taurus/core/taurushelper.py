@@ -464,7 +464,7 @@ resetLogFormat = util.Logger.resetLogFormat
 enableLogOutput = util.Logger.enableLogOutput
 disableLogOutput = util.Logger.disableLogOutput
 
-log = util.log
+log = util._log
 trace = util.trace
 debug = util.debug
 info = util.info

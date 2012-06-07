@@ -29,7 +29,7 @@
 __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
-           "log", "trace", "debug", "info", "warning", "error", "critical"]
+           "_log", "trace", "debug", "info", "warning", "error", "critical"]
 
 __docformat__ = "restructuredtext"
 
@@ -853,11 +853,13 @@ class LogFilter(logging.Filter):
 def __getrootlogger():
     return Logger.getLogger("TaurusRootLogger")
     
-def log(level, msg, *args, **kw):
+# cannot export log because upper package taurus.core.util imports this 'log' 
+# module and it would itself be overwritten by this log function
+def _log(level, msg, *args, **kw):
     return __getrootlogger().log(level, msg, *args, **kw)
 
 def trace(msg, *args, **kw):
-    return log(Logger.Trace, msg, *args, **kw)
+    return _log(Logger.Trace, msg, *args, **kw)
 
 def debug(msg, *args, **kw):
     return __getrootlogger().debug(msg, *args, **kw)
