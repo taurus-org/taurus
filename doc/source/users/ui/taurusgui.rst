@@ -207,8 +207,8 @@ Switching to another perspective can be done using the `Load perspectives` drop-
 down button in the perspectives toolbar (or using the `View->Load perspective`
 option).
 
-Apart from the pre-defined perspectives, you can always alter the panel re-
-arrange panels and store your preferred arrangement as a perspective using the
+Apart from the pre-defined perspectives, you can always re-arrange panels and 
+store your preferred arrangement as a perspective using the
 `Save perspective` button in the perspectives toolbar (or using the `View->Save
 perspective` option).
 
@@ -254,12 +254,17 @@ related panels will be available:
 
 - `Macros`, :ref:`a macro executor <macroexecutor_ui>` widget. See :ref:`this <sequencer_ui>` for further information.
 - `Sequences`, :ref:`a macro sequencer <sequencer_ui>` widget. See :ref:`this <sequencer_ui>` for further information.
-- `1D Scans`, :ref:`a trend <trend_ui>` that plots the results of scan macro executions.
 - `MacroDescription`, a text panel which provides documentation on the selected macro.
 - `DoorOutput`, a text panel that logs the output of macro executions (similar to what 
   you would see if launching the macro in a `spock` console)
 - `DoorDebug`, a text panel that logs the debug messages of macro executions.
 - `DoorResult`, a text panel that logs the return value of the macro executions.
+- `Experiment Config`, `an experiment configuration <expconf_ui>` widget for configuring acquisition and display parameters
+- `Sardana Editor`, `a Sardana-aware code editor <sardanaeditor_ui>` for creating/modifying Sardana macros.
+
+Also, some other temporary panels may be dynamically created depending on the experiment configuration:
+
+- `1D Scans`, :ref:`a trend <trend_ui>` that plots the values of scalar attributes during some scan macro executions.
  
 .. note:: You can run `taurusgui macrogui` for seeing an example of a TaurusGUI-
           based application that provides the aforementioned panels
