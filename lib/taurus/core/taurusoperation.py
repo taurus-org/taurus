@@ -76,6 +76,5 @@ class WriteAttrOperation(TaurusOperation):
         self.value = value
 
     def execute(self):
-        print self.attr.getFullName(), self.value
         self.attr.write(self.value)
         TaurusOperation.execute(self)
