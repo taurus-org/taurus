@@ -5,7 +5,7 @@ Simply run this script and see the diagnosis in the std output.
 If you are affected, the solution is to install/compile a newer version of PyQwt/SIP 
 
 Notably, the python-qwt5-qt4 package originally shipped with 
-Ubuntu 10.10 is affected
+Ubuntu 10.10 and Debian 6 is affected
 
 In some systems, the bug produces a segfault while in some others it 
 produces an Assertion error similar to the following:
