@@ -279,19 +279,20 @@ def get_env_var(env_var_name):
 class TangoDatabase(taurus.core.TaurusDatabase):
 
     def __init__(self,host=None,port=None,parent=None):
-        
-        pars = host, port
+        pars = ()
         if host is None or port is None:
             try:
-                pars = TangoDatabase.get_default_tango_host().split(':')
+                host, port = TangoDatabase.get_default_tango_host().rsplit(':', 1)
+                pars = host, port
             except Exception, e:
-                pars = ()
                 print "Error getting env TANGO_HOST:", str(e)
+        else:
+            pars = host, port
         self.dbObj = PyTango.Database(*pars)
         self._dbProxy = None
         self._dbCache = None
         
-        complete_name = "%s:%s" % (self.dbObj.get_db_host(), self.dbObj.get_db_port())
+        complete_name = "%s:%s" % (host, port)
         self.call__init__(taurus.core.TaurusDatabase, complete_name, parent)
 
         try:
