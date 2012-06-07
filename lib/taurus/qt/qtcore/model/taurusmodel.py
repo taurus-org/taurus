@@ -372,7 +372,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
 
 
 class TaurusBaseProxyModel(Qt.QSortFilterProxyModel):
-    """A taurus database base Qt filter & sort model"""
+    """A taurus base Qt filter & sort model"""
      
     def __init__(self, parent=None):
         Qt.QSortFilterProxyModel.__init__(self, parent)

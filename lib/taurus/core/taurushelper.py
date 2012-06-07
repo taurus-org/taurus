@@ -62,7 +62,7 @@ def __translate_version_str2int(version_str):
     try:
         v += int(parts[0])
         l -= 1
-    except ValueError,ve:
+    except ValueError:
         return v
     if not l: return v
 
@@ -464,26 +464,14 @@ resetLogFormat = util.Logger.resetLogFormat
 enableLogOutput = util.Logger.enableLogOutput
 disableLogOutput = util.Logger.disableLogOutput
 
-def log(level, msg, *args, **kw):
-    return util.Logger.getRootLog().log(level, msg, *args, **kw)
+log = util.log
+trace = util.trace
+debug = util.debug
+info = util.info
+warning = util.warning
+error = util.error
+critical = util.critical
 
-def trace(msg, *args, **kw):
-    return log(Trace, msg, *args, **kw)
-
-def debug(msg, *args, **kw):
-    return util.Logger.getRootLog().debug(msg, *args, **kw)
-
-def info(msg, *args, **kw):
-    return util.Logger.getRootLog().info(msg, *args, **kw)
-
-def warning(msg, *args, **kw):
-    return util.Logger.getRootLog().warning(msg, *args, **kw)
-
-def error(msg, *args, **kw):
-    return util.Logger.getRootLog().error(msg, *args, **kw)
-
-def critical(msg, *args, **kw):
-    return util.Logger.getRootLog().critical(msg, *args, **kw)
 
 def changeDefaultPollingPeriod(period):
     Manager().changeDefaultPollingPeriod(period)

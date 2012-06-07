@@ -40,9 +40,9 @@ class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseModelWidget):
                  with_filter_widget=True, perspective=None, proxy=None):
         self.call__init__(QBaseTreeWidget, parent, designMode=designMode,
                           with_navigation_bar=with_navigation_bar,
-                          with_filter_widget=with_filter_widget)
-        self.call__init__(TaurusBaseModelWidget, designMode=designMode,
+                          with_filter_widget=with_filter_widget,
                           perspective=perspective, proxy=proxy)
+        self.call__init__(TaurusBaseModelWidget, designMode=designMode)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
