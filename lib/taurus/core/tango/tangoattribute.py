@@ -31,13 +31,12 @@ __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
 import time
-import numpy
 import threading
 import PyTango
 
 import taurus.core
 from taurus.core import TaurusEventType, TaurusSerializationMode, \
-    SubscriptionState
+    SubscriptionState, WriteAttrOperation
 from taurus.core.util import EventListener
 from enums import EVENT_TO_POLLING_EXCEPTIONS
 
@@ -209,7 +208,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         try:
             dev = self.getParentObj()
             name, value = self.getSimpleName(), self.encode(value)
-            if self.isUsingEvents():
+            if self.isUsingEvents() or not self.isReadWrite():
                 with_read = False
             if with_read:
                 try:
