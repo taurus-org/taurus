@@ -35,7 +35,7 @@ import time
 import threading
 
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
-    AttrQuality, TimeVal, ArgType
+    AttrQuality, TimeVal, ArgType, ApiUtil
 
 from taurus.core.util import ThreadPool
 from taurus.core.util.log import Logger
@@ -48,15 +48,15 @@ __thread_pool = None
 
 def get_thread_pool():
     """Returns the global pool of threads for Sardana
-    
+
     :return: the global pool of threads object
     :rtype: taurus.core.util.ThreadPool"""
-    
+
     global __thread_pool
-    
+
     if __thread_pool:
         return __thread_pool
-    
+
     global __thread_pool_lock
     with __thread_pool_lock:
         if __thread_pool is None:
@@ -80,7 +80,7 @@ class SardanaDevice(Device_4Impl, Logger):
         # Wa can't always use methods which use internally the
         # C++ AutoTangoMonitor because it blocks the entire tango device.
         self.tango_lock = threading.RLock()
-        
+
         self._event_thread_pool = get_thread_pool()
 
     def init(self, name):
@@ -90,7 +90,6 @@ class SardanaDevice(Device_4Impl, Logger):
             self._alias = self._get_nodb_device_info()[0]
         else:
             try:
-
                 self._alias = db.get_alias(name)
                 if self._alias.lower() == 'nada':
                     self._alias = None
@@ -103,7 +102,13 @@ class SardanaDevice(Device_4Impl, Logger):
 
     def get_full_name(self):
         db = Util.instance().get_database()
-        db_name = db.get_db_host() + ":" + db.get_db_port()
+        if db.get_from_env_var():
+            db_name = ApiUtil.get_env_var("TANGO_HOST")
+        else:
+            if db.is_dbase_used():
+                db_name = db.get_db_host() + ":" + db.get_db_port()
+            else:
+                db_name = db.get_file_name()
         return db_name + "/" + self.get_name()
 
     def init_device(self):
@@ -143,7 +148,7 @@ class SardanaDevice(Device_4Impl, Logger):
 
     def initialize_dynamic_attributes(self):
         pass
-    
+
     def get_event_thread_pool(self):
         return self._event_thread_pool
 
@@ -170,7 +175,7 @@ class SardanaDevice(Device_4Impl, Logger):
         return self._set_attribute_push(attr, value=value, timestamp=timestamp,
                                         quality=quality, error=error,
                                         priority=priority)
-        
+
     def _set_attribute_push(self, attr, value=None, timestamp=None,
                             quality=None, error=None, priority=1):
         fire_event = priority > 0
@@ -261,6 +266,13 @@ class SardanaDeviceClass(DeviceClass):
     def __init__(self, name):
         DeviceClass.__init__(self, name)
         self.set_type(name)
+        self.write_class_property()
+
+    def write_class_property(self):
+
+        props = dict(ProjectTitle="Sardana", Description="Generic description",
+                     doc_url="http://sardana-controls.org/")
+        #self.get_db_class().put_property(props)
 
     def dyn_attr(self, dev_list):
         for dev in dev_list:
