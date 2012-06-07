@@ -19,11 +19,11 @@ http://www.esrf.eu/mail_archives/tango/archive/msg04025.html
 from PyQt4 import Qt, Qwt5
 
 class MyScaleDrawSafe(Qwt5.QwtScaleDraw):
-    def __init__(self, format = None, palette = None):
+    def __init__(self):
         Qwt5.QwtScaleDraw.__init__(self)
 
 class MyScaleDrawDanger(Qwt5.QwtScaleDraw):
-    def __init__(self, format = None, palette = None):
+    def __init__(self):
         Qwt5.QwtScaleDraw.__init__(self)
 
     def label(self, val):
@@ -31,7 +31,7 @@ class MyScaleDrawDanger(Qwt5.QwtScaleDraw):
 
 
 class MyPlot(Qwt5.QwtPlot):
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent = None):
         Qwt5.QwtPlot.__init__(self, parent)
         self.setAxisScaleDraw(Qwt5.QwtPlot.xBottom, MyScaleDrawSafe())
         print "Replotting with MyScaleDrawSafe:..."
