@@ -37,6 +37,14 @@ from taurus.core import TaurusSWDevState, TaurusLockInfo, LockStatus
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
+class _TangoInfo(object):
+
+    def __init__(self):
+        self.dev_class = self.dev_type = 'TangoDevice'
+        self.doc_url = 'http://www.esrf.fr/computing/cs/tango/tango_doc/ds_doc/'
+        self.server_host = 'Unknown'
+        self.server_id = 'Unknown'
+        self.server_version = 1
                 
 class TangoDevice(taurus.core.TaurusDevice):
     def __init__(self, name, **kw):
@@ -72,7 +80,7 @@ class TangoDevice(taurus.core.TaurusDevice):
     def lock(self, force=False):
         li = self.getLockInfo()
         if force:
-            if self.getLockInfo().status == LockInfo.Locked:
+            if self.getLockInfo().status == TaurusLockInfo.Locked:
                 self.unlock(force=True)
         return self.getHWObj().lock()
 
@@ -202,4 +210,22 @@ class TangoDevice(taurus.core.TaurusDevice):
                 v, err = da, None
             attr = attrs[da.name]
             attr.poll(single=False, value=v, error=err, time=t)
-            
+    
+    def _repr_html_(self):
+        try:
+            info = self.getHWObj().info()
+        except:
+            info = _TangoInfo()
+        txt = """\
+<table>
+    <tr><td>Short name</td><td>{simple_name}</td></tr>
+    <tr><td>Standard name</td><td>{normal_name}</td></tr>
+    <tr><td>Full name</td><td>{full_name}</td></tr>
+    <tr><td>Device class</td><td>{dev_class}</td></tr>
+    <tr><td>Server</td><td>{server_id}</td></tr>
+    <tr><td>Documentation</td><td><a target="_blank" href="{doc_url}">{doc_url}</a></td></tr>
+</table>
+""".format(simple_name=self.getSimpleName(), normal_name=self.getNormalName(),
+           full_name=self.getFullName(), dev_class=info.dev_class,
+           server_id=info.server_id, doc_url=info.doc_url)
+        return txt
