@@ -214,22 +214,32 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
 
         return positions
 
-    def get_siblings_write_positions(self, with_physical_positions=None):
+    def get_siblings_write_positions(self, with_physical_positions=None, use=None):
         positions = {}
+        if use is None:
+            use = {}
         for sibling in self.siblings:
-            pos = sibling.get_w_position(
-                with_physical_positions=with_physical_positions)
+            if sibling in use:
+                pos = use[sibling]
+            else:
+                pos = sibling.get_w_position(
+                    with_physical_positions=with_physical_positions)
             if pos is None:
                 pos = sibling.calc_pseudo(
                     physical_positions=with_physical_positions)
             positions[sibling] = pos
         return positions
 
-    def get_siblings_positions(self, with_physical_positions=None):
+    def get_siblings_positions(self, with_physical_positions=None, use=None):
         positions = {}
+        if use is None:
+            use = {}
         for sibling in self.siblings:
-            pos = sibling.calc_pseudo(
-                physical_positions=with_physical_positions)
+            if sibling in use:
+                pos = use[sibling], None
+            else:
+                pos = sibling.calc_pseudo(
+                    physical_positions=with_physical_positions)
             positions[sibling] = pos
         return positions
 
@@ -374,14 +384,25 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # motion calculation
     # ------------------------------------------------------------------------
 
-    def calculate_motion(self, new_position, items=None):
+    def calculate_motion(self, new_position, items=None, calculated=None):
+        # if the items already contains the positions for this pseudo motor 
+        # underlying motors it means the motion has been already been calculated
+        # by a sibling
+        if items is not None and len(items):
+            physical_elements = self.get_physical_elements_set()
+            s_items = set(items)
+            if s_items == physical_elements:
+                if self in calculated:
+                    return
+    
         user_elements = self.get_user_elements()
         physical_positions = self.get_physical_positions()
-        positions = self.get_siblings_positions(physical_positions)
+        positions = self.get_siblings_positions(physical_positions, use=calculated)
         positions[self] = new_position, None
-        pseudo_positions, curr_physical_positions = len(positions)*[None],[]
+        pseudo_positions = len(positions)*[None]
         for pseudo, position in positions.items():
             pseudo_positions[pseudo.axis-1] = position[0]
+        curr_physical_positions = []
         for user_element in user_elements:
             curr_physical_positions.append(physical_positions[user_element].value)
         physical_positions, exc_info = \

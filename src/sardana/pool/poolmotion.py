@@ -244,8 +244,8 @@ class PoolMotion(PoolAction):
                 raise
 
     def start_action(self, *args, **kwargs):
-        """items -> dict<moveable, (pos, dial, do_backlash, backlash)"""
-
+        """kwargs['items'] is a dict<moveable, (pos, dial, do_backlash, backlash)
+        """
         items = kwargs.pop("items")
 
         pool = self.pool
@@ -260,10 +260,16 @@ class PoolMotion(PoolAction):
                        pool.motion_loop_states_per_position)
 
         self._motion_info = motion_info = {}
+        msg = []
         for moveable, motion_data in items.items():
             it = moveable.instability_time
             motion_info[moveable] = PoolMotionItem(moveable, *motion_data,
                                                    instability_time=it)
+            m = "{0} pos={1}, dial={2}, do_backlash={3}, " \
+                "dial_backlash={4}".format(moveable.name, *motion_data)
+            msg.append(m)
+
+        self.debug("Start motion:\n%s", "\n".join(msg))
 
         pool_ctrls = self.get_pool_controller_list()
         moveables = self.get_elements()
