@@ -308,6 +308,11 @@ class PoolElement(BaseElement, TangoDevice):
         if self._reserved is None: return None
         return self._reserved()
 
+    def dump_attributes(self):
+        attr_names = self.get_attribute_list()
+        req_id = self.read_attributes_asynch(attr_names)
+        return self.read_attributes_reply(req_id, 2000)
+
     def _getAttrValue(self, name, force=False):
         attrEG = self._getAttrEG(name)
         if attrEG is None: return None
