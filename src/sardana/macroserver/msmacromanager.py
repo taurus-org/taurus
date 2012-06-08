@@ -414,7 +414,6 @@ class MacroManager(MacroServerManager):
         old_macro_lib = self._modules.pop(module_name, None)
         if old_macro_lib is not None:
             for macro in old_macro_lib.get_macros():
-                self.info("Removing macro %s(%d) - %s", macro.name, id(macro), macro.description)
                 self._macro_dict.pop(macro.name)
 
         mod_manager = ModuleManager()
@@ -1104,7 +1103,7 @@ class MacroExecutor(Logger):
             self.debug("[ENDEX] (%s) runMacro %s" % (macro_exp.__class__.__name__, name))
             if isinstance(macro_exp, MacroServerException) and macro_obj.parent_macro is None:
                 door.debug(macro_exp.traceback)
-                door.error("An error occured while running macro %s:\n%s" % (macro_obj.description, macro_exp.msg))
+                door.error("An error occured while running %s:\n%s" % (macro_obj.description, macro_exp.msg))
             self._popMacro()
             raise macro_exp
         self.debug("[ END ] runMacro %s" % desc)
