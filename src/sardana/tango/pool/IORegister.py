@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -61,7 +61,7 @@ class IORegister(PoolElementDevice):
         self.element = ior
 
     ior = property(get_ior, set_ior)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
@@ -88,7 +88,7 @@ class IORegister(PoolElementDevice):
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-        
+
         timestamp = time.time()
         name = event_type.name.lower()
         multi_attr = self.get_device_attr()
@@ -99,7 +99,7 @@ class IORegister(PoolElementDevice):
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
-        
+
         if name == "state":
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -110,15 +110,15 @@ class IORegister(PoolElementDevice):
                     error = Except.to_dev_failed(*event_value.exc_info)
                 timestamp = event_value.timestamp
                 event_value = event_value.value
-                
+
             state = self.ior.get_state(propagate=0)
-            
+
             if state == State.Moving and name == "value":
                 quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-        
+
     def always_executed_hook(self):
         #state = to_tango_state(self.ior.get_state(cache=False))
         pass
@@ -128,10 +128,10 @@ class IORegister(PoolElementDevice):
 
     def initialize_dynamic_attributes(self):
         attrs = PoolElementDevice.initialize_dynamic_attributes(self)
-        
+
         detect_evts = "value",
         non_detect_evts = ()
-        
+
         for attr_name in detect_evts:
             if attrs.has_key(attr_name):
                 self.set_change_event(attr_name, True, True)
@@ -139,22 +139,22 @@ class IORegister(PoolElementDevice):
             if attrs.has_key(attr_name):
                 self.set_change_event(attr_name, True, False)
         return
-        
+
     def read_Value(self, attr):
         attr.set_value(self.ior.get_value(cache=False))
-    
+
     def write_Value(self, attr):
         value = attr.get_write_value()
         self.ior.set_value(value)
-    
+
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
             return False
         return True
-    
+
     def Start(self):
         self.ior.start_acquisition()
-    
+
 
 class IORegisterClass(PoolElementDeviceClass):
 
@@ -182,3 +182,9 @@ class IORegisterClass(PoolElementDeviceClass):
                         { 'Memorized'     : "true_without_hard_applied", }, ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
+
+    def _get_class_properties(self):
+        ret = PoolElementDeviceClass._get_class_properties(self)
+        ret['Description'] = "IORegister device class"
+        ret['InheritedFrom'].insert(0, 'PoolElementDevice')
+        return ret

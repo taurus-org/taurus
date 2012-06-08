@@ -340,6 +340,12 @@ class PoolDeviceClass(SardanaDeviceClass):
 
     standard_attr_list = {}
 
+    def _get_class_properties(self):
+        ret = SardanaDeviceClass._get_class_properties(self)
+        ret['Description'] = "Generic Pool device class"
+        ret['InheritedFrom'].insert(0, 'SardanaDevice')
+        return ret
+
 
 class PoolElementDevice(PoolDevice):
     """Base Tango Pool Element Device class"""
@@ -463,6 +469,12 @@ class PoolElementDeviceClass(PoolDeviceClass):
     def get_standard_attr_info(self, attr):
         return self.standard_attr_list[attr]
 
+    def _get_class_properties(self):
+        ret = PoolDeviceClass._get_class_properties(self)
+        ret['Description'] = "Generic Pool element device class"
+        ret['InheritedFrom'].insert(0, 'PoolDevice')
+        return ret
+
 
 class PoolGroupDevice(PoolDevice):
     """Base Tango Pool Group Device class"""
@@ -501,3 +513,9 @@ class PoolGroupDeviceClass(PoolDeviceClass):
         'ElementList'  : [ [ DevString, SPECTRUM, READ, 4096] ],
     }
     attr_list.update(PoolDeviceClass.attr_list)
+
+    def _get_class_properties(self):
+        ret = PoolDeviceClass._get_class_properties(self)
+        ret['Description'] = "Generic Pool group device class"
+        ret['InheritedFrom'].insert(0, 'PoolDevice')
+        return ret

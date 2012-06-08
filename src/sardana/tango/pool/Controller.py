@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -65,13 +65,13 @@ class Controller(PoolDevice):
 
     def set_ctrl(self, ctrl):
         self.element = ctrl
-    
+
     ctrl = property(get_ctrl, set_ctrl)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolDevice.delete_device(self)
-    
+
     @DebugIt()
     def init_device(self):
         PoolDevice.init_device(self)
@@ -94,7 +94,7 @@ class Controller(PoolDevice):
             self.set_status(ctrl.get_status())
         else:
             ctrl.re_init()
-    
+
     def _get_ctrl_properties(self):
         try:
             ctrl_info = self.pool.get_controller_class_info(self.Klass)
@@ -102,10 +102,10 @@ class Controller(PoolDevice):
         except:
             return {}
         db = Util.instance().get_database()
-        
+
         if db is None:
             return {}
-        
+
         props = {}
         if prop_infos:
             props.update(db.get_device_property(self.get_name(), prop_infos.keys()))
@@ -123,7 +123,7 @@ class Controller(PoolDevice):
                 continue
             prop_info = prop_infos[prop_name]
             dtype, dformat = prop_info.dtype, prop_info.dformat
-            
+
             op = str
             if dtype == DataType.Integer:
                 op = int
@@ -135,46 +135,46 @@ class Controller(PoolDevice):
             if dformat == DataFormat.Scalar:
                 prop_value = prop_value[0]
             ret[prop_name] = prop_value
-        
+
         if missing_props:
             self.set_state(DevState.ALARM)
             missing_props = ", ".join(missing_props)
             self.set_status("Controller has missing properties: %s"
                             % missing_props)
-        
+
         return ret
-    
+
     def always_executed_hook(self):
         pass
-    
+
     def read_attr_hardware(self,data):
         pass
-    
+
     def dev_state(self):
         if self.ctrl is None or not self.ctrl.is_online():
             return DevState.FAULT
         return DevState.ON
-    
+
     def dev_status(self):
         if self.ctrl is None or not self.ctrl.is_online():
             self._status = self.ctrl.get_ctrl_error_str()
         else:
             self._status = PoolDevice.dev_status(self)
         return self._status
-    
+
     def read_ElementList(self, attr):
         attr.set_value(self.get_element_names())
 
     def CreateElement(self, argin):
         pass
-    
+
     def DeleteElement(self, argin):
         pass
-    
+
     def get_element_names(self):
         elements = self.ctrl.get_elements()
         return [ elements[id].get_name() for id in sorted(elements) ]
-    
+
     def on_controller_changed(self, event_src, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -190,7 +190,7 @@ class Controller(PoolDevice):
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
-        
+
         if name == "state":
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -204,7 +204,7 @@ class Controller(PoolDevice):
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-        
+
     def get_dynamic_attributes(self):
         if hasattr(self, "_dynamic_attributes_cache"):
             return self._standard_attributes_cache, self._dynamic_attributes_cache
@@ -218,24 +218,24 @@ class Controller(PoolDevice):
             name, tg_info = to_tango_attr_info(attr_name, attr_data)
             dyn_attrs[attr_name] = attr_name, tg_info, attr_data
         return std_attrs, dyn_attrs
-    
+
     def read_DynamicAttribute(self, attr):
         attr_name = attr.get_name()
         attr.set_value(self.ctrl.get_ctrl_attr(attr_name))
-    
+
     def write_DynamicAttribute(self, attr):
         v = attr.get_write_value()
         attr_name = attr.get_name()
         self.ctrl.set_ctrl_attr(attr_name, v)
-    
+
     def read_LogLevel(self, attr):
         l = self.ctrl.get_log_level()
         self.debug(l)
         attr.set_value(l)
-    
+
     def write_LogLevel(self, attr):
         self.ctrl.set_log_level(attr.get_write_value())
-    
+
 
 class ControllerClass(PoolDeviceClass):
 
@@ -269,4 +269,10 @@ class ControllerClass(PoolDeviceClass):
                              'Display level' : DispLevel.EXPERT } ],
         }
     attr_list.update(PoolDeviceClass.attr_list)
+
+    def _get_class_properties(self):
+        ret = PoolDeviceClass._get_class_properties(self)
+        ret['Description'] = "Controller device class"
+        ret['InheritedFrom'].insert(0, 'PoolDevice')
+        return ret
 

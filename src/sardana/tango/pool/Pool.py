@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -47,9 +47,9 @@ from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
 
 
 class Pool(PyTango.Device_4Impl, Logger):
-    
+
     ElementsCache = None
-    
+
     def __init__(self,cl, name):
         PyTango.Device_4Impl.__init__(self,cl,name)
         Logger.__init__(self, name)
@@ -64,11 +64,11 @@ class Pool(PyTango.Device_4Impl, Logger):
                 alias = None
         except:
             alias = None
-        
+
         if alias is None:
             alias = PyTango.Util.instance().get_ds_inst_name()
-        
-        
+
+
         self._pool = POOL(self.get_full_name(), alias)
         self._pool.add_listener(self.on_pool_changed)
 
@@ -76,16 +76,16 @@ class Pool(PyTango.Device_4Impl, Logger):
         db = PyTango.Util.instance().get_database()
         db_name = db.get_db_host() + ":" + db.get_db_port()
         return db_name + "/" + self.get_name()
-    
+
     @property
     def pool(self):
         return self._pool
-    
+
     @DebugIt()
     def delete_device(self):
         #self.pool.monitor.pause()
         pass
-    
+
     @DebugIt()
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
@@ -107,7 +107,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.set_change_event("Elements", True, False)
         #hold the monitor thread for now!
         #self.pool.monitor.resume()
-        
+
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)
         p = self.pool
@@ -122,7 +122,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 pass
             else:
                 p.create_instrument(iname, iklass, id=iid)
-    
+
     #@DebugIt()
     def always_executed_hook(self):
         pass
@@ -140,7 +140,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_ControllerClassList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.ControllerClass)
         attr.set_value(info)
-        
+
     #@PyTango.DebugIt(show_args=True,show_ret=True)
     def read_ControllerList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.Controller)
@@ -157,38 +157,38 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_ExpChannelList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.CTExpChannel)
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_AcqChannelList(self, attr):
         info = self.pool.get_acquisition_elements_str_info()
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_MotorGroupList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.MotorGroup)
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_MotorList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.Motor)
         info.extend(self.pool.get_elements_str_info(ElementType.PseudoMotor))
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_MeasurementGroupList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.MeasurementGroup)
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_IORegisterList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.IORegister)
         attr.set_value(info)
-    
+
     #@DebugIt()
     def read_ComChannelList(self, attr):
         info = self.pool.get_elements_str_info(ElementType.Communication)
         attr.set_value(info)
-    
+
     #@DebugIt()
     def getElements(self, cache=True):
         value = self.ElementsCache
@@ -198,12 +198,12 @@ class Pool(PyTango.Device_4Impl, Logger):
         value = CodecFactory().encode('json', ('', value))
         self.ElementsCache = value
         return value
-    
+
     #@DebugIt()
     def read_Elements(self, attr):
         element_list = self.getElements()
         attr.set_value(*element_list)
-    
+
     def _get_interface_ids(self, interface, elem_names):
         _pool, motor_ids = self.pool, []
         for elem_name in elem_names:
@@ -217,19 +217,19 @@ class Pool(PyTango.Device_4Impl, Logger):
                                 % (element.name, Interface[elem_interface]))
             motor_ids.append(element.id)
         return motor_ids
-    
+
     def _get_moveable_ids(self, elem_names):
         return self._get_interface_ids(Interface.Moveable, elem_names)
-    
+
     def _get_acquirable_ids(self, elem_names):
         return self._get_interface_ids(Interface.Acquirable, elem_names)
-    
+
     #@DebugIt()
     def CreateController(self, argin):
         kwargs = self._format_CreateController_arguments(argin)
         # TODO: Support in future sequence of elements
         kwargs = kwargs[0]
-        
+
         type_str = kwargs['type']
         lib = kwargs['library']
         class_name = kwargs['klass']
@@ -238,35 +238,35 @@ class Pool(PyTango.Device_4Impl, Logger):
         elem_type = ElementType[type_str]
         mod_name, ext = os.path.splitext(lib)
         kwargs['module'] = mod_name
-        
+
         td = TYPE_MAP_OBJ[ElementType.Controller]
         auto_full_name = td.auto_full_name
         ctrl_class = td.ctrl_klass
 
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
         util = PyTango.Util.instance()
-        
+
         # check that element doesn't exist yet
         self._check_element(name, full_name)
-        
+
         # check library exists
         ctrl_manager = self.pool.ctrl_manager
         mod_name, ext = os.path.splitext(lib)
         ctrl_lib = ctrl_manager.getControllerLib(mod_name)
         if ctrl_lib is None:
             raise Exception("Controller library '%s' not found" % lib)
-        
+
         # check class exists
         ctrl_class = ctrl_lib.get_controller(class_name)
         if ctrl_class is None:
             raise Exception("Controller class '%s' not found in '%s'"
                             % (class_name, lib))
-        
+
         # check that class type matches the required type
         if not elem_type in ctrl_class.types:
             raise Exception("Controller class '%s' does not implement '%s' "
                             "interface" % (class_name, type_str))
-        
+
         # check that necessary property values are set
         for prop_name, prop_info in ctrl_class.ctrl_properties.items():
             prop_value = properties.get(prop_name)
@@ -277,7 +277,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 properties[prop_name] = prop_info.default_value
             else:
                 properties[prop_name] = prop_value
-        
+
         # for pseudo motor check that motors are given
         if elem_type == ElementType.PseudoMotor:
             klass_roles = ctrl_class.controller_class.motor_roles
@@ -299,7 +299,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 motor_name = roles[klass_role]
                 motor_ids.extend(self._get_moveable_ids((motor_name,)))
             properties['motor_role_ids'] = motor_ids
-            
+
             pseudo_motor_infos = {}
             pseudo_motor_ids = []
             for i, klass_pseudo_role in enumerate(klass_pseudo_roles):
@@ -339,7 +339,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 counter_name = roles[klass_role]
                 counter_ids.extend(self._get_acquirable_ids((counter_name,)))
             properties['counter_role_ids'] = counter_ids
-            
+
             pseudo_counter_infos = {}
             pseudo_counter_ids = []
             for i, klass_pseudo_role in enumerate(klass_pseudo_roles):
@@ -357,11 +357,11 @@ class Pool(PyTango.Device_4Impl, Logger):
                 pseudo_counter_infos[klass_pseudo_role] = info
                 pseudo_counter_ids.append(pc_id)
             properties['pseudo_counter_role_ids'] = pseudo_counter_ids
-            
+
         properties['type'] = type_str
         properties['library'] = lib
         properties['klass'] = class_name
-        
+
         def create_controller_cb(device_name):
             try:
                 db = util.get_database()
@@ -372,10 +372,10 @@ class Pool(PyTango.Device_4Impl, Logger):
                 self.warning("Unexpected error in controller creation callback",
                              exc_info=True)
                 raise
-        
+
         util.create_device('Controller', full_name, name,
                            cb=create_controller_cb)
-        
+
         # Determine which controller writtable attributes have default value
         # and apply them to the newly created controller
         attrs = []
@@ -391,7 +391,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 self.warning("Error trying to write controller default value "
                              "for attribute(s)", exc_info=1)
-        
+
         # for pseudo motor/counter controller also create pseudo
         # motor(s)/counter(s) automatically
         if elem_type == ElementType.PseudoMotor:
@@ -400,7 +400,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         elif elem_type == ElementType.PseudoCounter:
             for pseudo_counter_info in pseudo_counter_infos.values():
                 self._create_single_element(pseudo_counter_info)
-    
+
     #@DebugIt()
     def CreateInstrument(self, argin):
         instrument = self.pool.create_instrument(*argin)
@@ -412,13 +412,13 @@ class Pool(PyTango.Device_4Impl, Logger):
         db = PyTango.Util.instance().get_database()
         props = { 'InstrumentList' : instrument_list }
         db.put_device_property(self.get_name(), props)
-    
+
     #@DebugIt()
     def CreateElement(self, argin):
         kwargs_seq = self._format_CreateElement_arguments(argin)
         for kwargs in kwargs_seq:
             self._create_single_element(kwargs)
-    
+
     def _create_single_element(self, kwargs):
         elem_type_str = kwargs['type']
         ctrl_name = kwargs['ctrl_name']
@@ -432,16 +432,16 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         td = TYPE_MAP_OBJ[elem_type]
         auto_full_name = td.auto_full_name
-        
+
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
-        
+
         ctrl = self.pool.get_element(name=ctrl_name)
-        
+
         if ctrl.get_type() != ElementType.Controller:
             type_str = ElementType.whatis(ctrl.get_type())
             raise Exception("'%s' is not a controller (It is a %s)" %
                             (ctrl_name, type_str))
-        
+
         ctrl_types, ctrl_id = ctrl.get_ctrl_types(), ctrl.get_id()
         if elem_type not in ctrl_types:
             ctrl_type_str = ElementType.whatis(ctrl_types[0])
@@ -452,7 +452,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         if elem_axis is not None:
             raise Exception("Controller already contains axis %d (%s)" %
                             (axis, elem_axis.get_name()))
-        
+
         self._check_element(name, full_name)
 
         util = PyTango.Util.instance()
@@ -464,7 +464,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                          "ctrl_id" : ctrl.get_id(), "axis" : axis, }
                 if elem_type in TYPE_PSEUDO_ELEMENTS:
                     data['elements'] = kwargs['elements']
-                    
+
                 db.put_device_property(device_name, data)
 
                 data = {}
@@ -484,9 +484,9 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 import traceback
                 traceback.print_exc()
-        
+
         util.create_device(elem_type_str, full_name, name, cb=create_element_cb)
-        
+
         # Hack to register event abs change until tango bug #3151801 is solved
         elem_proxy = PyTango.DeviceProxy(full_name)
         cfg = []
@@ -527,9 +527,9 @@ class Pool(PyTango.Device_4Impl, Logger):
             attr.events.ch_event.abs_change = "1"
             cfg.append(attr)
         elem_proxy.set_attribute_config(cfg)
-        
+
         return
-        
+
         # Determine which writtable attributes have default value and apply
         # them to the newly created element
         ctrl_class_info = ctrl.get_ctrl_info()
@@ -546,13 +546,13 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 self.warning("Error trying to write default value for "
                              "attribute(s)", exc_info=1)
-                
+
     #@DebugIt()
     def CreateMotorGroup(self, argin):
         kwargs = self._format_CreateMotorGroup_arguments(argin)
         # TODO: Support in future sequence of elements
         kwargs = kwargs[0]
-        
+
         util = PyTango.Util.instance()
 
         name = kwargs['name']
@@ -562,11 +562,11 @@ class Pool(PyTango.Device_4Impl, Logger):
         auto_full_name = td.auto_full_name
 
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
-        
+
         self._check_element(name, full_name)
-        
+
         elem_ids = self._get_moveable_ids(kwargs["elements"])
-        
+
         def create_motgrp_cb(device_name):
             db = util.get_database()
             data = { "id" : self.pool.get_new_id(),
@@ -575,17 +575,17 @@ class Pool(PyTango.Device_4Impl, Logger):
 
             data = {}
             data["position"] = { "abs_change" : "1.0" }
-            
+
             db.put_device_attribute_property(device_name, data)
-            
+
         util.create_device("MotorGroup", full_name, name, cb=create_motgrp_cb)
-        
+
     #@DebugIt()
     def CreateMeasurementGroup(self, argin):
         kwargs = self._format_CreateMeasurementGroup_arguments(argin)
         # TODO: Support in future sequence of elements
         kwargs = kwargs[0]
-        
+
         util = PyTango.Util.instance()
 
         name = kwargs['name']
@@ -595,9 +595,9 @@ class Pool(PyTango.Device_4Impl, Logger):
         auto_full_name = td.auto_full_name
 
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
-        
+
         self._check_element(name, full_name)
-        
+
         elem_ids = []
         for elem_name in kwargs["elements"]:
             # if internal pool element (channel, motor, ioregister, etc) store
@@ -608,7 +608,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 # otherwise assume a tango attribute/command
                 elem_ids.append(elem_name)
-        
+
         def create_mntgrp_cb(device_name):
             db = util.get_database()
             data = { "id" : self.pool.get_new_id(),
@@ -616,12 +616,12 @@ class Pool(PyTango.Device_4Impl, Logger):
             db.put_device_property(device_name, data)
 
             data = { }
-            
+
             db.put_device_attribute_property(device_name, data)
-            
+
         util.create_device("MeasurementGroup", full_name, name,
                            cb=create_mntgrp_cb)
-        
+
     def _check_element(self, name, full_name):
         self.pool.check_element(name, full_name)
         db = PyTango.Util.instance().get_database()
@@ -632,14 +632,14 @@ class Pool(PyTango.Device_4Impl, Logger):
         except:
             pass
         if e: raise e
-        
+
         try:
             db.import_device(full_name)
             e = Exception("The tango device '%s' already exists" % full_name)
         except:
             pass
         if e: raise e
-    
+
     def on_pool_changed(self, evt_src, evt_type, evt_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -655,15 +655,15 @@ class Pool(PyTango.Device_4Impl, Logger):
             attribute_list_name = td.family + "List"
             info = self.pool.get_elements_str_info(elem_type)
             self.push_change_event(attribute_list_name, info)
-            
+
             if elem_type in TYPE_ACQUIRABLE_ELEMENTS:
                 info = self.pool.get_acquisition_elements_str_info()
                 self.push_change_event('AcqChannelList', info)
-            
+
             # force the element list cache to be rebuild next time someone reads
             # the element list
             self.ElementsCache = None
-            
+
             value = { }
             if "created" in evt_name:
                 key = 'new'
@@ -692,7 +692,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                       "del" : deleted_values }
             value = CodecFactory().getCodec('json').encode(('', value))
             self.push_change_event('Elements', *value)
-            
+
     def _format_create_json_arguments(self, argin):
         elems, ret = json.loads(argin[0]), []
         if operator.isMappingType(elems):
@@ -703,20 +703,20 @@ class Pool(PyTango.Device_4Impl, Logger):
                 d[str(k)] = str(v)
             ret.append(d)
         return ret
-    
+
     def _format_CreateElement_arguments(self, argin):
         if len(argin) == 0:
             msg = PoolClass.cmd_list["CreateElement"][0][1]
             raise Exception(msg)
         if len(argin) == 1:
             return self._format_create_json_arguments(argin)
-            
-        ret = { 'type' : argin[0], 'ctrl_name' : argin[1], 'axis': int(argin[2]), 
+
+        ret = { 'type' : argin[0], 'ctrl_name' : argin[1], 'axis': int(argin[2]),
                 'name' : argin[3] }
         if len(argin) > 4:
             ret['full_name'] = argin[4]
         return [ret]
-    
+
     def _format_CreateController_arguments(self, argin):
         if len(argin) == 0:
             msg = PoolClass.cmd_list["CreateController"][0][1]
@@ -734,10 +734,10 @@ class Pool(PyTango.Device_4Impl, Logger):
             if not ret.has_key('properties'):
                 ret['properties'] = CaselessDict()
             return ret
-        
-        ret = { 'type' : argin[0], 'library' : argin[1], 'klass' : argin[2], 
+
+        ret = { 'type' : argin[0], 'library' : argin[1], 'klass' : argin[2],
                 'name' : argin[3] }
-        
+
         i = 4
         roles = {}
         for arg in argin[4:]:
@@ -747,10 +747,10 @@ class Pool(PyTango.Device_4Impl, Logger):
             role_name, role_element = role_data
             roles[role_name] = role_element
             i += 1
-        
+
         if len(roles) > 0:
             ret['roles'] = roles
-        
+
         p = argin[i:]
         if len(p) % 2:
             raise Exception("must give pair of property name, property value")
@@ -759,7 +759,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             props[name] = value
         ret['properties'] = props
         return [ret]
-            
+
     def _format_CreateMotorGroup_arguments(self, argin):
         if len(argin) == 0:
             msg = PoolClass.cmd_list["CreateMotorGroup"][0][1]
@@ -784,7 +784,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             del argin[-1]
         ret['elements'] = argin[1:]
         return [ret]
-    
+
     def _format_CreateMeasurementGroup_arguments(self, argin):
         if len(argin) == 0:
             msg = PoolClass.cmd_list["CreateMeasurementGroup"][0][1]
@@ -820,14 +820,14 @@ class Pool(PyTango.Device_4Impl, Logger):
                     channels.append(arg)
         ret['elements'] = channels
         return [ret]
-        
+
     #@DebugIt()
     def DeleteElement(self, name):
         try:
             elem = self.pool.get_element(full_name=name)
         except:
             elem = self.pool.get_element(name=name)
-            
+
         elem_type = elem.get_type()
         if elem_type == ElementType.Controller:
             if len(elem.get_elements()) > 0:
@@ -836,9 +836,9 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         td = TYPE_MAP_OBJ[elem_type]
         type_name = td.name
-        
+
         full_name = elem.get_full_name()
-        
+
         self.pool.delete_element(name)
         if elem_type == ElementType.Instrument:
             # update database property
@@ -851,7 +851,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         else:
             util = PyTango.Util.instance()
             util.delete_device(type_name, full_name)
-    
+
     #@DebugIt()
     def GetControllerClassInfo(self, names):
         if names.startswith('['):
@@ -871,7 +871,7 @@ class Pool(PyTango.Device_4Impl, Logger):
     #@DebugIt()
     def ReloadControllerLib(self, lib_name):
         self.pool.reload_controller_lib(lib_name)
-        
+
     #@DebugIt()
     def ReloadControllerClass(self, class_name):
         self.pool.reload_controller_class(class_name)
@@ -883,18 +883,18 @@ class Pool(PyTango.Device_4Impl, Logger):
         if lib is None:
             raise Exception("Unknown controller file '%s'", name)
         return lib.f_path, "".join(lib.getCode())
-    
+
     def PutFile(self, file_data):
         p = self.pool
         manager = p.ctrl_manager
         manager.setControllerLib(*file_data)
-    
+
     def Stop(self):
         self.pool.stop()
-    
+
     def Abort(self):
         self.pool.abort()
-    
+
     def SendToController(self, stream):
         ctrl_name, stream = stream[:2]
         ctrl = self.pool.get_element_by_name(ctrl_name)
@@ -964,7 +964,7 @@ class PoolClass(PyTango.DeviceClass):
             POOL.Default_AcqLoop_StatesPerValue ],
         'LogPort':
             [PyTango.DevLong,
-            "Logging (python logging) port [default: %d]" % 
+            "Logging (python logging) port [default: %d]" %
             logging.handlers.DEFAULT_TCP_LOGGING_PORT,
             logging.handlers.DEFAULT_TCP_LOGGING_PORT ],
         'InstrumentList':
@@ -1139,3 +1139,15 @@ class PoolClass(PyTango.DeviceClass):
     def __init__(self, name):
         PyTango.DeviceClass.__init__(self, name)
         self.set_type(name)
+
+    def _get_class_properties(self):
+        return dict(ProjectTitle="Sardana", Description="Device Pool management class",
+                    doc_url="http://sardana-controls.org/",
+                    InheritedFrom="Device_4Impl")
+
+    def write_class_property(self):
+        util = PyTango.Util.instance()
+        db = util.get_database()
+        if db is None:
+            return
+        db.put_class_property(self.get_name(), self._get_class_properties())

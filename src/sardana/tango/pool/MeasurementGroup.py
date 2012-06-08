@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -44,26 +44,26 @@ from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
 class MeasurementGroup(PoolGroupDevice):
-    
+
     def __init__(self, dclass, name):
         PoolGroupDevice.__init__(self, dclass, name)
         MeasurementGroup.init_device(self)
 
     def init(self, name):
         PoolGroupDevice.init(self, name)
-    
+
     def get_measurement_group(self):
         return self.element
-    
+
     def set_measurement_group(self, measurement_group):
         self.element = measurement_group
-    
+
     measurement_group = property(get_measurement_group, set_measurement_group)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
-    
+
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
@@ -72,7 +72,7 @@ class MeasurementGroup(PoolGroupDevice):
         non_detect_evts = "configuration", "integrationtime", "monitorcount", \
                           "acquisitionmode", "elementlist"
         self.set_change_events(detect_evts, non_detect_evts)
-        
+
         self.Elements = list(self.Elements)
         for i in range(len(self.Elements)):
             try:
@@ -89,9 +89,9 @@ class MeasurementGroup(PoolGroupDevice):
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
         #state = self.measurement_group.state
-        
+
     def on_measurement_group_changed(self, event_source, event_type, event_value):
-        
+
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
@@ -103,12 +103,12 @@ class MeasurementGroup(PoolGroupDevice):
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
-        
+
         recover = False
         if event_type.priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
-        
+
         try:
             if name == "state":
                 state = self.calculate_tango_state(event_value)
@@ -139,11 +139,11 @@ class MeasurementGroup(PoolGroupDevice):
         finally:
             if recover:
                 attr.set_change_event(True, True)
-                
+
     def always_executed_hook(self):
-        pass 
+        pass
         #state = to_tango_state(self.motor_group.get_state(cache=False))
-    
+
     def read_attr_hardware(self,data):
         pass
 
@@ -152,7 +152,7 @@ class MeasurementGroup(PoolGroupDevice):
         if it is None:
             it = float('nan')
         attr.set_value(it)
-    
+
     def write_IntegrationTime(self, attr):
         self.measurement_group.integration_time = attr.get_write_value()
 
@@ -161,15 +161,15 @@ class MeasurementGroup(PoolGroupDevice):
         if it is None:
             it = 0
         attr.set_value(it)
-    
+
     def write_MonitorCount(self, attr):
         self.measurement_group.monitor_count = attr.get_write_value()
-        
+
     def read_AcquisitionMode(self, attr):
         acq_mode = self.measurement_group.acquisition_mode
         acq_mode_str = AcqMode.whatis(acq_mode)
         attr.set_value(acq_mode_str)
-    
+
     def write_AcquisitionMode(self, attr):
         acq_mode_str = attr.get_write_value()
         try:
@@ -178,13 +178,13 @@ class MeasurementGroup(PoolGroupDevice):
             raise Exception("Invalid acquisition mode. Must be one of " + \
                             ", ".join(AcqMode.keys()))
         self.measurement_group.acquisition_mode = acq_mode
-        
+
     def read_Configuration(self, attr):
         cfg = self.measurement_group.get_user_configuration()
         codec = CodecFactory().getCodec('json')
         data = codec.encode(('', cfg))
         attr.set_value(data[1])
-    
+
     def write_Configuration(self, attr):
         data = attr.get_write_value()
         cfg = CodecFactory().decode(('json', data), ensure_ascii=True)
@@ -192,8 +192,8 @@ class MeasurementGroup(PoolGroupDevice):
 
     def Start(self):
         self.measurement_group.start_acquisition()
-    
-    
+
+
 class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Class Properties
@@ -228,3 +228,8 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 
+    def _get_class_properties(self):
+        ret = PoolGroupDeviceClass._get_class_properties(self)
+        ret['Description'] = "Measurement group device class"
+        ret['InheritedFrom'].insert(0, 'PoolGroupDevice')
+        return ret

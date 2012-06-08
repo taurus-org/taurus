@@ -209,3 +209,8 @@ class PseudoCounterClass(PoolElementDeviceClass):
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
 
+    def _get_class_properties(self):
+        ret = PoolElementDeviceClass._get_class_properties(self)
+        ret['Description'] = "Pseudo counter device class"
+        ret['InheritedFrom'].insert(0, 'PoolElementDevice')
+        return ret

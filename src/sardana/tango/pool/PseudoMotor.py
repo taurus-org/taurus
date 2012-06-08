@@ -233,3 +233,8 @@ class PseudoMotorClass(PoolElementDeviceClass):
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
 
+    def _get_class_properties(self):
+        ret = PoolElementDeviceClass._get_class_properties(self)
+        ret['Description'] = "Pseudo motor device class"
+        ret['InheritedFrom'].insert(0, 'PoolElementDevice')
+        return ret

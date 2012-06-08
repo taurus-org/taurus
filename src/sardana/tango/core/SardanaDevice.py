@@ -249,7 +249,8 @@ class SardanaDevice(Device_4Impl, Logger):
 class SardanaDeviceClass(DeviceClass):
 
     #    Class Properties
-    class_property_list = {}
+    class_property_list = {
+    }
 
     #    Device Properties
     device_property_list = {
@@ -266,13 +267,18 @@ class SardanaDeviceClass(DeviceClass):
     def __init__(self, name):
         DeviceClass.__init__(self, name)
         self.set_type(name)
-        self.write_class_property()
 
+    def _get_class_properties(self):
+        return dict(ProjectTitle="Sardana", Description="Generic description",
+                    doc_url="http://sardana-controls.org/",
+                    InheritedFrom=["Device_4Impl"])
+    
     def write_class_property(self):
-
-        props = dict(ProjectTitle="Sardana", Description="Generic description",
-                     doc_url="http://sardana-controls.org/")
-        #self.get_db_class().put_property(props)
+        util = Util.instance()
+        db = util.get_database()
+        if db is None:
+            return
+        db.put_class_property(self.get_name(), self._get_class_properties())
 
     def dyn_attr(self, dev_list):
         for dev in dev_list:

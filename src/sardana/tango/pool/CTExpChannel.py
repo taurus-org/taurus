@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -58,7 +58,7 @@ class CTExpChannel(PoolElementDevice):
         self.element = ct
 
     ct = property(get_ct, set_ct)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
@@ -70,11 +70,11 @@ class CTExpChannel(PoolElementDevice):
         detect_evts = "state", "value"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-        
+
         if self.ct is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            ct = self.pool.create_element(type="CTExpChannel", name=name, 
+            ct = self.pool.create_element(type="CTExpChannel", name=name,
                 full_name=full_name, id=self.Id, axis=self.Axis,
                 ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
@@ -83,13 +83,13 @@ class CTExpChannel(PoolElementDevice):
             self.ct = ct
         # force a state read to initialize the state attribute
         state = self.ct.state
-    
+
     def on_ct_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-        
+
         timestamp = time.time()
         name = event_type.name
         quality = AttrQuality.ATTR_VALID
@@ -107,7 +107,7 @@ class CTExpChannel(PoolElementDevice):
                     error = Except.to_dev_failed(*event_value.exc_info)
                 timestamp = event_value.timestamp
                 event_value = event_value.value
-            
+
             if name == "value":
                 state = self.ct.get_state()
                 if state == State.Moving:
@@ -115,11 +115,11 @@ class CTExpChannel(PoolElementDevice):
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-    
+
     def always_executed_hook(self):
         #state = to_tango_state(self.ct.get_state(cache=False))
         pass
-    
+
     def read_attr_hardware(self,data):
         pass
 
@@ -132,15 +132,15 @@ class CTExpChannel(PoolElementDevice):
         if self.get_state() == DevState.MOVING:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value, quality=quality, priority=0)
-    
+
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
             return False
         return True
-    
+
     def Start(self):
         self.ct.start_acquisition()
-    
+
 
 class CTExpChannelClass(PoolElementDeviceClass):
 
@@ -165,4 +165,8 @@ class CTExpChannelClass(PoolElementDeviceClass):
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 
-
+    def _get_class_properties(self):
+        ret = PoolElementDeviceClass._get_class_properties(self)
+        ret['Description'] = "Counter/Timer device class"
+        ret['InheritedFrom'].insert(0, 'PoolElementDevice')
+        return ret

@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -43,7 +43,7 @@ from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
 class MotorGroup(PoolGroupDevice):
-    
+
     def __init__(self, dclass, name):
         PoolGroupDevice.__init__(self, dclass, name)
         MotorGroup.init_device(self)
@@ -53,23 +53,23 @@ class MotorGroup(PoolGroupDevice):
 
     def _is_allowed(self, req_type):
         return PoolGroupDevice._is_allowed(self, req_type)
-    
+
     def get_motor_group(self):
         return self.element
-    
+
     def set_motor_group(self, motor_group):
         self.element = motor_group
-    
+
     motor_group = property(get_motor_group, set_motor_group)
-    
+
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
-    
+
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
-    
+
         detect_evts = "position",
         non_detect_evts = "elementlist",
         self.set_change_events(detect_evts, non_detect_evts)
@@ -90,7 +90,7 @@ class MotorGroup(PoolGroupDevice):
             return
         timestamp = time.time()
         name = event_type.name
-        
+
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
@@ -102,7 +102,7 @@ class MotorGroup(PoolGroupDevice):
             event_value = self.calculate_tango_status(event_value)
         else:
             state = self.motor_group.get_state(propagate=0)
-            
+
             if name == "position":
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
@@ -110,18 +110,18 @@ class MotorGroup(PoolGroupDevice):
                     event_value = self._to_motor_positions(event_value)
                 except DevFailed, df:
                     error = df
-        
+
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-    
+
     def always_executed_hook(self):
-        pass 
+        pass
         #state = to_tango_state(self.motor_group.get_state(cache=False))
-    
+
     def read_attr_hardware(self,data):
         pass
-    
+
     def _to_motor_positions(self, pos):
         positions = []
         for elem in self.motor_group.get_user_elements():
@@ -145,7 +145,7 @@ class MotorGroup(PoolGroupDevice):
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=positions, quality=quality, priority=0)
-        
+
     def write_Position(self, attr):
         position = attr.get_write_value()
         self.debug("write_Position(%s)", position)
@@ -157,9 +157,9 @@ class MotorGroup(PoolGroupDevice):
             self.motor_group.position = position
         except PoolException, pe:
             throw_sardana_exception(pe)
-        
+
     is_Position_allowed = _is_allowed
-    
+
 
 class MotorGroupClass(PoolGroupDeviceClass):
 
@@ -185,4 +185,8 @@ class MotorGroupClass(PoolGroupDeviceClass):
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 
-
+    def _get_class_properties(self):
+        ret = PoolGroupDeviceClass._get_class_properties(self)
+        ret['Description'] = "Motor group device class"
+        ret['InheritedFrom'].insert(0, 'PoolGroupDevice')
+        return ret

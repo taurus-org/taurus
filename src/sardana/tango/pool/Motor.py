@@ -380,3 +380,9 @@ class MotorClass(PoolElementDeviceClass):
                               "False means not active. True means active" } ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
+
+    def _get_class_properties(self):
+        ret = PoolElementDeviceClass._get_class_properties(self)
+        ret['Description'] = "Motor device class"
+        ret['InheritedFrom'].insert(0, 'PoolElementDevice')
+        return ret
