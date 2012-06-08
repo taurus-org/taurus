@@ -368,10 +368,41 @@ class sar_info(Macro):
     ]
 
     def run(self, obj):
+        self.dump_properties(obj)
+        self.dump_attributes(obj)
+
+    def dump_properties(self, obj):
         data = obj.serialize()
 
         table = Table([data.values()], row_head_str=data.keys(),
                       row_head_fmt='%*s', col_sep='  =  ')
+        self.output("Properties:")
+        self.output("-----------")
+        for line in table.genOutput():
+            self.output(line)
+
+    def dump_attributes(self, obj):
+        try:
+            dev_attrs = obj.dump_attributes()
+        except AttributeError:
+            return
+
+        row_head, values = [], []
+        for dev_attr in dev_attrs:
+            row_head.append(dev_attr.name)
+            if dev_attr.has_failed:
+                err = dev_attr.get_err_stack()
+                if len(err):
+                    value = err[0].desc
+                else:
+                    value = "Unknown error!"
+            else:
+                value = str(dev_attr.value)
+            values.append(value)
+        table = Table([values], row_head_str=row_head,
+                      row_head_fmt='%*s', col_sep='  =  ')
+        self.output("Attributes:")
+        self.output("-----------")
         for line in table.genOutput():
             self.output(line)
 
