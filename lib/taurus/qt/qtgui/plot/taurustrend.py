@@ -795,6 +795,49 @@ class TaurusTrend(TaurusPlot):
         self._autoClearOnScanAction.setChecked(True)
         self.connect(self._autoClearOnScanAction, Qt.SIGNAL("toggled(bool)"), self._onAutoClearOnScanAction)
     
+    def isTimerNeeded(self):
+        '''checks if it makes sense to activate the replot timer. 
+        The following conditions must be met:
+        
+        - the replot timer must exist
+        - the area of the plot must be non-zero
+        - at least one trendset must be attached
+        - the plot should be visible
+        - the plot should not be minimized
+        
+        :return: (bool) 
+        '''
+        return self._replotTimer is not None and \
+               not self.size().isEmpty() and \
+               bool(len(self.trendSets)) and \
+               self.isVisible() and \
+               not self.isMinimized()
+               
+    def showEvent(self, event):
+        '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
+        the replot timer is active only when needed'''
+        TaurusPlot.showEvent(self, event)
+        if self.isTimerNeeded():
+            self._replotTimer.start()
+    
+    def hideEvent(self, event):
+        '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
+        the replot timer is active only when needed'''
+        TaurusPlot.hideEvent(self, event)
+        if self._replotTimer is not None:
+            self._replotTimer.stop()
+    
+    def resizeEvent(self,event):
+        '''reimplemented from :meth:`TaurusPlot.resizeEvent` so that 
+        the replot timer is active only when needed'''
+        TaurusPlot.resizeEvent(self, event)
+        if event.oldSize().isEmpty(): #do further checks only if previous size was 0
+            if self.isTimerNeeded():
+                self._replotTimer.start()
+            else:
+                self._replotTimer.stop()
+            
+    
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
         #set a reasonable scale
@@ -952,6 +995,7 @@ class TaurusTrend(TaurusPlot):
             if len(del_sets) == len(self.trendSets):
                 self._curvePens.setCurrentIndex(0)
             
+            #update new/existing trendsets
             for name in names:
                 name = str(name)
                 if "|" in name: raise ValueError('composed ("X|Y") models are not supported by TaurusTrend')
@@ -982,6 +1026,12 @@ class TaurusTrend(TaurusPlot):
             # legend
             self.showLegend(len(self.curves) > 1, forever=False)
             self.replot()
+            
+            #keep the replotting timer active only if there is something to refresh
+            if self.isTimerNeeded():
+                self._replotTimer.start()
+            else:
+                self._replotTimer.stop()
             
         finally:
             self.curves_lock.release()
@@ -1134,7 +1184,7 @@ class TaurusTrend(TaurusPlot):
             currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
             plot_refresh = int(1000*(currmax-currmin)/width)
             plot_refresh = min((max((plot_refresh,250)),1800000)) #enforce limits
-            self._replotTimer.start(plot_refresh)
+            self._replotTimer.setInterval(plot_refresh)
             self.debug('New replot period is %1.2f seconds',(plot_refresh/1000.))
         else:
             self.warning('rescheduleReplot() called but X axis is not in time mode')
@@ -1492,6 +1542,24 @@ class TaurusTrend(TaurusPlot):
     scrollstep = Qt.pyqtProperty("double", getScrollStep, setScrollStep, resetScrollStep)
     forcedReadingPeriod = Qt.pyqtProperty("int", getForcedReadingPeriod, setForcedReadingPeriod, resetForcedReadingPeriod)
     
+    
+
+def test():
+    import sys
+    import taurus.qt.qtgui.application
+    app = taurus.qt.qtgui.application.TaurusApplication()
+    w=Qt.QWidget()
+    w.setLayout(Qt.QVBoxLayout())
+    s=Qt.QSplitter()
+    w.layout().addWidget(s)
+    t=TaurusTrend()
+    l=Qt.QLabel('asdasdasdasdasd')
+    s.addWidget(l)
+    s.addWidget(t)
+    s.setSizes([1,0])
+    w.show()
+    t.setModel(['bl97/pc/dummy-01/voltage'])
+    sys.exit(app.exec_())
 
 def main():
     import sys
