@@ -294,7 +294,6 @@ class PoolMotion(PoolAction):
     @DebugIt()
     def action_loop(self):
         i = 0
-        self.debug("master in operation = %s", self.main_element.is_in_operation())
         states, positions = {}, {}
         for k in self.get_elements():
             states[k] = None

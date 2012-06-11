@@ -137,7 +137,6 @@ class MotorGroup(PoolGroupDevice):
         # values
         motor_group = self.motor_group
         use_cache = motor_group.is_in_operation() and not self.Force_HW_Read
-        self.debug("read_Position(cache=%s)", use_cache)
         positions = motor_group.get_position(cache=use_cache, propagate=0)
         state = motor_group.get_state(cache=use_cache, propagate=0)
         positions = self._to_motor_positions(positions)

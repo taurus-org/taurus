@@ -171,8 +171,6 @@ class Motor(PoolElementDevice):
     def read_Position(self, attr):
         motor = self.motor
         use_cache = motor.is_in_operation() and not self.Force_HW_Read
-        if not use_cache:
-            self.info("read_Position(%s)", motor.is_in_operation())
         state = motor.get_state(cache=use_cache, propagate=0)
         position = motor.get_position(cache=use_cache, propagate=0)
         if position.error:

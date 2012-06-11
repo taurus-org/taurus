@@ -172,7 +172,6 @@ class PseudoCounter(PoolElementDevice):
     def read_Value(self, attr):
         pseudo_counter = self.pseudo_counter
         use_cache = pseudo_counter.is_in_operation() and not self.Force_HW_Read
-        self.debug("read_Value(cache=%s)", use_cache)
         value = pseudo_counter.get_value(cache=use_cache, propagate=0)
         state = pseudo_counter.get_state(cache=use_cache, propagate=0)
         if value.error:
