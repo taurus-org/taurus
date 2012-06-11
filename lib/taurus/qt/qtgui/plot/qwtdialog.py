@@ -203,19 +203,19 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         xMin = self.parent.axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
         xMax = self.parent.axisScaleDiv(Qwt5.QwtPlot.xBottom).upperBound()
         if self.parent.getXIsTime():
-                self.ui.xEditMin.setText(Qt.QString(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(int(xMin)))))
-                self.ui.xEditMax.setText(Qt.QString(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(int(xMax)))))
+                self.ui.xEditMin.setText(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(int(xMin))))
+                self.ui.xEditMax.setText(time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(int(xMax))))
         else:
-                self.ui.xEditMin.setText(Qt.QString.number(xMin))
-                self.ui.xEditMax.setText(Qt.QString.number(xMax))
+                self.ui.xEditMin.setText(str(xMin))
+                self.ui.xEditMax.setText(str(xMax))
     
     def _populateYAxisScales(self, axis=None):
         if axis is None or axis==Qwt5.QwtPlot.yLeft:
-            self.ui.y1EditMin.setText(Qt.QString.number(self.parent.axisScaleDiv(Qwt5.QwtPlot.yLeft).lowerBound()))
-            self.ui.y1EditMax.setText(Qt.QString.number(self.parent.axisScaleDiv(Qwt5.QwtPlot.yLeft).upperBound()))
+            self.ui.y1EditMin.setText(str(self.parent.axisScaleDiv(Qwt5.QwtPlot.yLeft).lowerBound()))
+            self.ui.y1EditMax.setText(str(self.parent.axisScaleDiv(Qwt5.QwtPlot.yLeft).upperBound()))
         if axis is None or axis==Qwt5.QwtPlot.yRight:
-            self.ui.y2EditMin.setText(Qt.QString.number(self.parent.axisScaleDiv(Qwt5.QwtPlot.yRight).lowerBound()))
-            self.ui.y2EditMax.setText(Qt.QString.number(self.parent.axisScaleDiv(Qwt5.QwtPlot.yRight).upperBound()))
+            self.ui.y2EditMin.setText(str(self.parent.axisScaleDiv(Qwt5.QwtPlot.yRight).lowerBound()))
+            self.ui.y2EditMax.setText(str(self.parent.axisScaleDiv(Qwt5.QwtPlot.yRight).upperBound()))
     
     def deltatime2str(self,dt, fuzzy=False):
         '''converts a time diff in secs to a string.
