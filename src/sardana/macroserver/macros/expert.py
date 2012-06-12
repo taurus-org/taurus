@@ -369,7 +369,8 @@ class sar_info(Macro):
 
     def run(self, obj):
         self.dump_properties(obj)
-        self.dump_attributes(obj)
+        #self.output("")
+        #self.dump_attributes(obj)
 
     def dump_properties(self, obj):
         data = obj.serialize()
