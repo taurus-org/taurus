@@ -43,7 +43,7 @@ import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.util.emitter import TaurusEmitterThread,SingletonWorker
-from taurus.core.utils import CaselessDict
+from taurus.core.util import CaselessDict
 
 
 class TaurusDevTree(QtGui.QTreeWidget, TaurusBaseWidget):
