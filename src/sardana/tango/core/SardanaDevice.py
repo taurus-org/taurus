@@ -271,6 +271,7 @@ class SardanaDeviceClass(DeviceClass):
     def _get_class_properties(self):
         return dict(ProjectTitle="Sardana", Description="Generic description",
                     doc_url="http://sardana-controls.org/",
+                    __icon=self.get_name().lower() + ".png",
                     InheritedFrom=["Device_4Impl"])
     
     def write_class_property(self):
