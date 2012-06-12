@@ -257,13 +257,31 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
         self._setDirty(True)
         
     def createMntGrp(self):
-        '''creates a new Measurement Group'''        
+        '''creates a new Measurement Group'''     
+        
+        if self._localConfig is None:
+            return
+           
         mntGrpName, ok = Qt.QInputDialog.getText(self, "New Measurement Group", 
                                                  "Enter a name for the new measurement Group")
         if not ok: return
-        if self._localConfig is None:
-            return
         mntGrpName = str(mntGrpName)
+        
+        #check that the given name is not an existing pool element
+        ms = self.getModelObj().macro_server
+        poolElementNames = [v.name for v in ms.getElementsWithInterface("PoolElement").values()]
+        while mntGrpName in poolElementNames:
+            Qt.QMessageBox.warning(self, "Cannot create Measurement group", 
+                "The name '%s' already is used for another pool element. Please Choose a different one."%mntGrpName, 
+                Qt.QMessageBox.Ok)
+            mntGrpName, ok = Qt.QInputDialog.getText(self, "New Measurement Group", 
+                                                     "Enter a name for the new measurement Group",
+                                                     Qt.QLineEdit.Normal,
+                                                     mntGrpName)
+            if not ok: return
+            mntGrpName = str(mntGrpName)
+            
+        #check that the measurement group is not already in the localConfig
         if mntGrpName in self._localConfig['MntGrpConfigs']:
             Qt.QMessageBox.warning(self, "%s already exists"%mntGrpName, 
                 'A measurement group named "%s" already exists. A new one will not be created'%mntGrpName)
