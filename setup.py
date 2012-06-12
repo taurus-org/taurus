@@ -69,6 +69,7 @@ packages = [
     'taurus.core.util.argparse',
     'taurus.core.util.decorator',
     'taurus.core.util.report',
+    'taurus.core.utils',        # old, deprecated: maintain for compatibility
     'taurus.core.resource',
     'taurus.core.simulation',
     'taurus.core.evaluation',
