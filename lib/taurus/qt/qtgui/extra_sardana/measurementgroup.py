@@ -581,8 +581,16 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                 unitname = '0'
             try:
                 self.dataSource()['controllers'][ctrlname]['units'][unitname]['channels'].pop(chname)
+                try:
+                    if not self.dataSource()['controllers'][ctrlname]['units'][unitname]['channels']:
+                        self.dataSource()['controllers'][ctrlname]['units'].pop(unitname)
+                        if not self.dataSource()['controllers'][ctrlname]['units']:
+                            self.dataSource()['controllers'].pop(ctrlname)
+                except:
+                    self.error('error cleaning the data source dictionary')
             except:
                 self.error('cannot find "%s" for removing'%chname)
+            
         self.endResetModel() #we are altering the internal data here, so we need to protect it
         self.refresh() #note that another reset will be done here...
 
