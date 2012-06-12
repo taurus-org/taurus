@@ -307,13 +307,23 @@ class PoolMeasurementGroup(PoolGroupElement):
         # attention: following line only prepared for 1 unit per controller
         timer_ctrl_data = config['controllers'][g_timer.controller]['units']['0']
         if timer_ctrl_data['timer'] != g_timer:
-            self.warning('unit timer and global timer mismatch. Using global timer')
+            self.warning('unit timer and global timer mismatch. '
+                         'Using global timer')
+            self.debug('For controller %s, timer is defined as channel %s. '
+                       'The global timer is set to channel %s which belongs '
+                       'to the same controller', g_timer.controller.name,
+                       timer_ctrl_data['timer'].name, g_timer.name)
             timer_ctrl_data['timer'] = g_timer
 
         # attention: following line only prepared for 1 unit per controller
         monitor_ctrl_data = config['controllers'][g_monitor.controller]['units']['0']
         if monitor_ctrl_data['monitor'] != g_monitor:
-            self.warning('unit monitor and global monitor mismatch. Using global monitor')
+            self.warning('unit monitor and global monitor mismatch. '
+                         'Using global monitor')
+            self.debug('For controller %s, monitor is defined as channel %s. '
+                       'The global timer is set to channel %s which belongs '
+                       'to the same controller', g_monitor.controller.name,
+                       monitor_ctrl_data['monitor'].name, g_monitor.name)
             monitor_ctrl_data['monitor'] != g_monitor
 
         self._config = config
@@ -334,6 +344,13 @@ class PoolMeasurementGroup(PoolGroupElement):
         config['controllers'] = controllers = {}
 
         for c_name, c_data in cfg['controllers'].items():
+            # discard controllers which don't have items (garbage)
+            ch_count = 0
+            for u_data in c_data['units'].values():
+                ch_count += len(u_data['channels'])
+            if ch_count == 0:
+                continue
+                
             external = c_name.startswith('__')
             if external:
                 ctrl = c_name
@@ -343,6 +360,9 @@ class PoolMeasurementGroup(PoolGroupElement):
             controllers[ctrl] = ctrl_data = {}
             ctrl_data['units'] = units = {}
             for u_id, u_data in c_data['units'].items():
+                # discard units which don't have items (garbage)
+                if len(u_data['channels']) == 0:
+                    continue
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
                 if not external and ElementType.CTExpChannel in ctrl.get_ctrl_types():
