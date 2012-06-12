@@ -51,6 +51,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         self._low_level_physical_positions = {}
         self._position = Position(self)
         self._siblings = None
+        self._drift_correction = kwargs.pop('drift_correction', None)
         user_elements = kwargs.pop('user_elements')
         PoolElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements)
@@ -74,6 +75,19 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     def _create_action_cache(self):
         motion_name = "%s.Motion" % self._name
         return PoolMotion(self, motion_name)
+
+    def set_drift_correction(self, drift_correction):
+        self._drift_correction = drift_correction
+
+    def get_drift_correction(self):
+        dc = self._drift_correction
+        if dc is None:
+            dc = self.manager.drift_correction
+        return dc
+
+    drift_correction = property(get_drift_correction,
+                                set_drift_correction,
+                                doc="drift correction")
 
     def get_action_cache(self):
         return self._get_action_cache()
@@ -220,7 +234,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             use = {}
         for sibling in self.siblings:
             if sibling in use:
-                pos = use[sibling]
+                pos = use[sibling], None
             else:
                 pos = sibling.get_w_position(
                     with_physical_positions=with_physical_positions)
@@ -394,10 +408,15 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             if s_items == physical_elements:
                 if self in calculated:
                     return
-    
+        
+        siblings_pos_func = self.get_siblings_positions
+        if self.drift_correction:
+            print "using drift correction"
+            siblings_pos_func = self.get_siblings_write_positions
+        
         user_elements = self.get_user_elements()
         physical_positions = self.get_physical_positions()
-        positions = self.get_siblings_positions(physical_positions, use=calculated)
+        positions = siblings_pos_func(physical_positions, use=calculated)
         positions[self] = new_position, None
         pseudo_positions = len(positions)*[None]
         for pseudo, position in positions.items():

@@ -70,7 +70,7 @@ class Motor(PoolElementDevice):
     def delete_device(self):
         PoolElementDevice.delete_device(self)
 
-    @DebugIt()
+    @InfoIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
 

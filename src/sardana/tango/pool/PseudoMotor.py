@@ -33,7 +33,7 @@ import sys
 import time
 
 from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, \
-    DevDouble, DevVarStringArray, DevState, AttrQuality
+    DevDouble, DevBoolean, DevVarStringArray, DevState, AttrQuality
 
 from taurus.core.util.log import DebugIt
 
@@ -72,7 +72,7 @@ class PseudoMotor(PoolElementDevice):
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-
+        
         self.Elements = map(int, self.Elements)
         if self.pseudo_motor is None:
             full_name = self.get_full_name()
@@ -85,6 +85,7 @@ class PseudoMotor(PoolElementDevice):
                 pseudo_motor.set_instrument(self.instrument)
             pseudo_motor.add_listener(self.on_pseudo_motor_changed)
             self.pseudo_motor = pseudo_motor
+        self.pseudo_motor.set_drift_correction(self.DriftCorrection)
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
 
@@ -216,6 +217,11 @@ class PseudoMotorClass(PoolElementDeviceClass):
     #    Device Properties
     device_property_list = {
         "Elements" :    [ DevVarStringArray, "elements used by the pseudo", [ ] ],
+        'DriftCorrection':
+            [DevBoolean,
+            "Locally apply drift correction on pseudo motors. Default is the "
+            "current global drift correction in the Pool Device",
+            None],
     }
     device_property_list.update(PoolElementDeviceClass.device_property_list)
 

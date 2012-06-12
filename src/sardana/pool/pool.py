@@ -68,12 +68,15 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     #: Default value representing the sleep time for each acquisition loop
     Default_AcqLoop_SleepTime = 0.01
 
+    Default_DriftCorrection = True
+
     def __init__(self, full_name, name=None):
         self._path_id = None
         self._motion_loop_states_per_position = self.Default_MotionLoop_StatesPerPosition
         self._motion_loop_sleep_time = self.Default_MotionLoop_SleepTime
         self._acq_loop_states_per_value = self.Default_AcqLoop_StatesPerValue
         self._acq_loop_sleep_time = self.Default_AcqLoop_SleepTime
+        self._drift_correction = self.Default_DriftCorrection
 
         # dict<str, dict<str, str>>
         # keys are acquisition channel names and value is a dict describing the
@@ -173,6 +176,15 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         doc="Number of State reads done before doing a value read in the "
             "acquisition loop")
 
+    def set_drift_correction(self, drift_correction):
+        self._drift_correction = drift_correction
+
+    def get_drift_correction(self):
+        return self._drift_correction
+
+    drift_correction = property(get_drift_correction,
+                                set_drift_correction,
+                                doc="drift correction")
     @property
     def monitor(self):
         return self._monitor

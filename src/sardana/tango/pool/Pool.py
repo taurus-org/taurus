@@ -97,6 +97,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         p.set_motion_loop_states_per_position(self.MotionLoop_StatesPerPosition)
         p.set_acq_loop_sleep_time(self.AcqLoop_SleepTime / 1000.0)
         p.set_acq_loop_states_per_value(self.AcqLoop_StatesPerValue)
+        p.set_drift_correction(self.DriftCorrection)
         p.init_remote_logging(port=self.LogPort)
         self._recalculate_instruments()
         for attr in self.get_device_class().attr_list:
@@ -936,41 +937,47 @@ class PoolClass(PyTango.DeviceClass):
             [PyTango.DevVarStringArray,
             "list of directories to search for controllers (path separators "
             "can be '\n' or ':')",
-            [] ],
+            []],
         'PythonPath':
             [PyTango.DevVarStringArray,
             "list of directories to be appended to sys.path at startup (path "
             "separators can be '\n' or ':')",
-            [] ],
+            []],
         'MotionLoop_SleepTime':
             [PyTango.DevLong,
             "Sleep time in the motion loop in mS [default: %dms]" %
             int(POOL.Default_MotionLoop_SleepTime*1000),
-            int(POOL.Default_MotionLoop_SleepTime*1000) ],
+            int(POOL.Default_MotionLoop_SleepTime*1000)],
         'MotionLoop_StatesPerPosition':
             [PyTango.DevLong,
             "Number of State reads done before doing a position read in the "
             "motion loop [default: %d]" % POOL.Default_MotionLoop_StatesPerPosition,
-            POOL.Default_MotionLoop_StatesPerPosition ],
+            POOL.Default_MotionLoop_StatesPerPosition],
         'AcqLoop_SleepTime':
             [PyTango.DevLong,
             "Sleep time in the acquisition loop in mS [default: %dms]" %
             int(POOL.Default_AcqLoop_SleepTime*1000),
-            int(POOL.Default_AcqLoop_SleepTime*1000) ],
+            int(POOL.Default_AcqLoop_SleepTime*1000)],
         'AcqLoop_StatesPerValue':
             [PyTango.DevLong,
             "Number of State reads done before doing a value read in the "
             "acquisition loop [default: %d]" % POOL.Default_AcqLoop_StatesPerValue,
-            POOL.Default_AcqLoop_StatesPerValue ],
+            POOL.Default_AcqLoop_StatesPerValue],
         'LogPort':
             [PyTango.DevLong,
             "Logging (python logging) port [default: %d]" %
             logging.handlers.DEFAULT_TCP_LOGGING_PORT,
             logging.handlers.DEFAULT_TCP_LOGGING_PORT ],
+        'DriftCorrection':
+            [PyTango.DevBoolean,
+            "Globally apply drift correction on pseudo motors (can be "
+            "overwritten at PseudoMotor level [default: %d]." %
+            POOL.Default_DriftCorrection,
+            POOL.Default_DriftCorrection],
         'InstrumentList':
             [PyTango.DevVarStringArray,
             "List of instruments (internal property)",
-            [] ],
+            []],
     }
 
     #    Command definitions
