@@ -72,6 +72,9 @@ import taurus
 from taurus.core import Release as TCRelease
 from taurus.core.util import CodecFactory
 
+# make sure Qt is properly initialized
+from taurus.qt import Qt
+
 from sardana.spock import exception
 from sardana.spock import colors
 from sardana.spock import release
