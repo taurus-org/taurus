@@ -77,7 +77,8 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         self._acq_loop_states_per_value = self.Default_AcqLoop_StatesPerValue
         self._acq_loop_sleep_time = self.Default_AcqLoop_SleepTime
         self._drift_correction = self.Default_DriftCorrection
-
+        self._remote_log_handler = None
+        
         # dict<str, dict<str, str>>
         # keys are acquisition channel names and value is a dict describing the
         # channel containing:
@@ -92,12 +93,20 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
                             pool=self)
         self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
         ControllerManager().set_pool(self)
-
+    
+    def clear_remote_logging(self):
+        rh = self._remote_log_handler
+        if rh is None:
+            return
+        log = logging.getLogger("Controller")
+        log.removeHandler(rh)
+        self._remote_log_handler = None
+        
     def init_remote_logging(self, host=None, port=None):
         """Initializes remote logging.
 
         :param host: host name [default: None, meaning use the machine host name
-                     as returned by :func:`socket.getfqdn`].
+                     as returned by :func:`socket.gethostname`].
         :type host: str
         :param port: port number [default: None, meaning use
                      :data:`logging.handlers.DEFAULT_TCP_LOGGING_PORT`"""

@@ -32,7 +32,6 @@ __docformat__ = 'restructuredtext'
 import json
 import operator
 import os.path
-import logging.handlers
 
 import PyTango
 
@@ -98,7 +97,22 @@ class Pool(PyTango.Device_4Impl, Logger):
         p.set_acq_loop_sleep_time(self.AcqLoop_SleepTime / 1000.0)
         p.set_acq_loop_states_per_value(self.AcqLoop_StatesPerValue)
         p.set_drift_correction(self.DriftCorrection)
-        p.init_remote_logging(port=self.LogPort)
+        if self.RemoteLog is None:
+            p.clear_remote_logging()
+        else:
+            try:
+                h_p = self.RemoteLog.split(":",1)
+                if len(h_p) == 1:
+                    host = h_p[0]
+                    port = None
+                else:
+                    host, port = h_p
+                    port = int(port)
+                p.init_remote_logging(host=host, port=port)
+            except:
+                self.warning("Invalid property value for 'RemoteLog': %s",
+                             self.RemoteLog)
+                p.clear_remote_logging()
         self._recalculate_instruments()
         for attr in self.get_device_class().attr_list:
             if attr.lower().endswith("list"):
@@ -963,11 +977,10 @@ class PoolClass(PyTango.DeviceClass):
             "Number of State reads done before doing a value read in the "
             "acquisition loop [default: %d]" % POOL.Default_AcqLoop_StatesPerValue,
             POOL.Default_AcqLoop_StatesPerValue],
-        'LogPort':
-            [PyTango.DevLong,
-            "Logging (python logging) port [default: %d]" %
-            logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-            logging.handlers.DEFAULT_TCP_LOGGING_PORT ],
+        'RemoteLog':
+            [PyTango.DevString,
+            "Logging (python logging) host:port [default: None]",
+            None],
         'DriftCorrection':
             [PyTango.DevBoolean,
             "Globally apply drift correction on pseudo motors (can be "
