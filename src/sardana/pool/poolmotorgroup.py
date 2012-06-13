@@ -81,7 +81,8 @@ class PoolMotorGroup(PoolGroupElement):
             self.set_state(state, propagate=propagate_state)
             self.set_status(status, propagate=propagate_state)
             if name == 'position':
-                self.put_element_position(evt_src, evt_value, propagate=1)
+                self.put_element_position(evt_src, evt_value,
+                                          propagate=evt_type.priority)
 
     def add_user_element(self, element, index=None):
         elem_type = element.get_type()

@@ -29,6 +29,7 @@ __all__ = ["MotorGroup", "MotorGroupClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 
 from PyTango import DevFailed, Except, \
@@ -38,7 +39,7 @@ from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import throw_sardana_exception
+from sardana.tango.core.util import exception_str, throw_sardana_exception
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -84,6 +85,16 @@ class MotorGroup(PoolGroupDevice):
             self.motor_group = motor_group
 
     def on_motor_group_changed(self, event_source, event_type, event_value):
+        try:
+            self._on_motor_group_changed(event_source, event_type, event_value)
+        except:
+            msg = 'Error occured "on_motor_group_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.motor_group.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+            
+    def _on_motor_group_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
@@ -96,6 +107,7 @@ class MotorGroup(PoolGroupDevice):
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
+ 
         if name == "state":
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
