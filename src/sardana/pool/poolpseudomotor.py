@@ -411,7 +411,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         
         siblings_pos_func = self.get_siblings_positions
         if self.drift_correction:
-            print "using drift correction"
             siblings_pos_func = self.get_siblings_write_positions
         
         user_elements = self.get_user_elements()
