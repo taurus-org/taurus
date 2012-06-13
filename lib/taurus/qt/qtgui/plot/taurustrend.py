@@ -835,7 +835,8 @@ class TaurusTrend(TaurusPlot):
             if self.isTimerNeeded():
                 self._replotTimer.start()
             else:
-                self._replotTimer.stop()
+                if self._replotTimer is not None:
+                    self._replotTimer.stop()
             
     
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
@@ -1031,7 +1032,8 @@ class TaurusTrend(TaurusPlot):
             if self.isTimerNeeded():
                 self._replotTimer.start()
             else:
-                self._replotTimer.stop()
+                if self._replotTimer is not None:
+                    self._replotTimer.stop()
             
         finally:
             self.curves_lock.release()
