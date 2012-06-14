@@ -462,15 +462,6 @@ class PoolMotion(PoolAction):
             state = state_info[0]
             if exc_info is not None or state not in _NON_ERROR_STATES:
                 return True
-            ls = 0
-            if len(state_info) > 2:
-                ls = state_info[2]
-            else:
-                other = state_info[:2]
-                if isinstance(other, int):
-                    ls = other
-            if ls != 0:
-                return True
         return False
 
     def _position_error_occured(self, d):
