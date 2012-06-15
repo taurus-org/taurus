@@ -143,6 +143,23 @@ class set_pos(Macro):
         motor.definePosition(pos)
         self.output("%s reset from %.4f to %.4f" % (name, old_pos, pos))
 
+class set_user_pos(Macro):
+    """Sets the USER position of the motor to the specified value (by changing OFFSET and keeping DIAL)"""
+    
+    param_def = [
+        ['motor', Type.Motor, None, 'Motor name'],
+        ['pos',   Type.Float, None, 'Position to move to']
+    ]
+    
+    def run(self, motor, pos):
+        name = motor.getName()
+        old_pos = motor.getPosition(force=True)
+        offset_attr = motor.getAttribute('Offset')
+        old_offset = offset_attr.read().value
+        new_offset = pos - (old_pos - old_offset)
+        offset_attr.write(new_offset)
+        self.output("%s reset from %.4f (offset %.4f) to %.4f (offset %.4f)" % (name, old_pos, old_offset, pos, new_offset))
+
 class wm(Macro):
     """Show the position of the specified motors."""
 
