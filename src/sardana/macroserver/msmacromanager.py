@@ -170,6 +170,9 @@ class MacroManager(MacroServerManager):
         for item in macro_path:
             p.extend(item.split(":"))
 
+        # filter empty and commented paths
+        p = [ i for i in p if i and not i.startswith("#") ]
+
         # add basic macro directories
         for macro_dir in self.DEFAULT_MACRO_DIRECTORIES:
             if not macro_dir in p:

@@ -145,6 +145,9 @@ class ControllerManager(Singleton, Logger):
         for item in controller_path:
             p.extend(item.split(":"))
         
+        # filter empty and commented paths
+        p = [ i for i in p if i and not i.startswith("#") ]
+        
         # add basic dummy controller directory(ies)
         pool_dir = os.path.dirname(os.path.abspath(__file__))
         for ctrl_dir in self.DEFAULT_CONTROLLER_DIRECTORIES:
