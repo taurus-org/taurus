@@ -114,6 +114,7 @@ packages = [
     'taurus.qt.qtgui.model',
     'taurus.qt.qtgui.panel',
     'taurus.qt.qtgui.panel.report',
+    'taurus.qt.qtgui.panel.report.ui',
     'taurus.qt.qtgui.panel.ui',
     'taurus.qt.qtgui.plot',
     'taurus.qt.qtgui.plot.ui',
