@@ -24,10 +24,11 @@
 ##############################################################################
 
 import re
+import logging
 
 from taurus import Device, Factory
 from taurus.core import TaurusEventType
-from taurus.core.util import CaselessDict, ThreadPool
+from taurus.core.util import CaselessDict, ThreadPool, Logger
 from taurus.core.tango.sardana.motion import Motion, MotionGroup
 from taurus.core.tango.sardana.pool import registerExtensions
 
@@ -81,6 +82,8 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     
     MaxParalellMacros = 5
     
+    DefaultLogReport = dict(when='midnight', interval=1, backupCount=365)
+    
     def __init__(self, full_name, name=None, macro_path=None,
                  environment_db=None):
         # dict<str, Pool>
@@ -114,7 +117,11 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     def add_job(self, job, callback=None, *args, **kw):
         th_pool = get_thread_pool()
         th_pool.add(job, callback, *args, **kw)
-    
+
+    # --------------------------------------------------------------------------
+    # Environment DB related methods
+    # --------------------------------------------------------------------------
+
     def set_environment_db(self, environment_db):
         """Sets the environment database.
         
@@ -124,14 +131,21 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             str
         """
         self.environment_manager.setEnvironmentDb(environment_db)
-    
+
+    # --------------------------------------------------------------------------
+    # Python related methods
+    # --------------------------------------------------------------------------
+
     def set_python_path(self, path):
         mod_man = ModuleManager()
         if self._path_id is not None:
             mod_man.remove_python_path(self._path_id)
         self._path_id = mod_man.add_python_path(path)
 
-        
+    # --------------------------------------------------------------------------
+    # Macro path related methods
+    # --------------------------------------------------------------------------
+
     def set_macro_path(self, macro_path):
         """Sets the macro path.
         
@@ -141,6 +155,64 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             seq<str>
         """
         self.macro_manager.setMacroPath(macro_path)
+
+    # --------------------------------------------------------------------------
+    # Report related methods
+    # --------------------------------------------------------------------------
+
+    def set_log_report(self, filename=None, format=None):
+        log = self.get_report_logger()
+        
+        # first check that the handler has not been initialized yet. If it has
+        # we remove previous handlers. We only allow one timed rotating file
+        # handler at a time
+        to_remove = []
+        for handler in log.handlers:
+            if isinstance(handler, logging.handlers.TimedRotatingFileHandler):
+                to_remove.append(handler)
+        
+        for handler in to_remove:
+            log.removeHandler(handler)
+        
+        if filename is None:
+            return
+        
+        if format is None:
+            format = Logger.DftLogMessageFormat
+        formatter = logging.Formatter(format)
+        
+        self.info("Reports are being stored in %s", filename)
+        klass = logging.handlers.TimedRotatingFileHandler
+        handler = klass(filename, **self.DefaultLogReport)
+        handler.setFormatter(formatter)
+        log.addHandler(handler)
+    
+    def get_report_logger(self):
+        return logging.getLogger("Sardana.Report")
+    
+    report_logger = property(get_report_logger)
+
+    def report(self, msg, *args, **kwargs):
+        """
+        Record a log message in the sardana report (if enabled) with default
+        level **INFO**. The msg is the message format string, and the args are
+        the arguments which are merged into msg using the string formatting
+        operator. (Note that this means that you can use keywords in the
+        format string, together with a single dictionary argument.)
+        
+        *kwargs* are the same as :meth:`logging.Logger.debug` plus an optional
+        level kwargs which has default value **INFO**
+        
+        Example::
+        
+            self.report("this is an official report!")
+        
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        level = kwargs.pop('level', logging.INFO)
+        return self.report_logger.log(level, msg, *args, **kwargs)
     
     # --------------------------------------------------------------------------
     # Pool related methods

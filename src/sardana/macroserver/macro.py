@@ -894,6 +894,28 @@ class Macro(Logger):
         return Logger.stack(self, *args, **kwargs)
 
     @mAPI
+    def report(self, msg, *args, **kwargs):
+        """**Macro API**.
+        Record a log message in the sardana report (if enabled) with default
+        level **INFO**. The msg is the message format string, and the args are
+        the arguments which are merged into msg using the string formatting
+        operator. (Note that this means that you can use keywords in the
+        format string, together with a single dictionary argument.)
+        
+        *kwargs* are the same as :meth:`logging.Logger.debug` plus an optional
+        level kwargs which has default value **INFO**
+        
+        Example::
+        
+            self.report("this is an official report of macro %s", self.getName())
+        
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return self.getDoorObj().report(msg, *args, **kwargs)
+
+    @mAPI
     def flushOutput(self):
         """**Macro API**.
         Flushes the output buffer."""

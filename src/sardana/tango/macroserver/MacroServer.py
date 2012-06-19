@@ -31,7 +31,7 @@ from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
 #from taurus.core.util import Logger
-from taurus.core.util import CodecFactory
+from taurus.core.util import CodecFactory, Logger
 
 from sardana import State, SardanaServer #, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
@@ -81,8 +81,8 @@ class MacroServer(SardanaDevice):
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
         
-        self.EnvironmentDb = \
-            self._calculate_environment_name(self.EnvironmentDb)
+        self.EnvironmentDb = self._calculate_name(self.EnvironmentDb)
+        self.LogReportFilename = self._calculate_name(self.LogReportFilename)
 
         macro_server = self.macro_server
         macro_server.set_python_path(self.PythonPath)
@@ -103,7 +103,14 @@ class MacroServer(SardanaDevice):
             db.put_device_property(self.get_name(), dict(EnvironmentDb=env_db))
             self.EnvironmentDb = self._calculate_environment_name(env_db)
             macro_server.set_environment_db(self.EnvironmentDb)
-            
+        
+        try:
+            macro_server.set_log_report(self.LogReportFilename, self.LogReportFormat)
+        except:
+            self.error("Failed to setup log report to %s",
+                       self.LogReportFilename)
+            self.debug("Details:", exc_info=1)
+        
         macro_server.set_macro_path(self.MacroPath)
         macro_server.set_pool_names(self.PoolNames)
         
@@ -115,7 +122,9 @@ class MacroServer(SardanaDevice):
                 self.warning("Failed to start rconsole")
                 self.debug("Details:", exc_info=1)
     
-    def _calculate_environment_name(self, name):
+    def _calculate_name(self, name):
+        if name is None:
+            return None
         util = Util.instance()
         return name % { 'ds_name' : util.get_ds_name().lower(),
                         'ds_exec_name' : util.get_ds_exec_name(),
@@ -302,8 +311,11 @@ class MacroServerClass(SardanaDeviceClass):
     class_property_list = {
     }
     
+    
     DefaultEnvBaseDir = "/tmp/tango"
     DefaultEnvRelDir = "%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"
+    
+    DefaultLogReportFormat = '%(levelname)-8s %(asctime)s: %(message)s'
     
     #    Device Properties
     device_property_list = {
@@ -333,6 +345,19 @@ class MacroServerClass(SardanaDeviceClass):
             [DevLong,
             "The rconsole port number",
             None ],
+        'LogReportFilename':
+            [DevString,
+            "Filename (absolute) which contains user log reports [default: "
+            "None, meaning don't store log report messages]. The system will "
+            "save old log files by appending extensions to the filename. The "
+            "extensions are date-and-time based, using the strftime "
+            "format %Y-%m-%d_%H-%M-%S or a leading portion thereof, "
+            "depending on the rollover interval.",
+            None ],
+        'LogReportFormat':
+            [DevString,
+            "Log report format [default: '%s']" % DefaultLogReportFormat,
+            DefaultLogReportFormat],
     }
 
     #    Command definitions

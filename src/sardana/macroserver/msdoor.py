@@ -108,6 +108,32 @@ class MSDoor(MSObject):
 
     running_macro = property(get_running_macro)
 
+    def get_report_logger(self):
+        return self.macro_server.report_logger
+    
+    report_logger = property(get_report_logger)
+
+    def report(self, msg, *args, **kwargs):
+        """
+        Record a log message in the sardana report (if enabled) with default
+        level **INFO**. The msg is the message format string, and the args are
+        the arguments which are merged into msg using the string formatting
+        operator. (Note that this means that you can use keywords in the
+        format string, together with a single dictionary argument.)
+        
+        *kwargs* are the same as :meth:`logging.Logger.debug` plus an optional
+        level kwargs which has default value **INFO**
+        
+        Example::
+        
+            self.report("this is an official report!")
+        
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return self.macro_server.report(msg, *args, **kwargs)
+
     def get_state(self):
         return self._state
 

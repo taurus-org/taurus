@@ -32,7 +32,7 @@ import datetime
 from taurus.console.table import Table
 
 from PyTango import DevState
-from sardana.macroserver.macro import Macro, Type, ParamRepeat
+from sardana.macroserver.macro import Macro, macro, Type, ParamRepeat
 
 ################################################################################
 #
@@ -461,5 +461,7 @@ class settimer(Macro):
             self.output(str(e))
             self.output("%s is not a valid channel in the active measurement group" % timer)
 
-
-
+@macro([['message', ParamRepeat(['message_item', Type.String, None, 'message item to be reported']), None, 'message to be reported']])
+def report(self, *message):
+    """Logs a new record into the message report system (if active)"""
+    self.report(' '.join(message))
