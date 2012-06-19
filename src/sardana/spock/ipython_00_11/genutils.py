@@ -935,7 +935,10 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     ipython_widget.output_sep = ''
     ipython_widget.output_sep2 = ''
     ipython_widget.enable_calltips = True
-    ipython_widget.gui_completion = True
+    if ipy_ver >= 1300:
+        ipython_widget.gui_completion = 'droplist'
+    else:
+        ipython_widget.gui_completion = True
     ipython_widget.ansi_codes = True
     ipython_widget.paging = 'inside'
     ipython_widget.pylab = 'inline'
