@@ -228,8 +228,13 @@ class PoolMeasurementGroup(PoolGroupElement):
         config['monitor'] = g_monitor
         config['controllers'] = controllers = {}
 
+        external_user_elements = []
         for index, element in enumerate(user_elements):
             elem_type = element.get_type()
+            if elem_type == ElementType.External:
+                external_user_elements.append((index, element))
+                continue
+            
             ctrl = element.controller
             ctrl_data = controllers.get(ctrl)
 
@@ -259,12 +264,6 @@ class PoolMeasurementGroup(PoolGroupElement):
             channel_data = self._build_channel_defaults(channel_data, element)
         config['label'] = self.name
         config['description'] = self.DFT_DESC
-
-        # add external channels
-        external_user_elements = []
-        for index, element in enumerate(user_elements):
-            if element.get_type() == ElementType.External:
-                external_user_elements.append((index, element))
 
         if len(external_user_elements) > 0:
             controllers['__tango__'] = ctrl_data = {}
