@@ -65,6 +65,7 @@ class MacroServer(SardanaDevice):
     
     def delete_device(self):
         SardanaDevice.delete_device(self)
+        self.clear_log_report()
 
     def init_device(self):
         SardanaDevice.init_device(self)

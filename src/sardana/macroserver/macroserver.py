@@ -23,8 +23,13 @@
 ##
 ##############################################################################
 
+from __future__ import with_statement
+
+import os
 import re
-import logging
+import codecs
+import logging.handlers
+import time
 
 from taurus import Device, Factory
 from taurus.core import TaurusEventType
@@ -76,13 +81,58 @@ for t, d in TYPE_MAP.items():
     TYPE_MAP_OBJ[t] = o
 
 
+class NonOverlappingTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
+
+    def getNewFileName(self):
+        currentTime = int(time.time())
+        dstNow = time.localtime(currentTime)[-1]
+        t = self.rolloverAt - self.interval
+        if self.utc:
+            timeTuple = time.gmtime(t)
+        else:
+            timeTuple = time.localtime(t)
+            dstThen = timeTuple[-1]
+            if dstNow != dstThen:
+                if dstNow:
+                    addend = 3600
+                else:
+                    addend = -3600
+                timeTuple = time.localtime(t + addend)
+        
+        dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
+        # PY3K
+        if hasattr(self, 'rotation_filename'):
+            dfn = self.rotation_filename(dfn)
+        return dfn
+
+    def doRollover(self):
+        dfn = self.getNewFileName()
+        do_backup = os.path.isfile(dfn) and self.backupCount > 0
+        if do_backup:
+            dfn_backup = dfn + os.path.extsep + "backup"
+            os.rename(dfn, dfn_backup)
+        try:
+            super(NonOverlappingTimedRotatingFileHandler, self).doRollover()
+        finally:
+            if do_backup:
+                mode = self.mode
+                if 'a' not in mode:
+                    mode = 'a' + mode
+                with codecs.open(dfn_backup, mode, self.encoding) as dest, \
+                     codecs.open(dfn, 'r', self.encoding) as src:
+                    dest.write(src.read())
+                os.remove(dfn)
+                os.rename(dfn_backup, dfn)
+
+
 class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager):
     
     All = "All"
     
     MaxParalellMacros = 5
     
-    DefaultLogReport = dict(when='midnight', interval=1, backupCount=365)
+    logReportParams = dict(when='midnight', interval=1, backupCount=365)
+    logReportKlass = NonOverlappingTimedRotatingFileHandler
     
     def __init__(self, full_name, name=None, macro_path=None,
                  environment_db=None):
@@ -172,6 +222,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
                 to_remove.append(handler)
         
         for handler in to_remove:
+            handler.close()
             log.removeHandler(handler)
         
         if filename is None:
@@ -182,10 +233,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         formatter = logging.Formatter(format)
         
         self.info("Reports are being stored in %s", filename)
-        klass = logging.handlers.TimedRotatingFileHandler
-        handler = klass(filename, **self.DefaultLogReport)
+        klass = logReportKlass
+        handler = klass(filename, **self.logReportParams)
         handler.setFormatter(formatter)
         log.addHandler(handler)
+    
+    def clear_log_report(self):
+        self.set_log_report()
     
     def get_report_logger(self):
         return logging.getLogger("Sardana.Report")
