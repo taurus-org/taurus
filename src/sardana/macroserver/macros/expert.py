@@ -144,11 +144,7 @@ class defctrl(Macro):
                    None, 'roles and/or properties'] ]
 
     def run(self, ctrl_class, name, *props):
-        pools = self.getPools()
-        if len(pools) > 1:
-            self.warning('Server connected to more than 1 pool. This macro is '
-                         'not supported in this case for now')
-        pool = pools[0]
+        pool = ctrl_class.getPoolObj()
         elem = pool.createController(ctrl_class.name, name, *props)
         self.print("Created %s" % str(elem))
 
