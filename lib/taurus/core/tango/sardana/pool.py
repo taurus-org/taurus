@@ -113,7 +113,7 @@ class BaseElement(object):
         return self.getPoolData()['name']
 
     def getPoolObj(self):
-        return self._pool
+        return self._pool_obj
 
     def getPoolData(self):
         try:
@@ -1462,6 +1462,7 @@ class Pool(TangoDevice, MoveableSource):
             klass = globals()[elem_type]
             kwargs = dict(data)
             kwargs['_pool_data'] = data
+            kwargs['_pool_obj'] = self
             return klass(**kwargs)
         obj = Factory().getDevice(element_info.full_name, _pool_obj=self,
                                   _pool_data=data)
