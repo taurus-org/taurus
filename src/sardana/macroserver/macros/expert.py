@@ -119,13 +119,29 @@ class udefelem(Macro):
 
 
 class defctrl(Macro):
-    """Creates a new controller"""
+    """Creates a new controller
+    'role_prop' is a sequence of roles and/or properties.
+    - A role is defined as <role name>=<role value> (only applicable to pseudo controllers)
+    - A property is defined as <property name> <property value>
+    
+    If both roles and properties are supplied, all roles must come before properties.
+    All controller properties that don't have default values must be given.
+    
+    Example of creating a motor controller (with a host and port properties):
+    
+    [1]: defctrl SuperMotorController myctrl host homer.springfield.com port 5000
+    
+    Example of creating a Slit pseudo motor (sl2t and sl2b motor roles, Gap and 
+    Offset pseudo motor roles):
+    
+    [1]: defctrl Slit myslit sl2t=mot01 sl2b=mot02 Gap=gap01 Offset=offset01"""
 
     param_def = [ ['class',  Type.ControllerClass, None, 'controller class'],
                   ['name',  Type.String, None, 'new controller name'],
-                  ['properties',
-                   ParamRepeat(['property item', Type.String, None, 'a property item'],min=0),
-                   None, 'property item'] ]
+                  ['roles_props',
+                   ParamRepeat(['role_prop', Type.String, None, 
+                   'a role or property item'],min=0),
+                   None, 'roles and/or properties'] ]
 
     def run(self, ctrl_class, name, *props):
         pools = self.getPools()
