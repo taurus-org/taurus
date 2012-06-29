@@ -32,7 +32,7 @@
      
 """
 
-__all__ = ["ascanc", "ascanr", "toothedtriangle", "regscan", "a2scan_mod"]
+__all__ = ["ascanc", "ascanr", "toothedtriangle", "regscan", "reg2scan", "reg3scan", "a2scan_mod"]
 
 __docformat__ = 'restructuredtext'
 
@@ -327,6 +327,129 @@ class regscan(Macro):
                 positions = positions[1:]
             for p in positions:
                 step['positions'] = [p]
+                step['point_id'] = point_id
+                point_id += 1
+                yield step
+            region_start = region_stop
+
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
+
+
+class reg2scan(Macro):
+    """reg2scan.
+    Do an absolute scan of the specified motors with different number of intervals for each region.
+    It uses the gscan framework. All the motors will be drived to the same position in each step
+
+    NOTE: Due to a ParamRepeat limitation, integration time has to be
+    specified before the regions.
+    """
+
+    hints = {'scan' : 'reg2scan'}
+    env = ('ActiveMntGrp',)
+
+    param_def = [
+        ['motor1',     Type.Moveable, None, 'Motor to move'],
+        ['motor2',     Type.Moveable, None, 'Motor to move'],
+        ['integ_time', Type.Float,    None, 'Integration time'],
+        ['start_pos',  Type.Float,    None, 'Start position'],
+        ['step_region',
+         ParamRepeat(['next_pos',  Type.Float,   None, 'next position'],
+                     ['region_nr_intervals',  Type.Float,   None, 'Region number of intervals']),
+         None, 'List of tuples: (next_pos, region_nr_intervals']
+    ]
+
+    def prepare(self, motor1, motor2, integ_time, start_pos, *regions, **opts):
+        self.name='reg2scan'
+        self.integ_time = integ_time
+        self.start_pos = start_pos
+        self.regions = regions
+        self.regions_count = len(self.regions)/2
+
+        generator=self._generator
+        moveables=[motor1, motor2]
+        env=opts.get('env',{})
+        constrains=[]
+        self._gScan=SScan(self, generator, moveables, env, constrains)
+
+    def _generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+
+        point_id = 0
+        region_start = self.start_pos
+        for r in range(len(self.regions)):
+            region_stop, region_nr_intervals = self.regions[r][0], self.regions[r][1]
+            positions = numpy.linspace(region_start, region_stop, region_nr_intervals+1)
+            if region_start != self.start_pos:
+                # positions must be calculated from the start to the end of the region
+                # but after the first region, the 'start' point must not be repeated
+                positions = positions[1:]
+            for p in positions:
+                step['positions'] = [p, p]
+                step['point_id'] = point_id
+                point_id += 1
+                yield step
+            region_start = region_stop
+
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
+
+
+class reg3scan(Macro):
+    """reg3scan.
+    Do an absolute scan of the specified motors with different number of intervals for each region.
+    It uses the gscan framework. All the motors will be drived to the same position in each step
+
+    NOTE: Due to a ParamRepeat limitation, integration time has to be
+    specified before the regions.
+    """
+
+    hints = {'scan' : 'reg3scan'}
+    env = ('ActiveMntGrp',)
+
+    param_def = [
+        ['motor1',     Type.Moveable, None, 'Motor to move'],
+        ['motor2',     Type.Moveable, None, 'Motor to move'],
+        ['motor3',     Type.Moveable, None, 'Motor to move'],
+        ['integ_time', Type.Float,    None, 'Integration time'],
+        ['start_pos',  Type.Float,    None, 'Start position'],
+        ['step_region',
+         ParamRepeat(['next_pos',  Type.Float,   None, 'next position'],
+                     ['region_nr_intervals',  Type.Float,   None, 'Region number of intervals']),
+         None, 'List of tuples: (next_pos, region_nr_intervals']
+    ]
+
+    def prepare(self, motor1, motor2, motor3, integ_time, start_pos, *regions, **opts):
+        self.name='reg3scan'
+        self.integ_time = integ_time
+        self.start_pos = start_pos
+        self.regions = regions
+        self.regions_count = len(self.regions)/2
+
+        generator=self._generator
+        moveables=[motor1, motor2, motor3]
+        env=opts.get('env',{})
+        constrains=[]
+        self._gScan=SScan(self, generator, moveables, env, constrains)
+
+    def _generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+
+        point_id = 0
+        region_start = self.start_pos
+        for r in range(len(self.regions)):
+            region_stop, region_nr_intervals = self.regions[r][0], self.regions[r][1]
+            positions = numpy.linspace(region_start, region_stop, region_nr_intervals+1)
+            if region_start != self.start_pos:
+                # positions must be calculated from the start to the end of the region
+                # but after the first region, the 'start' point must not be repeated
+                positions = positions[1:]
+            for p in positions:
+                step['positions'] = [p, p, p]
                 step['point_id'] = point_id
                 point_id += 1
                 yield step
