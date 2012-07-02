@@ -63,6 +63,9 @@ class MeasurementGroup(PoolGroupDevice):
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
+        mg = self.measurement_group
+        if mg is not None:
+            mg.remove_listener(self.on_measurement_group_changed)
 
     @DebugIt()
     def init_device(self):
@@ -79,13 +82,16 @@ class MeasurementGroup(PoolGroupDevice):
                 self.Elements[i] = int(self.Elements[i])
             except:
                 pass
-        if self.measurement_group is None:
+        mg = self.measurement_group
+        if mg is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            mg = self.pool.create_measurement_group(name=name,
-                full_name=full_name, id=self.Id, user_elements=self.Elements)
-            mg.add_listener(self.on_measurement_group_changed)
-            self.measurement_group = mg
+            self.measurement_group = mg = \
+                self.pool.create_measurement_group(name=name,
+                    full_name=full_name, id=self.Id,
+                    user_elements=self.Elements)
+        mg.add_listener(self.on_measurement_group_changed)
+
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
         #state = self.measurement_group.state

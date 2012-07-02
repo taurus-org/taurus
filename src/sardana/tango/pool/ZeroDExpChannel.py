@@ -64,6 +64,9 @@ class ZeroDExpChannel(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
+        zerod = self.zerod
+        if zerod is not None:
+            zerod.remove_listener(self.on_zerod_changed)
 
     @DebugIt()
     def init_device(self):
@@ -72,17 +75,18 @@ class ZeroDExpChannel(PoolElementDevice):
         detect_evts = "state", "value"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-
-        if self.zerod is None:
+        
+        zerod = self.zerod
+        if zerod is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            zerod = self.pool.create_element(type="ZeroDExpChannel", name=name,
-                full_name=full_name, id=self.Id, axis=self.Axis,
-                ctrl_id=self.Ctrl_id)
-            zerod.add_listener(self.on_zerod_changed)
-            self.zerod = zerod
+            self.zerod = zerod = \
+                self.pool.create_element(type="ZeroDExpChannel", name=name,
+                    full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id)
+        zerod.add_listener(self.on_zerod_changed)
         # force a state read to initialize the state attribute
-        state = self.zerod.state
+        state = zerod.state
 
     def on_zerod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element

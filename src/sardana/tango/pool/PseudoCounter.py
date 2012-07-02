@@ -66,23 +66,26 @@ class PseudoCounter(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
+        pseudo_counter = self.pseudo_counter
+        if pseudo_counter is not None:
+            pseudo_counter.remove_listener(self.on_pseudo_counter_changed)
 
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
 
         self.Elements = map(int, self.Elements)
-        if self.pseudo_counter is None:
+        pseudo_counter = self.pseudo_counter
+        if pseudo_counter is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            pseudo_counter = self.pool.create_element(type="PseudoCounter",
-                name=name, full_name=full_name, id=self.Id,
-                axis=self.Axis, ctrl_id=self.Ctrl_id,
-                user_elements=self.Elements)
+            self.pseudo_counter = pseudo_counter = \
+                self.pool.create_element(type="PseudoCounter", name=name,
+                    full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id, user_elements=self.Elements)
             if self.instrument is not None:
                 pseudo_counter.set_instrument(self.instrument)
-            pseudo_counter.add_listener(self.on_pseudo_counter_changed)
-            self.pseudo_counter = pseudo_counter
+        pseudo_counter.add_listener(self.on_pseudo_counter_changed)
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
 

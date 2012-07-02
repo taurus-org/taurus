@@ -66,6 +66,9 @@ class MotorGroup(PoolGroupDevice):
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
+        motor_group = self.motor_group
+        if motor_group is not None:
+            motor_group.remove_listener(self.on_motor_group_changed)
 
     @DebugIt()
     def init_device(self):
@@ -76,13 +79,14 @@ class MotorGroup(PoolGroupDevice):
         self.set_change_events(detect_evts, non_detect_evts)
 
         self.Elements = map(int, self.Elements)
-        if self.motor_group is None:
+        motor_group = self.motor_group
+        if motor_group is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            motor_group = self.pool.create_motor_group(name=name, id=self.Id,
-                full_name=full_name, user_elements=self.Elements)
-            motor_group.add_listener(self.on_motor_group_changed)
-            self.motor_group = motor_group
+            self.motor_group = motor_group = \
+                self.pool.create_motor_group(name=name, id=self.Id,
+                    full_name=full_name, user_elements=self.Elements)
+        motor_group.add_listener(self.on_motor_group_changed)
 
     def on_motor_group_changed(self, event_source, event_type, event_value):
         try:

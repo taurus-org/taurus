@@ -62,7 +62,10 @@ class CTExpChannel(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
-
+        ct = self.ct
+        if ct is not None:
+            ct.remove_listener(self.on_ct_changed)
+            
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
@@ -70,19 +73,21 @@ class CTExpChannel(PoolElementDevice):
         detect_evts = "state", "value"
         non_detect_evts = ()
         self.set_change_events(detect_evts, non_detect_evts)
-
-        if self.ct is None:
+        
+        ct = self.ct
+        if ct is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            ct = self.pool.create_element(type="CTExpChannel", name=name,
-                full_name=full_name, id=self.Id, axis=self.Axis,
-                ctrl_id=self.Ctrl_id)
+            self.ct = ct = \
+                self.pool.create_element(type="CTExpChannel",
+                    name=name, full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 ct.set_instrument(self.instrument)
-            ct.add_listener(self.on_ct_changed)
-            self.ct = ct
+        ct.add_listener(self.on_ct_changed)
+
         # force a state read to initialize the state attribute
-        state = self.ct.state
+        state = ct.state
 
     def on_ct_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element

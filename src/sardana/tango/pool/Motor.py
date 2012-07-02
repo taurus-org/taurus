@@ -69,23 +69,26 @@ class Motor(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
-
+        motor = self.motor
+        if motor is not None:
+            motor.remove_listener(self.on_motor_changed)
+            
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-
-        if self.motor is None:
+        motor = self.motor
+        if motor is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            motor = self.pool.create_element(type="Motor",
-                name=name, full_name=full_name, id=self.Id,
-                axis=self.Axis, ctrl_id=self.Ctrl_id)
+            self.motor = motor = \
+                self.pool.create_element(type="Motor", name=name,
+                    full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 motor.set_instrument(self.instrument)
             if self.Sleep_bef_last_read > 0:
                 motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
-            motor.add_listener(self.on_motor_changed)
-            self.motor = motor
+        motor.add_listener(self.on_motor_changed)
 
     def on_motor_changed(self, event_source, event_type, event_value):
         try:

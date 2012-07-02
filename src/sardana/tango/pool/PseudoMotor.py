@@ -68,24 +68,27 @@ class PseudoMotor(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
-
+        pseudo_motor = self.pseudo_motor
+        if pseudo_motor is not None:
+            pseudo_motor.remove_listener(self.on_pseudo_motor_changed)
+            
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
         
         self.Elements = map(int, self.Elements)
+        pseudo_motor = self.pseudo_motor
         if self.pseudo_motor is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            pseudo_motor = self.pool.create_element(type="PseudoMotor",
-                name=name, full_name=full_name, id=self.Id,
-                axis=self.Axis, ctrl_id=self.Ctrl_id,
-                user_elements=self.Elements)
+            self.pseudo_motor = pseudo_motor = \
+                self.pool.create_element(type="PseudoMotor", name=name,
+                    full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id, user_elements=self.Elements)
             if self.instrument is not None:
                 pseudo_motor.set_instrument(self.instrument)
-            pseudo_motor.add_listener(self.on_pseudo_motor_changed)
-            self.pseudo_motor = pseudo_motor
-        self.pseudo_motor.set_drift_correction(self.DriftCorrection)
+        pseudo_motor.add_listener(self.on_pseudo_motor_changed)
+        pseudo_motor.set_drift_correction(self.DriftCorrection)
         # force a state read to initialize the state attribute
         self.set_state(DevState.ON)
 

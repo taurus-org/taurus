@@ -65,23 +65,27 @@ class IORegister(PoolElementDevice):
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
+        ior = self.ior
+        if ior is not None:
+            ior.remove_listener(self.on_ior_changed)
 
-    @InfoIt()
+    @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-
-        if self.ior is None:
+        
+        ior = self.ior
+        if ior is None:
             full_name = self.get_full_name()
             name = self.alias or full_name
-            ior = self.pool.create_element(type="IORegister",
-                name=name, full_name=full_name, id=self.Id,
-                axis=self.Axis, ctrl_id=self.Ctrl_id)
+            self.ior = ior = \
+                self.pool.create_element(type="IORegister", name=name,
+                    full_name=full_name, id=self.Id, axis=self.Axis,
+                    ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 ior.set_instrument(self.instrument)
-            ior.add_listener(self.on_ior_changed)
-            self.ior = ior
+        ior.add_listener(self.on_ior_changed)
         # force a state read to initialize the state attribute
-        state = self.ior.get_state(cache=False)
+        state = ior.get_state(cache=False)
 
     def on_ior_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
