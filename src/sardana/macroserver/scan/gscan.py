@@ -617,9 +617,9 @@ class GScan(Logger):
                 column.shape = numpy.shape(v)
                 column.dtype = getattr(v, 'dtype', numpy.dtype(type(v))).name
                 ret.append(column)
-            except Exception,e:
+            except:
                 self.macro.warning('Error taking pre-scan snapshot of %s (%s)',label,src)
-                self.debug('%s',e)
+                self.debug('Details:', exc_info=1)
         return ret
 
     MAX_ITER = 100000
