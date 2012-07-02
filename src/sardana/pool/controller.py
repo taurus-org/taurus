@@ -29,7 +29,8 @@ __all__ = ["Type", "Access", "Description", "DefaultValue",
            "Memorized", "MemorizedNoInit", "NotMemorized",
            "Controller", "Readable", "Startable", "Stopable",
            "MotorController", "CounterTimerController",
-           "PseudoMotorController", "IORegisterController"]
+           "PseudoMotorController", "IORegisterController",
+           "FGet", "FSet" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -49,7 +50,8 @@ DefaultValue = 'defaultvalue'
 Memorized = "true"
 MemorizedNoInit = "true_without_hard_applied"
 NotMemorized = "false"
-
+FGet = "fget"
+FSet = "fset"
 
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""
@@ -386,28 +388,28 @@ class Startable(object):
 
     def PreStartAll(self):
         """**Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of all axis.
+        Called to prepare a start of all axis (whatever pre-start means).
         Default implementation does nothing."""
         pass
 
-    def PreStartOne(self, axis, position):
+    def PreStartOne(self, axis, value):
         """**Controller API**. Overwrite as necessary.
-        Called to prepare a write of the position of a single axis.
+        Called to prepare a start of the given axis (whatever pre-start means).
         Default implementation returns True.
 
         :param int axis: axis number
-        :param float position: new position
+        :param float value: new value
         :return: True means a successfull pre-start or False for a failure
         :rtype: bool"""
         return True
 
-    def StartOne(self, axis, position):
+    def StartOne(self, axis, value):
         """**Controller API**. Overwrite as necessary.
-        Called to write the position of a selected axis
+        Called to do a start of the given axis (whatever start means).
         Default implementation does nothing.
 
         :param int axis: axis number
-        :param float position: new position"""
+        :param float value: new value"""
         pass
 
     def StartAll(self):
@@ -638,7 +640,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
                                   "controller")
 
 
-class CounterTimerController(Controller, Readable, Stopable):
+class CounterTimerController(Controller, Readable, Startable, Stopable):
     """Base class for a counter/timer controller. Inherit from this class to
     implement your own counter/timer controller for the device pool.
 
@@ -685,17 +687,17 @@ class CounterTimerController(Controller, Readable, Stopable):
         :param int axis: axis number
 
         .. deprecated:: 1.0
-            use :meth:`~CounterTimerController.StartOneCT` instead"""
+            use :meth:`~CounterTimerController.StartOne` instead"""
         pass
 
     def StartAllCT(self):
         """**Counter/Timer Controller API**. Overwrite is MANDATORY!
         Called to start an acquisition of a selected axis.
-        Default implementation does nothing.
+        Default implementation raises :exc:`NotImplementedError`.
 
         .. deprecated:: 1.0
             use :meth:`~CounterTimerController.StartAll` instead"""
-        raise NotImplementedError("StartAllCT must be defined in the "
+        raise NotImplementedError("StartAll must be defined in the "
                                   "controller")
 
     def PreStartAll(self):
@@ -754,6 +756,7 @@ class CounterTimerController(Controller, Readable, Stopable):
         Default implementation returns True.
 
         :param int axis: axis number
+        :param float value: integration time /monitor value
         :return: True means a successfull PreLoadOne or False for a failure
         :rtype: bool"""
         return True
@@ -763,6 +766,16 @@ class CounterTimerController(Controller, Readable, Stopable):
         Called to load the integration time / monitor value.
         Default implementation does nothing."""
         pass
+
+    def LoadOne(self, axis, value):
+        """**Counter/Timer Controller API**. Overwrite is MANDATORY!
+        Called to load the integration time / monitor value.
+        Default implementation raises :exc:`NotImplementedError`.
+        
+        :param int axis: axis number
+        :param float value: integration time /monitor value"""
+        raise NotImplementedError("LoadOne must be defined in the controller")
+
 
 
 class ZeroDController(Controller, Readable, Stopable):
