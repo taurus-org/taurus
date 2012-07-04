@@ -63,7 +63,7 @@ ATTRIBUTE_QUALITY_DATA = {
     str(PyTango.AttrQuality.ATTR_INVALID)   : ("Gray",          128, 128,  128, 1),
     str(PyTango.AttrQuality.ATTR_VALID)     : ("Frog Green",      0, 255,   0, 0),
     str(PyTango.AttrQuality.ATTR_ALARM)     : ("Orange",        255, 140,   0, 1),
-    str(PyTango.AttrQuality.ATTR_WARNING)   : ("Orange",        255, 140,   0, 1),
+    str(PyTango.AttrQuality.ATTR_WARNING)   : ("Orange",        255, 140,   0, 0),
     str(PyTango.AttrQuality.ATTR_CHANGING)  : ("Lightblue",     128, 160, 255 ,0),
     "UNKNOWN"                               : ("Gray",          128, 128, 128, 0),
     str(None)                               : ("Gray",          128, 128, 128, 0),

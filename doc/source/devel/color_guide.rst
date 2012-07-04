@@ -73,7 +73,7 @@ Attribute quality
     .ATTR_INVALID  { background: rgb(128, 128, 128); color: rgb(255, 255, 255); text-align: right; }
     .ATTR_VALID    { background: rgb(0,   255,   0); color: rgb(  0,   0,   0); text-align: right; }
     .ATTR_ALARM    { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
-    .ATTR_WARNING  { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
+    .ATTR_WARNING  { background: rgb(255, 140,   0); color: rgb(  0,   0,   0); text-align: right; }
     .ATTR_CHANGING { background: rgb(128, 160, 255); color: rgb(  0,   0,   0); text-align: right; }
     .ATTR_UNKNOWN  { background: rgb(128, 128, 128); color: rgb(  0,   0,   0); text-align: right; }
     .ATTR_NONE     { background: rgb(128, 128, 128); color: rgb(  0,   0,   0); text-align: right; }
@@ -87,7 +87,7 @@ Attribute quality
     <tr class="quality_row"><td>ATTR_INVALID</td><td>Gray (128,128,128)</td><td>White (255,255,255)</td><td class="ATTR_INVALID">-----</td></tr>
     <tr class="quality_row"><td>ATTR_VALID</td><td>Dead Frog Green (0,255,0)</td><td>Black (0,0,0)</td><td class="ATTR_VALID">10.89 mV</td></tr>
     <tr class="quality_row"><td>ATTR_ALARM</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="ATTR_ALARM">76.54 mV</td></tr>
-    <tr class="quality_row"><td>ATTR_WARNING</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="ATTR_WARNING">64.23 mV</td></tr>
+    <tr class="quality_row"><td>ATTR_WARNING</td><td>Orange (255,140,0)</td><td>Black (0,0,0)</td><td class="ATTR_WARNING">64.23 mV</td></tr>
     <tr class="quality_row"><td>ATTR_CHANGING</td><td>Light Blue (128,160,255)</td><td>Black (0,0,0)</td><td class="ATTR_CHANGING">20.45 mV</td></tr>
     <tr class="quality_row"><td>None</td><td>Gray (128,128,128)</td><td>Black (0,0,0)</td><td class="ATTR_NONE">-----</td></tr>
     </table>
