@@ -1479,7 +1479,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if fx is None:
             if y is None: raise ValueError() #There must be either f(x) or y. TODO: deal with this exception properly.
             title=str(rawdata.get("title","rawdata"))
-            x=numpy.array(rawdata.get("x",numpy.arange(len(y)))) #if no x is given, the indices will be used
+            x=rawdata.get("x",None)
+            if x == None:
+                x = numpy.arange(len(y)) #if no x is given, the indices will be used
+            else:
+                x = numpy.array(x)
         else:
             if y is not None: raise ValueError() #We do not want both y and f(x) being passed. TODO: deal with this exception properly.
             title=str(rawdata.get("title",fx))
