@@ -118,9 +118,9 @@ class NonOverlappingTimedRotatingFileHandler(logging.handlers.TimedRotatingFileH
                 mode = self.mode
                 if 'a' not in mode:
                     mode = 'a' + mode
-                with codecs.open(dfn_backup, mode, self.encoding) as dest, \
-                     codecs.open(dfn, 'r', self.encoding) as src:
-                    dest.write(src.read())
+                with codecs.open(dfn_backup, mode, self.encoding) as dest:
+                    with codecs.open(dfn, 'r', self.encoding) as src:
+                        dest.write(src.read())
                 os.remove(dfn)
                 os.rename(dfn_backup, dfn)
 
@@ -233,7 +233,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         formatter = logging.Formatter(format)
         
         self.info("Reports are being stored in %s", filename)
-        klass = logReportKlass
+        klass = self.logReportKlass
         handler = klass(filename, **self.logReportParams)
         handler.setFormatter(formatter)
         log.addHandler(handler)
