@@ -66,7 +66,7 @@ class TaurusLabelController(TaurusBaseController):
     def _setStyle(self):
         TaurusBaseController._setStyle(self)
         label = self.label()
-        label.setAlignment(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
+        label.setAlignment(label.DefaultAlignment)
         # if update as palette
         if self.usePalette():
             label.setFrameShape(Qt.QFrame.Box)
@@ -231,7 +231,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     DefaultShowText = True
     DefaultModelIndex = None
     DefaultAutoTrim = True
-
+    DefaultAlignment = Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
+    
     def __init__(self, parent=None, designMode=False):
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
