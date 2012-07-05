@@ -1445,7 +1445,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """attaches a curve to the plot formed from raw data that comes in a dict
 
         :param rawdata: (dict) A dictionary defining a rawdata curve. It has the
-                        following structure:
+                        following structure (all keys are optional, but either 
+                        "y" or "f(x)" must be present. Also, the value of x, y 
+                        and f(x) can be None):
 
                         {"title":<str>, "x":list<float>, "y":list<float>,
                         "f(x)": <str (an expression to evaluate on the x values)>}
@@ -1474,25 +1476,24 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 self.warning('The use of "name" (=%s) for attaching rawdata is deprecated. Use "title" instead'%rawdata["name"])
                 rawdata["title"] = rawdata["name"]
 
-        y=rawdata.get("y",None)
-        fx=rawdata.get("f(x)",None)
+        y = rawdata.get("y",None)
+        fx = rawdata.get("f(x)",None)
+        x = rawdata.get("x",None)
         if fx is None:
-            if y is None: raise ValueError() #There must be either f(x) or y. TODO: deal with this exception properly.
-            title=str(rawdata.get("title","rawdata"))
-            x=rawdata.get("x",None)
-            if x == None:
+            if y is None: raise ValueError('Either "f(x)" or "y" keys must be present') 
+            title = str(rawdata.get("title","rawdata"))
+            if x is None:
                 x = numpy.arange(len(y)) #if no x is given, the indices will be used
             else:
                 x = numpy.array(x)
         else:
-            if y is not None: raise ValueError() #We do not want both y and f(x) being passed. TODO: deal with this exception properly.
-            title=str(rawdata.get("title",fx))
-            x=rawdata.get("x",None)
+            if y is not None: raise ValueError('only one of "f(x)" or "y" keys can be present')
             if x is None: raise ValueError('Missing "x" values') #we need x values in which to evaluate
-            x=numpy.array(x)
-            sev=SafeEvaluator({'x':x})
+            title = str(rawdata.get("title",fx))
+            x = numpy.array(x)
+            sev = SafeEvaluator({'x':x})
             try:
-                y=sev.eval(fx)
+                y = sev.eval(fx)
             except:
                 self.warning("the function '%s' could not be evaluated (skipping)"%title) #TODO: deal with this exception properly.
                 return
@@ -1510,7 +1511,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if self.curves.has_key(name):
-                curve=self.curves.get(name)
+                curve = self.curves.get(name)
                 if curve.isRawData:
                     self.detachRawData(name)
                 else:
