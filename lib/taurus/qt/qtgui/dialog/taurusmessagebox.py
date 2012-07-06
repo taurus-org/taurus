@@ -38,31 +38,7 @@ from taurus.qt import Qt
 from taurus.core.util.excepthook import BaseExceptHook
 import taurus.qt.qtgui.resource
 
-#_MESSAGE_BOX = None
-#_MESSAGE_BOX_LOCK = threading.RLock()
 
-
-#def TaurusMessageBox(err_type=None, err_value=None, err_traceback=None,
-#                     parent=None):
-#    global _MESSAGE_BOX_LOCK
-#    global _MESSAGE_BOX
-    
-#    with _MESSAGE_BOX_LOCK:
-#        if _MESSAGE_BOX is None:
-#            _MESSAGE_BOX = TaurusMessageDialog(err_type=err_type,
-#                                               err_value=err_value,
-#                                               err_traceback=err_traceback,
-#                                               parent=parent)
-#        else:
-#            _MESSAGE_BOX.setError(err_type=err_type,
-#                                  err_value=err_value,
-#                                  err_traceback=err_traceback)
-#    if _MESSAGE_BOX.panel().checkBoxState() == Qt.Qt.Checked:
-#        return
-#    return _MESSAGE_BOX
-
-
-#class TaurusMessageDialog(Qt.QDialog):
 class TaurusMessageBox(Qt.QDialog):
     """A panel intended to display a taurus error.
     Example::
