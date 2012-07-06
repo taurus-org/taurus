@@ -437,7 +437,9 @@ class FunctionCodec(Codec):
         self._func_name = func_name
     
     def encode(self, data, *args, **kwargs):
-        return self._func_name, { 'type' : self._func_name, 'data' : data }
+        format = self._func_name
+        if len(data[0]): format += '_%s' % data[0]
+        return format, { 'type' : self._func_name, 'data' : data[1] }
     
     def decode(self, data, *args, **kwargs):
         if not data[0].startswith(self._func_name):
