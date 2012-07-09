@@ -35,9 +35,6 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 from taurus.qt import Qt
 
-if hasattr(Qt, 'QString'):
-    raise Exception("Using Qt SIP API v1. IPython requires Qt SIP API v2")
-
 default_gui_banner = """\
 Taurus console -- An enhanced IPython console for taurus.
 

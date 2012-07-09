@@ -25,7 +25,7 @@
 
 """This module provides an Input panel (usually used inside a TaurusDialog)"""
 
-__all__ = ["InputPanel"]
+__all__ = ["TaurusInputPanel"]
 
 __docformat__ = 'restructuredtext'
 
@@ -36,8 +36,76 @@ from taurus.qt import Qt
 import ui.ui_TaurusInputPanel
 
 
-class InputPanel(Qt.QWidget):
+class TaurusInputPanel(Qt.QWidget):
+    """A panel design to get an input from the user.
+    
+    The input_data is a dictionary which contains information on how to build
+    the input dialog. It **must** contains the following keys:
+    
+        - *prompt* <str>: message to be displayed
+        
+    The following are optional keys (and their corresponding default values):
+        
+        - *key* <str> (doesn't have default value):
+          a label to be presented left to the input box represeting the label
+        - *unit* <str> (doesn't have default value):
+          a label to be presented right to the input box representing the units
+        - *data_type* <str or sequence> ('String'):
+          type of data to be requested. Standard 
+          accepted data types are 'String', 'Integer', 'Float', 'Boolean',
+          'Text'. A list of elements will be interpreted as a selection.
+          Default TaurusInputPanel class will interpret any custom data types as
+          'String' and will display input widget accordingly. Custom
+          data types can be handled differently by supplying a different
+          input_panel_klass.
+        - *minimum* <int/float> (-sys.maxint):
+          minimum value (makes sence when data_type is 'Integer' or 'Float')
+        - *maximum* <int/float> (sys.maxint): 
+          maximum value (makes sence when data_type is 'Integer' or 'Float')
+        - *step* <int/float> (1): 
+          step size value (makes sence when data_type is 'Integer' or 'Float')
+        - *decimals* <int> (1): 
+          number of decimal places to show (makes sence when data_type is
+          'Float')
+        - *default_value* <obj> (doesn't have default value): 
+          default value
+        - *allow_multiple* <bool> (False):
+          allow more than one value to be selected (makes sence when data_type
+          is a sequence of possibilities)
 
+    :param input_data:
+        a dictionary with information on how to build the input dialog
+    :type input_data: :py:obj:`dict`
+    :param parent: parent widget
+    :type parent: PyQt4.QtGui.QWidget
+    :param title: dialog title
+    :type title: str
+    :param input_panel_klass:
+        python class to be used as input panel [default: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`]
+    :type input_panel_klass: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`
+                        
+    :return: a tuple containing value selected and boolean which is true if
+             user accepted the dialog (pressed Ok) or false otherwise
+    :rtype: tuple< obj, bool >
+
+    Example::
+
+        app = Qt.QApplication([])
+        
+        class Listener(object):
+            def on_accept(self):
+                print "user selected", self.panel.value()
+        
+        d = dict(prompt="What's your favourite car brand?",
+                 data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+                 default_value="Mercedes")
+        w = TaurusInputPanel(d)
+        l = Listener()
+        l.panel = w
+        w.connect(w.buttonBox(), Qt.SIGNAL("accepted()"), l.on_accept)
+        w.show()
+        app.exec_()
+    """
     def __init__(self, input_data, parent=None):
         Qt.QWidget.__init__(self, parent)
         self._input_data = input_data
@@ -52,7 +120,7 @@ class InputPanel(Qt.QWidget):
         if isinstance(input_data, collections.Mapping):
             single_panel, getter = self.create_single_input_panel(input_data)
             layout.addWidget(single_panel)
-            self.get_value = getter
+            self.value = getter
 
     def create_single_input_panel(self, input_data):
         style = Qt.QApplication.instance().style()
@@ -60,19 +128,17 @@ class InputPanel(Qt.QWidget):
         self.setIconPixmap(icon.pixmap(64))
         
         self.setText(input_data['prompt'])
-        panel, getter = self.create_custom_panel(input_data)
-        
-        if panel is None:
-            data_type = input_data.get('data_type', 'String')
-            is_seq = not isinstance(data_type, (str, unicode)) and \
-                     isinstance(data_type, collections.Sequence)
-            if is_seq:
-                panel, getter = self.create_selection_panel(input_data)
-            else:
-                data_type_l = data_type.lower()
-                creator = getattr(self, "create_" + data_type_l + "_panel")
-                if creator:
-                    panel, getter = creator(input_data)
+
+        data_type = input_data.get('data_type', 'String')
+        is_seq = not isinstance(data_type, (str, unicode)) and \
+                 isinstance(data_type, collections.Sequence)
+        if is_seq:
+            panel, getter = self.create_selection_panel(input_data)
+        else:
+            data_type_l = data_type.lower()
+            creator = getattr(self, "create_" + data_type_l + "_panel", self.create_custom_panel)
+            if creator:
+                panel, getter = creator(input_data)
         
         if panel is None:
             panel = Qt.QLabel("Cannot create widget for data type '%s'" % data_type)
@@ -80,7 +146,7 @@ class InputPanel(Qt.QWidget):
         return panel, getter
         
     def create_custom_panel(self, input_data):
-        return None, lambda : None
+        return self.create_string_panel(input_data)
 
     def create_selection_panel(self, input_data):
         allow_multiple = input_data.get('allow_multiple', False)
@@ -199,6 +265,9 @@ class InputPanel(Qt.QWidget):
         layout.addWidget(label, 0, 0)
         self._ui.unitLabel = unit = Qt.QLabel(unit)
         layout.addWidget(unit, 0, 2)
+        layout.setColumnStretch(0, 0)
+        layout.setColumnStretch(1, 1)
+        layout.setColumnStretch(2, 0)
         return panel
     
     def create_integer_panel(self, input_data):
@@ -322,3 +391,23 @@ class InputPanel(Qt.QWidget):
         inputWidget = self._ui.inputWidget
         if inputWidget and isinstance(inputWidget, Qt.QWidget):
             inputWidget.setFocus()
+
+def main():
+    app = Qt.QApplication([])
+    
+    class Listener(object):
+        def on_accept(self):
+            print "user selected", self.panel.value()
+    
+    d = dict(prompt="What's your favourite car brand?",
+             data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+             default_value="Mercedes")
+    w = TaurusInputPanel(d)
+    l = Listener()
+    l.panel = w
+    w.connect(w.buttonBox(), Qt.SIGNAL("accepted()"), l.on_accept)
+    w.show()
+    app.exec_()
+
+if __name__ == "__main__":
+    main()

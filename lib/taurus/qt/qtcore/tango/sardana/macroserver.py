@@ -121,6 +121,7 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
 # handlers, maybe in TangoFactory & TaurusManager
 
 from taurus.qt.qtgui.panel import TaurusMessageErrorHandler
+
 class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
 
     def setError(self, err_type=None, err_value=None, err_traceback=None):

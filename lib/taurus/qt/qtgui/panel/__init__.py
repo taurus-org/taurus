@@ -30,14 +30,15 @@ __docformat__ = 'restructuredtext'
 
 from .qrawdatachooser import *
 from .qdataexportdialog import *
+from .taurusmessagepanel import *
+from .taurusinputpanel import *
 from .taurusattributechooser import TaurusAttributeChooser as TaurusAttributeChooserOLD
 from .taurusmodelchooser import *
 TaurusAttributeChooser = TaurusModelChooser #for backwards compatibility
 from .taurusvalue import *
 from .taurusform import *
-from .taurusmessagepanel import *
 from .taurusmodellist import *
 from .taurusconfigeditor import *
 from .qdoublelist import *
 from .taurusdevicepanel import *
-from .taurusinputpanel import *
+

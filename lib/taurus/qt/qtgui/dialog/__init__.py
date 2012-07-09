@@ -29,3 +29,4 @@ panels like forms or panels to be inserted in dialogs"""
 __docformat__ = 'restructuredtext'
 
 from .taurusmessagebox import *
+from .taurusinputdialog import *

@@ -276,10 +276,17 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             return '---'
         return self._command
     
-    import taurus.qt.qtgui.dialog
-    
-    @taurus.qt.qtgui.dialog.ProtectTaurusMessageBox(title="Unexpected error when executing command")
     def onClicked(self):
+        try:
+            return self._onClicked()
+        except:
+            import sys
+            import taurus.qt.qtgui.dialog
+            msgbox = ProtectMessageBox(*sys.exc_info())
+            msgbox.setWindowTitle("Unexpected error when executing command")
+            msgbox.exec_()
+
+    def _onClicked(self):
         '''Slot called when the button is clicked. It executes the command with
         parameters. It may issue a warning if the command is flagged as
         dangerous. On successful execution, it returns the command result and it
