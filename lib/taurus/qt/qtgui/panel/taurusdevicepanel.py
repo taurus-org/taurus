@@ -190,7 +190,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         qpixmap = taurus.qt.qtgui.resource.getPixmap(':/actions/window-new.svg')
         self._dup.setIcon(Qt.QIcon(qpixmap))
         self._dup.setIconSize(Qt.QSize(15,15))
-        self.connect(self._dup,Qt.SIGNAL("pressed()"),self.duplicate)
+        self.connect(self._dup,Qt.SIGNAL("clicked(bool)"),self.duplicate)
         
         self._image = Qt.QLabel()
             
@@ -209,7 +209,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         
         if model: self.setModel(model)
         
-    def duplicate(self):
+    def duplicate(self, *args):
         self._dups.append(TaurusDevicePanel(bound=False))
         self._dups[-1].setModel(self.model)
         self._dups[-1].show()
