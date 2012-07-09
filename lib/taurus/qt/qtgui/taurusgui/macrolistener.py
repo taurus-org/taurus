@@ -235,8 +235,10 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                         for more details 
         '''
         #print "@@@@@@@@", expconf
+        if expconf['ActiveMntGrp'] is None: 
+            return
         mgconfig = expconf['MntGrpConfigs'][expconf['ActiveMntGrp']]
-        channels = dict(getChannelConfigs(mgconfig, sort=False))        
+        channels = dict(getChannelConfigs(mgconfig, sort=False))
         #classify by type of plot:
         trends1d = {}
         trends2d = {}
