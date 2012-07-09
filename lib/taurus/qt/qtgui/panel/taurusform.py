@@ -87,7 +87,6 @@ class TaurusForm(TaurusWidget):
         self._model = []
         self._children = []
         self.setFormWidget(formWidget)
-        self._withButtons = withButtons
         
         self.setLayout(Qt.QVBoxLayout())
         
@@ -104,7 +103,6 @@ class TaurusForm(TaurusWidget):
         self.layout().addWidget(self.buttonBox)
         
         self._connectButtons()
-        self._manageButtonBox()
         
         
         #Actions (they automatically populate the context menu)
@@ -114,8 +112,18 @@ class TaurusForm(TaurusWidget):
         self.addAction(self.chooseModelsAction)
         self.connect(self.chooseModelsAction, Qt.SIGNAL("triggered()"), self.chooseModels)
         
+        self.showButtonsAction = Qt.QAction('Show Buttons', self)
+        self.showButtonsAction.setCheckable(True)
+        self.addAction(self.showButtonsAction)
+        self.connect(self.showButtonsAction, Qt.SIGNAL("triggered(bool)"), self.setWithButtons)
+        self.setWithButtons(withButtons)
+        
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
+        
+        #properties
+        self.registerConfigProperty(self.isWithButtons, self.setWithButtons, 'withButtons')
+        
     
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
@@ -280,11 +288,11 @@ class TaurusForm(TaurusWidget):
     
     def setWithButtons(self, trueFalse):
         self._withButtons = trueFalse
-        self._manageButtonBox()
+        self.buttonBox.setVisible(self._withButtons)
+        self.showButtonsAction.setChecked(self._withButtons)
         
     def resetWithButtons(self):
-        self._withButtons = True
-        self._manageButtonBox()
+        self.setWithButtons(True)
     
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in forms'''
@@ -380,11 +388,11 @@ class TaurusForm(TaurusWidget):
         '''returns a list of the objects that have been created as childs of the form'''
         return self._children
     
-    def _manageButtonBox(self):
-        if self.isWithButtons():
-            self.buttonBox.setVisible(True)
-        else:
-            self.buttonBox.setVisible(False)
+#    def _manageButtonBox(self):
+#        if self.isWithButtons():
+#            self.buttonBox.setVisible(True)
+#        else:
+#            self.buttonBox.setVisible(False)
 
     @Qt.pyqtSignature("apply()")        
     def apply(self):
