@@ -41,96 +41,60 @@ from taurus.core.util import etree, CodecFactory, DebugIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macro import Macro
+from sardana.macroserver.msdoor import BaseInputHandler
 from sardana.tango.core.attributehandler import AttributeLogHandler
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
+from sardana.macroserver.msexception import MacroServerException, \
+    InputCancelled
 
-class DoorSimulation(taurus.core.util.Logger):
+
+class TangoInputHandler(BaseInputHandler):
     
-    def __init__(self, door):
-        taurus.core.util.Logger.__init__(self, "Simulation", door)
+    def __init__(self, door, attr):
+        self._value = None
+        self._input_waitting = False
+        self._input_event = threading.Event()
         self._door = door
-        self._currentDelay = None
-        self._currentTimer = None
-        self._startTime = None
-        self._currentMacro = None
-
-    def finishRun(self, *args):
-        self._currentDelay = None
-        self._currentTimer = None
-        self._startTime = None
-        self._currentMacro = None
-        msg = "Macro %s just FINISHED" % args[0]
-        self._door.info(msg)
-        self._door.set_state(Macro.Finished)
-        self._door.push_change_event('state')
-
-    def runMacro(self, params):
-        self._door.set_state(Macro.Init)
-        self._door.push_change_event('state')
-        #self._currentDelay = random.random() * 5 # random [0,5)
-        self._currentDelay = 5
-        self._currentTimer = threading.Timer(self._currentDelay, self.finishRun, params)
-        self._currentMacro = params
-        self._startTime = time.time()
-        self._door.set_state(Macro.Running)
-        self._door.push_change_event('state')
-        msg = "Macro %s just STARTED" % params[0]
-        self._door.info(msg)
-        self._currentTimer.start()
+        self._attr = attr
     
-    def pauseMacro(self):
-        pauseTime = time.time()
-        self._currentTimer.cancel()
-        self._currentTimer = None
-        elapsedTime = pauseTime - self._startTime
-        self._currentDelay = self._currentDelay - elapsedTime
-        self._door.set_state(Macro.Pause)
-        self._door.push_change_event('state')
-        msg = "Macro %s just PAUSED" % self._currentMacro[0]
-        self._door.info(msg)
-    
-    def stopMacro(self):
-        stopTime = time.time()
-        self._currentTimer.cancel()
-        self._currentTimer = None
-        elapsedTime = stopTime - self._startTime
-        self._currentDelay = self._currentDelay - elapsedTime
-        self._door.set_state(Macro.Stop)
-        self._door.push_change_event('state')
-        msg = "Macro %s just STOPPED" % self._currentMacro[0]
-        self._door.info(msg)
+    def input(self, input_data=None):
+        if input_data is None:
+            input_data = {}
+        self.input_data = input_data
+        timeout = input_data.get('timeout')
+        input_data = json.dumps(input_data)
+        self._value = None
+        self._input_waitting = True
+        try:
+            self._door.set_attribute(self._attr, value=input_data)
+            res = self.input_wait(timeout=timeout)
+        finally:
+            self._input_waitting = False
         
-    def resumeMacro(self):
-        self._door.set_state(Macro.Running)
-        self._door.push_change_event('state')
-        self._currentTimer = threading.Timer(self._currentDelay, self.finishRun, self._currentMacro)
-        msg = "Macro %s just RESUMED" % self._currentMacro[0]
-        self._door.info(msg)
-        self._startTime = time.time()
-        self._currentTimer.start()
-    
-    def abortMacro(self):
-        if self._currentTimer:
-            self._currentTimer.cancel()
-        self._currentTimer = None
-        self._currentDelay = None
-        self._startTime = None
-        msg = "Macro %s just ABORTED" % self._currentMacro[0]
-        self._door.info(msg)
-        self._currentMacro = None
-        self._door.set_state(Macro.Abort)
-        self._door.push_change_event('state')
-        self._door.set_state(Macro.Ready)
-        self._door.push_change_event('state')
+        if res is None or res.get('cancel', False):
+            raise InputCancelled('Input cancelled by user')
+        return res['input']
 
-    def __del__(self):
-        if self._currentTimer:
-            try:
-                self._currentTimer.cancel()
-            finally:
-                del self._currentTimer
+    def input_received(self, value):
+        if not self._input_waitting:
+            return
+        self._value = json.loads(value)
+        self._input_event.set()
+
+    def input_wait(self, timeout=None):
+        if timeout is not None:
+            start_time = time.time()
+
+        wait = self._input_event.wait(timeout)
+
+        if timeout is not None:
+            dt = time.time() - start_time
+            if self._value is None and dt > timeout:
+                if 'default_value' in self.input_data:
+                    self._value = dict(input=self.input_data['default_value'])
+        self._input_event.clear()
+        return self._value
 
 
 class Door(SardanaDevice):
@@ -138,26 +102,26 @@ class Door(SardanaDevice):
     def __init__(self, dclass, name):
         SardanaDevice.__init__(self, dclass, name)
         self._last_result = ()
+        self._input_handler = None
         Door.init_device(self)
 
     def init(self, name):
         SardanaDevice.init(self, name)
-        self._simulation = None
         self._door = None
         self._macro_server_device = None
-    
+
     def get_door(self):
         return self._door
-    
+
     def set_door(self, door):
         self._door = door
-    
+
     door = property(get_door, set_door)
-    
+
     @property
     def macro_server_device(self):
         return self._macro_server_device
-    
+
     @property
     def macro_server(self):
         return self.door.macro_server
@@ -167,19 +131,20 @@ class Door(SardanaDevice):
             self.debug("aborting running macro")
             self.macro_executor.abort()
         
-        if self._simulation:
-            del self._simulation
-        
         for handler, filter, format in self._handler_dict.values():
             handler.finish()
-    
+
+        door = self.door
+        if door is not None:
+            door.remove_listener(self.on_door_changed)
+
     @DebugIt()
     def init_device(self):
         SardanaDevice.init_device(self)
         levels = 'Critical', 'Error', 'Warning', 'Info', 'Output', 'Debug'
         detect_evts = ()
         non_detect_evts = ['State', 'Status', 'Result', 'RecordData',
-                           'MacroStatus', ] + list(levels)
+                           'MacroStatus', 'Input'] + list(levels)
         self.set_change_events(detect_evts, non_detect_evts)
 
         util = Util.instance()
@@ -202,17 +167,21 @@ class Door(SardanaDevice):
             self.Id = self.macro_server_device.macro_server.get_new_id()
             db.put_device_property(self.get_name(), dict(Id=self.Id))
         
-        if self.door is None:
+        door = self.door
+        if door is None:
             full_name = self.get_name()
             name = full_name
             macro_server = self.macro_server_device.macro_server
-            door = macro_server.create_element(type="Door", name=name,
-                                               full_name=full_name, id=self.Id)
-            door.add_listener(self.on_door_changed)
-            self.door = door
-            
-        self._setupLogHandlers(levels)
-    
+            self.door = door = \
+                macro_server.create_element(type="Door", name=name,
+                                            full_name=full_name, id=self.Id)
+            input_attr = self.get_device_attr().get_attr_by_name('Input')
+            self._setupLogHandlers(levels)
+
+        self._input_handler = ih = TangoInputHandler(self, input_attr)
+        door.set_input_handler(ih)
+        door.add_listener(self.on_door_changed)
+
     def _setupLogHandlers(self, levels):
         self._handler_dict = {}
         for level in levels:
@@ -244,6 +213,10 @@ class Door(SardanaDevice):
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
             event_value = self.calculate_tango_status(event_value)
+        elif name == "recorddata":
+            format, value = event_value
+            codec = CodecFactory().getCodec(format)
+            event_value = codec.encode(('', value))
         else:
             if isinstance(event_value, SardanaAttribute):
                 if event_value.error:
@@ -269,24 +242,6 @@ class Door(SardanaDevice):
     def read_attr_hardware(self,data):
         pass
     
-    def read_SimulationMode(self, attr):
-        if not hasattr(self, '_simulation'):
-            self._simulation = None
-        attr.set_value(not self._simulation is None)
-    
-    def write_SimulationMode(self, attr):
-        data=[]
-        attr.get_write_value(data)
-        sim = data[0]
-        self.debug('Setting simulation mode to %s' % str(sim))
-        if sim:
-            self._simulation = DoorSimulation(self)
-        else:
-            self._simulation = None
-    
-    def is_SimulationMode_allowed(self, req_type):
-        return self.get_state() in (Macro.Ready, Macro.Abort)
-    
     def readLogAttr(self, attr):
         name = attr.get_name()
         handler, filter, format = self._handler_dict[name]
@@ -295,6 +250,13 @@ class Door(SardanaDevice):
     read_Critical = read_Error = read_Warning = read_Info = read_Output = \
         read_Debug = read_Trace = readLogAttr 
     
+    def read_Input(self, attr):
+        attr.set_value('')
+    
+    def write_Input(self, attr):
+        value = attr.get_write_value()
+        self._input_handler.input_received(value)
+    
     #@DebugIt()
     def read_ElementList(self, attr):
         element_list = self.macro_server_device.getElementList()
@@ -302,33 +264,6 @@ class Door(SardanaDevice):
     
     def sendRecordData(self, format, data):
         self.push_change_event('RecordData', format, data)
-    
-#    def sendState(self, state):
-#        self.set_state(state)
-#        self.push_change_event('state')
-    
-#    def sendStatus(self, status):
-#        self.set_status(status)
-#        self.push_change_event('status')
-    
-#    def sendMacroStatus(self, format, data):
-#        self.push_change_event('MacroStatus', format, data)
-##        attr = self.get_device_attr().get_attr_by_name('MacroStatus')
-##        attr.set_value(format, data)
-##        attr.fire_change_event()
-    
-#    def sendEnvironment(self, format, data):
-#        self.push_change_event('Environment', format, data)
-##        attr = self.get_device_attr().get_attr_by_name('Environment')
-##        attr.set_value(format, data)
-##        attr.fire_change_event()
-    
-#    def sendResult(self, result):
-#        self._last_result = result
-#        attr = self.get_device_attr().get_attr_by_name('Result')
-#        attr.set_value(result)
-##       attr.fire_change_event()
-#        self.push_change_event('Result', result)
 
     def getLogAttr(self, name):
         return self._handler_dict.get(name)
@@ -348,52 +283,39 @@ class Door(SardanaDevice):
         return self.StopMacro()
     
     def AbortMacro(self):
-        if self._simulation is None:
-            self.debug("Aborting")
-            self.macro_executor.abort()
-            self.debug("Finished aborting")
-        else:
-            self._simulation.abortMacro()
-            return
+        self.debug("Aborting")
+        self.macro_executor.abort()
+        self.debug("Finished aborting")
         
     def is_Abort_allowed(self):
         return True
 
     def PauseMacro(self):
-        if self._simulation is None:
-            macro = self.getRunningMacro()
-            if macro is None:
-                print "Unable to pause Null macro"
-                return
-            self.macro_executor.pause()
-        else:
-            self._simulation.pauseMacro()
+        macro = self.getRunningMacro()
+        if macro is None:
+            print "Unable to pause Null macro"
+            return
+        self.macro_executor.pause()
 
     def is_PauseMacro_allowed(self):
         return self.get_state() == Macro.Running
 
     def StopMacro(self):
-        if self._simulation is None:
-            macro = self.getRunningMacro()
-            if macro is None:
-                return
-            self.debug("stopping macro %s" % macro._getDescription())
-            self.macro_executor.stop()
-        else:
-            self._simulation.stopMacro()
+        macro = self.getRunningMacro()
+        if macro is None:
+            return
+        self.debug("stopping macro %s" % macro._getDescription())
+        self.macro_executor.stop()
     
     def is_StopMacro_allowed(self):
         return self.get_state() == Macro.Running
     
     def ResumeMacro(self):
-        if self._simulation is None:
-            macro = self.getRunningMacro()
-            if macro is None:
-                return
-            self.debug("resume macro %s" % macro._getDescription())
-            self.macro_executor.resume()
-        else:
-            self._simulation.resumeMacro()
+        macro = self.getRunningMacro()
+        if macro is None:
+            return
+        self.debug("resume macro %s" % macro._getDescription())
+        self.macro_executor.resume()
         
     def is_ResumeMacro_allowed(self):
         return self.get_state() == Macro.Pause
@@ -403,9 +325,6 @@ class Door(SardanaDevice):
         for handler, filter, fmt in self._handler_dict.values():
             handler.clearBuffer()
         
-        if not self._simulation is None:
-            self._simulation.runMacro(par_str_list)
-            return []
         if len(par_str_list) == 0:
             return []
         
@@ -497,9 +416,6 @@ class DoorClass(SardanaDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'SimulationMode': [ [ DevBoolean, SCALAR, READ_WRITE] ,
-                            { 'label'     : 'Simulation mode',
-                              'Memorized' : 'true', } ],
         'Result'        : [ [ DevString, SPECTRUM, READ, 512],
                             { 'label'     : 'Result for the last macro', } ],
         'Critical'      : [ [ DevString, SPECTRUM, READ, 512],
@@ -510,10 +426,12 @@ class DoorClass(SardanaDeviceClass):
                             { 'label'     : 'Macro warning message', } ],
         'Info'          : [ [ DevString, SPECTRUM, READ, 512],
                             { 'label'     : 'Macro information message', } ],
-        'Output'        : [ [ DevString, SPECTRUM, READ, 512],
-                            { 'label'     : 'Macro output message', } ],
         'Debug'         : [ [ DevString, SPECTRUM, READ, 512],
                             { 'label'     : 'Macro debug message', } ],
+        'Output'        : [ [ DevString, SPECTRUM, READ, 512],
+                            { 'label'     : 'Macro output message', } ],
+        'Input'         : [ [ DevString, SCALAR, READ_WRITE],
+                            { 'label'     : 'Macro input prompt', } ],
         'RecordData'    : [ [ DevEncoded, SCALAR, READ],
                             { 'label'     : 'Record Data', } ],
         'MacroStatus'   : [ [ DevEncoded, SCALAR, READ],

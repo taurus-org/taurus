@@ -4,21 +4,21 @@
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -29,8 +29,11 @@
 __all__ = ['GUIViewer', 'SpockBaseDoor', 'QSpockDoor', 'SpockDoor',
            'SpockMacroServer']
 
+import sys
 import os
 import operator
+import collections
+import threading
 
 import PyTango
 
@@ -38,9 +41,11 @@ from taurus.core import TaurusSWDevState
 
 import genutils
 
+from inputhandler import SpockInputHandler, InputHandler
 
 if genutils.get_gui_mode() == 'qt4':
     from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
+
     BaseDoor = QDoor
     BaseMacroServer = QMacroServer
     BaseGUIViewer = object
@@ -48,15 +53,16 @@ else:
     from taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
     BaseGUIViewer = object
 
+
 class GUIViewer(BaseGUIViewer):
-    
+
     def __init__(self, door=None):
         BaseGUIViewer.__init__(self)
         self._door = door
-        
+
     def run(self):
         self.plot()
-    
+
     def show_scan(self, scan_nb=None, scan_history_info=None, directory_map=None):
         if scan_nb is None and scan_history_info is None:
             import taurus.qt.qtgui.plot
@@ -64,7 +70,7 @@ class GUIViewer(BaseGUIViewer):
             w.model = "scan://" + self._door.getNormalName()
             w.show()
             return
-        
+
         scan_dir, scan_file = None, None
         if scan_nb is None:
             for scan in reversed(scan_history_info):
@@ -95,9 +101,9 @@ class GUIViewer(BaseGUIViewer):
                 print "Cannot plot scan:"
                 print "Scan %d not found in scan history" % (scan_nb,)
                 return
-                    
+
         remote_file = os.path.join(scan_dir, scan_file)
-        
+
         locations = [scan_dir]
         local_file = None
         if directory_map is None or not scan_dir in directory_map:
@@ -124,7 +130,7 @@ class GUIViewer(BaseGUIViewer):
         import taurus.qt.qtgui.extra_nexus
         taurus_nexus_widget = taurus.qt.qtgui.extra_nexus.TaurusNeXusBrowser()
         taurus_nexus_widget.setMinimumSize(800, 600)
-        
+
         print "Trying to open local scan file %s..." % (local_file,)
         taurus_nexus_widget.openFile(local_file)
         taurus_nexus_widget.show()
@@ -133,7 +139,7 @@ class GUIViewer(BaseGUIViewer):
         measurement_name = "%s/measurement" % entry_name
         title_name = "%s/title" % entry_name
         windowTitle = scan_file + "[" + entry_name + "]"
-        
+
         try:
             #entry_index = taurus_nexus_widget.findNodeIndex(local_file, entry_name)
             measurement_index = taurus_nexus_widget.findNodeIndex(local_file, measurement_name)
@@ -147,31 +153,31 @@ class GUIViewer(BaseGUIViewer):
         except Exception, e:
             print "Cannot plot scan:"
             print str(e)
-        
+
         taurus_nexus_widget.setWindowTitle(windowTitle)
-        
+
     def plot(self):
         try:
             import sps
         except:
             print 'sps module not available. No plotting'
             return
-        
+
         try:
             import pylab
         except:
             print "pylab not available (try running 'spock -pylab'). No plotting"
             return
-        
+
         door = genutils.get_door()
-        
+
         try:
             env = dict(door.getEnvironmentObj().read().value)
         except Exception,e:
             print 'Unable to read environment. No plotting'
             print str(e)
             return
-        
+
         program = door.getNormalName().replace('/','').replace('_','')
         try:
             array = env['ActiveMntGrp'].replace('/','').replace('_','').upper() + "0D"
@@ -179,19 +185,19 @@ class GUIViewer(BaseGUIViewer):
         except:
             print 'ActiveMntGrp not defined. No plotting'
             return
-        
+
         if not program in sps.getspeclist():
             print '%s not found. No plotting' % program
             return
-        
+
         if not array in sps.getarraylist(program):
             print '%s not found in %s. No plotting' % (array, program)
             return
-        
+
         if not array_ENV in sps.getarraylist(program):
             print '%s not found in %s. No plotting' % (array_ENV, program)
             return
-        
+
         try:
             mem = sps.attach(program, array)
             mem_ENV = sps.attach(program, array_ENV)
@@ -207,20 +213,20 @@ class GUIViewer(BaseGUIViewer):
             k,v = line[:eq], line[eq+1:end]
             env[k] = v
             i += 1
-        
-        
+
+
         labels = env['axistitles'].split(' ')
-        
+
         col_nb = len(labels)
-        
+
         if col_nb < 4:
             print 'No data columns available in sps'
             return
-        
+
         rows = int(env['nopts'])
-        
+
         m = mem.transpose()
-        
+
         x = m[1][:rows]
         colors = 'bgrcmyk'
         col_nb = min(col_nb, len(colors)+3)
@@ -236,9 +242,9 @@ class GUIViewer(BaseGUIViewer):
 
 class SpockBaseDoor(BaseDoor):
     """A CLI version of the Door device"""
-    
-    console_editors = ('vi','vim','nano','joe','pico','emacs')
-    
+
+    console_editors = 'vi', 'vim', 'nano', 'joe', 'pico', 'emacs'
+
     Critical = 'Critical'
     Error = 'Error'
     Info = 'Info'
@@ -247,7 +253,7 @@ class SpockBaseDoor(BaseDoor):
     Debug = 'Debug'
     Result = 'Result'
     RecordData = 'RecordData'
-    
+
     def __init__(self, name, **kw):
         self._consoleReady = kw.get("consoleReady", False)
         if not kw.has_key('silent'): kw['silent'] = False
@@ -256,9 +262,12 @@ class SpockBaseDoor(BaseDoor):
         self._plotter = GUIViewer(self)
         self.call__init__(BaseDoor, name, **kw)
 
+    def create_input_handler(self):
+        return SpockInputHandler(self)
+
     def get_color_mode(self):
         return genutils.get_color_mode()
-    
+
     def _get_macroserver_for_door(self):
         ret = genutils.get_macro_server()
         return ret
@@ -291,14 +300,10 @@ class SpockBaseDoor(BaseDoor):
 
     def preRunMacro(self, obj, parameters):
         return BaseDoor.preRunMacro(self, obj, self._preprocessParameters(parameters))
-    
+
     def runMacro(self, obj, parameters=[], synch=False):
-        # reimplement just to hide exceptions
-        #try:
         return BaseDoor.runMacro(self, obj, parameters=parameters, synch=synch)
-        #except:
-        #    pass
-    
+
     def _runMacro(self, xml, **kwargs):
         #kwargs like 'synch' are ignored in this reimplementation
         if self._spock_state != TaurusSWDevState.Running:
@@ -334,22 +339,22 @@ class SpockBaseDoor(BaseDoor):
                     print "Unable to run macro: No connection to door '%s'" % self.getSimpleName()
                 else:
                     print "Unable to run macro:", reason, desc
-                    
+
     def _getMacroResult(self, macro):
         ret = None
         if macro.info.hasResult():
             ret = macro.getResult()
-            
+
             if ret is None:
                 return None
-            
+
             if macro.info.getResult().type == 'File':
-                
+
                 commit_cmd = macro.info.hints['commit_cmd']
-                
+
                 if commit_cmd == None:
                     return ret
-                
+
                 local_f_name = ret[0]
                 remote_f_name = ret[1]
                 line_nb = ret[3]
@@ -357,7 +362,7 @@ class SpockBaseDoor(BaseDoor):
                 self.pending_commits.update( { remote_f_name : commit } )
                 ip = genutils.get_ipapi()
                 editor = genutils.get_editor()
-                
+
                 cmd = 'edit -x -n %s %s' % (line_nb, local_f_name)
                 if not editor in self.console_editors:
                     cmd = 'bg _ip.magic("' + cmd + '")'
@@ -367,10 +372,10 @@ class SpockBaseDoor(BaseDoor):
                 # to the console
                 ret = None
         return ret
-    
+
     def plot(self):
         self._plotter.run()
-    
+
     def show_scan(self, scan_nb=None, online=False):
         if online:
             self._plotter.show_scan()
@@ -387,18 +392,18 @@ class SpockBaseDoor(BaseDoor):
         BaseDoor.stateChanged(self, s, t, v)
         new_state, new_sw_state = self._old_door_state, self._old_sw_door_state
         self._updateState(old_sw_state, new_sw_state)
-    
+
     def _updateState(self, old_sw_state, new_sw_state, silent=False):
         user_ns = genutils.get_ipapi().user_ns
         if new_sw_state == TaurusSWDevState.Running:
             user_ns['DOOR_STATE'] = ""
         else:
             user_ns['DOOR_STATE'] = " (OFFLINE)"
-        
+
         if not self.isConsoleReady():
             self._spock_state = new_sw_state
             return
-        
+
         ss = self._spock_state
         if ss is not None and ss != new_sw_state and not silent:
             if ss == TaurusSWDevState.Running:
@@ -413,7 +418,7 @@ class SpockBaseDoor(BaseDoor):
 
     def pre_prompt_hook(self, ip):
         self._flush_lines()
-    
+
     def _flush_lines(self):
         for l in self._lines:
             self.write(l)
@@ -421,7 +426,7 @@ class SpockBaseDoor(BaseDoor):
 
     def setConsoleReady(self, state):
         self._consoleReady = state
-        
+
     def isConsoleReady(self):
         return self._consoleReady
 
@@ -459,22 +464,25 @@ class SpockBaseDoor(BaseDoor):
         size = len(value[1])
         if size > self._RECORD_DATA_THRESOLD:
             sizekb = size / 1024
-            self.logReceived(self.Info, ['Received long data record (%d Kb)' % sizekb, 
+            self.logReceived(self.Info, ['Received long data record (%d Kb)' % sizekb,
                 'It may take some time to process. Please wait...'])
         return BaseDoor._processRecordData(self, data)
+        
 
+from taurus.qt import Qt
 
 class QSpockDoor(SpockBaseDoor):
 
     def __init__(self, name, **kw):
         self.call__init__(SpockBaseDoor, name, **kw)
-        
-        import PyQt4.Qt
-        PyQt4.Qt.QObject.connect(self, PyQt4.Qt.SIGNAL('recordDataUpdated'), self.processRecordData)
+        Qt.QObject.connect(self, Qt.SIGNAL('recordDataUpdated'),
+                           self.processRecordData)
 
+    def create_input_handler(self):
+        return InputHandler()
 
 class SpockDoor(SpockBaseDoor):
-    
+
     def _processRecordData(self, data):
         data = SpockBaseDoor._processRecordData(self, data)
         return self.processRecordData(data)
@@ -482,16 +490,16 @@ class SpockDoor(SpockBaseDoor):
 
 class SpockMacroServer(BaseMacroServer):
     """A CLI version of the MacroServer device"""
-    
+
     def __init__(self, name, **kw):
         self._local_magic = {}
         self._local_var = set()
         self.call__init__(BaseMacroServer, name, **kw)
-    
+
     def on_elements_changed(self, evt_src, evt_type, evt_value):
         return BaseMacroServer.on_elements_changed(self, evt_src, evt_type,
                                                    evt_value)
-    
+
     _SKIP_ELEMENTS = 'controller', 'motorgroup', 'instrument', \
         'controllerclass', 'controllerlib', 'macrolib'
 
@@ -507,7 +515,7 @@ class SpockMacroServer(BaseMacroServer):
             device_proxy = element.getObj().getHWObj()
             genutils.expose_variable(element.name, device_proxy)
         return element
-    
+
     def _removeElement(self, element_data):
         element = BaseMacroServer._removeElement(self, element_data)
         elem_type = element.type
@@ -516,10 +524,10 @@ class SpockMacroServer(BaseMacroServer):
         elif elem_type not in self.NO_CLASS_TYPES:
             genutils.unexpose_variable(element.name)
         return element
-    
+
     def _addMacro(self, macro_info):
         macro_name = str(macro_info.name)
-        
+
         def macro_fn(shell, parameter_s='', name=macro_name):
             parameters = genutils.arg_split(parameter_s, posix=True)
             door = genutils.get_door()
@@ -527,16 +535,16 @@ class SpockMacroServer(BaseMacroServer):
             macro = door.getLastRunningMacro()
             if macro is not None: # maybe none if macro was aborted
                 return macro.getResult()
-        
+
         macro_fn.func_name = macro_name
         macro_fn.__doc__ = macro_info.doc
-        
+
         # register magic command
         genutils.expose_magic(macro_name, macro_fn)
         self._local_magic[macro_name] = macro_fn
-        
+
         return macro_info
-    
+
     def _removeMacro(self, macro_info):
         macro_name = macro_info.name
         genutils.unexpose_magic(macro_name)

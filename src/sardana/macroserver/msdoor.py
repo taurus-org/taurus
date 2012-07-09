@@ -25,10 +25,11 @@
 
 """This module contains the class definition for the macro server door"""
 
-__all__ = ["MacroProxy", "MSDoor"]
+__all__ = ["MacroProxy", "BaseInputHandler", "MSDoor"]
 
 __docformat__ = 'restructuredtext'
 
+import collections
 import weakref
 
 from taurus.core.util import Logger
@@ -37,6 +38,7 @@ from sardana import ElementType
 from sardana.sardanaevent import EventType
 
 from msbase import MSObject
+from msparameter import Type
 
 
 class MacroProxy(object):
@@ -83,6 +85,24 @@ class MacroProxyCache(dict):
             self[macro_name] = MacroProxy(door, macro_meta)
 
 
+class BaseInputHandler(object):
+
+    def __init__(self):
+        try:
+            self._input = raw_input
+        except NameError:
+            self._input = input
+
+    def input(self, input_data=None):
+        if input_data is None:
+            input_data = {}
+        prompt = input_data.get('prompt')
+        if prompt is None:
+            return self._input()
+        else:
+            return self._input(prompt)
+
+
 class MSDoor(MSObject):
     """Sardana door object"""
 
@@ -93,6 +113,7 @@ class MSDoor(MSObject):
         self._macro_status = None
         self._record_data = None
         self._macro_proxy_cache = None
+        self._input_handler = BaseInputHandler()
         MSObject.__init__(self, **kwargs)
 
     def get_type(self):
@@ -108,9 +129,87 @@ class MSDoor(MSObject):
 
     running_macro = property(get_running_macro)
 
+    def set_input_handler(self, ih):
+        self._input_handler = ih
+
+    def get_input_handler(self):
+        return self._input_handler
+
+    input_handler = property(get_input_handler, set_input_handler)
+
+    def append_prompt(self, prompt, msg):
+        if '?' in prompt:
+            prefix, suffix = prompt.rsplit('?', 1)
+            if not prefix.endswith(' '):
+                prefix += ' '
+            prompt = prefix + msg + '?' + suffix
+        else:
+            prompt += msg + ' '
+        return prompt
+
+    def input(self, msg, *args, **kwargs):
+        kwargs['data_type'] = kwargs.get('data_type', Type.String)
+        kwargs['allow_multiple'] = kwargs.get('allow_multiple', False)
+        
+        if args:
+            msg = msg % args
+        if not msg.endswith(' '):
+            msg += ' '
+        dv = kwargs.get('default_value')
+        if dv is not None:
+            dv = '[' + str(dv) + ']'
+            msg = self.append_prompt(msg, dv)
+
+        macro = kwargs.pop('macro', self.macro_executor.getRunningMacro())
+        if macro is None:
+            macro = self
+
+        input_data = dict(prompt=msg)
+        input_data.update(kwargs)
+        data_type = kwargs['data_type']
+        is_seq = not isinstance(data_type, (str, unicode)) and \
+                 isinstance(data_type, collections.Sequence)
+        if is_seq:
+            handle = self._handle_seq_input
+        else:
+            handle = self._handle_type_input
+        
+        return handle(macro, input_data, data_type)
+
+    def _handle_seq_input(self, obj, input_data, data_type):
+        valid = False
+        allow_multiple = input_data['allow_multiple']
+        while not valid:
+            result = self.input_handler.input(input_data)
+            if allow_multiple:
+                r, dt = set(result), set(data_type)
+                if r.issubset(dt):
+                    break
+            else:
+                if result in data_type:
+                    break
+            obj.warning("Please give a valid option")
+        return result
+    
+    def _handle_type_input(self, obj, input_data, data_type):
+        type_obj = self.type_manager.getTypeObj(data_type)
+
+        valid = False
+        while not valid:
+            result = self.input_handler.input(input_data)
+            try:
+                result_type = type_obj.getObj(result)
+                if result_type is None:
+                    raise Exception("Must give a value")
+                valid = True
+                return result_type
+            except:
+                dtype = str(data_type).lower()
+                obj.warning("Please give a valid %s.", dtype)
+
     def get_report_logger(self):
         return self.macro_server.report_logger
-    
+
     report_logger = property(get_report_logger)
 
     def report(self, msg, *args, **kwargs):
@@ -120,14 +219,14 @@ class MSDoor(MSObject):
         the arguments which are merged into msg using the string formatting
         operator. (Note that this means that you can use keywords in the
         format string, together with a single dictionary argument.)
-        
+
         *kwargs* are the same as :meth:`logging.Logger.debug` plus an optional
         level kwargs which has default value **INFO**
-        
+
         Example::
-        
+
             self.report("this is an official report!")
-        
+
         :param msg: the message to be recorded
         :type msg: :obj:`str`
         :param args: list of arguments
@@ -177,7 +276,7 @@ class MSDoor(MSObject):
     def set_record_data(self, record_data, codec=None, propagate=1):
         self._record_data = record_data
         self.fire_event(EventType("recorddata", priority=propagate),
-                        record_data)
+                        (codec, record_data))
 
     record_data = property(get_record_data, set_record_data)
 

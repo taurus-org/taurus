@@ -28,6 +28,7 @@
 
 __all__ = ['page', 'arg_split', 'get_gui_mode', 'get_color_mode', 'get_app',
            'get_shell', 'get_ipapi', 'get_config', 'get_editor', 'ask_yes_no',
+           'spock_input',
            'translate_version_str2int', 'get_ipython_version',
            'get_ipython_version_number', 'get_python_version',
            'get_python_version_number', 'get_ipython_dir',
@@ -58,6 +59,7 @@ from IPython.core.profiledir import ProfileDirError, ProfileDir
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.io import ask_yes_no as _ask_yes_no
+from IPython.utils.io import raw_input_ext as _raw_input_ext
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.process import arg_split
 from IPython.utils.coloransi import TermColors
@@ -133,6 +135,9 @@ def ask_yes_no(prompt,default=None):
     if default:
         prompt = '%s [%s]' % (prompt, default)
     return _ask_yes_no(prompt, default)
+
+def spock_input(prompt='',  ps2='... '):
+    return _raw_input_ext(prompt=prompt, ps2=ps2)
 
 def translate_version_str2int(version_str):
     """Translates a version string in format x[.y[.z[...]]] into a 000000 number"""
@@ -758,8 +763,8 @@ def init_taurus():
 
     factory = taurus.Factory()
 
-    import sardana.spock.macroserver
-    macroserver = sardana.spock.macroserver
+    import sardana.spock.spockms
+    macroserver = sardana.spock.spockms
 
     factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
 
@@ -810,6 +815,11 @@ def unload_ipython_extension(ipython):
     pass
 
 def load_config(config):
+
+    # initialize input handler as soon as possible
+    import sardana.spock.inputhandler
+    input_handler = sardana.spock.inputhandler.InputHandler()
+
     spockver = release.version
     pyver = get_python_version()
     ipyver = get_ipython_version()

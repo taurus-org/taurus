@@ -45,9 +45,7 @@ class AttributeLogHandler(logging.Handler):
         self._level = level
         self._max_buff_size = max_buff_size
         self._dev = weakref.ref(dev)
-        self._attr = attr = dev.get_device_attr().get_attr_by_name(attr_name)
-        attr.set_value([])
-        
+        self._attr = dev.get_device_attr().get_attr_by_name(attr_name)
         self._buff = LIFO(max_buff_size)
 
     def emit(self, record):

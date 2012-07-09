@@ -26,11 +26,45 @@
 
 """This package provides the spock generic utilities"""
 
-from PyTango.ipython import get_ipython_version, get_ipython_version_list
+def translate_version_str2list(version_str):
+    """Translates a version string in format 'x[.y[.z[...]]]' into a list of
+    numbers"""
+    if version_str is None:
+        ver = [0, 0]
+    else:
+        ver = []
+        for i in version_str.split(".")[:2]:
+            try:
+                i = int(i)
+            except:
+                i = 0
+            ver.append(i)
+    return ver
+
+def get_ipython_version():
+    """Returns the current IPython version"""
+    import IPython
+    v = None
+    try:
+        try:
+            v = IPython.Release.version
+        except:
+            try:
+                v = IPython.release.version
+            except:
+                pass
+    except:
+        pass
+    return v
+
+def get_ipython_version_list():
+    ipv_str = get_ipython_version()
+    return translate_version_str2list(ipv_str)
 
 ipv = get_ipython_version_list()
 if ipv >= [0, 10] and ipv < [0, 11]:
     from ipython_00_10.genutils import *
 else:
     from ipython_00_11.genutils import *
+
 

@@ -29,7 +29,8 @@ manager"""
 __all__ = ["MacroServerException", "MacroServerExceptionList", "MissingEnv",
            "UnknownEnv", "UnknownMacro", "UnknownMacroLibrary",
            "MacroWrongParameterType", "LibraryError",
-           "InterruptException", "StopException", "AbortException"]
+           "InterruptException", "StopException", "AbortException",
+           "InputCancelled"]
 
 __docformat__ = 'restructuredtext'
 
@@ -66,4 +67,6 @@ class UnknownMacroLibrary(UnknownLibrary):
 
 class MacroWrongParameterType(MacroServerException):
     pass
-
+    
+class InputCancelled(MacroServerException):
+    pass

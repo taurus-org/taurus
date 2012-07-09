@@ -27,7 +27,7 @@
 """This package provides the spock generic utilities"""
 
 __all__ = ['page', 'arg_split', 'get_gui_mode', 'get_color_mode', 'get_ipapi',
-           'get_editor', 'ask_yes_no',
+           'get_editor', 'ask_yes_no', 'spock_input',
            'translate_version_str2int', 'get_ipython_version',
            'get_ipython_version_number', 'get_python_version',
            'get_python_version_number', 'get_ipython_dir',
@@ -118,6 +118,9 @@ def ask_yes_no(prompt,default=None):
     if default:
         prompt = '%s [%s]' % (prompt, default)
     return IPython.genutils.ask_yes_no(prompt, default)
+
+def spock_input(prompt='',  ps2='... '):
+    return IPython.genutils.raw_input_ext(prompt=prompt, ps2=ps2)   
 
 def translate_version_str2int(version_str):
     """Translates a version string in format x[.y[.z[...]]] into a 000000 number"""
@@ -451,7 +454,6 @@ def get_taurus_core_version():
         return taurus.core.Release.version
     except:
         return '0.0.0'
-
         
 def get_taurus_core_version_number():
     tgver_str = get_taurus_core_version()
@@ -895,6 +897,11 @@ def init_magic(ip):
     ip.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
 
 def init_pre_spock(ip, macro_server, door):
+
+    # initialize input handler as soon as possible
+    import sardana.spock.inputhandler
+    input_handler = sardana.spock.inputhandler.InputHandler()
+
     so = IPython.ipstruct.Struct()
     full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
     #macro_server = get_ms_for_door(door_tg_name)
@@ -924,8 +931,8 @@ def init_pre_spock(ip, macro_server, door):
     
     factory = taurus.Factory()
 
-    import sardana.spock.macroserver
-    macroserver = sardana.spock.macroserver
+    import sardana.spock.spockms
+    macroserver = sardana.spock.spockms
 
     factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
     
