@@ -175,6 +175,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
+        if evt.key() in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
+            Qt.QLineEdit.keyPressEvent(self, evt)
+            evt.accept()
+            return
         if Qt.QLineEdit.isReadOnly(self):
             return Qt.QLineEdit.keyPressEvent(self, evt)
         model = self.getModelObj()
