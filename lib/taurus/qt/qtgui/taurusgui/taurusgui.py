@@ -143,16 +143,30 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
     def setPermanent(self, permanent):
         self._permanent = permanent
     
-    def setWidgetFromClassName(self, classname):
+    def setWidgetFromClassName(self, classname, modulename=None):
         if self.getWidgetClassName() != classname:
-            klass = TaurusWidgetFactory().getWidgetClass(classname)
-            w = klass()
+            try:
+                klass = TaurusWidgetFactory().getWidgetClass(classname)
+                w = klass()
+            except:
+                try:
+                    module = __import__(modulename, fromlist=[''])
+                    klass = getattr(module, classname)
+                    w = klass()
+                except Exception, e:
+                    raise RuntimeError('Cannot create widget from classname "%s"'%classname)
             #set customwidgetmap if necessary
             if hasattr(w,'setCustomWidgetMap'):
                 w.setCustomWidgetMap(self._mainwindow.getCustomWidgetMap())
             self.setWidget(w)
             wname="%s-%s"%(str(self.objectName()), str(classname))
             w.setObjectName(wname)
+            
+    def getWidgetModuleName(self):
+        w = self.widget()
+        if w is None:
+            return ''
+        return w.__module__
             
     def getWidgetClassName(self):
         w = self.widget()
@@ -163,17 +177,18 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
     def applyConfig(self, configdict, depth=-1):
         #create the widget
         try: 
-            self.setWidgetFromClassName(configdict.get('widgetClassName'))
+            self.setWidgetFromClassName(configdict.get('widgetClassName'), modulename=configdict.get('widgetModuleName',None))
             if isinstance(self.widget(),BaseConfigurableClass):
                 self.widget().applyConfig(configdict['widget'])
         except Exception,e:
-            self.info('Failed to set the widget for this panel. Reason: %s'%repr(e)) 
+            self.info('Failed to set the widget for this panel. Reason: %s'%repr(e))
             return
         TaurusBaseWidget.applyConfig(self, configdict, depth)
         
     def createConfig(self, *args, **kwargs):
         configdict = TaurusBaseWidget.createConfig(self, *args, **kwargs)
         configdict['widgetClassName'] = self.getWidgetClassName()
+        configdict['widgetModuleName'] = self.getWidgetModuleName()
         if isinstance(self.widget(),BaseConfigurableClass):
             configdict['widget'] = self.widget().createConfig()
         return configdict
@@ -546,7 +561,7 @@ class TaurusGui(TaurusMainWindow):
             synoptic.setModel(jdwFileName)
             self.__synoptics.append(synoptic)
         except Exception,e:
-            print repr(e)
+            #print repr(e)
             msg='Error loading synoptic file "%s".\nSynoptic won\'t be available'%jdwFileName
             self.error(msg)
             self.traceback(level=taurus.Info)
