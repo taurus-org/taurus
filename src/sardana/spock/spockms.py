@@ -438,23 +438,23 @@ class SpockBaseDoor(BaseDoor):
     def processRecordData(self, data):
         if data is None: return
         data = data[1]
-        if data['type'] == 'plot':
-            func_name = data['type']
-            data = data['data']
-            args, kwargs = data['args'], data['kwargs']
-            # json converts strings to unicode strings but in a function call
-            # python demands that the kwargs keys be strings so we need to convert
-            # in python 3k this will change since all strings will be unicode
-            new_kwargs = {}
-            for k,v in kwargs.iteritems():
-                if type(k) is unicode: k = str(k)
-                new_kwargs[k] = v
+        if data['type'] == 'function':
+            func_name = data['func_name']
+            args = data['args']
+            kwargs = data['kwargs']
+            
+            members = func_name.split(".")
+            mod_list, fname = members[:-1], members[-1]
+            mod_name = ".".join(mod_list)
+            if mod_name:
+                mod = __import__(mod_name, fromlist=mod_list)
+                func = getattr(mod, fname)
+            else:
+                func = __builtins__[fname]
             try:
-                import pylab
-                f = getattr(pylab, func_name)
-                f(*args, **new_kwargs)
-            except Exception,e:
-                self.logReceived(self.Warning, ['Unable to plot:', str(e)])
+                func(*args, **kwargs)
+            except Exception as e:
+                self.logReceived(self.Warning, ['Unable to execute %s: ' % func_name, str(e)])
 
     _RECORD_DATA_THRESOLD = 4*1024*1024 # 4Mb
 

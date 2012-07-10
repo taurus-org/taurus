@@ -83,19 +83,68 @@ class TangoInputHandler(BaseInputHandler):
         self._input_event.set()
 
     def input_wait(self, timeout=None):
-        if timeout is not None:
-            start_time = time.time()
-
         wait = self._input_event.wait(timeout)
-
-        if timeout is not None:
-            dt = time.time() - start_time
-            if self._value is None and dt > timeout:
-                if 'default_value' in self.input_data:
-                    self._value = dict(input=self.input_data['default_value'])
+        # if there was a timeout:
+        # - set the value to the default value (if one exists)
+        # - inform clients that timeout occured and they should not wait for 
+        #   user input anymore
+        if not self._input_event.is_set():
+            if 'default_value' in self.input_data:
+                self._value = dict(input=self.input_data['default_value'])
+            self.send_input_timeout()
         self._input_event.clear()
         return self._value
 
+    def send_input_timeout(self):
+        idata = self.input_data
+        input_data = dict(type="timeout", macro_id=idata['macro_id'])
+        if 'default_value' in idata:
+            input_data['default_value'] = idata['default_value']
+        input_data = json.dumps(input_data)
+        door = self._door
+        door.set_attribute(self._attr, value=input_data)
+
+
+class TangoPylabHandler(object):
+
+    def __init__(self, door, attr, format="bz2_pickle"):
+        self.door = door
+        self.attr = attr
+        self.format = format
+        self.func_call
+        
+    def handle(self, func_name, *args, **kwargs):
+        codec = CodecFactory().getCodec(self.format)
+        data = dict(type='function', func_name=func_name, args=args, kwargs=kwargs)
+        event_value = codec.encode(('', data))
+        self.door.set_attribute(self.attr, value=event_value)
+    
+    def __getattr__(self, name):
+        def f(*args, **kwargs):
+            full_name = "pylab." + name
+            return self.handle(full_name, *args, **kwargs)
+        f.__name__ = name
+        return f
+         
+class TangoPyplotHandler(object):
+
+    def __init__(self, door, attr, format="bz2_pickle"):
+        self.door = door
+        self.attr = attr
+        self.format = format
+        
+    def handle(self, func_name, *args, **kwargs):
+        codec = CodecFactory().getCodec(self.format)
+        data = dict(type='function', func_name=func_name, args=args, kwargs=kwargs)
+        event_value = codec.encode(('', data))
+        self.door.set_attribute(self.attr, value=event_value)
+    
+    def __getattr__(self, name):
+        def f(*args, **kwargs):
+            full_name = "matplotlib.pyplot." + name
+            return self.handle(full_name, *args, **kwargs)
+        f.__name__ = name
+        return f
 
 class Door(SardanaDevice):
 
@@ -175,11 +224,21 @@ class Door(SardanaDevice):
             self.door = door = \
                 macro_server.create_element(type="Door", name=name,
                                             full_name=full_name, id=self.Id)
-            input_attr = self.get_device_attr().get_attr_by_name('Input')
             self._setupLogHandlers(levels)
 
+        multi_attr = self.get_device_attr()
+
+        input_attr = multi_attr.get_attr_by_name('Input')
         self._input_handler = ih = TangoInputHandler(self, input_attr)
         door.set_input_handler(ih)
+        
+        recorddata_attr = multi_attr.get_attr_by_name('RecordData')
+        self._pylab_handler = pylabh = TangoPylabHandler(self, recorddata_attr)
+        door.set_pylab_handler(pylabh)
+        
+        self._pyplot_handler = pyploth = TangoPyplotHandler(self, recorddata_attr)
+        door.set_pyplot_handler(pyploth)
+
         door.add_listener(self.on_door_changed)
 
     def _setupLogHandlers(self, levels):

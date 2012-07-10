@@ -114,6 +114,7 @@ class MSDoor(MSObject):
         self._record_data = None
         self._macro_proxy_cache = None
         self._input_handler = BaseInputHandler()
+        self._pylab_handler = None
         MSObject.__init__(self, **kwargs)
 
     def get_type(self):
@@ -128,6 +129,40 @@ class MSDoor(MSObject):
         return self.macro_executor.getRunningMacro()
 
     running_macro = property(get_running_macro)
+
+    def set_pylab_handler(self, ph):
+        self._pylab_handler = ph
+    
+    def get_pylab_handler(self):
+        return self._pylab_handler
+
+    pylab_handler = property(get_pylab_handler, set_pylab_handler)
+    
+    def get_pylab(self):
+        ph = self.pylab_handler
+        if ph is None:
+            import matplotlib.pylab
+            ph = matplotlib.pylab
+        return ph
+
+    pylab = property(get_pylab)
+
+    def set_pyplot_handler(self, ph):
+        self._pyplot_handler = ph
+    
+    def get_pyplot_handler(self):
+        return self._pyplot_handler
+
+    pyplot_handler = property(get_pyplot_handler, set_pyplot_handler)
+    
+    def get_pyplot(self):
+        ph = self.pyplot_handler
+        if ph is None:
+            import matplotlib.pyplot
+            ph = matplotlib.pyplot
+        return ph
+
+    pyplot = property(get_pyplot)
 
     def set_input_handler(self, ih):
         self._input_handler = ih
@@ -164,7 +199,7 @@ class MSDoor(MSObject):
         if macro is None:
             macro = self
 
-        input_data = dict(prompt=msg)
+        input_data = dict(prompt=msg, type='input')
         input_data.update(kwargs)
         data_type = kwargs['data_type']
         is_seq = not isinstance(data_type, (str, unicode)) and \

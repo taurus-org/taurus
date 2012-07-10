@@ -897,11 +897,6 @@ def init_magic(ip):
     ip.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
 
 def init_pre_spock(ip, macro_server, door):
-
-    # initialize input handler as soon as possible
-    import sardana.spock.inputhandler
-    input_handler = sardana.spock.inputhandler.InputHandler()
-
     so = IPython.ipstruct.Struct()
     full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
     #macro_server = get_ms_for_door(door_tg_name)
@@ -960,7 +955,7 @@ def init_spock(ip, macro_server, door):
 
 
 def start(user_ns=None):
-    #if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
+    if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
     if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
 
     # Make sure the log level is changed to warning
@@ -998,6 +993,10 @@ def mainloop(shell=None, user_ns=None):
     shell.mainloop()
 
 def run(user_ns=None):
+    # initialize input handler as soon as possible
+    import sardana.spock.inputhandler
+    input_handler = sardana.spock.inputhandler.InputHandler()
+
     try:
         mainloop(user_ns=user_ns)
     finally:

@@ -696,12 +696,31 @@ class Macro(Logger):
     def plot(self, *args, **kwargs):
         """**Macro API**.
         Sends the plot command to the client using the 'RecordData' DevEncoded
-        attribute. The data is encoded using the JSON -> BZ2 codec.
+        attribute. The data is encoded using the pickle -> BZ2 codec.
 
         :param args: the plotting args
         :param kwargs: the plotting keyword args"""
-        data = dict(args=args, kwargs=kwargs)
-        self.sendRecordData(data, codec='bz2_json_plot')
+        self.pyplot.plot(*args, **kwargs)
+#        data = dict(args=args, kwargs=kwargs)
+#        self.sendRecordData(data, codec='bz2_pickle_plot')
+            
+    @property
+    @mAPI
+    def pylab(self):
+        try:
+            pylab = self._pylab
+        except AttributeError:
+            self._pylab = pylab = self.door.pylab
+        return pylab
+
+    @property
+    @mAPI
+    def pyplot(self):
+        try:
+            pyplot = self._pyplot
+        except AttributeError:
+            self._pyplot = pyplot = self.door.pyplot
+        return pyplot
 
     @property
     def data(self):

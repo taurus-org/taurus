@@ -815,11 +815,6 @@ def unload_ipython_extension(ipython):
     pass
 
 def load_config(config):
-
-    # initialize input handler as soon as possible
-    import sardana.spock.inputhandler
-    input_handler = sardana.spock.inputhandler.InputHandler()
-
     spockver = release.version
     pyver = get_python_version()
     ipyver = get_ipython_version()
@@ -931,6 +926,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     term_app = config.TerminalIPythonApp
     term_app.display_banner = True
     term_app.gui = gui_mode
+    term_app.pylab='qt'
     #term_app.nosep = False
     #term_app.classic = True
 
@@ -952,6 +948,11 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     ipython_widget.ansi_codes = True
     ipython_widget.paging = 'inside'
     ipython_widget.pylab = 'inline'
+
+    # ------------------------------------
+    # ConsoleWidget
+    # ------------------------------------
+    console_widget = config.ConsoleWidget
 
     # ------------------------------------
     # FrontendWidget
@@ -1033,6 +1034,12 @@ def mainloop(app=None, user_ns=None):
         app = start(user_ns)
     app.start()
 
+def prepare_input_handler():
+    # initialize input handler as soon as possible
+    import sardana.spock.inputhandler
+    input_handler = sardana.spock.inputhandler.InputHandler()
+
+
 def prepare_cmdline(argv=None):
     if argv is None:
         argv = sys.argv
@@ -1080,7 +1087,8 @@ def run():
         sys.exit(-1)
     except exception.SpockMissingRecommended, recommended:
         print str(recommended)
-
+    
+    prepare_input_handler()
     prepare_cmdline()
 
     launch_new_instance()
