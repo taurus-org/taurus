@@ -389,8 +389,17 @@ class TaurusInputPanel(Qt.QWidget):
     
     def setInputFocus(self):
         inputWidget = self._ui.inputWidget
-        if inputWidget and isinstance(inputWidget, Qt.QWidget):
+        if not inputWidget:
+            return
+        if isinstance(inputWidget, Qt.QWidget):
             inputWidget.setFocus()
+        elif isinstance(inputWidget, Qt.QButtonGroup):
+            bid = inputWidget.checkedId()
+            if bid < 0:
+                button = inputWidget.buttons()[0]
+            else:
+                button = inputWidget.button(bid)
+            button.setFocus()
 
 def main():
     app = Qt.QApplication([])
