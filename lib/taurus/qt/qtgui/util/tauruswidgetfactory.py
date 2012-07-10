@@ -196,7 +196,7 @@ class TaurusWidgetFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
         return [ klass for mod_name, klass in self._qt_widgets.values()]
     
     def getWidgetClass(self, name):
-        return self._qt_widgets.get(name)[1]
+        return self._qt_widgets[name][1]
     
     def getTaurusWidgetClassNames(self):
         return self._taurus_widgets.keys()
