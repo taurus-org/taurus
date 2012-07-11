@@ -140,6 +140,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         - It incorporates a TaurusLogo (@TODO)
     '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
+    _heartbeat = 1500
         
     def __init__(self, parent = None, designMode = False, splash=True):
         name = self.__class__.__name__
@@ -160,6 +161,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.helpManualDW = None
         self.helpManualBrowser = None
         self.resetHelpManualURI()
+        
+        #status bar
+        from taurus.qt.qtgui.display import QLed
+        self.heartbeatLed = QLed()
+        self.heartbeatLed.setToolTip('Heartbeat: if it does not blink, the application is hung')
+        self.statusBar().addPermanentWidget(self.heartbeatLed)
+        self.resetHeartbeat()
         
         #The configuration Dialog (which is launched with the configurationAction)
         self.configurationDialog = ConfigurationDialog(self)
@@ -210,7 +218,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         #Help Menu
         self.helpMenu = self.menuBar().addMenu("Help")
         self.helpMenu.addAction("About ...", self.showHelpAbout)
-        self.helpMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("help-browser"),"Manual", self.onShowManual)
+        self.helpMenu.addAction(getThemeIcon("help-browser"),"Manual", self.onShowManual)
         
         #View Toolbar
         self.viewToolBar = self.addToolBar("View")
@@ -817,10 +825,25 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         socket.deleteLater()
         self.raise_()
         self.activateWindow()
-        
-        
-        
 
+    def setHeartbeat(self, interval):
+        '''sets the interval of the heartbeat LED for the window. 
+        The heartbeat is displayed by a Led in the status bar unless 
+        it is disabled by setting the interval to 0
+        
+        :param interval: (int) heart beat interval in millisecs. Set to 0 to disable
+        '''
+        self.heartbeatLed.setBlinkingInterval(interval)
+        self.heartbeatLed.setVisible(interval>0)
+        
+    def getHeartbeat(self):
+        '''returns the heart beat interval'''
+        return self.heartbeatLed.getBlinkingInterval()
+        
+    def resetHeartbeat(self):
+        '''resets the heartbeat interval'''
+        self.setHeartbeat(self.__class__._heartbeat)
+            
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Public slots for apply/restore changes
@@ -858,6 +881,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     helpManualURI = Qt.pyqtProperty("QString", getHelpManualURI, 
                                         setHelpManualURI, 
                                         resetHelpManualURI)
+    
+    heartbeat = Qt.pyqtProperty("int", getHeartbeat, 
+                                      setHeartbeat, 
+                                      resetHeartbeat)
 
 #---------
 
