@@ -50,6 +50,7 @@ class QLed(qpixmapwidget.QPixmapWidget):
     DefaultLedColor = "green"
     DefaultLedStatus = True
     DefaultLedInverted = False
+    DefaultBlinkingInterval = 0
     
     def __init__(self, parent = None, designMode=False):
         self._ledStatus = self.DefaultLedStatus
@@ -57,6 +58,7 @@ class QLed(qpixmapwidget.QPixmapWidget):
         self._ledPatternName = self.DefaultLedPattern
         self._ledInverted = self.DefaultLedInverted
         self._ledName = self.toLedName()
+        self._timer = None
         qpixmapwidget.QPixmapWidget.__init__(self, parent)
         self._refresh()
     
@@ -159,6 +161,10 @@ class QLed(qpixmapwidget.QPixmapWidget):
     def resetLedStatus(self):
         """Resets the led status"""
         self.setLedStatus(self.DefaultLedStatus)
+        
+    def toggleLedStatus(self):
+        """toggles the current status of the led"""
+        self.setLedStatus(not self.getLedStatus())
 
     def getLedInverted(self):
         """Returns if the led is inverted.
@@ -196,6 +202,36 @@ class QLed(qpixmapwidget.QPixmapWidget):
     def resetLedColor(self):
         """Resets the led color"""
         self.setLedColor(self.DefaultLedColor)
+        
+    def setBlinkingInterval(self, period):
+        """sets the blinking interval (the time between status switching).
+        Set to a nonpositive number for disabling blinking
+        
+        :param period: (int) the blinking period in millisecs. Set to 0 for disabling blinking
+        """
+        if period > 0:
+            if self._timer is None:
+                self._timer = Qt.QTimer(self)
+                self.connect(self._timer, Qt.SIGNAL('timeout()'), self.toggleLedStatus)
+            self._timer.start(period)
+        else:
+            if self._timer is not None:
+               self._timer.stop()
+               self._timer = None
+        
+    def getBlinkingInterval(self):
+        """returns the blinking interval
+        
+        :return: (int) blinking interval or 0 if blinking is not enabled.
+        """ 
+        if self._timer is None: 
+            return 0
+        else:
+            return self._timer.interval()
+    
+    def resetBlinkingInterval(self):
+        """resets the blinking interval"""
+        self.setBlinkingInterval(self.__class__.DefaultBlinkingInterval)
     
     #: This property holds the led status: False means OFF, True means ON
     #:
@@ -237,6 +273,16 @@ class QLed(qpixmapwidget.QPixmapWidget):
     #:     * :meth:`QLed.resetLedPatternName`
     ledPattern = Qt.pyqtProperty("QString", getLedPatternName, setLedPatternName,
                                  resetLedPatternName, doc="led pattern name")
+    
+    #: This property holds the blinking interval in millisecs. 0 means no blinking
+    #:
+    #: **Access functions:**
+    #:
+    #:     * :meth:`QLed.getBlinkingInterval`
+    #:     * :meth:`QLed.setBlinkingInterval`
+    #:     * :meth:`QLed.resetBlinkingInterval`
+    blinkingInterval = Qt.pyqtProperty("int", getBlinkingInterval, setBlinkingInterval,
+                                resetBlinkingInterval, doc="blinking interval")
     
 class QLedOld(Qt.QLabel):
     ledDirPattern = ":leds/images%(size)d"
@@ -345,6 +391,10 @@ def main():
         led.ledColor = color
         led.ledStatus = False
         layout.addWidget(led, i, 1)
+        led = QLed()
+        led.ledColor = color
+        led.blinkingInterval = 500
+        layout.addWidget(led, i, 2)
     w.show()
     
     if owns_app:
