@@ -185,11 +185,11 @@ class TaurusPlotConfigDialog(Qt.QDialog):
 #        self.connect(self.ui.y2EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
         self.connect(self.ui.xModeComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.modeComboChanged)
         self.connect(self.ui.xDynScaleCheckBox, Qt.SIGNAL("toggled (bool)"),self.setXDynScale)
-        self.connect(self.ui.xRangeCB, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.apply)
+        #self.connect(self.ui.xRangeCB, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.apply)
         self.connect(self.ui.y1ModeComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.modeComboChanged)
         self.connect(self.ui.y2ModeComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.modeComboChanged)
         self.connect(self.ui.peaksComboBox, Qt.SIGNAL("currentIndexChanged(int)"),self.peaksComboChanged)
-        self.connect(self.curvesAppearanceChooser, Qt.SIGNAL("controlChanged"),self.apply) #"autoapply" mode for *all* the curve appearance controls
+        #self.connect(self.curvesAppearanceChooser, Qt.SIGNAL("controlChanged"),self.apply) #"autoapply" mode for *all* the curve appearance controls
         self.connect(self.curvesAppearanceChooser.assignToY1BT, Qt.SIGNAL("clicked()"),self.setCurvesYAxis)
         self.connect(self.curvesAppearanceChooser.assignToY2BT, Qt.SIGNAL("clicked()"),self.setCurvesYAxis)
         self.connect(self.curvesAppearanceChooser.bckgndBT, Qt.SIGNAL("clicked()"),self.changeBackgroundColor)
