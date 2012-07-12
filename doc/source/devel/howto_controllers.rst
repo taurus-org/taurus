@@ -1,5 +1,5 @@
 
-.. _pool-controllers:
+.. _pool-controller-howto:
 
 =====================
 Writting Controllers

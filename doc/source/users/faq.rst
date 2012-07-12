@@ -57,7 +57,7 @@ The execution can be started from either:
 How to write procedures?
 ------------------------
 User written procedures are central to the Sardana SCADA_ system. 
-Documentation how to write macros can be found :ref:`here <macroserver-macros>`. 
+Documentation how to write macros can be found :ref:`here <macroserver-macros-howto>`. 
 Macro writers might also find the following documentation interesting:
 
     * Documentation on how to debug macros  can be found here **<LINK>**
@@ -66,7 +66,7 @@ Macro writers might also find the following documentation interesting:
       and use many utilities provided. The macro :term:`API` can be found 
       :class:`here <MacroServer.macro.Macro>`.
     * Documentation how to document your macros can be found 
-      :ref:`here <macro_writting>`
+      :ref:`here <macroserver-macros-howto>`
 
 How to write scan procedures?
 -----------------------------
@@ -81,7 +81,7 @@ Sardana is meant to be interfaced to all types of different hardware with all
 types of control systems. For every new hardware item the specific behavior
 has to be programmed by writing a controller code. The documentation how to
 write Sardana controllers and pseudo controllers can be found
-:ref:`here <pool-controllers>`.
+:ref:`here <pool-controller-howto>`.
 This documentation also includes the :term:`API` which can be used to interface
 to the specific hardware item.
 

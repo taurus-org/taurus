@@ -1,3 +1,5 @@
+.. currentmodule:: sardana.pool.controller
+
 .. _pool-controller-overview:
 
 ===================
@@ -9,10 +11,12 @@ Each different hardware object is directly controlled by another object called
 between a set of hardware objects (example motors) and the underlying hardware
 (example: a motor controller crate).
 
-The *controller* object is also exposed as a Tango_ device. Usually a 
-*controller* is capable of handling several hardware objects. For example, a
-motor controller crate is capable of controlling several motors (generally
-called *axis* [#]_).
+The *controller* object is also exposed as a Tango_ device.
+
+Usually a *controller* is capable of handling several hardware objects.
+For example, a motor controller crate is capable of controlling several motors
+(generally called *axis* [#]_).
+
 
 The *controller* objects can be created/deleted/renamed dynamically in a running
 pool.
@@ -24,11 +28,59 @@ software component. Users can write a specific controller software component
 You can this way extend the initial pool capabilities to talk to all kinds of
 different hardware.
 
-Controller plug-ins can be written in Python_ or C++. Each controller code is
-basically a Python or C++ class that needs to obey a specific :term:`API`.
+.. figure:: /_static/sardana_server_controller.png
+    :width: 500
+    :align: center
+    
+    A diagram representing a sardana server a controller class 
+    *NSC200Controller*, an instance of that controller *np200ctrl* "connected"
+    to a real hardware and a motor *np_mot1*.
+    
+These are the different types of controllers recognized by sardana:
 
-Here is an a extract of a pertinent part of a Python_ motor controller code that
-is able to talk to a Newport motor controller::
+:class:`MotorController`
+    You should use/write a :class:`MotorController` sardana :term:`plug-in` if
+    the the device you want to control has a *moveable like* interface.
+    Example: the Newport NSC200 motor controller
+
+:class:`CounterTimerController`
+    This controller type is designed to control a device capable of counting
+    scalar values (and, optionaly have a timer).
+    Example: The National Instruments 6602 8-Channel Counter/Timer
+
+:class:`ZeroDController`
+    This controller type is designed to control a device capable of supplying
+    scalar values. The :term:`API` provides a way to obtain a value over a
+    certain acquisition time through different algorithms (average, maximum,
+    integration).
+    Example: an electrometer 
+    
+:class:`PseudoMotorController`
+    A controller designed to export *virtual motors* that represent a new view
+    over the actual physical motors.
+    Example: A slit pseudo motor controller provides *gap* and *offset* virtual
+    motors over the physical blades
+        
+:class:`PseudoCounterController`
+    A controller designed to export *virtual counters* that represent a new view
+    over the actual physical counters/0Ds.
+
+:class:`IORegisterController`
+    A controller designed to control hardware registers.
+
+Controller plug-ins can be written in Python_ or C++. Each controller code is
+basically a Python_ or C++ class that needs to obey a specific :term:`API`.
+
+Information on how to write your own sardana controller :term:`plug-in` can be
+found :ref:`here <pool-controller-howto>`.
+
+The complete controller :term:`API` can be found :ref:`here <pool-controller-api>`.
+
+Here is an a extract of the pertinent part of a Python_ motor controller code
+that is able to talk to a Newport motor controller::
+
+    from sardana.pool.controller import MotorController, \
+        Type, Description, DefaultValue
 
     class NSC200Controller(MotorController):
         """This class is the Tango Sardana motor controller for the Newport NewStep
@@ -37,14 +89,14 @@ is able to talk to a Newport motor controller::
         channel."""
 
         ctrl_properties = \
-            { 'SerialCh' : { 'Type' : str,
-                             'Description' : 'Communication channel name for the serial line' },
-              'SwitchBox': { 'Type' : bool,
-                             'Description' : 'Using SwitchBox',
-                             'DefaultValue' : False},
-              'ControllerNumber' : { 'Type' : int, 
-                                     'Description' : 'ControllerNumber',
-                                     'DefaultValue' : 1 } }
+            { 'SerialCh' : { Type : str,
+                             Description : 'Communication channel name for the serial line' },
+              'SwitchBox': { Type : bool,
+                             Description : 'Using SwitchBox',
+                             DefaultValue : False},
+              'ControllerNumber' : { Type : int, 
+                                     Description : 'Controller number',
+                                     DefaultValue : 1 } }
 
         def __init__(self, inst, props, *args, **kwargs):
             MotorController.__init__(self, inst, props, *args, **kwargs)
@@ -111,10 +163,6 @@ is able to talk to a Newport motor controller::
             if self.SwitchBox:
                 self._setCommand("MX", axis)
             self._setCommand("ST", "")
-
-Information on how to write controllers can be found
-:ref:`here <pool-controllers>`. The complete controller :term:`API` can be found
-:ref:`here <pool-controller-api>`.
 
 .. rubric:: Footnotes
 

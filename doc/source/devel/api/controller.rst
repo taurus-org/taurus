@@ -10,6 +10,7 @@ Controller API reference
     * :class:`Controller` - Base API for all controller types
     * :class:`MotorController` - Motor controller API
     * :class:`CounterTimerController` - Counter/Timer controller API
+    * :class:`ZeroDController` - 0D controller API
     * :class:`PseudoMotorController` - PseudoMotor controller API
     * :class:`PseudoCounterController` - PseudoCounter controller API
     * :class:`IORegisterController` - IORegister controller API

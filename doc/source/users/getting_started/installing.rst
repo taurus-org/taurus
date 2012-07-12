@@ -1,0 +1,120 @@
+
+.. _sardana_installing:
+
+==========
+Installing
+==========
+
+#. Get the sardana code
+
+    #. From easy_install [1]_::
+        
+            easy_install -U sardana
+
+    #. From latest source distribution:
+        #. Download the latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
+        #. Extract the downloaded tar.gz into a temporary directory
+        #. type [2]_::
+               
+               python setup.py build
+               python setup.py install
+
+    #. From SVN snapshot:
+        #. Download the current `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
+        #. Extract the downloaded tar.gz into a temporary directory
+        #. type [2]_::
+               
+               python setup.py build
+               python setup.py install
+
+    #. From SVN trunk checkout (please look :ref:`here <working-from-svn>` for instructions)
+
+#. test the installation::
+       
+       python -c "import sardana; print sardana.Release.version"
+
+Windows installation shortcut
+-----------------------------
+
+This chapter provides a quick shortcut to all windows packages which are
+necessary to run sardana on your windows machine
+
+#. Install all dependencies:
+
+    #. from `Python(x,y)`_ (by far the easiest choise)
+        #. Download and install a python 2.6/2.7 compatible version of python(x,y)
+           from `here <http://code.google.com/p/pythonxy>`_
+
+    #. from scratch:
+        #. Download and install `PyQwt`_ < 6.0 from `PyQwt downdoad page <http://pyqwt.sourceforge.net/download.html>`_
+            #. Download and install compatible python with from link in the same `PyQwt`_ page
+            #. Download and install compatible `numpy`_ from link in the same `PyQwt`_ page.
+            #. Download and install compatible `PyQt`_ from link in the same `PyQwt`_ page.
+
+#. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
+#. Download and install latest `taurus`_ from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
+#. Finally download and install latest sardana from `Sardana downdoad page <http://pypi.python.org/pypi/sardana>`_
+
+.. _working-from-svn:
+
+Working from SVN
+----------------
+
+You can checkout sardana from SVN from the following location::
+
+    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
+
+You can directly execute sardana binaries (Pool, MacroServer, Sardana or spock
+from the command line)::
+
+    homer@pc001:~$ cd Sardana
+    homer@pc001:~/Sardana$ scripts/Sardana
+
+
+.. rubric:: Footnotes
+
+.. [1] This command requires super user previledges on linux systems. If your
+       user has them you can usually prefix the command with *sudo*::
+       
+           homer@pc001:~$ sudo easy_install -U sardana
+       
+       Alternatively, if you don't have adminstrator previledges, you can
+       install locally in your user directory with::
+       
+           homer@pc001:~$ easy_install --user sardana
+       
+       In this case the executables are located at <HOME_DIR>/.local/bin. Make
+       sure the PATH is pointing there or you execute from there.
+
+.. [2] *setup.py install* requires user previledges on linux systems. If your
+       user has them you can usually prefix the command with *sudo*::
+       
+           homer@pc001:~$ sudo python setup.py install
+    
+       Alternatively, if you don't have adminstrator previledges, you can
+       install locally in your user directory with::
+       
+           homer@pc001:~$ python setup.py install --user
+       
+       In this case the executables are located at <HOME_DIR>/.local/bin. Make
+       sure the PATH is pointing there or you execute from there.
+
+.. _numpy: http://numpy.scipy.org/
+.. _PLY: http://www.dabeaz.com/ply/
+.. _Python(x,y): http://code.google.com/p/pythonxy/
+.. _Python: http://www.python.org/
+
+.. _SardanaPypi: http://pypi.python.org/pypi/sardana/
+.. _Tango: http://www.tango-controls.org/
+.. _PyTango: http://packages.python.org/PyTango/
+.. _taurus: http://packages.python.org/taurus/
+.. _QTango: http://www.tango-controls.org/download/index_html#qtango3
+.. _taurus: http://packages.python.org/taurus/
+.. _Qt: http://qt.nokia.com/products/
+.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
+.. _PyQwt: http://pyqwt.sourceforge.net/
+.. _IPython: http://ipython.org/
+.. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
+.. _Qub: http://www.blissgarden.org/projects/qub/
+.. _ESRF: http://www.esrf.eu/
+

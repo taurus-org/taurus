@@ -9,8 +9,8 @@ Overview
     :maxdepth: 2
     
     Global overview <overview>
-    Pool <pool>
+    Macro Server <macroserver>
+    Device Pool <pool>
     Controller <controller>
     Motor <motor>
-    Macro Server <macroserver>
 

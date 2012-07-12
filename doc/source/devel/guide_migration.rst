@@ -44,7 +44,7 @@ New features in API v1
 
 This chapter is a summary of all new features in *API v1*.
 
-1. Macros can now be functions(see :ref:`macroserver-macros`).
+1. Macros can now be functions(see :ref:`macroserver-macros-howto`).
 
 How to migrate your controller code
 ===================================

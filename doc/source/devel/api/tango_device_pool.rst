@@ -1,7 +1,7 @@
 
-==============
-Device Pool
-==============
+==========================================
+Device Pool Tango_ :term:`API`
+==========================================
 
 .. todo:: Device Pool chapter is out of date. Need to update it and distribute chapters logically around the sardana documentation
 

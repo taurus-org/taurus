@@ -7,11 +7,11 @@ Spock
 
 *Spock* is the prefered :term:`CLI` for sardana.
 
-*Spock* itself is an IPython_ based :term:`CLI` for pure PyTango_.
-This is what we will call "pure Spock" [#]_ in this document.
-*Spock* as been extended in sardana to provide a customized interface for executing
-macros and automatic access to sardana elements. This is what we will loosly call
-*spock* in this document.
+*Spock* is an IPython_ based :term:`CLI` for sardana. *Spock* automatically
+loads other IPython_ extensions like the ones for PyTango_ and *pylab*.
+*Spock* as been extended in sardana to provide a customized interface for
+executing macros and automatic access to sardana elements. This is what we will
+loosly call *spock* in this document.
 
 *Spock* tries to mimic SPEC_'s command line interface. Most SPEC_ commands
 are available from *spock* console.
@@ -82,19 +82,24 @@ Executing macros
 Executing sardana macros in *spock* is the most useful feature of *spock*. It is very
 simple to execute a macro: just type the macro name followed by a space separated
 list of parameters (if the macro has any parameters). For example, one of the most
-used macros is the **wa** (stands for "where all") that shows all current motor
-positions. To execute it just type:
+used macros is the :class:`~sardana.macroserver.macros.standard.wa` (stands for
+"where all") that shows all current motor positions. To execute it just type:
 
 .. sourcecode:: spock
 
     LAB-01-D01 [1]: wa
+    
     Current Positions  (user, dial)
 
        Energy       Gap    Offset
      100.0000   43.0000  100.0000
      100.0000   43.0000  100.0000
-     
-A similar macro exists that only shows the desired motor positions (**wm**):
+
+(:term:`user` for :term:`user position` (number above); :term:`dial` for
+:term:`dial position` (number below).)
+   
+A similar macro exists that only shows the desired motor positions
+(:class:`~sardana.macroserver.macros.standard.wm`):
 
 .. sourcecode:: spock
 
@@ -109,7 +114,7 @@ A similar macro exists that only shows the desired motor positions (**wm**):
      Current      100.0       43.0
      Low            5.0     -100.0
 
-To get the list of all existing macros: **lsdef**:
+To get the list of all existing macros use :class:`~sardana.macroserver.macros.expert.lsmac`:
 
 .. sourcecode:: spock
 
@@ -128,12 +133,27 @@ To get the list of all existing macros: **lsdef**:
                     mvr      standard            Move motor(s) relative to the current position(s)
                      wa      standard                                     Show all motor position.
                      wm      standard                   Show the position of the specified motors.
+    <...>
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+    - :class:`~sardana.macroserver.macros.lists.lsm`
+      shows the list of motors.
+    - :class:`~sardana.macroserver.macros.lists.lsct`
+      shows the list of counters.
+    - :class:`~sardana.macroserver.macros.lists.lsmeas`
+      shows the list of measurement groups
+    - :class:`~sardana.macroserver.macros.lists.lsctrl` 
+      shows the list of controllers
+    - :class:`~sardana.macroserver.macros.expert.sar_info` *object*
+      displays detailed information about an element
 
 Stopping macros
 ---------------
 
 Some macros may take a long time to execute. To stop a macro in the middle of
-its executing type :kbd:`Control+c`.
+its execution type :kbd:`Control+c`.
 
 Macros that move motors or acquire data from sensors will automatically stop all
 motion and/or all acquisition.
@@ -175,27 +195,173 @@ macro just type the macro name directly followed by a question mark('?'):
 Moving motors
 --------------
 
-A single motor may be moved using the *mv** *motor* *position* macro. Example:
+A single motor may be moved using the 
+:class:`~sardana.macroserver.macros.standard.mv` *motor* *position* macro.
+Example:
 
 .. sourcecode:: spock
 
     LAB-01-D01 [1]: mv gap 50
 
-will move the *gap* motor to 50 millimeters. The prompt only comes back after
+will move the *gap* motor to 50. The prompt only comes back after
 the motion as finished.
 
 Alternatively, you can have the motor position displayed on the screen as it is
-moving by invoking the **umv** macro. To stop the motor(s) before they have
-finished moving, type :kbd:`Control+c`.
+moving by using the :class:`~sardana.macroserver.macros.standard.umv` macro
+instead. To stop the motor(s) before they have finished moving, type
+:kbd:`Control+c`.
 
-You can use the **mvr** *motor* *relative_position* macro to move a motor
-relative to its current position:
+You can use the
+:class:`~sardana.macroserver.macros.standard.mvr` *motor* *relative_position*
+macro to move a motor relative to its current position:
 
 .. sourcecode:: spock
 
     LAB-01-D01 [1]: mvr gap 2
     
-will move *gap* by one millimeter.
+will move *gap* by two user units.
+
+Counting
+-----------
+
+You can count using the :class:`~sardana.macroserver.macros.standard.ct` *value*
+macro. Without arguments, this macro counts for one second using the active
+measurement group set by the environment variable *ActiveMntGrp*.
+
+
+.. sourcecode:: spock
+
+    Door_lab-01_1 [1]: ct 1.6
+
+    Wed Jul 11 11:47:55 2012
+
+      ct01  =         1.6
+      ct02  =         3.2
+      ct03  =         4.8
+      ct04  =         6.4
+    
+To see the list of available measurement groups type
+:class:`~sardana.macroserver.macros.lists.lsmeas`. The active measuremnt group
+is marked with an asterisk (*):
+
+.. sourcecode:: spock
+
+    Door_lab-01_1 [1]: lsmeas
+
+      Active        Name   Timer Experim. channels                                          
+     -------- ---------- ------- -----------------------------------------------------------
+        *       mntgrp01    ct01 ct01, ct02, ct03, ct04                                     
+                mntgrp21    ct04 ct04, pcII0, pcII02                                        
+                mntgrp24    ct04 ct04, pcII0
+
+to switch active measurement groups type
+:class:`~sardana.macroserver.macros.env.senv` **ActiveMntGrp** *mg_name*.
+
+Scanning
+----------
+
+Sardana provides a catalog of different standard scan macros.
+Absolute-position motor scans such as
+:class:`~sardana.macroserver.macros.scan.ascan`,
+:class:`~sardana.macroserver.macros.scan.a2scan` and
+:class:`~sardana.macroserver.macros.scan.a3scan` move one, two or three motors
+at a time. Relative-position motor scans are 
+:class:`~sardana.macroserver.macros.scan.dscan`,
+:class:`~sardana.macroserver.macros.scan.d2scan` and 
+:class:`~sardana.macroserver.macros.scan.d3scan`. The relative-position scans
+all return the motors to their starting positions after the last point.
+Two motors can be scanned over a grid of points using the
+:class:`~sardana.macroserver.macros.scan.mesh` scan. 
+
+As it happens with :class:`~sardana.macroserver.macros.standard.ct`, the scan
+macros will also use the active measurement group to decide which experiment
+channels will be involved in the operation.
+
+Here is the output of performing an :class:`~sardana.macroserver.macros.scan.ascan`
+of the gap in a slit:
+
+.. sourcecode:: spock
+
+    LAB-01-D01 [1]: ascan gap 0.9 1.1 20 1
+    ScanDir is not defined. This operation will not be stored persistently. Use "senv ScanDir <abs directory>" to enable it
+    Scan #4 started at Wed Jul 11 12:56:47 2012. It will take at least 0:00:21
+     #Pt No    gap       ct01      ct02      ct03
+      0        0.9          1       4604      8939
+      1       0.91          1       5822      8820
+      2       0.92          1       7254      9544
+      3       0.93          1       9254      8789
+      4       0.94          1      11265      8804
+      5       0.95          1      13583      8909
+      6       0.96          1      15938      8821
+      7       0.97          1      18076      9110
+      8       0.98          1      19638      8839
+      9       0.99          1      20825      8950
+     10          1          1      21135      8917
+     11       1.01          1      20765      9013
+     12       1.02          1      19687      9135
+     13       1.03          1      18034      8836
+     14       1.04          1      15876      8901
+     15       1.05          1      13576      8933
+     16       1.06          1      11328      9022
+     17       1.07          1       9244      9205
+     18       1.08          1       7348      8957
+     19       1.09          1       5738      8801
+     20        1.1          1       4575      8975
+    Scan #4 ended at Wed Jul 11 12:57:18 2012, taking 0:00:31.656980 (dead time was 33.7%)
+
+Scan storage
+~~~~~~~~~~~~~
+
+As you can see, by default, the scan is not recorded into any file.
+To store your scans in a file, you must set the environment variables
+**ScanDir** and **ScanFile**:
+
+.. sourcecode:: spock
+
+    LAB-01-D01 [1]: senv ScanDir /tmp
+    ScanDir = /tmp
+    
+    LAB-01-D01 [2]: senv ScanFile scans.h5
+    ScanFile = scans.h5
+    
+Sardana will activate a proper recorder to store the scans persistently
+(currently, *.h5* will store in `NeXus`_ format. All other extensions are
+interpreted as `SPEC`_ format).
+
+You can also store in multiples files by assigning the **ScanFile** with a list
+of files:
+    
+.. sourcecode:: spock
+
+    LAB-01-D01 [2]: senv ScanFile "['scans.h5', 'scans.dat']"
+    ScanFile = ['scans.h5', 'scans.dat']
+
+Viewing scan data
+~~~~~~~~~~~~~~~~~
+
+Sardana provides a scan data viewer for scans which were stored in a `NeXus`_ file.
+Without arguments, **showscan** will show you the result of the last scan in a
+:term:`GUI`:
+
+.. figure:: /_static/spock_snapshot02.png
+    :height: 600
+    
+    Scan data viewer in action
+
+**showscan** *scan_number* will display data for the given scan number.
+
+The history of scans is available through the
+:class:`~sardana.macroserver.macros.scan.scanhist` macro:
+
+.. sourcecode:: spock
+
+    LAB-01-D01 [1]: scanhist
+       #                           Title            Start time              End time        Stored
+     --- ------------------------------- --------------------- --------------------- -------------
+       1    dscan mot01 20.0 30.0 10 0.1   2012-07-03 10:35:30   2012-07-03 10:35:30   Not stored!
+       3    dscan mot01 20.0 30.0 10 0.1   2012-07-03 10:36:38   2012-07-03 10:36:43   Not stored!
+       4   ascan gap01 10.0 100.0 20 1.0              12:56:47              12:57:18   Not stored!
+       5     ascan gap01 1.0 10.0 20 0.1              13:19:05              13:19:13      scans.h5
 
 
 Using spock as a Python_ console
@@ -219,9 +385,9 @@ inside a *spock* console:
 Using spock as a Tango_ console
 ---------------------------------
 
-As metioned in the beggining of this chapter, the sardana *spock* is an extension
-of PyTango_ 's "pure spock" console. Therefore all Tango_ features from "pure spock"
-are automatically available on the sardana *spock* console. For example, creating
+As metioned in the beggining of this chapter, the sardana *spock* automatically
+activates the PyTango_ 's ipython console extension. Therefore all Tango_
+features are automatically available on the sardana *spock* console. For example, creating
 a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
 
 .. sourcecode:: spock
@@ -233,7 +399,7 @@ a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
 
 .. rubric:: Footnotes
 
-.. [#] The PyTango_ spock documentation can be found :ref:`here <spock>`
+.. [#] The PyTango_ ipython documentation can be found :ref:`here <itango>`
 
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
@@ -260,3 +426,4 @@ a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
 .. _numpy: http://numpy.scipy.org/
 .. _SPEC: http://www.certif.com/
 .. _EPICS: http://www.aps.anl.gov/epics/
+.. _NeXus: http://www.nexusformat.org/

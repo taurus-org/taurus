@@ -8,7 +8,7 @@ Developer's Guide
     :maxdepth: 2
     
     Overview <overview/index>
-    Writting macros <howto_macros>
+    howto_macros/index
     Writting controllers <howto_controllers>
     API <api/sardana>
     Migration guide <guide_migration>

@@ -110,6 +110,25 @@ Glossary
         function. Clients therefore initiate communication sessions with servers
         which await incoming requests.
 
+    `user position`_
+        Moveable position in user units (See also :term:`dial position`).
+        Dial and user units are related by the following expressions:
+            
+            user = sign x dial + offset
+            dial = controller_position / steps_per_unit
+        
+        where *sign* is -1 or 1. *offset* can be any number and *steps_per_unit*
+        must be non zero.
+
+    `user`_
+        See :term:`user position`
+
+    `dial position`_
+        Position in controller units (See also :term:`user position`).
+    
+    `dial`_
+        See :term:`dial position`
+        
 .. _plug-in: http://en.wikipedia.org/wiki/Plug-in_(computing)
 .. _CCD: http://en.wikipedia.org/wiki/Charge-coupled_device
 .. _API: http://en.wikipedia.org/wiki/API
