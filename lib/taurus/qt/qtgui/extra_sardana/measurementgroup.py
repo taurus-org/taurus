@@ -504,17 +504,21 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             unit_data = self.getPyData(ctrlname=ch_data['_controller_name'], unitid=ch_data['_unit_id'])
             key = self.data_keys_map[taurus_role]
             data = Qt.from_qvariant(qvalue, str)
+
+            self._dirty = True
+            self.beginResetModel()
+            is_settable = ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel')
             if taurus_role == ChannelView.Trigger:
                 data = AcqTriggerType[data]
-            self._dirty = True
-            key = taurus_role == ChannelView.Timer and 'timer' or 'monitor'
-            self.beginResetModel()
-            if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
-                if unit_data[key] == self._mgconfig[key]:
-                    self._mgconfig[key] = data
-                unit_data[key] = data
+                if is_settable:
+                    unit_data[key] = data
             else:
-                self._mgconfig[key] = data
+                if is_settable:
+                    if unit_data[key] == self._mgconfig[key]:
+                        self._mgconfig[key] = data
+                    unit_data[key] = data
+                else:
+                    self._mgconfig[key] = data
             self.endResetModel()
             return True
         #for the rest, we use the regular TaurusBaseModel item-oriented approach
@@ -545,7 +549,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         unitsdict = ctrlsdict[ctrlname]['units']
         if not unitsdict.has_key(unitname):
             unitsdict[unitname] = unit = {'channels':{}}
-            if not external:
+            if not external and chinfo['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
                 unit['timer'] = chname
                 unit['monitor'] = chname
                 unit['trigger_type'] = AcqTriggerType.Software
