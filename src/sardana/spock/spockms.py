@@ -254,6 +254,8 @@ class SpockBaseDoor(BaseDoor):
     Result = 'Result'
     RecordData = 'RecordData'
 
+    MathFrontend = "matplotlib"
+
     def __init__(self, name, **kw):
         self._consoleReady = kw.get("consoleReady", False)
         if not kw.has_key('silent'): kw['silent'] = False
@@ -440,6 +442,8 @@ class SpockBaseDoor(BaseDoor):
         data = data[1]
         if data['type'] == 'function':
             func_name = data['func_name']
+            if func_name.startswith("pyplot."):
+                func_name = self.MathFrontend + "." + func_name
             args = data['args']
             kwargs = data['kwargs']
             

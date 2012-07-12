@@ -104,14 +104,13 @@ class TangoInputHandler(BaseInputHandler):
         door = self._door
         door.set_attribute(self._attr, value=input_data)
 
+class TangoFunctionHandler(object):
 
-class TangoPylabHandler(object):
-
-    def __init__(self, door, attr, format="bz2_pickle"):
+    def __init__(self, door, attr, module_name, format="bz2_pickle"):
         self.door = door
         self.attr = attr
+        self.module_name = module_name
         self.format = format
-        self.func_call
         
     def handle(self, func_name, *args, **kwargs):
         codec = CodecFactory().getCodec(self.format)
@@ -121,30 +120,25 @@ class TangoPylabHandler(object):
     
     def __getattr__(self, name):
         def f(*args, **kwargs):
-            full_name = "pylab." + name
+            full_name = self.module_name + "." + name
             return self.handle(full_name, *args, **kwargs)
         f.__name__ = name
         return f
+
+
+class TangoPylabHandler(TangoFunctionHandler):
+
+    def __init__(self, door, attr, format="bz2_pickle"):
+        TangoFunctionHandler.__init__(self, door, attr, "pylab",
+                                      format="bz2_pickle")
+
          
-class TangoPyplotHandler(object):
+class TangoPyplotHandler(TangoFunctionHandler):
 
     def __init__(self, door, attr, format="bz2_pickle"):
-        self.door = door
-        self.attr = attr
-        self.format = format
+        TangoFunctionHandler.__init__(self, door, attr, "pyplot",
+                                      format="bz2_pickle")
         
-    def handle(self, func_name, *args, **kwargs):
-        codec = CodecFactory().getCodec(self.format)
-        data = dict(type='function', func_name=func_name, args=args, kwargs=kwargs)
-        event_value = codec.encode(('', data))
-        self.door.set_attribute(self.attr, value=event_value)
-    
-    def __getattr__(self, name):
-        def f(*args, **kwargs):
-            full_name = "matplotlib.pyplot." + name
-            return self.handle(full_name, *args, **kwargs)
-        f.__name__ = name
-        return f
 
 class Door(SardanaDevice):
 
