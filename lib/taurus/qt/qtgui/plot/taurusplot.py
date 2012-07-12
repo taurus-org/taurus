@@ -499,7 +499,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if model is None:
             self._xValues = numpy.zeros(0)
             self._yValues = numpy.zeros(0)
-            self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
+            self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
             return
 
         if evt_type == taurus.core.TaurusEventType.Config:
@@ -516,7 +516,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             self.debug("Droping event. Reason %s", str(e))
 
         self._updateMarkers()
-        self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
+        self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
 
     def _updateMarkers(self):
         '''updates min & max markers if needed'''
@@ -1438,7 +1438,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 self.setAxisScale(Qwt5.QwtPlot.xBottom, min, max)
         finally:
             self.curves_lock.release()
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
+        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(name))
         self.replot()
 
     def attachRawData(self, rawdata, properties=None, id=None):
@@ -2085,8 +2085,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import cPickle as pickle
         if ofile is None:
-            ofile = Qt.QFileDialog.getSaveFileName( self, 'Save Taurusplot Configuration', 'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)')
-            if ofile.isEmpty(): return
+            ofile = str(Qt.QFileDialog.getSaveFileName( self, 'Save Taurusplot Configuration', 'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)'))
+            if not ofile: return
         if not isinstance(ofile,file): ofile=open(ofile,'w')
         configdict=self.createConfig(curvenames=curvenames)
         self.info("Saving current settings in '%s'"%ofile.name)
@@ -2102,8 +2102,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import cPickle as pickle
         if ifile is None:
-            ifile = Qt.QFileDialog.getOpenFileName( self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)')
-            if ifile.isEmpty(): return
+            ifile = str(Qt.QFileDialog.getOpenFileName( self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)'))
+            if not ifile: return
         if not isinstance(ifile,file): ifile=open(ifile,'r')
         configdict=pickle.load(ifile)
         self.applyConfig(configdict)
@@ -2234,15 +2234,17 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                          exported. If None given, the user will be prompted for
                          a file name.
         """
-        fileName = (fileName is not None and Qt.QString(fileName)) or Qt.QFileDialog.getSaveFileName( self, 'Export File Name', 'plot.pdf', 'PDF Documents (*.pdf)')
-        if not fileName.isEmpty():
+        if fileName is None:
+            fileName = Qt.QFileDialog.getSaveFileName( self, 'Export File Name', 'plot.pdf', 'PDF Documents (*.pdf)')
+        fileName = str(fileName)
+        if fileName:
             try:
-                f = open(str(fileName),'w') #check if the file is actually writable
+                f = open(fileName,'w') #check if the file is actually writable
                 f.close()
             except:
-                self.error("Can't write to '%s'"%str(fileName))
+                self.error("Can't write to '%s'"%fileName)
                 Qt.QMessageBox.warning(self, "File Error",
-                                       "Can't write to\n'%s'"%str(fileName),
+                                       "Can't write to\n'%s'"%fileName,
                                         Qt.QMessageBox.Ok)
                 return
             printer = Qt.QPrinter()
@@ -2260,9 +2262,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         printer.setCreator('TaurusPlot')
         printer.setOrientation(Qt.QPrinter.Landscape)
         printer.setColorMode(Qt.QPrinter.Color)
-        docName = self.title().text()
-        if not docName.isEmpty():
-            docName.replace(Qt.QRegExp(Qt.QString.fromLatin1('\n')), self.tr(' -- '))
+        docName = str(self.title().text())
+        if docName:
+            docName.replace('\n', ' -- ')
             printer.setDocName(docName)
         dialog = Qt.QPrintDialog(printer)
         if dialog.exec_():
@@ -2846,7 +2848,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                                curves to which the title will be changed (if None given , it will apply
                                to all the curves except the raw data ones)
 
-        :return: (caselessDict<str,QString>) dictionary with key=curvename and value=newtitle
+        :return: (caselessDict<str,str>) dictionary with key=curvename and value=newtitle
 
         .. seealso:: :meth:`changeCurvesTitlesDialog`,
                      :meth:`setDefaultCurvesTitle`, :meth:`TaurusCurve.setTitleText`
@@ -2858,7 +2860,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             for curveName in curveNamesList:
                 curve = self.curves.get(curveName)
                 curve.setTitleText(titletext)
-                newTitlesDict[curveName] = curve.title().text()
+                newTitlesDict[curveName] = str(curve.title().text())
             self.updateLegend(self.legend())
             return newTitlesDict
         finally:
@@ -2874,7 +2876,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                                except the raw data ones and it will also be used
                                as default for newly created ones)
 
-        :return: (caselessDict<str,QString>) dictionary with key=curvename and value=newtitle
+        :return: (caselessDict<str,str>) dictionary with key=curvename and value=newtitle
 
         .. seealso:: :meth:`setCurvesTitle`, :meth:`setDefaultCurvesTitle`
         '''
