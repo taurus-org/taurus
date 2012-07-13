@@ -442,7 +442,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             else:
                 result = [TaurusValueLineEdit, TaurusValueSpinBox, TaurusWheelEdit]
         elif config.isSpectrum():
-            result = [TaurusArrayEditorButton, TaurusValuesTableButton_W, TaurusValueLineEdit]
+            configType = config.getType()
+            if configType in (PyTango.ArgType.DevDouble, PyTango.ArgType.DevFloat, 
+                              PyTango.ArgType.DevInt, PyTango.ArgType.DevLong, 
+                              PyTango.ArgType.DevLong64, PyTango.ArgType.DevShort, 
+                              PyTango.ArgType.DevULong, PyTango.ArgType.DevULong64, 
+                              PyTango.ArgType.DevUShort):
+                result = [TaurusArrayEditorButton, TaurusValuesTableButton_W, TaurusValueLineEdit]
+            else:
+                result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
         elif config.isImage():
             result = [TaurusValuesTableButton_W]
         else:
