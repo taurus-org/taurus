@@ -309,8 +309,8 @@ Here is a list of the most common allowed parameter types:
     - ``Any``: anything, really
 
 The complete list of types distributed with sardana is made up by these five
-simple types: Integer, Float, Boolean, String, Any, plus all available sardana
-interfaces (:obj:`~sardana.sardanadefs.Interface`)
+simple types: ``Integer``, ``Float``, ``Boolean``, ``String``, ``Any``, plus
+all available sardana interfaces (:obj:`~sardana.sardanadefs.Interface`)
 
 .. _macro_context:
 

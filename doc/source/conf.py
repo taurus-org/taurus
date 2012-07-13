@@ -277,6 +277,7 @@ intersphinx_mapping = {
     'http://docs.python.org/dev': None,
     'http://docs.scipy.org/doc/scipy/reference' : None,
     'http://docs.scipy.org/doc/numpy' : None,
+    'http://ipython.org/ipython-doc/stable/' : None,
     'http://www.tango-controls.org/static/PyTango/latest/doc/html' : None,
     'http://www.tango-controls.org/static/taurus/latest/doc/html' : None,
     'http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html' : None,

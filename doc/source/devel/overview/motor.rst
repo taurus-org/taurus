@@ -299,7 +299,7 @@ with this value is sent to clients using events.
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _PyQwt: http://pyqwt.sourceforge.net/
 .. _Python: http://www.python.org/
-.. _IPython: http://ipython.scipy.org/
+.. _IPython: http://ipython.org/
 .. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
 .. _Qub: http://www.blissgarden.org/projects/qub/
 .. _numpy: http://numpy.scipy.org/

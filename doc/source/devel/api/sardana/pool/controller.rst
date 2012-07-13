@@ -17,6 +17,7 @@
     * :class:`MotorController`
     * :class:`PseudoMotorController`
     * :class:`CounterTimerController`
+    * :class:`ZeroDController`
     * :class:`PseudoCounterController`
     * :class:`IORegisterController`
     
@@ -104,6 +105,17 @@ Counter Timer Controller API
     :parts: 1
     
 .. autoclass:: CounterTimerController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+0D Controller API
+----------------------------
+
+.. inheritance-diagram:: ZeroDController
+    :parts: 1
+    
+.. autoclass:: ZeroDController
     :show-inheritance:
     :members:
     :undoc-members:

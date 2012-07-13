@@ -975,6 +975,12 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     #term_app.banner2 = "Connected to " + door_alias + "\n"
 
     # ------------------------------------
+    # InlineBackend
+    # ------------------------------------
+    inline_backend = config.InlineBackend
+    inline_backend.figure_format = 'svg'
+
+    # ------------------------------------
     # InteractiveShellEmbed
     # ------------------------------------
     #i_shell_embed = config.InteractiveShellEmbed

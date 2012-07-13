@@ -335,6 +335,7 @@ class PoolCTAcquisition(PoolAction):
                 state_info = acquirable._from_ctrl_state_info(state_info)
                 acquirable.set_state_info(state_info, propagate=2)
 
+Pool1DAcquisition = PoolCTAcquisition
 
 class Pool0DAcquisition(PoolAction):
 

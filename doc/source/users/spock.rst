@@ -76,6 +76,20 @@ Example::
 The first time a certain profile is used you will be asked to which door you want
 to connect to (see previous chapter).
 
+Spock IPython_ Primer
+---------------------
+
+As mentioned before, *spock* console is based on IPython_. Everything you can
+do in IPython is available in *spock*. The IPython_ documentation provides 
+excelent tutorials, tips & tricks, cookbooks, videos, presentations and
+reference guide. For comodity we summarize some of the most interesting
+IPython_ chapters here:
+
+- `IPython web page <http://ipython.org/>`_
+- :ref:`tutorial`
+- :ref:`tips`
+- :ref:`command_line_options`
+
 Executing macros
 -----------------
 
@@ -420,7 +434,7 @@ a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _PyQwt: http://pyqwt.sourceforge.net/
 .. _Python: http://www.python.org/
-.. _IPython: http://ipython.scipy.org/
+.. _IPython: http://ipython.org/
 .. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
 .. _Qub: http://www.blissgarden.org/projects/qub/
 .. _numpy: http://numpy.scipy.org/

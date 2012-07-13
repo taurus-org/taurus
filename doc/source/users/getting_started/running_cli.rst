@@ -67,7 +67,7 @@ You should get an ouput like this:
 
     Creating controllers motctrl01, ctctrl01... [DONE]
     Creating motors mot01, mot02, mot03, mot04... [DONE]
-    Creating measurement group measgrp01... [DONE]
+    Creating measurement group mntgrp01... [DONE]
     
 You should now have in your sardana system a set of simulated motors and
 counters with which you can play.
