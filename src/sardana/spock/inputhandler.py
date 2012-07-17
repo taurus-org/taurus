@@ -83,9 +83,9 @@ class MessageHandler(Qt.QObject):
     def on_message(self, input_data):
         msg_type = input_data['type']
         if msg_type == 'input':
+            if 'macro_name' in input_data and 'title' not in input_data:
+                input_data['title'] = input_data['macro_name']
             self._dialog = dialog = TaurusInputDialog(input_data=input_data)
-            if 'macro_name' in input_data:
-                dialog.setWindowTitle(input_data['macro_name'])
             dialog.activateWindow()
             dialog.exec_()
             ok = dialog.result()

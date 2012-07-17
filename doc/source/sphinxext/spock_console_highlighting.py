@@ -38,7 +38,7 @@ import copy
 from pygments.lexer import Lexer, do_insertions
 from pygments.lexers.agile import (PythonConsoleLexer, PythonLexer, 
                                    PythonTracebackLexer)
-from pygments.token import Comment, Generic
+from pygments.token import Token, Comment, Generic
 from pygments.style import Style
 import pygments.styles
 from sphinx import highlighting
@@ -99,6 +99,9 @@ class SpockConsoleLexer(Lexer):
             if line.startswith("#"):
                 insertions.append((len(curcode),
                                    [(0, Comment, line)]))
+            elif line.startswith("<warning>"):
+                insertions.append((len(curcode),
+                                   [(0, Generic.Error, line[9:])]))
             elif input_prompt is not None:
                 insertions.append((len(curcode),
                                    [(0, Generic.Prompt, input_prompt.group())]))

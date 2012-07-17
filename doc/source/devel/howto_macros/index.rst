@@ -101,12 +101,12 @@ At the time of writting, the easiest way to create a new macro is from spock
 Preparing your text editor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before launching spock it is important to decide which text editor you will use.
-Unless configured otherwise, spock will use the editor specified by the
-system environment variable :envvar:`EDITOR`. If this variable is not set, it
-will default to vi under Linux/Unix and to notepad under Windows.
-
-Example (linux, bash shell)::
+Before launching spock it is important to decide which text editor you will use
+to write your macros. Unless configured otherwise, spock will use the editor
+specified by the system environment variable :envvar:`EDITOR`. If this variable
+is not set, it will default to vi under Linux/Unix and to notepad under Windows.
+The following line explains how to set the :envvar:`EDITOR` environment variable
+to gedit under linux using bash shell::
 
     $ export EDITOR=gedit
 
@@ -148,6 +148,8 @@ library called *salute*. Just type in:
 This will bring your favourite editor to life with a macro function template
 code for the macro *hello_world*.
 
+    .. image:: ../../_static/macro_edit.png
+
 The next chapter will explain how to fill this template with useful code. After
 you finish editing the macro, save the file, exit the editor and go back to
 spock. You'll be asked if you want the new code to be load on the server.
@@ -161,6 +163,7 @@ Just answer 'y'.
     Do you want to apply the new code on the server? [y] y
     
 .. _macro_function_writting:
+
 
 Writting a macro function
 -------------------------
@@ -518,6 +521,8 @@ Here is an example on how to prepare HelloWorld to run only after year 1989::
         def run(self):
             print "Hello, World!"
 
+.. _macro_plotting:
+
 Plotting
 ---------
 
@@ -582,8 +587,298 @@ will **NOT** work inside a macro:
     LAB-01-D01 [2]: line.set_linewidth(5)
 
 Also consider that each time you plot the complete data to be plotted is sent
-from the server to the client... so please avoid plotting arrays of 10,000,000 points!
+from the server to the client... so please avoid plotting arrays of
+10,000,000 points!
+
+.. _macro_input:
+
+Asking for user input
+----------------------
+
+It is possible to ask for user input inside a macro.
+
+.. hint::
+    Asking for input in the middle of long macros will cause the macro to 
+    stop and wait for user input. If you write a long macro that might be
+    executed *in the middle of the night* please take the appropriate steps
+    to make sure you don't arrive in the morning and you are faced with 
+    a message box waiting for you to answer a question that could be avoided
+    with a proper *default value*. To make sure your macro can run in
+    *unattended* mode make sure that:
     
+      - it implements the interactive *interface*
+      - every :meth:`~Macro.input` gives a *default_value* :term:`keyword argument <keyword argument>`
+      
+    (read on to see how to meet these requirements)
+
+In pure Python_, to ask for user input you can use the :func:`raw_input`
+(Python 2) / :func:`input` (Python 3) ::
+
+    >>> answer = raw_input('--> ')
+    --> Monty Python's Flying Circus
+    >>> answer
+    "Monty Python's Flying Circus"
+
+The Macro :term:`API` provides a much more powerful version of
+:meth:`~Macro.input` since it
+can accept a wide variaty of options.
+
+Similar to what happens with :ref:`macro_plotting`, when input is requested from
+inside a macro, the question will be sent to the client (example: spock) which
+ordered the macro to be executed. At this time the macro is stopped waiting for
+the client to answer. The client must "ask" the user for a proper value and the
+answer is sent back to the server which then resumes the macro execution.
+
+Asking for user input is straightforward::
+
+    @macro()
+    def ask_name(self):
+        """Macro function version to ask for user name"""
+
+        answer = self.input("What's your name?")
+        self.output("So, your name is '%s'", answer)
+    
+Executing this macro will make spock popup an Input Dialog Box like this one:
+
+    .. image:: ../../_static/macro_input.png
+
+When you type your name and press :guilabel:`&OK` the macro finishes printing
+the output:
+
+.. sourcecode:: spock
+
+    LAB-01-D01 [1]: ask_name
+    <warning>Non interactive macro 'ask_name' is asking for input (please set this macro interactive to True)
+    So, your name is 'Homer Simpson'
+ 
+The macro prints a warning message saying that the macro was not declared as
+*interactive*. All macros that request user input **should** be declared as 
+interactive. This is because the sardana server can run a macro in *unattended*
+mode. When an interactive macro is run in *unattended* mode, all :meth:`~Macro.input` 
+instructions that have a default value will return automatically the default
+value without asking the user for input.
+
+To declare a macro as interactive set the ``interactive``
+:term:`keyword argument <keyword argument>` in the macro decorator to ``True``
+(default value for ``interactive`` is ``False``), like this::
+
+    @macro(interactive=True)
+    def ask_name(self):
+        """Macro function version to ask for user name"""
+        
+        answer = self.input("What's your name?")
+        self.output("So, your name is '%s'", answer)
+
+To declare a macro class as interactive set the ``interactive`` member to 
+``True`` (default value for ``interactive`` is ``False``), like this::
+
+    class ask_name(Macro):
+        """Macro class version to ask for user name"""
+        
+        interactive = True
+        
+        def run(self):
+            answer = self.input("What's your name?")
+            self.output("So, your name is '%s'", answer)
+
+a helper :class:`~imacro` decorator and a :class:`iMacro` class exist which 
+can be used instead of the :class:`macro` decorator and :class:`Macro` class
+to transparently declare your macro as interactive::
+    
+    from sardana.macroserver.macro import imacro, iMacro
+    
+    # interactive macro function version
+    
+    @imacro()
+    def ask_name(self):
+        """Macro function version to ask for user name"""
+        
+        answer = self.input("What's your name?")
+        self.output("So, your name is '%s'", answer)
+
+    # interactive macro class version
+
+    class ask_name(iMacro):
+        """Macro class version to ask for user name"""
+        
+        def run(self):
+            answer = self.input("What's your name?")
+            self.output("So, your name is '%s'", answer)
+
+The following sub-chapters explain the different options available for macro
+user input.
+
+Forcing input data type
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default return type of :class:`~Macro.input` is :obj:`str` which mimics the
+pure Python_ input function. However, often you want to restrict the user
+input to a specific data type like ``Integer``, ``Float`` or even complex
+object like ``Moveable`` or to a list of possible options.
+
+The macro :class:`~Macro.input` :term:`API` provides an easy way to do this by
+specifying the concrete data type in the :term:`keyword argument <keyword argument>`
+*data_type*. The following examples shows how to ask for an ``Integer``,
+a ``Moveable``, and single/multiple selection from a list of options::
+
+    from sardana.macroserver.macro import imacro, Type
+
+    @imacro()
+    def ask_number_of_points(self):
+        """asks user for the number of points"""
+        nb_points = self.input("How many points?", data_type=Type.Integer)
+        self.output("You selected %d points", nb_points)
+
+    @imacro()
+    def ask_for_moveable(self):
+        """asks user for a motor"""
+        moveable = self.input("Which moveable?", data_type=Type.Moveable)
+        self.output("You selected %s which is at %f", moveable, moveable.getPosition())
+
+    @imacro()
+    def ask_for_car_brand(self):
+        """asks user for a car brand"""
+        car_brands = "Mazda", "Citroen", "Renault"
+        car_brand = self.input("Which car brand?", data_type=car_brands)
+        self.output("You selected %s", car_brand)
+
+    @imacro()
+    def ask_for_multiple_car_brands(self):
+        """asks user for several car brands"""
+        car_brands = "Mazda", "Citroen", "Renault", "Ferrari", "Porche", "Skoda"
+        car_brands = self.input("Which car brand(s)?", data_type=car_brands,
+                                allow_multiple=True)
+        self.output("You selected %s", ", ".join(car_brands))
+
+... and these are the corresponding dialogs that will popup in spock:
+
+    |input_integer| |input_moveable| |input_select_radio|
+    |input_select_multiple|
+
+
+Providing a default value
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Providing a default value is **very important** since it will allow your macro
+to run in *unattended* mode. When given, the *default_value*
+:term:`keyword argument <keyword argument>` value type must be compatible with
+the *data_type* :term:`keyword argument <keyword argument>`.
+Providing a default value is easy. The following examples repeat the previous
+data type examples giving compatible default values::
+
+    from sardana.macroserver.macro import imacro, Type
+
+    @imacro()
+    def ask_number_of_points(self):
+        """asks user for the number of points"""
+        nb_points = self.input("How many points?", data_type=Type.Integer)
+        self.output("You selected %d points", nb_points, default_value=100)
+
+    @imacro()
+    def ask_for_moveable(self):
+        """asks user for a motor"""
+        moveable = self.input("Which moveable?", data_type=Type.Moveable,
+                              default_value="gap01")
+        self.output("You selected %s which is at %f", moveable, moveable.getPosition())
+
+    @imacro()
+    def ask_for_car_brand(self):
+        """asks user for a car brand"""
+        car_brands = "Mazda", "Citroen", "Renault"
+        car_brand = self.input("Which car brand?", data_type=car_brands,
+                               default_value=car_brands[1])
+        self.output("You selected %s", car_brand)
+
+    @imacro()
+    def ask_for_multiple_car_brands(self):
+        """asks user for several car brands. Default is every other car brand
+        in the list"""
+        car_brands = "Mazda", "Citroen", "Renault", "Ferrari", "Porche", "Skoda"
+        car_brands = self.input("Which car brand(s)?", data_type=car_brands,
+                                allow_multiple=True,
+                                default_value=car_brands[::2])
+        self.output("You selected %s", ", ".join(car_brands))
+
+Giving a title
+~~~~~~~~~~~~~~
+
+By default, the Dialog window title will contain the name of the macro which
+triggered user input. You can override the default behaviour with the
+:term:`keyword argument <keyword argument>` *title*::
+
+    @imacro()
+    def ask_peak(self):
+        """asks use for peak current of points with a custom title"""
+        peak = self.input("What is the peak current?", data_type=Type.Float,
+                          title="Peak selection")
+        self.output("You selected a peak of %f A", peak)
+
+... and this is the corresponding dialog:
+
+    |input_float_title|
+
+Specifying label and unit
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *key* and *unit* :term:`keyword arguments <keyword argument>` can be used
+to provide additional label and unit information respectively and prevent
+user mistakes::
+
+    @imacro()
+    def ask_peak(self):
+        """asks use for peak current of points with a custom title"""
+        label, unit = "peak", "mA"
+        peak = self.input("What is the peak current?", data_type=Type.Float,
+                          title="Peak selection", key=label, unit=unit,
+                          default_value=123.4)
+        self.output("You selected a %s of %f %s", label, peak, unit)
+
+... and this is the corresponding dialog:
+
+    |input_float_title_label_unit|
+
+Limiting ranges, setting decimal places and step size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When numeric input is requested, it might be useful to prevent user input
+outside a certain range. This can be achieved with the *minimum* and *maximum*
+:term:`keyword arguments <keyword argument>`::
+
+    @imacro()
+    def ask_peak(self):
+        """asks use for peak current of points with a custom title"""
+        label, unit = "peak", "mA"
+        peak = self.input("What is the peak current?", data_type=Type.Float,
+                          title="Peak selection", key=label, unit=unit,
+                          default_value=123.4, minimum=0.0, maximum=200.0)
+        self.output("You selected a %s of %f %s", label, peak, unit)
+
+An additional *step* :term:`keyword argument <keyword argument>` may help
+increase usability by setting the step size in a input spin box::
+
+    @imacro()
+    def ask_peak(self):
+        """asks use for peak current of points with a custom title"""
+        label, unit = "peak", "mA"
+        peak = self.input("What is the peak current?", data_type=Type.Float,
+                          title="Peak selection", key=label, unit=unit,
+                          default_value=123.4, minimum=0.0, maximum=200.0,
+                          step=5)
+        self.output("You selected a %s of %f %s", label, peak, unit)
+
+When asking for a decimal number, it might be useful to use the *decimals*
+:term:`keyword argument <keyword argument>` to indicate how many decimal places
+to show in a input spin box::
+
+    @imacro()
+    def ask_peak(self):
+        """asks use for peak current of points with a custom title"""
+        label, unit = "peak", "mA"
+        peak = self.input("What is the peak current?", data_type=Type.Float,
+                          title="Peak selection", key=label, unit=unit,
+                          default_value=123.4, minimum=0.0, maximum=200.0,
+                          step=5, decimals=2)
+        self.output("You selected a %s of %f %s", label, peak, unit)
 
 .. rubric:: Footnotes
 
@@ -599,6 +894,24 @@ from the server to the client... so please avoid plotting arrays of 10,000,000 p
              2.7.1+ (r271:86832, Apr 11 2011, 18:05:24)
              [GCC 4.5.2]
 
+.. |input_integer| image:: ../../_static/macro_input_integer.png
+    :align: middle
+
+.. |input_moveable| image:: ../../_static/macro_input_moveable.png
+    :align: middle
+
+.. |input_select_radio| image:: ../../_static/macro_input_select_radio.png
+    :align: middle
+
+.. |input_select_multiple| image:: ../../_static/macro_input_select_multiple.png
+    :align: middle
+
+.. |input_float_title| image:: ../../_static/macro_input_float_title.png
+    :align: middle
+
+.. |input_float_title_label_unit| image:: ../../_static/macro_input_float_title_label_unit.png
+    :align: middle
+    
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
 .. _ELETTRA: http://http://www.elettra.trieste.it/

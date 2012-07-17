@@ -30,8 +30,8 @@ from __future__ import with_statement
 from __future__ import print_function
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
-           "MacroFinder", "Macro", "macro", "MacroFunc", "Type",
-           "ParamRepeat", "Table", "List"]
+           "MacroFinder", "Macro", "macro", "iMacro", "imacro",
+           "MacroFunc", "Type", "ParamRepeat", "Table", "List"]
 
 __docformat__ = 'restructuredtext'
 
@@ -319,11 +319,13 @@ class macro(object):
         def where_moveable(self, moveable):
             self.output("Moveable %s is at %s", moveable.getName(), moveable.getPosition())"""
 
-    def __init__(self, param_def=None, result_def=None, env=None, hints=None):
+    def __init__(self, param_def=None, result_def=None, env=None, hints=None,
+                 interactive=None):
         self.param_def = param_def
         self.result_def = result_def
         self.env = env
         self.hints = hints
+        self.interactive = interactive
 
     def __call__(self, fn):
         fn.macro_data = {}
@@ -331,7 +333,12 @@ class macro(object):
         fn.result_def = self.result_def
         fn.hints = self.env
         fn.env = self.hints
+        fn.interactive = self.interactive
         return fn
+
+
+from functools import partial
+imacro = partial(macro, interactive=True)
 
 
 class Macro(Logger):
@@ -794,7 +801,8 @@ class Macro(Logger):
                                    default_value="Average", allow_multiple=False)"""
         if not self.interactive:
             self.warning("Non interactive macro '%s' is asking for input "
-                         "(please set this macro interactive to True)")
+                         "(please set this macro interactive to True)",
+                         self.getName())
         if self._interactive_mode:
             kwargs['data_type'] = kwargs.get('data_type', Type.String)
             kwargs['allow_multiple'] = kwargs.get('allow_multiple', False)
@@ -2006,14 +2014,30 @@ class Macro(Logger):
         return f
 
 
+class iMacro(Macro):
+
+    interactive = True
+
+
 class MacroFunc(Macro):
 
     def __init__(self, *args, **kwargs):
         function = kwargs['function']
         self._function = function
         kwargs['as'] = self._function.func_name
+        if function.param_def is not None:
+            self.param_def = function.param_def
+        if function.result_def is not None:
+            self.result_def = function.result_def
+        if function.env is not None:
+            self.env = function.env
+        if function.hints is not None:
+            self.hints = function.hints
+        if function.interactive is not None:
+            self.interactive = function.interactive
         Macro.__init__(self, *args, **kwargs)
-
+        print(self.param_def)
+        
     def run(self, *args):
         #orig_func = self._function
         #extra_globals = self._build_globals(orig_func.func_globals)
