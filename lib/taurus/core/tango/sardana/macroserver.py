@@ -570,7 +570,10 @@ class BaseDoor(MacroServerDevice):
         codec = CodecFactory().getCodec(format)
         data = codec.decode(data)
         return data
-
+    
+    def processRecordData(self, data):
+        pass
+    
     def macroStatusReceived(self, s, t, v):
         if v is None or self._running_macros is None:
             return
