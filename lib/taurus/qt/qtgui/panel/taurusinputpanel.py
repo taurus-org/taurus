@@ -45,7 +45,8 @@ class TaurusInputPanel(Qt.QWidget):
         - *prompt* <str>: message to be displayed
         
     The following are optional keys (and their corresponding default values):
-        
+
+        - *title* <str> (doesn't have default value)
         - *key* <str> (doesn't have default value):
           a label to be presented left to the input box represeting the label
         - *unit* <str> (doesn't have default value):
@@ -72,21 +73,7 @@ class TaurusInputPanel(Qt.QWidget):
         - *allow_multiple* <bool> (False):
           allow more than one value to be selected (makes sence when data_type
           is a sequence of possibilities)
-
-    :param input_data:
-        a dictionary with information on how to build the input dialog
-    :type input_data: :py:obj:`dict`
-    :param parent: parent widget
-    :type parent: PyQt4.QtGui.QWidget
-    :param title: dialog title
-    :type title: str
-    :param input_panel_klass:
-        python class to be used as input panel [default: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`]
-    :type input_panel_klass: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`
-                        
-    :return: a tuple containing value selected and boolean which is true if
-             user accepted the dialog (pressed Ok) or false otherwise
-    :rtype: tuple< obj, bool >
+        
 
     Example::
 
@@ -121,7 +108,9 @@ class TaurusInputPanel(Qt.QWidget):
             single_panel, getter = self.create_single_input_panel(input_data)
             layout.addWidget(single_panel)
             self.value = getter
-
+            if 'title' in input_data:
+                self.setWindowTitle(input_data['title'])
+    
     def create_single_input_panel(self, input_data):
         style = Qt.QApplication.instance().style()
         icon = style.standardIcon(Qt.QStyle.SP_MessageBoxQuestion)
@@ -206,7 +195,9 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_radiobutton_value(self):
         buttongroup = self._ui.inputWidget
-        return buttongroup.checkedButton()._value
+        button = buttongroup.checkedButton()
+        if button is not None:
+            return button._value
     
     def _create_multi_selection_panel(self, input_data):
         panel = self._create_group_panel(input_data)

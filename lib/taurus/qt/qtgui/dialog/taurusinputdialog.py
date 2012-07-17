@@ -32,8 +32,7 @@ __docformat__ = 'restructuredtext'
 from taurus.qt import Qt
 from taurus.qt.qtgui.panel import TaurusInputPanel
 
-def get_input(input_data, parent=None, title=None,
-              input_panel_klass=TaurusInputPanel):
+def get_input(input_data, parent=None, input_panel_klass=TaurusInputPanel):
     """Static convenience function to get an input from the user using a
     dialog. The dialog will be modal.
     
@@ -43,7 +42,8 @@ def get_input(input_data, parent=None, title=None,
         - *prompt* <str>: message to be displayed
         
     The following are optional keys (and their corresponding default values):
-        
+
+        - *title* <str> (doesn't have default value)
         - *key* <str> (doesn't have default value):
           a label to be presented left to the input box represeting the label
         - *unit* <str> (doesn't have default value):
@@ -76,8 +76,6 @@ def get_input(input_data, parent=None, title=None,
     :type input_data: :py:obj:`dict`
     :param parent: parent widget
     :type parent: PyQt4.QtGui.QWidget
-    :param title: dialog title
-    :type title: str
     :param input_panel_klass:
         python class to be used as input panel [default: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`]
     :type input_panel_klass: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`
@@ -111,8 +109,6 @@ def get_input(input_data, parent=None, title=None,
     """
     dialog = TaurusInputDialog(input_data=input_data, parent=parent,
                                input_panel_klass=input_panel_klass)
-    if title:
-        dialog.setWindowTitle(title)
     result = dialog.exec_()
     return dialog.value(), dialog.result()
     
@@ -127,6 +123,8 @@ class TaurusInputDialog(Qt.QDialog):
         self.input_data = input_data
         self.input_panel_klass = input_panel_klass
         Qt.QDialog.__init__(self, parent)
+        if input_data and 'title' in input_data:
+            self.setWindowTitle(input_data['title'])
         layout = Qt.QVBoxLayout()
         self.setLayout(layout)
         self._panel = panel = input_panel_klass(input_data, self)
