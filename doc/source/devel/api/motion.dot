@@ -1,0 +1,99 @@
+digraph "Motion" {
+"On" [
+fixedsize="false"
+regular="false"
+];
+"Moving" [
+fixedsize="false"
+regular="false"
+];
+"On" -> "Moving" [
+constraint="true"
+decorate="false"
+label="start"
+labelfloat="false"
+];
+"Moving" -> "On" [
+constraint="true"
+decorate="false"
+label="abort"
+labelfloat="false"
+];
+"Moving\n(backlash)" [
+fixedsize="false"
+regular="false"
+];
+"Moving" -> "Moving\n(backlash)" [
+constraint="true"
+decorate="false"
+fontcolor="green"
+label="finished"
+labelfloat="false"
+];
+"Moving\n(Instability time)" [
+fixedsize="false"
+regular="false"
+];
+"Moving" -> "Moving\n(Instability time)" [
+constraint="true"
+decorate="false"
+label="stop"
+labelfloat="false"
+];
+"Moving\n(backlash)" -> "Moving\n(Instability time)" [
+constraint="true"
+decorate="false"
+fontcolor="green"
+label="finished"
+labelfloat="false"
+];
+"Moving\n(backlash)" -> "Moving\n(Instability time)" [
+constraint="true"
+decorate="false"
+label="stop"
+labelfloat="false"
+];
+"Moving\n(backlash)" -> "Moving\n(Instability time)" [
+constraint="true"
+decorate="false"
+label="abort"
+labelfloat="false"
+];
+"Moving\n(backlash)" -> "On" [
+constraint="true"
+decorate="false"
+label="abort"
+labelfloat="false"
+];
+"Moving\n(Instability time)" -> "On" [
+constraint="true"
+decorate="false"
+fontcolor="green"
+label="finished"
+labelfloat="false"
+];
+"Moving\n(Instability time)" -> "On" [
+constraint="true"
+decorate="false"
+label="abort"
+labelfloat="false"
+];
+"Moving\n(Instability time)" -> "Moving\n(Instability time)" [
+constraint="true"
+decorate="false"
+label="stop"
+labelfloat="false"
+];
+"On" -> "On" [
+constraint="true"
+decorate="false"
+label="stop"
+labelfloat="false"
+];
+"On" -> "On" [
+constraint="true"
+decorate="false"
+label="abort"
+labelfloat="false"
+];
+}

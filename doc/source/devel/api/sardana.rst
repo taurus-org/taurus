@@ -9,6 +9,8 @@ Sardana API
 
     Macro API <macro>
     Controller API <controller>
+    Motor API <motor>
+    Counter/Timer API <countertimer>
     Pool Tango API <tango_device_pool>
     MacroServer Tango API <tango_macroserver>
     Library <sardana/sardana>

@@ -8,6 +8,6 @@ This chapter consists of a series of examples demonstrating how to call macros
 from inside a macro
 
 
-.. literalinclude:: submacros.py
+.. literalinclude:: ../../../../src/sardana/macroserver/macros/examples/submacros.py
    :language: python
    :linenos:

@@ -187,13 +187,14 @@ class PoolMotor(PoolElement):
 
     def _set_limit_switches(self, ls, propagate=1):
         self._limit_switches.set_value(tuple(ls), propagate=propagate)
-
+    
     limit_switches = property(get_limit_switches, set_limit_switches,
-                              doc="motor limit_switches")
+                              doc="motor limit switches")
 
     # --------------------------------------------------------------------------
     # instability time
     # --------------------------------------------------------------------------
+    
     def has_instability_time(self, cache=True):
         it = self._instability_time
         return it is not None and it > 0.0
@@ -208,7 +209,7 @@ class PoolMotor(PoolElement):
                             instability_time)
 
     instability_time = property(get_instability_time, set_instability_time,
-                                doc="motor instability_time")
+                                doc="motor instability time")
 
     # --------------------------------------------------------------------------
     # backlash

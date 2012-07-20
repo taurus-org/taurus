@@ -51,27 +51,30 @@ Here is an example on how to define extra attributes per axis:
     
 ::
 
-    from sardana.pool.controller import MotorController
-
+    from sardana.pool.controller import MotorController, \
+        Type, Description, DefaultValue, Access, FGet, FSet
+        
     class MyMotorCtrl(MotorController):
 
-        axis_attributes = {
-            'EncoderSource' : { 'type' : str,
-                                'description' : 'motor encoder source', },
-            'ReflectionMatrix' : { 'type' : ( (float,), ),
-                                   'r/w type' : 'read',
-                                   'fget' : 'getReflectionMatrix', },
+        axis_attributes = \
+        {
+            'EncoderSource' : { Type : str,
+                                Description : 'motor encoder source', },
+
+            'ReflectionMatrix' : { Type : ( (float,), ),
+                                   Access : 'read',
+                                   FGet : 'getReflectionMatrix', },
         }
         
         def getAxisPar(self, axis, name):
             name = name.lower()
             if name == 'encodersource':
-                return self._encodersource
+                return self._encodersource[axis]
         
         def setAxisPar(self, axis, name, value):
             name = name.lower()
             if name == 'encodersource':
-                self._encodersource = value
+                self._encodersource[axis] = value
         
         def getReflectionMatrix(self, axis):
             return ( (1.0, 0.0), (0.0, 1.0) )

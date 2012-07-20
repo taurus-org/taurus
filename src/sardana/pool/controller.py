@@ -42,16 +42,52 @@ from taurus.core.util import Logger
 from sardana import DataAccess
 from pooldefs import ControllerAPI, AcqTriggerType, AcqMode
 
-#: Data type
+#: Constant data type (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 Type = 'type'
+
+#: Constant data access (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 Access = 'r/w type'
+
+#: Constant description (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 Description = 'description'
+
+#: Constant default value (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 DefaultValue = 'defaultvalue'
-Memorized = "true"
-MemorizedNoInit = "true_without_hard_applied"
-NotMemorized = "false"
+
+#: Constant for getter function (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 FGet = "fget"
+
+#: Constant for setter function (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 FSet = "fset"
+
+#: Constant memorize (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
+#: Possible values for this key are :obj:`Memorized`, :obj:`MemorizedNoInit`
+#: and :obj:`NotMemorized`
+Memorize = "memorized"
+
+#: Constant memorized (to be used as a *value* in the :obj:`Memorize` field 
+#: definition in :attr:`~Controller.axis_attributes` or 
+#: :attr:`~Controller.ctrl_attributes`)
+Memorized = "true"
+
+#: Constant memorize but not write at initialization (to be used as a *value*
+#: in the :obj:`Memorize` field definition in
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
+MemorizedNoInit = "true_without_hard_applied"
+
+#: Constant not memorize (to be used as a *value*
+#: in the :obj:`Memorize` field definition in
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
+NotMemorized = "false"
+
+
 
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly"""
@@ -73,15 +109,32 @@ class Controller(object):
     #: - value : :class:`dict` with with three :obj:`str` keys ("type",
     #:   "description" and "defaultvalue" case insensitive):
     #:
-    #:     - for key="type", value is one of the values described in
+    #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:
-    #:     - for key="description", value is a :obj:`str` description of the
+    #:     - for :obj:`Description`, value is a :obj:`str` description of the
     #:       property.
     #:       if is not given it defaults to empty string.
     #:
-    #:     - for key="defaultvalue", value is a python object or None if no
+    #:     - for :obj:`DefaultValue`, value is a python object or None if no
     #:       default value exists for the property.
+    #: 
+    #: Example::
+    #:
+    #:     from sardana.pool.controller import MotorController, \
+    #:         Type, Description, DefaultValue
+    #: 
+    #:     class MyCtrl(MotorController):
+    #:          
+    #:         ctrl_properties = \
+    #:         {
+    #:             'host' : { Type : str,
+    #:                        Description : "host name" },
+    #:             'port' : { Type : int, 
+    #:                        Description : "port number",
+    #:                        DefaultValue: 5000 }
+    #:         }
+    #:
     ctrl_properties = {}
 
     #: A :class:`dict` containning controller extra attributes where:
@@ -90,34 +143,54 @@ class Controller(object):
     #: - value : :class:`dict` with :obj:`str` possible keys: "type",
     #:   "r/w type", "description", "fget" and "fset" (case insensitive):
     #:
-    #:     - for key="type", value is one of the values described in
+    #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:
-    #:     - for key="r/w type", value is one of "read" or "read_write"
-    #:       (case insensitive)
+    #:     - for :obj:`Access`, value is one of 
+    #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
+    #:       (case insensitive) strings are also accepted)
     #:
-    #:     - for key="description", value is a :obj:`str` description of the
+    #:     - for :obj:`Description`, value is a :obj:`str` description of the
     #:       attribute
     #:
-    #:     - for key="fget", value is a :obj:`str` with the method name for
-    #:       the attribute getter
-    #:       if is not given it defaults to "get"<controller attribute name>
+    #:     - for :obj:`FGet`, value is a :obj:`str` with the method name for
+    #:       the attribute getter. If is not given it defaults to
+    #:       "get"<controller attribute name>
     #:
-    #:     - for key="fset", value is a :obj:`str` with the method name for
-    #:       the attribute setter
-    #:       if is not given and "r/w type"="read_write" it defaults to
+    #:     - for :obj:`FSet`, value is a :obj:`str` with the method name for
+    #:       the attribute setter. If is not given and
+    #:       :obj:`Access` = "read_write" it defaults to
     #:       "set"<controller attribute name>
     #:
-    #:     - for key="defaultvalue", value is a python object or None if no
+    #:     - for :obj:`DefaultValue`, value is a python object or None if no
     #:       default value exists for the attribute. If given, the attribute is
     #:       set when the controller is first created.
     #:
-    #:     - for key="memorized", value is a :obj:`str` with possible values:
-    #:       "true" (default), "true_without_hard_applied", "false"
+    #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
+    #:       :obj:`Memorized` (default), :obj:`MemorizedNoInit` and
+    #:       :obj:`NotMemorized`
     #:
     #:       .. versionadded:: 1.1
     #:
     #: .. versionadded:: 1.0
+    #: 
+    #: Example::
+    #:      
+    #:     from sardana.pool.controller import PseudoMotorController, \
+    #:         Type, Description, DefaultValue, DataAccess
+    #: 
+    #:     class HKLCtrl(PseudoMotorController):
+    #:          
+    #:         ctrl_attributes = \
+    #:         {
+    #:             'ReflectionMatrix' : { Type : ( (float,), ),
+    #:                                    Description : "The reflection matrix",
+    #:                                    Access : DataAccess.ReadOnly,
+    #:                                    FGet : 'getReflectionMatrix', },    
+    #:         }
+    #:         
+    #:         def getReflectionMatrix(self):
+    #:             return ( (1.0, 0.0), (0.0, 1.0) )
     ctrl_attributes = {}
 
     #: A :class:`dict` containning controller extra attributes for each axis
@@ -127,25 +200,50 @@ class Controller(object):
     #: - value : :class:`dict` with three :obj:`str` keys
     #:   ("type", "r/w type", "description" case insensitive):
     #:
-    #:     - for key="type", value is one of the values described in
+    #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`pool-controller-data-type`
     #:
-    #:     - for key="r/w type", value is one of "read" or "read_write"
-    #        (case insensitive)
+    #:     - for :obj:`Access`, value is one of 
+    #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
+    #:       (case insensitive) strings are also accepted)
     #:
-    #:     - for key="description", value is a :obj:`str` description of the
+    #:     - for :obj:`Description`, value is a :obj:`str` description of the
     #:       attribute
     #:
-    #:     - for key="defaultvalue", value is a python object or None if no
+    #:     - for :obj:`DefaultValue`, value is a python object or None if no
     #:       default value exists for the attribute. If given, the attribute is
     #:       set when the axis is first created.
     #:
-    #:     - for key="memorized", value is a :obj:`str` with possible values:
-    #:       "true" (default), "true_without_hard_applied", "false"
+    #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
+    #:       :obj:`Memorized` (default), :obj:`MemorizedNoInit` and
+    #:       :obj:`NotMemorized`
     #:
     #:       .. versionadded:: 1.1
     #:
     #: .. versionadded:: 1.0
+    #: 
+    #: Example::
+    #:      
+    #:     from sardana.pool.controller import MotorController, \
+    #:         Type, Description, DefaultValue, DataAccess
+    #: 
+    #:     class MyMCtrl(MotorController):
+    #:          
+    #:         axis_attributes = \
+    #:         {
+    #:             'EncoderSource' : { Type : str,
+    #:                                 Description : 'motor encoder source', },
+    #:         }
+    #:         
+    #:         def getAxisPar(self, axis, name):
+    #:             name = name.lower()
+    #:             if name == 'encodersource':
+    #:                 return self._encodersource[axis]
+    #:         
+    #:         def setAxisPar(self, axis, name, value):
+    #:             name = name.lower()
+    #:             if name == 'encodersource':
+    #:                 self._encodersource[axis] = value
     axis_attributes = {}
 
     #: A :obj:`str` representing the controller gender

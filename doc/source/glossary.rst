@@ -39,6 +39,11 @@ Glossary
         keys can be any object with :meth:`__hash__`  and :meth:`__eq__` methods.
         Called a hash in Perl.
 
+    class
+        A template for creating user-defined objects. Class definitions
+        normally contain method definitions which operate on instances of the
+        class.
+      
     expression
         A piece of syntax which can be evaluated to some value.  In other words,
         an expression is an accumulation of expression elements like literals,

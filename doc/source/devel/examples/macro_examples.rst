@@ -9,5 +9,7 @@ Macro examples
 .. toctree::
     :maxdepth: 2
     
-    Parameter examples <macro_parameter_examples>
-    Calling macro examples <macro_call_examples>
+    Specifying macro parameters <macro_parameter_examples>
+    Calling sub-macros <macro_call_examples>
+    Plotting <macro_plotting_examples>
+    Asking user input <macro_input_examples>

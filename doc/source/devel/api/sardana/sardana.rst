@@ -12,7 +12,8 @@
 
     pool <pool>
     macroserver <macroserver>
-
+    tango <tango>
+    
 .. rubric:: Modules
 
 .. toctree::
@@ -26,3 +27,4 @@
     sardanameta <sardanameta>
     sardanamanager <sardanamanager>
     sardanaattribute <sardanaattribute>
+

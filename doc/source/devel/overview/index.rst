@@ -13,4 +13,5 @@ Overview
     Device Pool <pool>
     Controller <controller>
     Motor <motor>
+    Counter/Timer <countertimer>
 

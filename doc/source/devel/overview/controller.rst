@@ -6,46 +6,63 @@
 Controller overview
 ===================
 
-Each different hardware object is directly controlled by another object called
-*controller*. This object is responsible for mapping the communication
+Each different hardware object is directly controlled by a software object
+called *controller*. This object is responsible for mapping the communication
 between a set of hardware objects (example motors) and the underlying hardware
-(example: a motor controller crate).
+(example: a motor controller crate). The *controller* object is also exposed as
+a Tango_ device.
 
-The *controller* object is also exposed as a Tango_ device.
-
-Usually a *controller* is capable of handling several hardware objects.
+Usually a controller is capable of handling several hardware objects.
 For example, a motor controller crate is capable of controlling several motors
 (generally called *axis* [#]_).
 
-
-The *controller* objects can be created/deleted/renamed dynamically in a running
+The controller objects can be created/deleted/renamed dynamically in a running
 pool.
 
-A specific type of *controller* needs to be created to handle each specific type
-of hardware. Therefore, to each type of *controller* it is associated a specific
-software component. Users can write a specific controller software component
-(:term:`plug-in`) that is able to communicate with the specific hardware.
-You can this way extend the initial pool capabilities to talk to all kinds of
-different hardware.
+A specific type of controller needs to be created to handle each specific type
+of hardware. Therefore, to each type of hardware controller there must be
+associated a specific controller software component. You can write a
+specific controller software component (:term:`plug-in`) that is able to
+communicate with the specific hardware. You can this way extend the initial
+pool capabilities to talk to all kinds of different hardware.
 
-.. figure:: /_static/sardana_server_controller.png
+.. figure:: /_static/sardana_server_np200.png
     :width: 500
     :align: center
     
-    A diagram representing a sardana server a controller class 
-    *NSC200Controller*, an instance of that controller *np200ctrl* "connected"
-    to a real hardware and a motor *np_mot1*.
+    A diagram representing a sardana server with a controller class 
+    *NSC200Controller*, an instance of that controller *np200ctrl_1* "connected"
+    to a real hardware and a single motor *npm_1*.
+
+A sardana controller is responsible for it's sardana element(s). Example: an
+Icepap hardware motor controller can *control* up to 128 individual motor axis.
+In the same way, the coresponding software motor controller *IcepapController*
+will *own* the individual motor axises.
+
+.. figure:: /_static/sardana_server_icepap.png
+    :width: 500
+    :align: center
+    
+    A diagram representing a sardana server with a controller class 
+    *IcepapController*, an instance of that controller *icectrl_1* "connected"
+    to a real hardware and motors *icem_[1..5]*.
+
     
 These are the different types of controllers recognized by sardana:
 
 :class:`MotorController`
     You should use/write a :class:`MotorController` sardana :term:`plug-in` if
-    the the device you want to control has a *moveable like* interface.
+    the the device you want to control has a *moveable* interface.
+    The :class:`MotorController` actually fullfils a *changeable* interface.
+    This means that, for example, a power supply that has a current which you
+    want to *ramp* could also be implemented as a :class:`MotorController`.
+    
     Example: the Newport NSC200 motor controller
 
 :class:`CounterTimerController`
     This controller type is designed to control a device capable of counting
     scalar values (and, optionaly have a timer).
+    
     Example: The National Instruments 6602 8-Channel Counter/Timer
 
 :class:`ZeroDController`
@@ -53,11 +70,13 @@ These are the different types of controllers recognized by sardana:
     scalar values. The :term:`API` provides a way to obtain a value over a
     certain acquisition time through different algorithms (average, maximum,
     integration).
+    
     Example: an electrometer 
     
 :class:`PseudoMotorController`
     A controller designed to export *virtual motors* that represent a new view
     over the actual physical motors.
+    
     Example: A slit pseudo motor controller provides *gap* and *offset* virtual
     motors over the physical blades
         
@@ -164,6 +183,17 @@ that is able to talk to a Newport motor controller::
                 self._setCommand("MX", axis)
             self._setCommand("ST", "")
 
+.. seealso:: 
+    
+    :ref:`pool-controller-howto`
+        How to write controller :term:`plug-in`\s in sardana
+    
+    :ref:`pool-controller-api`
+        the controller :term:`API` 
+    
+    :class:`~sardana.tango.pool.Controller.Controller`
+        the controller tango device :term:`API`
+        
 .. rubric:: Footnotes
 
 .. [#] The term *axis* will be used from here on to refer to the ID of

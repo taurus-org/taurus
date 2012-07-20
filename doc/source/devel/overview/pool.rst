@@ -12,10 +12,10 @@ of methods (Tango_ commands) and members (Tango_ attributes) which allow
 external applications to create/remove/rename and monitor the different hardware
 level sardana objects.
 
-The Pool could be seen as a kind of intelligent Tango device container to
+The Pool could be seen as a kind of intelligent device container to
 control the experiment hardware. It has two basic features which are:
 
-1. Hardware access using dynamically created/deleted Tango_ devices
+1. Hardware access using dynamically created/deleted devices
    according to the experiment needs
 
 2. Management of some very common and well defined actions regularly done
@@ -26,22 +26,24 @@ Hardware access
 ---------------
 
 Core hardware access
-""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~
 
 Most of the times, it is possible to define a list of very common objects found
 in most of the experiments. Objects commonly used to drive an experiment
 usually fit in one of the following categories:
 
-- Motor
-- Pseudo motor
-- Group of motor
-- IORegister (a.k.a. discrete motor)
-- Counter/Timer
-- 0D (Multimeter like)
-- 1D (:term:`MCA` like)
-- 2D (:term:`CCD` like)
-- Pseudo Counter
-- Communication channel
+- *Moveables*
+    - Motor
+    - Pseudo motor
+    - Group of moveables
+    - IORegister (a.k.a. discrete motor)
+- *Experimental channels*
+    - Counter/Timer
+    - 0D (Multimeter like)
+    - 1D (:term:`MCA` like)
+    - 2D (:term:`CCD` like)
+    - Pseudo Counter
+- *Communication channels*
 
 Each different controlled hardware object will also be exposed as an independent
 Tango_ class. The sardana device server will embed all these Tango_ classes

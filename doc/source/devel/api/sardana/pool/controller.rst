@@ -5,6 +5,20 @@
 
 .. automodule:: sardana.pool.controller
 
+.. rubric:: Constants
+
+.. autodata:: Type
+.. autodata:: Access
+.. autodata:: Description
+.. autodata:: DefaultValue
+.. autodata:: FGet
+.. autodata:: FSet
+.. autodata:: Memorize
+.. autodata:: Memorized
+.. autodata:: MemorizedNoInit
+.. autodata:: NotMemorized
+
+
 .. rubric:: Classes
 
 .. hlist::

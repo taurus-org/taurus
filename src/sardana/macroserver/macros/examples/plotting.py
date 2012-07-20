@@ -13,6 +13,7 @@ def j0i(x):
 
 @macro()
 def J0_plot(self):
+    """Sample J0 at linspace(0, 20, 200)"""
     x = linspace(0, 20, 200)
     y = j0(x)
     x1 = x[::10]
@@ -22,3 +23,12 @@ def J0_plot(self):
     self.pyplot.title(r'Verify $J_0(x)=\frac{1}{\pi}\int_0^{\pi}\cos(x \sin\phi)\,d\phi$')
     self.pyplot.xlabel('$x$')
     self.pyplot.legend()
+
+
+from numpy import random
+
+@macro()
+def random_image(self):
+    """Shows a random image 32x32"""
+    img = random.random((32, 32))
+    self.pyplot.matshow(img)

@@ -21,16 +21,18 @@ time. Macros run inside the *sardana sandbox*. This simply means that each time
 you run a macro, the system makes sure the necessary environment for it to run
 safely is ready.
 
-Macros can only be written in Python_. A macro can be a **function** or a **class**.
-In order for a function to be recognized as a macro, it **must** be properly
+Macros can only be written in Python_. A macro can be a :term:`function` or 
+a :term:`class`.
+In order for a :term:`function` to be recognized as a macro, it **must** be properly
 *labeled* as a macro (this is done with a special :class:`macro` *decorator*.
-Details are explaind below). In the same way, for a class to be recognized as a
+Details are explaind below). In the same way, for a :term:`class` to be recognized as a
 macro, it must inherit from a :class:`Macro` super-class. Macros are case
 sensitive. This means that *helloworld* is a different macro than *HelloWorld*.
 
-The choice between writing a macro function or a macro class depends not only
-on the type of procedure you want to write, but also (and probably, most
-importantly) on the type of programming you are most confortable with.
+The choice between writing a macro :term:`function` or a macro :term:`class`
+depends not only on the type of procedure you want to write, but also 
+(and probably, most importantly) on the type of programming you are most
+confortable with.
 
 If you are a scientist, and you have a programming background on a functional
 language (like fortran, matlab, SPEC_), then you might prefer to write macro
@@ -186,11 +188,11 @@ the macro function version of *Hello, World!*::
 
 **line 3**
     this line *decorates* de following function as a macro. It is **crucial**
-    to use this decorator in order for your function to be recognized by
+    to use this decorator in order for your :term:`function` to be recognized by
     sardana as a valid macro.
 
 **line 4**
-    this line contains the hello_world function definition. Every macro needs
+    this line contains the hello_world :term:`function` definition. Every macro needs
     **at least** one parameter. The first parameter is the macro execution
     context. It is usually called ``self`` but you can name it anything. This
     parameter gives you access to the entire context where the macro is being
@@ -219,7 +221,7 @@ the macro function version of *Hello, World!*::
     :meth:`~sardana.macroserver.macro.Macro.output`\, and has a slightly
     different syntax) ::
 
-        # mandatory first line in your code if you use Python_ < 3.0
+        # mandatory first line in your code if you use Python < 3.0
         from __future__ import print_function
         
         from sardana.macroserver.macro import macro
@@ -232,9 +234,9 @@ the macro function version of *Hello, World!*::
     The following footnote describes how to discover your Python_
     version [#f2]_.
 
-Remeber that a macro is, for all purposes, a normal Python_ function. This means
-you **CAN** inside a macro write **ANY** valid Python_ code. This includes
-:keyword:`for` and :keyword:`while` loops, :keyword:`if` ... 
+Remeber that a macro is, for all purposes, a normal Python_ :term:`function`.
+This means you **CAN** inside a macro write **ANY** valid Python_ code. This
+includes :keyword:`for` and :keyword:`while` loops, :keyword:`if` ... 
 :keyword:`elif` ... :keyword:`else` conditional execution, etc... ::
 
         import numpy.fft
@@ -265,8 +267,6 @@ apreciate clear benefits soon enough. Here are some of them:
 
 So, here is an example on how to define a macro that needs one parameter::
 
-    from sardana.macroserver.macro import macro
-    
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
     def where_moveable(self, moveable):
         """This macro prints the current moveable position"""
@@ -279,8 +279,8 @@ Here is another example on how to define a macro that needs two parameters:
 
 ::
 
-    from sardana.macroserver.macro import macro
-    
+    from sardana.macroserver.macro import macro, Type
+
     @macro([ ["moveable", Type.Moveable, None, "moveable to move"],
              ["position", Type.Float, None, "absolute position"] ])
     def move(self, moveable, position):
@@ -336,8 +336,6 @@ which motor you will move. Instead, a better solution would be to *ask* sardana
 for a motor named "theta" and use it directly. Here is how you can acomplish
 that::
 
-    from sardana.macroserver.macro import macro
-    
     @macro([["position", Type.Float, None, "absolute position"]])
     def move_theta(self, position):
         """This macro moves theta to the specified position"""
@@ -362,8 +360,6 @@ two of the macros that exist in the standard macro catalog
 
 Here is the new version of *where_moveable* ::
 
-    from sardana.macroserver.macro import macro
-    
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
     def where_moveable(self, moveable):
         """This macro prints the current moveable position"""
@@ -371,8 +367,6 @@ Here is the new version of *where_moveable* ::
 
 ... and the new version of *move* ::
 
-    from sardana.macroserver.macro import macro
-    
     @macro([ ["moveable", Type.Moveable, None, "moveable to move"],
              ["position", Type.Float, None, "absolute position"] ])
     def move(self, moveable, position):
@@ -380,14 +374,50 @@ Here is the new version of *where_moveable* ::
         self.mv(moveable, position)
         self.output("%s is now at %s", moveable.getName(), moveable.getPosition())
 
+.. _macro_environment:
+
+Accessing environment
+---------------------
+
+The sardana server provides a global space to store variables, called
+*environment*. The *environment* is a :term:`dictionary` storing a value for
+each variable. This *environment* is stored persistently so if the sardana
+server is restarted the environment is properly restored.
+
+Variables are case sensitive.
+
+The value of an existing environment variable can be accessed using
+:meth:`~Macro.getEnv`. Setting the value of an environment variable is done
+with :meth:`~Macro.setEnv`.
+
+For example, we know the ascan macro increments a ``ScanID`` environment
+variable each time it is executed. The following example executes a scan and
+outputs the new ``ScanID`` value:
+
+.. code-block:: python
+    :emphasize-lines: 7
+    
+    @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
+    def fixed_ascan(self, moveable):
+        """This does an ascan starting at 0 ending at 100, in 10 intervals
+        with integration time of 0.1s"""
+        
+        self.ascan(moveable, 0, 100, 10, 0.1)
+        scan_id = self.getEnv('ScanID')
+        self.output("ScanID is now %d", scan_id)
+        
+
 .. _macro_logging:
 
 Logging
 -----------
 
-The Macro :term:`API` includes a set of methods that allow you to write log messages with
-different levels:
+The Macro :term:`API` includes a set of methods that allow you to write log
+messages with different levels:
 
+.. hlist::
+    :columns: 4
+    
     * :meth:`~Macro.debug`
     * :meth:`~Macro.info`
     * :meth:`~Macro.warning`
@@ -399,6 +429,15 @@ different levels:
 As you've seen, the special :meth:`~Macro.output` function has the same effect
 as a print statement (with slightly different arguments).
 
+Log messages may have several destinations depending on how your sardana server
+is configured. At least, one destination of each log message is the client(s)
+(spock, GUI, other) which are connected to the server. Spock, for example,
+handles the log messages by printing to the console with different colours. By
+default, spock prints all log messages with level bigger than
+:meth:`~Macro.debug` (You can change this behaviour by typing ``debug on`` in
+spock).
+Another typical destination for log messages is a log file.
+
 Here is an example on how to write a logging information message::
 
     @macro()
@@ -407,41 +446,116 @@ Here is an example on how to write a logging information message::
         self.output("Hello, World!")
         self.info("Finished to executing %s", self.getName())
 
+.. seealso::
+
+    :ref:`log configuration <ms-configuration-log>`
+        The sardana log configuration.
+
+.. _macro_reporting:
+
+Reports
+---------
+
+Once the report facility has been properly configured, report messages can be
+sent to the previously configured report file.
+
+There are several differences between :ref:`reporting <macro_reporting>` and
+:ref:`logging <macro_logging>`. The first difference is that log messages may or
+may not be recorded, depending on the configured filters on the target
+(example: log file). A report will always be recorded.
+
+Another difference is that report messages are not sent to the clients. The idea
+of a report is to silently record in a file that something as happened.
+
+A third difference is that unlike logs, reports have no message level
+associated to them (actually since internally the log library is used to report
+messages, every report record as the predefined level *INFO* but this is just
+an implementation detail).
+
+A report message can be emited at any time in the macro using the
+:meth:`~Macro.report` method:
+
+.. code-block:: python
+    :emphasize-lines: 3
+    
+    @macro()
+    def lets_report(self):
+        self.report("this is an official report of macro '%s'", self.getName())
+
+This would generate the following report message in the report file:
+
+    INFO     2012-07-18 09:39:34,943: this is an official report of macro 'lets_report'
+
+
+.. seealso::
+
+    :ref:`Report configuration <ms-configuration-report>`
+        The sardana report configuration.
+
 .. _advanced_macro_calling:
 
 Advanced macro calls
 ---------------------
 
-As previously explained (:ref:`macro_calling`), you can use the Macro
-:term:`API` to call other macros from inside your own macro::
+As previously explained (see :ref:`calling macros <macro_calling>`), you can
+use the Macro :term:`API` to call other macros from inside your own macro:
 
+.. code-block:: python
+    :emphasize-lines: 5
+    
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
     def fixed_ascan(self, moveable):
         """This does an ascan starting at 0 ending at 100, in 10 intervals
         with integration time of 0.1s"""
         self.ascan(moveable, 0, 100, 10, 0.1)
 
-An explicit call to :meth:`~Macro.execMacro` would have the same effect::
+An explicit call to :meth:`~Macro.execMacro` would have the same effect:
 
+.. code-block:: python
+    :emphasize-lines: 5
+    
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
     def fixed_ascan(self, moveable):
         """This does an ascan starting at 0 ending at 100, in 10 intervals
         with integration time of 0.1s"""
         self.execMacro('ascan', moveable, '0', '100', '10', '0.2')
     
-:meth:`~Macro.execMacro` supports passing parameters as different *flavors*:
+The advantage of using :meth:`~Macro.execMacro` is that it supports passing
+parameters with different *flavors*:
     
-    * parameters as strings: ``execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')``
-    * parameters as concrete types: ``self.execMacro(['ascan', motor, 0, 100, 10, 0.2])``
-    * parameters as space separated string: ``self.execMacro('ascan %s 0 100 10 0.2' % motor.getName())``
+    * parameters as strings::
 
-Let's say that now you need access to the data generated by the sub-macro. In
-this case you need to use a lower level macro :term:`API` call::
+        self.execMacro('ascan', motor.getName(), '0', '100', '10', '0.2')
+        
+    * parameters as space separated string::
+        
+        self.execMacro('ascan %s 0 100 10 0.2' % motor.getName())
+
+    * parameters as concrete types::
+    
+        self.execMacro(['ascan', motor, 0, 100, 10, 0.2])
+        
+Sometimes it is desirable to access data generated by the macro we just called.
+For these cases, the Macro :term:`API` provides a pair of low level methods
+:meth:`~Macro.createMacro` and :meth:`~Macro.runMacro` together with
+:meth:`~Macro.data`.
+
+Let's say that you need access to the data generated by an ascan. First you 
+call :meth:`~Macro.createMacro` with the same parameter you would give to
+:meth:`~Macro.execMacro`. This will return a macro object. Afterward you call
+:meth:`~Macro.runMacro` giving as parameter the macro object returned by
+:meth:`~Macro.createMacro`.
+In the end, you can access the data generated by the macro using
+:meth:`~Macro.data`:
+
+.. code-block:: python
+    :emphasize-lines: 6,7,8
 
     @macro([["moveable", Type.Moveable, None, "moveable to get position"]])
     def fixed_ascan(self, moveable):
         """This does an ascan starting at 0 ending at 100, in 10 intervals
         with integration time of 0.1s"""
+        
         my_scan = self.createMacro('ascan', moveable, '0', '100', '10', '0.2')
         self.runMacro(my_scan)
         print len(my_scan.data)
@@ -468,7 +582,7 @@ The simplest macro class that you can write **MUST** obey the following rules:
 The :meth:`~Macro.run` method is the place where you write the code of your macro.
 So, without further delay, here is the *Hello, World!* example::
 
-    from sardana.macroserver.macro import *
+    from sardana.macroserver.macro import Macro
     
     class HelloWorld(Macro):
         """Hello, World! macro"""
@@ -495,21 +609,25 @@ do is declare the parameter by using the :attr:`~Macro.param_def` Macro member::
     As soon as you add a :attr:`~Macro.param_def` you also need to
     modify the :meth:`~Macro.run` method to support the new paramter(s).
 
-A set of macro parameter examples can be found :ref:`here <devel-macro-parameter-examples>`.
+A set of macro parameter examples can be found
+:ref:`here <devel-macro-parameter-examples>`.
 
 .. _macro_preparing:
 
 Preparing your macro for execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Additionaly to the :meth:`~Macro.run` method, you may write a :meth:`~Macro.prepare`
-method where you may put code to prepare the macro for execution (for example,
-checking pre-conditions for running the macro).
+Additionaly to the :meth:`~Macro.run` method, you may write a
+:meth:`~Macro.prepare` method where you may put code to prepare the macro for
+execution (for example, checking pre-conditions for running the macro).
 By default, the prepare method is an empty method.
-Here is an example on how to prepare HelloWorld to run only after year 1989::
+Here is an example on how to prepare HelloWorld to run only after year 1989:
 
+.. code-block:: python
+    :emphasize-lines: 7
+    
     import datetime
-    from sardana.macroserver.macro import *
+    from sardana.macroserver.macro import Macro
 
     class HelloWorld(Macro):
         """Hello, World! macro"""
@@ -552,7 +670,7 @@ example::
 
     @macro()
     def J0_plot(self):
-        """This macro will plot J0 
+        """Sample J0 at linspace(0, 20, 200)"""
         x = linspace(0, 20, 200)
         y = j0(x)
         x1 = x[::10]
@@ -566,6 +684,9 @@ example::
 Running this macro from spock will result in something like:
 
     .. image:: ../../_static/macro_plotting1.png
+
+A set of macro plotting examples can be found
+:ref:`here <devel-macro-plotting-examples>`.
 
 Known plotting limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -607,7 +728,8 @@ It is possible to ask for user input inside a macro.
     *unattended* mode make sure that:
     
       - it implements the interactive *interface*
-      - every :meth:`~Macro.input` gives a *default_value* :term:`keyword argument <keyword argument>`
+      - every :meth:`~Macro.input` gives a *default_value* 
+        :term:`keyword argument <keyword argument>`
       
     (read on to see how to meet these requirements)
 
@@ -629,7 +751,10 @@ ordered the macro to be executed. At this time the macro is stopped waiting for
 the client to answer. The client must "ask" the user for a proper value and the
 answer is sent back to the server which then resumes the macro execution.
 
-Asking for user input is straightforward::
+Asking for user input is straightforward:
+
+.. code-block:: python
+    :emphasize-lines: 5
 
     @macro()
     def ask_name(self):
@@ -660,7 +785,10 @@ value without asking the user for input.
 
 To declare a macro as interactive set the ``interactive``
 :term:`keyword argument <keyword argument>` in the macro decorator to ``True``
-(default value for ``interactive`` is ``False``), like this::
+(default value for ``interactive`` is ``False``), like this:
+
+.. code-block:: python
+    :emphasize-lines: 1
 
     @macro(interactive=True)
     def ask_name(self):
@@ -670,8 +798,11 @@ To declare a macro as interactive set the ``interactive``
         self.output("So, your name is '%s'", answer)
 
 To declare a macro class as interactive set the ``interactive`` member to 
-``True`` (default value for ``interactive`` is ``False``), like this::
+``True`` (default value for ``interactive`` is ``False``), like this:
 
+.. code-block:: python
+    :emphasize-lines: 4
+    
     class ask_name(Macro):
         """Macro class version to ask for user name"""
         
@@ -683,7 +814,10 @@ To declare a macro class as interactive set the ``interactive`` member to
 
 a helper :class:`~imacro` decorator and a :class:`iMacro` class exist which 
 can be used instead of the :class:`macro` decorator and :class:`Macro` class
-to transparently declare your macro as interactive::
+to transparently declare your macro as interactive:
+
+.. code-block:: python
+    :emphasize-lines: 1,5,14
     
     from sardana.macroserver.macro import imacro, iMacro
     
@@ -708,8 +842,8 @@ to transparently declare your macro as interactive::
 The following sub-chapters explain the different options available for macro
 user input.
 
-Forcing input data type
-~~~~~~~~~~~~~~~~~~~~~~~~
+Specifying input data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The default return type of :class:`~Macro.input` is :obj:`str` which mimics the
 pure Python_ input function. However, often you want to restrict the user
@@ -726,18 +860,21 @@ a ``Moveable``, and single/multiple selection from a list of options::
     @imacro()
     def ask_number_of_points(self):
         """asks user for the number of points"""
+        
         nb_points = self.input("How many points?", data_type=Type.Integer)
         self.output("You selected %d points", nb_points)
 
     @imacro()
     def ask_for_moveable(self):
         """asks user for a motor"""
+        
         moveable = self.input("Which moveable?", data_type=Type.Moveable)
         self.output("You selected %s which is at %f", moveable, moveable.getPosition())
 
     @imacro()
     def ask_for_car_brand(self):
         """asks user for a car brand"""
+        
         car_brands = "Mazda", "Citroen", "Renault"
         car_brand = self.input("Which car brand?", data_type=car_brands)
         self.output("You selected %s", car_brand)
@@ -745,6 +882,7 @@ a ``Moveable``, and single/multiple selection from a list of options::
     @imacro()
     def ask_for_multiple_car_brands(self):
         """asks user for several car brands"""
+        
         car_brands = "Mazda", "Citroen", "Renault", "Ferrari", "Porche", "Skoda"
         car_brands = self.input("Which car brand(s)?", data_type=car_brands,
                                 allow_multiple=True)
@@ -771,12 +909,15 @@ data type examples giving compatible default values::
     @imacro()
     def ask_number_of_points(self):
         """asks user for the number of points"""
-        nb_points = self.input("How many points?", data_type=Type.Integer)
-        self.output("You selected %d points", nb_points, default_value=100)
+        
+        nb_points = self.input("How many points?", data_type=Type.Integer,
+                               default_value=100)
+        self.output("You selected %d points", nb_points)
 
     @imacro()
     def ask_for_moveable(self):
         """asks user for a motor"""
+        
         moveable = self.input("Which moveable?", data_type=Type.Moveable,
                               default_value="gap01")
         self.output("You selected %s which is at %f", moveable, moveable.getPosition())
@@ -784,6 +925,7 @@ data type examples giving compatible default values::
     @imacro()
     def ask_for_car_brand(self):
         """asks user for a car brand"""
+        
         car_brands = "Mazda", "Citroen", "Renault"
         car_brand = self.input("Which car brand?", data_type=car_brands,
                                default_value=car_brands[1])
@@ -793,6 +935,7 @@ data type examples giving compatible default values::
     def ask_for_multiple_car_brands(self):
         """asks user for several car brands. Default is every other car brand
         in the list"""
+        
         car_brands = "Mazda", "Citroen", "Renault", "Ferrari", "Porche", "Skoda"
         car_brands = self.input("Which car brand(s)?", data_type=car_brands,
                                 allow_multiple=True,
@@ -809,6 +952,7 @@ triggered user input. You can override the default behaviour with the
     @imacro()
     def ask_peak(self):
         """asks use for peak current of points with a custom title"""
+        
         peak = self.input("What is the peak current?", data_type=Type.Float,
                           title="Peak selection")
         self.output("You selected a peak of %f A", peak)
@@ -825,8 +969,10 @@ to provide additional label and unit information respectively and prevent
 user mistakes::
 
     @imacro()
-    def ask_peak(self):
-        """asks use for peak current of points with a custom title"""
+    def ask_peak_v2(self):
+        """asks use for peak current of points with a custom title,
+        default value, label and units"""
+        
         label, unit = "peak", "mA"
         peak = self.input("What is the peak current?", data_type=Type.Float,
                           title="Peak selection", key=label, unit=unit,
@@ -845,8 +991,10 @@ outside a certain range. This can be achieved with the *minimum* and *maximum*
 :term:`keyword arguments <keyword argument>`::
 
     @imacro()
-    def ask_peak(self):
-        """asks use for peak current of points with a custom title"""
+    def ask_peak_v3(self):
+        """asks use for peak current of points with a custom title,
+        default value, label, units and ranges"""
+        
         label, unit = "peak", "mA"
         peak = self.input("What is the peak current?", data_type=Type.Float,
                           title="Peak selection", key=label, unit=unit,
@@ -857,8 +1005,10 @@ An additional *step* :term:`keyword argument <keyword argument>` may help
 increase usability by setting the step size in a input spin box::
 
     @imacro()
-    def ask_peak(self):
-        """asks use for peak current of points with a custom title"""
+    def ask_peak_v4(self):
+        """asks use for peak current of points with a custom title,
+        default value, label, units, ranges and step size"""
+        
         label, unit = "peak", "mA"
         peak = self.input("What is the peak current?", data_type=Type.Float,
                           title="Peak selection", key=label, unit=unit,
@@ -871,14 +1021,19 @@ When asking for a decimal number, it might be useful to use the *decimals*
 to show in a input spin box::
 
     @imacro()
-    def ask_peak(self):
-        """asks use for peak current of points with a custom title"""
+    def ask_peak_v5(self):
+        """asks use for peak current of points with a custom title,
+        default value, label, units, ranges, step size and decimal places"""
+        
         label, unit = "peak", "mA"
         peak = self.input("What is the peak current?", data_type=Type.Float,
                           title="Peak selection", key=label, unit=unit,
                           default_value=123.4, minimum=0.0, maximum=200.0,
                           step=5, decimals=2)
         self.output("You selected a %s of %f %s", label, peak, unit)
+
+A set of macro input examples can be found
+:ref:`here <devel-macro-input-examples>`.
 
 .. rubric:: Footnotes
 
