@@ -51,13 +51,11 @@ from PyTango import Util, Database, DbDevInfo, DevFailed, \
 from taurus.core.util import Enumeration
 
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
-    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release
+    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release, \
+    ServerRunMode
 from sardana.sardanaexception import SardanaException
 from sardana.pool.poolmetacontroller import DataInfo
 
-ServerRunMode = Enumeration("ServerRunMode", \
-                            ("SynchPure", "SynchThread", "SynchProcess", \
-                             "AsynchThread", "AsynchProcess"))
 
 NO_DB_MAP = {
     "Pool" : (

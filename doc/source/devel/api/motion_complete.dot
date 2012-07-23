@@ -99,4 +99,53 @@ decorate="false"
 label="abort"
 labelfloat="false"
 ];
+"Alarm" [
+fixedsize="false"
+regular="false"
+];
+"Fault" [
+fixedsize="false"
+regular="false"
+];
+"Moving" -> "Alarm" [
+constraint="true"
+decorate="false"
+label="*"
+labelfloat="false"
+];
+"Moving" -> "Fault" [
+constraint="true"
+decorate="false"
+label="*"
+labelfloat="false"
+];
+"Moving_backlash" -> "Alarm" [
+constraint="true"
+decorate="false"
+label="*"
+labelfloat="false"
+];
+"Moving_backlash" -> "Fault" [
+constraint="true"
+decorate="false"
+label="*"
+labelfloat="false"
+];
+"Alarm" -> "On" [
+constraint="true"
+decorate="false"
+label="*"
+labelfloat="false"
+];
+"Fault" -> "On" [
+constraint="true"
+decorate="false"
+labelfloat="false"
+];
+"Alarm" -> "Moving" [
+constraint="true"
+decorate="false"
+label="start"
+labelfloat="false"
+];
 }

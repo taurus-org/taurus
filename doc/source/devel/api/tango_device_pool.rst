@@ -368,7 +368,7 @@ characteristics of these extra attributes are :
 
 - The write type is READ or READ_WRITE defined by the motor controller
   software (See next chapter). If the write type is READ_WRITE, the
-  attribute is memorized by the Tango_  layer
+  attribute is memorized by the Tango_ layer
 
 
 The motor properties

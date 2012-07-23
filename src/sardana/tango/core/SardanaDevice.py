@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""Generic Sardana Tango Device module"""
+"""Generic Sardana Tango device module"""
 
 from __future__ import with_statement
 
@@ -64,8 +64,11 @@ def get_thread_pool():
         return __thread_pool
 
 class SardanaDevice(Device_4Impl, Logger):
-
+    """SardanaDevice represents the base class for all Sardana 
+    :class:`PyTango.DeviceImpl` classes"""
+    
     def __init__(self, dclass, name):
+        """Constructor"""
         self._in_write = False
         self._event_stack = []
         Device_4Impl.__init__(self, dclass, name)
@@ -84,6 +87,11 @@ class SardanaDevice(Device_4Impl, Logger):
         self._event_thread_pool = get_thread_pool()
 
     def init(self, name):
+        """initialize the device once in the object lifetime. Override when
+        necessary but **always** call the method from your super class
+        
+        :param str name: device name"""
+        
         util = Util.instance()
         db = util.get_database()
         if db is None:
@@ -96,11 +104,21 @@ class SardanaDevice(Device_4Impl, Logger):
             except:
                 self._alias = None
 
-    @property
-    def alias(self):
+    def get_alias(self):
+        """Returns this device alias name
+
+        :return: this device alias
+        :rtype: str"""
         return self._alias
 
+    alias = property(get_alias, doc="the device alias name")
+
     def get_full_name(self):
+        """Returns the device full name in format
+        dbname:dbport/<domain>/<family>/<member>
+        
+        :return: this device full name
+        :rtype: str"""
         db = Util.instance().get_database()
         if db.get_from_env_var():
             db_name = ApiUtil.get_env_var("TANGO_HOST")
@@ -112,6 +130,10 @@ class SardanaDevice(Device_4Impl, Logger):
         return db_name + "/" + self.get_name()
 
     def init_device(self):
+        """Initialize the device. Called during startup after :meth:`init` and
+        every time the tango ``Init`` command is executed.
+        Override when necessary but **always** call the method from your super
+        class"""
         self.set_state(self._state)
         util = Util.instance()
         db = util.get_database()
@@ -125,6 +147,8 @@ class SardanaDevice(Device_4Impl, Logger):
         self.set_change_events(detect_evts, non_detect_evts)
 
     def _get_nodb_device_info(self):
+        """Internal method. Returns the device info when tango database is not
+        being used (example: in demos)"""
         name = self.get_name()
         tango_class = self.get_device_class().get_name()
         devices = NO_DB_MAP.get(tango_class, ())
@@ -133,27 +157,87 @@ class SardanaDevice(Device_4Impl, Logger):
                 return dev_info
 
     def init_device_nodb(self):
+        """Internal method. Initialize the device when tango database is not
+        being used (example: in demos)"""
         alias, dev_name, props = self._get_nodb_device_info()
         for prop_name, prop_value in props.items():
             setattr(self, prop_name, prop_value)
 
     def delete_device(self):
+        """Clean the device. Called during shutdown and every time the tango
+        ``Init`` command is executed.
+        Override when necessary but **always** call the method from your super
+        class"""
         pass
 
     def set_change_events(self, evts_checked, evts_not_checked):
+        """Helper method to set change events on attributes
+        
+        :param evts_checked:
+            list of attribute names to activate change events programatically
+            with tango filter active
+        :type evts_checked: seq<:obj:`str`\>
+        :param evts_not_checked:
+            list of attribute names to activate change events programatically
+            with tango filter inactive. Use this with care! Attributes
+            configured with no change event filter may potentially generated a
+            lot of events!
+        :type evts_not_checked: seq<:obj:`str`\>"""     
         for evt in evts_checked:
             self.set_change_event(evt, True, True)
         for evt in evts_not_checked:
             self.set_change_event(evt, True, False)
 
     def initialize_dynamic_attributes(self):
+        """Initialize dynamic attributes. Default implementation does nothing.
+        Override when necessary."""
         pass
 
     def get_event_thread_pool(self):
+        """Return the :class:`~taurus.core.util.ThreadPool` used by sardana to
+        send tango events.
+        
+        :return: the sardana :class:`~taurus.core.util.ThreadPool`
+        :rtype: :class:`~taurus.core.util.ThreadPool`"""
         return self._event_thread_pool
 
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1, synch=True):
+        """Sets the given attribute value. If timestamp is not given, *now* is
+        used as timestamp. If quality is not given VALID is assigned. If error
+        is given an error event is sent (with no value and quality INVALID).
+        If priority is > 1, the event filter is temporarly disabled so the event
+        is sent for sure. If synch is set to True, wait for fire event to finish
+        
+        :param attr: 
+            the tango attribute
+        :type attr: :class:`PyTango.Attribute`
+        :param value:
+            the value to be set (not mandatory if setting an error)
+            [default: None]
+        :type value: object
+        :param timestamp:
+            the timestamp associated with the operation [default: None, meaning
+            use *now* as timestamp]
+        :type timestamp: float or :class:`PyTango.TimeVal`
+        :param quality:
+            attribute quality [default: None, meaning VALID]
+        :type quality: :class:`PyTango.AttrQuality`
+        :param error:
+            a tango dev failed error or None if not an error [default: None]
+        :type error:
+            :exc:`PyTango.DevFailed`
+        :param priority:
+            event priority [default: 1, meaning *normal* priority]. If
+            priority is > 1, the event filter is temporarly disabled so the
+            event is sent for sure. The event filter is restored to the
+            previous value
+        :type priority: int
+        :param synch:
+            If synch is set to True, wait for fire event to finish.
+            If False, a job is sent to the sardana thread pool and the method
+            returns immetiately [default: True]
+        """
         set_attr = self.set_attribute_push
         if synch:
             set_attr(attr, value=value, timestamp=timestamp, quality=quality,
@@ -164,8 +248,12 @@ class SardanaDevice(Device_4Impl, Logger):
                         timestamp=timestamp, quality=quality, error=error,
                         priority=priority, synch=synch)
 
-    def set_attribute_push(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1, synch=True):
+    def set_attribute_push(self, attr, value=None, timestamp=None,
+                            quality=None, error=None, priority=1, synch=True):
+        """Synchronouns internal implementation of :meth:`set_attribute` (synch
+        is passed to this method because it might need to know if it is being
+        executed in a synchronous or asynchronous context)."""
+        
         if priority > 0 and not synch:
             with self.tango_lock:
                 return self._set_attribute_push(attr, value=value,
@@ -178,6 +266,7 @@ class SardanaDevice(Device_4Impl, Logger):
 
     def _set_attribute_push(self, attr, value=None, timestamp=None,
                             quality=None, error=None, priority=1):
+        """Internal method."""
         fire_event = priority > 0
 
         recover = False
@@ -234,12 +323,29 @@ class SardanaDevice(Device_4Impl, Logger):
                 attr.set_change_event(True, True)
 
     def calculate_tango_state(self, ctrl_state, update=False):
+        """Calculate tango state based on the controller state.
+        
+        :param ctrl_state: the state returned by the controller
+        :type ctrl_state: :obj:`~sardana.sardanadefs.State`
+        :param bool update:
+            if True, set the state of this device with the calculated tango
+            state [default: False:
+        :return: the corresponding tango state
+        :rtype: :class:`PyTango.DevState`"""
         self._state = state = to_tango_state(ctrl_state)
         if update:
             self.set_state(state)
         return state
 
     def calculate_tango_status(self, ctrl_status, update=False):
+        """Calculate tango status based on the controller status.
+        
+        :param str ctrl_status: the status returned by the controller
+        :param bool update:
+            if True, set the state of this device with the calculated tango
+            state [default: False:
+        :return: the corresponding tango state
+        :rtype: str"""
         self._status = status = ctrl_status
         if update:
             self.set_status(status)
@@ -247,20 +353,38 @@ class SardanaDevice(Device_4Impl, Logger):
 
 
 class SardanaDeviceClass(DeviceClass):
-
-    #    Class Properties
+    """SardanaDeviceClass represents the base class for all Sardana
+    :class:`PyTango.DeviceClass` classes"""
+    
+    #:
+    #: Sardana device class properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     class_property_list = {
     }
 
-    #    Device Properties
+    #:
+    #: Sardana device properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     device_property_list = {
     }
 
-    #    Command definitions
+    #:
+    #: Sardana device command definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     cmd_list = {
     }
 
-    #    Attribute definitions
+    #:
+    #: Sardana device attribute definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     attr_list = {
     }
 
@@ -269,12 +393,15 @@ class SardanaDeviceClass(DeviceClass):
         self.set_type(name)
 
     def _get_class_properties(self):
+        """Internal method"""
         return dict(ProjectTitle="Sardana", Description="Generic description",
                     doc_url="http://sardana-controls.org/",
                     __icon=self.get_name().lower() + ".png",
                     InheritedFrom=["Device_4Impl"])
     
     def write_class_property(self):
+        """Write class properties ``ProjectTitle``, ``Description``, 
+        ``doc_url``, ``InheritedFrom`` and ``__icon``"""
         util = Util.instance()
         db = util.get_database()
         if db is None:
@@ -282,6 +409,12 @@ class SardanaDeviceClass(DeviceClass):
         db.put_class_property(self.get_name(), self._get_class_properties())
 
     def dyn_attr(self, dev_list):
+        """Invoked to create dynamic attributes for the given devices.
+        Default implementation calls
+        :meth:`SardanaDevice.initialize_dynamic_attributes` for each device
+        
+        :param dev_list: list of devices
+        :type dev_list: :class:`PyTango.DeviceImpl`"""
         for dev in dev_list:
             try:
                 dev.initialize_dynamic_attributes()
@@ -290,6 +423,10 @@ class SardanaDeviceClass(DeviceClass):
                 dev.debug("Details:", exc_info=1)
 
     def device_name_factory(self, dev_name_list):
+        """Builds list of device names to use when no Database is being used
+        
+        :param dev_name_list: list to be filled with device names
+        :type dev_name_list: seq<obj:`list`\>"""
         tango_class = self.get_name()
         devices = NO_DB_MAP.get(tango_class, ())
         for dev_info in devices:

@@ -47,8 +47,8 @@ programming. This means that, in theory:
     - it would reduce the amount of code you need to write
     - reduce the complexity of your code y by dividing it into small,
       reasonably independent and re-usable components, that talk to each
-      other using only well-deﬁned interfaces
-    - Improvement of productivity by using easily adaptable pre-deﬁned
+      other using only well-defined interfaces
+    - Improvement of productivity by using easily adaptable pre-defined
       software components
 
 In practice, however, and specially if you don't come from a programming
@@ -1038,16 +1038,10 @@ A set of macro input examples can be found
 .. rubric:: Footnotes
 
 .. [#f1] To find the absolute path for sardana's source code type on the
-         command line::
-
-         $ python -c "import sys, sardana; sys.stdout.write(str(sardana.__path__))"
+         command line ``python -c "import sys, sardana; sys.stdout.write(str(sardana.__path__))"``
 
 .. [#f2] To check which version of Python_ you are using type on the command
-         line::
-             
-             $ python -c "import sys; sys.stdout.write(sys.version)"
-             2.7.1+ (r271:86832, Apr 11 2011, 18:05:24)
-             [GCC 4.5.2]
+         line ``python -c "import sys; sys.stdout.write(sys.version)"``
 
 .. |input_integer| image:: ../../_static/macro_input_integer.png
     :align: middle

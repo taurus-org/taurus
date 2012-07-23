@@ -15,25 +15,25 @@ Sardana oriented graphical user interfaces
 
 .. figure:: /_static/snapshot01.png
     :alt: TaurusGUI at work
-    :width: 750
+    :width: 600
 
     TaurusGUI at work.
 
 .. figure:: /_static/snapshot02.png
     :alt: TaurusGUI with synoptic and macro widget
-    :width: 750
+    :width: 600
     
     TaurusGUI with synoptic and macro widget
   
 .. figure:: /_static/snapshot03.png
     :alt: Spock console
-    :width: 750
+    :width: 600
     
     Spock console
   
 .. figure:: /_static/snapshot04.png
     :alt: TaurusGUI with synoptic and macro panel
-    :width: 750
+    :width: 600
 
     TaurusGUI with synoptic and macro panel
 
@@ -44,60 +44,60 @@ Graphical user interface screen shots
 
 .. figure:: /_static/gui_snapshot01.png
     :alt: ALBA_'s Storage ring GUI
-    :width: 750
+    :width: 600
     
     ALBA_'s Storage ring GUI
   
 .. figure:: /_static/gui_snapshot02.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s LINAC to booster beam charge monitor GUI
     
     ALBA_'s LINAC to booster beam charge monitor GUI
   
 .. figure:: /_static/gui_snapshot03.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s beam position monitor GUI
     
     ALBA_'s beam position monitor GUI
   
 .. figure:: /_static/gui_snapshot04.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s Radio frequency plant GUI
 
     ALBA_'s Radio frequency plant GUI
   
 .. figure:: /_static/gui_snapshot05.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s tune excitation panel
     
     ALBA_'s tune excitation panel
   
 .. figure:: /_static/gui_snapshot06.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s fluorescent screen main panel
     
     ALBA_'s fluorescent screen main panel
   
 .. figure:: /_static/gui_snapshot07.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s front end GUI
     
     ALBA_'s front end GUI
   
 .. figure:: /_static/gui_snapshot08.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s digital low level radio frequency GUI
     
     ALBA_'s digital low level radio frequency GUI
   
 .. figure:: /_static/gui_snapshot09.png
-    :width: 750
+    :width: 600
     :alt: ALBA_'s vaccum GUI
     
     ALBA_'s vaccum GUI
   
 .. figure:: /_static/gui_snapshot10.png
-    :width: 750
+    :width: 600
     :alt: Sardana configuration GUI
     
     Sardana configuration GUI

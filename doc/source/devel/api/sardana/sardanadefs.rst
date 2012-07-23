@@ -29,6 +29,8 @@
 
 .. rubric:: Enumerations
 
+.. autodata:: sardana.sardanadefs.ServerRunMode
+
 .. autodata:: sardana.sardanadefs.State
 
 .. autodata:: sardana.sardanadefs.DataType

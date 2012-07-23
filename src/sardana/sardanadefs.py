@@ -25,7 +25,7 @@
 
 """This module contains the most generic sardana constants and enumerations"""
 
-__all__ = ["EpsilonError", "SardanaServer", "State",
+__all__ = ["EpsilonError", "SardanaServer", "ServerRunMode", "State",
            "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
            "from_dtype_str", "from_access_str", "to_dtype_dformat",
            "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
@@ -77,6 +77,23 @@ class _SardanaServer(object):
     
 #: the global object containing the SardanaServer information
 SardanaServer = _SardanaServer()
+
+#:
+#: The sardana server run mode:
+#:
+#: - **SynchPure** : Pure synchronous: Start the server and run the server loop
+#:   until it stops
+#: - **SynchThread** : separate thread synchronous: start a thread running the
+#:   server loop. Block until the server loop ends
+#: - **SynchProcess** : separate process synchronous: start a sub-process
+#:   running the server loop. Block until the server loop ends
+#: - **AsynchThread** : separate thread asynchronous: start a thread running the
+#:   server loop. Return immediately
+#: - **ASynchProcess** : separate process asynchronous: start a sub-process
+#:   running the server loop. Return immediately
+ServerRunMode = Enumeration("ServerRunMode", \
+                            ("SynchPure", "SynchThread", "SynchProcess", \
+                             "AsynchThread", "AsynchProcess"))
 
 #: sardana data types (used by device pool controllers)
 DataType = Enumeration("DataType", ( \

@@ -75,6 +75,7 @@ extensions = ['sphinx.ext.pngmath',
 #              'sardanaextension',
               'ipython_console_highlighting',
               'spock_console_highlighting',
+              'rst2pdf.pdfbuilder',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -225,10 +226,10 @@ htmlhelp_basename = 'sardanadoc'
 # -- Options for LaTeX output --------------------------------------------------
 
 # The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+latex_paper_size = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
+latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
@@ -239,7 +240,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = '_static/sardana_screenshot.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.

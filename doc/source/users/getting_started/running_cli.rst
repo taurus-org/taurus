@@ -19,12 +19,12 @@ it will assume a default profile called *spockdoor*. The first time spock is
 executed, it will inform you that profile *spockdoor* doesn't exist and it will
 offer to create one. Just answer 'y'. After, it will ask you to which *door*
 should the default *spockdoor* profile connect to. Select the door name
-corresponding to your sardana server (*Door_lab-01_1*) and press return. by now
+corresponding to your sardana server (*Door_lab-01_1*) and press return. By now
 you should get an output like this::
 
     homer@pc001:~$ spock
     Profile 'spockdoor' does not exist. Do you want to create one now ([y]/n)? y
-    Available Door devices from pc151:10000 :
+    Available Door devices from sardanamachine:10000 :
     Door_lab-01_1 (a.k.a. Door/lab-01/1)
     Door name from the list? Door_lab-01_1
     
@@ -76,7 +76,7 @@ counters with which you can play.
     for clearing sardana from the elements created by the demo, execute
     :class:`~sardana.macroserver.macros.demo.clear_sar_demo`
 
-The next chapter (ref:`spock <sardana-spock>`) will give you a complete overview
+The next chapter (:ref:`spock <sardana-spock>`) will give you a complete overview
 of spock's interface.
 
 

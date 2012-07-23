@@ -5,33 +5,31 @@
 Installing
 ==========
 
-#. Get the sardana code
-
-    #. From easy_install [1]_::
+#. Install sardana:
+    #. From easy_install [1]_ ::
         
             easy_install -U sardana
 
-    #. From latest source distribution:
-        #. Download the latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
+    #. From source code:
+
+        #. Download the sardana source code:
+            #. from latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
+            #. from `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
+
         #. Extract the downloaded tar.gz into a temporary directory
-        #. type [2]_::
+
+        #. type [2]_ ::
                
                python setup.py build
                python setup.py install
-
-    #. From SVN snapshot:
-        #. Download the current `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
-        #. Extract the downloaded tar.gz into a temporary directory
-        #. type [2]_::
-               
-               python setup.py build
-               python setup.py install
-
-    #. From SVN trunk checkout (please look :ref:`here <working-from-svn>` for instructions)
 
 #. test the installation::
        
        python -c "import sardana; print sardana.Release.version"
+
+You can also work from SVN trunk checkout
+(please look :ref:`here <working-from-svn>` for instructions).
+
 
 Windows installation shortcut
 -----------------------------
@@ -74,28 +72,18 @@ from the command line)::
 .. rubric:: Footnotes
 
 .. [1] This command requires super user previledges on linux systems. If your
-       user has them you can usually prefix the command with *sudo*::
-       
-           homer@pc001:~$ sudo easy_install -U sardana
-       
-       Alternatively, if you don't have adminstrator previledges, you can
-       install locally in your user directory with::
-       
-           homer@pc001:~$ easy_install --user sardana
-       
+       user has them you can usually prefix the command with *sudo*:
+       ``sudo easy_install -U sardana``. Alternatively, if you don't have
+       adminstrator previledges, you can install locally in your user
+       directory with: ``easy_install --user sardana``
        In this case the executables are located at <HOME_DIR>/.local/bin. Make
        sure the PATH is pointing there or you execute from there.
 
 .. [2] *setup.py install* requires user previledges on linux systems. If your
-       user has them you can usually prefix the command with *sudo*::
-       
-           homer@pc001:~$ sudo python setup.py install
-    
-       Alternatively, if you don't have adminstrator previledges, you can
-       install locally in your user directory with::
-       
-           homer@pc001:~$ python setup.py install --user
-       
+       user has them you can usually prefix the command with *sudo*: 
+       ``sudo python setup.py install``. Alternatively, if you don't have
+       adminstrator previledges, you can install localy in your user directory
+       with: ``python setup.py install --user``
        In this case the executables are located at <HOME_DIR>/.local/bin. Make
        sure the PATH is pointing there or you execute from there.
 

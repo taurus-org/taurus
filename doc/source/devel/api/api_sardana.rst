@@ -7,10 +7,10 @@ Sardana API
 .. toctree::
     :maxdepth: 1
 
-    Macro API <macro>
-    Controller API <controller>
-    Motor API <motor>
-    Counter/Timer API <countertimer>
+    Macro API <api_macro>
+    Controller API <api_controller>
+    Motor API <api_motor>
+    Counter/Timer API <api_countertimer>
     Pool Tango API <tango_device_pool>
     MacroServer Tango API <tango_macroserver>
     Library <sardana/sardana>

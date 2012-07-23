@@ -48,17 +48,26 @@ from sardana.tango.core.util import GenericScalarAttr, GenericSpectrumAttr, \
 
 
 class PoolDevice(SardanaDevice):
-    """Base Tango Pool Device class"""
-
+    """Base Tango Pool device class"""
+    
+    #: list of extreme error states
     ExtremeErrorStates = DevState.FAULT, DevState.UNKNOWN
-    BusyStates = DevState.MOVING, DevState.RUNNING
 
+    #: list of busy states
+    BusyStates = DevState.MOVING, DevState.RUNNING
+    
+    #: Maximum number of retries in a busy state
     BusyRetries = 3
 
     def __init__(self, dclass, name):
+        """Constructor"""
         SardanaDevice.__init__(self, dclass, name)
 
     def init(self, name):
+        """initialize the device once in the object lifetime. Override when
+        necessary but **always** call the method from your super class
+        
+        :param str name: device name"""
         SardanaDevice.init(self, name)
         util = Util.instance()
         self._pool_device = util.get_device_list_by_class("Pool")[0]
@@ -66,37 +75,62 @@ class PoolDevice(SardanaDevice):
 
     @property
     def pool_device(self):
+        """The tango pool device"""
         return self._pool_device
 
     @property
     def pool(self):
+        """The sardana pool object"""
         return self.pool_device.pool
 
     def get_element(self):
+        """Returns the underlying pool element object
+        
+        :return: the underlying pool element object
+        :rtype: :class:`~sardana.pool.poolelement.PoolElement`"""
         return self._element
 
     def set_element(self, element):
+        """Associates this device with the sardana element
+        
+        :param element: the sardana element
+        :type element: :class:`~sardana.pool.poolelement.PoolElement`"""
         self._element = element
 
-    element = property(get_element, set_element)
+    element = property(get_element, set_element, doc="The underlying sardana element")
 
     def init_device(self):
+        """Initialize the device. Called during startup after :meth:`init` and
+        every time the tango ``Init`` command is executed.
+        Override when necessary but **always** call the method from your super
+        class"""
         SardanaDevice.init_device(self)
 
     def delete_device(self):
+        """Clean the device. Called during shutdown and every time the tango
+        ``Init`` command is executed.
+        Override when necessary but **always** call the method from your super
+        class"""
         SardanaDevice.delete_device(self)
 
     def Abort(self):
+        """The tango abort command. Aborts the active operation"""
         self.element.abort()
         try:
             self.element.get_state(cache=False, propagate=2)
         except:
-            self.info("Abort: failed to read state")
+            self.warning("Abort: failed to read state")
 
     def is_Abort_allowed(self):
+        """Returns True if it is allowed to execute the tango abort command
+        
+        :return: True if it is allowed to execute the tango abort command or
+                 False otherwise
+        :rtype: bool"""
         return self.get_state() != DevState.UNKNOWN
 
     def Stop(self):
+        """The tango stop command. Stops the active operation"""
         self.element.stop()
         try:
             self.element.get_state(cache=False, propagate=2)
@@ -104,9 +138,15 @@ class PoolDevice(SardanaDevice):
             self.info("Stop: failed to read state")
 
     def is_Stop_allowed(self):
+        """Returns True if it is allowed to execute the tango stop command
+        
+        :return: True if it is allowed to execute the tango stop command or
+                 False otherwise
+        :rtype: bool"""
         return self.get_state() != DevState.UNKNOWN
 
     def _is_allowed(self, req_type):
+        """Generic is_allowed"""
 #        state = self.get_state()
 #        if state in self.ExtremeErrorStates:
 #            return False
@@ -116,9 +156,29 @@ class PoolDevice(SardanaDevice):
         return True
 
     def get_dynamic_attributes(self):
+        """Returns the standard dynamic and fully dynamic attributes for this
+        device. The return is a tuple of two dictionaries:
+        
+        - standard attributes: caseless dictionary with key being the attribute
+          name and value is a tuple of attribute name(str), tango information,
+          attribute information
+        - dynamic attributes: caseless dictionary with key being the attribute
+          name and value is a tuple of attribute name(str), tango information,
+          attribute information
+        
+        **tango information**
+            seq< :class:`~PyTango.CmdArgType`, :class:`~PyTango.AttrDataFormat`, :class:`~PyTango.AttrWriteType` >
+        
+        **attribute information**
+            attribute information as returned by the sardana controller
+        
+        :return: the standard dynamic and fully dynamic attributes
+        :rtype: seq< :class:`~taurus.core.util.CaselessDict`, :class:`~taurus.core.util.CaselessDict`\>
+        """
         return CaselessDict(), CaselessDict()
 
     def initialize_dynamic_attributes(self):
+        """Initializes this device dynamic attributes"""
         self._attributes = attrs = CaselessDict()
 
         attr_data = self.get_dynamic_attributes()
@@ -218,6 +278,15 @@ class PoolDevice(SardanaDevice):
 
     def add_dynamic_attribute(self, attr_name, data_info, attr_info, read,
                               write, is_allowed):
+        """Adds a single dynamic attribute
+        
+        :param str attr_name: the attribute name
+        :param data_info: tango attribute information
+        :type data_info: seq< :class:`~PyTango.CmdArgType`, :class:`~PyTango.AttrDataFormat`, :class:`~PyTango.AttrWriteType` >
+        :param attr_info: attribute information
+        :param read: read method for the attribute
+        :param write: write method for the attribute
+        :param is_allowed: is allowed method"""
         tg_type, tg_format, tg_access = data_info[0]
 
         if tg_access == READ:
@@ -242,21 +311,55 @@ class PoolDevice(SardanaDevice):
 
     def add_standard_attribute(self, attr_name, data_info, attr_info, read,
                                write, is_allowed):
+        """Adds a single standard dynamic attribute
+        
+        :param str attr_name: the attribute name
+        :param data_info: tango attribute information
+        :type data_info: seq< :class:`~PyTango.CmdArgType`, :class:`~PyTango.AttrDataFormat`, :class:`~PyTango.AttrWriteType` >
+        :param attr_info: attribute information
+        :param read: read method for the attribute
+        :param write: write method for the attribute
+        :param is_allowed: is allowed method"""
         dev_class = self.get_device_class()
         attr_data = AttrData(attr_name, dev_class.get_name(), data_info)
         attr = self.add_attribute(attr_data, read, write, is_allowed)
         return attr
 
     def read_DynamicAttribute(self, attr):
+        """Generic read dynamic attribute.
+        Default implementation raises :exc:`NotImplementedError`
+        
+        :param attr: attribute to be read
+        :type attr: :class:`~PyTango.Attribute`
+        
+        :raises: :exc:`NotImplementedError`"""
         raise NotImplementedError
 
     def write_DynamicAttribute(self, attr):
+        """Generic write dynamic attribute.
+        Default implementation raises :exc:`NotImplementedError`
+        
+        :param attr: attribute to be written
+        :type attr: :class:`~PyTango.Attribute`
+        
+        :raises: :exc:`NotImplementedError`"""
         raise NotImplementedError
 
     def is_DynamicAttribute_allowed(self, req_type):
+        """Generic is dynamic attribute allowed.
+        Default implementation calls :meth:`_is_allowed`
+        
+        :param req_type: request type
+        :type attr: :class:`~PyTango.AttrRequestType`"""
         return self._is_allowed(req_type)
 
     def _read_DynamicAttribute(self, attr):
+        """Generic internal read dynamic attribute.
+        Checks if this object has a 'read_'+<attr_name> method and calls it.
+        If not calls :meth:`read_DynamicAttribute`.
+        
+        :param attr: attribute to be read
+        :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_name()
 
         read_name = "read_" + name
@@ -267,6 +370,12 @@ class PoolDevice(SardanaDevice):
         return self.read_DynamicAttribute(attr)
 
     def _write_DynamicAttribute(self, attr):
+        """Generic internal write dynamic attribute.
+        Checks if this object has a 'write_'+<attr_name> method and calls it.
+        If not calls :meth:`write_DynamicAttribute`.
+        
+        :param attr: attribute to be written
+        :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_name()
         write_name = "write_" + name
         if hasattr(self, write_name):
@@ -275,9 +384,19 @@ class PoolDevice(SardanaDevice):
         return self.write_DynamicAttribute(attr)
 
     def _is_DynamicAttribute_allowed(self, req_type):
+        """Generic is dynamic attribute allowed.
+        Default implementation calls :meth:`is_DynamicAttribute_allowed`
+        
+        :param req_type: request type
+        :type attr: :class:`~PyTango.AttrRequestType`"""
         return self.is_DynamicAttribute_allowed(req_type)
 
     def dev_state(self):
+        """Calculates and returns the device state. Called by Tango on a read
+        state request.
+        
+        :return: the device state
+        :rtype: :class:`~PyTango.DevState`"""
         element = self.element
         try:
             use_cache = element.is_in_operation() and not self.Force_HW_Read
@@ -290,6 +409,11 @@ class PoolDevice(SardanaDevice):
             return DevState.FAULT
 
     def dev_status(self):
+        """Calculates and returns the device status. Called by Tango on a read
+        status request.
+        
+        :return: the device status
+        :rtype: str"""
         element = self.element
         try:
             use_cache = element.is_in_operation() and not self.Force_HW_Read
@@ -303,6 +427,10 @@ class PoolDevice(SardanaDevice):
             return msg
 
     def wait_for_operation(self):
+        """Waits for an operation to finish. It uses the maxumum number of
+        retries. Sleeps 0.01s between retries.
+        
+        :raises: :exc:`Exception` in case of a timeout"""
         element, n = self.element, self.BusyRetries
         while element.is_in_operation():
             if n == 0:
@@ -314,10 +442,18 @@ class PoolDevice(SardanaDevice):
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""
 
-    #    Class Properties
+    #:
+    #: Sardana device class properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     class_property_list = SardanaDeviceClass.class_property_list
 
-    #    Device Properties
+    #:
+    #: Sardana device properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     device_property_list = {
         'Id'            : [DevLong64, "Internal ID", InvalidId ],
         'Force_HW_Read' : [DevBoolean, "Force a hardware read of value even "
@@ -326,14 +462,22 @@ class PoolDeviceClass(SardanaDeviceClass):
     }
     device_property_list.update(SardanaDeviceClass.device_property_list)
 
-    #    Command definitions
+    #:
+    #: Sardana device command definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     cmd_list = {
         'Stop' : [ [DevVoid, ""], [DevVoid, ""] ],
         'Abort': [ [DevVoid, ""], [DevVoid, ""] ]
     }
     cmd_list.update(SardanaDeviceClass.cmd_list)
 
-    #    Attribute definitions
+    #:
+    #: Sardana device attribute definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     attr_list = {
     }
     attr_list.update(SardanaDeviceClass.attr_list)
@@ -351,6 +495,10 @@ class PoolElementDevice(PoolDevice):
     """Base Tango Pool Element Device class"""
 
     def init_device(self):
+        """Initialize the device. Called during startup after :meth:`init` and
+        every time the tango ``Init`` command is executed.
+        Override when necessary but **always** call the method from your super
+        class"""
         PoolDevice.init_device(self)
 
         self.instrument = None
@@ -371,6 +519,12 @@ class PoolElementDevice(PoolDevice):
             pass
 
     def read_Instrument(self, attr):
+        """Read the value of the ``Instrument`` tango attribute.
+        Returns the instrument full name or empty string if this element doesn't
+        belong to any instrument
+        
+        :param attr: tango instrument attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         instrument = self.element.instrument
         if instrument is None:
             attr.set_value('')
@@ -378,6 +532,13 @@ class PoolElementDevice(PoolDevice):
             attr.set_value(instrument.full_name)
 
     def write_Instrument(self, attr):
+        """Write the value of the ``Instrument`` tango attribute.
+        Sets a new instrument full name or empty string if this element doesn't
+        belong to any instrument.
+        The instrument **must** have been previously created.
+        
+        :param attr: tango instrument attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_write_value()
         instrument = None
         if name:
@@ -389,6 +550,27 @@ class PoolElementDevice(PoolDevice):
         db.put_device_property(self.get_name(), { "Instrument_id" : instrument.id })
 
     def get_dynamic_attributes(self):
+        """Override of :class:`PoolDevice.get_dynamic_attributes`.
+        Returns the standard dynamic and fully dynamic attributes for this
+        device. The return is a tuple of two dictionaries:
+        
+        - standard attributes: caseless dictionary with key being the attribute
+          name and value is a tuple of attribute name(str), tango information,
+          attribute information
+        - dynamic attributes: caseless dictionary with key being the attribute
+          name and value is a tuple of attribute name(str), tango information,
+          attribute information
+        
+        **tango information**
+            seq< :class:`~PyTango.CmdArgType`, :class:`~PyTango.AttrDataFormat`, :class:`~PyTango.AttrWriteType` >
+        
+        **attribute information**
+            attribute information as returned by the sardana controller
+        
+        :return: the standard dynamic and fully dynamic attributes
+        :rtype: seq< :class:`~taurus.core.util.CaselessDict`, :class:`~taurus.core.util.CaselessDict`\>
+        """
+
         if hasattr(self, "_dynamic_attributes_cache"):
             return self._standard_attributes_cache, self._dynamic_attributes_cache
         ctrl = self.ctrl
@@ -417,6 +599,11 @@ class PoolElementDevice(PoolDevice):
         return std_attrs, dyn_attrs
 
     def read_DynamicAttribute(self, attr):
+        """Read a generic dynamic attribute. Calls the controller of this
+        element to get the dynamic attribute value
+        
+        :param attr: tango attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_name()
         ctrl = self.ctrl
         if ctrl is None:
@@ -427,6 +614,11 @@ class PoolElementDevice(PoolDevice):
         attr.set_value(v)
 
     def write_DynamicAttribute(self, attr):
+        """Write a generic dynamic attribute. Calls the controller of this
+        element to get the dynamic attribute value
+        
+        :param attr: tango attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_name()
         value = attr.get_write_value()
         self.debug("writting dynamic attribute %s with value %s", name, value)
@@ -436,19 +628,28 @@ class PoolElementDevice(PoolDevice):
         ctrl.set_axis_attr(self.element.axis, name, value)
 
     def read_SimulationMode(self, attr):
+        """Read the current simulation mode. 
+        
+        :param attr: tango attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         attr.set_value(self.element.simulation_mode)
 
     def write_SimulationMode(self, attr):
+        """Sets the simulation mode. 
+        
+        :param attr: tango attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         self.element.simulation_mode = attr.get_write_value()
 
 
 class PoolElementDeviceClass(PoolDeviceClass):
     """Base Tango Pool Element Device Class class"""
 
-    #    Class Properties
-    class_property_list = PoolDeviceClass.class_property_list
-
-    #    Device Properties
+    #:
+    #: Sardana device properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     device_property_list = {
         "Axis"          : [ DevLong64, "Axis in the controller", [ InvalidAxis ] ],
         "Ctrl_id"       : [ DevLong64, "Controller ID", [ InvalidId ] ],
@@ -456,7 +657,11 @@ class PoolElementDeviceClass(PoolDeviceClass):
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
 
-    #    Attribute definitions
+    #:
+    #: Sardana device attribute definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     attr_list = {
         'Instrument' :    [ [DevString, SCALAR, READ_WRITE],
                           { 'label'         : "Instrument",
@@ -467,6 +672,10 @@ class PoolElementDeviceClass(PoolDeviceClass):
     attr_list.update(PoolDeviceClass.attr_list)
 
     def get_standard_attr_info(self, attr):
+        """Returns information about the standard attribute
+        
+        :param str attr: attribute name
+        :return: a sequence of tango data_type, data format"""
         return self.standard_attr_list[attr]
 
     def _get_class_properties(self):
@@ -480,35 +689,51 @@ class PoolGroupDevice(PoolDevice):
     """Base Tango Pool Group Device class"""
 
     def read_ElementList(self, attr):
+        """Read the element list. 
+        
+        :param attr: tango attribute
+        :type attr: :class:`~PyTango.Attribute`"""
         attr.set_value(self.get_element_names())
 
     def get_element_names(self):
+        """Returns the list of element names. 
+        
+        :return: a list of attribute names"""
         elements = self.element.get_user_elements()
         return [ element.name for element in elements ]
 
     def elements_changed(self, evt_src, evt_type, evt_value):
+        """Callback for when the elements of this group changed"""
         self.push_change_event("ElementList", self.get_element_names())
 
 
 class PoolGroupDeviceClass(PoolDeviceClass):
     """Base Tango Pool Group Device Class class"""
 
-    #    Class Properties
-    class_property_list = {
-    }
-
-    #    Device Properties
+    #:
+    #: Sardana device properties definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     device_property_list = {
         "Elements" :    [ DevVarStringArray, "elements in the group", [ ] ],
     }
     device_property_list.update(PoolDeviceClass.device_property_list)
 
-    #    Command definitions
+    #:
+    #: Sardana device command definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     cmd_list = {
     }
     cmd_list.update(PoolDeviceClass.cmd_list)
 
-    #    Attribute definitions
+    #:
+    #: Sardana device attribute definition
+    #: 
+    #: .. seealso:: :ref:`server`
+    #:
     attr_list = {
         'ElementList'  : [ [ DevString, SPECTRUM, READ, 4096] ],
     }

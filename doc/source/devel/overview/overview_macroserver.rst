@@ -1,8 +1,8 @@
 .. _macroserver-overview:
 
-=============
-Macro Server
-=============
+======================
+Macro Server overview
+======================
 
 The Macro Server object is the sardana server object which manages all high
 level sardana objects related to macro execution, namely doors, macro libraries

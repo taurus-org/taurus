@@ -290,14 +290,14 @@ class Controller(object):
                     return ctrl_wr()
 
     def AddDevice(self, axis):
-        """**Controller API**. Overwrite as necessary. Default implementation
+        """**Controller API**. Override as necessary. Default implementation
         does nothing.
 
         :param int axis: axis number"""
         pass
 
     def DeleteDevice(self, axis):
-        """**Controller API**. Overwrite as necessary. Default implementation
+        """**Controller API**. Override as necessary. Default implementation
         does nothing.
 
         :param int axis: axis number"""
@@ -333,13 +333,13 @@ class Controller(object):
         return str(axis)
 
     def PreStateAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a read of the state of all axis.
         Default implementation does nothing."""
         pass
 
     def PreStateOne(self, axis):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a read of the state of a single axis.
         Default implementation does nothing.
 
@@ -347,20 +347,20 @@ class Controller(object):
         pass
 
     def StateAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to read the state of all selected axis.
         Default implementation does nothing."""
         pass
 
     def StateOne(self, axis):
-        """**Controller API**. Overwrite is MANDATORY.
+        """**Controller API**. Override is MANDATORY.
         Called to read the state of one axis.
         Default implementation raises :exc:`NotImplementedError`."""
         raise NotImplementedError("StateOne must be defined in the controller")
 
     #def SetCtrlPar(self, unit, parameter, value):
     def SetCtrlPar(self, parameter, value):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to set a parameter with a value. Default implementation sets
         this object member named '_'+parameter with the given value.
 
@@ -369,7 +369,7 @@ class Controller(object):
 
     #def GetCtrlPar(self, unit, parameter):
     def GetCtrlPar(self, parameter):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to set a parameter with a value. Default implementation returns
         the value contained in this object's member named '_'+parameter.
 
@@ -378,7 +378,7 @@ class Controller(object):
 
     #def SetAxisPar(self, unit, axis, parameter, value):
     def SetAxisPar(self, axis, parameter, value):
-        """**Controller API**. Overwrite is MANDATORY.
+        """**Controller API**. Override is MANDATORY.
         Called to set a parameter with a value on the given axis. Default
         implementation calls deprecated :meth:`~Controller.SetPar` which, by
         default, raises :exc:`NotImplementedError`.
@@ -388,7 +388,7 @@ class Controller(object):
 
     #def GetAxisPar(self, unit, axis, parameter):
     def GetAxisPar(self, axis, parameter):
-        """**Controller API**. Overwrite is MANDATORY.
+        """**Controller API**. Override is MANDATORY.
         Called to get a parameter value on the given axis. Default
         implementation calls deprecated :meth:`~Controller.GetPar` which, by
         default, raises :exc:`NotImplementedError`.
@@ -397,7 +397,7 @@ class Controller(object):
         return self.GetPar(axis, parameter)
 
     def SetAxisExtraPar(self, axis, parameter, value):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to set a parameter with a value on the given axis. Default
         implementation calls deprecated :meth:`~Controller.SetExtraAttributePar`
         which, by default, raises :exc:`NotImplementedError`.
@@ -406,7 +406,7 @@ class Controller(object):
         return self.SetExtraAttributePar(axis, parameter, value)
 
     def GetAxisExtraPar(self, axis, parameter):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to get a parameter value on the given axis. Default
         implementation calls deprecated :meth:`~Controller.GetExtraAttributePar`
         which, by default, raises :exc:`NotImplementedError`.
@@ -452,7 +452,7 @@ class Controller(object):
                                   "controller")
 
     def GetAxisAttributes(self, axis):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Returns a dictionary of all attributes per axis.
         Default implementation returns a new :class:`dict` with the standard
         attributes plus the :attr:`~Controller.axis_attributes`
@@ -470,7 +470,7 @@ class Controller(object):
         return ret
 
     def SendToCtrl(self, stream):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Sends a string to the controller.
         Default implementation raises :exc:`NotImplementedError`.
 
@@ -485,13 +485,13 @@ class Startable(object):
     .. note: Do not inherit directly from :class:`Startable`."""
 
     def PreStartAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a start of all axis (whatever pre-start means).
         Default implementation does nothing."""
         pass
 
     def PreStartOne(self, axis, value):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a start of the given axis (whatever pre-start means).
         Default implementation returns True.
 
@@ -502,7 +502,7 @@ class Startable(object):
         return True
 
     def StartOne(self, axis, value):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to do a start of the given axis (whatever start means).
         Default implementation does nothing.
 
@@ -511,7 +511,7 @@ class Startable(object):
         pass
 
     def StartAll(self):
-        """**Controller API**. Overwrite is MANDATORY!
+        """**Controller API**. Override is MANDATORY!
         Default implementation raises :exc:`NotImplementedError`"""
         raise NotImplementedError("StartAll must be defined in the controller")
 
@@ -523,7 +523,7 @@ class Stopable(object):
     .. note: Do not inherit directly from :class:`Stopable`."""
 
     def AbortOne(self, axis):
-        """**Controller API**. Overwrite is MANDATORY!
+        """**Controller API**. Override is MANDATORY!
         Default implementation raises :exc:`NotImplementedError`.
         Aborts one of the axis
 
@@ -531,7 +531,7 @@ class Stopable(object):
         raise NotImplementedError("AbortOne must be defined in te controller")
 
     def AbortAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Aborts all active axis of this controller. Default implementation
         calls :meth:`~Controller.AbortOne` on each active axis.
 
@@ -548,7 +548,7 @@ class Stopable(object):
             raise Exception(exceptions)
 
     def StopOne(self, axis):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Stops one of the axis.
         *This method is reserved for future implementation.*
         Default implementation calls :meth:`~Controller.AbortOne`.
@@ -559,7 +559,7 @@ class Stopable(object):
         self.AbortOne(axis)
 
     def StopAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Stops all active axis of this controller.
         *This method is reserved for future implementation.*
         Default implementation calls :meth:`~Controller.StopOne` on each
@@ -585,13 +585,13 @@ class Readable(object):
     .. note: Do not inherit directly from Readable."""
 
     def PreReadAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a read of the value of all axis.
         Default implementation does nothing."""
         pass
 
     def PreReadOne(self, axis):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a read of the value of a single axis.
         Default implementation does nothing.
 
@@ -599,13 +599,13 @@ class Readable(object):
         pass
 
     def ReadAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to read the value of all selected axis
         Default implementation does nothing."""
         pass
 
     def ReadOne(self, axis):
-        """**Controller API**. Overwrite is MANDATORY!
+        """**Controller API**. Override is MANDATORY!
         Default implementation raises :exc:`NotImplementedError`
 
         :param int axis: axis number
@@ -692,7 +692,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
     }
 
     def GetAxisAttributes(self, axis):
-        """**Motor Controller API**. Overwrite as necessary.
+        """**Motor Controller API**. Override as necessary.
         Returns a sequence of all attributes per axis.
         Default implementation returns a :class:`dict` containning:
 
@@ -711,9 +711,9 @@ class MotorController(Controller, Startable, Stopable, Readable):
         plus all attributes contained in :attr:`~Controller.axis_attributes`
 
         .. note::
-            Normally you don't need to overwrite this method. You just implement
+            Normally you don't need to Override this method. You just implement
             the class member :attr:`~Controller.axis_attributes`. Typically,
-            you will need to overwrite this method in two cases:
+            you will need to Override this method in two cases:
 
                 - certain axises contain a different set of extra attributes
                   which cannot be simply defined in
@@ -731,7 +731,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
         return Controller.GetAxisAttributes(self, axis)
 
     def DefinePosition(self, axis, position):
-        """**Motor Controller API**.  Overwrite is MANDATORY!
+        """**Motor Controller API**.  Override is MANDATORY!
            Default implementation raises :exc:`NotImplementedError`
         """
         raise NotImplementedError("DefinePosition must be defined in the "
@@ -756,7 +756,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         self._trigger_type = AcqTriggerType.Unknown
 
     def PreStartAllCT(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to prepare an acquisition of all selected axis.
         Default implementation does nothing.
 
@@ -765,7 +765,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         pass
 
     def PreStartOneCT(self, axis):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to prepare an acquisition a single axis.
         Default implementation returns True.
 
@@ -778,7 +778,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         return True
 
     def StartOneCT(self, axis):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to start an acquisition of a selected axis.
         Default implementation does nothing.
 
@@ -789,7 +789,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         pass
 
     def StartAllCT(self):
-        """**Counter/Timer Controller API**. Overwrite is MANDATORY!
+        """**Counter/Timer Controller API**. Override is MANDATORY!
         Called to start an acquisition of a selected axis.
         Default implementation raises :exc:`NotImplementedError`.
 
@@ -799,7 +799,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
                                   "controller")
 
     def PreStartAll(self):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a write of the position of all axis. Default
         implementation calls deprecated
         :meth:`~CounterTimerController.PreStartAllCT` which, by default, does
@@ -809,7 +809,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         return self.PreStartAllCT()
 
     def PreStartOne(self, axis, value=None):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to prepare a write of the position of a single axis.
         Default implementation calls deprecated
         :meth:`~CounterTimerController.PreStartOneCT` which, by default,
@@ -824,7 +824,7 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         return self.PreStartOneCT(axis)
 
     def StartOne(self, axis, value=None):
-        """**Controller API**. Overwrite as necessary.
+        """**Controller API**. Override as necessary.
         Called to write the position of a selected axis. Default
         implementation calls deprecated
         :meth:`~CounterTimerController.StartOneCT` which, by default, does
@@ -835,20 +835,20 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         return self.StartOneCT(axis)
 
     def StartAll(self):
-        """**Controller API**. Overwrite is MANDATORY!
+        """**Controller API**. Override is MANDATORY!
         Default implementation calls deprecated
         :meth:`~CounterTimerController.StartAllCT` which, by default, raises
         :exc:`NotImplementedError`."""
         return self.StartAllCT()
 
     def PreLoadAll(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to prepare loading the integration time / monitor value.
         Default implementation does nothing."""
         pass
 
     def PreLoadOne(self, axis, value):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to prepare loading the master channel axis with the integration
         time / monitor value.
         Default implementation returns True.
@@ -860,13 +860,13 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         return True
 
     def LoadAll(self):
-        """**Counter/Timer Controller API**. Overwrite as necessary.
+        """**Counter/Timer Controller API**. Override as necessary.
         Called to load the integration time / monitor value.
         Default implementation does nothing."""
         pass
 
     def LoadOne(self, axis, value):
-        """**Counter/Timer Controller API**. Overwrite is MANDATORY!
+        """**Counter/Timer Controller API**. Override is MANDATORY!
         Called to load the integration time / monitor value.
         Default implementation raises :exc:`NotImplementedError`.
         
@@ -949,7 +949,7 @@ class PseudoMotorController(PseudoController):
         PseudoController.__init__(self, inst, props, *args, **kwargs)
 
     def CalcAllPseudo(self, physical_pos, curr_pseudo_pos):
-        """**Pseudo Motor Controller API**. Overwrite as necessary.
+        """**Pseudo Motor Controller API**. Override as necessary.
            Calculates the positions of all pseudo motors that belong to the
            pseudo motor system from the positions of the physical motors.
            Default implementation does a loop calling
@@ -971,7 +971,7 @@ class PseudoMotorController(PseudoController):
         return ret
 
     def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
-        """**Pseudo Motor Controller API**. Overwrite as necessary.
+        """**Pseudo Motor Controller API**. Override as necessary.
            Calculates the positions of all motors that belong to the pseudo
            motor system from the positions of the pseudo motors.
            Default implementation does a loop calling
@@ -993,7 +993,7 @@ class PseudoMotorController(PseudoController):
         return ret
 
     def CalcPseudo(self, axis, physical_pos, curr_pseudo_pos):
-        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Motor Controller API**. Override is **MANDATORY**.
            Calculate pseudo motor position given the physical motor positions
 
            :param int axis: the pseudo motor role axis
@@ -1010,7 +1010,7 @@ class PseudoMotorController(PseudoController):
         return self.calc_pseudo(axis, physical_pos)
 
     def CalcPhysical(self, axis, pseudo_pos, curr_physical_pos):
-        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Motor Controller API**. Override is **MANDATORY**.
            Calculate physical motor position given the pseudo motor positions.
 
            :param axis: the motor role axis
@@ -1027,7 +1027,7 @@ class PseudoMotorController(PseudoController):
         return self.calc_physical(axis, pseudo_pos)
 
     def calc_all_pseudo(self, physical_pos):
-        """**Pseudo Motor Controller API**. Overwrite as necessary.
+        """**Pseudo Motor Controller API**. Override as necessary.
            Calculates the positions of all pseudo motors that belong to the
            pseudo motor system from the positions of the physical motors.
            Default implementation does a loop calling
@@ -1048,7 +1048,7 @@ class PseudoMotorController(PseudoController):
 
 
     def calc_all_physical(self, pseudo_pos):
-        """**Pseudo Motor Controller API**. Overwrite as necessary.
+        """**Pseudo Motor Controller API**. Override as necessary.
            Calculates the positions of all motors that belong to the pseudo
            motor system from the positions of the pseudo motors.
            Default implementation does a loop calling
@@ -1069,7 +1069,7 @@ class PseudoMotorController(PseudoController):
         return ret
 
     def calc_pseudo(self, axis, physical_pos):
-        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Motor Controller API**. Override is **MANDATORY**.
            Calculate pseudo motor position given the physical motor positions
 
            :param int axis: the pseudo motor role axis
@@ -1083,7 +1083,7 @@ class PseudoMotorController(PseudoController):
         raise NotImplementedError("CalcPseudo must be defined in te controller")
 
     def calc_physical(self, axis, pseudo_pos):
-        """**Pseudo Motor Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Motor Controller API**. Override is **MANDATORY**.
            Calculate physical motor position given the pseudo motor positions.
 
            :param axis: the motor role axis
@@ -1163,7 +1163,7 @@ class PseudoCounterController(Controller):
     }
 
     def Calc(self, axis, values):
-        """**Pseudo Counter Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Counter Controller API**. Override is **MANDATORY**.
            Calculate pseudo counter position given the counter values.
 
            :param int axis: the pseudo counter role axis
@@ -1177,7 +1177,7 @@ class PseudoCounterController(Controller):
         return self.calc(axis, values)
 
     def calc(self, axis, values):
-        """**Pseudo Counter Controller API**. Overwrite is **MANDATORY**.
+        """**Pseudo Counter Controller API**. Override is **MANDATORY**.
            Calculate pseudo counter position given the counter values.
 
            :param int axis: the pseudo counter role axis
@@ -1212,6 +1212,6 @@ class IORegisterController(Controller, Readable):
         Controller.__init__(self, inst, props, *args, **kwargs)
 
     def WriteOne(self):
-        """**IORegister Controller API**. Overwrite as necessary."""
+        """**IORegister Controller API**. Override as necessary."""
         pass
 

@@ -11,7 +11,7 @@
     :columns: 3
 
     * :class:`Motor`
-    * :class:`Motor`
+    * :class:`MotorClass`
 
 Motor
 -------

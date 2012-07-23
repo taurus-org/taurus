@@ -9,9 +9,9 @@ Overview
     :maxdepth: 2
     
     Global overview <overview>
-    Macro Server <macroserver>
-    Device Pool <pool>
-    Controller <controller>
-    Motor <motor>
-    Counter/Timer <countertimer>
+    Macro Server <overview_macroserver>
+    Device Pool <overview_pool>
+    Controller <overview_controller>
+    Motor <overview_motor>
+    Counter/Timer <overview_countertimer>
 

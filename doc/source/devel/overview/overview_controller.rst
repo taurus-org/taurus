@@ -87,13 +87,9 @@ These are the different types of controllers recognized by sardana:
 :class:`IORegisterController`
     A controller designed to control hardware registers.
 
-Controller plug-ins can be written in Python_ or C++. Each controller code is
-basically a Python_ or C++ class that needs to obey a specific :term:`API`.
-
-Information on how to write your own sardana controller :term:`plug-in` can be
-found :ref:`here <pool-controller-howto>`.
-
-The complete controller :term:`API` can be found :ref:`here <pool-controller-api>`.
+Controller plug-ins can be written in Python_ (and in the future in C++).
+Each controller code is basically a Python_ class that needs to obey a
+specific :term:`API`.
 
 Here is an a extract of the pertinent part of a Python_ motor controller code
 that is able to talk to a Newport motor controller::

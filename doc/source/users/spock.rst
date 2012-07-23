@@ -5,32 +5,30 @@
 Spock
 ======
 
-*Spock* is the prefered :term:`CLI` for sardana.
+*Spock* is the prefered :term:`CLI` for sardana. It is based on IPython_.
+Spock automatically loads other IPython_ extensions like the ones for PyTango_
+and *pylab*. It as been extended in sardana to provide a customized interface
+for executing macros and automatic access to sardana elements.
 
-*Spock* is an IPython_ based :term:`CLI` for sardana. *Spock* automatically
-loads other IPython_ extensions like the ones for PyTango_ and *pylab*.
-*Spock* as been extended in sardana to provide a customized interface for
-executing macros and automatic access to sardana elements. This is what we will
-loosly call *spock* in this document.
-
-*Spock* tries to mimic SPEC_'s command line interface. Most SPEC_ commands
-are available from *spock* console.
+Spock tries to mimic SPEC_'s command line interface. Most SPEC_ commands
+are available from spock console.
 
 .. figure:: /_static/spock_snapshot01.png
     :height: 600
+    :align: center
     
     Spock :term:`CLI` in action
 
 Starting spock from the command line
 -------------------------------------
 
-To start *spock* just type in the command line::
+To start spock just type in the command line::
 
     marge@machine02:~$ spock
 
-This will start *spock* with a "default profile" for the user your are logged with.
+This will start spock with a "default profile" for the user your are logged with.
 There may be many sardana servers running on your system so the first time you
-start *spock*, it will ask you to which sardana system you want to connect to by
+start spock, it will ask you to which sardana system you want to connect to by
 asking to which of the existing doors you want to use::
 
     marge@machine02:~$ spock
@@ -64,8 +62,8 @@ Afterward, spock :term:`CLI` will start normally:
 Starting spock with a custom profile
 -------------------------------------
 
-*Spock* allows each user to start a spock session with different configurations
-(known in *spock* as *profiles*). All you have to do is start *spock* with::
+spock allows each user to start a spock session with different configurations
+(known in spock as *profiles*). All you have to do is start spock with::
 
     spock -p <profile name>
     
@@ -79,21 +77,24 @@ to connect to (see previous chapter).
 Spock IPython_ Primer
 ---------------------
 
-As mentioned before, *spock* console is based on IPython_. Everything you can
-do in IPython is available in *spock*. The IPython_ documentation provides 
+As mentioned before, spock console is based on IPython_. Everything you can
+do in IPython is available in spock. The IPython_ documentation provides 
 excelent tutorials, tips & tricks, cookbooks, videos, presentations and
 reference guide. For comodity we summarize some of the most interesting
 IPython_ chapters here:
 
-- `IPython web page <http://ipython.org/>`_
-- :ref:`tutorial`
-- :ref:`tips`
-- :ref:`command_line_options`
+.. hlist::
+    :columns: 2
+
+    * `IPython web page <http://ipython.org/>`_
+    * :ref:`tutorial`
+    * :ref:`tips`
+    * :ref:`command_line_options`
 
 Executing macros
 -----------------
 
-Executing sardana macros in *spock* is the most useful feature of *spock*. It is very
+Executing sardana macros in spock is the most useful feature of spock. It is very
 simple to execute a macro: just type the macro name followed by a space separated
 list of parameters (if the macro has any parameters). For example, one of the most
 used macros is the :class:`~sardana.macroserver.macros.standard.wa` (stands for
@@ -175,12 +176,12 @@ motion and/or all acquisition.
 Exiting spock
 -------------
 
-To exit *spock* type :kbd:`Control+d` or :samp:`exit()` inside a *spock* console.
+To exit spock type :kbd:`Control+d` or :samp:`exit()` inside a spock console.
 
 Getting help
 ------------
 
-*Spock* not only knows all the macros the sardana server can run but it also
+spock not only knows all the macros the sardana server can run but it also
 information about each macro parameters, result and documentation.
 Therefore it can give you precise help on each macro. To get help about a certain
 macro just type the macro name directly followed by a question mark('?'):
@@ -353,16 +354,17 @@ of files:
 Viewing scan data
 ~~~~~~~~~~~~~~~~~
 
-Sardana provides a scan data viewer for scans which were stored in a `NeXus`_ file.
-Without arguments, **showscan** will show you the result of the last scan in a
-:term:`GUI`:
+Sardana provides a scan data viewer for scans which were stored in a `NeXus`_
+file. Without arguments, :class:`~sardana.macroserver.macros.scan.showscan`
+will show you the result of the last scan in a :term:`GUI`:
 
 .. figure:: /_static/spock_snapshot02.png
     :height: 600
     
     Scan data viewer in action
 
-**showscan** *scan_number* will display data for the given scan number.
+:class:`~sardana.macroserver.macros.scan.showscan` *scan_number* will display
+data for the given scan number.
 
 The history of scans is available through the
 :class:`~sardana.macroserver.macros.scan.scanhist` macro:
@@ -381,9 +383,9 @@ The history of scans is available through the
 Using spock as a Python_ console
 ---------------------------------
 
-You can write any Python_ code inside a *spock* console since spock uses
+You can write any Python_ code inside a spock console since spock uses
 IPython_ as a command line interpreter. For example, the following will work
-inside a *spock* console:
+inside a spock console:
 
 .. sourcecode:: spock
 
@@ -399,10 +401,10 @@ inside a *spock* console:
 Using spock as a Tango_ console
 ---------------------------------
 
-As metioned in the beggining of this chapter, the sardana *spock* automatically
+As metioned in the beggining of this chapter, the sardana spock automatically
 activates the PyTango_ 's ipython console extension. Therefore all Tango_
-features are automatically available on the sardana *spock* console. For example, creating
-a :class:`~PyTango.DeviceProxy` will work inside the sardana *spock* console:
+features are automatically available on the sardana spock console. For example, creating
+a :class:`~PyTango.DeviceProxy` will work inside the sardana spock console:
 
 .. sourcecode:: spock
 

@@ -42,8 +42,9 @@ arrive at higher quality software with much higher efficiency.
 The following screen shot of an early prototype of a specific beamline
 application should serve as a reminder of this final goal.
 
-.. figure:: /_static/snapshot01.png
+.. image:: /_static/snapshot01.png
   :align: center
+  :width: 500
 
 Inside this application we have many features  common to other beamline control
 applications or w some accelerator applications. The following screen shot shows
@@ -52,8 +53,9 @@ configuring the application. This illustrates one of the design guidelines in
 Sardana: Always provide a generic interface which can be specialized for an
 application.
 
-.. figure:: /_static/snapshot02.png
+.. image:: /_static/snapshot02.png
   :align: center
+  :width: 500
 
 Starting a procedure
 ====================
@@ -69,31 +71,35 @@ of the standard SPEC_ commands (including many diffractometer geometries thanks
 to Frédéric Picca from the SOLEIL_ synchrotron) are provided as standard
 procedures and can be invoked in the same way.
 
-.. figure:: /_static/snapshot03.png
+.. image:: /_static/snapshot03.png
   :align: center
+  :width: 500
 
 Every procedure can also be started from a GUI. This does not need any
 programming or configuration from the user of the system. When a new procedure
 is created, it is automatically visible inside the GUI and command line tools.
 
-.. figure:: /_static/snapshot04.png
+.. image:: /_static/snapshot04.png
   :align: center
+  :width: 500
 
 This GUI interface will mainly be used for procedures which are rarely used
 and where a specialized interface has not yet been developed. An example of
 how to use the same procedure in order to carry out energy spread and emittance
 measurements is presented in the following picture.
 
-.. figure:: /_static/snapshot05.png
+.. image:: /_static/snapshot05.png
   :align: center
+  :width: 500
 
 The standard Qt_ designer can be used to create new graphical elements (widgets)
 and connect them to the system for even greater flexibility. The following
 screen shot shows the standard qt designer with some fancy widgets developed
 in house.
 
-.. figure:: /_static/snapshot06.png
+.. image:: /_static/snapshot06.png
   :align: center
+  :width: 500
 
 Taurus as a toolkit for applications
 ====================================
@@ -117,8 +123,9 @@ add and configure components. The editor adapts dynamically to the hardware
 controllers present. New hardware controller can be easily written and
 integrated into the system without restarting it.
 
-.. figure:: /_static/snapshot07.png
+.. image:: /_static/snapshot07.png
   :align: center
+  :width: 500
 
 This configuration editor is currently being rewritten to be more wizard based
 and provide better guidance for the end user.
@@ -132,8 +139,9 @@ them. This batch files type of procedures are useful to automatically run
 procedures over night and for similar simple applications. The following screen
 shots show the procedure executer with this feature enabled.
 
-.. figure:: /_static/snapshot08.png
+.. image:: /_static/snapshot08.png
   :align: center
+  :width: 500
   
 To go further I would like to explain some internal details. All procedures are
 executed in a central place (called the macro server). There can be more than
@@ -179,8 +187,9 @@ You can add one of these pseudo motors with the configuration editor. It is
 easily possible to add new types of pseudo motors. This has only to be done
 once and the Sardana system already provides a large variety of these types.
 
-.. figure:: /_static/snapshot09.png
+.. image:: /_static/snapshot09.png
   :align: center
+  :width: 500
 
 Please find in the following an example for adding a completely new type in the
 case of a *slit*.
@@ -190,23 +199,27 @@ methods calc_physical and calc_pseudo which can be used to do the transformation
 between the different coordinate systems. Or to say it in the language of
 Sardana between the pseudo motors gap and offset and the real motors left blade
 and right blade.
+
+.. image:: /_static/snapshot10.png
+  :align: center
+  :width: 500
+
 Once again the information in the beginning allows the graphical user interface
 to be created automatically once it is loaded into the system.
-
-.. figure:: /_static/snapshot10.png
-  :align: center
-  :width: 650
   
 Symbolic Sketch
 ===============
 
 I would like to end this summary with a symbolic sketch of the different
-subsystems in Sardana. The user will normally not be concerned with these
+subsystems in Sardana.
+
+.. image:: /_static/snapshot11.png
+  :align: center
+  :width: 500
+
+The user will normally not be concerned with these
 implementation details. It is presented here to allow appreciating the
 modularity of the system.
-
-.. figure:: /_static/snapshot11.png
-  :align: center
 
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
