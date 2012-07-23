@@ -279,10 +279,18 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             #leave the creation of the datasets to _writeRecordList (when we actually know the length of the data to write)
             pass
         
-        #write the pre-scan snapshot in the "measurement:NXcollection/preScanSnapShot:NXcollection" group
+        self._createPreScanSnapshot()
+            
+        self.fd.flush()
+    
+    def _createPreScanSnapshot(self):
+        measurementpath = "/%s:NXentry/measurement:NXcollection"%self.entryname
+        self.fd.openpath(measurementpath)
+        #write the pre-scan snapshot in the "measurement:NXcollection/pre_scan_snapshot:NXcollection" group
         self.preScanSnapShot = env.get('preScanSnapShot',[])
         self.fd.makegroup("pre_scan_snapshot","NXcollection")
         self.fd.opengroup("pre_scan_snapshot","NXcollection")
+        links = {}
         for dd in self.preScanSnapShot: #desc is a ColumnDesc object
             label = self.sanitizeName(dd.label)
             dtype = dd.dtype
@@ -292,13 +300,18 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 pre_scan_value = numpy.int8(dd.pre_scan_value)
                 self.debug('Pre-scan snapshot of %s will be stored with type=%s',dd.name, dtype)
             if dtype in self.supported_dtypes:
-                self._writeData(label, pre_scan_value, dtype, shape=dd.shape or (1,)) #@todo: fallback shape is hardcoded! 
+                id = self._writeData(label, pre_scan_value, dtype, shape=dd.shape or (1,)) #@todo: fallback shape is hardcoded!
+                links[label] = id
             else:
                 self.warning('Pre-scan snapshot of %s will not be stored. Reason: type %s not supported',dd.name, dtype)
-            
-        self.fd.closegroup()
+                
+        self.fd.closegroup() #we are back at the measurement group
         
-        self.fd.flush()
+        measurement_entries = self.fd.getentries()
+        for label,id in links.items():
+            if name not in measurement_entries:
+                self.fd.makelink(id)
+        
         
     def _makedata(self, name, dtype=None, shape=None, mode='lzw', chunks=None, comprank=None):
         '''
@@ -336,7 +349,9 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         if attrs is not None:
             for k,v in attrs.items():
                 self.fd.putattr(k,v)
+        id = self.fd.getdataID()
         self.fd.closedata()
+        return id
 
     def _writeRecord(self, record):
         if self.filename is None:
@@ -373,10 +388,10 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 #shape,dtype=self.fd.getinfo()
                 #shape[0]=1 #the shape of the record is of just 1 slab in the extensible dimension (first dim)
                 #self.fd.putslab(record.data[lbl],[record.recordno]+[0]*(len(shape)-1),shape)
-                self.fd.closedata()
+                fd.closedata()
             else:
-                self.debug("missing data for label '%s'", dd.label)
-        self.fd.flush()
+                debug("missing data for label '%s'", dd.label)
+        fd.flush()
 
     def _endRecordList(self, recordlist):
 
@@ -433,11 +448,12 @@ class NEXUS_FileRecorder(BaseFileRecorder):
                 return entry
     
     def _populateInstrumentInfo(self):
-        #create the link for each set in <entry>/data that has a datadesc.nxpath
+        measurementpath = "/%s:NXentry/measurement:NXcollection"%self.entryname
+        #create a link for each
         for dd in self.datadesc:
             if getattr(dd,'instrument', None): #we don't link if it is None or it is empty
                 try:
-                    datapath="/%s:NXentry/measurement:NXcollection/%s"%(self.entryname,dd.label) 
+                    datapath="%s/%s"%(measurementpath,dd.label) 
                     self.fd.openpath(datapath)
                     id=self.fd.getdataID()
                     self._createBranch(dd.instrument)
@@ -449,7 +465,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             if getattr(dd,'instrument', None):
                 try:
                     label = self.sanitizeName(dd.label)
-                    datapath="/%s:NXentry/measurement:NXcollection/pre_scan_snapshot:NXcollection/%s"%(self.entryname,label)
+                    datapath="%s/pre_scan_snapshot:NXcollection/%s"%(measurementpath,label)
                     self.fd.openpath(datapath)
                     id=self.fd.getdataID()
                     self._createBranch(dd.instrument)
