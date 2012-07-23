@@ -28,7 +28,6 @@ taurustrend.py: Generic trend widget for Taurus
 """
 __all__=["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
-import copy
 from datetime import datetime
 import time
 import numpy
@@ -526,7 +525,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         if packet is None:
             self.debug('Ignoring empty scan data packet')
             return
-        id,packet = packet
+        pkgid,packet = packet
         pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
         if pcktype == "data_desc": 
             self._dataDescReceived(packet["data"])
@@ -598,7 +597,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         if self._xDataKey is None or self._xDataKey == "<mov>": #@todo use a standard key for <mov> and <idx>
             try:
                 self._autoXDataKey = datadesc['ref_moveables'][0]
-            except KeyError, IndexError:
+            except (KeyError, IndexError):
                 self._autoXDataKey = self.DEFAULT_X_DATA_KEY
         elif self._xDataKey == "<idx>":
             self._autoXDataKey = 'point_nb'
@@ -1352,10 +1351,10 @@ class TaurusTrend(TaurusPlot):
     def _scaleChangeWarning(self):
         '''slot that may be called when the x axis changes the scale'''
         sdiv = self.axisScaleDiv(self.xBottom)
-        min = sdiv.lowerBound()
-        if min < self._archivingWarningThresshold:
+        smin = sdiv.lowerBound()
+        if smin < self._archivingWarningThresshold:
             self.showArchivingWarning()
-            self._archivingWarningThresshold = min-2*sdiv.range() #lower the thresshold by twice the current range 
+            self._archivingWarningThresshold = smin-2*sdiv.range() #lower the thresshold by twice the current range 
     
     def showArchivingWarning(self):
         '''shows a dialog warning of the potential isuues with 
@@ -1427,7 +1426,7 @@ class TaurusTrend(TaurusPlot):
         ''' see :meth:`TaurusPlot._axisContextMenu` '''
         menu = TaurusPlot._axisContextMenu(self, axis=axis)
         if axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop) and self.__qdoorname is not None:
-            changeXDataKeyAction = menu.addAction('Source of X values...', self.onChangeXDataKeyAction)
+            menu.addAction('Source of X values...', self.onChangeXDataKeyAction)
         return menu
     
     def onChangeXDataKeyAction(self):
@@ -1502,7 +1501,7 @@ class TaurusTrend(TaurusPlot):
         else:
             self.curves_lock.acquire()
             try:
-                return self.trendSets[name].getForcedReadingPeriod()
+                return self.trendSets[tsetname].getForcedReadingPeriod()
             finally:
                 self.curves_lock.release()
                 
