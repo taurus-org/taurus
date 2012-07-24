@@ -281,9 +281,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             ntrends=len(value.value)
             
         if self._xBuffer is None:
-            self._xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self._maxBufferSize )
+            self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
         if self._yBuffer is None:
-            self._yBuffer = ArrayBuffer(numpy.zeros((128, ntrends),dtype='d'), maxSize=self._maxBufferSize )
+            self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
         
         self._yBuffer.append(value.value)
         
@@ -404,8 +404,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         :param maxSize: (int) the maximum limit
         '''
-        self._xBuffer.setMaxSize(maxSize)
-        self._yBuffer.setMaxSize(maxSize)
+        if self._xBuffer is not None:
+            self._xBuffer.setMaxSize(maxSize)
+        if self._yBuffer is not None:
+            self._yBuffer.setMaxSize(maxSize)
         self._maxBufferSize = maxSize
         
     def maxDataBufferSize(self):
@@ -789,7 +791,9 @@ class TaurusTrend(TaurusPlot):
         self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL("triggered()"), self.setForcedReadingPeriod)
         self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
         self.connect(self._clearBuffersAction, Qt.SIGNAL("triggered()"), self.clearBuffers)
-        self._autoClearOnScanAction = Qt.QAction("Auto Clear on new Scans", None)
+        self._setMaxBufferSizeAction = Qt.QAction("Change buffers size...", None)
+        self.connect(self._setMaxBufferSizeAction, Qt.SIGNAL("triggered()"), self.setMaxDataBufferSize)
+        self._autoClearOnScanAction = Qt.QAction("Auto-clear on new scans", None)
         self._autoClearOnScanAction.setCheckable(True)
         self._autoClearOnScanAction.setChecked(True)
         self.connect(self._autoClearOnScanAction, Qt.SIGNAL("toggled(bool)"), self._onAutoClearOnScanAction)
@@ -1226,6 +1230,7 @@ class TaurusTrend(TaurusPlot):
         rawdatadict = CaselessDict(configdict["RawData"])
         miscdict = CaselessDict(configdict["Misc"])
         miscdict["ForcedReadingPeriod"] = self.getForcedReadingPeriod()
+        miscdict["MaxBufferSize"] = self.getMaxDataBufferSize()
         self.curves_lock.acquire()
         try:
             for tsname,ts in self.trendSets.iteritems():
@@ -1248,6 +1253,10 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: :meth:`createConfig`
         """
         if not self.checkConfigVersion(configdict): return
+        #set the max Buffer data size (we do it before ataching the curves to avoid useless reallocations of buffers)
+        maxBufferSize = configdict["Misc"].get("MaxBufferSize")
+        if maxBufferSize is not None:
+            self.setMaxDataBufferSize(maxBufferSize)
         #attach the curves
         for rd in configdict["RawData"].values(): self.attachRawData(rd)
         models = configdict.get("model",configdict["TrendSets"].values()) #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
@@ -1265,7 +1274,7 @@ class TaurusTrend(TaurusPlot):
         forcedreadingperiod = configdict["Misc"].get("ForcedReadingPeriod")
         if forcedreadingperiod is not None:
             self.setForcedReadingPeriod(forcedreadingperiod)
-
+            
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """Returns pertinent information in order to be able to build a valid
@@ -1385,17 +1394,39 @@ class TaurusTrend(TaurusPlot):
         elif not rememberCB.isChecked(): 
             self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning) 
     
-    def setMaxDataBufferSize(self, maxSize):
+    def setMaxDataBufferSize(self, maxSize=None):
         '''sets the maximum number of events that can be plotted in the trends
         
-        :param maxSize: (int) the maximum limit
+        :param maxSize: (int or None) the maximum limit. If None is passed, 
+                        the user is prompted for a value. 
         
         .. seealso:: :meth:`TaurusTrendSet.setMaxDataBufferSize`
         '''
+        if maxSize is None:
+            maxSize = self._maxDataBufferSize
+            try: #API changed in QInputDialog since Qt4.4
+                qgetint = Qt.QInputDialog.getInt
+            except AttributeError:
+                qgetint = Qt.QInputDialog.getInteger
+            maxSize,ok = qgetint(self, 'New buffer data size', 
+                                               'Enter the number of points to be kept in memory for each curve', 
+                                               maxSize, 2, 10000000, 1000)
+            if not ok: 
+                return 
+        
+        choiceOnClear = None
+        
         self.curves_lock.acquire()
         try:
-            for ts in self.trendSets.itervalues():
-                ts.setMaxDataBufferSize(maxSize)
+            for n,ts in self.trendSets.iteritems():
+                try:
+                    ts.setMaxDataBufferSize(maxSize)
+                except ValueError:
+                    if choiceOnClear is None:
+                        choiceOnClear = Qt.QMessageBox.question(self, "Clear buffers?", "Clear the curves that contain too many points for the selected buffer size?", Qt.QMessageBox.No|Qt.QMessageBox.Yes) 
+                    if choiceOnClear == Qt.QMessageBox.Yes:
+                        ts.clearTrends(replot=False)
+                        ts.setMaxDataBufferSize(maxSize)
         finally:
             self.curves_lock.release()
         self._maxDataBufferSize = maxSize
@@ -1417,6 +1448,7 @@ class TaurusTrend(TaurusPlot):
         menu.insertAction(self._setCurvesTitleAction, self._useArchivingAction)
         menu.insertAction(self._setCurvesTitleAction, self._usePollingBufferAction)
         menu.insertAction(self._setCurvesTitleAction, self._setForcedReadingPeriodAction)
+        menu.insertAction(self._setCurvesTitleAction, self._setMaxBufferSizeAction)
         menu.insertAction(self._setCurvesTitleAction, self._clearBuffersAction)
         if self.__qdoorname is not None:
             menu.insertAction(self._setCurvesTitleAction, self._autoClearOnScanAction)
