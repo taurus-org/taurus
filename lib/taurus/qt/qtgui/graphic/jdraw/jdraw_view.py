@@ -164,7 +164,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         Rect size never changes (fixed by the graphics objects)
         Size and SizeHint move one around the other
         
-        the method works well until an object is clicked, then the whole reference changes and doesn't work again.
+        the method works well until an object is clicked, 
+        then the whole reference changes and doesn't work again.
         """
         
         srect = self.scene().sceneRect()
@@ -180,9 +181,12 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
         if ADJUST_FRAME: #This additional resizing adjust the "white" frame around the synoptic
             self.debug('\tResizing: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes())
-            self.resize(self.sizeHint())
-            self.debug('\tFitting:: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes()) 
-            self.fitInView(x0,y0,w,h,Qt.Qt.KeepAspectRatio) #Doesn't work
+            self.resize(self.sizeHint()) 
+            
+        #THIS LINE MUST BE ALWAYS EXECUTED, It prevents the UP/DOWN resize BUG!!!
+        #apparently Qt needs this 2 fitInView calls to be aware of it, maybe first offset was not good
+        self.debug('\tFitting:: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes())
+        self.fitInView(x0,y0,w,h,Qt.Qt.KeepAspectRatio)
         
         self.debug('Done: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)\n\n'%self.get_sizes())
         
