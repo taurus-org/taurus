@@ -35,7 +35,7 @@ import re,traceback,time,sys
 from taurus.qt import Qt
 
 import taurus.core
-from taurus.qt.qtgui.container import TaurusMainWindow
+#from taurus.qt.qtgui.container import TaurusMainWindow
 
 import taurus.qt.qtgui.resource
                     
@@ -189,7 +189,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         qpixmap = taurus.qt.qtgui.resource.getPixmap(':/actions/window-new.svg')
         self._dup.setIcon(Qt.QIcon(qpixmap))
         self._dup.setIconSize(Qt.QSize(15,15))
-        self.connect(self._dup,Qt.SIGNAL("clicked(bool)"),self.duplicate)
+        self.connect(self._dup,Qt.SIGNAL("pressed()"),self.duplicate)
         
         self._image = Qt.QLabel()
             
@@ -208,7 +208,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         
         if model: self.setModel(model)
         
-    def duplicate(self, *args):
+    def duplicate(self):
         self._dups.append(TaurusDevicePanel(bound=False))
         self._dups[-1].setModel(self.model)
         self._dups[-1].show()
@@ -355,8 +355,8 @@ def filterNonExported(obj):
         return obj
     return None
 
-
-class TaurusDevPanel(TaurusMainWindow):
+PARENT_CLASS = WIDGET_CLASS #TaurusMainWindow
+class TaurusDevPanel(WIDGET_CLASS):
     '''
     TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
     
@@ -364,7 +364,7 @@ class TaurusDevPanel(TaurusMainWindow):
     displaying information from the selected device.
     '''
     def __init__(self, parent=None, designMode = False):
-        TaurusMainWindow.__init__(self, parent, designMode=designMode)
+        PARENT_CLASS.__init__(self, parent, designMode=designMode)
         
         import taurus.qt.qtgui.ui.ui_TaurusDevPanel
         self._ui = taurus.qt.qtgui.ui.ui_TaurusDevPanel.Ui_TaurusDevPanel()
@@ -416,7 +416,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def setTangoHost(self, host):
         '''extended from :class:setTangoHost'''
-        TaurusMainWindow.setTangoHost(self, host)
+        PARENT_CLASS.setTangoHost(self, host)
         self.deviceTree.setModel(host)
         #self.deviceTree.insertFilter(filterNonExported)
         
@@ -461,7 +461,7 @@ class TaurusDevPanel(TaurusMainWindow):
             
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusMainWindow.getQtDesignerPluginInfo()
+        ret = PARENT_CLASS.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.panel'
         return ret
 
