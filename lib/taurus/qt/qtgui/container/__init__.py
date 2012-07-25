@@ -30,8 +30,8 @@ __docformat__ = 'restructuredtext'
 from .qcontainer import *
 from .taurusbasecontainer import *
 from .taurusframe import *
+from .tauruswidget import *
 from .taurusgroupbox import *
 from .taurusgroupwidget import *
-from .taurusmainwindow import *
 from .taurusscrollarea import *
-from .tauruswidget import *
+from .taurusmainwindow import *
