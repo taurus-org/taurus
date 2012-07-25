@@ -42,7 +42,6 @@ import taurus.qt.qtgui.resource
 from taurus.qt.qtgui.container import TaurusWidget as WIDGET_CLASS
 from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS
 from taurus.qt.qtgui.display import TaurusStateLed as LED_CLASS
-from taurus.qt.qtgui.panel.taurusvalue import TaurusValue as VALUE_CLASS
 from taurus.qt.qtgui.panel.taurusform import TaurusForm as FORM_CLASS
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm as COMMAND_CLASS
 
