@@ -566,9 +566,9 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     """Base class for all Taurus Graphics Items"""
     
     def __init__(self, name = None, parent = None):
+        self.call__init__(TaurusBaseComponent, name, parent) #<- log created here
+        self.debug('TaurusGraphicsItem(%s,%s)' % (name,parent))
         self._name = name or self.__class__.__name__ #srubio@cells.es: modified to store ._name since initialization (even if a model is not set)
-        self.call__init__(TaurusBaseComponent, name, parent)
-        self._name = None #@todo A set/getGraphicName getter/setter should be implemented
         self._currFgBrush = None
         self._currBgBrush = None
         self._currText = None
@@ -576,7 +576,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self._map = None
         self._default = None
         self._visible = None
-        self.getExtensions()        
+        #self.getExtensions() <= It must be called AFTER set_common_params() in getGraphicsItem()
         self._contextMenu = []
         
     def setContextMenu(self,menu):
@@ -600,9 +600,12 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.noPrompt = self._extensions.get('noPrompt',False)
         self.standAlone = self._extensions.get('standAlone',False)
         self.noTooltip = self._extensions.get('noTooltip',False)
-        self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)            
-        self.setToolTip('' if self.noTooltip else str(self._name))
-        self.debug('getExtensions(): %s'%self._extensions)
+        self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
+        self._name = self._extensions.get('name',self._name)
+        tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
+        self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
+        self.setToolTip(tooltip)
+        self.debug('%s.getExtensions(): %s'%(self._name,self._extensions))
         return self._extensions
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -943,6 +946,8 @@ class TaurusBaseGraphicsFactory:
         item = klass()
         ## It's here were Attributes are subscribed
         self.set_common_params(item,params)
+        if hasattr(item,'getExtensions'):
+            item.getExtensions() #<= must be called here to take extensions from params
         return item
 
     def getNameParam(self):
