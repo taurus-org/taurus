@@ -3,15 +3,15 @@
 .. _pool-countertimer-overview:
 
 =======================
-Counter/Timer overview
+Counter/timer overview
 =======================
 
-.. todo:: document Counter/Timer overview
+.. todo:: document counter/timer overview
 
 .. seealso:: 
     
     :ref:`pool-countertimer-api`
-        the Counter/Timer :term:`API` 
+        the counter/timer :term:`API` 
     
     :class:`~sardana.tango.pool.CTExpChannel.CTExpChannel`
-        the Counter/Timer tango device :term:`API`
+        the counter/timer tango device :term:`API`

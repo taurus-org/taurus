@@ -7,7 +7,7 @@ Sardana development guidelines
 Overview
 ---------
 
-This document describes taurus from the perspective of developers. Most 
+This document describes sardana from the perspective of developers. Most 
 importantly, it gives information for people who want to contribute to the 
 development of sardana. So if you want to help out, read on!
 
@@ -42,9 +42,9 @@ Documentation
 
 All standalone documentation should be written in plain text (``.rst``) files
 using reStructuredText_ for markup and formatting. All such
-documentation should be placed in directory :file:`docs/source` of the taurus
+documentation should be placed in directory :file:`docs/source` of the sardana
 source tree. The documentation in this location will serve as the main source
-for taurus documentation and all existing documentation should be converted
+for sardana documentation and all existing documentation should be converted
 to this format.
 
 Coding conventions
@@ -57,7 +57,7 @@ Coding conventions
 * Use 4 spaces for indentation
 * In the same file, different classes should be separated by 2 lines
 * use ``lowercase`` for module names. If possible prefix module names with the
-  word ``taurus`` (like :file:`taurusutil.py`) to avoid import mistakes.
+  word ``sardana`` (like :file:`sardanautil.py`) to avoid import mistakes.
 * use ``CamelCase`` for class names
 * python module first line should be::
 

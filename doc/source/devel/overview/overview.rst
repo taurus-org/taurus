@@ -15,9 +15,11 @@ system and basic computer science.
 Architecture
 -------------
 
-Sardana is a distributed control system. It is based on the
-:term:`client-server model`. The communication protocols between servers and
-clients are :term:`plug-ins <plug-in>` in sardana. At this time, the only
+Sardana consists of a software library which contains sardana kernel engine, a
+server and a client library which allow sardana to run as a
+:term:`client-server <client-server model>` based distributed control system.
+The communication protocols between servers and clients are
+:term:`plug-ins <plug-in>` in sardana. At this time, the only
 implemented protocol is Tango_. In earlier versions, sardana was tightly
 connected to Tango_. This documentation, is therefore centered in the
 Tango_ server implementation. When other comunication protocols become
@@ -32,7 +34,8 @@ sardana server or of *configuring* it.
 Sardana server (:term:`SDS`)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The sardana server consists of a sardana tango device server (:term:`SDS`).
+The sardana server consists of a sardana tango device server (:term:`SDS`)
+running a sardana kernel engine.
 This server runs as an :term:`OS` :term:`daemon`. Once configured, this server
 acts as a container of device objects which can be accessed by the outside
 world as *tango device objects*.

@@ -9,7 +9,7 @@ Developer's Guide
     
     Overview <overview/index>
     howto_macros/index
-    Writting controllers <howto_controllers>
+    howto_controllers/index
     API <api/api_sardana>
     Migration guide <guide_migration>
     Examples <examples/examples>

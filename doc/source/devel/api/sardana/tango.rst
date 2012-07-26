@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.tango
 
-:mod:`sardana.tango`
+:mod:`~sardana.tango`
 ============================
 
 .. automodule:: sardana.tango

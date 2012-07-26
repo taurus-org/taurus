@@ -13,9 +13,8 @@ Counter/Timer API reference
     :ref:`pool-countertimer-overview`
         the counter/timer overview 
     
-..    :class:`~sardana.pool.poolcountertimer.PoolCounterTimer`
-..        the counter/timer class :term:`API`
-
     :class:`~sardana.tango.pool.CTExpChannel.CTExpChannel`
         the counter/timer tango device :term:`API`
 
+..    :class:`~sardana.pool.poolcountertimer.PoolCounterTimer`
+..        the counter/timer class :term:`API`

@@ -42,6 +42,7 @@ Controller
     :parts: 1
     
 .. autoclass:: Controller
+    :private-members: __init__
     :show-inheritance:
     :members:
     :undoc-members:

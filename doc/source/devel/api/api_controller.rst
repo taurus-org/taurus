@@ -50,7 +50,8 @@ Here is an example on how to define extra attributes per axis:
     2. ReflectionMatrix: a 2D readable float with customized getter method
     
 ::
-
+    
+    from sardana import State, DataAccess
     from sardana.pool.controller import MotorController, \
         Type, Description, DefaultValue, Access, FGet, FSet
         
@@ -62,11 +63,11 @@ Here is an example on how to define extra attributes per axis:
                                 Description : 'motor encoder source', },
 
             'ReflectionMatrix' : { Type : ( (float,), ),
-                                   Access : 'read',
+                                   Access : DataAccess.ReadOnly,
                                    FGet : 'getReflectionMatrix', },
         }
         
-        def getAxisPar(self, axis, name):
+        def getAxisExtraPar(self, axis, name):
             name = name.lower()
             if name == 'encodersource':
                 return self._encodersource[axis]

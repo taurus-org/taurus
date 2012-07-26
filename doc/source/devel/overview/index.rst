@@ -10,8 +10,12 @@ Overview
     
     Global overview <overview>
     Macro Server <overview_macroserver>
-    Device Pool <overview_pool>
+    Pool <overview_pool>
     Controller <overview_controller>
     Motor <overview_motor>
-    Counter/Timer <overview_countertimer>
+    Pseudo motor <overview_pseudomotor>
+    IO register <overview_IOR>
+    Counter/timer <overview_countertimer>
+    0D experiment channel <overview_0D>
+    Pseudo counter <overview_pseudocounter>
 

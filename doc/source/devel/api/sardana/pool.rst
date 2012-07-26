@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool
 
-:mod:`sardana.pool`
+:mod:`~sardana.pool`
 ====================
 
 .. automodule:: sardana.pool

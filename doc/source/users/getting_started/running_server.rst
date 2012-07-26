@@ -4,6 +4,7 @@ Running Sardana as a tango server
 ---------------------------------
 
 .. note::
+
     if you have Tango <= 7.2.6 without all patches applied, Sardana server
     will not work due to a known bug. Please follow the instructions from
     :ref:`getting-started-running-servers-separately` instead.
@@ -45,6 +46,7 @@ Running Pool and MacroServer tango servers separately
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
+
     You should only read this chapter if you are if you have Tango <= 7.2.6
     without all patches applied. If you do, please follow in instructions from
     :ref:`getting-started-running-server` instead.

@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.macroserver
 
-:mod:`sardana.macroserver`
+:mod:`~sardana.macroserver`
 ============================
 
 .. automodule:: sardana.macroserver
