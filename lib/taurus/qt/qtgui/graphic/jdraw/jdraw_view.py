@@ -103,10 +103,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         ifile = Qt.QFileDialog.getOpenFileName( self, 'Load JDraw File', '', 'JDraw File (*.jdw)')
         if ifile.isEmpty(): return
         if not isinstance(ifile,file):
-            #clear TaurusPLot - emit sygnal
-            #self.emit(Qt.SIGNAL("clearTaurusPlot"))
             fileName = ifile.split("/")
-            #self.emit(Qt.SIGNAL("setTopItemName"),fileName[-1])
             self._fileName = fileName[-1]
             self.setModel(ifile)
         return fileName[-1]
@@ -292,10 +289,9 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.setScene(scene)
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
-                #self.emit_signal()
             else:
                 self.setScene(None)
-                #self.emit_signal()
+            
             #The emitted signal contains the filename and a dictionary with the name of items and its color
             self.emitColors()#get_item_colors(emit=True)
 
