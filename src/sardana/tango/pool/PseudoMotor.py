@@ -89,7 +89,7 @@ class PseudoMotor(PoolElementDevice):
                 pseudo_motor.set_instrument(self.instrument)
         pseudo_motor.add_listener(self.on_pseudo_motor_changed)
         pseudo_motor.set_drift_correction(self.DriftCorrection)
-        # force a state read to initialize the state attribute
+        
         self.set_state(DevState.ON)
 
     def on_pseudo_motor_changed(self, event_source, event_type, event_value):

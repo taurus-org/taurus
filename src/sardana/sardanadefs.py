@@ -26,7 +26,8 @@
 """This module contains the most generic sardana constants and enumerations"""
 
 __all__ = ["EpsilonError", "SardanaServer", "ServerRunMode", "State",
-           "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "DACCESS_MAP",
+           "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "R_DTYPE_MAP",
+           "DACCESS_MAP",
            "from_dtype_str", "from_access_str", "to_dtype_dformat",
            "to_daccess", "InvalidId", "InvalidAxis", "ElementType",
            "Interface", "Interfaces", "InterfacesExpanded",
@@ -138,6 +139,29 @@ DTYPE_MAP = {
     bool             : DataType.Boolean,
     DataType.Boolean : DataType.Boolean,
 }
+
+#: dictionary dict<data type, :class:`sardana.DataType`>
+R_DTYPE_MAP = { 
+    'int'            : int,
+    'integer'        : int,
+    int              : int,
+    long             : int,
+    'long'           : int,
+    DataType.Integer : int,
+    'float'          : float,
+    'double'         : float,
+    float            : float,
+    DataType.Double  : float,
+    'str'            : str,
+    'string'         : str,
+    str              : str,
+    DataType.String  : str,
+    'bool'           : bool,
+    'boolean'        : bool,
+    bool             : bool,
+    DataType.Boolean : bool,
+}
+
 #DTYPE_MAP.setdefault(DataType.Invalid)
 
 #: dictionary dict<access type, :class:`sardana.DataAccess`>

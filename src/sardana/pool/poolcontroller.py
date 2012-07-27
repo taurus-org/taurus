@@ -433,6 +433,7 @@ class PoolController(PoolBaseController):
     def get_axis_par(self, axis, name):
         #return self.ctrl.GetAxisPar(unit, axis, name, value)
         return self.ctrl.GetAxisPar(axis, name)
+               
 
     # END API WHICH ACCESSES CONTROLLER API ------------------------------------
     

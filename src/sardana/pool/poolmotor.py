@@ -38,6 +38,7 @@ from sardana import EpsilonError, State, ElementType, \
 from sardana.sardanaattribute import SardanaAttribute, ScalarNumberAttribute, \
     SardanaSoftwareAttribute
 from sardana.sardanaevent import EventType
+from sardana.sardanautils import assert_type
 
 from poolelement import PoolElement
 from poolmotion import PoolMotion, MotionState
@@ -89,6 +90,13 @@ class PoolMotor(PoolElement):
 
     def _from_ctrl_state_info(self, state_info):
         state_info, error = state_info
+        
+        try:
+            state_str = State.whatis(state_info)
+            return int(state_info), "{0} is in {1}".format(self.name, state_str), 0
+        except KeyError:
+            pass
+        
         if len(state_info) > 2:
             state, status, ls = state_info[:3]
         else:
@@ -296,8 +304,10 @@ class PoolMotor(PoolElement):
             self.get_position(cache=False, propagate=2)
 
     def read_step_per_unit(self):
-        return self.controller.get_axis_par(self.axis, "step_per_unit")
-
+        step_per_unit = self.controller.get_axis_par(self.axis, "step_per_unit")
+        assert_type(float, step_per_unit)
+        return step_per_unit
+        
     step_per_unit = property(get_step_per_unit, set_step_per_unit,
                              doc="motor steps per unit")
 
@@ -322,7 +332,9 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("acceleration", priority=propagate), acceleration)
 
     def read_acceleration(self):
-        return self.controller.get_axis_par(self.axis, "acceleration")
+        acceleration = self.controller.get_axis_par(self.axis, "acceleration")
+        assert_type(float, acceleration)
+        return acceleration
 
     acceleration = property(get_acceleration, set_acceleration,
                             doc="motor acceleration")
@@ -348,8 +360,10 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("deceleration", priority=propagate), deceleration)
 
     def read_deceleration(self):
-        return self.controller.get_axis_par(self.axis, "deceleration")
-
+        deceleration = self.controller.get_axis_par(self.axis, "deceleration")
+        assert_type(float, deceleration)
+        return deceleration
+        
     deceleration = property(get_deceleration, set_deceleration,
                             doc="motor deceleration")
     # --------------------------------------------------------------------------
@@ -373,7 +387,9 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("base_rate", priority=propagate), base_rate)
 
     def read_base_rate(self):
-        return self.controller.get_axis_par(self.axis, "base_rate")
+        base_rate = self.controller.get_axis_par(self.axis, "base_rate")
+        assert_type(float, base_rate)
+        return base_rate
 
     base_rate = property(get_base_rate, set_base_rate,
                          doc="motor base rate")
@@ -399,8 +415,10 @@ class PoolMotor(PoolElement):
         self.fire_event(EventType("velocity", priority=propagate), velocity)
 
     def read_velocity(self):
-        return self.controller.get_axis_par(self.axis, "velocity")
-
+        velocity = self.controller.get_axis_par(self.axis, "velocity")
+        assert_type(float, velocity)
+        return velocity
+        
     velocity = property(get_velocity, set_velocity,
                         doc="motor velocity")
 

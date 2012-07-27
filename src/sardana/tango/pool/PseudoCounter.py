@@ -86,7 +86,7 @@ class PseudoCounter(PoolElementDevice):
             if self.instrument is not None:
                 pseudo_counter.set_instrument(self.instrument)
         pseudo_counter.add_listener(self.on_pseudo_counter_changed)
-        # force a state read to initialize the state attribute
+        
         self.set_state(DevState.ON)
 
     def on_pseudo_counter_changed(self, event_source, event_type,

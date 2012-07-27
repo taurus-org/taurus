@@ -93,8 +93,8 @@ class MeasurementGroup(PoolGroupDevice):
         mg.add_listener(self.on_measurement_group_changed)
 
         # force a state read to initialize the state attribute
-        self.set_state(DevState.ON)
         #state = self.measurement_group.state
+        self.set_state(DevState.ON)
 
     def on_measurement_group_changed(self, event_source, event_type, event_value):
 

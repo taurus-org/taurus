@@ -90,7 +90,13 @@ NotMemorized = "false"
 
 
 class Controller(object):
-    """Base controller class. Do **NOT** inherit from this class directly"""
+    """Base controller class. Do **NOT** inherit from this class directly
+    
+    :param str inst: controller instance name
+    :param dict props: a dictionary containning pairs of property name,
+                       property value
+    :arg args: 
+    :keyword kwargs:"""
 
     #: .. deprecated:: 1.0
     #:     use :attr:`~Controller.ctrl_properties` instead
@@ -148,27 +154,25 @@ class Controller(object):
     #:
     #:     - for :obj:`Access`, value is one of 
     #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
-    #:       (case insensitive) strings are also accepted)
+    #:       (case insensitive) strings are also accepted) [default: ReadWrite]
     #:
     #:     - for :obj:`Description`, value is a :obj:`str` description of the
-    #:       attribute
+    #:       attribute [default: "" (empty string)]
     #:
     #:     - for :obj:`FGet`, value is a :obj:`str` with the method name for
-    #:       the attribute getter. If is not given it defaults to
-    #:       "get"<controller attribute name>
+    #:       the attribute getter [default: "get"<controller attribute name>]
     #:
     #:     - for :obj:`FSet`, value is a :obj:`str` with the method name for
-    #:       the attribute setter. If is not given and
-    #:       :obj:`Access` = "read_write" it defaults to
-    #:       "set"<controller attribute name>
+    #:       the attribute setter. [default, if :obj:`Access` = "read_write":
+    #:       "set"<controller attribute name>]
     #:
     #:     - for :obj:`DefaultValue`, value is a python object or None if no
     #:       default value exists for the attribute. If given, the attribute is
     #:       set when the controller is first created.
     #:
     #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
-    #:       :obj:`Memorized` (default), :obj:`MemorizedNoInit` and
-    #:       :obj:`NotMemorized`
+    #:       :obj:`Memorized`, :obj:`MemorizedNoInit` and
+    #:       :obj:`NotMemorized` [default: :obj:`Memorized`]
     #:
     #:       .. versionadded:: 1.1
     #:
@@ -215,8 +219,8 @@ class Controller(object):
     #:       set when the axis is first created.
     #:
     #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
-    #:       :obj:`Memorized` (default), :obj:`MemorizedNoInit` and
-    #:       :obj:`NotMemorized`
+    #:       :obj:`Memorized`, :obj:`MemorizedNoInit` and
+    #:       :obj:`NotMemorized` [default: :obj:`Memorized`]
     #:
     #:       .. versionadded:: 1.1
     #:
@@ -637,12 +641,15 @@ class MotorController(Controller, Startable, Stopable, Readable):
     respectively in order to maintain backward compatibility).
     """
 
+    #: A constant representing no active switch.
+    NoLimitSwitch = 0
+
     #: A constant representing an active *home* switch.
     #: You can *OR* two or more switches together. For example, to say both
     #: upper and lower limit switches are active::
     #:
     #:    limit_switches = self.HomeLimitSwitch | self.LowerLimitSwitch
-    HomeLimitSwitch  = 1
+    HomeLimitSwitch = 1
 
     #: A constant representing an active *upper limit* switch.
     #: You can *OR* two or more switches together. For example, to say both
@@ -731,11 +738,13 @@ class MotorController(Controller, Startable, Stopable, Readable):
         return Controller.GetAxisAttributes(self, axis)
 
     def DefinePosition(self, axis, position):
-        """**Motor Controller API**.  Override is MANDATORY!
-           Default implementation raises :exc:`NotImplementedError`
+        """**Motor Controller API**. Override is recommended!
+           This method is called to load a new motor position.
+           Default implementation does nothing.
         """
-        raise NotImplementedError("DefinePosition must be defined in the "
-                                  "controller")
+#        raise NotImplementedError("DefinePosition must be defined in the "
+#                                  "controller")
+        pass
 
 
 class CounterTimerController(Controller, Readable, Startable, Stopable):

@@ -610,7 +610,7 @@ class PoolElementDevice(PoolDevice):
             raise Exception("Cannot read %s. Controller not build!" % name)
         v = ctrl.get_axis_attr(self.element.axis, name)
         if v is None:
-            raise Exception("Cannot read %s. Controller returns %s" % (name, v))
+            raise TypeError("Cannot read %s. Controller returns None" % (name,))
         attr.set_value(v)
 
     def write_DynamicAttribute(self, attr):

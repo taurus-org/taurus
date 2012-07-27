@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevFailed, Except, \
+from PyTango import DevFailed, Except, DevState, \
     DevDouble, AttrQuality, READ_WRITE, SPECTRUM
 
 from taurus.core.util.log import DebugIt
@@ -87,7 +87,8 @@ class MotorGroup(PoolGroupDevice):
                 self.pool.create_motor_group(name=name, id=self.Id,
                     full_name=full_name, user_elements=self.Elements)
         motor_group.add_listener(self.on_motor_group_changed)
-
+        self.set_state(DevState.ON)
+        
     def on_motor_group_changed(self, event_source, event_type, event_value):
         try:
             self._on_motor_group_changed(event_source, event_type, event_value)

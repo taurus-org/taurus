@@ -90,8 +90,9 @@ class Controller(PoolDevice):
             ctrl = self.pool.create_controller(**args)
             ctrl.add_listener(self.on_controller_changed)
             self.ctrl = ctrl
-            self.set_state(to_tango_state(ctrl.get_state()))
-            self.set_status(ctrl.get_status())
+            self.set_state(DevState.ON)
+            #self.set_state(to_tango_state(ctrl.get_state()))
+            #self.set_status(ctrl.get_status())
         else:
             ctrl.re_init()
 

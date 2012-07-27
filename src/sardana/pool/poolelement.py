@@ -101,8 +101,9 @@ class PoolBaseElement(PoolObject):
         return ret
      
     # --------------------------------------------------------------------------
-    # state
+    # simulation mode
     # --------------------------------------------------------------------------
+
     def get_simulation_mode(self, cache=True, propagate=1):
         """Returns the simulation mode for this object.
         
@@ -277,6 +278,11 @@ class PoolBaseElement(PoolObject):
         self.set_state_info(state_info, propagate=0)
         
     def _from_ctrl_state_info(self, state_info):
+        try:
+            state_str = State.whatis(state_info)
+            return int(state_info), "{0} is in {1}".format(self.name, state_str)
+        except KeyError:
+            pass
         state_info, error = state_info
         state, status = state_info[:2]
         state = int(state)

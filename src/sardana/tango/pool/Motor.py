@@ -177,7 +177,6 @@ Backlash        Tango::DevLong     Scalar       R/W       Yes        Exp
     
     - Data[2] : The Lower switch value
     
-    
 - **SimulationMode** : This is a read only scalar boolean attribute. When set,
   all motion requests are not forwarded to the software controller and then to
   the hardware. When set, the motor position is simulated and is immediately
@@ -308,6 +307,7 @@ with this value is sent to clients using events.
             if self.Sleep_bef_last_read > 0:
                 motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
         motor.add_listener(self.on_motor_changed)
+        self.set_state(DevState.ON)
 
     def on_motor_changed(self, event_source, event_type, event_value):
         try:

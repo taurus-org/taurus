@@ -87,7 +87,6 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     @DebugIt()
     def init_device(self):
-        self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
         p = self.pool
         p.set_python_path(self.PythonPath)
@@ -122,6 +121,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         self.set_change_event("Elements", True, False)
         #hold the monitor thread for now!
         #self.pool.monitor.resume()
+        self.set_state(PyTango.DevState.ON)
 
     def _recalculate_instruments(self):
         il = self.InstrumentList = list(self.InstrumentList)

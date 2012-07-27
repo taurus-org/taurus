@@ -84,8 +84,10 @@ class IORegister(PoolElementDevice):
             if self.instrument is not None:
                 ior.set_instrument(self.instrument)
         ior.add_listener(self.on_ior_changed)
-        # force a state read to initialize the state attribute
-        state = ior.get_state(cache=False)
+        
+        ## force a state read to initialize the state attribute
+        #state = ior.get_state(cache=False)
+        self.set_state(DevState.ON)
 
     def on_ior_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element

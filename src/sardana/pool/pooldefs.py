@@ -33,4 +33,4 @@ from taurus.core.util import Enumeration
 from taurus.core.tango.sardana import AcqTriggerType, AcqMode
 
 #: A constant defining the controller API version currently supported
-ControllerAPI = 1
+ControllerAPI = 1.1

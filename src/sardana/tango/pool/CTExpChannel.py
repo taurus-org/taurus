@@ -86,8 +86,9 @@ class CTExpChannel(PoolElementDevice):
                 ct.set_instrument(self.instrument)
         ct.add_listener(self.on_ct_changed)
 
-        # force a state read to initialize the state attribute
-        state = ct.state
+        ## force a state read to initialize the state attribute
+        #state = ct.state
+        self.set_state(DevState.ON)
 
     def on_ct_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element

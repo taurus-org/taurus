@@ -85,8 +85,10 @@ class ZeroDExpChannel(PoolElementDevice):
                     full_name=full_name, id=self.Id, axis=self.Axis,
                     ctrl_id=self.Ctrl_id)
         zerod.add_listener(self.on_zerod_changed)
-        # force a state read to initialize the state attribute
-        state = zerod.state
+        
+        ## force a state read to initialize the state attribute
+        #state = zerod.state
+        self.set_state(DevState.ON)
 
     def on_zerod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
