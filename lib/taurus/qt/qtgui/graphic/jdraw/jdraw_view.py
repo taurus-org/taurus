@@ -34,8 +34,8 @@ import traceback
 import subprocess
 from taurus.qt import Qt
 from taurus.core import DeviceNameValidator,AttributeNameValidator
+from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
-
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser
 
@@ -119,6 +119,10 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def get_item_list(self):
         return [item._name for item in self.scene().items() if hasattr(item,'_name') and item._name]
     
+    def get_device_list(self):
+        items = [(item,parseTangoUri(item)) for item in self.get_item_list()]
+        return list(set(v['devicename'] for k,v in items if v)) 
+    
     def get_item_colors(self,emit = False):
         item_colors = {}
         try:
@@ -152,8 +156,12 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
 
     def get_sizes(self):
         srect = self.scene().sceneRect()
-        sizes = [self.size(),self.sizeHint(),srect.size(),self.parent().size()]
-        return tuple([x for s in sizes for x in [s.width(),s.height()]])
+        sizes = [x for s in (self.size(),self.sizeHint(),srect.size()) for x in (s.width(),s.height())]
+        try:
+            s = self.parent().size()
+            sizes.extend([s.width(),s.height()])
+        except: sizes.extend([0,0])
+        return tuple(sizes)
     
     def fitting(self,ADJUST_FRAME = False):
         """
