@@ -51,7 +51,7 @@ from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm as COMMAND_CLASS
 # Variables that control TaurusDevicePanel shape
 
 STATUS_HEIGHT=170
-SPLIT_SIZES=[] #[15,50,35]
+SPLIT_SIZES=[15,65,20]
 IMAGE_SIZE=(200,100) #(width,height)
 
 # Helper methods
@@ -201,9 +201,9 @@ class TaurusDevicePanel(WIDGET_CLASS):
         self._splitter.insertWidget(0,self._header)
         self._splitter.insertWidget(1,self._attrsframe)
         self._splitter.insertWidget(2,self._statusframe)
-        self._splitter.setStretchFactor(0,15)
-        self._splitter.setStretchFactor(1,65)
-        self._splitter.setStretchFactor(2,20)
+        self._splitter.setSizes(SPLIT_SIZES)
+        [self._splitter.setStretchFactor(i,v) for i,v in enumerate(SPLIT_SIZES)]
+        self._splitter.setCollapsible(0,False)
         self._splitter.setCollapsible(1,False)
         
         if model: self.setModel(model)
@@ -251,9 +251,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
                     if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
                     if not TaurusDevicePanel.READ_ONLY:
                         self._comms = self.get_comms_form(model,self._comms,self)
-                        if self._comms: 
-                            self._attrsframe.addTab(self._comms,'Commands')
-                            self._comms._splitter.setSizes([50,50])
+                        if self._comms: self._attrsframe.addTab(self._comms,'Commands')
                 except:
                     self.warning( traceback.format_exc())
                     qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
@@ -312,7 +310,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
                     wid.setDangerMessage('This action may affect other systems!')
             #form._splitter.setStretchFactor(1,70)
             #form._splitter.setStretchFactor(0,30)
-            form._splitter.setSizes([50,50])
+            form._splitter.setSizes([80,20])
         except Exception,e: 
             self.warning('Unable to setModel for TaurusDevicePanel.comms_form!!: %s'%traceback.format_exc())
         return form
