@@ -51,6 +51,14 @@ import taurus.core.util
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
 
+def parseTangoUri(name):
+    from taurus.core import tango,AttributeNameValidator,DeviceNameValidator
+    validator = {tango.TangoDevice:DeviceNameValidator,tango.TangoAttribute:AttributeNameValidator}
+    try: 
+        params = validator[tango.TangoFactory().findObjectClass(name)]().getParams(name)
+        return (params if 'devicename' in params else None)
+    except: 
+        return None
 
 class TaurusGraphicsUpdateThread(Qt.QThread):
     
@@ -177,6 +185,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self.updateThread = None
         self._itemnames = taurus.core.util.CaselessDefaultDict(lambda k:set())
         self._selection = []
+        self._selectedItems = []
         self.threads = []
         self.pids = []
         
@@ -235,9 +244,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
             obj = self.itemAt(x,y)
             obj_name = getattr(obj,'_name', '')
-            self.debug('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
+            self.info('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
             
             if (mouseEvent.button() == Qt.Qt.LeftButton):
+                self.clearSelection()
+                self._selectedItems.append(obj)
                 self.selectGraphicItem(obj_name) # A null obj_name should deselect all, we don't send obj because we want all similar to be matched
                 self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name) # A null obj_name should deselect all
                 
@@ -307,7 +318,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         """      
         #self.info('In TaurusGraphicsScene.selectGraphicItem(%s))',item_name)
         retval = False
-        self.clearSelection()
+        if self._selection: self.clearSelection()
         if any(isinstance(item_name,t) for t in (TaurusGraphicsItem,Qt.QGraphicsItem)):
             if not getattr(item_name,'_name', ''): 
                 self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found.'%item_name)
@@ -319,11 +330,14 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
                 return False
             items = self.getItemByName(item_name) or []
-            self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
+            self.info('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
         for item in items:
             try:
-                if isinstance(item,TaurusGraphicsItem) and item.getExtensions().get('noSelect'):
+                if ( (isinstance(item,TaurusGraphicsItem) and item.getExtensions().get('noSelect'))
+                    or (item in self._selection)
+                    #or (item in tangoGroup)
+                    ):
                     continue
                 x,y = item.x(),item.y() 
                 rect = item.boundingRect()
@@ -334,12 +348,13 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     x,y =  rx,ry #If the object is in the corner it will be also 0
                 w,h= rect.width(),rect.height()
                 if x<0 or y<0: 
-                    self.warning('Cannot draw SelectionMark for %s(%s)(%s,%s) in a negative position (%f,%f)' % (type(item).__name__,item._name,w,h,x,y))
+                    self.debug('Cannot draw SelectionMark for %s(%s)(%s,%s) in a negative position (%f,%f)' % (type(item).__name__,item._name,w,h,x,y))
                 else:
                     if type(item) in (TaurusTextAttributeItem,TaurusTextStateItem) and isinstance(self.getSelectionMark(),Qt.QGraphicsPixmapItem):
                         x,y,w,h = x-20,y,20,20
                     self.drawSelectionMark(x,y,w,h)
                     self.debug('> Moved the SelectionMark to item %s(%s)(%s,%s) at %f,%f' % (type(item).__name__,item._name,w,h,x,y))
+                if item not in self._selectedItems: self._selectedItems.append(item)
                 retval = True
             except Exception,e:
                 self.warning('selectGraphicsItem(%s) failed! %s' % (getattr(item,'_name',item),str(e)))
@@ -353,6 +368,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             i.hide()
             self.removeItem(i)
         self._selection = []
+        self._selectedItems = []
         self.updateSceneViews()
 
     def setSelectionMark(self,picture=None,w=10,h=10):
@@ -568,16 +584,24 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     def __init__(self, name = None, parent = None):
         self.call__init__(TaurusBaseComponent, name, parent) #<- log created here
         self.debug('TaurusGraphicsItem(%s,%s)' % (name,parent))
-        self._name = name or self.__class__.__name__ #srubio@cells.es: modified to store ._name since initialization (even if a model is not set)
+        self.setName(name)
         self._currFgBrush = None
         self._currBgBrush = None
         self._currText = None
-        self._currHtmlText = None        
+        self._currHtmlText = None
         self._map = None
         self._default = None
         self._visible = None
         #self.getExtensions() <= It must be called AFTER set_common_params() in getGraphicsItem()
         self._contextMenu = []
+        
+    def setName(self,name):
+        #print 'In %s.setName(%s)' % (self.__class__.__name__,name)
+        name = str(name or self.__class__.__name__)
+        self._name = name#srubio@cells.es: modified to store ._name since initialization (even if a model is not set)
+        
+    def getName(self):
+        return self._name
         
     def setContextMenu(self,menu):
         '''Context Menu must be a list of tuples (ActionName,ActionMethod), empty tuples insert separators between options.'''
@@ -601,7 +625,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.standAlone = self._extensions.get('standAlone',False)
         self.noTooltip = self._extensions.get('noTooltip',False)
         self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
-        self._name = self._extensions.get('name',self._name)
+        self.setName(self._extensions.get('name',self._name))
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
         self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
         self.setToolTip(tooltip)
@@ -614,7 +638,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
 
     def setModel(self,model):
         #self.info('In %s.setModel(%s)'%(type(self).__name__,model))
-        self._name = str(model)
+        self.setName(model)
         if taurus.core.TaurusManager().findObjectClass(self._name) == taurus.core.tango.TangoDevice:
             model = self._name+'/state'
         TaurusBaseComponent.setModel(self, model)        
@@ -723,7 +747,7 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
                 if self.getModelObj().getType() == PyTango.ArgType.DevState:
                     bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush(v.value)
                 elif self.getModelObj().getType() == PyTango.ArgType.DevBoolean:
-                    bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush((PyTango.DevState.FAULT,PyTango.DevState.ON)[v.value])                    
+                    bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush((PyTango.DevState.FAULT,PyTango.DevState.ON)[v.value])
                 elif self.getShowQuality():
                     bg_brush, fg_brush = QT_ATTRIBUTE_QUALITY_PALETTE.qbrush(v.quality)            
                 if None not in (bg_brush,fg_brush):
@@ -938,6 +962,11 @@ class TaurusBaseGraphicsFactory:
                 params[self.getNameParam()] = name
         cls = None
         if '/' in name:
+            #replacing Taco identifiers in %s'%name
+            if name.lower().startswith('tango:') and (name.count('/')==2 or not 'tango:/' in name.lower()): 
+                nname = name.split(':',1)[-1]
+                print '%s => %s' % (name,nname)
+                params[self.getNameParam()] = name = nname
             if name.lower().endswith('/state'): name = name.rsplit('/',1)[0]
             cls = taurus.core.TaurusManager().findObjectClass(name)
         else: 
@@ -948,6 +977,9 @@ class TaurusBaseGraphicsFactory:
         self.set_common_params(item,params)
         if hasattr(item,'getExtensions'):
             item.getExtensions() #<= must be called here to take extensions from params
+        if 'text' in klass.__name__.lower():
+            #print '\tadjusting %s font size'%klass.__name__
+            item.scale(.8,.8)
         return item
 
     def getNameParam(self):
