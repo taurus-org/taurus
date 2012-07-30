@@ -40,6 +40,12 @@ except ImportError:
     set_src()
     import sardana
 
+as_pdf_extension = True
+try:
+    import rst2pdf.pdfbuilder
+except ImportError:
+    as_pdf_extension = False
+    
 def fix_sardana_for_doc():
     
     def type_getattr(self, name):
@@ -75,9 +81,12 @@ extensions = ['sphinx.ext.pngmath',
               'sardanaextension',
               'ipython_console_highlighting',
               'spock_console_highlighting',
-#              'rst2pdf.pdfbuilder',
+              'rst2pdf.pdfbuilder',
 ]
 
+if as_pdf_extension:
+    extensions.append('rst2pdf.pdfbuilder')
+    
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

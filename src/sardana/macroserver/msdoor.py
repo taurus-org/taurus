@@ -134,7 +134,8 @@ class MSDoor(MSObject):
         macro = self.running_macro
         if macro is None:
             raise Exception("No macro has run so far!")
-        return macro.getData()
+        data = macro.data
+        return data
 
     def set_pylab_handler(self, ph):
         self._pylab_handler = ph

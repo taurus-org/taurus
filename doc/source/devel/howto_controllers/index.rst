@@ -93,6 +93,7 @@ As you will see, most symbols can be imported through the
     
     class SpringfieldMotorController(MotorController):
         """A motor controller intended from demonstration purposes only"""
+        pass
 
 The common :term:`API` to all low level controllers includes the set of methods
 to:
@@ -131,7 +132,7 @@ The example shows how to implement a constructor:
             super(SpringfieldMotorController, self).__init__(inst, props, *args, **kwargs)
             
             # initialize hardware communication
-            self.springfield = springfieldlib.SpringfieldMotorController()
+            self.springfield = springfieldlib.SpringfieldMotorHW()
             
             # do some initialization
             self._motors = {}
@@ -151,11 +152,9 @@ called when a motor belonging to the controller is removed from sardana.
 The example shows an example how to implement these methods:
 
 .. code-block:: python
-    :emphasize-lines: 3, 5, 8
+    :emphasize-lines: 3, 6
     
     class SpringfieldMotorController(MotorController):
-
-        MaxDevice = 128
 
         def AddDevice(self, axis):
             self._motors[axis] = True 
@@ -163,10 +162,6 @@ The example shows an example how to implement these methods:
         def DeleteDevice(self, axis):
             del self._motor[axis]
 
-First you need to specify the maximum number of motors this controller is
-capable of handling. This is done in line 3 through the usage of the class
-member ``MaxDevice``.
-  
 The code in the example initializes/clears a certain item in the *_motors*
 dictionary that was previously created in the constructor. The specific code
 for your controller will probably be completely different.
@@ -180,15 +175,16 @@ To get the state of a motor, sardana calls the
 :meth:`~sardana.pool.controller.Controller.StateOne` method. This method
 receives an axis as parameter and should return a sequence of three values:
 
-- state (:obj:`~sardana.sardanadefs.State` (For backward compatibility reasons,
-  it is also supported to return one of :class:`PyTango.DevState`)).
+- state (:obj:`~sardana.sardanadefs.State`)
 - status (:obj:`str`)
 - limit switches (:obj:`int`)
 
-The status could be any string. The limit switches is a integer with bits
-representing the three possible limits: home, upper and lower.
-Sardana provides three constants which can be *or*\ed together to provide the
-desired limit switch:
+The state should be a member of :obj:`~sardana.sardanadefs.State` (For backward
+compatibility reasons, it is also supported to return one of
+:class:`PyTango.DevState`). The status could be any string. The limit switches
+is a integer with bits representing the three possible limits: home, upper
+and lower. Sardana provides three constants which can be *or*\ed together to
+provide the desired limit switch:
 
 .. hlist::
     :columns: 4
@@ -415,17 +411,18 @@ This is done through the :attr:`~sardana.pool.controller.Controller.axis_attribu
 This is basically a dictionary were the keys are attribute names and the value
 is a dictionary describing the folowing properties for each attribute:
 
-===================== ========= ============================================  ================================================= =============================================
-config. parameter     Mandatory Key                                           Default value                                     Example
-===================== ========= ============================================  ================================================= =============================================
-data type & format    Yes       :obj:`~sardana.pool.controller.Type`          ---                                               :obj:`int`
-data access           No        :obj:`~sardana.pool.controller.Access`        :obj:`~sardana.pool.controller.Access.ReadWrite`  Access.ReadOnly
-description           No        :obj:`~sardana.pool.controller.Description`   "" (empty string)                                 "the motor encoder source"
-default value         No        :obj:`~sardana.pool.controller.DefaultValue`  ---                                               12345
-getter method name    No        :obj:`~sardana.pool.controller.FGet`          "get" + <name>                                    "getEncoderSource"
-setter method name    No        :obj:`~sardana.pool.controller.FSet`          "set" + <name>                                    "setEncoderSource"
-memorize value        No        :obj:`~sardana.pool.controller.Memorize`      :obj:`~sardana.pool.controller.Memorized`         :obj:`~sardana.pool.controller.NotMemorize`
-===================== ========= ============================================  ================================================= =============================================
+===================== ========= ============================================  ======================================================= ===============================================
+config. parameter     Mandatory Key                                           Default value                                           Example
+===================== ========= ============================================  ======================================================= ===============================================
+data type & format    Yes       :obj:`~sardana.pool.controller.Type`          ---                                                     :obj:`int`
+data access           No        :obj:`~sardana.pool.controller.Access`        :obj:`~sardana.pool.controller.Access.ReadWrite`        :obj:`~sardana.pool.controller.Access.ReadOnly`
+description           No        :obj:`~sardana.pool.controller.Description`   "" (empty string)                                       "the motor encoder source"
+default value         No        :obj:`~sardana.pool.controller.DefaultValue`  ---                                                     12345
+getter method name    No        :obj:`~sardana.pool.controller.FGet`          "get" + <name>                                          "getEncoderSource"
+setter method name    No        :obj:`~sardana.pool.controller.FSet`          "set" + <name>                                          "setEncoderSource"
+memorize value        No        :obj:`~sardana.pool.controller.Memorize`      :obj:`~sardana.pool.controller.Memorized`               :obj:`~sardana.pool.controller.NotMemorized`
+max dimension size    No        :obj:`~sardana.pool.controller.MaxDimSize`    Scalar: ``()``; 1D: ``(2048,)``; 2D: ``(2048, 2048)``   ``(2048,)``
+===================== ========= ============================================  ======================================================= ===============================================
 
 Here is an example of how to specify the scalar, boolean, read-write *CloseLoop*
 extra attribute in our the Springfield motor controller:
@@ -495,6 +492,109 @@ implementation:
 Sardana gives you the choice: we leave it up to you to decide which is the
 better option for your specific case.
 
+.. _pool-motorcontroller-howto-extra-controller-attributes:
+
+Extra controller attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Besides extra attributes per axis, you can also define extra attributes at the
+controller level.
+In order to do that you have to specify the extra controller attribute(s) within 
+the :attr:`~sardana.pool.controller.Controller.ctrl_attributes` member. The
+syntax for this dictionary is the same as the one used for
+:attr:`~sardana.pool.controller.Controller.axis_attributes`.
+
+Here is an example on how to specify a read-only float matrix attribute called
+*ReflectionMatrix* at the controller level:
+
+.. code-block:: python 
+
+    class SpringfieldMotorController(MotorController):
+    
+        ctrl_attributes = { 
+            "ReflectionMatrix" : {
+                    Type         : ( (float,), ),
+                    Description  : "The reflection matrix",
+                    Access : DataAccess.ReadOnly,
+                },
+        }
+        
+        def getReflectionMatrix(self):
+            return ( (1.0, 0.0), (0.0, 1.0) )
+
+Or, similar to what you can do with axis attributes:
+
+.. code-block:: python
+
+    class SpringfieldMotorController(MotorController):
+    
+        ctrl_attributes = \
+        { 
+            "ReflectionMatrix" : {
+                    Type         : ( (float,), ),
+                    Description  : "The reflection matrix",
+                    Access : DataAccess.ReadOnly,
+                },
+        }
+        
+        def GetCtrlPar(self, name):
+            if name == "ReflectionMatrix":
+                return ( (1.0, 0.0), (0.0, 1.0) )
+
+.. _pool-motorcontroller-howto-controller-properties:
+
+Controller properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A more static form of attributes can be defined at the controller level.
+These *properties* are loaded into the controller at the time of object
+construction. They are accessible to your controller at any time but it is
+not possible for a user from outside to modify them.
+The way to define :attr:`~sardana.pool.controller.Controller.ctrl_properties` is
+very similar to the way you define extra axis attributes or extra controller
+attributes.
+
+Here is an example on how to specify a host and port properties:
+
+.. code-block:: python
+
+    class SpringfieldMotorController(MotorController):
+    
+        ctrl_properties = \
+        {
+            "host" : { 
+                    Type : str,
+                    Description : "host name"
+                },
+            "port" : {
+                    Type : int, 
+                    Description : "port number",
+                    DefaultValue: springfieldlib.SpringfieldMotorHW.DefaultPort 
+               },
+        }
+
+        def __init__(self, inst, props, *args, **kwargs):
+            super(SpringfieldMotorController, self).__init__(inst, props, *args, **kwargs)
+            
+            host = self.host
+            port = self.port
+                        
+            # initialize hardware communication
+            self.springfield = springfieldlib.SpringfieldMotorHW(host=host, port=port)
+            
+            # do some initialization
+            self._motors = {}
+
+As you can see from lines 15 and 16, to access your controller properties
+simply use ``self.<property name>``. Sardana assures that every property has a
+value. In our case, when a SpringfieldMotorController is created, if port
+property is not specified by the user (example: using the ``defctrl`` macro in
+spock), sardana assignes the default value
+``springfieldlib.SpringfieldMotorHW.DefaultPort``. On the other hand, since host
+has no default value, if it is not specified by the user, sardana will complain
+and fail to create and instance of SpringfieldMotorController.
+
+
 .. _pool-motorcontroller-howto-define-position:
 
 Define a position
@@ -517,7 +617,7 @@ proper code of your hardware library to do it:
 
     class SpringfieldMotorController(MotorController):
 
-            def DefinePosition(self, axis, position):
+        def DefinePosition(self, axis, position):
             self.springfield.setCurrentPosition(axis, position)
 
 .. seealso:: 
@@ -724,7 +824,181 @@ a motor controller in sardana, and possible solutions to solve them.
                 current_position = self.springfield.getPosition(axis)
                 self._motor[axis]["define_position_offset"] = position - current_position
 
+Motor controller - Advanced topics
+------------------------------------------------------------------------------
 
+This chapter describes an extended :term:`API` that allows you to better
+synchronize motions involing more than one motor, as well as optimize 
+hardware communication (in case the hardware interface also supports this).
+ 
+Often it is the case that the experiment/procedure the user runs requires to
+move more than one motor at the same time.
+Imagine that the user requires motor at axis 1 to be moved to 100mm and motor
+axis 2 to be moved to -20mm.
+Your controller will receive two consecutive calls to
+:meth:`~sardana.pool.controller.Startable.StartOne`:
+
+.. code-block:: python
+
+    StartOne(1, 100)
+    StartOne(2, -20)
+    
+and each StartOne will probably connect to the hardware (through serial line, 
+socket, Tango_ or EPICS_) and ask the motor to be moved.
+This will do the job but, there will be a slight desynchronization between the
+two motors because hardware call of motor 1 will be done before hardware call
+to motor 2.
+
+Sardana provides an extended *start motion* which gives you the possibility
+to improve the syncronization (and probably reduce communications) but your 
+hardware controller must somehow support this feature as well.
+
+The complete start motion :term:`API` consists of four methods:
+
+    - :meth:`~sardana.pool.controller.Startable.PreStartAll`
+    - :meth:`~sardana.pool.controller.Startable.PreStartOne`
+    - :meth:`~sardana.pool.controller.Startable.StartOne`
+    - :meth:`~sardana.pool.controller.Startable.StartAll`
+
+Except for :meth:`~sardana.pool.controller.Startable.StartOne`, the
+implemenation of all other start methods is optional and their default
+implementation does nothing (:meth:`~sardana.pool.controller.Startable.PreStartOne`
+actually returns ``True``).
+
+So, actually, the complete algorithm for motor motion in sardana is::
+
+    /FOR/ Each controller(s) implied in the motion
+         - Call PreStartAll()
+    /END FOR/
+     
+    /FOR/ Each motor(s) implied in the motion
+         - ret = PreStartOne(motor to move, new position)
+         - /IF/ ret is not true
+            /RAISE/ Cannot start. Motor PreStartOne returns False
+         - /END IF/         
+         - Call StartOne(motor to move, new position)
+    /END FOR/
+     
+    /FOR/ Each controller(s) implied in the motion
+         - Call StartAll()
+    /END FOR/
+
+So, for the example above where we move two motors, the complete sequence of
+calls to the controller is:
+
+.. code-block:: python
+    
+    PreStartAll()
+
+    if not PreStartOne(1, 100):
+        raise Exception("Cannot start. Motor(1) PreStartOne returns False")
+    if not PreStartOne(2, -20):
+        raise Exception("Cannot start. Motor(2) PreStartOne returns False")
+
+    StartOne(1, 100)
+    StartOne(2, -20)
+
+    StartAll()
+
+Sardana assures that the above sequence is never interrupted by other calls,
+like a call from a different user to get motor state.
+    
+Suppose the springfield library tells us in the documentation that:
+
+    ... to move multiple motors at the same time use::
+    
+        moveMultiple(seq<pair<axis, position>>)
+    
+    Example::
+    
+        moveMultiple([[1, 100], [2, -20]])
+
+We can modify our motor controller to take profit of this hardware feature:
+
+.. code-block:: python
+    
+    class SpringfieldMotorController(MotorController):
+        
+        def PreStartAll(self):
+            # clear the local motion information dictionary
+            self._moveable_info = []
+
+        def StartOne(self, axis, position):
+            # store information about this axis motion
+            motion_info = axis, position
+            self._moveable_info.append(motion_info)
+
+        def StartAll(self):
+            self.springfield.moveMultiple(self._moveable_info)
+            
+A similar principle applies when sardana asks for the state and position of
+multiple axis. The two sets of methods are, in these cases:
+
+.. hlist::
+    :columns: 2
+
+    - :meth:`~sardana.pool.controller.Controller.PreStateAll`
+    - :meth:`~sardana.pool.controller.Controller.PreStateOne`
+    - :meth:`~sardana.pool.controller.Controller.StateAll`
+    - :meth:`~sardana.pool.controller.Controller.StateOne`
+    - :meth:`~sardana.pool.controller.Readable.PreReadAll`
+    - :meth:`~sardana.pool.controller.Readable.PreReadOne`
+    - :meth:`~sardana.pool.controller.Readable.ReadAll`
+    - :meth:`~sardana.pool.controller.Readable.ReadOne`
+
+The main differences between these sets of methods and the ones from start motion
+is that :meth:`~sardana.pool.controller.Controller.StateOne` / 
+:meth:`~sardana.pool.controller.Readable.ReadOne` methods are called **AFTER**
+the corresponding :meth:`~sardana.pool.controller.Controller.StateAll` / 
+:meth:`~sardana.pool.controller.Readable.ReadAll` counterparts and they are
+expeced to return the state/position of the requested axis.
+
+The internal sardana algorithm to read position is::
+
+    /FOR/ Each controller(s) implied in the reading
+         - Call PreReadAll()
+    /END FOR/
+     
+    /FOR/ Each motor(s) implied in the reading
+         - PreReadOne(motor to read)
+    /END FOR/
+     
+    /FOR/ Each controller(s) implied in the reading
+         - Call ReadAll()
+    /END FOR/
+     
+    /FOR/ Each motor(s) implied in the reading
+         - Call ReadOne(motor to read)
+    /END FOR/
+
+Here is an example assuming the springfield library tells us in the
+documentation that:
+
+    ... to read the position of multiple motors at the same time use::
+    
+        getMultiplePosition(seq<axis>) -> dict<axis, position>
+    
+    Example::
+    
+        positions = getMultiplePosition([1, 2])
+
+The new improved code could look like this::
+
+    class SpringfieldMotorController(MotorController):
+        
+        def PreRealAll(self):
+            # clear the local position information dictionary
+            self._position_info = []
+        
+        def PreReadOne(self, axis):
+            self._position_info.append(axis)
+        
+        def ReadAll(self):
+            self._positions = self.springfield.getMultiplePosition(self._position_info)
+        
+        def ReadOne(self, axis):
+            return self._positions[axis]
+        
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
 .. _ELETTRA: http://http://www.elettra.trieste.it/

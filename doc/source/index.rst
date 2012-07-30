@@ -19,6 +19,10 @@ basic sardana concepts. The :ref:`sardana-faq` will answer many of your question
 
 For sampling, see the :ref:`screenshots` and :ref:`devel-examples` chapters.
 
+.. only:: html
+
+    A PDF version can be downloaded from :download:`here <sardana.pdf>`.
+
 .. toctree::
     :hidden:
 

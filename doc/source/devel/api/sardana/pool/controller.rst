@@ -17,7 +17,7 @@
 .. autodata:: Memorized
 .. autodata:: MemorizedNoInit
 .. autodata:: NotMemorized
-
+.. autodata:: MaxDimSize
 
 .. rubric:: Classes
 

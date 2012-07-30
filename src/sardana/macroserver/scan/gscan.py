@@ -913,7 +913,7 @@ class CScan(GScan):
         for i, waypoint in waypoints:
             
             #execute pre-move hooks
-            for hook in waypoint.get('post-move-hooks',[]): hook()
+            for hook in waypoint.get('pre-move-hooks',[]): hook()
     
             # move to waypoint 
             motion.move(waypoint['positions'])

@@ -292,12 +292,17 @@ class PoolDevice(SardanaDevice):
         if tg_access == READ:
             write = None
         klass = GenericScalarAttr
+        if tg_format == SCALAR:
+            attr = GenericScalarAttr(attr_name, tg_type, tg_access)
         if tg_format == SPECTRUM:
-            klass = GenericSpectrumAttr
+            dim_x = attr_info.maxdimsize[0]
+            attr = GenericSpectrumAttr(attr_name, tg_type, tg_access,
+                                       dim_x=dim_x)
         elif tg_format == IMAGE:
-            klass = GenericImageAttr
-
-        attr = klass(attr_name, tg_type, tg_access)
+            dim_x, dim_y = attr_info.maxdimsize
+            attr = GenericImageAttr(attr_name, tg_type, tg_access,
+                                    dim_x=dim_x, dim_y=dim_y)
+            
         if tg_access == READ_WRITE and tg_format == SCALAR:
             memorized = attr_info.memorized.lower()
             if memorized == 'true':

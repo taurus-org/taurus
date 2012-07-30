@@ -25,12 +25,11 @@
 
 """This module contains the definition of the Controller base classes"""
 
-__all__ = ["Type", "Access", "Description", "DefaultValue",
-           "Memorized", "MemorizedNoInit", "NotMemorized",
+__all__ = ["Type", "Access", "Description", "DefaultValue", "FGet", "FSet",
+           "Memorized", "MemorizedNoInit", "NotMemorized", "MaxDimSize",
            "Controller", "Readable", "Startable", "Stopable",
-           "MotorController", "CounterTimerController",
-           "PseudoMotorController", "IORegisterController",
-           "FGet", "FSet" ]
+           "MotorController", "CounterTimerController", "ZeroDController",
+           "PseudoMotorController", "IORegisterController"]
 
 __docformat__ = 'restructuredtext'
 
@@ -87,7 +86,9 @@ MemorizedNoInit = "true_without_hard_applied"
 #: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 NotMemorized = "false"
 
-
+#: Constant MaxDimSize (to be used as a *key* in the definition of
+#: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
+MaxDimSize = "maxdimsize"
 
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly
@@ -147,7 +148,8 @@ class Controller(object):
     #:
     #: - key : (:obj:`str`) controller attribute name
     #: - value : :class:`dict` with :obj:`str` possible keys: "type",
-    #:   "r/w type", "description", "fget" and "fset" (case insensitive):
+    #:   "r/w type", "description", "fget", "fset" and "maxdimsize"
+    #:   (case insensitive):
     #:
     #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`pool-controller-data-type`
@@ -173,6 +175,16 @@ class Controller(object):
     #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
     #:       :obj:`Memorized`, :obj:`MemorizedNoInit` and
     #:       :obj:`NotMemorized` [default: :obj:`Memorized`]
+    #:
+    #:       .. versionadded:: 1.1
+    #:
+    #:     - for :obj:`MaxDimSize`, value is a :obj:`tuple` with possible values:
+    #:         - for scalar **must** be an empty tuple ( () or [] )
+    #:           [default: ()]
+    #:         - for 1D arrays a sequence with one value (example: (1024,))
+    #:           [default: (2048,)]
+    #:         - for 1D arrays a sequence with two values (example: (1024, 1024))
+    #:           [default: (2048, 2048)]
     #:
     #:       .. versionadded:: 1.1
     #:
@@ -221,6 +233,16 @@ class Controller(object):
     #:     - for :obj:`Memorize`, value is a :obj:`str` with possible values:
     #:       :obj:`Memorized`, :obj:`MemorizedNoInit` and
     #:       :obj:`NotMemorized` [default: :obj:`Memorized`]
+    #:
+    #:       .. versionadded:: 1.1
+    #:
+    #:     - for :obj:`MaxDimSize`, value is a :obj:`tuple` with possible values:
+    #:         - for scalar **must** be an empty tuple ( () or [] )
+    #:           [default: ()]
+    #:         - for 1D arrays a sequence with one value (example: (1024,))
+    #:           [default: (2048,)]
+    #:         - for 1D arrays a sequence with two values (example: (1024, 1024))
+    #:           [default: (2048, 2048)]
     #:
     #:       .. versionadded:: 1.1
     #:
@@ -508,16 +530,16 @@ class Startable(object):
     def StartOne(self, axis, value):
         """**Controller API**. Override as necessary.
         Called to do a start of the given axis (whatever start means).
-        Default implementation does nothing.
+        Default implementation raises :exc:`NotImplementedError`
 
         :param int axis: axis number
         :param float value: new value"""
-        pass
+        raise NotImplementedError("StartOne must be defined in the controller")
 
     def StartAll(self):
         """**Controller API**. Override is MANDATORY!
-        Default implementation raises :exc:`NotImplementedError`"""
-        raise NotImplementedError("StartAll must be defined in the controller")
+        Default implementation does nothing."""
+        pass
 
 
 class Stopable(object):

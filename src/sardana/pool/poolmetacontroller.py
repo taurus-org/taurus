@@ -56,6 +56,8 @@ from poolcontroller import PoolController, PoolPseudoMotorController, \
 from controller import Controller, MotorController, CounterTimerController, \
     ZeroDController, PseudoMotorController, PseudoCounterController, \
     IORegisterController
+from controller import Type, Access, Description, DefaultValue, FGet, FSet, \
+    Memorize, Memorized, MemorizedNoInit, NotMemorized, MaxDimSize
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -159,7 +161,7 @@ class DataInfo(object):
     def __init__(self, name, dtype, dformat=DataFormat.Scalar,
                  access=DataAccess.ReadWrite, description="",
                  default_value=None, memorized='true',
-                 fget=None, fset=None):
+                 fget=None, fset=None, maxdimsize=None):
         self.name = name
         self.dtype = dtype
         self.dformat = dformat
@@ -169,26 +171,36 @@ class DataInfo(object):
         self.memorized = memorized
         self.fget = fget or "get%s" % name
         self.fset = fset or "set%s" % name
-
+        if maxdimsize == None:
+            if dformat == DataFormat.Scalar:
+                maxdimsize = ()
+            elif dformat == DataFormat.OneD:
+                maxdimsize = 2048,
+            elif dformat == DataFormat.TwoD:
+                maxdimsize = 2048, 2048
+        self.maxdimsize = maxdimsize
+        
     @classmethod
     def toDataInfo(klass, name, info):
         info = CaselessDict(info)
         dformat = DataFormat.Scalar
-        dtype = info['type']
+        dtype = info[Type]
         dtype, dformat = to_dtype_dformat(dtype)
-        default_value = info.get('defaultvalue')
-        description = info.get('description', '')
-        daccess = info.get('r/w type', DataAccess.ReadWrite)
+        default_value = info.get(DefaultValue)
+        description = info.get(Description, '')
+        daccess = info.get(Access, DataAccess.ReadWrite)
         daccess = to_daccess(daccess)
-        memorized = info.get('memorized', 'true')
-        fget = info.get('fget')
-        fset = info.get('fset')
+        memorized = info.get(Memorize, Memorized)
+        maxdimsize = info.get(MaxDimSize)
+        fget = info.get(FGet)
+        fset = info.get(FSet)
         if default_value is not None and dtype != DataType.String:
             if type(default_value) in types.StringTypes:
                 default_value = eval(default_value)
         return DataInfo(name, dtype, dformat=dformat, access=daccess,
                         description=description, default_value=default_value,
-                        memorized=memorized, fget=fget, fset=fset)
+                        memorized=memorized, fget=fget, fset=fset,
+                        maxdimsize=maxdimsize)
 
     def toDict(self):
         return { 'name' : self.name, 'type' : DataType.whatis(self.dtype),
@@ -196,7 +208,8 @@ class DataInfo(object):
                  'access' : DataAccess.whatis(self.access),
                  'description' : self.description,
                  'default_value' : self.default_value,
-                 'memorized' : self.memorized, }
+                 'memorized' : self.memorized,
+                 'maxdimsize' : self.maxdimsize }
 
     def serialize(self, *args, **kwargs):
         kwargs.update(self.toDict())

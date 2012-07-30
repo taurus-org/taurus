@@ -28,7 +28,7 @@ an aid to writting a sardana motor controller library.
 If you intend to use this code please put it in a directory accessible to
 Python or in the same directory as sf_motor_ctrl.py"""
 
-__all__ = ["Springfield"]
+__all__ = ["SpringfieldMotorHW"]
 
 import time
 from math import pow, sqrt
@@ -491,9 +491,13 @@ class Motion(BaseMotion):
         print "For long movements (where top vel is possible), necessary displacement to reach maximum velocity =",self.dsplmnt_reach_max_vel
         print "For long movements (where top vel is possible), necessary displacement to stop from maximum velocity =",self.dsplmnt_reach_min_vel
 
-class SpringfieldMotorController(object):
+
+class SpringfieldMotorHW(object):
     
-    def __init__(self, host="localhost", port="10123"):
+    DefaultHost = "localhost"
+    DefaultPort = 10123
+    
+    def __init__(self, host=DefaultHost, port=DefaultPort):
         self.host = host
         self.port = port
         self._motions = {}
