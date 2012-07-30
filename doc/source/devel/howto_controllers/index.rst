@@ -131,7 +131,7 @@ The example shows how to implement a constructor:
             super(SpringfieldMotorController, self).__init__(inst, props, *args, **kwargs)
             
             # initialize hardware communication
-            self.springfield = springfieldlib.Springfield()
+            self.springfield = springfieldlib.SpringfieldMotorController()
             
             # do some initialization
             self._motors = {}
@@ -240,7 +240,8 @@ Get motor position
 
 To get the motor position, sardana calls the
 :meth:`~sardana.pool.controller.Readable.ReadOne` method. This method
-receives an axis as parameter and should return a valid position.
+receives an axis as parameter and should return a valid position. Sardana
+interprets the returned position as a :term:`dial position`.
 
 Here is an example of the possible implementation of
 :meth:`~sardana.pool.controller.Readable.ReadOne`:
@@ -262,6 +263,7 @@ Move a motor
 When an order comes for sardana to move a motor, sardana will call the
 :meth:`~sardana.pool.controller.Startable.StartOne` method. This method receives
 an axis and a position. The controller code should trigger the hardware motion.
+The given position is always the :term:`dial position`.
 
 Here is an example of the possible implementation of
 :meth:`~sardana.pool.controller.Startable.StartOne`:

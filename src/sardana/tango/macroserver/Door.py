@@ -326,7 +326,13 @@ class Door(SardanaDevice):
         attr.set_value(self._last_result)
     
     def read_RecordData(self, attr):
-        attr.set_value('', '')
+        try:
+            macro_data = self.door.get_macro_data()
+            codec = CodecFactory().getCodec('bz2_pickle')
+            data = codec.encode(('', macro_data))
+        except:
+            data = '', ''
+        attr.set_value(*data)
     
     def read_MacroStatus(self, attr):
         attr.set_value('', '')

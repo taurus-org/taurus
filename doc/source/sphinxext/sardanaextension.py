@@ -122,7 +122,7 @@ def _is_raise(line):
     ret |= line.startswith(':except')
     return ret
 
-def process_signature(app, what, name, obj, options, lines):
+def process_docstring(app, what, name, obj, options, lines):
     ret = []
     for nb, line in enumerate(lines):
         line_strip = line.strip()
@@ -137,7 +137,50 @@ def process_signature(app, what, name, obj, options, lines):
     
     del lines[:]
     lines.extend(ret)
-    
+
+import inspect
+from sphinx.util.inspect import getargspec
+
+def _format_method_args(obj):
+    if inspect.isbuiltin(obj) or \
+           inspect.ismethoddescriptor(obj):
+        # can never get arguments of a C function or method
+        return None
+    argspec = getargspec(obj)
+    if argspec[0] and argspec[0][0] in ('cls', 'self'):
+        del argspec[0][0]
+    return inspect.formatargspec(*argspec)
+
+def _format_function_args(obj):
+    if inspect.isbuiltin(obj) or \
+           inspect.ismethoddescriptor(obj):
+        # cannot introspect arguments of a C function or method
+        return None
+    try:
+        argspec = getargspec(obj)
+    except TypeError:
+        # if a class should be documented as function (yay duck
+        # typing) we try to use the constructor signature as function
+        # signature without the first argument.
+        try:
+            argspec = getargspec(obj.__new__)
+        except TypeError:
+            argspec = getargspec(obj.__init__)
+            if argspec[0]:
+                del argspec[0][0]
+    args = inspect.formatargspec(*argspec)
+    # escape backslashes for reST
+    args = args.replace('\\', '\\\\')
+    return args
+
+def process_signature(app, what, name, obj, options, signature, return_annotation):
+    if hasattr(obj, "__wrapped_func__"):
+        if what == "method":
+            obj = obj.__wrapped_func__
+            signature = _format_method_args(obj)
+            return signature, return_annotation
+                
     
 def setup(app):
-    app.connect('autodoc-process-docstring', process_signature)
+    #app.connect('autodoc-process-docstring', process_docstring)
+    app.connect('autodoc-process-signature', process_signature)

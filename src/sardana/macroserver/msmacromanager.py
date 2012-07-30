@@ -1118,8 +1118,8 @@ class MacroExecutor(Logger):
         length = len(self._macro_stack)
         if length > 0:
             self._macro_pointer = self._macro_stack[-1]
-        else:
-            self._macro_pointer = None
+        #else:
+        #    self._macro_pointer = None
 
     def sendState(self, state):
         return self.door.set_state(state)

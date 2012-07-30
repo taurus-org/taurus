@@ -72,10 +72,10 @@ extensions = ['sphinx.ext.pngmath',
               'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
               'sphinx.ext.viewcode',
-#              'sardanaextension',
+              'sardanaextension',
               'ipython_console_highlighting',
               'spock_console_highlighting',
-              'rst2pdf.pdfbuilder',
+#              'rst2pdf.pdfbuilder',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

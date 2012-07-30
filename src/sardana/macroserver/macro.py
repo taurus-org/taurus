@@ -304,6 +304,7 @@ def mAPI(fn):
                 self.setProcessingStop(True)
             raise StopException("stopped after calling %s" % fn.__name__)
         return ret
+    new_fn.__wrapped_func__ = fn
     return new_fn
 
 
@@ -728,19 +729,28 @@ class Macro(Logger):
         except AttributeError:
             self._pyplot = pyplot = self.door.pyplot
         return pyplot
-
-    @property
-    def data(self):
+    
+    @mAPI
+    def getData(self):
         """**Macro API**.
-        Returns the data produced by the macro. Default implementation
-        raises an exception.
+        Returns the data produced by the macro. 
 
-        :raises: Exception
+        :raises: Exception if no data has been set before on this macro
 
         :return: the data produced by the macro
         :rtype: object"""
-        self.checkPoint()
-        raise Exception("Macro '%s' does not produce any data" % self.getName())
+        if not hasattr(self, "_data"):
+            raise Exception("Macro '%s' does not produce any data" % self.getName())
+        return self._data
+    
+    @mAPI
+    def setData(self, data):
+        """**Macro API**. Sets the data for this macro
+        
+        :param object data: new data to be associated with this macro"""
+        self._data = data
+
+    data = property(getData, setData, doc="macro data")
 
     @mAPI
     def print(self,  *args, **kwargs):
@@ -822,7 +832,7 @@ class Macro(Logger):
             return kwargs['default_value']
     
     @mAPI
-    def output(self, *args, **kwargs):
+    def output(self, msg, *args, **kwargs):
         """**Macro API**.
         Record a log message in this object's output. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.log`.
@@ -834,10 +844,10 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
-        return Logger.output(self, *args, **kwargs)
+        return Logger.output(self, msg, *args, **kwargs)
 
     @mAPI
-    def log(self, *args, **kwargs):
+    def log(self, level, msg, *args, **kwargs):
         """**Macro API**.
         Record a log message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.log`.
@@ -851,10 +861,10 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
-        return Logger.log(self, *args, **kwargs)
+        return Logger.log(self, level, msg, *args, **kwargs)
 
     @mAPI
-    def debug(self, *args, **kwargs):
+    def debug(self, msg, *args, **kwargs):
         """**Macro API**.
         Record a debug message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.debug`.
@@ -866,10 +876,10 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kw: list of keyword arguments"""
-        return Logger.debug(self, *args, **kwargs)
+        return Logger.debug(self, msg, *args, **kwargs)
 
     @mAPI
-    def info(self, *args, **kwargs):
+    def info(self, msg, *args, **kwargs):
         """**Macro API**.
         Record an info message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.info`.
@@ -881,10 +891,10 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
-        return Logger.info(self, *args, **kwargs)
+        return Logger.info(self, msg, *args, **kwargs)
 
     @mAPI
-    def warning(self, *args, **kwargs):
+    def warning(self, msg, *args, **kwargs):
         """**Macro API**.
         Record a warning message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.warning`.
@@ -896,10 +906,10 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
-        return Logger.warning(self, *args, **kwargs)
+        return Logger.warning(self, msg, *args, **kwargs)
 
     @mAPI
-    def error(self, *args, **kwargs):
+    def error(self, msg, *args, **kwargs):
         """**Macro API**.
         Record an error message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.error`.
@@ -912,10 +922,10 @@ class Macro(Logger):
         :param args: list of arguments
         :param kwargs: list of keyword arguments
         """
-        return Logger.error(self, *args, **kwargs)
+        return Logger.error(self, msg, *args, **kwargs)
 
     @mAPI
-    def critical(self, *args, **kwargs):
+    def critical(self, msg, *args, **kwargs):
         """**Macro API**.
         Record a critical message in this object's logger. Accepted *args* and
         *kwargs* are the same as :meth:`logging.Logger.critical`.
@@ -927,7 +937,7 @@ class Macro(Logger):
         :type msg: :obj:`str`
         :param args: list of arguments
         :param kwargs: list of keyword arguments"""
-        return Logger.critical(self, *args, **kwargs)
+        return Logger.critical(self, msg, *args, **kwargs)
 
     @mAPI
     def trace(self, msg, *args, **kwargs):

@@ -235,6 +235,10 @@ class RecordList(dict):
             self.environ = environ
         self.records = []
 
+    # make it pickable
+    def __getstate__(self):
+        return dict(datahandler=None, environ=None, records=self.records)
+        
     def setEnviron(self, environ):
         self.environ = environ
 

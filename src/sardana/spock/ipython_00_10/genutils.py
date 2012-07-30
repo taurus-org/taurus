@@ -890,6 +890,7 @@ def init_magic(ip):
     expose_magic('www', magic.www, magic.www_completer)
     expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
     expose_magic('spsplot', magic.spsplot, None)
+    expose_magic('macrodata', magic.macrodata, None)
     expose_magic('edmac', magic.edmac, None)
     expose_magic('showscan', magic.showscan, None)
     expose_magic('expconf', magic.expconf, None)

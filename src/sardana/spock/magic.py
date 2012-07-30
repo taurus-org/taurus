@@ -28,7 +28,7 @@
 
 __all__ = ['expconf', 'showscan', 'spsplot', 'debug_completer',
            'debug', 'www_completer', 'www', 'post_mortem_completer',
-           'post_mortem', 'edmac', 'spock_late_startup_hook',
+           'post_mortem', 'macrodata', 'edmac', 'spock_late_startup_hook',
            'spock_pre_prompt_hook']
 
 
@@ -153,6 +153,18 @@ def post_mortem(self, parameter_s='', from_www=False):
             msg += "\n".join(line)
     page(msg)
 
+def macrodata(self, parameter_s=''):
+    """macrodata
+    
+    Returns the data produced by the last macro"""
+    door = get_door()
+    macro_data = door.read_attribute("RecordData")
+
+    import taurus.core.util
+    factory = taurus.core.util.CodecFactory()
+    data = factory.decode(macro_data.value)    
+    return data
+    
 
 def edmac(self, parameter_s=''):
     """edmac <macro name> [<module>]

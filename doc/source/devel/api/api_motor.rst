@@ -9,22 +9,39 @@ Motor API reference
 The motor is one of the most used elements in sardana. A motor represents
 anything that can be *changed* (and can potentially take some time to do it).
 
-Every motor in sardana is represented in the sardana kernel as a
-:class:`PoolMotor`. The :class:`PoolMotor` :term:`API` is not directly
-accessible from outside the sardana server.
-If you are running a Sardana Tango device server, the internal
-:class:`PoolMotor` :term:`API` is exposed through the Tango
-:class:`~sardana.tango.pool.Motor.Motor` device.
-
-The following diagram better explains the motor internal structure of a sardana
-server:
+This chapter explains the generic motor :term:`API` in the context of sardana.
+In sardana there are, in fact, two Motor :term:`API`\s.
+To better explain why, let's consider the case were sardana server is running
+as a Sardana Tango device server:
 
 .. image:: /_static/sardana_server_internal_motor.png
     :width: 680
     :align: center
+
+Every motor in sardana is represented in the sardana kernel as a
+:class:`PoolMotor`. The :class:`PoolMotor` :term:`API` is not directly
+accessible from outside the sardana server. This is a low level :term:`API` 
+that is only accessbile to someone writting a server extension to sardana.
+At the time of writting, the only available sardana server extension is Tango.
+
+The second motor interface consists on the one provided by the server extension,
+which is in this case the one provided by the Tango motor device interface:
+:class:`~sardana.tango.pool.Motor.Motor`.
+The Tango motor interface tries to mimic the as closely as possible the
+:class:`PoolMotor` :term:`API`.
+
+.. seealso:: 
     
-A motor will have, at least, a :attr:`~PoolMotor.state`, and a
-:attr:`~PoolMotor.position`. 
+    :ref:`pool-motor-overview`
+        the motor overview 
+
+    :class:`~sardana.tango.pool.Motor.Motor`
+        the motor tango device :term:`API`
+    
+..    :class:`~sardana.pool.poolmotor.PoolMotor`
+..        the motor class :term:`API`
+
+A motor will have, at least, a ``state``, and a ``position``. 
 The state indicates at any time if the motor is stopped, in alarm or moving.
 The position, indicates the current :term:`user position`.
 Unless a motor controller is specifically programmed not to, it's motors will
@@ -35,7 +52,9 @@ also have:
     switch is represented by a boolean value: False means inactive while
     True means active.
     
-    :attr:`~PoolMotor.limit_switches`
+    low level :attr:`PoolMotor` API.
+    
+    high level Tango Motor API: limit_switches tango attribute
         
 **acceleration**
     motor acceleration (usually acceleration time in seconds, but it's up to
@@ -170,7 +189,7 @@ After all pre-conditions are checked, the motor will deploy a motion *job* into
 the sardana kernel engine which will trigger a series of calls to the underlying
 motor controller.
 
-The motor awaits for the :meth:`~sardana.pool.controller.MotorController.PreStartOne`
+The motor awaits for the :meth:`~sardana.pool.controller.Startable.PreStartOne`
 to signal that the motion will be possible to return successfully from the
 move request.
 
@@ -184,15 +203,6 @@ The next diagram shows the state machine of a motor.
         For simplicity, only the most relevant states involved in a motor
         motion are shown. Error states are omited
 
-.. seealso:: 
-    
-    :ref:`pool-motor-overview`
-        the motor overview 
 
-    :class:`~sardana.tango.pool.Motor.Motor`
-        the motor tango device :term:`API`
-    
-..    :class:`~sardana.pool.poolmotor.PoolMotor`
-..        the motor class :term:`API`
 
 

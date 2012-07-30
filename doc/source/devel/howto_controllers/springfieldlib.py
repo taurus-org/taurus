@@ -491,7 +491,7 @@ class Motion(BaseMotion):
         print "For long movements (where top vel is possible), necessary displacement to reach maximum velocity =",self.dsplmnt_reach_max_vel
         print "For long movements (where top vel is possible), necessary displacement to stop from maximum velocity =",self.dsplmnt_reach_min_vel
 
-class Springfield:
+class SpringfieldMotorController(object):
     
     def __init__(self, host="localhost", port="10123"):
         self.host = host
