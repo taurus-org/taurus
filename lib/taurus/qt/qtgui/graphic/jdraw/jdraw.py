@@ -36,7 +36,7 @@ from taurus.qt import Qt
 
 import taurus.core
 import taurus.core.util
-from taurus.qt.qtgui.graphic import TaurusBaseGraphicsFactory, TaurusGraphicsScene, TaurusGraphicsItem
+from taurus.qt.qtgui.graphic import TaurusBaseGraphicsFactory, TaurusGraphicsScene, TaurusGraphicsItem, parseTangoUri
 
 
 LINESTYLE_JDW2QT = { 0: Qt.Qt.SolidLine,
@@ -209,8 +209,9 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
         if children:
             for child in children:
                 if child:
+                    #self.info('jdraw.py: "%s".addItem("%s")'%(str(params.get('name')),str(child)))
                     item.addToGroup(child)
-
+        if item._fillStyle: self.set_item_filling(item,expand=True)
         return item
     
     def getSwingObjectObj(self,params):
@@ -245,7 +246,20 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
     def set_common_params(self,item,params):
         if not item:
             return
-        name = params.get('name')
+        item._params = params
+        name = params.get('name')  
+        if self.alias: 
+            for k,v in self.alias.items():
+                name = str(name).replace(k,v)
+
+        #Forcing not-Taurus items to have a name and be able to trigger events
+        setattr(item,'_name',name)
+        if name and not self._delayed:
+            if isinstance(item, TaurusGraphicsItem):
+                self.info('TaurusJDrawGraphicsFactory.set_common_params(): %s.setModel(%s)'%(item,name))
+                item.setModel(name)
+            else:
+                self.debug('TaurusJDrawGraphicsFactory.set_common_params(%s): %s is not a TaurusGraphicsItem'%(name,type(item).__name__))
 
         visibilitymapper = params.get('visibilitymapper')
         if not visibilitymapper is None:
@@ -276,53 +290,47 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
 
         fillStyle = FILLSTYLE_JDW2QT[params.get('fillStyle', 0)]
-
+        item._fillStyle = fillStyle
         try:
-            getattr(item,'setBrush')
-            brush = Qt.QBrush() 
-            if fillStyle == Qt.Qt.RadialGradientPattern:
-                x1, y1, x2, y2 = params.get('summit')
-                w, h = (x2-x1)/2.0, (y2-y1)/2.0
-                gradient = Qt.QLinearGradient(params.get('gradX1',0)+w,
-                                                 params.get('gradY1',0)+h,
-                                                 params.get('gradX2',0)+w,
-                                                 params.get('gradY2',0)+h)
-                c = params.get('gradC1',(0,0,0))
-                gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
-                c = params.get('gradC2',(255,255,255))
-                gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2])) 
-                brush = Qt.QBrush(gradient)
-            else:
-                brush.setStyle(fillStyle)
-            
-            bg = params.get('background',(255,255,255))
-            brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
-            item.setBrush(brush)
-        except AttributeError,ae: pass
+            if hasattr(item,'brush'): 
+                brush = Qt.QBrush() 
+                if fillStyle == Qt.Qt.RadialGradientPattern:
+                    x1, y1, x2, y2 = params.get('summit')
+                    w, h = (x2-x1)/2.0, (y2-y1)/2.0
+                    gradient = Qt.QLinearGradient(params.get('gradX1',0)+w,
+                                                    params.get('gradY1',0)+h,
+                                                    params.get('gradX2',0)+w,
+                                                    params.get('gradY2',0)+h)
+                    c = params.get('gradC1',(0,0,0))
+                    gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
+                    c = params.get('gradC2',(255,255,255))
+                    gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2])) 
+                    brush = Qt.QBrush(gradient)
+                else:
+                    brush.setStyle(fillStyle)
+                
+                bg = params.get('background',(255,255,255))
+                brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
+                item.setBrush(brush)
+                        
+        #except AttributeError,ae: pass
         except Exception,e:
             self.warning('jdraw.set_common_params(%s(%s)).(background,gradient,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
-
-        name = params.get('name')  
-        if self.alias: 
-            for k,v in self.alias.items():
-                name = str(name).replace(k,v)
-
-        #Forcing not-Taurus items to have a name and be able to trigger events
-        setattr(item,'_name',name)
-        if name and not self._delayed:
-            if isinstance(item, TaurusGraphicsItem):
-                self.debug('TaurusJDrawGraphicsFactory.set_common_params(): %s.setModel(%s)'%(item,name))
-                item.setModel(name)
-            else:
-                self.debug('TaurusJDrawGraphicsFactory.set_common_params(%s): %s is not a TaurusGraphicsItem'%(name,type(item).__name__))
-        
         self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))  
+        
+    def set_item_filling(self,item,pattern=Qt.Qt.Dense4Pattern,expand=False):
+        count = 0
+        item._fillStyle = item._fillStyle or pattern
+        if hasattr(item,'brush'):
+            br = item.brush()
+            br.setStyle(item._fillStyle)
+            item.setBrush(br)
+        if expand:
+            for c in item.childItems():
+                if not c._fillStyle:
+                    self.set_item_filling(c,pattern=pattern,expand=True)
+        return
 
 if __name__ == "__main__":
-    import sys
     import jdraw_view
-    app = Qt.QApplication([])
-    gui = jdraw_view.TaurusJDrawSynopticsView()
-    gui.setModel(sys.argv[1])
-    gui.show()
-    sys.exit(app.exec_())
+    jdraw_view.jdraw_view_main()
