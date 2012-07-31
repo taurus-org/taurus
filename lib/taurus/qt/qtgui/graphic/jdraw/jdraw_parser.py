@@ -146,18 +146,21 @@ def p_single_element(p):
         p[3] = {}
     
     # determine the model name 
-    name = p[3].get('name')
+    org = name = p[3].get('name')
     
     #change name: if item has no name it should take the name of its nearest-named-parent
+    #as no-name it is also considered any element with a name like a reserved keyword or plain value
     keywords = ['JDGroup']+[n.replace('JD','') for n in reserved]
-    if not name or name in keywords:
+    if not name or name in keywords or re.match('[0-9]+$',name):
+        #if re.match('[0-9]+$',name):  p[3]['mapvalue'] = name
         p[3]['name'] = name = ""
         #print '\t name is empty, checking stack: %s' % [str(s) for s in reversed(p.parser.modelStack)]
         for model in reversed(p.parser.modelStack):
-            if model and model not in keywords:
+            if model and model not in keywords and not re.match('[0-9]+$',model):
+                #print 'Setting Model %s to %s' % (model,p[1])
                 p[3]['name'] = name = model
                 break
-    
+    #print 'parser: %s => %s [%s]' % (org,name,p.parser.modelStack)
     extension = p[3].get("extensions")     
     if p.parser.modelStack2:
         if extension is None:
@@ -209,8 +212,8 @@ def p_parameter(p):
                            
 def p_single_parameter(p):
     '''parameter : SYMBOL TWOP param_value'''
+    #modelStacks added in this method control how extensions/models/names are propagated within JDGroup items
     if p[1] == 'name':
-       # if p[3]:
        p.parser.modelStack.append(p[3])
     if p[1] == 'extensions':
         p.parser.modelStack2.append(p[3])
