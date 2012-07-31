@@ -211,7 +211,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self._itemnames[name].add(i)
                 self.debug('addItem(%s): %s'%(name,i))
             if isinstance(i,Qt.QGraphicsItemGroup):
-                for j in i.children():
+                for j in i.childItems():
                     expand(j)
         expand(item)
         Qt.QGraphicsScene.addItem(self,item)
