@@ -255,17 +255,21 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
     def getModelMimeData(self):
         """ Used for drag events """
-        mimeData = TaurusBaseWidget.getModelMimeData(self)
-        model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
-        if model:
-            if DeviceNameValidator().getParams(model): 
-                self.debug('getMimeData(): DeviceModel at %s: %s',self.mousePos,model)
-                mimeData.setData(TAURUS_DEV_MIME_TYPE,model)
-            elif AttributeNameValidator().getParams(model):
-                self.debug('getMimeData(): AttributeModel at %s: %s',self.mousePos,model)
-                mimeData.setData(TAURUS_ATTR_MIME_TYPE,model)
-            else:
-                self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
+        model,mimeData = '',None
+        try:
+            model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
+            mimeData = TaurusBaseWidget.getModelMimeData(self)
+            if model:
+                if DeviceNameValidator().getParams(model): 
+                    self.debug('getMimeData(): DeviceModel at %s: %s',self.mousePos,model)
+                    mimeData.setData(TAURUS_DEV_MIME_TYPE,model)
+                elif AttributeNameValidator().getParams(model):
+                    self.debug('getMimeData(): AttributeModel at %s: %s',self.mousePos,model)
+                    mimeData.setData(TAURUS_ATTR_MIME_TYPE,model)
+                else:
+                    self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
+        except:
+            self.warning('jdrawView.getModelMimeData(%s): unable to get MimeData'%model)
         return mimeData
         
 
@@ -302,6 +306,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             
             #The emitted signal contains the filename and a dictionary with the name of items and its color
             self.emitColors()#get_item_colors(emit=True)
+            self.fitting()
 
     def setModels(self):
         """ This method triggers item.setModel(item._name) in all internal items. """
@@ -325,7 +330,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-if __name__ == "__main__":
+def jdraw_view_main():
     import sys
     import taurus.qt.qtgui.graphic
     taurus.setLogLevel(taurus.Info)
@@ -341,18 +346,11 @@ if __name__ == "__main__":
         
     form = taurus.qt.qtgui.graphic.TaurusJDrawSynopticsView(designMode=False)
     form.setModel(sys.argv[1])
-    
-    def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
-    form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    
-    SCROLL_BARS_WORK_PROPERLY = True
-    if SCROLL_BARS_WORK_PROPERLY:
-        panel = Qt.QFrame()
-        layout = Qt.QGridLayout()
-        layout.addWidget(form)        
-        panel.setLayout(layout)    
-        panel.show()
-    else:
-        form.show()
-    
+    form.setWindowTitle(sys.argv[1].rsplit('.',1)[0])
+    #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
+    #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
+    form.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    jdraw_view_main()
