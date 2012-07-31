@@ -45,7 +45,7 @@ import Queue
 
 from taurus.qt import Qt
 import taurus.core
-from taurus.core import DeviceNameValidator
+from taurus.core import DeviceNameValidator,AttributeNameValidator
 import taurus.core.util
 
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -222,17 +222,24 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         if flags is None: Qt.QGraphicsScene.addWidget(self,item)
         else: Qt.QGraphicsScene.addWidget(self,item,flags)
         
-    def getItemByName(self,item_name):
+    def getItemByName(self,item_name,strict=False):
         """
-        Returns a list with all items matching a given name
+        Returns a list with all items matching a given name.
+        :param: strict, controls wheter full_name (strict=True) or only device name (False) must match
         """
+        alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
         target = str(item_name).strip().split()[0].lower().replace('/state','') #If it has spaces only the first word is used
-        if DeviceNameValidator().getParams(target): target+='(/state)?'
-        #if not target.endswith('$'): target+='$' #Device names should match also its attributes?
+        #Device names should match also its attributes or only state?
+        if not strict and AttributeNameValidator().getParams(target):
+            target = target.rsplit('/',1)[0]
+        if DeviceNameValidator().getParams(target): 
+            if strict: target+='(/state)?'
+            else: target+='(/'+alnum+')?'
+        if not target.endswith('$'): target+='$' 
         result = []
         for k in self._itemnames.keys():
             if re.match(target.lower(),k.lower()):
-                #self.debug('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
+                #self.info('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
         return result
 
@@ -243,6 +250,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             y = mouseEvent.scenePos().y()
             self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
             obj = self.itemAt(x,y)
+            obj = self.getTaurusParentItem(obj) or obj
             obj_name = getattr(obj,'_name', '')
             self.info('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
             
@@ -330,6 +338,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found or name is a reserved keyword.'%item_name)
                 return False
             items = self.getItemByName(item_name) or []
+            items = [i for i in items if self.getTaurusParentItem(i) not in (items+self._selectedItems)]
             self.info('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
         for item in items:
@@ -532,6 +541,32 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             obj.setVisible(True)
             obj.exec_()
         return
+    
+    @staticmethod
+    def getTaurusParentItem(item,top=True):
+        """ Searches within a group hierarchy and returns a parent Taurus component or None if no parent TaurusBaseComponent 
+            is found."""
+        first,p,next= None,item.parentItem(),None
+        while p:
+            if isinstance(p, TaurusGraphicsItem):
+                if first is None: 
+                    first = p
+                    if not top: break
+                elif str(p.getModel())!=str(first.getModel()):
+                    break
+                else: first = p
+            p = p.parentItem()
+        return first
+        
+    def getAllChildren(self,item,klass=None):
+        """ Returns all children elements, filtering by klass if wanted """
+        result = []
+        try: 
+            children = item.childItems()
+            result.extend(c for c in children if not klass or isinstance(c,klass))
+            result.extend(c.childItems() for c in children if not klass or isinstance(c,klass))
+        except: pass
+        return result
 
     def getTaurusDevicePanel(self,obj,standAlone=False):
         try:
@@ -758,7 +793,13 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
                 self.warning('In TaurusGraphicsStateItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
                 self.warning(traceback.format_exc())
                 
-        states = {'ON':0,'OFF':1,'CLOSE':2,'OPEN':3,'INSERT':4,'EXTRACT':5,'MOVING':6,'STANDBY':7,'FAULT':8,'INIT':9,'RUNNING':10,'ALARM':11,'DISABLE':12,'UNKNOWN':13}
+        states = {
+            'ON':0,'OFF':1,'CLOSE':2,'OPEN':3,
+            'INSERT':4,'EXTRACT':5,'MOVING':6,
+            'STANDBY':7,'FAULT':8,'INIT':9,
+            'RUNNING':10,'ALARM':11,'DISABLE':12,
+            'UNKNOWN':13
+            }
         #Parsing _map to manage visibility (a list of values for which the item is visible or not)
         if v and not self._map is None and self._currText in states:
             #self.info('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
@@ -807,7 +848,6 @@ class TaurusGroupStateItem(Qt.QGraphicsItemGroup, TaurusGraphicsStateItem):
 
     def paint(self,painter,option,widget):
         Qt.QGraphicsItemGroup.paint(self,painter,option,widget)
-
         
 class TaurusPolygonStateItem(Qt.QGraphicsPolygonItem,TaurusGraphicsStateItem):
     
