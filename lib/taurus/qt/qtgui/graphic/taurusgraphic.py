@@ -1007,7 +1007,6 @@ class TaurusBaseGraphicsFactory:
             #replacing Taco identifiers in %s'%name
             if name.lower().startswith('tango:') and (name.count('/')==2 or not 'tango:/' in name.lower()): 
                 nname = name.split(':',1)[-1]
-                print '%s => %s' % (name,nname)
                 params[self.getNameParam()] = name = nname
             if name.lower().endswith('/state'): name = name.rsplit('/',1)[0]
             cls = taurus.core.TaurusManager().findObjectClass(name)
