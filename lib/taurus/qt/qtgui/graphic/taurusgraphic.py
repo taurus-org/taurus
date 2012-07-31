@@ -176,6 +176,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
      of tuples. Empty tuples will insert separators in the menu.
     '''
     __pyqtSignals__ = ("refreshTree2","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
+    ANY_ATTRIBUTE_SELECTS_DEVICE = True
     
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
@@ -222,11 +223,12 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         if flags is None: Qt.QGraphicsScene.addWidget(self,item)
         else: Qt.QGraphicsScene.addWidget(self,item,flags)
         
-    def getItemByName(self,item_name,strict=False):
+    def getItemByName(self,item_name,strict=None):
         """
         Returns a list with all items matching a given name.
         :param: strict, controls wheter full_name (strict=True) or only device name (False) must match
         """
+        strict = (not self.ANY_ATTRIBUTE_SELECTS_DEVICE) if strict is None else strict
         alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
         target = str(item_name).strip().split()[0].lower().replace('/state','') #If it has spaces only the first word is used
         #Device names should match also its attributes or only state?
