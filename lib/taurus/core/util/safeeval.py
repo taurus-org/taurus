@@ -47,10 +47,10 @@ class SafeEvaluator:
     Note: In order to use variables defined outside, the user must explicitly declare them safe. 
     """
     def __init__(self, safedict=None, defaultSafe=True):
-        self._default_numpy = ('abs', 'array', 'arange','arccos', 'arcsin', 'arctan', 'arctan2', 
+        self._default_numpy = ('abs', 'array', 'arange','arccos', 'arcsin', 'arctan', 'arctan2', 'average',
                                'ceil', 'cos', 'cosh', 'degrees', 'dot', 'e', 'exp', 'fabs', 'floor', 'fmod', 
                                'frexp', 'hypot', 'ldexp', 'linspace', 'log', 'log10', 'logspace', 
-                               'modf', 'ones', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'tan', 
+                               'modf', 'ones', 'pi', 'radians', 'shape', 'sin', 'sinh', 'sqrt', 'sum', 'tan', 
                                'tanh','zeros')
         self._default_numpy_random = ('randn', 'rand', 'randint') 
         
