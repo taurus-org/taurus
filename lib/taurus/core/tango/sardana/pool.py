@@ -122,6 +122,7 @@ class BaseElement(object):
             self._pool_data = self._find_pool_data()
             return self._pool_data
 
+
 class ControllerClass(BaseElement):
 
     def __init__(self, **kw):
@@ -1260,6 +1261,7 @@ class MeasurementGroup(PoolElement):
         """PoolElement initialization."""
         self._configuration = None
         self._channels = None
+        self._last_integ_time = None
         self.call__init__(PoolElement, name, **kw)
 
         cfg_attr = self.getAttribute('configuration')
@@ -1350,7 +1352,7 @@ class MeasurementGroup(PoolElement):
         return self.getConfiguration().getCountersInfoList()
 
     def getValues(self):
-        return self.getConfiguration().read()
+        return self.getConfiguration().read_parallel()
 
     def getIntegrationTime(self):
         return self._getAttrValue('IntegrationTime')
@@ -1361,18 +1363,32 @@ class MeasurementGroup(PoolElement):
     def setIntegrationTime(self, ctime):
         self.getIntegrationTimeObj().write(ctime)
 
+    def putIntegrationTime(self, ctime):
+        if self._last_integ_time == ctime:
+            return
+        self._last_integ_time = ctime
+        self.getIntegrationTimeObj().write(ctime)
+
     def _start(self, *args, **kwargs):
         self.Start()
-
+        
     def go(self, *args, **kwargs):
+        start = time.time()
         cfg = self.getConfiguration()
         cfg.prepare()
         duration = args[0]
         if duration is None or duration == 0:
             return self.getStateEG().readValue(), self.getValues()
-        self.setIntegrationTime(duration)
+        self.putIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateEG().readValue(), self.getValues()
+        self._read_time = 0
+        start_read = time.time()
+        ret = self.getStateEG().readValue(), self.getValues()
+        end = time.time()
+        self._read_time = end - start_read
+        self._total_time = tt = end - start
+        self._dead_time = tt - duration
+        return ret
 
     startCount = PoolElement.start
     waitCount = PoolElement.waitFinish
