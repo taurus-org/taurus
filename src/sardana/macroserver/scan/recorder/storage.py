@@ -279,11 +279,11 @@ class NEXUS_FileRecorder(BaseFileRecorder):
             #leave the creation of the datasets to _writeRecordList (when we actually know the length of the data to write)
             pass
         
-        self._createPreScanSnapshot()
+        self._createPreScanSnapshot(env)
             
         self.fd.flush()
     
-    def _createPreScanSnapshot(self):
+    def _createPreScanSnapshot(self, env):
         measurementpath = "/%s:NXentry/measurement:NXcollection"%self.entryname
         self.fd.openpath(measurementpath)
         #write the pre-scan snapshot in the "measurement:NXcollection/pre_scan_snapshot:NXcollection" group

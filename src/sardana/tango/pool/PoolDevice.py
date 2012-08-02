@@ -441,6 +441,7 @@ class PoolDevice(SardanaDevice):
             if n == 0:
                 raise Exception("Wait for operation timedout")
             time.sleep(0.01)
+            self.warning("waited for operation")
             n = n - 1
 
 

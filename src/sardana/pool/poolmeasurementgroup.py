@@ -503,13 +503,13 @@ class PoolMeasurementGroup(PoolGroupElement):
     # acquisition
     # --------------------------------------------------------------------------
 
-    def start_acquisition(self, value=None):
+    def start_acquisition(self, value=None, multiple=1):
         self._aborted = False
         if not self._simulation_mode:
             # load configuration into controller(s) if necessary
             self.load_configuration()
             # start acquisition
-            kwargs = dict(head=self, config=self._config)
+            kwargs = dict(head=self, config=self._config, multiple=multiple)
             if self.acquisition_mode == AcqMode.Timer:
                 kwargs["integ_time"] = self._integration_time
             elif self.acquisition_mode == AcqMode.Monitor:

@@ -35,6 +35,7 @@ import os
 import datetime
 import operator
 import time
+import threading
 
 import taurus
 from taurus.core.util import USER_NAME, Logger, CaselessList
@@ -761,13 +762,15 @@ class SScan(GScan):
             self.macro.checkPoint()
             self.stepUp(i, step, lstep)
             lstep = step
-            if scream: yield ((i+1) / nr_points) * 100.0
+            if scream:
+                yield ((i+1) / nr_points) * 100.0
         
         if hasattr(macro, "post_scan_hooks"):
             for hook in macro.post_scan_hooks:
                 hook()
 
-        if not scream: yield 100.0
+        if not scream:
+            yield 100.0
     
     def stepUp(self, n, step, lstep):
         motion, mg = self.motion, self.measurement_group
@@ -880,8 +883,9 @@ class SScan(GScan):
             msg.append(moveable.information())
         self.macro.info("\n".join(msg))
         
+
 class CScan(GScan):
-    """Continuos scan"""
+    """Continuous scan"""
     
     def __init__(self, macro, waypointGenerator=None, periodGenerator=None,
                  moveables=[], env={}, constraints=[], extrainfodesc=[]):
@@ -910,18 +914,78 @@ class CScan(GScan):
     def go_through_waypoints(self):
         motion, waypoints = self.motion, self.steps
         
+        last_positions = None
         for i, waypoint in waypoints:
-            
+            positions = waypoint['positions']
+            if last_positions is None:
+                last_positions = positions
+                continue
+                
+            start_pos, final_pos, deltat = self.prepare_waypoint(last_positions, positions)
+                        
             #execute pre-move hooks
             for hook in waypoint.get('pre-move-hooks',[]): hook()
     
+            # move to start position
+            motion.move(start_pos)
+                
+            self.deltat = deltat
+            self.motion_event.set()
+            
             # move to waypoint 
-            motion.move(waypoint['positions'])
+            motion.move(final_pos)
             
             #execute post-move hooks
             for hook in waypoint.get('post-move-hooks',[]): hook()
-    
+            last_positions = positions
+            
         self.stop()
+    
+    def prepare_waypoint(self, last_positions, positions):
+        import sardana.pool.motion
+
+        duration = 0        
+        master_index = -1
+        moveable_paths = []
+        tstart = 0
+        for i, (moveable, position) in enumerate(zip(self.moveables, positions)):
+            motor = moveable.moveable
+            top_vel = motor.getVelocityObj()
+            min_top_vel, max_top_vel = top_vel.getRange()
+            try:
+                max_top_vel = float(max_top_vel)
+            except ValueError:
+                self.macro.warning("Velocity range of %s is not defined. Using current velocity.", motor)
+                max_top_vel = top_vel.read()
+            vmotor = sardana.pool.motion.Motor(min_vel=motor.getBaseRate(),
+                max_vel=max_top_vel, accel_time=0, decel_time=0)
+            last_user_pos = last_positions[i]
+            path = sardana.pool.motion.MotionPath(vmotor, last_user_pos, position)
+            path.moveable = moveable
+            if path.duration > duration:
+                duration = path.duration
+                master_index = i
+            moveable_paths.append(path)
+            tstart = max(tstart, motor.getAcceleration())
+        
+        start_positions, final_positions = [], []
+        for path in moveable_paths:
+            vmotor = path.motor
+            moveable = path.moveable
+            motor = moveable.moveable
+            new_top_vel = path.displacement / duration
+            vmotor.setMaxVelocity(new_top_vel)
+            accel_t, decel_t = motor.getAcceleration(), motor.getDeceleration()
+            base_vel = vmotor.getMinVelocity()
+            vmotor.setAccelerationTime(accel_t)
+            vmotor.setDecelerationTime(decel_t)
+            new_initial_pos = path.initial_user_pos - accel_t * 0.5 * (new_top_vel + base_vel) - new_top_vel * (tstart - accel_t)
+            path.setInitialUserPos(new_initial_pos)
+            new_final_pos = path.final_user_pos + vmotor.displacement_reach_min_vel
+            path.setFinalUserPos(new_final_pos)
+            start_positions.append(new_initial_pos)
+            final_positions.append(new_final_pos)
+        return moveable_paths, start_positions, final_positions, tstart
     
     def stop(self):
         self._stop = True
@@ -930,7 +994,14 @@ class CScan(GScan):
         motion, mg, waypoints = self.motion, self.measurement_group, self.steps
         macro = self.macro
         manager = macro.getManager()
+        scream = False
         
+        if hasattr(macro, "nr_points"):
+            nr_points = float(macro.nr_points)
+            scream = True
+        else:
+            yield 0.0
+
         moveables      = [ m.moveable for m in self.moveables ]
         period_steps   = self.period_steps
         point_nb, step = -1, None
@@ -941,17 +1012,23 @@ class CScan(GScan):
                 hook()
         
         # synchronous move to start position
-        i, first_waypoint = waypoints.next()
-        motion.move(first_waypoint['positions'])
+        #i, first_waypoint = waypoints.next()
+        #motion.move(first_waypoint['positions'])
         
-        # configure acquisition (1 month)
-        mg.setIntegrationTime(1*60.*60.*24*30)
+        self.motion_event = threading.Event()
         
         # start move & acquisition as close as possible
         # from this point on synchronization becomes critical
         manager.add_job(self.go_through_waypoints)
-        mg.startCount()
         
+        # wait for motor to reach start position
+        self.motion_event.wait()
+        
+        # wait for motor to reach max velocity
+        time.sleep(self.deltat)
+        
+        read_time = 0
+        mg_delay_time = 0
         while not self._stop:
             try:
                 point_nb, step = period_steps.next()
@@ -961,28 +1038,58 @@ class CScan(GScan):
             # start/stop Count here according to the 'acquire' key given by 
             #the generator
             
-            #execute pre-acq hooks
-            for hook in step.get('pre-acq-hooks',[]): hook()
-            
-            #acquire data and motor positions as close as possible
-            #data_line,positions = mg.getValues(force=True), motion.readPosition(force=True)
-            data_line, positions = mg.getValues(), motion.readPosition()
-            
-            #execute post-acq hooks
-            for hook in step.get('post-acq-hooks',[]): hook()
+            #pre-acq hooks
+            for hook in step.get('pre-acq-hooks',()):
+                hook()
+                try:
+                    step['extrainfo'].update(hook.getStepExtraInfo())
+                except InterruptException:
+                    raise
+                except: pass
 
+            # TODO read positions inside measurement group to reduce delay
+            start = time.time()
+            positions = motion.readPosition(force=True)
+            read_time += time.time() - start
+            
+            # Acquire data
+            self.debug("[START] acquisition")
+            state, data_line = mg.count(step['acq_period'])
+            mg_delay_time += mg._dead_time
+            read_time += mg._read_time
+            
+            for ec in self._extra_columns:
+                data_line[ec.getName()] = ec.read()
+            self.debug("[ END ] acquisition")
+            
+            #post-acq hooks
+            for hook in step.get('post-acq-hooks',()):
+                hook()
+                try:
+                    step['extrainfo'].update(hook.getStepExtraInfo())
+                except InterruptException:
+                    raise
+                except:
+                    pass
+
+            # Add final moveable positions
             data_line['point_nb'] = point_nb
-            for i, m in enumerate(moveables):
-                data_line[m.getName()] = positions[i]
-
+            for i, m in enumerate(self.moveables):
+                data_line[m.moveable.getName()] = positions[i]
+            
             #Add extra data coming in the step['extrainfo'] dictionary
             if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
-            data.addRecord(data_line)
-            time.sleep(step['acq_period'])
             
-        mg.abort()
-
-        if hasattr(macro, "pre_scan_hooks"):
+            self.data.addRecord(data_line)
+            
+            if scream:
+                yield ((point_nb+1) / nr_points) * 100.0
+            
+        if hasattr(macro, "post_scan_hooks"):
             for hook in macro.post_scan_hooks:
                 hook()
-    
+        
+        self.macro.info("Read time was %fs", read_time)
+        self.macro.info("MntGrp delay time was %fs", mg_delay_time)
+        if not scream:
+            yield 100.0   

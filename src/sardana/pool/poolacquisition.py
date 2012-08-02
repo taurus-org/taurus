@@ -36,6 +36,7 @@ import time
 from taurus.core.util import Enumeration, DebugIt, InfoIt
 
 from sardana import State, ElementType
+from sardana.sardanathreadpool import get_thread_pool
 from poolaction import ActionContext, PoolActionItem, PoolAction
 
 #: enumeration representing possible motion states
@@ -66,9 +67,31 @@ class PoolAcquisition(PoolAction):
         self._ct_acq = PoolCTAcquisition(main_element, name=ctname, slaves=(zd_acq,))
 
     def run(self, *args, **kwargs):
+        n = kwargs.get('multiple', 1)
+        if n == 1:
+            return self._run_single(*args, **kwargs)
+        return self._run_multiple(*args, **kwargs)
+    
+    def _run_multiple(self, *args, **kwargs):
+        n = kwargs['multiple']
+        synch = kwargs.get("synch", False)
+        if synch:
+            for i in range(n):
+                self._run_single(self, *args, **kwargs)
+        else:
+            kwargs["synch"] = True
+            get_thread_pool().add(self._run_multiple, None, *args, **kwargs)
+    
+    def _run_single(self, *args, **kwargs):
         """Runs this action"""
-        self._ct_acq.run(*args, **kwargs)
-        self._0d_acq.run(*args, **kwargs)
+        synch = kwargs.get("synch", False)
+        ct_acq = self._ct_acq
+        zd_acq = self._0d_acq
+        if synch:
+            ct_acq.run(*args, **kwargs)
+        else:
+            ct_acq.run(*args, **kwargs)
+            zd_acq.run(*args, **kwargs)
 
 #    def start_action(self, *args, **kwargs):
 #        pass
@@ -131,6 +154,22 @@ class PoolAcquisition(PoolAction):
         ret.update(self._0d_acq.get_pool_controllers())
         return ret
 
+    def read_value(self, ret=None, serial=False):
+        """Reads value information of all elements involved in this action
+
+        :param ret: output map parameter that should be filled with value
+                    information. If None is given (default), a new map is
+                    created an returned
+        :type ret: dict
+        :param serial: If False (default) perform controller HW value requests
+                       in parallel. If True, access is serialized.
+        :type serial: bool
+        :return: a map containing value information per element
+        :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement`,
+                     (value object, Exception or None)>"""
+        ret = self._ct_acq.read_value(ret=ret, serial=serial)
+        ret = self._0d_acq.read_value(ret=ret, serial=serial)
+        return ret
 
 class Channel(PoolActionItem):
 
@@ -171,8 +210,8 @@ class PoolCTAcquisition(PoolAction):
             kwargs.pop("nb_states_per_value",
                        pool.acq_loop_states_per_value)
 
-        integ_time = kwargs.get("integ_time")
-        mon_count = kwargs.get("monitor_count")
+        self._integ_time = integ_time = kwargs.get("integ_time")
+        self._mon_count = mon_count = kwargs.get("monitor_count")
         if integ_time is None and mon_count is None:
             raise Exception("must give integration time or monitor counts")
         if integ_time is not None and mon_count is not None:
@@ -182,8 +221,10 @@ class PoolCTAcquisition(PoolAction):
         cfg = kwargs['config']
 
         # determine which is the controller which olds the master channel
-        master_key, master_value = 'timer', integ_time
-
+        
+        if integ_time is not None:
+            master_key = 'timer'
+            master_value = integ_time
         if mon_count is not None:
             master_key = 'monitor'
             master_value = - mon_count
@@ -295,7 +336,7 @@ class PoolCTAcquisition(PoolAction):
             for acquirable, value_info in values.items():
                 value, exc_info = value_info
                 acquirable.put_value(value, propagate=2)
-
+        
         while True:
             self.read_state_info(ret=states)
 
@@ -308,9 +349,9 @@ class PoolCTAcquisition(PoolAction):
                 for acquirable, value_info in values.items():
                     value, exc_info = value_info
                     acquirable.put_value(value)
-
-            i += 1
+                    
             time.sleep(nap)
+            i += 1
 
         for slave in self._slaves:
             try:

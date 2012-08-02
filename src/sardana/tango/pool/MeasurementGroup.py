@@ -23,12 +23,13 @@
 ##
 ##############################################################################
 
-""" """
+"""The sardana tango measurement group module"""
 
 __all__ = ["MeasurementGroup", "MeasurementGroupClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 
 from PyTango import DevVoid, DevLong, DevDouble, DevString, \
@@ -39,7 +40,9 @@ from taurus.core.util import CodecFactory
 from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool import AcqMode
+from sardana.tango.core.util import exception_str
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -97,19 +100,55 @@ class MeasurementGroup(PoolGroupDevice):
         self.set_state(DevState.ON)
 
     def on_measurement_group_changed(self, event_source, event_type, event_value):
-
+        try:
+            self._on_measurement_group_changed(event_source, event_type, event_value)
+        except:
+            msg = 'Error occured "on_measurement_group_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.measurement_group.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+            
+    def _on_measurement_group_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
 
-        t = time.time()
+        timestamp = time.time()
         name = event_type.name
         name = name.replace('_','')
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
+        priority = event_type.priority
+        error = None
+        
+        if name == "state":
+            event_value = self.calculate_tango_state(event_value)
+        elif name == "status":
+            event_value = self.calculate_tango_status(event_value)
+        elif name == "acquisitionmode":
+            event_value = AcqMode.whatis(event_value)
+        elif name == "configuration":
+            cfg = self.measurement_group.get_user_configuration()
+            codec = CodecFactory().getCodec('json')
+            _, event_value = codec.encode(('', cfg))
+        else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                timestamp = event_value.timestamp
+                event_value = event_value.value
 
+        self.set_attribute(attr, value=event_value, timestamp=timestamp,
+                           quality=quality, priority=priority, error=error,
+                           synch=False)
+        return
+        
+        
+        
+        
         recover = False
         if event_type.priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
@@ -197,8 +236,18 @@ class MeasurementGroup(PoolGroupDevice):
         self.measurement_group.set_configuration_from_user(cfg)
 
     def Start(self):
+        try:
+            self.wait_for_operation()
+        except:
+            raise Exception("Cannot acquire: already involved in an operation")
         self.measurement_group.start_acquisition()
 
+    def StartMultiple(self, n):
+        try:
+            self.wait_for_operation()
+        except:
+            raise Exception("Cannot acquire: already involved in an operation")
+        self.measurement_group.start_acquisition(multiple=n)
 
 class MeasurementGroupClass(PoolGroupDeviceClass):
 
@@ -213,7 +262,8 @@ class MeasurementGroupClass(PoolGroupDeviceClass):
 
     #    Command definitions
     cmd_list = {
-        'Start': [ [DevVoid, ""], [DevVoid, ""] ]
+        'Start': [ [DevVoid, ""], [DevVoid, ""] ],
+        'StartMultiple': [ [DevLong, ""], [DevVoid, ""] ],
     }
     cmd_list.update(PoolGroupDeviceClass.cmd_list)
 

@@ -104,6 +104,7 @@ class TangoInputHandler(BaseInputHandler):
         door = self._door
         door.set_attribute(self._attr, value=input_data)
 
+
 class TangoFunctionHandler(object):
 
     def __init__(self, door, attr, module_name, format="bz2_pickle"):

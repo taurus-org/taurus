@@ -2006,11 +2006,6 @@ class Macro(Logger):
     #@}
 
     def __getattr__(self, name):
-        try:
-            return self.door.get_macro(name)
-        except UnknownMacro:
-            raise AttributeError("%r object has no attribute %r" %
-                                 (type(self).__name__, name))
 
         def f(*args, **kwargs):
             self.syncLog()

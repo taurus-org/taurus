@@ -33,6 +33,7 @@ __all__ = ["ascanc"]
 
 __docformat__ = 'restructuredtext'
 
+import numpy
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
 

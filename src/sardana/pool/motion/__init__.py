@@ -25,9 +25,8 @@
 
 """This is the main device pool module"""
 
-__all__ = ["ControllerAPI", "AcqTriggerType", "AcqMode", "PoolUtil"]
+__all__ = ["MotionPath", "Motion", "Motor"]
 
 __docformat__ = 'restructuredtext'
 
-from .pooldefs import ControllerAPI, AcqTriggerType, AcqMode
-from .poolutil import PoolUtil
+from .motion import MotionPath, Motion, Motor
