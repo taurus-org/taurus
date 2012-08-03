@@ -138,7 +138,7 @@ class GScan(Logger):
       - 'positions'  : In a step scan, the position where the moveables should go
       - 'integ_time' : In a step scan, a number representing the integration time for the step 
                      (in seconds)
-      - 'acq_period' : In a continuous scan, the time between acquisitions
+      - 'integ_time' : In a continuous scan, the time between acquisitions
       - 'pre-scan-hooks' : (optional) a sequence of callables to be called in strict order before starting the scan.
       - 'pre-move-hooks' : (optional) a sequence of callables to be called in strict order before starting to move.
       - 'post-move-hooks': (optional) a sequence of callables to be called in strict order after finishing the move.
@@ -719,8 +719,9 @@ class GScan(Logger):
         self.macro.setEnv('ScanHistory', scan_history)
 
     def scan(self):
-        for step in self.step_scan(): pass
-    
+        for step in self.step_scan():
+            pass
+        
     def step_scan(self):
         self.start()
         ex = None
@@ -921,55 +922,113 @@ class CScan(GScan):
                 last_positions = positions
                 continue
                 
-            start_pos, final_pos, deltat = self.prepare_waypoint(last_positions, positions)
-                        
-            #execute pre-move hooks
-            for hook in waypoint.get('pre-move-hooks',[]): hook()
-    
-            # move to start position
-            motion.move(start_pos)
+            motion_paths, backups, delta_start, duration = self.prepare_waypoint(last_positions, positions)
+            
+            backup_motors = []
+            try:
+                self.duration = duration
+                            
+                #execute pre-move hooks
+                for hook in waypoint.get('pre-move-hooks',[]): 
+                    hook()
+        
+                start_pos, final_pos = [] , []
+                for path in motion_paths:
+                    start_pos.append(path.initial_user_pos)
+                    final_pos.append(path.final_user_pos)
                 
-            self.deltat = deltat
-            self.motion_event.set()
-            
-            # move to waypoint 
-            motion.move(final_pos)
-            
-            #execute post-move hooks
-            for hook in waypoint.get('post-move-hooks',[]): hook()
-            last_positions = positions
+                # move to start position
+                motion.move(start_pos)
+
+                # prepare motor(s) to move with proper velocity
+                for path, backup in zip(motion_paths, backups):
+                    vmotor = path.motor
+                    motor = path.moveable.moveable
+                    backup_motors.append(backup)
+                    motor.setVelocity(vmotor.getMaxVelocity())
+                            
+                self.timestamp_to_start = time.time() + delta_start
+                self.motion_event.set()
+                
+                # move to waypoint 
+                motion.move(final_pos)
+                
+                #execute post-move hooks
+                for hook in waypoint.get('post-move-hooks',[]):
+                    hook()
+                    
+                last_positions = positions
+
+            finally:
+                # restore changed motors to initial state
+                for vmotor in backup_motors:
+                    try:
+                        motor = vmotor.moveable.moveable
+                        old_vel = vmotor.getMaxVelocity()
+                        motor.setVelocity(old_vel)
+                    except:
+                        self.warning("Failed to restore %s velocity to %s", motor, old_vel)
             
         self.stop()
+        motion.move(positions)
     
     def prepare_waypoint(self, last_positions, positions):
         import sardana.pool.motion
 
-        duration = 0        
-        master_index = -1
-        moveable_paths = []
-        tstart = 0
+        Motor = sardana.pool.motion.Motor
+        MotionPath = sardana.pool.motion.MotionPath
+        
+        dead_time = 0.0
+        base_duration = (self.macro.nr_interv+1) * (self.macro.integ_time + dead_time)
+        duration, delta_start = base_duration, 0
+        backup = []
+        motion_paths = []
         for i, (moveable, position) in enumerate(zip(self.moveables, positions)):
+            
+            # first backup all motor parameters
             motor = moveable.moveable
-            top_vel = motor.getVelocityObj()
-            min_top_vel, max_top_vel = top_vel.getRange()
+            accel_time, decel_time = motor.getAcceleration(), motor.getDeceleration()
+            base_vel, top_vel = motor.getBaseRate(), motor.getVelocity()
+            
+            vmotor_backup = Motor(min_vel=base_vel, max_vel=top_vel,
+                                  accel_time=accel_time, decel_time=decel_time)
+            vmotor_backup.moveable = moveable
+            backup.append(vmotor_backup)
+            
+            # find the maximum top velocity for the motor. If the motor doesn't
+            # have a defined range for top velocity, the use the current top
+            # velocity
+            top_vel_obj = motor.getVelocityObj()
+            min_top_vel, max_top_vel = top_vel_obj.getRange()
             try:
                 max_top_vel = float(max_top_vel)
             except ValueError:
-                self.macro.warning("Velocity range of %s is not defined. Using current velocity.", motor)
-                max_top_vel = top_vel.read()
-            vmotor = sardana.pool.motion.Motor(min_vel=motor.getBaseRate(),
-                max_vel=max_top_vel, accel_time=0, decel_time=0)
+                self.macro.warning("Velocity range of %s is not defined. "
+                                   "Using current velocity.", motor)
+                max_top_vel = top_vel
+            
+            # recalculate time to reach maximum velocity
+            delta_start = max(delta_start, accel_time)
+            
+            # Find the duration of motion at top velocity. For this create a
+            # virtual motor which has instantaneous acceleration and deceleration
+            vmotor = Motor(min_vel=motor.getBaseRate(), max_vel=max_top_vel,
+                           accel_time=0, decel_time=0)
             last_user_pos = last_positions[i]
-            path = sardana.pool.motion.MotionPath(vmotor, last_user_pos, position)
+            
+            # create a path which will tell us which is the duration of this
+            # motion at top velocity
+            path = MotionPath(vmotor, last_user_pos, position)
             path.moveable = moveable
-            if path.duration > duration:
-                duration = path.duration
-                master_index = i
-            moveable_paths.append(path)
-            tstart = max(tstart, motor.getAcceleration())
+            
+            # recalculate duration of motion at top velocity
+            duration = max(duration, path.duration)
+            
+            motion_paths.append(path)
         
-        start_positions, final_positions = [], []
-        for path in moveable_paths:
+        # now that we have the appropriate top velocity for all motors, the
+        # duration of motion at top velocity, and the time it takes to recalculate 
+        for path in motion_paths:
             vmotor = path.motor
             moveable = path.moveable
             motor = moveable.moveable
@@ -979,13 +1038,11 @@ class CScan(GScan):
             base_vel = vmotor.getMinVelocity()
             vmotor.setAccelerationTime(accel_t)
             vmotor.setDecelerationTime(decel_t)
-            new_initial_pos = path.initial_user_pos - accel_t * 0.5 * (new_top_vel + base_vel) - new_top_vel * (tstart - accel_t)
+            new_initial_pos = path.initial_user_pos - accel_t * 0.5 * (new_top_vel + base_vel) - new_top_vel * (delta_start - accel_t)
             path.setInitialUserPos(new_initial_pos)
             new_final_pos = path.final_user_pos + vmotor.displacement_reach_min_vel
             path.setFinalUserPos(new_final_pos)
-            start_positions.append(new_initial_pos)
-            final_positions.append(new_final_pos)
-        return moveable_paths, start_positions, final_positions, tstart
+        return motion_paths, backup, delta_start, duration
     
     def stop(self):
         self._stop = True
@@ -1025,15 +1082,22 @@ class CScan(GScan):
         self.motion_event.wait()
         
         # wait for motor to reach max velocity
-        time.sleep(self.deltat)
+        start_time = time.time()
+        time.sleep(self.timestamp_to_start - start_time)
+        acq_start_time = time.time()
         
-        read_time = 0
-        mg_delay_time = 0
         while not self._stop:
             try:
                 point_nb, step = period_steps.next()
             except StopIteration:
                 break
+
+            integ_time = step['integ_time']
+            
+            # If there is no more time to acquire... stop!
+            elapsed_time = time.time() - acq_start_time
+            if elapsed_time + integ_time > self.duration:
+                break;                
             
             # start/stop Count here according to the 'acquire' key given by 
             #the generator
@@ -1046,17 +1110,14 @@ class CScan(GScan):
                 except InterruptException:
                     raise
                 except: pass
+            
 
             # TODO read positions inside measurement group to reduce delay
-            start = time.time()
             positions = motion.readPosition(force=True)
-            read_time += time.time() - start
             
             # Acquire data
             self.debug("[START] acquisition")
-            state, data_line = mg.count(step['acq_period'])
-            mg_delay_time += mg._dead_time
-            read_time += mg._read_time
+            state, data_line = mg.count(integ_time)
             
             for ec in self._extra_columns:
                 data_line[ec.getName()] = ec.read()
@@ -1089,7 +1150,5 @@ class CScan(GScan):
             for hook in macro.post_scan_hooks:
                 hook()
         
-        self.macro.info("Read time was %fs", read_time)
-        self.macro.info("MntGrp delay time was %fs", mg_delay_time)
         if not scream:
             yield 100.0   

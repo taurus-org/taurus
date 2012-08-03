@@ -30,7 +30,6 @@ __all__ = ["MotionPath", "Motion", "Motor", "DemoMotor"]
 __docformat__ = 'restructuredtext'
 
 import time
-import weakref
 from math import pow, sqrt
 
 
@@ -72,16 +71,12 @@ class MotionPath(object):
     duration = -1
     
     def __init__(self, motor, initial_user_pos, final_user_pos):
-        self._motor = weakref.ref(motor)
+        self.motor = motor
         self.initial_user_pos = initial_user_pos
         self.final_user_pos = final_user_pos
 
         self.__calculateMotionPath()
         
-    @property
-    def motor(self):
-        return self._motor()
-
     def adjustMaxVelocityForNewDuration(self, duration):
         if self.small_motion:
             raise NotImplementedError
@@ -186,7 +181,6 @@ class MotionPath(object):
 
         # ASSERTIONS
         if positive_displacement:
-            print max_vel_pos, initial_pos
             assert(max_vel_pos >= initial_pos)
             assert(max_vel_pos <= final_pos)
         else:

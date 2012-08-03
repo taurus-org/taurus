@@ -293,17 +293,21 @@ def mAPI(fn):
     @functools.wraps(fn)
     def new_fn(*args, **kwargs):
         self = args[0]
-        is_macro_th = self._macro_thread == threading.current_thread()
-        if self._shouldRaiseStopException():
-            if is_macro_th:
-                self.setProcessingStop(True)
-            raise StopException("stopped before calling %s" % fn.__name__)
+        if not self.isAborted():
+            is_macro_th = self._macro_thread == threading.current_thread()
+            if self._shouldRaiseStopException():
+                if is_macro_th:
+                    self.setProcessingStop(True)
+                raise StopException("stopped before calling %s" % fn.__name__)
         ret = fn(*args, **kwargs)
-        if self._shouldRaiseStopException():
-            if is_macro_th:
-                self.setProcessingStop(True)
-            raise StopException("stopped after calling %s" % fn.__name__)
+        if not self.isAborted():
+            if self._shouldRaiseStopException():
+                if is_macro_th:
+                    self.setProcessingStop(True)
+                raise StopException("stopped after calling %s" % fn.__name__)
         return ret
+    # necessary to allow sphinx (with sardana extension) to generate proper
+    # documentation with the decorator applied to the function
     new_fn.__wrapped_func__ = fn
     return new_fn
 
@@ -1864,29 +1868,27 @@ class Macro(Logger):
 
         # allow any macro to be paused at the beginning of its execution
         self.pausePoint()
-
-#        with OverloadPrint(self):
-#            res = self.run(*self._in_pars)
-
-        #orig_func = self.run
-        #extra_globals = self._build_globals(orig_func.func_globals)
-        #new_func = new.function(orig_func.func_code, extra_globals)
-        #res = new_func(self, *self._in_pars)
+        
+        # Run the macro or obtain a generator 
         res = self.run(*self._in_pars)
 
+        # If macro returns a generator then running the macro means go through
+        # the generator steps, otherwise the macro has already ran
         if type(res) == types.GeneratorType:
             it = iter(res)
             for i in it:
                 if operator.isMappingType(i):
                     new_range = i.get('range')
-                    if new_range is not None: macro_status['range'] = new_range
+                    if new_range is not None:
+                        macro_status['range'] = new_range
                     new_step = i.get('step')
-                    if new_step is not None: macro_status['step'] = new_step
+                    if new_step is not None:
+                        macro_status['step'] = new_step
                 elif operator.isNumberType(i):
                     macro_status['step'] = i
                 macro_status['state'] = 'step'
                 yield macro_status
-            # make sure a 'stop' progress is sent
+            # make sure a 'stop' progress is sent in case an exception occurs
             macro_status['state'] = 'stop'
         else:
             self._out_pars = res
@@ -2006,7 +2008,11 @@ class Macro(Logger):
     #@}
 
     def __getattr__(self, name):
-
+        try:
+            self.door.get_macro(name)
+        except UnknownMacro:
+            raise AttributeError("%r object has no attribute %r" %
+                                 (type(self).__name__, name))
         def f(*args, **kwargs):
             self.syncLog()
             opts = dict(parent_macro=self, executor=self.executor)

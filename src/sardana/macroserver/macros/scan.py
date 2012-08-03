@@ -75,22 +75,12 @@ class aNscan(Hookable):
     
     """N-dimensional scan. This is **not** meant to be called by the user,
     but as a generic base to construct ascan, a2scan, a3scan,..."""
-    def _prepare(self, motorlist, startlist, endlist, nr_interv, integ_time, **opts):
-        if nr_interv > 0:
-            prepare = self._prepare_stepMode
-        elif nr_interv == -1:
-            prepare = self._prepare_continuousMode
-        elif nr_interv == -2:
-            raise NotImplementedError('The sparse-output mode for continuous scans is not yet implemented') #@TODO
-        else:
-            raise ValueError('invalid value for nr_interv = %i'%nr_interv)
-        
-        prepare(motorlist, startlist, endlist, nr_interv, integ_time, **opts)
-        
-    def _prepare_stepMode(self, motorlist, startlist, endlist, nr_interv, integ_time, **opts):
+    def _prepare(self, motorlist, startlist, endlist, nr_interv, integ_time, mode='s', **opts):
+
         self.motors = motorlist
         self.starts = numpy.array(startlist,dtype='d')
         self.finals = numpy.array(endlist,dtype='d')
+        self.mode = mode
         self.nr_interv = nr_interv
         self.integ_time = integ_time
         self.opts = opts
@@ -98,54 +88,31 @@ class aNscan(Hookable):
             self.N = self.finals.size
         else:
             raise ValueError('Moveablelist, startlist and endlist must all be same length')
-        
-        self.nr_points = nr_interv+1
-        self.interv_sizes = ( self.finals - self.starts) / nr_interv
-        
-        self.name = opts.get('name','a%iscan'%self.N)
-        
+
         moveables = []
         for m, start, final in zip(self.motors, self.starts, self.finals):
             moveables.append(MoveableDesc(moveable=m, min_value=min(start,final), max_value=max(start,final)))
         moveables[0].is_reference = True
-        
+
         env = opts.get('env',{})
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
 
         self.pre_scan_hooks = self.getHooks('pre-scan')
         self.post_scan_hooks = self.getHooks('post-scan')
-        
-        self._gScan = SScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
-    
-    def _prepare_continuousMode(self, motorlist, startlist, endlist, mode, acq_period, **opts):
-        self.motors = motorlist
-        self.starts = numpy.array(startlist,dtype='d')
-        self.finals = numpy.array(endlist,dtype='d')
-        self.mode = mode
-        self.acq_period = acq_period
-        self.opts = opts
-        if len(self.motors) == self.starts.size == self.finals.size:
-            self.N = self.finals.size
+          
+        if mode == 's':
+            self.nr_points = self.nr_interv+1
+            self.interv_sizes = ( self.finals - self.starts) / self.nr_interv
+            self.name = opts.get('name','a%iscan'%self.N)
+            self._gScan = SScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
+        elif mode == 'c':
+            self.nr_waypoints = 2 #aNscans will only have two waypoints (the start and the final positions)
+            self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
+            self.name = opts.get('name','a%iscanc'%self.N)
+            self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
         else:
-            raise ValueError('Moveablelist, startlist and endlist must all be same length')
-        
-        self.nr_waypoints = 2 #aNscans will only have two waypoints (the start and the final positions)
-        self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
-                
-        self.name = opts.get('name','a%iscan'%self.N)
-        
-        moveables = []
-        for m, start, final in zip(self.motors, self.starts, self.finals):
-            moveables.append(MoveableDesc(moveable=m, min_value=start, max_value=final))
-        env = opts.get('env',{})
-        constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
-        extrainfodesc = opts.get('extrainfodesc',[])
-        
-        self.pre_scan_hooks = self.getHooks('pre-scan')
-        self.post_scan_hooks = self.getHooks('post-scan')
-
-        self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
+            raise ValueError('invalid value for mode %s' % mode)
         
     def _stepGenerator(self):
         step = {}
@@ -174,7 +141,7 @@ class aNscan(Hookable):
     
     def _period_generator(self):
         step = {}
-        step["acq_period"] =  self.acq_period
+        step["integ_time"] =  self.integ_time
         step["pre-acq-hooks"] = self.getHooks('pre-acq')
         step["post-acq-hooks"] = self.getHooks('post-acq')+self.getHooks('_NOHINTS_')
         step["post-step-hooks"] = self.getHooks('post-step')
@@ -755,4 +722,103 @@ class scanhist(Macro):
         for line in out.genOutput():
             self.output(line)
         
-        
+
+class ascanc(aNscan, Macro): 
+    """Do an absolute continuous scan of the specified motor.
+    ascanc scans one motor, as specified by motor."""
+
+    param_def = [
+       ['motor',      Type.Moveable,   None, 'Moveable to move'],
+       ['start_pos',  Type.Float,   None, 'Scan start position'],
+       ['final_pos',  Type.Float,   None, 'Scan final position'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+
+    def prepare(self, motor, start_pos, final_pos, nr_interv, integ_time,
+                **opts):
+        self._prepare([motor], [start_pos], [final_pos], nr_interv,
+                      integ_time, mode='c', **opts)
+
+
+class a2scanc(aNscan, Macro): 
+    """two-motor continuous scan"""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+
+    def prepare(self, motor1, start_pos1, final_pos1, motor2, start_pos2,
+                final_pos2, nr_interv, integ_time, **opts):
+        self._prepare([motor1, motor2], [start_pos1, start_pos2],
+                      [final_pos1, final_pos2], nr_interv, integ_time,
+                      mode='c', **opts)
+
+
+class a3scanc(aNscan, Macro): 
+    """three-motor scan .
+    a3scan scans three motors, as specified by motor1, motor2 and motor3.
+    Each motor moves the same number of intervals with starting and ending
+    positions given by start_pos1 and final_pos1, start_pos2 and final_pos2,
+    start_pos3 and final_pos3, respectively.
+    The step size for each motor is (start_pos-final_pos)/nr_interv.
+    The number of data points collected will be nr_interv+1.
+    Count time is given by time which if positive, specifies seconds and
+    if negative, specifies monitor counts."""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+
+    def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, nr_interv,
+                integ_time, **opts):
+        self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], nr_interv,
+                      integ_time, mode='c', **opts)
+
+class a4scanc(aNscan, Macro): 
+    """four-motor scan .
+    a4scan scans four motors, as specified by motor1, motor2, motor3 and motor4.
+    Each motor moves the same number of intervals with starting and ending
+    positions given by start_posN and final_posN (for N=1,2,3,4).
+    The step size for each motor is (start_pos-final_pos)/nr_interv.
+    The number of data points collected will be nr_interv+1.
+    Count time is given by time which if positive, specifies seconds and
+    if negative, specifies monitor counts."""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
+       ['motor4',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos4',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos4',  Type.Float,   None, 'Scan final position 3'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+
+    def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, nr_interv,
+                integ_time, **opts):
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], nr_interv,
+                      integ_time, mode='c', **opts)
+
+
