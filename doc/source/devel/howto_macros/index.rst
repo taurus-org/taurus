@@ -684,6 +684,38 @@ Running this macro from spock will result in something like:
 
     .. image:: ../../_static/macro_plotting1.png
 
+Just for fun, the following macro computes a fractal and plots it as an image::
+
+    import numpy
+
+    @macro([["interactions", Type.Integer, None, ""],
+            ["density", Type.Integer, None, ""]])
+    def mandelbrot(self, interactions, density):
+
+        x_min, x_max = -2, 1
+        y_min, y_max = -1.5, 1.5
+        
+        x, y = numpy.meshgrid(numpy.linspace(x_min, x_max, density),
+                              numpy.linspace(y_min, y_max, density))
+                             
+        c = x + 1j * y
+        z = c.copy()
+        
+        fractal = numpy.zeros(z.shape, dtype=numpy.uint8) + 255
+        
+        finteractions = float(interactions)
+        for n in range(interactions):
+            z *= z
+            z += c
+            mask = (fractal == 255) & (abs(z) > 10)
+            fractal[mask] = 254 * n / finteractions
+        self.pyplot.imshow(fractal)
+
+And the resulting image (interactions=20, density=512):
+
+.. figure:: ../../_static/macro_fractal.png
+    
+
 A set of macro plotting examples can be found
 :ref:`here <devel-macro-plotting-examples>`.
 

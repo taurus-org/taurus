@@ -3,7 +3,7 @@ from numpy import linspace
 from scipy.integrate import quad
 from scipy.special import j0
 
-from sardana.macroserver.macro import macro
+from sardana.macroserver.macro import macro, Type
 
 def j0i(x):
     """Integral form of J_0(x)"""
@@ -32,3 +32,28 @@ def random_image(self):
     """Shows a random image 32x32"""
     img = random.random((32, 32))
     self.pyplot.matshow(img)
+
+import numpy
+    
+@macro([["interactions", Type.Integer, None, ""],
+        ["density", Type.Integer, None, ""]])
+def mandelbrot(self, interactions, density):
+
+    x_min, x_max = -2, 1
+    y_min, y_max = -1.5, 1.5
+    
+    x, y = numpy.meshgrid(numpy.linspace(x_min, x_max, density),
+                          numpy.linspace(y_min, y_max, density))
+                         
+    c = x + 1j * y
+    z = c.copy()
+    
+    fractal = numpy.zeros(z.shape, dtype=numpy.uint8) + 255
+    
+    finteractions = float(interactions)
+    for n in range(interactions):
+        z *= z
+        z += c
+        mask = (fractal == 255) & (abs(z) > 10)
+        fractal[mask] = 254 * n / finteractions
+    self.pyplot.imshow(fractal)

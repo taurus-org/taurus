@@ -961,7 +961,6 @@ class MacroExecutor(Logger):
                        macro script
         :return: (lxml.etree.Element) the xml representation of the running macro
         """
-
         # dict<PoolElement, set<Macro>>
         # key PoolElement - reserved object
         # value set<Macro> macros that reserved the object

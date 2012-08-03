@@ -2047,12 +2047,7 @@ class MacroFunc(Macro):
         if function.interactive is not None:
             self.interactive = function.interactive
         Macro.__init__(self, *args, **kwargs)
-        print(self.param_def)
         
     def run(self, *args):
-        #orig_func = self._function
-        #extra_globals = self._build_globals(orig_func.func_globals)
-        #new_func = new.function(orig_func.func_code, extra_globals)
-        #return new_func(*args)
         return self._function(self, *args)
 
