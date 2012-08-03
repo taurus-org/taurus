@@ -221,6 +221,9 @@ class TangoAttributeEG(Logger, EventGenerator):
             r = self.read(force=force)
         return r
 
+    def write(self, value):
+        self._attr.write(value, with_read=False)
+
     def __getattr__(self, name):
         return getattr(self._attr, name)
 
@@ -656,6 +659,30 @@ class Motor(PoolElement, Moveable):
 
     def getSimulationModeObj(self):
         return self._getAttrEG('step_per_unit')
+
+    def setVelocity(self, value):
+        return self.getVelocityObj().write(value)
+
+    def setAcceleration(self, value):
+        return self.getAccelerationObj().write(value)
+
+    def setDeceleration(self, value):
+        return self.getDecelerationObj().write(value)
+
+    def setBaseRate(self, value):
+        return self.getBaseRateObj().write(value)
+
+    def setBacklash(self, value):
+        return self.getBacklashObj().write(value)
+
+    def setOffset(self, value):
+        return self.getOffsetObj().write(value)
+
+    def setStepPerUnit(self, value):
+        return self.getStepPerUnitObj().write(value)
+
+    def setSign(self, value):
+        return self.getSignObj().write(value)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
@@ -1201,8 +1228,13 @@ class MGConfiguration(object):
         if idx >= 0:
             channels_info.pop(idx)
         return channels_info
-
-    def read_parallel(self):
+    
+    def read(self, parallel=True):
+        if parallel:
+            return self._read_parallel()
+        return self._read()
+    
+    def _read_parallel(self):
         self.prepare()
         ret = CaselessDict(self.cache)
         dev_replies = {}
@@ -1235,7 +1267,7 @@ class MGConfiguration(object):
                 
         return ret
 
-    def read(self):
+    def _read(self):
         self.prepare()
         ret = CaselessDict(self.cache)
         for dev_name, dev_data in self.tango_dev_channels.items():
@@ -1351,8 +1383,8 @@ class MeasurementGroup(PoolElement):
     def getCountersInfo(self):
         return self.getConfiguration().getCountersInfoList()
 
-    def getValues(self):
-        return self.getConfiguration().read_parallel()
+    def getValues(self, parallel=True):
+        return self.getConfiguration().read(parallel=parallel)
 
     def getIntegrationTime(self):
         return self._getAttrValue('IntegrationTime')
@@ -1373,7 +1405,6 @@ class MeasurementGroup(PoolElement):
         self.Start()
         
     def go(self, *args, **kwargs):
-        start = time.time()
         cfg = self.getConfiguration()
         cfg.prepare()
         duration = args[0]
@@ -1381,13 +1412,7 @@ class MeasurementGroup(PoolElement):
             return self.getStateEG().readValue(), self.getValues()
         self.putIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
-        self._read_time = 0
-        start_read = time.time()
         ret = self.getStateEG().readValue(), self.getValues()
-        end = time.time()
-        self._read_time = end - start_read
-        self._total_time = tt = end - start
-        self._dead_time = tt - duration
         return ret
 
     startCount = PoolElement.start
