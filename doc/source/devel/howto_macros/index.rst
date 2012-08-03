@@ -1034,6 +1034,70 @@ to show in a input spin box::
 A set of macro input examples can be found
 :ref:`here <devel-macro-input-examples>`.
 
+Showing progress in long macros
+-------------------------------
+
+Some of the macros you write may take a long time to execute. It could be useful
+to provide frequent feedback on the current progress of your macro to prevent
+users from thinking the system is blocked.
+The way to do this is by :keyword:`yield`\ing a new progress number in the 
+ode everytime you want to send a progress.
+
+The following code shows an example:
+
+.. code-block:: python
+    :emphasize-lines: 9
+
+    import time
+
+    @macro([["duration", Type.Integer, 1, "time to sleep (s)"]])
+    def nap(self, duration):
+        
+        fduration = float(duration)
+        for i in range(duration):
+            time.sleep(1)
+            yield (i+1) / fduration * 100
+
+The important code here is line 9. Everytime the macro execution reaches this
+line of code, basically it tells sardana to send a progress with the desired
+value. By default, the value is interpreted has a percentage and should have
+the range between 0.0 and 100.0. 
+
+Actually, even if your macro doesn't explicitly send macro progress reports,
+sardana always generates a 0.0 progress at the beginning of the macro and a
+last 100.0 progress at the end so for example, in a :term:`GUI`, the progress bar
+showing the macro progress will always reach the end (unless an error occurs)
+no matter how you program the progress.
+
+|macro_progress|
+
+It is possible to generate a progress that doesn't fit the 0 - 100.0 range.
+The above macro has been modified to send a progress with a customized range:
+
+.. code-block:: python
+    :emphasize-lines: 6, 11, 12
+
+    import time
+
+    @macro([["duration", Type.Integer, 1, "time to sleep (s)"]])
+    def nap(self, duration):
+
+        status = { 'range' : [0, duration] }        
+                
+        fduration = float(duration)
+        for i in range(duration):
+            time.sleep(1)
+            status['step'] = i+1
+            yield status
+
+You may notice that this way, the range can be changed dynamically. A progress
+bar in a :term:`GUI` is programmed to adjust not only the current progress value
+but also the ranges so it is safe to change them if necessary.
+
+
+
+
+
 .. rubric:: Footnotes
 
 .. [#f1] To find the absolute path for sardana's source code type on the
@@ -1059,7 +1123,10 @@ A set of macro input examples can be found
 
 .. |input_float_title_label_unit| image:: ../../_static/macro_input_float_title_label_unit.png
     :align: middle
-    
+
+.. |macro_progress| image:: ../../_static/macro_progress.png
+    :align: middle
+
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/
 .. _ELETTRA: http://http://www.elettra.trieste.it/
