@@ -30,10 +30,14 @@ __all__ = ["TaurusException", "DoubleRegistration"]
 __docformat__ = "restructuredtext"
 
 class TaurusException(Exception):
+
     def __init__(self, description, code = None):
-        Exception.__init__(self, description, code)
+        #Exception.__init__(self, description, code)
         self.code = code
         self.description = description
-        
+    
+    def __str__(self):
+        return str(self.description)
+    
 class DoubleRegistration(TaurusException):
     pass
