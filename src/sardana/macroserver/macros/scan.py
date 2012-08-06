@@ -75,13 +75,12 @@ class aNscan(Hookable):
     
     """N-dimensional scan. This is **not** meant to be called by the user,
     but as a generic base to construct ascan, a2scan, a3scan,..."""
-    def _prepare(self, motorlist, startlist, endlist, nr_interv, integ_time, mode='s', **opts):
+    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode='s', **opts):
 
         self.motors = motorlist
         self.starts = numpy.array(startlist,dtype='d')
         self.finals = numpy.array(endlist,dtype='d')
         self.mode = mode
-        self.nr_interv = nr_interv
         self.integ_time = integ_time
         self.opts = opts
         if len(self.motors) == self.starts.size == self.finals.size:
@@ -102,11 +101,13 @@ class aNscan(Hookable):
         self.post_scan_hooks = self.getHooks('post-scan')
           
         if mode == 's':
+            self.nr_interv = scan_length
             self.nr_points = self.nr_interv+1
             self.interv_sizes = ( self.finals - self.starts) / self.nr_interv
             self.name = opts.get('name','a%iscan'%self.N)
             self._gScan = SScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
         elif mode == 'c':
+            self.slow_down = scan_length
             self.nr_waypoints = 2 #aNscans will only have two waypoints (the start and the final positions)
             self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
             self.name = opts.get('name','a%iscanc'%self.N)
@@ -169,16 +170,17 @@ class dNscan(aNscan):
     hints = copy.deepcopy(aNscan.hints)
     hints['scan'] = 'dNscan'
 
-    def _prepare(self, motorlist, startlist, endlist, nr_interv, integ_time, **opts):
+    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode='s', **opts):
         self._motion=self.getMotion( [ m.getName() for m in motorlist] )
         self.originalPositions = numpy.array(self._motion.readPosition())
         starts = numpy.array(startlist, dtype='d') + self.originalPositions
         finals = numpy.array(endlist, dtype='d') + self.originalPositions
-        aNscan._prepare(self, motorlist, starts, finals, nr_interv, integ_time, **opts)
+        aNscan._prepare(self, motorlist, starts, finals, scan_length, integ_time, mode=mode, **opts)
         
     def run(self, *args):
         for step in self._gScan.step_scan():
             yield step
+        self.info("Returning to start positions...")
         self._motion.move(self.originalPositions)
         
 class ascan(aNscan, Macro): 
@@ -480,17 +482,19 @@ class mesh(Macro,Hookable):
        ['m2_start_pos',Type.Float,   None, 'Scan start position for second motor'],
        ['m2_final_pos',Type.Float,   None, 'Scan final position for second motor'],
        ['m2_nr_interv',Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time',  Type.Float,   None, 'Integration time']
+       ['integ_time',  Type.Float,   None, 'Integration time'],
+       ['fast_mode',   Type.Boolean, False, 'Save time by scanning s-shaped']
     ]
 
     def prepare(self, m1, m1_start_pos, m1_final_pos, m1_nr_interv,
                 m2, m2_start_pos, m2_final_pos, m2_nr_interv, integ_time,
-                **opts):
+                fast_mode, **opts):
         self.motors=[m1,m2]
         self.starts = numpy.array([m1_start_pos,m2_start_pos],dtype='d')
         self.finals = numpy.array([m1_final_pos,m2_final_pos],dtype='d')
         self.nr_intervs= numpy.array([m1_nr_interv, m2_nr_interv],dtype='i')
         self.integ_time = integ_time
+        self.fast_mode = fast_mode
         
         self.name=opts.get('name','mesh')
         
@@ -517,8 +521,14 @@ class mesh(Macro,Hookable):
         m1end,m2end=self.finals
         points1,points2=self.nr_intervs+1
         point_no=1
-        for m2pos in numpy.linspace(m2start,m2end,points2):
-            for m1pos in numpy.linspace(m1start,m1end,points1):
+        m1_space = numpy.linspace(m1start,m1end,points1)
+        m1_space_inv = numpy.linspace(m1end,m1start,points1)
+                                
+        for i, m2pos in enumerate(numpy.linspace(m2start,m2end,points2)):
+            space = m1_space
+            if i % 2 != 0 and self.fast_mode:
+                space = m1_space_inv
+            for m1pos in space:
                 step["positions"] = numpy.array([m1pos,m2pos])
                 step["point_id"]= point_no  #@TODO: maybe another ID would be better? (e.g. "(A,B)")
                 point_no+=1
@@ -731,13 +741,13 @@ class ascanc(aNscan, Macro):
        ['motor',      Type.Moveable,   None, 'Moveable to move'],
        ['start_pos',  Type.Float,   None, 'Scan start position'],
        ['final_pos',  Type.Float,   None, 'Scan final position'],
-       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time', Type.Float,   None, 'Integration time']
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
     ]
 
-    def prepare(self, motor, start_pos, final_pos, nr_interv, integ_time,
+    def prepare(self, motor, start_pos, final_pos, integ_time, slow_down,
                 **opts):
-        self._prepare([motor], [start_pos], [final_pos], nr_interv,
+        self._prepare([motor], [start_pos], [final_pos], slow_down,
                       integ_time, mode='c', **opts)
 
 
@@ -750,27 +760,19 @@ class a2scanc(aNscan, Macro):
        ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
        ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
        ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
-       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time', Type.Float,   None, 'Integration time']
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
     ]
 
     def prepare(self, motor1, start_pos1, final_pos1, motor2, start_pos2,
-                final_pos2, nr_interv, integ_time, **opts):
+                final_pos2, integ_time, slow_down, **opts):
         self._prepare([motor1, motor2], [start_pos1, start_pos2],
-                      [final_pos1, final_pos2], nr_interv, integ_time,
+                      [final_pos1, final_pos2], slow_down, integ_time,
                       mode='c', **opts)
 
 
 class a3scanc(aNscan, Macro): 
-    """three-motor scan .
-    a3scan scans three motors, as specified by motor1, motor2 and motor3.
-    Each motor moves the same number of intervals with starting and ending
-    positions given by start_pos1 and final_pos1, start_pos2 and final_pos2,
-    start_pos3 and final_pos3, respectively.
-    The step size for each motor is (start_pos-final_pos)/nr_interv.
-    The number of data points collected will be nr_interv+1.
-    Count time is given by time which if positive, specifies seconds and
-    if negative, specifies monitor counts."""
+    """three-motor continuous scan"""
     param_def = [
        ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
@@ -781,24 +783,17 @@ class a3scanc(aNscan, Macro):
        ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
-       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time', Type.Float,   None, 'Integration time']
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
     ]
 
-    def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, nr_interv,
-                integ_time, **opts):
-        self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], nr_interv,
+    def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, integ_time,
+                slow_down, **opts):
+        self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], slow_down,
                       integ_time, mode='c', **opts)
 
 class a4scanc(aNscan, Macro): 
-    """four-motor scan .
-    a4scan scans four motors, as specified by motor1, motor2, motor3 and motor4.
-    Each motor moves the same number of intervals with starting and ending
-    positions given by start_posN and final_posN (for N=1,2,3,4).
-    The step size for each motor is (start_pos-final_pos)/nr_interv.
-    The number of data points collected will be nr_interv+1.
-    Count time is given by time which if positive, specifies seconds and
-    if negative, specifies monitor counts."""
+    """four-motor continuous scan"""
     param_def = [
        ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
        ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
@@ -812,13 +807,180 @@ class a4scanc(aNscan, Macro):
        ['motor4',      Type.Moveable,   None, 'Moveable 3 to move'],
        ['start_pos4',  Type.Float,   None, 'Scan start position 3'],
        ['final_pos4',  Type.Float,   None, 'Scan final position 3'],
-       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
-       ['integ_time', Type.Float,   None, 'Integration time']
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
     ]
 
-    def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, nr_interv,
-                integ_time, **opts):
-        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], nr_interv,
+    def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4,
+                integ_time, slow_down, **opts):
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
+                      integ_time, mode='c', **opts)
+
+class dscanc(dNscan, Macro): 
+    """continuous motor scan relative to the starting position."""
+
+    param_def = [
+       ['motor',      Type.Moveable,   None, 'Moveable to move'],
+       ['start_pos',  Type.Float,   None, 'Scan start position'],
+       ['final_pos',  Type.Float,   None, 'Scan final position'],
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
+    ]
+
+    def prepare(self, motor, start_pos, final_pos, integ_time, slow_down,
+                **opts):
+        self._prepare([motor], [start_pos], [final_pos], slow_down, integ_time,
+                       mode='c', **opts)
+
+
+class d2scanc(dNscan,Macro): 
+    """continuous two-motor scan relative to the starting positions"""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
+    ]
+
+    def prepare(self, motor1, start_pos1, final_pos1, motor2, start_pos2,
+                final_pos2, integ_time, slow_down, **opts):
+        self._prepare([motor1,motor2], [start_pos1,start_pos2],
+                      [final_pos1,final_pos2], slow_down, integ_time,
+                       mode='c', **opts)
+
+
+class d3scanc(dNscan, Macro): 
+    """continuous three-motor scan"""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
+    ]
+
+    def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, integ_time, slow_down,
+                **opts):
+        self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], slow_down, integ_time,
+                       mode='c', **opts)
+        
+
+class d4scanc(dNscan, Macro): 
+    """continuous four-motor scan relative to the starting positions"""
+    param_def = [
+       ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
+       ['start_pos1',  Type.Float,   None, 'Scan start position 1'],
+       ['final_pos1',  Type.Float,   None, 'Scan final position 1'],
+       ['motor2',      Type.Moveable,   None, 'Moveable 2 to move'],
+       ['start_pos2',  Type.Float,   None, 'Scan start position 2'],
+       ['final_pos2',  Type.Float,   None, 'Scan final position 2'],
+       ['motor3',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos3',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos3',  Type.Float,   None, 'Scan final position 3'],
+       ['motor4',      Type.Moveable,   None, 'Moveable 3 to move'],
+       ['start_pos4',  Type.Float,   None, 'Scan start position 3'],
+       ['final_pos4',  Type.Float,   None, 'Scan final position 3'],
+       ['integ_time', Type.Float,   None, 'Integration time'],
+       ['slow_down',  Type.Float, 1, 'global scan slow down factor (0, 1]'],
+    ]
+
+    def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, integ_time,
+                slow_down, **opts):
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
                       integ_time, mode='c', **opts)
 
 
+class meshc(Macro,Hookable): 
+    """2d grid scan. scans continuous"""
+    
+    hints = { 'scan' : 'mesh', 'allowsHooks': ('pre-scan', 'pre-move', 'post-move', 'pre-acq', 'post-acq', 'post-step', 'post-scan') }
+    env = ('ActiveMntGrp',)
+    
+    param_def = [
+       ['motor1',      Type.Moveable, None, 'First motor to move'],
+       ['m1_start_pos',Type.Float,    None, 'Scan start position for first motor'],
+       ['m1_final_pos',Type.Float,    None, 'Scan final position for first motor'],
+       ['slow_down',   Type.Float,    None, 'global scan slow down factor (0, 1]'],
+       ['motor2',      Type.Moveable, None, 'Second motor to move'],
+       ['m2_start_pos',Type.Float,    None, 'Scan start position for second motor'],
+       ['m2_final_pos',Type.Float,    None, 'Scan final position for second motor'],
+       ['m2_nr_interv',Type.Integer,  None, 'Number of scan intervals'],
+       ['integ_time',  Type.Float,    None, 'Integration time'],
+       ['fast_mode',   Type.Boolean,  False, 'Save time by scanning s-shaped']
+    ]
+
+    def prepare(self, m1, m1_start_pos, m1_final_pos, slow_down,
+                m2, m2_start_pos, m2_final_pos, m2_nr_interv, integ_time,
+                fast_mode, **opts):
+        self.motors=[m1,m2]
+        self.slow_down = slow_down
+        self.starts = numpy.array([m1_start_pos,m2_start_pos],dtype='d')
+        self.finals = numpy.array([m1_final_pos,m2_final_pos],dtype='d')
+        self.m2_nr_interv = m2_nr_interv
+        self.integ_time = integ_time
+        self.fast_mode = fast_mode
+        
+        self.name=opts.get('name','meshc')
+        
+        moveables=self.motors
+        env=opts.get('env',{})
+        constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
+        extrainfodesc = opts.get('extrainfodesc',[])
+    
+        self.pre_scan_hooks = self.getHooks('pre-scan')
+        self.post_scan_hooks = self.getHooks('post-scan')
+
+        self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
+        self._gScan.frozen_motors = [m2]
+        
+    def _waypoint_generator(self):
+        step = {}
+        step["pre-move-hooks"] = self.getHooks('pre-move')
+        step["post-move-hooks"] = self.getHooks('post-move')
+        step["check_func"] = []
+        points2=self.m2_nr_interv+1
+        m1start,m2start=self.starts
+        m1end,m2end=self.finals
+        point_no=1
+        for i, m2pos in enumerate(numpy.linspace(m2start,m2end,points2)):
+            start, end = m1start, m1end
+            if i % 2 != 0 and self.fast_mode:
+                start, end = m1end, m1start
+            step["start_positions"] = numpy.array([start, m2pos])
+            step["positions"] = numpy.array([end, m2pos])
+            step["point_id"]= point_no
+            point_no+=1
+            print step
+            yield step
+    
+    def _period_generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+        step["pre-acq-hooks"] = self.getHooks('pre-acq')
+        step["post-acq-hooks"] = self.getHooks('post-acq')+self.getHooks('_NOHINTS_')
+        step["post-step-hooks"] = self.getHooks('post-step')
+        step["check_func"] = []
+        step['extrainfo'] = {}
+        point_no = 0
+        while(True):
+            point_no += 1
+            step["point_id"] = point_no
+            yield step
+
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
+
+    @property
+    def data(self):
+        return self._gScan.data

@@ -137,7 +137,8 @@ class OutputRecorder(DataRecorder):
         msg = "Scan #%d started at %s." % (serialno, starttime)
         if not estimatedtime is None:
             estimatedtime = datetime.timedelta(0, abs(estimatedtime))
-            msg += " It will take at least %s" % estimatedtime
+            msg += " It will take at least %s\n" % estimatedtime
+            msg += "Moving to start positions..."
         self._stream.info(msg)
 
         labels, col_names, col_sizes = [], [], []

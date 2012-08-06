@@ -166,7 +166,7 @@ class MotionPath(object):
 
             # displacement at maximum velocity
             at_max_vel_displacement = 0.0
-
+            
         # time to reach maximum velocity
         max_vel_time = abs((max_vel - min_vel) / accel)
 
@@ -196,7 +196,7 @@ class MotionPath(object):
         assert(min_vel_time >= 0.0)
         assert(duration >= 0.0)
 
-        if self.small_motion:
+        if small_motion:
             assert(at_max_vel_time == 0.0)
         else:
             assert(at_max_vel_time >= 0.0)

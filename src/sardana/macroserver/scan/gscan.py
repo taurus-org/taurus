@@ -894,7 +894,7 @@ class CScan(GScan):
                        moveables=moveables, env=env, constraints=constraints,
                        extrainfodesc=extrainfodesc)
         self._periodGenerator = periodGenerator
-        self._stop = False
+        self._stop_acquisition = False
 
         #for recorder in self._data_handler.recorders:
         #    recorder.setSaveMode(SaveModes.Block)
@@ -917,12 +917,14 @@ class CScan(GScan):
         
         last_positions = None
         for i, waypoint in waypoints:
+            previous_positions = waypoint.get('start_positions')
             positions = waypoint['positions']
-            if last_positions is None:
-                last_positions = positions
+            if previous_positions is None:
+                previous_positions = last_positions
+            if previous_positions is None:
                 continue
                 
-            motion_paths, backups, delta_start, duration = self.prepare_waypoint(last_positions, positions)
+            motion_paths, backups, delta_start, duration = self.prepare_waypoint(previous_positions, positions)
             
             backup_motors = []
             try:
@@ -943,6 +945,8 @@ class CScan(GScan):
                 # prepare motor(s) to move with proper velocity
                 for path, backup in zip(motion_paths, backups):
                     vmotor = path.motor
+                    if vmotor is None:
+                        continue
                     motor = path.moveable.moveable
                     backup_motors.append(backup)
                     motor.setVelocity(vmotor.getMaxVelocity())
@@ -956,12 +960,15 @@ class CScan(GScan):
                 #execute post-move hooks
                 for hook in waypoint.get('post-move-hooks',[]):
                     hook()
-                    
-                last_positions = positions
+                
+                if previous_positions is None:  
+                    last_positions = positions
 
             finally:
                 # restore changed motors to initial state
                 for vmotor in backup_motors:
+                    if vmotor is None:
+                        continue
                     try:
                         motor = vmotor.moveable.moveable
                         old_vel = vmotor.getMaxVelocity()
@@ -969,8 +976,15 @@ class CScan(GScan):
                     except:
                         self.warning("Failed to restore %s velocity to %s", motor, old_vel)
             
-        self.stop()
+        self.stop_acquisition()
+        self.macro.info("Correcting overshoot...")
         motion.move(positions)
+        self.motion_end_event.set()
+    
+    class _PseudoMotionPath:
+        pass
+    
+    _FrozenMotionPath = _PseudoMotionPath
     
     def prepare_waypoint(self, last_positions, positions):
         import sardana.pool.motion
@@ -979,17 +993,39 @@ class CScan(GScan):
         MotionPath = sardana.pool.motion.MotionPath
         
         dead_time = 0.0
-        base_duration = (self.macro.nr_interv+1) * (self.macro.integ_time + dead_time)
-        duration, delta_start = base_duration, 0
+        duration, delta_start = 0, 0
         backup = []
         motion_paths = []
+        #TODO in future frozen motors should be given by step generator
+        frozen_motors = getattr(self, 'frozen_motors', ())
         for i, (moveable, position) in enumerate(zip(self.moveables, positions)):
-            
             # first backup all motor parameters
             motor = moveable.moveable
-            accel_time, decel_time = motor.getAcceleration(), motor.getDeceleration()
-            base_vel, top_vel = motor.getBaseRate(), motor.getVelocity()
             
+            if motor in frozen_motors:
+                backup.append(None)
+                path = self._FrozenMotionPath()
+                path.initial_user_pos = last_positions[i]
+                path.final_user_pos = position
+                path.motor = None
+                path.moveable = moveable
+                motion_paths.append(path)
+                continue
+            
+            try:
+                accel_time, decel_time = motor.getAcceleration(), motor.getDeceleration()
+                base_vel, top_vel = motor.getBaseRate(), motor.getVelocity()
+            except AttributeError:
+                self.macro.warning("%s motion will not be coordinated", motor)
+                backup.append(None)
+                path = self._PseudoMotionPath()
+                path.initial_user_pos = last_positions[i]
+                path.final_user_pos = position
+                path.motor = None
+                path.moveable = moveable
+                motion_paths.append(path)
+                continue
+                                
             vmotor_backup = Motor(min_vel=base_vel, max_vel=top_vel,
                                   accel_time=accel_time, decel_time=decel_time)
             vmotor_backup.moveable = moveable
@@ -1002,9 +1038,8 @@ class CScan(GScan):
             min_top_vel, max_top_vel = top_vel_obj.getRange()
             try:
                 max_top_vel = float(max_top_vel)
+                motor.setVelocity(max_top_vel)
             except ValueError:
-                self.macro.warning("Velocity range of %s is not defined. "
-                                   "Using current velocity.", motor)
                 max_top_vel = top_vel
             
             # recalculate time to reach maximum velocity
@@ -1026,10 +1061,20 @@ class CScan(GScan):
             
             motion_paths.append(path)
         
+        # after finding de duration, introduce the slow down factor added by the
+        # user
+        duration /= self.macro.slow_down
+        
+        if duration == 0:
+            duration = float('+inf')
+        
         # now that we have the appropriate top velocity for all motors, the
         # duration of motion at top velocity, and the time it takes to recalculate 
         for path in motion_paths:
             vmotor = path.motor
+            # in the case of pseudo motors...
+            if vmotor is None:
+                continue
             moveable = path.moveable
             motor = moveable.moveable
             new_top_vel = path.displacement / duration
@@ -1038,14 +1083,16 @@ class CScan(GScan):
             base_vel = vmotor.getMinVelocity()
             vmotor.setAccelerationTime(accel_t)
             vmotor.setDecelerationTime(decel_t)
-            new_initial_pos = path.initial_user_pos - accel_t * 0.5 * (new_top_vel + base_vel) - new_top_vel * (delta_start - accel_t)
+            disp_sign = 1 and path.positive_displacement or -1
+            new_initial_pos = path.initial_user_pos - accel_t * 0.5 * disp_sign * (new_top_vel + base_vel) - disp_sign * new_top_vel * (delta_start - accel_t)
             path.setInitialUserPos(new_initial_pos)
-            new_final_pos = path.final_user_pos + vmotor.displacement_reach_min_vel
+            new_final_pos = path.final_user_pos + disp_sign * vmotor.displacement_reach_min_vel
             path.setFinalUserPos(new_final_pos)
+        
         return motion_paths, backup, delta_start, duration
     
-    def stop(self):
-        self._stop = True
+    def stop_acquisition(self):
+        self._stop_acquisition = True
     
     def scan_loop(self):
         motion, mg, waypoints = self.motion, self.measurement_group, self.steps
@@ -1074,6 +1121,8 @@ class CScan(GScan):
         
         self.motion_event = threading.Event()
         
+        self.motion_end_event = threading.Event()
+        
         # start move & acquisition as close as possible
         # from this point on synchronization becomes critical
         manager.add_job(self.go_through_waypoints)
@@ -1083,10 +1132,12 @@ class CScan(GScan):
         
         # wait for motor to reach max velocity
         start_time = time.time()
-        time.sleep(self.timestamp_to_start - start_time)
+        deltat = self.timestamp_to_start - start_time
+        if deltat > 0:
+            time.sleep(self.timestamp_to_start - start_time)
         acq_start_time = time.time()
         
-        while not self._stop:
+        while not self._stop_acquisition:
             try:
                 point_nb, step = period_steps.next()
             except StopIteration:
@@ -1111,13 +1162,17 @@ class CScan(GScan):
                     raise
                 except: pass
             
-
             # TODO read positions inside measurement group to reduce delay
             positions = motion.readPosition(force=True)
             
             # Acquire data
             self.debug("[START] acquisition")
             state, data_line = mg.count(integ_time)
+            
+            # After acquisition, test if we are asked to stop, probably because
+            # the motor are stopped. In this case discard the last acquisition
+            if self._stop_acquisition:
+                break
             
             for ec in self._extra_columns:
                 data_line[ec.getName()] = ec.read()
@@ -1149,6 +1204,8 @@ class CScan(GScan):
         if hasattr(macro, "post_scan_hooks"):
             for hook in macro.post_scan_hooks:
                 hook()
+        
+        self.motion_end_event.wait()
         
         if not scream:
             yield 100.0   
