@@ -922,6 +922,7 @@ class CScan(GScan):
             if previous_positions is None:
                 previous_positions = last_positions
             if previous_positions is None:
+                last_positions = positions
                 continue
                 
             motion_paths, backups, delta_start, duration = self.prepare_waypoint(previous_positions, positions)
@@ -975,8 +976,9 @@ class CScan(GScan):
                         motor.setVelocity(old_vel)
                     except:
                         self.warning("Failed to restore %s velocity to %s", motor, old_vel)
-            
+
         self.stop_acquisition()
+        self.motion_event.set()
         self.macro.info("Correcting overshoot...")
         motion.move(positions)
         self.motion_end_event.set()
@@ -1127,79 +1129,85 @@ class CScan(GScan):
         # from this point on synchronization becomes critical
         manager.add_job(self.go_through_waypoints)
         
-        # wait for motor to reach start position
-        self.motion_event.wait()
-        
-        # wait for motor to reach max velocity
-        start_time = time.time()
-        deltat = self.timestamp_to_start - start_time
-        if deltat > 0:
-            time.sleep(self.timestamp_to_start - start_time)
-        acq_start_time = time.time()
-        
         while not self._stop_acquisition:
-            try:
-                point_nb, step = period_steps.next()
-            except StopIteration:
-                break
-
-            integ_time = step['integ_time']
+        
+            # wait for motor to reach start position
+            self.motion_event.wait()
+            self.motion_event.clear()
             
-            # If there is no more time to acquire... stop!
-            elapsed_time = time.time() - acq_start_time
-            if elapsed_time + integ_time > self.duration:
-                break;                
-            
-            # start/stop Count here according to the 'acquire' key given by 
-            #the generator
-            
-            #pre-acq hooks
-            for hook in step.get('pre-acq-hooks',()):
-                hook()
-                try:
-                    step['extrainfo'].update(hook.getStepExtraInfo())
-                except InterruptException:
-                    raise
-                except: pass
-            
-            # TODO read positions inside measurement group to reduce delay
-            positions = motion.readPosition(force=True)
-            
-            # Acquire data
-            self.debug("[START] acquisition")
-            state, data_line = mg.count(integ_time)
-            
-            # After acquisition, test if we are asked to stop, probably because
-            # the motor are stopped. In this case discard the last acquisition
             if self._stop_acquisition:
                 break
             
-            for ec in self._extra_columns:
-                data_line[ec.getName()] = ec.read()
-            self.debug("[ END ] acquisition")
+            # wait for motor to reach max velocity
+            start_time = time.time()
+            deltat = self.timestamp_to_start - start_time
+            if deltat > 0:
+                time.sleep(self.timestamp_to_start - start_time)
+            acq_start_time = time.time()
             
-            #post-acq hooks
-            for hook in step.get('post-acq-hooks',()):
-                hook()
+            while not self._stop_acquisition:
                 try:
-                    step['extrainfo'].update(hook.getStepExtraInfo())
-                except InterruptException:
-                    raise
-                except:
-                    pass
+                    point_nb, step = period_steps.next()
+                except StopIteration:
+                    break
 
-            # Add final moveable positions
-            data_line['point_nb'] = point_nb
-            for i, m in enumerate(self.moveables):
-                data_line[m.moveable.getName()] = positions[i]
-            
-            #Add extra data coming in the step['extrainfo'] dictionary
-            if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
-            
-            self.data.addRecord(data_line)
-            
-            if scream:
-                yield ((point_nb+1) / nr_points) * 100.0
+                integ_time = step['integ_time']
+                
+                # If there is no more time to acquire... stop!
+                elapsed_time = time.time() - acq_start_time
+                if elapsed_time + integ_time > self.duration:
+                    break;                
+                
+                # start/stop Count here according to the 'acquire' key given by 
+                #the generator
+                
+                #pre-acq hooks
+                for hook in step.get('pre-acq-hooks',()):
+                    hook()
+                    try:
+                        step['extrainfo'].update(hook.getStepExtraInfo())
+                    except InterruptException:
+                        raise
+                    except: pass
+                
+                # TODO read positions inside measurement group to reduce delay
+                positions = motion.readPosition(force=True)
+                
+                # Acquire data
+                self.debug("[START] acquisition")
+                state, data_line = mg.count(integ_time)
+                
+                # After acquisition, test if we are asked to stop, probably because
+                # the motor are stopped. In this case discard the last acquisition
+                if self._stop_acquisition:
+                    break
+                
+                for ec in self._extra_columns:
+                    data_line[ec.getName()] = ec.read()
+                self.debug("[ END ] acquisition")
+                
+                #post-acq hooks
+                for hook in step.get('post-acq-hooks',()):
+                    hook()
+                    try:
+                        step['extrainfo'].update(hook.getStepExtraInfo())
+                    except InterruptException:
+                        raise
+                    except:
+                        pass
+
+                # Add final moveable positions
+                data_line['point_nb'] = point_nb
+                for i, m in enumerate(self.moveables):
+                    data_line[m.moveable.getName()] = positions[i]
+                
+                #Add extra data coming in the step['extrainfo'] dictionary
+                if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
+                
+                self.data.addRecord(data_line)
+                
+                if scream:
+                    yield ((point_nb+1) / nr_points) * 100.0
             
         if hasattr(macro, "post_scan_hooks"):
             for hook in macro.post_scan_hooks:
