@@ -1088,6 +1088,18 @@ def prepare_cmdline(argv=None):
     if append_profile:
         argv.append("--profile=" + profile)
 
+
+from IPython.utils.traitlets import Unicode
+from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+
+class SpockConsole(RichIPythonWidget):
+    
+    banner = Unicode(config=True)
+
+    def _banner_default(self):
+        config = get_config()
+        return config.FrontendWidget.banner
+
 def run():
     try:
         check_requirements()
@@ -1099,6 +1111,10 @@ def run():
     
     prepare_input_handler()
     prepare_cmdline()
+
+    import IPython.frontend.qt.console.qtconsoleapp
+    IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+    IPythonQtConsoleApp.widget_factory = SpockConsole
 
     launch_new_instance()
 
