@@ -37,15 +37,16 @@ import threading
 
 import PyTango
 
-from taurus.core import TaurusSWDevState
+from taurus.core import TaurusEventType, TaurusSWDevState
+
+CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
 import genutils
 
 from inputhandler import SpockInputHandler, InputHandler
 
-if genutils.get_gui_mode() == 'qt4':
+if genutils.get_gui_mode() == 'qt':
     from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
-
     BaseDoor = QDoor
     BaseMacroServer = QMacroServer
     BaseGUIViewer = object
@@ -479,11 +480,22 @@ class QSpockDoor(SpockBaseDoor):
 
     def __init__(self, name, **kw):
         self.call__init__(SpockBaseDoor, name, **kw)
+        
         Qt.QObject.connect(self, Qt.SIGNAL('recordDataUpdated'),
                            self.processRecordData)
 
+    def recordDataReceived(self, s, t, v):
+        if genutils.get_pylab_mode() == "inline":
+            if t not in CHANGE_EVTS: return
+            res = BaseDoor.recordDataReceived(self, s, t, v)
+            self.processRecordData(res)
+        else:
+            res = SpockBaseDoor.recordDataReceived(self, s, t, v)
+        return res
+               
     def create_input_handler(self):
         return InputHandler()
+
 
 class SpockDoor(SpockBaseDoor):
 

@@ -26,7 +26,8 @@
 
 """This package provides the spock generic utilities"""
 
-__all__ = ['page', 'arg_split', 'get_gui_mode', 'get_color_mode', 'get_app',
+__all__ = ['page', 'arg_split', 'get_gui_mode', 'get_pylab_mode',
+           'get_color_mode', 'get_app',
            'get_shell', 'get_ipapi', 'get_config', 'get_editor', 'ask_yes_no',
            'spock_input',
            'translate_version_str2int', 'get_ipython_version',
@@ -98,7 +99,10 @@ ENV_NAME = "_E"
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 def get_gui_mode():
-    return 'qt4'
+    return 'qt'
+
+def get_pylab_mode():
+    return get_app().pylab
 
 def get_color_mode():
     return get_config().InteractiveShell.colors
@@ -769,7 +773,7 @@ def init_taurus():
     factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
 
     mode = get_gui_mode()
-    if mode == 'qt4':
+    if mode == 'qt':
         factory.registerDeviceClass('Door', macroserver.QSpockDoor)
     else:
         factory.registerDeviceClass('Door', macroserver.SpockDoor)
@@ -846,8 +850,6 @@ def load_config(config):
     d.update(TermColors.__dict__)
 
     gui_mode = get_gui_mode()
-    if gui_mode == 'qt4':
-        gui_mode = 'qt'
 
     banner = """\
 %(Purple)sSpock %(version)s%(Normal)s -- An interactive laboratory application.

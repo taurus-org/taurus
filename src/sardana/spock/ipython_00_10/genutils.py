@@ -26,7 +26,8 @@
 
 """This package provides the spock generic utilities"""
 
-__all__ = ['page', 'arg_split', 'get_gui_mode', 'get_color_mode', 'get_ipapi',
+__all__ = ['page', 'arg_split', 'get_gui_mode', 'get_pylab_mode',
+           'get_color_mode', 'get_ipapi',
            'get_editor', 'ask_yes_no', 'spock_input',
            'translate_version_str2int', 'get_ipython_version',
            'get_ipython_version_number', 'get_python_version',
@@ -86,8 +87,6 @@ ENV_NAME = "_E"
 
 def get_gui_mode():
     if '-q4thread' in sys.argv:
-        return 'qt4'
-    elif '-qthread' in sys.argv:
         return 'qt'
     elif '-gthread' in sys.argv:
         return 'gtk'
@@ -95,6 +94,9 @@ def get_gui_mode():
         return 'wx'
     return ''
 
+def get_pylab_mode():
+    return get_gui_mode()
+    
 def get_color_mode():
     return get_ipapi().options.colors
     
@@ -933,7 +935,7 @@ def init_pre_spock(ip, macro_server, door):
     factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
     
     mode = get_gui_mode()
-    if mode == 'qt4':
+    if mode == 'qt':
         factory.registerDeviceClass('Door', macroserver.QSpockDoor)
     else:
         factory.registerDeviceClass('Door', macroserver.SpockDoor)
