@@ -293,14 +293,14 @@ def mAPI(fn):
     @functools.wraps(fn)
     def new_fn(*args, **kwargs):
         self = args[0]
-        if not self.isAborted():
+        if not self.isProcessingStop():
             is_macro_th = self._macro_thread == threading.current_thread()
             if self._shouldRaiseStopException():
                 if is_macro_th:
                     self.setProcessingStop(True)
                 raise StopException("stopped before calling %s" % fn.__name__)
         ret = fn(*args, **kwargs)
-        if not self.isAborted():
+        if not self.isProcessingStop():
             if self._shouldRaiseStopException():
                 if is_macro_th:
                     self.setProcessingStop(True)
@@ -1739,6 +1739,204 @@ class Macro(Logger):
     #  consider informing the MacroServer developer so he may expose this in a
     #  safe way.
     #@{
+
+    def _input(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        If args is present, it is written to standard output without a trailing
+        newline. The function then reads a line from input, converts it to a
+        string (stripping a trailing newline), and returns that.
+
+        Depending on which type of application you are running, some of the 
+        keywords may have no effect (ex.: spock ignores decimals when a number
+        is asked).
+
+        Recognized kwargs:
+
+            - data_type : [default: Type.String] specific input type. Can also
+              specify a sequence of strings with possible values (use
+              allow_multiple=True to say multiple values can be selected)
+            - key : [default: no default] variable/label to assign to this input
+            - unit: [default: no default] units (useful for GUIs) 
+            - timeout : [default: None, meaning wait forever for input]
+            - default_value : [default: None, meaning no default value]
+              When given, it must be compatible with data_type
+            - allow_multiple : [default: False] in case data_type is a
+              sequence of values, allow multiple selection
+            - minimum : [default: None] When given, must be compatible with data_type (useful for GUIs)
+            - maximum : [default: None] When given, must be compatible with data_type (useful for GUIs)
+            - step : [default: None] When given, must be compatible with data_type (useful for GUIs)
+            - decimals : [default: None] When given, must be compatible with data_type (useful for GUIs)
+            
+        Examples::
+
+            device_name = self.input("Which device name (%s)?", "tab separated")
+            
+            point_nb = self.input("How many points?", data_type=Type.Integer)
+            
+            calc_mode = self.input("Which algorithm?", data_type=["Average", "Integral", "Sum"],
+                                   default_value="Average", allow_multiple=False)"""
+        if not self.interactive:
+            self.warning("Non interactive macro '%s' is asking for input "
+                         "(please set this macro interactive to True)",
+                         self.getName())
+        if self._interactive_mode:
+            kwargs['data_type'] = kwargs.get('data_type', Type.String)
+            kwargs['allow_multiple'] = kwargs.get('allow_multiple', False)
+            kwargs['macro_id'] = self.getID()
+            kwargs['macro_name'] = self.getName()
+            kwargs['macro'] = self
+            return self.getDoorObj().input(msg, *args, **kwargs)
+        else:
+            if 'default_value' not in kwargs:
+                if 'key' not in kwargs:
+                    self.warning("%s running in non attended mode was asked "
+                                 "for input without default value or key. "
+                                 "Returning None")
+                    return None
+                else:
+                    return self.getEnv(kwargs['key'])
+            return kwargs['default_value']
+    
+    def _output(self, msg, *args, **kwargs):
+        """**Macro API**.
+        Record a log message in this object's output. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.log`.
+        Example::
+
+            self.output("this is a print for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return Logger.output(self, msg, *args, **kwargs)
+
+    def _log(self, level, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record a log message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.log`.
+        Example::
+
+            self.debug(logging.INFO, "this is a info log message for macro %s", self.getName())
+
+        :param level: the record level
+        :type level: :obj:`int`
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return Logger.log(self, level, msg, *args, **kwargs)
+
+    def _debug(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record a debug message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.debug`.
+        Example::
+
+            self.debug("this is a log message for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kw: list of keyword arguments"""
+        return Logger.debug(self, msg, *args, **kwargs)
+
+    def _info(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record an info message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.info`.
+        Example::
+
+            self.info("this is a log message for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return Logger.info(self, msg, *args, **kwargs)
+
+    @mAPI
+    def _warning(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record a warning message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.warning`.
+        Example::
+
+            self.warning("this is a log message for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return Logger.warning(self, msg, *args, **kwargs)
+
+    def _error(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record an error message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.error`.
+        Example::
+
+            self.error("this is a log message for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments
+        """
+        return Logger.error(self, msg, *args, **kwargs)
+
+    def _critical(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record a critical message in this object's logger. Accepted *args* and
+        *kwargs* are the same as :meth:`logging.Logger.critical`.
+        Example::
+
+            self.critical("this is a log message for macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return Logger.critical(self, msg, *args, **kwargs)
+
+    def _trace(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**. Record a trace message in this object's logger.
+
+        :param msg: (str) the message to be recorded
+        :param args: list of arguments
+        :param kw: list of keyword arguments"""
+        return Logger.trace(self, msg, *args, **kwargs)
+
+    def _traceback(self, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Logs the traceback with level TRACE on the macro logger."""
+        return Logger.traceback(self, *args, **kwargs)
+
+    def _stack(self, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Logs the stack with level TRACE on the macro logger."""
+        return Logger.stack(self, *args, **kwargs)
+
+    def _report(self, msg, *args, **kwargs):
+        """**Unofficial Macro API**.
+        Record a log message in the sardana report (if enabled) with default
+        level **INFO**. The msg is the message format string, and the args are
+        the arguments which are merged into msg using the string formatting
+        operator. (Note that this means that you can use keywords in the
+        format string, together with a single dictionary argument.)
+
+        *kwargs* are the same as :meth:`logging.Logger.debug` plus an optional
+        level kwargs which has default value **INFO**
+
+        Example::
+
+            self.report("this is an official report of macro %s", self.getName())
+
+        :param msg: the message to be recorded
+        :type msg: :obj:`str`
+        :param args: list of arguments
+        :param kwargs: list of keyword arguments"""
+        return self.door.report(msg, *args, **kwargs)
 
     @property
     def executor(self):

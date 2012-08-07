@@ -685,6 +685,7 @@ class GScan(Logger):
         return self._steps
     
     def start(self):
+        self.do_backup()
         self._env['startts'] = ts = time.time()
         self._env['starttime'] = datetime.datetime.fromtimestamp(ts)
         self.data.start()
@@ -724,20 +725,39 @@ class GScan(Logger):
         
     def step_scan(self):
         self.start()
-        ex = None
         try:
-            for i in self.scan_loop():
-                self.macro.pausePoint()
-                yield i
-        except ScanException, e:
-            #self.macro.warning(e.msg)
-            ex = e
-        self.end()
-        if not ex is None: raise e
-    
+            ex = None
+            try:
+                for i in self.scan_loop():
+                    self.macro.pausePoint()
+                    yield i
+            except ScanException, e:
+                #self.macro.warning(e.msg)
+                ex = e
+            self.end()
+            if not ex is None: raise e
+        finally:
+            self.do_restore()
+                
     def scan_loop(self):
         raise NotImplementedError('Scan method cannot be called by '
                                   'abstract class')
+
+    def do_backup(self):
+        try:
+            if hasattr(self.macro, 'do_backup'):
+                self.macro.do_backup()
+        except:
+            self.macro.warning("Failed to execute macro 'do_backup'")
+            self.debug("Details:", exc_info=1)
+        
+    def do_restore(self):
+        try:
+            if hasattr(self.macro, 'do_restore'):
+                self.macro.do_restore()
+        except:
+            self.macro.warning("Failed to execute macro 'do_restore'")        
+            self.debug("Details:", exc_info=1)
 
 
 class SScan(GScan):
@@ -895,9 +915,36 @@ class CScan(GScan):
                        extrainfodesc=extrainfodesc)
         self._periodGenerator = periodGenerator
         self._stop_acquisition = False
+        self.motion_event = threading.Event()
+        self.motion_end_event = threading.Event()
 
-        #for recorder in self._data_handler.recorders:
-        #    recorder.setSaveMode(SaveModes.Block)
+    def do_backup(self):
+        super(CScan, self).do_backup()
+        self._backup = backup = []
+        for moveable in self.moveables:
+            # first backup all motor parameters
+            motor = moveable.moveable
+            try:
+                velocity = motor.getVelocity()
+                motor_backup = dict(moveable=moveable, velocity=velocity)
+            except AttributeError:
+                motor_backup = None
+            backup.append(motor_backup)
+            self.debug("Backup of %s velocity of %s", motor, velocity)
+           
+    def do_restore(self):
+        super(CScan, self).do_restore()
+        # restore changed motors to initial state
+        for motor_backup in self._backup:
+            if motor_backup is None:
+                continue
+            try:
+                motor = motor_backup['moveable'].moveable
+                old_vel = motor_backup['velocity']
+                motor.setVelocity(old_vel)
+                self.debug("Restored %s velocity to %s", motor, old_vel)
+            except:
+                self.warning("Failed to restore %s velocity to %s", motor, old_vel)
 
     def _calculateTotalAcquisitionTime(self):
         return None
@@ -912,83 +959,115 @@ class CScan(GScan):
             self._period_steps = enumerate(self.period_generator())
         return self._period_steps
     
+    def on_waypoints_end(self, restore_positions=None):
+        """To be called by the waypoint thread to handle the end of waypoints
+        (either because no more waypoints or because a macro abort was
+        triggered)"""
+        self.stop_acquisition()
+        self.motion_event.set()
+        if restore_positions is not None:
+            self.macro.info("Correcting overshoot...")
+            self.motion.move(restore_positions)
+        self.motion_end_event.set()        
+    
     def go_through_waypoints(self):
-        motion, waypoints = self.motion, self.steps
+        try:
+            self._go_through_waypoints()
+        except:
+            self.macro.error("An error occured moving to waypoints. Aborting...")
+            self.debug("Details:", exc_info=1)
+            self.on_waypoints_end()
+    
+    def _go_through_waypoints(self):
+        macro, motion, waypoints = self.macro, self.motion, self.steps
         
         last_positions = None
         for i, waypoint in waypoints:
-            previous_positions = waypoint.get('start_positions')
+            start_positions = waypoint.get('start_positions')
             positions = waypoint['positions']
-            if previous_positions is None:
-                previous_positions = last_positions
-            if previous_positions is None:
+            if start_positions is None:
+                start_positions = last_positions
+            if start_positions is None:
                 last_positions = positions
                 continue
                 
-            motion_paths, backups, delta_start, duration = self.prepare_waypoint(previous_positions, positions)
+            waypoint_info = self.prepare_waypoint(waypoint, start_positions, positions)
+            motion_paths, delta_start, duration = waypoint_info
             
-            backup_motors = []
-            try:
-                self.duration = duration
-                            
-                #execute pre-move hooks
-                for hook in waypoint.get('pre-move-hooks',[]): 
-                    hook()
-        
-                start_pos, final_pos = [] , []
-                for path in motion_paths:
-                    start_pos.append(path.initial_user_pos)
-                    final_pos.append(path.final_user_pos)
-                
-                # move to start position
-                motion.move(start_pos)
-
-                # prepare motor(s) to move with proper velocity
-                for path, backup in zip(motion_paths, backups):
-                    vmotor = path.motor
-                    if vmotor is None:
-                        continue
-                    motor = path.moveable.moveable
-                    backup_motors.append(backup)
-                    motor.setVelocity(vmotor.getMaxVelocity())
-                            
-                self.timestamp_to_start = time.time() + delta_start
-                self.motion_event.set()
-                
-                # move to waypoint 
-                motion.move(final_pos)
-                
-                #execute post-move hooks
-                for hook in waypoint.get('post-move-hooks',[]):
-                    hook()
-                
-                if previous_positions is None:  
-                    last_positions = positions
-
-            finally:
-                # restore changed motors to initial state
-                for vmotor in backup_motors:
-                    if vmotor is None:
-                        continue
-                    try:
-                        motor = vmotor.moveable.moveable
-                        old_vel = vmotor.getMaxVelocity()
-                        motor.setVelocity(old_vel)
-                    except:
-                        self.warning("Failed to restore %s velocity to %s", motor, old_vel)
-
-        self.stop_acquisition()
-        self.motion_event.set()
-        self.macro.info("Correcting overshoot...")
-        motion.move(positions)
-        self.motion_end_event.set()
+            self.duration = duration
+                        
+            #execute pre-move hooks
+            for hook in waypoint.get('pre-move-hooks',[]): 
+                hook()
     
+            start_pos, final_pos = [] , []
+            for path in motion_paths:
+                start_pos.append(path.initial_user_pos)
+                final_pos.append(path.final_user_pos)
+            
+            if macro.isStopped():
+                self.on_waypoints_end()
+                return
+                       
+            # move to start position
+            motion.move(start_pos)
+            
+            if macro.isStopped():
+                return self.on_waypoints_end()
+            
+            # prepare motor(s) to move with their maximum velocity
+            for path in motion_paths:
+                vmotor = path.motor
+                if vmotor is None:
+                    continue
+                motor = path.moveable.moveable
+                motor.setVelocity(vmotor.getMaxVelocity())
+
+            if macro.isStopped():
+                return self.on_waypoints_end()
+                        
+            self.timestamp_to_start = time.time() + delta_start
+            self.motion_event.set()
+            
+            # move to waypoint end position
+            motion.move(final_pos)
+
+            if macro.isStopped():
+                return self.on_waypoints_end()
+            
+            #execute post-move hooks
+            for hook in waypoint.get('post-move-hooks',[]):
+                hook()
+            
+            if start_positions is None:  
+                last_positions = positions
+        
+        self.on_waypoints_end(positions)
+    
+    def set_max_top_velocity(self, motor, top_vel=None):
+        """Helper method to find the maximum top velocity for the motor.
+        If the motor doesn't have a defined range for top velocity,
+        then use the current top velocity"""
+        
+        max_top_vel = None
+        top_vel_obj = motor.getVelocityObj()
+        min_top_vel, max_top_vel = top_vel_obj.getRange()
+        try:
+            max_top_vel = float(max_top_vel)
+            motor.setVelocity(max_top_vel)
+        except ValueError:
+            if top_vel is None:
+                try:
+                    top_vel = motor.getVelocity()
+                except AttributeError:
+                    pass
+            max_top_vel = top_vel
+        return max_top_vel        
+ 
     class _PseudoMotionPath:
         pass
-    
-    _FrozenMotionPath = _PseudoMotionPath
-    
-    def prepare_waypoint(self, last_positions, positions):
+           
+    def prepare_waypoint(self, waypoint, last_positions, positions):
         import sardana.pool.motion
 
         Motor = sardana.pool.motion.Motor
@@ -996,30 +1075,15 @@ class CScan(GScan):
         
         dead_time = 0.0
         duration, delta_start = 0, 0
-        backup = []
         motion_paths = []
-        #TODO in future frozen motors should be given by step generator
-        frozen_motors = getattr(self, 'frozen_motors', ())
         for i, (moveable, position) in enumerate(zip(self.moveables, positions)):
-            # first backup all motor parameters
             motor = moveable.moveable
             
-            if motor in frozen_motors:
-                backup.append(None)
-                path = self._FrozenMotionPath()
-                path.initial_user_pos = last_positions[i]
-                path.final_user_pos = position
-                path.motor = None
-                path.moveable = moveable
-                motion_paths.append(path)
-                continue
-            
             try:
-                accel_time, decel_time = motor.getAcceleration(), motor.getDeceleration()
                 base_vel, top_vel = motor.getBaseRate(), motor.getVelocity()
+                accel_time, decel_time = motor.getAcceleration(), motor.getDeceleration()
             except AttributeError:
                 self.macro.warning("%s motion will not be coordinated", motor)
-                backup.append(None)
                 path = self._PseudoMotionPath()
                 path.initial_user_pos = last_positions[i]
                 path.final_user_pos = position
@@ -1028,28 +1092,14 @@ class CScan(GScan):
                 motion_paths.append(path)
                 continue
                                 
-            vmotor_backup = Motor(min_vel=base_vel, max_vel=top_vel,
-                                  accel_time=accel_time, decel_time=decel_time)
-            vmotor_backup.moveable = moveable
-            backup.append(vmotor_backup)
-            
-            # find the maximum top velocity for the motor. If the motor doesn't
-            # have a defined range for top velocity, the use the current top
-            # velocity
-            top_vel_obj = motor.getVelocityObj()
-            min_top_vel, max_top_vel = top_vel_obj.getRange()
-            try:
-                max_top_vel = float(max_top_vel)
-                motor.setVelocity(max_top_vel)
-            except ValueError:
-                max_top_vel = top_vel
-            
-            # recalculate time to reach maximum velocity
-            delta_start = max(delta_start, accel_time)
+            # find and set the maximum top velocity for the motor. 
+            # If the motor doesn't have a defined range for top velocity,
+            # then use the current top velocity
+            max_top_vel = self.set_max_top_velocity(motor, top_vel)
             
             # Find the duration of motion at top velocity. For this create a
             # virtual motor which has instantaneous acceleration and deceleration
-            vmotor = Motor(min_vel=motor.getBaseRate(), max_vel=max_top_vel,
+            vmotor = Motor(min_vel=base_vel, max_vel=max_top_vel,
                            accel_time=0, decel_time=0)
             last_user_pos = last_positions[i]
             
@@ -1058,6 +1108,11 @@ class CScan(GScan):
             path = MotionPath(vmotor, last_user_pos, position)
             path.moveable = moveable
             
+            # if really motor is moving in this waypoint
+            if path.displacement > 0:
+                # recalculate time to reach maximum velocity
+                delta_start = max(delta_start, accel_time)
+            
             # recalculate duration of motion at top velocity
             duration = max(duration, path.duration)
             
@@ -1065,7 +1120,7 @@ class CScan(GScan):
         
         # after finding de duration, introduce the slow down factor added by the
         # user
-        duration /= self.macro.slow_down
+        duration /= waypoint.get('slow_down', 1)
         
         if duration == 0:
             duration = float('+inf')
@@ -1074,8 +1129,8 @@ class CScan(GScan):
         # duration of motion at top velocity, and the time it takes to recalculate 
         for path in motion_paths:
             vmotor = path.motor
-            # in the case of pseudo motors...
-            if vmotor is None:
+            # in the case of pseudo motors or not moving a motor...
+            if vmotor is None or path.displacement == 0:
                 continue
             moveable = path.moveable
             motor = moveable.moveable
@@ -1085,13 +1140,13 @@ class CScan(GScan):
             base_vel = vmotor.getMinVelocity()
             vmotor.setAccelerationTime(accel_t)
             vmotor.setDecelerationTime(decel_t)
-            disp_sign = 1 and path.positive_displacement or -1
+            disp_sign = path.positive_displacement and 1 or -1
             new_initial_pos = path.initial_user_pos - accel_t * 0.5 * disp_sign * (new_top_vel + base_vel) - disp_sign * new_top_vel * (delta_start - accel_t)
             path.setInitialUserPos(new_initial_pos)
             new_final_pos = path.final_user_pos + disp_sign * vmotor.displacement_reach_min_vel
             path.setFinalUserPos(new_final_pos)
         
-        return motion_paths, backup, delta_start, duration
+        return motion_paths, delta_start, duration
     
     def stop_acquisition(self):
         self._stop_acquisition = True
@@ -1101,7 +1156,8 @@ class CScan(GScan):
         macro = self.macro
         manager = macro.getManager()
         scream = False
-        
+        motion_event = self.motion_event
+                    
         if hasattr(macro, "nr_points"):
             nr_points = float(macro.nr_points)
             scream = True
@@ -1117,14 +1173,6 @@ class CScan(GScan):
             for hook in macro.pre_scan_hooks:
                 hook()
         
-        # synchronous move to start position
-        #i, first_waypoint = waypoints.next()
-        #motion.move(first_waypoint['positions'])
-        
-        self.motion_event = threading.Event()
-        
-        self.motion_end_event = threading.Event()
-        
         # start move & acquisition as close as possible
         # from this point on synchronization becomes critical
         manager.add_job(self.go_through_waypoints)
@@ -1132,8 +1180,11 @@ class CScan(GScan):
         while not self._stop_acquisition:
         
             # wait for motor to reach start position
-            self.motion_event.wait()
-            self.motion_event.clear()
+            motion_event.wait()
+            motion_event.clear()
+            
+            # allow scan to stop
+            macro.checkPoint()
             
             if self._stop_acquisition:
                 break
@@ -1142,10 +1193,17 @@ class CScan(GScan):
             start_time = time.time()
             deltat = self.timestamp_to_start - start_time
             if deltat > 0:
-                time.sleep(self.timestamp_to_start - start_time)
+                time.sleep(deltat)
             acq_start_time = time.time()
             
+            # Acquisition loop: acquire consecutively until waypoint asks to
+            # stop or we see that we will enter deceleration time in next
+            # acquisition
             while not self._stop_acquisition:
+
+                # allow scan to stop
+                macro.checkPoint()
+            
                 try:
                     point_nb, step = period_steps.next()
                 except StopIteration:
@@ -1158,9 +1216,6 @@ class CScan(GScan):
                 if elapsed_time + integ_time > self.duration:
                     break;                
                 
-                # start/stop Count here according to the 'acquire' key given by 
-                #the generator
-                
                 #pre-acq hooks
                 for hook in step.get('pre-acq-hooks',()):
                     hook()
@@ -1169,6 +1224,9 @@ class CScan(GScan):
                     except InterruptException:
                         raise
                     except: pass
+
+                # allow scan to stop
+                macro.checkPoint()
                 
                 # TODO read positions inside measurement group to reduce delay
                 positions = motion.readPosition(force=True)
@@ -1176,6 +1234,9 @@ class CScan(GScan):
                 # Acquire data
                 self.debug("[START] acquisition")
                 state, data_line = mg.count(integ_time)
+
+                # allow scan to stop
+                macro.checkPoint()
                 
                 # After acquisition, test if we are asked to stop, probably because
                 # the motor are stopped. In this case discard the last acquisition

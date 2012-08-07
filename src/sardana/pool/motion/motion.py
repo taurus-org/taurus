@@ -109,97 +109,115 @@ class MotionPath(object):
 
         displacement = abs(final_pos - initial_pos)
 
-        positive_displacement = final_pos >= initial_pos
+        if displacement == 0:
+            positive_displacement = False
+            small_motion = True
 
-        displmnt_not_cnst = motor.displacement_reach_max_vel + motor.displacement_reach_min_vel
-        small_motion = displacement < displmnt_not_cnst
-
-        if positive_displacement:
-            accel = motor.accel
-            decel = motor.decel
-        else:
-            accel = -motor.accel
-            decel = -motor.decel
-
-        if not small_motion:
-            # necessary displacement to reach maximum velocity
-            displacement_reach_max_vel = motor.displacement_reach_max_vel
-            # necessary diplacement to reach minimum velocity
-            displacement_reach_min_vel = motor.displacement_reach_min_vel
-
-            if positive_displacement:
-                max_vel = motor.max_vel
-                min_vel = motor.min_vel
-                # position where maximum velocity will be reached
-                max_vel_pos = initial_pos + displacement_reach_max_vel
-            else:
-                max_vel = -motor.max_vel
-                min_vel = -motor.min_vel
-                # position where maximum velocity will be reached
-                max_vel_pos = initial_pos - displacement_reach_max_vel
-
-            # displacement at maximum velocity
-            at_max_vel_displacement = displacement - (displacement_reach_max_vel + displacement_reach_min_vel)
-
-        else:  # Small movement
-            # position where maximum velocity will be reached
-            max_vel_pos  = initial_pos * accel - final_pos * decel
-            max_vel_pos /= accel - decel
-
-            # necessary displacement to reach maximum velocity
-            displacement_reach_max_vel = abs(max_vel_pos - initial_pos)
-
-            # necessary diplacement to reach minimum velocity
-            displacement_reach_min_vel = abs(final_pos - max_vel_pos)
-
-            # maximum velocity possible
-            cnst = 2 * accel * decel * displacement / (decel - accel)
-            max_vel_2 = pow(motor.min_vel, 2) + cnst
-
-            max_vel = sqrt(abs(max_vel_2))
-
-            if positive_displacement:
-                min_vel = motor.min_vel
-            else:
-                max_vel = -max_vel
-                min_vel = -motor.min_vel
-
-            # displacement at maximum velocity
-            at_max_vel_displacement = 0.0
+            accel = 0
+            decel = 0
             
-        # time to reach maximum velocity
-        max_vel_time = abs((max_vel - min_vel) / accel)
-
-        # time to reach minimum velocity
-        min_vel_time = abs((min_vel - max_vel) / decel)
-
-        # time at maximum velocity
-        at_max_vel_time = abs(at_max_vel_displacement / max_vel)
-
-        # time the motion will take
-        duration = max_vel_time + at_max_vel_time + min_vel_time
-
-        # ASSERTIONS
-        if positive_displacement:
-            assert(max_vel_pos >= initial_pos)
-            assert(max_vel_pos <= final_pos)
+            displacement_reach_max_vel = 0
+            displacement_reach_min_vel = 0
+            max_vel = 0
+            min_vel = 0
+            max_vel_pos = 0
+            at_max_vel_displacement = 0
+            max_vel_time = 0
+            min_vel_time = 0
+            at_max_vel_time = 0
+            duration = 0
         else:
-            assert(max_vel_pos <= initial_pos)
-            assert(max_vel_pos >= final_pos)
+            positive_displacement = final_pos > initial_pos
 
-        assert(displacement_reach_max_vel >= 0.0)
-        assert(displacement_reach_min_vel >= 0.0)
+            displmnt_not_cnst = motor.displacement_reach_max_vel + motor.displacement_reach_min_vel
+            small_motion = displacement < displmnt_not_cnst
 
-        assert(max_vel <= motor.max_vel)
+            if positive_displacement:
+                accel = motor.accel
+                decel = motor.decel
+            else:
+                accel = -motor.accel
+                decel = -motor.decel
 
-        assert(max_vel_time >= 0.0)
-        assert(min_vel_time >= 0.0)
-        assert(duration >= 0.0)
+            if not small_motion:
+                # necessary displacement to reach maximum velocity
+                displacement_reach_max_vel = motor.displacement_reach_max_vel
+                # necessary diplacement to reach minimum velocity
+                displacement_reach_min_vel = motor.displacement_reach_min_vel
 
-        if small_motion:
-            assert(at_max_vel_time == 0.0)
-        else:
-            assert(at_max_vel_time >= 0.0)
+                if positive_displacement:
+                    max_vel = motor.max_vel
+                    min_vel = motor.min_vel
+                    # position where maximum velocity will be reached
+                    max_vel_pos = initial_pos + displacement_reach_max_vel
+                else:
+                    max_vel = -motor.max_vel
+                    min_vel = -motor.min_vel
+                    # position where maximum velocity will be reached
+                    max_vel_pos = initial_pos - displacement_reach_max_vel
+
+                # displacement at maximum velocity
+                at_max_vel_displacement = displacement - (displacement_reach_max_vel + displacement_reach_min_vel)
+
+            else:  # Small movement
+                # position where maximum velocity will be reached
+                max_vel_pos  = initial_pos * accel - final_pos * decel
+                max_vel_pos /= accel - decel
+
+                # necessary displacement to reach maximum velocity
+                displacement_reach_max_vel = abs(max_vel_pos - initial_pos)
+
+                # necessary diplacement to reach minimum velocity
+                displacement_reach_min_vel = abs(final_pos - max_vel_pos)
+
+                # maximum velocity possible
+                cnst = 2 * accel * decel * displacement / (decel - accel)
+                max_vel_2 = pow(motor.min_vel, 2) + cnst
+
+                max_vel = sqrt(abs(max_vel_2))
+
+                if positive_displacement:
+                    min_vel = motor.min_vel
+                else:
+                    max_vel = -max_vel
+                    min_vel = -motor.min_vel
+
+                # displacement at maximum velocity
+                at_max_vel_displacement = 0.0
+                
+            # time to reach maximum velocity
+            max_vel_time = abs((max_vel - min_vel) / accel)
+
+            # time to reach minimum velocity
+            min_vel_time = abs((min_vel - max_vel) / decel)
+
+            # time at maximum velocity
+            at_max_vel_time = abs(at_max_vel_displacement / max_vel)
+
+            # time the motion will take
+            duration = max_vel_time + at_max_vel_time + min_vel_time
+
+            # ASSERTIONS
+            if positive_displacement:
+                assert(max_vel_pos >= initial_pos)
+                assert(max_vel_pos <= final_pos)
+            else:
+                assert(max_vel_pos <= initial_pos)
+                assert(max_vel_pos >= final_pos)
+
+            assert(displacement_reach_max_vel >= 0.0)
+            assert(displacement_reach_min_vel >= 0.0)
+
+            assert(max_vel <= motor.max_vel)
+
+            assert(max_vel_time >= 0.0)
+            assert(min_vel_time >= 0.0)
+            assert(duration >= 0.0)
+
+            if small_motion:
+                assert(at_max_vel_time == 0.0)
+            else:
+                assert(at_max_vel_time >= 0.0)
                     
         self.initial_pos = initial_pos
         self.final_pos = final_pos

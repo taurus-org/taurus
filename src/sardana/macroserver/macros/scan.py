@@ -135,6 +135,7 @@ class aNscan(Hookable):
         step["pre-move-hooks"] = self.getHooks('pre-move')
         step["post-move-hooks"] = self.getHooks('post-move')
         step["check_func"] = []
+        step["slow_down"] = self.slow_down
         for point_no in xrange(self.nr_waypoints):
             step["positions"] = self.starts + point_no * self.way_lengths
             step["waypoint_id"] = point_no
@@ -162,6 +163,7 @@ class aNscan(Hookable):
     def data(self):
         return self._gScan.data
 
+
 class dNscan(aNscan):
     '''same as aNscan but it interprets the positions as being relative to the
     current positions and upon completion, it returns the motors to their
@@ -177,11 +179,13 @@ class dNscan(aNscan):
         finals = numpy.array(endlist, dtype='d') + self.originalPositions
         aNscan._prepare(self, motorlist, starts, finals, scan_length, integ_time, mode=mode, **opts)
         
-    def run(self, *args):
-        for step in self._gScan.step_scan():
-            yield step
+    def do_restore(self):
         self.info("Returning to start positions...")
+        # set velocities to maximum and then move to initial positions
+        for moveable in self.motors:
+            self._gScan.set_max_top_velocity(moveable)
         self._motion.move(self.originalPositions)
+        
         
 class ascan(aNscan, Macro): 
     """Do an absolute scan of the specified motor.
@@ -257,6 +261,7 @@ class a3scan(aNscan, Macro):
                 **opts):
         self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], nr_interv, integ_time, **opts)
 
+
 class a4scan(aNscan, Macro): 
     """four-motor scan .
     a4scan scans four motors, as specified by motor1, motor2, motor3 and motor4.
@@ -286,6 +291,7 @@ class a4scan(aNscan, Macro):
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, nr_interv,
                 integ_time, **opts):
         self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], nr_interv, integ_time, **opts)
+
 
 class amultiscan(aNscan, Macro): 
     '''Multiple motor scan.
@@ -483,18 +489,18 @@ class mesh(Macro,Hookable):
        ['m2_final_pos',Type.Float,   None, 'Scan final position for second motor'],
        ['m2_nr_interv',Type.Integer, None, 'Number of scan intervals'],
        ['integ_time',  Type.Float,   None, 'Integration time'],
-       ['fast_mode',   Type.Boolean, False, 'Save time by scanning s-shaped']
+       ['bidirectional',   Type.Boolean, False, 'Save time by scanning s-shaped']
     ]
 
     def prepare(self, m1, m1_start_pos, m1_final_pos, m1_nr_interv,
                 m2, m2_start_pos, m2_final_pos, m2_nr_interv, integ_time,
-                fast_mode, **opts):
+                bidirectional, **opts):
         self.motors=[m1,m2]
         self.starts = numpy.array([m1_start_pos,m2_start_pos],dtype='d')
         self.finals = numpy.array([m1_final_pos,m2_final_pos],dtype='d')
         self.nr_intervs= numpy.array([m1_nr_interv, m2_nr_interv],dtype='i')
         self.integ_time = integ_time
-        self.fast_mode = fast_mode
+        self.bidirectional_mode = bidirectional
         
         self.name=opts.get('name','mesh')
         
@@ -526,7 +532,7 @@ class mesh(Macro,Hookable):
                                 
         for i, m2pos in enumerate(numpy.linspace(m2start,m2end,points2)):
             space = m1_space
-            if i % 2 != 0 and self.fast_mode:
+            if i % 2 != 0 and self.bidirectional_mode:
                 space = m1_space_inv
             for m1pos in space:
                 step["positions"] = numpy.array([m1pos,m2pos])
@@ -816,6 +822,7 @@ class a4scanc(aNscan, Macro):
         self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
                       integ_time, mode='c', **opts)
 
+
 class dscanc(dNscan, Macro): 
     """continuous motor scan relative to the starting position."""
 
@@ -907,28 +914,28 @@ class meshc(Macro,Hookable):
     env = ('ActiveMntGrp',)
     
     param_def = [
-       ['motor1',      Type.Moveable, None, 'First motor to move'],
-       ['m1_start_pos',Type.Float,    None, 'Scan start position for first motor'],
-       ['m1_final_pos',Type.Float,    None, 'Scan final position for first motor'],
-       ['slow_down',   Type.Float,    None, 'global scan slow down factor (0, 1]'],
-       ['motor2',      Type.Moveable, None, 'Second motor to move'],
-       ['m2_start_pos',Type.Float,    None, 'Scan start position for second motor'],
-       ['m2_final_pos',Type.Float,    None, 'Scan final position for second motor'],
-       ['m2_nr_interv',Type.Integer,  None, 'Number of scan intervals'],
-       ['integ_time',  Type.Float,    None, 'Integration time'],
-       ['fast_mode',   Type.Boolean,  False, 'Save time by scanning s-shaped']
+       ['motor1',        Type.Moveable, None, 'First motor to move'],
+       ['m1_start_pos',  Type.Float,    None, 'Scan start position for first motor'],
+       ['m1_final_pos',  Type.Float,    None, 'Scan final position for first motor'],
+       ['slow_down',     Type.Float,    None, 'global scan slow down factor (0, 1]'],
+       ['motor2',        Type.Moveable, None, 'Second motor to move'],
+       ['m2_start_pos',  Type.Float,    None, 'Scan start position for second motor'],
+       ['m2_final_pos',  Type.Float,    None, 'Scan final position for second motor'],
+       ['m2_nr_interv',  Type.Integer,  None, 'Number of scan intervals'],
+       ['integ_time',    Type.Float,    None, 'Integration time'],
+       ['bidirectional', Type.Boolean,  False, 'Save time by scanning s-shaped']
     ]
 
     def prepare(self, m1, m1_start_pos, m1_final_pos, slow_down,
                 m2, m2_start_pos, m2_final_pos, m2_nr_interv, integ_time,
-                fast_mode, **opts):
+                bidirectional, **opts):
         self.motors=[m1,m2]
         self.slow_down = slow_down
         self.starts = numpy.array([m1_start_pos,m2_start_pos],dtype='d')
         self.finals = numpy.array([m1_final_pos,m2_final_pos],dtype='d')
         self.m2_nr_interv = m2_nr_interv
         self.integ_time = integ_time
-        self.fast_mode = fast_mode
+        self.bidirectional_mode = bidirectional
         
         self.name=opts.get('name','meshc')
         
@@ -948,19 +955,19 @@ class meshc(Macro,Hookable):
         step["pre-move-hooks"] = self.getHooks('pre-move')
         step["post-move-hooks"] = self.getHooks('post-move')
         step["check_func"] = []
+        step["slow_down"] = self.slow_down
         points2=self.m2_nr_interv+1
         m1start,m2start=self.starts
         m1end,m2end=self.finals
         point_no=1
         for i, m2pos in enumerate(numpy.linspace(m2start,m2end,points2)):
             start, end = m1start, m1end
-            if i % 2 != 0 and self.fast_mode:
+            if i % 2 != 0 and self.bidirectional_mode:
                 start, end = m1end, m1start
             step["start_positions"] = numpy.array([start, m2pos])
             step["positions"] = numpy.array([end, m2pos])
             step["point_id"]= point_no
             point_no+=1
-            print step
             yield step
     
     def _period_generator(self):
