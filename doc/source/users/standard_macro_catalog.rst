@@ -69,3 +69,13 @@ Standard macro catalog
     * :class:`~sardana.macroserver.macros.scan.mesh`
     * :class:`~sardana.macroserver.macros.scan.fscan`
     * :class:`~sardana.macroserver.macros.scan.scanhist`
+    
+    * :class:`~sardana.macroserver.macros.scan.ascanc`
+    * :class:`~sardana.macroserver.macros.scan.a2scanc`
+    * :class:`~sardana.macroserver.macros.scan.a3scanc`
+    * :class:`~sardana.macroserver.macros.scan.a4scanc`
+    * :class:`~sardana.macroserver.macros.scan.dscanc`
+    * :class:`~sardana.macroserver.macros.scan.d2scanc`
+    * :class:`~sardana.macroserver.macros.scan.d3scanc`
+    * :class:`~sardana.macroserver.macros.scan.d4scanc`
+    * :class:`~sardana.macroserver.macros.scan.meshc`

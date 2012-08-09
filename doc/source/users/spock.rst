@@ -272,6 +272,8 @@ is marked with an asterisk (*):
 to switch active measurement groups type
 :class:`~sardana.macroserver.macros.env.senv` **ActiveMntGrp** *mg_name*.
 
+You can also create, modify and select measurement groups using the :class:`~sardana.spock.magic.expconf` command
+
 Scanning
 ----------
 
@@ -287,6 +289,15 @@ at a time. Relative-position motor scans are
 all return the motors to their starting positions after the last point.
 Two motors can be scanned over a grid of points using the
 :class:`~sardana.macroserver.macros.scan.mesh` scan. 
+
+*Continuous* versions exist of many of the standard scan macros (e.g.
+:class:`~sardana.macroserver.macros.scan.ascanc`,
+:class:`~sardana.macroserver.macros.scan.d3scanc`,
+:class:`~sardana.macroserver.macros.scan.meshc`,...). The continuous scans
+differ from their standard counterparts (also known as *step* scans) in that the
+data acquisition is done without stopping the motors. Continuous scans are
+generally faster but less precise than step scans, and some details must be
+considered. See the more detailed description of the :ref:`continuous scan framework`.
 
 As it happens with :class:`~sardana.macroserver.macros.standard.ct`, the scan
 macros will also use the active measurement group to decide which experiment
@@ -323,6 +334,8 @@ of the gap in a slit:
      19       1.09          1       5738      8801
      20        1.1          1       4575      8975
     Scan #4 ended at Wed Jul 11 12:57:18 2012, taking 0:00:31.656980 (dead time was 33.7%)
+
+
 
 Scan storage
 ~~~~~~~~~~~~~

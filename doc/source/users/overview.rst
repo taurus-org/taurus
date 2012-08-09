@@ -28,8 +28,8 @@ The origin of the Sardana name comes from a Catalan dance to honor the region
 where the ALBA_ synchrotron is build. The toolkit to build Sardana has been
 C++, Python_, Qt_ and Tango_. If you like the tools you will love Sardana.
 
-What do we sell to our users
-============================
+What do we "sell" to our users
+==============================
 
 Let’s start our excursion into the Sardana world by a word of caution. We will
 talk a lot about technical possibilities and implementation details. Our users

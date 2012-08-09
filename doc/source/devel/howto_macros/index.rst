@@ -178,7 +178,7 @@ the macro function version of *Hello, World!*::
     
     @macro()
     def hello_world(self):
-        """This is an hello world macro"""
+        """This is a hello world macro"""
         self.output("Hello, World!")
 
 **line 1**

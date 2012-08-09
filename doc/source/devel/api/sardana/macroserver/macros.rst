@@ -75,6 +75,15 @@
     * :class:`~sardana.macroserver.macros.scan.fscan`
     * :class:`~sardana.macroserver.macros.scan.scanhist`
 
+    * :class:`~sardana.macroserver.macros.scan.ascanc`
+    * :class:`~sardana.macroserver.macros.scan.a2scanc`
+    * :class:`~sardana.macroserver.macros.scan.a3scanc`
+    * :class:`~sardana.macroserver.macros.scan.a4scanc`
+    * :class:`~sardana.macroserver.macros.scan.dscanc`
+    * :class:`~sardana.macroserver.macros.scan.d2scanc`
+    * :class:`~sardana.macroserver.macros.scan.d3scanc`
+    * :class:`~sardana.macroserver.macros.scan.d4scanc`
+    * :class:`~sardana.macroserver.macros.scan.meshc`
 
 wa
 ---
@@ -391,4 +400,69 @@ scanhist
 --------
 
 .. autoclass:: sardana.macroserver.macros.scan.scanhist
+    :members:
+
+    
+ascanc
+-------
+
+.. autoclass:: sardana.macroserver.macros.scan.ascanc
+    :members:
+
+
+
+a2scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.a2scanc
+    :members:
+
+
+a3scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.a3scanc
+    :members:
+
+
+a4scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.a4scanc
+    :members:
+
+
+dscanc
+-------
+
+.. autoclass:: sardana.macroserver.macros.scan.dscanc
+    :members:
+
+
+
+d2scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.d2scanc
+    :members:
+
+
+d3scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.d3scanc
+    :members:
+
+
+d4scanc
+--------
+
+.. autoclass:: sardana.macroserver.macros.scan.d4scanc
+    :members:
+
+
+meshc
+------
+
+.. autoclass:: sardana.macroserver.macros.scan.meshc
     :members:
