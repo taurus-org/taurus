@@ -255,6 +255,9 @@ def main():
     packages = [
         'sardana',
         
+        'sardana.util',
+        'sardana.util.motion',
+        
         'sardana.pool',
         'sardana.pool.poolcontrollers',
         
@@ -289,7 +292,7 @@ def main():
         'PyTango (>=7.2.3)',
         'taurus (>= 2.1)',
         'lxml (>=2.1)',
-        'ipython (>=0.10, <0.11)'
+        'ipython (>=0.10)'
     ]
      
     package_data = { 

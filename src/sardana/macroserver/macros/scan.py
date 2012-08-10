@@ -33,11 +33,15 @@
      scanhist
 """
 
-__docformat__ = 'restructuredtext'
-
 __all__ = ["a2scan", "a3scan", "a4scan", "amultiscan", "aNscan", "ascan",
-           "d2scan", "d3scan", "d4scan", "dmultiscan", "dNScan", "dscan",
-           "fscan", "mesh", "scanhist", "getCallable", "UNCONSTRAINED"]
+           "d2scan", "d3scan", "d4scan", "dmultiscan", "dNscan", "dscan",
+           "fscan", "mesh", 
+           "a2scanc", "a3scanc", "a4scanc", "ascanc",
+           "d2scanc", "d3scanc", "d4scanc", "dNScanc", "dscanc",
+           "meshc", 
+           "scanhist", "getCallable", "UNCONSTRAINED"]
+
+__docformat__ = 'restructuredtext'
 
 import os
 import copy
@@ -52,8 +56,12 @@ from taurus.console.table import Table
 from sardana.macroserver.msexception import UnknownEnv
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
+from sardana.util.motion import Motor, MotionPath
 
 UNCONSTRAINED="unconstrained"
+
+StepMode = 's'
+ContinuousMode = 'c'
 
 def getCallable(repr):
     '''returns a function .
@@ -75,7 +83,7 @@ class aNscan(Hookable):
     
     """N-dimensional scan. This is **not** meant to be called by the user,
     but as a generic base to construct ascan, a2scan, a3scan,..."""
-    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode='s', **opts):
+    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode=StepMode, **opts):
 
         self.motors = motorlist
         self.starts = numpy.array(startlist,dtype='d')
@@ -100,13 +108,13 @@ class aNscan(Hookable):
         self.pre_scan_hooks = self.getHooks('pre-scan')
         self.post_scan_hooks = self.getHooks('post-scan')
           
-        if mode == 's':
+        if mode == StepMode:
             self.nr_interv = scan_length
             self.nr_points = self.nr_interv+1
             self.interv_sizes = ( self.finals - self.starts) / self.nr_interv
             self.name = opts.get('name','a%iscan'%self.N)
             self._gScan = SScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
-        elif mode == 'c':
+        elif mode == ContinuousMode:
             self.slow_down = scan_length
             self.nr_waypoints = 2 #aNscans will only have two waypoints (the start and the final positions)
             self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
@@ -162,7 +170,53 @@ class aNscan(Hookable):
     @property
     def data(self):
         return self._gScan.data
+    
+    def getTimeEstimation(self):
+        gScan = self._gScan
+        mode = self.mode
+        it = gScan.generator()
+        v_motors = gScan.get_virtual_motors()
+        curr_pos = gScan.motion.readPosition()
+        total_time = 0.0
+        if mode == StepMode:
+            # calculate motion time
+            max_step0_time, max_step_time = 0.0, 0.0
+            # first motion takes longer, all others should be "equal"
+            step0 = it.next()
+            for v_motor, start, stop, length in zip(v_motors, curr_pos, step0['positions'], self.interv_sizes):
+                path0 = MotionPath(v_motor, start, stop)
+                path = MotionPath(v_motor, 0, length)
+                max_step0_time = max(max_step0_time, path0.duration) 
+                max_step_time = max(max_step_time, path.duration)
+            motion_time = max_step0_time + self.nr_interv * max_step_time
+            # calculate acquisition time
+            acq_time = self.nr_points * self.integ_time
+            total_time = motion_time + acq_time
 
+        elif mode == ContinuousMode:
+            # go through the waypoints summing motion time
+#            last_positions = curr_pos
+#            for waypoint in it:
+#                start_positions = waypoint.get('start_positions')
+#                positions = waypoint['positions']
+#                if start_positions is None:
+#                    start_positions = last_positions
+#                if start_positions is None:
+#                    last_positions = positions
+#                    continue
+#                paths = gScan.get_waypoint_path(waypoint, start_positions)
+#                total_time += max([path.duration for path in paths])
+#            if start_positions is None:  
+#                last_positions = positions
+            pass               
+        return total_time
+                        
+    def getIntervalEstimation(self):
+        mode = self.mode
+        if mode == StepMode:
+            return self.nr_interv
+        elif mode == ContinuousMode:
+            return self.nr_waypoints
 
 class dNscan(aNscan):
     '''same as aNscan but it interprets the positions as being relative to the
@@ -172,7 +226,7 @@ class dNscan(aNscan):
     hints = copy.deepcopy(aNscan.hints)
     hints['scan'] = 'dNscan'
 
-    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode='s', **opts):
+    def _prepare(self, motorlist, startlist, endlist, scan_length, integ_time, mode=StepMode, **opts):
         self._motion=self.getMotion( [ m.getName() for m in motorlist] )
         self.originalPositions = numpy.array(self._motion.readPosition())
         starts = numpy.array(startlist, dtype='d') + self.originalPositions
@@ -181,12 +235,9 @@ class dNscan(aNscan):
         
     def do_restore(self):
         self.info("Returning to start positions...")
-        # set velocities to maximum and then move to initial positions
-        for moveable in self.motors:
-            self._gScan.set_max_top_velocity(moveable)
         self._motion.move(self.originalPositions)
-        
-        
+
+
 class ascan(aNscan, Macro): 
     """Do an absolute scan of the specified motor.
     ascan scans one motor, as specified by motor. The motor starts at the
@@ -754,7 +805,7 @@ class ascanc(aNscan, Macro):
     def prepare(self, motor, start_pos, final_pos, integ_time, slow_down,
                 **opts):
         self._prepare([motor], [start_pos], [final_pos], slow_down,
-                      integ_time, mode='c', **opts)
+                      integ_time, mode=ContinuousMode, **opts)
 
 
 class a2scanc(aNscan, Macro): 
@@ -774,7 +825,7 @@ class a2scanc(aNscan, Macro):
                 final_pos2, integ_time, slow_down, **opts):
         self._prepare([motor1, motor2], [start_pos1, start_pos2],
                       [final_pos1, final_pos2], slow_down, integ_time,
-                      mode='c', **opts)
+                      mode=ContinuousMode, **opts)
 
 
 class a3scanc(aNscan, Macro): 
@@ -796,7 +847,7 @@ class a3scanc(aNscan, Macro):
     def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, integ_time,
                 slow_down, **opts):
         self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], slow_down,
-                      integ_time, mode='c', **opts)
+                      integ_time, mode=ContinuousMode, **opts)
 
 class a4scanc(aNscan, Macro): 
     """four-motor continuous scan"""
@@ -820,10 +871,19 @@ class a4scanc(aNscan, Macro):
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4,
                 integ_time, slow_down, **opts):
         self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
-                      integ_time, mode='c', **opts)
+                      integ_time, mode=ContinuousMode, **opts)
 
 
-class dscanc(dNscan, Macro): 
+class dNscanc(dNscan):
+    
+    def do_restore(self):
+        # set velocities to maximum and then move to initial positions
+        for moveable in self.motors:
+            self._gScan.set_max_top_velocity(moveable)
+        dNScan.do_restore(self)
+
+
+class dscanc(dNscanc, Macro): 
     """continuous motor scan relative to the starting position."""
 
     param_def = [
@@ -837,10 +897,10 @@ class dscanc(dNscan, Macro):
     def prepare(self, motor, start_pos, final_pos, integ_time, slow_down,
                 **opts):
         self._prepare([motor], [start_pos], [final_pos], slow_down, integ_time,
-                       mode='c', **opts)
+                       mode=ContinuousMode, **opts)
 
 
-class d2scanc(dNscan,Macro): 
+class d2scanc(dNscanc,Macro): 
     """continuous two-motor scan relative to the starting positions"""
     param_def = [
        ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
@@ -857,10 +917,10 @@ class d2scanc(dNscan,Macro):
                 final_pos2, integ_time, slow_down, **opts):
         self._prepare([motor1,motor2], [start_pos1,start_pos2],
                       [final_pos1,final_pos2], slow_down, integ_time,
-                       mode='c', **opts)
+                       mode=ContinuousMode, **opts)
 
 
-class d3scanc(dNscan, Macro): 
+class d3scanc(dNscanc, Macro): 
     """continuous three-motor scan"""
     param_def = [
        ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
@@ -879,10 +939,10 @@ class d3scanc(dNscan, Macro):
     def prepare(self, m1, s1, f1,  m2, s2, f2, m3, s3, f3, integ_time, slow_down,
                 **opts):
         self._prepare([m1,m2,m3], [s1,s2,s3], [f1,f2,f3], slow_down, integ_time,
-                       mode='c', **opts)
+                       mode=ContinuousMode, **opts)
         
 
-class d4scanc(dNscan, Macro): 
+class d4scanc(dNscanc, Macro): 
     """continuous four-motor scan relative to the starting positions"""
     param_def = [
        ['motor1',      Type.Moveable,   None, 'Moveable 1 to move'],
@@ -904,7 +964,7 @@ class d4scanc(dNscan, Macro):
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, integ_time,
                 slow_down, **opts):
         self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
-                      integ_time, mode='c', **opts)
+                      integ_time, mode=ContinuousMode, **opts)
 
 
 class meshc(Macro,Hookable): 
