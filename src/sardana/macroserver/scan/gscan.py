@@ -505,7 +505,6 @@ class GScan(Logger):
         # add master column
         master = self._master
         instrument = master['instrument']
-        name = master['full_name']
         
         #add channels from measurement group
         channels_info = self.measurement_group.getChannelsInfo()
@@ -899,7 +898,6 @@ class SScan(GScan):
     def dump_information(self, n, step):
         moveables = self.motion.moveable_list
         msg = ["Report: Stopped at step #" + str(n) + " with:"]
-        tab, dtab = 4*' ', 8*' '
         for moveable in moveables:
             msg.append(moveable.information())
         self.macro.info("\n".join(msg))
@@ -1049,7 +1047,6 @@ class CScan(GScan):
         If the motor doesn't have a defined range for top velocity,
         then use the current top velocity"""
         
-        max_top_vel = None
         top_vel_obj = motor.getVelocityObj()
         min_top_vel, max_top_vel = top_vel_obj.getRange()
         try:
