@@ -194,21 +194,7 @@ class aNscan(Hookable):
             total_time = motion_time + acq_time
 
         elif mode == ContinuousMode:
-            # go through the waypoints summing motion time
-#            last_positions = curr_pos
-#            for waypoint in it:
-#                start_positions = waypoint.get('start_positions')
-#                positions = waypoint['positions']
-#                if start_positions is None:
-#                    start_positions = last_positions
-#                if start_positions is None:
-#                    last_positions = positions
-#                    continue
-#                paths = gScan.get_waypoint_path(waypoint, start_positions)
-#                total_time += max([path.duration for path in paths])
-#            if start_positions is None:  
-#                last_positions = positions
-            pass               
+            total_time = gScan.waypoint_estimation()
         return total_time
                         
     def getIntervalEstimation(self):
@@ -996,6 +982,7 @@ class meshc(Macro,Hookable):
         self.m2_nr_interv = m2_nr_interv
         self.integ_time = integ_time
         self.bidirectional_mode = bidirectional
+        self.nr_waypoints = m2_nr_interv + 1
         
         self.name=opts.get('name','meshc')
         
@@ -1047,6 +1034,12 @@ class meshc(Macro,Hookable):
     def run(self,*args):
         for step in self._gScan.step_scan():
             yield step
+
+    def getTimeEstimation(self):
+        return self._gScan.waypoint_estimation()
+
+    def getIntervalEstimation(self):
+        return self.nr_waypoints
 
     @property
     def data(self):

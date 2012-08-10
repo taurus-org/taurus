@@ -42,7 +42,8 @@ from taurus.core.util import USER_NAME, Logger, CaselessList
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.core.tango.sardana.pool import Ready
 
-from sardana.util import motion
+from sardana.util.motion import Motor as VMotor
+from sardana.util.motion import MotionPath
 from sardana.macroserver.msexception import MacroServerException, UnknownEnv, \
     InterruptException
 from sardana.macroserver.msparameter import Type
@@ -633,11 +634,11 @@ class GScan(Logger):
         ret = []
         for moveable in self.moveables:
             try:
-                v_motor = motion.Motor.fromMotor(moveable.moveable)
+                v_motor = VMotor.fromMotor(moveable.moveable)
             except:
                 #self.debug("Details:", exc_info=1)
-                v_motor = motion.Motor(min_vel=0, max_vel=float('+inf'),
-                                       accel_time=0, decel_time=0)
+                v_motor = VMotor(min_vel=0, max_vel=float('+inf'),
+                                 accel_time=0, decel_time=0)
             ret.append(v_motor)
         return ret
 
@@ -656,7 +657,7 @@ class GScan(Logger):
         interval_nb = 0
         try:
             if not with_time:
-                start_pos = self.motion.readPosition()
+                start_pos = self.motion.readPosition(force=True)
                 v_motors = self.get_virtual_motors()
                 motion_time, acq_time = 0.0, 0.0
                 while interval_nb < max_iter:
@@ -664,7 +665,7 @@ class GScan(Logger):
                     end_pos = step['positions']
                     max_path_duration = 0.0
                     for v_motor, start, stop in zip(v_motors, start_pos, end_pos):
-                        path = motion.MotionPath(v_motor, start, stop)
+                        path = MotionPath(v_motor, start, stop)
                         max_path_duration = max(max_path_duration, path.duration)
                     integ_time = step.get("integ_time", 0.0)
                     acq_time += integ_time
@@ -1053,10 +1054,9 @@ class CScan(GScan):
                 continue
             
             waypoint_info = self.prepare_waypoint(waypoint, start_positions)
-            motion_paths, delta_start, duration = waypoint_info
+            motion_paths, delta_start, acq_duration = waypoint_info
             
-            print duration
-            self.duration = duration
+            self.acq_duration = acq_duration
                         
             #execute pre-move hooks
             for hook in waypoint.get('pre-move-hooks',[]): 
@@ -1109,41 +1109,61 @@ class CScan(GScan):
         
         self.on_waypoints_end(positions)
         
-    def iterate_through_waypoints(self):
+    def waypoint_estimation(self):
         """Internal, unprotected method to go through the different waypoints."""
-        macro, motion, waypoints = self.macro, self.motion, self.steps
-        
-        curr_positions = self.motion.readPosition()
-        last_end_positions = None
-        for i, waypoint in waypoints:
-            
-            start_positions = waypoint.get('start_positions')
-            end_positions = waypoint['positions']
-            
+        motion, waypoints = self.motion, self.generator()
+        total_duration = 0
+        #v_motors = self.get_virtual_motors()
+        curr_positions, last_end_positions = motion.readPosition(force=True), None
+        for i, waypoint in enumerate(waypoints):
+            start_positions = waypoint.get('start_positions', last_end_positions)
+            positions = waypoint['positions']
             if start_positions is None:
-                if last_end_positions is None:
-                    start_positions = curr_positions
-                else:
-                    start_positions = last_end_positions
+                last_end_positions = positions
+                continue
             
-            waypoint_info = self.prepare_waypoint(waypoint, start_positions)
-            motion_paths, delta_start, duration = waypoint_info
+            waypoint_info = self.prepare_waypoint(waypoint, start_positions,
+                                                  iterate_only=True)
+            motion_paths, delta_start, acq_duration = waypoint_info
     
-            start_pos, final_pos = [] , []
+            start_path, end_path = [] , []
             for path in motion_paths:
-                start_pos.append(path.initial_user_pos)
-                final_pos.append(path.final_user_pos)
+                start_path.append(path.initial_user_pos)
+                end_path.append(path.final_user_pos)
                        
-            # move to start position
+            # move from last waypoint to start position of this waypoint
+            first_duration = 0
+            if i == 1:
+                # first waypoint means, moving from current position to the
+                # start of first waypoint
+                initial = curr_positions
+            else:
+                initial = start_positions
+            for _path, start, end in zip(motion_paths, initial, start_path):
+                v_motor = _path.motor
+                path = MotionPath(v_motor, start, end)
+                first_duration = max(first_duration, path.duration)
+                        
+            # move from waypoint start position to waypoint end position
+            second_duration = 0
+            for _path, start, end in zip(motion_paths, start_path, end_path):
+                v_motor = _path.motor
+                path = MotionPath(v_motor, start, end)
+                second_duration = max(second_duration, path.duration)
             
-            motion.move(start_pos)
+            total_duration += first_duration + second_duration
             
-            # move to waypoint end position
-            motion.move(final_pos)
-            
-            last_end_positions = end_positions            
+            last_end_positions = end_path
         
-        self.on_waypoints_end(positions)
+        # add correct overshoot time
+        overshoot_duration = 0
+        for _path, start, end in zip(motion_paths, last_end_positions, positions):
+            v_motor = _path.motor
+            path = MotionPath(v_motor, start, end)
+            overshoot_duration = max(overshoot_duration, path.duration)
+        
+        total_duration += overshoot_duration
+        return total_duration       
     
     def get_max_top_velocity(self, motor):
         """Helper method to find the maximum top velocity for the motor.
@@ -1186,28 +1206,29 @@ class CScan(GScan):
                 else:
                     max_top_vel = top_vel
             except AttributeError:
-                self.macro.warning("%s motion will not be coordinated", motor)
+                if not iterate_only:
+                    self.macro.warning("%s motion will not be coordinated", motor)
                 base_vel, top_vel, max_top_vel = 0, float('+inf'), float('+inf')
                 accel_time, decel_time = 0, 0
                 coordinate = False
 
             last_user_pos = start_positions[i]
                         
-            real_vmotor = motion.Motor(min_vel=base_vel, max_vel=max_top_vel,
-                                       accel_time=accel_time,
-                                       decel_time=decel_time)
-            real_path = motion.MotionPath(real_vmotor, last_user_pos, position)
+            real_vmotor = VMotor(min_vel=base_vel, max_vel=max_top_vel,
+                                 accel_time=accel_time,
+                                 decel_time=decel_time)
+            real_path = MotionPath(real_vmotor, last_user_pos, position)
             real_path.moveable = moveable            
             real_path.apply_correction = coordinate
             
             # Find the cruise duration of motion at top velocity. For this create a
             # virtual motor which has instantaneous acceleration and deceleration
-            ideal_vmotor = motion.Motor(min_vel=base_vel, max_vel=max_top_vel,
-                                        accel_time=0, decel_time=0)
+            ideal_vmotor = VMotor(min_vel=base_vel, max_vel=max_top_vel,
+                                  accel_time=0, decel_time=0)
             
             # create a path which will tell us which is the cruise duration of this
             # motion at top velocity
-            ideal_path = motion.MotionPath(ideal_vmotor, last_user_pos, position)
+            ideal_path = MotionPath(ideal_vmotor, last_user_pos, position)
             ideal_path.moveable = moveable
             ideal_path.apply_correction = coordinate
             
@@ -1327,7 +1348,7 @@ class CScan(GScan):
                 
                 # If there is no more time to acquire... stop!
                 elapsed_time = time.time() - acq_start_time
-                if elapsed_time + integ_time > self.duration:
+                if elapsed_time + integ_time > self.acq_duration:
                     motion_event.clear()
                     break;                
                 
@@ -1394,7 +1415,6 @@ class CScan(GScan):
                 curr_time = time.time()
                 sum_delay += (curr_time - old_curr_time) - integ_time
 
-        print "MOtion end event wait"
         self.motion_end_event.wait()
 
         if hasattr(macro, "post_scan_hooks"):
