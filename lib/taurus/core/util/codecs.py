@@ -72,6 +72,11 @@ import copy
 import operator
 import types
 
+#need by VideoImageCodec
+import struct
+import numpy
+from Lima import Core
+
 from singleton import Singleton
 from log import Logger, DebugIt
 from containers import CaselessDict
@@ -454,6 +459,159 @@ class PlotCodec(FunctionCodec):
         FunctionCodec.__init__(self, 'plot')
 
 
+class VideoImageCodec(Codec):
+    """A codec able to encode/decode to/from LImA video_image format.
+    
+    Example::
+    
+        >>> from taurus.core.util import CodecFactory
+        >>> import PyTango
+        
+        >>> #first get an image from a LImA device to decode
+        >>> data = PyTango.DeviceProxy(ccdName).read_attribute('video_last_image').value
+        >>> cf = CodecFactory()
+        >>> codec = cf.getCodec('VIDEO_IMAGE')
+        >>> format,decoded_data = codec.decode(data)
+        >>> # encode it again to check
+        >>> format, encoded_data = codec.encode(("",decoded_data))
+        >>> #compare images excluding the header:
+        >>> data[1][32:] == encoded_data[32:]
+    """
+    
+    VIDEO_HEADER_FORMAT = '!IHHqiiHHHH'
+    
+    def encode(self, data, *args, **kwargs):
+        """encodes the given data to a LImA's video_image. The given data **must** be an numpy.array
+        
+        :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+
+        format = 'VIDEO_IMAGE'
+        if len(data[0]): format += '_%s' % data[0]
+        #imgMode depends on numpy.array dtype
+        imgMode = self.__getModeId(str(data[1].dtype))
+        #frameNumber, unknown then -1
+        height,width = data[1].shape
+        header = self.__packHeader(imgMode,-1,width,height)
+        img2D = data[1]
+        img1D = img2D.flatten()
+        buffer = struct.pack(self.__getFormatId(imgMode)*img1D.size,*img1D)
+        return format,header+buffer
+    
+    def decode(self, data, *args, **kwargs):
+        """decodes the given data from a LImA's video_image.
+            
+        :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
+        
+        :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+
+        if not data[0] == 'VIDEO_IMAGE':
+            return data
+        header = self.__unpackHeader(data[1][:struct.calcsize(self.VIDEO_HEADER_FORMAT)])
+        
+        imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
+        fmt = self.__getFormatId(header['imageMode'])
+        img1D = numpy.array(struct.unpack(fmt*len(imgBuffer),
+                                          imgBuffer),
+                            dtype=self.__getDtypeId(header['imageMode']))
+        img2D = img1D.reshape(964,1294)
+        return '',img2D
+
+    def __unpackHeader(self,header):
+        h = struct.unpack(self.VIDEO_HEADER_FORMAT,header)
+        headerDict={}
+        headerDict['magic']         = h[0]
+        headerDict['headerVersion'] = h[1]
+        headerDict['imageMode']     = h[2]
+        headerDict['frameNumber']   = h[3]
+        headerDict['width']         = h[4]
+        headerDict['height']        = h[5]
+        headerDict['endianness']    = h[6]
+        headerDict['headerSize']    = h[7]
+        headerDict['padding']       = h[7:]
+        return headerDict
+    
+    def __packHeader(self,imgMode,frameNumber,width,height):
+        magic = 0x5644454f
+        version = 1
+        endian = ord(struct.pack('=H',1)[-1])
+        hsize = struct.calcsize(self.VIDEO_HEADER_FORMAT)
+        return struct.pack(self.VIDEO_HEADER_FORMAT,
+                           magic,
+                           version,
+                           imgMode,
+                           frameNumber,
+                           width,
+                           height,
+                           endian,
+                           hsize,
+                           0,0)#padding
+
+    def __getModeId(self,mode):
+        return {#when encode
+                'uint8'      : Core.Y8,
+                'uint16'     : Core.Y16,
+                'uint32'     : Core.Y32,
+                'uint64'     : Core.Y64,
+                #when decode
+                'Y8'         : Core.Y8,
+                'Y16'        : Core.Y16,
+                'Y32'        : Core.Y32,
+                'Y64'        : Core.Y64,
+                #TODO: other modes
+                #'RGB555'     : Core.RGB555,
+                #'RGB565'     : Core.RGB565,
+                #'RGB24'      : Core.RGB24,
+                #'RGB32'      : Core.RGB32,
+                #'BGR24'      : Core.BGR24,
+                #'BGR32'      : Core.BGR32,
+                #'BAYER RG8'  : Core.BAYER_RG8,
+                #'BAYER RG16' : Core.BAYER_RG16,
+                #'I420'       : Core.I420,
+                #'YUV411'     : Core.YUV411,
+                #'YUV422'     : Core.YUV422,
+                #'YUV444'     : Core.YUV444
+               }[mode]
+
+    def __getFormatId(self,mode):
+        return {Core.Y8       : 'B',
+                Core.Y16      : 'H',
+                Core.Y32      : 'I',
+                Core.Y64      : 'L',
+                #'RGB555'     : Core.RGB555,
+                #'RGB565'     : Core.RGB565,
+                #'RGB24'      : Core.RGB24,
+                #'RGB32'      : Core.RGB32,
+                #'BGR24'      : Core.BGR24,
+                #'BGR32'      : Core.BGR32,
+                #'BAYER RG8'  : Core.BAYER_RG8,
+                #'BAYER RG16' : Core.BAYER_RG16,
+                #'I420'       : Core.I420,
+                #'YUV411'     : Core.YUV411,
+                #'YUV422'     : Core.YUV422,
+                #'YUV444'     : Core.YUV444
+               }[mode]
+
+    def __getDtypeId(self,mode):
+        return {Core.Y8       : 'uint8',
+                Core.Y16      : 'uint16',
+                Core.Y32      : 'uint32',
+                Core.Y64      : 'uint64',
+                #'RGB555'     : Core.RGB555,
+                #'RGB565'     : Core.RGB565,
+                #'RGB24'      : Core.RGB24,
+                #'RGB32'      : Core.RGB32,
+                #'BGR24'      : Core.BGR24,
+                #'BGR32'      : Core.BGR32,
+                #'BAYER RG8'  : Core.BAYER_RG8,
+                #'BAYER RG16' : Core.BAYER_RG16,
+                #'I420'       : Core.I420,
+                #'YUV411'     : Core.YUV411,
+                #'YUV422'     : Core.YUV422,
+                #'YUV444'     : Core.YUV444
+               }[mode]
+
 class CodecPipeline(Codec, list):
     """The codec class used when encoding/decoding data with multiple encoders
 
@@ -557,6 +715,7 @@ class CodecFactory(Singleton, Logger):
         'zip'    : ZIPCodec,
         'pickle' : PickleCodec,
         'plot'   : PlotCodec,
+        'VIDEO_IMAGE' : VideoImageCodec,
         'null'   : NullCodec,
         'none'   : NullCodec,
         ''       : NullCodec })
