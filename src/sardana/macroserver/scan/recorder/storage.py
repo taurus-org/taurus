@@ -309,7 +309,7 @@ class NEXUS_FileRecorder(BaseFileRecorder):
         
         measurement_entries = self.fd.getentries()
         for label,id in links.items():
-            if name not in measurement_entries:
+            if label not in measurement_entries:
                 self.fd.makelink(id)
         
         
