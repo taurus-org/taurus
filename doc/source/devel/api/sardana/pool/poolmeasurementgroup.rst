@@ -14,7 +14,7 @@
 
 
 PoolInstrument
--------------------
+--------------
 
 .. inheritance-diagram:: PoolMeasurementGroup
     :parts: 1
