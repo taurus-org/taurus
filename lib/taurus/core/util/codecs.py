@@ -75,7 +75,6 @@ import types
 #need by VideoImageCodec
 import struct
 import numpy
-from Lima import Core
 
 from singleton import Singleton
 from log import Logger, DebugIt
@@ -550,15 +549,15 @@ class VideoImageCodec(Codec):
 
     def __getModeId(self,mode):
         return {#when encode
-                'uint8'      : Core.Y8,
-                'uint16'     : Core.Y16,
-                'uint32'     : Core.Y32,
-                'uint64'     : Core.Y64,
+                'uint8'      : 0,#Core.Y8,
+                'uint16'     : 1,#Core.Y16,
+                'uint32'     : 2,#Core.Y32,
+                'uint64'     : 3,#Core.Y64,
                 #when decode
-                'Y8'         : Core.Y8,
-                'Y16'        : Core.Y16,
-                'Y32'        : Core.Y32,
-                'Y64'        : Core.Y64,
+                'Y8'         : 0,#Core.Y8,
+                'Y16'        : 1,#Core.Y16,
+                'Y32'        : 2,#Core.Y32,
+                'Y64'        : 3,#Core.Y64,
                 #TODO: other modes
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
