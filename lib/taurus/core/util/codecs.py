@@ -579,10 +579,10 @@ class VideoImageCodec(Codec):
                }[mode]
 
     def __getFormatId(self,mode):
-        return {Core.Y8       : 'B',
-                Core.Y16      : 'H',
-                Core.Y32      : 'I',
-                Core.Y64      : 'L',
+        return {0       : 'B',
+                1      : 'H',
+                2      : 'I',
+                3      : 'L',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
                 #'RGB24'      : Core.RGB24,
@@ -598,10 +598,10 @@ class VideoImageCodec(Codec):
                }[mode]
 
     def __getDtypeId(self,mode):
-        return {Core.Y8       : 'uint8',
-                Core.Y16      : 'uint16',
-                Core.Y32      : 'uint32',
-                Core.Y64      : 'uint64',
+        return {0       : 'uint8',
+                1      : 'uint16',
+                2      : 'uint32',
+                3      : 'uint64',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
                 #'RGB24'      : Core.RGB24,

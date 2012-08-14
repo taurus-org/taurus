@@ -26,7 +26,8 @@
 """
 Extension of :mod:`guiqwt.image`
 """
-__all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem","TaurusTrend2DScanItem"]
+__all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
+         "TaurusTrend2DScanItem","TaurusEncodedImageItem"]
 
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -78,6 +79,31 @@ class TaurusImageItem(ImageItem, TaurusBaseImageItem):
         ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
         TaurusBaseImageItem.__init__(self, self.__class__.__name__)
 
+class TaurusEncodedImageItem(TaurusImageItem):
+    '''A ImageItem that gets its data from a DevEncoded attribute'''
+    def __init__(self, param=None):
+        TaurusImageItem.__init__(self,param=param)
+        
+    def setModel(self, model):
+        #do the standard stuff
+        TaurusBaseComponent.setModel(self, model)
+        #... and fire a fake event for initialization
+        try:
+            format,value = self.codec.decode(self.getModelObj().read())
+            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+        except:
+            pass
+
+    def set_data(self, data, lut_range=None, **kwargs):
+        '''reimplementation to decode data before to pass to 
+           TaurusImageItem implementation'''
+        if type(data) == tuple:
+            from taurus.core.util import CodecFactory
+            codec = CodecFactory().getCodec(data[0])
+            format,decoded_data = codec.decode(data)
+#            decoded_data = decoded_data[32:]
+            h,w=decoded_data.shape
+            TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)
 
 class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
     '''A RGBImageItem that gets its data from a taurus attribute'''
