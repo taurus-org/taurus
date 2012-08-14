@@ -475,6 +475,11 @@ class VideoImageCodec(Codec):
         >>> format, encoded_data = codec.encode(("",decoded_data))
         >>> #compare images excluding the header:
         >>> data[1][32:] == encoded_data[32:]
+        >>> #The headers can be different in the frameNumber
+        >>> struct.unpack('!IHHqiiHHHH',data[1][:32])
+        (1447314767, 1, 0, 6868, 1294, 964, 0, 32, 0, 0)
+        >>> struct.unpack('!IHHqiiHHHH',encoded_data[:32])
+        (1447314767, 1, 0, -1, 1294, 964, 0, 32, 0, 0)
     """
     
     VIDEO_HEADER_FORMAT = '!IHHqiiHHHH'
