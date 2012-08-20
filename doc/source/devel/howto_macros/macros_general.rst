@@ -125,6 +125,7 @@ code:
 
     Go to :menuselection:`Settings --> Configure editor...` and choose
     *Editing*:
+
         - In *General* tab:
             - *Tab width* : 4
             - *Insert spaces instead of tabulators*

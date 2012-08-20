@@ -10,6 +10,7 @@ User's Guide
     Overview <overview>
     Getting started <getting_started/index>
     Spock <spock>
+    Scans <scan>
     Standard macro catalog <standard_macro_catalog>
     Screenshots <screenshots>
     FAQ <faq>

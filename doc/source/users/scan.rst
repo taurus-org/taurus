@@ -28,16 +28,28 @@ can classify the scan macros in *step* scans or *continuous* scans,
 respectively.
 
 
+.. figure:: /_static/trend_ascanVSascanc.png 
+   :width: 100%
+   :figwidth: 80%
+   :align: center
+   
+   Trend plot showing a step scan (:class:`~sardana.macroserver.macros.scan.ascan` *m_cp1_1 0 1000 8 .5*) followed by a 
+   continuous scan (:class:`~sardana.macroserver.macros.scan.ascanc` *m_cp1_1 0 1000 .5*). The line corresponds to the 
+   motor position and the blue shaded areas correspond to the intervals in 
+   which the data acquisition took place.  
+
+
+
 Step scans
 ----------
 
-In a step scan, the motors (or  motor) are moved to given points, and once they
-reach each point they stop. Then, one or more channels are acquired for a
-certain amount of time, and only when the data acquisition is finished, the
-motors proceed to the next point.
+In a step scan, the motors are moved to given points, and once they reach each
+point they stop. Then, one or more channels are acquired for a certain amount
+of time, and only when the data acquisition is finished, the motors proceed to
+the next point.
 
-In this way, the position associated to a data readout is well known and
-constant along the acquisition time.
+In this way, the position associated to a data readout is well known and does
+not change during the acquisition time.
 
 Some examples of step scan macros are:
 :class:`~sardana.macroserver.macros.scan.ascan`,
@@ -76,11 +88,16 @@ issues that should be considered.
    the slit), in a continuous scan the motions cannot be decoupled in a
    synchronized way.
 #. In order to optimize the acquisition time, Sardana attempts to perform as
-   many acquisitions aas allowed during the scan time. Due to the uncertainty
-   in the delay times involved, it is not possible to knw before hand how many
+   many acquisitions as allowed during the scan time. Due to the uncertainty in
+   the delay times involved, it is not possible to know beforehand how many
    acquisitions will be completed. In other words, the number of acquired
-   points along a ascanc is not fixed (but it is guaranteed to as large as
-   possible).
+   points along a continuous scan is not fixed (but it is guaranteed to be as
+   large as possible).
+#. Backslash correction is incompatible with continuous scans, so you should
+   keep in mind that continuous scans should only be done in the backslash-free
+   direction of the motor (tipically, by convention the positive one for a
+   physical motor).
+
   
 
 In order to address the first two issues, the
@@ -97,8 +114,33 @@ In order to address the first two issues, the
   allow for the motors to move at constant velocity along all the user defined
   path (i.e., the motors are allowed time and room to accelerate before
   reaching the start of the path and to decelerate after the end of the nominal
-  path selected by the user) 
+  path selected by the user)
    
+These two actions can be seen in the following plot of the positions of the two
+motors involved in a :class:`~sardana.macroserver.macros.scan.a2scanc`.
+
+.. figure:: /_static/trend_a2scanc.png 
+   :width: 100%
+   :figwidth: 80%
+   :align: center
+
+   Trend plot showing a two-motor continuous scan 
+   (:class:`~sardana.macroserver.macros.scan.a2scanc` *m_cp1_1 100 200  m_cp1_2 0 500 .1*).
+   The lines correspond to the motor positions and the blue shaded areas correspond to the intervals in 
+   which the data acquisition took place.  
+ 
+
+Both motors are capable of same velocity and acceleration, but since the
+required scan path for m_cp1_1 is shorter than that for m_cp1_2, its top
+velocity has been adjusted (gentler slope for m_cp1_1) so that both motors go
+through the user-requested start and stop positions simultaneously.
+
+The same figure also shows how the paths for both motors have been automatically
+(and transparently, for the user) extended to guarantee that the user defined
+path is followed at constant velocity and that the data acquisition takes place
+also while the motors are running at constant velocity.
+
+
 
 Some examples of continuous scan macros are:
 :class:`~sardana.macroserver.macros.scan.ascanc`,

@@ -31,7 +31,7 @@
      
 """
 
-__all__ = ["ascanr", "toothedtriangle", "regscan", "reg2scan", "reg3scan", "a2scan_mod"]
+__all__ = ["ascan_demo", "ascanr", "toothedtriangle", "regscan", "reg2scan", "reg3scan", "a2scan_mod"]
 
 __docformat__ = 'restructuredtext'
 
@@ -40,6 +40,57 @@ import numpy
 
 from sardana.macroserver.macro import *
 from sardana.macroserver.scan import *
+
+class ascan_demo(Macro):
+    """
+    This is a basic reimplementation of the ascan` macro for demonstration
+    purposes of the Generic Scan framework. The "real" implementation of
+    :class:`sardana.macroserver.macros.ascan` derives from
+    :class:`sardana.macroserver.macros.aNscan` and provides some extra features.
+    """
+
+    hints = { 'scan' : 'ascan_demo'} #this is used to indicate other codes that the macro is a scan
+    env = ('ActiveMntGrp',) #this hints that the macro requires the ActiveMntGrp environment variable to be set
+
+    param_def = [
+       ['motor',      Type.Moveable, None, 'Motor to move'],
+       ['start_pos',  Type.Float,    None, 'Scan start position'],
+       ['final_pos',  Type.Float,    None, 'Scan final position'],
+       ['nr_interv',  Type.Integer,  None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,    None, 'Integration time']
+    ]
+
+    def prepare(self, motor, start_pos, final_pos, nr_interv, integ_time, **opts):
+        #parse the user parameters
+        self.start = numpy.array([start_pos], dtype='d')
+        self.final = numpy.array([final_pos], dtype='d')
+        self.integ_time = integ_time
+
+        self.nr_points = nr_interv+1
+        self.interv_size = ( self.final - self.start) / nr_interv
+        self.name='ascan_demo'
+        env = opts.get('env',{}) #the "env" dictionary may be passed as an option
+        
+        #create an instance of GScan (in this case, of its child, SScan
+        self._gScan=SScan(self, generator=self._generator, moveables=[motor], env=env) 
+  
+
+    def _generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time #integ_time is the same for all steps
+        for point_no in xrange(self.nr_points):
+            step["positions"] = self.start + point_no * self.interv_size #note that this is a numpy array
+            step["point_id"] = point_no
+            yield step
+    
+    def run(self,*args):
+        for step in self._gScan.step_scan(): #just go through the steps
+            yield step
+        
+    @property
+    def data(self):
+        return self._gScan.data #the GScan provides scan data
+
 
 class ascanr(Macro, Hookable):
     """This is an example of how to handle adding extra info columns in a scan.
