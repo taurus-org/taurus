@@ -511,3 +511,57 @@ class a2scan_mod(Macro):
     def run(self,*args):
         for step in self._gScan.step_scan():
             yield step
+
+
+class ascanc_demo(Macro):
+    """
+    This is a basic reimplementation of the ascanc` macro for demonstration
+    purposes of the Generic Scan framework. The "real" implementation of
+    :class:`sardana.macroserver.macros.ascanc` derives from
+    :class:`sardana.macroserver.macros.aNscan` and provides some extra features.
+    """
+
+    hints = { 'scan' : 'ascanc_demo'} #this is used to indicate other codes that the macro is a scan
+    env = ('ActiveMntGrp',) #this hints that the macro requires the ActiveMntGrp environment variable to be set
+
+    param_def = [
+       ['motor',      Type.Moveable, None, 'Motor to move'],
+       ['start_pos',  Type.Float,    None, 'Scan start position'],
+       ['final_pos',  Type.Float,    None, 'Scan final position'],
+       ['integ_time', Type.Float,    None, 'Integration time']
+    ]
+
+    def prepare(self, motor, start_pos, final_pos, integ_time, **opts):
+        self.name='ascanc_demo'
+        #parse the user parameters
+        self.start = numpy.array([start_pos], dtype='d')
+        self.final = numpy.array([final_pos], dtype='d')
+        self.integ_time = integ_time
+        env = opts.get('env',{}) #the "env" dictionary may be passed as an option
+        
+        #create an instance of GScan (in this case, of its child, CScan
+        self._gScan = CScan(self, 
+                            waypointGenerator=self._waypoint_generator, 
+                            periodGenerator=self._period_generator, 
+                            moveables=[motor], 
+                            env=env)
+        
+    def _waypoint_generator(self):
+        #a very simple waypoint generator! only start and stop points!
+        yield {"positions":self.start, "waypoint_id": 0}
+        yield {"positions":self.final, "waypoint_id": 1}
+        
+
+    def _period_generator(self):
+        step = {}
+        step["integ_time"] =  self.integ_time
+        point_no = 0
+        while(True): #infinite generator. The acquisition loop is started/stopped at begin and end of each waypoint 
+            point_no += 1
+            step["point_id"] = point_no
+            yield step
+    
+    def run(self,*args):
+        for step in self._gScan.step_scan():
+            yield step
+    
