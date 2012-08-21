@@ -117,8 +117,8 @@ A basic example on writing a continuous scans
 
 Continuous scans are built using an instance of the
 :class:`~sardana.macroserver.scan.CScan` class. Since in the continuous scans
-the acquisition and motion are quite independent, CScan requires two
-independent generator (as oppossed to the single one of the step scans):
+the acquisition and motion are decoupled, CScan requires two independent
+generators:
 
 * a *waypoint generator*: which defines the path for the motion in a very
   similar way as the step generator does for a continuous scan. The steps
