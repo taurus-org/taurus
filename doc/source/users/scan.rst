@@ -9,11 +9,11 @@ Scans
 
 Perhaps the most used type of macro is the scan macros. In general terms, we
 call *scan* to a macro that moves one or more :ref:`motors <pool-motor-api>`
-and adquires data along the path of the motor(s).
+and acquires data along the path of the motor(s).
 
 .. note:: Sardana provides a :ref:`Scan Framework <macroserver-macros-scanframework>`
    for developing scan macros so that the scan macros behave in a consistent way.
-   Unless otherwise especified, the following discusion applies to scan macros
+   Unless otherwise specified, the following discussion applies to scan macros
    based on such framework.
 
 The various scan macros mostly differ in how many motors are moved and the
@@ -95,7 +95,7 @@ issues that should be considered.
    large as possible).
 #. Backslash correction is incompatible with continuous scans, so you should
    keep in mind that continuous scans should only be done in the backslash-free
-   direction of the motor (tipically, by convention the positive one for a
+   direction of the motor (typically, by convention the positive one for a
    physical motor).
 
   

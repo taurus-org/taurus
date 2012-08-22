@@ -8,7 +8,7 @@ Scan Framework
 ==============
 
 In general terms, we call *scan* to a macro that moves one or more motors and
-adquires data along the path of the motor(s). See the
+acquires data along the path of the motor(s). See the
 :ref:`introduction to the concept of scan in Sardana <sardana-users-scan>`.
 
 While a scan macro could be written from scratch, Sardana provides a higher-
@@ -108,7 +108,7 @@ features of the scan framework, but it already shows that writing a step scan
 macro is mostly just a matter of writing a generator function.
 
 It also shows that the :meth:`scan.gscan.GScan.data` method can be used to
-provide the needed resurn value of :meth:`~Macro.data`
+provide the needed return value of :meth:`~Macro.data`
 
 
 
@@ -131,7 +131,7 @@ Essentially, :class:`~sardana.macroserver.scan.CScan` implements the continuous
 scan as an acquisition loop (controlled by the period generator) nested within
 a motion loop (controlled by the waypoint generator). Note that each loop is
 run on an independent thread, and only limited communication occurs between the
-two (basically the acquisition starts at the beginning of each movevement and
+two (basically the acquisition starts at the beginning of each movement and
 ends when a waypoint is reached).
 
 The :class:`~sardana.macroserver.macros.examples.ascanc_demo` macro illustrates
@@ -191,7 +191,7 @@ the most basic features of a continuous scan:: ::
 
 
 .. seealso:: for another example of a continuous scan implementation 
-   (with more ellaborated waypoint generator), see the code of 
+   (with more elaborated waypoint generator), see the code of 
    :class:`~sardana.macroserver.macros.scan.meshc`
 
 
