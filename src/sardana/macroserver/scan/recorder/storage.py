@@ -92,7 +92,7 @@ class FIO_FileRecorder(BaseFileRecorder):
     def _startRecordList(self, recordlist):
         
         if self.base_filename is None:
-              return
+            return
         
         self.setFileName(self.base_filename)
         
@@ -141,7 +141,7 @@ class FIO_FileRecorder(BaseFileRecorder):
 
     def _writeRecord(self, record):
         if self.filename is None:
-              return
+            return
         nan, names, fd = float('nan'), self.names, self.fd
         outstr = ''
         for c in names:
@@ -155,7 +155,7 @@ class FIO_FileRecorder(BaseFileRecorder):
 
     def _endRecordList(self, recordlist):
         if self.filename is None:
-              return
+            return
 
         envRec = recordlist.getEnviron()
         end_time = envRec['endtime'].ctime()
