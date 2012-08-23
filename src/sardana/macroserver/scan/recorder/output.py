@@ -98,7 +98,7 @@ class JsonRecorder(DataRecorder):
         '''creates a JSON packet using the keyword arguments passed and then sends it'''
         #data = self._codec.encode(('', kwargs))
         #self._stream.sendRecordData(*data)
-        self._stream.sendRecordData(kwargs)
+        self._stream.sendRecordData(kwargs, codec='json')
 
 
 class OutputRecorder(DataRecorder):
