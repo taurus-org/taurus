@@ -67,6 +67,12 @@ class Moveable:
         """ generator for motor positions"""
         pass
 
+    def getLastMotionTime(self):
+        raise NotImplementedError
+        
+    def getTotalLastMotionTime():
+        raise NotImplementedError
+
     def abort(self, wait_ready=True, timeout=None):
         pass
     
@@ -125,7 +131,14 @@ class BaseMotion(Moveable):
 
 class MotionGroup(BaseMotion):
     """ A virtual motion group object """
-    
+
+    def __init__(self, elements, moveable_srcs, allow_repeat=False,
+                 allow_unknown=False, read_only=False):
+        BaseMotion.__init__(self, elements, moveable_srcs,
+                            allow_repeat=allow_repeat,
+                            allow_unknown=allow_unknown, read_only=read_only)
+        self.__total_motion_time = 0
+        
     def init_by_movables(self, elements, moveable_srcs, allow_repeat, allow_unknown):
         self.moveable_list = elements
     
@@ -133,6 +146,13 @@ class MotionGroup(BaseMotion):
         moveables = [ self.getMoveable(moveable_srcs, name) for name in names ]
         self.init_by_movables(moveables, moveable_srcs, allow_repeat,
                               allow_unknown)
+
+    def getLastMotionTime(self):
+        times = [ moveable.getLastMotionTime() for moveable in self.moveable_list ]
+        return max(times)
+        
+    def getTotalLastMotionTime():
+        return self.__total_motion_time
     
     def startMove(self, pos_list, timeout=None):
         if self.read_only:
@@ -153,6 +173,7 @@ class MotionGroup(BaseMotion):
             moveable.waitMove(timeout=timeout, id=id[i])
 
     def move(self, new_pos, timeout=None):
+        start_time = time.time()
         states, positions = [], []
         for moveable, pos in zip(self.moveable_list, new_pos):
             res = moveable.move(pos, timeout=timeout)
@@ -168,6 +189,7 @@ class MotionGroup(BaseMotion):
             state = PyTango.DevState.UNKNOWN
         elif PyTango.DevState.MOVING in states:
             state = PyTango.DevState.MOVING
+        self.__total_motion_time = time.time() - start_time
         return state, positions
 
     def iterMove(self, new_pos, timeout=None):
@@ -212,13 +234,20 @@ class MotionGroup(BaseMotion):
 
 class Motion(BaseMotion):
     """ A motion object """
+
+    def __init__(self, elements, moveable_srcs, allow_repeat=False,
+                 allow_unknown=False, read_only=False):
+        BaseMotion.__init__(self, elements, moveable_srcs,
+                            allow_repeat=allow_repeat,
+                            allow_unknown=allow_unknown, read_only=read_only)
+        self.__total_motion_time = 0
     
     def init_by_movables(self, elements, moveable_srcs, allow_repeat, allow_unknown):
         # TODO: Optimize this. Dont call init_by_names. It its possible to do it
         # manually with some performance gain
         names = [ elem.getName() for elem in elements]
         self.init_by_names(names, moveable_srcs, allow_repeat, allow_unknown)
-    
+        
     def init_by_names(self, names, moveable_srcs, allow_repeat, allow_unknown):
 
         ms_elem_names = self.getElemNamesByMoveableSource(names, moveable_srcs,
@@ -306,7 +335,14 @@ class Motion(BaseMotion):
             if moveable is None and not allow_unknown:
                  raise Exception("Moveable item %s not found" % name)
         return ms_elems
+    
+    def getLastMotionTime(self):
+        times = [ moveable.getLastMotionTime() for moveable in self.moveable_list ]
+        return max(times)
         
+    def getTotalLastMotionTime():
+        return self.__total_motion_time
+            
     def startMove(self, pos_list, timeout=None):
         if self.read_only:
             raise Exception("Trying to move read only motion")
@@ -331,10 +367,10 @@ class Motion(BaseMotion):
             moveable.waitMove(timeout=timeout, id=id[i])
 
     def move(self, new_pos, timeout=None):
-        #assert len(self.moveable_list) == 1, "for now we support only 'simple' motions!!!!"
+        start_time = time.time()
         if len(self.moveable_list) == 1:
             moveable = self.moveable_list[0]
-            return moveable.move(new_pos, timeout=timeout)
+            ret = moveable.move(new_pos, timeout=timeout)
         else:
             start, ids = 0, []
             for moveable in self.moveable_list:
@@ -356,7 +392,9 @@ class Motion(BaseMotion):
                 state = PyTango.DevState.UNKNOWN
             elif PyTango.DevState.MOVING in states:
                 state = PyTango.DevState.MOVING
-            return state, positions
+            ret = state, positions
+        self.__total_motion_time = time.time()
+        return ret
         
     def iterMove(self, new_pos, timeout=None):
         """ generator for motor positions"""

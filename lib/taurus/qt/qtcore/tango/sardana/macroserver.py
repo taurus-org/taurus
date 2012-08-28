@@ -27,12 +27,11 @@
 
 __all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler", "registerExtensions"]
 
-import taurus.core
+from taurus.core import TaurusEventType
 from taurus.core.tango.sardana.macroserver import BaseMacroServer, BaseDoor
-
 from taurus.qt import Qt
 
-CHANGE_EVTS = (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic)
+CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
 class QDoor(BaseDoor, Qt.QObject):
     
@@ -56,7 +55,7 @@ class QDoor(BaseDoor, Qt.QObject):
         
     def macroStatusReceived(self, s, t, v):
         res = BaseDoor.macroStatusReceived(self, s, t, v)
-        if t == taurus.core.TaurusEventType.Error:
+        if t == TaurusEventType.Error:
             macro = None
         else:
             macro = self.getRunningMacro()

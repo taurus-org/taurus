@@ -260,6 +260,10 @@ class PoolElement(BaseElement, TangoDevice):
         """PoolElement initialization."""
         self._reserved = None
         self._evt_wait = None
+        self.__go_start_time = 0
+        self.__go_end_time = 0        
+        self.__go_time = 0
+        self._total_go_time = 0
         self.call__init__(TangoDevice, name, **kwargs)
 
         # dict<string, TangoAttributeEG>
@@ -400,7 +404,8 @@ class PoolElement(BaseElement, TangoDevice):
         evt_wait.lock()
         try:
             evt_wait.waitEvent(DevState.MOVING, equal=False)
-            ts1 = time.time()
+            self.__go_time = 0
+            self.__go_start_time = ts1 = time.time()
             self._start(*args, **kwargs)
             ts2 = time.time()
             evt_wait.waitEvent(DevState.MOVING, after=ts1)
@@ -422,14 +427,28 @@ class PoolElement(BaseElement, TangoDevice):
             evt_wait.waitEvent(DevState.MOVING, after=id, equal=False,
                                timeout=timeout)
         finally:
+            self.__go_end_time = time.time()
+            self.__go_time = self.__go_end_time - self.__go_start_time
             evt_wait.unlock()
             evt_wait.disconnect()
 
     @reservedOperation
     def go(self, *args, **kwargs):
+        self._total_go_time = 0
+        start_time  = time.time()
         id = self.start(*args, **kwargs)
         self.waitFinish(id=id)
-
+        self._total_go_time = time.time() - start_time
+    
+    def getLastGoTime(self):
+        """Returns the time it took for last go operation"""
+        return self.__go_time
+    
+    def getTotalLastGoTime(self):
+        """Returns the time it took for last go operation, including dead time
+        to prepare, wait for events, etc"""
+        return self._total_go_time
+    
     def abort(self, wait_ready=True, timeout=None):
         state = self.getStateEG()
         state.lock()
@@ -687,7 +706,7 @@ class Motor(PoolElement, Moveable):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
     #
-
+        
     def _start(self, *args, **kwargs):
         new_pos = args[0]
         if operator.isSequenceType(new_pos):
@@ -703,12 +722,17 @@ class Motor(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
+        start_time  = time.time()
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateEG().readValue(), self.readPosition()
+        ret = self.getStateEG().readValue(), self.readPosition()
+        self._total_go_time = time.time() - start_time        
+        return ret
 
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish
     move = go
+    getLastMotionTime = PoolElement.getLastGoTime
+    getTotalLastMotionTime = PoolElement.getTotalLastGoTime
 
     @reservedOperation
     def iterMove(self, new_pos, timeout=None):
@@ -827,13 +851,18 @@ class PseudoMotor(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
+        start_time  = time.time()
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateEG().readValue(), self.readPosition()
+        ret = self.getStateEG().readValue(), self.readPosition()
+        self._total_go_time = time.time() - start_time        
+        return ret
 
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish
     move = go
-
+    getLastMotionTime = PoolElement.getLastGoTime
+    getTotalLastMotionTime = PoolElement.getTotalLastGoTime
+    
     def readPosition(self, force=False):
         return [ self.getPosition(force=force) ]
 
@@ -913,13 +942,18 @@ class MotorGroup(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
+        start_time  = time.time()
         PoolElement.go(self, *args, **kwargs)
-        return self.getStateEG().readValue(), self.readPosition()
+        ret = self.getStateEG().readValue(), self.readPosition()
+        self._total_go_time = time.time() - start_time        
+        return ret
 
     startMove = PoolElement.start
     waitMove = PoolElement.waitFinish
     move = go
-
+    getLastMotionTime = PoolElement.getLastGoTime
+    getTotalLastMotionTime = PoolElement.getTotalLastGoTime
+    
     def readPosition(self, force=False):
         return self.getPosition(force=force)
 
@@ -1405,6 +1439,7 @@ class MeasurementGroup(PoolElement):
         self.Start()
         
     def go(self, *args, **kwargs):
+        start_time  = time.time()
         cfg = self.getConfiguration()
         cfg.prepare()
         duration = args[0]
@@ -1413,6 +1448,7 @@ class MeasurementGroup(PoolElement):
         self.putIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
         ret = self.getStateEG().readValue(), self.getValues()
+        self._total_go_time = time.time() - start_time        
         return ret
 
     startCount = PoolElement.start
