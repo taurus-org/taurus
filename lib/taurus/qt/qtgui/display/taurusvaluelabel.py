@@ -333,7 +333,7 @@ class TaurusStateLabel(TaurusValueLabel):
         self.call__init__(TaurusValueLabel, parent=parent, designMode=designMode, background = 'value_state')
         self.setAlignment(Qt.Qt.AlignCenter)
     
-    def getFormatedToolTip(self, cache=True):
+    def getFormatedToolTip(self, cache=True, **notused):
         """ The tooltip should refer to the device and not the state attribute.
             That is why this method is being rewritten
         """
