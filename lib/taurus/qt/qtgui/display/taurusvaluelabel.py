@@ -328,7 +328,10 @@ class TaurusValueLabel(Qt.QLabel, TaurusBaseWidget):
 
 
 class TaurusStateLabel(TaurusValueLabel):
-    
+    '''
+    .. deprecated::
+        Use :class:`taurus.qt.qtgui.display.TaurusLabel` instead.
+    '''
     def __init__(self, parent = None, designMode = False):
         self.call__init__(TaurusValueLabel, parent=parent, designMode=designMode, background = 'value_state')
         self.setAlignment(Qt.Qt.AlignCenter)
@@ -359,6 +362,7 @@ class TaurusStateLabel(TaurusValueLabel):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
+        return None
         ret = TaurusValueLabel.getQtDesignerPluginInfo()
         ret['icon'] = ":/designer/state.png"
         return ret
