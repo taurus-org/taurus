@@ -363,9 +363,9 @@ class TaurusStateLabel(TaurusValueLabel):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
-        ret = TaurusValueLabel.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/state.png"
-        return ret
+#        ret = TaurusValueLabel.getQtDesignerPluginInfo()
+#        ret['icon'] = ":/designer/state.png"
+#        return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
