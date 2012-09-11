@@ -97,7 +97,6 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.setFileName(self.base_filename)
         
         envRec = recordlist.getEnviron()
-
         #datetime object
         start_time = envRec['starttime']
         
@@ -116,10 +115,16 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.fd.write("!\n! Parameter\n!\n%p\n")
         self.fd.flush()
         env = self.macro.getAllEnv()
-        if env.has_key( 'FlagWriteMotorPositions') and env['FlagWriteMotorPositions'] == True:
+        if env.has_key( 'FlagFioWriteMotorPositions') and env['FlagFioWriteMotorPositions'] == True:
             all_motors = self.macro.findObjs('.*', type_class=Type.Motor)
+            all_motors.sort()
             for mot in all_motors:
-                record = "%s = %g\n" % (mot, mot.getPosition())
+                pos = mot.getPosition()
+                if pos is None:
+                    record = "%s = nan\n" % (mot)
+                else:
+                    record = "%s = %g\n" % (mot, mot.getPosition())
+                    
                 self.fd.write( record)
             self.fd.flush()
         #
@@ -131,12 +136,20 @@ class FIO_FileRecorder(BaseFileRecorder):
         for col in envRec[ 'datadesc']:
             if col.name == 'point_nb':
                 continue
+            if col.name == 'timestamp':
+                continue
             dType = 'FLOAT'
             if col.dtype == 'float64':
                 dType = 'DOUBLE'
             outLine = " Col %d %s %s\n" % ( i, col.label, dType)
             self.fd.write( outLine)
             i += 1
+        # +++
+        # 11.9.2012 timestamp to the end
+        #
+        outLine = " Col %d %s %s\n" % ( i, 'timestamp', 'DOUBLE')
+        self.fd.write( outLine)
+        # +++
         self.fd.flush()
 
     def _writeRecord(self, record):
@@ -147,7 +160,14 @@ class FIO_FileRecorder(BaseFileRecorder):
         for c in names:
             if c == 'point_nb':
                 continue
+            if c == 'timestamp':
+                continue
             outstr += ' ' + str(record.data.get(c, nan))
+        # +++
+        # 11.9.2012 timestamp to the end
+        #
+        outstr += ' ' + str(record.data.get('timestamp', nan))
+        # +++
         outstr += '\n'
         
         fd.write( outstr )
