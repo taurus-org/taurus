@@ -35,14 +35,14 @@ __all__=['MacroBroker']
 __docformat__ = 'restructuredtext'
 
 
-import os, sys
+#import os, sys
 import datetime
 import taurus
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
-from taurus.qt.qtgui.taurusgui.utils import PanelDescription
-from taurus.core.tango.sardana import PlotType, Normalization
+#from taurus.qt.qtgui.taurusgui.utils import PanelDescription
+from taurus.core.tango.sardana import PlotType
 from taurus.core.tango.sardana.pool import getChannelConfigs
 from taurus.core.util import CaselessList
 
@@ -120,7 +120,6 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                                                      TaurusMacroDescriptionViewer, DoorOutput, DoorDebug, DoorResult
 
         from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor, SardanaEditor
-        from taurus.qt.qtgui.button import TaurusCommandButton
         
         mainwindow = self.parent()
         
@@ -189,7 +188,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
         Qt.qApp.SDM.connectReader("doorResultChanged", self.__doorResult.onDoorResultChanged)
         mainwindow.createPanel(self.__doorResult, 'DoorResult', registerconfig=False, permanent=True)
         
-    	#puts sardanaEditor
+        #puts sardanaEditor
         self.__sardanaEditor = SardanaEditor()
         Qt.qApp.SDM.connectReader("macroserverName", self.__sardanaEditor.setModel)
         mainwindow.createPanel(self.__sardanaEditor, 'SardanaEditor', registerconfig=False, permanent=True)
@@ -283,7 +282,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
     def _updateTemporaryTrends1D(self, trends1d):
         from taurus.qt.qtgui.plot import TaurusTrend
         mainwindow = self.parent()                
-        for i,(axes,plotables) in enumerate(trends1d.items()):
+        for axes,plotables in trends1d.items():
             if axes not in self._trends1d:     
                 w = TaurusTrend()
                 w.setXIsTime(False)
@@ -307,7 +306,7 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
             raise
             return
         mainwindow = self.parent()
-        for i,(axes,plotables) in enumerate(trends2d.items()):
+        for axes,plotables in trends2d.items():
             for chname in plotables:
                 pname =  u'Trend2D - %s'%chname
                 if pname in self._trends2d:
