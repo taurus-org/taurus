@@ -2135,8 +2135,27 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def autoScaleAllAxes(self):
         '''Optimized autoscale of whole plot'''
+        minX=float('inf')
+        maxX=float('-inf')
+        if self.getXDynScale():
+            originalXRange = self.getXAxisRange()
+            self.curves_lock.acquire()
+            try:
+                for c in self.curves.values():
+                    if c.minXValue() < minX: 
+                        minX = c.minXValue()
+                    if c.maxXValue() > maxX: 
+                        maxX = c.maxXValue()
+                    if minX!=maxX:
+                        break
+            finally:
+                self.curves_lock.release()
+                         
         for axis in range(Qwt5.QwtPlot.axisCnt):
-            Qwt5.QwtPlot.setAxisAutoScale(self, axis)
+            if axis == Qwt5.QwtPlot.xBottom and minX==maxX:
+                Qwt5.QwtPlot.setAxisScale(self, axis, minX-0.5*originalXRange, minX+0.5*originalXRange)
+            else:
+                Qwt5.QwtPlot.setAxisAutoScale(self, axis)
         self.replot()
         #Update the zoom stacks
         self._zoomer1.setZoomBase()
