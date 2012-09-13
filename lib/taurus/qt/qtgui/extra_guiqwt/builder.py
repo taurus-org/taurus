@@ -32,9 +32,10 @@ __docformat__ = 'restructuredtext'
 import guiqwt.builder
 
 from curve import TaurusCurveItem, TaurusTrendItem
-from image import TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem
+from image import TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem, TaurusXYImageItem
 from guiqwt.curve import CurveParam
-from guiqwt.image import ImageParam
+from guiqwt.image import ImageParam, XYImageItem
+from guiqwt.styles import XYImageParam
 from guiqwt.config import _
 from guiqwt.baseplot import BasePlot
 import numpy
@@ -126,8 +127,11 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 image = TaurusRGBImageItem(param)
             else:
                 from taurus import Attribute
-                from PyTango import CmdArgType
-                if Attribute(taurusmodel).read().type == CmdArgType.DevEncoded:
+                try:
+                    from PyTango import DevEncoded  #@todo: replace this (Tango-centric).
+                except:
+                    DevEncoded = 28 #@todo: hardcoded fallback to be replaced when the data types are handled in Taurus
+                if Attribute(taurusmodel).read().type == DevEncoded:
                     image = TaurusEncodedImageItem(param)
                 else:
                     image = TaurusImageItem(param)
@@ -135,6 +139,44 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
             if eliminate_outliers is not None:
                 image.set_lut_range(lut_range_threshold(image, 256, eliminate_outliers))
                 
+        return image
+    
+    def xyimage(self, taurusmodel=None, **kwargs):
+
+        if taurusmodel is None:
+            return guiqwt.builder.PlotItemBuilder.xyimage(self, **kwargs)
+    
+        title = kwargs.get('title', taurusmodel)
+        data = kwargs.get('data',None)
+        alpha_mask = kwargs.get('alpha_mask',None)
+        alpha = kwargs.get('alpha',None) 
+        background_color = kwargs.get('background_color',None)
+        colormap = kwargs.get('colormap',None)
+        interpolation = kwargs.get('interpolation','linear')
+        eliminate_outliers = kwargs.get('eliminate_outliers',None)
+        xformat = kwargs.get('xformat','%.1f')
+        yformat = kwargs.get('yformat','%.1f')
+        zformat = kwargs.get('zformat','%.1f')
+        if data is None:
+            x=y=None
+        else:
+            x=numpy.arange(data.shape[0])
+            y=numpy.arange(data.shape[1])
+        
+        data=numpy.ones((251,251))
+        x,y=numpy.arange(251)*333,numpy.arange(251)*1000
+
+        param = XYImageParam(title=_("Image"), icon='image.png')
+        self.set_image_param(param, title, alpha_mask, alpha, interpolation,
+                               background=background_color, colormap=colormap,
+                               xformat=xformat, yformat=yformat,
+                               zformat=zformat)
+
+        image = TaurusXYImageItem(param)
+        image.setModel(taurusmodel)
+        if eliminate_outliers is not None:
+            image.set_lut_range(lut_range_threshold(image, 256,
+                                                    eliminate_outliers))
         return image
     
     def rgbimage(self, taurusmodel=None, **kwargs):

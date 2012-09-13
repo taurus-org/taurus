@@ -72,7 +72,6 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             p.update_colormap_axis(self)
             p.replot()
 
-
 class TaurusImageItem(ImageItem, TaurusBaseImageItem):
     '''A ImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
@@ -104,6 +103,13 @@ class TaurusEncodedImageItem(TaurusImageItem):
 #            decoded_data = decoded_data[32:]
             h,w=decoded_data.shape
             TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)
+
+class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
+    '''A XYImageItem that gets its data from a taurus attribute'''
+    def __init__(self, param=None):
+        XYImageItem.__init__(self, numpy.arange(2), numpy.arange(2), numpy.zeros((2,2)), param=param)
+        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+
 
 class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
     '''A RGBImageItem that gets its data from a taurus attribute'''
@@ -443,12 +449,14 @@ def test1():
         
     #define a taurus image
     model1 = 'sys/tg_test/1/short_image_ro'
-    taurusimage = make.image(taurusmodel= model1)
-    taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
+    #taurusimage = make.image(taurusmodel= model1)
+    #taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
+    taurusxyimage= make.xyimage(taurusmodel= model1)
+    taurusxyimage.set_xy(numpy.arange(251)*10,numpy.arange(251)*100 )
     
     #define normal image (guiqwt standard)
     data = numpy.random.rand(100,100)
-    image = make.image(data=data)
+    #image = make.image(data=data)
     
     #create a dialog with a plot and add the images
     win = ImageDialog(edit=False, toolbar=True, wintitle="Taurus Cross sections test",
@@ -456,18 +464,19 @@ def test1():
     from taurus.qt.qtgui.extra_guiqwt.tools import TaurusImageChooserTool
     win.add_tool(TaurusImageChooserTool)
     plot = win.get_plot()
-    plot.add_item(taurusimage)
-    plot.add_item(image)
-    plot.add_item(taurusrgbimage)
+#    plot.add_item(taurusimage)
+    plot.add_item(taurusxyimage)
+#    plot.add_item(image)
+#    plot.add_item(taurusrgbimage)
+
 #    win.get_itemlist_panel().show()
     
     #IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
-    win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
+    #win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
     
     win.exec_()
 
-
 if __name__ == "__main__":
-    #test1()
-    taurusImageMain()   
+    test1()
+    #taurusImageMain()   
 
