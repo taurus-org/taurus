@@ -265,7 +265,9 @@ class TaurusApplication(Qt.QApplication, Logger):
             self._err = STD(name="ERR", std=sys.stderr)
             sys.stderr = self._err
 
-    def __buildLogFileName(self, prefix="/tmp", name=None):
+    def __buildLogFileName(self, prefix=None, name=None):
+        if prefix is None:
+            prefix = os.path.expanduser('~/tmp')
         appName = str(self.applicationName())
         if not appName:
             appName = os.path.splitext(os.path.basename(sys.argv[0]))[0]
