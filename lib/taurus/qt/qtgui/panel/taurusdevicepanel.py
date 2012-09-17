@@ -129,6 +129,10 @@ class TaurusDevicePanel(WIDGET_CLASS):
         klass._attribute_filter.update(filters)
         
     @classmethod
+    def getAttributeFilters(klass):
+        return klass._attribute_filter
+        
+    @classmethod
     def setCommandFilters(klass,filters):
         """ 
         It will set the command filters
@@ -140,6 +144,10 @@ class TaurusDevicePanel(WIDGET_CLASS):
                 ),}
         """
         klass._command_filter.update(filters)        
+        
+    @classmethod
+    def getCommandFilters(klass):
+        return klass._command_filter
     
     def __init__(self,parent=None,model=None,palette=None,bound=True):
         WIDGET_CLASS.__init__(self,parent)
