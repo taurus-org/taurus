@@ -161,10 +161,6 @@ def get_readwrite_models(expressions,limit=1000):
                       taurus_dp = taurus.core.TaurusManager().getFactory()().getDevice(dev)
                       attrs = [att.name for att in taurus_dp.attribute_list_query() if re_match_low(attribute,att.name) and att.isReadOnly()]
                       targets.extend(dev+'/'+att for att in attrs)
-#                      for att in attrs:
-#                          if taurus.core.TaurusManager().getFactory()().getAttribute(dev+'/'+att).isReadOnly:
-#                              continue
-#                          targets.extend(dev+'/'+att)
                   except Exception,e: 
                     pass
               else: targets.append(dev+'/'+attribute)
@@ -375,10 +371,10 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if append: self._modelNames = self._modelNames+model
         else: self._modelNames = model
         
-        self.debug(('In setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
+        self.debug(('In TaurusGrid.setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
         
         if load:
-            print('In setModel(%s,load=True): modelNames are %s'%(str(model)[:100]+'...',self._modelNames)) 
+            self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %s'%(str(model)[:100]+'...',self._modelNames)) 
             if devsInRows:
                 self.setRowLabels(','.join(set(d.rsplit('/',1)[0] for d in self._modelNames)))
             self.create_widgets_table(self._modelNames)
@@ -392,7 +388,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.updateStyle()        
                     
             if not self.delayed:
-                print 'In setModel(): not delayed loading of models'
+                self.info('In setModel(): not delayed loading of models')
                 if not self.modelsThread.isRunning(): 
                     print 'In setModel(): Starting Thread! (%d objs in queue)'%(self.modelsThread.queue.qsize())
                     self.debug('<'*80)
@@ -401,7 +397,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     print 'In setModel(): Thread already started! (%d objs in queue)'%(self.modelsThread.queue.qsize())
                     self.modelsThread.next()
             else: 
-                print 'In setModel(): models loading delayed!'
+                self.info('In setModel(): models loading delayed!')
                 pass
                 
         self.debug('Out of TaurusGrid.setModel(%s)'%str(model)[:100])
@@ -747,7 +743,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.debug('In TaurusGrid.build_table(%s)'%values)
         widgets_matrix = self.build_widgets(values,self.showLabels)
         rows = len(widgets_matrix)
-        cols = len(widgets_matrix[0])
+        cols = rows and len(widgets_matrix[0]) or 0
         
         table = QtGui.QTableWidget()
         table.setItemDelegate(Delegate(table))
@@ -872,7 +868,7 @@ def sysargs_to_dict(defaults=[]):
             bar = a.split('=')
             if bar[1] in ['True','False']:#convert string to boolean
                 bar[1] = eval(bar[1])
-            result[bar[0]] = bar[1]
+            result[bar[0].replace('--','')] = bar[1]
         else:
             result[defaults[i]] = a
             i+=1
