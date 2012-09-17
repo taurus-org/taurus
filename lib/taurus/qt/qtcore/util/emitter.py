@@ -27,8 +27,10 @@
 emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusDevTree widgets
 """
 
+from functools import partial
+import taurus
 from taurus.qt import Qt
-from taurus.core.util import Logger
+from taurus.core.util import Logger,Singleton
 import Queue,traceback
 
 ###############################################################################
