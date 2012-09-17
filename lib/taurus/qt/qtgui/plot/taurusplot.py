@@ -245,6 +245,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._yValues = None
         self._showMaxPeak = False
         self._showMinPeak = False
+        self._markerFormatter = self.defaultMarkerFormatter
         self._filteredWhenLog = True
         self._history = []
         self._titleText = '<label>'
@@ -273,6 +274,46 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 self.error("Problems when adding curve " + str(name))
                 self.traceback()
 
+                
+    @staticmethod
+    def defaultMarkerFormatter(self,curve,label,i,x,y,xIsTime):
+        """ 
+        Returns the text to be shown in  plot tooltips/markers.
+        :param curve: the name of the curve
+        :param label: the label to be displayed
+        :param i: the index of the point in the curve
+        :param x: x axis position
+        :param y: y axis position
+        :param xIsTime: To adapt format to time if needed
+        :return: (str)
+        """           
+        if self.getXIsTime():
+            infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveName,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
+        else:
+            infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())   
+        return infotxt
+                
+    def setMarkerFormatter(self,formatter):
+        """ 
+        Sets formatter method for plot tooltips/markers.
+        The method must have at least 4 arguments:
+        :param curve: the name of the curve
+        :param label: the label to be displayed
+        :param i: the index of the point in the curve
+        :param x: x axis position
+        :param y: y axis position
+        :param xIsTime: To adapt format to time if needed
+        """        
+        self._markerFormatter = formatter
+        
+    def markerFormatter(self):
+        """ 
+        Returns the method used to format plot tooltips
+        
+        :return: (function)
+        """
+        return self._formatter
+        
     def getCurveName(self):
         '''Returns the name of the curve (in the case of non RawDataCurves, it
         is the same as the model name)
