@@ -38,7 +38,6 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
 from taurus.core.util import Enumeration
 from taurus.qt.qtgui.resource import getIcon
-from taurus.qt.qtgui.dialog import TaurusMessageBox
 
 class _ButtonDialog(Qt.QDialog):
     _widget = None
@@ -514,6 +513,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
             self._on_toggle(down)
         except:
             import sys
+            from taurus.qt.qtgui.dialog import TaurusMessageBox
             msgbox = TaurusMessageBox(*sys.exc_info())
             msgbox.setWindowTitle("Error locking device")
             if self.update_button().status == LockStatus.Locked:
