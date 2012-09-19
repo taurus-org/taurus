@@ -848,7 +848,8 @@ def taurusFormMain():
     parser.set_usage("%prog [options] [model1 [model2 ...]]")
     parser.set_description("the taurus form panel application")
     parser.add_option("--window-name", dest="window_name", default="TaurusForm", help="Name of the window")
-    
+    parser.add_option("--config", "--config-file", dest="config_file", default=None,
+                  help="use the given config file for initialization")
     app = TaurusApplication(cmd_line_parser=parser,
                             app_name="taurusform",
                             app_version=taurus.Release.version)
@@ -857,15 +858,27 @@ def taurusFormMain():
 
     dialog = TaurusForm()
     dialog.setModifiableByUser(True)
+    dialog.setModelInConfig(True)
     dialog.setWindowTitle(options.window_name)
     
+    saveConfigAction = Qt.QAction("Save current settings...", dialog)
+    saveConfigAction.setShortcut(Qt.QKeySequence.Save)
+    dialog.connect(saveConfigAction, Qt.SIGNAL("triggered()"), dialog.saveConfigFile)    
+    dialog.addAction(saveConfigAction)
+        
+    loadConfigAction = Qt.QAction("&Retrieve saved settings...", dialog)
+    loadConfigAction.setShortcut(Qt.QKeySequence.Open)
+    dialog.connect(loadConfigAction, Qt.SIGNAL("triggered()"), dialog.loadConfigFile)
+    dialog.addAction(loadConfigAction)
     
     #set the default map for this installation
     from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
     dialog.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
     
     #set a model list from the command line or launch the chooser  
-    if len(args)>0:
+    if options.config_file is not None: 
+        dialog.loadConfigFile(options.config_file)
+    elif len(args)>0:
         models=args
         dialog.setModel(models)
     else:
