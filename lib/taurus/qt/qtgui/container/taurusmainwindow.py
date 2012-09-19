@@ -573,7 +573,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         if name is None:
             perspectives = self.getPerspectivesList()
-            if perspectives.isEmpty(): return
+            if len(perspectives) == 0: return
             name,ok = Qt.QInputDialog.getItem(self, "Load Perspective", "Change perspective to:",
                                               perspectives, 0, False) 
             if not ok: return
@@ -606,7 +606,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if settings is None: settings = self.getQSettings()
         if name is None:
             perspectives = self.getPerspectivesList()
-            if perspectives.isEmpty(): return
+            if len(perspectives) == 0: return
             name,ok = Qt.QInputDialog.getItem(self, "Delete Perspective", "Choose perspective to be deleted:",
                                               perspectives, 0, False) 
             if not ok: return

@@ -100,12 +100,11 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.emitColors()
 
     def openJDraw(self):
-        ifile = Qt.QFileDialog.getOpenFileName( self, 'Load JDraw File', '', 'JDraw File (*.jdw)')
-        if ifile.isEmpty(): return
-        if not isinstance(ifile,file):
-            fileName = ifile.split("/")
-            self._fileName = fileName[-1]
-            self.setModel(ifile)
+        ifile = unicode(Qt.QFileDialog.getOpenFileName( self, 'Load JDraw File', '', 'JDraw File (*.jdw)'))
+        if not ifile: return
+        fileName = ifile.split("/")
+        self._fileName = fileName[-1]
+        self.setModel(ifile)
         return fileName[-1]
         
     def setAlias(self,alias):
