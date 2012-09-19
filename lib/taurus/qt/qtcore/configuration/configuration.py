@@ -399,8 +399,8 @@ class BaseConfigurableClass:
         import cPickle as pickle
         if ofile is None:
             from taurus.qt import Qt
-            ofile = Qt.QFileDialog.getSaveFileName( self, 'Save Configuration', '%s.pck'%self.__class__.__name__, 'Configuration File (*.pck)')
-            if ofile.isEmpty(): return
+            ofile = unicode(Qt.QFileDialog.getSaveFileName( self, 'Save Configuration', '%s.pck'%self.__class__.__name__, 'Configuration File (*.pck)'))
+            if not ofile: return
         if not isinstance(ofile,file): ofile=open(ofile,'w')
         configdict=self.createConfig(allowUnpickable=False)
         self.info("Saving current settings in '%s'"%ofile.name)
@@ -417,8 +417,8 @@ class BaseConfigurableClass:
         import cPickle as pickle
         if ifile is None:
             from taurus.qt import Qt
-            ifile = Qt.QFileDialog.getOpenFileName( self, 'Load Configuration', '', 'Configuration File (*.pck)')
-            if ifile.isEmpty(): return
+            ifile = unicode(Qt.QFileDialog.getOpenFileName( self, 'Load Configuration', '', 'Configuration File (*.pck)'))
+            if not ifile: return
         if not isinstance(ifile,file): ifile=open(ifile,'r')
         configdict=pickle.load(ifile)
         self.applyConfig(configdict)
