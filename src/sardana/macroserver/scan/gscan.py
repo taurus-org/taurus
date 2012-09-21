@@ -151,8 +151,8 @@ class GScan(Logger):
       - 'post-scan-hooks' : (optional) a sequence of callables to be called in strict order after finishing the scan
       - 'hooks' : (deprecated, use post-acq-hooks instead)
       - 'point_id' : a hashable identifing the scan point.
-      - 'check_func' : a callable object callable(moveables, counters)
-      - 'extravalues': a dictionary containing the values for each extra info
+      - 'check_func' : (optional) a list of callable objects. callable(moveables, counters)
+      - 'extravalues': (optional) a dictionary containing the values for each extra info
                        field. The extra information fields must be described in
                        extradesc (passed in the constructor of the Gscan) 
     
@@ -370,8 +370,8 @@ class GScan(Logger):
             raise
         except Exception:
             macro.warning('ScanDir is not defined. This operation will not be '
-                          'stored persistently. Use "senv ScanDir '
-                          '<abs directory>" to enable it')
+                          'stored persistently. Use Use "expconf" (or "senv ScanDir '
+                          '<abs directory>") to enable it')
             return ()
         
         if not isinstance(scan_dir, (str, unicode)):
@@ -384,8 +384,8 @@ class GScan(Logger):
             raise
         except Exception:
             macro.warning('ScanFile is not defined. This operation will not '
-                          'be stored persistently. Use "senv ScanDir <scan '
-                          'file(s)>" to enable it')
+                          'be stored persistently. Use "expconf" (or "senv ScanDir <scan '
+                          'file(s)>") to enable it')
             return ()
 
         if isinstance(file_names, (str, unicode)):
@@ -563,6 +563,20 @@ class GScan(Logger):
             env['DataCompressionRank'] = self.macro.getEnv('DataCompressionRank')
         except UnknownEnv:
             env['DataCompressionRank'] = -1
+        
+        #set the sample information
+        #@todo: use the instrument API to get this info
+        try: 
+            env['SampleInfo'] = self.macro.getEnv('SampleInfo')
+        except UnknownEnv:
+            env['SampleInfo'] = {}
+            
+        #set the source information
+        #@todo: use the instrument API to get this info
+        try:
+            env['SourceInfo'] = self.macro.getEnv('SourceInfo')
+        except UnknownEnv:
+            env['SourceInfo'] = {}
         
         #take the pre-scan snapshot
         try:
@@ -1176,11 +1190,25 @@ class CScan(GScan):
             max_top_vel = float(max_top_vel)
         except ValueError:
             try:
-                max_top_vel = motor.getVelocity()
+                #hack to avoid recursive velocity reduction
+                self._maxVelDict = getattr(self,'_maxVelDict',{})
+                if not motor in self._maxVelDict:
+                    self._maxVelDict[motor] = motor.getVelocity()
+                max_top_vel = self._maxVelDict[motor]
             except AttributeError:
                 pass
         return max_top_vel        
  
+#    def set_max_top_velocity(self, motor):
+#        """Helper method to set the maximum top velocity for the motor to 
+#        its maximum allowed limit."""
+#        
+#        v = self.get_max_top_velocity(motor)
+#        try:
+#            motor.setVelocity(v)
+#        except:
+#            pass
+
     def prepare_waypoint(self, waypoint, start_positions, iterate_only=False):
 
         slow_down = waypoint.get('slow_down', 1)
