@@ -118,7 +118,15 @@ class TaurusDevicePanel(WIDGET_CLASS):
     READ_ONLY = False
     _attribute_filter = {} #A dictionary like {device_regexp:[attribute_regexps]}
     _command_filter = {} #A dictionary like {device_regexp:[(command_regexp,default_args)]}
-    
+    _icon_map = {} #A dictionary like {device_regexp:pixmap_url}
+
+    @classmethod
+    def setIconMap(klass,filters):
+      klass._icon_map = filters
+    @classmethod
+    def getIconMap(klass):
+      return klass._icon_map
+      
     @classmethod
     def setAttributeFilters(klass,filters):
         """ 
@@ -223,6 +231,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
+        self.warning('In TaurusDevicePanel.setModel(%s,%s,%s)'%(model,pixmap,self.getIconMap()))
         if not model: return None
         model = str(model).split()[0].strip()
         if model == self.getModel():
@@ -239,6 +248,11 @@ class TaurusDevicePanel(WIDGET_CLASS):
                 self._label.setFont(font)
                 
                 iconsize = Qt.QSize(*IMAGE_SIZE)
+                if pixmap is None and self.getIconMap():
+                  import re
+                  for k,v in self.getIconMap().items():
+                    if re.match(k.lower(),model.lower()):
+                      pixmap = v                  
                 if pixmap is not None:
                     #print 'Pixmap is %s'%pixmap
                     qpixmap = Qt.QPixmap(pixmap)
@@ -266,7 +280,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
                     qmsg.setDetailedText(traceback.format_exc())
                     qmsg.show()
             except:
-                self.debug(traceback.format_exc())
+                self.warning(traceback.format_exc())
                 qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
                 qmsg.show()
 
@@ -274,7 +288,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
         return
         
     def get_attrs_form(self,device,form=None,parent=None):
-        filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,get_eqtype(device),['.*'])
+        filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
         self.debug( 'In TaurusDevicePanel.get_attrs_form(%s,%s)'%(device,filters))
         all = sorted(str(a) for a in taurus.Device(device).get_attribute_list() if str(a).lower() not in ('state','status'))
         attrs = []
@@ -298,7 +312,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
     
     def get_comms_form(self,device,form=None,parent=None):
         self.debug( 'In TaurusDevicePanel.get_comms_form(%s)'%device)
-        params = get_regexp_dict(TaurusDevicePanel._command_filter,get_eqtype(device),[('.*',())])
+        params = get_regexp_dict(TaurusDevicePanel._command_filter,device,[('.*',())])
         if not params: #By default an unknown device type will display no commands
             self.debug('TaurusDevicePanel.get_comms_form(%s): By default an unknown device type will display no commands'% device)
             return None 
@@ -311,7 +325,7 @@ class TaurusDevicePanel(WIDGET_CLASS):
             if params: 
                 form.setSortKey(lambda x,vals=[s[0].lower() for s in params]: vals.index(x.cmd_name.lower()) if str(x.cmd_name).lower() in vals else 100)
                 form.setViewFilters([lambda c: str(c.cmd_name).lower() not in ('state','status') and any(re.match(s[0].lower(),str(c.cmd_name).lower()) for s in params)])
-                form.setDefaultParameters(dict((k,v) for k,v in params if v))
+                form.setDefaultParameters(dict((k,v) for k,v in (params if not hasattr(params,'items') else params.items()) if v))
             for wid in form._cmdWidgets:
                 if not hasattr(wid,'getCommand') or not hasattr(wid,'setDangerMessage'): continue
                 if re.match('.*(on|off|init|open|close).*',str(wid.getCommand().lower())):
