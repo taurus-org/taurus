@@ -217,7 +217,7 @@ class WidgetPage(Qt.QWizardPage):
         candidates=['TaurusForm','TaurusTrend', 'TaurusPlot',
                     'TaurusImageDialog', 'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
                     'TaurusDbTreeWidget', 'TaurusArrayEditor',
-                    'TaurusShell', 'SardanaEditor']
+                    'TaurusShell', 'SardanaEditor','TaurusJDrawSynopticsView','TaurusDevicePanel']
         
         choices = []
         row=[]
@@ -439,7 +439,8 @@ class CommTableModel(Qt.QAbstractTableModel):
             elif section == self.W: return Qt.QVariant("Writer (signal)")
             return Qt.QVariant()
         else:
-            return Qt.QVariant(Qt.QString.number(section+1))
+            try: return Qt.QVariant(Qt.QString.number(section+1))
+            except: return Qt.QVariant()
         
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
