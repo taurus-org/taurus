@@ -698,12 +698,13 @@ class TaurusGraphicsItem(TaurusBaseComponent):
             in the style."""
         if self.scene():
             self.scene().updateSceneItem(self)
-            
-    def getDisplayValue(self):
-        attrvalue = self.getModelValueObj()
-        if not attrvalue:
-            return self.getNoneValue()
-        return str(attrvalue.value)            
+
+    #getDisplayValue is already (and better) implemented in TaurusBaseComponent
+    #def getDisplayValue(self):
+        #attrvalue = self.getModelValueObj()
+        #if not attrvalue:
+            #return self.getNoneValue()
+        #return str(attrvalue.value)            
 
     def isReadOnly(self):
         return True
@@ -736,7 +737,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
     def updateStyle(self):
         v = self.getModelValueObj()
         self._currText = self.getDisplayValue()
-        
+        #self.debug('In TaurusGraphicsAttributeItem(%s).updateStyle(%s)'%(self.getName(),self._currText))
         if self.getShowQuality():
             try:
                 quality = None
@@ -790,6 +791,10 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
                 if None not in (bg_brush,fg_brush):
                     self._currBgBrush = bg_brush
                     self._currFgBrush = fg_brush
+                    #If there's no filling, applying background brush to foreground
+                    if Qt.Qt.NoBrush!=getattr(self,'_fillStyle',Qt.Qt.NoBrush):
+                        #self.debug('In TaurusGraphicsStateItem(%s).updateStyle(%s): switching background to foreground'%(self._name,self._currText))
+                        self._currFgBrush = bg_brush
                     if self._currText: self._currHtmlText = '<p style="color:%s">%s</p>' % (self._currBgBrush.color().name(),self._currText)
             except:
                 self.warning('In TaurusGraphicsStateItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
@@ -905,6 +910,7 @@ class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem,
         self.call__init__(TaurusGraphicsAttributeItem, name, parent)
         
     def paint(self,painter,option,widget):
+        self.debug('TaurusTextAttributeItem(%s,%s,%s)'%(self.getName(),self._currText,self._currHtmlText))
         if self._currHtmlText:
             self.setHtml(self._currHtmlText)
         else:
