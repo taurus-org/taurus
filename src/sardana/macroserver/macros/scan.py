@@ -866,7 +866,7 @@ class dNscanc(dNscan):
         # set velocities to maximum and then move to initial positions
         for moveable in self.motors:
             self._gScan.set_max_top_velocity(moveable)
-        dNScan.do_restore(self)
+        dNscan.do_restore(self)
 
 
 class dscanc(dNscanc, Macro): 
