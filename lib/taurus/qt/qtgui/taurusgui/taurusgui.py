@@ -324,14 +324,15 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM.connectReader("SelectedInstrument", self.onSelectedInstrument)
         Qt.qApp.SDM.connectWriter("SelectedInstrument", self, 'SelectedInstrument')
         Qt.qApp.SDM.connectReader("executionStarted", self.setFocusToPanel)
-
+        Qt.qApp.SDM.connectReader("selectedPerspective", self.loadPerspective)
+        Qt.qApp.SDM.connectWriter("perspectiveChanged", self, 'perspectiveChanged')
+        
     def __initToolsMenu(self):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/apps/preferences-system-session.svg"),"manage instrument-panel associations", self.onShowAssociationDialog)
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("document-save"),"Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
-        
-        
+    
     def setCustomWidgetMap(self, map):
         '''
         Sets the widget map that is used application-wide. This widget map will
