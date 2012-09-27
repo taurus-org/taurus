@@ -341,7 +341,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 return False
             items = self.getItemByName(item_name) or []
             items = [i for i in items if self.getTaurusParentItem(i) not in (items+self._selectedItems)]
-            self.info('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
+            self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
         for item in items:
             try:
