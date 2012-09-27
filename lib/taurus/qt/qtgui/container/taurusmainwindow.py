@@ -566,7 +566,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.updatePerspectivesMenu()
         
     def loadPerspective(self, name=None, settings=None):
-        '''Loads the settings saved for the given perspective
+        '''Loads the settings saved for the given perspective.
+        It emits a 'perspectiveChanged' signal with name as its parameter
                 
         :param name: (str) name of the perspective            
         :param settings: (QSettings or None) a QSettings object. If None given,
@@ -580,6 +581,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                                               perspectives, 0, False) 
             if not ok: return
         self.loadSettings(settings=settings, group="Perspectives/%s"%name, ignoreGeometry=True)
+        self.emit(Qt.SIGNAL('perspectiveChanged'), name)
     
     def getPerspectivesList(self, settings=None):
         '''Returns the list of saved perspectives 
