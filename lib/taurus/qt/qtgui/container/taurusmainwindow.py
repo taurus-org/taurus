@@ -495,24 +495,26 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None: 
             settings.beginGroup(group)
         if not ignoreGeometry: 
-            ba = Qt.from_qvariant(settings.value("MainWindow/Geometry"), 'toByteArray')
+            ba = Qt.from_qvariant(settings.value("MainWindow/Geometry"), 'toByteArray') or Qt.QByteArray() #With API2, from_qvariant is returning None instead
+                                                                                                           # of an empty QByTeArray
+                                                                                                           # and this caused an exception later on. Hence the "or"
             self.restoreGeometry(ba) 
         #restore the Taurus config
         try:
-            ba = Qt.from_qvariant(settings.value("TaurusConfig"), 'toByteArray')
+            ba = Qt.from_qvariant(settings.value("TaurusConfig"), 'toByteArray') or Qt.QByteArray()
             self.applyQConfig(ba)
         except Exception,e:
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s'%(unicode(settings.fileName()), repr(e))
             self.error(msg)
             Qt.QMessageBox.warning(self,'Error Loading settings', msg, Qt.QMessageBox.Ok)
-        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray')
+        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray') or Qt.QByteArray()
         self.restoreState(ba) 
         #hide all dockwidgets (so that they are shown only if they were present in the settings)
         dockwidgets = [c for c in self.children() if isinstance(c, Qt.QDockWidget)]
         for d in dockwidgets:
             r = self.restoreDockWidget(d)
             d.hide()
-        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray')
+        ba = Qt.from_qvariant(settings.value("MainWindow/State"), 'toByteArray') or Qt.QByteArray()
         self.restoreState(ba) 
         
         if group is not None: 
