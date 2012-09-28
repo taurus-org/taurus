@@ -31,6 +31,20 @@ __docformat__ = 'restructuredtext'
 from sardana import DataAccess
 from sardana.pool.controller import PseudoMotorController
 
+
+class Polarization(PseudoMotorController):
+
+    pseudo_motor_roles = "polarization",
+    motor_roles = "m1", "m2"
+
+    def CalcPhysical(self, index, pseudo_pos, curr_physical_pos):
+        if index==1: return pseudo_pos[0] + 10
+        elif index==2: return 30
+    
+    def CalcPseudo(self, index, physical_pos, curr_pseudo_pos):
+        return physical_pos[0] - 10
+    
+    
 class Slit(PseudoMotorController):
     """A Slit pseudo motor controller for handling gap and offset pseudo 
        motors. The system uses to real motors sl2t (top slit) and sl2b (bottom
@@ -38,12 +52,10 @@ class Slit(PseudoMotorController):
     
     gender = "Slit"
     model  = "Default Slit"
-    organization = "CELLS - ALBA"
-    image = "slit.png"
-    logo = "ALBA_logo.png"
+    organization = "Sardana team"
     
-    pseudo_motor_roles = ("Gap", "Offset")
-    motor_roles = ("sl2t", "sl2b")
+    pseudo_motor_roles = "Gap", "Offset"
+    motor_roles = "sl2t", "sl2b"
     
     class_prop = {'sign':{'Type':'PyTango.DevDouble','Description':'Gap = sign * calculated gap\nOffset = sign * calculated offet','DefaultValue':1},}
     
@@ -65,6 +77,7 @@ class Slit(PseudoMotorController):
             ret = self.sign * (pseudo_pos[1] + half_gap)
         else:
             ret = self.sign * (half_gap - pseudo_pos[1])
+        print "Slit.CalcPhysical(%d, %s) -> %f" % (index, pseudo_pos, ret)
         return ret
     
     def CalcPseudo(self, index, physical_pos, curr_pseudo_pos):
@@ -82,12 +95,12 @@ class Slit(PseudoMotorController):
         return (self.sign * gap,
                 self.sign * (physical_pos[0] - gap/2.0))
     
-    def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
-        """Calculates the positions of all motors that belong to the pseudo 
-           motor system from the positions of the pseudo motors."""
-        half_gap = pseudo_pos[0]/2.0
-        return (self.sign * (pseudo_pos[1] + half_gap),
-                self.sign * (half_gap - pseudo_pos[1]))
+    #def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
+    #    """Calculates the positions of all motors that belong to the pseudo 
+    #       motor system from the positions of the pseudo motors."""
+    #    half_gap = pseudo_pos[0]/2.0
+    #    return (self.sign * (pseudo_pos[1] + half_gap),
+    #            self.sign * (half_gap - pseudo_pos[1]))
 
     def SetAxisExtraPar(self, axis, parameter, value):
         self._example[axis] = value

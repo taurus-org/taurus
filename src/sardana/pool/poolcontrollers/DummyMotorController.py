@@ -483,9 +483,7 @@ class BasicDummyMotorController(MotorController):
 
     gender = "Simulation"
     model  = "Basic"
-    organization = "CELLS - ALBA"
-    image = "dummy_motor_ctrl.png"
-    logo = "ALBA_logo.png"
+    organization = "Sardana team"
 
     MaxDevice = 1024
 
@@ -585,9 +583,7 @@ class FastDummyMotorController(MotorController):
 
     gender = "Simulation"
     model  = "Basic"
-    organization = "CELLS - ALBA"
-    image = "dummy_motor_ctrl.png"
-    logo = "ALBA_logo.png"
+    organization = "Sardana team"
 
     MaxDevice = 1024
 

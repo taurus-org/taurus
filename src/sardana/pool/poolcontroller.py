@@ -42,7 +42,8 @@ import numbers
 from taurus.core.util import CaselessDict
 from taurus.core.util import InfoIt
 
-from sardana import State, ElementType, InvalidAxis, InvalidId, is_number
+from sardana import State, ElementType, InvalidAxis, InvalidId, is_number, \
+    TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
 
 from poolelement import PoolBaseElement
@@ -330,6 +331,12 @@ class PoolController(PoolBaseController):
     def get_ctrl_types(self):
         return self._ctrl_info.types
 
+    def is_timerable(self):
+        for t in self._ctrl_info.types:
+            if t in TYPE_TIMERABLE_ELEMENTS:
+                return True
+        return False
+
     def is_online(self):
         return self._ctrl_error is None and self._ctrl is not None
     
@@ -547,14 +554,14 @@ class PoolController(PoolBaseController):
             element = self.get_element(axis=axis)
             try:
                 value = ctrl.ReadOne(axis)
-                if not is_number(value):
-                    t = type(value)
-                    if value is None:
-                        t = 'None'
-                    msg = '%s.ReadOne(%s[%d]) return error: Expected number, ' \
-                          'got %s instead' % (self.name, element.name, axis,
-                                              str(t))
-                    raise ValueError(msg)
+                #if not is_number(value):
+                #    t = type(value)
+                #    if value is None:
+                #        t = 'None'
+                #    msg = '%s.ReadOne(%s[%d]) return error: Expected number, ' \
+                #          'got %s instead' % (self.name, element.name, axis,
+                #                              str(t))
+                #    raise ValueError(msg)
                 ctrl_values[element] = value, None
             except:
                 ctrl_values[element] = None, sys.exc_info()
@@ -763,18 +770,20 @@ class PoolController(PoolBaseController):
         return self.ctrl.DefinePosition(axis, position)
         
     # END SPECIFIC TO MOTOR CONTROLLER -----------------------------------------
-    # START SPECIFIC TO IOR CONTROLLER -------------
+
+    # START SPECIFIC TO IOR CONTROLLER -----------------------------------------
 
     def write_one(self, axis, value):
         self.ctrl.WriteOne(axis, value)
 
-    # END SPECIFIC TO IOR CONTROLLER ----------
+    # END SPECIFIC TO IOR CONTROLLER -------------------------------------------
 
 
 class PoolPseudoMotorController(PoolController):
     
     def __init__(self, **kwargs):
-        self._motor_ids = kwargs.pop('role_ids')
+        props = kwargs['properties']
+        self._motor_ids = props.get('motor_role_ids')
         super(PoolPseudoMotorController, self).__init__(**kwargs)
     
     def serialize(self, *args, **kwargs):

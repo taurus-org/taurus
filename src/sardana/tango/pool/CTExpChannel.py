@@ -38,6 +38,8 @@ from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
+from sardana.tango.core.util import exception_str, \
+    to_tango_type_format, throw_sardana_exception
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -70,10 +72,6 @@ class CTExpChannel(PoolElementDevice):
     def init_device(self):
         PoolElementDevice.init_device(self)
 
-        detect_evts = "state", "value"
-        non_detect_evts = ()
-        self.set_change_events(detect_evts, non_detect_evts)
-        
         ct = self.ct
         if ct is None:
             full_name = self.get_full_name()
@@ -129,6 +127,32 @@ class CTExpChannel(PoolElementDevice):
     def read_attr_hardware(self,data):
         pass
 
+    def get_dynamic_attributes(self):
+        std_attrs, dyn_attrs = \
+            PoolElementDevice.get_dynamic_attributes(self)
+
+        # For value attribute, listen to what the controller says for data
+        # type (between long and float)
+        value = std_attrs.get('value')
+        if value is not None:
+            attr_name, data_info, attr_info = value
+            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            data_info[0][0] = ttype
+        return std_attrs, dyn_attrs
+
+    def initialize_dynamic_attributes(self):
+        attrs = PoolElementDevice.initialize_dynamic_attributes(self)
+
+        detect_evts = "value",
+        non_detect_evts = ()
+
+        for attr_name in detect_evts:
+            if attr_name in attrs:
+                self.set_change_event(attr_name, True, True)
+        for attr_name in non_detect_evts:
+            if attr_name in attrs:
+                self.set_change_event(attr_name, True, False)
+            
     def read_Value(self, attr):
         ct = self.ct
         #use_cache = ct.is_action_running() and not self.Force_HW_Read
@@ -167,10 +191,17 @@ class CTExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'Value'     : [ [ DevDouble, SCALAR, READ ] ],
+#        'Value'     : [ [ DevDouble, SCALAR, READ ] ],
     }
     attr_list.update(PoolElementDeviceClass.attr_list)
 
+    standard_attr_list = {
+        'Value'     : [ [ DevDouble, SCALAR, READ ],
+                        { 'abs_change' : '1.0', } ],
+    }
+    standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
+    
+    
     def _get_class_properties(self):
         ret = PoolElementDeviceClass._get_class_properties(self)
         ret['Description'] = "Counter/Timer device class"

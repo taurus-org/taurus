@@ -448,7 +448,19 @@ class PoolElement(PoolBaseElement):
         self.info("Abort!")
         PoolBaseElement.abort(self)
         self.controller.abort_one(self.axis)
-    
+
+    def get_par(self, name):
+        return self.controller.get_axis_par(self.axis, name)
+
+    def set_par(self, name, value):
+        return self.controller.set_axis_par(self.axis, name, value)
+
+    def get_extra_par(self, name):
+        return self.controller.get_axis_attr(self.axis, name)
+
+    def set_extra_par(self, name, value):
+        return self.controller.set_axis_attr(self.axis, name, value)
+        
     axis = property(get_axis, doc="element axis")
     controller = property(get_controller, doc="element controller")
     controller_id = property(get_controller_id, doc="element controller id")

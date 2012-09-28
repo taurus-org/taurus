@@ -33,7 +33,7 @@ __all__ = ["EpsilonError", "SardanaServer", "ServerRunMode", "State",
            "Interface", "Interfaces", "InterfacesExpanded",
            "TYPE_ELEMENTS", "TYPE_GROUP_ELEMENTS", "TYPE_MOVEABLE_ELEMENTS",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
-           "TYPE_EXP_CHANNEL_ELEMENTS",
+           "TYPE_EXP_CHANNEL_ELEMENTS", "TYPE_TIMERABLE_ELEMENTS",
            "TYPE_PSEUDO_ELEMENTS", "INTERFACES", "INTERFACES_EXPANDED",
            "is_number", "ScalarNumberFilter"]
 
@@ -326,8 +326,15 @@ TYPE_ACQUIRABLE_ELEMENTS = set((ET.Motor, ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.ComChannel, ET.IORegister, ET.PseudoMotor, \
     ET.PseudoCounter))
 
+#: a set containing the possible types of experimental channel elements.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
 TYPE_EXP_CHANNEL_ELEMENTS = set((ET.CTExpChannel, ET.ZeroDExpChannel, \
     ET.OneDExpChannel, ET.TwoDExpChannel, ET.PseudoCounter))
+
+#: a set containing the possible timer-able elements.
+#: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
+TYPE_TIMERABLE_ELEMENTS = set((ET.CTExpChannel, ET.OneDExpChannel, 
+    ET.TwoDExpChannel))
 
 #: a set containing the possible types of pseudo elements.
 #: Constant values belong to :class:`~sardana.sardanadefs.ElementType`

@@ -39,9 +39,7 @@ class DummyZeroDController(ZeroDController):
 
     gender = "Simulation"
     model  = "Basic"
-    organization = "CELLS - ALBA"
-    image = "dummy_0d_ctrl.png"
-    logo = "ALBA_logo.png"
+    organization = "Sardana team"
 
     MaxDevice = 1024
 

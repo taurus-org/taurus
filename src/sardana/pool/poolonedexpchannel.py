@@ -41,6 +41,7 @@ class Pool1DExpChannel(PoolElement):
 
     def __init__(self, **kwargs):
         PoolElement.__init__(self, **kwargs)
+        self._data_source = None
         self._value = None
         self._wvalue = None
         acq_name = "%s.Acquisition" % self._name
@@ -48,6 +49,28 @@ class Pool1DExpChannel(PoolElement):
     
     def get_type(self):
         return ElementType.OneDExpChannel
+
+    # --------------------------------------------------------------------------
+    # data source
+    # --------------------------------------------------------------------------
+
+    def get_data_source(self, cache=True, propagate=1):
+        if not cache or self._data_source is None:
+            data_source = self.read_data_source()
+            self._set_data_source(data_source, propagate=propagate)
+        return self._data_source
+
+    def _set_data_source(self, data_source, propagate=1):
+        self._data_source = data_source
+        if not propagate:
+            return
+        self.fire_event(EventType("data_source", priority=propagate), data_source)
+
+    def read_data_source(self):
+        data_source = self.controller.get_axis_par(self.axis, "data_source")
+        return data_source
+
+    data_source = property(get_data_source, doc="source identifier for the 1D data")    
     
     # --------------------------------------------------------------------------
     # value

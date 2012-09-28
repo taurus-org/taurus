@@ -484,8 +484,7 @@ A report message can be emited at any time in the macro using the
 
 This would generate the following report message in the report file:
 
-    INFO     2012-07-18 09:39:34,943: this is an official report of macro
-    'lets_report'
+    INFO     2012-07-18 09:39:34,943: this is an official report of macro 'lets_report'
 
 
 .. seealso::

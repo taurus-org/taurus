@@ -23,19 +23,19 @@
 
 import time
 from sardana import State
-from sardana.pool.controller import CounterTimerController
+from sardana.pool.controller import TwoDController
 from sardana.pool import AcqTriggerType
 
 class Channel:
     
     def __init__(self,idx):
         self.idx = idx            # 1 based index
-        self.value = 0.0
+        self.value = []
         self.is_counting = False
         self.active = True
         
-class DummyCounterTimerController(CounterTimerController):
-    "This class is the Tango Sardana CounterTimer controller for tests"
+class DummyTwoDController(TwoDController):
+    "This class is the Tango Sardana TwoDController controller for tests"
 
     gender = "Simulation"
     model  = "Basic"
@@ -49,7 +49,7 @@ class DummyCounterTimerController(CounterTimerController):
     CounterMode = 3
 
     def __init__(self, inst, props, *args, **kwargs):
-        CounterTimerController.__init__(self, inst, props, *args, **kwargs)
+        TwoDController.__init__(self, inst, props, *args, **kwargs)
         self.channels = self.MaxDevice*[None,]
         self.reset()
         
@@ -105,19 +105,10 @@ class DummyCounterTimerController(CounterTimerController):
     
     def _updateChannelValue(self, ind, elapsed_time):
         channel = self.channels[ind-1]
-        if self.integ_time is not None:
-            t = elapsed_time
-            if not channel.is_counting:
-                t = self.integ_time
-            if ind == self._timer:
-                channel.value = t
-            else:
-                channel.value = t * channel.idx
-        elif self.monitor_count is not None:
-            channel.value = int(elapsed_time*100*ind)
-            if ind == self._monitor:
-                if not channel.is_counting:
-                    channel.value = self.monitor_count
+        t = elapsed_time
+        if self.integ_time is not None and not channel.is_counting:
+            t = self.integ_time
+        channel.value = (100 * ind * t) * numpy.random.random(size=(1024, 1024))
     
     def _finish(self, elapsed_time, ind=None):
         if ind is None:
@@ -155,20 +146,20 @@ class DummyCounterTimerController(CounterTimerController):
         v = self.read_channels[ind].value
         return v
     
-    def PreStartAllCT(self):
+    def PreStartAll(self):
         self.counting_channels = {}
     
-    def PreStartOneCT(self, ind):
+    def PreStartOne(self, ind):
         idx = ind - 1
         channel = self.channels[idx]
         channel.value = 0.0
         self.counting_channels[ind] = channel
         return True
     
-    def StartOneCT(self, ind):
+    def StartOne(self, ind):
         self.counting_channels[ind].is_counting = True
     
-    def StartAllCT(self):
+    def StartAll(self):
         self.start_time = time.time()
     
     def LoadOne(self, ind, value):

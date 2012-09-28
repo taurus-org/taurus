@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 from taurus.core import AttributeNameValidator
 from taurus.core.tango.sardana import PlotType, Normalization
 
-from sardana import ElementType, TYPE_EXP_CHANNEL_ELEMENTS
+from sardana import ElementType, TYPE_EXP_CHANNEL_ELEMENTS, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
 
 from pooldefs import AcqMode, AcqTriggerType
@@ -214,16 +214,16 @@ class PoolMeasurementGroup(PoolGroupElement):
         ctrls = self.get_pool_controllers()
 
         # find the first CT
-        first_ct = None
+        first_timerable = None
         for elem in user_elements:
-            if elem.get_type() == ElementType.CTExpChannel:
-                first_ct = elem
+            if elem.get_type() in TYPE_TIMERABLE_ELEMENTS:
+                first_timerable = elem
                 break
-        if first_ct is None:
+        if first_timerable is None:
             raise Exception("It is not possible to construct a measurement "
-                            "group without at least one Counter/Timer channel "
-                            "(for now)")
-        g_timer = g_monitor = first_ct
+                            "group without at least one timer able channel "
+                            "(Counter/timer, 1D or 2D)")
+        g_timer = g_monitor = first_timerable
         config['timer'] = g_timer
         config['monitor'] = g_monitor
         config['controllers'] = controllers = {}
@@ -246,7 +246,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                 units['0'] = unit_data = {}
                 unit_data['id'] = 0
                 unit_data['channels'] = channels = {}
-                if elem_type == ElementType.CTExpChannel:
+                if elem_type in TYPE_TIMERABLE_ELEMENTS:
                     elements = ctrls[ctrl]
                     if g_timer in elements:
                         unit_data['timer'] = g_timer
@@ -364,7 +364,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                     continue
                 units[u_id] = unit_data = dict(u_data)
                 unit_data['id'] = u_data.get('id', u_id)
-                if not external and ElementType.CTExpChannel in ctrl.get_ctrl_types():
+                if not external and ctrl.is_timerable():
                     unit_data['timer'] = pool.get_element_by_full_name(u_data['timer'])
                     unit_data['monitor'] = pool.get_element_by_full_name(u_data['monitor'])
                     unit_data['trigger_type'] = u_data['trigger_type']
@@ -404,7 +404,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             for u_id, u_data in c_data['units'].items():
                 units[u_id] = unit_data = {}
                 unit_data['id'] = u_data['id']
-                if not external and ElementType.CTExpChannel in c.get_ctrl_types():
+                if not external and c.is_timerable():
                     if u_data.has_key('timer'):
                         unit_data['timer'] = u_data['timer'].full_name
                     if u_data.has_key('monitor'):
@@ -431,7 +431,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             if ctrl.operator == self and not force and not self._config_dirty:
                 continue
             ctrl.operator = self
-            if ElementType.CTExpChannel in ctrl.get_ctrl_types():
+            if ctrl.is_timerable():
                 for unit, unit_data in ctrl_data['units'].items():
                     #if ctrl == g_timer.controller:
                     #    ctrl.set_ctrl_par('timer', g_timer.axis)

@@ -370,10 +370,11 @@ class ct(Macro):
         names, counts = [], []
         for ch_info in self.mnt_grp.getChannelsInfo():
             names.append('  %s' % ch_info.label)
+            ch_data = data.get(ch_info.full_name)
             if ch_info.shape > [1]:
-                counts.append(ch_info.shape)
+                counts.append(list(ch_data.shape))
             else:
-                counts.append(data.get(ch_info.full_name))
+                counts.append(ch_data)
         
         table = Table([counts], row_head_str=names, row_head_fmt='%*s',
                       col_sep='  =  ')

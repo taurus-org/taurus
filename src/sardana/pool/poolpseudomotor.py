@@ -406,7 +406,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             physical_elements = self.get_physical_elements_set()
             s_items = set(items)
             if s_items == physical_elements:
-                if self in calculated:
+                if calculated is not None and self in calculated:
                     return
         
         siblings_pos_func = self.get_siblings_positions

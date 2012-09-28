@@ -38,12 +38,10 @@ class DummyIORController(IORegisterController):
     """This controller offers as many IORegisters as the user wants.
     """
 
-    gender = ""
-    model  = ""
-    organization = "CELLS - ALBA"
-    image = ""
-    icon = ""
-    logo = "ALBA_logo.png"
+    gender = "Simulation"
+    model  = "Basic"
+    organization = "Sardana team"
+
     MaxDevice = 1024
     
     predefined_values = ("0", "Online", "1" , "Offline", "2", "Standby" )

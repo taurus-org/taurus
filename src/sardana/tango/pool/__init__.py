@@ -34,6 +34,8 @@ from .PseudoMotor import *
 from .MotorGroup import *
 from .CTExpChannel import *
 from .ZeroDExpChannel import *
+from .OneDExpChannel import *
+from .TwoDExpChannel import *
 from .PseudoCounter import *
 from .MeasurementGroup import *
 from .IORegister import *
@@ -46,6 +48,8 @@ def prepare_pool(util):
     util.add_class(IORegisterClass, IORegister)
     util.add_class(CTExpChannelClass, CTExpChannel)
     util.add_class(ZeroDExpChannelClass, ZeroDExpChannel)
+    util.add_class(OneDExpChannelClass, OneDExpChannel)
+    util.add_class(TwoDExpChannelClass, TwoDExpChannel)
     util.add_class(PseudoMotorClass, PseudoMotor)
     util.add_class(PseudoCounterClass, PseudoCounter)
     util.add_class(MotorGroupClass, MotorGroup)

@@ -39,7 +39,7 @@ class IoverI0(PseudoCounterController):
     
     gender = "IoverI0"
     model  = "Default I/I0"
-    organization = "CELLS - ALBA"
+    organization = "Sardana team"
     
     counter_roles = "I", "I0"
 

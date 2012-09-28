@@ -27,7 +27,8 @@
 acquisition"""
 
 __all__ = [ "AcquisitionState", "AcquisitionMap", "PoolCTAcquisition",
-            "Pool0DAcquisition", "Channel", "PoolIORAcquisition" ]
+            "Pool0DAcquisition", "Pool1DAcquisition", "Pool2DAcquisition",
+            "Channel", "PoolIORAcquisition" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,7 +36,7 @@ import time
 
 from taurus.core.util import Enumeration, DebugIt, InfoIt
 
-from sardana import State, ElementType
+from sardana import State, ElementType, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanathreadpool import get_thread_pool
 from poolaction import ActionContext, PoolActionItem, PoolAction
 
@@ -101,7 +102,7 @@ class PoolAcquisition(PoolAction):
 
     def _get_acq_for_element(self, element):
         elem_type = element.get_type()
-        if elem_type == ElementType.CTExpChannel:
+        if elem_type in TYPE_TIMERABLE_ELEMENTS:
             return self._ct_acq
         elif elem_type == ElementType.ZeroDExpChannel:
             return self._0d_acq
@@ -236,7 +237,7 @@ class PoolCTAcquisition(PoolAction):
         pool_ctrls_dict.pop('__tango__', None)
         pool_ctrls = []
         for ctrl, ctrl_info in pool_ctrls_dict.items():
-            if ElementType.CTExpChannel in ctrl.get_ctrl_types():
+            if ctrl.is_timerable():
                 pool_ctrls.append(ctrl)
 
         # make sure the controller which has the master channel is the last to
@@ -294,7 +295,7 @@ class PoolCTAcquisition(PoolAction):
                         if not ret:
                             raise Exception("%s.PreStartOne(%d) returns False" \
                                             % (pool_ctrl.name, axis))
-                        ctrl.StartOne(axis)
+                        ctrl.StartOne(axis, master_value)
 
             # set the state of all elements to  and inform their listeners
             for channel in channels:
@@ -377,6 +378,7 @@ class PoolCTAcquisition(PoolAction):
                 acquirable.set_state_info(state_info, propagate=2)
 
 Pool1DAcquisition = PoolCTAcquisition
+Pool2DAcquisition = PoolCTAcquisition
 
 class Pool0DAcquisition(PoolAction):
 

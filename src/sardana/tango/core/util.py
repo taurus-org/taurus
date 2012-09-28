@@ -41,6 +41,7 @@ import functools
 import string
 import traceback
 
+import PyTango
 from PyTango import Util, Database, DbDevInfo, DevFailed, \
     DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
     DevVarLong64Array, DispLevel, DevState, \
@@ -48,8 +49,11 @@ from PyTango import Util, Database, DbDevInfo, DevFailed, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr, \
     DeviceClass, Except
 
+import taurus
 from taurus.core.util import Enumeration
+from taurus.core.util.log import Logger
 
+import sardana
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
     DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release, \
     ServerRunMode
@@ -189,9 +193,26 @@ def exception_str(etype=None, value=None, sep='\n'):
     return sep.join(traceback.format_exception_only(etype, value))
 
 def to_tango_access(access):
+    """Transforms a :obj:`~sardana.DataAccess` into a
+    :obj:`~PyTango.AttrWriteType`
+    
+    :param access: the access to be transformed
+    :type access: :obj:`~sardana.DataAccess`
+    :return: the tango attribute write type
+    :rtype: :obj:`PyTango.AttrWriteType`"""
     return TACCESS_MAP.get(access, READ_WRITE)
 
 def to_tango_type_format(dtype_or_info, dformat=None):
+    """Transforms a :obj:`~sardana.DataType` :obj:`~sardana.DataFormat` into a
+    :obj:`~PyTango.CmdArgType`, :obj:`~PyTango.AttrDataFormat` tuple
+    
+    :param dtype_or_info: the type to be transformed
+    :type dtype_or_info: :obj:`~sardana.DataType`
+    :param dformat: the format to be transformed
+    :type dformat: :obj:`~sardana.DataFormat`
+    
+    :return: a tuple of two elements: the tango attribute write type, tango data format
+    :rtype: tuple< :obj:`PyTango.AttrWriteType`, :obj:`PyTango.AttrDataFormat` >"""
     dtype = dtype_or_info
     if dformat is None:
         dtype, dformat = to_dtype_dformat(dtype)
@@ -557,16 +578,12 @@ def get_free_alias(db, prefix, start_from=1):
 
 def prepare_taurus(options, args, tango_args):
     # make sure the polling is not active
-    import taurus
     factory = taurus.Factory()
     factory.disablePolling()
     
 def prepare_logging(options, args, tango_args, start_time=None, log_messages=None):
     import os.path
     import logging
-    import taurus
-    import taurus.core.util.log
-    Logger = taurus.core.util.log.Logger
     
     taurus.setLogLevel(taurus.Debug)
     root = Logger.getRootLog()
@@ -642,12 +659,14 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
     taurus.debug("Start args=%s", args)
     taurus.debug("Start tango args=%s", tango_args)
     taurus.debug("Start options=%s", options)
+    taurus.debug("Using PyTango %s from %s", PyTango.Release.version, PyTango.__path__[0])
+    taurus.debug("Using taurus %s from %s", taurus.Release.version, taurus.__path__[0])
+    taurus.debug("Using sardana %s from %s", sardana.Release.version, sardana.__path__[0])
 
 def prepare_rconsole(options, args, tango_args):
     port = options.rconsole_port
     if port is None or port is 0:
         return
-    import taurus
     taurus.debug("Setting up rconsole on port %d...", port)
     try:
         import rfoo.utils.rconsole
@@ -657,7 +676,6 @@ def prepare_rconsole(options, args, tango_args):
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
 def run_tango_server(util, start_time=None):
-    import taurus
     try:
         tango_util = Util.instance()
         SardanaServer.server_state = State.Init

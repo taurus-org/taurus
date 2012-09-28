@@ -145,10 +145,7 @@ class TangoCounterTimerController(ReadTangoAttributes, CounterTimerController):
 
     gender = ""
     model  = ""
-    organization = "CELLS - ALBA"
-    image = ""
-    icon = ""
-    logo = "ALBA_logo.png"
+    organization = "Sardana team"
 
     MaxDevice = 1024
 

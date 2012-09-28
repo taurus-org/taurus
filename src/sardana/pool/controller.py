@@ -29,6 +29,7 @@ __all__ = ["Type", "Access", "Description", "DefaultValue", "FGet", "FSet",
            "Memorized", "MemorizedNoInit", "NotMemorized", "MaxDimSize",
            "Controller", "Readable", "Startable", "Stopable",
            "MotorController", "CounterTimerController", "ZeroDController",
+           "OneDController", "TwoDController",
            "PseudoMotorController", "IORegisterController"]
 
 __docformat__ = 'restructuredtext'
@@ -641,6 +642,46 @@ class Readable(object):
         raise NotImplementedError("ReadOne must be defined in the controller")
 
 
+class Loadable(object):
+    """A Loadable interface. A controller for which it's axis are 'loadable'
+    (like a counter, 1D or 2D for example) should implement this interface
+
+    .. note: Do not inherit directly from Loadable."""
+
+    def PreLoadAll(self):
+        """**Controller API**. Override as necessary.
+        Called to prepare loading the integration time / monitor value.
+        Default implementation does nothing."""
+        pass
+
+    def PreLoadOne(self, axis, value):
+        """**Controller API**. Override as necessary.
+        Called to prepare loading the master channel axis with the integration
+        time / monitor value.
+        Default implementation returns True.
+
+        :param int axis: axis number
+        :param float value: integration time /monitor value
+        :return: True means a successfull PreLoadOne or False for a failure
+        :rtype: bool"""
+        return True
+
+    def LoadAll(self):
+        """**Controller API**. Override as necessary.
+        Called to load the integration time / monitor value.
+        Default implementation does nothing."""
+        pass
+
+    def LoadOne(self, axis, value):
+        """**Controller API**. Override is MANDATORY!
+        Called to load the integration time / monitor value.
+        Default implementation raises :exc:`NotImplementedError`.
+        
+        :param int axis: axis number
+        :param float value: integration time /monitor value"""
+        raise NotImplementedError("LoadOne must be defined in the controller")
+
+
 class MotorController(Controller, Startable, Stopable, Readable):
     """Base class for a motor controller. Inherit from this class to implement
     your own motor controller for the device pool.
@@ -719,6 +760,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
                               "2 - The lower limit switch\n"\
                               "False means not active. True means active", },
     }
+    standard_axis_attributes.update(Controller.standard_axis_attributes)
 
     def GetAxisAttributes(self, axis):
         """**Motor Controller API**. Override as necessary.
@@ -769,7 +811,7 @@ class MotorController(Controller, Startable, Stopable, Readable):
         pass
 
 
-class CounterTimerController(Controller, Readable, Startable, Stopable):
+class CounterTimerController(Controller, Readable, Startable, Stopable, Loadable):
     """Base class for a counter/timer controller. Inherit from this class to
     implement your own counter/timer controller for the device pool.
 
@@ -778,6 +820,14 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         - timer
         - monitor
         - trigger_type"""
+
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
+    standard_axis_attributes = {
+        'Value'       : { 'type' : float,
+                          'description' : 'Value', },
+    }
+    standard_axis_attributes.update(Controller.standard_axis_attributes)
 
     def __init__(self, inst, props, *args, **kwargs):
         Controller.__init__(self, inst, props, *args, **kwargs)
@@ -872,51 +922,79 @@ class CounterTimerController(Controller, Readable, Startable, Stopable):
         :exc:`NotImplementedError`."""
         return self.StartAllCT()
 
-    def PreLoadAll(self):
-        """**Counter/Timer Controller API**. Override as necessary.
-        Called to prepare loading the integration time / monitor value.
-        Default implementation does nothing."""
-        pass
-
-    def PreLoadOne(self, axis, value):
-        """**Counter/Timer Controller API**. Override as necessary.
-        Called to prepare loading the master channel axis with the integration
-        time / monitor value.
-        Default implementation returns True.
-
-        :param int axis: axis number
-        :param float value: integration time /monitor value
-        :return: True means a successfull PreLoadOne or False for a failure
-        :rtype: bool"""
-        return True
-
-    def LoadAll(self):
-        """**Counter/Timer Controller API**. Override as necessary.
-        Called to load the integration time / monitor value.
-        Default implementation does nothing."""
-        pass
-
-    def LoadOne(self, axis, value):
-        """**Counter/Timer Controller API**. Override is MANDATORY!
-        Called to load the integration time / monitor value.
-        Default implementation raises :exc:`NotImplementedError`.
-        
-        :param int axis: axis number
-        :param float value: integration time /monitor value"""
-        raise NotImplementedError("LoadOne must be defined in the controller")
-
-
 
 class ZeroDController(Controller, Readable, Stopable):
     """Base class for a 0D controller. Inherit from this class to
     implement your own 0D controller for the device pool."""
 
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
+    standard_axis_attributes = {
+        'Value'       : { 'type' : float,
+                          'description' : 'Value', },
+    }
+    standard_axis_attributes.update(Controller.standard_axis_attributes)
+    
     def AbortOne(self, axis):
         """This method is not executed by the system.
         Default implementation does nothing.
 
         :param int axis: axis number"""
         pass
+
+
+class OneDController(Controller, Readable, Startable, Stopable, Loadable):
+    """Base class for a 1D controller. Inherit from this class to
+    implement your own 1D controller for the device pool.
+    
+    .. versionadded:: 1.2"""
+
+    standard_axis_attributes = {
+        'Value'       : { 'type' : (float,),
+                          'description' : 'Value',
+                          'maxdimsize' : (16*1024,) },
+    }
+    standard_axis_attributes.update(Controller.standard_axis_attributes)
+    
+    def GetAxisPar(self, axis, parameter):
+        """**Controller API**. Override is MANDATORY.
+        Called to get a parameter value on the given axis.
+        If parameter == 'data_source', default implementation returns None, 
+        meaning let sardana decide the proper URI for accessing the axis value. 
+        Otherwise, default implementation calls deprecated
+        :meth:`~Controller.GetPar` which, by default, raises
+        :exc:`NotImplementedError`.
+
+        .. versionadded:: 1.2"""
+        if parameter.lower() == 'data_source':
+            return None
+        return self.GetPar(axis, parameter)
+
+
+class TwoDController(Controller, Readable, Startable, Stopable, Loadable):
+    """Base class for a 2D controller. Inherit from this class to
+    implement your own 2D controller for the device pool."""
+
+    standard_axis_attributes = {
+        'Value'       : { 'type' : ((float,),),
+                          'description' : 'Value',
+                          'maxdimsize' : (4*1024, 4*1024) },
+    }
+    standard_axis_attributes.update(Controller.standard_axis_attributes)
+
+    def GetAxisPar(self, axis, parameter):
+        """**Controller API**. Override is MANDATORY.
+        Called to get a parameter value on the given axis.
+        If parameter == 'data_source', default implementation returns None, 
+        meaning let sardana decide the proper URI for accessing the axis value. 
+        Otherwise, default implementation calls deprecated
+        :meth:`~Controller.GetPar` which, by default, raises
+        :exc:`NotImplementedError`.
+
+        .. versionadded:: 1.2"""
+        if parameter.lower() == 'data_source':
+            return None
+        return self.GetPar(axis, parameter)
 
 
 class PseudoController(Controller):

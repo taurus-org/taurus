@@ -46,9 +46,8 @@ class DiscretePseudoMotorController(PseudoMotorController):
     
     gender = "DiscretePseudoMotorController"
     model  = "PseudoMotor"
-    organization = "CELLS - ALBA"
+    organization = "Sardana team"
     image = ""
-    logo = "ALBA_logo.png"
 
     pseudo_motor_roles = ("OutputMotor",)
     motor_roles = ("InputMotor",)

@@ -937,7 +937,10 @@ CREATE_ELEMENT_DESC = \
     * A JSON encoded dict as first string with:
         * mandatory keys: 'type', 'ctrl_name', 'axis', 'name' (values are
           strings).
-    * a sequence of strings: <type>, <ctrl_name>, <axis>, <name>"""
+        * optional keys:
+            * 'full_name' : a string representing the full tango device name
+            
+    * a sequence of strings: <type>, <ctrl_name>, <axis>, <name> [, <full_name>]"""
 
 class PoolClass(PyTango.DeviceClass):
 

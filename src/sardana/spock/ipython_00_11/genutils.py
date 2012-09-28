@@ -1100,6 +1100,10 @@ class SpockConsole(RichIPythonWidget):
         config = get_config()
         return config.FrontendWidget.banner
 
+import IPython.frontend.qt.console.qtconsoleapp
+IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+IPythonQtConsoleApp.widget_factory = SpockConsole
+
 def run():
     try:
         check_requirements()
@@ -1111,10 +1115,6 @@ def run():
     
     prepare_input_handler()
     prepare_cmdline()
-
-    import IPython.frontend.qt.console.qtconsoleapp
-    IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
-    IPythonQtConsoleApp.widget_factory = SpockConsole
 
     launch_new_instance()
 
