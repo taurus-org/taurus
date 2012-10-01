@@ -19,33 +19,32 @@
 .. autodata:: NotMemorized
 .. autodata:: MaxDimSize
 
+.. rubric:: Interfaces
+
+.. hlist::
+    :columns: 3
+
+    * :class:`Readable`
+    * :class:`Startable`
+    * :class:`Stopable`
+    * :class:`Loadable`
+    
 .. rubric:: Classes
 
 .. hlist::
     :columns: 3
 
     * :class:`Controller`
-    * :class:`Readable`
-    * :class:`Startable`
     * :class:`PseudoController`
     * :class:`MotorController`
     * :class:`PseudoMotorController`
     * :class:`CounterTimerController`
     * :class:`ZeroDController`
+    * :class:`OneDController`    
+    * :class:`TwoDController`
     * :class:`PseudoCounterController`
     * :class:`IORegisterController`
-    
-Controller
------------
 
-.. inheritance-diagram:: Controller
-    :parts: 1
-    
-.. autoclass:: Controller
-    :private-members: __init__
-    :show-inheritance:
-    :members:
-    :undoc-members:
 
 Readable interface
 ------------------
@@ -58,6 +57,7 @@ Readable interface
     :members:
     :undoc-members:
 
+
 Startable interface
 -------------------
 
@@ -68,6 +68,7 @@ Startable interface
     :show-inheritance:
     :members:
     :undoc-members:
+
 
 Stopable interface
 -------------------
@@ -80,8 +81,34 @@ Stopable interface
     :members:
     :undoc-members:
 
-Pseudo interface
-----------------
+
+Loadable interface
+-------------------
+
+.. inheritance-diagram:: Loadable
+    :parts: 1
+    
+.. autoclass:: Loadable
+    :show-inheritance:
+    :members:
+    :undoc-members:   
+
+
+Abstract Controller
+--------------------
+
+.. inheritance-diagram:: Controller
+    :parts: 1
+    
+.. autoclass:: Controller
+    :private-members: __init__
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+
+Abstract Pseudo Controller
+-----------------------------
 
 .. inheritance-diagram:: PseudoController
     :parts: 1
@@ -90,6 +117,7 @@ Pseudo interface
     :show-inheritance:
     :members:
     :undoc-members:
+
     
 Motor Controller API
 ---------------------
@@ -102,6 +130,7 @@ Motor Controller API
     :members:
     :undoc-members:
 
+
 Pseudo Motor Controller API
 -----------------------------
 
@@ -112,6 +141,7 @@ Pseudo Motor Controller API
     :show-inheritance:
     :members:
     :undoc-members:
+    
     
 Counter Timer Controller API
 ----------------------------
@@ -124,6 +154,7 @@ Counter Timer Controller API
     :members:
     :undoc-members:
 
+
 0D Controller API
 ----------------------------
 
@@ -135,6 +166,31 @@ Counter Timer Controller API
     :members:
     :undoc-members:
 
+
+1D Controller API
+----------------------------
+
+.. inheritance-diagram:: OneDController
+    :parts: 1
+    
+.. autoclass:: OneDController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+
+2D Controller API
+----------------------------
+
+.. inheritance-diagram:: TwoDController
+    :parts: 1
+    
+.. autoclass:: TwoDController
+    :show-inheritance:
+    :members:
+    :undoc-members:
+
+
 Pseudo Counter Controller API
 -----------------------------
 
@@ -145,6 +201,7 @@ Pseudo Counter Controller API
     :show-inheritance:
     :members:
     :undoc-members:
+
 
 IO Register Controller API
 ----------------------------

@@ -12,8 +12,10 @@
     
     Pool <pool/PoolDevice>
     Motor <pool/Motor>
-    PseudoMotor <pool/PseudoMotor>
     I/O register <pool/IORegister>
     Counter/Timer <pool/CTExpChannel>
     0D experiment channel <pool/ZeroDExpChannel>
+    1D experiment channel <pool/OneDExpChannel>
+    2D experiment channel <pool/TwoDExpChannel>
+    PseudoMotor <pool/PseudoMotor>
     PseudoCounter <pool/PseudoCounter>

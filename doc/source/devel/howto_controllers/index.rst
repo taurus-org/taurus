@@ -32,9 +32,11 @@ existing controller types:
     :columns: 3
     
     - :class:`MotorController`
+    - :class:`IORegisterController`
     - :class:`CounterTimerController`
     - :class:`ZeroDController`
-    - :class:`IORegisterController`
+    - :class:`OneDController`
+    - :class:`TwoDController`        
 
     - :class:`PseudoMotorController`
     - :class:`PseudoCounterController`
