@@ -81,6 +81,7 @@ class Controller(PoolDevice):
         self.set_change_events(detect_evts, non_detect_evts)
         ctrl = self.ctrl
         if ctrl is None:
+            role_ids = self.get_role_ids()
             full_name = self.get_full_name()
             name = self.alias or full_name
             args = dict(type=self.Type, name=name, full_name=full_name,
@@ -96,6 +97,19 @@ class Controller(PoolDevice):
         else:
             ctrl.re_init()
 
+    def get_role_ids(self):
+        db = Util.instance().get_database()
+        if db is None:
+            return []
+        role_ids = db.get_device_property(self.get_name(), ['motor_role_ids'])['motor_role_ids']
+        if len(role_ids) == 0:
+            role_ids = db.get_device_property(self.get_name(), ['counter_role_ids'])['counter_role_ids']
+            if len(role_ids) == 0:
+                role_ids = self.Role_ids
+        role_ids = map(int, role_ids)
+        
+        return role_ids
+        
     def _get_ctrl_properties(self):
         try:
             ctrl_info = self.pool.get_controller_class_info(self.Klass)

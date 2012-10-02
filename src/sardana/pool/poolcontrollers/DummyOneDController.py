@@ -76,11 +76,6 @@ class DummyOneDController(OneDController):
 
     MaxDevice = 1024
     
-    StoppedMode = 0
-    TimerMode = 1
-    MonitorMode = 2
-    CounterMode = 3
-
     BufferSize = 1024,
 
     axis_attributes = {

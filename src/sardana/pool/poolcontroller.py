@@ -782,8 +782,7 @@ class PoolController(PoolBaseController):
 class PoolPseudoMotorController(PoolController):
     
     def __init__(self, **kwargs):
-        props = kwargs['properties']
-        self._motor_ids = props.get('motor_role_ids')
+        self._motor_ids = kwargs.pop('role_ids')
         super(PoolPseudoMotorController, self).__init__(**kwargs)
     
     def serialize(self, *args, **kwargs):

@@ -170,7 +170,12 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     #@DebugIt()
     def read_ExpChannelList(self, attr):
-        info = self.pool.get_elements_str_info(ElementType.CTExpChannel)
+        info = []
+        info.extend(self.pool.get_elements_str_info(ElementType.CTExpChannel))
+        info.extend(self.pool.get_elements_str_info(ElementType.ZeroDExpChannel))
+        info.extend(self.pool.get_elements_str_info(ElementType.OneDExpChannel))
+        info.extend(self.pool.get_elements_str_info(ElementType.TwoDExpChannel))
+        info.extend(self.pool.get_elements_str_info(ElementType.PseudoCounter))
         attr.set_value(info)
 
     #@DebugIt()
@@ -891,6 +896,17 @@ class Pool(PyTango.Device_4Impl, Logger):
     def ReloadControllerClass(self, class_name):
         self.pool.reload_controller_class(class_name)
 
+    def Stop(self):
+        self.pool.stop()
+
+    def Abort(self):
+        self.pool.abort()
+
+    def SendToController(self, stream):
+        ctrl_name, stream = stream[:2]
+        ctrl = self.pool.get_element_by_name(ctrl_name)
+        return ctrl.send_to_controller(stream)
+
     def GetFile(self, name):
         p = self.pool
         manager = p.ctrl_manager
@@ -903,44 +919,307 @@ class Pool(PyTango.Device_4Impl, Logger):
         p = self.pool
         manager = p.ctrl_manager
         manager.setControllerLib(*file_data)
+    
+    def GetControllerCode(self, argin):
+        pass
 
-    def Stop(self):
-        self.pool.stop()
+    def SetControllerCode(self, argin):
+        pass
+        
 
-    def Abort(self):
-        self.pool.abort()
+CREATE_CONTROLLER_PAR_IN_DOC = """\
+Must give either:
 
-    def SendToController(self, stream):
-        ctrl_name, stream = stream[:2]
-        ctrl = self.pool.get_element_by_name(ctrl_name)
-        return ctrl.send_to_controller(stream)
+        * A JSON encoded dict as first string with:
+            * mandatory keys: 'type', 'library', 'klass' and 'name' (values are
+              strings).
+            * optional keys:
+                * 'properties': a dict with keys being property names and values
+                  the property values
+                * 'roles': a dict with keys being controller roles and values being
+                  element names. (example: { 'gap' : 'motor21', 'offset' : 'motor55' }).
+                  Only applicable of pseudo controllers
+        * a sequence of strings: <type>, <library>, <class>, <name>
+          [, <role_name>'='<element name>] [, <property name>, <property value>]
 
+    Examples::
+              
+        data = dict(type='Motor', library='DummyMotorController',
+                    klass='DummyMotorController',
+                    name='my_motor_ctrl_1')
+        pool.CreateController([json.dumps(data)])
+              
+        pool.CreateController(['Motor', 'DummyMotorController', 'DummyMotorController',
+                               'my_motor_ctrl_2'])
+"""
 
-CREATE_CTRL_DESC = \
-"""Must give either:
+CREATE_CONTROLLER_PAR_OUT_DOC = "None"
 
-    * A JSON encoded dict as first string with:
-        * mandatory keys: 'type', 'library', 'klass' and 'name' (values are
-          strings).
-        * optional keys:
-            * 'properties': a dict with keys being property names and values
-              the property values
-            * 'roles': a dict with keys being controller roles and values being
-              element names. (example: { 'gap' : 'motor21', 'offset' : 'motor55' }).
-              Only applicable of pseudo controllers
-    * a sequence of strings: <type>, <library>, <class>, <name>
-      [, <role_name>'='<element name>] [, <property name>, <property value>]"""
+CREATE_CONTROLLER_DOC = """\
+Tango command to create controller.
 
-CREATE_ELEMENT_DESC = \
-"""Must give either:
+:param argin:
+    {0}
+:type argin: list<str>
+:return:
+    {1}
+""".format(CREATE_CONTROLLER_PAR_IN_DOC, CREATE_CONTROLLER_PAR_OUT_DOC)
 
-    * A JSON encoded dict as first string with:
-        * mandatory keys: 'type', 'ctrl_name', 'axis', 'name' (values are
-          strings).
-        * optional keys:
-            * 'full_name' : a string representing the full tango device name
-            
-    * a sequence of strings: <type>, <ctrl_name>, <axis>, <name> [, <full_name>]"""
+CREATE_ELEMENT_PAR_IN_DOC = """\
+Must give either:
+
+        * A JSON encoded dict as first string with:
+            * mandatory keys: 'type', 'ctrl_name', 'axis', 'name' (values are
+              strings).
+            * optional keys:
+                * 'full_name' : a string representing the full tango device name
+                
+        * a sequence of strings: <type>, <ctrl_name>, <axis>, <name> [, <full_name>]
+
+    Examples::
+
+        data = dict(type='Motor', ctrl_name='my_motor_ctrl_1', axis='4', name='theta',
+                    full_name='BL99/EH/THETA')
+        pool.CreateElement([json.dumps(data)])
+        
+        pool.CreateElement(['Motor', 'my_motor_ctrl_1', '1', 'phi', 'BL99/EH/PHI'])
+"""
+
+CREATE_ELEMENT_PAR_OUT_DOC = "None"
+
+CREATE_ELEMENT_DOC = """\
+Tango command to create element (motor, counter/timer, 0D, 1D, 2D, IORegister).
+
+:param argin:
+    {0}
+:type argin: list<str>
+:return:
+    {1}
+""".format(CREATE_ELEMENT_PAR_IN_DOC, CREATE_ELEMENT_PAR_OUT_DOC)
+
+CREATE_INSTRUMENT_PAR_IN_DOC = """\
+Must give either:
+
+        * A JSON encoded dict as first string with:
+            * mandatory keys: 'full_name', 'klass' (values are strings).
+        * a sequence of strings: <full_name>, <class>
+        
+    Examples::
+        
+        pool.CreateInstrument(['/OH', 'NXhutch'])
+        pool.CreateInstrument(['/OH/Mono', 'NXmonochromator'])
+        pool.CreateInstrument(['/EH', 'NXhutch'])
+        pool.CreateInstrument(['/EH/Pilatus', 'NXdetector'])
+"""
+
+CREATE_INSTRUMENT_PAR_OUT_DOC = "None"
+
+CREATE_INSTRUMENT_DOC = """\
+Tango command to create instrument.
+
+:param argin:
+    {0}
+:type argin: list<str>
+:return:
+    {1}
+""".format(CREATE_INSTRUMENT_PAR_IN_DOC, CREATE_INSTRUMENT_PAR_OUT_DOC)
+
+CREATE_MOTOR_GROUP_PAR_IN_DOC = """\
+Must give either:
+
+        * A JSON encoded dict as first string with:
+            * mandatory keys: 'name', 'elements' (with value being a list of moveables)
+            * optional keys:
+                * 'full_name': with value being a full tango device name
+        
+        * a sequence of strings: <motor group name> [, <element> ]"
+
+    Examples::
+
+        data = dict(name='diffrac_motor_group', elements=['theta', 'theta2', 'phi'])
+        pool.CreateMotorGroup([json.dumps(data)])
+        
+        pool.CreateMotorGroup(['diffrac_mg', 'theta', 'theta2' ])
+"""
+
+CREATE_MOTOR_GROUP_PAR_OUT_DOC = "None"
+
+CREATE_MOTOR_GROUP_DOC = """\
+Tango command to create motor group.
+
+:param argin:
+    {0}
+:type argin: list<str>
+:return:
+    {1}
+""".format(CREATE_MOTOR_GROUP_PAR_IN_DOC, CREATE_MOTOR_GROUP_PAR_OUT_DOC)
+
+Pool.CreateMotorGroup.__func__.__doc__= CREATE_MOTOR_GROUP_DOC
+
+CREATE_MEASUREMENT_GROUP_PAR_IN_DOC = """\
+Must give either:
+
+        * A JSON encoded dict as first string with:
+            * mandatory keys: 'name', 'elements' (with value being a list of acquirables)"
+            * optional keys:
+                * 'full_name': with value being a full tango device name
+        
+        * a sequence of strings: <motor group name> [, <element> ]"
+
+    An acquirable is either a sardana element (counter/timer, 0D, 1D, 2D, motor) or
+    a tango attribute (ex: sys/tg_test/1/short_spectrum_ro)
+
+    Examples::
+
+        data = dict(name='my_exp_01', elements=['timer', 'C1', 'sys/tg_test/1/double_scalar'])
+        pool.CreateMeasurementGroup([json.dumps(data)])
+        
+        pool.CreateMeasurementGroup(['my_exp_02', 'timer', 'CCD1', 'sys/tg_test/1/short_spectrum_ro'])
+"""
+
+CREATE_MEASUREMENT_GROUP_PAR_OUT_DOC = "None"
+
+CREATE_MEASUREMENT_GROUP_DOC = """\
+Tango command to create measurement group.
+
+:param argin:
+    {0}
+:type argin: list<str>
+:return:
+    {1}
+""".format(CREATE_MEASUREMENT_GROUP_PAR_IN_DOC, CREATE_MEASUREMENT_GROUP_PAR_OUT_DOC)
+
+DELETE_ELEMENT_PAR_IN_DOC ="""\
+name of element to be deleted
+"""
+
+DELETE_ELEMENT_PAR_OUT_DOC = "None"
+
+DELETE_ELEMENT_DOC = """\
+Tango command to delete element.
+
+:param argin:
+    {0}
+:type argin: str
+:return:
+    {1}
+""".format(DELETE_ELEMENT_PAR_IN_DOC, DELETE_ELEMENT_PAR_OUT_DOC)
+
+GET_CONTROLLER_CLASS_INFO_PAR_IN_DOC = """\
+Must give either:
+
+        * A JSON encoded list of controller class names
+        * a controller class name
+    
+    Examples::
+    
+        data = "DummyMotorController", "DummyCounterTimerController"
+        pool.GetControllerClassInfo(json.dumps(data))
+        pool.GetControllerClassInfo("DummyMotorController")
+
+"""
+
+GET_CONTROLLER_CLASS_INFO_PAR_OUT_DOC = """
+a JSON encoded string describing the controller class
+"""
+
+GET_CONTROLLER_CLASS_INFO_DOC = """\
+Tango command to get detailed information about a controller class.
+
+:param argin:
+    {0}
+:type argin: str
+:return:
+    {1}
+:rtype: str
+""".format(GET_CONTROLLER_CLASS_INFO_PAR_IN_DOC, GET_CONTROLLER_CLASS_INFO_PAR_OUT_DOC)
+
+RELOAD_CONTROLLER_LIB_PAR_IN_DOC = """\
+the controller library name (without extension)
+"""
+
+RELOAD_CONTROLLER_LIB_PAR_OUT_DOC = "None"
+
+RELOAD_CONTROLLER_LIB_INFO_DOC = """\
+Tango command to reload the controller library code.
+
+:param argin:
+    {0}
+:type argin: str
+:return:
+    {1}
+""".format(RELOAD_CONTROLLER_LIB_PAR_IN_DOC, RELOAD_CONTROLLER_LIB_PAR_OUT_DOC)
+
+RELOAD_CONTROLLER_CLASS_PAR_IN_DOC = """\
+the controller class name
+"""
+
+RELOAD_CONTROLLER_CLASS_PAR_OUT_DOC = "None"
+
+RELOAD_CONTROLLER_CLASS_INFO_DOC = """\
+Tango command to reload the controller class code (reloads the entire library
+where the class is described).
+
+:param argin:
+    {0}
+:type argin: str
+:return:
+    {1}
+""".format(RELOAD_CONTROLLER_CLASS_PAR_IN_DOC, RELOAD_CONTROLLER_CLASS_PAR_OUT_DOC)
+
+STOP_PAR_IN_DOC = "None"
+STOP_PAR_OUT_DOC = "None"
+
+STOP_DOC = """\
+Stops all elements managed by this Pool
+
+:param argin:
+    {0}
+:return:
+    {1}
+""".format(STOP_PAR_IN_DOC, STOP_PAR_OUT_DOC)
+
+ABORT_PAR_IN_DOC = "None"
+ABORT_PAR_OUT_DOC = "None"
+
+ABORT_DOC = """\
+Aborts all elements managed by this Pool
+
+:param argin:
+    {0}
+:return:
+    {1}
+""".format(ABORT_PAR_IN_DOC, ABORT_PAR_OUT_DOC)
+
+SEND_TO_CONTROLLER_PAR_IN_DOC = """\
+a sequence of two strings: <controller name>, <data>
+"""
+
+SEND_TO_CONTROLLER_PAR_OUT_DOC = """\
+the controller response
+"""
+
+SEND_TO_CONTROLLER_DOC = """\
+Sends a string to a controller.
+
+:param argin:
+    {0}
+:return:
+    {1}
+""".format(SEND_TO_CONTROLLER_PAR_IN_DOC, SEND_TO_CONTROLLER_PAR_OUT_DOC)
+
+Pool.CreateController.__func__.__doc__= CREATE_CONTROLLER_DOC
+Pool.CreateElement.__func__.__doc__= CREATE_ELEMENT_DOC
+Pool.CreateInstrument.__func__.__doc__= CREATE_INSTRUMENT_DOC
+Pool.CreateMotorGroup.__func__.__doc__= CREATE_MOTOR_GROUP_DOC
+Pool.CreateMeasurementGroup.__func__.__doc__= CREATE_MEASUREMENT_GROUP_DOC
+Pool.DeleteElement.__func__.__doc__= DELETE_ELEMENT_DOC
+Pool.GetControllerClassInfo.__func__.__doc__= GET_CONTROLLER_CLASS_INFO_DOC
+Pool.ReloadControllerLib.__func__.__doc__= RELOAD_CONTROLLER_LIB_INFO_DOC
+Pool.ReloadControllerClass.__func__.__doc__= RELOAD_CONTROLLER_CLASS_INFO_DOC
+Pool.Stop.__func__.__doc__= STOP_DOC
+Pool.Abort.__func__.__doc__= ABORT_DOC
+
 
 class PoolClass(PyTango.DeviceClass):
 
@@ -999,63 +1278,62 @@ class PoolClass(PyTango.DeviceClass):
     #    Command definitions
     cmd_list = {
         'CreateController':
-            [[PyTango.DevVarStringArray, CREATE_CTRL_DESC],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_CONTROLLER_PAR_IN_DOC],
+             [PyTango.DevVoid, CREATE_CONTROLLER_PAR_OUT_DOC]],
         'CreateElement':
-            [[PyTango.DevVarStringArray, CREATE_ELEMENT_DESC],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_ELEMENT_PAR_IN_DOC],
+             [PyTango.DevVoid, CREATE_ELEMENT_PAR_OUT_DOC]],
         'CreateInstrument':
-            [[PyTango.DevVarStringArray, ""],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_INSTRUMENT_PAR_IN_DOC],
+             [PyTango.DevVoid, CREATE_INSTRUMENT_PAR_OUT_DOC]],
         'CreateMotorGroup':
-            [[PyTango.DevVarStringArray, "Must give either:\n"
-               " * A JSON encoded dict as first string with keys : 'name', "
-               "'elements' (with value being a list of moveables) and optional "
-               "'full_name' (with value being a full tango device name a/b/c);\n"
-               " * a sequence of strings: <motor group name> [, <element> ]"],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_MOTOR_GROUP_PAR_IN_DOC],
+             [PyTango.DevVoid, CREATE_MOTOR_GROUP_PAR_OUT_DOC]],
         'CreateMeasurementGroup':
-            [[PyTango.DevVarStringArray, "Must give either:\n"
-               " * A JSON encoded dict as first string with keys : 'name', "
-               "'elements' (with value being a list of channels) and optional "
-               "'full_name' (with value being a full tango device name a/b/c);\n"
-               " * a sequence of strings: <measurement group name> [, <element> ]"],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevVarStringArray, CREATE_MEASUREMENT_GROUP_PAR_IN_DOC],
+             [PyTango.DevVoid, CREATE_MEASUREMENT_GROUP_PAR_OUT_DOC]],
         'DeleteElement':
-            [[PyTango.DevString, ""],
-            [PyTango.DevVoid, ""]],
+            [[PyTango.DevString, DELETE_ELEMENT_PAR_IN_DOC],
+            [PyTango.DevVoid, DELETE_ELEMENT_PAR_OUT_DOC]],
         'GetControllerClassInfo':
-            [[PyTango.DevString, "Must give either:\n"
-              " * A JSON encoded list of controller class names;\n"
-              " * a controller class name"],
-             [PyTango.DevString, ""]],
+            [[PyTango.DevString, GET_CONTROLLER_CLASS_INFO_PAR_IN_DOC],
+             [PyTango.DevString, GET_CONTROLLER_CLASS_INFO_PAR_OUT_DOC]],
         'ReloadControllerLib':
-            [[PyTango.DevString, ""],
-             [PyTango.DevVoid, ""]],
+            [[PyTango.DevString, RELOAD_CONTROLLER_LIB_PAR_IN_DOC],
+             [PyTango.DevVoid, RELOAD_CONTROLLER_LIB_PAR_OUT_DOC]],
         'ReloadControllerClass':
-            [[PyTango.DevString, ""],
-             [PyTango.DevVoid, ""]],
-#        'GetControllerInfo':
-#            [[PyTango.DevVarStringArray, "Must give either:\n"
-#              " - A JSON dictionary in first string with keys : "
-#              "'filename', 'class' [, 'ctrl_name']"
-#              " - a sequence of strings: <file name>, <class name> [, <controller name>]"],
-#            [PyTango.DevVarStringArray, "Controller class data"]],
+            [[PyTango.DevString, RELOAD_CONTROLLER_CLASS_PAR_IN_DOC],
+             [PyTango.DevVoid, RELOAD_CONTROLLER_CLASS_PAR_OUT_DOC]],
+        'GetControllerCode':
+            [[PyTango.DevVarStringArray, "<Controller library name> [, <Controller class name>]"],
+            [PyTango.DevVarStringArray, "result is a sequence of 3 strings:\n"
+                "<full path and file name>, <code>, <line number>" ]],
+        'SetControllerCode':
+            [[PyTango.DevVarStringArray, "<Controller library name>, <code> [, <Auto reload>=True]\n" \
+                "- if controller library is a simple module name:\n" \
+                "  - if it exists, it is overwritten, otherwise a new python " \
+                "file is created in the directory of the first element in "\
+                "the PoolPath property" \
+                "- if controller library is the full path name:\n" \
+                "  - if path is not in the PoolPath, an exception is thrown" \
+                "  - if file exists it is overwritten otherwise a new file " \
+                "is created"],
+            [PyTango.DevVoid, "" ]],
+        'Stop':
+            [[PyTango.DevVoid, STOP_PAR_IN_DOC],
+             [PyTango.DevVoid, STOP_PAR_OUT_DOC]],
+        'Abort':
+            [[PyTango.DevVoid, ABORT_PAR_IN_DOC],
+             [PyTango.DevVoid, ABORT_PAR_OUT_DOC]],
+        'SendToController':
+            [[PyTango.DevVarStringArray, SEND_TO_CONTROLLER_PAR_IN_DOC],
+             [PyTango.DevString, SEND_TO_CONTROLLER_PAR_OUT_DOC]],
         'GetFile':
             [[PyTango.DevString, "name (may be module name, file name or full (with absolute path) file name"],
              [PyTango.DevVarStringArray, "[complete(with absolute path) file name, file contents]"]],
         'PutFile':
             [[PyTango.DevVarStringArray, "[name (may be module name, file name or full (with absolute path) file name, file contents]"],
              [PyTango.DevVoid, ""]],
-        'Stop':
-            [[PyTango.DevVoid, ""],
-             [PyTango.DevVoid, ""]],
-        'Abort':
-            [[PyTango.DevVoid, ""],
-             [PyTango.DevVoid, ""]],
-        'SendToController':
-            [[PyTango.DevVarStringArray, ""],
-             [PyTango.DevString, ""]],
     }
 
 
