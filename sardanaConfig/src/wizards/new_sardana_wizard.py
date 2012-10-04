@@ -525,8 +525,8 @@ class AddPoolBasePage(SimpleEditorBasePage):
             _pool.setLevel("1")
             _pool.setPoolDeviceName("pool/"+sardana+"/1")
             _pool.setAlias("Pool_"+sardana)
-            _pool.setPoolVersion("0.3.0")
-            _pool.setPoolPath(SardanaManager.get_default_pool_path())
+            _pool.setPoolVersion("1.2.0")
+            #_pool.setPoolPath(SardanaManager.get_default_pool_path())      ###
             self.addItem(_pool.copy())
         
         
@@ -710,7 +710,7 @@ class PoolEditor(object):
             self.ui.aliasCheckBox.setChecked(False)
             self.ui.poolVersionLineEdit.setText(item.getPoolVersion())
             self.ui.poolVersionLineEdit.setEnabled(True)
-            self.ui.poolVersionCheckBox.setChecked(False)
+            self.ui.poolVersionCheckBox.setChecked(True)                    ###
             self.ui.createButton.setText("Edit")
             self._item_id=item_id
             self.poolEditor.setModal(True)
@@ -1007,7 +1007,7 @@ class MSEditor(object):
             self.ui.msAliasCheckBox.setChecked(False)
             self.ui.msVersionLineEdit.setText(item.getMSVersion())
             self.ui.msVersionLineEdit.setEnabled(True)
-            self.ui.msVersionCheckBox.setChecked(False)
+            self.ui.msVersionCheckBox.setChecked(True)                      ###
             self.ui.doorNameLineEdit.setText(item.getDoorName())
             self.ui.doorNameLineEdit.setEnabled(True)
             self.ui.doorNameCheckBox.setChecked(False)
@@ -1122,7 +1122,8 @@ class AddMSBasePage(SimpleEditorBasePage):
             _ms.setMSVersion("0.3.0")
             _ms.setDoorName("door/"+sardana+"/1")
             _ms.setDoorAlias("Door_"+sardana)
-            _ms.setMSPath(SardanaManager.get_default_ms_path())
+            #_ms.setMSPath(SardanaManager.get_default_ms_path())            ###
+
             self.addItem(_ms.copy())
         self._editor.fillPoolNameCB()
         
@@ -1360,8 +1361,7 @@ class Progress (Qt.QThread):
                                      newPool.local_run()
                             else:
                                 yield "Starting Pool:\n %s" % pool.getInstanceName(), int(percent),0
-                                newPool.starter_run(pool.getHostName(), pool.getLevel())
-                                
+                                newPool.starter_run(pool.getHostName(), pool.getLevel())                                
                         percent+=step
 
                     yield "\nProcessing the list of MacroServers", int(percent),0

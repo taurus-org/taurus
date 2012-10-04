@@ -2,10 +2,10 @@ import sys, os
 
 from PyQt4 import QtGui, QtCore, Qt
 
-import tau
+import taurus
 import wiz
 
-from tau.core.utils import Enumeration
+from taurus.core.utils import Enumeration
 
 PoolSelectionMode = Enumeration('PoolSelectionMode', ('FromSardana', 'FromDatabase'))
     

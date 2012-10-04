@@ -2,7 +2,7 @@ import sys, os
 
 from PyQt4 import QtGui, QtCore, Qt
 
-import tau
+import taurus
 import wiz
 
 def get_default_tango_host():
@@ -44,7 +44,7 @@ class SelectTangoHostBasePage(wiz.SardanaBasePage):
     def _getDatabase(self):
         host = str(self.hostEdit.text()).lower()
         port = str(self.portEdit.text())
-        return tau.Database("%s:%s" % (host, port))
+        return taurus.Database("%s:%s" % (host, port))
 
     def db(self):
         return self.wizard()['db']

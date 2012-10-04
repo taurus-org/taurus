@@ -2,10 +2,10 @@ import sys, os
 
 from PyQt4 import QtGui, QtCore, Qt
 
-import tau
+import taurus
 import wiz
 
-from tau.core.utils import Enumeration
+from taurus.core.utils import Enumeration
     
 class SelectSardanaBasePage(wiz.SardanaBasePage):
     
@@ -101,7 +101,7 @@ def t1(tg_host=None):
         w.setPage(SardanaExamplePages.TangoPage, tg_host_page)
         curr_page = tg_host_page
     else:
-        w['db'] = lambda : tau.Database(tg_host)
+        w['db'] = lambda : taurus.Database(tg_host)
 
     curr_page.setNextPageId(SardanaExamplePages.SardanaPage)
     sardana_page = SelectSardanaBasePage()
@@ -111,8 +111,8 @@ def t1(tg_host=None):
     sys.exit(app.exec_())
     
 def main():
-    import tau
-    tau.setLogLevel(tau.Warning)
+    import taurus
+    taurus.setLogLevel(taurus.Warning)
     tg_host=None
     if len(sys.argv) >1:
         tg_host = sys.argv[1]
