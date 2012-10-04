@@ -931,62 +931,66 @@ class NXxas_FileRecorder(BaseNEXUS_FileRecorder):
 #===============================================================================
 # BEGIN: THIS BLOCK SHOULD BE REMOVED IF NEXUS ACCEPTS THE PATCH TO NXfield
 #===============================================================================
-import nxs
-class NXfield_comp(nxs.NXfield):
+try:
+    from nxs import NXfield #needs Nexus v>=4.3
+    from nxs import napi, NeXusError
     
-    #NOTE: THE CONSTRUCTOR IS OPTIONAL. IF NOT IMPLEMENTED, WE CAN STILL USE THE nxslab_dims PROPERTY
-    def __init__(self, value=None, name='field', dtype=None, shape=(), group=None,
-                 attrs={}, nxslab_dims=None, **attr):
-        nxs.NXfield.__init__(self, value=value, name=name, dtype=dtype, shape=shape, group=group,
-                 attrs=attrs, **attr)
-        self._slab_dims = nxslab_dims
+    class NXfield_comp(NXfield):
         
-    def write(self):
-        """
-        Write the NXfield, including attributes, to the NeXus file.
-        """
-        if self.nxfile:
-            if self.nxfile.mode == nxs.napi.ACC_READ:
-                raise nxs.NeXusError("NeXus file is readonly")
-            if not self.infile:
-                shape = self.shape
-                if shape == (): shape = (1,)
-                with self.nxgroup as path:
-                    if self.nxslab_dims is not None:
-                    #compress
-                        path.compmakedata(self.nxname, self.dtype, shape, 'lzw', 
-                                          self.nxslab_dims)
-                    else:
-                    # Don't use compression
-                        path.makedata(self.nxname, self.dtype, shape)
-                self._infile = True
-            if not self.saved:            
-                with self as path:
-                    path._writeattrs(self.attrs)
-                    value = self.nxdata
-                    if value is not None:
-                        path.putdata(value)
-                self._saved = True
-        else:
-            raise IOError("Data is not attached to a file")
-    
-    def _getnxslabdims(self):
-        try:
-            return self._nxslab_dims
-        except:
-            slab_dims = None
-        #even if slab_dims have not been set, check if the dataset is large 
-        shape = self.shape or (1,)
-        if numpy.prod(shape) > 10000:
-            slab_dims = numpy.ones(len(shape),'i')
-            slab_dims[-1] = min(shape[-1], 100000)
-        return slab_dims
-    
-    def _setnxslabdims(self, slab_dims):
-        self._nxslab_dims = slab_dims
-    
-    nxslab_dims = property(_getnxslabdims,_setnxslabdims,doc="Slab (a.k.a. chunk) dimensions for compression")
-
+        #NOTE: THE CONSTRUCTOR IS OPTIONAL. IF NOT IMPLEMENTED, WE CAN STILL USE THE nxslab_dims PROPERTY
+        def __init__(self, value=None, name='field', dtype=None, shape=(), group=None,
+                     attrs={}, nxslab_dims=None, **attr):
+            NXfield.__init__(self, value=value, name=name, dtype=dtype, shape=shape, group=group,
+                     attrs=attrs, **attr)
+            self._slab_dims = nxslab_dims
+            
+        def write(self):
+            """
+            Write the NXfield, including attributes, to the NeXus file.
+            """
+            if self.nxfile:
+                if self.nxfile.mode == napi.ACC_READ:
+                    raise NeXusError("NeXus file is readonly")
+                if not self.infile:
+                    shape = self.shape
+                    if shape == (): shape = (1,)
+                    with self.nxgroup as path:
+                        if self.nxslab_dims is not None:
+                        #compress
+                            path.compmakedata(self.nxname, self.dtype, shape, 'lzw', 
+                                              self.nxslab_dims)
+                        else:
+                        # Don't use compression
+                            path.makedata(self.nxname, self.dtype, shape)
+                    self._infile = True
+                if not self.saved:            
+                    with self as path:
+                        path._writeattrs(self.attrs)
+                        value = self.nxdata
+                        if value is not None:
+                            path.putdata(value)
+                    self._saved = True
+            else:
+                raise IOError("Data is not attached to a file")
+        
+        def _getnxslabdims(self):
+            try:
+                return self._nxslab_dims
+            except:
+                slab_dims = None
+            #even if slab_dims have not been set, check if the dataset is large 
+            shape = self.shape or (1,)
+            if numpy.prod(shape) > 10000:
+                slab_dims = numpy.ones(len(shape),'i')
+                slab_dims[-1] = min(shape[-1], 100000)
+            return slab_dims
+        
+        def _setnxslabdims(self, slab_dims):
+            self._nxslab_dims = slab_dims
+        
+        nxslab_dims = property(_getnxslabdims,_setnxslabdims,doc="Slab (a.k.a. chunk) dimensions for compression")
+except:
+    pass #NXxas_FileRecorder won't be usable
 
 
 #===============================================================================
