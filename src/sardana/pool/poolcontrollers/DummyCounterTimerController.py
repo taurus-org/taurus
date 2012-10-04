@@ -155,20 +155,20 @@ class DummyCounterTimerController(CounterTimerController):
         v = self.read_channels[ind].value
         return v
     
-    def PreStartAllCT(self):
+    def PreStartAll(self):
         self.counting_channels = {}
     
-    def PreStartOneCT(self, ind):
+    def PreStartOne(self, ind, value=None):
         idx = ind - 1
         channel = self.channels[idx]
         channel.value = 0.0
         self.counting_channels[ind] = channel
         return True
     
-    def StartOneCT(self, ind):
+    def StartOne(self, ind, value=None):
         self.counting_channels[ind].is_counting = True
     
-    def StartAllCT(self):
+    def StartAll(self):
         self.start_time = time.time()
     
     def LoadOne(self, ind, value):
