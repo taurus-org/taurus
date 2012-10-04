@@ -457,8 +457,7 @@ class CommTableModel(Qt.QAbstractTableModel):
             elif section == self.W: return Qt.QVariant("Writer (signal)")
             return Qt.QVariant()
         else:
-            try: return Qt.QVariant(Qt.QString.number(section+1))
-            except: return Qt.QVariant()
+            return Qt.QVariant(Qt.QString('%i'%(section+1)))
         
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
