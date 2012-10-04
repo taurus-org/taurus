@@ -731,7 +731,7 @@ class TaurusGui(TaurusMainWindow):
         self.jorgsBar.addAction(customIcon,APPNAME)
         
         #get custom widget catalog entries
-        EXTRA_CATALOG_WIDGETS = getattr(conf,'EXTRA_CATALOG_WIDGETS', self.__getVarFromXML(xmlroot,"EXTRA_CATALOG_WIDGETS", []))
+        EXTRA_CATALOG_WIDGETS = getattr(conf,'EXTRA_CATALOG_WIDGETS', []) #@todo: support also loading from xml
         self._extraCatalogWidgets = []
         for classname,pixmapname in EXTRA_CATALOG_WIDGETS:
             if pixmapname and not pixmapname.startswith(":"): # If a relative file name is given, the conf directory will be used as base path
