@@ -105,7 +105,8 @@ class DataModel(QtCore.QObject):
         self.connect(self, QtCore.SIGNAL("dataChanged"), slot)
         if readOnConnect and self.__isDataSet: slot(self.__data)
         self.__readers += 1
-        self.__readerSlots.append(weakref.ref(slot))
+        obj=getattr(slot,'__self__',slot)
+        self.__readerSlots.append((weakref.ref(obj), slot.__name__))
     
     def connectWriter(self, writer, signalname):
         '''
@@ -145,17 +146,17 @@ class DataModel(QtCore.QObject):
         '''
         ok = self.disconnect(self, QtCore.SIGNAL("dataChanged"), slot)
         if ok: self.__readers -= 1
-        self.__readerSlots.remove(weakref.ref(slot))
+        self.__readerSlots.remove((weakref.ref(slot.__self__),slot.__name__))
         
     def isDataSet(self):
         '''Whether the data has been set at least once or if it is uninitialized'''
         return self.__isDataSet
     
     def info(self):
-        return "MODEL: %s\n\t Readers (%i): %s\n\t Writers (%i):%s\n"%(self.__repr__(), len(self.__readerSlots),
-                                                                  repr(self.__readerSlots), len(self.__writerSignals),
-                                                                  repr(self.__writerSignals))
-        
+        readers=["%s::%s"%(repr(r()),s) for r,s in self.__readerSlots]
+        writers=["%s::%s"%(repr(r()),s) for r,s in self.__writerSignals]
+        return "UID: %s\n\t Readers (%i):%s\n\t Writers (%i):%s\n"%(self.__dataUID, len(readers),
+                                                                  readers, len(writers), writers) 
 
 
 class SharedDataManager(QtCore.QObject):
@@ -277,8 +278,8 @@ class SharedDataManager(QtCore.QObject):
     
     def info(self):
         s=""
-        for uid,m in self.__models.iteritems():
-            s+=m.info()
+        for uid,m in sorted(self.__models.iteritems()):
+            s+=m.info()+'\n'
         return s   
             
     

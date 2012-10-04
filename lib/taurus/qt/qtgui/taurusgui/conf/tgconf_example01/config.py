@@ -102,6 +102,11 @@ trend = PanelDescription('Trend',
                         classname = 'TaurusTrend',
                         model = ['sys/tg_test/1/double_scalar'])
 
+connectionDemo = PanelDescription('Selected Instrument',
+                        classname = 'PyQt4.Qt.QLineEdit',
+                        sharedDataRead={'SelectedInstrument':'setText'},
+                        sharedDataWrite={'SelectedInstrument':'textEdited(QString)'})
+
 #===============================================================================
 # Define custom toolbars to be shown. To define a toolbar, instantiate a
 # ToolbarDescription object (see documentation for the gblgui_utils module)
@@ -149,3 +154,15 @@ pymca = ExternalApp(['pymca'])
 # custom applet with classname='TaurusMonitorTiny')
 #===============================================================================
 # MONITOR = ['sys/tg_test/1/double_scalar_rww']
+
+#===============================================================================
+# Adding other widgets to the catalog of the "new panel" dialog.
+# pass a tuple of (classname,screenshot)
+# -classname may contain the module name.
+# -screenshot can either be a file name relative to the application dir or 
+# a resource URL or None
+#===============================================================================
+EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit',':/taurus.png'),
+                        ('PyQt4.Qt.QSpinBox','images/syn2.jpg'),
+                        ('PyQt4.Qt.QTextEdit','/tmp/kk.png'),
+                        ('PyQt4.Qt.QLabel',None)]

@@ -35,7 +35,7 @@ from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from taurus.qt.qtgui.resource import getPixmap, getThemeIcon, getIcon
 from taurus.qt.qtgui.input import GraphicalChoiceWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
-from taurus.qt.qtgui.base import TaurusBaseComponent
+from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
 from taurus.qt.qtgui.util import TaurusWidgetFactory
@@ -190,12 +190,34 @@ class BlackListValidator(Qt.QValidator):
 #        
     
         
-class WidgetPage(Qt.QWizardPage):
+class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
     OTHER_TXT ='Other...'
-    
-    def __init__(self, parent = None):
+    defaultCandidates = ['TaurusForm','TaurusTrend', 'TaurusPlot',
+                    'TaurusImageDialog', 'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
+                    'TaurusDbTreeWidget', 'TaurusArrayEditor',
+                    'TaurusShell', 'SardanaEditor','TaurusJDrawSynopticsView',
+                    'TaurusDevicePanel']
+    def __init__(self, parent = None, designMode=False, extraWidgets=None):
         Qt.QWizardPage.__init__(self, parent)
-        
+        TaurusBaseWidget.__init__(self, 'WidgetPage')
+        if extraWidgets:
+            customWidgets,customWidgetScreenshots = zip(*extraWidgets)
+            pixmaps = {}
+            for k,s in extraWidgets:
+                if s is None:
+                    pixmaps[k] = None
+                else:
+                    try:
+                        pixmaps[k] = getPixmap(s)
+                        if pixmaps[k].isNull():
+                            raise Exception('Invalid Pixmap')
+                    except:
+                        self.warning('Could not create pixmap from %s'%s)
+                        pixmaps[k] = None
+                    
+        else:
+            customWidgets,customWidgetScreenshots = [],[]
+            pixmaps = {}
         self.setFinalPage(True)
         self.setTitle('Panel type')
         self.setSubTitle('Choose a name and type for the new panel')
@@ -214,21 +236,16 @@ class WidgetPage(Qt.QWizardPage):
         
         #contents    
         available = TaurusWidgetFactory().getWidgetClassNames()
-        candidates=['TaurusForm','TaurusTrend', 'TaurusPlot',
-                    'TaurusImageDialog', 'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
-                    'TaurusDbTreeWidget', 'TaurusArrayEditor',
-                    'TaurusShell', 'SardanaEditor','TaurusJDrawSynopticsView','TaurusDevicePanel']
-        
         choices = []
         row=[]
-        pixmaps={}
-        for cname in candidates:
-            if cname in available: 
+        for cname in self.defaultCandidates+list(customWidgets):
+            if cname in available or '.' in cname: 
                 row.append(cname)
-                pixmaps[cname] = getPixmap(':/snapshot/%s.png'%cname)
+                if cname not in pixmaps:
+                    pixmaps[cname] = getPixmap(':/snapshot/%s.png'%cname)
                 if len(row) == 3:
                     choices.append(row)
-                    row=[]
+                    row=[]            
         row.append(self.OTHER_TXT)
         choices.append(row)
 
@@ -289,6 +306,7 @@ class WidgetPage(Qt.QWizardPage):
         self.wizard().setPanelDescription( PanelDescription('', **self.widgetDescription))   #the name will be set in self.validatePage   
         paneltype = str(self.widgetDescription['widgetname'] or self.widgetDescription['classname'])
         self.widgetTypeLB.setText("<b>Widget Type:</b> %s"%paneltype)
+
         
 class AdvSettingsPage(Qt.QWizardPage):
     
@@ -521,21 +539,21 @@ class CommItemDelegate(Qt.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, Qt.QVariant(editor.currentText()))        
 
-class PanelDescriptionWizard(Qt.QWizard):
+class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
     '''A wizard-style dialog for configuring a new TaurusGui panel. 
     Use :meth:`getDialog` for launching it
     '''
-    def __init__(self, parent=None, gui=None):
+    def __init__(self, parent=None, designMode=False, gui=None, extraWidgets=None):
         Qt.QWizard.__init__(self, parent)
-#        self.setPixmap(Qt.QWizard.LogoPixmap, getPixmap(":/logo.png"))
-        
+        name = "PanelDescriptionWizard"
+        TaurusBaseWidget.__init__(self, name)
         self._panelDescription = None
         if gui is None: gui = parent
         if gui is not None:
             self._gui = weakref.proxy(gui)
         ###self.setOption(self.HaveFinishButtonOnEarlyPages, True)
         #self.namePG = NamePage()
-        self.widgetPG = WidgetPage()
+        self.widgetPG = WidgetPage(extraWidgets=extraWidgets)
         self.advSettingsPG = AdvSettingsPage()
         
         ###self.addPage(self.namePG)
@@ -561,7 +579,7 @@ class PanelDescriptionWizard(Qt.QWizard):
         self._panelDescription = desc
         
     @staticmethod    
-    def getDialog(parent):
+    def getDialog(parent, extraWidgets=None):
         """Static method for launching a new Dialog.
         
         :param parent: parent widget for the new dialog
@@ -570,7 +588,7 @@ class PanelDescriptionWizard(Qt.QWizard):
                  and a state flag. The state is True if the dialog was accepted
                  and False otherwise
         """
-        dlg = PanelDescriptionWizard(parent)
+        dlg = PanelDescriptionWizard(parent,extraWidgets=extraWidgets)
         dlg.exec_()
         return dlg.getPanelDescription(), (dlg.result() == dlg.Accepted)   
         
@@ -613,7 +631,9 @@ def main():
     
     form.show()
     
-    paneldesc,ok = PanelDescriptionWizard.getDialog(form)
+    paneldesc,ok = PanelDescriptionWizard.getDialog(form, extraWidgets=[('PyQt4.Qt.QLineEdit',':/taurus.png'),
+                                                                        ('PyQt4.Qt.QSpinBox','/tmp/kk.png'),
+                                                                        ('PyQt4.Qt.QTextEdit',None)])
     if ok:
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM)
         form.setCentralWidget(w)

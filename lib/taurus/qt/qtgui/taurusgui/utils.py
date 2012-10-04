@@ -52,11 +52,11 @@ class ExternalApp(object):
     Uses the same initialization as that of :class:`ExternalAppAction`
     Use :meth:`getAction` to obtain an instance of a :class:`ExternalAppAction`
     '''
-#    def __init__(self, cmdargs, text=None, icon=None, parent=None):
     def __init__(self, *args, **kwargs):
         ''' see :meth:`ExternalAppAction.__init__`'''
         self.args = args
         self.kwargs = kwargs
+        
     def getAction(self):
         '''
         Returns a :class:`ExternalAppAction` with the values used when
@@ -114,12 +114,12 @@ class TaurusGuiComponentDescription(object):
     def __init__(self,name, classname=None, modulename=None, widgetname=None, 
                  sharedDataWrite=None, sharedDataRead=None, 
                  model=None, floating=True, **kwargs):
-        if classname is None and (modulename is None or widgetname is None) :
-            raise ValueError('Either classname or both modulename and widgetname must be given')
         self._name = name
-        self._classname = classname
         self._modulename = modulename
-        self._widgetname = widgetname
+        self.setClassname(classname)
+        self.setWidgetname(widgetname)
+        if self.classname is None and (self.modulename is None or self.widgetname is None) :
+            raise ValueError('Module info must be given (except if passing a Taurus class name)')
         self._floating = floating
         if sharedDataWrite is None: sharedDataWrite = {}
         self._sharedDataWrite = sharedDataWrite
@@ -137,6 +137,9 @@ class TaurusGuiComponentDescription(object):
         return self._classname
     
     def setClassname(self, classname):
+        if classname is not None and '.' in classname:
+            modulename,classname = classname.rsplit('.',1)
+            self.setModulename(modulename)
         self._classname = classname
     
     def getModulename(self):
@@ -149,6 +152,9 @@ class TaurusGuiComponentDescription(object):
         return self._widgetname
     
     def setWidgetname(self, widgetname):
+        if widgetname is not None and '.' in widgetname:
+            modulename,widgetname = widgetname.rsplit('.',1)
+            self.setModulename(modulename)
         self._widgetname = widgetname
         
     def getArea(self):

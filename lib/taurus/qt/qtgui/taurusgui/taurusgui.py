@@ -332,7 +332,8 @@ class TaurusGui(TaurusMainWindow):
             self.toolsMenu = Qt.QMenu("Tools")
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/apps/preferences-system-session.svg"),"manage instrument-panel associations", self.onShowAssociationDialog)
         self.toolsMenu.addAction(taurus.qt.qtgui.resource.getThemeIcon("document-save"),"Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
-    
+        self.toolsMenu.addAction(taurus.qt.qtgui.resource.getIcon(":/actions/data-transfer.svg"),"Show Shared Data Manager connections", self.showSDMInfo)
+        
     def setCustomWidgetMap(self, map):
         '''
         Sets the widget map that is used application-wide. This widget map will
@@ -532,7 +533,7 @@ class TaurusGui(TaurusMainWindow):
 
         if paneldesc is None:
             from taurus.qt.qtgui.taurusgui import PanelDescriptionWizard
-            paneldesc,ok = PanelDescriptionWizard.getDialog(self)
+            paneldesc,ok = PanelDescriptionWizard.getDialog(self, extraWidgets=self._extraCatalogWidgets)
             if not ok: 
                 return
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM, setModel=False)
@@ -728,6 +729,15 @@ class TaurusGui(TaurusMainWindow):
         self.setWindowIcon(customIcon)
         self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
         self.jorgsBar.addAction(customIcon,APPNAME)
+        
+        #get custom widget catalog entries
+        EXTRA_CATALOG_WIDGETS = getattr(conf,'EXTRA_CATALOG_WIDGETS', self.__getVarFromXML(xmlroot,"EXTRA_CATALOG_WIDGETS", []))
+        self._extraCatalogWidgets = []
+        for classname,pixmapname in EXTRA_CATALOG_WIDGETS:
+            if pixmapname and not pixmapname.startswith(":"): # If a relative file name is given, the conf directory will be used as base path
+                pixmapname = os.path.join(self._confDirectory,pixmapname)
+            self._extraCatalogWidgets.append((classname, pixmapname))
+                
         
         #manual panel
         MANUAL_URI = getattr(conf,'MANUAL_URI', self.__getVarFromXML(xmlroot,"MANUAL_URI", None))
@@ -1146,6 +1156,18 @@ class TaurusGui(TaurusMainWindow):
                                    Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
         
         return
+    
+    def showSDMInfo(self):
+        '''pops up a dialog showing the current information from the Shared Data Manager'''
+        #w = Qt.QMessageBox( self)
+        text = 'Currently managing %i shared data objects:\n%s'%(len(Qt.qApp.SDM.activeDataUIDs()),', '.join(Qt.qApp.SDM.activeDataUIDs()) )
+        nfo = Qt.qApp.SDM.info()
+        w = Qt.QMessageBox ( Qt.QMessageBox.Information, 'Shared Data Manager Information', text, 
+                             buttons = Qt.QMessageBox.Close, parent = self )
+        w.setDetailedText(nfo)
+        w.show()
+        self.info(nfo)
+        
 #------------------------------------------------------------------------------ 
 def main():
     import sys
