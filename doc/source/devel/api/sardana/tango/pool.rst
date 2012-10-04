@@ -10,7 +10,8 @@
 .. toctree::
     :maxdepth: 1
     
-    Pool <pool/PoolDevice>
+    Pool <pool/Pool>
+    PoolDevice <pool/PoolDevice>
     Motor <pool/Motor>
     I/O register <pool/IORegister>
     Counter/Timer <pool/CTExpChannel>
