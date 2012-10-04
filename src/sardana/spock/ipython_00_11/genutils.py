@@ -950,7 +950,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
         ipython_widget.gui_completion = True
     ipython_widget.ansi_codes = True
     ipython_widget.paging = 'inside'
-    ipython_widget.pylab = 'inline'
+    #ipython_widget.pylab = 'inline'
 
     # ------------------------------------
     # ConsoleWidget

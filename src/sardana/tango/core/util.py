@@ -426,9 +426,7 @@ def prepare_server(args, tango_args):
         return log_messages
     
     db = Database()
-    known_inst=map(str.lower, db.get_instance_name_list(bin_name))
-    if inst_name not in known_inst:
-
+    if not exists_server_instance(db, bin_name, inst_name):
         if ask_yes_no('%s does not exist. Do you wish create a new one' % inst_name, default='y'):
             devices = []
             prefix = '%s/%s' % (bin_name, inst_name)
@@ -454,29 +452,44 @@ def prepare_server(args, tango_args):
                         print all_pools
                     else:
                         pool_names.append(elem)
-                props = {'PoolNames' : pool_names}
-                ms_alias = get_free_alias(db, "MS_" + inst_name)
-                devices.append(('MacroServer', None, ms_alias, props))
-                door_alias = get_free_alias(db, "Door_" + inst_name)
-                devices.append(("Door", None, door_alias, {}))                
-            elif bin_name == 'Pool':
-                pool_alias = get_free_alias(db, 'Pool_' + inst_name)
-                devices.append(('Pool', None, pool_alias, {}))
-            elif bin_name == 'Sardana':
-                pool_dev_name = get_free_device(db, 'pool/' + inst_name)
-                pool_alias = get_free_alias(db, 'Pool_' + inst_name)
-                devices.append(('Pool', pool_dev_name, pool_alias, {}))
-                ms_alias = get_free_alias(db, "MS_" + inst_name)
-                devices.append(('MacroServer', None, ms_alias,
-                                {'PoolNames' : [pool_dev_name]}))
-                door_alias = get_free_alias(db, "Door_" + inst_name)
-                devices.append(("Door", None, door_alias, {}))
-            register_server_with_devices(db, bin_name, inst_name, devices)
-            log_messages.append(("Registered server '%s/%s'", bin_name, inst_name))
-            for d in devices:
-                dev_class, dev_alias = d[0], d[2]
-                log_messages.append(("Registered %s %s", dev_class, dev_alias))
+                    log_messages += register_sardana(db, bin_name, inst_name, pool_names)
+            else:
+                log_messages += register_sardana(db, bin_name, inst_name)
     return log_messages
+    
+def exists_server_instance(db, server_name, server_instance):
+    known_inst = map(str.lower, db.get_instance_name_list(server_name))
+    return server_instance.lower() in known_inst
+
+def register_sardana(db, bin_name, inst_name, pool_names=None):
+    devices = []
+    log_messages = []
+    if bin_name == 'MacroServer':
+        props = {'PoolNames' : pool_names}
+        ms_alias = get_free_alias(db, "MS_" + inst_name)
+        devices.append(('MacroServer', None, ms_alias, props))
+        door_alias = get_free_alias(db, "Door_" + inst_name)
+        devices.append(("Door", None, door_alias, {}))                
+    elif bin_name == 'Pool':
+        pool_alias = get_free_alias(db, 'Pool_' + inst_name)
+        devices.append(('Pool', None, pool_alias, {}))
+    elif bin_name == 'Sardana':
+        pool_dev_name = get_free_device(db, 'pool/' + inst_name)
+        pool_alias = get_free_alias(db, 'Pool_' + inst_name)
+        devices.append(('Pool', pool_dev_name, pool_alias, {}))
+        ms_alias = get_free_alias(db, "MS_" + inst_name)
+        devices.append(('MacroServer', None, ms_alias,
+                        {'PoolNames' : [pool_dev_name]}))
+        door_alias = get_free_alias(db, "Door_" + inst_name)
+        devices.append(("Door", None, door_alias, {}))
+    register_server_with_devices(db, bin_name, inst_name, devices)
+    log_messages.append(("Registered server '%s/%s'", bin_name, inst_name))
+    for d in devices:
+        dev_class, dev_alias = d[0], d[2]
+        log_messages.append(("Registered %s %s", dev_class, dev_alias))
+    return log_messages
+    
+
 
 def register_server_with_devices(db, server_name, server_instance, devices):
     """Registers a new server with some devices in the Database.
@@ -652,7 +665,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
             taurus.debug("Error description", exc_info=1)
     
     if log_messages is None:
-        log_messages = ()
+        log_messages = []
     for log_message in log_messages:
         taurus.info(*log_message)
 
