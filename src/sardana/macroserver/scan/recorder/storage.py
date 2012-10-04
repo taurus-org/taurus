@@ -279,6 +279,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
         env = recordlist.getEnviron()
         end_time = env['endtime'].ctime()
         self.fd.write("#C Acquisition ended at %s\n" % end_time)
+        self.fd.write("\n")
         self.fd.flush()
         self.fd.close()
 
