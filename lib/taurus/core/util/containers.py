@@ -809,6 +809,79 @@ class ThreadDict(dict):
     itervalues = self_locked(dict.itervalues)   
     iteritems = self_locked(dict.iteritems) 
 
+class SortedDict(dict):
+    """ This class implements a dictionary that returns keys in the same order they were inserted. """
+    
+    def __init__(self,other=None):
+        dict.__init__(self)
+        self._keys = []
+        if other is not None:
+            self.update(other)
+        return
+    
+    def sort(self,key):
+        """
+        This method modifies the sorting of the dictionary overriding the existing sort key.
+        :param key: it can be a sequence containing all the keys already existing in the dictionary 
+                    or a callable providing a sorting key algorithm.
+        """
+        import operator
+        if operator.isCallable(key):
+            self._keys = sorted(self._keys,key=key)
+        else:
+            for k in self._keys:
+                if k not in self._keys: raise KeyError(k)
+            self._keys = list(key)
+        return self._keys[:]
+        
+    def __setitem__(self,k,v):
+        if k not in self._keys:
+            self._keys.append(k)
+        dict.__setitem__(self,k,v)
+        
+    def update(self,other):
+        if hasattr(other,'items'):
+            other = other.items()
+        for k,v in other:
+            self.__setitem__(k,v)
+    
+    @staticmethod
+    def fromkeys(S,v=None):
+        return SortedDict((s,v) for s in S)
+            
+    def pop(self,k,d=None):
+        """Removes key and returns its (self[key] or d or None)"""
+        if k not in self: return d
+        self._keys.remove(k)
+        return dict.pop(self,k)
+    
+    def popitem(self):
+        """Removes and returns last key,value pair"""
+        k = self._keys[-1]
+        v = self[k]
+        self.pop(k)
+        return k,v
+    
+    def clear(self):
+        self._keys = []
+        return dict.clear(self)
+    
+    def keys(self):
+        return self._keys[:]
+    def values(self):
+        return [self[k] for k in self._keys]
+    def items(self):
+        return [(k,self[k]) for k in self._keys]
+    
+    def __iter__(self):
+        return (i for i in self._keys)    
+    def iteritems(self):
+        return ((k,self[k]) for k in self._keys)
+    def iterkeys(self):
+        return (i for i in self._keys)
+    def itervalues(self):
+        return (self[k] for k in self._keys)
+
 try:
     from collections import defaultdict
 except:
@@ -846,7 +919,6 @@ except:
         def __repr__(self):
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
-
 
 class defaultdict_fromkey(defaultdict):
     """ Creates a dictionary with a default_factory function that creates new elements using key as argument.
