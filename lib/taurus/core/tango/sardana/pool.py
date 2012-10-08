@@ -355,10 +355,11 @@ class PoolElement(BaseElement, TangoDevice):
         return self._getAttrEG('state')
 
     def getControllerName(self):
-        return self.getPoolData()['controller']
+        return self.getControllerObj().name
 
     def getControllerObj(self):
-        return self.getPoolObj().getObj("Controller", self.getControllerName())
+        full_ctrl_name = self.getPoolData()['controller']
+        return self.getPoolObj().getObj(full_ctrl_name, "Controller")
 
     def getAxis(self):
         return self.getPoolData()['axis']
