@@ -286,7 +286,6 @@ class TaurusGui(TaurusMainWindow):
         
     def __initViewMenu(self):
         self.viewMenu.addSeparator() #the superclass may already have added stuff to the viewMenu
-        self.viewMenu.addMenu(self.__panelsMenu)
         #view locking
         self.viewMenu.addSeparator()
         self._lockviewAction = Qt.QAction(taurus.qt.qtgui.resource.getThemeIcon("system-lock-screen"),"Lock View", self)
@@ -713,6 +712,13 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.setApplicationName(APPNAME)
         Qt.qApp.setOrganizationName(ORGNAME)
         Qt.QApplication.instance().basicConfig()
+
+        ORGANIZATIONLOGO =  getattr(conf, 'ORGANIZATION_LOGO', self.__getVarFromXML(xmlroot,"ORGANIZATION_LOGO", ':/logo.png'))
+        ##
+        if ORGANIZATIONLOGO.startswith(':'):
+           organizationIcon = taurus.qt.qtgui.resource.getIcon(ORGANIZATIONLOGO)
+        else:
+            organizationIcon = Qt.QIcon(os.path.join(self._confDirectory, ORGANIZATIONLOGO))
         
         #if required, enforce that only one instance of this GUI can be run
         SINGLEINSTANCE = getattr(conf,'SINGLE_INSTANCE', (self.__getVarFromXML(xmlroot,"SINGLE_INSTANCE", 'True').lower() == 'true') )
@@ -727,7 +733,7 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings() 
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
-        self.jorgsBar.addAction(taurus.qt.qtgui.resource.getIcon(":/logo.png"),ORGNAME)
+        self.jorgsBar.addAction(organizationIcon,ORGNAME)
         self.jorgsBar.addAction(customIcon,APPNAME)
         
         #get custom widget catalog entries
