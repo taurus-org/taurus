@@ -59,7 +59,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''    
-    __pyqtSignals__ = ("itemsChanged","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
+    __pyqtSignals__ = ("itemsChanged","modelsChanged","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
 
     def __init__(self, parent = None, designMode = False, updateMode=None, alias = None, resizable = True):
         name = self.__class__.__name__
@@ -148,6 +148,11 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def graphicSceneClicked(self,point):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
+        
+    def modelsChanged(self):
+        items = self.get_item_list()
+        self.info('modelsChanged(%s)'%str(items))
+        self.emit(Qt.SIGNAL("modelsChanged"),items)
     
     def emitColors(self): 
         '''emit signal which is used to refresh the tree and colors of icons depend of the current status in jdrawSynoptic'''
@@ -256,8 +261,10 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         """ Used for drag events """
         model,mimeData = '',None
         try:
-            model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
-            mimeData = TaurusBaseWidget.getModelMimeData(self)
+            #model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
+            model = getattr(self.scene()._selectedItems[0],'_name','')
+            self.debug('getModelMimeData(%s)'%model)
+            mimeData = Qt.QMimeData()
             if model:
                 if DeviceNameValidator().getParams(model): 
                     self.debug('getMimeData(): DeviceModel at %s: %s',self.mousePos,model)
@@ -267,8 +274,10 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     mimeData.setData(TAURUS_ATTR_MIME_TYPE,model)
                 else:
                     self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
+                    mimeData.setData(TAURUS_MODEL_MIME_TYPE, model)
         except:
             self.warning('jdrawView.getModelMimeData(%s): unable to get MimeData'%model)
+            self.warning(traceback.format_exc())
         return mimeData
         
 
@@ -281,6 +290,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.modelName = str(model)
         self._currF = str(model)
         if alias is not None: self.setAlias(alias)
+        self.info('setModel(%s)'%model)
         if self._currF:
             #filename = str(self._currFile.absoluteFilePath())
             filename = self._currF
@@ -300,6 +310,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.setScene(scene)
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
+                self.modelsChanged()
             else:
                 self.setScene(None)
             
