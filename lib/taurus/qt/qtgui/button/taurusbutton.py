@@ -387,10 +387,19 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                            elements of the sequence are not of the right type
                            required for the parameter, an automatic conversion
                            will be attempted on execution time. As a special
-                           case, if parameters is a string, it will be splitted
-                           on whitespace to obtain a sequence of parameters.
+                           case, if parameters is a string not starting and
+                           ending in quote characters, it will be splitted on
+                           whitespace to obtain a sequence of parameters. If
+                           it is a string starting and ending with quotes, the
+                           quotes will be removed and the quoted text will not
+                           be splitted.
         '''
-        if isinstance(parameters,(basestring, Qt.QString)): parameters = str(parameters).split()
+        if isinstance(parameters,(basestring, Qt.QString)): 
+            parameters = str(parameters).strip()
+            if parameters[0] in ('"',"'") and parameters[0] == parameters[-1]:
+                parameters = [parameters[1:-1]]
+            else:
+                parameters = parameters.split()
         self._parameters = parameters
     
     def getParameters(self):
