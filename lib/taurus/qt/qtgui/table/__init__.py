@@ -34,3 +34,4 @@ from .taurusdbtable import *
 from .taurusvaluestable import *
 from .taurusdevicepropertytable import *
 from .taurusgrid import *
+from .qdictionary import *
