@@ -60,6 +60,8 @@ def get_all_models(expressions,limit=1000):
     '''
     All devices matching expressions must be obtained.
     For each device only the good attributes are read.
+    
+    It practically equals to fandango.get_matching_device_attributes
     '''
     print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions,str):
