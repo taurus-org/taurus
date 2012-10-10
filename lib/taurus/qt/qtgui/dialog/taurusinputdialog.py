@@ -30,9 +30,8 @@ __all__ = ["TaurusInputDialog", "get_input"]
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-from taurus.qt.qtgui.panel import TaurusInputPanel
 
-def get_input(input_data, parent=None, input_panel_klass=TaurusInputPanel):
+def get_input(input_data, parent=None, input_panel_klass=None):
     """Static convenience function to get an input from the user using a
     dialog. The dialog will be modal.
     
@@ -107,6 +106,9 @@ def get_input(input_data, parent=None, input_panel_klass=TaurusInputPanel):
         for d in [d1, d2, d3, d4, d5, d6, d7, d8]:
             get_input(input_data=d, title=d['prompt'])    
     """
+    if input_panel_klass is None:
+        from taurus.qt.qtgui.panel import TaurusInputPanel
+        input_panel_klass = TaurusInputPanel
     dialog = TaurusInputDialog(input_data=input_data, parent=parent,
                                input_panel_klass=input_panel_klass)
     result = dialog.exec_()
@@ -119,7 +121,10 @@ class TaurusInputDialog(Qt.QDialog):
     """
     
     def __init__(self, input_data=None, parent=None,
-                 input_panel_klass=TaurusInputPanel, designMode=False):
+                 input_panel_klass=None, designMode=False):
+        if input_panel_klass is None:
+            from taurus.qt.qtgui.panel import TaurusInputPanel
+            input_panel_klass = TaurusInputPanel
         self.input_data = input_data
         self.input_panel_klass = input_panel_klass
         Qt.QDialog.__init__(self, parent)
