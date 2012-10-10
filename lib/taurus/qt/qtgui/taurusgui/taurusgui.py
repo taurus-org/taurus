@@ -39,13 +39,6 @@ from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseComponent
 from taurus.qt.qtgui.container import TaurusMainWindow
-
-try:
-    from taurus.qt.qtgui.extra_pool import PoolMotorSlim, IORegisterTV, PoolChannelTV
-    HAS_EXTRA_POOL = True
-except ImportError:
-    HAS_EXTRA_POOL = False
-
 from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, ToolBarDescription, AppletDescription
 from taurus.qt.qtgui.panel import QDoubleListDlg
 import taurus.qt.qtgui.resource
@@ -69,7 +62,6 @@ class AssociationDialog(Qt.QDialog):
         
     def refresh(self):
         currentinstrument = self.ui.instrumentCB.currentText()
-        currentinstrumentIdx= self.ui.instrumentCB.currentIndex()
         mainwindow = self.parent()
         
         self.associations = mainwindow.getAllInstrumentAssociations()
@@ -154,7 +146,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                     klass = getattr(module, classname)
                     w = klass()
                 except Exception, e:
-                    raise RuntimeError('Cannot create widget from classname "%s"'%classname)
+                    raise RuntimeError('Cannot create widget from classname "%s". Reason: %s'%(classname, repr(e)))
             #set customwidgetmap if necessary
             if hasattr(w,'setCustomWidgetMap'):
                 w.setCustomWidgetMap(self._mainwindow.getCustomWidgetMap())
@@ -652,8 +644,8 @@ class TaurusGui(TaurusMainWindow):
                 import imp
                 path, name = os.path.split(confname)
                 name, ext = os.path.splitext(name) 
-                file, filename, data = imp.find_module(name, [path])
-                conf = imp.load_module(name, file, filename, data)
+                f, filename, data = imp.find_module(name, [path])
+                conf = imp.load_module(name, f, filename, data)
             else: #if confname is not a dir name, we assume it is a module name in the python path
                 confsubdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf') #the path to a conf subdirectory of the place where taurusgui.py is
                 oldpath = sys.path
@@ -716,7 +708,7 @@ class TaurusGui(TaurusMainWindow):
         ORGANIZATIONLOGO =  getattr(conf, 'ORGANIZATION_LOGO', self.__getVarFromXML(xmlroot,"ORGANIZATION_LOGO", ':/logo.png'))
         ##
         if ORGANIZATIONLOGO.startswith(':'):
-           organizationIcon = taurus.qt.qtgui.resource.getIcon(ORGANIZATIONLOGO)
+            organizationIcon = taurus.qt.qtgui.resource.getIcon(ORGANIZATIONLOGO)
         else:
             organizationIcon = Qt.QIcon(os.path.join(self._confDirectory, ORGANIZATIONLOGO))
         
@@ -780,9 +772,9 @@ class TaurusGui(TaurusMainWindow):
             node = xmlroot.find("SYNOPTIC")
             if (node is not None) and (node.text is not None):
                 for child in node:
-                    str = child.get("str")
-                    if str is not None and len(str): #we do not append empty strings
-                        SYNOPTIC.append(str)
+                    s = child.get("str")
+                    if s is not None and len(s): #we do not append empty strings
+                        SYNOPTIC.append(s)
         for s in SYNOPTIC:
             self.createMainSynoptic(s)
             
@@ -1086,9 +1078,7 @@ class TaurusGui(TaurusMainWindow):
         
         if fname is None:
             fname = self._xmlConfigFileName
-        
-        from taurus.core.util import etree
-        
+                
         if self._xmlConfigFileName is None:
             xmlroot = etree.Element("taurusgui_config")
         else:
