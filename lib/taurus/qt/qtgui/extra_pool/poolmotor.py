@@ -3,38 +3,42 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-##
+## 
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
+## 
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
+## 
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 import sys
+import copy
 import PyTango
+import numpy
 
 from taurus.qt import Qt
 
 import taurus
 import taurus.qt.qtcore.mimetypes
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
+from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.container import TaurusFrame
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.input import TaurusValueLineEdit
+from taurus.qt.qtgui.input import TaurusValueSpinBox
 from taurus.qt.qtgui.panel import DefaultLabelWidget
 from taurus.qt.qtgui.panel import DefaultUnitsWidget
 from taurus.qt.qtgui.panel import TaurusValue, TaurusAttrForm
@@ -79,7 +83,7 @@ class PoolMotorClient():
     def moveMotor(self, pos):
         #self.motor_dev['position'] = pos
         # Make use of Taurus operations (being logged)
-        self._position.write(pos)
+        self.motor_dev.getAttribute('Position').write(pos)
 
     def moveInc(self, inc):
         self.moveMotor(self.motor_dev['position'].value + inc)
@@ -91,9 +95,9 @@ class PoolMotorClient():
         if hasattr(self.motor_dev, 'step_per_unit'):
             neg_limit = neg_limit / self.motor_dev['step_per_unit'].value
         try:
-            min_value = self._position.getConfig().getValueObj().min_value
+            min_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().min_value
             neg_limit = float(min_value)
-        except Exception:
+        except Exception,e:
             pass
         self.moveMotor(neg_limit)
 
@@ -104,9 +108,9 @@ class PoolMotorClient():
         if hasattr(self.motor_dev, 'step_per_unit'):
             pos_limit = pos_limit / self.motor_dev['step_per_unit'].value
         try:
-            max_value = self._position.getConfig().getValueObj().max_value
+            max_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().max_value
             pos_limit = float(max_value)
-        except Exception:
+        except Exception,e:
             pass
         self.moveMotor(pos_limit)
 
@@ -169,80 +173,80 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
 
     def getDisplayAttributes(self, controllerType):
         attributes = ['position',
-                      'state',
-                      'status',
-                      'velocity',
-                      'acceleration',
-                      'base_rate',
+                      'state', 
+                      'status', 
+                      'velocity', 
+                      'acceleration', 
+                      'base_rate', 
                       'step_per_unit',
                       'dialposition',
-                      'sign',
-                      'offset',
-                      'backlash']
+                      'sign', 
+                      'offset',  
+                      'backlash'] 
 
         if controllerType == "IcePAPCtrl.IcepapController":
             attributes.insert(1,"encoder")
-            attributes.extend(['frequency',
-                               'poweron',
-                               'closedloop',
-                               'useencodersource',
-                               'encodersource',
-                               'encodersourceformula',
-                               'statusstopcode',
-                               'statusdisable',
-                               'statusready',
-                               'statuslim-',
-                               'statuslim+',
+            attributes.extend(['frequency', 
+                               'poweron', 
+                               'closedloop', 
+                               'useencodersource', 
+                               'encodersource', 
+                               'encodersourceformula', 
+                               'statusstopcode', 
+                               'statusdisable', 
+                               'statusready', 
+                               'statuslim-', 
+                               'statuslim+', 
                                'statushome'])
 
         elif controllerType == "PmacCtrl.PmacController":
-            attributes.extend(["motoractivated",
-                               "negativeendlimitset",
-                               "positiveendlimitset",
+            attributes.extend(["motoractivated", 
+                               "negativeendlimitset", 
+                               "positiveendlimitset", 
                                "handwheelenabled",
-                               "phasedmotor",
-                               "openloopmode",
-                               "runningdefine-timemove",
+                               "phasedmotor", 
+                               "openloopmode", 
+                               "runningdefine-timemove", 
                                "integrationmode",
-                               "dwellinprogress",
-                               "datablockerror",
-                               "desiredvelocityzero",
-                               "abortdeceleration",
-                               "blockrequest",
-                               "homesearchinprogress",
+                               "dwellinprogress", 
+                               "datablockerror", 
+                               "desiredvelocityzero", 
+                               "abortdeceleration", 
+                               "blockrequest", 
+                               "homesearchinprogress", 
                                "assignedtocoordinatesystem",
-                               "coordinatesystem",
+                               "coordinatesystem", 
                                "amplifierenabled",
-                               "stoppedonpositionlimit",
-                               "homecomplete",
-                               "phasingsearcherror",
+                               "stoppedonpositionlimit", 
+                               "homecomplete", 
+                               "phasingsearcherror", 
                                "triggermove",
-                               "integratedfatalfollowingerror",
-                               "i2t_amplifierfaulterror",
+                               "integratedfatalfollowingerror", 
+                               "i2t_amplifierfaulterror", 
                                "backlashdirectionflag",
-                               "amplifierfaulterror",
-                               "fatalfollowingerror",
-                               "warningfollowingerror",
+                               "amplifierfaulterror", 
+                               "fatalfollowingerror", 
+                               "warningfollowingerror", 
                                "inposition",
                                "motionprogramrunning"])
 
         elif controllerType == "TurboPmacCtrl.TurboPmacController":
-            attributes.extend(["motoractivated",
-                               "negativeendlimitset",
-                               "positiveendlimitset",
+            attributes.extend(["motoractivated", 
+                               "negativeendlimitset", 
+                               "positiveendlimitset", 
 			       "extendedservoalgorithmenabled"
                                "amplifierenabled",
-                               "openloopmode",
-                               "movetimeractive",
+                               "openloopmode", 
+                               "movetimeractive", 
                                "integrationmode",
-                               "dwellinprogress",
-                               "datablockerror",
-                               "desiredvelocityzero",
-                               "abortdeceleration",
-                               "blockrequest",
-                               "homesearchinprogress",
+                               "dwellinprogress", 
+                               "datablockerror", 
+                               "desiredvelocityzero", 
+                               "abortdeceleration", 
+                               "blockrequest", 
+                               "homesearchinprogress", 
                                "user-writtenphaseenable",
-                               "user-writtenservoenable",
+                               "user-writtenservoenable", 
                                "alternatesource/destination",
                                "phasedmotor",
                                "followingoffsetmode",
@@ -256,17 +260,17 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
                                "assignedtocoordinatesystem",
                                "foregroundinposition",
                                "stoppedondesiredpositionlimit",
-                               "stoppedonpositionlimit",
-                               "homecomplete",
-                               "phasing_search/read_active",
+                               "stoppedonpositionlimit", 
+                               "homecomplete", 
+                               "phasing_search/read_active", 
                                "triggermove",
-                               "integratedfatalfollowingerror",
-                               "i2t_amplifierfaulterror",
+                               "integratedfatalfollowingerror", 
+                               "i2t_amplifierfaulterror", 
                                "backlashdirectionflag",
-                               "amplifierfaulterror",
-                               "fatalfollowingerror",
-                               "warningfollowingerror",
-                               "inposition"])
+                               "amplifierfaulterror", 
+                               "fatalfollowingerror", 
+                               "warningfollowingerror", 
+                               "inposition"])            
         return attributes
 
     def setModel(self, modelName):
@@ -306,9 +310,9 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         # THIS WILL BE DONE IN THE DESIGNER
         # Config Button will launch a PoolMotorConfigurationForm
-#        19.08.2011 after discussion between cpascual, gcui and zreszela, Configuration Panel was rolled back to
-#        standard TaurusAttrForm - list of all attributes alphabetically ordered
-#        taurus_attr_form = PoolMotorConfigurationForm()
+#        19.08.2011 after discussion between cpascual, gcui and zreszela, Configuration Panel was rolled back to 
+#        standard TaurusAttrForm - list of all attributes alphabetically ordered 
+#        taurus_attr_form = PoolMotorConfigurationForm()        
         taurus_attr_form = TaurusAttrForm()
 
         taurus_attr_form.setMinimumSize(Qt.QSize(470,800))
@@ -343,7 +347,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         #################################################################################################################
         ################
-        # SET TAURUS ICONS
+        # SET TAURUS ICONS 
         ################
         self.ui.btnMin.setText('')
         self.ui.btnMin.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-remove.svg'))
@@ -596,13 +600,12 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        return None
-#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-#        ret['group'] = 'Taurus Sardana'
-#        ret['icon'] = ':/designer/extra_pool.png'
-#        ret['container'] = False
-#        return ret
+        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+        ret['group'] = 'Taurus Extra Sardana'
+        ret['icon'] = ':/designer/extra_pool.png'
+        ret['container'] = False
+        return ret
 
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)
@@ -613,7 +616,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.motor_dev.getAttribute('Position').disablePolling()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties
+    # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     @Qt.pyqtSignature("getModel()")
     def getModel(self):
@@ -769,7 +772,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.layout().addWidget(self.lbl_alias)
 
         self.btn_poweron = Qt.QPushButton()
-        self.btn_poweron.setText('Power ON')
+        self.btn_poweron.setText('Set ON')
         self.layout().addWidget(self.btn_poweron)
 
         # Align everything on top
@@ -796,7 +799,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
     def setPowerOn(self):
         motor_dev = self.taurusValueBuddy().motor_dev
         if motor_dev is not None:
-            poweron = (self.btn_poweron.text() == 'Power ON')
+            poweron = (self.btn_poweron.text() == 'Set ON')
             motor_dev.getAttribute('PowerOn').write(poweron)
 
     def setModel(self, model):
@@ -810,7 +813,6 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         # Handle Power ON/OFF
         self.disconnect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
         self.connect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
-
 
     def calculateExtendedTooltip(self, cache=False):
         default_label_widget_tooltip = DefaultLabelWidget.getFormatedToolTip(self.lbl_alias, cache)
@@ -853,7 +855,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         attr_name = dev_name+'/Position'
         mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE, dev_name)
         mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE, attr_name)
-
+    
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
@@ -865,7 +867,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
 class PoolMotorTVReadWidget(TaurusWidget):
     '''
     @TODO on the 'expert' row, there should be an Indexer/Encoder radiobuttongroup to show units from raw dial/indx/enc
-    @TODO TaurusLCD may be used but, now it does not display the sign, and color is WHITE...
+    @TODO TaurusLCD may be used but, now it does not display the sign, and color is WHITE... 
     '''
     def __init__(self, parent = None, designMode = False):
         TaurusWidget.__init__(self, parent, designMode)
@@ -905,12 +907,12 @@ class PoolMotorTVReadWidget(TaurusWidget):
 
         self.lbl_enc = Qt.QLabel('Encoder')
         self.layout().addWidget(self.lbl_enc, 1, 0)
-
+        
         self.lbl_enc_read = TaurusLabel()
         self.lbl_enc_read.setBgRole('none')
         self.lbl_enc_read.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed))
         self.layout().addWidget(self.lbl_enc_read, 1, 1)
-
+        
         # Align everything on top
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 2, 0, 1, 2)
 
@@ -988,7 +990,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.connect(self.cbAbsoluteReltaive, Qt.SIGNAL('currentIndexChanged(QString)'), self.cbAbsoluteReltaiveChanged)
         self.cbAbsoluteReltaive.addItems(['Abs','Rel'])
         self.layout().addWidget(self.cbAbsoluteReltaive, 0, 1)
-
+        
         self.btn_stop = Qt.QPushButton()
         self.btn_stop.setToolTip('Stops the motor')
         self.prepare_button(self.btn_stop)
@@ -1026,7 +1028,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         btns_layout.addWidget(self.btn_to_pos)
 
         btns_layout.addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum))
-
+        
         self.layout().addLayout(btns_layout, 1, 0, 1, 3)
 
         self.connect(self.btn_step_down, Qt.SIGNAL('clicked()'), self.stepDown)
@@ -1175,91 +1177,64 @@ class PoolMotorTV(TaurusValue):
         self.poweron_listener = None
         self.status_listener = None
         self.position_listener = None
-
-        self._limits = None
-        self._poweron = None
-        self._position = None
-        self._status = None
-        
         self.setExpertView(False)
 
     def setExpertView(self, expertView):
         self._expertView = expertView
         self.emit(Qt.SIGNAL('expertViewChanged(bool)'), expertView)
-
+    
     def minimumHeight(self):
         return None #@todo: UGLY HACK to avoid subwidgets being forced to minimumheight=20
-
+            
     def setModel(self, model):
+        self.motor_dev = None
         TaurusValue.setModel(self, model)
-
         try:
-            # Try to clean everything
-
-            if self.motor_dev is not None:
-                if self.hasHwLimits():
-                    self._limits.removeListener(self.limits_listener)
-                if self.hasPowerOn():
-                    self._poweron.removeListener(self.poweron_listener)
-                self._status.removeListener(self.status_listener)
-                self._position.removeListener(self.position_listener)
-
-            if model == '' or model is None:
-                self.motor_dev = None
-                return
-
-            self.motor_dev = motor_dev = taurus.Device(model)
-            
-            # initialize local attributes
-            attr_names = map(str.lower, motor_dev.get_attribute_list())
-            self._status = motor_dev.getAttribute('Status')
-            self._position = motor_dev.getAttribute('Position')
-            
-            if 'limit_switches' in attr_names:
-                self._limits = motor_dev.getAttribute('Limit_Switches')
-            else:
-                self._limits = None
-
-            if 'poweron' in attr_names:
-                self._poweron = motor_dev.getAttribute('PowerOn')
-            else:
-                self._poweron = None
-            
+            self.motor_dev = taurus.Device(model)
             # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
+            if self.limits_listener is not None:
+                self.limits_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
+            self.limits_listener = TaurusAttributeListener()
             if self.hasHwLimits():
-                self.limits_listener = TaurusAttributeListener()
                 self.connect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
-                self._limits.addListener(self.limits_listener)
+                self.motor_dev.getAttribute('Limit_Switches').addListener(self.limits_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO PROVIDE POWERON <- True/False EXPERT OPERATION
+            if self.poweron_listener is not None:
+                self.poweron_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
+            self.poweron_listener = TaurusAttributeListener()
             if self.hasPowerOn():
-                self.poweron_listener = TaurusAttributeListener()
                 self.connect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
-                self._poweron.addListener(self.poweron_listener)
+                self.motor_dev.getAttribute('PowerOn').addListener(self.poweron_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO UPDATED STATUS TOOLTIP
+            if self.status_listener is not None:
+                self.status_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.status_listener = TaurusAttributeListener()
             self.connect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
-            self._status.addListener(self.status_listener)
-
+            self.motor_dev.getAttribute('Status').addListener(self.status_listener)
+            
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO ACTIVATE LIMIT BUTTONS ON SOFTWARE LIMITS
+            if self.position_listener is not None:
+                self.position_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.position_listener = TaurusAttributeListener()
             self.connect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
-            self._position.addListener(self.position_listener)
-
+            self.motor_dev.getAttribute('Position').addListener(self.position_listener)
+            
             self.setExpertView(self._expertView)
-
         except Exception,e:
-            self.warning("Exception caught while setting model: %s",repr(e))
-            raise e
+            print e
+            return
 
     def hasPowerOn(self):
-        return self._poweron is not None
+        try: return hasattr(self.motor_dev, 'PowerOn')
+        except: return False
 
     def hasHwLimits(self):
-        return self._limits is not None
+        try: return hasattr(self.motor_dev, 'Limit_Switches')
+        except: return False
 
-    def updateLimits(self, limits, position=None):
+    def updateLimits(self, limits):
         if isinstance(limits, dict): limits = limits["limits"]
         limits = list(limits)
         HOME = 0
@@ -1268,37 +1243,33 @@ class PoolMotorTV(TaurusValue):
 
         # Check also if the software limit is 'active'
         if self.motor_dev is not None:
-            position_attribute = self._position
-            if position is None:
-                position = position_attribute.read().value
+            position_attribute = self.motor_dev.getAttribute('Position')
+            pos = position_attribute.read().value
             max_value_str = position_attribute.max_value
             min_value_str = position_attribute.min_value
             try:
                 max_value = float(max_value_str)
-                limits[POS] = limits[POS] or (position >= max_value)
+                limits[POS] = limits[POS] or (pos >= max_value)
             except:
                 pass
             try:
                 min_value = float(min_value_str)
-                limits[NEG] = limits[NEG] or (position <= min_value)
+                limits[NEG] = limits[NEG] or (pos <= min_value)
             except:
                 pass
-
+            
         pos_lim = limits[POS]
-
+        
         pos_btnstylesheet = ''
         enabled = True
         if pos_lim:
             pos_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-
         self.readWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
 
         self.writeWidget().btn_step_up.setEnabled(enabled)
         self.writeWidget().btn_step_up.setStyleSheet(pos_btnstylesheet)
-
         self.writeWidget().btn_to_pos.setEnabled(enabled)
-
         self.writeWidget().btn_to_pos_press.setEnabled(enabled)
 
         neg_lim = limits[NEG]
@@ -1307,21 +1278,17 @@ class PoolMotorTV(TaurusValue):
         if neg_lim:
             neg_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-
         self.readWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
 
         self.writeWidget().btn_step_down.setEnabled(enabled)
         self.writeWidget().btn_step_down.setStyleSheet(neg_btnstylesheet)
-
         self.writeWidget().btn_to_neg.setEnabled(enabled)
-
         self.writeWidget().btn_to_neg_press.setEnabled(enabled)
 
     def updatePowerOn(self, poweron):
-        btn_text = 'Power ON'
+        btn_text = 'Set ON'
         if poweron:
-            btn_text = 'Power OFF'
-
+            btn_text = 'Set OFF'
         self.labelWidget().btn_poweron.setText(btn_text)
 
     def updateStatus(self, status):
@@ -1330,7 +1297,7 @@ class PoolMotorTV(TaurusValue):
         # TaurusLabel.updateStyle DIDN'T WORK, SO I HAD TO GO DEEPER TO THE CONTROLLER...
         #self.labelWidget().lbl_alias.updateStyle()
         self.labelWidget().lbl_alias.controllerUpdate()
-
+        
     def updatePosition(self, position):
         # we do not need the position for nothing...
         # we just want to check if any software limit is 'active'
@@ -1338,9 +1305,9 @@ class PoolMotorTV(TaurusValue):
         if self.motor_dev is not None:
             limit_switches = [False, False, False]
             if self.hasHwLimits():
-                limit_switches = self._limits.read().value
-            self.updateLimits(limit_switches, position=position)
-
+                limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
+            self.updateLimits(limit_switches)
+        
     def hasEncoder(self):
         try: return hasattr(self.motor_dev, 'Encoder')
         except: return False
@@ -1352,16 +1319,16 @@ class PoolMotorTV(TaurusValue):
         taurus_attr_form.setModel(model)
         taurus_attr_form.setWindowTitle('%s Tango Attributes'%taurus.Factory().getDevice(model).getSimpleName())
         taurus_attr_form.show()
-
+        
     def showEvent(self, event):
         TaurusValue.showEvent(self, event)
         if self.motor_dev is not None:
-            self._position.enablePolling(force=True)
+            self.motor_dev.getAttribute('Position').enablePolling(force=True)
 
     def hideEvent(self, event):
         TaurusValue.hideEvent(self, event)
         if self.motor_dev is not None:
-            self._position.disablePolling()
+            self.motor_dev.getAttribute('Position').disablePolling()
 
 ###################################################
 # A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
@@ -1372,7 +1339,7 @@ class PoolMotor(TaurusFrame):
     '''
     def __init__(self, parent = None, designMode = False):
         TaurusFrame.__init__(self, parent, designMode)
-
+        
         self.setLayout(Qt.QGridLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
@@ -1388,6 +1355,7 @@ class PoolMotor(TaurusFrame):
 
 def main():
 
+    import sys
     import taurus.qt.qtgui.application
     import taurus.core.util.argparse
     from taurus.qt.qtgui.panel import TaurusForm
@@ -1436,7 +1404,7 @@ def main():
 
     # 3) Test Stand-Alone PoolMotor widget
     # New approach would be to let PoolMotorTV live outside a TaurusForm.... but inside a GridLayout
-    # Carlos already said this is not a good approach but...
+    # Carlos already said this is not a good approach but... 
         for motor in models:
             motor_widget = PoolMotor()
             motor_widget.setModel(motor)
