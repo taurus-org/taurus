@@ -577,10 +577,8 @@ class TaurusValuesTable(TaurusWidget):
         '''Reimplemented from :meth:`TaurusWidget.setModel`'''
         TaurusWidget.setModel(self, model)
         value = self.getModelValueObj()
-        data = getattr(value,'value',value)
-        if data is not None: 
-            if not isinstance(data,numpy.ndarray): data = numpy.array(data)
-            self._tableView.setModel([data.dim_x, data.dim_y])
+        if value is not None: 
+            self._tableView.setModel([value.dim_x, value.dim_y])
         self._label.setModel(value)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
