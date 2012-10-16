@@ -286,7 +286,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
         
         self._yBuffer.append(value.value)
-        self.debug('_updateHistory(%s,%s(...))' % (model,type(value.value)))
+        #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
         
         if self.parent().getXIsTime():
             #add the timestamp to the x buffer
@@ -1168,7 +1168,7 @@ class TaurusTrend(TaurusPlot):
 
     def doReplot(self):
         '''calls :meth:`replot` only if there is new data to be plotted'''
-        #self.debug('Replotting? %s',self._dirtyPlot)
+        #self.trace('Replotting? %s',self._dirtyPlot)
         if self._dirtyPlot:
             self.replot()
             self._dirtyPlot = False
@@ -1190,8 +1190,13 @@ class TaurusTrend(TaurusPlot):
             currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
             plot_refresh = int(1000*(currmax-currmin)/width)
             plot_refresh = min((max((plot_refresh,250)),1800000)) #enforce limits
-            self._replotTimer.setInterval(plot_refresh)
-            self.debug('New replot period is %1.2f seconds',(plot_refresh/1000.))
+            if self._replotTimer.interval() != plot_refresh: 
+                #note: calling QTimer.setInterval() very often seems to eventually trigger some bug
+                #      that stops the timer from emitting the timeout signal. We avoid this by
+                #      calling setInterval only when really needed. 
+                self._replotTimer.setInterval(plot_refresh) 
+                self.debug('New replot period is %1.2f seconds',(plot_refresh/1000.))
+                
         else:
             self.warning('rescheduleReplot() called but X axis is not in time mode')
 
