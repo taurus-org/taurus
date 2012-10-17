@@ -157,12 +157,16 @@ class TaurusDevicePanel(TaurusWidget):
     def getCommandFilters(klass):
         return klass._command_filter
     
+    ###########################################################################
+    
     def __init__(self,parent=None,model=None,palette=None,bound=True):
         TaurusWidget.__init__(self,parent)
         if palette: self.setPalette(palette)
         self.setLayout(Qt.QGridLayout())
         self.bound = bound
         self._dups = []
+        
+        self.setWindowTitle('TaurusDevicePanel')
         self._label = Qt.QLabel()
         self._label.font().setBold(True)
         
@@ -226,13 +230,19 @@ class TaurusDevicePanel(TaurusWidget):
         
     def duplicate(self):
         self._dups.append(TaurusDevicePanel(bound=False))
-        self._dups[-1].setModel(self.model)
+        self._dups[-1].setModel(self.getModel())
         self._dups[-1].show()
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
+        self.debug('In TaurusDevicePanel.setModel(%s,%s,%s)'%(model,pixmap,self.getIconMap()))
         if not model: return None
         model = str(model).split()[0].strip()
+        if issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusAttribute):
+            if model.lower().endswith('/state'): model = model.rsplit('/',1)[0]
+            else: 
+                self.debug('TaurusDevicePanel accepts only Device models')
+                return
         if model == self.getModel():
             pass
         else:
@@ -258,18 +268,18 @@ class TaurusDevicePanel(TaurusWidget):
                     qpixmap = taurus.qt.qtgui.resource.getPixmap(':/logo.png')
                 
                 self._image.setPixmap(qpixmap)
-                
                 self._state.setModel(model+'/state')
                 if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state')
                 self._status.setModel(model+'/status')
                 try:
+                    self.detach()
                     self._attrsframe.clear()
-                    
                     self._attrs = self.get_attrs_form(model,self._attrs,self)
                     if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
                     if not TaurusDevicePanel.READ_ONLY:
                         self._comms = self.get_comms_form(model,self._comms,self)
                         if self._comms: self._attrsframe.addTab(self._comms,'Commands')
+                    if SPLIT_SIZES: self._splitter.setSizes(SPLIT_SIZES)
                 except:
                     self.warning( traceback.format_exc())
                     qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
@@ -279,8 +289,18 @@ class TaurusDevicePanel(TaurusWidget):
                 self.warning(traceback.format_exc())
                 qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
                 qmsg.show()
-
-        if SPLIT_SIZES: self._splitter.setSizes(SPLIT_SIZES)
+        self.setWindowTitle(self.getModel())
+        self.warning('Out of TaurusDevicePanel.setModel()')
+        return
+        
+    def detach(self):
+        self.warning('In TaurusDevicePanel.dettach()')
+        for form in [self._attrs,self._comms]:
+            if form is not None: 
+                ch = form.taurusChildren()
+                self.warning('%s: %s'%(form,ch))
+                [m.setModel('') for m in ch]
+                form.setModel([])
         return
         
     def get_attrs_form(self,device,form=None,parent=None):
