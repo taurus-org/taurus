@@ -799,7 +799,7 @@ class TaurusTrend(TaurusPlot):
         self._autoClearOnScanAction.setChecked(True)
         self.connect(self._autoClearOnScanAction, Qt.SIGNAL("toggled(bool)"), self._onAutoClearOnScanAction)
     
-    def isTimerNeeded(self):
+    def isTimerNeeded(self, checkMinimized=True):
         '''checks if it makes sense to activate the replot timer. 
         The following conditions must be met:
         
@@ -807,7 +807,9 @@ class TaurusTrend(TaurusPlot):
         - the area of the plot must be non-zero
         - at least one trendset must be attached
         - the plot should be visible
-        - the plot should not be minimized
+        - the plot should not be minimized (unless checkMinimized=False)
+        
+        :param checkMinimized: (bool) whether to include the check of minimized (True by default)
         
         :return: (bool) 
         '''
@@ -815,13 +817,14 @@ class TaurusTrend(TaurusPlot):
                not self.size().isEmpty() and \
                bool(len(self.trendSets)) and \
                self.isVisible() and \
-               not self.isMinimized()
+               not (checkMinimized and self.isMinimized())
                
     def showEvent(self, event):
         '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
         the replot timer is active only when needed'''
         TaurusPlot.showEvent(self, event)
-        if self.isTimerNeeded():
+        if self.isTimerNeeded(checkMinimized=False):
+            self.debug('(re)starting the timer (in showEvent)')
             self._replotTimer.start()
     
     def hideEvent(self, event):
@@ -829,6 +832,7 @@ class TaurusTrend(TaurusPlot):
         the replot timer is active only when needed'''
         TaurusPlot.hideEvent(self, event)
         if self._replotTimer is not None:
+            self.debug('stopping the timer (in hideEvent)')
             self._replotTimer.stop()
     
     def resizeEvent(self,event):
@@ -837,12 +841,13 @@ class TaurusTrend(TaurusPlot):
         TaurusPlot.resizeEvent(self, event)
         if event.oldSize().isEmpty(): #do further checks only if previous size was 0
             if self.isTimerNeeded():
+                self.debug('(re)starting the timer (in resizeEvent)')
                 self._replotTimer.start()
             else:
                 if self._replotTimer is not None:
+                    self.debug('stopping the timer (in resizeEvent)')
                     self._replotTimer.stop()
             
-    
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
         #set a reasonable scale
@@ -1034,9 +1039,11 @@ class TaurusTrend(TaurusPlot):
             
             #keep the replotting timer active only if there is something to refresh
             if self.isTimerNeeded():
+                self.debug('(re)starting the timer (in updateCurves)')
                 self._replotTimer.start()
             else:
                 if self._replotTimer is not None:
+                    self.debug('stopping the timer (in updateCurves)')
                     self._replotTimer.stop()
             
         finally:
