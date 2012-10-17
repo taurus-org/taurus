@@ -30,6 +30,7 @@ taurusdevicetree.py:
 __all__ = ["TaurusDevTree","TaurusTreeNode"]
 
 import random,time,os,re,traceback,Queue
+from functools import partial
 import PyTango # to change!!
 import subprocess
 
@@ -42,10 +43,13 @@ from PyQt4 import Qwt5
 import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
+from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtcore.util.emitter import TaurusEmitterThread,SingletonWorker
 from taurus.core.util import CaselessDict
 from taurus.qt.qtcore.mimetypes import *
 TREE_ITEM_MIME_TYPE = 'application/x-qabstractitemmodeldatalist'
+
+__all__ = ['TaurusDevTree','SearchEdit','TaurusSearchTree']
 
 def searchCl(regexp,target): return re.search(regexp.lower(),target.lower())
 def matchCl(regexp,target): return re.match(regexp.lower(),target.lower())
@@ -55,9 +59,14 @@ def is_regexp(s):
 
 def extend_regexp(s):
     s = str(s).strip()
-    if '.*' not in s: s = s.replace('*','.*')
-    if '/' not in s: s = '.*'+s+'.*'
-    s = s.replace(' ','.*')
+    if '.*' not in s: 
+        s = s.replace('*','.*')
+    if '.*' not in s:
+        if ' ' in s: s = s.replace(' ','.*')
+        if '/' not in s: s = '.*'+s+'.*'
+    else:
+        if not s.startswith('^'): s = '^'+s
+        if not s.endswith('$'): s = s+'$'
     return s
 
 def get_matching_devices(db,expressions,limit=0,exported=False):
@@ -76,6 +85,7 @@ def get_matching_devices(db,expressions,limit=0,exported=False):
             #all_devs.extend('%s/%s'%(host,d) for d in odb.get_device_name('*','*'))
     result = [e for e in expressions if e.lower() in all_devs]
     expressions = [extend_regexp(e) for e in expressions if e not in result]
+    print expressions
     result.extend(filter(lambda d: any(matchCl(extend_regexp(e),d) for e in expressions),all_devs))
     return result
         
@@ -91,6 +101,17 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
         "refreshTree",
         "nodeFound"
         )
+    __slots__ = (
+        "setTangoHost",
+        #"setModel",
+        "addModels",
+        "setModelCheck",
+        "loadTree",
+        "setTree",
+        "findInTree",
+        "expandAll",
+        "setFilters",
+        )
 
     def __init__(self, parent=None, designMode = False):
         name = "TaurusDevTree"
@@ -101,7 +122,7 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
 
         self.setObjectName(name)
         self.defineStyle()
-        self.__filters = ""
+        self._filters = ""
         self.__attr_filter = None
         self.__expand =1
         self.collapsing_search = True
@@ -407,7 +428,7 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
                 #else: drag = False
                 drag = getattr(node,'draggable','') or name
             self.debug('Node(%s,%s,%s): drag: %s'%(name,node.isAttribute,node.DeviceName,drag))
-            return drag
+            return drag.split('')[0]
         except:
             import traceback
             self.warning(traceback.format_exc())
@@ -481,7 +502,7 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
             mtype = self.handleMimeData(event.mimeData(),self.addModels)#lambda m:self.addModels('^%s$'%m))
             event.acceptProposedAction()
         else:
-            self.info('Invalid model in dropped data')
+            self.warning('Invalid model in dropped data')
         
     ########################################################################################################################3      
     ## @name Context Menu Actions
@@ -595,7 +616,9 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
         device = self.getNodeText()
         nameclass = TaurusDevicePanel()
         nameclass.setModel(device)
-        #nameclass.setSpectraAtkMode(True)
+        nameclass.show()
+        ##nameclass.setSpectraAtkMode(True)
+        #Dialog is used to make new floating panels persistent
         obj = newDialog(self)
         obj.initComponents(nameclass)
         obj.setModal(False)
@@ -608,6 +631,8 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
         device = self.getNodeText()
         nameclass = taurus.qt.qtgui.table.TaurusPropTable()
         nameclass.setTable(device)
+        nameclass.show()
+        #Dialog is used to make new floating panels persistent
         obj = newDialog(self)
         obj.initComponents(nameclass)
         obj.setModal(False)
@@ -641,7 +666,7 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
         self.emit(QtCore.SIGNAL("removeAttrSelected(QStringList)"),QtCore.QStringList([str(attr)]))
         
     def refreshTree(self):
-        self.loadTree(self.__filters)
+        self.loadTree(self._filters)
         self.emit(QtCore.SIGNAL("refreshTree"))
 
     ## @}
@@ -998,11 +1023,8 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
             icon = QtGui.QIcon(":/ICON_WHITE")
             child.setIcon(0,icon)        
       
-
-
-
-
     def defineStyle(self):
+        self.setWindowTitle('TaurusDevTree')
         self.setGeometry(QtCore.QRect(90,60,256,192))
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -1011,6 +1033,7 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
 
     def setFilters(self,filters):
         self._filters = filters
+        self.setWindowTitle('TaurusDevTree:%s'%str(self._filters))
         self.loadTree(self._filters,clear=True)
 
     def getFilters(self):
@@ -1078,7 +1101,10 @@ class TaurusDevTree(Qt.QTreeWidget, TaurusBaseWidget):
 
 
 class newDialog(QtGui.QDialog):
-    """ This class create the dialog """
+    """ 
+    This class create the dialog 
+    Dialog is used to make new floating panels persistent
+    """
     def __init__(self, parent = None):
         QtGui.QDialog.__init__(self, parent)
         
@@ -1086,6 +1112,7 @@ class newDialog(QtGui.QDialog):
         widgetLayout = QtGui.QVBoxLayout(self)
         widgetLayout.setContentsMargins(10,10,10,10)
         widgetLayout.addWidget(newWidget)
+        self.setWindowTitle(newWidget.windowTitle())
         
 #####################################################################################
             
@@ -1229,6 +1256,9 @@ class SearchEdit(Qt.QWidget):
     self.connect(self._button,Qt.SIGNAL('clicked()'),self._emitSearch)
     self.layout().addWidget(self._edit)
     self.layout().addWidget(self._button)
+  
+  def connectWithTree(self,tree):
+    Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
 
   def _emitSearch(self):
     text = self._edit.text()
@@ -1237,20 +1267,98 @@ class SearchEdit(Qt.QWidget):
     return
                     
 #####################################################################################
-#####################################################################################                    
 
-if __name__ == "__main__":
+class TaurusSearchTree(TaurusWidget):
+    """
+    This Class is a mere wrapper providing a TaurusDevTree connected with a SearchEdit and some optional checkboxes.
+    """
+    __pyqtSignals__ = list(getattr(TaurusWidget,'__pyqtSignals__',[]))+[
+        "search(QString)",
+        "modelChanged(const QString &)",
+        "deviceSelected(QString)",
+        "addAttrSelected(QStringList)",
+        "removeAttrSelected(QStringList)",
+        "refreshTree",
+        "nodeFound"
+        ]
+    __slots__ = (
+        "setTangoHost",
+        #"setModel",
+        "addModels",
+        "setModelCheck",
+        "loadTree",
+        "setTree",
+        "findInTree",
+        "expandAll",
+        "setFilters",
+        )        
+    
+    @staticmethod
+    def method_forwarder(*args,**kwargs):
+        m,o = kwargs['method'],kwargs['object']
+        print 'Calling %s.%s'%(o,m)
+        getattr(o.__class__,m)(o,*args)
+
+    def defineStyle(self):
+        print('In TaurusSearchTree.defineStyle()')
+        self.setWindowTitle('TaurusDevTree')
+        self.setLayout(Qt.QVBoxLayout())
+        self.edit = SearchEdit(self)
+        self.tree = TaurusDevTree(self)
+        self.layout().addWidget(self.edit)
+        self.layout().addWidget(self.tree)
+        #Slot forwarding ...
+        for k in TaurusDevTree.__dict__.keys():
+            #if k in ['__init__','defineStyle']: continue
+            if k not in self.__slots__: continue
+            try: setattr(self,k,partial(self.method_forwarder,method=k,object=self.tree))
+            except Exception,e: self.warning('Unable to add slot %s(%s): %s'%(k,m,e))
+        #Event forwarding ...
+        for signal in TaurusDevTree.__pyqtSignals__:
+            #Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
+            #self.emit(Qt.SIGNAL("search(QString)"), text)
+            Qt.QObject.connect(self.tree,Qt.SIGNAL(signal),lambda args,f=self,s=signal:f.emit(Qt.SIGNAL(s),args))
+        self.edit.connectWithTree(self)
+        return
+        
+
+#####################################################################################
+
+def taurusDevTreeMain():
     import sys
-    #from taurus.qt.qtgui.application import TaurusApplication
-    app = Qt.QApplication([])
-    args = sys.argv[1:]
-    #args = app.get_command_line_args()
-    #app = TaurusApplication(sys.argv)
-    if not args: args = ['database']
-    form = TaurusDevTree()
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.core.util import argparse
+    
+    if True:
+        app = Qt.QApplication([])
+        args = sys.argv[1:]
+        #args = app.get_command_line_args()
+        #app = TaurusApplication(sys.argv)
+        if not args: args = ['database']
+    else:
+        taurus.setLogLevel(taurus.core.util.Logger.Debug)
+        parser = argparse.get_taurus_parser()
+        parser.set_usage("%prog [options] devname [attrs]")
+        parser.set_description("Taurus Application inspired in Jive and Atk Panel")
+        app = TaurusApplication(cmd_line_parser=parser,app_name="TaurusDevicePanel",
+                                app_version=taurus.Release.version)
+        args = app.get_command_line_args()
+        options = app.get_command_line_options()
+        
+    form = TaurusSearchTree()
+    try:
+        if options.tango_host is None:
+            options.tango_host = taurus.Database().getNormalName()
+        form.setTangoHost(options.tango_host)
+    except: pass
+    
     def trace(m): print(m)
-    [setattr(form,f,trace) for f in ('info','debug','warning','error','trace')]
+    [setattr(form.tree,f,trace) for f in ('info','warning','error','trace')]
     form.setLogLevel('DEBUG')
+    form.tree.setLogLevel('DEBUG')
     form.setModel(args)
     form.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    taurusDevTreeMain()
