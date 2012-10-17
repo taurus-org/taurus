@@ -123,6 +123,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         
         self.updateStyle()
         self.dev_name = dev_name
+        self.setWindowTitle('%s Properties'%dev_name)
         self.resizeColumnsToContents()
         self.resizeRowsToContents()        
         ##Signals @todo
@@ -132,6 +133,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
 
     def defineStyle(self):
         """ Defines the initial style for the widget """
+        self.setWindowTitle('Properties')
         self.setColumnCount(2)
         self.setRowCount(0)
         self.setGeometry(QtCore.QRect(0,0,400,500))
