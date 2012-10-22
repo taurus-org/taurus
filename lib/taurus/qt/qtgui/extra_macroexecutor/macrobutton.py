@@ -200,7 +200,6 @@ class MacroButton(TaurusWidget):
         macro_cmd_xml += '</macro>'
         try:
             #self.door.runMacro(macro_cmd)
-            print 'calling with',macro_cmd_xml
             self.door.runMacro(macro_cmd_xml)
         except Exception,e:
             self.ui.button.setChecked(False)
