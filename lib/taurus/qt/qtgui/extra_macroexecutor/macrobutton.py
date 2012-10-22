@@ -35,6 +35,7 @@ from taurus.qt import Qt
 import taurus
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
+from taurus.qt.qtgui.resource import getIcon
 from taurus.core.util import DEVICE_STATE_PALETTE
 
 import functools
@@ -92,6 +93,7 @@ class MacroButton(TaurusWidget):
         self.ui.progress.setVisible(visible)
 
     def setModel(self, model):
+        TaurusWidget.setModel(self, model)
         if self.door is not None:
             self.disconnect(self.door, Qt.SIGNAL('macroStatusUpdated'), self.statusUpdated)
             self.disconnect(self.door, Qt.SIGNAL('resultUpdated'), self.resultUpdated)
@@ -176,6 +178,9 @@ class MacroButton(TaurusWidget):
             
         self.macro_args[index] = str(value)
 
+    def updateMacroArgumentFromSignal(self, index, obj, signal):
+        self.connect(obj, signal, functools.partial(self.updateMacroArgument,index))
+
     def button_clicked(self):
         if self.ui.button.isChecked():
             self.runMacro()
@@ -212,6 +217,30 @@ class MacroButton(TaurusWidget):
         else:
             self.ui.button.setChecked(True)
             self.door.ResumeMacro()
+
+
+
+class MacroButtonAbortDoor(TaurusWidget):
+    def __init__(self, parent=None, designMode=False):
+        TaurusWidget.__init__(self, parent, designMode)
+        self.btn_abort = Qt.QPushButton(getIcon(':/actions/process-stop.svg'), '')
+        self.door = None
+        self.setLayout(Qt.QGridLayout())
+        self.layout().setContentsMargins(0,0,0,0)
+        self.layout().addWidget(self.btn_abort, 0, 0)
+        self.connect(self.btn_abort, Qt.SIGNAL('clicked()'), self.abort)
+
+    def setModel(self, model):
+        TaurusWidget.setModel(self, model)
+        try: self.door = taurus.Device(model)
+        except: self.door = None
+
+    @ProtectTaurusMessageBox(msg='An error occurred trying to execute the macro.')
+    def abort(self):
+        if self.door is not None:
+            self.door.stopMacro()
+
+
 
 if __name__ == '__main__':
     import sys
@@ -270,16 +299,21 @@ if __name__ == '__main__':
     show_progress.setChecked(True)
     w.layout().addWidget(show_progress, 5, 0)
 
+    mb_abort = MacroButtonAbortDoor()
+    mb_abort.setModel('door/gc/1')
+    w.layout().addWidget(mb_abort, 5, 1)
+
     # Change macro name
     Qt.QObject.connect(macro_name, Qt.SIGNAL('textChanged(QString)'), mb.setMacroName)
     Qt.QObject.connect(macro_name, Qt.SIGNAL('textChanged(QString)'), mb.setButtonText)
 
     # Change Nth macro argument
-    Qt.QObject.connect(arg0, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,0))
-    Qt.QObject.connect(arg1, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,1))
-    Qt.QObject.connect(arg2, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,2))
-    Qt.QObject.connect(arg3, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,3))
-    Qt.QObject.connect(arg4, Qt.SIGNAL('textChanged(QString)'), functools.partial(mb.updateMacroArgument,4))
+    mb.updateMacroArgumentFromSignal(0, arg0, Qt.SIGNAL('textChanged(QString)'))
+    mb.updateMacroArgumentFromSignal(1, arg1, Qt.SIGNAL('textChanged(QString)'))
+    mb.updateMacroArgumentFromSignal(2, arg2, Qt.SIGNAL('textChanged(QString)'))
+    mb.updateMacroArgumentFromSignal(3, arg3, Qt.SIGNAL('textChanged(QString)'))
+    mb.updateMacroArgumentFromSignal(4, arg4, Qt.SIGNAL('textChanged(QString)'))
+
 
     def update_result(result):
         result_label.setText(str(result))
@@ -303,12 +337,9 @@ if __name__ == '__main__':
     macro_name.setText('ascan')
     arg0.setText('gcdmot1')
     arg1.setText('1')
-    arg2.setText('5')
-    arg3.setText('3')
+    arg2.setText('10')
+    arg3.setText('5')
     arg4.setText('0.1')
-
-    #macro_name.setText('twice')
-    #arg0.setText('2')
 
     w.show()
     sys.exit(app.exec_())
