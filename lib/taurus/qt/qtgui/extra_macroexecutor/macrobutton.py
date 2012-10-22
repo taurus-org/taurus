@@ -192,9 +192,16 @@ class MacroButton(TaurusWidget):
         if self.door is None:
             return
 
-        macro_cmd = self.macro_name + ' ' + ' '.join(self.macro_args)
+        # Thanks to gjover for the hint... :-D
+        #macro_cmd = self.macro_name + ' ' + ' '.join(self.macro_args)
+        macro_cmd_xml = '<macro name="%s">\n' % self.macro_name
+        for arg in self.macro_args:
+            macro_cmd_xml += '<param value="%s"/>\n' % arg
+        macro_cmd_xml += '</macro>'
         try:
-            self.door.runMacro(macro_cmd)
+            #self.door.runMacro(macro_cmd)
+            print 'calling with',macro_cmd_xml
+            self.door.runMacro(macro_cmd_xml)
         except Exception,e:
             self.ui.button.setChecked(False)
             raise e
