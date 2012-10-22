@@ -95,19 +95,23 @@ def __init_theme_members():
     res_dir = os.path.dirname(os.path.abspath(__file__))
     theme_icon_dir = os.path.join(res_dir, "tango-icons")
     members = {}
-    for d in os.listdir(theme_icon_dir):
-        abs_dir = os.path.join(theme_icon_dir, d)
-        if d[0] == "." or not os.path.isdir(abs_dir):
-            continue
-        elems = []
-        for elem in os.listdir(abs_dir):
-            abs_elem = os.path.join(abs_dir, elem)
-            idx = elem.rfind(".svg")
-            if elem[0] == "." or idx < 0 or not os.path.isfile(abs_elem):
+    if os.path.isdir(theme_icon_dir):
+        for d in os.listdir(theme_icon_dir):
+            abs_dir = os.path.join(theme_icon_dir, d)
+            if d[0] == "." or not os.path.isdir(abs_dir):
                 continue
-            elems.append(elem[:idx])
-        members[d] = elems
-    
+            elems = []
+            for elem in os.listdir(abs_dir):
+                abs_elem = os.path.join(abs_dir, elem)
+                idx = elem.rfind(".svg")
+                if elem[0] == "." or idx < 0 or not os.path.isfile(abs_elem):
+                    continue
+                elems.append(elem[:idx])
+            members[d] = elems
+    else:
+        __LOGGER.warning('Cannot find dir "%s". Tango-Icon fallback for themed icons will not work',theme_icon_dir)
+        __LOGGER.debug('Please report this error with the following info:\n Theme_Capacity:%s , Qt=%s, PyQt=%s',__THEME_CAPACITY, Qt.QT_VERSION_STR, Qt.PYQT_VERSION_STR)
+        
     __THEME_MEMBERS = members
 
     __INITIALIZED_THEME = True
@@ -168,13 +172,17 @@ def getThemePixmap(key, size=None):
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
 
     global __THEME_CAPACITY
-    if __THEME_CAPACITY and Qt.QIcon.hasThemeIcon(key):
-        size = size or 48
-        return Qt.QIcon.fromTheme(key).pixmap(size, size)
-
+    global __LOGGER
+    if __THEME_CAPACITY:
+        if Qt.QIcon.hasThemeIcon(key):
+            size = size or 48
+            return Qt.QIcon.fromTheme(key).pixmap(size, size)
+        else:
+            __LOGGER.debug('Theme pixmap "%s" not supported. Trying to provide a fallback...',key)
     for member, items in getThemeMembers().items():
         if not key in items: continue
         return getPixmap(":/%s/%s.svg" % (member, key), size)
+    __LOGGER.debug('Theme pixmap "%s" not supported.', key)
     return Qt.QPixmap()
 
 def getThemeIcon(key):
@@ -192,12 +200,16 @@ def getThemeIcon(key):
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
 
     global __THEME_CAPACITY
-    if __THEME_CAPACITY and Qt.QIcon.hasThemeIcon(key):
-        return Qt.QIcon.fromTheme(key)
-
+    global __LOGGER
+    if __THEME_CAPACITY:
+        if Qt.QIcon.hasThemeIcon(key):
+            return Qt.QIcon.fromTheme(key)
+        else:
+            __LOGGER.debug('Theme icon "%s" not supported. Trying to provide a fallback...',key)
     for member, items in getThemeMembers().items():
         if not key in items: continue
         return Qt.QIcon(":/%s/%s.svg" % (member, key))
+    __LOGGER.debug('Theme icon "%s" not supported.', key)
     return Qt.QIcon()
 
 def getStandardIcon(key, widget=None):
