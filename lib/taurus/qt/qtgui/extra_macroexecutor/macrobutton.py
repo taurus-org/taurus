@@ -231,6 +231,7 @@ class MacroButtonAbortDoor(TaurusWidget):
         TaurusWidget.__init__(self, parent, designMode)
         self.btn_abort = Qt.QPushButton(getIcon(':/actions/process-stop.svg'), '')
         self.door = None
+        self.btn_abort.setToolTip('Abort Macro')
         self.setLayout(Qt.QGridLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.layout().addWidget(self.btn_abort, 0, 0)
