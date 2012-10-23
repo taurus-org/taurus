@@ -250,7 +250,7 @@ class MacroButtonAbortDoor(TaurusWidget):
         try: self.door = taurus.Device(model)
         except: self.door = None
 
-    @ProtectTaurusMessageBox(msg='An error occurred trying to execute the macro.')
+    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the macro.')
     def abort(self):
         if self.door is not None:
             self.door.stopMacro()
