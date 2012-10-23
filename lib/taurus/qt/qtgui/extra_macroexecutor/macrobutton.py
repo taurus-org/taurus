@@ -35,7 +35,6 @@ from taurus.qt import Qt
 import taurus
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
-from taurus.qt.qtgui.resource import getIcon
 from taurus.core.util import DEVICE_STATE_PALETTE
 
 import functools
@@ -233,7 +232,7 @@ class MacroButtonAbortDoor(TaurusWidget):
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
 
-        self.btn_abort = Qt.QPushButton(getIcon(':/actions/process-stop.svg'), '')
+        self.btn_abort = Qt.QPushButton('Abort')
         sizePolicy = Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
