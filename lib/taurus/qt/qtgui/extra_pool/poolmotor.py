@@ -1293,7 +1293,8 @@ class PoolMotorTV(TaurusValue):
         btn_text = 'Set ON'
         if poweron:
             btn_text = 'Set OFF'
-        self.labelWidget().btn_poweron.setText(btn_text)
+        try: self.labelWidget().btn_poweron.setText(btn_text)
+        except: pass
 
     def updateStatus(self, status):
         # SHOULD THERE BE A BETTER METHOD FOR THIS UPDATE?
