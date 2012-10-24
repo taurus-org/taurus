@@ -235,7 +235,6 @@ class TaurusDevicePanel(TaurusWidget):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        self.debug('In TaurusDevicePanel.setModel(%s,%s,%s)'%(model,pixmap,self.getIconMap()))
         if not model: return None
         model = str(model).split()[0].strip()
         if issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusAttribute):
@@ -290,15 +289,12 @@ class TaurusDevicePanel(TaurusWidget):
                 qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
                 qmsg.show()
         self.setWindowTitle(self.getModel())
-        self.warning('Out of TaurusDevicePanel.setModel()')
         return
         
     def detach(self):
-        self.warning('In TaurusDevicePanel.dettach()')
         for form in [self._attrs,self._comms]:
             if form is not None: 
                 ch = form.taurusChildren()
-                self.warning('%s: %s'%(form,ch))
                 [m.setModel('') for m in ch]
                 form.setModel([])
         return
