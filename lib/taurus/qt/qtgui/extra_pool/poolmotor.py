@@ -1190,40 +1190,44 @@ class PoolMotorTV(TaurusValue):
         self.motor_dev = None
         TaurusValue.setModel(self, model)
         try:
-            self.motor_dev = taurus.Device(model)
-            # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
+            # FIRST OF ALL TRY TO DISCONNECT ANY PREVIOUS LISTENER...
             if self.limits_listener is not None:
-                self.limits_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
+                self.disconnect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
+            if self.poweron_listener is not None:
+                self.disconnect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
+            if self.status_listener is not None:
+                self.disconnect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
+            if self.position_listener is not None:
+                self.disconnect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
+
+            self.motor_dev = taurus.Device(model)
+            
+            # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
             self.limits_listener = TaurusAttributeListener()
             if self.hasHwLimits():
                 self.connect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
                 self.motor_dev.getAttribute('Limit_Switches').addListener(self.limits_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO PROVIDE POWERON <- True/False EXPERT OPERATION
-            if self.poweron_listener is not None:
-                self.poweron_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.poweron_listener = TaurusAttributeListener()
             if self.hasPowerOn():
                 self.connect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
                 self.motor_dev.getAttribute('PowerOn').addListener(self.poweron_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO UPDATED STATUS TOOLTIP
-            if self.status_listener is not None:
-                self.status_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.status_listener = TaurusAttributeListener()
             self.connect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
             self.motor_dev.getAttribute('Status').addListener(self.status_listener)
             
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO ACTIVATE LIMIT BUTTONS ON SOFTWARE LIMITS
-            if self.position_listener is not None:
-                self.position_listener.disconnect(self, Qt.SIGNAL('eventReceived(PyQt_PyObject)'))
             self.position_listener = TaurusAttributeListener()
             self.connect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
             self.motor_dev.getAttribute('Position').addListener(self.position_listener)
             
+            self.motor_dev.getAttribute('Position').enablePolling(force=True)
+
             self.setExpertView(self._expertView)
         except Exception,e:
-            print e
             return
 
     def hasPowerOn(self):
@@ -1320,15 +1324,15 @@ class PoolMotorTV(TaurusValue):
         taurus_attr_form.setWindowTitle('%s Tango Attributes'%taurus.Factory().getDevice(model).getSimpleName())
         taurus_attr_form.show()
         
-    def showEvent(self, event):
-        TaurusValue.showEvent(self, event)
-        if self.motor_dev is not None:
-            self.motor_dev.getAttribute('Position').enablePolling(force=True)
-
-    def hideEvent(self, event):
-        TaurusValue.hideEvent(self, event)
-        if self.motor_dev is not None:
-            self.motor_dev.getAttribute('Position').disablePolling()
+    ### def showEvent(self, event):
+    ###     TaurusValue.showEvent(self, event)
+    ###     if self.motor_dev is not None:
+    ###         self.motor_dev.getAttribute('Position').enablePolling(force=True)
+    ### 
+    ### def hideEvent(self, event):
+    ###     TaurusValue.hideEvent(self, event)
+    ###     if self.motor_dev is not None:
+    ###         self.motor_dev.getAttribute('Position').disablePolling()
 
 ###################################################
 # A SIMPLER WIDGET THAT MAY BE USED OUTSIDE FORMS #
