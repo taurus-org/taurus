@@ -97,7 +97,7 @@ class PoolMotorClient():
         try:
             min_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().min_value
             neg_limit = float(min_value)
-        except Exception,e:
+        except Exception:
             pass
         self.moveMotor(neg_limit)
 
@@ -110,7 +110,7 @@ class PoolMotorClient():
         try:
             max_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().max_value
             pos_limit = float(max_value)
-        except Exception,e:
+        except Exception:
             pass
         self.moveMotor(pos_limit)
 
@@ -134,7 +134,7 @@ class LabelWidgetDragsDeviceAndAttribute(DefaultLabelWidget):
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
-        dropAction = drag.start(Qt.Qt.CopyAction)
+        drag.start(Qt.Qt.CopyAction)
 
 class PoolMotorConfigurationForm(TaurusAttrForm):
 
@@ -600,12 +600,13 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-        ret['group'] = 'Taurus Extra Sardana'
-        ret['icon'] = ':/designer/extra_pool.png'
-        ret['container'] = False
-        return ret
+        return None
+#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+#        ret['group'] = 'Taurus Sardana'
+#        ret['icon'] = ':/designer/extra_pool.png'
+#        ret['container'] = False
+#        return ret
 
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)
@@ -746,7 +747,7 @@ class TaurusAttributeListener(Qt.QObject):
         if evt_type not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]:
             return
         value = evt_value.value
-        self.emit(Qt.SIGNAL('eventReceived(PyQt_PyObject)'), value)
+        self.emit(Qt.SIGNAL('eventReceived'), value)
 
 
 ##################################################
@@ -859,7 +860,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
-        dropAction = drag.start(Qt.Qt.CopyAction)
+        drag.start(Qt.Qt.CopyAction)
 
 ##################################################
 #                   READ WIDGET                  #
@@ -1187,47 +1188,61 @@ class PoolMotorTV(TaurusValue):
         return None #@todo: UGLY HACK to avoid subwidgets being forced to minimumheight=20
             
     def setModel(self, model):
-        self.motor_dev = None
         TaurusValue.setModel(self, model)
         try:
-            # FIRST OF ALL TRY TO DISCONNECT ANY PREVIOUS LISTENER...
+            # disconnect signals
             if self.limits_listener is not None:
-                self.disconnect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
+                self.disconnect(self.limits_listener, Qt.SIGNAL('eventReceived'), self.updateLimits)
             if self.poweron_listener is not None:
-                self.disconnect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
+                self.disconnect(self.poweron_listener, Qt.SIGNAL('eventReceived'), self.updatePowerOn)
             if self.status_listener is not None:
-                self.disconnect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
+                self.disconnect(self.status_listener, Qt.SIGNAL('eventReceived'), self.updateStatus)
             if self.position_listener is not None:
-                self.disconnect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
-
+                self.disconnect(self.position_listener, Qt.SIGNAL('eventReceived'), self.updatePosition)
+            
+            #remove listeners
+            if self.motor_dev is not None:
+                if self.hasHwLimits():
+                    self.motor_dev.getAttribute('Limit_Switches').removeListener(self.limits_listener)
+                if self.hasPowerOn():
+                    self.motor_dev.getAttribute('PowerOn').removeListener(self.poweron_listener)
+                self.motor_dev.getAttribute('Status').removeListener(self.status_listener)
+                self.motor_dev.getAttribute('Position').removeListener(self.position_listener)
+            
+            if model == '' or model is None:
+                self.motor_dev = None
+                return
+            
             self.motor_dev = taurus.Device(model)
             
             # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
             self.limits_listener = TaurusAttributeListener()
             if self.hasHwLimits():
-                self.connect(self.limits_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateLimits)
+                self.connect(self.limits_listener, Qt.SIGNAL('eventReceived'), self.updateLimits)
                 self.motor_dev.getAttribute('Limit_Switches').addListener(self.limits_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO PROVIDE POWERON <- True/False EXPERT OPERATION
             self.poweron_listener = TaurusAttributeListener()
             if self.hasPowerOn():
-                self.connect(self.poweron_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePowerOn)
+                self.connect(self.poweron_listener, Qt.SIGNAL('eventReceived'), self.updatePowerOn)
                 self.motor_dev.getAttribute('PowerOn').addListener(self.poweron_listener)
 
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO UPDATED STATUS TOOLTIP
             self.status_listener = TaurusAttributeListener()
-            self.connect(self.status_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updateStatus)
+            self.connect(self.status_listener, Qt.SIGNAL('eventReceived'), self.updateStatus)
             self.motor_dev.getAttribute('Status').addListener(self.status_listener)
             
             # CONFIGURE AN EVENT RECEIVER IN ORDER TO ACTIVATE LIMIT BUTTONS ON SOFTWARE LIMITS
             self.position_listener = TaurusAttributeListener()
-            self.connect(self.position_listener, Qt.SIGNAL('eventReceived(PyQt_PyObject)'), self.updatePosition)
+            self.connect(self.position_listener, Qt.SIGNAL('eventReceived'), self.updatePosition)
             self.motor_dev.getAttribute('Position').addListener(self.position_listener)
             
             self.motor_dev.getAttribute('Position').enablePolling(force=True)
 
             self.setExpertView(self._expertView)
         except Exception,e:
+            self.warning("Exception caught while setting model: %s",repr(e))
+            self.motor_dev = None
             return
 
     def hasPowerOn(self):
@@ -1238,7 +1253,7 @@ class PoolMotorTV(TaurusValue):
         try: return hasattr(self.motor_dev, 'Limit_Switches')
         except: return False
 
-    def updateLimits(self, limits):
+    def updateLimits(self, limits, position=None):
         if isinstance(limits, dict): limits = limits["limits"]
         limits = list(limits)
         HOME = 0
@@ -1248,17 +1263,18 @@ class PoolMotorTV(TaurusValue):
         # Check also if the software limit is 'active'
         if self.motor_dev is not None:
             position_attribute = self.motor_dev.getAttribute('Position')
-            pos = position_attribute.read().value
+            if position is None:
+                position = position_attribute.read().value
             max_value_str = position_attribute.max_value
             min_value_str = position_attribute.min_value
             try:
                 max_value = float(max_value_str)
-                limits[POS] = limits[POS] or (pos >= max_value)
+                limits[POS] = limits[POS] or (position >= max_value)
             except:
                 pass
             try:
                 min_value = float(min_value_str)
-                limits[NEG] = limits[NEG] or (pos <= min_value)
+                limits[NEG] = limits[NEG] or (position <= min_value)
             except:
                 pass
             
@@ -1293,8 +1309,8 @@ class PoolMotorTV(TaurusValue):
         btn_text = 'Set ON'
         if poweron:
             btn_text = 'Set OFF'
-        try: self.labelWidget().btn_poweron.setText(btn_text)
-        except: pass
+        self.labelWidget().btn_poweron.setText(btn_text)
+        
 
     def updateStatus(self, status):
         # SHOULD THERE BE A BETTER METHOD FOR THIS UPDATE?
@@ -1311,7 +1327,7 @@ class PoolMotorTV(TaurusValue):
             limit_switches = [False, False, False]
             if self.hasHwLimits():
                 limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
-            self.updateLimits(limit_switches)
+            self.updateLimits(limit_switches, position=position)
         
     def hasEncoder(self):
         try: return hasattr(self.motor_dev, 'Encoder')
