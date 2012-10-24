@@ -172,23 +172,8 @@ requires = [
     'spyder (>=2.1)',         # shell, editor
 ]
 
-def get_resource_package_data():
-    data = ['*.rcc']
-    import PyQt4.Qt
-    if not hasattr(PyQt4.Qt.QIcon, "fromTheme"):
-        tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
-                                  'tango-icons')
-        for tango_icon_item in os.listdir(tango_icons_dir):
-            if tango_icon_item.startswith("."):
-                continue
-            abs_item = os.path.join(tango_icons_dir, tango_icon_item)
-            if not os.path.isdir(abs_item):
-                continue
-            data.append('tango-icons/%s/*' % tango_icon_item)
-    return data
- 
 package_data = { 
-    'taurus.qt.qtgui.resource' : get_resource_package_data(),
+    'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template', 
                                   'tauruswidget_qtdesignerplugin_template'],
     'taurus.qt.uic'            : ['pyuic4/*'],
@@ -384,7 +369,8 @@ class build(dftbuild):
     user_options = dftbuild.user_options + \
         [('logo=', None, "alternative logo file (default is taurus.png)"),
          ('with-extra-widgets', None, "distribute extra widgets"),
-         ('no-doc', None, "do not build documentation")]
+         ('no-doc', None, "do not build documentation"),
+         ('with-tango-icons', None, "add Tango icons too (not just *.rcc files)")]
 
     boolean_options = dftbuild.boolean_options + ['with-extra-widgets', 'no-doc']
 
@@ -393,6 +379,7 @@ class build(dftbuild):
         self.logo = None
         self.doc_fmt = None
         self.no_doc = None
+        self.with_tango_icons = None
         self.with_extra_widgets = True
 
     def finalize_options (self):
@@ -403,7 +390,7 @@ class build(dftbuild):
     def run(self):
         if self.with_extra_widgets:
             self.distribution.packages.extend(extra_packages)
-
+        self.distribution.package_data['taurus.qt.qtgui.resource'].extend(self.get_extra_resource_package_data())
         dftbuild.run(self)
 
     def has_doc(self):
@@ -416,6 +403,21 @@ class build(dftbuild):
 
     def has_resources(self):
         return os.path.isdir(abspath('lib','taurus','qt','qtgui','resource'))
+    
+    def get_extra_resource_package_data(self):
+        data = []
+        import PyQt4.Qt
+        if self.with_tango_icons or not hasattr(PyQt4.Qt.QIcon, "fromTheme"):
+            tango_icons_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource',
+                                      'tango-icons')
+            for tango_icon_item in os.listdir(tango_icons_dir):
+                if tango_icon_item.startswith("."):
+                    continue
+                abs_item = os.path.join(tango_icons_dir, tango_icon_item)
+                if not os.path.isdir(abs_item):
+                    continue
+                data.append('tango-icons/%s/*' % tango_icon_item)
+        return data
 
     sub_commands = [('build_resources', has_resources)] + \
                    dftbuild.sub_commands + \
@@ -522,7 +524,7 @@ class install(dftinstall):
         if self.no_doc:
             return False
         return sphinx is not None
-    
+        
     sub_commands = list(dftinstall.sub_commands)
     sub_commands.append(('install_man', has_man))
     sub_commands.append(('install_html', has_html))
