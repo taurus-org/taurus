@@ -94,14 +94,12 @@ class TaurusEncodedImageItem(TaurusImageItem):
             pass
 
     def set_data(self, data, lut_range=None, **kwargs):
-        '''reimplementation to decode data before to pass to 
+        '''reimplementation to decode data before passing it to 
            TaurusImageItem implementation'''
         if type(data) == tuple:
             from taurus.core.util import CodecFactory
             codec = CodecFactory().getCodec(data[0])
             format,decoded_data = codec.decode(data)
-#            decoded_data = decoded_data[32:]
-            h,w=decoded_data.shape
             TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)
 
 class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
