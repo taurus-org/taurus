@@ -29,68 +29,31 @@ This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations.
 """
 
+__all__ = ["TaurusConsoleApplication"]
+
 __docformat__ = 'restructuredtext'
 
+
+from taurus.qt import Qt
+
 from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-from IPython.lib.kernel import find_connection_file
-
-from taurusconsolewidget import TaurusConsoleWidget
-
+     
 
 class TaurusConsoleApplication(IPythonQtConsoleApp):
 
     name='taurusconsole'
 
-    def __init__(self, *args, **kwargs):
-        super(TaurusConsoleApplication, self).__init__(*args, **kwargs)
-        self.widget_factory = TaurusConsoleWidget
-
     def init_qt_elements(self):
-        pass
+        self.app = Qt.QApplication.instance()
+        self.app.icon = Qt.QIcon()
 
     def init_signal(self):
         pass
 
-    def new_frontend_from_existing(self):
-        """Create and return new frontend from connection file basename"""
-        cf = find_connection_file(self.existing, profile=self.profile)
-        kernel_manager = self.kernel_manager_class(connection_file=cf,
-                                                   config=self.config)
-        kernel_manager.load_connection_file()
-        kernel_manager.start_channels()
-        widget = self.widget_factory(config=self.config, local_kernel=False)
-        widget._existing = True
-        widget._may_close = False
-        widget._confirm_exit = False
-        widget.kernel_manager = kernel_manager
+    def init_kernel_manager(self):
+        # avoid starting a default kernel 
+        self.kernel_manager = None
 
-#        widget.exit_requested.connect(self.close_tab)
-
-        return widget
-
-
-def main(argv=None):
-    import taurus.core.util.argparse
-    import taurus.qt.qtgui.application
     
-    targp = taurus.core.util.argparse
-    
-    if argv is None:
-        import sys
-        argv = sys.argv
-
-    parser = targp.get_taurus_parser()
-    taurus_args, ipython_args = targp.split_taurus_args(parser, args=argv)
-
-    app = taurus.qt.qtgui.application.TaurusApplication(taurus_args,
-                                                        cmd_line_parser=parser)
-    iapp = app.create_ipython_application(ipython_args)
-
-    w = iapp.new_frontend_from_existing()
-    w.show()
-
-    app.exec_()
 
 
-if __name__ == '__main__':
-    main()

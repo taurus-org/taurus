@@ -30,10 +30,7 @@ __all__ = ["TaurusConsoleWidget"]
 __docformat__ = 'restructuredtext'
 
 from IPython.utils.traitlets import Unicode
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-
-from taurus.qt import Qt
 
 default_gui_banner = """\
 Taurus console -- An enhanced IPython console for taurus.
@@ -50,79 +47,13 @@ class TaurusConsoleWidget(RichIPythonWidget):
 
     banner = Unicode(config=True)
 
-    def __init__(self, *args, **kwargs):
-        super(TaurusConsoleWidget, self).__init__(*args, **kwargs)
-
     #------ Trait default initializers ---------------------------------------
     def _banner_default(self):
-        return default_gui_banner
-
-
-def new_frontend_widget(iapp=None, from_kernel_manager=None, args=None):
-    """Create and return new frontend attached to new kernel,
-    launched on localhost."""
-
-    is_master = from_kernel_manager is None
-
-    if iapp is None:
-        import taurus.core.util.argparse
-        import taurus.qt.qtgui.application
-        qt_app = taurus.qt.qtgui.application.TaurusApplication.instance()
-        if qt_app is None:
-            qt_app = taurus.qt.qtgui.application.TaurusApplication()
-        parser = qt_app.get_command_line_parser()
-        taurus_args, ipython_args = taurus.core.util.argparse.split_taurus_args(parser, args=args)
-        iapp = qt_app.create_ipython_application(ipython_args)
-
-    config = iapp.config
-
-    km_kwargs = dict(config=config)
-    if is_master:
-        km_kwargs['ip'] = iapp.ip if iapp.ip in LOCAL_IPS else LOCALHOST
-        km_kwargs['connection_file'] = iapp._new_connection_file()
-    else:
-        km_kwargs['connection_file'] = from_kernel_manager.connection_file
-
-    kernel_manager = iapp.kernel_manager_class(**km_kwargs)
-
-    if is_master:
-        print kernel_manager.start_kernel(ipython=not iapp.pure,
-                                    extra_arguments=iapp.kernel_argv)
-    else:
-        kernel_manager.load_connection_file()
-    kernel_manager.start_channels()
-    
-    widget = iapp.widget_factory(config=config, local_kernel=is_master)
-    iapp.init_colors(widget)
-    widget.kernel_manager = kernel_manager
-    widget._existing = not is_master
-    widget._may_close = False
-    widget._confirm_exit = iapp.confirm_exit
-    return widget
-
-
-def TaurusConsole(args=None):
-    return new_frontend_widget(args=args)
-
-def main(argv=None):
-    import taurus.core.util.argparse
-    import taurus.qt.qtgui.application
-
-    targp = taurus.core.util.argparse
-
-    if argv is None:
-        import sys
-        argv = sys.argv
-
-    parser = targp.get_taurus_parser()
-    taurus_args, ipython_args = targp.split_taurus_args(parser, args=argv)
-
-    app = taurus.qt.qtgui.application.TaurusApplication(taurus_args,
-                                                        cmd_line_parser=parser)
-    w = TaurusConsole()
-    w.show()
-
-    app.exec_()
-
-if __name__ == "__main__":
-    main()
+        banner = default_gui_banner
+        if 'TerminalInteractiveShell' in self.config:
+            shell = self.config.TerminalInteractiveShell
+            if 'banner' in shell:
+                banner = shell.banner
+            elif 'banner1' in shell and 'banner2' in shell:
+                banner = "\n".join((shell.banner1, shell.banner2))
+        return banner
