@@ -82,9 +82,9 @@ class TangoConsoleExtension(BaseConsoleExtension):
     
     def __init__(self, app, config=None):
         if config is None:
-            self.config = config = Config()
-            import PyTango.ipython
-            PyTango.ipython.load_config(config)
+            config = Config()
+        import PyTango.ipython
+        PyTango.ipython.load_config(config)
         super(TangoConsoleExtension, self).__init__(app, profile='tango', config=config)
     
     @classmethod
@@ -101,13 +101,16 @@ class SardanaConsoleExtension(BaseConsoleExtension):
     Name = 'spock'
     Label = 'Spock'
     
+    def fill_sardana_config(self, config):
+        import sardana.spock
+        config.Spock.macro_server_name = 'pc151:10000/MacroServer/v3/1'
+        config.Spock.door_name = 'pc151:10000/Door/v3/1'
+        sardana.spock.load_config(config)
+    
     def __init__(self, app, config=None):
         if config is None:
-            self.config = config = Config()
-            import sardana.spock
-            config.Spock.macro_server_name = 'pc151:10000/MacroServer/v3/1'
-            config.Spock.door_name = 'pc151:10000/Door/v3/1'
-            sardana.spock.load_config(config)
+            config = Config()
+        self.fill_sardana_config(config)
         super(SardanaConsoleExtension, self).__init__(app, profile='spockdoor', config=config)
     
     @classmethod
