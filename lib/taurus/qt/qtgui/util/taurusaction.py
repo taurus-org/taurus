@@ -57,7 +57,8 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         if isinstance(cmdargs, (basestring, Qt.QString)):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
-        if text is None: text = os.path.basename(cmdargs[0])
+        self.path = os.path.realpath(cmdargs and cmdargs[0] or '')
+        if text is None: text = os.path.basename(cmdargs and cmdargs[0] or '')
         if icon is None:
             icon = getThemeIcon(self.DEFAULT_ICON_NAME)
         elif isinstance(icon,basestring):
@@ -66,7 +67,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
 
         Qt.QAction.__init__(self, Qt.QIcon(icon), text, parent)
         BaseConfigurableClass.__init__(self)
-        
+        self._process = []
         self.setCmdArgs(cmdargs)
         self.connect(self, Qt.SIGNAL("triggered()"), self.actionTriggered)
         self.setToolTip("Launches %s (external application)"%text)
@@ -91,26 +92,46 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
     def cmdArgs(self):
         return self.__cmdargs
         
+    #def trigger(self,args=''):
+        #if args: self.setCmdArgs(args) #self.cmdArgs.append(args)
+        #Qt.QAction.trigger(self)
     
     @Qt.pyqtSignature("triggered()")
-    def actionTriggered(self):
+    def actionTriggered(self,args=None):
         '''launches the external application as a subprocess'''
         import subprocess
         try:
-            subprocess.Popen(self.cmdArgs())
+            if args is not None:
+                if isinstance(args, (basestring, Qt.QString)):
+                    import shlex
+                    args = shlex.split(str(args))
+                args = self.cmdArgs()+args
+            else: 
+                args = self.cmdArgs()
+            self._process.append(subprocess.Popen(args))
         except OSError:
             Qt.QMessageBox.warning(self.parentWidget(), "Error launching %s"%unicode(self.text()),
                                    "Cannot launch application:\n"+
                                    " ".join(self.__cmdargs) +
                                    "\nHint: Check that %s is installed and in the path"%unicode(self.text())
                                    )
+    
+    def kill(self):
+        #Kills all processes opened by this application
+        [p.kill() for p in self._process]
+                                   
     def check(self):
         '''Returns True if the application is available for executing
         
         :return: (bool)
         '''
-        raise NotImplementedError  #@todo: implement a checker (check if self.cmdargs[0] is in the execution path and is executable
-
+        #raise NotImplementedError  #@todo: implement a checker (check if self.cmdargs[0] is in the execution path and is executable
+        path = os.path.realpath(self.cmdArgs()[0])
+        try: 
+            os.stat(path)
+            return True
+        except:
+            return False
 
 class TaurusMenu(Qt.QMenu):
     """Base class for Taurus Menus"""
