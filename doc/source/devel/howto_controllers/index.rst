@@ -3,7 +3,7 @@
 .. _pool-controller-howto:
 
 ==============================================================================
-Writting Controllers
+Writting controllers
 ==============================================================================
 
 This chapter provides the necessary information to write controllers in sardana.

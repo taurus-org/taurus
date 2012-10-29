@@ -31,7 +31,7 @@ from __future__ import print_function
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
            "MacroFinder", "Macro", "macro", "iMacro", "imacro",
-           "MacroFunc", "Type", "ParamRepeat", "Table", "List"]
+           "MacroFunc", "Type", "ParamRepeat", "Table", "List", "ViewOption"]
 
 __docformat__ = 'restructuredtext'
 
@@ -57,6 +57,7 @@ from sardana.sardanadefs import State
 from msparameter import Type, ParamType, ParamRepeat
 from msexception import StopException, AbortException, \
     MacroWrongParameterType, UnknownEnv, UnknownMacro
+from msoptions import ViewOption
 
 asyncexc = ctypes.pythonapi.PyThreadState_SetAsyncExc
 # first define the async exception function args. This is
@@ -763,6 +764,12 @@ class Macro(Logger):
         *kwargs* are the same as :func:`print`. Example::
 
             self.print("this is a print for macro", self.getName())
+            
+        .. note::
+            you will need python >= 3.0. If you have python 2.x then you must
+            include at the top of your file the statement::
+            
+                from __future__ import print_function
         """
         fd = kwargs.get('file', sys.stdout)
         if fd in (sys.stdout, sys.stderr):
@@ -1180,7 +1187,8 @@ class Macro(Logger):
         par0 = args[0]
         if len(args) == 1:
             if type(par0) in types.StringTypes :
-                args = par0.split(' ')
+                args = par0.split()
+                
             elif operator.isSequenceType(par0):
                 args = par0
         args = map(str, args)
@@ -1728,6 +1736,28 @@ class Macro(Logger):
             objects for the reloaded libraries
         :rtype: seq<:class:`~sardana.macroserver.metamacro.MacroLibrary`\>"""
         return self.door.reload_macro_libs(lib_names)
+        
+    @mAPI
+    def getViewOption(self, name):
+        return self._getViewOptions()[name]
+    
+    @mAPI
+    def getViewOptions(self):
+        return self._getViewOptions()
+
+    @mAPI
+    def setViewOption(self, name, value):
+        vo = self._getViewOptions()
+        vo[name] = value
+        self.setEnv('_ViewOptions', vo)
+    
+    @mAPI
+    def resetViewOption(self, name):
+        vo = self._getViewOptions()
+        ViewOption.reset_option(vo, name)
+        self.setEnv('_ViewOptions', vo)
+        return vo.get(name)
+    
     #@}
 
     ## @name Unofficial Macro API
@@ -1739,6 +1769,15 @@ class Macro(Logger):
     #  consider informing the MacroServer developer so he may expose this in a
     #  safe way.
     #@{
+    
+    def _getViewOptions(self):
+        try:
+            vo = self.getEnv('_ViewOptions')
+        except UnknownEnv:
+            import msoptions
+            vo = ViewOption.init_options(dict())
+            self.setEnv('_ViewOptions', vo)
+        return vo
 
     def _input(self, msg, *args, **kwargs):
         """**Unofficial Macro API**.

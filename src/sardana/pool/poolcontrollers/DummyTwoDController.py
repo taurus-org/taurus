@@ -2,7 +2,7 @@
 ##
 ## This file is part of Sardana
 ##
-## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+## http://www.tango-controls.org/static/sardana/latest/doc/html/axisex.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
@@ -22,20 +22,53 @@
 ##############################################################################
 
 import time
+import numpy
+
 from sardana import State
-from sardana.pool.controller import TwoDController
+from sardana.pool.controller import TwoDController, MaxDimSize
 from sardana.pool import AcqTriggerType
+
+def gauss(x, mean, ymax, fwhm, yoffset=0):
+    return yoffset + ymax*numpy.power(2,-4*((x-mean)/fwhm)**2)
 
 class Channel:
     
     def __init__(self,idx):
-        self.idx = idx            # 1 based index
+        self.idx = idx            # 1 based axisex
         self.value = []
         self.is_counting = False
         self.active = True
-        
+        self.amplitude = BaseValue('1.0')
+
+
+class BaseValue(object):
+    
+    def __init__(self, value):
+        self.raw_value = value
+        self.init()
+    
+    def init(self):
+        self.value = float(self.raw_value)
+    
+    def get(self):
+        return self.value
+
+    def get_value_name(self):
+        return self.raw_value
+
+
+class TangoValue(BaseValue):
+    
+    def init(self):
+        import PyTango
+        self.attr_proxy = PyTango.AttributeProxy(self.raw_value)
+
+    def get(self):
+        return self.attr_proxy.read().value
+
+
 class DummyTwoDController(TwoDController):
-    "This class is the Tango Sardana TwoDController controller for tests"
+    "This class is the Tango Sardana OneDController controller for tests"
 
     gender = "Simulation"
     model  = "Basic"
@@ -43,15 +76,28 @@ class DummyTwoDController(TwoDController):
 
     MaxDevice = 1024
     
-    StoppedMode = 0
-    TimerMode = 1
-    MonitorMode = 2
-    CounterMode = 3
+    BufferSize = 1024, 1024
 
+    axis_attributes = {
+        'Amplitude' : { 
+            'type' : str,
+            'fget' : 'getAmplitude', 
+            'fset' : 'setAmplitude',        
+            'description' : 'Amplitude. Maybe a number or a tango attribute(must start with tango://)',
+            'defaultvalue': '1.0' },
+    }
+    
     def __init__(self, inst, props, *args, **kwargs):
         TwoDController.__init__(self, inst, props, *args, **kwargs)
         self.channels = self.MaxDevice*[None,]
         self.reset()
+
+    def GetAxisAttributes(self, axis):
+        # the default max shape for 'value' is (16*1024,). We don't need so much
+        # so we set it to BufferSize
+        attrs = super(DummyOneDController, self).GetAxisAttributes(axis)
+        attrs['Value'][MaxDimSize] = self.BufferSize
+        return attrs
         
     def reset(self):
         self.start_time = None
@@ -60,110 +106,115 @@ class DummyTwoDController(TwoDController):
         self.read_channels = {}
         self.counting_channels = {}
         
-    def AddDevice(self,ind):
-        idx = ind - 1
-        self.channels[idx] = Channel(ind)
+    def AddDevice(self,axis):
+        idx = axis - 1
+        self.channels[idx] = channel = Channel(axis)
+        channel.value = numpy.zeros(self.BufferSize, dtype=numpy.float64)
         
-    def DeleteDevice(self,ind):
-        idx = ind - 1
+    def DeleteDevice(self,axis):
+        idx = axis - 1
         self.channels[idx] = None
 
     def PreStateAll(self):
         pass
     
-    def PreStateOne(self, ind):
+    def PreStateOne(self, axis):
         pass
     
     def StateAll(self):
         pass
     
-    def StateOne(self, ind):
-        idx = ind - 1
+    def StateOne(self, axis):
+        idx = axis - 1
         sta = State.On
         status = "Stopped"
-        if ind in self.counting_channels:
+        if axis in self.counting_channels:
             channel = self.channels[idx]
             now = time.time()
             elapsed_time = now - self.start_time
-            self._updateChannelState(ind, elapsed_time)
+            self._updateChannelState(axis, elapsed_time)
             if channel.is_counting:
                 sta = State.Moving
                 status = "Acquiring"
         return sta, status
         
-    def _updateChannelState(self, ind, elapsed_time):
-        channel = self.channels[ind-1]
+    def _updateChannelState(self, axis, elapsed_time):
+        channel = self.channels[axis-1]
         if self.integ_time is not None:
             # counting in time
             if elapsed_time >= self.integ_time:
                 self._finish(elapsed_time)
         elif self.monitor_count is not None:
             # monitor counts
-            v = int(elapsed_time*100*ind)
+            v = int(elapsed_time*100*axis)
             if v >= self.monitor_count:
                 self._finish(elapsed_time)
     
-    def _updateChannelValue(self, ind, elapsed_time):
-        channel = self.channels[ind-1]
+    def _updateChannelValue(self, axis, elapsed_time):
+        channel = self.channels[axis-1]
         t = elapsed_time
         if self.integ_time is not None and not channel.is_counting:
             t = self.integ_time
-        channel.value = (100 * ind * t) * numpy.random.random(size=(1024, 1024))
+        x = numpy.linspace(-10, 10, self.BufferSize[0])
+        y = numpy.linspace(-10, 10, self.BufferSize[1])
+        x, y = numpy.meshgrid(x, y)
+        amplitude = axis * t * channel.amplitude.get()
+        channel.value = gauss(x, 0, amplitude, 4) * gauss(y, 0, amplitude, 4)
     
-    def _finish(self, elapsed_time, ind=None):
-        if ind is None:
-            for ind, channel in self.counting_channels.items():
+    def _finish(self, elapsed_time, axis=None):
+        if axis is None:
+            for axis, channel in self.counting_channels.items():
                 channel.is_counting = False
-                self._updateChannelValue(ind, elapsed_time)
+                self._updateChannelValue(axis, elapsed_time)
         else:
-            if ind in self.counting_channels:
-                channel = self.counting_channels[ind]
+            if axis in self.counting_channels:
+                channel = self.counting_channels[axis]
                 channel.is_counting = False
-                self._updateChannelValue(ind, elapsed_time)
+                self._updateChannelValue(axis, elapsed_time)
             else:
-                channel = self.channels[ind-1]
+                channel = self.channels[axis-1]
                 channel.is_counting = False
         self.counting_channels = {}
                 
     def PreReadAll(self):
         self.read_channels = {}
     
-    def PreReadOne(self,ind):
-        channel = self.channels[ind-1]
-        self.read_channels[ind] = channel
+    def PreReadOne(self,axis):
+        channel = self.channels[axis-1]
+        self.read_channels[axis] = channel
 
     def ReadAll(self):
         # if in acquisition then calculate the values to return
         if self.counting_channels:
             now = time.time()
             elapsed_time = now - self.start_time
-            for ind, channel in self.read_channels.items():
-                self._updateChannelState(ind, elapsed_time)
+            for axis, channel in self.read_channels.items():
+                self._updateChannelState(axis, elapsed_time)
                 if channel.is_counting:
-                    self._updateChannelValue(ind, elapsed_time)
+                    self._updateChannelValue(axis, elapsed_time)
     
-    def ReadOne(self, ind):
-        v = self.read_channels[ind].value
+    def ReadOne(self, axis):
+        v = self.read_channels[axis].value
         return v
     
     def PreStartAll(self):
         self.counting_channels = {}
     
-    def PreStartOne(self, ind):
-        idx = ind - 1
+    def PreStartOne(self, axis, value):
+        idx = axis - 1
         channel = self.channels[idx]
         channel.value = 0.0
-        self.counting_channels[ind] = channel
+        self.counting_channels[axis] = channel
         return True
     
-    def StartOne(self, ind):
-        self.counting_channels[ind].is_counting = True
+    def StartOne(self, axis, value):
+        self.counting_channels[axis].is_counting = True
     
     def StartAll(self):
         self.start_time = time.time()
     
-    def LoadOne(self, ind, value):
-        idx = ind - 1
+    def LoadOne(self, axis, value):
+        idx = axis - 1
         if value > 0:
             self.integ_time = value
             self.monitor_count = None
@@ -171,9 +222,23 @@ class DummyTwoDController(TwoDController):
             self.integ_time = None
             self.monitor_count = -value
     
-    def AbortOne(self, ind):
+    def AbortOne(self, axis):
         now = time.time()
-        if ind in self.counting_channels:
+        if axis in self.counting_channels:
             elapsed_time = now - self.start_time
-            self._finish(elapsed_time, ind=ind)
-            
+            self._finish(elapsed_time, axis=axis)
+    
+    def getAmplitude(self, axis):
+        idx = axis - 1
+        channel = self.channels[idx]
+        return channel.amplitude.get_value_name()
+    
+    def setAmplitude(self, axis, value):
+        idx = axis - 1
+        channel = self.channels[idx]
+        
+        klass = BaseValue
+        if value.startswith("tango://"):
+            klass = TangoValue
+        channel.amplitude = klass(value) 
+        

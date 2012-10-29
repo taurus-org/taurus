@@ -1,7 +1,10 @@
+.. currentmodule:: sardana.macroserver.macro
 
-============
-Macros Howto
-============
+.. _macroserver-macro-howto:
+
+================
+Writting macros
+================
 
 
 .. toctree::

@@ -120,7 +120,7 @@ class MotorParam(AttrParamType):
 
 def __build_base_types():
     for sardana_type, info in INTERFACES.items():
-        bases, doc = info
+        _, doc = info
         class _I(ElementParamInterface):
             __doc__ = doc
             __name__ = sardana_type

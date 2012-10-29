@@ -578,6 +578,8 @@ class BasicDummyMotorController(MotorController):
         idx = axis - 1
         self.m[idx].abortMotion()
 
+    def SendToCtrl(self, stream):
+        return stream
 
 class FastDummyMotorController(MotorController):
 

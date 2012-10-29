@@ -1005,6 +1005,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
     # Tell console everything is ready.
     config.Spock.ready = True
+    return config
 
 def start(user_ns=None):
     # Make sure the log level is changed to warning
@@ -1089,22 +1090,22 @@ def prepare_cmdline(argv=None):
         argv.append("--profile=" + profile)
 
 
-from IPython.utils.traitlets import Unicode
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-
-class SpockConsole(RichIPythonWidget):
-    
-    banner = Unicode(config=True)
-
-    def _banner_default(self):
-        config = get_config()
-        return config.FrontendWidget.banner
-
-import IPython.frontend.qt.console.qtconsoleapp
-IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
-IPythonQtConsoleApp.widget_factory = SpockConsole
-
 def run():
+    from IPython.utils.traitlets import Unicode
+    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+
+    class SpockConsole(RichIPythonWidget):
+        
+        banner = Unicode(config=True)
+
+        def _banner_default(self):
+            config = get_config()
+            return config.FrontendWidget.banner
+
+    import IPython.frontend.qt.console.qtconsoleapp
+    IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+    IPythonQtConsoleApp.widget_factory = SpockConsole
+
     try:
         check_requirements()
     except exception.SpockMissingRequirement, requirement:

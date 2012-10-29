@@ -45,6 +45,7 @@ def reprValue(v, max=74):
         v = v[:max] + ' [...]'
     return v
 
+
 class dumpenv(Macro):
     """Dumps the complete environment"""
     
@@ -60,6 +61,41 @@ class dumpenv(Macro):
             self.output(line)
 
 
+class lsvo(Macro):
+
+    def run(self):
+        vo = self.getViewOptions()
+        out = List(['View option', 'Value'])
+        for key, value in vo.items():
+            out.appendRow([key, str(value)])
+
+        for line in out.genOutput():
+            self.output(line)
+
+
+class setvo(Macro):
+    """Sets the given view option to the given value"""
+
+    param_def = [['name', Type.String, None, 'View option name'],
+                 ['value', Type.String, None, 'View option value']]
+
+    def run(self, name, value):
+        try:
+            value = eval(value)
+        except:
+            pass
+        self.setViewOption(name, value)
+
+
+class usetvo(Macro):
+    """Resets the value of the given view option"""
+    
+    param_def = [['name', Type.String, None, 'View option name']]
+
+    def run(self, name):
+        self.resetViewOption(name)
+
+            
 class lsenv(Macro):
     """Lists the environment"""
     

@@ -32,7 +32,7 @@ import datetime
 from taurus.console.table import Table
 
 from PyTango import DevState
-from sardana.macroserver.macro import Macro, macro, Type, ParamRepeat
+from sardana.macroserver.macro import Macro, macro, Type, ParamRepeat, ViewOption
 
 ################################################################################
 #
@@ -53,6 +53,7 @@ class _wm(Macro):
         self.table_opts = {}
     
     def run(self, *motor_list):
+        show_dial = self.getViewOption(ViewOption.ShowDial)
         motor_width = 9
         motor_names = []
         motor_pos   = []
@@ -62,10 +63,53 @@ class _wm(Macro):
             name = motor.getName()
             motor_names.append([name])
             pos = motor.getPosition(force=True)
-            dial_pos = motor.getDialPosition(force=True)
-            if pos is None: pos = float('NAN')
-            if dial_pos is None: dial_pos = float('NAN')
-            motor_pos.append((pos,dial_pos))
+            if pos is None:
+                pos = float('NAN')
+            
+            if show_dial:
+                dial_pos = motor.getDialPosition(force=True)
+                if dial_pos is None:
+                    dial_pos = float('NAN')
+                motor_pos.append((pos,dial_pos))
+            else:
+                motor_pos.append((pos,))
+
+            motor_width = max(motor_width,len(name))
+
+        fmt = '%c*.%df' % ('%',motor_width - 5)
+
+        table = Table(motor_pos, elem_fmt=[fmt],
+                      col_head_str=motor_names, col_head_width=motor_width,
+                      **self.table_opts)
+        for line in table.genOutput():
+            self.output(line)
+
+class _wum(Macro):
+    """Show user motor positions"""
+
+    param_def = [
+        ['motor_list',
+         ParamRepeat(['motor', Type.Moveable, None, 'Motor to move']),
+         None, 'List of motor to show'],
+    ]
+
+    def prepare(self, *motor_list, **opts):
+        self.table_opts = {}
+    
+    def run(self, *motor_list):
+        show_dial = self.getViewOption(ViewOption.ShowDial)
+        motor_width = 9
+        motor_names = []
+        motor_pos   = []
+        motor_list = list(motor_list)
+        motor_list.sort()
+        for motor in motor_list:
+            name = motor.getName()
+            motor_names.append([name])
+            pos = motor.getPosition(force=True)
+            if pos is None:
+                pos = float('NAN')
+            motor_pos.append((pos,))
             motor_width = max(motor_width,len(name))
 
         fmt = '%c*.%df' % ('%',motor_width - 5)
@@ -76,9 +120,8 @@ class _wm(Macro):
         for line in table.genOutput():
             self.output(line)
             
-            
-class wa(Macro):
-    """Show all motor positions"""
+class wu(Macro):
+    """Show all user motor positions"""
 
     def prepare(self, **opts):
         self.all_motors = self.findObjs('.*', type_class=Type.Moveable)
@@ -89,12 +132,36 @@ class wa(Macro):
         if nr_motors == 0:
             self.output('No motor defined')
             return
+        
+        self.output('Current positions (user) on %s'%datetime.datetime.now().isoformat(' '))
+        self.output('')
+        
+        self.execMacro('_wum',*self.all_motors, **self.table_opts)
 
-        self.output('Positions (user, dial) on %s'%datetime.datetime.now().isoformat(' '))
+class wa(Macro):
+    """Show all motor positions"""
+
+    def prepare(self, **opts):
+        self.all_motors = self.findObjs('.*', type_class=Type.Moveable)
+        self.table_opts = {}
+    
+    def run(self):
+        self.output("bla")
+        nr_motors = len(self.all_motors)
+        if nr_motors == 0:
+            self.output('No motor defined')
+            return
+        
+        show_dial = self.getViewOption(ViewOption.ShowDial)
+        if show_dial:
+            self.output('Current positions (user, dial) on %s'%datetime.datetime.now().isoformat(' '))
+        else:
+            self.output('Current positions (user) on %s'%datetime.datetime.now().isoformat(' '))
         self.output('')
         
         self.execMacro('_wm',*self.all_motors, **self.table_opts)
-        
+
+
 class pwa(Macro):
     """Show all motor positions in a pretty table"""
 
@@ -176,27 +243,66 @@ class wm(Macro):
         motor_width = 10
         motor_names = []
         motor_pos   = []
+
+        show_dial = self.getViewOption(ViewOption.ShowDial)
         
         for motor in motor_list:
             name = motor.getName()
-            motor_names.append([name] * 2)
+            motor_names.append([name])
             posObj = motor.getPositionObj()
             upos = map(str, [posObj.getMaxValue(), motor.getPosition(force=True), posObj.getMinValue()])
-            dPosObj = motor.getDialPositionObj()
-            dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(force=True), dPosObj.getMinValue()])
-            pos_data = [''] + upos + [''] + dpos
+            pos_data = [''] + upos
+            if show_dial:
+                dPosObj = motor.getDialPositionObj()
+                dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(force=True), dPosObj.getMinValue()])
+                pos_data += [''] + dpos
             
             motor_pos.append(pos_data)
 
         elem_fmt = (['%*s'] + ['%*s'] * 3) * 2
-        row_head_str = ['User', ' High', ' Current', ' Low',
-                        'Dial', ' High', ' Current', ' Low']
+        row_head_str = ['User', ' High', ' Current', ' Low']
+        if show_dial:
+            row_head_str += ['Dial', ' High', ' Current', ' Low']
         table = Table(motor_pos, elem_fmt=elem_fmt, row_head_str=row_head_str,
                       col_head_str=motor_names, col_head_width=motor_width,
                       **self.table_opts)
         for line in table.genOutput():
             self.output(line)
 
+class wum(Macro):
+    """Show the user position of the specified motors."""
+
+    param_def = [
+        ['motor_list',
+         ParamRepeat(['motor', Type.Moveable, None, 'Motor to see where it is']),
+         None, 'List of motor to show'],
+    ]
+
+    def prepare(self, *motor_list, **opts):
+        self.table_opts = {}
+        
+    def run(self, *motor_list):
+        motor_width = 10
+        motor_names = []
+        motor_pos   = []
+        
+        for motor in motor_list:
+            name = motor.getName()
+            motor_names.append([name])
+            posObj = motor.getPositionObj()
+            upos = map(str, [posObj.getMaxValue(), motor.getPosition(force=True), posObj.getMinValue()])
+            pos_data = [''] + upos
+            
+            motor_pos.append(pos_data)
+
+        elem_fmt = (['%*s'] + ['%*s'] * 3) * 2
+        row_head_str = ['User', ' High', ' Current', ' Low',]
+        table = Table(motor_pos, elem_fmt=elem_fmt, row_head_str=row_head_str,
+                      col_head_str=motor_names, col_head_width=motor_width,
+                      **self.table_opts)
+        for line in table.genOutput():
+            self.output(line)
+            
 class pwm(Macro):
     """Show the position of the specified motors in a pretty table"""
 
