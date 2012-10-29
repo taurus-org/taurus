@@ -235,7 +235,9 @@ class TaurusDevicePanel(TaurusWidget):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        if not model: return None
+        self.debug('In TaurusDevicePanel.setModel(%s,%s,%s)'%(model,pixmap,self.getIconMap()))
+        if not model: 
+            return self.detach()
         model = str(model).split()[0].strip()
         if issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusAttribute):
             if model.lower().endswith('/state'): model = model.rsplit('/',1)[0]
@@ -246,6 +248,7 @@ class TaurusDevicePanel(TaurusWidget):
             pass
         else:
             try:
+                self.detach()
                 taurus.Device(model).ping()
                 TaurusWidget.setModel(self,model)
                 self.setWindowTitle(str(model).upper())
@@ -271,7 +274,6 @@ class TaurusDevicePanel(TaurusWidget):
                 if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state')
                 self._status.setModel(model+'/status')
                 try:
-                    self.detach()
                     self._attrsframe.clear()
                     self._attrs = self.get_attrs_form(model,self._attrs,self)
                     if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
@@ -290,14 +292,25 @@ class TaurusDevicePanel(TaurusWidget):
                 qmsg.show()
         self.setWindowTitle(self.getModel())
         return
-        
+                    
     def detach(self):
-        for form in [self._attrs,self._comms]:
-            if form is not None: 
-                ch = form.taurusChildren()
-                [m.setModel('') for m in ch]
-                form.setModel([])
-        return
+        self.warning('In TaurusDevicePanel.detach()')
+        _detached = []
+        def detach_recursive(obj):
+            if obj in _detached: return
+            if isinstance(obj,taurus.qt.qtgui.container.TaurusBaseContainer):
+                for t in obj.taurusChildren():
+                    detach_recursive(t)
+            if obj is not self and isinstance(obj,taurus.qt.qtgui.base.TaurusBaseWidget):
+                try:
+                    if getattr(obj,'model',None):
+                        self.warning('detaching %s from %s'%(obj,obj.model))
+                        obj.setModel([] if isinstance(obj,TaurusForm) else '')
+                except:
+                    self.warning('detach of %s failed!'%obj)
+                    self.warning(traceback.format_exc())                    
+            _detached.append(obj)
+        detach_recursive(self)
         
     def get_attrs_form(self,device,form=None,parent=None):
         filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
@@ -487,6 +500,7 @@ def TaurusDevicePanelMain():
     options = app.get_command_line_options()
     
     w = TaurusDevicePanel()
+    w.show()
     if options.tango_host is None:
         options.tango_host = taurus.Database().getNormalName()
     try: w.setTangoHost(options.tango_host)
@@ -496,7 +510,6 @@ def TaurusDevicePanelMain():
         return
     w.setModel(args[0])
     w.setAttributeFilters({args[0]:args[1:]})
-    w.show()
     
     sys.exit(app.exec_())             
 
