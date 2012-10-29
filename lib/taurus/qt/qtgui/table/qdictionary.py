@@ -35,6 +35,7 @@ import numpy
 from taurus.core.util.containers import SortedDict
 from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusBaseContainer,TaurusWidget
+from taurus.qt.qtcore.util.properties import join,djoin
 
 ###############################################################################
 # Methods borrowed from fandango modules
@@ -67,28 +68,6 @@ def isDictionary(seq):
     if seq and isSequence(seq) and isSequence(seq[0]):
         if seq[0] and not isSequence(seq[0][0]): return True #First element of tuple must be hashable
     return False
-        
-def join(*seqs):
-    """ It returns a list containing the objects of all given sequences. """
-    if len(seqs)==1 and isSequence(seqs[0]):
-        seqs = seqs[0]
-    result = []
-    for seq in seqs: 
-        if isSequence(seq): result.extend(seq)
-        else: result.append(seq)
-    #    result += list(seq)
-    return result
-        
-def djoin(a,b):
-    """ This method merges dictionaries and/or lists """
-    if not any(map(isDictionary,(a,b))): return join(a,b)
-    other,dct = sorted((a,b),key=isDictionary) 
-    if not isDictionary(other): 
-        other = dict.fromkeys(other if isSequence(other) else [other,])
-    for k,v in other.items():
-        dct[k] = v if not k in dct else djoin(dct[k],v)
-    return dct
-        
 
 def dict2array(dct):
     """ Converts a dictionary in a table of data, lists are unnested columns """
@@ -163,7 +142,7 @@ class QBaseDictionaryEditor(Qt.QDialog,TaurusBaseContainer):
         dialog.setCallback(callback)
         dialog.setModifiableByUser(True)
         dialog.setWindowTitle(title or self.title or klass.__name__)
-        if args: dialog.setModel(args[0] if isSequence(args) else args)
+        if args: dialog.setModel(args) #[0] if isSequence(args) else args)
         dialog.show()
         return dialog
         
