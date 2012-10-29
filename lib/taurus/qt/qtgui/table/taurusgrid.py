@@ -376,17 +376,15 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.debug(('In TaurusGrid.setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
         
         if load:
-            self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %s'%(str(model)[:100]+'...',self._modelNames)) 
+            self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %d'%(str(model)[:100]+'...',len(self._modelNames)))#,self._modelNames)) 
             if devsInRows:
                 self.setRowLabels(','.join(set(d.rsplit('/',1)[0] for d in self._modelNames)))
             self.create_widgets_table(self._modelNames)
-            
             self.modelsQueue.put((MethodModel(self.showRowFrame),self._show_row_frame))
             self.modelsQueue.put((MethodModel(self.showColumnFrame),self._show_column_frame))
             self.modelsQueue.put((MethodModel(self.showOthers),self._show_others))
             self.modelsQueue.put((MethodModel(self.showAttributeLabels),self._show_attr_labels))
             self.modelsQueue.put((MethodModel(self.showAttributeUnits),self._show_attr_units))
-            
             self.updateStyle()        
                     
             if not self.delayed:
@@ -782,7 +780,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
                     self.debug('Creating TaurusValue with model =  %s'%model)
                     synoptic_value = TaurusValue(cell_frame)    
-                    #synoptic_value.setModel(model)
                     self.modelsQueue.put((synoptic_value,model))
                     QtCore.QObject.connect(synoptic_value, QtCore.SIGNAL("itemClicked(QString)"), self.itemClicked)
                             
