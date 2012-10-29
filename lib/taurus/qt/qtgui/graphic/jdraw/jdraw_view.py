@@ -151,7 +151,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
     def modelsChanged(self):
         items = self.get_item_list()
-        self.info('modelsChanged(%s)'%str(items))
+        self.info('modelsChanged(%s)'%len(items))
         self.emit(Qt.SIGNAL("modelsChanged"),items)
     
     def emitColors(self): 
@@ -310,13 +310,22 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.setScene(scene)
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
+                #Qt.QObject.connect(self, Qt.SIGNAL("closed"), self.scene().panel_launcher.kill )
                 self.modelsChanged()
+                self.setWindowTitle(self.modelName)
             else:
                 self.setScene(None)
             
             #The emitted signal contains the filename and a dictionary with the name of items and its color
             self.emitColors()#get_item_colors(emit=True)
             self.fitting()
+            
+    #def destroy(destroyWindow=True,destroySubWindows=True):
+    def closeEvent(self,event):
+        try: self.scene().panel_launcher.kill()
+        except: print(traceback.format_exc())
+        Qt.QGraphicsView.closeEvent(self,event)
+        #Qt.QGraphicsView.destroy(self,destroyWindow,destroySubWindows)
 
     def setModels(self):
         """ This method triggers item.setModel(item._name) in all internal items. """
@@ -355,11 +364,12 @@ def jdraw_view_main():
         #tv.setModel(m)
         
     form = taurus.qt.qtgui.graphic.TaurusJDrawSynopticsView(designMode=False)
+    form.show()
     form.setModel(sys.argv[1])
     form.setWindowTitle(sys.argv[1].rsplit('.',1)[0])
     #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
     #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    form.show()
+    form.fitting()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
