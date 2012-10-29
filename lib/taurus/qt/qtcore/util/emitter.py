@@ -47,7 +47,7 @@ def modelSetter(obj,model):
     This class is used for convenience as TaurusEmitterThread standard method
     """
     #print 'In modelSetter(%s,%s)' % (str(obj),str(model))
-    if hasattr(obj,'setModel') and model: obj.setModel(model)
+    if hasattr(obj,'setModel') and model is not None: obj.setModel(model)
     return
     
 class MethodModel(object):
@@ -165,13 +165,34 @@ class TaurusEmitterThread(Qt.QThread):
     def getDone(self):
         """ Returns % of done tasks in 0-1 range """
         return self._done/(self._done+self.getQueue().qsize()) if self._done else 0.
+    
+    def clear(self):
+        while not self.todo.empty():
+            self.todo.get()
+        while not self.getQueue().empty():
+            self.getQueue().get()
+            self._done+=1
+            
+    def purge(obj):
+        nqueue = Queue.Queue()
+        while not self.todo.empty(): 
+            i = self.todo.get()
+            if obj not in i:
+                nqueue.put(i)        
+        while not self.queue.empty(): 
+            i = self.queue.get()
+            if obj not in i:
+                nqueue.put(i)
+        while not nqueue.empty():
+            self.queue.put(nqueue.get())
+        self.next()
 
-    def _doSomething(self,args):
-        self.log.debug('At TaurusEmitterThread._doSomething(%s)'%str(args))
+    def _doSomething(self,params):
+        self.log.debug('At TaurusEmitterThread._doSomething(%s)'%str(params))
         if not self.method: 
-            method,args = args[0],args[1:]
+            method,args = params[0],params[1:]
         else: 
-            method = self.method
+            method,args = self.method,params
         if method:
             try:
                 method(*args)
@@ -243,7 +264,7 @@ class SingletonWorker():#Qt.QObject):
     """
     _thread = None
         
-    def __init__(self,parent=None,name='',queue=None,method=None,cursor=None,sleep=5000,log=Logger.Warning):
+    def __init__(self,parent=None,name='',queue=None,method=None,cursor=None,sleep=5000,log=Logger.Warning,start=True):
         self.name = name
         self.log = Logger('SingletonWorker(%s)'%self.name)
         self.log.setLogLevel(log)
@@ -255,11 +276,17 @@ class SingletonWorker():#Qt.QObject):
             SingletonWorker._thread = TaurusEmitterThread(parent,name='SingletonWorker',cursor=cursor,sleep=sleep)
         self.thread = SingletonWorker._thread
         self.queue = queue or Queue.Queue()
-
-        return
+        if start: self.start()
         
-    def next(self):
-        if self.queue.empty(): return
+    def put(self,item,block=True,timeout=None):
+        self.getQueue().put(item,block,timeout)
+        
+    def size(self):
+        self.getQueue().qsize()
+        
+    def next(self,item=None):
+        if item is not None: self.put(item)
+        elif self.queue.empty(): return
         msg = 'At SingletonWorker.next(), %d items not passed yet to Emitter.' % self.queue.qsize()
         self.log.info(msg)
         #(queue.empty() and self.log.info or self.log.debug)(msg)
@@ -276,7 +303,6 @@ class SingletonWorker():#Qt.QObject):
             self.thread.emitter.emit(Qt.SIGNAL("newQueue"))
         except Queue.Empty:
             self.log.warning(traceback.format_exc())
-            pass
         except: 
             self.log.warning(traceback.format_exc())
         return
@@ -298,6 +324,23 @@ class SingletonWorker():#Qt.QObject):
         Qt.QObject.disconnect(self.thread.emitter, Qt.SIGNAL("newQueue"), self.thread.next)
         self._running = False
         return
+    
+    def clear(self):
+        """ 
+        This method will clear queue only if next() has not been called.
+        If you call self.thread.clear() it will clear objects for all workers!, be careful
+        """
+        while not self.queue.empty(): self.queue.get()
+        #self.thread.clear()
+        
+    def purge(obj):
+        nqueue = Queue.Queue()
+        while not self.queue.empty(): 
+            i = self.queue.get()
+            if obj not in i:
+                nqueue.put(i)
+        while not nqueue.empty():
+            self.queue.put(nqueue.get())
         
     def isRunning(self): return self._running
     def isFinished(self): return self.thread.isFinished()
