@@ -189,6 +189,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._selectedItems = []
         self.threads = []
         self.pids = []
+        self.panel_launcher = taurus.qt.qtgui.util.ExternalAppAction(['taurusdevicepanel'])
         
         try:
             self.logger = taurus.core.util.Logger(name)
@@ -202,6 +203,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             
         self.setSelectionMark()            
         if strt:self.start()
+        
+    def __del__(self):
+        self.panel_launcher.kill()
+        Qt.QGraphicsScene.__del__(self)
 
     def addItem(self,item):
         self.debug('addItem(%s)'%item)
@@ -244,17 +249,22 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 #self.info('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
         return result
+            
+    def getItemClicked(self,mouseEvent):
+        x = mouseEvent.scenePos().x()
+        y = mouseEvent.scenePos().y()
+        self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
+        obj = self.itemAt(x,y)
+        obj = self.getTaurusParentItem(obj) or obj
+        obj_name = getattr(obj,'_name', '')
+        self.info('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
+        return obj
 
     def mousePressEvent(self,mouseEvent):
-        #self.debug('In TaurusGraphicsScene.mousePressEvent(%s))'%str(mouseEvent.button()))
+        self.info('In TaurusGraphicsScene.mousePressEvent(%s,%s))'%(str(type(mouseEvent)),str(mouseEvent.button())))
         try: 
-            x = mouseEvent.scenePos().x()
-            y = mouseEvent.scenePos().y()
-            self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
-            obj = self.itemAt(x,y)
-            obj = self.getTaurusParentItem(obj) or obj
+            obj = self.getItemClicked(mouseEvent)
             obj_name = getattr(obj,'_name', '')
-            self.info('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
             
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 self.clearSelection()
@@ -279,11 +289,13 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 
             if (mouseEvent.button() == Qt.Qt.RightButton):
                 ''' This function is called when right clicking on TaurusDevTree area. A pop up menu will be shown with the available options. '''
-                self.debug('RightButton Mouse Event on %s (%s,%s)',obj_name,x,y)
+                self.debug('RightButton Mouse Event on %s'%(obj_name))
                 if isinstance(obj,TaurusGraphicsItem) and (obj_name or obj.contextMenu() or obj.getExtensions()):
                     menu = Qt.QMenu(None)#self.parent)    
                     last_was_separator = False
-                    if obj_name: menu.addAction(obj_name)
+                    if obj_name: 
+                        #menu.addAction(obj_name)
+                        addMenuAction(menu,obj_name,lambda x=obj_name: self.panel_launcher.actionTriggered([x]))
                     if obj.contextMenu():
                         if obj_name: 
                             menu.addSeparator()
@@ -296,14 +308,23 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                             addMenuAction(menu,'Execute',lambda d,x=obj: self.getShellCommand(x))
                         if obj.getExtensions().get('className'):
                             self.debug('launching className extension object')
-                            addMenuAction(menu,obj.getExtensions().get('className'),lambda d,x=obj: self.getClassName(x))                     
+                            addMenuAction(menu,obj.getExtensions().get('className'),lambda d,x=obj: self.getClassName(x))
                     if not menu.isEmpty():
                         menu.exec_(Qt.QPoint(mouseEvent.screenPos().x(),mouseEvent.screenPos().y()))
                     del menu
         except Exception,e:
-            self.error( traceback.format_exc())            
+            self.error( traceback.format_exc())
             
+    def mouseDoubleClickEvent(self,event):
+        try:
+            obj = self.getItemClicked(event)
+            obj_name = getattr(obj,'_name', '')
+            if obj_name: self.panel_launcher.actionTriggered([obj_name])
+        except:
+            self.error( traceback.format_exc())
+        
     def launchProcess(self,process):
+        """ This method is DEPRECATED, use taurus.qt.qtgui.util.ExternalAppAction instead! """
         if not hasattr(self,'ChildrenProcesses'): self.ChildrenProcesses = {}
         if process in self.ChildrenProcesses: 
             self.warning( 'Process %s is already running!'%process)
@@ -312,6 +333,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return
         
     def killProcess(self,regexp):
+        """ This method is DEPRECATED, use taurus.qt.qtgui.util.ExternalAppAction instead! """
         if '*' in regexp and not '.*' in regexp:
             regexp = regexp.replace('*','.*')
         for name,process in self.ChildrenProcesses.iteritems():
@@ -548,6 +570,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def getTaurusParentItem(item,top=True):
         """ Searches within a group hierarchy and returns a parent Taurus component or None if no parent TaurusBaseComponent 
             is found."""
+        if item is None: return None
         first,p,next= None,item.parentItem(),None
         while p:
             if isinstance(p, TaurusGraphicsItem):
