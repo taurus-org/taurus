@@ -803,7 +803,12 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.connect(self.socketServer, Qt.SIGNAL("newConnection()"), self.onIncommingSocketConnection)
             ok = self.socketServer.listen(key)
             if not ok:
-                if self.socketServer.serverError() == Qt.QAbstractSocket.AddressInUseError:
+                try:
+                    AddressInUseError = Qt.QAbstractSocket.AddressInUseError #This fails in some PyQt4 versions...
+                except:
+                    from PyQt4.QtNetwork import QAbstractSocket #...so we try this other way of accessing
+                    AddressInUseError = QAbstractSocket.AddressInUseError 
+                if self.socketServer.serverError() == AddressInUseError:
                     self.info('Resetting unresponsive socket with key "%s"',key)
                     if hasattr(self.socketServer, 'removeServer'): #removeServer() was added in Qt4.5. (In Qt4.4 a call to listen() removes a previous server)  
                         self.socketServer.removeServer(key)
