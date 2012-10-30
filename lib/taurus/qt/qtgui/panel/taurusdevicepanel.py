@@ -241,9 +241,9 @@ class TaurusDevicePanel(TaurusWidget):
         model = str(model).split()[0].strip()
         if issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusAttribute):
             if model.lower().endswith('/state'): model = model.rsplit('/',1)[0]
-            else: 
-                self.debug('TaurusDevicePanel accepts only Device models')
-                return
+        if not issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusDevice):
+            self.debug('TaurusDevicePanel accepts only Device models')
+            return
         if model == self.getModel():
             pass
         else:
