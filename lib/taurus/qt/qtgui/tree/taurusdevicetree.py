@@ -60,9 +60,19 @@ class TaurusTreeNodeContainer(object):
     Interface that provides Node-focused methods to TaurusDevTree
     This methods should be moved to TaurusDevTreeNode class when it will be able to retrieve currentItem from Tree.
     """
+    _icon_map = {} #A dictionary like {device_regexp:pixmap_url}
     
     def __init__(self):
         raise Exception('This class is just an interface, do not instantiate it!')
+    
+    @classmethod
+    def setIconMap(klass,filters):
+        """A dictionary like {device_regexp:pixmap_url}"""
+        klass._icon_map = filters
+        
+    @classmethod
+    def getIconMap(klass):
+        return klass._icon_map
     
     def createItem(self,parent,value,text=None):
         self.debug('createItem(%s,%s)'%(value,text))
@@ -128,9 +138,33 @@ class TaurusTreeNodeContainer(object):
         alias = getattr(node,'AttributeAlias','')
         return (alias or self.getNodeText(node))
 
-    def getNodeIcon(self,node = None):
+    def getNodeIcon(self,node=None):
         #self.debug('TaurusDevTree.getNodeIcon(node) not implemented, overrided in subclasses')
-        return ''
+        #print 'In Vacca.TauDevTree.getNodeIcon(%s)'%node.text(0)
+        
+        #self,url = node.parentTree,''
+        if node is None: node = self.getNode()
+        try:
+            name,url = self.getNodeText(node),''
+            for k,v in self.getIconMap().items():
+                if re.match(k.lower(),name.lower()): url = v
+            if not url:
+                for k,v in self.getIconMap().items():
+                    if k.lower() in name.lower(): url = v
+            #if name.count('/')==2:
+                #if any(a.startswith(name+'/') for a in getArchivedAttributes()):
+                    #url = wdir('image/icons/clock.png')
+                #else:
+                    #url = wdir('image/equips/icon-%s.gif'%name.split('/')[2].split('-')[0].lower())
+            #elif name.count('/')==3:
+                #url = filterAttributes(name) or wdir('image/icons/closetab.png')
+            #else:
+                #url = wdir('image/equips/icon-%s.gif'%name.lower())
+        except:
+            print traceback.format_exc()
+        #print 'Out of Vacca.TauDevTree.getNodeIcon(%s) = %s'%(node,url)
+        if not url or not os.path.isfile(url): return None
+        else: return Qt.QIcon(url)
     
     def getNodeDraggable(self,node = None):
         """ This method will return True only if the selected node belongs to a numeric Tango attribute """
