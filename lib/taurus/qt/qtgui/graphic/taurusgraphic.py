@@ -250,14 +250,19 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 result.extend(self._itemnames[k])
         return result
             
+    def getItemByPosition(self,x,y):
+        """ This method will try first with named objects; if failed then with itemAt """
+        pos = Qt.QPointF(x,y)
+        itemsAtPos = sorted((i.zValue(),i) for v in self._itemnames.values() for i in v if i.contains(pos))
+        obj = itemsAtPos[-1][-1] if itemsAtPos else self.itemAt(x,y)
+        return self.getTaurusParentItem(obj) or obj
+            
     def getItemClicked(self,mouseEvent):
-        x = mouseEvent.scenePos().x()
-        y = mouseEvent.scenePos().y()
+        pos = mouseEvent.scenePos()
+        x,y = pos.x(),pos.y()
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
-        obj = self.itemAt(x,y)
-        obj = self.getTaurusParentItem(obj) or obj
-        obj_name = getattr(obj,'_name', '')
-        self.info('mouse clicked on %s (%s,%s)'%(type(obj).__name__,x,y))
+        obj = self.getItemByPosition(x,y)
+        self.info('mouse clicked on %s(%s) at (%s,%s)'%(type(obj).__name__,getattr(obj,'_name',''),x,y))
         return obj
 
     def mousePressEvent(self,mouseEvent):
@@ -265,7 +270,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         try: 
             obj = self.getItemClicked(mouseEvent)
             obj_name = getattr(obj,'_name', '')
-            
+            if not obj_name and isinstance(obj,Qt.QGraphicsTextItem): obj_name = obj.toPlainText()
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 self.clearSelection()
                 self._selectedItems.append(obj)
