@@ -190,7 +190,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
         if ADJUST_FRAME: #This additional resizing adjust the "white" frame around the synoptic
             self.debug('\tResizing: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)'%self.get_sizes())
-            self.resize(self.sizeHint()) 
+            self.resize(self.sizeHint()+Qt.QSize(5,5)) 
             
         #THIS LINE MUST BE ALWAYS EXECUTED, It prevents the UP/DOWN resize BUG!!!
         #apparently Qt needs this 2 fitInView calls to be aware of it, maybe first offset was not good
@@ -310,15 +310,14 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.setScene(scene)
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
                 Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
-                #Qt.QObject.connect(self, Qt.SIGNAL("closed"), self.scene().panel_launcher.kill )
+                Qt.QObject.connect(Qt.QApplication.instance(), Qt.SIGNAL("lastWindowClosed()"), self.scene().panel_launcher.kill )
                 self.modelsChanged()
                 self.setWindowTitle(self.modelName)
+                #The emitted signal contains the filename and a dictionary with the name of items and its color
+                self.emitColors()#get_item_colors(emit=True)
+                self.fitting(True)
             else:
                 self.setScene(None)
-            
-            #The emitted signal contains the filename and a dictionary with the name of items and its color
-            self.emitColors()#get_item_colors(emit=True)
-            self.fitting()
             
     #def destroy(destroyWindow=True,destroySubWindows=True):
     def closeEvent(self,event):
