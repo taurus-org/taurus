@@ -61,16 +61,17 @@ def get_all_models(expressions,limit=1000):
     All devices matching expressions must be obtained.
     For each device only the good attributes are read.
     
-    It practically equals to fandango.get_matching_device_attributes
+    It practically equals to fandango.get_matching_attributes; check which is better!
+    Move this method to taurus.core.tango.search 
     '''
     print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions,str):
-        if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
-            #self.debug( 'evaluating expressions ....')
-            expressions = list(eval(expressions))
-        else:
-            #self.debug( 'expressions as string separated by commas ...')
-            expressions = expressions.split(',')
+        #if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
+            ##self.debug( 'evaluating expressions ....')
+            #expressions = list(eval(expressions))
+        #else:
+            ##self.debug( 'expressions as string separated by commas ...')
+        expressions = expressions.split(',')
             
     elif any(isinstance(expressions,klass) for klass in (QtCore.QStringList,list,tuple,dict)):
         #self.debug( 'expressions converted from list ...')
@@ -245,11 +246,17 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             d = filename
         self.setRowLabels(d['row_labels'])
         self.setColumnLabels(d['column_labels'])  
-        self._show_attr_labels = d.get('labels',True) #self.showAttributeLabels(d.get('labels',True))
-        self._show_attr_units = d.get('units',True) #self.showAttributeUnits(d.get('units',True))
-        self._show_others = d.get('others',True)
-        self._show_row_frame = d.get('frames',True)
-        self._show_column_frame = d.get('frames',True)
+        #self._show_attr_labels = d.get('labels',True) #self.showAttributeLabels(d.get('labels',True))
+        #self._show_attr_units = d.get('units',True) #self.showAttributeUnits(d.get('units',True))
+        #self._show_others = d.get('others',True)
+        #self._show_row_frame = d.get('frames',True)
+        #self._show_column_frame = d.get('frames',True)
+        self.showAttributeLabels(d.get('labels',True))
+        self.showAttributeUnits(d.get('units',True))
+        self.showOthers(d.get('others',True))
+        self.showRowFrame(d.get('frames',True))
+        self.showColumnFrame(d.get('frames',True))
+        
         self.setModel(d['model'],delayed=d.get('delayed',delayed))
         return self._modelNames 
     
@@ -352,56 +359,60 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     # Write your own code here for your own widget properties
     
     def setModel(self,model,devsInRows=False,delayed=False,append=False,load=True):
-        '''The model can be initialized as a list of devices or hosts or ...'''
+        '''The model can be initialized as a list of devices or hosts or dictionary or ...'''
         #self.setModelCheck(model) ##It must be included
         #differenciate if the model is a RegExp
-        model = isinstance(model,(str,QtCore.QString)) and [model] or list(model)
-        self.debug('#'*80)
-        self.debug('In TaurusGrid.setModel(%s)'%str(model)[:100])
-        
-        self.delayed = delayed
-        self.filter = model
-        if any('*' in m for m in model):
-            model = get_all_models(model)
-            self.debug('model was a RegExp, done the query and converted to an attr list')
-
-        if not self._modelNames == []:#clean to start from scratch
-            for widget in self._widgets_list:
-                del widget
-
-        #here we always have the reals model list, even if it comes from a regexp
-        if append: self._modelNames = self._modelNames+model
-        else: self._modelNames = model
-        
-        self.debug(('In TaurusGrid.setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
-        
-        if load:
-            self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %d'%(str(model)[:100]+'...',len(self._modelNames)))#,self._modelNames)) 
-            if devsInRows:
-                self.setRowLabels(','.join(set(d.rsplit('/',1)[0] for d in self._modelNames)))
-            self.create_widgets_table(self._modelNames)
-            self.modelsQueue.put((MethodModel(self.showRowFrame),self._show_row_frame))
-            self.modelsQueue.put((MethodModel(self.showColumnFrame),self._show_column_frame))
-            self.modelsQueue.put((MethodModel(self.showOthers),self._show_others))
-            self.modelsQueue.put((MethodModel(self.showAttributeLabels),self._show_attr_labels))
-            self.modelsQueue.put((MethodModel(self.showAttributeUnits),self._show_attr_units))
-            self.updateStyle()        
+        if isinstance(model,dict):
+            self.load(model)
+        else:
+            model = isinstance(model,(str,QtCore.QString)) and [model] or list(model)
+            self.debug('#'*80)
+            self.debug('In TaurusGrid.setModel(%s)'%str(model)[:100])
+    
+            self.delayed = delayed
+            self.filter = model
+            if any('*' in m for m in model):
+                model = get_all_models(model)
+                self.debug('model was a RegExp, done the query and converted to an attr list')
+    
+            if not self._modelNames == []:#clean to start from scratch
+                for widget in self._widgets_list:
+                    del widget
+    
+            #here we always have the reals model list, even if it comes from a regexp
+            if append: self._modelNames = self._modelNames+model
+            else: self._modelNames = model
+            
+            self.debug(('In TaurusGrid.setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
+            
+            if load:
+                self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %d'%(str(model)[:100]+'...',len(self._modelNames)))#,self._modelNames)) 
+                if devsInRows:
+                    self.setRowLabels(','.join(set(d.rsplit('/',1)[0] for d in self._modelNames)))
+                self.create_widgets_table(self._modelNames)
+                self.modelsQueue.put((MethodModel(self.showRowFrame),self._show_row_frame))
+                self.modelsQueue.put((MethodModel(self.showColumnFrame),self._show_column_frame))
+                self.modelsQueue.put((MethodModel(self.showOthers),self._show_others))
+                self.modelsQueue.put((MethodModel(self.showAttributeLabels),self._show_attr_labels))
+                self.modelsQueue.put((MethodModel(self.showAttributeUnits),self._show_attr_units))
+                self.updateStyle()        
+                        
+                if not self.delayed:
+                    self.info('In setModel(): not delayed loading of models')
+                    if not self.modelsThread.isRunning(): 
+                        print 'In setModel(): Starting Thread! (%d objs in queue)'%(self.modelsThread.queue.qsize())
+                        self.debug('<'*80)
+                        self.modelsThread.start()#self.modelsThread.IdlePriority)        
+                    else:
+                        print 'In setModel(): Thread already started! (%d objs in queue)'%(self.modelsThread.queue.qsize())
+                        self.modelsThread.next()
+                else: 
+                    self.info('In setModel(): models loading delayed!')
+                    pass
                     
-            if not self.delayed:
-                self.info('In setModel(): not delayed loading of models')
-                if not self.modelsThread.isRunning(): 
-                    print 'In setModel(): Starting Thread! (%d objs in queue)'%(self.modelsThread.queue.qsize())
-                    self.debug('<'*80)
-                    self.modelsThread.start()#self.modelsThread.IdlePriority)        
-                else:
-                    print 'In setModel(): Thread already started! (%d objs in queue)'%(self.modelsThread.queue.qsize())
-                    self.modelsThread.next()
-            else: 
-                self.info('In setModel(): models loading delayed!')
-                pass
-                
-        self.debug('Out of TaurusGrid.setModel(%s)'%str(model)[:100])
-        self.updateStyle()
+            self.debug('Out of TaurusGrid.setModel(%s)'%str(model)[:100])
+            self.updateStyle()
+        return
     
     def getModel(self):
         return self._modelNames
