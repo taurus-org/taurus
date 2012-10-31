@@ -59,6 +59,9 @@ IMAGE_SIZE=(200,100) #(width,height)
 def matchCl(m,k):
     return re.match(m.lower(),k.lower())
 
+def searchCl(m,k):
+    return re.search(m.lower(),k.lower())
+
 def get_regexp_dict(dct,key,default=None):
     for k,v in dct.items(): #Trying regular expression match
         if matchCl(k,key):
@@ -122,7 +125,9 @@ class TaurusDevicePanel(TaurusWidget):
 
     @classmethod
     def setIconMap(klass,filters):
+        """A dictionary like {device_regexp:pixmap_url}"""
         klass._icon_map = filters
+        
     @classmethod
     def getIconMap(klass):
         return klass._icon_map
@@ -235,20 +240,24 @@ class TaurusDevicePanel(TaurusWidget):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        self.debug('In TaurusDevicePanel.setModel(%s,%s,%s)'%(model,pixmap,self.getIconMap()))
-        if not model: 
-            return self.detach()
+        model = str(model)
+        modelclass = taurus.Factory().findObjectClass(model)
+        self.info('In TaurusDevicePanel.setModel(%s(%s),%s)'%(model,modelclass,pixmap))
+        if not model or not modelclass: 
+            if self.getModel(): self.detach()
+            return
         model = str(model).split()[0].strip()
-        if issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusAttribute):
+        
+        if issubclass(modelclass,taurus.core.TaurusAttribute):
             if model.lower().endswith('/state'): model = model.rsplit('/',1)[0]
-        if not issubclass(taurus.Factory().findObjectClass(model),taurus.core.TaurusDevice):
-            self.debug('TaurusDevicePanel accepts only Device models')
+        if not issubclass(modelclass,taurus.core.TaurusDevice):
+            self.warning('TaurusDevicePanel accepts only Device models')
             return
         if model == self.getModel():
             pass
         else:
             try:
-                self.detach()
+                if self.getModel(): self.detach()
                 taurus.Device(model).ping()
                 TaurusWidget.setModel(self,model)
                 self.setWindowTitle(str(model).upper())
@@ -259,7 +268,7 @@ class TaurusDevicePanel(TaurusWidget):
                 self._label.setFont(font)
                 if pixmap is None and self.getIconMap():
                     for k,v in self.getIconMap().items():
-                        if re.match(k.lower(),model.lower()):
+                        if searchCl(k,model):
                             pixmap = v                  
                 if pixmap is not None:
                     #print 'Pixmap is %s'%pixmap
@@ -294,7 +303,7 @@ class TaurusDevicePanel(TaurusWidget):
         return
                     
     def detach(self):
-        self.warning('In TaurusDevicePanel.detach()')
+        self.info('In TaurusDevicePanel(%s).detach()'%self.getModel())
         _detached = []
         def detach_recursive(obj):
             if obj in _detached: return
@@ -304,7 +313,7 @@ class TaurusDevicePanel(TaurusWidget):
             if obj is not self and isinstance(obj,taurus.qt.qtgui.base.TaurusBaseWidget):
                 try:
                     if getattr(obj,'model',None):
-                        self.warning('detaching %s from %s'%(obj,obj.model))
+                        #self.debug('detaching %s from %s'%(obj,obj.model))
                         obj.setModel([] if isinstance(obj,TaurusForm) else '')
                 except:
                     self.warning('detach of %s failed!'%obj)
@@ -314,17 +323,17 @@ class TaurusDevicePanel(TaurusWidget):
         
     def get_attrs_form(self,device,form=None,parent=None):
         filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
-        self.debug( 'In TaurusDevicePanel.get_attrs_form(%s,%s)'%(device,filters))
+        self.info( 'In TaurusDevicePanel.get_attrs_form(%s,%s)'%(device,filters))
         allattrs = sorted(str(a) for a in taurus.Device(device).get_attribute_list() if str(a).lower() not in ('state','status'))
         attrs = []
         for a in filters:
             for t in allattrs:
-                if a and matchCl(a.strip(),t.strip()):
+                if a and searchCl(a.strip(),t.strip()):
                     aname = '%s/%s' % (device,t)
                     if not aname in attrs:
                         attrs.append(aname)  
         if attrs:
-            self.debug( 'Matching attributes are: %s' % str(attrs)[:100])
+            self.info( 'Matching attributes are: %s' % str(attrs)[:100])
             if form is None: form = TaurusForm(parent)
             elif hasattr(form,'setModel'): form.setModel([])
             ##Configuring the TauForm:
@@ -336,10 +345,10 @@ class TaurusDevicePanel(TaurusWidget):
         else: return None
     
     def get_comms_form(self,device,form=None,parent=None):
-        self.debug( 'In TaurusDevicePanel.get_comms_form(%s)'%device)
+        self.info( 'In TaurusDevicePanel.get_comms_form(%s)'%device)
         params = get_regexp_dict(TaurusDevicePanel._command_filter,device,[('.*',())])
         if not params: #By default an unknown device type will display no commands
-            self.debug('TaurusDevicePanel.get_comms_form(%s): By default an unknown device type will display no commands'% device)
+            self.info('TaurusDevicePanel.get_comms_form(%s): By default an unknown device type will display no commands'% device)
             return None 
         if not form: 
             form = TaurusCommandsForm(parent)
@@ -349,7 +358,7 @@ class TaurusDevicePanel(TaurusWidget):
             form.setModel(device)
             if params: 
                 form.setSortKey(lambda x,vals=[s[0].lower() for s in params]: vals.index(x.cmd_name.lower()) if str(x.cmd_name).lower() in vals else 100)
-                form.setViewFilters([lambda c: str(c.cmd_name).lower() not in ('state','status') and any(re.match(s[0].lower(),str(c.cmd_name).lower()) for s in params)])
+                form.setViewFilters([lambda c: str(c.cmd_name).lower() not in ('state','status') and any(searchCl(s[0],str(c.cmd_name)) for s in params)])
                 form.setDefaultParameters(dict((k,v) for k,v in (params if not hasattr(params,'items') else params.items()) if v))
             for wid in form._cmdWidgets:
                 if not hasattr(wid,'getCommand') or not hasattr(wid,'setDangerMessage'): continue
