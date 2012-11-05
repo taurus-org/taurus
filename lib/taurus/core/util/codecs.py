@@ -516,10 +516,10 @@ class VideoImageCodec(Codec):
         
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
         fmt = self.__getFormatId(header['imageMode'])
-        img1D = numpy.array(struct.unpack(fmt*len(imgBuffer),
+        img1D = numpy.array(struct.unpack(fmt*(len(imgBuffer)/struct.calcsize(fmt)),
                                           imgBuffer),
                             dtype=self.__getDtypeId(header['imageMode']))
-        img2D = img1D.reshape(964,1294)
+        img2D = img1D.reshape(header['height'],header['width'])
         return '',img2D
 
     def __unpackHeader(self,header):
@@ -579,7 +579,7 @@ class VideoImageCodec(Codec):
                }[mode]
 
     def __getFormatId(self,mode):
-        return {0       : 'B',
+        return {0      : 'B',
                 1      : 'H',
                 2      : 'I',
                 3      : 'L',
