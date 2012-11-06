@@ -189,7 +189,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._selectedItems = []
         self.threads = []
         self.pids = []
-        self.panel_launcher = taurus.qt.qtgui.util.ExternalAppAction(['taurusdevicepanel'])
+        self.panel_launcher = taurus.qt.qtgui.util.ExternalAppAction(parent.defaultPanelClass().split() if parent else ['taurusdevicepanel'])
         
         try:
             self.logger = taurus.core.util.Logger(name)
