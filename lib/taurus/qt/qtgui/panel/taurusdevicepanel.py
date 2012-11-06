@@ -233,6 +233,18 @@ class TaurusDevicePanel(TaurusWidget):
         
         if model: self.setModel(model)
         
+    def loadConfigFile(self,ifile=None):
+        self.warning('In TaurusDevicePanel.loadConfigFile(%s)'%ifile)
+        if isinstance(ifile,file) or isinstance(ifile,str) and not ifile.endswith('.py'):
+            TaurusWidget.loadConfigFile(self,ifile)
+        else:
+            from imp import load_source
+            config_file = load_source('config_file',ifile)
+            af,cf,im = [getattr(config_file,x,None) for x in ('AttributeFilters','CommandFilters','IconMap')]
+            if af is not None:  self.setAttributeFilters(af)
+            if cf is not None:  self.setCommandFilters(cf)
+            if im is not None: self.setIconMap(im)
+        
     def duplicate(self):
         self._dups.append(TaurusDevicePanel(bound=False))
         self._dups[-1].setModel(self.getModel())
@@ -240,17 +252,16 @@ class TaurusDevicePanel(TaurusWidget):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        model = str(model)
+        model,raw = str(model).split()[0].strip(),model
         modelclass = taurus.Factory().findObjectClass(model)
-        self.info('In TaurusDevicePanel.setModel(%s(%s),%s)'%(model,modelclass,pixmap))
+        self.info('In TaurusDevicePanel.setModel(%s(%s),%s)'%(raw,modelclass,pixmap))
         if not model or not modelclass: 
             if self.getModel(): self.detach()
             return
-        model = str(model).split()[0].strip()
-        
         if issubclass(modelclass,taurus.core.TaurusAttribute):
-            if model.lower().endswith('/state'): model = model.rsplit('/',1)[0]
-        if not issubclass(modelclass,taurus.core.TaurusDevice):
+            #if model.lower().endswith('/state'): 
+            model = model.rsplit('/',1)[0]
+        elif not issubclass(modelclass,taurus.core.TaurusDevice):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
         if model == self.getModel():
@@ -346,8 +357,8 @@ class TaurusDevicePanel(TaurusWidget):
     
     def get_comms_form(self,device,form=None,parent=None):
         self.info( 'In TaurusDevicePanel.get_comms_form(%s)'%device)
-        params = get_regexp_dict(TaurusDevicePanel._command_filter,device,[('.*',())])
-        if not params: #By default an unknown device type will display no commands
+        params = get_regexp_dict(TaurusDevicePanel._command_filter,device,[])
+        if TaurusDevicePanel._command_filter and not params: #If filters are defined only listed devices will show commands
             self.info('TaurusDevicePanel.get_comms_form(%s): By default an unknown device type will display no commands'% device)
             return None 
         if not form: 
@@ -503,6 +514,9 @@ def TaurusDevicePanelMain():
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] devname [attrs]")
     parser.set_description("Taurus Application inspired in Jive and Atk Panel")
+    parser.add_option("", "--config-file", dest="config_file", default=None,
+                  help="launch a wizard for creating a new TaurusGUI application")
+                      
     app = TaurusApplication(cmd_line_parser=parser,app_name="TaurusDevicePanel",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
@@ -514,11 +528,16 @@ def TaurusDevicePanelMain():
         options.tango_host = taurus.Database().getNormalName()
     try: w.setTangoHost(options.tango_host)
     except: pass
+    
+    if options.config_file is not None:
+        w.loadConfigFile(options.config_file)
+    else:
+        w.setAttributeFilters({args[0]:args[1:]})
+        
     if len(args)<1:
         parser.print_help() #@todo use modelchooser instead of printing the help
         return
     w.setModel(args[0])
-    w.setAttributeFilters({args[0]:args[1:]})
     
     sys.exit(app.exec_())             
 
@@ -534,6 +553,7 @@ def TaurusPanelMain():
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] [devname]")
     parser.set_description("Taurus Application inspired in Jive and Atk Panel")
+    
     app = TaurusApplication(cmd_line_parser=parser,app_name="tauruspanel",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
@@ -544,6 +564,7 @@ def TaurusPanelMain():
     if options.tango_host is None:
         options.tango_host = taurus.Database().getNormalName()
     w.setTangoHost(options.tango_host)
+    
     if len(args) == 1: 
         w.setDevice(args[0])
     
