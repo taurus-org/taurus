@@ -663,7 +663,8 @@ class TaurusGui(TaurusMainWindow):
                         sys.exit()
                 sys.path = oldpath #restore the previous sys.path
         except Exception, e:
-            msg = 'Error loading configuration: %s'%repr(e)
+            import traceback
+            msg = 'Error loading configuration: %s'%traceback.format_exc() #repr(e)
             self.error(msg)
             Qt.QMessageBox.critical(self,'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
@@ -858,7 +859,7 @@ class TaurusGui(TaurusMainWindow):
         MONITOR = getattr(conf, 'MONITOR', self.__getVarFromXML(xmlroot,"MONITOR", []))
         if MONITOR:
             CUSTOM_APPLETS.append(AppletDescription('monitor', classname='TaurusMonitorTiny', model=MONITOR) )
-
+        
         #get custom applet descriptions from the python config file      
         CUSTOM_APPLETS += [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, AppletDescription)]
         
@@ -1196,11 +1197,12 @@ def main():
         sys.exit(app.exec_())
         
     confname = options.config_dir
-    if confname is None and len(args) == 1: #for backwards compat, we allow to specify the confname without the "--config-dir" parameter
-        confname = args[0]
-    else:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+    if confname is None:
+        if len(args) == 1: #for backwards compat, we allow to specify the confname without the "--config-dir" parameter
+            confname = args[0]
+        else:
+            parser.print_help(sys.stderr)
+            sys.exit(1)
         
     gui = TaurusGui(None, confname=confname)
     
