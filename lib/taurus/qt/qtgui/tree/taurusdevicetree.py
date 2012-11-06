@@ -448,6 +448,9 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
         self.setTree(self.getTangoDict(filters),clear=True)
         #self.Loader.next([self.setTree,self.getTangoDict(filters),True])
+        
+    def setModel(self,model):
+        TaurusBaseWidget.setModel(self,model)
     
     def setModelCheck(self,model):
         # Called from TaurusBaseWidget.setModel()
