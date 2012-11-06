@@ -284,6 +284,18 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    
+    @staticmethod
+    def setDefaultPanelClass(other):
+        TaurusJDrawSynopticsView._defaultClass = other
+    @staticmethod
+    def defaultPanelClass():
+        if not hasattr(TaurusJDrawSynopticsView,'_defaultClass'): 
+            #from taurus.qt.qtgui.panel import TaurusDevicePanel
+            TaurusJDrawSynopticsView._defaultClass = 'taurusdevicepanel'
+        print('defaultPanelClass == %s'%TaurusJDrawSynopticsView._defaultClass)
+        obj = TaurusJDrawSynopticsView._defaultClass
+        return obj    
 
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self, model, alias = None, delayed = False):
