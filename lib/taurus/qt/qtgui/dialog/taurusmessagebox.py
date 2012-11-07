@@ -36,7 +36,6 @@ import threading
 
 from taurus.qt import Qt
 from taurus.core.util.excepthook import BaseExceptHook
-import taurus.qt.qtgui.resource
 
 
 class TaurusMessageBox(Qt.QDialog):
@@ -180,7 +179,7 @@ def protectTaurusMessageBox(fn):
     display a :class:`TaurusMessageBox` with the exception information.
     Example::
     
-        @protectTaurusMessgeBox
+        @protectTaurusMessageBox
         def turnBeamOn(device_name):
             d = taurus.Device(device_name)
             d.TurnOn()
@@ -311,8 +310,8 @@ def tg_exc():
 def tg_serv_exc():
     import sys
     import PyTango
+    import taurus
     dev = taurus.Device("sys/tg_test/1")
-    exc_info = None
     try:
         dev.read_attribute("throw_exception")
     except PyTango.DevFailed, df:
@@ -387,7 +386,7 @@ def main():
     if owns_app:
         sys.exit(app.exec_())
     else:
-        return panel
+        return w
 
 if __name__ == "__main__":
     main()
