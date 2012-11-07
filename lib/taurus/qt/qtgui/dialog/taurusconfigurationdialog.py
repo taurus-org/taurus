@@ -29,9 +29,9 @@ __all__ = ["TaurusConfigurationDialog"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 from taurus.qt import Qt
 from taurus.qt.qtgui.panel.taurusconfigurationpanel import TaurusConfigurationPanel
+
 
 class TaurusConfigurationDialog(Qt.QDialog):
   
@@ -70,4 +70,5 @@ def main():
     return a.exec_()
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())
