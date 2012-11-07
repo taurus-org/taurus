@@ -40,10 +40,10 @@ import weakref
 import warnings
 import traceback
 import inspect
-import functools
 import threading
 
 from object import Object
+from wrap import wraps
 from excepthook import BaseExceptHook
 
 TRACE = 5
@@ -129,7 +129,7 @@ class LogIt(object):
         self._col_limit = col_limit
 
     def __call__(self, f):
-        @functools.wraps(f)
+        @wraps(f)
         def wrapper(*args, **kwargs):
             f_self = args[0]
             if f_self.log_level > self._level:

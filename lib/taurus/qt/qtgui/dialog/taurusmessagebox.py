@@ -31,12 +31,10 @@ __all__ = ["TaurusMessageBox", "protectTaurusMessageBox",
 __docformat__ = 'restructuredtext'
 
 import sys
-import functools
-import threading
 
 from taurus.qt import Qt
 from taurus.core.util.excepthook import BaseExceptHook
-
+from taurus.core.util.wrap import wraps
 
 class TaurusMessageBox(Qt.QDialog):
     """A panel intended to display a taurus error.
@@ -179,13 +177,13 @@ def protectTaurusMessageBox(fn):
     display a :class:`TaurusMessageBox` with the exception information.
     Example::
     
-        @protectTaurusMessageBox
+        @protectTaurusMessgeBox
         def turnBeamOn(device_name):
             d = taurus.Device(device_name)
             d.TurnOn()
     """
        
-    @functools.wraps(fn)
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
@@ -214,7 +212,7 @@ class ProtectTaurusMessageBox(object):
         self._msg = msg
     
     def __call__(self, fn):
-        @functools.wraps(fn)
+        @wraps(fn)
         def wrapped(*args, **kwargs):
             try:
                 return fn(*args, **kwargs)
@@ -290,7 +288,6 @@ def s3():
     raise DemoException("A demo exception occurred")
 
 def py_exc():
-    import sys
     try:
         s1()
     except:
@@ -298,7 +295,6 @@ def py_exc():
         msgbox.exec_()
 
 def tg_exc():
-    import sys
     import PyTango
     try:
         PyTango.Except.throw_exception('TangoException',
@@ -308,13 +304,12 @@ def tg_exc():
         msgbox.exec_()
 
 def tg_serv_exc():
-    import sys
     import PyTango
     import taurus
     dev = taurus.Device("sys/tg_test/1")
     try:
         dev.read_attribute("throw_exception")
-    except PyTango.DevFailed, df:
+    except PyTango.DevFailed:
         msgbox = TaurusMessageBox(*sys.exc_info())
         msgbox.exec_()
     except:
@@ -322,7 +317,6 @@ def tg_serv_exc():
         msgbox.exec_()
 
 def py_tg_serv_exc():
-    import sys
     import PyTango
     try:
         PyTango.Except.throw_exception('TangoException',
@@ -367,8 +361,6 @@ def demo():
     return panel
     
 def main():
-    
-    import sys
     import taurus.qt.qtgui.application
 
     Application = taurus.qt.qtgui.application.TaurusApplication
