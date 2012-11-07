@@ -38,6 +38,7 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
 from taurus.core.util import Enumeration
 from taurus.qt.qtgui.resource import getIcon
+from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 
 class _ButtonDialog(Qt.QDialog):
     _widget = None
@@ -275,15 +276,9 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             return '---'
         return self._command
     
+    @ProtectTaurusMessageBox(title="Unexpected error when executing command")
     def onClicked(self):
-        try:
-            return self._onClicked()
-        except:
-            import sys
-            import taurus.qt.qtgui.dialog
-            msgbox = ProtectMessageBox(*sys.exc_info())
-            msgbox.setWindowTitle("Unexpected error when executing command")
-            msgbox.exec_()
+        return self._onClicked()
 
     def _onClicked(self):
         '''Slot called when the button is clicked. It executes the command with
@@ -560,12 +555,13 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
 #
 #
 
+
 def demo():
     lock_button = TaurusLockButton()
     lock_button.model = "sys/tg_test/1"
     return lock_button
 
-def main():
+def lockButtonMain():
     import sys
     import taurus.qt.qtgui.application
     Application = taurus.qt.qtgui.application.TaurusApplication
@@ -602,5 +598,23 @@ def main():
     else:
         return w
 
+def main():
+    lockButtonMain()
+
+def commandButtonMain():
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    
+    app = TaurusApplication()
+    form = TaurusCommandButton(parent=None, designMode=False, command = 'DevBoolean', parameters=[123], icon=':/taurus.png', text = 'launch: DevBoolean 123')
+    form.setModel('sys/tg_test/1')
+    form.setDangerMessage('Booo scary command!!\n Maybe you should think twice!')
+    def f(*a):print a
+    form.connect(form, Qt.SIGNAL('commandExecuted'),f)
+    form.show()
+    sys.exit(app.exec_())
+
+
 if __name__ == '__main__':
-    main()
+    lockButtonMain()
+    #commandButtonMain()
