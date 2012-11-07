@@ -48,8 +48,10 @@ class QFallBackWidget(Qt.QWidget):
     """A FallBack widget to be used when a real widget cannot be loaded for any
     reason (example: a dependency library is not installed)"""
     
-    def __init__(self, replaces="UnknownWidget", parent=None, *args, **kwargs):
+    def __init__(self, replaces=None, parent=None, *args, **kwargs):
         Qt.QWidget.__init__(self, parent)
+        if replaces is None:
+            replaces = self.__class__.__name__
         self.replaces = replaces
         self.exc_info = exc_info = kwargs.get("exc_info")
         layout = Qt.QVBoxLayout(self)
@@ -77,7 +79,7 @@ class QFallBackWidget(Qt.QWidget):
 
 class TaurusFallBackWidget(QFallBackWidget, TaurusBaseWidget):
     
-    def __init__(self, replaces="UnknownWidget", parent=None, *args, **kwargs):
+    def __init__(self, replaces=None, parent=None, *args, **kwargs):
         self.call__init__(QFallBackWidget, replaces=replaces,
                           parent=parent, *args, **kwargs)
         designMode = kwargs.get("designMode", False)
