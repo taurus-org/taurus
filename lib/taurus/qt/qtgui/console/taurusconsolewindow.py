@@ -64,7 +64,7 @@ class TaurusConsoleWindow(MainWindow):
         file_menu = self.file_menu
         self.remove_menu_action(file_menu, self.new_kernel_tab_act)
         
-        self.new_kernel_menu = new_kernel_menu = Qt.QMenu("New Tab with New...")
+        self.new_kernel_menu = new_kernel_menu = Qt.QMenu(self.new_kernel_tab_act.text())
         file_menu.insertMenu(self.slave_kernel_tab_act, new_kernel_menu)
         
         #self.new_kernel_tab_act.setText("IPython")

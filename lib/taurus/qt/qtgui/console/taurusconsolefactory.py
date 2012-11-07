@@ -106,7 +106,7 @@ class TaurusConsoleFactory(Singleton):
     def new_frontend_master(self, name="ipython"):
         app = self.get_ipython_application()
         extension = self.get_extension(name)
-        with extension(app):
+        with extension(self):
             return app.new_frontend_master()
 
     def new_window(self, kernels=None):

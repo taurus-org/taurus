@@ -28,7 +28,7 @@
 __docformat__ = 'restructuredtext'
 
 try:
-    from .taurusconsole import *
+    from .taurusconsole import TaurusConsole
 except Exception,e:
     from taurus.qt.qtgui.display import TaurusFallBackWidget
 

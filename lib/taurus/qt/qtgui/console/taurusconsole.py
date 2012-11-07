@@ -39,13 +39,20 @@ from taurusconsolefactory import TaurusConsoleFactory
 
 class TaurusConsole(Qt.QWidget):
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, kernels=None):
         super(TaurusConsole, self).__init__(parent)
         l = Qt.QVBoxLayout(self)
         l.setContentsMargins(0, 0, 0, 0)
         self.setLayout(l)
-        self.window = TaurusConsoleFactory().new_window()
-        l.addWidget(self.window)
+        self._window = window = TaurusConsoleFactory().new_window(kernels=kernels)
+        l.addWidget(window)
+
+    def window(self):
+        return self._window
+
+    def __getattr__(self, name):
+        return getattr(self.window(), name)
+    
 
 def main(argv=None):
     import taurus.core.util.argparse
@@ -62,9 +69,9 @@ def main(argv=None):
 
     app = taurus.qt.qtgui.application.TaurusApplication(taurus_args,
                                                         cmd_line_parser=parser)
-    
+    TaurusConsoleFactory(ipython_args=ipython_args)
     console = TaurusConsole()
-    console.window.create_tab_with_new_frontend(name='tango', label="Tango")
+    console.window().create_tab_with_new_frontend(name='tango', label="Tango")
     console.show()
     app.exec_()
 
