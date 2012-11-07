@@ -30,10 +30,9 @@ __all__ = ["TaurusLCDValue"]
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-
-import taurus.core
-from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
+from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget
+
 
 class TaurusLCDValue(Qt.QLCDNumber, TaurusBaseWidget):
     """
@@ -141,18 +140,6 @@ class TaurusLCDValue(Qt.QLCDNumber, TaurusBaseWidget):
     showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality, 
                                   TaurusBaseWidget.setShowQuality,
                                   TaurusBaseWidget.resetShowQuality)
-
-def main():
-    import sys
-
-    app = Qt.QApplication(sys.argv)
-    
-    panel = Qt.QMainWindow()
-    lcd = TaurusLCDValue(panel)
-    lcd.setModel(sys.argv[1])
-    panel.setVisible(True)
-    
-    sys.exit(app.exec_())
 
 def main():
     """hello"""
