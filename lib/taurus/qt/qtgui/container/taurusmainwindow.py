@@ -140,18 +140,31 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         - It incorporates a TaurusLogo (@TODO)
     '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
-    _heartbeat = 1500
-        
-    def __init__(self, parent = None, designMode = False, splash=True):
+    
+    #customization options:
+    _heartbeat = 1500 #blinking semi period in ms. Set to None for not showing the Heart beat LED 
+    _showFileMenu = True
+    _showViewMenu = True
+    _showTaurusMenu = True
+    _showToolsMenu = True
+    _showHelpMenu = True
+    _supportUserPerspectives = True #Allows the user to change/create/delete perspectives
+    _showLogger = True
+    _splashLogo = ":/logo.png" #set to None for disbling splash screen
+    _splashMessage = "Initializing Main window..."
+    
+    def __init__(self, parent = None, designMode = False, splash=None):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QMainWindow, parent)
         self.call__init__(TaurusBaseContainer, name, designMode=designMode)
+        if splash is None:  
+            splash = bool(self._splashLogo)
         
         self.__splashScreen = None
         if splash and not designMode:
-            self.__splashScreen = Qt.QSplashScreen(Qt.QPixmap(":/logo.png"))
+            self.__splashScreen = Qt.QSplashScreen(Qt.QPixmap(self._splashLogo))
             self.__splashScreen.show()
-            self.__splashScreen.showMessage("Initializing Main window...")
+            self.__splashScreen.showMessage(self._splashMessage)
         
         self.__tangoHost = ""
         self.__settings = None
@@ -162,12 +175,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.helpManualBrowser = None
         self.resetHelpManualURI()
         
-        #status bar
-        from taurus.qt.qtgui.display import QLed
-        self.heartbeatLed = QLed()
-        self.heartbeatLed.setToolTip('Heartbeat: if it does not blink, the application is hung')
-        self.statusBar().addPermanentWidget(self.heartbeatLed)
-        self.resetHeartbeat()
+        #Heartbeat
+        if self._heartbeat is not None:
+            from taurus.qt.qtgui.display import QLed
+            self.heartbeatLed = QLed()
+            self.heartbeatLed.setToolTip('Heartbeat: if it does not blink, the application is hung')
+            self.statusBar().addPermanentWidget(self.heartbeatLed)
+            self.resetHeartbeat()
         
         #The configuration Dialog (which is launched with the configurationAction)
         self.configurationDialog = ConfigurationDialog(self)
@@ -177,48 +191,20 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__createActions()
         
         #logger dock widget
-        import taurus.qt.qtgui.table
-        loggingWidget = taurus.qt.qtgui.table.QLoggingWidget()
-        self.__loggerDW = Qt.QDockWidget("Taurus logs", self)
-        self.__loggerDW.setWidget(loggingWidget)
-        self.__loggerDW.setObjectName("loggerDW")
-        self.addDockWidget(Qt.Qt.BottomDockWidgetArea, self.__loggerDW)
-        self.__loggerDW.hide()
+        if self._showLogger:
+            self.addLoggerWidget()
         
         #Create Menus
-        #File menu
-        self.fileMenu = self.menuBar().addMenu("File")
-        self.fileMenu.addAction(self.importSettingsFileAction)
-        self.fileMenu.addAction(self.exportSettingsFileAction)
-        #self.fileMenu.addAction(self.resetSettingsAction)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.quitApplicationAction)
-        
-        #View menu
-        self.viewMenu = self.menuBar().addMenu("View")
-        self.viewMenu.addAction(self.__loggerDW.toggleViewAction())
-        self.viewToolBarsMenu = self.viewMenu.addMenu("Tool Bars")
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.toggleFullScreenAction)
-        self.viewMenu.addSeparator()
-        self.perspectivesMenu = Qt.QMenu("Load Perspectives", self)
-        self.viewMenu.addMenu(self.perspectivesMenu)
-        self.viewMenu.addAction(self.savePerspectiveAction)
-        self.viewMenu.addAction(self.deletePerspectiveAction)
-        
-        #Taurus Menu
-        self.taurusMenu = self.menuBar().addMenu("Taurus")
-        self.taurusMenu.addAction(self.changeTangoHostAction)
-        
-        #Tools Menu
-        self.toolsMenu = self.menuBar().addMenu("Tools")
-        self.externalAppsMenu = self.toolsMenu.addMenu("External Applications")
-        self.toolsMenu.addAction(self.configurationAction)
-        
-        #Help Menu
-        self.helpMenu = self.menuBar().addMenu("Help")
-        self.helpMenu.addAction("About ...", self.showHelpAbout)
-        self.helpMenu.addAction(getThemeIcon("help-browser"),"Manual", self.onShowManual)
+        if self._showFileMenu:#File menu
+            self.createFileMenu()
+        if self._showViewMenu:#View menu
+            self.createViewMenu()
+        if self._showTaurusMenu:#Taurus Menu
+            self.createTaurusMenu()
+        if self._showToolsMenu:#Tools Menu
+            self.createToolsMenu()
+        if self._showHelpMenu:#Help Menu
+            self.createHelpMenu()
         
         #View Toolbar
         self.viewToolBar = self.addToolBar("View")
@@ -226,10 +212,72 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.viewToolBar.addAction(self.toggleFullScreenAction)
         
         #Perspectives Toolbar
+        if self._supportUserPerspectives:
+            self.createPerspectivesToolBar()
+        
+        #disable the configuration action if there is nothing to configure
+        self.configurationAction.setEnabled(self.configurationDialog._tabwidget.count())
+                
+    def addLoggerWidget(self, hidden=True):
+        '''adds a QLoggingWidget as a dockwidget of the main window (and hides it by default)'''
+        from taurus.qt.qtgui.table import QLoggingWidget
+        loggingWidget = QLoggingWidget()
+        self.__loggerDW = Qt.QDockWidget("Taurus logs", self)
+        self.__loggerDW.setWidget(loggingWidget)
+        self.__loggerDW.setObjectName("loggerDW")
+        self.addDockWidget(Qt.Qt.BottomDockWidgetArea, self.__loggerDW)
+        if hidden:
+            self.__loggerDW.hide()
+    
+    def createFileMenu(self):
+        '''adds a "File" Menu'''
+        self.fileMenu = self.menuBar().addMenu("File")
+        if self._supportUserPerspectives:
+            self.fileMenu.addAction(self.importSettingsFileAction)
+            self.fileMenu.addAction(self.exportSettingsFileAction)
+            #self.fileMenu.addAction(self.resetSettingsAction)
+            self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.quitApplicationAction)
+        
+    def createViewMenu(self):
+        '''adds a "View" Menu'''
+        self.viewMenu = self.menuBar().addMenu("View")
+        if self._showLogger:
+            self.viewMenu.addAction(self.__loggerDW.toggleViewAction())
+        self.viewToolBarsMenu = self.viewMenu.addMenu("Tool Bars")
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.toggleFullScreenAction)
+        if self._supportUserPerspectives:
+            self.viewMenu.addSeparator()
+            self.perspectivesMenu = Qt.QMenu("Load Perspectives", self)
+            self.viewMenu.addMenu(self.perspectivesMenu)
+            self.viewMenu.addAction(self.savePerspectiveAction)
+            self.viewMenu.addAction(self.deletePerspectiveAction)
+    
+    def createTaurusMenu(self):
+        '''adds a "Taurus" Menu'''
+        self.taurusMenu = self.menuBar().addMenu("Taurus")
+        self.taurusMenu.addAction(self.changeTangoHostAction)
+        
+    def createToolsMenu(self):
+        '''adds a "Tools" Menu'''
+        self.toolsMenu = self.menuBar().addMenu("Tools")
+        self.externalAppsMenu = self.toolsMenu.addMenu("External Applications")
+        self.toolsMenu.addAction(self.configurationAction)
+        
+    def createHelpMenu(self):
+        '''adds a "Help" Menu'''
+        self.helpMenu = self.menuBar().addMenu("Help")
+        self.helpMenu.addAction("About ...", self.showHelpAbout)
+        self.helpMenu.addAction(getThemeIcon("help-browser"),"Manual", self.onShowManual)
+        
+    def createPerspectivesToolBar(self):
+        '''adds a Perspectives ToolBar'''
         self.perspectivesToolBar = self.addToolBar("Perspectives")
         self.perspectivesToolBar.setObjectName("perspectivesToolBar")
-        self.viewToolBarsMenu.addAction(self.perspectivesToolBar.toggleViewAction())
         pbutton = Qt.QToolButton()
+        if not hasattr(self, 'perspectivesMenu'): #it may have been created earlier (for the view menu)
+            self.perspectivesMenu = Qt.QMenu("Load Perspectives", self)
         self.perspectivesMenu.setIcon(getThemeIcon("document-open"))
         pbutton.setToolTip("Load Perspectives")
         pbutton.setText("Load Perspectives")
@@ -237,9 +285,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         pbutton.setMenu(self.perspectivesMenu)
         self.perspectivesToolBar.addWidget(pbutton)
         self.perspectivesToolBar.addAction(self.savePerspectiveAction)
-        
-        #disable the configuration action if there is nothing to configure
-        self.configurationAction.setEnabled(self.configurationDialog._tabwidget.count())
+        if self._showViewMenu:
+            self.viewToolBarsMenu.addAction(self.perspectivesToolBar.toggleViewAction())
         
     def updatePerspectivesMenu(self):
         '''re-checks the perspectives available to update self.perspectivesMenu
@@ -247,8 +294,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         .. note:: This method may need be called by derived classes at the end
                   of their initialization.
         
-        :return: (QMenu) the updated perspectives menu
+        :return: (QMenu) the updated perspectives menu (or None if self._supportUserPerspectives is False)
         '''
+        if not self._supportUserPerspectives:
+            return None
         self.perspectivesMenu.clear()
         for pname in self.getPerspectivesList():
             self.perspectivesMenu.addAction(pname, self.__onPerspectiveSelected)
@@ -522,7 +571,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.updatePerspectivesMenu()
         self.info('MainWindow settings restored')
         
-    
     def saveSettings(self, group=None):
         '''saves the application settings (so that they can be restored with :meth:`loadSettings`)
         
@@ -544,7 +592,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None: 
             settings.endGroup()
         self.info('MainWindow settings saved in "%s"'%settings.fileName())
-        
         
     def savePerspective(self, name=None):
         '''Stores current state of the application as a perspective with the given name
@@ -665,6 +712,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 #        self.__settings = self.newQSettings()
 #        self.saveSettings()
 
+    def showEvent(self,event):
+        '''This event handler receives widget show events'''
+        if self.__splashScreen is not None and not event.spontaneous():
+            self.__splashScreen.finish(self)
+
     def closeEvent(self,event):
         '''This event handler receives widget close events'''
         self.saveSettings() #save current window state before closing
@@ -702,15 +754,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                 self.extAppsBar = self.addToolBar("External Applications")
                 self.extAppsBar.setObjectName("External Applications")
                 self.extAppsBar.setToolButtonStyle(Qt.Qt.ToolButtonTextBesideIcon)
-                self.viewToolBarsMenu.addAction(self.extAppsBar.toggleViewAction())
+                if self._showViewMenu:
+                    self.viewToolBarsMenu.addAction(self.extAppsBar.toggleViewAction())
             self.extAppsBar.addAction(extapp)
             
-        if toMenu:
+        if toMenu and self._showToolsMenu:
             if self.toolsMenu is None:
-                self.toolsMenu = Qt.QMenu("Tools", self)
-                self.menuBar().insertMenu(self.helpMenu.menuAction(), self.toolsMenu) #insert it before the Help menu
-            if self.externalAppsMenu is None:
-                self.externalAppsMenu = self.toolsMenu.addMenu("External Applications")
+                self.createToolsMenu()
             self.externalAppsMenu.addAction(extapp)
         #register this action for config
         self.registerConfigDelegate(extapp, "_extApp[%s]"%str(extapp.text()))
@@ -904,7 +954,23 @@ if __name__ == "__main__":
     app.setApplicationName('TaurusMainWindow-test')
     app.setOrganizationName('ALBA')
     app.basicConfig()
-    form = TaurusMainWindow()
+        
+    class MainWindowKlass(TaurusMainWindow):
+        _heartbeat = 300 #blinking semi period in ms. Set to None for not showing the Heart beat LED 
+        _showFileMenu = True
+        _showViewMenu = True
+        _showTaurusMenu = False
+        _showToolsMenu = True
+        _showHelpMenu = True
+        _supportUserPerspectives = True #Allows the user to change/create/delete perspectives
+        _showLogger = True
+        _splashLogo = ":/python.png" #set to None for disbling splash screen
+        _splashMessage = "Initializing Main window..."
+    
+    
+    #MainWindowKlass = TaurusMainWindow
+        
+    form = MainWindowKlass()
     
     #ensure only a single instance of this application is running
     single = form.checkSingleInstance()
@@ -917,10 +983,9 @@ if __name__ == "__main__":
     
     #form.setCentralWidget(Qt.QMdiArea()) #just for testing
     
-#    form.addExternalAppLauncher('pwd')
+    #form.addExternalAppLauncher('pwd')
     
     form.show()
     
-    form.splashScreen().finish(form)
     sys.exit(app.exec_())
     

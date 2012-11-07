@@ -230,9 +230,7 @@ class TaurusGui(TaurusMainWindow):
         self.__initToolsMenu()
                 
         self.loadConfiguration(confname)
-        
-        self.splashScreen().finish(self)
-        
+                
         #connect the main window itself as a reader/writer of "short messages"
         Qt.qApp.SDM.connectReader("shortMessage", self.onShortMessage) 
         Qt.qApp.SDM.connectWriter("shortMessage", self, 'newShortMessage')
