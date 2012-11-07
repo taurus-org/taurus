@@ -179,7 +179,7 @@ class TaurusValueLabel(Qt.QLabel, TaurusBaseWidget):
             ss = QT_ATTRIBUTE_QUALITY_PALETTE.qtStyleSheet(quality)
         elif self.getShowState():
             try: state = self.getModelObj().getParent().getState()
-            except Exception,e:
+            except Exception:
                 state = None
             ss = QT_DEVICE_STATE_PALETTE.qtStyleSheet(state)
         elif self.getShowValueStateAsBackground():

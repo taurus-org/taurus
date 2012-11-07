@@ -33,11 +33,10 @@ __docformat__ = 'restructuredtext'
 # ugly
 import PyTango
 
+from taurus.core import TaurusEventType
 from taurus.qt import Qt
-import taurus.core.util
-from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from qled import LedStatus, LedColor, LedSize
+from qled import LedStatus, LedColor
 from qled import QLedOld as QLed
 
 
@@ -102,7 +101,7 @@ class TaurusStateLed(QLed, TaurusBaseWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
 
-        if evt_type == taurus.core.TaurusEventType.Error:
+        if evt_type == TaurusEventType.Error:
             self._setProblemsBackground(True)
             self.updateStyle()
             return
@@ -148,11 +147,6 @@ class TaurusStateLed(QLed, TaurusBaseWidget):
     @Qt.pyqtSignature("setBoolIndex(int)")
     def setBoolIndex(self,i):
         self._boolIndex = i
-        try:
-            getattr(BoolIndex,str(self._boolIndex))
-            self.changeSize(self._boolIndex)
-        except:
-            pass
 
     def resetBoolIndex(self):
         self.setBoolIndex(0)
