@@ -44,7 +44,6 @@ def demo():
     owns_app = app is None
     
     if owns_app:
-        import taurus.core.util.argparse
         app = Application()
 
     M = 2
@@ -75,8 +74,6 @@ def demo():
             model_index_widget = Qt.QLineEdit()
             fg_widget = Qt.QComboBox()
             bg_widget = Qt.QComboBox()
-            prefix_widget = Qt.QLineEdit()
-            suffix_widget = Qt.QLineEdit()
             control_l.addRow("model:", model_widget)
             control_l.addRow("model index:", model_index_widget)
             control_l.addRow("foreground role:", fg_widget)

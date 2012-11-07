@@ -44,7 +44,6 @@ def demo():
     owns_app = app is None
     
     if owns_app:
-        import taurus.core.util.argparse
         app = Application()
 
     M = 2
