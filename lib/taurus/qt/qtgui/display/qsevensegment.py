@@ -31,9 +31,6 @@ __all__ = ['Q7SegDigit']
 
 __docformat__ = 'restructuredtext'
 
-import os
-import math
-
 from taurus.qt import Qt
 
 POLY = Qt.QPolygonF
@@ -242,7 +239,7 @@ class Q7SegDigit(Qt.QWidget):
             painter.drawPath(seg)
 
     def __str__(self):
-        ret, idx = '', self.__valueStrToLedIndex(self._value)
+        _, idx = '', self.__valueStrToLedIndex(self._value)
         leds = self.Leds[idx]
             
         # line 0
@@ -551,7 +548,6 @@ def main2():
     a.exec_()
     
 def main3():
-    import sys
     a = Qt.QApplication([])
     dw = Q7SegDisplay()
     #dw.setValue(int(sys.argv[1]))
@@ -560,7 +556,6 @@ def main3():
     
 def main():
     global digitWidget
-    import sys
     a = Qt.QApplication([])
     panel = Qt.QWidget()
     l = Qt.QFormLayout(panel)

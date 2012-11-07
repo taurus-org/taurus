@@ -37,10 +37,7 @@ from taurus.qt.qtgui.resource import getPixmap
 class QLogo(Qt.QLabel):
     
     def __init__(self, parent=None, designMode=False):
-        try:
-            self.__name = name.__name__
-        except:
-            self.__name = self.__class__.__name__
+        self.__name = self.__class__.__name__
         Qt.QLabel.__init__(self, parent)
         sizePolicy = Qt.QSizePolicy(Qt.QSizePolicy.Policy(0),Qt.QSizePolicy.Policy(0))
         sizePolicy.setHorizontalStretch(0)
