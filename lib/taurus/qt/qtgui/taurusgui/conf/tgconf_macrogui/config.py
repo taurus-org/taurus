@@ -74,7 +74,7 @@ ORGANIZATION = 'Taurus'
 # To define an external application, instantiate an ExternalApp object
 # See TaurusMainWindow.addExternalAppLauncher for valid values of ExternalApp
 #===============================================================================
-xterm = ExternalApp(cmdargs=['xterm','spock'], text="Spock", icon='utilities-terminal')
+#xterm = ExternalApp(cmdargs=['xterm','spock'], text="Spock", icon='utilities-terminal')
 #hdfview = ExternalApp(["hdfview"])
 pymca = ExternalApp(['pymca'])
 
@@ -88,6 +88,12 @@ MACROSERVER_NAME = ''
 DOOR_NAME = ''
 MACROEDITORS_PATH = ''
 
+#===============================================================================
+# Define one or more embedded consoles in the GUI.
+# Possible items for console are 'ipython', 'tango', 'spock'
+#===============================================================================
+CONSOLE = ['tango']
+    
 #===============================================================================
 # Monitor widget
 #===============================================================================
