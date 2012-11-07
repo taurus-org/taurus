@@ -42,7 +42,6 @@ State = PyTango.DevState
 DataFormat = PyTango.AttrDataFormat
 Quality = PyTango.AttrQuality
 
-import taurus.core.util
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import QLed
 
@@ -119,7 +118,7 @@ class _TaurusLedController(object):
         key = None
         try:
             key = self.value()
-        except Exception, e:
+        except Exception:
             pass
         ledMap = self.LedMap
         if widget.fgRole == 'quality':
@@ -222,7 +221,6 @@ class TaurusLed(QLed, TaurusBaseWidget):
             
     def _calculate_controller_class(self):
         model = self.getModelObj()
-        fgRole = self.fgRole
         
         klass = _TaurusLedController
         if self._designMode:

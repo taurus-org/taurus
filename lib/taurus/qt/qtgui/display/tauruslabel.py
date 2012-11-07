@@ -29,15 +29,13 @@ __all__ = ["TaurusLabel"]
 
 __docformat__ = 'restructuredtext'
 
-import weakref
 import operator
 
 # shame of me for importing PyTango!
 import PyTango
 
+from taurus.core import TaurusElementType, TaurusEventType
 from taurus.qt import Qt
-import taurus.core.util
-from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.base import TaurusBaseController
 from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
@@ -50,8 +48,8 @@ _QT_PLUGIN_INFO = {
     'icon' : ":/designer/label.png",
 }
 
-TaurusModelType = taurus.core.TaurusElementType
-EventType = taurus.core.TaurusEventType
+TaurusModelType = TaurusElementType
+EventType = TaurusEventType
 
 
 class TaurusLabelController(TaurusBaseController):
@@ -255,12 +253,12 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
             self.controllerUpdate()
 
     def _calculate_controller_class(self):
-        map = _CONTROLLER_MAP
+        ctrl_map = _CONTROLLER_MAP
         if self._designMode:
-            map = _DESIGNER_CONTROLLER_MAP
+            ctrl_map = _DESIGNER_CONTROLLER_MAP
             
         model_type = self.getModelType()
-        ctrl_klass = map.get(model_type, TaurusLabelController)
+        ctrl_klass = ctrl_map.get(model_type, TaurusLabelController)
         return ctrl_klass
     
     def controller(self):
