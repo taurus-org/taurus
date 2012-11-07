@@ -111,7 +111,7 @@ def get_input(input_data, parent=None, input_panel_klass=None):
         input_panel_klass = TaurusInputPanel
     dialog = TaurusInputDialog(input_data=input_data, parent=parent,
                                input_panel_klass=input_panel_klass)
-    result = dialog.exec_()
+    dialog.exec_()
     return dialog.value(), dialog.result()
     
 
@@ -165,8 +165,6 @@ def demo():
 
 
 def main():
-    
-    import sys
     import taurus.qt.qtgui.application
 
     Application = taurus.qt.qtgui.application.TaurusApplication
