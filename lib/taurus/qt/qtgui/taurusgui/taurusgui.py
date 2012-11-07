@@ -307,7 +307,9 @@ class TaurusGui(TaurusMainWindow):
         
     def __initSharedDataConnections(self):        
         #register the TAURUSGUI itself as a writer/reader for several shared data items
-        self.splashScreen().showMessage("setting up shared data connections")
+        splashScreen = self.splashScreen()
+        if splashScreen is not None:
+            self.splashScreen().showMessage("setting up shared data connections")
         Qt.qApp.SDM.connectWriter("macroserverName", self, 'macroserverNameChanged')
         Qt.qApp.SDM.connectWriter("doorName", self, 'doorNameChanged')
         Qt.qApp.SDM.connectReader("SelectedInstrument", self.onSelectedInstrument)
