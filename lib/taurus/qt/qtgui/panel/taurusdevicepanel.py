@@ -252,64 +252,65 @@ class TaurusDevicePanel(TaurusWidget):
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self,model,pixmap=None):
-        model,raw = str(model).split()[0].strip(),model
-        modelclass = taurus.Factory().findObjectClass(model)
+        model,modelclass,raw = str(model).strip(),'',model
+        if model: 
+            model = model and model.split()[0] or ''
+            modelclass = taurus.Factory().findObjectClass(model)
         self.info('In TaurusDevicePanel.setModel(%s(%s),%s)'%(raw,modelclass,pixmap))
-        if not model or not modelclass: 
+        if model == self.getModel():
+            return
+        elif not model or not modelclass: 
             if self.getModel(): self.detach()
             return
-        if issubclass(modelclass,taurus.core.TaurusAttribute):
+        elif issubclass(modelclass,taurus.core.TaurusAttribute):
             #if model.lower().endswith('/state'): 
             model = model.rsplit('/',1)[0]
         elif not issubclass(modelclass,taurus.core.TaurusDevice):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
-        if model == self.getModel():
-            pass
-        else:
+        try:
+            if self.getModel(): self.detach()
+            taurus.Device(model).ping()
+            TaurusWidget.setModel(self,model)
+            self.setWindowTitle(str(model).upper())
+            model = self.getModel()
+            self._label.setText(model.upper())
+            font = self._label.font()
+            font.setPointSize(15)
+            self._label.setFont(font)
+            if pixmap is None and self.getIconMap():
+                for k,v in self.getIconMap().items():
+                    if searchCl(k,model):
+                        pixmap = v                  
+            if pixmap is not None:
+                #print 'Pixmap is %s'%pixmap
+                qpixmap = Qt.QPixmap(pixmap)
+                if qpixmap.height()>.9*IMAGE_SIZE[1]: qpixmap=qpixmap.scaledToHeight(.9*IMAGE_SIZE[1])
+                if qpixmap.width()>.9*IMAGE_SIZE[0]: qpixmap=qpixmap.scaledToWidth(.9*IMAGE_SIZE[0])
+            else:
+                qpixmap = taurus.qt.qtgui.resource.getPixmap(':/logo.png')
+            
+            self._image.setPixmap(qpixmap)
+            self._state.setModel(model+'/state')
+            if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state')
+            self._status.setModel(model+'/status')
             try:
-                if self.getModel(): self.detach()
-                taurus.Device(model).ping()
-                TaurusWidget.setModel(self,model)
-                self.setWindowTitle(str(model).upper())
-                model = self.getModel()
-                self._label.setText(model.upper())
-                font = self._label.font()
-                font.setPointSize(15)
-                self._label.setFont(font)
-                if pixmap is None and self.getIconMap():
-                    for k,v in self.getIconMap().items():
-                        if searchCl(k,model):
-                            pixmap = v                  
-                if pixmap is not None:
-                    #print 'Pixmap is %s'%pixmap
-                    qpixmap = Qt.QPixmap(pixmap)
-                    if qpixmap.height()>.9*IMAGE_SIZE[1]: qpixmap=qpixmap.scaledToHeight(.9*IMAGE_SIZE[1])
-                    if qpixmap.width()>.9*IMAGE_SIZE[0]: qpixmap=qpixmap.scaledToWidth(.9*IMAGE_SIZE[0])
-                else:
-                    qpixmap = taurus.qt.qtgui.resource.getPixmap(':/logo.png')
-                
-                self._image.setPixmap(qpixmap)
-                self._state.setModel(model+'/state')
-                if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state')
-                self._status.setModel(model+'/status')
-                try:
-                    self._attrsframe.clear()
-                    self._attrs = self.get_attrs_form(model,self._attrs,self)
-                    if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
-                    if not TaurusDevicePanel.READ_ONLY:
-                        self._comms = self.get_comms_form(model,self._comms,self)
-                        if self._comms: self._attrsframe.addTab(self._comms,'Commands')
-                    if SPLIT_SIZES: self._splitter.setSizes(SPLIT_SIZES)
-                except:
-                    self.warning( traceback.format_exc())
-                    qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
-                    qmsg.setDetailedText(traceback.format_exc())
-                    qmsg.show()
+                self._attrsframe.clear()
+                self._attrs = self.get_attrs_form(model,self._attrs,self)
+                if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
+                if not TaurusDevicePanel.READ_ONLY:
+                    self._comms = self.get_comms_form(model,self._comms,self)
+                    if self._comms: self._attrsframe.addTab(self._comms,'Commands')
+                if SPLIT_SIZES: self._splitter.setSizes(SPLIT_SIZES)
             except:
-                self.warning(traceback.format_exc())
+                self.warning( traceback.format_exc())
                 qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
+                qmsg.setDetailedText(traceback.format_exc())
                 qmsg.show()
+        except:
+            self.warning(traceback.format_exc())
+            qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical,'%s Error'%model,'%s not available'%model,Qt.QMessageBox.Ok,self)
+            qmsg.show()
         self.setWindowTitle(self.getModel())
         return
                     
