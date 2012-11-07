@@ -147,7 +147,6 @@ class Door(SardanaDevice):
         SardanaDevice.__init__(self, dclass, name)
         self._last_result = ()
         self._input_handler = None
-        Door.init_device(self)
 
     def init(self, name):
         SardanaDevice.init(self, name)

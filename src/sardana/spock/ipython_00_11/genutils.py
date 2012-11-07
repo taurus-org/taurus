@@ -55,7 +55,8 @@ import os
 import socket
 
 import IPython
-from IPython.core import page
+import IPython.core.magic
+from IPython.core.page import page
 from IPython.core.profiledir import ProfileDirError, ProfileDir
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.interactiveshell import InteractiveShell
@@ -804,15 +805,32 @@ def load_ipython_extension(ipython):
 
     # Initialize the environment
     expose_variable(ENV_NAME, macro_server.getEnvironment())
-
-    expose_magic('debug', magic.debug, magic.debug_completer)
-    expose_magic('www', magic.www, magic.www_completer)
-    expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
-    expose_magic('spsplot', magic.spsplot, None)
-    expose_magic('macrodata', magic.macrodata, None)
-    expose_magic('edmac', magic.edmac, None)
-    expose_magic('showscan', magic.showscan, None)
-    expose_magic('expconf', magic.expconf, None)
+    
+    new_style_magics = hasattr(IPython.core.magic, 'Magics') and hasattr(IPython.core.magic, 'magics_class')
+    
+    if new_style_magics:
+        @IPython.core.magic.magics_class
+        class Sardana(IPython.core.magic.Magics):
+            debug = IPython.core.magic.line_magic(magic.debug)
+            www = IPython.core.magic.line_magic(magic.www)
+            post_mortem = IPython.core.magic.line_magic(magic.post_mortem)
+            spsplot = IPython.core.magic.line_magic(magic.post_mortem)
+            macrodata = IPython.core.magic.line_magic(magic.macrodata)
+            edmac = IPython.core.magic.line_magic(magic.edmac)
+            showscan = IPython.core.magic.line_magic(magic.showscan)
+            expconf = IPython.core.magic.line_magic(magic.expconf)
+        print ipython
+        
+        ipython.register_magics(Sardana)
+    else:
+        expose_magic('debug', magic.debug, magic.debug_completer)
+        expose_magic('www', magic.www, magic.www_completer)
+        expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
+        expose_magic('spsplot', magic.spsplot, None)
+        expose_magic('macrodata', magic.macrodata, None)
+        expose_magic('edmac', magic.edmac, None)
+        expose_magic('showscan', magic.showscan, None)
+        expose_magic('expconf', magic.expconf, None)
 
     door.setConsoleReady(True)
 
@@ -826,8 +844,12 @@ def load_config(config):
     pytangover = get_pytango_version()
     tauruscorever = get_taurus_core_version()
 
-    macro_server = config.Spock.macro_server_name
     door = config.Spock.door_name
+
+    if not hasattr(config.Spock, 'macro_server_name'):
+        macro_server = get_macroserver_for_door(door)
+    else:
+        macro_server = config.Spock.macro_server_name
 
     full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
     door_alias = door_tg_alias or door_tg_name

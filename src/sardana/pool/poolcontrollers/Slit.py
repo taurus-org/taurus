@@ -77,7 +77,7 @@ class Slit(PseudoMotorController):
             ret = self.sign * (pseudo_pos[1] + half_gap)
         else:
             ret = self.sign * (half_gap - pseudo_pos[1])
-        print "Slit.CalcPhysical(%d, %s) -> %f" % (index, pseudo_pos, ret)
+        self._log.info("Slit.CalcPhysical(%d, %s) -> %f", index, pseudo_pos, ret)
         return ret
     
     def CalcPseudo(self, index, physical_pos, curr_pseudo_pos):

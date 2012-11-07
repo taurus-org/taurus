@@ -174,9 +174,10 @@ def _format_function_args(obj):
     return args
 
 def process_signature(app, what, name, obj, options, signature, return_annotation):
-    if hasattr(obj, "__wrapped_func__"):
+    if hasattr(obj, "__wrapped__"):
         if what == "method":
-            obj = obj.__wrapped_func__
+            from taurus.core.util.wrap import wrapped
+            obj = wrapped(obj)
             signature = _format_method_args(obj)
             return signature, return_annotation
                 

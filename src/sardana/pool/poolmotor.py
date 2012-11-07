@@ -26,15 +26,14 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolMotor" ]
+__all__ = ["PoolMotor"]
 
 __docformat__ = 'restructuredtext'
 
 import math
 import operator
 
-from sardana import EpsilonError, State, ElementType, \
-    is_number
+from sardana import EpsilonError, State, ElementType, is_number
 from sardana.sardanaattribute import SardanaAttribute, ScalarNumberAttribute, \
     SardanaSoftwareAttribute
 from sardana.sardanaevent import EventType
@@ -43,20 +42,26 @@ from sardana.sardanautils import assert_type
 from poolelement import PoolElement
 from poolmotion import PoolMotion, MotionState
 
+
 class Position(SardanaAttribute):
     pass
+
 
 class DialPosition(ScalarNumberAttribute):
     pass
 
+
 class LimitSwitches(ScalarNumberAttribute):
     pass
+
 
 class Offset(SardanaSoftwareAttribute):
     pass
 
+
 class Sign(SardanaSoftwareAttribute):
     pass
+
 
 class PoolMotor(PoolElement):
     """An internal Motor object. **NOT** part of the official API. Accessing
@@ -78,6 +83,7 @@ class PoolMotor(PoolElement):
         self._velocity = None
         self._base_rate = None
         self._instability_time = None
+        self._in_start_move = False
         motion_name = "%s.Motion" % self._name
         self.set_action_cache(PoolMotion(self, motion_name))
 
@@ -89,7 +95,7 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
 
     def _from_ctrl_state_info(self, state_info):
-        state_info, error = state_info
+        state_info, _ = state_info
         
         try:
             state_str = State.whatis(state_info)
@@ -266,6 +272,7 @@ class PoolMotor(PoolElement):
         return self._sign
 
     def set_sign(self, sign, propagate=1):
+        old_sign = self._sign.value
         self._sign.set_value(sign, propagate=propagate)
         # recalculate position and send event
         position, exc_info = self.to_user_position(sign=self._sign)
@@ -273,7 +280,7 @@ class PoolMotor(PoolElement):
                                  propagate=propagate)
         # invert lower with upper limit switches and send event in case of change
         ls = self._limit_switches
-        if ls.has_value():
+        if old_sign != sign and ls.has_value():
             value = ls.value
             value = value[0], value[2], value[1]
             self._set_limit_switches(value, propagate=propagate)
@@ -551,7 +558,7 @@ class PoolMotor(PoolElement):
             the user position to move to
         :type position:
             :class:`~numbers.Number`"""
-        self._position.set_write_value(position)
+        self.set_write_position(position, propagate=1)
         self.start_move(position)
 
     def put_position(self, position_info, propagate=1):
@@ -566,11 +573,25 @@ class PoolMotor(PoolElement):
         :type propagate:
             int"""
         self._set_position(position_info, propagate=propagate)
-
+          
     def _set_position(self, position_info, propagate=1):
         dial_position_info = self.to_dial_position(position=position_info)
         self._set_dial_position(dial_position_info, propagate=propagate)
 
+    def set_write_position(self, w_position, timestamp=None, propagate=1):
+        """Sets a new write value for the user position.
+
+        :param w_position:
+            the new write value for user position
+        :type w_position:
+            :class:`~numbers.Number`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""
+        self._position.set_write_value(w_position, timestamp=timestamp,
+                                       propagate=propagate)
+                                       
     def read_dial_position(self):
         """Reads the dial position from hardware.
 
@@ -626,6 +647,7 @@ class PoolMotor(PoolElement):
         :type propagate:
             int"""
         self._dial_position.set_value(*dial_position_info, propagate=propagate)
+        
         position_info = self.to_user_position(dial_position=self._dial_position)
         self._position.set_value(*position_info, propagate=propagate)
 
@@ -662,8 +684,7 @@ class PoolMotor(PoolElement):
         ctrl = self.controller
 
         # compute dial position
-        new_dial, exc_info = \
-            self.to_dial_position(position=(new_position, None))
+        new_dial, _ = self.to_dial_position(position=(new_position, None))
 
         # add backlash if necessary
         do_backlash = False
@@ -701,8 +722,16 @@ class PoolMotor(PoolElement):
         return items
 
     def start_move(self, new_position):
+        self._in_start_move = True
+        try:
+            return self._start_move(new_position)
+        finally:
+            self._in_start_move = False
+            
+    def _start_move(self, new_position):
         if not self._simulation_mode:
             items = self.calculate_motion(new_position)
             self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
                        "dial_backlash=%f", *items[self])
             self.motion.run(items=items)
+        

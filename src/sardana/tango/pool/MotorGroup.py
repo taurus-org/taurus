@@ -47,7 +47,6 @@ class MotorGroup(PoolGroupDevice):
 
     def __init__(self, dclass, name):
         PoolGroupDevice.__init__(self, dclass, name)
-        MotorGroup.init_device(self)
 
     def init(self, name):
         PoolGroupDevice.init(self, name)

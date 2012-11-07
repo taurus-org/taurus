@@ -49,6 +49,12 @@ class PoolBaseGroup(PoolContainer):
         self._state_statistics = {}
         self.set_user_element_ids(kwargs.pop('user_elements'))
         PoolContainer.__init__(self)
+        try:
+            self._build_elements()
+        except KeyError:
+            self.info("failed to build element information. No problem. " \
+                      "Probably one or more underlying elements have not " \
+                      "been constructed yet")
 
     def _get_pool(self):
         raise NotImplementedError
@@ -71,12 +77,11 @@ class PoolBaseGroup(PoolContainer):
         self._action_cache = self._fill_action_cache(action_cache)
 
     def _fill_action_cache(self, action_cache=None, physical_elements=None):
-        a, b = action_cache is None, physical_elements is None
         if action_cache is None:
             action_cache = self._create_action_cache()
         if physical_elements is None:
             physical_elements = self.get_physical_elements()
-        for ctrl, ctrl_physical_elements in physical_elements.items():
+        for _, ctrl_physical_elements in physical_elements.items():
             for physical_element in ctrl_physical_elements:
                 action_cache.add_element(physical_element)
         return action_cache
@@ -169,12 +174,17 @@ class PoolBaseGroup(PoolContainer):
             self.add_user_element(user_element)
         self._pending = False
 
+    def on_element_changed(self, evt_src, evt_type, evt_value):
+        pass
+        
     def set_user_element_ids(self, new_element_ids):
         self.clear_user_elements()
         self._user_element_ids = new_element_ids
-
-    def on_element_changed(self, evt_src, evt_type, evt_value):
-        pass
+    
+    def get_user_element_ids(self):
+        return self._user_element_ids
+    
+    user_element_ids = property(get_user_element_ids)
 
     def get_user_elements(self):
         if self._pending:
@@ -240,7 +250,7 @@ class PoolBaseGroup(PoolContainer):
                 physical_elements_set.update(elements)
         return physical_elements
 
-    # TODO: to complicated to implement for now
+    # TODO: too complicated to implement for now
 #    def remove_user_element(self, element):
 #        try:
 #            idx = self._user_elements.index(element)

@@ -148,9 +148,7 @@ def post_mortem(self, parameter_s='', from_www=False):
               "This is a post mortem analysis\n" \
               "------------------------------\n"
 
-    for line in logger.getLogBuffer():
-        if line:
-            msg += "\n".join(line)
+    msg += "\n".join(logger.getLogBuffer())
     page(msg)
 
 def macrodata(self, parameter_s=''):

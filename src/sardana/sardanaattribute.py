@@ -33,6 +33,8 @@ __docformat__ = 'restructuredtext'
 
 import time
 import weakref
+import datetime
+import traceback
 
 from sardanaevent import  EventType
 from sardanadefs import ScalarNumberFilter
@@ -120,18 +122,22 @@ class SardanaAttribute(object):
                             self.obj.name, self.name))
         return self._r_value
     
-    def set_write_value(self, w_value, timestamp=None):
+    def set_write_value(self, w_value, timestamp=None, propagate=1):
         """Sets the current write value.
         
         :param w_value: the write read value for this attribute
         :type w_value: obj
         :param timestamp: timestamp of attribute write [default: None, meaning
                           create a 'now' timestamp]
-        :type timestamp: float or None"""
+        :type timestamp: float or None
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate: int"""        
         if timestamp is None:
             timestamp = time.time()
         self._w_value = w_value
         self._w_timestamp = timestamp
+        self.fire_write_event(propagate=propagate)
     
     def get_write_value(self):
         """Returns the last write value for this attribute.
@@ -150,6 +156,19 @@ class SardanaAttribute(object):
         :rtype: tuple<3> or None"""
         return self.exc_info
     
+    def fire_write_event(self, propagate=1):
+        """Fires an event to the listeners of the object which owns this
+        attribute.
+        
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate: int"""
+        if propagate < 1:
+            return
+        obj = self.obj
+        if obj is not None:
+            obj.fire_event(EventType("w_" + self.name, priority=propagate), self)
+
     def fire_event(self, propagate=1):
         """Fires an event to the listeners of the object which owns this
         attribute.
@@ -165,19 +184,28 @@ class SardanaAttribute(object):
                 self._last_event_value = self._r_value
                 obj.fire_event(EventType(self.name, priority=propagate), self)
     
-    @property
-    def timestamp(self):
+    def get_timestamp(self):
         """Returns the timestamp of the last readout or None if the attribute 
         has never been read before
         
         :return: timestamp of the last readout or None
         :rtype: float or None"""
         return self._r_timestamp
+
+    def get_write_timestamp(self):
+        """Returns the timestamp of the last write or None if the attribute 
+        has never been written before
+        
+        :return: timestamp of the last write or None
+        :rtype: float or None"""
+        return self._r_timestamp
     
     obj = property(get_obj, "container object for this attribute")
-    value = property(get_value, set_value, "current value for this attribute")
+    value = property(get_value, set_value, "current read value for this attribute")
     w_value = property(get_write_value, set_write_value,
                        "current write value for this attribute")
+    timestamp = property(get_timestamp, doc="the read timestamp")
+    w_timestamp = property(get_write_timestamp, doc="the write timestamp")
     
     def __repr__(self):
         v = None
@@ -187,6 +215,25 @@ class SardanaAttribute(object):
             v = self.value
         return "{0}(value={1})".format(self.name, v)
 
+    def __str__(self):
+        r_time, w_time = self._r_timestamp, self._w_timestamp
+        if r_time is not None:
+            r_time = datetime.datetime.fromtimestamp(r_time)
+        if w_time is not None:
+            w_time = datetime.datetime.fromtimestamp(w_time)
+        
+        ret = """{0.name}(
+    manager = {0.obj}
+    r_value = {0._r_value}
+r_timestamp = {1}     
+    w_value = {0._w_value}
+w_timestamp = {2}
+   in error = {0.error}""".format(self, r_time, w_time)
+        if self.exc_info is not None:
+            exc_info = "".join(traceback.format_exception_only(*self.exc_info[:2]))
+            ret += "\n   exc_info = " + exc_info
+        ret += ")"
+        return ret
 
 class SardanaSoftwareAttribute(SardanaAttribute):
     """Class representing a software attribute. The difference between this and

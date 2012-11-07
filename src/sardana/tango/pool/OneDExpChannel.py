@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import time
 
 from PyTango import DevVoid, DevString, DevState, AttrQuality, \
-    Except, READ, SCALAR, SPECTRUM
+    Except, READ, SCALAR
 
 from taurus.core.util.log import DebugIt
 
@@ -48,7 +48,6 @@ class OneDExpChannel(PoolElementDevice):
 
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
-        OneDExpChannel.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)
@@ -80,7 +79,7 @@ class OneDExpChannel(PoolElementDevice):
                     name=name, full_name=full_name, id=self.Id, axis=self.Axis,
                     ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
-                ct.set_instrument(self.instrument)
+                oned.set_instrument(self.instrument)
         oned.add_listener(self.on_oned_changed)
 
         ## force a state read to initialize the state attribute
@@ -134,8 +133,8 @@ class OneDExpChannel(PoolElementDevice):
         # type (between long and float) and length
         value = std_attrs.get('value')
         if value is not None:
-            attr_name, data_info, attr_info = value
-            ttype, tformat = to_tango_type_format(attr_info.get(Type))
+            _, data_info, attr_info = value
+            ttype, _ = to_tango_type_format(attr_info.get(Type))
             data_info[0][0] = ttype
             shape = attr_info.get(MaxDimSize)
             data_info[0][3] = shape[0]

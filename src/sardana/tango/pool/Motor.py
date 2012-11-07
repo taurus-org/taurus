@@ -32,16 +32,16 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevFailed, Except, DevVoid, DevShort, DevLong, \
-    DevDouble, DevBoolean, DispLevel, DevState, AttrQuality, \
+from PyTango import DevFailed, Except, DevVoid, DevShort, \
+    DevLong, DevDouble, DevBoolean, DispLevel, DevState, AttrQuality, \
     READ, READ_WRITE, SCALAR, SPECTRUM
 
-from taurus.core.util import DebugIt, InfoIt
+from taurus.core.util import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import exception_str, \
+from sardana.tango.core.util import memorize_write_attribute, exception_str, \
     to_tango_type_format, throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -101,21 +101,21 @@ The classical Tango Init command destroys the motor and re-create it.
 The motor interface supports several attributes which are summarized
 in the following table:
 
-==============  =================  ===========  ========  =========  ==========
-Name            Data type          Data format  Writable  Memorized  Ope/Expert  
-==============  =================  ===========  ========  =========  ==========
-Position        Tango::DevDouble   Scalar       R/W       No *       Ope         
-DialPosition    Tango::DevDouble   Scalar       R         No         Exp         
-Offset          Tango::DevDouble   Scalar       R/W       Yes        Exp         
-Acceleration    Tango::DevDouble   Scalar       R/W       No         Exp         
-Base_rate       Tango::DevDouble   Scalar       R/W       No         Exp         
-Deceleration    Tango::DevDouble   Scalar       R/W       No         Exp         
-Velocity        Tango::DevDouble   Scalar       R/W       No         Exp         
-Limit_Switches  Tango::DevBoolean  Spectrum     R         No         Exp         
-SimulationMode  Tango::DevBoolean  Scalar       R         No         Exp         
-Step_per_unit   Tango::DevDouble   Scalar       R/W       Yes        Exp         
-Backlash        Tango::DevLong     Scalar       R/W       Yes        Exp         
-==============  =================  ===========  ========  =========  ==========
+==============  =================  ===========  ========  =========  ===============
+Name            Data type          Data format  Writable  Memorized  Operator/Expert  
+==============  =================  ===========  ========  =========  ===============
+Position        Tango::DevDouble   Scalar       R/W       No *       Operator         
+DialPosition    Tango::DevDouble   Scalar       R         No         Expert         
+Offset          Tango::DevDouble   Scalar       R/W       Yes        Expert         
+Acceleration    Tango::DevDouble   Scalar       R/W       No         Expert         
+Base_rate       Tango::DevDouble   Scalar       R/W       No         Expert         
+Deceleration    Tango::DevDouble   Scalar       R/W       No         Expert         
+Velocity        Tango::DevDouble   Scalar       R/W       No         Expert         
+Limit_Switches  Tango::DevBoolean  Spectrum     R         No         Expert         
+SimulationMode  Tango::DevBoolean  Scalar       R         No         Expert         
+Step_per_unit   Tango::DevDouble   Scalar       R/W       Yes        Expert         
+Backlash        Tango::DevLong     Scalar       R/W       Yes        Expert         
+==============  =================  ===========  ========  =========  ===============
 
 - **Position** : This is read-write scalar double attribute. With the classical
   Tango min and max_value attribute properties, it is easy to define
@@ -267,8 +267,8 @@ with this value is sent to clients using events.
     
     def __init__(self, dclass, name):
         """Constructor"""
+        self.in_write_position = False
         PoolElementDevice.__init__(self, dclass, name)
-        Motor.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)
@@ -284,6 +284,22 @@ with this value is sent to clients using events.
 
     motor = property(get_motor, set_motor)
 
+    def set_write_position_to_db(self, pos_attr):
+        w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
+        position = self.get_attribute_by_name('position')
+        position.set_write_value(w_value)
+        db = self.get_database()
+        attr_values = dict(position=dict(__value=w_value, __value_ts=w_ts))
+        db.put_device_attribute_property(self.get_name(), attr_values)
+    
+    def get_write_position_from_db(self):
+        db = self.get_database()
+        pos_props = db.get_device_attribute_property(self.get_name(), 'position')['position']
+        w_pos, w_ts = float(pos_props["__value"][0]), None
+        if "__value_ts" in pos_props:
+            w_ts = float(pos_props["__value_ts"][0])
+        return w_pos, w_ts 
+    
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
@@ -304,11 +320,24 @@ with this value is sent to clients using events.
                     ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
                 motor.set_instrument(self.instrument)
-            if self.Sleep_bef_last_read > 0:
-                motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
+            # if in constructor, for all memorized no init attributes (position)
+            # let poolmotor know their write values
+            if self.in_constructor:
+                try:
+                    w_pos, w_ts = self.get_write_position_from_db()
+                    self.in_write_position = True
+                    try:
+                        motor.set_write_position(w_pos, timestamp=w_ts)
+                    finally:
+                        self.in_write_position = False
+                except KeyError:
+                    pass
+                
+        if self.Sleep_bef_last_read > 0:
+            motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
         motor.add_listener(self.on_motor_changed)
         self.set_state(DevState.ON)
-
+        
     def on_motor_changed(self, event_source, event_type, event_value):
         try:
             self._on_motor_changed(event_source, event_type, event_value)
@@ -327,9 +356,16 @@ with this value is sent to clients using events.
 
         timestamp = time.time()
         name = event_type.name.lower()
-        multi_attr = self.get_device_attr()
+        
+        if name == 'w_position':
+            # if a move from a pseudo motor or from a motor group
+            # update the position write value
+            if not self.in_write_position:
+                self.set_write_position_to_db(event_value)
+            return
+            
         try:
-            attr = multi_attr.get_attr_by_name(name)
+            attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
         quality = AttrQuality.ATTR_VALID
@@ -370,8 +406,8 @@ with this value is sent to clients using events.
         # type (between long and float)
         pos = std_attrs.get('position')
         if pos is not None:
-            attr_name, data_info, attr_info = pos
-            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            _, data_info, attr_info = pos
+            ttype, _ = to_tango_type_format(attr_info.get('type'))
             data_info[0][0] = ttype
         return std_attrs, dyn_attrs
 
@@ -402,46 +438,56 @@ with this value is sent to clients using events.
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=position.value, quality=quality,
                            priority=0, timestamp=position.timestamp)
-
+    
+    @memorize_write_attribute
     def write_Position(self, attr):
-        position = attr.get_write_value()
-        self.info("write_Position(%s)", position)
+        self.in_write_position = True
         try:
-            self.wait_for_operation()
-        except:
-            raise Exception("Cannot move: already in motion")
-        try:
-            self.motor.position = position
-        except PoolException, pe:
-            throw_sardana_exception(pe)
-
+            position = attr.get_write_value()
+            self.info("write_Position(%s)", position)
+            try:
+                self.wait_for_operation()
+            except:
+                raise Exception("Cannot move: already in motion")
+            try:
+                self.motor.position = position
+            except PoolException, pe:
+                throw_sardana_exception(pe)
+        finally:
+            self.in_write_position = False
+            
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
-
+    
+    @memorize_write_attribute
     def write_Acceleration(self, attr):
         self.motor.acceleration = attr.get_write_value()
 
     def read_Deceleration(self, attr):
         attr.set_value(self.motor.get_deceleration(cache=False))
-
+    
+    @memorize_write_attribute
     def write_Deceleration(self, attr):
         self.motor.deceleration = attr.get_write_value()
 
     def read_Base_rate(self, attr):
         attr.set_value(self.motor.get_base_rate(cache=False))
 
+    @memorize_write_attribute
     def write_Base_rate(self, attr):
         self.motor.base_rate = attr.get_write_value()
 
     def read_Velocity(self, attr):
         attr.set_value(self.motor.get_velocity(cache=False))
-
+    
+    @memorize_write_attribute
     def write_Velocity(self, attr):
         self.motor.velocity = attr.get_write_value()
 
     def read_Offset(self, attr):
         attr.set_value(self.motor.get_offset(cache=False).value)
 
+    @memorize_write_attribute
     def write_Offset(self, attr):
         self.motor.offset = attr.get_write_value()
 
@@ -461,6 +507,7 @@ with this value is sent to clients using events.
     def read_Step_per_unit(self, attr):
         attr.set_value(self.motor.get_step_per_unit(cache=False))
 
+    @memorize_write_attribute
     def write_Step_per_unit(self, attr):
         step_per_unit = attr.get_write_value()
         self.motor.step_per_unit = step_per_unit
@@ -468,6 +515,7 @@ with this value is sent to clients using events.
     def read_Backlash(self, attr):
         attr.set_value(self.motor.get_backlash(cache=False))
 
+    @memorize_write_attribute
     def write_Backlash(self, attr):
         self.motor.backlash = attr.get_write_value()
 
@@ -475,6 +523,7 @@ with this value is sent to clients using events.
         sign = self.motor.get_sign(cache=False).value
         attr.set_value(sign)
 
+    @memorize_write_attribute
     def write_Sign(self, attr):
         self.motor.sign = attr.get_write_value()
 
@@ -490,7 +539,7 @@ with this value is sent to clients using events.
         self.motor.define_position(argin)
 
         # update write value of position attribute
-        pos_attr = self.get_device_attr().get_w_attr_by_name("position")
+        pos_attr = self.get_wattribute_by_name("position")
         pos_attr.set_write_value(argin)
 
     def is_DefinePosition_allowed(self):
@@ -516,6 +565,16 @@ with this value is sent to clients using events.
                                 DevState.UNKNOWN):
             return False
         return True
+
+    def get_attributes_to_restore(self):
+        """Make sure position is the last attribute to restore"""
+        restore_attributes = PoolElementDevice.get_attributes_to_restore(self)
+        try:
+            restore_attributes.remove('Position')
+            restore_attributes.append('Position')
+        except ValueError:
+            pass
+        return restore_attributes
 
     is_Position_allowed = _is_allowed
     is_Acceleration_allowed = _is_allowed
@@ -551,8 +610,8 @@ class MotorClass(PoolElementDeviceClass):
     #    Command definitions
     cmd_list = {
         'DefinePosition' : [ [DevDouble, "New position"], [DevVoid, ""] ],
-        'SaveConfig' :     [ [DevVoid, ""], [DevVoid, ""] ],
-        'MoveRelative' :   [ [DevDouble, "amount to move"], [DevVoid, ""] ],
+        'SaveConfig'     : [ [DevVoid, ""], [DevVoid, ""] ],
+        'MoveRelative'   : [ [DevDouble, "amount to move"], [DevVoid, ""] ],
     }
     cmd_list.update(PoolElementDeviceClass.cmd_list)
 

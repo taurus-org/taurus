@@ -554,6 +554,10 @@ class PoolController(PoolBaseController):
             element = self.get_element(axis=axis)
             try:
                 value = ctrl.ReadOne(axis)
+                if value is None:
+                    msg = '%s.ReadOne(%s[%d]) return error: Expected value, ' \
+                          'got None instead' % (self.name, element.name, axis)
+                    raise ValueError(msg)
                 #if not is_number(value):
                 #    t = type(value)
                 #    if value is None:

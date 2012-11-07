@@ -29,6 +29,7 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["exception_str",
            "GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
+           "memorize_write_attribute",
            "tango_protect", "to_tango_state", "to_tango_type_format",
            "to_tango_type", "to_tango_access", "to_tango_attr_info",
            "from_tango_state_to_state", "throw_sardana_exception",
@@ -37,26 +38,25 @@ __all__ = ["exception_str",
 
 import sys
 import os.path
-import functools
 import string
 import traceback
+import time
+import logging
 
 import PyTango
-from PyTango import Util, Database, DbDevInfo, DevFailed, \
-    DevVoid, DevLong, DevLong64, DevBoolean, DevString, DevDouble, \
-    DevVarLong64Array, DispLevel, DevState, \
-    SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
+from PyTango import Util, Database, WAttribute, DbDevInfo, DevFailed, \
+    DevVoid, DevLong, DevBoolean, DevString, DevDouble, \
+    DevState, SCALAR, SPECTRUM, IMAGE, FMT_UNKNOWN, \
     READ_WRITE, READ, Attr, SpectrumAttr, ImageAttr, \
     DeviceClass, Except
 
 import taurus
-from taurus.core.util import Enumeration
 from taurus.core.util.log import Logger
+from taurus.core.util.wrap import wraps
 
 import sardana
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
-    DataAccess, DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, Release, \
-    ServerRunMode
+    DataAccess, to_dtype_dformat, to_daccess, Release, ServerRunMode
 from sardana.sardanaexception import SardanaException
 from sardana.pool.poolmetacontroller import DataInfo
 
@@ -152,9 +152,67 @@ class GenericImageAttr(ImageAttr):
     def __init__(self, name, tg_type, tg_access, dim_x=2048, dim_y=2048):
         ImageAttr.__init__(self, name, tg_type, tg_access, dim_x, dim_y)
 
+def __set_last_write_value(attribute, lrv):
+    attribute._last_write_value = lrv
+    return lrv
 
+def __get_last_write_value(attribute):
+    if hasattr(attribute, '_last_write_value'):
+        lrv = attribute._last_write_value
+    else:
+        attribute._last_write_value = lrv = None
+    return lrv
+
+def memorize_write_attribute(write_attr_func):
+    """Properly memorize the attribute write value:
+           
+           - only memorize if write doesn't throw exception
+           - also memorize the timestamp
+       
+       The main purpose is to use this as a decorator for write_<attr_name>
+       device methods.
+       
+       :param write_attr_func: the write method 
+       :type write_attr_func: callable
+       :return: a write method safely wrapping the given write method
+       :rtype: callable
+    """
+    @wraps(write_attr_func)
+    def write_attr_wrapper(self, attribute):
+        ts = repr(time.time())
+        attr_name = attribute.get_name()
+        dev_name = self.get_name()
+
+        if not isinstance(attribute, WAttribute):
+            return write_attr_func(self, attribute)
+        
+        lwv = __get_last_write_value(attribute)
+        wv = attribute.get_write_value(), ts
+        store, raises_exc = wv, True
+        store_value = False
+        try:
+            ret = write_attr_func(self, attribute)
+            __set_last_write_value(attribute, wv)
+            raises_exc = False
+        finally:
+            # if there is an exception recover from the last write value.
+            # don't catch and raise exceptions to avoid messing up the stack.
+            if raises_exc:
+                store_value = True
+                if lwv is not None:
+                    store = lwv
+        if store is not None:
+            db = Util.instance().get_database()
+            attr_values = dict(__value_ts=store[1])
+            if store_value:
+                attr_values['__value'] = store[0]
+            db.put_device_attribute_property(dev_name, { attr_name : attr_values })
+        return ret
+        
+    return write_attr_wrapper
+    
 def tango_protect(wrapped, *args, **kwargs):
-    @functools.wraps(wrapped)
+    @wraps(wrapped)
     def wrapper(self, *args, **kwargs):
         with self.tango_lock:
             return wrapped(self, *args, **kwargs)
@@ -356,8 +414,6 @@ def prepare_cmdline(parser=None, args=None):
     help_fnlog = "log file name. When given, MUST be absolute file name. " \
                 "[default: /tmp/tango/<DS name>/<DS instance name lower case>/log.txt]. " \
                 "Ignored if --without-log-file is True"
-    help_tango_v = "tango trace level"
-    help_tango_f = "tango db file name"
     help_wflog = "When set to True disables logging into a file [default: %default]"
     help_rfoo = "rconsole port number. [default: %default meaning rconsole NOT active]"
     parser.add_option("--log-level", dest="log_level", metavar="LOG_LEVEL",
@@ -428,9 +484,6 @@ def prepare_server(args, tango_args):
     db = Database()
     if not exists_server_instance(db, bin_name, inst_name):
         if ask_yes_no('%s does not exist. Do you wish create a new one' % inst_name, default='y'):
-            devices = []
-            prefix = '%s/%s' % (bin_name, inst_name)
-
             if bin_name == 'MacroServer' :
                 # build list of pools to which the MacroServer should connect to
                 pool_names = []
@@ -559,7 +612,7 @@ def get_dev_from_class(db, classname):
     server_wildcard = '*'
     try:
         exp_dev_list = db.get_device_exported_for_class(classname)
-    except Exception,e: 
+    except Exception: 
         exp_dev_list = []
     
     res = {}
@@ -595,9 +648,6 @@ def prepare_taurus(options, args, tango_args):
     factory.disablePolling()
     
 def prepare_logging(options, args, tango_args, start_time=None, log_messages=None):
-    import os.path
-    import logging
-    
     taurus.setLogLevel(taurus.Debug)
     root = Logger.getRootLog()
     

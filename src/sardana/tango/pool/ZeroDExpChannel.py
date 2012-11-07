@@ -50,7 +50,6 @@ class ZeroDExpChannel(PoolElementDevice):
 
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
-        ZeroDExpChannel.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)

@@ -35,10 +35,9 @@ import time
 
 from PyTango import Util, DevVoid, DevLong64, DevBoolean, DevString, \
     DevVarStringArray, DispLevel, DevState, SCALAR, SPECTRUM, \
-    IMAGE, READ_WRITE, READ, AttrData, CmdArgType
+    IMAGE, READ_WRITE, READ, AttrData, CmdArgType, DevFailed, seqStr_2_obj
 
 from taurus.core.util import CaselessDict
-#from taurus.core.util.log import DebugIt, InfoIt
 
 from sardana import InvalidId, InvalidAxis, ElementType
 from sardana.pool.poolmetacontroller import DataInfo
@@ -291,7 +290,6 @@ class PoolDevice(SardanaDevice):
 
         if tg_access == READ:
             write = None
-        klass = GenericScalarAttr
         if tg_format == SCALAR:
             attr = GenericScalarAttr(attr_name, tg_type, tg_access)
         if tg_format == SPECTRUM:
@@ -444,6 +442,69 @@ class PoolDevice(SardanaDevice):
             self.warning("waited for operation")
             n = n - 1
 
+    def Restore(self):
+        """Restore tango command. Restores the attributes to their former glory.
+        This applies to memorized writable attributes which have a set point
+        stored in the database"""
+        restore_attributes, db_values = self.get_restore_data()
+        multi_attribute = self.get_device_attr()
+        
+        for attr_name in restore_attributes:
+            props = db_values[attr_name]
+            if props is None or not "__value" in props:
+                continue
+            attribute = multi_attribute.get_w_attr_by_name(attr_name)
+            write_meth_name = "write_" + attr_name
+            write_meth = getattr(self, write_meth_name, None)
+            if write_meth is None:
+                self.warning("Could not recover %s: %s does not exist",
+                             attr_name, write_meth_name)
+                continue
+            self.restore_attribute(attribute, write_meth, props['__value'])
+    
+    def get_restore_data(self):
+        restore_attributes = self.get_attributes_to_restore()
+        db = Util.instance().get_database()
+        db_values = db.get_device_attribute_property(self.get_name(),
+                                                     restore_attributes)
+        return restore_attributes, db_values
+    
+    def get_attributes_to_restore(self):
+        std_attrs, dyn_attrs = self.get_dynamic_attributes()
+        multi_attribute = self.get_device_attr()
+
+        restore = []
+        for attr_name in std_attrs:
+            try:
+                attribute = multi_attribute.get_w_attr_by_name(attr_name)
+            except DevFailed:
+                continue
+            restore.append(attribute.get_name())
+        for attr_name in dyn_attrs:
+            try:
+                attribute = multi_attribute.get_w_attr_by_name(attr_name)
+            except DevFailed:
+                continue
+            restore.append(attribute.get_name())
+        return restore
+    
+    def _get_attribute_value_from_db_value(self, attribute, db_value):
+        value = seqStr_2_obj(db_value, attribute.get_data_type(),
+                             attribute.get_data_format())
+        return value
+            
+    def restore_attribute(self, attribute, write_meth, db_value):
+        value = self._get_attribute_value_from_db_value(attribute, db_value)
+        attr_name = attribute.get_name()
+        try:
+            attribute.set_write_value(value)
+            self.info("Restoring %s", attr_name)
+            write_meth(attribute)
+        except:
+            self.warning("Could not recover %s: Error in write", attr_name)
+            self.debug("Details:", exc_info=1)
+            
+            
 
 class PoolDeviceClass(SardanaDeviceClass):
     """Base Tango Pool Device Class class"""
@@ -474,8 +535,9 @@ class PoolDeviceClass(SardanaDeviceClass):
     #: .. seealso:: :ref:`server`
     #:
     cmd_list = {
-        'Stop' : [ [DevVoid, ""], [DevVoid, ""] ],
-        'Abort': [ [DevVoid, ""], [DevVoid, ""] ]
+        'Stop'    : [ [DevVoid, ""], [DevVoid, ""] ],
+        'Abort'   : [ [DevVoid, ""], [DevVoid, ""] ],
+        'Restore' : [ [DevVoid, ""], [DevVoid, ""] ],        
     }
     cmd_list.update(SardanaDeviceClass.cmd_list)
 
@@ -647,7 +709,7 @@ class PoolElementDevice(PoolDevice):
         :type attr: :class:`~PyTango.Attribute`"""
         self.element.simulation_mode = attr.get_write_value()
 
-
+            
 class PoolElementDeviceClass(PoolDeviceClass):
     """Base Tango Pool Element Device Class class"""
 
@@ -676,6 +738,10 @@ class PoolElementDeviceClass(PoolDeviceClass):
                           { 'label'         : "Simulation mode" } ],
     }
     attr_list.update(PoolDeviceClass.attr_list)
+
+    cmd_list = {
+    }
+    cmd_list.update(PoolDeviceClass.cmd_list)
 
     def get_standard_attr_info(self, attr):
         """Returns information about the standard attribute

@@ -42,11 +42,11 @@ import sys
 import operator
 import types
 import weakref
-import functools
 import StringIO
 import ctypes
 
 from taurus.core.util import Logger, propertx
+from taurus.core.util.wrap import wraps
 from taurus.console.table import Table
 from taurus.console.list import List
 
@@ -291,7 +291,7 @@ def mAPI(fn):
     To be used by the :class:`Macro` as a decorator for all methods.
     :param: macro method
     :return: wrapped macro method"""
-    @functools.wraps(fn)
+    @wraps(fn)
     def new_fn(*args, **kwargs):
         self = args[0]
         if not self.isProcessingStop():
@@ -307,9 +307,6 @@ def mAPI(fn):
                     self.setProcessingStop(True)
                 raise StopException("stopped after calling %s" % fn.__name__)
         return ret
-    # necessary to allow sphinx (with sardana extension) to generate proper
-    # documentation with the decorator applied to the function
-    new_fn.__wrapped_func__ = fn
     return new_fn
 
 
@@ -2172,18 +2169,6 @@ class Macro(Logger):
         if self._pause_event.isPaused():
             self.on_pause()
         self._pause_event.wait(timeout)
-
-    def _build_globals(self, *dictionaries):
-        """**Internal method**. Creates the globals env for macro execution"""
-        ret = dict()
-        for d in dictionaries:
-            ret.update(d)
-        ret.update(self.door.get_macro_proxies())
-        ret['self'] = self
-        ret['macros'] = self.macros
-        printf = functools.partial(Macro.print, self)
-        ret['print'] = printf
-        return ret
 
     def stop(self):
         """**Internal method**. Activates the stop flag on this macro."""

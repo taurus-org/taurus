@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import time
 
 from PyTango import DevVoid, DevString, DevState, AttrQuality, \
-    Except, READ, SCALAR, IMAGE
+    Except, READ, SCALAR
 
 from taurus.core.util.log import DebugIt
 
@@ -48,7 +48,6 @@ class TwoDExpChannel(PoolElementDevice):
 
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
-        TwoDExpChannel.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)
@@ -80,7 +79,7 @@ class TwoDExpChannel(PoolElementDevice):
                     name=name, full_name=full_name, id=self.Id, axis=self.Axis,
                     ctrl_id=self.Ctrl_id)
             if self.instrument is not None:
-                ct.set_instrument(self.instrument)
+                twod.set_instrument(self.instrument)
         twod.add_listener(self.on_twod_changed)
 
         ## force a state read to initialize the state attribute

@@ -30,9 +30,6 @@ __all__ = ["PoolContainer"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.util import CaselessDict
-
-from sardana import InvalidId
 from sardana.sardanacontainer import SardanaContainer
 
 
@@ -40,14 +37,14 @@ class PoolContainer(SardanaContainer):
     """A container class for pool elements"""
     
     def get_controller_class(self, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            return self.get_controller_class_by_id(id, **kwargs)
+        eid = kwargs.get("id")
+        if eid is not None:
+            return self.get_controller_class_by_id(eid, **kwargs)
         
         name = kwargs.pop("name")
         self.get_controller_class_by_name(name, **kwargs)
     
-    def get_controller_class_by_id(self, id, **kwargs):
+    def get_controller_class_by_id(self, eid, **kwargs):
         raise NotImplementedError
     
     def get_controller_class_by_name(self, name, **kwargs):

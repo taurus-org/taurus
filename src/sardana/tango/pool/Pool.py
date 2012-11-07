@@ -904,7 +904,10 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     def SendToController(self, stream):
         ctrl_name, stream = stream[:2]
-        ctrl = self.pool.get_element_by_name(ctrl_name)
+        try:
+            ctrl = self.pool.get_element_by_name(ctrl_name)
+        except KeyError:
+            ctrl = self.pool.get_element_by_full_name(ctrl_name)
         return ctrl.send_to_controller(stream)
 
     def GetFile(self, name):

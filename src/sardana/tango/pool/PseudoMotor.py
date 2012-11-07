@@ -40,7 +40,7 @@ from taurus.core.util.log import DebugIt
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import exception_str, \
+from sardana.tango.core.util import exception_str, memorize_write_attribute, \
     to_tango_type_format, throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -48,8 +48,8 @@ from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 class PseudoMotor(PoolElementDevice):
 
     def __init__(self, dclass, name):
+        self.in_write_position = False
         PoolElementDevice.__init__(self, dclass, name)
-        PseudoMotor.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)
@@ -65,6 +65,22 @@ class PseudoMotor(PoolElementDevice):
 
     pseudo_motor = property(get_pseudo_motor, set_pseudo_motor)
 
+    def set_write_position_to_db(self, pos_attr):
+        w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
+        position = self.get_attribute_by_name('position')
+        position.set_write_value(w_value)
+        db = self.get_database()
+        attr_values = dict(position=dict(__value=w_value, __value_ts=w_ts))
+        db.put_device_attribute_property(self.get_name(), attr_values)
+    
+    def get_write_position_from_db(self):
+        db = self.get_database()
+        pos_props = db.get_device_attribute_property(self.get_name(), 'position')['position']
+        w_pos, w_ts = float(pos_props["__value"][0]), None
+        if "__value_ts" in pos_props:
+            w_ts = float(pos_props["__value_ts"][0])
+        return w_pos, w_ts
+    
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
@@ -87,6 +103,18 @@ class PseudoMotor(PoolElementDevice):
                     ctrl_id=self.Ctrl_id, user_elements=self.Elements)
             if self.instrument is not None:
                 pseudo_motor.set_instrument(self.instrument)
+            # if in constructor, for all memorized no init attributes (position)
+            # let poolmotor know their write values
+            if self.in_constructor:
+                try:
+                    w_pos, w_ts = self.get_write_position_from_db()
+                    self.in_write_position = True
+                    try:
+                        pseudo_motor.set_write_position(w_pos, timestamp=w_ts)
+                    finally:
+                        self.in_write_position = False
+                except KeyError:
+                    pass
         pseudo_motor.add_listener(self.on_pseudo_motor_changed)
         pseudo_motor.set_drift_correction(self.DriftCorrection)
         
@@ -111,9 +139,16 @@ class PseudoMotor(PoolElementDevice):
 
         timestamp = time.time()
         name = event_type.name.lower()
-        multi_attr = self.get_device_attr()
+        
+        if name == 'w_position':
+            # if a move from a pseudo motor or from a motor group
+            # update the position write value
+            if not self.in_write_position:
+                self.set_write_position_to_db(event_value)
+            return
+        
         try:
-            attr = multi_attr.get_attr_by_name(name)
+            attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
         quality = AttrQuality.ATTR_VALID
@@ -154,8 +189,8 @@ class PseudoMotor(PoolElementDevice):
         # type (between long and float)
         pos = std_attrs.get('position')
         if pos is not None:
-            attr_name, data_info, attr_info = pos
-            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            _, data_info, attr_info = pos
+            ttype, _ = to_tango_type_format(attr_info.get('type'))
             data_info[0][0] = ttype
         return std_attrs, dyn_attrs
 
@@ -185,20 +220,25 @@ class PseudoMotor(PoolElementDevice):
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=position.value, quality=quality,
                            priority=0, timestamp=position.timestamp)
-
+    
+    @memorize_write_attribute
     def write_Position(self, attr):
-        position = attr.get_write_value()
-        self.debug("write_Position(%s)", position)
-        try:
-            self.wait_for_operation()
-        except:
-            raise Exception("Cannot move: already in motion")
-        pseudo_motor = self.pseudo_motor
-        try:
-            pseudo_motor.position = position
-        except PoolException, pe:
-            throw_sardana_exception(pe)
-
+        self.in_write_position = True
+        try:        
+            position = attr.get_write_value()
+            self.debug("write_Position(%s)", position)
+            try:
+                self.wait_for_operation()
+            except:
+                raise Exception("Cannot move: already in motion")
+            pseudo_motor = self.pseudo_motor
+            try:
+                pseudo_motor.position = position
+            except PoolException, pe:
+                throw_sardana_exception(pe)
+        finally:
+            self.in_write_position = False
+            
     def MoveRelative(self, argin):
         raise NotImplementedError
 

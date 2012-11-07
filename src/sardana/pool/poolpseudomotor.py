@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the PoolPseudoMotor
 class"""
 
-__all__ = [ "PoolPseudoMotor" ]
+__all__ = [ "PoolPseudoMotor", "PoolPseudoMotorFrontend" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -51,6 +51,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         self._low_level_physical_positions = {}
         self._position = Position(self)
         self._siblings = None
+        self._in_start_move = False
         self._drift_correction = kwargs.pop('drift_correction', None)
         user_elements = kwargs.pop('user_elements')
         PoolElement.__init__(self, **kwargs)
@@ -126,7 +127,27 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         if name == 'position':
             self.put_physical_element_position(evt_src, evt_value,
                                                propagate=evt_type.priority)
-
+        elif name == "w_position":
+            # if motion originated from this pseudo motor don't need to
+            # calculate write position.
+            if self._in_start_move:
+                return
+            physical_positions = self.get_physical_positions(propagate=0)
+            phy_positions = []
+            for elem in self.get_user_elements():
+                pos_attr = physical_positions[elem]
+                if elem == evt_src:
+                    value = pos_attr.w_value
+                else:
+                    value = pos_attr.value
+                phy_positions.append(value)
+            p, err = self._calc_pseudo(phy_positions)
+            if p is None or err is not None:
+                self.warning("could not set write position. calc_pseudo returns error")
+                return
+            self.warning("setting write position %s %s", p, evt_value.w_timestamp)
+            self.set_write_position(p, timestamp=evt_value.w_timestamp)
+            
     def add_user_element(self, element, index=None):
         elem_type = element.get_type()
         if elem_type == ElementType.Motor:
@@ -183,7 +204,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         for motion_obj, position_info in dial_position_infos.items():
             motion_obj.put_dial_position(position_info, propagate=propagate)
         self._low_level_physical_positions = positions = {}
-        for ctrl, motion_objs in self.get_physical_elements().items():
+        for motion_objs in self.get_physical_elements().values():
             for motion_obj in motion_objs:
                 positions[motion_obj] = motion_obj.get_position(propagate=0)
         return positions
@@ -225,9 +246,8 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
                 element.put_position(position_info, propagate=0)
                 position = element.get_position(cache=True, propagate=False)
             positions[element] = position
-
         return positions
-
+        
     def get_siblings_write_positions(self, with_physical_positions=None, use=None):
         positions = {}
         if use is None:
@@ -273,8 +293,21 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             physical_positions = self.get_physical_positions()
         user_elements = self.get_user_elements()
         phy_positions = [ physical_positions[elem].value for elem in user_elements ]
-        return self.controller.calc_pseudo(self.axis, phy_positions, None)
+        return self._calc_pseudo(phy_positions)
+        
+    def _calc_pseudo(self, physical_positions):
+        """Calculate the user position from physical position numbers.
 
+        :param physical_positions:
+            current values for physical positions
+        :type physical_positions:
+            :obj`sequence` <:class:`~numbers.Number` >
+        :return:
+            the pseudo position info
+        :rtype:
+            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
+        return self.controller.calc_pseudo(self.axis, physical_positions, None)
+        
     def get_position(self, cache=True, propagate=1):
         """Returns the user position.
 
@@ -306,7 +339,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             the user position to move to
         :type position:
             :class:`~numbers.Number`"""
-        self._position.set_write_value(position)
+        self.set_write_position(position, propagate=1)
         self.start_move(position)
 
     def put_position(self, position_info, propagate=1):
@@ -335,6 +368,20 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             int"""
         self._position.set_value(*position_info, propagate=propagate)
 
+    def set_write_position(self, w_position, timestamp=None, propagate=1):
+        """Sets a new write value for the user position.
+
+        :param w_position:
+            the new write value for user position
+        :type w_position:
+            :class:`~numbers.Number`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""
+        self._position.set_write_value(w_position, timestamp=timestamp,
+                                       propagate=propagate)
+                                       
     def put_physical_element_position(self, element, position, propagate=1):
         self._physical_positions[element] = position
         if not propagate or len(self._physical_positions) < len(self.get_user_elements()):
@@ -399,7 +446,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # ------------------------------------------------------------------------
 
     def calculate_motion(self, new_position, items=None, calculated=None):
-        # if the items already contains the positions for this pseudo motor 
+        # if items already contains the positions for this pseudo motor 
         # underlying motors it means the motion has been already been calculated
         # by a sibling
         if items is not None and len(items):
@@ -444,10 +491,20 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         return items
 
     def start_move(self, new_position):
+        self._in_start_move = True
+        try:
+            return self._start_move(new_position)
+        finally:
+            self._in_start_move = False
+            
+    def _start_move(self, new_position):
         self._aborted = False
         self._stopped = False
+        ts = self._position.w_timestamp
+        items = self.calculate_motion(new_position)
+        for item, position_info in items.items():
+            item.set_write_position(position_info[0], timestamp=ts)
         if not self._simulation_mode:
-            items = self.calculate_motion(new_position)
             self.motion.run(items=items)
 
     # ------------------------------------------------------------------------

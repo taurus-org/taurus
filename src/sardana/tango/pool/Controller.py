@@ -43,7 +43,7 @@ from taurus.core.util import CaselessDict, DebugIt
 from sardana import DataType, DataFormat
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import to_tango_attr_info, to_tango_state
+from sardana.tango.core.util import to_tango_attr_info
 
 from PoolDevice import PoolDevice, PoolDeviceClass
 
@@ -55,7 +55,6 @@ class Controller(PoolDevice):
 
     def __init__(self, dclass, name):
         PoolDevice.__init__(self, dclass, name)
-        self.init_device()
 
     def init(self, name):
         PoolDevice.init(self, name)

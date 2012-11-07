@@ -26,7 +26,7 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for"""
 
-__all__ = [ "PoolBaseElement", "PoolElement" ]
+__all__ = [ "PoolBaseElement", "PoolElement", "PoolElementFrontend" ]
 
 __docformat__ = 'restructuredtext'
 
@@ -37,7 +37,6 @@ from taurus.core.util.lock import TaurusLock
 
 from sardana import State
 from sardana.sardanaevent import EventType
-from sardana.sardanalock import SardanaLock
 from poolbase import PoolObject
 
 
@@ -283,7 +282,7 @@ class PoolBaseElement(PoolObject):
             return int(state_info), "{0} is in {1}".format(self.name, state_str)
         except KeyError:
             pass
-        state_info, error = state_info
+        state_info, _ = state_info
         state, status = state_info[:2]
         state = int(state)
         return state, status
@@ -466,5 +465,3 @@ class PoolElement(PoolBaseElement):
     controller_id = property(get_controller_id, doc="element controller id")
     instrument = property(get_instrument, set_instrument,
                           doc="element instrument")
-    
-

@@ -37,7 +37,7 @@ from PyTango import DevState, AttrQuality
 from PyTango import READ_WRITE, SCALAR
 
 
-from taurus.core.util import InfoIt, DebugIt
+from taurus.core.util import DebugIt
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -49,7 +49,6 @@ class IORegister(PoolElementDevice):
 
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
-        IORegister.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)

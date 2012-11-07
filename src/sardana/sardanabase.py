@@ -50,12 +50,12 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
     def __init__(self, **kwargs):
         EventGenerator.__init__(self)
         EventReceiver.__init__(self)
-        self._name = intern(kwargs.pop('name'))
+        self._name = name = intern(kwargs.pop('name'))
         self._full_name = intern(kwargs.pop('full_name'))
-        Logger.__init__(self, self._name)
+        Logger.__init__(self, name)
         self._manager = weakref.ref(kwargs.pop('manager'))
         self._parent = weakref.ref(kwargs.pop('parent', self.manager))
-    
+        
     def get_manager(self):
         """Return the :class:`sardana.Manager` which *owns* this sardana
         object.
@@ -97,10 +97,21 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         """Returns this sardana object parent's name.
         
         :return: this objects parent
-        :rtype: :obj:'"""
+        :rtype: str"""
         parent = self.get_parent()
         if parent and hasattr(parent, 'name'):
             return parent.name
+    
+    def get_frontend(self):
+        """Returns this sardana frontend object or None if no frontend is
+        registered
+        
+        :return: this objects frontend
+        :rtype: :obj:`object`"""        
+        f = self._frontend
+        if f is None:
+            return None
+        return f()
     
     def fire_event(self, event_type, event_value, listeners=None):
         #return EventGenerator.fire_event(self, event_type, event_value,
@@ -164,7 +175,8 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
                        doc="reference to the :class:`sardana.Manager`")
     name = property(get_name, doc="object name")
     full_name = property(get_full_name, doc="object full name")
-
+    frontend = property(get_frontend, doc="the object frontend")
+    
 
 class SardanaObjectID(object):
     """To be used by sardana objects which have an ID associated to them."""
@@ -184,4 +196,3 @@ class SardanaObjectID(object):
         return kwargs
     
     id = property(get_id, doc="object ID")
-

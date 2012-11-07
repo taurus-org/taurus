@@ -38,8 +38,7 @@ from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import exception_str, \
-    to_tango_type_format, throw_sardana_exception
+from sardana.tango.core.util import to_tango_type_format
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -48,7 +47,6 @@ class CTExpChannel(PoolElementDevice):
 
     def __init__(self, dclass, name):
         PoolElementDevice.__init__(self, dclass, name)
-        CTExpChannel.init_device(self)
 
     def init(self, name):
         PoolElementDevice.init(self, name)
@@ -135,8 +133,8 @@ class CTExpChannel(PoolElementDevice):
         # type (between long and float)
         value = std_attrs.get('value')
         if value is not None:
-            attr_name, data_info, attr_info = value
-            ttype, tformat = to_tango_type_format(attr_info.get('type'))
+            _, data_info, attr_info = value
+            ttype, _ = to_tango_type_format(attr_info.get('type'))
             data_info[0][0] = ttype
         return std_attrs, dyn_attrs
 

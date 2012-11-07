@@ -35,10 +35,10 @@ import os.path
 import logging.handlers
 
 from taurus.core import AttributeNameValidator
-from taurus.core.util import CaselessDict, InfoIt, DebugIt
+from taurus.core.util import CaselessDict
 
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
-    TYPE_PSEUDO_ELEMENTS
+    TYPE_PSEUDO_ELEMENTS, TYPE_PHYSICAL_ELEMENTS, TYPE_MOVEABLE_ELEMENTS
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaevent import EventType
@@ -51,6 +51,50 @@ from poolmetacontroller import TYPE_MAP_OBJ
 from poolcontrollermanager import ControllerManager
 
 
+class Graph(dict):
+
+    def find_path(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if start not in self:
+            return None
+        for node in self[start]:
+            if node not in path:
+                newpath = self.find_path(node, end, path)
+                if newpath: return newpath
+        return None
+
+    def find_all_paths(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return [path]
+        if start not in self:
+            return []
+        paths = []
+        for node in self[start]:
+            if node not in path:
+                newpaths = self.find_all_paths(node, end, path)
+                for newpath in newpaths:
+                    paths.append(newpath)
+        return paths
+
+    def find_shortest_path(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if start not in self:
+            return None
+        shortest = None
+        for node in self[start]:
+            if node not in path:
+                newpath = self.find_shortest_path(node, end, path)
+                if newpath:
+                    if not shortest or len(newpath) < len(shortest):
+                        shortest = newpath
+        return shortest
+
+        
 class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     """The central pool class."""
 
@@ -282,7 +326,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
 
     def get_acquisition_elements_info(self):
         ret = []
-        for name, element in self.get_element_name_map().items():
+        for _, element in self.get_element_name_map().items():
             if element.get_type() not in TYPE_ACQUIRABLE_ELEMENTS:
                 continue
             acq_channel = element.get_default_acquisition_channel()
@@ -301,7 +345,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         class_name = kwargs['klass']
         name = kwargs['name']
         elem_type = ElementType[ctrl_type]
-        mod_name, ext = os.path.splitext(lib)
+        mod_name, _ = os.path.splitext(lib)
         kwargs['module'] = mod_name
 
         td = TYPE_MAP_OBJ[ElementType.Controller]
@@ -319,11 +363,11 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         kwargs['pool'] = self
         kwargs['class_info'] = ctrl_class_info
         kwargs['lib_info'] = ctrl_lib_info
-        id = kwargs.get('id')
-        if id is None:
-            kwargs['id'] = id = self.get_new_id()
+        eid = kwargs.get('id')
+        if eid is None:
+            kwargs['id'] = eid = self.get_new_id()
         else:
-            self.reserve_id(id)
+            self.reserve_id(eid)
 
         # For pseudo controllers make sure 'role_ids' is given
         klass = klass_map.get(elem_type, PoolController)
@@ -351,10 +395,10 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         return ret
 
     def create_element(self, **kwargs):
-        type = kwargs['type']
+        etype = kwargs['type']
         ctrl_id = kwargs['ctrl_id']
         axis = kwargs['axis']
-        elem_type = ElementType[type]
+        elem_type = ElementType[etype]
         name = kwargs['name']
 
         try:
@@ -383,15 +427,15 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
             if elem_type not in ctrl_types:
                 ctrl_type_str = ElementType.whatis(ctrl_types[0])
                 raise Exception("Cannot create %s in %s controller"
-                                % (type, ctrl_type_str))
+                                % (etype, ctrl_type_str))
 
         #check if controller is online
         #check if axis is allowed
         #create the element in the controller
 
-        id = kwargs.get('id')
-        if id is None:
-            kwargs['id'] = id = self.get_new_id()
+        eid = kwargs.get('id')
+        if eid is None:
+            kwargs['id'] = eid = self.get_new_id()
         else:
             self.reserve_id(id)
         elem = klass(**kwargs)
@@ -419,9 +463,9 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
             if elem.get_type() not in (ElementType.Motor, ElementType.PseudoMotor):
                 raise Exception("%s is not a motor" % elem.name)
 
-        id = kwargs.get('id')
-        if id is None:
-            kwargs['id'] = id = self.get_new_id()
+        eid = kwargs.get('id')
+        if eid is None:
+            kwargs['id'] = eid = self.get_new_id()
         else:
             self.reserve_id(id)
 
@@ -456,9 +500,9 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
                 if params is None:
                     raise Exception("Invalid channel name %s" % elem_id)
 
-        id = kwargs.get('id')
-        if id is None:
-            kwargs['id'] = id = self.get_new_id()
+        eid = kwargs.get('id')
+        if eid is None:
+            kwargs['id'] = eid = self.get_new_id()
         else:
             self.reserve_id(id)
 
@@ -506,10 +550,10 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         is_root = full_name.count('/') == 1
 
         if is_root:
-            parent_full_name, simple_name = '', full_name[1:]
+            parent_full_name, _ = '', full_name[1:]
             parent = None
         else:
-            parent_full_name, simple_name = full_name.rsplit('/', 1)
+            parent_full_name, _ = full_name.rsplit('/', 1)
             try:
                 parent = self.get_element_by_full_name(parent_full_name)
             except:
@@ -598,3 +642,47 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         ctrl_info = self.ctrl_manager.getControllerMetaClass(class_name)
         lib_name = ctrl_info.module_name
         self.reload_controller_lib(lib_name)
+
+    def get_element_id_graph(self):
+        physical_elems_id_map = {}
+        elem_type_map = self.get_element_type_map()
+        for elem_type in TYPE_PHYSICAL_ELEMENTS:
+            physical_elems_id_map.update(elem_type_map[elem_type])
+        #TODO
+        
+    def _build_element_id_dependencies(self, elem_id, graph=None):
+        if graph is None:
+            graph = Graph()
+        elem = self.get_element_by_id(elem_id)
+        if elem.get_id() in graph or elem.get_type() in TYPE_PHYSICAL_ELEMENTS:
+            return graph
+        graph[elem_id] = list(elem.get_user_element_ids())
+        return graph
+        
+    def get_moveable_id_graph(self):
+        moveable_elems_id_map = {}
+        elem_type_map = self.get_element_type_map()
+        for elem_type in TYPE_MOVEABLE_ELEMENTS:
+            moveable_elems_id_map.update(elem_type_map[elem_type])
+        graph = Graph()
+        for moveable_id in moveable_elems_id_map:
+            self._build_element_id_dependencies(moveable_id, graph)
+        return graph
+
+    def _build_element_dependencies(self, elem, graph=None):
+        if graph is None:
+            graph = Graph()
+        if elem.get_id() in graph or elem.get_type() in TYPE_PHYSICAL_ELEMENTS:
+            return graph
+        graph[elem] = list(elem.get_user_elements())
+        return graph
+        
+    def get_moveable_graph(self):
+        moveable_elems_map = {}
+        elem_type_map = self.get_element_type_map()
+        for elem_type in TYPE_MOVEABLE_ELEMENTS:
+            moveable_elems_map.update(elem_type_map[elem_type])
+        graph = Graph()
+        for moveable in moveable_elems_map.values():
+            self._build_element_dependencies(moveable, graph)
+        return graph    

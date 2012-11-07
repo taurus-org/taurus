@@ -63,28 +63,32 @@ def get_thread_pool():
             __thread_pool = ThreadPool(name="EventTH", Psize=1, Qsize=1000)
         return __thread_pool
 
+
 class SardanaDevice(Device_4Impl, Logger):
     """SardanaDevice represents the base class for all Sardana 
     :class:`PyTango.DeviceImpl` classes"""
     
     def __init__(self, dclass, name):
         """Constructor"""
-        self._in_write = False
-        self._event_stack = []
-        Device_4Impl.__init__(self, dclass, name)
-        self.init(name)
-        Logger.__init__(self, name)
-
-        self._state = DevState.ON
-        self._status = 'Waiting to be initialized...'
-
-        # access to some tango API (like MultiAttribute and Attribute) is
-        # still not thread safe so we have this lock to protect
-        # Wa can't always use methods which use internally the
-        # C++ AutoTangoMonitor because it blocks the entire tango device.
-        self.tango_lock = threading.RLock()
-
-        self._event_thread_pool = get_thread_pool()
+        self.in_constructor = True
+        try:
+            Device_4Impl.__init__(self, dclass, name)
+            self.init(name)
+            Logger.__init__(self, name)
+    
+            self._state = DevState.ON
+            self._status = 'Waiting to be initialized...'
+    
+            # access to some tango API (like MultiAttribute and Attribute) is
+            # still not thread safe so we have this lock to protect
+            # Wa can't always use methods which use internally the
+            # C++ AutoTangoMonitor because it blocks the entire tango device.
+            self.tango_lock = threading.RLock()
+    
+            self._event_thread_pool = get_thread_pool()
+            self.init_device()
+        finally:
+            self.in_constructor = False
 
     def init(self, name):
         """initialize the device once in the object lifetime. Override when
@@ -159,7 +163,7 @@ class SardanaDevice(Device_4Impl, Logger):
     def init_device_nodb(self):
         """Internal method. Initialize the device when tango database is not
         being used (example: in demos)"""
-        alias, dev_name, props = self._get_nodb_device_info()
+        _, _, props = self._get_nodb_device_info()
         for prop_name, prop_value in props.items():
             setattr(self, prop_name, prop_value)
 
@@ -200,7 +204,32 @@ class SardanaDevice(Device_4Impl, Logger):
         :return: the sardana :class:`~taurus.core.util.ThreadPool`
         :rtype: :class:`~taurus.core.util.ThreadPool`"""
         return self._event_thread_pool
-
+    
+    def get_attribute_by_name(self, attr_name):
+        """Gets the attribute for the given name.
+        
+        :param attr_name: attribute name
+        :type attr_name: str
+        :return: the attribute object
+        :rtype: :class:`~PyTango.Attribute`"""
+        return self.get_device_attr().get_attr_by_name(attr_name)
+    
+    def get_wattribute_by_name(self, attr_name):
+        """Gets the writable attribute for the given name.
+        
+        :param attr_name: attribute name
+        :type attr_name: str
+        :return: the attribute object
+        :rtype: :class:`~PyTango.WAttribute`"""
+        return self.get_device_attr().get_w_attr_by_name(attr_name)
+    
+    def get_database(self):
+        """Helper method to return a reference to the current tango database
+        
+        :return: the Tango database
+        :rtype: :class:`~PyTango.Database`"""
+        return Util.instance().get_database()
+    
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1, synch=True):
         """Sets the given attribute value. If timestamp is not given, *now* is
@@ -321,6 +350,8 @@ class SardanaDevice(Device_4Impl, Logger):
         finally:
             if recover:
                 attr.set_change_event(True, True)
+
+
 
     def calculate_tango_state(self, ctrl_state, update=False):
         """Calculate tango state based on the controller state.

@@ -48,7 +48,6 @@ class MacroServer(SardanaDevice):
     def __init__(self,cl, name):
         self._macro_server = None
         SardanaDevice.__init__(self,cl, name)
-        MacroServer.init_device(self)
     
     def init(self, name):
         SardanaDevice.init(self, name)

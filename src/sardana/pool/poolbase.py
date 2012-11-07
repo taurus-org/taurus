@@ -30,8 +30,6 @@ __all__ = ["PoolBaseObject", "PoolObject"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.util import Logger
-
 from sardana.sardanabase import SardanaBaseObject, SardanaObjectID
 
 
@@ -72,4 +70,3 @@ class PoolObject(SardanaObjectID, PoolBaseObject):
         kwargs = PoolBaseObject.serialize(self, *args, **kwargs)
         kwargs = SardanaObjectID.serialize(self, *args, **kwargs)
         return kwargs
-    

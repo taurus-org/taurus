@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevVoid, DevLong, DevDouble, DevString, \
+from PyTango import Except, DevVoid, DevLong, DevDouble, DevString, \
     DispLevel, DevState, AttrQuality, \
     READ_WRITE, SCALAR
 
@@ -50,7 +50,6 @@ class MeasurementGroup(PoolGroupDevice):
 
     def __init__(self, dclass, name):
         PoolGroupDevice.__init__(self, dclass, name)
-        MeasurementGroup.init_device(self)
 
     def init(self, name):
         PoolGroupDevice.init(self, name)
@@ -144,46 +143,6 @@ class MeasurementGroup(PoolGroupDevice):
         self.set_attribute(attr, value=event_value, timestamp=timestamp,
                            quality=quality, priority=priority, error=error,
                            synch=False)
-        return
-        
-        
-        
-        
-        recover = False
-        if event_type.priority > 1 and attr.is_check_change_criteria():
-            attr.set_change_event(True, False)
-            recover = True
-
-        try:
-            if name == "state":
-                state = self.calculate_tango_state(event_value)
-                attr.set_value(state)
-                attr.fire_change_event()
-                #self.push_change_event(name, state)
-            elif name == "status":
-                status = self.calculate_tango_status(event_value)
-                attr.set_value(status)
-                attr.fire_change_event()
-                #self.push_change_event(name, status)
-            elif name == "acquisitionmode":
-                event_value = AcqMode.whatis(event_value)
-                attr.set_value_date_quality(event_value, t, quality)
-                attr.fire_change_event()
-                #self.push_change_event(name, event_value, t, quality)
-            elif name == "configuration":
-                cfg = self.measurement_group.get_user_configuration()
-                codec = CodecFactory().getCodec('json')
-                _, event_value = codec.encode(('', cfg))
-                attr.set_value(event_value)
-                attr.fire_change_event()
-                #self.push_change_event(name, event_value)
-            else:
-                attr.set_value(event_value)
-                attr.fire_change_event()
-                #self.push_change_event(name, event_value, t, quality)
-        finally:
-            if recover:
-                attr.set_change_event(True, True)
 
     def always_executed_hook(self):
         pass
