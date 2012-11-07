@@ -579,7 +579,15 @@ class TaurusGui(TaurusMainWindow):
                                          icon=taurus.qt.qtgui.resource.getThemeIcon('image-x-generic'))
         toggleSynopticAction = synopticpanel.toggleViewAction()
         self.quickAccessToolBar.addAction(toggleSynopticAction)
-                
+    
+    def createConsole(self, kernels):
+        from taurus.qt.qtgui.console import TaurusConsole
+        console = TaurusConsole(kernels=kernels)
+        consolePanel = self.createPanel(console, "Console", permanent=True,
+            icon=taurus.qt.qtgui.resource.getThemeIcon('utilities-terminal'))
+        toggleConsoleAction = consolePanel.toggleViewAction()
+        self.quickAccessToolBar.addAction(toggleConsoleAction)
+    
     def createInstrumentsFromPool(self, macroservername):
         '''creates a list of instrument objects
         
@@ -762,7 +770,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
             ParamEditorManager().parsePaths(MACROEDITORS_PATH)
             ParamEditorManager().browsePaths()
-            
+        
         #Synoptics          
         SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
         if isinstance(SYNOPTIC, basestring): #old config file style
@@ -785,7 +793,11 @@ class TaurusGui(TaurusMainWindow):
             POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
         else:
             POOLINSTRUMENTS = []
-        
+
+        CONSOLE = getattr(conf,'CONSOLE', self.__getVarFromXML(xmlroot,"CONSOLE", ['ipython']))
+        if CONSOLE:
+            self.createConsole(CONSOLE)
+       
         #get custom panel descriptions from the python config file      
         CUSTOM_PANELS = [obj for name,obj in inspect.getmembers(conf) if isinstance(obj, PanelDescription)]
         
@@ -904,6 +916,8 @@ class TaurusGui(TaurusMainWindow):
         
         for a in EXTERNAL_APPS:
             self.addExternalAppLauncher(a.getAction())
+        
+        
         
         #get the "factory settings" filename. By default, it is called "default.ini" and resides in the configuration dir
         INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(xmlroot,"INIFILE", "default.ini")) 
