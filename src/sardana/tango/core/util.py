@@ -152,6 +152,20 @@ class GenericImageAttr(ImageAttr):
     def __init__(self, name, tg_type, tg_access, dim_x=2048, dim_y=2048):
         ImageAttr.__init__(self, name, tg_type, tg_access, dim_x, dim_y)
 
+def clean_device_attribute_memorized(db, dev_name, attr_name):
+    props = "__value", "__value_ts"
+    db.delete_device_attribute_property(dev_name, {attr_name : props })
+
+def clean_device_memorized(db, dev_name):
+    for attr_name in PyTango.DeviceProxy(dev_name).get_attribute_list():
+        clean_device_attribute_memorized(db, dev_name, attr_name)
+
+def clean_server_memorized(db, server_name, server_instance):
+    server = server_name + "/" + server_instance
+    dev_names = db.get_device_class_list(server)[::2]
+    for dev_name in dev_names:
+        clean_device_memorized(db, dev_name)
+
 def __set_last_write_value(attribute, lrv):
     attribute._last_write_value = lrv
     return lrv
@@ -164,19 +178,19 @@ def __get_last_write_value(attribute):
     return lrv
 
 def memorize_write_attribute(write_attr_func):
-    """Properly memorize the attribute write value:
+    """The main purpose is to use this as a decorator for write_<attr_name>
+       device methods.
+       
+       Properly memorizes the attribute write value:
            
            - only memorize if write doesn't throw exception
            - also memorize the timestamp
        
-       The main purpose is to use this as a decorator for write_<attr_name>
-       device methods.
-       
        :param write_attr_func: the write method 
        :type write_attr_func: callable
        :return: a write method safely wrapping the given write method
-       :rtype: callable
-    """
+       :rtype: callable"""
+       
     @wraps(write_attr_func)
     def write_attr_wrapper(self, attribute):
         ts = repr(time.time())
@@ -196,7 +210,7 @@ def memorize_write_attribute(write_attr_func):
             raises_exc = False
         finally:
             # if there is an exception recover from the last write value.
-            # don't catch and raise exceptions to avoid messing up the stack.
+            # (don't catch and raise exceptions to avoid messing up the stack)
             if raises_exc:
                 store_value = True
                 if lwv is not None:
@@ -541,8 +555,6 @@ def register_sardana(db, bin_name, inst_name, pool_names=None):
         dev_class, dev_alias = d[0], d[2]
         log_messages.append(("Registered %s %s", dev_class, dev_alias))
     return log_messages
-    
-
 
 def register_server_with_devices(db, server_name, server_instance, devices):
     """Registers a new server with some devices in the Database.
@@ -738,11 +750,13 @@ def prepare_rconsole(options, args, tango_args):
     except:
         taurus.debug("Failed to setup rconsole", exc_info=1)
 
-def run_tango_server(util, start_time=None):
+def run_tango_server(tango_util=None, start_time=None):
     try:
-        tango_util = Util.instance()
+        if tango_util is None:
+            tango_util = Util(sys.argv)
+        util = Util.instance()
         SardanaServer.server_state = State.Init
-        tango_util.server_init()
+        util.server_init()
         SardanaServer.server_state = State.Running
         if start_time is not None:
             import datetime
@@ -750,7 +764,7 @@ def run_tango_server(util, start_time=None):
             taurus.info("Ready to accept request in %s", dt)
         else:
             taurus.info("Ready to accept request")
-        tango_util.server_run()
+        util.server_run()
         SardanaServer.server_state = State.Off
         taurus.info("Exiting")
     except DevFailed:
