@@ -107,7 +107,7 @@ class EventGenerator(object):
             listeners = self._listeners
         if listeners is None:
             return
-        if not isinstance(collections.Sequence):
+        if not isinstance(listeners, collections.Sequence):
             listeners = listeners,
         for listener in listeners:
             if isinstance(listener, weakref.ref) or \
