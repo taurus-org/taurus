@@ -124,25 +124,29 @@ class Rpdb2WaitDialog(Qt.QMessageBox):
         
 
 class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
-    '''A Taurus-aware QMainWindow with several customizations:
+    '''
+    A Taurus-aware QMainWindow with several customizations:
     
         - It takes care of (re)storing its geometry and state (see :meth:`loadSettings`)
-        - It provides a splashScreen (which can be disabled)
-        - It provides a statusBar (@TODO)
-        - It provides basic Taurus menus and actions:
-            The following Menus are already Provided:
-                - Help (self.helpMenu)
-                - About
-                - View (self.viewMenu)
-                - Taurus (self.taurusMenu)
-            The following actions are already provided:
-                -Help-->About
-        - It incorporates a TaurusLogo (@TODO)
+        - Supports perspectives (programatic access and, optionally, 
+          accessible by user), and allows defining a set of "factory settings" 
+        - It provides a customizable splashScreen (optional)
+        - Supports spawning remote consoles and remote debugging
+        - Supports full-screen mode toggling
+        - Supports adding launchers to external applications
+        - It provides a statusBar with an optional heartbeat LED
+        - The following Menus are optionally provided and populated with basic actions:
+            - File  (accessible by derived classes  as `self.fileMenu`)
+            - View (accessible by derived classes  as `self.viewMenu`)
+            - Taurus (accessible by derived classes  as `self.taurusMenu`)
+            - Tools (accessible by derived classes  as `self.toolsMenu`)
+            - Help (accessible by derived classes  as `self.helpMenu`)
+                
     '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
     
     #customization options:
-    _heartbeat = 1500 #blinking semi period in ms. Set to None for not showing the Heart beat LED 
+    _heartbeat = 1500 #blinking semi-period in ms. Set to None for not showing the Heart beat LED 
     _showFileMenu = True
     _showViewMenu = True
     _showTaurusMenu = True
@@ -150,7 +154,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     _showHelpMenu = True
     _supportUserPerspectives = True #Allows the user to change/create/delete perspectives
     _showLogger = True
-    _splashLogo = ":/logo.png" #set to None for disabling splash screen
+    _splashLogo = ":/TaurusSplash.png" #set to None for disabling splash screen
     _splashMessage = "Initializing Main window..."
     
     def __init__(self, parent = None, designMode = False, splash=None):
@@ -955,8 +959,8 @@ if __name__ == "__main__":
     app.setOrganizationName('ALBA')
     app.basicConfig()
         
-    class MainWindowKlass(TaurusMainWindow):
-        _heartbeat = 300 #blinking semi period in ms. Set to None for not showing the Heart beat LED 
+    class MyMainWindow(TaurusMainWindow):
+        _heartbeat = 300 #blinking semi-period in ms. Set to None for not showing the Heart beat LED 
         _showFileMenu = True
         _showViewMenu = True
         _showTaurusMenu = False
@@ -964,13 +968,22 @@ if __name__ == "__main__":
         _showHelpMenu = True
         _supportUserPerspectives = True #Allows the user to change/create/delete perspectives
         _showLogger = True
-        _splashLogo = ":/python.png" #set to None for disabling splash screen
+        _splashLogo = ":/TaurusSplash.png" #set to None for disabling splash screen
         _splashMessage = "Initializing Main window..."
+        def __init__(self):
+            TaurusMainWindow.__init__(self, parent=None, designMode=False, splash=None)
+            #simulating a lengthy initialization
+            import time
+            for i in range(5):
+                time.sleep(0.5)
+                self.splashScreen().showMessage("starting: step %i/5"%(i+1))
+            
+            
     
     
     #MainWindowKlass = TaurusMainWindow
         
-    form = MainWindowKlass()
+    form = MyMainWindow()
     
     #ensure only a single instance of this application is running
     single = form.checkSingleInstance()
