@@ -31,15 +31,15 @@ __all__ = ["EventGenerator", "EventReceiver", "EventType"]
 __docformat__ = 'restructuredtext'
 
 import weakref
-import operator
 import collections
 
+from .sardanautils import is_callable
 from taurus.core.util import CallableRef, BoundMethodWeakref
 
 def _get_callable_ref(listener, callback=None):
     """Returns a callable reference for the given listener"""
     meth = getattr(listener, 'event_received', None)
-    if meth is not None and operator.isCallable(meth):
+    if meth is not None and is_callable(meth):
         return weakref.ref(listener, callback)
     else:
         return CallableRef(listener, callback)
@@ -107,7 +107,7 @@ class EventGenerator(object):
             listeners = self._listeners
         if listeners is None:
             return
-        if not operator.isSequenceType(listeners):
+        if not isinstance(collections.Sequence):
             listeners = listeners,
         for listener in listeners:
             if isinstance(listener, weakref.ref) or \
@@ -118,9 +118,9 @@ class EventGenerator(object):
             if real_listener is None:
                 continue
             meth = getattr(real_listener, 'event_received', None)
-            if meth is not None and operator.isCallable(meth):
+            if meth is not None and is_callable(meth):
                 real_listener.event_received(self, event_type, event_value)
-            elif operator.isCallable(real_listener):
+            elif is_callable(real_listener):
                 real_listener(self, event_type, event_value)
 
     def queue_event(self, event_type, event_value, listeners=None):
