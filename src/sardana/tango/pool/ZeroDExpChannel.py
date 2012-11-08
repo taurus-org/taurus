@@ -126,22 +126,25 @@ class ZeroDExpChannel(PoolElementDevice):
         pass
 
     def get_dynamic_attributes(self):
+        cache_built = hasattr(self, "_dynamic_attributes_cache")
+        
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-
-        # For value attribute, listen to what the controller says for data
-        # type (between long and float)
-        value = std_attrs.get('value')
-        if value is not None:
-            attr_name, data_info, attr_info = value
-            ttype, tformat = to_tango_type_format(attr_info.get('type'))
-            data_info[0][0] = ttype
         
-            # Add manually a 'CurrentValue' with the same time as 'Value'
-            attr_name = 'CurrentValue'
-            attr_info = dict(attr_info)
-            attr_info['description'] = attr_name
-            std_attrs[attr_name] = [attr_name, data_info, attr_info]
+        if not cache_built:
+            # For value attribute, listen to what the controller says for data
+            # type (between long and float)
+            value = std_attrs.get('value')
+            if value is not None:
+                attr_name, data_info, attr_info = value
+                ttype, _ = to_tango_type_format(attr_info.dtype)
+                data_info[0][0] = ttype
+            
+                # Add manually a 'CurrentValue' with the same time as 'Value'
+                attr_name = 'CurrentValue'
+                attr_info = attr_info.copy()
+                attr_info.description = attr_name
+                std_attrs[attr_name] = [attr_name, data_info, attr_info]
             
         return std_attrs, dyn_attrs
 

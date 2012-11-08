@@ -126,18 +126,21 @@ class OneDExpChannel(PoolElementDevice):
         pass
 
     def get_dynamic_attributes(self):
+        cache_built = hasattr(self, "_dynamic_attributes_cache")
+        
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-
-        # For value attribute, listen to what the controller says for data
-        # type (between long and float) and length
-        value = std_attrs.get('value')
-        if value is not None:
-            _, data_info, attr_info = value
-            ttype, _ = to_tango_type_format(attr_info.get(Type))
-            data_info[0][0] = ttype
-            shape = attr_info.get(MaxDimSize)
-            data_info[0][3] = shape[0]
+        
+        if not cache_built:
+            # For value attribute, listen to what the controller says for data
+            # type (between long and float) and length
+            value = std_attrs.get('value')
+            if value is not None:
+                _, data_info, attr_info = value
+                ttype, _ = to_tango_type_format(attr_info.dtype)
+                data_info[0][0] = ttype
+                shape = attr_info.maxdimsize
+                data_info[0][3] = shape[0]
         return std_attrs, dyn_attrs
 
     def read_Value(self, attr):

@@ -351,8 +351,6 @@ class SardanaDevice(Device_4Impl, Logger):
             if recover:
                 attr.set_change_event(True, True)
 
-
-
     def calculate_tango_state(self, ctrl_state, update=False):
         """Calculate tango state based on the controller state.
         

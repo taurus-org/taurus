@@ -256,7 +256,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         name = kwargs['name']
         properties = kwargs['properties']
         elem_type = ElementType[type_str]
-        mod_name, ext = os.path.splitext(lib)
+        mod_name, _ = os.path.splitext(lib)
         kwargs['module'] = mod_name
 
         td = TYPE_MAP_OBJ[ElementType.Controller]
@@ -271,7 +271,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         # check library exists
         ctrl_manager = self.pool.ctrl_manager
-        mod_name, ext = os.path.splitext(lib)
+        mod_name, _ = os.path.splitext(lib)
         ctrl_lib = ctrl_manager.getControllerLib(mod_name)
         if ctrl_lib is None:
             raise Exception("Controller library '%s' not found" % lib)
@@ -462,7 +462,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             raise Exception("'%s' is not a controller (It is a %s)" %
                             (ctrl_name, type_str))
 
-        ctrl_types, ctrl_id = ctrl.get_ctrl_types(), ctrl.get_id()
+        ctrl_types = ctrl.get_ctrl_types()
         if elem_type not in ctrl_types:
             ctrl_type_str = ElementType.whatis(ctrl_types[0])
             raise Exception("Cannot create %s in %s controller" %
@@ -670,7 +670,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         if evt_name in ("elementcreated", "elementdeleted"):
             elem = evt_value
-            elem_name, elem_type = elem.name, elem.get_type()
+            elem_type = elem.get_type()
             td = TYPE_MAP_OBJ[elem_type]
             attribute_list_name = td.family + "List"
             info = self.pool.get_elements_str_info(elem_type)

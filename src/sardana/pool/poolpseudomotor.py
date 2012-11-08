@@ -145,7 +145,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             if p is None or err is not None:
                 self.warning("could not set write position. calc_pseudo returns error")
                 return
-            self.warning("setting write position %s %s", p, evt_value.w_timestamp)
             self.set_write_position(p, timestamp=evt_value.w_timestamp)
             
     def add_user_element(self, element, index=None):

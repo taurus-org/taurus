@@ -66,12 +66,19 @@ class PseudoMotor(PoolElementDevice):
     pseudo_motor = property(get_pseudo_motor, set_pseudo_motor)
 
     def set_write_position_to_db(self, pos_attr):
+        name = 'Position'
         w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
-        position = self.get_attribute_by_name('position')
+        position = self.get_attribute_by_name(name)
         position.set_write_value(w_value)
         db = self.get_database()
-        attr_values = dict(position=dict(__value=w_value, __value_ts=w_ts))
-        db.put_device_attribute_property(self.get_name(), attr_values)
+        attr_values = {}
+        if w_value is not None:
+            attr_values[name] = { '__value' : w_value }
+            if w_ts is not None:
+                attr_values[name]['__value_ts'] = w_ts
+                
+        if attr_values:
+            db.put_device_attribute_property(self.get_name(), attr_values)
     
     def get_write_position_from_db(self):
         db = self.get_database()
@@ -182,16 +189,19 @@ class PseudoMotor(PoolElementDevice):
         pass
 
     def get_dynamic_attributes(self):
+        cache_built = hasattr(self, "_dynamic_attributes_cache")
+        
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-
-        # For position attribute, listen to what the controller says for data
-        # type (between long and float)
-        pos = std_attrs.get('position')
-        if pos is not None:
-            _, data_info, attr_info = pos
-            ttype, _ = to_tango_type_format(attr_info.get('type'))
-            data_info[0][0] = ttype
+        
+        if not cache_built:
+            # For position attribute, listen to what the controller says for data
+            # type (between long and float)
+            pos = std_attrs.get('position')
+            if pos is not None:
+                _, data_info, attr_info = pos
+                ttype, _ = to_tango_type_format(attr_info.dtype)
+                data_info[0][0] = ttype
         return std_attrs, dyn_attrs
 
     def initialize_dynamic_attributes(self):

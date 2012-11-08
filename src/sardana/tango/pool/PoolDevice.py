@@ -658,8 +658,9 @@ class PoolElementDevice(PoolDevice):
         for attr_name, attr_info in axis_attrs.items():
             attr_name_lower = attr_name.lower()
             if attr_name_lower in std_attrs_lower:
+                data_info = DataInfo.toDataInfo(attr_name, attr_info)
                 tg_info = dev_class.standard_attr_list[attr_name]
-                std_attrs[attr_name] = attr_name, tg_info, attr_info
+                std_attrs[attr_name] = attr_name, tg_info, data_info
             else:
                 data_info = DataInfo.toDataInfo(attr_name, attr_info)
                 name, tg_info = to_tango_attr_info(attr_name, data_info)

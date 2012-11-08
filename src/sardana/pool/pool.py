@@ -437,7 +437,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         if eid is None:
             kwargs['id'] = eid = self.get_new_id()
         else:
-            self.reserve_id(id)
+            self.reserve_id(eid)
         elem = klass(**kwargs)
         ctrl.add_element(elem)
         ret = self.add_element(elem)
@@ -467,7 +467,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         if eid is None:
             kwargs['id'] = eid = self.get_new_id()
         else:
-            self.reserve_id(id)
+            self.reserve_id(eid)
 
         elem = klass(**kwargs)
 
@@ -504,7 +504,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         if eid is None:
             kwargs['id'] = eid = self.get_new_id()
         else:
-            self.reserve_id(id)
+            self.reserve_id(eid)
 
         elem = klass(**kwargs)
 

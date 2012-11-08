@@ -39,15 +39,17 @@ from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import exception_str, throw_sardana_exception
+from sardana.tango.core.util import exception_str, throw_sardana_exception, \
+    memorize_write_attribute
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
 class MotorGroup(PoolGroupDevice):
 
     def __init__(self, dclass, name):
+        self.in_write_position = False
         PoolGroupDevice.__init__(self, dclass, name)
-
+        
     def init(self, name):
         PoolGroupDevice.init(self, name)
 
@@ -62,6 +64,32 @@ class MotorGroup(PoolGroupDevice):
 
     motor_group = property(get_motor_group, set_motor_group)
 
+    def set_write_position_to_db(self, pos_attr):
+        name = 'Position'
+        w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
+        if None in w_value:
+            return
+        position = self.get_attribute_by_name(name)
+        print self.get_name(),"set_write_position_to_db", w_value
+        position.set_write_value(w_value)
+        db = self.get_database()
+        attr_values = {}
+        if w_value is not None:
+            attr_values[name] = { '__value' : w_value }
+            if w_ts is not None:
+                attr_values[name]['__value_ts'] = w_ts
+                
+        if attr_values:
+            db.put_device_attribute_property(self.get_name(), attr_values)
+            
+    def get_write_position_from_db(self):
+        db = self.get_database()
+        pos_props = db.get_device_attribute_property(self.get_name(), 'position')['position']
+        w_pos, w_ts = float(pos_props["__value"][0]), None
+        if "__value_ts" in pos_props:
+            w_ts = float(pos_props["__value_ts"][0])
+        return w_pos, w_ts 
+        
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
@@ -72,11 +100,9 @@ class MotorGroup(PoolGroupDevice):
     @DebugIt()
     def init_device(self):
         PoolGroupDevice.init_device(self)
-
         detect_evts = "position",
         non_detect_evts = "elementlist",
         self.set_change_events(detect_evts, non_detect_evts)
-
         self.Elements = map(int, self.Elements)
         motor_group = self.motor_group
         if motor_group is None:
@@ -104,10 +130,15 @@ class MotorGroup(PoolGroupDevice):
         if SardanaServer.server_state != State.Running:
             return
         timestamp = time.time()
-        name = event_type.name
+        name = event_type.name.lower()
 
-        multi_attr = self.get_device_attr()
-        attr = multi_attr.get_attr_by_name(name)
+        if name == 'w_position':
+            # if a move from a motor/pseudo motor update the position write value
+            if not self.in_write_position:
+                self.set_write_position_to_db(event_value)
+            return
+
+        attr = self.get_attribute_by_name(name)
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
@@ -147,6 +178,15 @@ class MotorGroup(PoolGroupDevice):
             positions.append(position.value)
         return positions
 
+    def _to_motor_write_positions(self, pos):
+        w_positions = []
+        for elem in self.motor_group.get_user_elements():
+            position = pos[elem]
+            if position.in_error():
+                Except.throw_python_exception(*position.exc_info)
+            w_positions.append(position.w_value)
+        return w_positions    
+
     def read_Position(self, attr):
         # if motors are moving their position is already being updated with a
         # high frequency so don't bother overloading and just get the cached
@@ -160,19 +200,24 @@ class MotorGroup(PoolGroupDevice):
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=positions, quality=quality, priority=0)
-
+    
+    @memorize_write_attribute
     def write_Position(self, attr):
-        position = attr.get_write_value()
-        self.debug("write_Position(%s)", position)
+        self.in_write_position = True
         try:
-            self.wait_for_operation()
-        except:
-            raise Exception("Cannot move: already in motion")
-        try:
-            self.motor_group.position = position
-        except PoolException, pe:
-            throw_sardana_exception(pe)
-
+            position = attr.get_write_value()
+            self.debug("write_Position(%s)", position)
+            try:
+                self.wait_for_operation()
+            except:
+                raise Exception("Cannot move: already in motion")
+            try:
+                self.motor_group.position = position
+            except PoolException, pe:
+                throw_sardana_exception(pe)
+        finally:
+            self.in_write_position = False
+            
     is_Position_allowed = _is_allowed
 
 

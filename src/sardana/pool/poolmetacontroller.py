@@ -186,7 +186,15 @@ class DataInfo(object):
             elif dformat == DataFormat.TwoD:
                 maxdimsize = 2048, 2048
         self.maxdimsize = maxdimsize
-        
+    
+    def copy(self):
+        s = self
+        d = DataInfo(s.name, s.dtype, dformat=s.dformat, access=s.access,
+                     description=s.description, default_value=s.default_value,
+                     memorized=s.memorized, fget=s.fget, fset=s.fset,
+                     maxdimsize=self.maxdimsize)
+        return d
+          
     @classmethod
     def toDataInfo(klass, name, info):
         info = CaselessDict(info)
