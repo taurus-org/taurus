@@ -27,7 +27,7 @@
 utility methods"""
 
 __all__ = ["is_pure_str", "is_non_str_seq", "is_integer", "is_number",
-           "is_bool", "check_type", "assert_type"]
+           "is_bool", "check_type", "assert_type", "str_to_value", "is_callable"]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,7 +35,7 @@ import collections
 import numbers
 import numpy
 
-from sardanadefs import DataType, DTYPE_MAP, R_DTYPE_MAP
+from sardanadefs import DataType, DataFormat, DTYPE_MAP, R_DTYPE_MAP
 
 __str_klasses = [str]
 __int_klasses = [int, numpy.integer]
@@ -83,11 +83,14 @@ def is_number(obj):
 def is_bool(obj):
     return isinstance(obj, __bool_klasses)
 
+def is_callable(obj):
+    return hasattr(obj, "__call__")
+
 __METH_MAP = {
     DataType.Integer : is_integer,
     DataType.Double  : is_number,
     DataType.String  : is_pure_str,
-    DataType.Boolean : is_bool
+    DataType.Boolean : is_bool,
 }
 
 def check_type(type_info, value):
@@ -110,4 +113,22 @@ def assert_type(type_info, value):
             recv = str(recv)
         raise TypeError("Expected %s, but received %s", expected, recv)
     return ret
-    
+
+_DTYPE_FUNC = {
+    DataType.Integer : int,
+    DataType.Double  : float,
+    DataType.String  : str,
+    DataType.Boolean : bool,
+}
+
+def str_to_value(value, dtype=DataType.Double, dformat=DataFormat.Scalar):
+    f = _DTYPE_FUNC[dtype]
+    if dformat == DataFormat.Scalar:
+        ret = f(value)
+    elif dformat == DataFormat.OneD:
+        ret = [ f(v) for v in value ]
+    elif dformat == DataFormat.TwoD:
+        ret = []
+        for v1 in value:
+            ret.append([ f(v2) for v2 in v1 ])
+    return ret
