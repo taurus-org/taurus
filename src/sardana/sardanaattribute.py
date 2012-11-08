@@ -198,7 +198,7 @@ class SardanaAttribute(object):
         
         :return: timestamp of the last write or None
         :rtype: float or None"""
-        return self._r_timestamp
+        return self._w_timestamp
     
     obj = property(get_obj, "container object for this attribute")
     value = property(get_value, set_value, "current read value for this attribute")
