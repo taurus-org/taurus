@@ -84,11 +84,12 @@ class SardanaIDManager(object):
         """Free previously reserved ID"""
         self._last_id -= 1
     
-    def reserve_id(self, id):
+    def reserve_id(self, nid):
         """Marks the given ID as reserved
         
         :param id: the ID to be reserved
         :type id: int"""
-        if id > self._last_id:
-            self._last_id = id
+        assert type(nid) == int
+        if nid > self._last_id:
+            self._last_id = nid
     
