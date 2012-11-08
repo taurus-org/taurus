@@ -38,9 +38,9 @@ import numpy
 from datarecorder import DataRecorder, DataFormats, SaveModes
 from taurus.core.tango.sardana import PlotType
 from sardana.macroserver.macro import Type
+import PyTango
 
 class BaseFileRecorder(DataRecorder):
-    
     def __init__(self, **pars):
         DataRecorder.__init__(self, **pars)
         self.filename = None
@@ -66,9 +66,10 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.base_filename = filename
         if macro:
             self.macro = macro
-    
+        self.db = PyTango.Database()
+
     def setFileName(self, filename):
-        if self.fd != None:
+        if self.fd != None: 
             self.fd.close()
    
         dirname = os.path.dirname(filename)
@@ -86,23 +87,44 @@ class FIO_FileRecorder(BaseFileRecorder):
         tpl = filename.rpartition('.')
         serial = self.recordlist.getEnvironValue('serialno')
         self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
+        #
+        # in case we have MCAs, prepare the dir name
+        #
+        self.mcaDirName = "%s_%05d" % (tpl[0], serial)
 
     def getFormat(self):
         return DataFormats.whatis(DataFormats.fio)
     
     def _startRecordList(self, recordlist):
-        
+
         if self.base_filename is None:
             return
-        
+
         self.setFileName(self.base_filename)
         
         envRec = recordlist.getEnviron()
+
+        self.sampleTime = envRec['estimatedtime']/(envRec['total_scan_intervals'] + 1)
         #datetime object
         start_time = envRec['starttime']
         
-        #store labels for performace reason
-        self.names = [ e.name for e in envRec['datadesc'] ]
+        self.motorNames = envRec[ 'ref_moveables']
+        self.mcaNames = []
+        self.ctNames = []
+        for e in envRec['datadesc']:
+            if len( e.shape) == 1:
+                self.mcaNames.append( e.name)
+            else:
+                self.ctNames.append( e.name)
+        #
+        # we need the aliases for the column description
+        #
+        self.mcaAliases = []
+        for mca in self.mcaNames:
+            lst = mca.split("/")
+            self.mcaAliases.append( self.db.get_alias( "/".join( lst[1:])))
+
+        # self.names = [ e.name for e in envRec['datadesc'] ]
         self.fd = open( self.filename,'w')
         #
         # write the comment section of the header
@@ -156,13 +178,9 @@ class FIO_FileRecorder(BaseFileRecorder):
     def _writeRecord(self, record):
         if self.filename is None:
             return
-        nan, names, fd = float('nan'), self.names, self.fd
+        nan, ctNames, fd = float('nan'), self.ctNames, self.fd
         outstr = ''
-        for c in names:
-            if c == 'point_nb':
-                continue
-            if c == 'timestamp':
-                continue
+        for c in ctNames:
             outstr += ' ' + str(record.data.get(c, nan))
         # +++
         # 11.9.2012 timestamp to the end
@@ -174,6 +192,9 @@ class FIO_FileRecorder(BaseFileRecorder):
         fd.write( outstr )
         fd.flush()
 
+        if len( self.mcaNames) > 0:
+            self._writeMcaFile( record)
+
     def _endRecordList(self, recordlist):
         if self.filename is None:
             return
@@ -184,6 +205,66 @@ class FIO_FileRecorder(BaseFileRecorder):
         self.fd.flush()
         self.fd.close()
 
+    def _writeMcaFile( self, record):
+        if self.mcaDirName is None:
+            return
+
+        if not os.path.isdir( self.mcaDirName):
+            try:
+                os.makedirs( self.mcaDirName)
+            except:
+                self.mcaDirName = None
+                return
+        currDir = os.getenv( 'PWD')
+        os.chdir( self.mcaDirName)
+
+        serial = self.recordlist.getEnvironValue('serialno')
+        if type(self.recordlist.getEnvironValue('ScanFile')).__name__ == 'list':
+            scanFile = self.recordlist.getEnvironValue('ScanFile')[0]
+        else:
+            scanFile = self.recordlist.getEnvironValue('ScanFile')
+
+        mcaFileName = "%s_%05d_mca_s%d.fio" % (scanFile.split('.')[0], serial, record.data['point_nb'] + 1)
+        fd = open( mcaFileName,'w')
+        fd.write("!\n! Comments\n!\n%%c\n Position %g, Index %d \n" % 
+                      ( record.data[ self.motorNames[0]], record.data[ 'point_nb']))
+        fd.write("!\n! Parameter \n%%p\n Sample_time = %g \n" % ( self.sampleTime))
+        self.fd.flush()
+
+        col = 1
+        fd.write("!\n! Data \n%d \n")
+        for mca in self.mcaAliases:
+            fd.write(" Col %d %s FLOAT \n" % (col, mca))
+            col = col + 1
+
+        if not record.data[ self.mcaNames[0]] is None:
+            #print "+++storage.py, recordno", record.recordno
+            #print "+++storage.py, record.data", record.data
+            #print "+++storage.py, len %d,  %s" % (len( record.data[ self.mcaNames[0]]), self.mcaNames[0])
+            #
+            # the MCA arrays me be of different size. the short ones are extended by zeros.
+            #
+            lMax = len( record.data[ self.mcaNames[0]])
+            for mca in self.mcaNames:
+                if len(record.data[ mca]) > lMax:
+                    lMax = len(record.data[ mca])
+                    
+            for i in range( 0, lMax):
+                line = ""
+                for mca in self.mcaNames:
+                    if i > (len(record.data[mca]) - 1):
+                        line = line + " 0"
+                    else:
+                        line = line + " " + str( record.data[ mca][i])
+                line = line + "\n"
+                fd.write(line)
+            
+            fd.close()
+        else:
+            #print "+++storage.py, recordno", record.recordno, "data None"
+            pass
+            
+        os.chdir( currDir)
 
 class SPEC_FileRecorder(BaseFileRecorder):
     """ Saves data to a file """
@@ -279,7 +360,6 @@ class SPEC_FileRecorder(BaseFileRecorder):
         env = recordlist.getEnviron()
         end_time = env['endtime'].ctime()
         self.fd.write("#C Acquisition ended at %s\n" % end_time)
-        self.fd.write("\n")
         self.fd.flush()
         self.fd.close()
 
