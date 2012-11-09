@@ -1006,14 +1006,21 @@ class TaurusGui(TaurusMainWindow):
         '''
         return copy.deepcopy(self.__instrumentToPanelMap) 
     
-    def setAllInstrumentAssociations(self, associationsdict):
+    def setAllInstrumentAssociations(self, associationsdict, clearExisting=False):
         '''
-        Sets the dictionary of instrument-panel associations
-                
-        :return: (dict<str,str>) a dict whose keys are the instruments names
-                 and whose values are the corresponding associated panels (or None).
+        Sets the dictionary of instrument-panel associations. 
+        By default, it keeps any existing association not present in the associationsdict.
+        
+        :param associationsdict: (dict<str,str>) a dict whose keys are the instruments names
+                                 and whose values are the corresponding associated panels (or None)
+        :param clearExisting: (bool) if True, the the existing asociations are cleared. 
+                              If False (default) existing associations are 
+                              updated with those in associationsdict
         '''
-        self.__instrumentToPanelMap = copy.deepcopy(associationsdict)
+        if clearExisting:
+            self.__instrumentToPanelMap=copy.deepcopy(associationsdict)
+        else:
+            self.__instrumentToPanelMap.update(copy.deepcopy(associationsdict))
         self.__panelToInstrumentMap = {}
         for k,v in self.__instrumentToPanelMap.iteritems():
             self.__panelToInstrumentMap[v]=k
