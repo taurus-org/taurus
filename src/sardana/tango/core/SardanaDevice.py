@@ -34,8 +34,9 @@ __docformat__ = 'restructuredtext'
 import time
 import threading
 
+import PyTango.constants
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
-    AttrQuality, TimeVal, ArgType, ApiUtil
+    AttrQuality, TimeVal, ArgType, ApiUtil, DevFailed
 
 from taurus.core.util import ThreadPool
 from taurus.core.util.log import Logger
@@ -229,6 +230,19 @@ class SardanaDevice(Device_4Impl, Logger):
         :return: the Tango database
         :rtype: :class:`~PyTango.Database`"""
         return Util.instance().get_database()
+    
+    def set_write_attribute(self, attr, w_value):
+        try:
+            attr.set_write_value(w_value)
+        except DevFailed as df:
+            df0 = df[0]
+            reason = df0.reason
+            # if outside limit prefix the description with the device name
+            if reason == PyTango.constants.API_WAttrOutsideLimit:
+                desc = self.alias + ": " + df0.desc
+                _df = DevFailed(*df[1:])
+                PyTango.Except.re_throw_exception(_df, df0.reason, desc, df0.origin)
+            raise df
     
     def set_attribute(self, attr, value=None, timestamp=None, quality=None,
                       error=None, priority=1, synch=True):

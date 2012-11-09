@@ -36,14 +36,10 @@ import weakref
 import StringIO
 import traceback
 import functools
-import threading
-import numbers
 
 from taurus.core.util import CaselessDict
-from taurus.core.util import InfoIt
 
-from sardana import State, ElementType, InvalidAxis, InvalidId, is_number, \
-    TYPE_TIMERABLE_ELEMENTS
+from sardana import State, ElementType, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
 
 from poolelement import PoolBaseElement
@@ -92,41 +88,41 @@ class PoolBaseController(PoolBaseElement):
         return s
     
     def add_element(self, elem, propagate=1):
-        name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
+        name, axis, eid = elem.get_name(), elem.get_axis(), elem.get_id()
         if self.is_online():
             try:
                 self._ctrl.AddDevice(axis)
             except:
                 self.error("Unable to add %s(%s)", name, axis, exc_info=1)
-                self._pending_element_ids[id] = elem
+                self._pending_element_ids[eid] = elem
                 self._pending_element_axis[axis] = elem
                 self._pending_element_names[name] = elem
-            self._element_ids[id] = elem
+            self._element_ids[eid] = elem
             self._element_axis[axis] = elem
             self._element_names[name] = elem
         else:
             #TODO: raise exception
-            self._pending_element_ids[id] = elem
+            self._pending_element_ids[eid] = elem
             self._pending_element_axis[axis] = elem
             self._pending_element_names[name] = elem
         if propagate:
             elements = self.get_elements()
-            elements = [ elements[id].name for id in sorted(elements) ]
+            elements = [ elements[_id].name for _id in sorted(elements) ]
             self.fire_event(EventType("elementlist", priority=propagate),
                             elements)
     
     def remove_element(self, elem, propagate=1):
-        name, axis, id = elem.get_name(), elem.get_axis(), elem.get_id()
-        f = self._element_ids.has_key(id)
+        name, axis, eid = elem.get_name(), elem.get_axis(), elem.get_id()
+        f = self._element_ids.has_key(eid)
         if not f:
-            f = self._pending_element_ids.has_key(id)
+            f = self._pending_element_ids.has_key(eid)
             if not f:
                 raise Exception("element '%s' is not in controller")
-            del self._pending_element_ids[id]
+            del self._pending_element_ids[eid]
             del self._pending_element_axis[axis]
             del self._pending_element_names[name]
         else:
-            del self._element_ids[id]
+            del self._element_ids[eid]
             del self._element_axis[axis]
             del self._element_names[name]
             try:
@@ -135,7 +131,7 @@ class PoolBaseController(PoolBaseElement):
                 self.error("Unable to delete %s(%s)", name, axis, exc_info=1)
         if propagate:
             elements = self.get_elements()
-            elements = [ elements[id].name for id in sorted(elements) ]
+            elements = [ elements[_id].name for _id in sorted(elements) ]
             self.fire_event(EventType("elementlist", priority=propagate),
                             elements)
 
@@ -447,7 +443,7 @@ class PoolController(PoolBaseController):
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
 
     def __build_exc_info(self, ctrl_states, axises, exc_info):
-        status = s = "".join(traceback.format_exception(*exc_info))
+        status = "".join(traceback.format_exception(*exc_info))
         state_info = State.Fault, status
         for axis in axises:
             element = self.get_element(axis=axis)

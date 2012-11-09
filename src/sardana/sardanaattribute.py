@@ -167,7 +167,7 @@ class SardanaAttribute(object):
             return
         obj = self.obj
         if obj is not None:
-            obj.fire_event(EventType("w_" + self.name, priority=propagate), self)
+            obj.fire_event(EventType("w_" + self.name, priority=propagate), self, protected=False)
 
     def fire_event(self, propagate=1):
         """Fires an event to the listeners of the object which owns this

@@ -81,7 +81,6 @@ extensions = ['sphinx.ext.pngmath',
               'sardanaextension',
               'ipython_console_highlighting',
               'spock_console_highlighting',
-
 ]
 
 if as_pdf_extension:

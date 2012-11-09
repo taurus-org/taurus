@@ -30,7 +30,6 @@ __all__ = ["AttributeLogHandler", "AttributeBufferedLogHandler"]
 __docformat__ = 'restructuredtext'
 
 import logging
-import threading
 import weakref
 import operator
 

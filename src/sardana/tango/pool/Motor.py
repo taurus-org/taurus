@@ -289,7 +289,7 @@ with this value is sent to clients using events.
         name = 'Position'
         w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
         position = self.get_attribute_by_name(name)
-        position.set_write_value(w_value)
+        self.set_write_attribute(position, w_value)
         db = self.get_database()
         attr_values = {}
         if w_value is not None:
@@ -355,7 +355,7 @@ with this value is sent to clients using events.
     def on_motor_changed(self, event_source, event_type, event_value):
         try:
             self._on_motor_changed(event_source, event_type, event_value)
-        except:
+        except not DevFailed:
             msg = 'Error occured "on_motor_changed(%s.%s): %s"'
             exc_info = sys.exc_info()
             self.error(msg, self.motor.name, event_type.name,

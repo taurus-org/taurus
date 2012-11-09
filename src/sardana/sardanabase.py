@@ -113,15 +113,17 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
             return None
         return f()
     
-    def fire_event(self, event_type, event_value, listeners=None):
-        #return EventGenerator.fire_event(self, event_type, event_value,
-        #                                 listeners=listeners)
-        try:
+    def fire_event(self, event_type, event_value, listeners=None, protected=True):
+        if protected:
+            try:
+                return EventGenerator.fire_event(self, event_type, event_value,
+                                                 listeners=listeners)
+            except:
+                self.warning("Error firing event <%r, %r>", event_type, event_value)
+                self.debug("Details", exc_info=1)
+        else:
             return EventGenerator.fire_event(self, event_type, event_value,
                                              listeners=listeners)
-        except:
-            self.warning("Error firing event <%s, %s>", event_type, event_value)
-            self.debug("Details", exc_info=1)
     
     def get_interfaces(self):
         """Returns the set of interfaces this object implements.
