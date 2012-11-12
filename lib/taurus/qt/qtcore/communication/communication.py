@@ -28,7 +28,7 @@ comunications.py:
 """
 
 from taurus.qt import QtCore
-import weakref, copy
+import weakref
 
 _DEBUG = False
 
@@ -53,8 +53,6 @@ class DataModel(QtCore.QObject):
         self.__dataUID = dataUID
         self.__data = defaultData
         self.__isDataSet = False
-        self.__readers = 0
-        self.__writers = 0
         
         self.__readerSlots = []
         self.__writerSignals = []
@@ -104,7 +102,6 @@ class DataModel(QtCore.QObject):
         '''
         self.connect(self, QtCore.SIGNAL("dataChanged"), slot)
         if readOnConnect and self.__isDataSet: slot(self.__data)
-        self.__readers += 1
         obj=getattr(slot,'__self__',slot)
         self.__readerSlots.append((weakref.ref(obj), slot.__name__))
     
@@ -121,7 +118,6 @@ class DataModel(QtCore.QObject):
         .. seealso:: :meth:`connectReader`, :meth:`setData`
         '''
         self.connect(writer, QtCore.SIGNAL(signalname),self.setData)
-        self.__writers += 1
         self.__writerSignals.append((weakref.ref(writer),signalname))
         
     def disconnectWriter(self, writer, signalname):
@@ -133,7 +129,6 @@ class DataModel(QtCore.QObject):
         .. seealso:: :meth:`SharedDataManager.disconnectWriter`
         '''
         ok = self.disconnect(writer, QtCore.SIGNAL(signalname), self.setData)
-        if ok: self.__writers -= 1
         self.__writerSignals.remove((weakref.ref(writer),signalname))
         
     def disconnectReader(self, slot):
@@ -145,18 +140,32 @@ class DataModel(QtCore.QObject):
         .. seealso:: :meth:`SharedDataManager.disconnectReader`, :meth:`getData`
         '''
         ok = self.disconnect(self, QtCore.SIGNAL("dataChanged"), slot)
-        if ok: self.__readers -= 1
         self.__readerSlots.remove((weakref.ref(slot.__self__),slot.__name__))
         
     def isDataSet(self):
-        '''Whether the data has been set at least once or if it is uninitialized'''
+        '''Whether the data has been set at least once or if it is uninitialized
+        
+        :return: (bool) True if the data has been set. False it is uninitialized'''
         return self.__isDataSet
     
     def info(self):
         readers=["%s::%s"%(repr(r()),s) for r,s in self.__readerSlots]
         writers=["%s::%s"%(repr(r()),s) for r,s in self.__writerSignals]
         return "UID: %s\n\t Readers (%i):%s\n\t Writers (%i):%s\n"%(self.__dataUID, len(readers),
-                                                                  readers, len(writers), writers) 
+                                                                  readers, len(writers), writers)
+    def readerCount(self):
+        '''returns the number of currently registered readers of this model
+        
+        :return: (int)
+        '''        
+        return len(self.__readerSlots)
+    
+    def writerCount(self):
+        '''returns the number of currently registered writers of this model
+        
+        :return: (int)
+        '''
+        return len(self.__writerSignals)
 
 
 class SharedDataManager(QtCore.QObject):
@@ -168,7 +177,7 @@ class SharedDataManager(QtCore.QObject):
     '''
     def __init__(self, parent):
         QtCore.QObject.__init__(self, parent)
-        self.__models = weakref.WeakValueDictionary()
+        self.__models = {}
 
     
     def __getDataModel(self, dataUID):
@@ -248,7 +257,10 @@ class SharedDataManager(QtCore.QObject):
                            
         .. seealso:: :meth:`DataModel.disconnectWriter`
         '''
-        self.__getDataModel(dataUID).disconnectWriter(writer, signalname)
+        m = self.__getDataModel(dataUID)
+        m.disconnectWriter(writer, signalname)
+        if m.readerCount() < 1 and   m.writerCount()<1:
+            self.__models.pop(dataUID)
         
     def disconnectReader(self, dataUID, slot):
         '''Unregister the given method as data receiver 
@@ -258,7 +270,10 @@ class SharedDataManager(QtCore.QObject):
                            
         .. seealso:: :meth:`DataModel.disconnectReader`
         '''
-        self.__getDataModel(dataUID).disconnectReader(slot)
+        m = self.__getDataModel(dataUID)
+        m.disconnectReader(slot)
+        if m.readerCount() < 1 and   m.writerCount()<1:
+            self.__models.pop(dataUID)
         
     def activeDataUIDs(self):
         '''
