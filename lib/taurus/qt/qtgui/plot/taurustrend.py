@@ -85,12 +85,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     update its values)
     
     """
+    droppedEventsWarning = 3 #number of dropped events before issuing a warning
     def __init__(self, name, parent = None, curves=None):
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._xBuffer = None
         self._yBuffer = None
         self.forcedReadingTimer = None
+        self.droppedEventsCount = 0
         try: self._maxBufferSize = self.parent().getMaxDataBufferSize()
         except: self._maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
         if curves is None:
@@ -353,13 +355,18 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             return
         
         if evt_type == taurus.core.TaurusEventType.Error:
+            self._onDroppedEvent(reason='Error event')
             return
         
         model = evt_src if evt_src is not None else self.getModelObj()
-        if model is None: return
+        if model is None: 
+            self._onDroppedEvent(reason='unknown model')
+            return
         
         value = evt_value if isinstance(evt_value, (taurus.core.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
-        if value is None or value.value is None: return
+        if value is None or value.value is None: 
+            self._onDroppedEvent(reason='invalid value')
+            return
         
         #Check that the data dimensions are consistent with what was plotted before
         if numpy.isscalar(value.value):
@@ -380,7 +387,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self.parent().autoShowYAxes()
 
         #get the data from the event
-        self._xValues, self._yValues = self._updateHistory(model=model,value=value)
+        try:
+            self._xValues, self._yValues = self._updateHistory(model=model,value=value)
+        except Exception, e:
+            self._onDroppedEvent(reason=str(e))
+            raise
 
         #assign xvalues and yvalues to each of the curves in self._curves
         for i,(n,c) in enumerate(self.getCurves()):
@@ -388,7 +399,21 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             c._updateMarkers()
             
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-            
+
+    def _onDroppedEvent(self, reason='Unknown'):
+        '''inform the user about a dropped event
+        
+        :param reason: (str) The reason of the drop
+        '''
+        self.debug("Droping event. Reason %s", reason)
+        self.droppedEventsCount += 1
+        if self.droppedEventsCount == self.droppedEventsWarning:
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            self.warning(msg)
+            p = self.parent()
+            if p:
+                Qt.QMessageBox.warning(p, "Errors in set %s"%self._titleText, msg, Qt.QMessageBox.Ok)            
 
     def isReadOnly(self):
         return True

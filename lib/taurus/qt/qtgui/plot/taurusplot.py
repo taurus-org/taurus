@@ -235,7 +235,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     information about which TaurusCurves are attached. Therefore the programmer
     should never attach/detach a TaurusCurve manually.
     '''
-
+    droppedEventsWarning = 3 #number of dropped events before issuing a warning
     def __init__(self, name, xname=None, parent = None, rawData=None, optimized=False):
 
         Qwt5.QwtPlotCurve.__init__(self)
@@ -255,6 +255,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._minPeakMarker = TaurusCurveMarker(name, self)
         self.__curveName = name
         self.isRawData= not(rawData is None)
+        self.droppedEventsCount = 0
         if optimized:
             self.setPaintAttribute(self.PaintFiltered, True)
             self.setPaintAttribute(self.ClipPolygons, True)
@@ -548,17 +549,31 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
         value = val if isinstance(val, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)) else self.getModelValueObj()
         if not isinstance(value, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)):
-            self.debug("Could not get DeviceAttribute value for this event. Dropping")
+            self._onDroppedEvent(reason="Could not get DeviceAttribute value")
             return
-
         try:
             self.setXYFromModel(value)
         except Exception, e:
-            self.debug("Droping event. Reason %s", str(e))
-
+            self._onDroppedEvent(reason=str(e))
+            return
         self._updateMarkers()
         self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
-
+        
+    def _onDroppedEvent(self, reason='Unknown'):
+        '''inform the user about a dropped event
+        
+        :param reason: (str) The reason of the drop
+        '''
+        self.debug("Droping event. Reason %s", reason)
+        self.droppedEventsCount += 1
+        if self.droppedEventsCount == self.droppedEventsWarning:
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            self.warning(msg)
+            p = self.plot()
+            if p:
+                Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
+            
     def _updateMarkers(self):
         '''updates min & max markers if needed'''
         if self.isVisible():
