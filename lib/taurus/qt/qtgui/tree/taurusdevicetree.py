@@ -198,7 +198,7 @@ class TaurusTreeNodeContainer(object):
         if not hasattr(TaurusTreeNodeContainer,'_defaultClass'): 
             from taurus.qt.qtgui.panel import TaurusDevicePanel
             TaurusTreeNodeContainer._defaultClass = TaurusDevicePanel
-        print 'defaultPanelClass == %s'%TaurusTreeNodeContainer._defaultClass
+        #print 'defaultPanelClass == %s'%TaurusTreeNodeContainer._defaultClass
         obj = TaurusTreeNodeContainer._defaultClass
         return obj
             
@@ -423,7 +423,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             
     def trace(self,msg):
         if self.getLogLevel()=='DEBUG':
-            print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg)
+            print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #TODO: use the taurus logger instead! ~~cpascual 20121121
         
     def setTangoHost(self,tango_host):
         self.db = taurus.Database(tango_host)
@@ -1347,11 +1347,11 @@ class TaurusSearchTree(TaurusWidget):
     @staticmethod
     def method_forwarder(*args,**kwargs):
         m,o = kwargs['method'],kwargs['object']
-        print 'Calling %s.%s'%(o,m)
+        #print 'Calling %s.%s'%(o,m)
         getattr(o.__class__,m)(o,*args)
 
     def defineStyle(self):
-        print('In TaurusSearchTree.defineStyle()')
+        #print('In TaurusSearchTree.defineStyle()')
         self.setWindowTitle('TaurusDevTree')
         self.setLayout(Qt.QVBoxLayout())
         self.edit = TaurusDevTreeOptions(self)

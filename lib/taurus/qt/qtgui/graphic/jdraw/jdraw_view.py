@@ -293,7 +293,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         if not hasattr(TaurusJDrawSynopticsView,'_defaultClass'): 
             #from taurus.qt.qtgui.panel import TaurusDevicePanel
             TaurusJDrawSynopticsView._defaultClass = 'taurusdevicepanel'
-        print('defaultPanelClass == %s'%TaurusJDrawSynopticsView._defaultClass)
+        #print('defaultPanelClass == %s'%TaurusJDrawSynopticsView._defaultClass)
         obj = TaurusJDrawSynopticsView._defaultClass
         return obj    
 
