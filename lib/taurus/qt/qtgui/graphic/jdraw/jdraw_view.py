@@ -151,7 +151,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         
     def modelsChanged(self):
         items = self.get_item_list()
-        self.info('modelsChanged(%s)'%len(items))
+        self.debug('modelsChanged(%s)'%len(items))
         self.emit(Qt.SIGNAL("modelsChanged"),items)
     
     def emitColors(self): 
@@ -302,7 +302,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.modelName = str(model)
         self._currF = str(model)
         if alias is not None: self.setAlias(alias)
-        self.info('setModel(%s)'%model)
+        self.debug('setModel(%s)'%model)
         if self._currF:
             #filename = str(self._currFile.absoluteFilePath())
             filename = self._currF

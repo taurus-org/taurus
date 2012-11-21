@@ -29,26 +29,25 @@ taurusdevicetree.py:
 
 __all__ = ["TaurusDevTree","TaurusSearchTree","TaurusDevTreeOptions"] #,"SearchEdit"] #"TaurusTreeNode"]
 
-import random,time,os,re,traceback,Queue
+import time,os,re,traceback
 from functools import partial
 import PyTango # to change!!
-import subprocess
 
 try:import icons_dev_tree
 except:icons_dev_tree = None
 
-from taurus.qt import Qt, QtCore, QtGui, Qwt5
+from taurus.qt import Qt
 
 import taurus.core
 from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtcore.util.emitter import TaurusEmitterThread,SingletonWorker
+from taurus.qt.qtcore.util.emitter import SingletonWorker
 from taurus.core.util import CaselessDict
-from taurus.qt.qtcore.mimetypes import *
+from taurus.qt.qtcore.mimetypes import *  #@TODO: Avoid implicit imports
 from taurus.qt.qtcore.util import properties
 from taurus.qt.qtcore.util.properties import djoin
-from taurus.core.tango.search import *
+from taurus.core.tango.search import * #@TODO: Avoid implicit imports
 
 TREE_ITEM_MIME_TYPE = 'application/x-qabstractitemmodeldatalist'
 
@@ -211,7 +210,7 @@ class TaurusTreeNodeContainer(object):
         ##nameclass.setSpectraAtkMode(True)
         #Dialog is used to make new floating panels persistent
         if isinstance(nameclass,TaurusWidget):
-            obj = PopupDialog(self,nameclass)
+            PopupDialog(self,nameclass)
 
     def showProperties(self):
         '''Display widget TaurusPropTable'''
@@ -221,20 +220,20 @@ class TaurusTreeNodeContainer(object):
         nameclass.setTable(device)
         nameclass.show()
         #Dialog is used to make new floating panels persistent
-        obj = PopupDialog(self,nameclass)
+        PopupDialog(self,nameclass)
 
     def addToPlot(self):
         """ This method will send a signal with the current selected node """
         items = self.getSelectedNodes()
         for item in items:
             attr = self.getNodeAlias(item)
-            self.info('In addToPlot(%s->%s)'%(item.text(0),attr))
+            self.trace('In addToPlot(%s->%s)'%(item.text(0),attr))
             self.addAttrToPlot(attr)
         return
         
     def addAttrToPlot(self,attr):
         """ This method will send a signal with the given attr name, in a separate method to be called with a pre-filled list  """
-        self.emit(QtCore.SIGNAL("addAttrSelected(QStringList)"),QtCore.QStringList([str(attr)]))
+        self.emit(Qt.SIGNAL("addAttrSelected(QStringList)"),Qt.QStringList([str(attr)]))
 
     def removeFromPlot(self):
         """ This method will send a signal with the current selected node """
@@ -247,7 +246,7 @@ class TaurusTreeNodeContainer(object):
         
     def removeAttrFromPlot(self,attr):
         """ This method will send a signal with the given attr name, in a separate method to be called with a pre-filled list """        
-        self.emit(QtCore.SIGNAL("removeAttrSelected(QStringList)"),QtCore.QStringList([str(attr)]))
+        self.emit(Qt.SIGNAL("removeAttrSelected(QStringList)"),Qt.QStringList([str(attr)]))
 
 
 ###############################################################################
@@ -299,7 +298,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         name = "TaurusDevTree"
         self._useParentModel = True
         self._localModel = ''
-        self.call__init__wo_kw(QtGui.QTreeWidget, parent)
+        self.call__init__wo_kw(Qt.QTreeWidget, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
 
         self.setObjectName(name)
@@ -326,8 +325,8 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         self.initConfig()
         
         #Signal
-        QtCore.QObject.connect(self,QtCore.SIGNAL("itemClicked (QTreeWidgetItem *,int)"),self.deviceClicked)
-        QtCore.QObject.connect(self,QtCore.SIGNAL("nodeFound"),self,QtCore.SLOT("expandNode"))
+        Qt.QObject.connect(self,Qt.SIGNAL("itemClicked (QTreeWidgetItem *,int)"),self.deviceClicked)
+        Qt.QObject.connect(self,Qt.SIGNAL("nodeFound"),self,Qt.SLOT("expandNode"))
         
         self.setDragDropMode(Qt.QAbstractItemView.DragDrop)
         self.setModifiableByUser(True)
@@ -370,10 +369,10 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def sizeHint(self):
-        return QtGui.QTreeWidget.sizeHint(self)
+        return Qt.QTreeWidget.sizeHint(self)
 
     def minimumSizeHint(self):
-        return QtGui.QTreeWidget.minimumSizeHint(self)
+        return Qt.QTreeWidget.minimumSizeHint(self)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -386,7 +385,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     def defineStyle(self):
         self.setWindowTitle('TaurusDevTree')
         self.setHeaderLabel('Device Browser')
-        self.setGeometry(QtCore.QRect(90,60,256,192))
+        self.setGeometry(Qt.QRect(90,60,256,192))
         from taurus.qt.qtgui.table.qdictionary import QDictionaryEditor,QListEditor
         self.ExpertMenu.append(
             ('Edit Model Filters',
@@ -423,12 +422,12 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             
     def trace(self,msg):
         if self.getLogLevel()=='DEBUG':
-            print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #TODO: use the taurus logger instead! ~~cpascual 20121121
+            print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
     def setTangoHost(self,tango_host):
         self.db = taurus.Database(tango_host)
         
-    #model = QtCore.pyqtProperty("QString", TaurusBaseWidget.getModel, 
+    #model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
                                 #TaurusBaseWidget.setModel, 
                                 #TaurusBaseWidget.resetModel)
         
@@ -440,7 +439,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     
     def setFilters(self,filters):
         filters = split_model_list(filters)
-        self.info('setFilters(%s)'%(filters))
+        self.trace('setFilters(%s)'%(filters))
         assert isSequence(filters),"Filters have to be a string or list type!"
         properties.set_property(self,'Filters',filters) #self._filters = filters
         self.setWindowTitle('TaurusDevTree:%s'%str(filters))
@@ -453,7 +452,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     
     def setModelCheck(self,model):
         # Called from TaurusBaseWidget.setModel()
-        self.info('setModelCheck(%s)'%model)
+        self.trace('setModelCheck(%s)'%model)
         self.setFilters(model)
         
     @Qt.pyqtSignature("addModels(QStringList)")
@@ -462,10 +461,10 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         :param modelNames:  (sequence<str>) the names of the models to be added
         .. seealso:: :meth:`removeModels`
         '''
-        self.info('In addModels(%s)'%modelNames)
+        self.trace('In addModels(%s)'%modelNames)
         #print 'Adding %d models to (%s)'%(len(modelNames),self.getFilters())
         modelNames = split_model_list(modelNames)
-        dct = self.getTangoDict(modelNames)
+        #dct = self.getTangoDict(modelNames)
         #self.setTree(djoin(dct,self.dictionary),clear=False)
         self.setTree(self.getTangoDict(modelNames),clear=False)
         self._filters = sorted(set(split_model_list(self._filters)+modelNames))
@@ -474,7 +473,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     ############################################################################
     # Loading/Cleaning the tree
 
-    #@QtCore.pyqtSignature("loadTree(QString)")
+    #@Qt.pyqtSignature("loadTree(QString)")
     #def loadTree(self,filters,clear=False):
         #'''
         #This method show a list of instances and devices depending on the given servers in QTProperty or in another widget, 
@@ -489,7 +488,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         Initializes the tree from a dictionary {'Node0.0':{'Node1.0':None,'Node1.1':None}}
         """
         K = len(str(dict(diction)))
-        self.info('In setTree(%d) ...'%K)
+        self.trace('In setTree(%d) ...'%K)
         self.debug(diction)
         if diction is None: return
         if clear or self.dictionary: 
@@ -527,7 +526,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
     def refreshTree(self):
         self.setFilters(self._filters)
-        self.emit(QtCore.SIGNAL("refreshTree"))
+        self.emit(Qt.SIGNAL("refreshTree"))
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     ## @name Methods for building server/devices/attributes tree
@@ -535,7 +534,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getTangoDict(self,filters):
-        self.info('In TaurusDevTree.getTangoDict(%s(%s))'%(type(filters),str(filters)))
+        self.trace('In TaurusDevTree.getTangoDict(%s(%s))'%(type(filters),str(filters)))
         if filters is None: return
         result = {}
         filters = split_model_list(filters)
@@ -555,7 +554,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         numeric_types = [PyTango.DevDouble,PyTango.DevFloat,PyTango.DevLong,PyTango.DevLong64,PyTango.DevULong,PyTango.DevShort,PyTango.DevUShort,PyTango.DevBoolean,PyTango.DevState]
         allow_types = allow_types or [PyTango.DevString]+numeric_types
         dct = {}
-        self.info('In addAttrToDev(%s)'%my_device)
+        self.trace('In addAttrToDev(%s)'%my_device)
         try:
             proxy = PyTango.DeviceProxy(my_device)
             timeout = proxy.get_timeout_millis()
@@ -582,7 +581,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     def addAttrToNode(self):
         node = self.currentItem()
         dev = self.getNodeDeviceName(node)
-        self.info('In addAttrToNode(%s)'%dev)
+        self.trace('In addAttrToNode(%s)'%dev)
         attrs = self.addAttrToDev(dev)
         children = [str(node.child(i).text(0)).lower() for i in range(node.childCount())]
         for aname in sorted(attrs):
@@ -597,7 +596,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                 icon = self.getNodeIcon(natt)
                 if icon: natt.setIcon(0,icon)                
                 alias = getattr(node,'AttributeAlias',{}) #it gets all aliases for this device attributes
-                if alias: self.info('Got aliases for %s: %s' % (aname,alias))
+                if alias: self.trace('Got aliases for %s: %s' % (aname,alias))
                 [setattr(natt,'AttributeAlias',v) for k,v in alias.items() if k in aname.lower()]
         node.setExpanded(True)
         return
@@ -627,7 +626,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         """ It returns all nodes matching the given expression. """
         result,regexp = [],str(regexp).lower()
         exclude = exclude or []        
-        self.info('In TauDevTree.getMatchingNodes(%s,%s,%s,%s)'%(regexp,limit,all,exclude))
+        self.trace('In TauDevTree.getMatchingNodes(%s,%s,%s,%s)'%(regexp,limit,all,exclude))
         if not all:
             node = self.item_index.get(regexp,None)
             if node is not None:
@@ -714,7 +713,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     ###########################################################################
     # New expand/search methods
             
-    #@QtCore.pyqtSignature("expandNode")
+    #@Qt.pyqtSignature("expandNode")
     def expandNode(self,node=None,expand=True):
         """ Needed to do threaded expansion of the tree """
         if node is None: node = self.getNode()
@@ -726,9 +725,9 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     def expandAll(self,queue=True):
         self.findInTree('*',select=False,queue=queue)
         
-    @QtCore.pyqtSignature("findInTree(const QString &)")
+    @Qt.pyqtSignature("findInTree(const QString &)")
     def findInTree(self,regexp,collapseAll=None,exclude=None,select=True,queue=True):
-        self.info( 'In TauTree.findInTree(%s)'%regexp)
+        self.trace( 'In TauTree.findInTree(%s)'%regexp)
         if collapseAll is None: collapseAll = self.collapsing_search
         regexp = str(regexp).lower().strip()
         exclude = (lambda x: x if hasattr(x,'__iter__') else [x])(exclude or self.excludeFromSearch or [])
@@ -737,11 +736,11 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             t0 = time.time()
             nodes = self.getMatchingNodes(regexp,all=True,exclude=exclude)
             if len(nodes)>150:
-                v = QtGui.QMessageBox.warning(None,'Device Tree Search',
+                v = Qt.QMessageBox.warning(None,'Device Tree Search',
                     'Your search matches too many devices (%d) and may slow down the application.\nDo you want to continue?'%len(nodes),
-                    QtGui.QMessageBox.Ok|QtGui.QMessageBox.Cancel)
-                if v == QtGui.QMessageBox.Cancel:
-                    self.info('Search cancelled by user.')
+                    Qt.QMessageBox.Ok|Qt.QMessageBox.Cancel)
+                if v == Qt.QMessageBox.Cancel:
+                    self.debug('Search cancelled by user.')
                     return
             if nodes:
                 #It's good to have first node matched to be selected fast
@@ -749,7 +748,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                     nodes[0].setSelected(True)
                     self.setCurrentItem(nodes[0])
                     self.deviceSelected(self.getNodeDeviceName(nodes[0])) #Searches must not trigger events!
-                    self.info('The selected node is %s'%self.getNodeText(nodes[0]))
+                    self.debug('The selected node is %s'%self.getNodeText(nodes[0]))
                 #Then proceed to expand/close the rest of nodes
                 parents = set(parent for node in nodes for parent in self.getNodePath(node) if parent)
                 for item in self.item_list:
@@ -762,15 +761,15 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                         else: item.setExpanded(False)
                 if select:
                     self.scrollTo(self.indexFromItem(nodes[0]),Qt.QAbstractItemView.PositionAtTop)#Center)
-                self.info('\tfindInTree(%s): %d nodes found in %f s' %(regexp,len(nodes),time.time()-t0))
+                self.debug('\tfindInTree(%s): %d nodes found in %f s' %(regexp,len(nodes),time.time()-t0))
             else:
                 if collapseAll: 
                     if queue: [self.Expander.getQueue().put((item,False)) for item in self.item_list if item.isExpanded()]
                     else: [item.setExpanded(False) for item in self.item_list if item.isExpanded()]
-                self.info( 'findInTree(%s): Node not found!?'%(regexp))
+                self.debug( 'findInTree(%s): Node not found'%(regexp))
             if queue: self.Expander.next()
         except: 
-            self.warning( 'findInTree(%s): failed!?'%(regexp))
+            self.warning( 'findInTree(%s): failed'%(regexp))
             self.error(traceback.format_exc())
             
     def sortCustom(self,order):
@@ -782,34 +781,34 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
 
         sorter = lambda k,ks=[re.compile(c) for c in order]: str((i for i,r in enumerate(ks) if r.match(k.lower())).next())+str(k)
         for c,it in sorted(allChildren.items(),key=lambda k:sorter(k[0])):
-            self.info( 'tree.sortCustom(%s): %s inserted at %d' % (order,it.text(0),self.topLevelItemCount()))
+            self.debug( 'tree.sortCustom(%s): %s inserted at %d' % (order,it.text(0),self.topLevelItemCount()))
             self.insertTopLevelItem(self.topLevelItemCount(),it)
         return
 
     ###########################################################################
     # Update node colors
     
-    #@QtCore.pyqtSignature("setIcons")
+    #@Qt.pyqtSignature("setIcons")
     def setIcons(self,dct={},root_name=None,regexps=True):
         '''
         This method change the icons depending of the status of the devices
         Dict is a dictionary with name of device and colors such as {name_device:color,name_device2:color2}
         An alternative may be an icon name!
         '''
-        secs = time.time()
-        ID = int(100*random.random())
-        state2color = lambda state: QtGui.QColor(DEVICE_STATE_PALETTE.number(state))
-        quality2color = lambda attr: QtGui.QColor(ATTRIBUTE_QUALITY_PALETTE.number(quality))
+        #secs = time.time()
+        #ID = int(100*random.random())
+        state2color = lambda state: Qt.QColor(DEVICE_STATE_PALETTE.number(state))
+        #quality2color = lambda attr: Qt.QColor(ATTRIBUTE_QUALITY_PALETTE.number(quality))
 
         def update_node(node,key,dct):
             if hasattr(node,'CustomForeground'):
-                node.setForeground(0,QtGui.QBrush(QtGui.QColor(node.CustomForeground)))
+                node.setForeground(0,Qt.QBrush(Qt.QColor(node.CustomForeground)))
             if hasattr(node,'CustomBackground'):
-                node.setBackground(0,QtGui.QBrush(QtGui.QColor(node.CustomBackground)))            
+                node.setBackground(0,Qt.QBrush(Qt.QColor(node.CustomBackground)))            
             elif hasattr(node,'StateBackground'):
-                node.setBackground(0,QtGui.QBrush(state2color(dct[key])))
+                node.setBackground(0,Qt.QBrush(state2color(dct[key])))
             if hasattr(node,'CustomIcon'):
-                node.setIcon(0,QtGui.QIcon(node.CustomIcon))
+                node.setIcon(0,Qt.QIcon(node.CustomIcon))
             else:
                 #key = str(node.text(0)).split(' ')[0]
                 if key.count('/')==2:
@@ -835,34 +834,34 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             self.debug('In setStateIcon(...): Icons for states not available!')
             return
         if color=="#00ff00" or color in 'ON,OPEN,EXTRACT':
-            icon = QtGui.QIcon(":/ICON_GREEN")
+            icon = Qt.QIcon(":/ICON_GREEN")
             child.setIcon(0,icon)
         elif color=="#ff0000" or color in 'OFF,FAULT':
-            icon = QtGui.QIcon(":/ICON_RED")
+            icon = Qt.QIcon(":/ICON_RED")
             child.setIcon(0,icon)
         elif color=="#ff8c00" or color in 'ALARM':
-            icon = QtGui.QIcon(":/ICON_ORANGE")
+            icon = Qt.QIcon(":/ICON_ORANGE")
             child.setIcon(0,icon)
         elif color=="#ffffff" or color in 'CLOSE,INSERT':
-            icon = QtGui.QIcon(":/ICON_WHITE")
+            icon = Qt.QIcon(":/ICON_WHITE")
             child.setIcon(0,icon)
         elif color=="#80a0ff" or color in 'MOVING,RUNNING':
-            icon = QtGui.QIcon(":/ICON_BLUE")
+            icon = Qt.QIcon(":/ICON_BLUE")
             child.setIcon(0,icon)
         elif color=="#ffff00" or color in 'STANDBY':
-            icon = QtGui.QIcon(":/ICON_YELLOW")
+            icon = Qt.QIcon(":/ICON_YELLOW")
             child.setIcon(0,icon)
         elif color=="#cccc7a" or color in 'INIT':
-            icon = QtGui.QIcon(":/ICON_BRAWN")
+            icon = Qt.QIcon(":/ICON_BRAWN")
             child.setIcon(0,icon)
         elif color=="#ff00ff" or color in 'DISABLE':
-            icon = QtGui.QIcon(":/ICON_PINK")
+            icon = Qt.QIcon(":/ICON_PINK")
             child.setIcon(0,icon)
         elif color=="#808080f" or color in 'UNKNOWN':
-            icon = QtGui.QIcon(":/ICON_GREY")
+            icon = Qt.QIcon(":/ICON_GREY")
             child.setIcon(0,icon)
         else:
-            icon = QtGui.QIcon(":/ICON_WHITE")
+            icon = Qt.QIcon(":/ICON_WHITE")
             child.setIcon(0,icon)        
         
     ############################################################################
@@ -871,19 +870,19 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def deviceClicked(self,item,column):
-        self.info("In TaurusDevTree.deviceClicked(%s)"%item.text(column))
+        self.trace("In TaurusDevTree.deviceClicked(%s)"%item.text(column))
         self.deviceSelected(self.getNodeDeviceName())
         
     def deviceSelected(self,device_name=''):
         '''QSIGNAL: this method is used to emit deviceSelected(QString) signal'''
-        self.info("In TaurusDevTree.deviceSelected(%s)"%device_name)
+        self.trace("In TaurusDevTree.deviceSelected(%s)"%device_name)
         try:
             #item = self.currentItem()
             device_name = device_name or self.getNodeDeviceName()#item.text(0)
             if str(device_name).count('/')!=2: return
             #Signal
             self.trace('TaurusTree emit deviceSelected(%s) signal ...'%device_name)
-            self.emit(QtCore.SIGNAL("deviceSelected(QString)"), QtCore.QString(device_name))
+            self.emit(Qt.SIGNAL("deviceSelected(QString)"), Qt.QString(device_name))
         except:
             self.error(traceback.format_exc())
             pass
@@ -930,7 +929,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             self.info('Internal drag/drop not allowed')
             return
         if any(s in event.mimeData().formats() for s in self.getSupportedMimeTypes()):
-            mtype = self.handleMimeData(event.mimeData(),self.addModels)#lambda m:self.addModels('^%s$'%m))
+            #mtype = self.handleMimeData(event.mimeData(),self.addModels)#lambda m:self.addModels('^%s$'%m))
             event.acceptProposedAction()
         else:
             self.warning('Invalid model in dropped data')
@@ -983,7 +982,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                 elif obj.count('/')==3:
                     #Menu for attributes
                     for k,v in self.AttributeMenu:
-                        self.info('Adding action %s'%k)
+                        self.debug('Adding action %s'%k)
                         if type(v) is str and hasattr(self,v):
                             node.ContextMenu.append((k, getattr(self,v)))
                         else:
@@ -998,10 +997,10 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                 node.ContextMenu.append(('Expand All',lambda:self.expandAll()))
                 node.ContextMenu.append(("Collapse All", lambda: self.collapseNode(ALL=True)))
                 node.ContextMenu.append(("Search ...",\
-                    lambda: self.findInTree(str(QtGui.QInputDialog.getText(self,'Search ...','Write a part of the name',QtGui.QLineEdit.Normal)[0]))
+                    lambda: self.findInTree(str(Qt.QInputDialog.getText(self,'Search ...','Write a part of the name',Qt.QLineEdit.Normal)[0]))
                     ))
         #configDialogAction = menu.addAction("Refresh Tree")
-        #self.connect(configDialogAction, QtCore.SIGNAL("triggered()"), self.refreshTree)
+        #self.connect(configDialogAction, Qt.SIGNAL("triggered()"), self.refreshTree)
         menu = Qt.QMenu(self)
         
         if hasattr(node,'ContextMenu'):
@@ -1011,7 +1010,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                     k,action = t
                     if k:
                         configDialogAction = menu.addAction(k)
-                        if action: self.connect(configDialogAction, QtCore.SIGNAL("triggered()"), action)
+                        if action: self.connect(configDialogAction, Qt.SIGNAL("triggered()"), action)
                         else: configDialogAction.setEnabled(False)
                         last_was_separator = False
                     elif not last_was_separator: 
@@ -1030,7 +1029,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
                     k,action = t
                     if k:
                         configDialogAction = expert.addAction(k)
-                        if action: self.connect(configDialogAction, QtCore.SIGNAL("triggered()"), action)
+                        if action: self.connect(configDialogAction, Qt.SIGNAL("triggered()"), action)
                         else: configDialogAction.setEnabled(False)
                         last_was_separator = False
                     elif not last_was_separator: 
@@ -1043,17 +1042,17 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         del menu
 
 
-class PopupDialog(QtGui.QDialog):
+class PopupDialog(Qt.QDialog):
     """ 
     This class create the dialog 
     Dialog is used to make new floating panels persistent
     """
     def __init__(self, parent = None,target = None):
-        QtGui.QDialog.__init__(self, parent)
+        Qt.QDialog.__init__(self, parent)
         if target: self.initComponents(target)
         
     def initComponents(self,newWidget,show=True):
-        widgetLayout = QtGui.QVBoxLayout(self)
+        widgetLayout = Qt.QVBoxLayout(self)
         widgetLayout.setContentsMargins(10,10,10,10)
         widgetLayout.addWidget(newWidget)
         self.setWindowTitle(newWidget.windowTitle())
@@ -1063,7 +1062,7 @@ class PopupDialog(QtGui.QDialog):
         
 #####################################################################################
             
-class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
+class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
     """
     Unused; one day should replace TaurusTreeNodeContainer and all methods moved here.
     Base class for all Taurus Tree Node Items
@@ -1077,7 +1076,7 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
     
     def __init__(self, name = None, parent = None):
         name = name or self.__class__.__name__
-        self.call__init__wo_kw(QtGui.QTreeWidgetItem, parent)        
+        self.call__init__wo_kw(Qt.QTreeWidgetItem, parent)        
         self.call__init__(TaurusBaseComponent, name, parent)
         #self.defineStyle()
     
@@ -1114,13 +1113,13 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
         #self.repaint()
         #if self._parent: self._parent.repaint()
         
-        state2color = lambda state: QtGui.QColor(DEVICE_STATE_PALETTE.number(state))
-        quality2color = lambda attr: QtGui.QColor(ATTRIBUTE_QUALITY_PALETTE.number(attr))
+        state2color = lambda state: Qt.QColor(DEVICE_STATE_PALETTE.number(state))
+        quality2color = lambda attr: Qt.QColor(ATTRIBUTE_QUALITY_PALETTE.number(attr))
         v = self.getModelValueObj()
         if isinstance(v,PyTango.DevState):
-            node.setBackground(0,QtGui.QBrush(state2color(v)))
+            node.setBackground(0,Qt.QBrush(state2color(v))) #@TODO: node is undefined. Check code
         if hasattr(v,'quality'):
-            self.setForeground(0,QtGui.QBrush(quality2color(v.quality)))
+            self.setForeground(0,Qt.QBrush(quality2color(v.quality)))
 
     def isReadOnly(self):
         return True
@@ -1145,7 +1144,7 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
         ## widget
         ##
         ## Typical code is:
-        ##self.connect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'), 
+        ##self.connect(self, Qt.SIGNAL('valueChangedDueToEvent(QString)'), 
         ##             self.setTextValue)
         #ret = TaurusBaseWidget.attach(self)
         ## by default enable/disable widget according to attach state
@@ -1160,9 +1159,9 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
         ## Write your own code here after detaching the widget from the model 
         ##
         ## Typical code is:
-        ##self.emit(QtCore.SIGNAL('valueChangedDueToEvent(QString)'), 
-        ##          QtCore.QString(value_str))
-        ##self.disconnect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
+        ##self.emit(Qt.SIGNAL('valueChangedDueToEvent(QString)'), 
+        ##          Qt.QString(value_str))
+        ##self.disconnect(self, Qt.SIGNAL('valueChangedDueToEvent(QString)'),
         ##                self.setTextValue)
         ## by default disable widget when dettached
         #self.setEnabled(False)
@@ -1172,11 +1171,11 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
     # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    model = QtCore.pyqtProperty("QString", TaurusBaseWidget.getModel, 
+    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
                                 TaurusBaseWidget.setModel, 
                                 TaurusBaseWidget.resetModel)
                                 
-    useParentModel = QtCore.pyqtProperty("bool",
+    useParentModel = Qt.pyqtProperty("bool",
                                          TaurusBaseWidget.getUseParentModel, 
                                          TaurusBaseWidget.setUseParentModel,
                                          TaurusBaseWidget.resetUseParentModel)
@@ -1185,42 +1184,42 @@ class TaurusTreeNode(QtGui.QTreeWidgetItem, TaurusBaseComponent):
     # Write your own code here for your own widget properties
     
 class TaurusDevTreeOptions(Qt.QWidget):
-  """ This class provides a search(QString) signal to be connected to TaurusDevTree.findInTree slot """
-  __pyqtSignals__ = (
-    "search(QString)",
-    "setFilters(QString)",
-    "hideUnexported",
-    "hideUnarchived",
-    )
-  
-  def __init__(self,parent=None,icon=None):
-    Qt.QWidget.__init__(self,parent)
+    """ This class provides a search(QString) signal to be connected to TaurusDevTree.findInTree slot """
+    __pyqtSignals__ = (
+      "search(QString)",
+      "setFilters(QString)",
+      "hideUnexported",
+      "hideUnarchived",
+      )
+    
+    def __init__(self,parent=None,icon=None):
+        Qt.QWidget.__init__(self,parent)
+        
+        self.setLayout(Qt.QHBoxLayout())
+        try:
+            self._pixmap = Qt.QPixmap(icon or 'image/icons/search.png')
+            self._label = Qt.QLabel(self)
+            self._label.setPixmap(self._pixmap)
+            self.layout().addWidget(self._label)    
+        except:
+            pass
+        
+        self._edit = Qt.QLineEdit()
+        self._button = Qt.QPushButton()
+        self._button.setText('Search')
+        self.connect(self._edit,Qt.SIGNAL('returnPressed()'),self._button.animateClick)
+        self.connect(self._button,Qt.SIGNAL('clicked()'),self._emitSearch)
+        self.layout().addWidget(self._edit)
+        self.layout().addWidget(self._button)
 
-    self.setLayout(Qt.QHBoxLayout())
-    try:
-        self._pixmap = Qt.QPixmap(icon or 'image/icons/search.png')
-        self._label = Qt.QLabel(self)
-        self._label.setPixmap(self._pixmap)
-        self.layout().addWidget(self._label)    
-    except:
-        pass
-
-    self._edit = Qt.QLineEdit()
-    self._button = Qt.QPushButton()
-    self._button.setText('Search')
-    self.connect(self._edit,Qt.SIGNAL('returnPressed()'),self._button.animateClick)
-    self.connect(self._button,Qt.SIGNAL('clicked()'),self._emitSearch)
-    self.layout().addWidget(self._edit)
-    self.layout().addWidget(self._button)
-  
-  def connectWithTree(self,tree):
-    Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
-
-  def _emitSearch(self):
-    text = self._edit.text()
-    if text: 
-      self.emit(Qt.SIGNAL("search(QString)"), text)
-    return
+    def connectWithTree(self,tree):
+        Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
+    
+    def _emitSearch(self):
+        text = self._edit.text()
+        if text: 
+            self.emit(Qt.SIGNAL("search(QString)"), text)
+        return
 
 SearchEdit = TaurusDevTreeOptions
     
@@ -1235,24 +1234,24 @@ class ServerBrowser(TaurusDevTree):
         --- filters is a string with names of devices/servers such as "LT/VC/ALL,LT02/VC/IP-01" or "modbus,pyplc"
         --- filters is a list of devices such as ["LT/VC/ALL","LT02/VC/IP-01"]
         '''
-        self.info('In TaurusDevTree.buildDictFromFilters(%s)'%filters)
+        self.trace('In TaurusDevTree.buildDictFromFilters(%s)'%filters)
         self._filters = filters
-        if type(filters)==type("") or isinstance(filters,QtCore.QString):
+        if type(filters)==type("") or isinstance(filters,Qt.QString):#@TODO:QString and QStringList should not be used (They disappear in API2)
             filters = str(filters).split(',')
-        elif isinstance(filters,QtCore.QStringList):
+        elif isinstance(filters,Qt.QStringList): #@TODO:QString and QStringList should not be used (They disappear in API2)
             filters = list(filters)
         elif type(filters)!=type([]):
-            self.info("'filters' has to be a string or the list type!")
+            self.debug("'filters' has to be a string or the list type!")
         vals = {}
         if not filters: return vals
         if filters[0].count('/')==0:
-            self.info('In TaurusDevTree.buildDictFromFilters(%s): Getting Servers'%filters)
+            self.debug('In TaurusDevTree.buildDictFromFilters(%s): Getting Servers'%filters)
             targets,addMe = self.db.get_server_name_list(),self.addInstToServ #Searching servers
         elif filters[0].count('/')==1:
-            self.info('In TaurusDevTree.buildDictFromFilters(%s): Getting Instances'%filters)
+            self.debug('In TaurusDevTree.buildDictFromFilters(%s): Getting Instances'%filters)
             targets,addMe = self.db.get_server_list(),self.addDevToInst #Searching instances
         elif filters[0].count('/')==2:
-            self.info('In TaurusDevTree.buildDictFromFilters(%s): Getting Devices'%filters)
+            self.debug('In TaurusDevTree.buildDictFromFilters(%s): Getting Devices'%filters)
             targets,addMe = self.db.get_device_exported("*"),lambda s: {s:{}} #self.addAttrToDev #Searching devices
         else:
             raise Exception('UnknownFilter!: %s'%filters[0])
@@ -1262,9 +1261,9 @@ class ServerBrowser(TaurusDevTree):
                 f = str(f)
                 exp = f.replace('*','.*').lower() if '*' in f and '.*' not in f else f.lower()
                 if re.match(exp,t.lower()):
-                    self.info('Adding node %s'%t)
+                    self.debug('Adding node %s'%t)
                     vals[t] = addMe(t) 
-        self.info('Out of TaurusDevTree.getDeviceDict(%s)'%filters)
+        self.trace('Out of TaurusDevTree.getDeviceDict(%s)'%filters)
         return vals
 
     def addInstToServ(self,my_server):
@@ -1279,26 +1278,26 @@ class ServerBrowser(TaurusDevTree):
         return dict
 
     def addDevtoInst(self,my_inst,expand_attrs = False):
-        dict = {}
+        d = {}
         list_dev = self.get_devices_for_instance(my_inst)
         lower_list_dev = [s.lower() for s in list_dev]
         for my_dev in lower_list_dev:
             if self._expand:
-                dict[my_dev] = self.addAttrToDev(my_dev) if expand_attrs else {my_dev:{}}
+                d[my_dev] = self.addAttrToDev(my_dev) if expand_attrs else {my_dev:{}}
             else:
-                dict[my_dev] = 0
-        return dict
+                d[my_dev] = 0
+        return d
             
     def addFamilyToDomain(self,prev,expand_attrs):
-        dict = {}
-        children = self.get_devices_for_instance(my_inst)
-        lower_list_dev = [s.lower() for s in list_dev]
+        d = {}
+        #children = self.get_devices_for_instance(my_inst)
+        lower_list_dev = [s.lower() for s in list_dev] #@TODO: list_dev is undefined. Check code
         for my_dev in lower_list_dev:
             if self._expand:
-                dict[my_dev] = self.addAttrToDev(my_dev) if expand_attrs else {my_dev:{}}
+                d[my_dev] = self.addAttrToDev(my_dev) if expand_attrs else {my_dev:{}}
             else:
-                dict[my_dev] = 0
-        return dict
+                d[my_dev] = 0
+        return d
             
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -1364,7 +1363,7 @@ class TaurusSearchTree(TaurusWidget):
             #if k in ['__init__','defineStyle']: continue
             if k not in self.__slots__: continue
             try: setattr(self,k,partial(self.method_forwarder,method=k,object=self.tree))
-            except Exception,e: self.warning('Unable to add slot %s(%s): %s'%(k,m,e))
+            except Exception,e: self.warning('Unable to add slot %s: %s'%(k,e))
         #Event forwarding ...
         for signal in TaurusDevTree.__pyqtSignals__:
             #Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
