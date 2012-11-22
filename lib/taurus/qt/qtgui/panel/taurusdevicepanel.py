@@ -251,7 +251,7 @@ class TaurusDevicePanel(TaurusWidget):
         self._dups[-1].show()
     
     @Qt.pyqtSignature("setModel(QString)")
-    def setModel(self,model,pixmap=None):
+    def setModel(self,model,pixmap=None):        
         model,modelclass,raw = str(model).strip(),'',model
         if model: 
             model = model and model.split()[0] or ''
@@ -259,7 +259,7 @@ class TaurusDevicePanel(TaurusWidget):
         self.trace('In TaurusDevicePanel.setModel(%s(%s),%s)'%(raw,modelclass,pixmap))
         if model == self.getModel():
             return
-        elif not model or not modelclass: 
+        elif raw is None or not model or not modelclass: 
             if self.getModel(): self.detach()
             return
         elif issubclass(modelclass,taurus.core.TaurusAttribute):
