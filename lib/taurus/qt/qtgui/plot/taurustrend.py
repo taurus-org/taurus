@@ -277,17 +277,22 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         SPECTRUM attribute with dim_x=8. Then the return value will be (X,Y)
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
-        if numpy.isscalar(value.value):
-            ntrends=1
+        v = value.value
+        if numpy.isscalar(v):
+            ntrends = 1
         else:
-            ntrends=len(value.value)
+            try:
+                v = float(v)
+                ntrends = 1
+            except:
+                ntrends = len(v)
             
         if self._xBuffer is None:
             self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
         if self._yBuffer is None:
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
         
-        self._yBuffer.append(value.value)
+        self._yBuffer.append(v)
         #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
         
         if self.parent().getXIsTime():
@@ -369,9 +374,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             return
         
         #Check that the data dimensions are consistent with what was plotted before
-        if numpy.isscalar(value.value):
+        try:
+            float(value.value)
             ntrends=1
-        else:
+        except:
             ntrends=len(value.value)
         if ntrends != len(self._curves):
             #clean previous curves
