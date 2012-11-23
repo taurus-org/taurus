@@ -122,6 +122,9 @@ class BaseConfigurableClass:
     implementing "perspectives" in your application.
     
     '''
+    
+    defaultConfigRecursionDepth = -1
+    
     def __init__(self):
         self._supportedConfigVersions = ["__UNVERSIONED__"] #the latest element of this list is considered the current version
         self.resetConfigurableItems()
@@ -185,7 +188,7 @@ class BaseConfigurableClass:
         configdict["__orderedConfigNames__"] = self.__configurableItemNames
         return configdict
     
-    def applyConfig(self, configdict, depth=-1):
+    def applyConfig(self, configdict, depth=None):
         """applies the settings stored in a configdict to the current object.
         
         In most usual situations, using :meth:`registerConfigProperty` and 
@@ -198,12 +201,17 @@ class BaseConfigurableClass:
                       for this object, and not for any other object registered
                       via :meth:`registerConfigurableItem`. If depth > 0,
                       applyConfig will be called recursively as many times as
-                      the depth value. If depth < 0 (default), no limit is
-                      imposed to recursion (i.e., it will recurse for as deep as
-                      there are registered items)
+                      the depth value. If depth < 0 (default, see note), no
+                      limit is imposed to recursion (i.e., it will recurse for
+                      as deep as there are registered items).
+                      
+        .. note:: the default recursion depth can be tweaked in derived classes
+                  by changing the class property `defaultConfigRecursionDepth`
         
         .. seealso:: :meth:`createConfig`
         """
+        if depth is None:
+            depth = self.defaultConfigRecursionDepth
         if not self.checkConfigVersion(configdict): 
             raise ValueError('the given configuration is of unsupported version')
         #delegate restoring the configuration of any registered configurable item
