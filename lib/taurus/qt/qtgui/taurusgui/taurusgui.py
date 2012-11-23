@@ -142,6 +142,9 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                 w = klass()
             except:
                 try:
+                    if classname is not None and '.' in classname:
+                        mn,classname = classname.rsplit('.',1)
+                        modulename = ("%s.%s"%(modulename or '',mn)).strip('. ')
                     module = __import__(modulename, fromlist=[''])
                     klass = getattr(module, classname)
                     w = klass()
@@ -203,9 +206,12 @@ class TaurusGui(TaurusMainWindow):
     
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
     
-    def __init__(self, parent=None, confname=None):
+    def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
         
+        if configRecursionDepth is not None:
+            self.defaultConfigRecursionDepth = configRecursionDepth
+            
         self.__panels = {}   
         self.__synoptics = []
         self.__instrumentToPanelMap = {}
@@ -228,7 +234,7 @@ class TaurusGui(TaurusMainWindow):
         self.__initJorgBar()  
         self.__initSharedDataConnections()
         self.__initToolsMenu()
-                
+                    
         self.loadConfiguration(confname)
                 
         #connect the main window itself as a reader/writer of "short messages"
@@ -238,6 +244,14 @@ class TaurusGui(TaurusMainWindow):
         #emit a short message informing that we are ready to go
         msg = '%s is ready'%Qt.qApp.applicationName()
         self.emit(Qt.SIGNAL('newShortMessage'), msg)
+        
+        if self.defaultConfigRecursionDepth >=0:
+            Qt.QMessageBox.information(self, "Fail-proof mode", 
+                                   ('Running in fail-proof mode.'+
+                                    '\nLoading of potentially problematic settings is disabled.'+ 
+                                    '\nSome panels may not be loaded or may ignore previous user configuration'+
+                                    '\nThis will also apply when loading perspectives'), 
+                                   Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
         
     def closeEvent(self, event):
         try:
@@ -354,8 +368,8 @@ class TaurusGui(TaurusMainWindow):
     def createConfig(self, *args, **kwargs):
         '''reimplemented from TaurusMainWindow.createConfig'''
         self.updatePermanentCustomPanels(showAlways=False)
-        return TaurusMainWindow.createConfig(self, *args, **kwargs)        
- 
+        return TaurusMainWindow.createConfig(self, *args, **kwargs)   
+    
     def removePanel(self, name=None):
         ''' remove the given panel from the GUI
         
@@ -589,11 +603,12 @@ class TaurusGui(TaurusMainWindow):
         self.quickAccessToolBar.addAction(toggleConsoleAction)
     
     def createInstrumentsFromPool(self, macroservername):
-        '''creates a list of instrument objects
+        '''
+        Creates a list of instrument panel descriptions by gathering the info
+        from the Pool. Each panel is a TaurusForm grouping together all those
+        elements that belong to the same instrument according to the Pool info
         
-        :return: (list<object>) A list of instrument objects. Each instrument
-                 object has "name" (str) and "model" (list<str>) members
-                 
+        :return: (list<PanelDescription>)                 
         '''      
         instrument_dict = {}
         try:
@@ -787,9 +802,11 @@ class TaurusGui(TaurusMainWindow):
         for s in SYNOPTIC:
             self.createMainSynoptic(s)
             
-        #Get panel descriptions from pool if required                         
+        #Get panel descriptions from pool if required            
         INSTRUMENTS_FROM_POOL = getattr(conf,'INSTRUMENTS_FROM_POOL', (self.__getVarFromXML(xmlroot,"INSTRUMENTS_FROM_POOL", 'False').lower() == 'true') )                   
         if INSTRUMENTS_FROM_POOL:
+            try: self.splashScreen().showMessage("Gathering Instrument info from Pool")
+            except AttributeError: pass            
             POOLINSTRUMENTS = self.createInstrumentsFromPool(MACROSERVER_NAME) #auto create instruments from pool 
         else:
             POOLINSTRUMENTS = []
@@ -813,16 +830,18 @@ class TaurusGui(TaurusMainWindow):
         #create panels based on the panel descriptions gathered before
         for p in CUSTOM_PANELS + POOLINSTRUMENTS:
             try:
+                try: self.splashScreen().showMessage("Creating panel %s"%p.name)
+                except AttributeError: pass 
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
                 if hasattr(w,'setCustomWidgetMap'):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
                 if p.model is not None:
                     w.setModel(p.model)
                 if p.instrumentkey is None:
-                    instrumentkey = self.IMPLICIT_ASSOCIATION
+                    instrumentkey = self.IMPLICIT_ASSOCIATION 
+                registerconfig = p not in POOLINSTRUMENTS #the pool instruments may change when the pool config changes, so we do not store their config
                 #create a panel
-                self.createPanel(w, p.name, floating=p.floating, instrumentkey=instrumentkey, permanent=True)
-                
+                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig, instrumentkey=instrumentkey, permanent=True)
             except Exception,e:
                 msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
                 self.error(msg)
@@ -846,6 +865,8 @@ class TaurusGui(TaurusMainWindow):
         #create toolbars based on the descriptions gathered before
         for d in CUSTOM_TOOLBARS:
             try:
+                try: self.splashScreen().showMessage("Creating Toolbar %s"%d.name)
+                except AttributeError: pass 
                 w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
                 if d.model is not None:
                     w.setModel(d.model)
@@ -887,6 +908,8 @@ class TaurusGui(TaurusMainWindow):
         #create applet based on the descriptions gathered before
         for d in CUSTOM_APPLETS:
             try:
+                try: self.splashScreen().showMessage("Creating applet %s"%d.name)
+                except AttributeError: pass 
                 w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
                 if d.model is not None:
                     w.setModel(d.model)
@@ -924,6 +947,11 @@ class TaurusGui(TaurusMainWindow):
         iniFileName = os.path.join(self._confDirectory, INIFILE) #if a relative name is given, the conf dir is used as the root path
         
         #read the settings (or the factory settings if the regular file is not found)
+        msg = "Loading previous state"
+        if self.defaultConfigRecursionDepth >=0:
+            msg += " in Fail Proof mode"
+        try: self.splashScreen().showMessage(msg)
+        except AttributeError: pass
         self.loadSettings(factorySettingsFileName=iniFileName)
             
     def setLockView(self, locked):
@@ -1186,6 +1214,7 @@ class TaurusGui(TaurusMainWindow):
         w.show()
         self.info(nfo)
         
+        
 #------------------------------------------------------------------------------ 
 def main():
     import sys
@@ -1202,6 +1231,8 @@ def main():
                   help="use the given configuration directory for initialization")
     parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
                   help="launch a wizard for creating a new TaurusGUI application")
+    parser.add_option("", "--fail-proof", action="store_true", dest="fail_proof", default=None,
+                  help="launch in fail proof mode (it prevents potentially problematic configs from being loaded)")
 
     app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
                             app_version=taurus.Release.version)
@@ -1224,8 +1255,13 @@ def main():
         else:
             parser.print_help(sys.stderr)
             sys.exit(1)
+    
+    if options.fail_proof:
+        configRecursionDepth = 0
+    else:
+        configRecursionDepth = None
         
-    gui = TaurusGui(None, confname=confname)
+    gui = TaurusGui(None, confname=confname, configRecursionDepth=configRecursionDepth)
     
     gui.show()
     ret = app.exec_()
