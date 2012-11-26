@@ -50,12 +50,14 @@ class configurableProperty:
         else:
             result = self.fget() 
         return result
+    
     def applyConfig(self, value, depth=-1):
         '''calls the fset function for this property with the given value. The depth parameter is ignored'''
         if isinstance(self.fget, basestring):# fget is not a method but a method name...
             getattr(self._obj, self.fset)(value)
         else:
             self.fset(value)
+            
     def objectName(self):
         '''returns the name of this property'''
         return self.name
@@ -124,9 +126,9 @@ class BaseConfigurableClass:
     '''
     
     defaultConfigRecursionDepth = -1
+    _supportedConfigVersions = ("__UNVERSIONED__",)#the latest element of this list is considered the current version
     
     def __init__(self):
-        self._supportedConfigVersions = ["__UNVERSIONED__"] #the latest element of this list is considered the current version
         self.resetConfigurableItems()
     
     @staticmethod
