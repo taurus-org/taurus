@@ -32,15 +32,15 @@ __all__ = ['EvaluationFactory', 'EvaluationDatabase', 'EvaluationDevice',
 
 
 
-import os, time, re, weakref
+import time, re, weakref
 import numpy
 
 from taurus.core.taurusexception import TaurusException
 import taurus.core
-from taurus.core import OperationMode, MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
-from taurus.core.util import SafeEvaluator
+from taurus.core import MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
+from taurus.core.util import SafeEvaluator, Singleton, Logger
 
-class AbstractEvaluationNameValidator(taurus.core.util.Singleton):
+class AbstractEvaluationNameValidator(Singleton):
     #the object name class. *must* be implemented in subclasses
     name_pattern = '' #must be implemented in children classes
     # The following regexp pattern matches <variable>=<value> pairs    
@@ -55,37 +55,37 @@ class AbstractEvaluationNameValidator(taurus.core.util.Singleton):
         self.name_re = re.compile(self.name_pattern)
         self.kvsymbols_re = re.compile(self.kvsymbols_pattern)
         
-    def isValid(self,str, matchLevel = MatchLevel.ANY):
-        return self.name_re.match(str) is not None
+    def isValid(self,s, matchLevel = MatchLevel.ANY):
+        return self.name_re.match(s) is not None
         
-    def getParams(self, str):
-        m = self.attrname_re.match(str)
+    def getParams(self, s):
+        m = self.attrname_re.match(s)
         if m is None:
             return None
         return m.groupdict()
 
-    def getNames(self, str, factory=None):
+    def getNames(self, s, factory=None):
         """Returns the full, normal and simple names for this object, or None if there is no match'''
         """
-        raise RunTimeError('Not Allowed to call this method from subclasses')
+        raise RuntimeError('Not Allowed to call this method from subclasses')
     
-    def getDeviceName(self, str, full=True):
+    def getDeviceName(self, s, full=True):
         '''
         returns the device name for the given attribute name. 
         If full=True, the returned name includes the DB name
         '''
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         devname = m.group('devname') or EvaluationFactory.DEFAULT_DEVICE
         if full:
-            return '%s;dev=%s'%(self.getDBName(str),devname)
+            return '%s;dev=%s'%(self.getDBName(s),devname)
         else:
             return 'eval://dev=%s'%devname
     
-    def getDBName(self,str):
+    def getDBName(self,s):
         '''returns the full data base name for the given attribute name'''
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         dbname = m.group('dbname') or EvaluationFactory.DEFAULT_DATABASE
@@ -93,7 +93,7 @@ class AbstractEvaluationNameValidator(taurus.core.util.Singleton):
     
 
 class EvaluationAttributeNameValidator(AbstractEvaluationNameValidator):
- # The groups in a match object using the regexp below are:
+    # The groups in a match object using the regexp below are:
     #    1: scheme; named as 'scheme'
     #    2: 
     #    3: database name; optional; named as 'dbname'
@@ -113,8 +113,8 @@ class EvaluationAttributeNameValidator(AbstractEvaluationNameValidator):
     #                 1                             2   3                     4    5                      6                    7                    8                  9 A                                                        
     name_pattern = r'^(?P<scheme>eval|evaluation)://(db=(?P<dbname>[^?#;]+);)?(dev=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?!configuration=)(?P<subst>[^#?]*))?(#(?P<fragment>.*))?$'
         
-    def isValid(self,str, matchLevel = MatchLevel.ANY):
-        m = self.name_re.match(str)
+    def isValid(self,s, matchLevel = MatchLevel.ANY):
+        m = self.name_re.match(s)
         if m is None: 
             return False
         elif matchLevel == MatchLevel.COMPLETE:
@@ -122,7 +122,7 @@ class EvaluationAttributeNameValidator(AbstractEvaluationNameValidator):
         else:
             return True
 
-    def getNames(self, str, factory=None):
+    def getNames(self, s, factory=None):
         """Returns the complete, normal and short names.
         
         For example::
@@ -131,19 +131,19 @@ class EvaluationAttributeNameValidator(AbstractEvaluationNameValidator):
             >>> ("eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}", "eval://dev=foo;bar*blah", "bar*blah")
         
         """
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         #The following comments are for an example name like: "eval://dev=foo;bar*blah?bar=123;blah={a/b/c/d}#[1:-3]"
         attr_name = m.group('attrname') # attr_name = "bar*blah"
-        normal_name = "%s;%s"%(self.getDeviceName(str, full=False),attr_name) #normal_name = "eval://dev=foo;bar*blah"
-        expanded_attr_name = self.getExpandedTransformation(str)
-        fullname = "%s;%s"%(self.getDeviceName(str, full=True),expanded_attr_name) #fullname = "eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}"
+        normal_name = "%s;%s"%(self.getDeviceName(s, full=False),attr_name) #normal_name = "eval://dev=foo;bar*blah"
+        expanded_attr_name = self.getExpandedTransformation(s)
+        fullname = "%s;%s"%(self.getDeviceName(s, full=True),expanded_attr_name) #fullname = "eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}"
         return fullname, normal_name, attr_name
     
-    def getExpandedTransformation(self, str):
+    def getExpandedTransformation(self, s):
         'expands the attribute name by substituting all symbols'
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         transf = m.group('attrname')
@@ -167,23 +167,22 @@ class EvaluationDeviceNameValidator(AbstractEvaluationNameValidator):
     #                 1                             2   3                     4    5                    6                    7                                     
     name_pattern = r'^(?P<scheme>eval|evaluation)://(db=(?P<dbname>[^?#;]+);)?(dev=(?P<devname>[^?#;]+))(\?(?!configuration=)(?P<subst>[^#?]*))?$'
     
-    def getNames(self, str, factory=None):
+    def getNames(self, s, factory=None):
         """Returns the complete, normal and short names. (note: complete=normal)
         
-        :param str: (str) input string describing the device
+        :param s: (str) input string describing the device
         :param factory: (TaurusFactory) [Unused]
         
         :return: (tuple<str,str,str> or None) A tuple of complete, normal and
-                 short names, or None if str is an invalid device name
+                 short names, or None if s is an invalid device name
         """
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
-        gdict = m.groupdict() 
         #The following comments are for a name of the type: eval://dev=foo?bar=123;blah={a/b/c/d} 
         devname = m.group('devname')  # foo
-        normal_name = self.getDeviceName(str, full=False) #eval://dev=foo
-        full_name = self.getDeviceName(str, full=True) #eval://db=_DefaultEvalDB;dev=foo
+        normal_name = self.getDeviceName(s, full=False) #eval://dev=foo
+        full_name = self.getDeviceName(s, full=True) #eval://db=_DefaultEvalDB;dev=foo
         return full_name, normal_name, devname
 
 
@@ -205,8 +204,8 @@ class EvaluationConfigurationNameValidator(AbstractEvaluationNameValidator):
     #                 1                             2   3                     4    5                      6                    7                    8                  9                 A                    
     name_pattern = r'^(?P<scheme>eval|evaluation)://(db=(?P<dbname>[^?#;]+);)?(dev=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?!configuration=)(?P<subst>[^#?]*))?(\?configuration=?(?P<cfgkey>[^#?]*))$'
         
-    def isValid(self,str, matchLevel = MatchLevel.ANY):
-        m = self.name_re.match(str)
+    def isValid(self,s, matchLevel = MatchLevel.ANY):
+        m = self.name_re.match(s)
         if m is None: 
             return False
         elif matchLevel == MatchLevel.COMPLETE:
@@ -214,27 +213,27 @@ class EvaluationConfigurationNameValidator(AbstractEvaluationNameValidator):
         else:
             return True
 
-    def getNames(self, str, factory=None):
+    def getNames(self, s, factory=None):
         """Returns the complete, normal and short names"""
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         #The following comments are for an example name like: "eval://dev=foo;bar*blah?bar=123;blah={a/b/c/d}?configuration=label"
         cfg_key = m.group('cfgkey') # cfg_key = "label"
         attr_name = m.group('attrname')
-        normal_name = "%s;%s?configuration"%(self.getDeviceName(str, full=False),attr_name) #normal_name = "eval://dev=foo;bar*blah?configuration"
-        expanded_attr_name = self.getExpandedTransformation(str)
-        fullname = "%s;%s?configuration"%(self.getDeviceName(str, full=True),expanded_attr_name) #fullname = "eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}?configuration"
+        normal_name = "%s;%s?configuration"%(self.getDeviceName(s, full=False),attr_name) #normal_name = "eval://dev=foo;bar*blah?configuration"
+        expanded_attr_name = self.getExpandedTransformation(s)
+        fullname = "%s;%s?configuration"%(self.getDeviceName(s, full=True),expanded_attr_name) #fullname = "eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}?configuration"
         return fullname, normal_name, cfg_key
     
-    def getAttrName(self, str):
-        names = self.getNames(str)
+    def getAttrName(self, s):
+        names = self.getNames(s)
         if names is None: return None
         return names[0][:-len('?configuration')] #remove the "?configuration" substring from the fullname
         
-    def getExpandedTransformation(self, str):
+    def getExpandedTransformation(self, s):
         'expands the attribute name by substituting all symbols'
-        m = self.name_re.match(str)
+        m = self.name_re.match(s)
         if m is None:
             return None
         transf = m.group('attrname')
@@ -644,7 +643,7 @@ class EvaluationConfiguration(taurus.core.TaurusConfiguration):
         """ Returns the current configuration for the attribute."""
         return self._attr_info   
     
-class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
+class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
     """
     A Singleton class that provides Evaluation related objects.
     """
@@ -659,7 +658,7 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
     def init(self, *args, **kwargs):
         """Singleton instance initialization."""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
         self.call__init__(taurus.core.TaurusFactory)
         self.eval_attrs = weakref.WeakValueDictionary()
         self.eval_devs = weakref.WeakValueDictionary()
@@ -784,7 +783,7 @@ class EvaluationFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, t
         
     def _getConfigurationFromAttribute(self, attr):
         cfg = attr.getConfig()
-        cfg_name = attrObj.getFullName() + "?configuration"
+        cfg_name = attr.getFullName() + "?configuration"
         self.eval_configs[cfg_name] = cfg
         return cfg
     
@@ -876,7 +875,6 @@ def test1():
     
 
 def test2():
-    import taurus.core
     a=taurus.Attribute('eval://[{sys/tg_test/1/short_scalar},{sys/tg_test/1/double_scalar}, {sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}]')
     #a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')  
     class Dummy:
@@ -896,8 +894,8 @@ def test3():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.panel import TaurusForm
-    from taurus.qt.qtgui.plot import TaurusTrend
-    from taurus.qt.qtgui.display import TaurusLabel
+    #from taurus.qt.qtgui.plot import TaurusTrend
+    #from taurus.qt.qtgui.display import TaurusLabel
     app = TaurusApplication()
     
     w = TaurusForm()
