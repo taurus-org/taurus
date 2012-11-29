@@ -599,6 +599,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.console import TaurusConsole
         except ImportError:
             self.warning('Cannot import taurus.qt.qtgui.console. The Console Panel will not be available')
+            return
         console = TaurusConsole(kernels=kernels)
         consolePanel = self.createPanel(console, "Console", permanent=True,
             icon=taurus.qt.qtgui.resource.getThemeIcon('utilities-terminal'))
