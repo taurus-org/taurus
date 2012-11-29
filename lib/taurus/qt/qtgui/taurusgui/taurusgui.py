@@ -595,7 +595,10 @@ class TaurusGui(TaurusMainWindow):
         self.quickAccessToolBar.addAction(toggleSynopticAction)
     
     def createConsole(self, kernels):
-        from taurus.qt.qtgui.console import TaurusConsole
+        try:
+            from taurus.qt.qtgui.console import TaurusConsole
+        except ImportError:
+            self.warning('Cannot import taurus.qt.qtgui.console. The Console Panel will not be available')
         console = TaurusConsole(kernels=kernels)
         consolePanel = self.createPanel(console, "Console", permanent=True,
             icon=taurus.qt.qtgui.resource.getThemeIcon('utilities-terminal'))
