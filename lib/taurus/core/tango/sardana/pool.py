@@ -437,8 +437,8 @@ class PoolElement(BaseElement, TangoDevice):
     def go(self, *args, **kwargs):
         self._total_go_time = 0
         start_time  = time.time()
-        id = self.start(*args, **kwargs)
-        self.waitFinish(id=id)
+        eid = self.start(*args, **kwargs)
+        self.waitFinish(id=eid)
         self._total_go_time = time.time() - start_time
     
     def getLastGoTime(self):
@@ -540,7 +540,7 @@ class Controller(PoolElement):
 
     def getElementByAxis(self, axis):
         pool = self.getPoolObj()
-        for name, elem in pool.getElementsOfType(self.getMainType()).items():
+        for _, elem in pool.getElementsOfType(self.getMainType()).items():
             if elem.controller != self.getName() or elem.getAxis() != axis:
                 continue
             return elem
@@ -555,7 +555,7 @@ class Controller(PoolElement):
     def getUsedAxis(self):
         pool = self.getPoolObj()
         axis = []
-        for name, elem in pool.getElementsOfType(self.getMainType()).items():
+        for _, elem in pool.getElementsOfType(self.getMainType()).items():
             if elem.controller != self.getName():
                 continue
             axis.append(elem.getAxis())
@@ -1091,8 +1091,8 @@ class MGConfiguration(object):
         # of a dict as receveid by the MG configuration attribute
         self.channels = channels = CaselessDict()
 
-        for ctrl_name, ctrl_data in self.controllers.items():
-            for unit_id, unit_data in ctrl_data['units'].items():
+        for _, ctrl_data in self.controllers.items():
+            for _, unit_data in ctrl_data['units'].items():
                 for channel_name, channel_data in unit_data['channels'].items():
                     channels[channel_name] = channel_data
 
@@ -1217,7 +1217,7 @@ class MGConfiguration(object):
 
         # prepare missing tango attribute configuration
         if self.tango_channels_info_in_error > 0:
-            for channel_name, attr_data in self.tango_channels_info.items():
+            for _, attr_data in self.tango_channels_info.items():
                 dev_name, attr_name, attr_info = attr_data
                 if attr_info.has_info():
                     continue
@@ -1249,7 +1249,7 @@ class MGConfiguration(object):
     def getChannelsInfoList(self):
         channels_info = self.getChannelsInfo()
         ret = len(channels_info)*[None]
-        for ch_name, (_,_,ch_info) in channels_info.items():
+        for _, (_,_,ch_info) in channels_info.items():
             ret[ch_info.index] = ch_info
         return ret
 
@@ -1275,7 +1275,7 @@ class MGConfiguration(object):
         dev_replies = {}
 
         # deposit read requests
-        for dev_name, dev_data in self.tango_dev_channels.items():
+        for _, dev_data in self.tango_dev_channels.items():
             dev, attrs = dev_data
             if dev is None:
                 continue
@@ -1297,7 +1297,7 @@ class MGConfiguration(object):
                         value = data_item.value
                     ret[channel_data['full_name']] = value
             except:
-                for attr_name, channel_data in attrs.items():
+                for _, channel_data in attrs.items():
                     ret[channel_data['full_name']] = None
                 
         return ret
@@ -1305,7 +1305,7 @@ class MGConfiguration(object):
     def _read(self):
         self.prepare()
         ret = CaselessDict(self.cache)
-        for dev_name, dev_data in self.tango_dev_channels.items():
+        for _, dev_data in self.tango_dev_channels.items():
             dev, attrs = dev_data
             try:
                 data = dev.read_attributes(attrs.keys())
@@ -1317,7 +1317,7 @@ class MGConfiguration(object):
                         value = data_item.value
                     ret[channel_data['full_name']] = value
             except:
-                for attr_name, channel_data in attrs.items():
+                for _, channel_data in attrs.items():
                     ret[channel_data['full_name']] = None
         return ret
 

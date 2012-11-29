@@ -33,6 +33,7 @@ from taurus.qt import Qt
 
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
+
 class QDoor(BaseDoor, Qt.QObject):
     
     __pyqtSignals__ = ["resultUpdated","recordDataUpdated", "macroStatusUpdated"]
@@ -96,11 +97,11 @@ class QMacroServer(BaseMacroServer, Qt.QObject):
         
         macros, elements = 0, 0
         for element in set.union(added, removed, changed):
-             if "MacroCode" in element.interfaces:
+            if "MacroCode" in element.interfaces:
                 macros += 1
-             elements += 1
-             if elements and macros:
-                 break
+            elements += 1
+            if elements and macros:
+                break
         if elements:
             self.emit(Qt.SIGNAL("elementsChanged"))
         if macros:
@@ -139,7 +140,6 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
         exc_info = "".join(err_traceback)
         style = ""
         try:
-            import pygments
             import pygments.formatters
             import pygments.lexers
         except:
