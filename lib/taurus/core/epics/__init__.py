@@ -36,5 +36,5 @@ The epics extension provides access to Epics control system objects
 
 
 """
-#raise NotImplementedError()
+
 from epicsfactory import *
