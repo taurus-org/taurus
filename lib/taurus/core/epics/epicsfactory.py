@@ -33,29 +33,20 @@ __all__ = ['EpicsFactory', 'EpicsDatabase', 'EpicsDevice',
 
 
 import time, re, weakref
+import numpy
 import taurus.core
 from taurus.core.taurusexception import TaurusException
 import taurus.core.util
 from taurus.core import MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
-#import epics
+try:
+    import epics 
+except ImportError: #note that if epics is not installed the factory will not be available
+    logger= taurus.core.util.warning('cannot import epics module. Taurus will not support the "epics" scheme')
+    raise
 
 class AbstractEpicsNameValidator(taurus.core.util.Singleton):
-    #The groups in a match object using the regexp below are:
-    #    1: scheme; named as 'scheme'
-    #    2: EPICS PV name (in the case of attribute names) or same as $3 (in the case of device names) 
-    #    3: device name including the trailing base_sep; optional
-    #    4: device name; optional; named as 'devname'
-    #    5: base separator if it appears on the URI; named as 'base_sep'
-    #    6: attribute name;optional; named as 'attrname'
-    #
-    #    Reconstructing the names
-    #    attrname= $6
-    #    devname= $4 or EpicsFactory.DEFAULT_DEVICE
-    #    fullname= "epics://%s"%($2)
-    # 
     base_sep = ':'
-    #                1                   2             34               5                 6
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)?)'%(base_sep, base_sep)
+    name_pattern = ''
     
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -98,10 +89,25 @@ class AbstractEpicsNameValidator(taurus.core.util.Singleton):
     
 
 class EpicsAttributeNameValidator(AbstractEpicsNameValidator):
+    #The groups in a match object using the regexp below are:
+    #    1: scheme; named as 'scheme'
+    #    2: EPICS PV name (in the case of attribute names) or same as $3 (in the case of device names) 
+    #    3: device name including the trailing base_sep; optional
+    #    4: device name; optional; named as 'devname'
+    #    5: base separator if it appears on the URI; named as 'base_sep'
+    #    6: attribute name;optional; named as 'attrname'
+    #
+    #    Reconstructing the names
+    #    attrname= $6
+    #    devname= $4 or EpicsFactory.DEFAULT_DEVICE
+    #    fullname= "epics://%s"%($2)
+    # 
+    #                1                   2             34                  5                 6
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
     
-    def isValid(self,s, matchLevel = MatchLevel.ANY):
-        m = self.name_re.match(s)
-        return m is not None and m.group('attrname') #the model contains an attrname 
+#    def isValid(self,s, matchLevel = MatchLevel.ANY):
+#        m = self.name_re.match(s)
+#        return m is not None and m.group('attrname') #the model contains an attrname 
     
     def getNames(self, s, factory=None):
         """Returns the complete, normal and short names.
@@ -127,9 +133,11 @@ class EpicsDeviceNameValidator(AbstractEpicsNameValidator):
     the model name for an epics device name *must* end with the base separator
     (in order to distinguish device names from attribute names)'''
     
-    def isValid(self,s, matchLevel = MatchLevel.ANY):
-        m = self.name_re.match(s)
-        return m is not None and not m.group('attrname') #to be a device it must not contain an attribute
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s)))$'%(AbstractEpicsNameValidator.base_sep)
+    
+#    def isValid(self,s, matchLevel = MatchLevel.ANY):
+#        m = self.name_re.match(s)
+#        return m is not None and not m.group('attrname') #to be a device it must not contain an attribute
     
     def getNames(self, s, factory=None):
         """Returns the complete, normal and short names. (note: complete=normal)
@@ -151,51 +159,30 @@ class EpicsDeviceNameValidator(AbstractEpicsNameValidator):
 
 
 class EpicsConfigurationNameValidator(AbstractEpicsNameValidator):
-    pass #@todo
-#    '''A validator of names for :class:`EpicsConfiguration`'''
-#    # The groups in a match object using the regexp below are:
-#    #    1: scheme; named as 'scheme'
-#    #    2: 
-#    #    3: database name; optional; named as 'dbname'
-#    #    4: 
-#    #    5: device name; optional; named as 'devname'
-#    #    6: transformationstring; named as 'attrname'
-#    #    7:
-#    #    8: substitution symbols (semicolon separated key=val pairs) ; optional; named as 'subst'
-#    #    9:
-#    #    A: configuration key; named as 'cfgkey'
-#    #
-#    #    Reconstructing the names
-#    #                 1                             2   3                     4    5                      6                    7                    8                  9                 A                    
-#    name_pattern = r'^(?P<scheme>epics)://(db=(?P<dbname>[^?#;]+);)?(dev=(?P<devname>[^?#;]+);)?(?P<attrname>[^?#;]+)(\?(?!configuration=)(?P<subst>[^#?]*))?(\?configuration=?(?P<cfgkey>[^#?]*))$'
-#        
-#    def isValid(self,s, matchLevel = MatchLevel.ANY):
-#        m = self.name_re.match(s)
-#        if m is None: 
-#            return False
-#        elif matchLevel == MatchLevel.COMPLETE:
-#            return m.group('devname') is not None and m.group('dbname') is not None
-#        else:
-#            return True
-#
-#    def getNames(self, s, factory=None):
-#        """Returns the complete, normal and short names"""
-#        m = self.name_re.match(s)
-#        if m is None:
-#            return None
-#        #The following comments are for an example name like: "eval://dev=foo;bar*blah?bar=123;blah={a/b/c/d}?configuration=label"
-#        cfg_key = m.group('cfgkey') # cfg_key = "label"
-#        attr_name = m.group('attrname')
-#        normal_name = "%s;%s?configuration"%(self.getDeviceName(s, full=False),attr_name) #normal_name = "eval://dev=foo;bar*blah?configuration"
-#        expanded_attr_name = self.getExpandedTransformation(s)
-#        fullname = "%s;%s?configuration"%(self.getDeviceName(s, full=True),expanded_attr_name) #fullname = "eval://db=_DefaultEvalDB;dev=foo;123*{a/b/c/d}?configuration"
-#        return fullname, normal_name, cfg_key
-#    
-#    def getAttrName(self, s):
-#        names = self.getNames(s)
-#        if names is None: return None
-#        return names[0][:-len('?configuration')] #remove the "?configuration" substring from the fullname
-#        
+    '''A validator of names for :class:`EpicsConfiguration`'''
+    # The groups in a match object using the regexp below are the 
+    # same as for the AbstractEpicsNameValidator plus:
+    #   +1: configuration extension
+    #   +2: configuration key;optional; named as 'cfgkey'
+    
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)\?configuration=?(?P<cfgkey>[^#?]*))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
+        
+    def getNames(self, s, factory=None):
+        """Returns the complete, normal and short names"""
+        m = self.name_re.match(s)
+        if m is None:
+            return None
+        #The following comments are for an example name like: "epics://foo:bar:baz?configuration=label"
+        cfg_key = m.group('cfgkey') # cfg_key = "label"
+        full_name = s               # "epics://foo:bar:baz?configuration=label"
+        normal_name = full_name     # "epics://foo:bar:baz?configuration=label"
+        return full_name, normal_name, cfg_key
+    
+    def getAttrName(self, s):
+        names = self.getNames(s)
+        if names is None: return None
+        return names[0].rsplit('?configuration')[0]#remove the "?configuration..." substring from the fullname 
+        
 
 class EpicsDatabase(taurus.core.TaurusDatabase):
     '''
@@ -273,15 +260,25 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
     
     def __init__(self, name, parent, storeCallback = None):
         self.call__init__(taurus.core.TaurusAttribute, name, parent, storeCallback=storeCallback)
+               
+        self.__attr_config = None
+        self.__pv = epics.PV(self.getNormalName(), callback=self.onEpicsEvent)
+        connected = self.__pv.wait_for_connection()
+        if connected:
+            self.info('successfully connected to epics PV')
+            self._value = self.decode(self.__pv)
+        else:
+            self.info('connection to epics PV failed')
+            self._value = taurus.core.TaurusAttrValue()
         
-        self._value = taurus.core.TaurusAttrValue()
-        self._value.config.writable = False #@todo: this can be checked  with ca_info(pvname, Channel(pvname)).writable
-        self._validator= self.getNameValidator()
-        # reference to the configuration object
-        self.__attr_config = None#taurus.core.TaurusConfiguration()
-        self.__subscription_state = SubscriptionState.Unsubscribed
-        #self.__pv = epics.PV('self.getNormalName()')
-
+        #print "INIT",self.__pv, connected
+        
+    def onEpicsEvent(self, **kw):
+        '''callback for PV changes'''
+        self._value = self.decode(self.__pv)#we ignore what comes in kw and assume that the _pv has been updated already
+        
+        self.fireEvent(TaurusEventType.Change, self._value)
+    
     def __getattr__(self,name):
         return getattr(self._getRealConfig(), name)
     
@@ -305,16 +302,36 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         return False
 
     def getDisplayValue(self,cache=True):
-        return str(self.read(cache=cache).value)
+        return self.__pv.get(as_string=True, use_monitor=cache)
 
     def encode(self, value):
+        '''encodes the value passed to the write method into 
+        a representation that can be written in epics'''
         return value
 
-    def decode(self, attr_value):
+    def decode(self, pv):
+        """Decodes an epics pv into the expected taurus representation"""
+        #@todo: This is a very basic implementation, and things like quality may not be correct
+        attr_value = taurus.core.TaurusAttrValue()
+        attr_value.value = pv.value
+        if pv.write_access:
+            attr_value.w_value = pv.value
+        if pv.timestamp is None: 
+            attr_value.time = taurus.core.TaurusTimeVal.now()
+        else:
+            attr_value.time = taurus.core.TaurusTimeVal.fromtimestamp(pv.timestamp)
+        if pv.severity > 0:
+            attr_value.quality = taurus.core.AttrQuality.ATTR_ALARM
+        else:
+            attr_value.quality = taurus.core.AttrQuality.ATTR_VALID
+        attr_value.config.data_format = len(numpy.shape(attr_value.value))
         return attr_value
 
     def write(self, value, with_read=True):
-        raise TaurusException('Epics writeable attributes not supported yet') #@todo: support writable attributes
+        value = self.encode(value)
+        self.__pv.put(value)
+        if with_read:
+            return self.decode(self.__pv)
 
     def read(self, cache=True):
         '''returns the value of the attribute.
@@ -326,24 +343,34 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         :return: attribute value
         '''
         if not cache:
-            pass #@todo force a reading with caget
-            #v = self.__pv.get()
+            self.__pv.get(use_monitor=False)
+        self._value = self.decode(self.__pv)
         return self._value    
 
     def poll(self):
         v = self.read(cache=False)
         self.fireEvent(TaurusEventType.Periodic, v)
-            
-    def _subscribeEvents(self): 
-        pass #@todo
-        
-    def _unsubscribeEvents(self):
-        pass #@todo
 
     def isUsingEvents(self):
         return False #@todo
         
 #------------------------------------------------------------------------------ 
+
+    def isWritable(self, cache=True):
+        return self.__pv.write_access
+    
+    def isWrite(self, cache=True):
+        return self.__pv.write_access
+    
+    def isReadOnly(self, cache=True):
+        return self.__pv.read_access and not self.__pv.write_access
+
+    def isReadWrite(self, cache=True):
+        return self.__pv.read_access and self.__pv.write_access
+
+    def getWritable(self, cache=True):
+        return self.__pv.write_access
+
 
     def factory(self):
         return EpicsFactory()
@@ -352,54 +379,6 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
     def getNameValidator(cls):
         return EpicsAttributeNameValidator()
 
-    def __fireRegisterEvent(self, listener):
-        #fire a first change event
-        try:
-            v = self.read()
-            self.fireEvent(TaurusEventType.Change, v, listener)
-        except:
-            self.fireEvent(TaurusEventType.Error, None, listener)
-    
-    def addListener(self, listener):
-        """ Add a TaurusListener object in the listeners list.
-            If it is the first listener, it triggers the subscription to the referenced attributes.
-            If the listener is already registered nothing happens."""
-        
-        #subscribe to configuration events for this attribute
-        cfg = self.getConfig()
-        cfg.addListener(listener)
-        
-        initial_subscription_state = self.__subscription_state
-        
-        ret = taurus.core.TaurusAttribute.addListener(self, listener)
-
-        if not ret:
-            return ret
-        
-        if self.__subscription_state == SubscriptionState.Unsubscribed:
-            for refobj in self._references:
-                refobj.addListener(self) #subscribe to the referenced attributes
-            self.__subscription_state = SubscriptionState.Subscribed
-
-        assert len(self._listeners) >= 1        
-        #if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(self._listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
-            taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
-        return ret
-        
-    def removeListener(self, listener):
-        """ Remove a TaurusListener from the listeners list. If polling enabled 
-            and it is the last element then stop the polling timer.
-            If the listener is not registered nothing happens."""
-        ret = taurus.core.TaurusAttribute.removeListener(self, listener)
-
-        cfg = self._getRealConfig()
-        cfg.removeListener(listener)
-        
-        if ret and not self.hasListeners():
-            self._deactivatePolling()
-            self.__subscription_state = SubscriptionState.Unsubscribed
-        return ret
     
 
 class EpicsConfiguration(taurus.core.TaurusConfiguration):
@@ -447,6 +426,7 @@ class EpicsConfiguration(taurus.core.TaurusConfiguration):
     def getValueObj(self, cache=True):
         """ Returns the current configuration for the attribute."""
         return self._attr_info   
+    
     
 class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
     """
@@ -535,7 +515,7 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
             validator = EpicsAttribute.getNameValidator()
             names = validator.getNames(attr_name)
             if names is None:
-                raise TaurusException("Invalid evaluation attribute name %s" % attr_name)
+                raise TaurusException("Invalid epics attribute name %s" % attr_name)
             fullname = names[0]
             a = self.epics_attrs.get(fullname, None)
             if a is None: #if the full name is not there, create one
@@ -570,7 +550,7 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
             cfg = self.epics_configs.get(fullname, None)
             if cfg is None: #if the full name is not there, create one
                 attr = self.getAttribute(validator.getAttrName(cfg_name))
-                cfg = EpicsConfiguration(names[0], parent=attr, storeCallback=self._storeConfig) #use full name
+                cfg = EpicsConfiguration(fullname, parent=attr, storeCallback=self._storeConfig) 
         return cfg
         
     def _getConfigurationFromAttribute(self, attr):
@@ -654,12 +634,12 @@ def test1():
     f = EpicsFactory()
     d = f.getDevice('epics://foo:bar:')
     a = f.getAttribute('epics://foo:bar:baz')
-#    c = f.getConfiguration('eval://2*{sys/tg_test/1/short_scalar}?configuration=label')
+    c = f.getConfiguration('epics://foo:bar:baz?configuration=label')
 #    cp = a.getConfig()
     print "FACTORY:", f
     print "DEVICE:", d, d.getSimpleName(), d.getNormalName(), d.getFullName()
     print "ATTRIBUTE", a, a.getSimpleName(), a.getNormalName(), a.getFullName()
-#    print "CONFIGURATION", c, c.getSimpleName()
+    print "CONFIGURATION", c, c.getSimpleName(), c.getNormalName(), c.getFullName()
 #    print "CONFIGPROXY", cp, cp.getSimpleName()
 #    print
 #    print c.getValueObj()
@@ -667,42 +647,34 @@ def test1():
     
 
 def test2():
-    a=taurus.Attribute('eval://[{sys/tg_test/1/short_scalar},{sys/tg_test/1/double_scalar}, {sys/tg_test/1/short_scalar}+{sys/tg_test/1/double_scalar}]')
-    #a=taurus.Attribute('eval://2*{sys/tg_test/1/short_scalar}+rand()')  
+    a=taurus.Attribute('epics://mp49t:sim1.RBV')
     class Dummy:
         n=0
         def eventReceived(self, s,t,v):
-            print self.n, v
+            print "DUMMY:",self.n, v.value
             self.n += 1
     kk = Dummy()
     a.addListener(kk)
     while kk.n <= 2:
         time.sleep(1)
     a.removeListener(kk)
-#    while kk.n <= 20:
-#        time.sleep(1)        
+    while kk.n <= 20:
+        time.sleep(1)        
     
 def test3():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.panel import TaurusForm
-#    from taurus.qt.qtgui.plot import TaurusTrend
+    from taurus.qt.qtgui.plot import TaurusTrend
 #    from taurus.qt.qtgui.display import TaurusLabel
     app = TaurusApplication()
     
     w = TaurusForm()
-#    w=TaurusTrend()
+    w2=TaurusTrend()
 #    w=TaurusLabel()
 
-    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}',
-                'sys/tg_test/1/short_scalar', 'eval://a<100?a={sys/tg_test/1/short_scalar}', 
-                'eval://10*rand()', 'eval://dev=taurus.core.epics.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024'])
-#    w.setModel(['eval://2*short_scalar?short_scalar={sys/tg_test/1/short_scalar}'])
-#    w.setModel(['sys/tg_test/1/short_scalar'])
-#    w.setModel('eval://2*{sys/tg_test/1/short_scalar}?configuration=label')
-#    w.setModel('eval://2*{sys/tg_test/1/short_scalar}')
-#    w.setModel('sys/tg_test/1/short_scalar?configuration=label')
-#    w.setModel('sys/tg_test/1/short_scalar')
+    w.setModel(['epics://mp49t:sim1.RBV', 'epics://mp49t:sim1.VAL', 'epics://mp49t:sim1.HIGH'])
+    w2.setModel(['epics://mp49t:sim1.RBV', 'epics://mp49t:sim1.VAL'])
 
 #    a=w.getModelObj()
 #    print a, a.read().value
@@ -712,9 +684,10 @@ def test3():
 #    c=a.getConfig()
 
     w.show()
+    w2.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    test1()
+    test3()
     
         
