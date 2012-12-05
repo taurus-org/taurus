@@ -26,6 +26,9 @@
 
 __docformat__ = "restructuredtext"
 
+__svn_revision = '$Rev$'
+
+
 """
 Release data for the taurus project. It contains the following members:
 
@@ -48,7 +51,7 @@ name = 'sardana'
 #: the new substring. We have to avoid using either dashes or underscores,
 #: because bdist_rpm does not accept dashes (an RPM) convention, and
 #: bdist_deb does not accept underscores (a Debian convention).
-version_info = (1, 2, 0, 'dev', '$Rev$')
+version_info = (1, 2, 0, 'dev', '$Rev::       $')
 version = '.'.join(map(str, version_info[:3]))
 
 #: svn revision number
