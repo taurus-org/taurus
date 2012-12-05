@@ -799,17 +799,13 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
                 os.makedirs(path, 0777)
             
             fmt = Logger.getLogFormat()
-            f_h = logging.handlers.RotatingFileHandler(log_file_name, maxBytes=1E7, backupCount=5)
+            f_h = logging.handlers.RotatingFileHandler(log_file_name,
+                                                       maxBytes=1E7,
+                                                       backupCount=5)
             f_h.setFormatter(fmt)
-            
-            # Create a memory handler and set the target to the file handler
-            m_h = logging.handlers.MemoryHandler(10, flushLevel=taurus.Info)
-            m_h.setTarget(f_h)
+            f_h.setLevel(log_file_level)
+            root.addHandler(f_h)
             handlers.append(f_h)
-            
-            m_h.setLevel(log_file_level)
-            root.addHandler(m_h)
-            handlers.append(m_h)
             
             if start_time is not None:
                 taurus.info("Started at %s", start_time)
