@@ -433,34 +433,24 @@ class PoolMotion(PoolAction):
             # read position every n times
             if not i % nb_states_per_pos:
                 self.read_dial_position(ret=positions)
-                position_error_occured = self._position_error_occured(positions)
-                if position_error_occured:
-                    self.error("Loop read position error")
-                    self.read_dial_position(ret=positions)
-                    position_error_occured = self._position_error_occured(positions)
-                    if position_error_occured:
-                        self.error("Loop read position error 2!!!")
-
                 # send position
-                for moveable, position_info in positions.items():
-                    moveable.put_dial_position(position_info, propagate=0)
-                    position = moveable.get_position(propagate=0)
-                    if position.in_error():
-                        moveable.warning("  Loop read position error")
-                    moveable.put_dial_position(position_info)
+                for moveable, position_value in positions.items():
+                    if position_value.error:
+                        self.error("Loop read position error for %s" % moveable.name)
+                    moveable.put_dial_position(position_value)
             i += 1
             time.sleep(nap)
 
     def _state_error_occured(self, d):
-        for elem, (state_info, exc_info) in d.items():
+        for _, (state_info, exc_info) in d.items():
             state = state_info[0]
             if exc_info is not None or state not in _NON_ERROR_STATES:
                 return True
         return False
 
-    def _position_error_occured(self, d):
-        for elem, (state_info, exc_info) in d.items():
-            if exc_info is not None:
+    def _position_error_occured(self, positions):
+        for _, value in positions.items():
+            if value.error:
                 return True
 
     def _recover_moving_error(self, location, emergency_stop):

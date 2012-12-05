@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for"""
 
 __all__ = ["PoolController", "PoolPseudoMotorController",
@@ -41,8 +41,10 @@ from taurus.core.util import CaselessDict
 
 from sardana import State, ElementType, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
+from sardana.sardanavalue import SardanaValue
 
-from poolelement import PoolBaseElement
+from .poolextension import translate_ctrl_value
+from .poolbaseelement import PoolBaseElement
 
 
 class PoolBaseController(PoolBaseElement):
@@ -57,6 +59,7 @@ class PoolBaseController(PoolBaseElement):
         self._element_names = CaselessDict()
         self._pending_element_names = CaselessDict()
         self._operator = None
+        kwargs['elem_type'] = ElementType.Controller
         super(PoolBaseController, self).__init__(**kwargs)
     
     def get_ctrl_types(self):
@@ -65,9 +68,6 @@ class PoolBaseController(PoolBaseElement):
     def get_ctrl_type_names(self):
         return map(ElementType.whatis, self.get_ctrl_types())
         
-    def get_type(self):
-        return ElementType.Controller
-    
     def is_online(self):
         return True
     
@@ -174,25 +174,25 @@ class PoolBaseController(PoolBaseElement):
             elem = pd.get(k)
         return elem
 
-    def read_axis_states(self, axises=None):
-        """Reads the state for the given axises. If axises is None, reads the
-        state of all active axises.
+    def read_axis_states(self, axes=None):
+        """Reads the state for the given axes. If axes is None, reads the
+        state of all active axes.
         
-        :param axises: the list of axis to get the state. Default is None meaning
+        :param axes: the list of axis to get the state. Default is None meaning
                        all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return: a map containing the controller state information for each axis
         :rtype: dict<PoolElement, state info>
         """
         raise NotImplementedError
     
-    def read_axis_values(self, axises=None):
-        """Reads the value for the given axises. If axises is None, reads the
-        value of all active axises.
+    def read_axis_values(self, axes=None):
+        """Reads the value for the given axes. If axes is None, reads the
+        value of all active axes.
         
-        :param axises: the list of axis to get the value. Default is None meaning
+        :param axes: the list of axis to get the value. Default is None meaning
                        all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return: a map containing the controller value information for each axis
         :rtype: dict<PoolElement, value>
         """
@@ -442,10 +442,10 @@ class PoolController(PoolBaseController):
     
     # START API WHICH ACCESSES CRITICAL CONTROLLER API (like StateOne) ---------
 
-    def __build_exc_info(self, ctrl_states, axises, exc_info):
+    def __build_exc_info(self, ctrl_states, axes, exc_info):
         status = "".join(traceback.format_exception(*exc_info))
         state_info = State.Fault, status
-        for axis in axises:
+        for axis in axes:
             element = self.get_element(axis=axis)
             ctrl_states[element] = state_info
     
@@ -457,19 +457,19 @@ class PoolController(PoolBaseController):
             fmt_exc = fmt_exc[:-1]
         return fmt_exc
     
-    def raw_read_axis_states(self, axises=None, ctrl_states=None):
-        """**Unsafe method**. Reads the state for the given axises. If axises
-        is None, reads the state of all active axises.
+    def raw_read_axis_states(self, axes=None, ctrl_states=None):
+        """**Unsafe method**. Reads the state for the given axes. If axes
+        is None, reads the state of all active axes.
         
-        :param axises: the list of axis to get the state. Default is None meaning
+        :param axes: the list of axis to get the state. Default is None meaning
                        all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return:
             a tuple of two elements: a map containing the controller state
             information for each axis and a boolean telling if an error occured
         :rtype: dict<PoolElement, state info>, bool"""
-        if axises is None:
-            axises = self._element_axis.keys()
+        if axes is None:
+            axes = self._element_axis.keys()
         if ctrl_states is None:
             ctrl_states = {}
         
@@ -477,20 +477,20 @@ class PoolController(PoolBaseController):
         
         try:
             ctrl.PreStateAll()
-            for axis in axises:
+            for axis in axes:
                 ctrl.PreStateOne(axis)
             ctrl.StateAll()
         except:
             exc_info = sys.exc_info()
             status = self._format_exception(exc_info)
             state_info = (State.Fault, status), exc_info
-            for axis in axises:
+            for axis in axes:
                 element = self.get_element(axis=axis)
                 ctrl_states[element] = state_info
             return ctrl_states, True
         
         error = False
-        for axis in axises:
+        for axis in axes:
             element = self.get_element(axis=axis)
             try:
                 state_info = ctrl.StateOne(axis)
@@ -507,28 +507,41 @@ class PoolController(PoolBaseController):
         return ctrl_states, error
     
     @check_ctrl
-    def read_axis_states(self, axises=None):
-        """Reads the state for the given axises. If axises is None, reads the
-        state of all active axises.
+    def read_axis_states(self, axes=None):
+        """Reads the state for the given axes. If axes is None, reads the
+        state of all active axes.
         
-        :param axises: the list of axis to get the state. Default is None
+        :param axes: the list of axis to get the state. Default is None
                        meaning all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return: a map containing the controller state information for each axis
         :rtype: dict<PoolElement, state info>"""
-        return self.raw_read_axis_states(axises=axises)
+        return self.raw_read_axis_states(axes=axes)
     
-    def raw_read_axis_values(self, axises=None, ctrl_values=None):
-        """**Unsafe method**. Reads the value for the given axises. If axises
-        is None, reads the value of all active axises.
+    def _read_axis_value(self, element):
+        try:
+            axis = element.get_axis()
+            ctrl_value = self.ctrl.ReadOne(axis)
+            if ctrl_value is None:
+                msg = '%s.ReadOne(%s[%d]) return error: Expected value, ' \
+                      'got None instead' % (self.name, element.name, axis)
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
+        except:
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
+    
+    def raw_read_axis_values(self, axes=None, ctrl_values=None):
+        """**Unsafe method**. Reads the value for the given axes. If axes
+        is None, reads the value of all active axes.
         
-        :param axises: the list of axis to get the value. Default is None
+        :param axes: the list of axis to get the value. Default is None
                        meaning all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return: a map containing the controller value information for each axis
-        :rtype: dict<PoolElement, value>"""
-        if axises is None:
-            axises = self._element_axis.keys()
+        :rtype: dict<PoolElement, SardanaValue>"""
+        if axes is None:
+            axes = self._element_axis.keys()
         if ctrl_values is None:
             ctrl_values = {}
         
@@ -536,49 +549,33 @@ class PoolController(PoolBaseController):
         
         try:
             ctrl.PreReadAll()
-            for axis in axises:
+            for axis in axes:
                 ctrl.PreReadOne(axis)
             ctrl.ReadAll()
         except:
             exc_info = sys.exc_info()
-            for axis in axises:
+            for axis in axes:
                 element = self.get_element(axis=axis)
                 ctrl_values[element] = None, exc_info
             return ctrl_values
             
-        for axis in axises:
+        for axis in axes:
             element = self.get_element(axis=axis)
-            try:
-                value = ctrl.ReadOne(axis)
-                if value is None:
-                    msg = '%s.ReadOne(%s[%d]) return error: Expected value, ' \
-                          'got None instead' % (self.name, element.name, axis)
-                    raise ValueError(msg)
-                #if not is_number(value):
-                #    t = type(value)
-                #    if value is None:
-                #        t = 'None'
-                #    msg = '%s.ReadOne(%s[%d]) return error: Expected number, ' \
-                #          'got %s instead' % (self.name, element.name, axis,
-                #                              str(t))
-                #    raise ValueError(msg)
-                ctrl_values[element] = value, None
-            except:
-                ctrl_values[element] = None, sys.exc_info()
+            ctrl_values[element] = self._read_axis_value(element)
         
         return ctrl_values
 
     @check_ctrl
-    def read_axis_values(self, axises=None):
-        """Reads the value for the given axises. If axises is None, reads the
-        value of all active axises.
+    def read_axis_values(self, axes=None):
+        """Reads the value for the given axes. If axes is None, reads the
+        value of all active axes.
         
-        :param axises: the list of axis to get the value. Default is None meaning
+        :param axes: the list of axis to get the value. Default is None meaning
                        all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         :return: a map containing the controller value information for each axis
-        :rtype: dict<PoolElement, value>"""
-        return self.raw_read_axis_values(axises=axises)
+        :rtype: dict<PoolElement, SardanaValue>"""
+        return self.raw_read_axis_values(axes=axes)
     
     def raw_stop_all(self):
         try:
@@ -619,26 +616,26 @@ class PoolController(PoolBaseController):
         return self.raw_stop_one(axis)
     
     @check_ctrl
-    def stop_axises(self, axises=None):
-        """Stops the given axises. If axises is None, stops all active axises.
+    def stop_axes(self, axes=None):
+        """Stops the given axes. If axes is None, stops all active axes.
         
-        :param axises: the list of axis to stop. Default is None
+        :param axes: the list of axis to stop. Default is None
                        meaning all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         """
-        if axises is None:
+        if axes is None:
             return self.raw_stop_all()
         
-        for axis in axises:
+        for axis in axes:
             self.raw_stop_one(axis)
     
     @check_ctrl
     def stop_elements(self, elements=None):
-        """Stops the given elements. If axises is None, stops all active axises.
+        """Stops the given elements. If axes is None, stops all active axes.
         
         :param elements: the list of elements to stop. Default is None
                          meaning all active axis in this controller
-        :type axises: seq<PoolElement> or None
+        :type axes: seq<PoolElement> or None
         """
         if elements is None:
             return self.raw_stop_all()
@@ -683,26 +680,26 @@ class PoolController(PoolBaseController):
         return self.raw_abort_one(axis)
     
     @check_ctrl
-    def abort_axises(self, axises=None):
-        """Aborts the given axises. If axises is None, aborts all active axises.
+    def abort_axes(self, axes=None):
+        """Aborts the given axes. If axes is None, aborts all active axes.
         
-        :param axises: the list of axis to abort. Default is None
+        :param axes: the list of axis to abort. Default is None
                        meaning all active axis in this controller
-        :type axises: seq<int> or None
+        :type axes: seq<int> or None
         """
-        if axises is None:
+        if axes is None:
             return self.raw_abort_all()
         
-        for axis in axises:
+        for axis in axes:
             self.raw_abort_one(axis)
     
     @check_ctrl
     def abort_elements(self, elements=None):
-        """Aborts the given elements. If axises is None, aborts all active axises.
+        """Aborts the given elements. If axes is None, aborts all active axes.
         
         :param elements: the list of elements to abort. Default is None
                          meaning all active axis in this controller
-        :type axises: seq<PoolElement> or None
+        :type axes: seq<PoolElement> or None
         """
         if elements is None:
             return self.raw_abort_all()
@@ -714,12 +711,12 @@ class PoolController(PoolBaseController):
     
     @check_ctrl
     def emergency_break(self, elements=None):
-        """Stops the given elements. If axises is None, stops all active axises.
+        """Stops the given elements. If axes is None, stops all active axes.
         If stop raises exception, an abort is attempted.
         
         :param elements: the list of elements to stop. Default is None
                          meaning all active axis in this controller
-        :type axises: seq<PoolElement> or None
+        :type axes: seq<PoolElement> or None
         """
         if elements is None:
             try:
@@ -795,38 +792,75 @@ class PoolPseudoMotorController(PoolController):
         name, klass, props, args, kwargs = pars
         kwargs['motor_ids'] = tuple(self._motor_ids)
         return pars
-    
+
+    def _read_axis_value(self, element):
+        try:
+            axis = element.get_axis()
+            ctrl_value = self.ctrl.ReadOne(axis)
+            if ctrl_value is None:
+                msg = '%s.ReadOne(%s[%d]) return error: Expected value, ' \
+                      'got None instead' % (self.name, element.name, axis)
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
+        except:
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
+        
     @check_ctrl
     def calc_all_pseudo(self, physical_pos, curr_pseudo_pos):
         ctrl = self.ctrl
         try:
-            return ctrl.CalcAllPseudo(physical_pos, curr_pseudo_pos), None
+            ctrl_value = ctrl.CalcAllPseudo(physical_pos, curr_pseudo_pos)
+            if ctrl_value is None:
+                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
         except:
-            return None, sys.exc_info()
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
 
     @check_ctrl
     def calc_all_physical(self, pseudo_pos, curr_physical_pos):
         ctrl = self.ctrl
         try:
-            return ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos), None
+            ctrl_value = ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos)
+            if ctrl_value is None:
+                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
         except:
-            return None, sys.exc_info()
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
 
     @check_ctrl
     def calc_pseudo(self, axis, physical_pos, curr_pseudo_pos):
         ctrl = self.ctrl
         try:
-            return ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos), None
+            ctrl_value = ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos)
+            if ctrl_value is None:
+                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
         except:
-            return None, sys.exc_info()
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
 
     @check_ctrl
     def calc_physical(self, axis, pseudo_pos, curr_physical_pos):
         ctrl = self.ctrl
         try:
-            return ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos), None
+            ctrl_value = ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos)
+            if ctrl_value is None:
+                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
         except:
-            return None, sys.exc_info()
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
 
 
 class PoolPseudoCounterController(PoolController):
@@ -850,7 +884,13 @@ class PoolPseudoCounterController(PoolController):
     def calc(self, axis, values):
         ctrl = self.ctrl
         try:
-            return ctrl.Calc(axis, values), None
+            ctrl_value = ctrl.Calc(axis, values)
+            if ctrl_value is None:
+                msg = '%s.Calc() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
         except:
-            return None, sys.exc_info()
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value
 

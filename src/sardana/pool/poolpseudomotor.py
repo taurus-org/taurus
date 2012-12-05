@@ -23,40 +23,138 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the PoolPseudoMotor
-class"""
+"""This module is part of the Python Pool library. It defines the
+PoolPseudoMotor class"""
 
-__all__ = [ "PoolPseudoMotor", "PoolPseudoMotorFrontend" ]
+__all__ = ["PoolPseudoMotor", "PoolPseudoMotorFrontend"]
 
 __docformat__ = 'restructuredtext'
+
+import time
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from sardana.sardanaattribute import SardanaAttribute
 
-from poolelement import PoolBaseElement, PoolElement
-from poolgroupelement import PoolBaseGroup
-from poolmotion import PoolMotion
-from poolexception import PoolException
+from .poolbaseelement import PoolBaseElement
+from .poolelement import PoolElement
+from .poolbasegroup import PoolBaseGroup
+from .poolmotion import PoolMotion
+from .poolexception import PoolException
 
 
 class Position(SardanaAttribute):
-    pass
+    
+    def __init__(self, *args, **kwargs):
+        self._exc_info = None
+        super(Position, self).__init__(*args, **kwargs)
+        for position_attr in self.obj.get_physical_position_attribute_iterator():
+            position_attr.add_listener(self.on_change)
+    
+    def _in_error(self):
+        for position_attr in self.obj.get_physical_position_attribute_iterator():
+            if position_attr.error:
+                return True
+        return self._exc_info != None
+    
+    def _has_value(self):
+        for position_attr in self.obj.get_physical_position_attribute_iterator():
+            if not position_attr.has_value():
+                return False
+        return True
+    
+    def _get_value(self):
+        return self.calc_pseudo().value
+
+    def _set_value(self, value, exc_info=None, timestamp=None, propagate=1):
+        raise Exception("Cannot set position value for %s" % self.obj.name)
+
+    def _get_write_value(self):
+        w_positions = self.get_physical_write_positions()
+        return self.calc_pseudo(physical_positions=w_positions).value
+    
+    def _set_write_value(self, w_value, timestamp=None, propagate=1):
+        raise Exception("Cannot set position write value for %s" % self.obj.name)
+    
+    def _get_exc_info(self):
+        exc_info = self._exc_info
+        if exc_info is None:
+            for position_attr in self.obj.get_physical_position_attribute_iterator():
+                if position_attr.error:
+                    return position_attr.get_exc_info()
+        return exc_info
+    
+    def _get_timestamp(self):
+        return max( [ pos_attr.timestamp for pos_attr in self.obj.get_physical_position_attribute_iterator() ] )
+
+    def get_physical_write_positions(self):
+        ret = []
+        for pos_attr in self.obj.get_physical_position_attribute_iterator():
+            if pos_attr.has_write_value():
+                value = pos_attr.w_value
+            elif not pos_attr.has_value():
+                # if underlying moveable doesn't have position yet, it is
+                # because of a cold start
+                pos_attr.update(propagate=0)
+                value = pos_attr.value
+            else:
+                value = pos_attr.value
+            ret.append(value)
+        return ret
+        
+    def get_physical_positions(self):
+        ret = []
+        for pos_attr in self.obj.get_physical_position_attribute_iterator():
+            # if underlying moveable doesn't have position yet, it is because
+            # of a cold start
+            if not pos_attr.has_value():
+                pos_attr.update(propagate=0)
+            ret.append(pos_attr.value)
+        return ret
+
+    def calc_pseudo(self, physical_positions=None):
+        if physical_positions is None:
+            physical_positions = self.get_physical_positions()
+        obj = self.obj
+        ctrl, axis = obj.controller, obj.axis    
+        return ctrl.calc_pseudo(axis, physical_positions, None)
+
+    def on_change(self, evt_src, evt_type, evt_value):
+        self.fire_read_event(propagate=evt_type.priority)
+
+    def update(self, cache=True, propagate=1):
+        if cache:
+            for phy_elem_pos in self.obj.get_low_level_physical_position_attribute_iterator():
+                if not phy_elem_pos.has_value():
+                    cache = False
+                    break
+        if not cache:
+            dial_position_values = self.obj.motion.read_dial_position(serial=True)
+            for motion_obj, position_value in dial_position_values.items():
+                motion_obj.put_dial_position(position_value, propagate=propagate)
 
 
 class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     """A class representing a Pseudo Motor in the Sardana Device Pool"""
 
     def __init__(self, **kwargs):
-        self._physical_positions = {}
-        self._low_level_physical_positions = {}
-        self._position = Position(self)
         self._siblings = None
         self._in_start_move = False
         self._drift_correction = kwargs.pop('drift_correction', None)
         user_elements = kwargs.pop('user_elements')
+        kwargs['elem_type'] = ElementType.PseudoMotor
+        PoolBaseGroup.__init__(self, user_elements=user_elements,
+                               pool=kwargs['pool'])
         PoolElement.__init__(self, **kwargs)
-        PoolBaseGroup.__init__(self, user_elements=user_elements)
+        self._position = Position(self, listeners=self.on_change)
 
+    # --------------------------------------------------------------------------
+    # Event forwarding
+    # --------------------------------------------------------------------------
+    
+    def on_change(self, evt_src, evt_type, evt_value):
+        # forward all events coming from attributes to the listeners
+        self.fire_event(evt_type, evt_value)
+        
     def serialize(self, *args, **kwargs):
         kwargs = PoolElement.serialize(self, *args, **kwargs)
         elements = [ elem.name for elem in self.get_user_elements() ]
@@ -69,9 +167,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         kwargs['elements'] = elements
         kwargs['physical_elements'] = physical_elements
         return kwargs
-
-    def _get_pool(self):
-        return self.pool
 
     def _create_action_cache(self):
         motion_name = "%s.Motion" % self._name
@@ -95,9 +190,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
 
     def set_action_cache(self, action_cache):
         self._set_action_cache(action_cache)
-
-    def get_type(self):
-        return ElementType.PseudoMotor
 
     def get_siblings(self):
         if self._siblings is None:
@@ -124,28 +216,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             status_propagate = evt_type.priority
         self.set_state(state, propagate=state_propagate)
         self.set_status(status, propagate=status_propagate)
-        if name == 'position':
-            self.put_physical_element_position(evt_src, evt_value,
-                                               propagate=evt_type.priority)
-        elif name == "w_position":
-            # if motion originated from this pseudo motor don't need to
-            # calculate write position.
-            if self._in_start_move:
-                return
-            physical_positions = self.get_physical_positions(propagate=0)
-            phy_positions = []
-            for elem in self.get_user_elements():
-                pos_attr = physical_positions[elem]
-                if elem == evt_src:
-                    value = pos_attr.w_value
-                else:
-                    value = pos_attr.value
-                phy_positions.append(value)
-            p, err = self._calc_pseudo(phy_positions)
-            if p is None or err is not None:
-                self.warning("could not set write position. calc_pseudo returns error")
-                return
-            self.set_write_position(p, timestamp=evt_value.w_timestamp)
             
     def add_user_element(self, element, index=None):
         elem_type = element.get_type()
@@ -163,53 +233,23 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # position
     # ------------------------------------------------------------------------
 
-    def get_w_position(self, with_physical_positions=None):
-        """Get the last position requested by the user or the current position
-        (if the user never requested to move this pseudo motor before)
+    def get_position_attribute(self):
+        return self._position
 
-        :param with_physical_positions:
-            array of current physical positions. Only used when no write
-            position exists an returned position is the current position
-            [default: None, meaning fetch position(s) if necessary]
-        :type with_physical_positions:
-            :class:`dict` <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >
-        :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
-        w_pos = self._position.w_value
-        if w_pos is None and with_physical_positions is not None:
-            return self.calc_pseudo(with_physical_positions)
-        return w_pos, None
-
-    def get_low_level_physical_positions(self, cache=True, propagate=1):
-        """Get the positions for undelying low level elements.
-
-        :param cache:
-            if ``True`` (default) return value in cache, otherwise read value
-            from hardware
-        :type cache:
-            bool
-        :param propagate:
-            0 for not propagating, 1 to propagate, 2 propagate with priority
-        :type propagate:
-            int
-        :return:
-            the physical positions
-        :rtype:
-            dict <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
-        positions = self._low_level_physical_positions
-        if cache and len(positions):
-            return positions
-        dial_position_infos = self.motion.read_dial_position(serial=True)
-        for motion_obj, position_info in dial_position_infos.items():
-            motion_obj.put_dial_position(position_info, propagate=propagate)
-        self._low_level_physical_positions = positions = {}
-        for motion_objs in self.get_physical_elements().values():
-            for motion_obj in motion_objs:
-                positions[motion_obj] = motion_obj.get_position(propagate=0)
-        return positions
-
+    def get_low_level_physical_position_attribute_iterator(self):
+        return self.get_physical_elements_attribute_iterator()
+        
+    def get_physical_position_attribute_iterator(self):
+        return self.get_user_elements_attribute_iterator()
+    
+    def get_physical_positions_attribute_sequence(self):
+        return self.get_user_elements_attribute_sequence()
+    
+    def get_physical_positions_attribute_map(self):
+        return self.get_user_elements_attribute_map()
+    
     def get_physical_positions(self, cache=True, propagate=1):
-        """Get positions for undelying elements.
+        """Get positions for underlying elements.
 
         :param cache:
             if ``True`` (default) return value in cache, otherwise read value
@@ -224,88 +264,35 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             the physical positions
         :rtype:
             dict <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
-        positions = self._physical_positions
-        user_elements = self.get_user_elements()
-        if cache and len(positions) >= len(user_elements):
-            return positions
+        self._position.update(cache=cache, propagate=propagate)
+        return self.get_physical_positions_attribute_map()
 
-        ll_positions = self.get_low_level_physical_positions(cache=False,
-                            propagate=propagate)
-
-        self._physical_positions = positions = {}
-
-        for element in user_elements:
-            # if the element is a low_level physical (pure motor) then get the
-            # position directly from the low level positions, otherwise it must
-            # be a pseudo motor, so calculate the positions from the physicals
-            if element.get_type() in TYPE_PHYSICAL_ELEMENTS:
-                position = ll_positions[element]
-            else:
-                position_info = element.calc_pseudo(ll_positions)
-                element.put_position(position_info, propagate=0)
-                position = element.get_position(cache=True, propagate=False)
-            positions[element] = position
-        return positions
+    def get_siblings_positions(self, use=None, write_pos=True):
+        """Get the last positions for all siblings.
+        If write_pos is True and a sibling has already been moved before,
+        it's last write position is used. Otherwise its read position is used
+        instead.
         
-    def get_siblings_write_positions(self, with_physical_positions=None, use=None):
+        :param use: the already calculated positions. If a sibling is in this
+                    dictionary, the position stored here is used instead
+        :type use: dict <PoolElement, :class:`~sardana.sardanavalue.SardanaValue` >
+        :param write_pos: determines if should try to use the last set point
+                          [default: True]
+        :type write_pos: bool
+        :return: a dictionary with siblings write positions
+        :rtype:
+            dict <PoolElement, position(float?) >"""        
         positions = {}
-        if use is None:
-            use = {}
         for sibling in self.siblings:
-            if sibling in use:
-                pos = use[sibling], None
+            pos_attr = sibling.get_position_attribute() 
+            if use and sibling in use:
+                pos = use[sibling]
+            elif pos_attr.has_write_value() and write_pos:
+                pos = pos_attr.w_value
             else:
-                pos = sibling.get_w_position(
-                    with_physical_positions=with_physical_positions)
-            if pos is None:
-                pos = sibling.calc_pseudo(
-                    physical_positions=with_physical_positions)
+                pos = pos_attr.value
             positions[sibling] = pos
         return positions
-
-    def get_siblings_positions(self, with_physical_positions=None, use=None):
-        positions = {}
-        if use is None:
-            use = {}
-        for sibling in self.siblings:
-            if sibling in use:
-                pos = use[sibling], None
-            else:
-                pos = sibling.calc_pseudo(
-                    physical_positions=with_physical_positions)
-            positions[sibling] = pos
-        return positions
-
-    def calc_pseudo(self, physical_positions=None):
-        """Calculate the user position.
-
-        :param physical_positions:
-            current values for physical positions. Default is None meaning fetch
-            physical positions
-        :type physical_positions:
-            :class:`dict` <PoolElement, :class:`~sardana.sardanaattribute.SardanaAttribute` >
-        :return:
-            the pseudo position info
-        :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
-        if physical_positions is None:
-            physical_positions = self.get_physical_positions()
-        user_elements = self.get_user_elements()
-        phy_positions = [ physical_positions[elem].value for elem in user_elements ]
-        return self._calc_pseudo(phy_positions)
-        
-    def _calc_pseudo(self, physical_positions):
-        """Calculate the user position from physical position numbers.
-
-        :param physical_positions:
-            current values for physical positions
-        :type physical_positions:
-            :obj`sequence` <:class:`~numbers.Number` >
-        :return:
-            the pseudo position info
-        :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
-        return self.controller.calc_pseudo(self.axis, physical_positions, None)
         
     def get_position(self, cache=True, propagate=1):
         """Returns the user position.
@@ -323,13 +310,9 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             the user position
         :rtype:
             :class:`~sardana.sardanaattribute.SardanaAttribute`"""
-        position = self._position
-        if cache and position.has_value():
-            return position
-        positions = self.get_physical_positions(cache=cache, propagate=0)
-        position_info = self.calc_pseudo(positions)
-        self._set_position(position_info, propagate=propagate)
-        return position
+        position_attr = self._position
+        position_attr.update(cache=cache, propagate=propagate)
+        return position_attr
 
     def set_position(self, position):
         """Moves the motor to the specified user position
@@ -338,34 +321,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             the user position to move to
         :type position:
             :class:`~numbers.Number`"""
-        self.set_write_position(position, propagate=1)
         self.start_move(position)
-
-    def put_position(self, position_info, propagate=1):
-        """Sets a new user position.
-
-        :param position_info:
-            the new user position info
-        :type position_info:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param propagate:
-            0 for not propagating, 1 to propagate, 2 propagate with priority
-        :type propagate:
-            int"""
-        self._set_position(position_info, propagate=propagate)
-
-    def _set_position(self, position_info, propagate=1):
-        """Sets a new position.
-
-        :param position_info:
-            the new position
-        :type position_info:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param propagate:
-            0 for not propagating, 1 to propagate, 2 propagate with priority
-        :type propagate:
-            int"""
-        self._position.set_value(*position_info, propagate=propagate)
 
     def set_write_position(self, w_position, timestamp=None, propagate=1):
         """Sets a new write value for the user position.
@@ -378,16 +334,10 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             0 for not propagating, 1 to propagate, 2 propagate with priority
         :type propagate:
             int"""
+        # SardanaAttribute position will raise an exception so we let it do it
         self._position.set_write_value(w_position, timestamp=timestamp,
                                        propagate=propagate)
-                                       
-    def put_physical_element_position(self, element, position, propagate=1):
-        self._physical_positions[element] = position
-        if not propagate or len(self._physical_positions) < len(self.get_user_elements()):
-            return
-        position_info = self.calc_pseudo()
-        self.put_position(position_info, propagate=propagate)
-
+        
     position = property(get_position, set_position, doc="pseudo motor position")
 
     # ------------------------------------------------------------------------
@@ -424,12 +374,12 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         ret = self._calculate_states()
         return ret
 
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # default acquisition channel
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
-    def get_default_acquisition_channel(self):
-        return "position"
+    def get_default_attribute(self):
+        return self.get_position_attribute()
 
     # ------------------------------------------------------------------------
     # motion
@@ -446,7 +396,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
 
     def calculate_motion(self, new_position, items=None, calculated=None):
         # if items already contains the positions for this pseudo motor 
-        # underlying motors it means the motion has been already been calculated
+        # underlying motors it means the motion has already been calculated
         # by a sibling
         if items is not None and len(items):
             physical_elements = self.get_physical_elements_set()
@@ -455,38 +405,33 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
                 if calculated is not None and self in calculated:
                     return
         
-        siblings_pos_func = self.get_siblings_positions
-        if self.drift_correction:
-            siblings_pos_func = self.get_siblings_write_positions
-        
         user_elements = self.get_user_elements()
-        physical_positions = self.get_physical_positions()
-        positions = siblings_pos_func(physical_positions, use=calculated)
-        positions[self] = new_position, None
+        positions = self.get_siblings_positions(use=calculated,
+                                                write_pos=self.drift_correction)
+        positions[self] = new_position
         pseudo_positions = len(positions)*[None]
         for pseudo, position in positions.items():
-            pseudo_positions[pseudo.axis-1] = position[0]
-        curr_physical_positions = []
-        for user_element in user_elements:
-            curr_physical_positions.append(physical_positions[user_element].value)
-        physical_positions, exc_info = \
-            self.controller.calc_all_physical(pseudo_positions,
-                                              curr_physical_positions)
-        if physical_positions is None:
-            if exc_info is None:
+            pseudo_positions[pseudo.axis-1] = position
+        curr_physical_positions = self._position.get_physical_positions()
+        physical_positions = self.controller.calc_all_physical(pseudo_positions,
+                                                               curr_physical_positions)
+        if physical_positions.error:
+            raise PoolException("Cannot calculate motion: "
+                                "calc_all_physical raises exception",
+                                exc_info=physical_positions.exc_info)
+        else:
+            if physical_positions.value is None:
                 raise PoolException("Cannot calculate motion: "
                                     "calc_all_physical returns None")
-            else:
-                raise PoolException("calc_all_physical raises exception",
-                                    exc_info=exc_info)
 
         if items is None:
             items = {}
-        for new_position, element in zip(physical_positions, user_elements):
+        for new_position, element in zip(physical_positions.value, user_elements):
             if new_position is None:
                 raise PoolException("Cannot calculate motion: %s reports "
                                     "position to be None" % element.name)
-            element.calculate_motion(new_position, items=items)
+            element.calculate_motion(new_position, items=items,
+                                     calculated=calculated)
         return items
 
     def start_move(self, new_position):
@@ -499,10 +444,11 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     def _start_move(self, new_position):
         self._aborted = False
         self._stopped = False
-        ts = self._position.w_timestamp
         items = self.calculate_motion(new_position)
+        timestamp = time.time()
         for item, position_info in items.items():
-            item.set_write_position(position_info[0], timestamp=ts)
+            item.set_write_position(position_info[0], timestamp=timestamp,
+                                    propagate=1)
         if not self._simulation_mode:
             self.motion.run(items=items)
 

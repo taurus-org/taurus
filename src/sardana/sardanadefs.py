@@ -35,12 +35,10 @@ __all__ = ["EpsilonError", "SardanaServer", "ServerRunMode", "State",
            "TYPE_PHYSICAL_ELEMENTS", "TYPE_ACQUIRABLE_ELEMENTS",
            "TYPE_EXP_CHANNEL_ELEMENTS", "TYPE_TIMERABLE_ELEMENTS",
            "TYPE_PSEUDO_ELEMENTS", "INTERFACES", "INTERFACES_EXPANDED",
-           "is_number", "ScalarNumberFilter"]
+           "ScalarNumberFilter"]
 
 __docformat__ = 'restructuredtext'
 
-import functools
-import numbers
 import math
 
 from taurus.core.util import Enumeration
@@ -65,6 +63,7 @@ State = Enumeration("State", ( \
     "Disable",
     "Unknown",
     "Invalid") )
+
 
 class _SardanaServer(object):
     """Class representing the current sardana server state"""
@@ -428,7 +427,7 @@ INTERFACES = {
 INTERFACES_EXPANDED = {}
 
 def __expand(name):
-    direct_expansion, description = INTERFACES[name]
+    direct_expansion, _ = INTERFACES[name]
     if isinstance(direct_expansion, (str, unicode)):
         direct_expansion = direct_expansion,
     exp = set(direct_expansion)
@@ -493,23 +492,6 @@ Interfaces = _Interfaces
 #: a dictionary containing the *all* interfaces supported by each type. 
 #: (:obj:`dict` <:obj:`sardana.sardanadefs.Interface`, :obj:`set` < :obj:`sardana.sardanadefs.Interface`> >)
 InterfacesExpanded = _InterfacesExpanded
-
-try:
-    import numpy
-except ImportError:
-    numpy = None
-
-risinstance = lambda kls_typ_or_tpl, obj : isinstance(obj, kls_typ_or_tpl)
-
-_is_pure_number = functools.partial(risinstance, numbers.Number)
-
-def is_number(value):
-    """utility function to determine if an object is a number"""
-    if _is_pure_number(value):
-        return True
-    if numpy:
-        return numpy.isreal(value) and numpy.isscalar(value)
-    return False
 
 
 class ScalarNumberFilter(object):

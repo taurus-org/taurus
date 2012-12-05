@@ -23,8 +23,8 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Sardana libray. It defines the base classes
-for Sardana object"""
+"""This module is part of the Python Sardana library. It defines the base
+classes for Sardana object"""
 
 __all__ = ["SardanaBaseObject", "SardanaObjectID"]
 
@@ -50,9 +50,11 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
     def __init__(self, **kwargs):
         EventGenerator.__init__(self)
         EventReceiver.__init__(self)
-        self._name = name = intern(kwargs.pop('name'))
+        self._type = kwargs.pop('elem_type')
+        self._name = intern(kwargs.pop('name'))
         self._full_name = intern(kwargs.pop('full_name'))
-        Logger.__init__(self, name)
+        self._frontend = None
+        Logger.__init__(self, self._name)
         self._manager = weakref.ref(kwargs.pop('manager'))
         self._parent = weakref.ref(kwargs.pop('parent', self.manager))
         
@@ -79,12 +81,11 @@ class SardanaBaseObject(EventGenerator, EventReceiver, Logger):
         return self._full_name
     
     def get_type(self):
-        """Returns this sardana object type. Default implementation raises
-        NotImplementedError.
+        """Returns this sardana object type.
         
         :return: this sardana object type
         :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        raise NotImplementedError
+        return self._type
     
     def get_parent(self):
         """Returns this pool object parent.

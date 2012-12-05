@@ -38,9 +38,9 @@ from PyTango import DevFailed, Except, DevState, \
 from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
+from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
-from sardana.tango.core.util import exception_str, throw_sardana_exception, \
-    memorize_write_attribute
+from sardana.tango.core.util import exception_str, throw_sardana_exception
 from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
@@ -63,33 +63,7 @@ class MotorGroup(PoolGroupDevice):
         self.element = motor_group
 
     motor_group = property(get_motor_group, set_motor_group)
-
-    def set_write_position_to_db(self, pos_attr):
-        name = 'Position'
-        w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
-        if None in w_value:
-            return
-        position = self.get_attribute_by_name(name)
-        print self.get_name(),"set_write_position_to_db", w_value
-        position.set_write_value(w_value)
-        db = self.get_database()
-        attr_values = {}
-        if w_value is not None:
-            attr_values[name] = { '__value' : w_value }
-            if w_ts is not None:
-                attr_values[name]['__value_ts'] = w_ts
-                
-        if attr_values:
-            db.put_device_attribute_property(self.get_name(), attr_values)
-            
-    def get_write_position_from_db(self):
-        db = self.get_database()
-        pos_props = db.get_device_attribute_property(self.get_name(), 'position')['position']
-        w_pos, w_ts = float(pos_props["__value"][0]), None
-        if "__value_ts" in pos_props:
-            w_ts = float(pos_props["__value_ts"][0])
-        return w_pos, w_ts 
-        
+    
     @DebugIt()
     def delete_device(self):
         PoolGroupDevice.delete_device(self)
@@ -118,7 +92,7 @@ class MotorGroup(PoolGroupDevice):
         try:
             self._on_motor_group_changed(event_source, event_type, event_value)
         except:
-            msg = 'Error occured "on_motor_group_changed(%s.%s): %s"'
+            msg = 'Error occurred "on_motor_group_changed(%s.%s): %s"'
             exc_info = sys.exc_info()
             self.error(msg, self.motor_group.name, event_type.name,
                        exception_str(*exc_info[:2]))
@@ -129,38 +103,39 @@ class MotorGroup(PoolGroupDevice):
         # creation events
         if SardanaServer.server_state != State.Running:
             return
+        
         timestamp = time.time()
         name = event_type.name.lower()
-
-        if name == 'w_position':
-            # if a move from a motor/pseudo motor update the position write value
-            if not self.in_write_position:
-                self.set_write_position_to_db(event_value)
-            return
 
         attr = self.get_attribute_by_name(name)
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
-        error = None
+        value, w_value, error = None, None, None
  
         if name == "state":
-            event_value = self.calculate_tango_state(event_value)
+            value = self.calculate_tango_state(event_value)
         elif name == "status":
-            event_value = self.calculate_tango_status(event_value)
+            value = self.calculate_tango_status(event_value)
         else:
+            if isinstance(event_value, SardanaAttribute):
+                if event_value.error:
+                    error = Except.to_dev_failed(*event_value.exc_info)
+                else:
+                    value = event_value.value
+                timestamp = event_value.timestamp
+            else:
+                value = event_value
+            
             state = self.motor_group.get_state(propagate=0)
 
             if name == "position":
+                w_value = event_value.w_value
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
-                try:
-                    event_value = self._to_motor_positions(event_value)
-                except DevFailed, df:
-                    error = df
 
-        self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error,
-                           synch=False)
+        self.set_attribute(attr, value=value, w_value=w_value,
+                           timestamp=timestamp, quality=quality,
+                           priority=priority, error=error, synch=False)
 
     def always_executed_hook(self):
         pass
@@ -193,15 +168,17 @@ class MotorGroup(PoolGroupDevice):
         # values
         motor_group = self.motor_group
         use_cache = motor_group.is_in_operation() and not self.Force_HW_Read
-        positions = motor_group.get_position(cache=use_cache, propagate=0)
+        position = motor_group.get_position(cache=use_cache, propagate=0)
+        if position.error:
+            Except.throw_python_exception(*position.exc_info)
         state = motor_group.get_state(cache=use_cache, propagate=0)
-        positions = self._to_motor_positions(positions)
         quality = None
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=positions, quality=quality, priority=0)
+        self.set_attribute(attr, value=position.value, w_value=position.w_value,
+                           quality=quality, priority=0,
+                           timestamp=position.timestamp)
     
-    @memorize_write_attribute
     def write_Position(self, attr):
         self.in_write_position = True
         try:
@@ -240,8 +217,6 @@ class MotorGroupClass(PoolGroupDeviceClass):
     #    Attribute definitions
     attr_list = {
         'Position'     : [ [ DevDouble, SPECTRUM, READ_WRITE, 4096 ], ],
-                           # Position is not scalar and can not be memorized
-                           #{ 'Memorized'     : "true_without_hard_applied", }, ],
     }
     attr_list.update(PoolGroupDeviceClass.attr_list)
 

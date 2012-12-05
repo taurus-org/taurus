@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for CounterTimer"""
 
 __all__ = [ "PoolCounterTimer" ]
@@ -31,83 +31,31 @@ __all__ = [ "PoolCounterTimer" ]
 __docformat__ = 'restructuredtext'
 
 from sardana import ElementType
-from sardana.sardanaevent import EventType
 
-from poolelement import PoolElement
-from poolacquisition import PoolCTAcquisition
+from .poolbasechannel import PoolBaseChannel
 
 
-class PoolCounterTimer(PoolElement):
+class PoolCounterTimer(PoolBaseChannel):
 
     def __init__(self, **kwargs):
-        PoolElement.__init__(self, **kwargs)
-        self._value = None
-        self._wvalue = None
-        acq_name = "%s.Acquisition" % self._name
-        self.set_action_cache(PoolCTAcquisition(self, name=acq_name))
-    
-    def get_type(self):
-        return ElementType.CTExpChannel
+        kwargs['elem_type'] = ElementType.CTExpChannel
+        PoolBaseChannel.__init__(self, **kwargs)
     
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------
     
-    def read_value(self):
-        return self.acquisition.read_value()[self]
-    
-    def put_value(self, value, propagate=1):
-        self._set_value(value, propagate=propagate)
-    
-    def get_value(self, cache=True, propagate=1):
-        if not cache or self._value is None:
-            value, exc_info = self.read_value()
-            if exc_info is not None:
-                raise exc_info[1]
-            self._set_value(value, propagate=propagate)
-        return self._value
-    
-    def get_value_w(self):
-        return self._wvalue
-    
-    def set_value(self, value, propagate=1):
-        self._wvalue = value
-        self._set_value(value, propagate=propagate)
-        
-    def _set_value(self, value, propagate=1):
-        self._value = value
-        if not propagate:
-            return
-        self.fire_event(EventType("value", priority=propagate), value)
-    
-    value = property(get_value, set_value, doc="ct value")
-    
-    # --------------------------------------------------------------------------
-    # default acquisition channel
-    # --------------------------------------------------------------------------
-    
-    def get_default_acquisition_channel(self):
-        return 'value'
-    
-    # --------------------------------------------------------------------------
-    # acquisition
-    # --------------------------------------------------------------------------
-    
-    def get_acquisition(self):
-        return self.get_action_cache()
-    
-    acquisition = property(get_acquisition, doc="acquisition object")
-    
-    def start_acquisition(self, value=None):
-        self._aborted = False
-        self._stopped = False
-        value = value or self.get_value_w()
-        if value is None:
-            raise Exception("Invalid integration_time '%s'. Hint set a new value for 'value' first" % value)
-        if not self._simulation_mode:
-            acq = self.acquisition.run(integ_time=value)
-    
-    def get_source(self):
-        return "{0}/value".format(self.full_name)
-    
-    
+    def set_write_value(self, w_value, timestamp=None, propagate=1):
+        """Sets a new write value for the value.
+
+        :param w_value:
+            the new write value for value
+        :type w_value:
+            :class:`~numbers.Number`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""        
+        self._value.set_write_value(w_value, timestamp=timestamp,
+                                    propagate=propagate)
+

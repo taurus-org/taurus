@@ -146,7 +146,6 @@ class wa(Macro):
         self.table_opts = {}
     
     def run(self):
-        self.output("bla")
         nr_motors = len(self.all_motors)
         if nr_motors == 0:
             self.output('No motor defined')

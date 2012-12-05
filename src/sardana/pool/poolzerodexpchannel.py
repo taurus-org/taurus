@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for ZeroDExpChannel"""
 
 __all__ = [ "Pool0DExpChannel" ]
@@ -32,30 +32,23 @@ __docformat__ = 'restructuredtext'
 
 import numpy
 import time
-import weakref
-
-from taurus.core.util import CaselessDict
 
 from sardana import ElementType
 from sardana.sardanaevent import EventType
-from poolelement import PoolElement
-from poolacquisition import Pool0DAcquisition
+from sardana.sardanaattribute import SardanaAttribute
 
-class BaseCumulation(object):
+from .poolbasechannel import PoolBaseChannel
+from .poolacquisition import Pool0DAcquisition
 
-    def __init__(self, channel):
-        self._channel = weakref.ref(channel)
+class BaseAccumulation(object):
+
+    def __init__(self):
         self.buffer = numpy.zeros(shape=(2,16384), dtype=numpy.float64)
         self.clear()
         
     def clear(self):
         self.nb_points = 0
         self.value = None
-    
-    def get_channel(self):
-        return self._channel()
-        
-    channel = property(get_channel)
     
     def get_value_buffer(self):
         return self.buffer[0][:self.nb_points]
@@ -74,30 +67,31 @@ class BaseCumulation(object):
 
     def update_value(self, value, timestamp):
         self.value = value
+    
+    
+LastAccumulation = BaseAccumulation
 
-LastCumulation = BaseCumulation
-
-class SumCumulation(BaseCumulation):
+class SumAccumulation(BaseAccumulation):
     
     def clear(self):
-        BaseCumulation.clear(self)
+        BaseAccumulation.clear(self)
         self.sum = 0.0
     
     def update_value(self, value, timestamp):
         self.sum += value
 
 
-class AverageCumulation(SumCumulation):
+class AverageAccumulation(SumAccumulation):
     
     def update_value(self, value, timestamp):
-        SumCumulation.update_value(self, value, timestamp)
+        SumAccumulation.update_value(self, value, timestamp)
         self.value = self.sum / self.nb_points
 
 
-class IntegralCumulation(BaseCumulation):
+class IntegralAccumulation(BaseAccumulation):
 
     def clear(self):
-        BaseCumulation.clear(self)
+        BaseAccumulation.clear(self)
         self.sum = 0.0
         self.last_value = None
         self.start_time = None
@@ -116,66 +110,166 @@ class IntegralCumulation(BaseCumulation):
             self.last_value = value, timestamp
 
 
-def get_cumulation_class(ctype):
-    return globals()[ctype + "Cumulation"]
+def get_accumulation_class(ctype):
+    return globals()[ctype + "Accumulation"]
 
 
-class Pool0DExpChannel(PoolElement):
+class CurrentValue(SardanaAttribute):
+
+    def update(self, cache=True, propagate=1):
+        if not cache or not self.has_value():
+            value = self.obj.read_current_value()
+            self.set_value(value, propagate=propagate)
+
+
+class Value(SardanaAttribute):
+
+    DefaultAccumulationType = "Average"
+
+    def __init__(self, *args, **kwargs):
+        accumulation_type = kwargs.pop('accumulation_type', self.DefaultAccumulationType)
+        super(Value, self).__init__(*args, **kwargs)
+        self.set_accumulation_type(accumulation_type)
+    
+    def get_val(self):
+        return self.obj.get_value_attribute()
+    
+    def set_accumulation_type(self, ctype):
+        klass = get_accumulation_class(ctype)
+        self._accumulation = klass()
+    
+    def get_accumulation_type(self):
+        klass_name = self._accumulation.__class__.__name__
+        return klass_name[:klass_name.index("Accumulation")]
+    
+    def get_accumulation(self):
+        return self._accumulation
+    
+    accumulation = property(get_accumulation)
+    
+    def _get_value(self):
+        value = self._accumulation.value
+        if value is None:
+            raise Exception("Value not available: no acquisition done so far!")
+        return value
+    
+    def get_value_buffer(self):
+        return self.accumulation.get_value_buffer()
+    
+    def get_time_buffer(self):
+        return self.accumulation.get_time_buffer()
+        
+    def clear_buffer(self):
+        self.accumulation.clear()
+    
+    def append_value(self, value, propagate=1):
+        self.accumulation.append_value(value.value, value.timestamp)
+        if propagate > 0:
+            evt_type = EventType(self.name, priority=propagate)
+            self.fire_event(evt_type, self)        
+    
+        
+class Pool0DExpChannel(PoolBaseChannel):
+    
+    ValueAttributeClass = Value
+    AcquisitionClass = Pool0DAcquisition
     
     def __init__(self, **kwargs):
-        PoolElement.__init__(self, **kwargs)
-        self._aborted = False
-        self.set_cumulation_type("Average")
-        acq_name = "%s.Acquisition" % self._name
-        self.set_action_cache(Pool0DAcquisition(self, acq_name))
+        kwargs['elem_type'] = ElementType.ZeroDExpChannel
+        PoolBaseChannel.__init__(self, **kwargs)
+        self._current_value = CurrentValue(self, listeners=self.on_change)
         
-    def get_type(self):
-        return ElementType.ZeroDExpChannel
+    # --------------------------------------------------------------------------
+    # Accumulation
+    # --------------------------------------------------------------------------
+                
+    def get_accumulation_type(self):
+        return self.get_value_attribute().get_accumulation_type()
     
-    def set_cumulation_type(self, ctype):
-        klass = get_cumulation_class(ctype)
-        self._cumulation = klass(self)
+    def get_accumulation(self):
+        return self.get_value_attribute().get_accumulation()
     
-    def get_cumulation_type(self):
-        klass_name = self._cumulation.__class__.__name__
-        return klass_name[:klass_name.index("Cumulation")]
+    def set_accumulation_type(self, ctype):
+        return self.get_value_attribute().set_accumulation_type(ctype)
     
-    def get_cumulation(self):
-        return self._cumulation
-    
-    cumulation = property(get_cumulation)
+    accumulation = property(get_accumulation)
     
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------
     
-    def read_value(self):
-        return self.acquisition.read_value()[self]
+    def get_accumulated_value_attribute(self):
+        """Returns the accumulated value attribute object for this 0D.
+        
+        :return: the accumulated value attribute
+        :rtype: :class:`~sardana.sardanaattribute.SardanaAttribute`"""        
+        return self.get_value_attribute()
+
+    def get_current_value_attribute(self):
+        """Returns the current value attribute object for this 0D.
+        
+        :return: the current value attribute
+        :rtype: :class:`~sardana.sardanaattribute.SardanaAttribute`"""        
+        return self._current_value
+            
+    def get_accumulated_value(self):
+        """Gets the accumulated value for this 0D.
+
+        :return:
+            a :class:`~sardana.sardanavalue.SardanaValue` containing the 0D
+            value
+        :rtype:
+            :class:`~sardana.sardanaattribute.SardanaAttribute`
+        
+        :raises: Exception if no acquisition has been done yet on this 0D"""         
+        return self.get_accumulated_value_attribute()
     
-    def put_value(self, value, propagate=1):
-        self._set_value(value, propagate=propagate)
-    
-    def get_value(self, propagate=1):
-        value = self.cumulation.value
-        if value is None:
-            raise Exception("Value not available: no acquisition done so far!")
-        return value
-    
-    def set_value(self, value, propagate=1):
-        self._set_value(value, propagate=propagate)
-    
-    def _set_value(self, value, propagate=1):
+    def read_current_value(self):
+        """Reads the 0D value from hardware.
+
+        :return:
+            a :class:`~sardana.sardanavalue.SardanaValue` containing the counter
+            value
+        :rtype:
+            :class:`~sardana.sardanavalue.SardanaValue`"""        
+        return self.acquisition.read_value()[self]    
+
+    def put_current_value(self, value, propagate=1):
+        """Sets a value.
+
+        :param value:
+            the new value
+        :type value:
+            :class:`~sardana.sardanavalue.SardanaValue`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""
+        curr_val_attr = self.get_current_value_attribute()
+        curr_val_attr.set_value(value, propagate=propagate)
         if self.is_in_operation():
-            self.append_value(value, propagate=propagate)
-            return
-        if not propagate:
-            return
-        self.fire_event(EventType("value", priority=propagate), value)
-    
-    value = property(get_value, set_value, doc="0D value")
-    
-    def clear_buffer(self):
-        self.cumulation.clear()
+            acc_val_attr = self.get_accumulated_value_attribute()
+            acc_val_attr.append_value(value, propagate=propagate)
+            
+    def get_current_value(self, cache=True, propagate=1):
+        """Returns the counter value.
+
+        :return:
+            the 0D accumulated value
+        :rtype:
+            :class:`~sardana.sardanaattribute.SardanaAttribute`"""
+        curr_val_attr = self.get_current_value_attribute()
+        curr_val_attr.update(cache=cache, propagate=propagate)
+        return curr_val_attr
+
+    current_value = property(get_current_value, doc="0D value")
+    accumulated_value = property(get_accumulated_value, doc="0D value")
+
+    def put_value(self, value, propagate=1):
+        return self.put_current_value(value, propagate=propagate)
+
+    def _get_value(self):
+        return self.get_current_value()
     
     def append_value(self, value, timestamp=None, propagate=1):
         cumulation = self.cumulation
@@ -183,13 +277,16 @@ class Pool0DExpChannel(PoolElement):
         if not propagate:
             return
         self.fire_event(EventType("value", priority=propagate), cumulation.value)
-    
+
+    def clear_buffer(self):
+        self.get_accumulated_value_attribute().clear_buffer()
+            
     # --------------------------------------------------------------------------
     # value buffer
     # --------------------------------------------------------------------------
     
     def get_value_buffer(self):
-        return self.cumulation.get_value_buffer()
+        return self.get_accumulated_value_attribute().get_value_buffer()
     
     value_buffer = property(get_value_buffer)
     
@@ -198,26 +295,10 @@ class Pool0DExpChannel(PoolElement):
     # --------------------------------------------------------------------------
     
     def get_time_buffer(self):
-        return self.cumulation.get_time_buffer()
+        return self.get_accumulated_value_attribute().get_time_buffer()
     
     time_buffer = property(get_time_buffer)
-    
-    # --------------------------------------------------------------------------
-    # default acquisition channel
-    # --------------------------------------------------------------------------
-    
-    def get_default_acquisition_channel(self):
-        return 'value'
-    
-    # --------------------------------------------------------------------------
-    # acquisition
-    # --------------------------------------------------------------------------
-    
-    def get_acquisition(self):
-        return self.get_action_cache()
-    
-    acquisition = property(get_acquisition, doc="acquisition object")
-    
+
     def start_acquisition(self, value=None):
         self._aborted = False
         self.clear_buffer()
@@ -226,5 +307,3 @@ class Pool0DExpChannel(PoolElement):
         if not self._simulation_mode:
             acq = self.acquisition.run()
     
-    def get_source(self):
-        return "{0}/value".format(self.full_name)

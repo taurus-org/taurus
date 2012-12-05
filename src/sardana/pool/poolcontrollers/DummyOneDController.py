@@ -26,7 +26,7 @@ import numpy
 
 from sardana import State
 from sardana.pool.controller import OneDController, MaxDimSize
-from sardana.pool import AcqTriggerType
+from sardana.pool.controller import DefaultValue, Description, FGet, FSet, Type
 
 def gauss(x, mean, ymax, fwhm, yoffset=0):
     return yoffset + ymax*numpy.power(2,-4*((x-mean)/fwhm)**2)
@@ -80,11 +80,11 @@ class DummyOneDController(OneDController):
 
     axis_attributes = {
         'Amplitude' : { 
-            'type' : str,
-            'fget' : 'getAmplitude', 
-            'fset' : 'setAmplitude',        
-            'description' : 'Amplitude. Maybe a number or a tango attribute(must start with tango://)',
-            'defaultvalue': '1.0' },
+            Type : str,
+            FGet : 'getAmplitude', 
+            FSet : 'setAmplitude',        
+            Description : 'Amplitude. Maybe a number or a tango attribute(must start with tango://)',
+            DefaultValue : '1.0' },
     }
     
     def __init__(self, inst, props, *args, **kwargs):
@@ -192,6 +192,7 @@ class DummyOneDController(OneDController):
                     self._updateChannelValue(axis, elapsed_time)
     
     def ReadOne(self, axis):
+        self._log.debug("ReadOne(%s)", axis)
         v = self.read_channels[axis].value
         return v
     

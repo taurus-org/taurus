@@ -47,14 +47,16 @@ from sardana.macroserver.macro import *
 class defm(Macro):
     """Creates a new motor in the active pool"""
 
-    param_def = [['controller', Type.Controller, None, 'Controller name'],
-                 ['axis', Type.Integer, None, 'motor axis'],
-                 ['motor name', Type.String, None, 'motor name']]
+    param_def = [['motor name', Type.String, None, 'motor name'],
+                 ['controller', Type.Controller, None, 'Controller name'],
+                 ['axis', Type.Integer, None, 'motor axis'],]
 
-    def run(self, controller, axis, name):
+    def run(self, name, controller, axis):
         pool = controller.getPoolObj()
-        pool.CreateMotor([[int(axis)],[name, controller.getName()]])
-
+        if axis == -1:
+            axis = None
+        elem = pool.createElement(name, controller, axis)
+        self.print("Created %s" % str(elem))
 
 class defmeas(Macro):
     """Create a new measurement group. First channel in channel_list MUST

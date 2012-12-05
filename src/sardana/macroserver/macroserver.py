@@ -145,7 +145,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         
         MSContainer.__init__(self)
         MSObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
-                          macro_server=self)
+                          macro_server=self, elem_type=ElementType.MacroServer)
         
         registerExtensions()
         
@@ -160,9 +160,6 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         kwargs['id'] = InvalidId
         kwargs['parent'] = None
         return kwargs
-    
-    def get_type(self):
-        return ElementType.MacroServer
     
     def add_job(self, job, callback=None, *args, **kw):
         th_pool = get_thread_pool()

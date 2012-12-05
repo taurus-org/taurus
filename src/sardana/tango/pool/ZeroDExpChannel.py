@@ -163,18 +163,26 @@ class ZeroDExpChannel(PoolElementDevice):
                 
     def read_Value(self, attr):
         zerod = self.zerod
-        value = zerod.get_value()
+        value = zerod.get_accumulated_value()
         quality = None
-        if self.get_state() == DevState.MOVING:
+        if self.get_state() == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=value, quality=quality, priority=0)
+        self.set_attribute(attr, value=value.value, quality=quality, priority=0)
 
     def read_CurrentValue(self, attr):
-        val, exc_info = self.zerod.read_value()
-        if exc_info is not None:
-            Except.throw_python_exception(*exc_info)
-        self.set_attribute(attr, value=val, priority=0)
-
+        zerod = self.zerod
+        #use_cache = ct.is_action_running() and not self.Force_HW_Read
+        use_cache = self.get_state() == State.Moving and not self.Force_HW_Read
+        value = zerod.get_current_value(cache=use_cache, propagate=0)
+        if value.error:
+            Except.throw_python_exception(*value.exc_info)
+        quality = None
+        state = zerod.get_state(cache=use_cache, propagate=0)
+        if state == State.Moving:
+            quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=value.value, quality=quality,
+                           priority=0, timestamp=value.timestamp)
+        
     def Start(self):
         self.zerod.start_acquisition()
 

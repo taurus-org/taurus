@@ -27,6 +27,9 @@
 
 __docformat__ = 'restructuredtext'
 
+import PyTango.constants
+
+
 def __init_pytango_devfailed(mod):
     consts = (
 "API_AttrConfig", "API_AttrEventProp", "API_AttrIncorrectDataNumber", 
@@ -61,7 +64,7 @@ def __init_pytango_devfailed(mod):
         setattr(mod, const, const)
 
 def __prepare_pytango():
-    import PyTango.constants
+    
     if not hasattr(PyTango.constants, "API_DeviceNotFound"):
         __init_pytango_devfailed(PyTango.constants)
 

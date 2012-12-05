@@ -29,9 +29,10 @@ __all__ = ["TwoDExpChannel", "TwoDExpChannelClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 
-from PyTango import DevVoid, DevString, DevState, AttrQuality, \
+from PyTango import DevFailed, DevVoid, DevString, DevState, AttrQuality, \
     Except, READ, SCALAR
 
 from taurus.core.util.log import DebugIt
@@ -39,7 +40,7 @@ from taurus.core.util.log import DebugIt
 from sardana import State, DataFormat, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.controller import TwoDController, MaxDimSize, Type
-from sardana.tango.core.util import to_tango_type_format
+from sardana.tango.core.util import to_tango_type_format, exception_str
 
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
@@ -87,36 +88,52 @@ class TwoDExpChannel(PoolElementDevice):
         self.set_state(DevState.ON)
 
     def on_twod_changed(self, event_source, event_type, event_value):
+        try:
+            self._on_twod_changed(event_source, event_type, event_value)
+        except not DevFailed:
+            msg = 'Error occurred "on_twod_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.motor.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+            
+    def _on_twod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
 
         timestamp = time.time()
-        name = event_type.name
+        name = event_type.name.lower()
+        
+        try:
+            attr = self.get_attribute_by_name(name)
+        except DevFailed:
+            return
+                
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
-        error = None
-        attr = self.get_device_attr().get_attr_by_name(name)
+        value, w_value, error = None, None, None
 
         if name == "state":
-            event_value = self.calculate_tango_state(event_value)
+            value = self.calculate_tango_state(event_value)
         elif name == "status":
-            event_value = self.calculate_tango_status(event_value)
+            value = self.calculate_tango_status(event_value)
         else:
             if isinstance(event_value, SardanaAttribute):
                 if event_value.error:
                     error = Except.to_dev_failed(*event_value.exc_info)
+                else:
+                    value = event_value.value
                 timestamp = event_value.timestamp
-                event_value = event_value.value
 
             if name == "value":
-                state = self.twod.get_state()
+                state = self.oned.get_state()
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error,
-                           synch=False)
+        self.set_attribute(attr, value=value, w_value=w_value,
+                           timestamp=timestamp, quality=quality,
+                           priority=priority, error=error, synch=False)
 
     def always_executed_hook(self):
         #state = to_tango_state(self.twod.get_state(cache=False))
@@ -137,7 +154,7 @@ class TwoDExpChannel(PoolElementDevice):
             value = std_attrs.get('value')
             if value is not None:
                 _, data_info, attr_info = value
-                ttype, _ = to_tango_type_format(attr_info.dype)
+                ttype, _ = to_tango_type_format(attr_info.dtype)
                 data_info[0][0] = ttype
                 shape = attr_info.maxdimsize
                 data_info[0][3] = shape[0]
@@ -146,14 +163,17 @@ class TwoDExpChannel(PoolElementDevice):
         
     def read_Value(self, attr):
         twod = self.twod
-        #use_cache = twod.is_action_running() and not self.Force_HW_Read
-        use_cache = self.get_state() == DevState.MOVING and not self.Force_HW_Read
-        value = twod.get_value(cache=use_cache)
+        use_cache = twod.is_in_operation() and not self.Force_HW_Read
+        value = twod.get_value(cache=use_cache, propagate=0)
+        if value.error:
+            Except.throw_python_exception(*value.exc_info)
+        state = twod.get_state(cache=use_cache, propagate=0)
         quality = None
-        if self.get_state() == DevState.MOVING:
+        if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=value, quality=quality, priority=0)
-
+        self.set_attribute(attr, value=value.value, quality=quality,
+                           timestamp=value.timestamp, priority=0)
+        
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
             return False

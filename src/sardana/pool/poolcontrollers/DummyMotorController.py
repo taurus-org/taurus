@@ -24,8 +24,10 @@
 import time
 from math import pow, sqrt
 
-from sardana import State
+from sardana import State, SardanaValue
 from sardana.pool.controller import MotorController
+from sardana.pool.controller import DefaultValue, Description, FGet, FSet, Type
+
 
 class BaseMotion(object):
 
@@ -63,7 +65,7 @@ class Motion(BaseMotion):
         # necessary displacement to reach maximum velocity
         self.curr_dsplmnt_reach_max_vel = -1
 
-        # necessary diplacement to reach minimum velocity
+        # necessary displacement to reach minimum velocity
         self.curr_dsplmnt_reach_min_vel = -1
 
         # maximum velocity possible
@@ -211,7 +213,7 @@ class Motion(BaseMotion):
         self.step_per_unit = spu
 
     def __recalculate_acc_constants(self):
-        """precomputations assuming maximum speed can be reached in a motion"""
+        """pre-computations assuming maximum speed can be reached in a motion"""
 
         self.dsplmnt_reach_max_vel = 0.5 * self.accel * pow(self.accel_time,2)
         self.dsplmnt_reach_max_vel += self.min_vel * self.accel_time
@@ -550,6 +552,7 @@ class BasicDummyMotorController(MotorController):
         #raise Exception("Cannot ReadOne")
         idx = axis - 1
         m = self.m[idx]
+        return SardanaValue(m.getCurrentUserPosition(), timestamp=1)
         return m.getCurrentUserPosition()
 
     def PreStartAll(self):
@@ -655,7 +658,7 @@ class DiscreteDummyMotorController(BasicDummyMotorController):
     def GetAxisAttributes(self, axis):
         axis_attrs = MotorController.GetAxisAttributes(self, axis)
         new_axis_attrs = dict(Position=axis_attrs['Position'])
-        new_axis_attrs['Position']['type'] = int
+        new_axis_attrs['Position'][Type] = int
         return new_axis_attrs
 
     def AddDevice(self, axis):
@@ -672,50 +675,50 @@ class DiscreteDummyMotorController(BasicDummyMotorController):
         pos = BasicDummyMotorController.ReadOne(self, axis)
         return int(pos)
 
-
+    
 class DummyMotorController(BasicDummyMotorController):
-    """This class representes a dummy Sardana motor controller."""
+    """This class represents a dummy Sardana motor controller."""
 
     ctrl_features = []
 
     model = "Best"
 
     ctrl_attributes = {
-        'LowerLimitSwitch' : { 'type' : float,
-                               'description' : 'lower limit switch position',
-                               'fget' : 'getLowerLimitSwitch',
-                               'fset' : 'setLowerLimitSwitch',
-                               'defaultvalue': -9999.9999, },
-        'UpperLimitSwitch' : { 'type' : float,
-                               'description' : 'upper limit switch position',
-                               'defaultvalue': 8888.8888 }
+        'LowerLimitSwitch' : { Type : float,
+                               Description : 'lower limit switch position',
+                               FGet : 'getLowerLimitSwitch',
+                               FSet : 'setLowerLimitSwitch',
+                               DefaultValue: -9999.9999, },
+        'UpperLimitSwitch' : { Type : float,
+                               Description : 'upper limit switch position',
+                               DefaultValue: 8888.8888 }
     }
 
     axis_attributes = {
-        'LowerLimitSwitch' : { 'type' : float,
-                               'description' : 'lower limit switch position',
-                               'fget' : 'getLLS',
-                               'fset' : 'setLLS',
-                               'defaultvalue': -9999.9999 },
-        'UpperLimitSwitch' : { 'type' : float,
-                               'description' : 'upper limit switch position',
-                               'fget' : 'getULS',
-                               'fset' : 'setULS',
-                               'defaultvalue': 8888.8888 },
-        'Power'            : { 'type' : bool,
-                               'description' : 'motor power',
-                               'fget' : 'getPower',
-                               'fset' : 'setPower',
-                               'defaultvalue': True },
+        'LowerLimitSwitch' : { Type : float,
+                               Description : 'lower limit switch position',
+                               FGet : 'getLLS',
+                               FSet : 'setLLS',
+                               DefaultValue: -9999.9999 },
+        'UpperLimitSwitch' : { Type : float,
+                               Description : 'upper limit switch position',
+                               FGet : 'getULS',
+                               FSet : 'setULS',
+                               DefaultValue: 8888.8888 },
+        'Power'            : { Type : bool,
+                               Description : 'motor power',
+                               FGet : 'getPower',
+                               FSet : 'setPower',
+                               DefaultValue: True },
     }
 
     ctrl_properties = {
-        'Prop1' : { 'type' : str,
-                    'description'  : 'demo property 1',
-                    'defaultvalue' : 'test property 1'},
-        'Prop2' : { 'type' : int,
-                    'description'  : 'demo property 1',
-                    'defaultvalue' : 531},
+        'Prop1' : { Type : str,
+                    Description  : 'demo property 1',
+                    DefaultValue : 'test property 1'},
+        'Prop2' : { Type : int,
+                    Description  : 'demo property 1',
+                    DefaultValue : 531},
     }
 
     def __init__(self, inst, props, *args, **kwargs):

@@ -26,7 +26,6 @@ import numpy
 
 from sardana import State
 from sardana.pool.controller import TwoDController, MaxDimSize
-from sardana.pool import AcqTriggerType
 
 def gauss(x, mean, ymax, fwhm, yoffset=0):
     return yoffset + ymax*numpy.power(2,-4*((x-mean)/fwhm)**2)
@@ -95,7 +94,7 @@ class DummyTwoDController(TwoDController):
     def GetAxisAttributes(self, axis):
         # the default max shape for 'value' is (16*1024,). We don't need so much
         # so we set it to BufferSize
-        attrs = super(DummyOneDController, self).GetAxisAttributes(axis)
+        attrs = super(DummyTwoDController, self).GetAxisAttributes(axis)
         attrs['Value'][MaxDimSize] = self.BufferSize
         return attrs
         
@@ -194,8 +193,8 @@ class DummyTwoDController(TwoDController):
                     self._updateChannelValue(axis, elapsed_time)
     
     def ReadOne(self, axis):
-        v = self.read_channels[axis].value
-        return v
+        self._log.debug("ReadOne(%s)", axis)
+        return self.read_channels[axis].value
     
     def PreStartAll(self):
         self.counting_channels = {}

@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for"""
 
 __all__ = [ "PoolMeasurementGroup" ]
@@ -33,15 +33,14 @@ __docformat__ = 'restructuredtext'
 from taurus.core import AttributeNameValidator
 from taurus.core.tango.sardana import PlotType, Normalization
 
-from sardana import ElementType, TYPE_EXP_CHANNEL_ELEMENTS, TYPE_TIMERABLE_ELEMENTS
+from sardana import State,ElementType, \
+    TYPE_EXP_CHANNEL_ELEMENTS, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
 
-from pooldefs import AcqMode, AcqTriggerType
-from poolgroupelement import PoolGroupElement
-from poolacquisition import PoolAcquisition
-from poolexternal import PoolExternalObject
-
-from sardana import State
+from .pooldefs import AcqMode, AcqTriggerType
+from .poolgroupelement import PoolGroupElement
+from .poolacquisition import PoolAcquisition
+from .poolexternal import PoolExternalObject
 
 #----------------------------------------------
 # Measurement Group Configuration information
@@ -107,15 +106,13 @@ class PoolMeasurementGroup(PoolGroupElement):
         self._acquisition_mode = AcqMode.Timer
         self._config = None
         self._config_dirty = True
+        kwargs['elem_type'] = ElementType.MeasurementGroup
         PoolGroupElement.__init__(self, **kwargs)
         self.set_configuration(kwargs.get('configuration'))
 
     def _create_action_cache(self):
         acq_name = "%s.Acquisition" % self._name
         return PoolAcquisition(self, acq_name)
-
-    def get_type(self):
-        return ElementType.MeasurementGroup
 
     def _calculate_element_state(self, elem, elem_state_info):
         if elem.get_type() == ElementType.ZeroDExpChannel:

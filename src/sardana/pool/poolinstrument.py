@@ -30,7 +30,6 @@ __all__ = [ "PoolInstrument" ]
 
 __docformat__ = 'restructuredtext'
 
-import math
 import weakref
 
 from sardana import ElementType
@@ -46,10 +45,8 @@ class PoolInstrument(PoolObject):
             self._parent_instrument = weakref.ref(self._parent_instrument)
         self._child_instruments = {}
         self._elements = {}
+        kwargs['elem_type'] = ElementType.Instrument
         super(PoolInstrument, self).__init__(**kwargs)
-    
-    def get_type(self):
-        return ElementType.Instrument
     
     def get_parent(self):
         return self.get_parent_instrument()

@@ -187,7 +187,7 @@ class GScan(Logger):
         - 'total_scan_intervals' : total number of scan intervals. Negative means
                                    the estimation is known not to be accurate. In
                                    this case, estimation has 'at least' semantics.
-        - 'starttime' : a datetime.datetime representing the start of the scan
+        - '' : a datetime.datetime representing the start of the scan
         - 'instrumentlist' : a list of Instrument objects containing info
                             about the physical setup of the motors, counters,...
         - <extra environment> given in the constructor

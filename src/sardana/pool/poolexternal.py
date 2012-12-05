@@ -40,14 +40,8 @@ class PoolBaseExternalObject(PoolBaseObject):
     """TODO"""
     
     def __init__(self, **kwargs):
+        kwargs['elem_type'] = ElementType.External
         PoolBaseObject.__init__(self, **kwargs)
-    
-    def get_type(self):
-        """Returns this pool object type
-        
-        :return: this pool object type
-        :rtype: :obj:'"""
-        return ElementType.External
     
     def get_source(self):
         return self.full_name

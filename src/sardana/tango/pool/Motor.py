@@ -285,23 +285,15 @@ with this value is sent to clients using events.
 
     motor = property(get_motor, set_motor)
 
-    def set_write_position_to_db(self, pos_attr):
-        name = 'Position'
-        w_value, w_ts = pos_attr.w_value, pos_attr.w_timestamp
-        position = self.get_attribute_by_name(name)
-        self.set_write_attribute(position, w_value)
-        db = self.get_database()
-        attr_values = {}
-        if w_value is not None:
-            attr_values[name] = { '__value' : w_value }
-            if w_ts is not None:
-                attr_values[name]['__value_ts'] = w_ts
-                
-        if attr_values:
-            db.put_device_attribute_property(self.get_name(), attr_values)
+    def set_write_dial_position_to_db(self):
+        dial = self.motor.get_dial_position_attribute()
+        if dial.has_write_value():
+            data = dict(DialPosition=dict(__value=dial.w_value, __value_ts=dial.w_timestamp))
+            db = self.get_database()
+            db.put_device_attribute_property(self.get_name(), data)
     
-    def get_write_position_from_db(self):
-        name = 'Position'
+    def get_write_dial_position_from_db(self):
+        name = 'DialPosition'
         db = self.get_database()
         pos_props = db.get_device_attribute_property(self.get_name(), name)[name]
         w_pos = pos_props["__value"][0]
@@ -338,7 +330,7 @@ with this value is sent to clients using events.
             # let poolmotor know their write values
             if self.in_constructor:
                 try:
-                    w_pos, w_ts = self.get_write_position_from_db()
+                    w_pos, w_ts = self.get_write_dial_position_from_db()
                     self.in_write_position = True
                     try:
                         motor.set_write_position(w_pos, timestamp=w_ts)
@@ -356,7 +348,7 @@ with this value is sent to clients using events.
         try:
             self._on_motor_changed(event_source, event_type, event_value)
         except not DevFailed:
-            msg = 'Error occured "on_motor_changed(%s.%s): %s"'
+            msg = 'Error occurred "on_motor_changed(%s.%s): %s"'
             exc_info = sys.exc_info()
             self.error(msg, self.motor.name, event_type.name,
                        exception_str(*exc_info[:2]))
@@ -371,40 +363,43 @@ with this value is sent to clients using events.
         timestamp = time.time()
         name = event_type.name.lower()
         
-        if name == 'w_position':
-            # if a move from a pseudo motor or from a motor group
-            # update the position write value
-            if not self.in_write_position:
-                self.set_write_position_to_db(event_value)
+        if name == "w_position" and not self.in_write_position:
+            self.debug("Storing dial set point: %s", self.motor.dial_position.w_value)
+            self.set_write_dial_position_to_db()
             return
-            
+        
         try:
             attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
+        
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
-        error = None
-
+        value, w_value, error = None, None, None
+        
         if name == "state":
-            event_value = self.calculate_tango_state(event_value)
+            value = self.calculate_tango_state(event_value)
         elif name == "status":
-            event_value = self.calculate_tango_status(event_value)
+            value = self.calculate_tango_status(event_value)
         else:
             if isinstance(event_value, SardanaAttribute):
                 if event_value.error:
                     error = Except.to_dev_failed(*event_value.exc_info)
+                else:
+                    value = event_value.value
                 timestamp = event_value.timestamp
-                event_value = event_value.value
-
             state = self.motor.get_state(propagate=0)
 
-            if state == State.Moving and name in ("position", "dialposition"):
+            if name == "position":
+                w_value = event_source.get_position_attribute().w_value
+                if state == State.Moving:
+                    quality = AttrQuality.ATTR_CHANGING
+            elif name == "dialposition" and state == State.Moving:
                 quality = AttrQuality.ATTR_CHANGING
-
-        self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error,
-                           synch=False)
+                
+        self.set_attribute(attr, value=value, w_value=w_value,
+                           timestamp=timestamp, quality=quality,
+                           priority=priority, error=error, synch=False)
 
     def always_executed_hook(self):
         pass
@@ -453,14 +448,14 @@ with this value is sent to clients using events.
         quality = None
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=position.value, quality=quality,
-                           priority=0, timestamp=position.timestamp)
+        self.set_attribute(attr, value=position.value, w_value=position.w_value,
+                           quality=quality, priority=0,
+                           timestamp=position.timestamp)
     
-    @memorize_write_attribute
     def write_Position(self, attr):
         self.in_write_position = True
+        position = attr.get_write_value()
         try:
-            position = attr.get_write_value()
             self.info("write_Position(%s)", position)
             try:
                 self.wait_for_operation()
@@ -470,9 +465,12 @@ with this value is sent to clients using events.
                 self.motor.position = position
             except PoolException, pe:
                 throw_sardana_exception(pe)
+            
+            # manually store write dial position in the database
+            self.set_write_dial_position_to_db()
         finally:
             self.in_write_position = False
-            
+        
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
     
@@ -638,8 +636,7 @@ class MotorClass(PoolElementDeviceClass):
 
     standard_attr_list = {
         'Position'     : [ [ DevDouble, SCALAR, READ_WRITE ],
-                           { 'Memorized'     : "true_without_hard_applied",
-                             'abs_change' : '1.0', } ],
+                           { 'abs_change' : '1.0', } ],
         'Acceleration' : [ [ DevDouble, SCALAR, READ_WRITE ],
                            { 'Memorized'     : "true", } ],
         'Deceleration' : [ [ DevDouble, SCALAR, READ_WRITE ],

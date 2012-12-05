@@ -137,20 +137,13 @@ class ControllerLibrary(SardanaLibrary):
 
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
+        kwargs['elem_type'] = ElementType.ControllerLibrary
         SardanaLibrary.__init__(self, **kwargs)
 
     add_controller = SardanaLibrary.add_meta_class
     get_controller = SardanaLibrary.get_meta_class
     get_controllers = SardanaLibrary.get_meta_classes
     has_controller = SardanaLibrary.has_meta_class
-
-    def get_type(self):
-        """Returns this object type. Default implementation raises
-        NotImplementedError.
-
-        :return: this pool object type
-        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.ControllerLibrary
 
     def serialize(self, *args, **kwargs):
         kwargs = SardanaLibrary.serialize(self, *args, **kwargs)
@@ -261,6 +254,7 @@ class ControllerClass(SardanaClass):
 
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('pool')
+        kwargs['elem_type'] = ElementType.ControllerClass
         SardanaClass.__init__(self, **kwargs)
 
         self.types = []
@@ -322,14 +316,6 @@ class ControllerClass(SardanaClass):
             if issubclass(klass, type_data.ctrl_klass):
                 types.append(_type)
         return types
-
-    def get_type(self):
-        """Returns this object type. Default implementation raises
-        NotImplementedError.
-
-        :return: this pool object type
-        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.ControllerClass
 
     def serialize(self, *args, **kwargs):
         kwargs = SardanaClass.serialize(self, *args, **kwargs)

@@ -27,12 +27,17 @@
 
 __docformat__ = 'restructuredtext'
 
-__all__ = ["exception_str",
+__all__ = ["get_tango_version_str", "get_tango_version_number",
+           "get_pytango_version_str", "get_pytango_version_number",
+           "exception_str",
            "GenericScalarAttr", "GenericSpectrumAttr", "GenericImageAttr",
            "memorize_write_attribute",
            "tango_protect", "to_tango_state", "to_tango_type_format",
            "to_tango_type", "to_tango_access", "to_tango_attr_info",
-           "from_tango_state_to_state", "throw_sardana_exception",
+           "from_tango_access", "from_tango_type_format",
+           "from_tango_state_to_state",
+           "from_deviceattribute_value", "from_deviceattribute",
+           "throw_sardana_exception",
            "prepare_tango_logging", "prepare_rconsole", "run_tango_server",
            "run"]
 
@@ -58,6 +63,7 @@ import sardana
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
     DataAccess, to_dtype_dformat, to_daccess, Release, ServerRunMode
 from sardana.sardanaexception import SardanaException
+from sardana.sardanavalue import SardanaValue
 from sardana.pool.poolmetacontroller import DataInfo
 
 
@@ -136,6 +142,44 @@ NO_DB_MAP = {
          dict(Id=1001, MacroServerName="sardana/ms/demo", MaxMsgBufferSize=512), ),
     ),
 }
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# PyTango utilities
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+def get_pytango_version_str():
+    try:
+        import PyTango
+    except:
+        return None
+    try:
+        return PyTango.Release.version
+    except:
+        return '0.0.0'
+
+def get_pytango_version_number():
+    tgver_str = get_pytango_version_str()
+    if tgver_str is None:
+        return None
+    import sardana.sardanautils
+    return sardana.sardanautils.translate_version_str2int(tgver_str)
+
+def get_tango_version_str():
+    try:
+        import PyTango.constants
+    except:
+        return None
+    try:
+        return PyTango.constants.TgLibVers
+    except:
+        return '0.0.0'
+    
+def get_tango_version_number():
+    tgver_str = get_tango_version_str()
+    if tgver_str is None:
+        return None
+    import sardana.sardanautils
+    return sardana.sardanautils.translate_version_str2int(tgver_str)
 
 class GenericScalarAttr(Attr):
     pass
@@ -216,7 +260,7 @@ def memorize_write_attribute(write_attr_func):
                 if lwv is not None:
                     store = lwv
         if store is not None:
-            db = Util.instance().get_database()
+            db = self.get_database()
             attr_values = dict(__value_ts=store[1])
             if store_value:
                 attr_values['__value'] = store[0]
@@ -232,6 +276,33 @@ def tango_protect(wrapped, *args, **kwargs):
             return wrapped(self, *args, **kwargs)
     return wrapper
 
+def from_deviceattribute_value(da):
+    if da.has_failed:
+        return
+    dtype, dformat, value = da.type, da.data_format, da.value
+    if dtype == PyTango.DevState:
+        if dformat == PyTango.SCALAR:
+            return from_tango_state_to_state(value)
+        elif dformat == PyTango.SPECTRUM:
+            return list(map(from_tango_state_to_state, value))
+        elif dformat == PyTango.IMAGE:
+            return [ list(map(from_tango_state_to_state, v)) for v in value ]
+    return value
+
+def from_deviceattribute(da):
+    if da.has_failed:
+        exc_info = DevFailed(*da.get_err_stack())
+        value = None
+    else:
+        exc_info = None
+        value = from_deviceattribute_value(da.value)
+    
+    dtype, dformat = from_tango_type_format(da.type, da.data_format) 
+    
+    ret = SardanaValue(value=value, exc_info=exc_info, 
+                       timestamp=da.time.totime(), dtype=dtype, dformat=dformat)
+    return ret
+
 def to_tango_state(state):
     return DevState(state)
 
@@ -245,6 +316,7 @@ TTYPE_MAP = {
     DataType.String  : DevString,
     DataType.Boolean : DevBoolean,
 }
+R_TTYPE_MAP = dict((v,k) for k,v in TTYPE_MAP.items())
 
 #: dictionary dict<:class:`sardana.DataFormat`, :class:`PyTango.AttrFormat`>
 TFORMAT_MAP = {
@@ -252,12 +324,15 @@ TFORMAT_MAP = {
     DataFormat.OneD   : SPECTRUM,
     DataFormat.TwoD   : IMAGE,
 }
+R_TFORMAT_MAP = dict((v,k) for k,v in TFORMAT_MAP.items())
 
 #: dictionary dict<:class:`sardana.DataAccess`, :class:`PyTango.AttrWriteType`>
 TACCESS_MAP = {
     DataAccess.ReadOnly  : READ,
     DataAccess.ReadWrite : READ_WRITE,
 }
+
+R_TACCESS_MAP = dict((v,k) for k,v in TACCESS_MAP.items())
 
 def exception_str(etype=None, value=None, sep='\n'):
     if etype is None:
@@ -272,7 +347,17 @@ def to_tango_access(access):
     :type access: :obj:`~sardana.DataAccess`
     :return: the tango attribute write type
     :rtype: :obj:`PyTango.AttrWriteType`"""
-    return TACCESS_MAP.get(access, READ_WRITE)
+    return TACCESS_MAP[access]
+
+def from_tango_access(access):
+    """Transforms a :obj:`~PyTango.AttrWriteType` into a
+    :obj:`~sardana.DataAccess`
+    
+    :param access: the tango access to be transformed
+    :type access: :obj:`~PyTango.AttrWriteType`
+    :return: the sardana attribute write type
+    :rtype: :obj:`~sardana.DataAccess`"""
+    return R_TACCESS_MAP[access]
 
 def to_tango_type_format(dtype_or_info, dformat=None):
     """Transforms a :obj:`~sardana.DataType` :obj:`~sardana.DataFormat` into a
@@ -284,12 +369,25 @@ def to_tango_type_format(dtype_or_info, dformat=None):
     :type dformat: :obj:`~sardana.DataFormat`
     
     :return: a tuple of two elements: the tango attribute write type, tango data format
-    :rtype: tuple< :obj:`PyTango.AttrWriteType`, :obj:`PyTango.AttrDataFormat` >"""
+    :rtype: tuple< :obj:`PyTango.CmdArgType`, :obj:`PyTango.AttrDataFormat` >"""
     dtype = dtype_or_info
     if dformat is None:
         dtype, dformat = to_dtype_dformat(dtype)
     return TTYPE_MAP.get(dtype, DevVoid), TFORMAT_MAP.get(dformat, FMT_UNKNOWN)
+
+def from_tango_type_format(dtype, dformat=PyTango.SCALAR):
+    """Transforms a :obj:`~PyTango.CmdArgType`, :obj:`~PyTango.AttrDataFormat`
+    into a :obj:`~sardana.DataType` :obj:`~sardana.DataFormat` tuple
     
+    :param dtype: the type to be transformed
+    :type dtype: :obj:`~PyTango.CmdArgType`
+    :param dformat: the format to be transformed
+    :type dformat: :obj:`~PyTango.AttrDataFormat`
+    
+    :return: a tuple of two elements: data type, data format
+    :rtype: tuple< :obj:`~sardana.DataType`, :obj:`~sardana.DataFormat` >"""
+    return R_TTYPE_MAP[dtype], R_TFORMAT_MAP[dformat]
+
 def to_tango_attr_info(attr_name, attr_info):
     if isinstance(attr_info, DataInfo):
         data_type, data_format = attr_info.dtype, attr_info.dformat
@@ -315,6 +413,7 @@ def to_tango_attr_info(attr_name, attr_info):
     return attr_name, tg_attr_info
 
 def throw_sardana_exception(exc):
+    """Throws an exception as a tango exception"""
     if isinstance(exc, SardanaException):
         if exc.exc_info and not None in exc.exc_info:
             Except.throw_python_exception(*exc.exc_info)

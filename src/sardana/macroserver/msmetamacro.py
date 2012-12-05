@@ -82,15 +82,8 @@ class MacroLibrary(SardanaLibrary):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
+        kwargs['elem_type'] = ElementType.MacroLibrary
         SardanaLibrary.__init__(self, **kwargs)
-    
-    def get_type(self):
-        """Returns this object type. Default implementation raises
-        NotImplementedError.
-        
-        :return: this pool object type
-        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.MacroLibrary
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaLibrary.serialize(self, *args, **kwargs)
@@ -238,16 +231,9 @@ class MacroClass(SardanaClass, Parameterizable):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
+        kwargs['elem_type'] = ElementType.MacroClass
         SardanaClass.__init__(self, **kwargs)
         Parameterizable.__init__(self)
-    
-    def get_type(self):
-        """Returns this object type. Default implementation raises
-        NotImplementedError.
-        
-        :return: this pool object type
-        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.MacroClass
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaClass.serialize(self, *args, **kwargs)
@@ -272,15 +258,9 @@ class MacroFunction(SardanaFunction, Parameterizable):
     
     def __init__(self, **kwargs):
         kwargs['manager'] = kwargs.pop('macro_server')
+        kwargs['elem_type'] = ElementType.MacroFunction
         SardanaFunction.__init__(self, **kwargs)
         Parameterizable.__init__(self)
-    
-    def get_type(self):
-        """Returns this object type.
-        
-        :return: this pool object type
-        :rtype: :obj:`~sardana.sardanadefs.ElementType`"""
-        return ElementType.MacroFunction
     
     def serialize(self, *args, **kwargs):
         kwargs = SardanaFunction.serialize(self, *args, **kwargs)

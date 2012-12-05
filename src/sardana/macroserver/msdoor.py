@@ -115,10 +115,8 @@ class MSDoor(MSObject):
         self._macro_proxy_cache = None
         self._input_handler = BaseInputHandler()
         self._pylab_handler = None
+        kwargs['elem_type'] = ElementType.Door
         MSObject.__init__(self, **kwargs)
-
-    def get_type(self):
-        return ElementType.Door
 
     def get_macro_executor(self):
         return self.macro_server.macro_manager.getMacroExecutor(self)

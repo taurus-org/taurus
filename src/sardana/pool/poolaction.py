@@ -491,8 +491,8 @@ class PoolAction(Logger):
         """Internal method. Read controller information and store it in ret
         parameter"""
         try:
-            axises = [elem.axis for elem in self._pool_ctrl_dict[pool_ctrl]]
-            state_infos, error = pool_ctrl.raw_read_axis_states(axises)
+            axes = [elem.axis for elem in self._pool_ctrl_dict[pool_ctrl]]
+            state_infos, error = pool_ctrl.raw_read_axis_states(axes)
             if error:
                 pool_ctrl.warning("Read state error")
                 for elem, (state_info, exc_info) in state_infos.items():
@@ -509,6 +509,9 @@ class PoolAction(Logger):
                 ret[elem] = state_info
         finally:
             self._state_info.finish_one()
+
+    def get_read_value_ctrls(self):
+        return self._pool_ctrl_dict
 
     def read_value(self, ret=None, serial=False):
         """Reads value information of all elements involved in this action
@@ -539,7 +542,7 @@ class PoolAction(Logger):
         :type serial: bool
         :return: a map containing value information per element
         :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement,
-                     (value object, Exception or None)>"""
+                :class:`sardana.sardanavalue.SardanaValue` >"""
 
         if ret is None:
             ret = {}
@@ -551,21 +554,21 @@ class PoolAction(Logger):
         value_info = self._value_info
 
         with value_info:
-            value_info.init(len(self._pool_ctrl_dict))
+            value_info.init(len(self.get_read_value_ctrls()))
             read(ret)
             value_info.wait()
         return ret
 
     def _raw_read_value_serial(self, ret):
         """Internal method. Read value in a serial mode"""
-        for pool_ctrl in self._pool_ctrl_dict:
+        for pool_ctrl in self.get_read_value_ctrls():
             self._raw_read_ctrl_value(ret, pool_ctrl)
         return ret
 
     def _raw_read_value_concurrent(self, ret):
         """Internal method. Read value in a concurrent mode"""
         th_pool = get_thread_pool()
-        for pool_ctrl in self._pool_ctrl_dict:
+        for pool_ctrl in self.get_read_value_ctrls():
             th_pool.add(self._raw_read_ctrl_value, None, ret, pool_ctrl)
         return ret
 
@@ -573,9 +576,70 @@ class PoolAction(Logger):
         """Internal method. Read controller value information and store it in
         ret parameter"""
         try:
-            axises = [elem.axis for elem in self._pool_ctrl_dict[pool_ctrl]]
-            value_infos = pool_ctrl.raw_read_axis_values(axises)
+            axes = [elem.axis for elem in self._pool_ctrl_dict[pool_ctrl]]
+            value_infos = pool_ctrl.raw_read_axis_values(axes)
             ret.update(value_infos)
         finally:
             self._value_info.finish_one()
 
+    def get_read_value_loop_ctrls(self):
+        return self._pool_ctrl_dict
+
+    def read_value_loop(self, ret=None, serial=False):
+        """Reads value information of all elements involved in this action
+
+        :param ret: output map parameter that should be filled with value
+                    information. If None is given (default), a new map is
+                    created an returned
+        :type ret: dict
+        :param serial: If False (default) perform controller HW value requests
+                       in parallel. If True, access is serialized.
+        :type serial: bool
+        :return: a map containing value information per element
+        :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement`,
+                     (value object, Exception or None)>"""
+        with ActionContext(self):
+            return self.raw_read_value_loop(ret=ret, serial=serial)
+
+    def raw_read_value_loop(self, ret=None, serial=False):
+        """**Unsafe**. Reads value information of all elements involved in this
+        action
+
+        :param ret: output map parameter that should be filled with value
+                    information. If None is given (default), a new map is
+                    created an returned
+        :type ret: dict
+        :param serial: If False (default) perform controller HW value requests
+                       in parallel. If True, access is serialized.
+        :type serial: bool
+        :return: a map containing value information per element
+        :rtype: dict<:class:~`sardana.pool.poolelement.PoolElement,
+                :class:`sardana.sardanavalue.SardanaValue` >"""
+
+        if ret is None:
+            ret = {}
+
+        read = self._raw_read_value_concurrent_loop
+        if serial:
+            read = self._raw_read_value_serial_loop
+
+        value_info = self._value_info
+
+        with value_info:
+            value_info.init(len(self.get_read_value_loop_ctrls()))
+            read(ret)
+            value_info.wait()
+        return ret
+
+    def _raw_read_value_serial_loop(self, ret):
+        """Internal method. Read value in a serial mode"""
+        for pool_ctrl in self.get_read_value_loop_ctrls():
+            self._raw_read_ctrl_value(ret, pool_ctrl)
+        return ret
+
+    def _raw_read_value_concurrent_loop(self, ret):
+        """Internal method. Read value in a concurrent mode"""
+        th_pool = get_thread_pool()
+        for pool_ctrl in self.get_read_value_loop_ctrls():
+            th_pool.add(self._raw_read_ctrl_value, None, ret, pool_ctrl)
+        return ret

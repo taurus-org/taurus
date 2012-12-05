@@ -131,8 +131,8 @@ class PoolMonitor(Logger, threading.Thread):
             self._update_ctrl_state_info(pool_ctrl, elems)
     
     def _update_ctrl_state_info(self, pool_ctrl, elems):
-        axises = [ elem.axis for elem in elems ]
-        state_infos, exc_info = pool_ctrl.raw_read_axis_states(axises)
+        axes = [ elem.axis for elem in elems ]
+        state_infos, exc_info = pool_ctrl.raw_read_axis_states(axes)
         if len(exc_info):
             self.info("STATE ERROR %s", exc_info)
         for elem, state_info in state_infos.items():

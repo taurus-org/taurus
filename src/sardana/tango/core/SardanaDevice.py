@@ -36,7 +36,7 @@ import threading
 
 import PyTango.constants
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
-    AttrQuality, TimeVal, ArgType, ApiUtil, DevFailed
+    AttrQuality, TimeVal, ArgType, ApiUtil, DevFailed, WAttribute
 
 from taurus.core.util import ThreadPool
 from taurus.core.util.log import Logger
@@ -97,8 +97,7 @@ class SardanaDevice(Device_4Impl, Logger):
         
         :param str name: device name"""
         
-        util = Util.instance()
-        db = util.get_database()
+        db = self.get_database()
         if db is None:
             self._alias = self._get_nodb_device_info()[0]
         else:
@@ -124,7 +123,7 @@ class SardanaDevice(Device_4Impl, Logger):
         
         :return: this device full name
         :rtype: str"""
-        db = Util.instance().get_database()
+        db = self.get_database()
         if db.get_from_env_var():
             db_name = ApiUtil.get_env_var("TANGO_HOST")
         else:
@@ -140,8 +139,7 @@ class SardanaDevice(Device_4Impl, Logger):
         Override when necessary but **always** call the method from your super
         class"""
         self.set_state(self._state)
-        util = Util.instance()
-        db = util.get_database()
+        db = self.get_database()
         if db is None:
             self.init_device_nodb()
         else:
@@ -244,12 +242,12 @@ class SardanaDevice(Device_4Impl, Logger):
                 PyTango.Except.re_throw_exception(_df, df0.reason, desc, df0.origin)
             raise df
     
-    def set_attribute(self, attr, value=None, timestamp=None, quality=None,
-                      error=None, priority=1, synch=True):
+    def set_attribute(self, attr, value=None, w_value=None, timestamp=None,
+                      quality=None, error=None, priority=1, synch=True):
         """Sets the given attribute value. If timestamp is not given, *now* is
         used as timestamp. If quality is not given VALID is assigned. If error
         is given an error event is sent (with no value and quality INVALID).
-        If priority is > 1, the event filter is temporarly disabled so the event
+        If priority is > 1, the event filter is temporarily disabled so the event
         is sent for sure. If synch is set to True, wait for fire event to finish
         
         :param attr: 
@@ -259,6 +257,10 @@ class SardanaDevice(Device_4Impl, Logger):
             the value to be set (not mandatory if setting an error)
             [default: None]
         :type value: object
+        :param w_value:
+            the write value to be set (not mandatory)
+            [default: None, meaning maintain current write value]
+        :type value: object
         :param timestamp:
             the timestamp associated with the operation [default: None, meaning
             use *now* as timestamp]
@@ -267,47 +269,48 @@ class SardanaDevice(Device_4Impl, Logger):
             attribute quality [default: None, meaning VALID]
         :type quality: :class:`PyTango.AttrQuality`
         :param error:
-            a tango dev failed error or None if not an error [default: None]
+            a tango DevFailed error or None if not an error [default: None]
         :type error:
             :exc:`PyTango.DevFailed`
         :param priority:
             event priority [default: 1, meaning *normal* priority]. If
-            priority is > 1, the event filter is temporarly disabled so the
+            priority is > 1, the event filter is temporarily disabled so the
             event is sent for sure. The event filter is restored to the
             previous value
         :type priority: int
         :param synch:
             If synch is set to True, wait for fire event to finish.
             If False, a job is sent to the sardana thread pool and the method
-            returns immetiately [default: True]
+            returns immediately [default: True]
         """
         set_attr = self.set_attribute_push
         if synch:
-            set_attr(attr, value=value, timestamp=timestamp, quality=quality,
-                     error=error, priority=priority, synch=synch)
+            set_attr(attr, value=value, w_value=w_value, timestamp=timestamp,
+                     quality=quality, error=error, priority=priority,
+                     synch=synch)
         else:
             th_pool = self.get_event_thread_pool()
-            th_pool.add(set_attr, None, attr, value=value,
+            th_pool.add(set_attr, None, attr, value=value, w_value=w_value,
                         timestamp=timestamp, quality=quality, error=error,
                         priority=priority, synch=synch)
 
-    def set_attribute_push(self, attr, value=None, timestamp=None,
-                            quality=None, error=None, priority=1, synch=True):
-        """Synchronouns internal implementation of :meth:`set_attribute` (synch
+    def set_attribute_push(self, attr, value=None, w_value=None, timestamp=None,
+                           quality=None, error=None, priority=1, synch=True):
+        """Synchronous internal implementation of :meth:`set_attribute` (synch
         is passed to this method because it might need to know if it is being
         executed in a synchronous or asynchronous context)."""
         
         if priority > 0 and not synch:
             with self.tango_lock:
                 return self._set_attribute_push(attr, value=value,
-                                                timestamp=timestamp,
-                                                quality=quality, error=error,
-                                                priority=priority)
-        return self._set_attribute_push(attr, value=value, timestamp=timestamp,
-                                        quality=quality, error=error,
-                                        priority=priority)
+                        w_value=w_value, timestamp=timestamp, quality=quality,
+                        error=error, priority=priority)
+        else:
+            return self._set_attribute_push(attr, value=value,
+                        w_value=w_value, timestamp=timestamp, quality=quality,
+                        error=error, priority=priority)
 
-    def _set_attribute_push(self, attr, value=None, timestamp=None,
+    def _set_attribute_push(self, attr, value=None, w_value=None, timestamp=None,
                             quality=None, error=None, priority=1):
         """Internal method."""
         fire_event = priority > 0
@@ -316,8 +319,11 @@ class SardanaDevice(Device_4Impl, Logger):
         if priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
-
+        
         attr_name = attr.get_name().lower()
+
+        if value is None and error is None:
+            raise Exception("Cannot set value of attribute '%s' with None" % (attr_name,))
 
         try:
             if error is not None and fire_event:
@@ -347,6 +353,8 @@ class SardanaDevice(Device_4Impl, Logger):
                 quality = AttrQuality.ATTR_VALID
 
             data_type = attr.get_data_type()
+            if w_value is not None and isinstance(attr, WAttribute):
+                attr.set_write_value(w_value)
             if fire_event:
                 if data_type == ArgType.DevEncoded:
                     fmt, data = value
@@ -445,8 +453,7 @@ class SardanaDeviceClass(DeviceClass):
     def write_class_property(self):
         """Write class properties ``ProjectTitle``, ``Description``, 
         ``doc_url``, ``InheritedFrom`` and ``__icon``"""
-        util = Util.instance()
-        db = util.get_database()
+        db = self.get_database()
         if db is None:
             return
         db.put_class_property(self.get_name(), self._get_class_properties())

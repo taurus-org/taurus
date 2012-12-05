@@ -33,6 +33,7 @@ __docformat__ = 'restructuredtext'
 import weakref
 import collections
 
+
 from .sardanautils import is_callable
 from taurus.core.util import CallableRef, BoundMethodWeakref
 
@@ -48,9 +49,14 @@ def _get_callable_ref(listener, callback=None):
 class EventGenerator(object):
     """A class capable of generating events to their listeners"""
     
-    def __init__(self, max_queue_len=10):
+    def __init__(self, max_queue_len=10, listeners=None):
         self._listeners = []
         self._event_queue = collections.deque(maxlen=max_queue_len)
+        if listeners is not None:
+            if not isinstance(listeners, collections.Sequence):
+                listeners = listeners,
+            for listener in listeners:
+                self.add_listener(listener)
     
     def _listener_died(self, weak_listener):
         """Callback executed when a listener dies"""
@@ -78,7 +84,7 @@ class EventGenerator(object):
         """Removes an existing listener for this object.
         
         :param listener: the listener to be removed
-        :return: True is succedded or False otherwise"""
+        :return: True is succeeded or False otherwise"""
         if self._listeners is None: 
             return
         weak_listener = _get_callable_ref(listener)
@@ -136,7 +142,7 @@ class EventGenerator(object):
             
 
 class EventReceiver(object):
-    """A simple class that implements usefull features for a class which is 
+    """A simple class that implements useful features for a class which is 
     an event receiver. The actual class may inherit from this EventReceiver class
     and may choose to use just a part of the API provided by this class, the 
     whole API or none of the API."""

@@ -39,16 +39,14 @@ from poolacquisition import PoolIORAcquisition
 class PoolIORegister(PoolElement):
 
     def __init__(self, **kwargs):
+        kwargs['elem_type'] = ElementType.IORegister
         PoolElement.__init__(self, **kwargs)
         self._value = None
         self._wvalue = None
         self._config = None
         acq_name = "%s.Acquisition" % self._name
         self.set_action_cache(PoolIORAcquisition(self.pool, name=acq_name))
-    
-    def get_type(self):
-        return ElementType.IORegister
-    
+
     # --------------------------------------------------------------------------
     # value
     # --------------------------------------------------------------------------

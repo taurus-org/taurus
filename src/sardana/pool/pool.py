@@ -134,7 +134,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
 
         PoolContainer.__init__(self)
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
-                            pool=self)
+                            pool=self, elem_type=ElementType.Pool)
         self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
         ControllerManager().set_pool(self)
     
@@ -241,9 +241,6 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     @property
     def monitor(self):
         return self._monitor
-
-    def get_type(self):
-        return ElementType.Pool
 
     @property
     def ctrl_manager(self):

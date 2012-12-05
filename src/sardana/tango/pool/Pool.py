@@ -43,7 +43,7 @@ from sardana import State, SardanaServer, ElementType, Interface, \
     TYPE_ACQUIRABLE_ELEMENTS, TYPE_PSEUDO_ELEMENTS
 from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
-
+from sardana.tango.core.util import get_tango_version_number
 
 class Pool(PyTango.Device_4Impl, Logger):
 
@@ -66,7 +66,6 @@ class Pool(PyTango.Device_4Impl, Logger):
 
         if alias is None:
             alias = PyTango.Util.instance().get_ds_inst_name()
-
 
         self._pool = POOL(self.get_full_name(), alias)
         self._pool.add_listener(self.on_pool_changed)
@@ -491,7 +490,9 @@ class Pool(PyTango.Device_4Impl, Logger):
                 if elem_type == ElementType.Motor:
                     data["position"] = { "abs_change" : "1.0"}
                     data["dialposition"] = { "abs_change" : "5.0"}
-                    data["limit_switches"] = { "abs_change" : "1.0"}
+                    if get_tango_version_number() < 80000:
+                        print 20*"AH! "
+                        data["limit_switches"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.CTExpChannel:
                     data["value"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.PseudoMotor:
@@ -521,9 +522,10 @@ class Pool(PyTango.Device_4Impl, Logger):
             except:
                 pass
             try:
-                attr = elem_proxy.get_attribute_config_ex("limit_switches")[0]
-                attr.events.ch_event.abs_change = "1"
-                cfg.append(attr)
+                if get_tango_version_number() < 80000:
+                    attr = elem_proxy.get_attribute_config_ex("limit_switches")[0]
+                    attr.events.ch_event.abs_change = "1"
+                    cfg.append(attr)
             except:
                 pass
         elif elem_type == ElementType.CTExpChannel:

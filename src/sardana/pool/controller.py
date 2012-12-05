@@ -564,8 +564,8 @@ class Stopable(object):
 
         .. versionadded:: 1.0"""
         exceptions = []
-        axises = self._getPoolController().get_element_axis().keys()
-        for axis in axises:
+        axes = self._getPoolController().get_element_axis().keys()
+        for axis in axes:
             try:
                 self.AbortOne(axis)
             except:
@@ -594,8 +594,8 @@ class Stopable(object):
 
         .. versionadded:: 1.0"""
         exceptions = []
-        axises = self._getPoolController().get_element_axis().keys()
-        for axis in axises:
+        axes = self._getPoolController().get_element_axis().keys()
+        for axis in axes:
             try:
                 self.StopOne(axis)
             except:
@@ -786,10 +786,10 @@ class MotorController(Controller, Startable, Stopable, Readable):
             the class member :attr:`~Controller.axis_attributes`. Typically,
             you will need to Override this method in two cases:
 
-                - certain axises contain a different set of extra attributes
+                - certain axes contain a different set of extra attributes
                   which cannot be simply defined in
                   :attr:`~Controller.axis_attributes`
-                - certain axises (or all) don't implement a set of standard
+                - some axes (or all) don't implement a set of standard
                   moveable parameters (ex.: if a motor controller is created to
                   control a power supply, it may have a position (current) and
                   a velocity (ramp speed) but it may not have acceleration)

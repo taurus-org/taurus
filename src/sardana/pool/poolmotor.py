@@ -30,27 +30,168 @@ __all__ = ["PoolMotor"]
 
 __docformat__ = 'restructuredtext'
 
+import time
 import math
-import operator
 
-from sardana import EpsilonError, State, ElementType, is_number
+from sardana import EpsilonError, State, ElementType
 from sardana.sardanaattribute import SardanaAttribute, ScalarNumberAttribute, \
     SardanaSoftwareAttribute
 from sardana.sardanaevent import EventType
-from sardana.sardanautils import assert_type
+from sardana.sardanautils import assert_type, is_number
 
 from poolelement import PoolElement
 from poolmotion import PoolMotion, MotionState
 
 
 class Position(SardanaAttribute):
-    pass
 
+    def __init__(self, *args, **kwargs):
+        super(Position, self).__init__(*args, **kwargs)
+        self.get_offset().add_listener(self.on_change)
+        self.get_sign().add_listener(self.on_change)
+        self.get_dial().add_listener(self.on_change)
+        
+    def get_dial(self):
+        return self.obj.get_dial_position_attribute()
+    
+    def get_offset(self):
+        return self.obj.get_offset_attribute()
+    
+    def get_sign(self):
+        return self.obj.get_sign_attribute()
+
+    def _in_error(self):
+        return self.get_dial().in_error()
+    
+    def _has_value(self):
+        return self.get_dial().has_value()
+    
+    def _has_write_value(self):
+        return self.get_dial().has_write_value()
+    
+    def _get_value(self):
+        return self.calc_position()
+
+    def _get_write_value(self):
+        dial = self.get_dial().get_write_value()
+        return self.calc_position(dial=dial)
+
+    def _set_value(self, value, exc_info=None, timestamp=None, propagate=1):
+        raise Exception("Cannot set position value for %s" % self.obj.name)
+    
+    def _set_write_value(self, w_value, timestamp=None, propagate=1):
+        # let the write value be stored by dial using the current offset and
+        # sign. This way, retrieving the write value is done in reverse applying
+        # the offset and sign in use at that time
+        w_dial = self.calc_dial_position(w_value)
+        self.get_dial().set_write_value(w_dial, timestamp=timestamp, propagate=0)
+        self.fire_write_event(propagate=propagate)
+        
+    def _get_exc_info(self):
+        return self.get_dial().get_exc_info()
+    
+    def _get_timestamp(self):
+        return self.get_dial().get_timestamp()
+
+    def _get_write_timestamp(self):
+        return self.get_dial().get_write_timestamp()
+
+    def calc_position(self, dial=None):
+        """Returns the computed position from last the dial position from the
+        given parameter or (if None), the last dial position obtained from
+        hardware read. 
+        
+        :param dial: the new dial position [default: None, meaning use the
+                     current dial position.
+        :return: the computed user position
+        :rtype: obj
+        
+        :raises:
+            :exc:`Exception` if dial_position is None and no read value has
+            been set yet"""
+        obj = self.obj
+        if dial is None:
+            dial_attr = obj.dial_position
+            if dial_attr.in_error():
+                raise dial_attr.exc_info[1]
+            dial = dial_attr.value
+        if not is_number(dial):
+            raise Exception("Controller returns not a number %s" % dial)
+        sign, offset = obj.sign.value, obj.offset.value
+        return sign*dial + offset
+    
+    def calc_dial_position(self, position=None):
+        """Returns the dial position for the  given position. If position is
+        not given (or is None) it uses this object's *write* value.
+        
+        :param position:
+            the position to be converted to dial [default: None meaning use the
+            this attribute's *write* value
+        :type position: obj
+        :return: the computed dial position
+        :rtype: obj"""
+        obj = self.obj
+        if position is None:
+            position = self.w_value
+        sign, offset = obj.sign.value, obj.offset.value
+        return (position-offset) / sign
+
+    def calc_motion(self, new_position):
+        """Calculate the motor position, dial position, backlash for the
+        given final position."""
+        obj = self.obj
+        ctrl = obj.controller
+        step_per_unit = obj._step_per_unit
+        backlash = obj._backlash
+
+        # compute dial position
+        new_dial = self.calc_dial_position(new_position)
+
+        # add backlash if necessary
+        do_backlash = False
+
+        if obj.has_backlash() and not ctrl.has_backlash():
+            dial_attr = self.get_dial()
+
+            if dial_attr.in_error():
+                raise dial_attr.get_exc_info()[1]
+
+            old_dial = dial_attr.value
+            displacement = new_dial - old_dial
+
+            if math.fabs(displacement) > EpsilonError:
+                positive_displacement = displacement > 0
+                positive_backlash = self.is_backlash_positive()
+                do_backlash = positive_backlash != positive_displacement
+                if do_backlash:
+                    new_dial = new_dial - backlash / step_per_unit
+
+        # compute a rounding value if necessary
+        if ctrl.wants_rounding():
+            nb_step  = round(new_dial * step_per_unit)
+            new_dial = nb_step / step_per_unit
+
+        backlash_position = new_dial
+        if do_backlash:
+            backlash_position = new_dial + backlash / step_per_unit
+
+        return new_position, new_dial, do_backlash, backlash_position
+        
+    def on_change(self, evt_src, evt_type, evt_value):
+        self.fire_read_event(propagate=evt_type.priority)
+
+    def update(self, cache=True, propagate=1):
+        self.get_dial().update(cache=cache, propagate=propagate)
+        
 
 class DialPosition(ScalarNumberAttribute):
-    pass
 
-
+    def update(self, cache=True, propagate=1):
+        if not cache or not self.has_value():
+            dial_position_value = self.obj.read_dial_position()
+            self.set_value(dial_position_value, propagate=propagate)
+            
+    
 class LimitSwitches(ScalarNumberAttribute):
     pass
 
@@ -65,19 +206,22 @@ class Sign(SardanaSoftwareAttribute):
 
 class PoolMotor(PoolElement):
     """An internal Motor object. **NOT** part of the official API. Accessing
-    this object from a controller plugin may lead to undetermined behaviour
+    this object from a controller plug-in may lead to undetermined behavior
     like infinite recursion."""
 
     def __init__(self, **kwargs):
+        kwargs['elem_type'] = ElementType.Motor
         PoolElement.__init__(self, **kwargs)
-        self._position = Position(self)
-        self._dial_position = DialPosition(self)
-        self._offset = Offset(self, initial_value=0)
-        self._sign = Sign(self, initial_value=1)
+        on_change = self.on_change
+        self._offset = Offset(self, initial_value=0, listeners=on_change)
+        self._sign = Sign(self, initial_value=1, listeners=on_change)
+        self._dial_position = DialPosition(self, listeners=on_change)
+        self._position = Position(self, listeners=on_change)
         self._backlash = 0
         self._step_per_unit = 1.0
         self._limit_switches = LimitSwitches(self, name="Limit_switches",
-                                             initial_value=3*(False,))
+                                             initial_value=3*(False,),
+                                             listeners=on_change)
         self._acceleration = None
         self._deceleration = None
         self._velocity = None
@@ -87,8 +231,13 @@ class PoolMotor(PoolElement):
         motion_name = "%s.Motion" % self._name
         self.set_action_cache(PoolMotion(self, motion_name))
 
-    def get_type(self):
-        return ElementType.Motor
+    # --------------------------------------------------------------------------
+    # Event forwarding
+    # --------------------------------------------------------------------------
+    
+    def on_change(self, evt_src, evt_type, evt_value):
+        # forward all events coming from attributes to the listeners
+        self.fire_event(evt_type, evt_value)
 
     # --------------------------------------------------------------------------
     # state information
@@ -107,7 +256,7 @@ class PoolMotor(PoolElement):
             state, status, ls = state_info[:3]
         else:
             state, other = state_info[:2]
-            if operator.isNumberType(other):
+            if is_number(other):
                 ls, status = other, ''
             else:
                 ls, status = 0, other
@@ -252,15 +401,14 @@ class PoolMotor(PoolElement):
     # offset
     # --------------------------------------------------------------------------
 
+    def get_offset_attribute(self):
+        return self._offset
+
     def get_offset(self, cache=True):
         return self._offset
 
     def set_offset(self, offset, propagate=1):
         self._offset.set_value(offset, propagate=propagate)
-        # recalculate position and send event
-        position, exc_info = self.to_user_position(offset=self._offset)
-        self._position.set_value(position, exc_info=exc_info,
-                                 propagate=propagate)
 
     offset = property(get_offset, set_offset, doc="motor offset")
 
@@ -268,16 +416,15 @@ class PoolMotor(PoolElement):
     # sign
     # --------------------------------------------------------------------------
 
+    def get_sign_attribute(self):
+        return self._sign
+
     def get_sign(self, cache=True):
         return self._sign
 
     def set_sign(self, sign, propagate=1):
         old_sign = self._sign.value
         self._sign.set_value(sign, propagate=propagate)
-        # recalculate position and send event
-        position, exc_info = self.to_user_position(sign=self._sign)
-        self._position.set_value(position, exc_info=exc_info,
-                                 propagate=propagate)
         # invert lower with upper limit switches and send event in case of change
         ls = self._limit_switches
         if old_sign != sign and ls.has_value():
@@ -434,101 +581,17 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
 
     def define_position(self, position):
-        dial = (position - self.offset.value) / self.sign.value
+        dial = self.get_position_attribute().calc_dial_position(position)
         self.controller.define_position(self.axis, dial)
+        # force an event with the new position
         self.get_position(cache=False, propagate=2)
 
-    def to_user_position(self, dial_position=None, sign=None, offset=None):
-        """Utility method to calculate user position from dial position, sign
-        and offset.
-
-        :param dial_position:
-            the dial position. If None (default), the current dial position is
-            used to calculate the user position
-        :type dial_position:
-            :class:`~sardana.sardanaattribute.SardanaAttribute` or
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param sign:
-            the sign. If None (default), the current sign is
-            used to calculate the user position
-        :type sign:
-            :class:`~sardana.sardanaattribute.SardanaAttribute`
-        :param offset:
-            the offset. If None (default), the current offset is
-            used to calculate the user position
-        :type offset:
-            :class:`~sardana.sardanaattribute.SardanaAttribute`
-
-        :return:
-            a tuple with user position or None and exc_info or None
-        :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
-        if dial_position is None:
-            dial_position = self.get_dial_position(propagate=0)
-        if sign is None:
-            sign = self.sign
-        if offset is None:
-            offset = self.offset
-
-        sign, offset = sign.value, offset.value
-
-        pos, exc_info = None, None
-        if isinstance(dial_position, SardanaAttribute):
-            if dial_position.error:
-                exc_info = dial_position.exc_info
-            else:
-                pos = sign * dial_position.value + offset
-        else:
-            dp, exc_info = dial_position
-            if is_number(dp):
-                pos = sign * dp + offset
-        return pos, exc_info
-
-    def to_dial_position(self, position=None, sign=None, offset=None):
-        """Utility method to calculate dial position from user position, sign
-        and offset.
-
-        :param position:
-            the user position. If None (default), the current user position is
-            used to calculate the dial position
-        :type position:
-            :class:`~sardana.sardanaattribute.SardanaAttribute` or
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param sign:
-            the sign. If None (default), the current sign is
-            used to calculate the dial position
-        :type sign:
-            :class:`~sardana.sardanaattribute.SardanaAttribute`
-        :param offset:
-            the offset. If None (default), the current offset is
-            used to calculate the dial position
-        :type offset:
-            :class:`~sardana.sardanaattribute.SardanaAttribute`
-
-        :return:
-            a tuple with dial position or None and exc_info or None
-        :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
-        if position is None:
-            position = self.get_position(propagate=0)
-        if sign is None:
-            sign = self.sign
-        if offset is None:
-            offset = self.offset
-
-        sign, offset = sign.value, offset.value
-
-        dp, exc_info = None, None
-        if isinstance(position, SardanaAttribute):
-            if position.error:
-                exc_info = position.exc_info
-            else:
-                dp = (position.value - offset) / sign
-        else:
-            pos, exc_info = position
-            if is_number(pos):
-                dp = (pos - offset) / sign
-        return dp, exc_info
+    def get_position_attribute(self):
+        """Returns the position attribute object for this motor
+        
+        :return: the position attribute
+        :rtype: :class:`~sardana.sardanaattribute.SardanaAttribute`"""
+        return self._position
 
     def get_position(self, cache=True, propagate=1):
         """Returns the user position.
@@ -546,10 +609,9 @@ class PoolMotor(PoolElement):
             the user position
         :rtype:
             :class:`~sardana.sardanaattribute.SardanaAttribute`"""
-        if not cache or not self._position.has_value():
-            dial_position_info = self.read_dial_position()
-            self._set_dial_position(dial_position_info, propagate=propagate)
-        return self._position
+        position = self._position
+        position.update(cache=cache, propagate=propagate)
+        return position
 
     def set_position(self, position):
         """Moves the motor to the specified user position
@@ -558,25 +620,7 @@ class PoolMotor(PoolElement):
             the user position to move to
         :type position:
             :class:`~numbers.Number`"""
-        self.set_write_position(position, propagate=1)
         self.start_move(position)
-
-    def put_position(self, position_info, propagate=1):
-        """Sets a new user position.
-
-        :param position_info:
-            the new user position info
-        :type position_info:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param propagate:
-            0 for not propagating, 1 to propagate, 2 propagate with priority
-        :type propagate:
-            int"""
-        self._set_position(position_info, propagate=propagate)
-          
-    def _set_position(self, position_info, propagate=1):
-        dial_position_info = self.to_dial_position(position=position_info)
-        self._set_dial_position(dial_position_info, propagate=propagate)
 
     def set_write_position(self, w_position, timestamp=None, propagate=1):
         """Sets a new write value for the user position.
@@ -596,23 +640,33 @@ class PoolMotor(PoolElement):
         """Reads the dial position from hardware.
 
         :return:
-            a tuple with dial position or None and exc_info or None
+            a :class:`~sardana.sardanavalue.SardanaValue` containing the dial
+            position
         :rtype:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>"""
+            :class:`~sardana.sardanavalue.SardanaValue`"""
         return self.motion.read_dial_position(serial=True)[self]
 
-    def put_dial_position(self, dial_position_info, propagate=1):
+    def put_dial_position(self, dial_position_value, propagate=1):
         """Sets a new dial position.
 
-        :param dial_position_info:
-            the new dial position info
-        :type dial_position_info:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
+        :param dial_position_value:
+            the new dial position value
+        :type dial_position_value:
+            :class:`~sardana.sardanavalue.SardanaValue`
         :param propagate:
             0 for not propagating, 1 to propagate, 2 propagate with priority
         :type propagate:
             int"""
-        self._set_dial_position(dial_position_info, propagate=propagate)
+        dp = self._dial_position
+        dp.set_value(dial_position_value, propagate=propagate)
+        return dp
+
+    def get_dial_position_attribute(self):
+        """Returns the dial position attribute object for this motor
+        
+        :return: the dial position attribute
+        :rtype: :class:`~sardana.sardanaattribute.SardanaAttribute`"""
+        return self._dial_position
 
     def get_dial_position(self, cache=True, propagate=1):
         """Returns the dial position.
@@ -630,26 +684,9 @@ class PoolMotor(PoolElement):
             the dial position
         :rtype:
             :class:`~sardana.sardanaattribute.SardanaAttribute`"""
-        if not cache or not self._dial_position.has_value():
-            dial_position_info = self.read_dial_position()
-            self._set_dial_position(dial_position_info, propagate=propagate)
-        return self._dial_position
-
-    def _set_dial_position(self, dial_position_info, propagate=1):
-        """Sets a new dial position.
-
-        :param dial_position_info:
-            the new dial position
-        :type dial_position_info:
-            :obj:`tuple` <:class:`~numbers.Number`/:obj:`None`, exc_info/:obj:`None`>
-        :param propagate:
-            0 for not propagating, 1 to propagate, 2 propagate with priority
-        :type propagate:
-            int"""
-        self._dial_position.set_value(*dial_position_info, propagate=propagate)
-        
-        position_info = self.to_user_position(dial_position=self._dial_position)
-        self._position.set_value(*position_info, propagate=propagate)
+        dp = self._dial_position
+        dp.update(cache=cache, propagate=propagate)
+        return dp
 
     position = property(get_position, set_position, doc="motor user position")
     dial_position = property(get_dial_position, doc="motor dial position")
@@ -658,8 +695,8 @@ class PoolMotor(PoolElement):
     # default acquisition channel
     # --------------------------------------------------------------------------
 
-    def get_default_acquisition_channel(self):
-        return 'position'
+    def get_default_attribute(self):
+        return self.get_position_attribute()
 
     # --------------------------------------------------------------------------
     # motion
@@ -679,25 +716,24 @@ class PoolMotor(PoolElement):
         given final position. Items specifies the where to put the calculated
         values, calculated is not used by physical motors"""
 
-        step_per_unit, backlash = self._step_per_unit, self._backlash
-
+        step_per_unit = self._step_per_unit
+        backlash = self._backlash
         ctrl = self.controller
+        pos_attr = self.get_position_attribute()
 
         # compute dial position
-        new_dial, _ = self.to_dial_position(position=(new_position, None))
+        new_dial = pos_attr.calc_dial_position(new_position)
 
         # add backlash if necessary
         do_backlash = False
 
         if self.has_backlash() and not ctrl.has_backlash():
-            # get the current dial position from HW (just in case the motor was
-            # moved outside sardana)
-            old_dial = self.get_dial_position(cache=False, propagate=0)
+            dial_attr = self.get_dial_position_attribute()
 
-            if old_dial.in_error():
-                raise old_dial.get_exc_info()[1]
+            if dial_attr.in_error():
+                raise dial_attr.get_exc_info()[1]
 
-            old_dial = old_dial.value
+            old_dial = dial_attr.value
             displacement = new_dial - old_dial
 
             if math.fabs(displacement) > EpsilonError:
@@ -730,8 +766,20 @@ class PoolMotor(PoolElement):
             
     def _start_move(self, new_position):
         if not self._simulation_mode:
+            # update the dial value from the controller in case motor has been
+            # moved outside sardana.
+            # TODO: also update step_per_unit 
+            self.get_dial_position_attribute().update(cache=False, propagate=1)
+            
+            # calculate the motion (dial position, backlash, etc)
             items = self.calculate_motion(new_position)
-            self.debug("Start motion pos=%f, dial=%f, do_backlash=%s, "
+            self.debug("Start motion user=%f, dial=%f, backlash? %s, "
                        "dial_backlash=%f", *items[self])
+            
+            timestamp = time.time()
+            # update the write position
+            self.set_write_position(items[self][0], timestamp=timestamp, propagate=0)
+            
+            # move!
             self.motion.run(items=items)
         

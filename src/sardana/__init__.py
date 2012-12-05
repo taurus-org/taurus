@@ -38,3 +38,4 @@ Release.__dict__.update(__release.__dict__)
 Release.__doc__ = __release.__doc__
 
 from .sardanadefs import *
+from .sardanavalue import SardanaValue

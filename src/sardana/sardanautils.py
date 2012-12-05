@@ -27,7 +27,8 @@
 utility methods"""
 
 __all__ = ["is_pure_str", "is_non_str_seq", "is_integer", "is_number",
-           "is_bool", "check_type", "assert_type", "str_to_value", "is_callable"]
+           "is_bool", "check_type", "assert_type", "str_to_value", "is_callable",
+           "translate_version_str2int", "translate_version_str2list"]
 
 __docformat__ = 'restructuredtext'
 
@@ -132,3 +133,57 @@ def str_to_value(value, dtype=DataType.Double, dformat=DataFormat.Scalar):
         for v1 in value:
             ret.append([ f(v2) for v2 in v1 ])
     return ret
+
+def translate_version_str2int(version_str):
+    """Translates a version string in format x[.y[.z[...]]] into a 000000 number.
+    Each part of version number can have up to 99 possibilities."""
+    import math
+    parts = version_str.split('.')
+    i, v, l = 0, 0, len(parts)
+    if not l: return v
+    while i<3:
+        try:
+            v += int(parts[i])*int(math.pow(10,(2-i)*2))
+            l -= 1
+            i += 1
+        except ValueError:
+            return v
+        if not l: return v
+    return v
+
+    try:
+        v += 10000*int(parts[0])
+        l -= 1
+    except ValueError:
+        return v
+    if not l: return v
+
+    try:
+        v += 100*int(parts[1])
+        l -= 1
+    except ValueError:
+        return v
+    if not l: return v
+
+    try:
+        v += int(parts[0])
+        l -= 1
+    except ValueError:
+        return v
+    if not l: return v
+
+def translate_version_str2list(version_str, depth=2):
+    """Translates a version string in format 'x[.y[.z[...]]]' into a list of
+    numbers"""
+    if version_str is None:
+        ver = depth*[0,]
+    else:
+        ver = []
+        for i in version_str.split(".")[:depth]:
+            try:
+                i = int(i)
+            except:
+                i = 0
+            ver.append(i)
+    return ver
+

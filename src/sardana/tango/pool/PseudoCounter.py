@@ -94,7 +94,7 @@ class PseudoCounter(PoolElementDevice):
             self._on_pseudo_counter_changed(event_source, event_type,
                                             event_value)
         except:
-            msg = 'Error occured "on_pseudo_counter_changed(%s.%s): %s"'
+            msg = 'Error occurred "on_pseudo_counter_changed(%s.%s): %s"'
             exc_info = sys.exc_info()
             self.error(msg, self.pseudo_counter.name, event_type.name,
                        exception_str(*exc_info[:2]))
@@ -109,34 +109,37 @@ class PseudoCounter(PoolElementDevice):
 
         timestamp = time.time()
         name = event_type.name.lower()
-        multi_attr = self.get_device_attr()
         try:
-            attr = multi_attr.get_attr_by_name(name)
+            attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
+        
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
-        error = None
+        value, w_value, error = None, None, None
 
         if name == "state":
-            event_value = self.calculate_tango_state(event_value)
+            value = self.calculate_tango_state(event_value)
         elif name == "status":
-            event_value = self.calculate_tango_status(event_value)
+            value = self.calculate_tango_status(event_value)
         else:
             if isinstance(event_value, SardanaAttribute):
                 if event_value.error:
                     error = Except.to_dev_failed(*event_value.exc_info)
+                else:
+                    value = event_value.value                    
                 timestamp = event_value.timestamp
-                event_value = event_value.value
-
+            else:
+                value = event_value
             state = self.pseudo_counter.get_state(propagate=0)
 
-            if state == State.Moving and name == "value":
-                quality = AttrQuality.ATTR_CHANGING
+            if name == "value":
+                if state == State.Moving:
+                    quality = AttrQuality.ATTR_CHANGING
 
-        self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error,
-                           synch=False)
+        self.set_attribute(attr, value=value, w_value=w_value,
+                           timestamp=timestamp, quality=quality,
+                           priority=priority, error=error, synch=False)
 
     def always_executed_hook(self):
         #state = to_tango_state(self.pseudo_counter.get_state(cache=False))
@@ -178,10 +181,10 @@ class PseudoCounter(PoolElementDevice):
         pseudo_counter = self.pseudo_counter
         use_cache = pseudo_counter.is_in_operation() and not self.Force_HW_Read
         value = pseudo_counter.get_value(cache=use_cache, propagate=0)
-        state = pseudo_counter.get_state(cache=use_cache, propagate=0)
         if value.error:
             Except.throw_python_exception(*value.exc_info)
         quality = None
+        state = pseudo_counter.get_state(cache=use_cache, propagate=0)
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value.value, quality=quality,

@@ -33,14 +33,11 @@ __all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
 
 __docformat__ = 'restructuredtext'
 
-import weakref
-
-from taurus.core.util import CaselessDict, Logger
-from taurus.core.tango.sardana.pool import BaseElement
+from taurus.core.util import CaselessDict
 
 from sardana import ElementType, INTERFACES_EXPANDED
 from sardana.macroserver.msbase import MSBaseObject
-from msexception import MacroServerException, UnknownMacro, UnknownMacroLibrary
+from .msexception import MacroServerException, UnknownMacro, UnknownMacroLibrary
 
 class WrongParam(MacroServerException):
     
@@ -89,7 +86,7 @@ class TypeNames:
         delattr(self, name)
         try:
             del self._type_names[name]
-        except ValueError,e:
+        except ValueError:
             pass
         
     def __str__(self):
@@ -120,10 +117,8 @@ class ParamType(MSBaseObject):
     
     def __init__(self, macro_server, name):
         MSBaseObject.__init__(self, name=name, full_name=name,
-                              macro_server=macro_server)
-
-    def get_type(self):
-        return ElementType.ParameterType
+                              macro_server=macro_server,
+                              elem_type=ElementType.ParameterType)
     
     def getName(self):
         return self.name

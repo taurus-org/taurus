@@ -24,7 +24,6 @@
 import time
 from sardana import State
 from sardana.pool.controller import CounterTimerController
-from sardana.pool import AcqTriggerType
 
 class Channel:
     

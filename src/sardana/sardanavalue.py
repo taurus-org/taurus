@@ -23,10 +23,36 @@
 ##
 ##############################################################################
 
-"""This is the main device pool module"""
+"""This module is part of the Python Sardana libray. It defines the base classes
+for Sardana values"""
 
-__all__ = ["MotionPath", "Motion", "Motor"]
+__all__ = ["SardanaValue"]
 
 __docformat__ = 'restructuredtext'
 
-from .motion import MotionPath, Motion, Motor
+import time
+
+
+class SardanaValue(object):
+    
+    def __init__(self, value=None, exc_info=None, timestamp=None,
+                 dtype=None, dformat=None):
+        self.value = value
+        self.error = exc_info is not None
+        self.exc_info = exc_info 
+        if timestamp is None:
+            timestamp = time.time()
+        self.timestamp = timestamp
+        self.dtype = dtype
+        self.dformat = dformat
+        
+    def __repr__(self):
+        v = None
+        if self.error:
+            v = "<Error>"
+        else:
+            v = self.value
+        return "{0.__class__.__name__}(value={1}, timestamp={0.timestamp})".format(self, v)
+
+    def __str__(self):
+        return repr(self)
