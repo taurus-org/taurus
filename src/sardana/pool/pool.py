@@ -25,6 +25,7 @@
 
 """This module contains the main pool class"""
 
+from __future__ import print_function
 from __future__ import with_statement
 
 __all__ = ["Pool"]
@@ -136,8 +137,30 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         PoolObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                             pool=self, elem_type=ElementType.Pool)
         self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
+        #self.init_local_logging()
         ControllerManager().set_pool(self)
     
+    # TODO: not ready to use. path must be the same as the one calculated in
+    # sardana.tango.core.util:prepare_logging 
+    def init_local_logging(self):
+        log = logging.getLogger("Controller")
+        log.propagate = 0
+        path = os.path.join(os.sep, "tmp", "tango")
+        log_file_name = os.path.join(path, 'controller.log.txt')
+        try:
+            if not os.path.exists(path):
+                os.makedirs(path, 0777)
+            f_h = logging.handlers.RotatingFileHandler(log_file_name,
+                                                       maxBytes=1E7,
+                                                       backupCount=5)
+
+            f_h.setFormatter(self.getLogFormat())
+            log.addHandler(f_h)
+            self.info("Controller logs stored in %s", log_file_name)
+        except:
+            self.warning("Controller logs could not be created!")
+            self.debug("Details:", exc_info=1)
+        
     def clear_remote_logging(self):
         rh = self._remote_log_handler
         if rh is None:

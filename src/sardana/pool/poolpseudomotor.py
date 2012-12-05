@@ -112,11 +112,53 @@ class Position(SardanaAttribute):
         return ret
 
     def calc_pseudo(self, physical_positions=None):
+        obj = self.obj
         if physical_positions is None:
             physical_positions = self.get_physical_positions()
-        obj = self.obj
+        else:
+            l_p, l_u = len(physical_positions), len(obj.get_user_elements())
+            if l_p != l_u:
+                raise PoolException("calc_pseudo: must give %d physical " \
+                                    "positions (you gave %d)" % (l_u, l_p) )
+        
         ctrl, axis = obj.controller, obj.axis    
         return ctrl.calc_pseudo(axis, physical_positions, None)
+
+    def calc_all_pseudo(self, physical_positions=None):
+        obj = self.obj
+        if physical_positions is None:
+            physical_positions = self.get_physical_positions()
+        else:
+            l_p, l_u = len(physical_positions), len(obj.get_user_elements())
+            if l_p != l_u:
+                raise PoolException("calc_all_pseudo: must give %d physical " \
+                                    "positions (you gave %d)" % (l_u, l_p) )
+        
+        ctrl, axis = obj.controller, obj.axis    
+        return ctrl.calc_all_pseudo(physical_positions, None)
+
+    def calc_physical(self, new_position):
+        obj = self.obj
+        positions = obj.get_siblings_positions()
+        positions[obj] = new_position
+        pseudo_positions = len(positions)*[None]
+        for pseudo, position in positions.items():
+            pseudo_positions[pseudo.axis-1] = position
+        return self.calc_all_physical(pseudo_positions)
+
+    def calc_all_physical(self, new_positions):
+        curr_physical_positions = self.get_physical_positions()
+        physical_positions = self.obj.controller.calc_all_physical(new_positions,
+                                                                   curr_physical_positions)
+        if physical_positions.error:
+            raise PoolException("Cannot calculate motion: "
+                                "calc_all_physical raises exception",
+                                exc_info=physical_positions.exc_info)
+        else:
+            if physical_positions.value is None:
+                raise PoolException("Cannot calculate motion: "
+                                    "calc_all_physical returns None")
+        return physical_positions
 
     def on_change(self, evt_src, evt_type, evt_value):
         self.fire_read_event(propagate=evt_type.priority)
@@ -232,7 +274,19 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     # ------------------------------------------------------------------------
     # position
     # ------------------------------------------------------------------------
+    
+    def calc_pseudo(self, physical_positions=None):
+        return self.get_position_attribute().calc_pseudo(physical_positions=physical_positions)
+    
+    def calc_physical(self, new_position):
+        return self.get_position_attribute().calc_physical(new_position)
+    
+    def calc_all_pseudo(self, physical_positions=None):
+        return self.get_position_attribute().calc_all_pseudo(physical_positions=physical_positions)
 
+    def calc_all_physical(self, new_positions):
+        return self.get_position_attribute().calc_all_physical(new_positions)
+    
     def get_position_attribute(self):
         return self._position
 

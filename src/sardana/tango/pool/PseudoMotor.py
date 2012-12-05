@@ -32,8 +32,8 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, \
-    DevDouble, DevBoolean, DevVarStringArray, DevState, AttrQuality
+from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, DevDouble, \
+    DevBoolean, DevVarStringArray, DevVarDoubleArray, DevState, AttrQuality
 
 from taurus.core.util.log import DebugIt
 
@@ -211,7 +211,29 @@ class PseudoMotor(PoolElementDevice):
                 throw_sardana_exception(pe)
         finally:
             self.in_write_position = False
-            
+
+    def CalcPseudo(self, physical_positions):
+        """Returns the pseudo motor position for the given physical positions"""
+        if not len(physical_positions):
+            physical_positions = None
+        result = self.pseudo_motor.calc_pseudo(physical_positions=physical_positions)
+        return result.value
+
+    def CalcPhysical(self, pseudo_position):
+        """Returns the physical motor positions for the given pseudo motor
+        position assuming the current pseudo motor write positions for all the
+        other sibling pseudo motors"""
+        return self.pseudo_motor.calc_physical(pseudo_position).value
+
+    def CalcAllPhysical(self, pseudo_positions):
+        """Returns the physical motor positions for the given pseudo motor
+        position(s)"""
+        return self.pseudo_motor.calc_all_physical(pseudo_positions).value
+
+    def CalcAllPseudo(self, physical_positions):
+        """Returns the pseudo motor position(s) for the given physical positions"""
+        return self.pseudo_motor.calc_all_pseudo(physical_positions).value
+                
     def MoveRelative(self, argin):
         raise NotImplementedError
 
@@ -243,7 +265,11 @@ class PseudoMotorClass(PoolElementDeviceClass):
 
     #    Command definitions
     cmd_list = {
-        'MoveRelative' :   [ [DevDouble, "amount to move"], [DevVoid, ""] ],
+        'CalcPseudo'      : [ [DevVarDoubleArray, "physical positions"], [DevDouble, "pseudo position"] ],
+        'CalcPhysical'    : [ [DevDouble, "pseudo position"], [DevVarDoubleArray, "physical positions"] ],
+        'CalcAllPseudo'   : [ [DevVarDoubleArray, "physical positions"], [DevVarDoubleArray, "pseudo positions"] ],
+        'CalcAllPhysical' : [ [DevVarDoubleArray, "pseudo positions"], [DevVarDoubleArray, "physical positions"] ],
+        'MoveRelative'    : [ [DevDouble, "amount to move"], [DevVoid, ""] ],
     }
     cmd_list.update(PoolElementDeviceClass.cmd_list)
 

@@ -25,7 +25,8 @@
 
 """This module contains the definition of the Controller base classes"""
 
-__all__ = ["Type", "Access", "Description", "DefaultValue", "FGet", "FSet",
+__all__ = ["DataAccess", "Type", "Access", "Description", "DefaultValue",
+           "FGet", "FSet",
            "Memorized", "MemorizedNoInit", "NotMemorized", "MaxDimSize",
            "Controller", "Readable", "Startable", "Stopable", "Loadable",
            "MotorController", "CounterTimerController", "ZeroDController",
@@ -40,7 +41,7 @@ import taurus
 from taurus.core.util import Logger
 
 from sardana import DataAccess
-from pooldefs import ControllerAPI, AcqTriggerType, AcqMode
+from .pooldefs import ControllerAPI, AcqTriggerType, AcqMode
 
 #: Constant data type (to be used as a *key* in the definition of
 #: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
