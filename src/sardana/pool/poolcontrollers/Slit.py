@@ -30,20 +30,8 @@ __docformat__ = 'restructuredtext'
 
 from sardana import DataAccess
 from sardana.pool.controller import PseudoMotorController
+from sardana.pool.controller import DefaultValue, Description, Access, Type
 
-
-class Polarization(PseudoMotorController):
-
-    pseudo_motor_roles = "polarization",
-    motor_roles = "m1", "m2"
-
-    def CalcPhysical(self, index, pseudo_pos, curr_physical_pos):
-        if index==1: return pseudo_pos[0] + 10
-        elif index==2: return 30
-    
-    def CalcPseudo(self, index, physical_pos, curr_pseudo_pos):
-        return physical_pos[0] - 10
-    
     
 class Slit(PseudoMotorController):
     """A Slit pseudo motor controller for handling gap and offset pseudo 
@@ -57,18 +45,17 @@ class Slit(PseudoMotorController):
     pseudo_motor_roles = "Gap", "Offset"
     motor_roles = "sl2t", "sl2b"
     
-    class_prop = {'sign':{'Type':'PyTango.DevDouble','Description':'Gap = sign * calculated gap\nOffset = sign * calculated offet','DefaultValue':1},}
+    ctrl_properties = { 'sign' : { Type : float,
+                                   Description  : 'Gap = sign * calculated gap\nOffset = sign * calculated offet',
+                                   DefaultValue : 1 }, }
     
-    axis_attributes = { 'example' : { 'type' : int,
-                                      'r/w type' : DataAccess.ReadWrite,
-                                      'description' : 'test purposes' }
-                      }
-    
-    #ctrl_attributes = {}
+    axis_attributes = { 'example' : { Type : int,
+                                      Access : DataAccess.ReadWrite,
+                                      Description : 'test purposes' }, }
 
     def __init__(self, inst, props, *args, **kwargs):
         PseudoMotorController.__init__(self, inst, props, *args, **kwargs)
-        self._log.info("Created SLIT %s", inst)
+        self._log.debug("Created SLIT %s", inst)
         self._example = {}
         
     def CalcPhysical(self, index, pseudo_pos, curr_physical_pos):
@@ -77,7 +64,7 @@ class Slit(PseudoMotorController):
             ret = self.sign * (pseudo_pos[1] + half_gap)
         else:
             ret = self.sign * (half_gap - pseudo_pos[1])
-        self._log.info("Slit.CalcPhysical(%d, %s) -> %f", index, pseudo_pos, ret)
+        self._log.debug("Slit.CalcPhysical(%d, %s) -> %f", index, pseudo_pos, ret)
         return ret
     
     def CalcPseudo(self, index, physical_pos, curr_pseudo_pos):
