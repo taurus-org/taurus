@@ -29,18 +29,14 @@ __all__ = ["PoolMonitor"]
 
 __docformat__ = 'restructuredtext'
 
-import os.path
 import threading
 import time
 
-from taurus.core.util import Logger, ThreadPool, DebugIt, InfoIt
+from taurus.core.util import Logger
 
 from sardana import ElementType, TYPE_PSEUDO_ELEMENTS
 
-from poolcontrollermanager import ControllerManager
-
-from poolbase import PoolObject
-from poolaction import OperationInfo
+from .poolobject import PoolObject
 
 
 class PoolMonitor(Logger, threading.Thread):

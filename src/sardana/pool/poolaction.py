@@ -40,7 +40,7 @@ from taurus.core.util import Logger
 
 from sardana import State
 from sardana.sardanathreadpool import get_thread_pool
-from poolbase import PoolObject
+from .poolobject import PoolObject
 
 
 class PoolActionItem(object):

@@ -37,7 +37,7 @@ from taurus.core.util.lock import TaurusLock
 
 from sardana import State
 from sardana.sardanaevent import EventType
-from poolbase import PoolObject
+from .poolobject import PoolObject
 
 
 class PoolBaseElement(PoolObject):

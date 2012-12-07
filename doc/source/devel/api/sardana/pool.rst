@@ -14,7 +14,8 @@
     pool <pool/pool>
     poolacquisition <pool/poolacquisition>
     poolaction <pool/poolaction>
-    poolbase <pool/poolbase>
+    poolbasechannel <pool/poolbasechannel>
+    poolbaseobject <pool/poolbaseobject>
     poolcontainer <pool/poolcontainer>
     poolcontroller <pool/poolcontroller>
     poolcontrollermanager <pool/poolcontrollermanager>
@@ -33,6 +34,7 @@
     poolmotor <pool/poolmotor>
     poolmotorgroup <pool/poolmotorgroup>
     poolmoveable <pool/poolmoveable>
+    poolobject <pool/poolobject>
     poolonedexpchannel <pool/poolonedexpchannel>
     poolpseudocounter <pool/poolpseudocounter>
     poolpseudomotor <pool/poolpseudomotor>

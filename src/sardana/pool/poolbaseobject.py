@@ -23,14 +23,14 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for Pool object"""
 
-__all__ = ["PoolBaseObject", "PoolObject"]
+__all__ = ["PoolBaseObject"]
 
 __docformat__ = 'restructuredtext'
 
-from sardana.sardanabase import SardanaBaseObject, SardanaObjectID
+from sardana.sardanabase import SardanaBaseObject
 
 
 class PoolBaseObject(SardanaBaseObject):
@@ -56,17 +56,3 @@ class PoolBaseObject(SardanaBaseObject):
     pool = property(get_pool,
                     doc="reference to the :class:`sardana.pool.pool.Pool`")
     
-
-class PoolObject(SardanaObjectID, PoolBaseObject):
-    """A Pool object that besides the name and reference to the pool has:
-       
-       - _id : the internal identifier"""
-    
-    def __init__(self, **kwargs):
-        SardanaObjectID.__init__(self, id=kwargs.pop('id'))
-        PoolBaseObject.__init__(self, **kwargs)
-    
-    def serialize(self, *args, **kwargs):
-        kwargs = PoolBaseObject.serialize(self, *args, **kwargs)
-        kwargs = SardanaObjectID.serialize(self, *args, **kwargs)
-        return kwargs

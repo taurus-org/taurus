@@ -44,12 +44,12 @@ from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaevent import EventType
 
-from poolbase import PoolObject
-from poolcontainer import PoolContainer
-from poolcontroller import PoolController
-from poolmonitor import PoolMonitor
-from poolmetacontroller import TYPE_MAP_OBJ
-from poolcontrollermanager import ControllerManager
+from .poolobject import PoolObject
+from .poolcontainer import PoolContainer
+from .poolcontroller import PoolController
+from .poolmonitor import PoolMonitor
+from .poolmetacontroller import TYPE_MAP_OBJ
+from .poolcontrollermanager import ControllerManager
 
 
 class Graph(dict):

@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the base classes
+"""This module is part of the Python Pool library. It defines the base classes
 for instrument"""
 
 __all__ = [ "PoolInstrument" ]
@@ -34,7 +34,7 @@ import weakref
 
 from sardana import ElementType
 
-from poolbase import PoolObject
+from .poolobject import PoolObject
 
 class PoolInstrument(PoolObject):
     
