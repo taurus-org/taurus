@@ -21,18 +21,16 @@
 ##
 ##############################################################################
 
-"""This module contains the definition of a slit pseudo motor controller
+"""This module contains the definition of a I/I0 pseudo counter controller
 for the Sardana Device Pool"""
 
 __all__ = ["IoverI0"]
 
 __docformat__ = 'restructuredtext'
 
-from sardana import DataAccess
 from sardana.pool.controller import PseudoCounterController
 
-# Will disapear when we have pseudo counters that can have other pseudo counters
-# in their counter roles.
+
 class IoverI0(PseudoCounterController):
     """ A simple pseudo counter which receives two counter values (I and I0) 
         and returns I/I0"""

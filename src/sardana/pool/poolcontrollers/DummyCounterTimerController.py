@@ -25,6 +25,7 @@ import time
 from sardana import State
 from sardana.pool.controller import CounterTimerController
 
+
 class Channel:
     
     def __init__(self,idx):
@@ -32,7 +33,8 @@ class Channel:
         self.value = 0.0
         self.is_counting = False
         self.active = True
-        
+
+
 class DummyCounterTimerController(CounterTimerController):
     "This class is the Tango Sardana CounterTimer controller for tests"
 
@@ -91,7 +93,6 @@ class DummyCounterTimerController(CounterTimerController):
         return sta, status
         
     def _updateChannelState(self, ind, elapsed_time):
-        channel = self.channels[ind-1]
         if self.integ_time is not None:
             # counting in time
             if elapsed_time >= self.integ_time:
@@ -171,7 +172,6 @@ class DummyCounterTimerController(CounterTimerController):
         self.start_time = time.time()
     
     def LoadOne(self, ind, value):
-        idx = ind - 1
         if value > 0:
             self.integ_time = value
             self.monitor_count = None
