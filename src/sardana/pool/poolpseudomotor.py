@@ -147,9 +147,10 @@ class Position(SardanaAttribute):
         return self.calc_all_physical(pseudo_positions)
 
     def calc_all_physical(self, new_positions):
+        ctrl = self.obj.controller
         curr_physical_positions = self.get_physical_positions()
-        physical_positions = self.obj.controller.calc_all_physical(new_positions,
-                                                                   curr_physical_positions)
+        physical_positions = ctrl.calc_all_physical(new_positions,
+                                                    curr_physical_positions)
         if physical_positions.error:
             raise PoolException("Cannot calculate motion: "
                                 "calc_all_physical raises exception",
