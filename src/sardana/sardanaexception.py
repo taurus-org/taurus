@@ -56,9 +56,15 @@ class SardanaException(Exception):
             self.msg = "Unknown sardana exception"
             self.traceback = None
             self.type = self.__class__.__name__
-        self.exc_info = kwargs.get('exc_info', sys.exc_info())
+        if 'exc_info' in kwargs:
+            self.exc_info = kwargs['exc_info']
+        else:
+            self.exc_info = kwargs.get('exc_info', sys.exc_info())
     
     def __str__(self):
+        return self.msg
+    
+    def __repr__(self):
         return "%s: %s" % (self.type, self.msg)
 
 

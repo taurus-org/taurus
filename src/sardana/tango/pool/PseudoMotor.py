@@ -38,8 +38,8 @@ from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, DevDouble, \
 from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
+from sardana.sardanaexception import SardanaException
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.pool.poolexception import PoolException
 from sardana.tango.core.util import exception_str, to_tango_type_format, \
     throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
@@ -186,7 +186,7 @@ class PseudoMotor(PoolElementDevice):
         use_cache = pseudo_motor.is_in_operation() and not self.Force_HW_Read
         position = pseudo_motor.get_position(cache=use_cache, propagate=0)
         if position.error:
-            Except.throw_python_exception(*position.exc_info)
+            throw_sardana_exception(position)
         state = pseudo_motor.get_state(cache=use_cache, propagate=0)
         quality = None
         if state == State.Moving:
@@ -207,8 +207,8 @@ class PseudoMotor(PoolElementDevice):
             pseudo_motor = self.pseudo_motor
             try:
                 pseudo_motor.position = position
-            except PoolException, pe:
-                throw_sardana_exception(pe)
+            except SardanaException as se:
+                throw_sardana_exception(se)
         finally:
             self.in_write_position = False
 
@@ -217,23 +217,34 @@ class PseudoMotor(PoolElementDevice):
         if not len(physical_positions):
             physical_positions = None
         result = self.pseudo_motor.calc_pseudo(physical_positions=physical_positions)
+        if result.error:
+            throw_sardana_exception(result)
         return result.value
 
     def CalcPhysical(self, pseudo_position):
         """Returns the physical motor positions for the given pseudo motor
         position assuming the current pseudo motor write positions for all the
         other sibling pseudo motors"""
-        return self.pseudo_motor.calc_physical(pseudo_position).value
+        result = self.pseudo_motor.calc_physical(pseudo_position)
+        if result.error:
+            throw_sardana_exception(result)
+        return result.value
 
     def CalcAllPhysical(self, pseudo_positions):
         """Returns the physical motor positions for the given pseudo motor
         position(s)"""
-        return self.pseudo_motor.calc_all_physical(pseudo_positions).value
+        result = self.pseudo_motor.calc_physical(pseudo_positions)
+        if result.error:
+            throw_sardana_exception(result)
+        return result.value
 
     def CalcAllPseudo(self, physical_positions):
         """Returns the pseudo motor position(s) for the given physical positions"""
-        return self.pseudo_motor.calc_all_pseudo(physical_positions).value
-                
+        result = self.pseudo_motor.calc_all_pseudo(physical_positions) 
+        if result.error:
+            throw_sardana_exception(result)
+        return result.value
+                            
     def MoveRelative(self, argin):
         raise NotImplementedError
 

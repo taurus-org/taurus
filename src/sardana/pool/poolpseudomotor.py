@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from sardana.sardanavalue import SardanaValue
 
 ##############################################################################
 ##
@@ -30,10 +31,13 @@ __all__ = ["PoolPseudoMotor", "PoolPseudoMotorFrontend"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
+import collections
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from sardana.sardanaattribute import SardanaAttribute
+from sardana.sardanaexception import SardanaException
 
 from .poolbaseelement import PoolBaseElement
 from .poolelement import PoolElement
@@ -91,13 +95,16 @@ class Position(SardanaAttribute):
         for pos_attr in self.obj.get_physical_position_attribute_iterator():
             if pos_attr.has_write_value():
                 value = pos_attr.w_value
-            elif not pos_attr.has_value():
-                # if underlying moveable doesn't have position yet, it is
-                # because of a cold start
-                pos_attr.update(propagate=0)
-                value = pos_attr.value
             else:
+                if not pos_attr.has_value():
+                    # if underlying moveable doesn't have position yet, it is
+                    # because of a cold start
+                    pos_attr.update(propagate=0)
+                if pos_attr.in_error():
+                    raise PoolException("Cannot get '%' position" % pos_attr.obj.name,
+                                        exc_info=pos_attr.exc_info)
                 value = pos_attr.value
+                
             ret.append(value)
         return ret
         
@@ -108,58 +115,66 @@ class Position(SardanaAttribute):
             # of a cold start
             if not pos_attr.has_value():
                 pos_attr.update(propagate=0)
+            if pos_attr.in_error():
+                raise PoolException("Cannot get '%' position" % pos_attr.obj.name,
+                                    exc_info=pos_attr.exc_info)
             ret.append(pos_attr.value)
         return ret
 
     def calc_pseudo(self, physical_positions=None):
-        obj = self.obj
-        if physical_positions is None:
-            physical_positions = self.get_physical_positions()
-        else:
-            l_p, l_u = len(physical_positions), len(obj.get_user_elements())
-            if l_p != l_u:
-                raise PoolException("calc_pseudo: must give %d physical " \
-                                    "positions (you gave %d)" % (l_u, l_p) )
-        
-        ctrl, axis = obj.controller, obj.axis    
-        return ctrl.calc_pseudo(axis, physical_positions, None)
+        try:
+            obj = self.obj
+            if physical_positions is None:
+                physical_positions = self.get_physical_positions()
+            else:
+                l_p, l_u = len(physical_positions), len(obj.get_user_elements())
+                if l_p != l_u:
+                    raise IndexError("CalcPseudo(%s): must give %d physical " \
+                                     "positions (you gave %d)" % (obj.name, l_u, l_p) )
+            result = obj.controller.calc_pseudo(obj.axis, physical_positions, None)
+        except SardanaException as se:
+            result = SardanaValue(exc_info=se.exc_info)
+        except:
+            result = SardanaValue(exc_info=sys.exc_info())
+        return result    
 
     def calc_all_pseudo(self, physical_positions=None):
-        obj = self.obj
-        if physical_positions is None:
-            physical_positions = self.get_physical_positions()
-        else:
-            l_p, l_u = len(physical_positions), len(obj.get_user_elements())
-            if l_p != l_u:
-                raise PoolException("calc_all_pseudo: must give %d physical " \
-                                    "positions (you gave %d)" % (l_u, l_p) )
-        
-        ctrl, axis = obj.controller, obj.axis    
-        return ctrl.calc_all_pseudo(physical_positions, None)
-
+        try:
+            obj = self.obj
+            if physical_positions is None:
+                physical_positions = self.get_physical_positions()
+            else:
+                l_p, l_u = len(physical_positions), len(obj.get_user_elements())
+                if l_p != l_u:
+                    raise IndexError("CalcAllPseudo():: must give %d physical " \
+                                     "positions (you gave %d)" % (l_u, l_p) )
+            result = obj.controller.calc_all_pseudo(physical_positions, None)
+        except SardanaException as se:
+            result = SardanaValue(exc_info=se.exc_info)            
+        except:
+            result = SardanaValue(exc_info=sys.exc_info())
+        return result
+    
     def calc_physical(self, new_position):
-        obj = self.obj
-        positions = obj.get_siblings_positions()
-        positions[obj] = new_position
-        pseudo_positions = len(positions)*[None]
-        for pseudo, position in positions.items():
-            pseudo_positions[pseudo.axis-1] = position
-        return self.calc_all_physical(pseudo_positions)
-
-    def calc_all_physical(self, new_positions):
-        ctrl = self.obj.controller
-        curr_physical_positions = self.get_physical_positions()
-        physical_positions = ctrl.calc_all_physical(new_positions,
-                                                    curr_physical_positions)
-        if physical_positions.error:
-            raise PoolException("Cannot calculate motion: "
-                                "calc_all_physical raises exception",
-                                exc_info=physical_positions.exc_info)
-        else:
-            if physical_positions.value is None:
-                raise PoolException("Cannot calculate motion: "
-                                    "calc_all_physical returns None")
-        return physical_positions
+        try:
+            obj = self.obj
+            curr_physical_positions = self.get_physical_positions()
+            if isinstance(new_position, collections.Sequence):
+                new_positions = new_position
+            else:
+                positions = obj.get_siblings_positions()
+                positions[obj] = new_position
+                new_positions = len(positions)*[None]
+                for pseudo, position in positions.items():
+                    new_positions[pseudo.axis-1] = position
+            
+            result = obj.controller.calc_all_physical(new_positions,
+                                                      curr_physical_positions)
+        except SardanaException as se:
+            result = SardanaValue(exc_info=se.exc_info)            
+        except:
+            result = SardanaValue(exc_info=sys.exc_info())
+        return result
 
     def on_change(self, evt_src, evt_type, evt_value):
         self.fire_read_event(propagate=evt_type.priority)
@@ -285,9 +300,6 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
     def calc_all_pseudo(self, physical_positions=None):
         return self.get_position_attribute().calc_all_pseudo(physical_positions=physical_positions)
 
-    def calc_all_physical(self, new_positions):
-        return self.get_position_attribute().calc_all_physical(new_positions)
-    
     def get_position_attribute(self):
         return self._position
 
@@ -339,13 +351,20 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
             dict <PoolElement, position(float?) >"""        
         positions = {}
         for sibling in self.siblings:
-            pos_attr = sibling.get_position_attribute() 
+            pos_attr = sibling.get_position(propagate=0) 
             if use and sibling in use:
                 pos = use[sibling]
             elif pos_attr.has_write_value() and write_pos:
                 pos = pos_attr.w_value
             else:
-                pos = pos_attr.value
+                if pos_attr.in_error():
+                    raise PoolException("Cannot get '%s' position" % sibling.name,
+                                        exc_info=pos_attr.exc_info)
+                pos_value = pos_attr.calc_pseudo()
+                if pos_value.error:
+                    raise PoolException("Cannot get '%s' position" % sibling.name,
+                                        exc_info=pos_value.exc_info)
+                pos = pos_value.value
             positions[sibling] = pos
         return positions
         
@@ -484,7 +503,7 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         for new_position, element in zip(physical_positions.value, user_elements):
             if new_position is None:
                 raise PoolException("Cannot calculate motion: %s reports "
-                                    "position to be None" % element.name)
+                                     "position to be None" % element.name)
             element.calculate_motion(new_position, items=items,
                                      calculated=calculated)
         return items

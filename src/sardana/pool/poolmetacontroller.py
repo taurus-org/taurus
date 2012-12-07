@@ -38,29 +38,29 @@ import types
 from taurus.core.util import CaselessDict
 
 from sardana import DataType, DataFormat, DataAccess, \
-    DTYPE_MAP, DACCESS_MAP, to_dtype_dformat, to_daccess, \
+    to_dtype_dformat, to_daccess, \
     ElementType, TYPE_ELEMENTS, InvalidId
 from sardana.sardanameta import SardanaLibrary, SardanaClass
 
-from poolmotor import PoolMotor
-from poolpseudomotor import PoolPseudoMotor
-from poolmotorgroup import PoolMotorGroup
-from poolmeasurementgroup import PoolMeasurementGroup
-from poolcountertimer import PoolCounterTimer
-from poolzerodexpchannel import Pool0DExpChannel
-from poolonedexpchannel import Pool1DExpChannel
-from pooltwodexpchannel import Pool2DExpChannel
-from poolpseudocounter import PoolPseudoCounter
-from poolinstrument import PoolInstrument
-from poolioregister import PoolIORegister
-from poolcontroller import PoolController, PoolPseudoMotorController, \
+from .poolmotor import PoolMotor
+from .poolpseudomotor import PoolPseudoMotor
+from .poolmotorgroup import PoolMotorGroup
+from .poolmeasurementgroup import PoolMeasurementGroup
+from .poolcountertimer import PoolCounterTimer
+from .poolzerodexpchannel import Pool0DExpChannel
+from .poolonedexpchannel import Pool1DExpChannel
+from .pooltwodexpchannel import Pool2DExpChannel
+from .poolpseudocounter import PoolPseudoCounter
+from .poolinstrument import PoolInstrument
+from .poolioregister import PoolIORegister
+from .poolcontroller import PoolController, PoolPseudoMotorController, \
     PoolPseudoCounterController
-from controller import Controller, MotorController, CounterTimerController, \
+from .controller import Controller, MotorController, CounterTimerController, \
     ZeroDController, OneDController, TwoDController, \
     PseudoMotorController, PseudoCounterController, \
     IORegisterController
-from controller import Type, Access, Description, DefaultValue, FGet, FSet, \
-    Memorize, Memorized, MemorizedNoInit, NotMemorized, MaxDimSize
+from .controller import Type, Access, Description, DefaultValue, FGet, FSet, \
+    Memorize, Memorized, MaxDimSize
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -191,7 +191,6 @@ class DataInfo(object):
     @classmethod
     def toDataInfo(klass, name, info):
         info = CaselessDict(info)
-        dformat = DataFormat.Scalar
         dtype = info[Type]
         dtype, dformat = to_dtype_dformat(dtype)
         default_value = info.get(DefaultValue)
