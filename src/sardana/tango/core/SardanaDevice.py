@@ -77,7 +77,7 @@ class SardanaDevice(Device_4Impl, Logger):
             self.init(name)
             Logger.__init__(self, name)
     
-            self._state = DevState.ON
+            self._state = DevState.INIT
             self._status = 'Waiting to be initialized...'
     
             # access to some tango API (like MultiAttribute and Attribute) is

@@ -31,7 +31,7 @@ from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
 #from taurus.core.util import Logger
-from taurus.core.util import CodecFactory, Logger
+from taurus.core.util import CodecFactory
 
 from sardana import State, SardanaServer #, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
@@ -68,7 +68,6 @@ class MacroServer(SardanaDevice):
 
     def init_device(self):
         SardanaDevice.init_device(self)
-        self.set_state(DevState.ON)
         self.set_change_event('State', True, False)
         self.set_change_event('Status', True, False)
         self.set_change_event('TypeList', True, False)
@@ -121,6 +120,7 @@ class MacroServer(SardanaDevice):
             except Exception:
                 self.warning("Failed to start rconsole")
                 self.debug("Details:", exc_info=1)
+        self.set_state(DevState.ON)
     
     def _calculate_name(self, name):
         if name is None:
@@ -229,7 +229,15 @@ class MacroServer(SardanaDevice):
     def read_Elements(self, attr):
         fmt, data = self.getElements()
         attr.set_value(fmt, data)
-    
+
+    def is_Elements_allowed(self, req_type):
+        return SardanaServer.server_state == State.Running
+
+    is_DoorList_allowed = \
+    is_MacroList_allowed = \
+    is_MacroLibList_allowed = \
+    is_TypeList_allowed = is_Elements_allowed
+        
     def GetMacroInfo(self, macro_names):
         """GetMacroInfo(list<string> macro_names):
         

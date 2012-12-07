@@ -86,6 +86,7 @@ class Pool(PyTango.Device_4Impl, Logger):
 
     @DebugIt()
     def init_device(self):
+        self.set_state(PyTango.DevState.INIT)
         self.get_device_properties(self.get_device_class())
         p = self.pool
         p.set_python_path(self.PythonPath)
@@ -222,6 +223,21 @@ class Pool(PyTango.Device_4Impl, Logger):
     def read_Elements(self, attr):
         element_list = self.getElements()
         attr.set_value(*element_list)
+
+    def is_Elements_allowed(self, req_type):
+        return SardanaServer.server_state == State.Running
+
+    is_ControllerLibList_allowed = \
+    is_ControllerClassList_allowed = \
+    is_ControllerList_allowed = \
+    is_InstrumentList_allowed = \
+    is_ExpChannelList_allowed = \
+    is_AcqChannelList_allowed = \
+    is_MotorGroupList_allowed = \
+    is_MotorList_allowed = \
+    is_MeasurementGroupList_allowed = \
+    is_IORegisterList_allowed = \
+    is_ComChannelList_allowed = is_Elements_allowed
 
     def _get_interface_ids(self, interface, elem_names):
         _pool, motor_ids = self.pool, []
