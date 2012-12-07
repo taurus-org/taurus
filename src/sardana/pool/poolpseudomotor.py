@@ -104,7 +104,6 @@ class Position(SardanaAttribute):
                     raise PoolException("Cannot get '%' position" % pos_attr.obj.name,
                                         exc_info=pos_attr.exc_info)
                 value = pos_attr.value
-                
             ret.append(value)
         return ret
         

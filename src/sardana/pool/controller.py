@@ -1288,7 +1288,7 @@ class PseudoCounterController(Controller):
 
     def calc(self, axis, values):
         """**Pseudo Counter Controller API**. Override is **MANDATORY**.
-           Calculate pseudo counter position given the counter values.
+           Calculate pseudo counter value given the counter values.
 
            :param int axis: the pseudo counter role axis
            :param sequence<float> values: a sequence containing current values
@@ -1300,6 +1300,22 @@ class PseudoCounterController(Controller):
            .. deprecated:: 1.0
                implement :meth:`~PseudoCounterController.Calc` instead"""
         raise NotImplementedError("Calc must be defined in te controller")
+
+    def CalcAll(self, values):
+        """**Pseudo Counter Controller API**. Override if necessary.
+           Calculates all pseudo counter values from the values of counters.
+           Default implementation does a loop calling
+           :meth:`PseudoCounterController.Calc` for each pseudo counter role.
+
+           :param sequence<float> values: a sequence containing current values
+                                          of underlying elements
+           :return: a sequece of pseudo counter values (one for each pseudo
+                    counter role)
+           :rtype: sequence<float>
+
+           .. versionadded:: 1.2"""
+        f, n = self.Calc, len(self.pseudo_counter_roles)
+        return [ f(i+1, values) for i in range(n) ]
 
 
 class IORegisterController(Controller, Readable):

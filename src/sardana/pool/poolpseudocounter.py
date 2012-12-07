@@ -30,9 +30,14 @@ __all__ = [ "PoolPseudoCounter" ]
 
 __docformat__ = 'restructuredtext'
 
+import sys
+
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from sardana.sardanaattribute import SardanaAttribute
+from sardana.sardanaexception import SardanaException
+from sardana.sardanavalue import SardanaValue
 
+from .poolexception import PoolException
 from .poolbasechannel import PoolBaseChannel
 from .poolbasegroup import PoolBaseGroup
 from .poolacquisition import PoolAcquisition
@@ -87,12 +92,14 @@ class Value(SardanaAttribute):
         for value_attr in self.obj.get_physical_value_attribute_iterator():
             if value_attr.has_write_value():
                 value = value_attr.w_value
-            elif not value_attr.has_value():
-                # if underlying moveable doesn't have position yet, it is
-                # because of a cold start
-                value_attr.update(propagate=0)
-                value = value_attr.value
             else:
+                if not value_attr.has_value():
+                    # if underlying counter doesn't have value yet, it is
+                    # because of a cold start
+                    value_attr.update(propagate=0)
+                if value_attr.in_error():
+                    raise PoolException("Cannot get '%' value" % value_attr.obj.name,
+                                        exc_info=value_attr.exc_info)
                 value = value_attr.value
             ret.append(value)
         return ret
@@ -104,16 +111,48 @@ class Value(SardanaAttribute):
             # of a cold start
             if not value_attr.has_value():
                 value_attr.update(propagate=0)
+            if value_attr.in_error():
+                raise PoolException("Cannot get '%' value" % value_attr.obj.name,
+                                    exc_info=value_attr.exc_info)
             ret.append(value_attr.value)
         return ret
 
     def calc(self, physical_values=None):
-        if physical_values is None:
-            physical_values = self.get_physical_values()
-        obj = self.obj
-        ctrl, axis = obj.controller, obj.axis    
-        return ctrl.calc(axis, physical_values)
+        try:
+            obj = self.obj
+            if physical_values is None:
+                physical_values = self.get_physical_values()
+            else:
+                l_v, l_u = len(physical_values), len(obj.get_user_elements())
+                if l_v != l_u:
+                    raise IndexError("CalcPseudo(%s): must give %d physical " \
+                                     "values (you gave %d)" % (obj.name, l_u, l_v) )
+            ctrl, axis = obj.controller, obj.axis    
+            result = ctrl.calc(axis, physical_values)
+        except SardanaException as se:
+            result = SardanaValue(exc_info=se.exc_info)
+        except:
+            result = SardanaValue(exc_info=sys.exc_info())
+        return result    
 
+    def calc_all(self, physical_values=None):
+        try:
+            obj = self.obj
+            if physical_values is None:
+                physical_values = self.get_physical_values()
+            else:
+                l_v, l_u = len(physical_values), len(obj.get_user_elements())
+                if l_v != l_u:
+                    raise IndexError("CalcAllPseudo(%s): must give %d physical " \
+                                     "values (you gave %d)" % (obj.name, l_u, l_v) )
+            ctrl, axis = obj.controller, obj.axis    
+            result = ctrl.calc_all(axis, physical_values)
+        except SardanaException as se:
+            result = SardanaValue(exc_info=se.exc_info)
+        except:
+            result = SardanaValue(exc_info=sys.exc_info())
+        return result   
+    
     def on_change(self, evt_src, evt_type, evt_value):
         self.fire_read_event(propagate=evt_type.priority)
 
@@ -196,7 +235,13 @@ class PoolPseudoCounter(PoolBaseGroup, PoolBaseChannel):
     # ------------------------------------------------------------------------
     # value
     # ------------------------------------------------------------------------
+    
+    def calc(self, physical_values=None):
+        return self.get_value_attribute().calc(physical_values=physical_values)    
 
+    def calc_all(self, physical_values=None):
+        return self.get_value_attribute().calc_all(physical_values=physical_values)    
+    
     def get_low_level_physical_value_attribute_iterator(self):
         return self.get_physical_elements_attribute_iterator()
         

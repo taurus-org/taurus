@@ -284,7 +284,7 @@ class PoolController(PoolBaseController):
     
     def re_init(self):
         self.set_state(State.Init, propagate=2)
-        status = "{0} is Initializing (temporarly unavailable)".format(self.name)
+        status = "{0} is Initializing (temporarily unavailable)".format(self.name)
         self.set_status(status, propagate=2)
         manager = self.pool.ctrl_manager
         old_e_ids = self._element_ids
@@ -789,7 +789,7 @@ class PoolPseudoMotorController(PoolController):
         
     def _create_ctrl_args(self):
         pars = PoolController._create_ctrl_args(self)
-        name, klass, props, args, kwargs = pars
+        kwargs = pars[4]
         kwargs['motor_ids'] = tuple(self._motor_ids)
         return pars
 
@@ -826,7 +826,7 @@ class PoolPseudoMotorController(PoolController):
         try:
             ctrl_value = ctrl.CalcAllPhysical(pseudo_pos, curr_physical_pos)
             if ctrl_value is None:
-                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                msg = '%s.CalcAllPhysical() return error: Expected value, ' \
                       'got None instead' % (self.name, )
                 raise ValueError(msg)
             value = translate_ctrl_value(ctrl_value)
@@ -840,7 +840,7 @@ class PoolPseudoMotorController(PoolController):
         try:
             ctrl_value = ctrl.CalcPseudo(axis, physical_pos, curr_pseudo_pos)
             if ctrl_value is None:
-                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                msg = '%s.CalcPseudo() return error: Expected value, ' \
                       'got None instead' % (self.name, )
                 raise ValueError(msg)
             value = translate_ctrl_value(ctrl_value)
@@ -854,7 +854,7 @@ class PoolPseudoMotorController(PoolController):
         try:
             ctrl_value = ctrl.CalcPhysical(axis, pseudo_pos, curr_physical_pos)
             if ctrl_value is None:
-                msg = '%s.CalcAllPseudo() return error: Expected value, ' \
+                msg = '%s.CalcPhysical() return error: Expected value, ' \
                       'got None instead' % (self.name, )
                 raise ValueError(msg)
             value = translate_ctrl_value(ctrl_value)
@@ -866,7 +866,7 @@ class PoolPseudoMotorController(PoolController):
 class PoolPseudoCounterController(PoolController):
     
     def __init__(self, **kwargs):
-        self._motor_ids = kwargs.pop('role_ids')
+        self._counter_ids = kwargs.pop('role_ids')
         super(PoolPseudoCounterController, self).__init__(**kwargs)
     
     def serialize(self, *args, **kwargs):
@@ -876,8 +876,8 @@ class PoolPseudoCounterController(PoolController):
         
     def _create_ctrl_args(self):
         pars = PoolController._create_ctrl_args(self)
-        name, klass, props, args, kwargs = pars
-        kwargs['motor_ids'] = tuple(self._motor_ids)
+        kwargs = pars[4]
+        kwargs['counter_ids'] = tuple(self._counter_ids)
         return pars
     
     @check_ctrl
@@ -893,4 +893,16 @@ class PoolPseudoCounterController(PoolController):
         except:
             value = SardanaValue(exc_info=sys.exc_info())
         return value
-
+    
+    def calc_all(self, values):
+        ctrl = self.ctrl
+        try:
+            ctrl_value = ctrl.CalcAll(values)
+            if ctrl_value is None:
+                msg = '%s.CalcAll() return error: Expected value, ' \
+                      'got None instead' % (self.name, )
+                raise ValueError(msg)
+            value = translate_ctrl_value(ctrl_value)
+        except:
+            value = SardanaValue(exc_info=sys.exc_info())
+        return value

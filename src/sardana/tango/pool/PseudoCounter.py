@@ -33,13 +33,14 @@ import sys
 import time
 
 from PyTango import Except, READ, SCALAR, DevDouble, \
-    DevVarStringArray, DevState, AttrQuality, DevFailed
+    DevVarStringArray, DevVarDoubleArray, DevState, AttrQuality, DevFailed
 
 from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-from sardana.tango.core.util import to_tango_type_format, exception_str
+from sardana.tango.core.util import to_tango_type_format, exception_str, \
+    throw_sardana_exception
 from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 
@@ -192,6 +193,24 @@ class PseudoCounter(PoolElementDevice):
                            
     is_Value_allowed = _is_allowed
 
+    def CalcPseudo(self, physical_values):
+        """Returns the pseudo counter value for the given physical counters"""
+        if not len(physical_values):
+            physical_values = None
+        result = self.pseudo_counter.calc(physical_values=physical_values)
+        if result.error:
+            throw_sardana_exception(result)
+        return result.value
+
+    def CalcAllPseudo(self, physical_values):
+        """Returns the pseudo counter values for the given physical counters"""
+        if not len(physical_values):
+            physical_values = None
+        result = self.pseudo_counter.calc(physical_values=physical_values)
+        if result.error:
+            throw_sardana_exception(result)
+        return result.value
+
 
 class PseudoCounterClass(PoolElementDeviceClass):
 
@@ -207,6 +226,8 @@ class PseudoCounterClass(PoolElementDeviceClass):
 
     #    Command definitions
     cmd_list = {
+        'CalcPseudo'      : [ [DevVarDoubleArray, "physical values"], [DevDouble, "pseudo counter"] ],
+        'CalcAllPseudo'   : [ [DevVarDoubleArray, "physical positions"], [DevVarDoubleArray, "pseudo counter values"] ],
     }
     cmd_list.update(PoolElementDeviceClass.cmd_list)
 
