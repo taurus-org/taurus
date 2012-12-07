@@ -1432,6 +1432,21 @@ class Macro(Logger):
         ret.sort()
         return ret
 
+    @mAPI 
+    def getMacroLib(self, lib_name):
+        """**Macro API**. Returns a
+        :class:`~sardana.macroserver.msmetamacro.MacroLibrary` object for the
+        given library name.
+
+        :param lib_name:
+            library name
+        :type lib_name: str
+        :return:
+            a macro library :class:`~sardana.macroserver.msmetamacro.MacroLibrary`
+        :rtype: :class:`~sardana.macroserver.msmetamacro.MacroLibrary`"""
+        ret = self.door.get_macro_lib(lib_name)
+        return ret
+
     @mAPI
     def getMacroInfo(self, macro_name):
         """**Macro API**. Returns the corresponding

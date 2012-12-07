@@ -31,11 +31,7 @@ __all__ = ["MACRO_TEMPLATE", "MacroLibrary", "MacroClass", "MacroFunction"]
 __docformat__ = 'restructuredtext'
 
 import inspect
-import os
 import operator
-import types
-
-from taurus.core.util import CodecFactory
 
 from sardana import InvalidId, ElementType
 from sardana.sardanameta import SardanaLibrary, SardanaClass, SardanaFunction
@@ -68,8 +64,8 @@ def @macro_name@(self):
 """
 
 class MacroLibrary(SardanaLibrary):
-    """Object representing a python module containning macro classes and/or 
-    macro functins. Public members:
+    """Object representing a python module containing macro classes and/or 
+    macro functions. Public members:
         
         - module - reference to python module
         - file_path - complete (absolute) path (with file name at the end)
@@ -77,7 +73,7 @@ class MacroLibrary(SardanaLibrary):
         - path - complete (absolute) path
         - name - (=module name) module name (without file extension)
         - macros - dict<str, MacroClass>
-        - exc_info - exception information if an error occured when loading 
+        - exc_info - exception information if an error occurred when loading 
                     the module"""
     
     def __init__(self, **kwargs):

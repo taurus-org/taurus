@@ -234,6 +234,7 @@ class Door(SardanaDevice):
         door.set_pyplot_handler(pyploth)
 
         door.add_listener(self.on_door_changed)
+        self.set_state(DevState.ON)
 
     def _setupLogHandlers(self, levels):
         self._handler_dict = {}

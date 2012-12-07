@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from traceback import format_exception
 
 ##############################################################################
 ##
@@ -34,30 +35,28 @@ import sys
 import os
 import inspect
 import copy
-import traceback
-import operator
 import re
 import functools
+import traceback
 
 from lxml import etree
 
 from PyTango import DevFailed
 from taurus.core.util import Logger, CodecFactory
 
-from sardana import ElementType
+from sardana.sardanadefs import ElementType
 from sardana.sardanamodulemanager import ModuleManager
+from sardana.sardanaexception import format_exception_only_str
+from sardana.sardanautils import is_pure_str, is_non_str_seq
 
-from msmanager import MacroServerManager
-from msexception import MacroServerException, \
-    UnknownMacro, UnknownMacroLibrary, MissingEnv, LibraryError, \
-    StopException, AbortException
-
-from macro import Macro, MacroFunc
-from msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
-from msparameter import ParamDecoder
+from .msmanager import MacroServerManager
+from .msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
+from .msparameter import ParamDecoder
+from .macro import Macro, MacroFunc
+from .msexception import UnknownMacroLibrary, LibraryError, UnknownMacro, \
+    MissingEnv, AbortException, StopException, MacroServerException
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 
 def islambda(f):
@@ -90,7 +89,7 @@ def is_macro(macro, abs_file=None, logger=None):
         if not hasattr(macro, 'macro_data'):
             return False
 
-        args, varargs, keywords, defaults = inspect.getargspec(macro)
+        args, varargs, keywords, _ = inspect.getargspec(macro)
         if len(args) == 0:
             if logger:
                 logger.debug("Could not add macro %s: Needs at least one "
@@ -226,7 +225,7 @@ class MacroManager(MacroServerManager):
             f_name += '.py'
 
         if os.path.isabs(f_name):
-            path, name = os.path.split(f_name)
+            path, _ = os.path.split(f_name)
             if not path in self.getMacroPath():
                 raise Exception("'%s' is not part of the MacroPath" % path)
         else:
@@ -276,7 +275,7 @@ class MacroManager(MacroServerManager):
                 if macro is None:
                     f_name, code, line_nb = self.createMacro(lib_name, macro_name)
                 else:
-                    code_lines, line_nb = macro.code
+                    _, line_nb = macro.code
                     f_name = macro.file_path
                     f = file(f_name)
                     code = f.read()
@@ -290,8 +289,8 @@ class MacroManager(MacroServerManager):
         f.write(code)
         f.flush()
         f.close()
-        p, name = os.path.split(f_name)
-        mod, ext = os.path.splitext(name)
+        _, name = os.path.split(f_name)
+        mod, _ = os.path.splitext(name)
         if auto_reload:
             self.reloadMacroLib(mod)
         return mod
@@ -320,7 +319,7 @@ class MacroManager(MacroServerManager):
             template += '\n'
             t = open(f_name, 'rU')
             line_nb = -1
-            for line_nb, line in enumerate(t): pass
+            for line_nb, _ in enumerate(t): pass
             line_nb += 3
             t.close()
 
@@ -397,14 +396,14 @@ class MacroManager(MacroServerManager):
         """Reloads the given lib(=module) names.
 
         :raises:
-            LibraryError in case the reload process is not successfull
+            LibraryError in case the reload process is not successful
 
         :param module_name: macro library name (=python module name)
         :param path:
             a list of absolute path to search for libraries [default: None,
             means the current MacroPath will be used]
 
-        :return: the MacroLibrary object for the reloaded macro lib"""
+        :return: the MacroLibrary object for the reloaded macro library"""
         path = path or self.getMacroPath()
         # reverse the path order:
         # more priority elements last. This way if there are repeated elements
@@ -432,10 +431,11 @@ class MacroManager(MacroServerManager):
         if m is None:
             file_name = self._findMacroLibName(module_name)
             if file_name is None:
-                e = exc_info[1]
-                exp_pars = dict(type=exc_info[0].__name__, msg=str(e),
-                                args=e.args)
-                raise LibraryError(exp_pars, exc_info=exc_info)
+                if exc_info:
+                    msg = format_exception_only_str(*exc_info[:2])
+                else:
+                    msg = "Error (re)loading macro library '%s'" % module_name
+                raise LibraryError(msg, exc_info=exc_info)
             params['file_path'] = file_name
             macro_lib = MacroLibrary(**params)
         else:
@@ -443,7 +443,7 @@ class MacroManager(MacroServerManager):
             abs_file = macro_lib.file_path
             _is_macro = functools.partial(is_macro, abs_file=abs_file,
                                           logger=self)
-            for name, macro in inspect.getmembers(m, _is_macro):
+            for _, macro in inspect.getmembers(m, _is_macro):
                 try:
                     self.addMacro(macro_lib, macro)
                 except:
@@ -563,7 +563,7 @@ class MacroManager(MacroServerManager):
         if isinstance(macro_names, (str, unicode)):
             macro_names = [macro_names]
         ret = []
-        json_codec = CodecFactory().getCodec('json')
+        json_codec = CodecFactory().getCodec(format)
         for macro_name in macro_names:
             macro_meta = self.getMacro(macro_name)
             ret.append(json_codec.encode(('', macro_meta.serialize()))[1])
@@ -749,10 +749,10 @@ class MacroExecutor(Logger):
 
     def __fillXMLSequence(self, macros):
         for macro in macros:
-            id = macro.get('id')
-            if id is None:
-                id = str(self.getNewMacroID())
-                macro.set('id', id)
+            eid = macro.get('id')
+            if eid is None:
+                eid = str(self.getNewMacroID())
+                macro.set('id', eid)
             name = macro.get('name')
             params = []
             for p in macro.xpath('param|paramrepeat'):
@@ -772,7 +772,7 @@ class MacroExecutor(Logger):
         """
         if result is None:
             return ()
-        if operator.isSequenceType(result) and not isinstance(result, (str, unicode)):
+        if is_non_str_seq(result):
             result = map(str, result)
         else:
             result = (str(result),)
@@ -788,7 +788,7 @@ class MacroExecutor(Logger):
         return self.macro_manager.decodeMacroParameters(self.door, params)
 
     def _prepareXMLMacro(self, xml_macro, parent_macro=None):
-        macro_meta, str_params, params = self._decodeXMLMacroParameters(xml_macro)
+        macro_meta, _, params = self._decodeXMLMacroParameters(xml_macro)
         init_opts = {
             'id'           : xml_macro.get('id'),
             'macro_line'   : xml_macro.get('macro_line'),
@@ -866,9 +866,9 @@ class MacroExecutor(Logger):
         """
         par0 = pars[0]
         if len(pars) == 1:
-            if isinstance(par0, (str, unicode)):
+            if is_pure_str(par0):
                 pars = par0.split(' ')
-            elif operator.isSequenceType(par0):
+            elif is_non_str_seq(par0):
                 pars = par0
         pars = map(str, pars)
 
@@ -884,7 +884,7 @@ class MacroExecutor(Logger):
 
     def __stopObjects(self):
         """Stops all the reserved objects in the executor"""
-        for macro, objs in self._reserved_macro_objs.items():
+        for _, objs in self._reserved_macro_objs.items():
             for obj in objs:
                 try:
                     obj.stop()
@@ -896,7 +896,7 @@ class MacroExecutor(Logger):
 
     def __abortObjects(self):
         """Aborts all the reserved objects in the executor"""
-        for macro, objs in self._reserved_macro_objs.items():
+        for _, objs in self._reserved_macro_objs.items():
             for obj in objs:
                 try:
                     obj.abort()
@@ -1022,7 +1022,7 @@ class MacroExecutor(Logger):
     def __runXMLMacro(self, xml):
         assert xml.tag == 'macro'
         try:
-            macro_obj, ret = self._prepareXMLMacro(xml)
+            macro_obj, _ = self._prepareXMLMacro(xml)
         except AbortException as ae:
             raise ae
         except Exception as e:

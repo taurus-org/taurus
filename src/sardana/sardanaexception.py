@@ -27,12 +27,22 @@
 for sardana exceptions"""
 
 __all__ = [ "AbortException", "SardanaException", "SardanaExceptionList", 
-           "UnknownCode", "UnknownLibrary", "LibraryError"]
+           "UnknownCode", "UnknownLibrary", "LibraryError",
+           "format_exception_only", "format_exception_only_str"]
 
 __docformat__ = 'restructuredtext'
 
 import sys
+import traceback
 
+def format_exception_only(etype, value):
+    msg = traceback.format_exception_only(etype, value)
+    if msg[-1].endswith("\n"):
+        msg[-1] = msg[-1][:-1]
+    return msg
+
+def format_exception_only_str(etype, value):
+    return "".join(format_exception_only(etype, value))
 
 class AbortException(Exception):
     pass
@@ -53,7 +63,12 @@ class SardanaException(Exception):
                 self.traceback = None
                 self.type = self.__class__.__name__
         else:
-            self.msg = "Unknown sardana exception"
+            exc_info = kwargs.get("exc_info")
+            if exc_info is None:
+                self.msg = "Unknown sardana exception"
+            else:
+                msg = format_exception_only_str(*exc_info[:2])
+                self.msg = msg
             self.traceback = None
             self.type = self.__class__.__name__
         if 'exc_info' in kwargs:
@@ -82,6 +97,6 @@ class UnknownLibrary(SardanaException):
     pass
 
 
-class LibraryError(Exception):
+class LibraryError(SardanaException):
     pass
 

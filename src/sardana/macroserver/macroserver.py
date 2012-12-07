@@ -443,6 +443,8 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         evt = { "new" : new_elements, "change" : changed_elements,
                 "del" : deleted_elements }
         self.fire_event(EventType("ElementsChanged"), evt)
+        return new_lib
+        
     reload_macro_lib.__doc__ = MacroManager.reloadMacroLib.__doc__
     
     def reload_macro_libs(self, lib_names):

@@ -81,7 +81,7 @@ def getsource(object):
 
 
 class SardanaLibrary(SardanaBaseObject):
-    """Object representing a python module containning sardana classes.
+    """Object representing a python module containing sardana classes.
        Public members:
 
            - module - reference to python module
@@ -90,7 +90,7 @@ class SardanaLibrary(SardanaBaseObject):
            - path - complete (absolute) path
            - name - (=module name) module name (without file extension)
            - meta_classes - dict<str, SardanMetaClass>
-           - exc_info - exception information if an error occured when loading
+           - exc_info - exception information if an error occurred when loading
                         the module"""
 
     description = '<Undocumented>'

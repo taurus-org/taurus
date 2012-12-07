@@ -31,11 +31,10 @@ __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
            "edctrllib", "lsmac", "prdef", "relmac", "relmaclib", "send2ctrl",
            "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
+import traceback
 import array
 
-from taurus.console.list import List
-from taurus.console.table import Table
-from sardana.macroserver.macro import *
+from sardana.macroserver.macro import Macro, Type, ParamRepeat
 
 ################################################################################
 #
@@ -275,16 +274,16 @@ class lsmac(Macro):
 
 
 class prdef(Macro):
-     """Returns the the macro code for the given macro name."""
+    """Returns the the macro code for the given macro name."""
 
-     param_def = [
-          ['macro_name', Type.MacroCode, None, 'macro name']
-     ]
+    param_def = [
+         ['macro_name', Type.MacroCode, None, 'macro name']
+    ]
 
-     def run(self,macro_data):
-        code_lines, first_line = macro_data.code
-        for code_line in code_lines:
-            self.output(code_line.strip('\n'))
+    def run(self,macro_data):
+       code_lines, first_line = macro_data.code
+       for code_line in code_lines:
+           self.output(code_line.strip('\n'))
 
 
 #class edmac(Macro):
@@ -354,12 +353,21 @@ class relmaclib(Macro):
     """Reloads the given macro library code from the macro server filesystem."""
 
     param_def = [
-        ['module name', Type.MacroLibrary, None,
+        ['macro_library', Type.MacroLibrary, None,
          'The module name to be reloaded (without extension)']
     ]
 
-    def run(self, module):
-        self.reloadMacroLib(module.name)
+    def run(self, macro_library):
+        name = macro_library.name
+        new_macro_library = self.reloadMacroLib(name)
+        if new_macro_library.has_errors():
+            exc_info = new_macro_library.get_error()
+            #msg = "".join(traceback.format_exception(*exc_info))
+            msg = "".join(traceback.format_exception_only(*exc_info[:2]))
+            self.error(msg)
+        else:
+            macros = new_macro_library.get_macros()
+            self.output("%s successfully (re)loaded (found %d macros)", name, len(macros))
 
 
 class relmac(Macro):
@@ -367,11 +375,21 @@ class relmac(Macro):
     Attention: All macros inside the same file will also be reloaded."""
 
     param_def = [
-        ['macro_name', Type.MacroCode, None, 'macro name']
+        ['macro_code', Type.MacroCode, None, 'macro name to be reloaded']
     ]
 
-    def run(self, macro_data):
-        self.reloadMacro(macro_data.name)
+    def run(self, macro_code):
+        name = macro_code.name
+        macro_library_name = macro_code.lib.name
+        self.reloadMacro(name)
+        macro_library = self.getMacroLib(macro_library_name)
+        if macro_library.has_errors():
+            exc_info = macro_library.get_error()
+            #msg = "".join(traceback.format_exception(*exc_info))
+            msg = "".join(traceback.format_exception_only(*exc_info[:2]))
+            self.error(msg)
+        else:
+            self.output("%s successfully (re)loaded", name)
 
 
 class sar_info(Macro):
