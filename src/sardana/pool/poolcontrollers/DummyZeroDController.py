@@ -35,7 +35,7 @@ class Channel:
 
 
 class DummyZeroDController(ZeroDController):
-    """This class representes a dummy Sardana 0D controller."""
+    """This class represents a dummy Sardana 0D controller."""
 
     gender = "Simulation"
     model  = "Basic"
@@ -50,7 +50,6 @@ class DummyZeroDController(ZeroDController):
         self.read_channels = {}
         
     def AddDevice(self,ind):
-        idx = ind - 1
         self.channels[ind].active = True
         
     def DeleteDevice(self,ind):
