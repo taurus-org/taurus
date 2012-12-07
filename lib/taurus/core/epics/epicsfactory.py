@@ -266,7 +266,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         connected = self.__pv.wait_for_connection()
         if connected:
             self.info('successfully connected to epics PV')
-            self._value = self.decode(self.__pv)
+            self._value = self.decode_pv(self.__pv)
         else:
             self.info('connection to epics PV failed')
             self._value = taurus.core.TaurusAttrValue()
@@ -275,8 +275,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         
     def onEpicsEvent(self, **kw):
         '''callback for PV changes'''
-        self._value = self.decode(self.__pv)#we ignore what comes in kw and assume that the _pv has been updated already
-        
+        self._value = self.decode_epics_evt(kw)
         self.fireEvent(TaurusEventType.Change, self._value)
     
     def __getattr__(self,name):
@@ -309,7 +308,13 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         a representation that can be written in epics'''
         return value
 
-    def decode(self, pv):
+    def decode (self, obj):
+        if isinstance(obj, epics.PV):
+            return self.decode_pv(obj)
+        else:
+            return self.decode_epics_evt(obj)
+
+    def decode_pv(self, pv):
         """Decodes an epics pv into the expected taurus representation"""
         #@todo: This is a very basic implementation, and things like quality may not be correct
         attr_value = taurus.core.TaurusAttrValue()
@@ -326,12 +331,31 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
             attr_value.quality = taurus.core.AttrQuality.ATTR_VALID
         attr_value.config.data_format = len(numpy.shape(attr_value.value))
         return attr_value
+    
+    def decode_epics_evt(self, evt):
+        """Decodes an epics event (a callback keywords dict) into the expected taurus representation"""
+        #@todo: This is a very basic implementation, and things like quality may not be correct
+        attr_value = taurus.core.TaurusAttrValue()
+        attr_value.value = evt.get('value')
+        if evt.get('write_access', False):
+            attr_value.w_value = attr_value.value
+        timestamp =  evt.get('timestamp', None)
+        if timestamp is None: 
+            attr_value.time = taurus.core.TaurusTimeVal.now()
+        else:
+            attr_value.time = taurus.core.TaurusTimeVal.fromtimestamp(timestamp)
+        if evt.get('severity', 1) > 0:
+            attr_value.quality = taurus.core.AttrQuality.ATTR_ALARM
+        else:
+            attr_value.quality = taurus.core.AttrQuality.ATTR_VALID
+        attr_value.config.data_format = len(numpy.shape(attr_value.value))
+        return attr_value
 
     def write(self, value, with_read=True):
         value = self.encode(value)
         self.__pv.put(value)
         if with_read:
-            return self.decode(self.__pv)
+            return self.decode_pv(self.__pv)
 
     def read(self, cache=True):
         '''returns the value of the attribute.
@@ -344,7 +368,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         '''
         if not cache:
             self.__pv.get(use_monitor=False)
-        self._value = self.decode(self.__pv)
+            self._value = self.decode_pv(self.__pv)
         return self._value    
 
     def poll(self):
@@ -352,7 +376,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
         self.fireEvent(TaurusEventType.Periodic, v)
 
     def isUsingEvents(self):
-        return False #@todo
+        return True #@todo
         
 #------------------------------------------------------------------------------ 
 
