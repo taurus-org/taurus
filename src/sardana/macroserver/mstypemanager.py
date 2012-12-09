@@ -72,11 +72,9 @@ class TypeManager(MacroServerManager):
             return
         
         if self._modules:
-            mm = ModuleManager()
-            for module_name, types_dict in self._modules.items():
+            for _, types_dict in self._modules.items():
                 for type_name in types_dict:
                     Type.removeType(type_name)
-                mm.unloadModule(module_name)
                 
         self._modules = None
         self._inst_dict = None

@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Pool libray. It defines the class which
+"""This module is part of the Python Pool library. It defines the class which
 controls finding, loading/unloading of device pool controller plug-ins."""
 
 __all__ = ["ControllerManager" ]
@@ -39,9 +39,8 @@ import types
 import re
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger, InfoIt
+from taurus.core.util import Singleton, Logger
 
-from sardana import ElementType
 from sardana.sardanamodulemanager import ModuleManager
 
 import controller
@@ -102,7 +101,7 @@ class ControllerManager(Singleton, Logger):
         self._controller_path = []
         
         l = []
-        for name, klass in inspect.getmembers(controller, inspect.isclass):
+        for _, klass in inspect.getmembers(controller, inspect.isclass):
             if not issubclass(klass, controller.Controller):
                 continue
             l.append(klass)
@@ -115,8 +114,8 @@ class ControllerManager(Singleton, Logger):
         if self._state == ManagerState.CLEANED:
             return
         
-        if self._modules:
-            ModuleManager().unloadModules(self._modules.keys())
+        #if self._modules:
+        #    ModuleManager().unloadModules(self._modules.keys())
         
         self._controller_path = None
         self._controller_dict = None
@@ -162,7 +161,7 @@ class ControllerManager(Singleton, Logger):
         for controller_file_name in controller_file_names:
             try:
                 self.reloadControllerLib(controller_file_name, reload=reload)
-            except Exception,e:
+            except Exception:
                 pass
         
     def getControllerPath(self):
@@ -179,7 +178,6 @@ class ControllerManager(Singleton, Logger):
         ret = []
         for p in path:
             try:
-                elems = os.listdir(p)
                 for f in os.listdir(p):
                     name,ext = os.path.splitext(f)
                     if not name[0].isalpha():
@@ -198,11 +196,10 @@ class ControllerManager(Singleton, Logger):
             f_name += '.py'
             
         if os.path.isabs(f_name):
-            path, name = os.path.split(f_name)
+            path, _ = os.path.split(f_name)
             if not path in self.getControllerPath():
                 raise Exception("'%s' is not part of the PoolPath" % path)
         else:
-            name = f_name
             f_name = os.path.join(path, f_name)
         return f_name
 
@@ -244,7 +241,7 @@ class ControllerManager(Singleton, Logger):
                 if controller is None:
                     f_name, code, line_nb = self.createController(lib_name, controller_name)
                 else:
-                    code_lines, line_nb = controller.getCode()
+                    _, line_nb = controller.getCode()
                     f_name = controller.getFileName()
                     f = file(f_name)
                     code = f.read()
@@ -263,8 +260,8 @@ class ControllerManager(Singleton, Logger):
         f.write(code)
         f.flush()
         f.close()
-        p, name = os.path.split(f_name)
-        mod, ext = os.path.splitext(name)
+        _, name = os.path.split(f_name)
+        mod, _ = os.path.splitext(name)
         self.reloadControllerLib(mod)
 
     def createControllerLib(self, lib_name, path=None):
@@ -292,7 +289,7 @@ class ControllerManager(Singleton, Logger):
             template += '\n'
             t = open(f_name, 'rU')
             line_nb = -1
-            for line_nb, line in enumerate(t): pass
+            for line_nb, _ in enumerate(t): pass
             line_nb += 3
             t.close()
             
@@ -339,7 +336,7 @@ class ControllerManager(Singleton, Logger):
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
                  in case the controller is unknown or :exc:`ImportError` if
-                 the reload process is not successfull
+                 the reload process is not successful
         
         :param seq<str> controller_names: a list of controller class names
         :param seq<str> path: a list of absolute path to search for libraries
@@ -352,11 +349,11 @@ class ControllerManager(Singleton, Logger):
         self.reloadControllerLibs(module_names, path=path)
     
     def reloadControllerLibs(self, module_names, path=None, reload=True):
-        """Reloads the given lib(=module) names
+        """Reloads the given library(=module) names
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
                  in case the controller is unknown or :exc:`ImportError` if
-                 the reload process is not successfull
+                 the reload process is not successful
         
         :param seq<str> module_names: a list of module names
         :param seq<str> path: a list of absolute path to search for libraries
@@ -368,18 +365,18 @@ class ControllerManager(Singleton, Logger):
                 m = self.reloadControllerLib(module_name, path, reload=reload)
                 if m: ret.append(m)
             except:
-                self.info("Failed to reload controller lib %s", module_name)
-                self.debug("Failed to reload controller lib %s details",
+                self.info("Failed to reload controller library %s", module_name)
+                self.debug("Failed to reload controller library %s details",
                            module_name, exc_info=1)
         
         return ret
 
     def reloadControllerLib(self, module_name, path=None, reload=True):
-        """Reloads the given lib(=module) names
+        """Reloads the given library(=module) names
         
         :raises: :exc:`sardana.pool.poolexception.UnknownController`
                  in case the controller is unknown or :exc:`ImportError` if
-                 the reload process is not successfull
+                 the reload process is not successful
         
         :param str module_name: controller library name (=python module name)
         :param seq<str> path: a list of absolute path to search for libraries
@@ -417,7 +414,7 @@ class ControllerManager(Singleton, Logger):
             controller_lib = ControllerLibrary(**params)
             lib_contains_controllers = False
             abs_file = controller_lib.file_path
-            for name, klass in inspect.getmembers(m, inspect.isclass):
+            for _, klass in inspect.getmembers(m, inspect.isclass):
                 if issubclass(klass, controller.Controller):
                     # if it is a class defined in some other class forget it to
                     # avoid replicating the same controller in different
@@ -451,7 +448,7 @@ class ControllerManager(Singleton, Logger):
             self._controller_dict[controller_name] = controller_class
             
         except:
-            self.warning("Faild to add controller class %s", controller_name,
+            self.warning("Failed to add controller class %s", controller_name,
                          exc_info=1)
         
         if exists:
@@ -533,11 +530,11 @@ class ControllerManager(Singleton, Logger):
         if controller_class is None:
             raise UnknownController("Unknown controller %s" % controller_name_or_klass)
         import parameter
-        out_par_list = parameter.ParamDecoder(controller_class, in_par_list)
+        out_par_list = msparameter.ParamDecoder(controller_class, in_par_list)
         return controller_class, in_par_list, out_par_list
 
     def strControllerParamValues(self,par_list):
-        """Creates a short string representantion of the parameter values list.
+        """Creates a short string representation of the parameter values list.
            
            :param par_list: list of strings representing the parameter values.
            :type par_list: list<str>

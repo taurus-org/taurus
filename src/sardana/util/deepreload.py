@@ -52,6 +52,16 @@ from warnings import warn
 
 original_import = __builtin__.__import__
 
+
+class DeepReload(object):
+    
+    def __enter__(self):
+        __builtin__.reload = reload        
+    
+    def __exit__(self, etype, evalue, etraceback):
+        __builtin__.reload = original_reload
+
+
 @contextmanager
 def replace_import_hook(new_import):
     saved_import = __builtin__.__import__
@@ -318,8 +328,8 @@ def deep_reload_hook(m):
     try:
         newm = imp.load_module(name, fp, filename, stuff)
     except:
-         # load_module probably removed name from modules because of
-         # the error.  Put back the original module object.
+        # load_module probably removed name from modules because of
+        # the error.  Put back the original module object.
         sys.modules[name] = m
         raise
     finally:

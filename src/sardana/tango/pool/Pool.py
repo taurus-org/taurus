@@ -225,6 +225,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         attr.set_value(*element_list)
 
     def is_Elements_allowed(self, req_type):
+        return True
         return SardanaServer.server_state == State.Running
 
     is_ControllerLibList_allowed = \

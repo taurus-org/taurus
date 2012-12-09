@@ -89,11 +89,15 @@ def sar_demo(self):
     mot_ctrl_name = get_free_names(db, "motctrl", 1)[0]
     ct_ctrl_name = get_free_names(db, "ctctrl", 1)[0]
     zerod_ctrl_name = get_free_names(db, "zerodctrl", 1)[0]
+    oned_ctrl_name = get_free_names(db, "onedctrl", 1)[0]
+    twod_ctrl_name = get_free_names(db, "twodctrl", 1)[0]
     pm_ctrl_name = get_free_names(db, "slitctrl", 1)[0]
     
     motor_names = get_free_names(db, "mot", 4)
     ct_names = get_free_names(db, "ct", 4)
     zerod_names = get_free_names(db, "zerod", 4)
+    oned_names = get_free_names(db, "oned", 1)
+    twod_names = get_free_names(db, "twod", 1)
     gap, offset = get_free_names(db, "gap", 1) + get_free_names(db, "offset", 1)
     
     mg_name = get_free_names(db, "mntgrp", 1)[0]
@@ -101,7 +105,7 @@ def sar_demo(self):
     pools = self.getPools()
     if not len(pools):
         self.error('This is not a valid sardana demonstration system.\n'
-                   'Sardana demostration systems must be connect to at least '
+                   'Sardana demonstration systems must be connect to at least '
                    'one Pool')
         return
     pool = pools[0]
@@ -123,6 +127,18 @@ def sar_demo(self):
     for axis, zerod_name in enumerate(zerod_names, 1):
         self.print("Creating 0D channel", zerod_name, "...")
         self.defelem(zerod_name , zerod_ctrl_name, axis)
+
+    self.print("Creating 1D controller", oned_ctrl_name, "...")
+    self.defctrl("DummyOneDController", oned_ctrl_name)
+    for axis, oned_name in enumerate(oned_names, 1):
+        self.print("Creating 1D channel", oned_name, "...")
+        self.defelem(oned_name , oned_ctrl_name, axis)
+
+    self.print("Creating 2D controller", twod_ctrl_name, "...")
+    self.defctrl("DummyTwoDController", twod_ctrl_name)
+    for axis, twod_name in enumerate(twod_names, 1):
+        self.print("Creating 2D channel", twod_name, "...")
+        self.defelem(twod_name , twod_ctrl_name, axis)
     
     self.print("Creating Slit", pm_ctrl_name, "with", gap, ",", offset, "...")
     sl2t, sl2b = motor_names[:2]
@@ -132,8 +148,11 @@ def sar_demo(self):
     self.print("Creating measurement group", mg_name, "...")
     self.defmeas(mg_name, *ct_names)
     
-    d = dict(controllers=(pm_ctrl_name, mot_ctrl_name, ct_ctrl_name, zerod_ctrl_name),
-             elements=[gap, offset] + motor_names+ct_names+zerod_names,
+    controllers = pm_ctrl_name, mot_ctrl_name, ct_ctrl_name, \
+            zerod_ctrl_name, oned_ctrl_name, twod_ctrl_name
+    elements = [gap, offset] + motor_names + ct_names + \
+            zerod_names + oned_names + twod_names
+    d = dict(controllers=controllers, elements=elements,
              measurement_groups=[mg_name])
     
     self.setEnv(_ENV, d)

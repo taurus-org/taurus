@@ -25,8 +25,8 @@
 
 """This module contains the definition of the Controller base classes"""
 
-__all__ = ["DataAccess", "Type", "Access", "Description", "DefaultValue",
-           "FGet", "FSet",
+__all__ = ["DataAccess", "SardanaValue", "Type", "Access", "Description",
+           "DefaultValue", "FGet", "FSet",
            "Memorized", "MemorizedNoInit", "NotMemorized", "MaxDimSize",
            "Controller", "Readable", "Startable", "Stopable", "Loadable",
            "MotorController", "CounterTimerController", "ZeroDController",
@@ -41,6 +41,7 @@ import taurus
 from taurus.core.util import Logger
 
 from sardana import DataAccess
+from sardana.sardanavalue import SardanaValue
 from .pooldefs import ControllerAPI, AcqTriggerType, AcqMode
 
 #: Constant data type (to be used as a *key* in the definition of
@@ -112,14 +113,14 @@ class Controller(object):
     #:     use :attr:`~Controller.axis_attributes` instead
     ctrl_extra_attributes = {}
 
-    #: A :class:`dict` containning controller properties where:
+    #: A :class:`dict` containing controller properties where:
     #:
     #: - key : (:obj:`str`) controller property name
     #: - value : :class:`dict` with with three :obj:`str` keys ("type",
     #:   "description" and "defaultvalue" case insensitive):
     #:
     #:     - for :obj:`Type`, value is one of the values described in
-    #:       :ref:`pool-controller-data-type`
+    #:       :ref:`sardana-controller-data-type`
     #:
     #:     - for :obj:`Description`, value is a :obj:`str` description of the
     #:       property.
@@ -154,7 +155,7 @@ class Controller(object):
     #:   (case insensitive):
     #:
     #:     - for :obj:`Type`, value is one of the values described in
-    #:       :ref:`pool-controller-data-type`
+    #:       :ref:`sardana-controller-data-type`
     #:
     #:     - for :obj:`Access`, value is one of 
     #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
@@ -219,7 +220,7 @@ class Controller(object):
     #:   ("type", "r/w type", "description" case insensitive):
     #:
     #:     - for :obj:`Type`, value is one of the values described in
-    #:       :ref:`pool-controller-data-type`
+    #:       :ref:`sardana-controller-data-type`
     #:
     #:     - for :obj:`Access`, value is one of 
     #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"

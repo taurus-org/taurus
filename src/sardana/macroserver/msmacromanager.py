@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from traceback import format_exception
 
 ##############################################################################
 ##
@@ -150,8 +149,8 @@ class MacroManager(MacroServerManager):
         if self.is_cleaned():
             return
 
-        if self._modules:
-            ModuleManager().unloadModules(self._modules.keys())
+        #if self._modules:
+        #    ModuleManager().unloadModules(self._modules.keys())
 
         self._macro_path = None
         self._macro_dict = None
@@ -353,7 +352,7 @@ class MacroManager(MacroServerManager):
         """Reloads the module corresponding to the given macro name
 
         :raises: MacroServerExceptionList in case the macro is unknown or the
-        reload process is not successfull
+        reload process is not successful
 
         :param macro_name: macro name
         :param path: a list of absolute path to search for libraries
@@ -365,7 +364,7 @@ class MacroManager(MacroServerManager):
         """Reloads the modules corresponding to the given macro names
 
         :raises: MacroServerExceptionList in case the macro(s) are unknown or the
-        reload process is not successfull
+        reload process is not successful
 
         :param macro_names: a list of macro names
         :param path: a list of absolute path to search for libraries (optional,
@@ -380,7 +379,7 @@ class MacroManager(MacroServerManager):
         """Reloads the given lib(=module) names
 
         :raises: MacroServerExceptionList in case the reload process is not
-        successfull for at least one lib
+        successful for at least one library
 
         :param module_names: a list of module names
         :param path: a list of absolute path to search for libraries
@@ -393,7 +392,7 @@ class MacroManager(MacroServerManager):
         return ret
 
     def reloadMacroLib(self, module_name, path=None):
-        """Reloads the given lib(=module) names.
+        """Reloads the given library(=module) names.
 
         :raises:
             LibraryError in case the reload process is not successful
@@ -402,7 +401,6 @@ class MacroManager(MacroServerManager):
         :param path:
             a list of absolute path to search for libraries [default: None,
             means the current MacroPath will be used]
-
         :return: the MacroLibrary object for the reloaded macro library"""
         path = path or self.getMacroPath()
         # reverse the path order:

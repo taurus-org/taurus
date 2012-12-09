@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Sardana libray. It defines the base classes
+"""This module is part of the Python Sardana library. It defines the base classes
 for module manager"""
 
 from __future__ import with_statement
@@ -39,8 +39,32 @@ import threading
 from taurus.core import ManagerState
 from taurus.core.util import Singleton, Logger
 
-from sardanamanager import SardanaIDManager
+from .sardanamanager import SardanaIDManager
 
+_MINIMUM_EXCLUDE = [
+'sys',
+'os.path',
+'__builtin__',
+'__main__',
+'sardana',
+'taurus',
+'PyTango'
+]
+
+class PathContext(object):
+    
+    def __init__(self, path):
+        self.path = path
+        
+    def __enter__(self):
+        self.orig_path = list(sys.path)
+        if self.path is not None:
+            sys.path = self.path + sys.path
+    
+    def __exit__(self, etype, evalue, etraceback):
+        sys.path = self.orig_path
+
+        
 class PathManager(SardanaIDManager):
     
     def __init__(self):
@@ -75,7 +99,7 @@ class PathManager(SardanaIDManager):
         with self._path_lock:
             path_id = self.get_new_id()
             
-            for p_id, p_info in pif.items():
+            for _, p_info in pif.items():
                 p_info[0] += path_len
             
             pif[path_id] = [0, path]
@@ -148,12 +172,12 @@ class ModuleManager(Singleton, Logger):
         return self._path_manager.add_python_path(path)
     
     def findFullModuleName(self, module_name, path=None):
-        file = None
+        mfile = None
         try:
-            file, pathname, desc = imp.find_module(module_name, path)
+            mfile, pathname, _ = imp.find_module(module_name, path)
         finally:
-            if file is not None:
-                file.close()
+            if mfile is not None:
+                mfile.close()
         return pathname
     
     def reloadModule(self, module_name, path=None, reload=True):
@@ -164,18 +188,18 @@ class ModuleManager(Singleton, Logger):
         
         self.unloadModule(module_name)
         
-        m, trace, file = None, None, None
+        m, mfile = None, None
         try:
-            file, pathname, desc = imp.find_module(module_name, path)
+            mfile, pathname, desc = imp.find_module(module_name, path)
             self.info("(re)loading module %s...", module_name)
-            m = imp.load_module(module_name, file, pathname, desc)
+            m = imp.load_module(module_name, mfile, pathname, desc)
         except:
             self.error("Error (re)loading module %s", module_name)
             self.debug("Details:", exc_info=1)
             raise
         finally:
-            if file is not None:
-                file.close()
+            if mfile is not None:
+                mfile.close()
         
         if m is None:
             return
@@ -183,7 +207,28 @@ class ModuleManager(Singleton, Logger):
         self._modules[module_name] = m
         
         return m
-    
+
+    def deep_reload_module(self, module_name, path=None, exclude=None):
+
+        if module_name in sys.modules:
+            module = sys.modules[module_name]
+        else:
+            module = self.loadModule(module_name, path)
+            
+        excl = list(_MINIMUM_EXCLUDE)
+        if exclude is not None:
+            excl.extend(exclude)
+        
+        import sardana.util.deepreload
+        with PathContext(path):
+            try:
+                self.info("deep reloading module %s...", module_name)
+                sardana.util.deepreload.reload(module, excl)
+            except:
+                self.error("Error deep reloading module %s", module_name)
+                self.debug("Details:", exc_info=1)
+                raise
+                
     def loadModule(self, module_name, path=None):
         """Loads the given module name. If the module has been already loaded
         into this python interpreter, nothing is done.
@@ -199,22 +244,18 @@ class ModuleManager(Singleton, Logger):
         if module_name in sys.modules:
             return sys.modules[module_name]
         
-        orig_path = list(sys.path)
-        try:
-            if path is not None:
-                sys.path = path + sys.path
+        with PathContext(path):
             self.info("loading module %s...", module_name)
-            m = __import__(module_name, globals(), locals(), [], -1)
-        except:
-            self.error("Error loading module %s", module_name)
-            self.debug("Details:", exc_info=1)
-            raise
-        finally:
-            sys.path = orig_path
+            try:
+                module = __import__(module_name, globals(), locals(), [], -1)
+            except:
+                self.error("Error loading module %s", module_name)
+                self.debug("Details:", exc_info=1)
+                raise
         
-        self._modules[module_name] = m
+        self._modules[module_name] = module
         
-        return m
+        return module
     
     def unloadModule(self, module_name):
         """Unloads the given module name"""
