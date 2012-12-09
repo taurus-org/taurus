@@ -27,4 +27,5 @@
     sardanameta <sardanameta>
     sardanamanager <sardanamanager>
     sardanaattribute <sardanaattribute>
+    sardanavalue <sardanavalue>
 

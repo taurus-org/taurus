@@ -1,5 +1,5 @@
 
-.. _standard-macro-catalog:
+.. _sardana-standard-macro-catalog:
 
 =======================
 Standard macro catalog

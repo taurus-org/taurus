@@ -17,5 +17,7 @@ Overview
     IO register <overview_IOR>
     Counter/timer <overview_countertimer>
     0D experiment channel <overview_0D>
+    1D experiment channel <overview_1D>
+    2D experiment channel <overview_2D>
     Pseudo counter <overview_pseudocounter>
 

@@ -1,15 +1,18 @@
-.. _macroserver-overview:
+.. _sardana-macroserver-overview:
 
-======================
+=====================
 Macro Server overview
-======================
+=====================
 
 The Macro Server object is the sardana server object which manages all high
 level sardana objects related to macro execution, namely doors, macro libraries
 and macros themselves.
 
-The Macro Server is exposed on the sardana server as a Tango_ device.
+The main purpose of the Macro Server is to run *macros*. Macros are just pieces
+of Python_ code (functions or classes) which reside in a macro library (Python_
+file). Macros can be written by anyone with knowledge of Python_.
 
+The Macro Server is exposed on the sardana server as a Tango_ device.
 Through configuration, the Macro Server can be told to connect to a
 Pool device. This is the most common configuration.
 You can, however, tell the Macro Server to connect to more than one Pool device
@@ -50,9 +53,9 @@ value::
         self.output("%s is now at %s", moveable, moveable.getPosition())
 
 Information on how to write your own sardana macros can be found 
-:ref:`here <macroserver-macros-howto>`.
+:ref:`here <sardana-macros-howto>`.
 
-The complete macro :term:`API` can be found :ref:`here <macroserver-macro-api>`.
+The complete macro :term:`API` can be found :ref:`here <sardana-macro-api>`.
 
 .. _ALBA: http://www.cells.es/
 .. _ANKA: http://http://ankaweb.fzk.de/

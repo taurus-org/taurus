@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.macroserver.macro
 
-.. _macroserver-macro-howto:
+.. _sardana-macro-howto:
 
 ================
 Writting macros

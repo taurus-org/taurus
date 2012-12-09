@@ -1,4 +1,4 @@
-.. _coding-guide:
+.. _sardana-coding-guide:
 
 ==============================
 Sardana development guidelines

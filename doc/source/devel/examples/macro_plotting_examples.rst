@@ -1,5 +1,5 @@
 
-.. _devel-macro-plotting-examples:
+.. _sardana-devel-macro-plotting-examples:
 
 =========================
 Macro plotting examples

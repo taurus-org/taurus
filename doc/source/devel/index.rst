@@ -1,4 +1,4 @@
-.. _developers-guide-index:
+.. _sardana-developers-guide-index:
 
 =================
 Developer's Guide

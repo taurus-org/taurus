@@ -1,5 +1,5 @@
 
-.. _devel-macro-input-examples:
+.. _sardana-devel-macro-input-examples:
 
 =========================
 Macro input examples

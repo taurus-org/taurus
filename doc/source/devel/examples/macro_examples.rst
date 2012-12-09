@@ -1,6 +1,6 @@
 
 
-.. _devel-macro-examples:
+.. _sardana-devel-macro-examples:
 
 ==============
 Macro examples

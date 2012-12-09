@@ -1,7 +1,7 @@
 
 .. currentmodule:: sardana.macroserver.macro
 
-.. _macroserver-macros-scanframework:
+.. _sardana-macros-scanframework:
 
 ==============
 Scan Framework
@@ -23,7 +23,7 @@ and :class:`~sardana.macroserver.scan.CScan` for step  and continuous scans,
 respectively.
 
 Creating a scan macro consists in writing a generic macro (see
-:ref:`the generic macro writing instructions <macroserver-macros-howto>`) in
+:ref:`the generic macro writing instructions <sardana-macros-howto>`) in
 which an instance of :class:`~sardana.macroserver.scan.GScan` is created
 (typically in the :meth:`~Macro.prepare` method) which is then invoked in the
 :meth:`~Macro.run` method.

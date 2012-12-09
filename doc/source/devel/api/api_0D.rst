@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.poolzerodexpchannel
 
-.. _pool-0d-api:
+.. _sardana-0d-api:
 
 =============================
 0D channel API reference
@@ -10,7 +10,7 @@
 
 .. seealso:: 
     
-    :ref:`pool-0d-overview`
+    :ref:`sardana-0d-overview`
         the 0D experiment channel overview 
     
     :class:`~sardana.tango.pool.ZeroDExpChannel.ZeroDExpChannel`

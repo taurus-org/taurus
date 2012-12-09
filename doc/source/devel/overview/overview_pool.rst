@@ -1,5 +1,5 @@
 
-.. _pool-overview:
+.. _sardana-pool-overview:
 
 ==============
 Pool overview

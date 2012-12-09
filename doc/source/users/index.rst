@@ -1,4 +1,4 @@
-.. _users-guide-index:
+.. _sardana-users-guide-index:
 
 ============
 User's Guide

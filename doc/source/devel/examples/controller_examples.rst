@@ -1,4 +1,4 @@
-.. _devel-controller-examples:
+.. _sardana-devel-controller-examples:
 
 =========================
 Controller examples

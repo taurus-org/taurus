@@ -8,10 +8,10 @@ Scans
 =====
 
 Perhaps the most used type of macro is the scan macros. In general terms, we
-call *scan* to a macro that moves one or more :ref:`motors <pool-motor-api>`
+call *scan* to a macro that moves one or more :ref:`motors <sardana-motor-api>`
 and acquires data along the path of the motor(s).
 
-.. note:: Sardana provides a :ref:`Scan Framework <macroserver-macros-scanframework>`
+.. note:: Sardana provides a :ref:`Scan Framework <sardana-macros-scanframework>`
    for developing scan macros so that the scan macros behave in a consistent way.
    Unless otherwise specified, the following discussion applies to scan macros
    based on such framework.
@@ -101,7 +101,7 @@ issues that should be considered.
   
 
 In order to address the first two issues, the
-:ref:`scan framework <macroserver-macros-scanframework>` attempts the following:
+:ref:`scan framework <sardana-macros-scanframework>` attempts the following:
 
 * If the motors support changing their velocity, Sardana will adjust the
   velocities of the motors so that they all start and finish the required path
@@ -151,5 +151,5 @@ Some examples of continuous scan macros are:
 
 .. seealso:: For more information about the implementation details of the scan
              macros in Sardana, see 
-             :ref:`scan framework <macroserver-macros-scanframework>`
+             :ref:`scan framework <sardana-macros-scanframework>`
 

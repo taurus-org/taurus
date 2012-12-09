@@ -1,7 +1,7 @@
 
 .. currentmodule:: sardana.pool.controller
 
-.. _pool-controller-api:
+.. _sardana-controller-api:
 
 ========================
 Controller API reference
@@ -15,18 +15,18 @@ Controller API reference
     * :class:`PseudoCounterController` - PseudoCounter controller API
     * :class:`IORegisterController` - IORegister controller API
 
-.. _pool-controller-data-type:
+.. _sardana-controller-data-type:
 
 Data Type definition
 ----------------------
 
-When writting a new controller you may need to specify extra attributes (per
+When writing a new controller you may need to specify extra attributes (per
 controller or/and per axis) as well as extra properties. This chapter describes
 how to describe the data type for each of this additional members.
 Controller data type definition has the following equivalences. This means you
 can use any of the given possibilities to describe a field data type. The
 possibilities are ordered by preference (example: usage of :obj:`int` is
-prefered to "int" or "PyTango.DevLong"):
+preferred to "int" or "PyTango.DevLong"):
 
 - for 0D data types:
    - **integer**: :obj:`int`   | :data:`DataType.Integer <sardana.sardanadefs.DataType>` | "int"    | "integer" | "long" | :obj:`long` | [ "PyTango." ] "DevLong"

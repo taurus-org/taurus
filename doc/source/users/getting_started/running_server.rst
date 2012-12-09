@@ -1,4 +1,4 @@
-.. _getting-started-running-server:
+.. _sardana-getting-started-running-server:
 
 Running Sardana as a tango server
 ---------------------------------
@@ -7,7 +7,7 @@ Running Sardana as a tango server
 
     if you have Tango <= 7.2.6 without all patches applied, Sardana server
     will not work due to a known bug. Please follow the instructions from
-    :ref:`getting-started-running-servers-separately` instead.
+    :ref:`sardana-getting-started-running-servers-separately` instead.
 
 Sardana is based on a client-server architecture. On the server part, sardana
 can be setup with many different configurations. Advanced details on sardana
@@ -33,14 +33,14 @@ started. You should get an output like this::
     DServer/Sardana/Lab-01 has no event channel defined in the database - creating it
 
 That't it! You now have a running sardana server. Not very impressive, is it?
-The :ref:`getting-started-running-cli` chapter describes how to start up a
+The :ref:`sardana-getting-started-running-cli` chapter describes how to start up a
 :term:`CLI` application called *spock* which connects to the sardana server you
 have just started through an object of type *Door* called *Door_lab-01_1*.
 
 You can therefore skip the next chapter and go directly to 
-:ref:`getting-started-running-cli`.
+:ref:`sardana-getting-started-running-cli`.
 
-.. _getting-started-running-servers-separately:
+.. _sardana-getting-started-running-servers-separately:
 
 Running Pool and MacroServer tango servers separately
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,7 +49,7 @@ Running Pool and MacroServer tango servers separately
 
     You should only read this chapter if you are if you have Tango <= 7.2.6
     without all patches applied. If you do, please follow in instructions from
-    :ref:`getting-started-running-server` instead.
+    :ref:`sardana-getting-started-running-server` instead.
 
 It is possible to separate sardana server into two different servers (in the
 first sardana versions, this was actually the only way start the sardana

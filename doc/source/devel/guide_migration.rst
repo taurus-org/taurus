@@ -44,7 +44,7 @@ New features in API v1
 
 This chapter is a summary of all new features in *API v1*.
 
-1. Macros can now be functions(see :ref:`macroserver-macros-howto`).
+1. Macros can now be functions(see :ref:`sardana-macros-howto`).
 
 How to migrate your controller code
 ===================================
@@ -128,7 +128,7 @@ The following changes are not necessary to make your controller work. The
     #. In *API v0* class member (like :attr:`~Controller.ctrl_extra_attributes`)
        value for key *type* had to be a string (like 'PyTango.DevString' or
        'PyTango.DevDouble'). Now they can be a python type (like str or float).
-       Please check :ref:`pool-controller-data-type` for more information.
+       Please check :ref:`sardana-controller-data-type` for more information.
 
 4. **generic controller method names**:
 

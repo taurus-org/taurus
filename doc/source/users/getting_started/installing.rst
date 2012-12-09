@@ -1,5 +1,5 @@
 
-.. _sardana_installing:
+.. _sardana-installing:
 
 ==========
 Installing
@@ -28,7 +28,7 @@ Installing
        python -c "import sardana; print sardana.Release.version"
 
 You can also work from SVN trunk checkout
-(please look :ref:`here <working-from-svn>` for instructions).
+(please look :ref:`here <sardana-working-from-svn>` for instructions).
 
 
 Windows installation shortcut
@@ -53,20 +53,20 @@ necessary to run sardana on your windows machine
 #. Download and install latest `taurus`_ from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
 #. Finally download and install latest sardana from `Sardana downdoad page <http://pypi.python.org/pypi/sardana>`_
 
-.. _working-from-svn:
+.. _sardana-working-from-svn:
 
 Working from SVN
 ----------------
 
 You can checkout sardana from SVN from the following location::
 
-    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
+    svn co http://svn.code.sf.net/p/sardana/code/trunk Sardana
 
 You can directly execute sardana binaries (Pool, MacroServer, Sardana or spock
 from the command line)::
 
-    homer@pc001:~$ cd Sardana
-    homer@pc001:~/Sardana$ scripts/Sardana
+    homer@pc001:~/workspace$ cd Sardana
+    homer@pc001:~/workspace/Sardana$ scripts/Sardana
 
 
 .. rubric:: Footnotes
@@ -74,7 +74,7 @@ from the command line)::
 .. [1] This command requires super user previledges on linux systems. If your
        user has them you can usually prefix the command with *sudo*:
        ``sudo easy_install -U sardana``. Alternatively, if you don't have
-       adminstrator previledges, you can install locally in your user
+       administrator priviledges, you can install locally in your user
        directory with: ``easy_install --user sardana``
        In this case the executables are located at <HOME_DIR>/.local/bin. Make
        sure the PATH is pointing there or you execute from there.

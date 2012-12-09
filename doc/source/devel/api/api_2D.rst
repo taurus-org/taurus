@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.pooltwodexpchannel
 
-.. _pool-2d-api:
+.. _sardana-2d-api:
 
 =============================
 2D channel API reference
@@ -10,7 +10,7 @@
 
 .. seealso:: 
     
-    :ref:`pool-2d-overview`
+    :ref:`sardana-2d-overview`
         the 2D experiment channel overview 
     
     :class:`~sardana.tango.pool.TwoDExpChannel.TwoDExpChannel`

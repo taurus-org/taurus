@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool
 
-.. _pool-pseudomotor-overview:
+.. _sardana-pseudomotor-overview:
 
 =======================
 Pseudo motor overview
@@ -10,7 +10,7 @@ Pseudo motor overview
 
 .. seealso:: 
     
-    :ref:`pool-pseudomotor-api`
+    :ref:`sardana-pseudomotor-api`
         the pseudo motor :term:`API` 
     
     :class:`~sardana.tango.pool.PseudoMotor.PseudoMotor`

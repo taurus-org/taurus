@@ -1,5 +1,5 @@
 
-.. _getting_started:
+.. _sardana-getting-started:
 
 ===============
 Getting started

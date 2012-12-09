@@ -109,7 +109,7 @@ this approach of *take what you need* has been implemented to foster the widest
 range of collaborations. Almost all applications in the ALBA_ machine control
 system have been created with this toolkit. Creating the applications out of
 standard components has been proven to be extremely powerful. In the
-:ref:`screenshots_guis` chapter you can see some of the graphical user
+:ref:`sardana-screenshots-guis` chapter you can see some of the graphical user
 interfaces used.
 
 Configure – don’t program

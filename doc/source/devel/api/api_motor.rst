@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.poolmotor
 
-.. _pool-motor-api:
+.. _sardana-motor-api:
 
 ===================
 Motor API reference
@@ -31,7 +31,7 @@ mimic the as closely as possible the :class:`PoolMotor` :term:`API`.
 
 .. seealso:: 
     
-    :ref:`pool-motor-overview`
+    :ref:`sardana-motor-overview`
         the motor overview 
 
     :class:`~sardana.tango.pool.Motor.Motor`

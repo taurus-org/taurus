@@ -21,19 +21,19 @@
 ##
 ##############################################################################
 
-"""This file contains the code for an hypothetical Springfield motor controller
-used in documentation"""
+"""This file contains the code for an hypothetical Springfield counter/timer
+controller used in documentation"""
 
 import springfieldlib
 
 from sardana import State
-from sardana.pool.controller import MotorController
+from sardana.pool.controller import CounterTimerController
 
-class SpringfieldBaseMotorController(MotorController):
+class SpringfieldBaseCounterTimerController(CounterTimerController):
     """The most basic controller intended from demonstration purposes only.
-    This is the absolute minimum you have to implement to set a proper motor
-    controller able to get a motor position, get a motor state and move a
-    motor.
+    This is the absolute minimum you have to implement to set a proper counter
+    controller able to get a counter value, get a counter state and do an
+    acquisition.
     
     This example is so basic that it is not even directly described in the
     documentation"""
@@ -42,23 +42,23 @@ class SpringfieldBaseMotorController(MotorController):
     
     def __init__(self, inst, props, *args, **kwargs):
         """Constructor"""
-        super(SpringfieldBaseMotorController, self).__init__(inst, props, *args, **kwargs)
-        self.springfield = springfieldlib.SpringfieldMotorHW()
+        super(SpringfieldBaseCounterTimerController, self).__init__(inst, props, *args, **kwargs)
+        self.springfield = springfieldlib.Springfield()
         
     def ReadOne(self, axis):
         """Get the specified motor position"""
-        return self.springfield.getPosition(axis)
+        return self.springfield.getValue(axis)
         
     def StateOne(self, axis):
         """Get the specified motor state"""
         springfield = self.springfield
         state = springfield.getState(axis)
         if state == 1:
-            return State.On, "Motor is stopped"
+            return State.On, "Counter is stopped"
         elif state == 2:
-            return State.Moving, "Motor is moving"
+            return State.Moving, "Counter is running"
         elif state == 3:
-            return State.Fault, "Motor has an error"
+            return State.Fault, "Counter has an error"
     
     def StartOne(self, axis, position):
         """Move the specified motor to the specified position"""
@@ -72,36 +72,22 @@ class SpringfieldBaseMotorController(MotorController):
 from sardana import DataAccess
 from sardana.pool.controller import Type, Description, DefaultValue, Access, FGet, FSet
     
-class SpringfieldMotorController(MotorController):
+class SpringfieldCounterTimerController(CounterTimerController):
 
-    axis_attributes = { 
-        "CloseLoop" : {
-                Type         : bool,
-                Description  : "(de)activates the motor close loop algorithm",
-                DefaultValue : False,
-            },
-    }
-    
-    def getCloseLoop(self, axis):
-        return self.springfield.isCloseLoopActive(axis)
-    
-    def setCloseLoop(self, axis, value):
-        self.springfield.setCloseLoop(axis, value)
-            
     def __init__(self, inst, props, *args, **kwargs):
-        super(SpringfieldMotorController, self).__init__(inst, props, *args, **kwargs)
+        super(SpringfieldCounterTimerController, self).__init__(inst, props, *args, **kwargs)
         
         # initialize hardware communication
-        self.springfield = springfieldlib.SpringfieldMotorHW()
+        self.springfield = springfieldlib.SpringfieldCounterHW()
         
         # do some initialization
-        self._motors = {}
+        self._counters = {}
 
     def AddDevice(self, axis):
-        self._motors[axis] = True 
+        self._counters[axis] = True 
 
     def DeleteDevice(self, axis):
-        del self._motors[axis]        
+        del self._counters[axis]        
         
     StateMap = {
         1 : State.On,
@@ -113,20 +99,11 @@ class SpringfieldMotorController(MotorController):
         springfield = self.springfield
         state = self.StateMap[ springfield.getState(axis) ]
         status = springfield.getStatus(axis)
-        
-        limit_switches = MotorController.NoLimitSwitch
-        hw_limit_switches = springfield.getLimits(axis)
-        if hw_limit_switches[0]:
-            limit_switches |= MotorController.HomeLimitSwitch
-        if hw_limit_switches[1]:
-            limit_switches |= MotorController.UpperLimitSwitch
-        if hw_limit_switches[2]:
-            limit_switches |= MotorController.LowerLimitSwitch
-        return state, status, limit_switches
+        return state, status
 
     def ReadOne(self, axis):
-        position = self.springfield.getPosition(axis)
-        return position
+        value = self.springfield.getValue(axis)
+        return value
         
     def StartOne(self, axis, position):
         self.springfield.move(axis, position)        
@@ -137,5 +114,3 @@ class SpringfieldMotorController(MotorController):
     def AbortOne(self, axis):
         self.springfield.abort(axis)
         
-    def DefinePosition(self, axis, position):
-        self.springfield.setCurrentPosition(axis, position)

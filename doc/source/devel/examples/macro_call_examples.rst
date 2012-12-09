@@ -1,4 +1,4 @@
-.. _devel-macro-call-examples:
+.. _sardana-devel-macro-call-examples:
 
 =========================
 Macro call examples

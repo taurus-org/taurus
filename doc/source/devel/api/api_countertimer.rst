@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.poolcountertimer
 
-.. _pool-countertimer-api:
+.. _sardana-countertimer-api:
 
 =============================
 Counter/Timer API reference
@@ -10,7 +10,7 @@ Counter/Timer API reference
 
 .. seealso:: 
     
-    :ref:`pool-countertimer-overview`
+    :ref:`sardana-countertimer-overview`
         the counter/timer overview 
     
     :class:`~sardana.tango.pool.CTExpChannel.CTExpChannel`

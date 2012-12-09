@@ -1,7 +1,7 @@
 .. currentmodule:: sardana.tango.pool
 
 :mod:`~sardana.tango.pool`
-============================
+==========================
 
 .. automodule:: sardana.tango.pool
 
@@ -12,6 +12,7 @@
     
     Pool <pool/Pool>
     PoolDevice <pool/PoolDevice>
+    Controller <pool/Controller>
     Motor <pool/Motor>
     I/O register <pool/IORegister>
     Counter/Timer <pool/CTExpChannel>

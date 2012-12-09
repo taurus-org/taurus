@@ -1,5 +1,5 @@
 
-.. _devel-macro-parameter-examples:
+.. _sardana-devel-macro-parameter-examples:
 
 =========================
 Macro parameter examples

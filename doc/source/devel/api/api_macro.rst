@@ -1,7 +1,7 @@
 
 .. currentmodule:: sardana.macroserver.macro
 
-.. _macroserver-macro-api:
+.. _sardana-macro-api:
 
 ===================
 Macro API reference

@@ -1,4 +1,4 @@
-.. _pool-motor-overview:
+.. _sardana-motor-overview:
 
 .. currentmodule:: sardana.pool
 
@@ -25,7 +25,7 @@ The *motor* object is also exposed as a Tango_ device.
 
 .. seealso:: 
     
-    :ref:`pool-motor-api`
+    :ref:`sardana-motor-api`
         the motor :term:`API` 
     
     :class:`~sardana.tango.pool.Motor.Motor`

@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.poolonedexpchannel
 
-.. _pool-1d-api:
+.. _sardana-1d-api:
 
 =============================
 1D channel API reference
@@ -10,7 +10,7 @@
 
 .. seealso:: 
     
-    :ref:`pool-1d-overview`
+    :ref:`sardana-1d-overview`
         the 1D experiment channel overview 
     
     :class:`~sardana.tango.pool.OneDExpChannel.OneDExpChannel`

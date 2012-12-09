@@ -5,8 +5,8 @@ import sys
 ControllerTemplate.py: Create a basic controller's template. 
 Its parameters are  the file name plus .py, 
     the class inherited if it had (optional)
-    and "yes" if you wanna use the obsolete convention.
-The necesary "defs" are marked as #TODO
+    and "yes" if you want to use the obsolete convention.
+The necessary "defs" are marked as #TODO
 
 python ControllerTemplate.py ExampleClass.py InheritedClass NoCT
 """

@@ -4,14 +4,14 @@
 .. currentmodule:: sardana.macroserver.macro
 
 
-.. _macroserver-macros-howto:
+.. _sardana-macros-howto:
 
 ===============
 Writting macros
 ===============
 
 This chapter provides the necessary information to write macros in sardana. The
-complete macro :term:`API` can be found :ref:`here <macroserver-macro-api>`.
+complete macro :term:`API` can be found :ref:`here <sardana-macro-api>`.
 
 What is a macro
 ---------------
@@ -144,10 +144,10 @@ called *salute*. Just type in:
 .. sourcecode:: spock
 
     LAB-01-D01 [1]: edmac hello_world salute
-    Openning salute.hello_world...
+    Opening salute.hello_world...
     Editing...
     
-This will bring your favourite editor to life with a macro function template
+This will bring your favorite editor to life with a macro function template
 code for the macro *hello_world*.
 
     .. image:: ../../_static/macro_edit.png
@@ -167,10 +167,10 @@ answer 'y'.
 .. _macro_function_writting:
 
 
-Writting a macro function
--------------------------
+Writing a macro function
+------------------------
 
-As metioned before, macros are just simple Python_ functions which have been
+As mentioned before, macros are just simple Python_ functions which have been
 *labeled* as macros. In Python_, these labels are called *decorators*. Here is
 the macro function version of *Hello, World!*::
     
@@ -317,7 +317,7 @@ The complete list of types distributed with sardana is made up by these five
 simple types: ``Integer``, ``Float``, ``Boolean``, ``String``, ``Any``, plus
 all available sardana interfaces (:obj:`~sardana.sardanadefs.Interface`)
 
-.. _macro_context:
+.. _sardana-macro-context:
 
 Macro context
 -------------
@@ -329,7 +329,7 @@ this parameter any name but usually, by convention it is called ``self``).
 
 ``self`` provides access to an extensive catalog of functions you can use in
 your macro to do all kinds of things. The complete catalog of functions can be
-found :ref:`here <macroserver-macro-api>`.
+found :ref:`here <sardana-macro-api>`.
 
 Let's say you want to write a macro that explicitly moves a known *theta* motor
 to a certain position. You could write a macro which receives the motor as
@@ -345,7 +345,7 @@ that::
         th.move(position)
         self.output("Motor ended at %s", moveable.getPosition())
 
-.. _macro_calling:
+.. _sardana-macro-calling:
 
 Calling other macros from inside your macro
 -------------------------------------------
@@ -376,7 +376,7 @@ Here is the new version of *where_moveable* ::
         self.mv(moveable, position)
         self.output("%s is now at %s", moveable.getName(), moveable.getPosition())
 
-.. _macro_environment:
+.. _sardana-macro-environment:
 
 Accessing environment
 ---------------------
@@ -408,7 +408,7 @@ outputs the new ``ScanID`` value:
         scan_id = self.getEnv('ScanID')
         self.output("ScanID is now %d", scan_id)
 
-.. _macro_logging:
+.. _sardana-macro-logging:
 
 Logging
 -------
@@ -446,12 +446,14 @@ Here is an example on how to write a logging information message::
         self.output("Hello, World!")
         self.info("Finished to executing %s", self.getName())
 
-.. seealso::
+.. KEEP COMMENTED WHILE CHAPTER IS NOT WRITTEN
+.. .. seealso::
 
-    :ref:`log configuration <ms-configuration-log>`
-        The sardana log configuration.
+..    :ref:`log configuration <sardana-macroserver-configuration-log>`
+..        The sardana log configuration.
+..
 
-.. _macro_reporting:
+.. _sardana-macro-reporting:
 
 Reports
 -------
@@ -459,8 +461,8 @@ Reports
 Once the report facility has been properly configured, report messages can be
 sent to the previously configured report file.
 
-There are several differences between :ref:`reporting <macro_reporting>` and
-:ref:`logging <macro_logging>`. The first difference is that log messages may
+There are several differences between :ref:`reporting <sardana-macro-reporting>` and
+:ref:`logging <sardana-macro-logging>`. The first difference is that log messages may
 or may not be recorded, depending on the configured filters on the target
 (example: log file). A report will always be recorded.
 
@@ -486,18 +488,18 @@ This would generate the following report message in the report file:
 
     INFO     2012-07-18 09:39:34,943: this is an official report of macro 'lets_report'
 
+.. KEEP COMMENTED WHILE CHAPTER IS NOT WRITTEN
+.. .. seealso::
 
-.. seealso::
+..    :ref:`Report configuration <sardana-macroserver-configuration-report>`
+..        The sardana report configuration.
 
-    :ref:`Report configuration <ms-configuration-report>`
-        The sardana report configuration.
-
-.. _advanced_macro_calling:
+.. _sardana-advanced-macro-calling:
 
 Advanced macro calls
 --------------------
 
-As previously explained (see :ref:`calling macros <macro_calling>`), you can use
+As previously explained (see :ref:`calling macros <sardana-macro-calling>`), you can use
 the Macro :term:`API` to call other macros from inside your own macro:
 
 .. code-block:: python
@@ -560,9 +562,9 @@ the macro using :meth:`~Macro.data`:
         print len(my_scan.data)
 
 A set of macro call examples can be found
-:ref:`here <devel-macro-call-examples>`.
+:ref:`here <sardana-devel-macro-call-examples>`.
 
-.. _macro_class_writting:
+.. _sardana-macro-class-writting:
 
 Writting a macro class
 ----------------------
@@ -589,7 +591,7 @@ macro. So, without further delay, here is the *Hello, World!* example::
         def run(self):
             print "Hello, World!"
 
-.. _macro_add_parameters:
+.. _sardana-macro-add-parameters:
 
 Let's say you want to pass an integer parameter to your macro. All you have to
 do is declare the parameter by using the :attr:`~Macro.param_def` Macro member::
@@ -609,9 +611,9 @@ do is declare the parameter by using the :attr:`~Macro.param_def` Macro member::
     modify the :meth:`~Macro.run` method to support the new paramter(s).
 
 A set of macro parameter examples can be found
-:ref:`here <devel-macro-parameter-examples>`.
+:ref:`here <sardana-devel-macro-parameter-examples>`.
 
-.. _macro_preparing:
+.. _sardana-macro-preparing:
 
 Preparing your macro for execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -638,7 +640,7 @@ prepare HelloWorld to run only after year 1989:
         def run(self):
             print "Hello, World!"
 
-.. _macro_plotting:
+.. _sardana-macro-plotting:
 
 Plotting
 --------
@@ -717,7 +719,7 @@ And the resulting image (interactions=20, density=512):
     
 
 A set of macro plotting examples can be found
-:ref:`here <devel-macro-plotting-examples>`.
+:ref:`here <sardana-devel-macro-plotting-examples>`.
 
 Known plotting limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -742,7 +744,7 @@ Also consider that each time you plot the complete data to be plotted is sent
 from the server to the client... so please avoid plotting arrays of 10,000,000
 points!
 
-.. _macro_input:
+.. _sardana-macro-input:
 
 Asking for user input
 ---------------------
@@ -775,7 +777,7 @@ In pure Python_, to ask for user input you can use the :func:`raw_input` (Python
 The Macro :term:`API` provides a much more powerful version of
 :meth:`~Macro.input` since it can accept a wide variaty of options.
 
-Similar to what happens with :ref:`macro_plotting`, when input is requested from
+Similar to what happens with :ref:`sardana-macro-plotting`, when input is requested from
 inside a macro, the question will be sent to the client (example: spock) which
 ordered the macro to be executed. At this time the macro is stopped waiting for
 the client to answer. The client must "ask" the user for a proper value and the
@@ -1064,7 +1066,7 @@ to show in a input spin box::
         self.output("You selected a %s of %f %s", label, peak, unit)
 
 A set of macro input examples can be found
-:ref:`here <devel-macro-input-examples>`.
+:ref:`here <sardana-devel-macro-input-examples>`.
 
 Showing progress in long macros
 -------------------------------

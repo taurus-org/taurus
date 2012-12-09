@@ -2,7 +2,7 @@
 .. highlight:: python
    :linenothreshold: 4
 
-.. _screenshots:
+.. _sardana-screenshots:
 
 ============
 Screenshots
@@ -37,7 +37,7 @@ Sardana oriented graphical user interfaces
 
     TaurusGUI with synoptic and macro panel
 
-.. _screenshots_guis:
+.. _sardana-screenshots-guis:
 
 Graphical user interface screen shots
 -------------------------------------

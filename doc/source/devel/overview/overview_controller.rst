@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool.controller
 
-.. _pool-controller-overview:
+.. _sardana-controller-overview:
 
 ===================
 Controller overview
@@ -72,6 +72,18 @@ These are the different types of controllers recognized by sardana:
     integration).
     
     Example: an electrometer 
+
+:class:`OneDController`
+    This controller type is designed to control a device capable of supplying
+    1D values. It has a very similar :term:`API` to :class:`CounterTimerController` 
+    
+    Example: an :term:`MCA`
+
+:class:`TwoDController`
+    This controller type is designed to control a device capable of supplying
+    2D values. It has a very similar :term:`API` to :class:`CounterTimerController` 
+    
+    Example: a :term:`CCD`
     
 :class:`PseudoMotorController`
     A controller designed to export *virtual motors* that represent a new view
@@ -181,10 +193,10 @@ that is able to talk to a Newport motor controller::
 
 .. seealso:: 
     
-    :ref:`pool-controller-howto`
+    :ref:`sardana-controller-howto`
         How to write controller :term:`plug-in`\s in sardana
     
-    :ref:`pool-controller-api`
+    :ref:`sardana-controller-api`
         the controller :term:`API` 
     
     :class:`~sardana.tango.pool.Controller.Controller`

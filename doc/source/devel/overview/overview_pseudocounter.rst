@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool
 
-.. _pool-pseudocounter-overview:
+.. _sardana-pseudocounter-overview:
 
 =======================
 Pseudo counter overview
@@ -10,7 +10,7 @@ Pseudo counter overview
 
 .. seealso:: 
     
-    :ref:`pool-pseudocounter-api`
+    :ref:`sardana-pseudocounter-api`
         the pseudo counter :term:`API` 
     
     :class:`~sardana.tango.pool.PseudoCounter.PseudoCounter`

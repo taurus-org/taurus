@@ -1,6 +1,6 @@
 .. currentmodule:: sardana.pool
 
-.. _pool-ior-overview:
+.. _sardana-ior-overview:
 
 =======================
 I/O register overview
@@ -10,7 +10,7 @@ I/O register overview
 
 .. seealso:: 
     
-    :ref:`pool-ior-api`
+    :ref:`sardana-ior-api`
         the I/O register :term:`API` 
     
     :class:`~sardana.tango.pool.IORegister.IORegister`

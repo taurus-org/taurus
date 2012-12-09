@@ -1,4 +1,4 @@
-.. _getting-started-running-cli:
+.. _sardana-getting-started-running-cli:
 
 Running the client
 ----------------------------
@@ -52,14 +52,14 @@ sardana *macros*, hence from here on we will use the term *macro*). A *macro*
 is basically a piece of code. You can write macros using the `Python`_ language
 to do all sorts of things. The sky is the limit here!
 
-Sardana comes with a :ref:`catalog of macros<standard-macro-catalog>` that help
+Sardana comes with a :ref:`catalog of macros<sardana-standard-macro-catalog>` that help
 users in a laboratory to run their experiments. Most of these *macros*
 involve interaction with sardana elements like motors and experimental channels.
 Therefore, the first step in a new sardana demo is to populate your system with
 some elements. Fortunately, sardana comes with a *macro* called *sar_demo* that
 does just that. To execute this *macro* just type on the command line
 :class:`~sardana.macroserver.macros.demo.sar_demo`.
-You should get an ouput like this:
+You should get an output like this:
 
 .. sourcecode:: spock
     

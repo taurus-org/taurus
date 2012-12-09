@@ -1,5 +1,5 @@
 
-.. _devel-examples:
+.. _sardana-devel-examples:
 
 =========
 Examples
