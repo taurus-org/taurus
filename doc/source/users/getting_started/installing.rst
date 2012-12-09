@@ -74,7 +74,7 @@ from the command line)::
 .. [1] This command requires super user previledges on linux systems. If your
        user has them you can usually prefix the command with *sudo*:
        ``sudo easy_install -U sardana``. Alternatively, if you don't have
-       administrator priviledges, you can install locally in your user
+       administrator previledges, you can install locally in your user
        directory with: ``easy_install --user sardana``
        In this case the executables are located at <HOME_DIR>/.local/bin. Make
        sure the PATH is pointing there or you execute from there.
@@ -82,7 +82,7 @@ from the command line)::
 .. [2] *setup.py install* requires user previledges on linux systems. If your
        user has them you can usually prefix the command with *sudo*: 
        ``sudo python setup.py install``. Alternatively, if you don't have
-       adminstrator previledges, you can install localy in your user directory
+       administrator previledges, you can install locally in your user directory
        with: ``python setup.py install --user``
        In this case the executables are located at <HOME_DIR>/.local/bin. Make
        sure the PATH is pointing there or you execute from there.
