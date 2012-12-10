@@ -27,7 +27,7 @@
 scan"""
 
 __all__ = ["ScanSetupError", "ScanException", "ExtraData", "TangoExtraData",
-           "GScan", "SScan", "CScan"]
+           "GScan", "SScan", "CScan", "HScan"]
 
 __docformat__ = 'restructuredtext'
 
@@ -38,7 +38,7 @@ import time
 import threading
 
 import taurus
-from taurus.core.util import USER_NAME, Logger, CaselessList
+from taurus.core.util import USER_NAME, Logger
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.core.tango.sardana.pool import Ready
 
@@ -412,7 +412,7 @@ class GScan(Logger):
                           " stored persistently")
         return file_recorders
     
-    def _getSharedMemoryRecorder(self, id):
+    def _getSharedMemoryRecorder(self, eid):
         macro, mg, shm = self.macro, self.measurement_group, False
         try:
             shm = macro.getEnv('SharedMemory')
@@ -450,16 +450,16 @@ class GScan(Logger):
             except:
                 twod_nb = 0
             
-            if id == 0:
+            if eid == 0:
                 cols += (ch_nb - oned_nb - twod_nb)    # counter/timer & 0D channel columns
-            elif id == 1:
+            elif eid == 1:
                 cols = 1024
                 
-            if id == 0:
+            if eid == 0:
                 kwargs.update({ 'program' : macro.getDoorName(),
                                   'array' : "%s_0D" % array_prefix,
                                   'shape' : (cols, 4096) } )
-            elif id == 1:
+            elif eid == 1:
                 if oned_nb == 0:
                     return
                 else:
@@ -731,8 +731,12 @@ class GScan(Logger):
     
     def start(self):
         self.do_backup()
-        self._env['startts'] = ts = time.time()
-        self._env['starttime'] = datetime.datetime.fromtimestamp(ts)
+        env = self._env
+        env['startts'] = ts = time.time()
+        env['starttime'] = datetime.datetime.fromtimestamp(ts)
+        env['acqtime'] = 0
+        env['motiontime'] = 0
+        env['deadtime'] = 0
         self.data.start()
 
     def end(self):
@@ -773,7 +777,7 @@ class GScan(Logger):
         self.macro.setEnv('ScanHistory', scan_history)
 
     def scan(self):
-        for step in self.step_scan():
+        for _ in self.step_scan():
             pass
         
     def step_scan(self):
@@ -831,12 +835,12 @@ class SScan(GScan):
             for hook in macro.pre_scan_hooks:
                 hook()
         
-        self.__sum_motion_time = 0
-        self.__sum_acq_time = 0
+        self._sum_motion_time = 0
+        self._sum_acq_time = 0
         
         for i, step in self.steps:
             # allow scan to be stopped between points
-            self.macro.checkPoint()
+            macro.checkPoint()
             self.stepUp(i, step, lstep)
             lstep = step
             if scream:
@@ -849,8 +853,8 @@ class SScan(GScan):
         if not scream:
             yield 100.0
             
-        self._env['motiontime'] = self.__sum_motion_time
-        self._env['acqtime'] = self.__sum_acq_time
+        self._env['motiontime'] = self._sum_motion_time
+        self._env['acqtime'] = self._sum_acq_time
         
     def stepUp(self, n, step, lstep):
         motion, mg = self.motion, self.measurement_group
@@ -871,7 +875,7 @@ class SScan(GScan):
         move_start_time = time.time()
         try:
             state, positions = motion.move(step['positions'])
-            self.__sum_motion_time += time.time() - move_start_time
+            self._sum_motion_time += time.time() - move_start_time
         except InterruptException:
             raise
         except:
@@ -917,7 +921,7 @@ class SScan(GScan):
         for ec in self._extra_columns:
             data_line[ec.getName()] = ec.read()
         self.debug("[ END ] acquisition")
-        self.__sum_acq_time += integ_time
+        self._sum_acq_time += integ_time
 
         #post-acq hooks
         for hook in step.get('post-acq-hooks',()):
@@ -1058,7 +1062,7 @@ class CScan(GScan):
         macro, motion, waypoints = self.macro, self.motion, self.steps
         
         last_positions = None
-        for i, waypoint in waypoints:
+        for _, waypoint in waypoints:
             start_positions = waypoint.get('start_positions')
             positions = waypoint['positions']
             if start_positions is None:
@@ -1326,10 +1330,10 @@ class CScan(GScan):
         else:
             yield 0.0
 
-        moveables      = [ m.moveable for m in self.moveables ]
-        period_steps   = self.period_steps
+        moveables = [ m.moveable for m in self.moveables ]
+        period_steps = self.period_steps
         point_nb, step = -1, None
-        data           = self.data
+        data = self.data
         
         if hasattr(macro, "pre_scan_hooks"):
             for hook in macro.pre_scan_hooks:
@@ -1456,3 +1460,83 @@ class CScan(GScan):
         
         if not scream:
             yield 100.0   
+
+
+class HScan(SScan):
+    """Hybrid scan"""
+    
+    def stepUp(self, n, step, lstep):
+        motion, mg = self.motion, self.measurement_group
+        startts = self._env['startts']
+        
+        #pre-move hooks
+        for hook in step.get('pre-move-hooks',()):
+            hook()
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
+                
+        positions, integ_time = step['positions'], step['integ_time']
+        
+        try:
+            m_ID = motion.startMove(positions)
+            mg_ID = mg.startCount(integ_time)    
+        except InterruptException:
+            raise
+        except:
+            self.dump_information(n, step)
+            raise
+
+        try:
+            motion.waitMove(id=m_ID)
+            mg.waitCount(id=mg_ID)
+        except InterruptException:
+            raise
+        except:
+            self.dump_information(n, step)
+            raise
+        self._sum_acq_time += integ_time
+        
+        curr_time = time.time()
+        dt = curr_time - startts
+                
+        m_state, m_positions = motion.readState(), motion.readPosition()       
+         
+        if m_state != Ready:
+            self.dump_information(n, step)
+            m = "Scan aborted after problematic motion: " \
+                "Motion ended with %s\n" % str(m_state)
+            raise ScanException({ 'msg' : m })
+
+        data_line = mg.getValues()
+        
+        # Add final moveable positions
+        data_line['point_nb'] = n
+        data_line['timestamp'] = dt
+        for i, m in enumerate(self.moveables):
+            data_line[m.moveable.getName()] = m_positions[i]
+        
+        #Add extra data coming in the step['extrainfo'] dictionary
+        if step.has_key('extrainfo'): data_line.update(step['extrainfo'])
+        
+        self.data.addRecord(data_line)
+    
+        #post-step hooks
+        for hook in step.get('post-step-hooks',()):
+            hook()
+            try:
+                step['extrainfo'].update(hook.getStepExtraInfo())
+            except InterruptException:
+                raise
+            except:
+                pass
+        
+    def dump_information(self, n, step):
+        moveables = self.motion.moveable_list
+        msg = ["Report: Stopped at step #" + str(n) + " with:"]
+        for moveable in moveables:
+            msg.append(moveable.information())
+        self.macro.info("\n".join(msg))
