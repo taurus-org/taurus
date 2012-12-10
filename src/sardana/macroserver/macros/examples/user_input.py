@@ -34,7 +34,7 @@ def ask_for_multiple_car_brands(self):
 
 @imacro()
 def ask_peak(self):
-    """asks use for peak current of points with a custom title"""
+    """asks user for peak current of points with a custom title"""
     
     peak = self.input("What is the peak current?", data_type=Type.Float,
                       title="Peak selection")
@@ -42,7 +42,7 @@ def ask_peak(self):
     
 @imacro()
 def ask_peak_v2(self):
-    """asks use for peak current of points with a custom title,
+    """asks user for peak current of points with a custom title,
     default value, label and units"""
     
     label, unit = "peak", "mA"
@@ -53,7 +53,7 @@ def ask_peak_v2(self):
     
 @imacro()
 def ask_peak_v3(self):
-    """asks use for peak current of points with a custom title,
+    """asks user for peak current of points with a custom title,
     default value, label, units and ranges"""
     
     label, unit = "peak", "mA"
@@ -64,7 +64,7 @@ def ask_peak_v3(self):
 
 @imacro()
 def ask_peak_v4(self):
-    """asks use for peak current of points with a custom title,
+    """asks user for peak current of points with a custom title,
     default value, label, units, ranges and step size"""
     
     label, unit = "peak", "mA"
@@ -76,7 +76,7 @@ def ask_peak_v4(self):
     
 @imacro()
 def ask_peak_v5(self):
-    """asks use for peak current of points with a custom title,
+    """asks user for peak current of points with a custom title,
     default value, label, units, ranges, step size and decimal places"""
     
     label, unit = "peak", "mA"

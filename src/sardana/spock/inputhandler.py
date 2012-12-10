@@ -30,9 +30,6 @@ __all__ = ['SpockInputHandler', 'InputHandler']
 __docformat__ = 'restructuredtext'
 
 import sys
-import os
-import threading
-import collections
 from multiprocessing import Process, Pipe
 
 import genutils
@@ -41,8 +38,7 @@ from taurus.core import TaurusManager
 from taurus.core.util import Singleton
 from taurus.core.tango.sardana.macroserver import BaseInputHandler
 from taurus.qt import Qt
-from taurus.qt.qtgui.dialog import TaurusMessageBox
-from taurus.qt.qtgui.dialog import TaurusInputDialog
+from taurus.qt.qtgui.dialog import TaurusMessageBox, TaurusInputDialog
 
 
 class SpockInputHandler(BaseInputHandler):
@@ -92,7 +88,7 @@ class MessageHandler(Qt.QObject):
             value = dialog.value()
             ret = dict(input=None, cancel=False)
             if ok:
-               ret['input'] = value
+                ret['input'] = value
             else:
                 ret['cancel'] = True
             self._conn.send(ret)
@@ -149,7 +145,7 @@ class InputHandler(Singleton, BaseInputHandler):
         app.setQuitOnLastWindowClosed(False)
         self._msg_handler = MessageHandler(conn)
         TaurusManager().addJob(self.run_forever, None)
-        ret = app.exec_()
+        app.exec_()
         conn.close()
         print "Quit input handler"
                 

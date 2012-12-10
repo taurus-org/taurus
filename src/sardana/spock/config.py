@@ -29,7 +29,7 @@
 __all__ = ['Spock']
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Int, Float, Unicode, Bool
+from IPython.utils.traitlets import Unicode, Bool
 
 class Spock(Configurable):
     macro_server_name = Unicode(config=True)

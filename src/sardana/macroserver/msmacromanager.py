@@ -662,7 +662,6 @@ class MacroManager(MacroServerManager):
         return me
 
 
-
 class MacroExecutor(Logger):
     """ """
 
@@ -946,8 +945,8 @@ class MacroExecutor(Logger):
             m.resume(cb=self._macroResumed)
 
     def _macroResumed(self, m):
-        """Calback that is executed when the macro has efectively resumed
-        ejecution after being paused"""
+        """Callback that is executed when the macro has effectively resumed
+        execution after being paused"""
         self.sendMacroStatusResume()
         self.sendState(Macro.Running)
 
@@ -966,7 +965,7 @@ class MacroExecutor(Logger):
 
         # dict<Macro, seq<PoolElement>>
         # key Macro - macro object
-        # value - sequence of reserverd objects by the macro
+        # value - sequence of reserved objects by the macro
         self._reserved_macro_objs = {}
 
         # reset the stacks
@@ -1103,7 +1102,7 @@ class MacroExecutor(Logger):
             self.debug("[ENDEX] (%s) runMacro %s" % (macro_exp.__class__.__name__, name))
             if isinstance(macro_exp, MacroServerException) and macro_obj.parent_macro is None:
                 door.debug(macro_exp.traceback)
-                door.error("An error occured while running %s:\n%s" % (macro_obj.description, macro_exp.msg))
+                door.error("An error occurred while running %s:\n%s" % (macro_obj.description, macro_exp.msg))
             self._popMacro()
             raise macro_exp
         self.debug("[ END ] runMacro %s" % desc)

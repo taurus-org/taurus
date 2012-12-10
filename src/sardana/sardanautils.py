@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""This module is part of the Python Sardana libray. It defines some
+"""This module is part of the Python Sardana library. It defines some
 utility methods"""
 
 __all__ = ["is_pure_str", "is_non_str_seq", "is_integer", "is_number",

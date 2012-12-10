@@ -20,8 +20,8 @@ The various scan macros mostly differ in how many motors are moved and the
 definition of their paths.
 
 Typically, the selection of which data is going to be acquired depends on the
-Active :ref:`Measurement group <sardana-measurement-group>` and is *not* fixed
-by the macro itself (although there is no limitation in this sense).
+active *measurement group* and is *not* fixed by the macro itself (although
+there is no limitation in this sense).
 
 Depending on whether the motors are stopped before acquiring the data or not, we
 can classify the scan macros in *step* scans or *continuous* scans,
@@ -33,10 +33,10 @@ respectively.
    :figwidth: 80%
    :align: center
    
-   Trend plot showing a step scan (:class:`~sardana.macroserver.macros.scan.ascan` *m_cp1_1 0 1000 8 .5*) followed by a 
-   continuous scan (:class:`~sardana.macroserver.macros.scan.ascanc` *m_cp1_1 0 1000 .5*). The line corresponds to the 
-   motor position and the blue shaded areas correspond to the intervals in 
-   which the data acquisition took place.  
+   Trend plot showing a step scan (:class:`ascan` *m_cp1_1 0 1000 8 .5*)
+   followed by a continuous scan (:class:`ascanc` *m_cp1_1 0 1000 .5*).
+   The line corresponds to the motor position and the blue shaded areas
+   correspond to the intervals in which the data acquisition took place.  
 
 
 
@@ -52,11 +52,11 @@ In this way, the position associated to a data readout is well known and does
 not change during the acquisition time.
 
 Some examples of step scan macros are:
-:class:`~sardana.macroserver.macros.scan.ascan`,
-:class:`~sardana.macroserver.macros.scan.a2scan`, ...
-:class:`~sardana.macroserver.macros.scan.dscan`,
-:class:`~sardana.macroserver.macros.scan.d2scan`, ...
-:class:`~sardana.macroserver.macros.scan.mesh`. 
+:class:`ascan`,
+:class:`a2scan`, ...
+:class:`dscan`,
+:class:`d2scan`, ...
+:class:`mesh`. 
 
 Continuous scans
 ----------------
@@ -82,9 +82,9 @@ issues that should be considered.
 #. If motors do not maintain a constant velocity along the path of their
    movement, the trajectories followed when using more than one motor may not
    be linear.
-#. While in step scans it is possible to scan two pseudomotors that access
+#. While in step scans it is possible to scan two pseudo-motors that access
    the same physical motors (e.g. the *gap* and *offset* of a slit, being both
-   pseudomotors accessing the same physical motors attached to each blade of
+   pseudo-motors accessing the same physical motors attached to each blade of
    the slit), in a continuous scan the motions cannot be decoupled in a
    synchronized way.
 #. In order to optimize the acquisition time, Sardana attempts to perform as
@@ -125,7 +125,7 @@ motors involved in a :class:`~sardana.macroserver.macros.scan.a2scanc`.
    :align: center
 
    Trend plot showing a two-motor continuous scan 
-   (:class:`~sardana.macroserver.macros.scan.a2scanc` *m_cp1_1 100 200  m_cp1_2 0 500 .1*).
+   (:class:`a2scanc` *m_cp1_1 100 200  m_cp1_2 0 500 .1*).
    The lines correspond to the motor positions and the blue shaded areas correspond to the intervals in 
    which the data acquisition took place.  
  
@@ -143,11 +143,11 @@ also while the motors are running at constant velocity.
 
 
 Some examples of continuous scan macros are:
-:class:`~sardana.macroserver.macros.scan.ascanc`,
-:class:`~sardana.macroserver.macros.scan.a2scanc`, ...
-:class:`~sardana.macroserver.macros.scan.dscanc`,
-:class:`~sardana.macroserver.macros.scan.d2scanc`, ...
-:class:`~sardana.macroserver.macros.scan.meshc`. 
+:class:`ascanc`,
+:class:`a2scanc`, ...
+:class:`dscanc`,
+:class:`d2scanc`, ...
+:class:`meshc`. 
 
 .. seealso:: For more information about the implementation details of the scan
              macros in Sardana, see 

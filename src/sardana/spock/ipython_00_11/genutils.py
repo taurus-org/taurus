@@ -69,9 +69,6 @@ from IPython.config.application import Application
 from IPython.frontend.terminal.ipapp import TerminalIPythonApp, \
     launch_new_instance
 
-import PyTango
-import PyTango.ipython
-
 import taurus
 from taurus.core import Release as TCRelease
 from taurus.core.util import CodecFactory
@@ -228,12 +225,12 @@ def get_ipython_profiles(path=None):
 def get_pytango_version():
     try:
         import PyTango
+        try:
+            return PyTango.Release.version
+        except:
+            return '0.0.0'
     except:
         return None
-    try:
-        return PyTango.Release.version
-    except:
-        return '0.0.0'
 
 def get_pytango_version_number():
     tgver_str = get_pytango_version()
@@ -253,7 +250,7 @@ def get_server_for_device(device_name):
 def get_macroserver_for_door(door_name):
     """Returns the MacroServer device name in the same DeviceServer as the
     given door device"""
-    full_door_name, door_name, door_alias = from_name_to_tango(door_name)
+    _, door_name, _ = from_name_to_tango(door_name)
     db = get_tango_db()
     door_name = door_name.lower()
     server_list = list(db.get_server_list('MacroServer/*'))
@@ -281,7 +278,7 @@ def get_device_from_user(expected_class, dft = None):
 
     name = ''
     try:
-        full_name, name, alias = from_name_to_tango(from_user)
+        full_name, name, _ = from_name_to_tango(from_user)
     except:
         print "Warning: the given %s does not exist" % expected_class
         return name
@@ -298,6 +295,7 @@ def get_device_from_user(expected_class, dft = None):
     return full_name
 
 def get_tango_db():
+    import PyTango
     tg_host = PyTango.ApiUtil.get_env_var("TANGO_HOST")
 
     db = None
@@ -319,7 +317,7 @@ def get_tango_db():
     return db
 
 def get_tango_host_from_user():
-
+    import PyTango
     while True:
         prompt = "Please enter a valid tango host (<host>:<port>): "
         from_user = raw_input(prompt).strip()
@@ -363,7 +361,7 @@ def print_dev_from_class(classname, dft = None):
     tg_host = "%s:%s" % (db.get_db_host(),db.get_db_port())
     print "Available",classname,"devices from",tg_host,":"
     for dev in dev_list:
-        full_name, name, alias = from_name_to_tango(dev)
+        _, name, alias = from_name_to_tango(dev)
         out = alias or name
         if alias: out += ' (a.k.a. %s)' % name
         out = "%-25s" % out
@@ -522,6 +520,7 @@ def _get_dev(dev_type):
         dev_name = getattr(spock_config, dev_type + '_name')
         factory = taurus.Factory()
         taurus_dev = factory.getDevice(dev_name)
+        import PyTango
         dev = PyTango.DeviceProxy(dev_name)
         setattr(spock_config, dev_type, dev)
         setattr(spock_config, taurus_dev_var, taurus_dev)
@@ -637,7 +636,7 @@ config.IPKernelApp.pylab = 'inline'
     if door_name is None:
         door_name = get_device_from_user("Door", profile)
     else:
-        full_door_name, door_name, door_alias = from_name_to_tango(door_name)
+        full_door_name, door_name, _ = from_name_to_tango(door_name)
         door_name = full_door_name
 
     #
@@ -700,7 +699,7 @@ def check_for_upgrade(ipy_profile_file, ipythondir, session, profile):
 def get_args(argv):
 
     script_name = argv[0]
-    script_dir, session = os.path.split(script_name)
+    _, session = os.path.split(script_name)
     script_name = os.path.realpath(script_name)
 
     macro_server = None
@@ -709,7 +708,7 @@ def get_args(argv):
     # Define the profile file
     profile = "spockdoor"
     try:
-        for i, arg in enumerate(argv[:1]):
+        for _, arg in enumerate(argv[:1]):
             if arg.startswith('--profile='):
                 profile=arg[10:]
                 break
@@ -788,10 +787,10 @@ def load_ipython_extension(ipython):
 
     config = ipython.config
     user_ns = ipython.user_ns
-    user_ns['MACRO_SERVER_NAME'] = macro_server = config.Spock.macro_server_name
+    user_ns['MACRO_SERVER_NAME'] = config.Spock.macro_server_name
     user_ns['MACRO_SERVER_ALIAS'] = config.Spock.macro_server_alias
     user_ns['DOOR_NAME'] = config.Spock.door_name
-    user_ns['DOOR_ALIAS'] = door = config.Spock.door_alias
+    user_ns['DOOR_ALIAS'] = config.Spock.door_alias
     user_ns['DOOR_STATE'] = ""
 
     #shell.set_hook('late_startup_hook', magic.spock_late_startup_hook)
@@ -819,7 +818,6 @@ def load_ipython_extension(ipython):
             edmac = IPython.core.magic.line_magic(magic.edmac)
             showscan = IPython.core.magic.line_magic(magic.showscan)
             expconf = IPython.core.magic.line_magic(magic.expconf)
-        print ipython
         
         ipython.register_magics(Sardana)
     else:
@@ -977,7 +975,7 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     # ------------------------------------
     # ConsoleWidget
     # ------------------------------------
-    console_widget = config.ConsoleWidget
+    # console_widget = config.ConsoleWidget
 
     # ------------------------------------
     # FrontendWidget
@@ -1031,7 +1029,6 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
 
 def start(user_ns=None):
     # Make sure the log level is changed to warning
-    import taurus
     CodecFactory()
     taurus.setLogLevel(taurus.Warning)
 
@@ -1069,7 +1066,7 @@ def mainloop(app=None, user_ns=None):
 def prepare_input_handler():
     # initialize input handler as soon as possible
     import sardana.spock.inputhandler
-    input_handler = sardana.spock.inputhandler.InputHandler()
+    _ = sardana.spock.inputhandler.InputHandler()
 
 
 def prepare_cmdline(argv=None):
@@ -1077,13 +1074,13 @@ def prepare_cmdline(argv=None):
         argv = sys.argv
 
     script_name = argv[0]
-    script_dir, session = os.path.split(script_name)
+    _, session = os.path.split(script_name)
     script_name = os.path.realpath(script_name)
 
     # Define the profile file
     profile, append_profile = "spockdoor", True
     try:
-        for i, arg in enumerate(argv[:1]):
+        for _, arg in enumerate(argv[:1]):
             if arg.startswith('--profile='):
                 profile=arg[10:]
                 append_profile = False

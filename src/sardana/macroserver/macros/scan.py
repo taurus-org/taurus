@@ -62,6 +62,7 @@ UNCONSTRAINED="unconstrained"
 
 StepMode = 's'
 ContinuousMode = 'c'
+HybridMode = 'h'
 
 def getCallable(repr):
     '''returns a function .
@@ -120,6 +121,12 @@ class aNscan(Hookable):
             self.way_lengths = ( self.finals - self.starts) / (self.nr_waypoints -1)
             self.name = opts.get('name','a%iscanc'%self.N)
             self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
+        elif mode == HybridMode:
+            self.nr_interv = scan_length
+            self.nr_points = self.nr_interv+1
+            self.interv_sizes = ( self.finals - self.starts) / self.nr_interv
+            self.name = opts.get('name','a%iscanh'%self.N)
+            self._gScan = HScan(self, self._stepGenerator, moveables, env, constrains, extrainfodesc)
         else:
             raise ValueError('invalid value for mode %s' % mode)
         
@@ -689,6 +696,28 @@ class fscan(Macro,Hookable):
     @property
     def data(self):
         return self._gScan.data
+
+
+class ascanh(aNscan, Macro): 
+    """Do an absolute scan of the specified motor.
+    ascan scans one motor, as specified by motor. The motor starts at the
+    position given by start_pos and ends at the position given by final_pos.
+    The step size is (start_pos-final_pos)/nr_interv. The number of data points collected
+    will be nr_interv+1. Count time is given by time which if positive,
+    specifies seconds and if negative, specifies monitor counts. """
+
+    param_def = [
+       ['motor',      Type.Moveable,   None, 'Moveable to move'],
+       ['start_pos',  Type.Float,   None, 'Scan start position'],
+       ['final_pos',  Type.Float,   None, 'Scan final position'],
+       ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
+       ['integ_time', Type.Float,   None, 'Integration time']
+    ]
+
+    def prepare(self, motor, start_pos, final_pos, nr_interv, integ_time,
+                **opts):
+        self._prepare([motor], [start_pos], [final_pos], nr_interv, integ_time,
+                      mode=HybridMode, **opts)
 
 
 class scanhist(Macro):

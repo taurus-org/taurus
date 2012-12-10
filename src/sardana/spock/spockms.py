@@ -29,21 +29,18 @@
 __all__ = ['GUIViewer', 'SpockBaseDoor', 'QSpockDoor', 'SpockDoor',
            'SpockMacroServer']
 
-import sys
 import os
-import operator
-import collections
-import threading
 
 import PyTango
 
 from taurus.core import TaurusEventType, TaurusSWDevState
 
+from sardana.sardanautils import is_pure_str, is_non_str_seq
+import genutils
+from .inputhandler import SpockInputHandler, InputHandler
+
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
-import genutils
-
-from inputhandler import SpockInputHandler, InputHandler
 
 if genutils.get_gui_mode() == 'qt':
     from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
@@ -276,7 +273,7 @@ class SpockBaseDoor(BaseDoor):
         return ret
 
     def _preprocessParameters(self, parameters):
-        if isinstance(parameters, (str, unicode)):
+        if is_pure_str(parameters):
             inside_str = False
             pars = []
             par = ''
@@ -298,7 +295,7 @@ class SpockBaseDoor(BaseDoor):
                     par += c
             if par: pars.append(par)
             return pars
-        elif operator.isSequenceType(parameters):
+        elif is_non_str_seq(parameters):
             return parameters
 
     def preRunMacro(self, obj, parameters):
@@ -308,7 +305,7 @@ class SpockBaseDoor(BaseDoor):
         return BaseDoor.runMacro(self, obj, parameters=parameters, synch=synch)
 
     def _runMacro(self, xml, **kwargs):
-        #kwargs like 'synch' are ignored in this reimplementation
+        #kwargs like 'synch' are ignored in this re-implementation
         if self._spock_state != TaurusSWDevState.Running:
             print "Unable to run macro: No connection to door '%s'" % self.getSimpleName()
             raise Exception("Unable to run macro: No connection")
@@ -323,7 +320,7 @@ class SpockBaseDoor(BaseDoor):
             self.command_inout("StopMacro")
             self.writeln("Done!")
         except PyTango.DevFailed, e:
-            if operator.isSequenceType(e.args) and \
+            if is_non_str_seq(e.args) and \
                not isinstance(e.args, (str, unicode)):
                 reason, desc = e.args[0].reason, e.args[0].desc
                 macro_obj = self.getRunningMacro()
@@ -391,9 +388,9 @@ class SpockBaseDoor(BaseDoor):
                                 directory_map=directory_map)
 
     def stateChanged(self, s, t, v):
-        old_state, old_sw_state = self._old_door_state, self._old_sw_door_state
+        old_sw_state = self._old_sw_door_state
         BaseDoor.stateChanged(self, s, t, v)
-        new_state, new_sw_state = self._old_door_state, self._old_sw_door_state
+        new_sw_state = self._old_sw_door_state
         self._updateState(old_sw_state, new_sw_state)
 
     def _updateState(self, old_sw_state, new_sw_state, silent=False):

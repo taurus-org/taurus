@@ -34,7 +34,7 @@ __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
 import traceback
 import array
 
-from sardana.macroserver.macro import Macro, Type, ParamRepeat
+from sardana.macroserver.macro import Macro, Type, ParamRepeat, Table
 
 ################################################################################
 #

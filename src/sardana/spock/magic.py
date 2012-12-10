@@ -27,7 +27,7 @@
 """Initial magic commands and hooks for the spock IPython environment"""
 
 __all__ = ['expconf', 'showscan', 'spsplot', 'debug_completer',
-           'debug', 'www_completer', 'www', 'post_mortem_completer',
+           'debug', 'www',
            'post_mortem', 'macrodata', 'edmac', 'spock_late_startup_hook',
            'spock_pre_prompt_hook']
 
@@ -97,40 +97,27 @@ def debug(self, parameter_s=''):
         print "Usage: debug [on|off]"
 
 
-def www_completer(self, event):
-    # calculate parameter index
-    param_idx = len(event.line.split()) - 1
-    if not event.line.endswith(' '):
-        param_idx -= 1
-    if param_idx == 0:
-        return get_door().log_streams
-
-
 def www(self, parameter_s=''):
-    """What went wrong. Reads the stream. If no stream is specified, it reads
-    'debug' stream. Valid values are output, critical, error, warning, info,
-    debug, result"""
+    """What went wrong. Prints the error message from the last macro execution"""
     import PyTango
-    params = parameter_s.split() or ('debug',)
     door = get_door()
-    logger = door.getLogObj(params[0])
     try:
-        # force=True -> make sure we read the latest value from Door server
-        v = logger.getLogBuffer()
-        if not v:
+        last_macro = door.getLastRunningMacro()
+        if last_macro is None:
+            door.writeln("No macro ran from this console yet!")
             return
-        msg = "\n".join(v)
-        page(msg)
-    except PyTango.DevFailed:
-        post_mortem(self, parameter_s, True)
+        if not hasattr(last_macro, 'exc_stack') or last_macro.exc_stack is None:
+            door.writeln("Sorry, but no exception occurred running last " \
+                         "macro (%s)." % last_macro.name)
+            return
+        exc = "".join(last_macro.exc_stack)
+        door.write(exc)
     except Exception, e:
-        door.writeln("Unexpected exception occured executing www:",
+        door.writeln("Unexpected exception occurred executing www:",
                      stream=door.Error)
         door.writeln(str(e), stream=door.Error)
         import traceback
         traceback.print_exc()
-
-post_mortem_completer = www_completer
 
 
 def post_mortem(self, parameter_s='', from_www=False):
@@ -142,13 +129,18 @@ def post_mortem(self, parameter_s='', from_www=False):
     logger = door.getLogObj(params[0])
     msg = ""
 
+    if not from_www:
+        try:
+            msg = "\n".join(logger.read(cache=False).value)
+        except:
+            from_www = True
+            
     if from_www:
         msg = "------------------------------\n" \
               "Server is offline.\n" \
               "This is a post mortem analysis\n" \
               "------------------------------\n"
-
-    msg += "\n".join(logger.getLogBuffer())
+        msg += "\n".join(logger.getLogBuffer())
     page(msg)
 
 def macrodata(self, parameter_s=''):
