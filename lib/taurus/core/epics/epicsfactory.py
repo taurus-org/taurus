@@ -306,7 +306,11 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
     def encode(self, value):
         '''encodes the value passed to the write method into 
         a representation that can be written in epics'''
-        return value
+        try:
+            typeclass = numpy.dtype(self.__pv.type).type
+            return typeclass(value) #cast the value with the python type for this PV
+        except:
+            return value
 
     def decode (self, obj):
         if isinstance(obj, epics.PV):
