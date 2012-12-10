@@ -33,7 +33,7 @@ import weakref
 
 import taurusmodel
 import taurusconfiguration
-from enums import TaurusEventType
+#from enums import TaurusEventType
 
 class TaurusAttribute(taurusmodel.TaurusModel):
     
@@ -159,7 +159,7 @@ class TaurusAttribute(taurusmodel.TaurusModel):
     def getValueObj(self, cache=True):
         try:
             return self.read(cache=cache)
-        except Exception, e:
+        except Exception:
             return None
 
     def getDisplayDescrObj(self,cache=True):
@@ -226,10 +226,9 @@ class TaurusAttribute(taurusmodel.TaurusModel):
         ret = None
         try:
             if self.isScalar():
-                format = self.getFormat()
-                if self.isNumeric() and format is not None:
-                    format = self.getFormat()
-                    ret = self.getFormat() % value
+                fmt = self.getFormat()
+                if self.isNumeric() and fmt is not None:
+                    ret = fmt % value
                 else:
                     ret = str(value)
             elif self.isSpectrum():
