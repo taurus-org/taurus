@@ -512,7 +512,41 @@ class MacroManager(MacroServerManager):
                 continue
             ret[name] = macro
         return ret
+    
+    def getMacroClasses(self, filter=None):
+        """Returns a :obj:`dict` containing information about macro classes.
 
+        :param filter:
+            a regular expression for macro names [default: None, meaning all
+            macros]
+        :type filter: str
+        :return: a :obj:`dict` containing information about macro classes
+        :rtype:
+            :obj:`dict`\<:obj:`str`\, :class:`~sardana.macroserver.msmetamacro.MacroClass`\>"""
+        macros = self.getMacros(filter=filter)
+        macro_classes = {}
+        for name, macro in macros.items():
+            if macro.get_type() == ElementType.MacroClass:
+                macro_classes[name] = macro
+        return macro_classes
+
+    def getMacroFunctions(self, filter=None):
+        """Returns a :obj:`dict` containing information about macro functions.
+
+        :param filter:
+            a regular expression for macro names [default: None, meaning all
+            macros]
+        :type filter: str
+        :return: a :obj:`dict` containing information about macro functions
+        :rtype:
+            :obj:`dict`\<:obj:`str`\, :class:`~sardana.macroserver.msmetamacro.MacroFunction`\>"""
+        macros = self.getMacros(filter=filter)
+        macro_classes = {}
+        for name, macro in macros.items():
+            if macro.get_type() == ElementType.MacroFunction:
+                macro_classes[name] = macro
+        return macro_classes
+        
     def getMacroNames(self):
         return sorted(self._macro_dict.keys())
 

@@ -29,7 +29,7 @@ scan"""
 
 __all__ = ["ls0d", "ls1d", "ls2d", "lsa", "lscom", "lsct", "lsctrl",
            "lsctrllib", "lsdef", "lsexp", "lsi", "lsior", "lsm", "lsmeas",
-           "lspc", "lspm"]
+           "lspc", "lspm", "lsmac"]
 
 __docformat__ = 'restructuredtext'
 
@@ -39,11 +39,9 @@ from sardana.macroserver.macro import *
 
 Left, Right, HCenter = Alignment.Left, Alignment.Right, Alignment.HCenter
 
-################################################################################
-#
+#~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # List of elements related macros
-#
-################################################################################
+#~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 class _ls(Macro):
     param_def = [
@@ -69,7 +67,8 @@ class _ls(Macro):
         return cols
     
     def run(self, *filter):
-        self.warning('This macro is not intended to be executed directly by the user')
+        self.warning('This macro is not intended to be executed directly by ' \
+                     'the user')
         return
 
 class lsdef(_ls):
@@ -227,3 +226,12 @@ class lsmeas(_lsobj):
             active = ' '
         return active, o.name, o.getTimerName(), ", ".join(o.getChannelLabels())
 
+class lsmac(_lsobj):
+    """Lists existing macros."""
+    type = Type.MacroCode
+    cols = 'Name', ('Location', 'file_path')
+
+class lsmaclib(_lsobj):
+    """Lists existing macro libraries."""
+    type = Type.MacroLibrary
+    cols = 'Name', ('Location', 'file_path')

@@ -260,6 +260,9 @@ class ElementParamInterface(ElementParamType):
     def getObjDict(self, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
         objs = CaselessDict()
+        if macro_server.is_macroserver_interface(self._name):
+            return macro_server.get_elements_with_interface(self._name)
+        
         if pool == ParamType.All:
             pools = macro_server.get_pools()
         else:

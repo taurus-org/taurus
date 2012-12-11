@@ -37,20 +37,21 @@ from taurus.core.util import CaselessDict, ThreadPool, Logger
 from taurus.core.tango.sardana.motion import Motion, MotionGroup
 from taurus.core.tango.sardana.pool import registerExtensions
 
-from sardana import InvalidId, ElementType
+from sardana import InvalidId, ElementType, Interface
 from sardana.sardanaevent import EventType
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanathreadpool import get_thread_pool
+from sardana.sardanautils import is_pure_str
 
-from msbase import MSObject
-from mscontainer import MSContainer
-from msdoor import MSDoor
-from msmacromanager import MacroManager
-from mstypemanager import TypeManager
-from msenvmanager import EnvironmentManager
-from msparameter import ParamType
-from msexception import UnknownMacroLibrary, UnknownMacro
+from .msbase import MSObject
+from .mscontainer import MSContainer
+from .msdoor import MSDoor
+from .msmacromanager import MacroManager
+from .mstypemanager import TypeManager
+from .msenvmanager import EnvironmentManager
+from .msparameter import ParamType
+from .msexception import UnknownMacroLibrary, UnknownMacro
 
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
@@ -487,6 +488,14 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return self.macro_manager.getMacroNames()
     get_macro_names.__doc__ = MacroManager.getMacroNames.__doc__
     
+    def get_macro_classes(self):
+        return self.macro_manager.getMacroClasses()
+    get_macro_classes.__doc__ = MacroManager.getMacroClasses.__doc__
+        
+    def get_macro_functions(self):
+        return self.macro_manager.getMacroFunctions()
+    get_macro_functions.__doc__ = MacroManager.getMacroFunctions.__doc__
+    
     def get_macro_libs_summary_info(self):
         libs = self.get_macro_libs()
         ret = []
@@ -688,13 +697,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
                                  pool=pool)
 
     def find_objects(self, param, type_class=All, subtype=All, pool=All):
-        if isinstance(param, (str, unicode)):
+        if is_pure_str(param):
             param = param,
         
         if type_class == MacroServer.All:
             type_name_list = self.get_data_type_names()
         else:
-            if isinstance(type_class, (str, unicode)):
+            if is_pure_str(type_class):
                 type_name_list = type_class,
             else:
                 type_name_list = type_class
@@ -709,14 +718,22 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             type_inst = self.get_data_type(type_class_name)
             if not type_inst.hasCapability(ParamType.ItemList):
                 continue
-            for name, obj in type_inst.getObjDict(pool=pool).items():
-                for re_obj in re_objs:
-                    if re_obj.match(name) is not None:
-                        obj_type = obj.getType()
-                        if (subtype is MacroServer.All or \
-                            re_subtype.match(obj.getType())) and \
-                           obj_type != "MotorGroup":
-                            obj_set.add(obj)
+            if self.is_macroserver_interface(type_class_name):
+                for name, obj in type_inst.getObjDict(pool=pool).items():
+                    for re_obj in re_objs:
+                        if re_obj.match(name) is not None:
+                            obj_type = ElementType[obj.get_type()]
+                            if subtype is MacroServer.All or re_subtype.match(obj_type):
+                                obj_set.add(obj)
+            else:
+                for name, obj in type_inst.getObjDict(pool=pool).items():
+                    for re_obj in re_objs:
+                        if re_obj.match(name) is not None:
+                            obj_type = obj.getType()
+                            if (subtype is MacroServer.All or \
+                                re_subtype.match(obj.getType())) and \
+                               obj_type != "MotorGroup":
+                                obj_set.add(obj)
         return list(obj_set)
     
     def get_motion(self, elems, motion_source=None, read_only=False, cache=True,
@@ -729,12 +746,33 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             motion_klass = MotionGroup
         return motion_klass(elems, motion_source)
     
+    _LOCAL_INTERFACES = {
+        Interface.MacroLibrary : get_macro_libs,
+        Interface.MacroCode : get_macros,
+        Interface.MacroClass: get_macro_classes,
+        Interface.MacroFunction: get_macro_functions, 
+    }
+    
+    def is_macroserver_interface(self, interface):
+        if is_pure_str(interface):
+            interface = Interface[interface]
+        return interface in self._LOCAL_INTERFACES
+    
     def get_elements_with_interface(self, interface):
         ret=CaselessDict()
-        for pool in self.get_pools():
-            ret.update(pool.getElementsWithInterface(interface))
-        return ret
+        if is_pure_str(interface):
+            interface_str = interface
+            interface = Interface[interface_str]
+        else:
+            interface_str = Interface[interface]
 
+        if self.is_macroserver_interface(interface):
+            ret.update(self._LOCAL_INTERFACES.get(interface)(self))
+        else:
+            for pool in self.get_pools():
+                ret.update(pool.getElementsWithInterface(interface_str))
+        return ret
+    
     def get_element_with_interface(self, name, interface):
         for pool in self.get_pools():
             element = pool.getElementWithInterface(name, interface)

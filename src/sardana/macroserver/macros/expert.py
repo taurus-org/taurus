@@ -28,7 +28,7 @@ from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
-           "edctrllib", "lsmac", "prdef", "relmac", "relmaclib", "send2ctrl",
+           "edctrllib", "prdef", "relmac", "relmaclib", "send2ctrl",
            "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
 import traceback
@@ -258,20 +258,6 @@ class commit_ctrllib(Macro):
 #
 ################################################################################
 
-class lsmac(Macro):
-    """Lists all macros."""
-
-    def run(self):
-        macro_libs = self.getMacroLibs()
-
-        out = List(['Name','Module'])
-
-        for macro_lib in macro_libs:
-            for macro in macro_lib.get_macros():
-                out.appendRow([macro.name, macro.file_path])
-        for line in out.genOutput():
-            self.output(line)
-
 
 class prdef(Macro):
     """Returns the the macro code for the given macro name."""
@@ -284,69 +270,6 @@ class prdef(Macro):
        code_lines, first_line = macro_data.code
        for code_line in code_lines:
            self.output(code_line.strip('\n'))
-
-
-#class edmac(Macro):
-#    """Returns the contents of the macro file which contains the macro code for
-#    the given macro name. If the library is given and it does not exist a new
-#    one is created. If the given library is a simple library name and it does
-#    not exist, it will be created on the first directory mentioned in the MacroPath"""
-
-#    """Returns the contents of the macro file which contains the macro code for
-#    the given macro name."""
-
-#    param_def = [['macro_name', Type.MacroCode, None, 'macro name'],
-#                 ['module_name',
-#                  ParamRepeat(['module_name', Type.String, None, 'a string item'],min=0,max=1),
-#                  None, 'optional module name']]
-
-#    result_def = [
-#        ['filedata',  Type.File, None, 'The file data object.']
-#    ]
-
-#    def run(self, macro_name, *module_name):
-#        if len(module_name) > 0:
-#            module_name = module_name[0]
-#            return self.getManager().getOrCreateMacroLib(module_name, macro_name)
-
-#        macro_data = self.getMacroInfo(macro_name)
-
-#        if macro_data == None:
-#            self.output("Unknown macro")
-#            return
-
-#        f_name = macro_data.getFileName()
-#        f = open(f_name)
-
-#        try:
-#            data = f.read()
-#        finally:
-#            f.close()
-
-#        if data == None:
-#            return
-
-#        code_lines, first_line = macro_data.getMacroCode()
-#        return [f_name , data , first_line]
-
-
-#class edmaclib(Macro):
-#    """Returns the contents of the macro file for the given macro library.
-#    If the library does not exist a new one is created. If the given name is
-#    a simple library name and it does not exist, it will be created on the
-#    first directory mentioned in the MacroPath"""
-
-#    param_def = [
-#        ['library_name',  Type.String, None,
-#         'a module name, a python file name or the absolute path']
-#    ]
-
-#    result_def = [
-#        ['filedata', Type.File, None, 'The file data object']
-#    ]
-
-#    def run(self, library_name):
-#        return self.getManager().getOrCreateMacroLib(library_name)
 
 
 class relmaclib(Macro):

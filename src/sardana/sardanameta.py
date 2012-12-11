@@ -103,7 +103,7 @@ class SardanaLibrary(SardanaBaseObject):
             file_path = os.path.abspath(module.__file__)
         self.file_path = file_path
         if file_path is None:
-            self.path= kwargs.get('path', None)
+            self.path = kwargs.get('path', None)
             self.file_name = kwargs.get('file_name', None)
             name = kwargs.get('name', None)
         else:
