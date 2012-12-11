@@ -100,7 +100,7 @@ class MacroServer(SardanaDevice):
                                   MacroServerClass.DefaultEnvRelDir)
             db = Util.instance().get_database()
             db.put_device_property(self.get_name(), dict(EnvironmentDb=env_db))
-            self.EnvironmentDb = self._calculate_environment_name(env_db)
+            self.EnvironmentDb = env_db
             macro_server.set_environment_db(self.EnvironmentDb)
         
         try:
