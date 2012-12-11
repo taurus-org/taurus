@@ -64,7 +64,7 @@ class IcepapDriverParam(EvaluationDevice):
         
         try:
             value = self.ipap.readParameter(axis, param)
-            return double(value)
+            return float(value)
         except:
             return value
         
