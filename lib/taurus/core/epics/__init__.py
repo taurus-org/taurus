@@ -30,10 +30,39 @@ Epics extension for taurus core model.
 
 The epics extension provides access to Epics control system objects 
 
-.. note:: This is only a proof of concept and the final syntax of the models is
-          not yet dset in stone
+.. note:: The Epics scheme is only a proof of concept. The final syntax of the models is
+          not yet set in stone and only basic functionality is implemented.  
 
 
+The Epics extension implements :mod:`taurus.core` objects that connect to Epics
+objects. The scheme prefix for epics objects is 'epics://'.
+
+You should never create objects of epics classes directly. Instead you
+should use the :class:`taurus.core.TaurusManager` and :class:`taurus.core.TaurusFactory` APIs
+to access all elements.
+
+For example, to get a reference to the epics process variable (PV) "my:example.RBV" you
+should do something like::
+
+    >>> import taurus
+    >>> myattr = taurus.Attribute('epics://my:example.RBV')
+
+Epics attributes (should) work just as other Taurus attributes and can be
+referred by their model name wherever a Taurus Attribute model is expected. For
+example, you can launch a `TaurusForm` with an epics attribute::
+
+    $> taurusform epics://my:example.RBV
+
+Similarly, you can combine epics attributes with attributes from other schemes::
+
+    $> taurusform 'epics://my:example.RBV' 'tango://sys/tg_test/1/float_scalar'\ 
+       'eval://{epics://my:example.RBV}*{tango://sys/tg_test/1/float_scalar}'
+
+Currently, the taurus epics scheme just supports epics PVs, implementing them as
+taurus attributes (with configuration objects as well). Other taurus classes
+such as the Database, and Device classes are just convenience dummy objects in
+the epics scheme at this point. Epics records may eventually be mapped as
+Devices.
 
 """
 
