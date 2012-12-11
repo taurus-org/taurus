@@ -347,7 +347,7 @@ class MacroServerClass(SardanaDeviceClass):
             [10] ],
         'EnvironmentDb':
             [DevString,
-            "The environment database (usualy a plain file).",
+            "The environment database (usually a plain file).",
             os.path.join(DefaultEnvBaseDir, DefaultEnvRelDir) ],
         'RConsolePort':
             [DevLong,

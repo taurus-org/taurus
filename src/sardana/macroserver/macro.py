@@ -46,14 +46,13 @@ import StringIO
 import ctypes
 
 from taurus.core.util import Logger, propertx
-from taurus.core.util.wrap import wraps
 from taurus.console.table import Table
 from taurus.console.list import List
 
 from taurus.core.tango.sardana.pool import PoolElement
 
 from sardana.sardanadefs import State
-
+from sardana.util.wrap import wraps
 from msparameter import Type, ParamType, ParamRepeat
 from msexception import StopException, AbortException, \
     MacroWrongParameterType, UnknownEnv, UnknownMacro

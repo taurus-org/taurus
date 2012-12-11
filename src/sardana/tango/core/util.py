@@ -57,13 +57,13 @@ from PyTango import Util, Database, WAttribute, DbDevInfo, DevFailed, \
 
 import taurus
 from taurus.core.util.log import Logger
-from taurus.core.util.wrap import wraps
 
 import sardana
 from sardana import State, SardanaServer, DataType, DataFormat, InvalidId, \
     DataAccess, to_dtype_dformat, to_daccess, Release, ServerRunMode
 from sardana.sardanaexception import SardanaException
 from sardana.sardanavalue import SardanaValue
+from sardana.util.wrap import wraps
 from sardana.pool.poolmetacontroller import DataInfo
 
 
