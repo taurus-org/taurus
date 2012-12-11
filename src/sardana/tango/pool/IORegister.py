@@ -29,6 +29,7 @@ __all__ = ["IORegister", "IORegisterClass"]
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import time
 
 from PyTango import DevFailed, Except
@@ -48,6 +49,7 @@ from sardana.sardanaattribute import SardanaAttribute
 class IORegister(PoolElementDevice):
 
     def __init__(self, dclass, name):
+        self.in_write_value = False
         PoolElementDevice.__init__(self, dclass, name)
 
     def init(self, name):
@@ -60,6 +62,27 @@ class IORegister(PoolElementDevice):
         self.element = ior
 
     ior = property(get_ior, set_ior)
+
+    def set_write_value_to_db(self):
+        value_attr = self.ior.get_value_attribute()
+        if value_attr.has_write_value():
+            data = dict(Value=dict(__value=value_attr.w_value, __value_ts=value_attr.w_timestamp))
+            db = self.get_database()
+            db.put_device_attribute_property(self.get_name(), data)
+
+    def get_write_value_from_db(self):
+        name = 'Value'
+        db = self.get_database()
+        val_props = db.get_device_attribute_property(self.get_name(), name)[name]
+        w_val = val_props["__value"][0]
+        
+        _, _, attr_info = self.get_dynamic_attributes()[0][name]
+        w_val = str_to_value(w_val, attr_info.dtype, attr_info.dformat)
+        
+        w_val, w_ts = int(val_props["__value"][0]), None
+        if "__value_ts" in val_props:
+            w_ts = float(val_props["__value_ts"][0])
+        return w_val, w_ts 
 
     @DebugIt()
     def delete_device(self):
@@ -89,6 +112,16 @@ class IORegister(PoolElementDevice):
         self.set_state(DevState.ON)
 
     def on_ior_changed(self, event_source, event_type, event_value):
+        try:
+            self._on_ior_changed(event_source, event_type, event_value)
+        except not DevFailed:
+            msg = 'Error occurred "on_ior_changed(%s.%s): %s"'
+            exc_info = sys.exc_info()
+            self.error(msg, self.ior.name, event_type.name,
+                       exception_str(*exc_info[:2]))
+            self.debug("Details", exc_info=exc_info)
+
+    def _on_ior_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
@@ -96,33 +129,42 @@ class IORegister(PoolElementDevice):
 
         timestamp = time.time()
         name = event_type.name.lower()
+
+        if name == "w_value" and not self.in_write_value:
+            self.debug("Storing value set point: %s", self.ior.value.w_value)
+            self.set_write_value_to_db()
+            return
+        
         multi_attr = self.get_device_attr()
         try:
             attr = multi_attr.get_attr_by_name(name)
         except DevFailed:
             return
+
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
-        error = None
+        value, w_value, error = None, None, None
 
         if name == "state":
-            event_value = self.calculate_tango_state(event_value)
+            value = self.calculate_tango_state(event_value)
         elif name == "status":
-            event_value = self.calculate_tango_status(event_value)
+            value = self.calculate_tango_status(event_value)
         else:
             if isinstance(event_value, SardanaAttribute):
                 if event_value.error:
                     error = Except.to_dev_failed(*event_value.exc_info)
+                else:
+                    value = event_value.value
                 timestamp = event_value.timestamp
-                event_value = event_value.value
-
             state = self.ior.get_state(propagate=0)
-
-            if state == State.Moving and name == "value":
-                quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=event_value, timestamp=timestamp,
-                           quality=quality, priority=priority, error=error,
-                           synch=False)
+            
+            if name == "value":
+                w_value = event_source.get_value_attribute().w_value                
+                if state == State.Moving:
+                    quality = AttrQuality.ATTR_CHANGING
+        self.set_attribute(attr, value=value, w_value=w_value,
+                           timestamp=timestamp, quality=quality,
+                           priority=priority, error=error, synch=False)
 
     def always_executed_hook(self):
         #state = to_tango_state(self.ior.get_state(cache=False))
@@ -146,11 +188,23 @@ class IORegister(PoolElementDevice):
         return
 
     def read_Value(self, attr):
-        attr.set_value(self.ior.get_value(cache=False))
+        value = self.ior.get_value(cache=False)
+        if value.error:
+            Except.throw_python_exception(*value.exc_info)        
+        self.set_attribute(attr, value=value.value, w_value=value.w_value,
+                           priority=0, timestamp=value.timestamp)
 
     def write_Value(self, attr):
+        self.in_write_value = True
         value = attr.get_write_value()
-        self.ior.set_value(value)
+        try:
+            self.ior.set_value(value)
+            # manually store write value in the database
+            self.set_write_value_to_db()
+        except PoolException as pe:
+            throw_sardana_exception(pe)
+        finally:
+            self.in_write_value = False
 
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:

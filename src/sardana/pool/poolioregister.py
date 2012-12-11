@@ -32,61 +32,110 @@ __docformat__ = 'restructuredtext'
 
 from sardana import ElementType
 from sardana.sardanaevent import EventType
+from sardana.sardanaattribute import SardanaAttribute
 
-from poolelement import PoolElement
-from poolacquisition import PoolIORAcquisition
+from .poolelement import PoolElement
+from .poolacquisition import PoolIORAcquisition
+
+
+class Value(SardanaAttribute):
+
+    def __init__(self, *args, **kwargs):
+        super(Value, self).__init__(*args, **kwargs)
+
+    def update(self, cache=True, propagate=1):
+        if not cache or not self.has_value():
+            value = self.obj.read_value()
+            self.set_value(value, propagate=propagate)
+
 
 class PoolIORegister(PoolElement):
 
     def __init__(self, **kwargs):
         kwargs['elem_type'] = ElementType.IORegister
         PoolElement.__init__(self, **kwargs)
-        self._value = None
-        self._wvalue = None
+        self._value = Value(self, listeners=self.on_change)
         self._config = None
         acq_name = "%s.Acquisition" % self._name
         self.set_action_cache(PoolIORAcquisition(self.pool, name=acq_name))
 
-    # --------------------------------------------------------------------------
-    # value
-    # --------------------------------------------------------------------------
-    
-    def read_value(self):
-        return self.get_action_cache().read_value()[self]
-    
-    def put_value(self, value, propagate=1):
-        self._set_value(value, propagate=propagate)
-    
-    def get_value(self, cache=True, propagate=1):
-        if not cache or self._value is None:
-            value , exc_info = self.read_value()
-            if exc_info is not None:
-                raise exc_info[1]
-            self._set_value(value, propagate=propagate)
-        return self._value
-    
-    def get_value_w(self):
-        return self._wvalue
-    
-    def set_value(self, value, propagate=1):
-        self._wvalue = value
-        self.controller.write_one(self.axis, value)
-        self._set_value(value, propagate=propagate)
+    def get_value_attribute(self):
+        """Returns the value attribute object for this IO register
         
-    def _set_value(self, value, propagate=1):
-        self._value = value
-        if not propagate:
-            return
-        self.fire_event(EventType("value", priority=propagate), value)
+        :return: the value attribute
+        :rtype: :class:`~sardana.sardanaattribute.SardanaAttribute`"""        
+        return self._value
+
+    # --------------------------------------------------------------------------
+    # Event forwarding
+    # --------------------------------------------------------------------------
     
-    value = property(get_value, set_value, doc="ioregister value")
-    
+    def on_change(self, evt_src, evt_type, evt_value):
+        # forward all events coming from attributes to the listeners
+        self.fire_event(evt_type, evt_value)
+
     # --------------------------------------------------------------------------
     # default acquisition channel
     # --------------------------------------------------------------------------
     
-    def get_default_acquisition_channel(self):
-        return 'value'
+    def get_default_attribute(self):
+        return self.get_value_attribute()  
+
+    # --------------------------------------------------------------------------
+    # value
+    # --------------------------------------------------------------------------
+    def read_value(self):
+        """Reads the IO register value from hardware.
+
+        :return:
+            a :class:`~sardana.sardanavalue.SardanaValue` containing the IO
+            register value
+        :rtype:
+            :class:`~sardana.sardanavalue.SardanaValue`"""        
+        return self.get_action_cache().read_value()[self]
     
-    def get_source(self):
-        return "{0}/value".format(self.full_name)
+    def put_value(self, value, propagate=1):
+        """Sets a value.
+
+        :param value:
+            the new value
+        :type value:
+            :class:`~sardana.sardanavalue.SardanaValue`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""
+        val_attr = self._value
+        val_attr.set_value(value, propagate=propagate)
+        return val_attr
+    
+    def get_value(self, cache=True, propagate=1):
+        value = self.get_value_attribute()
+        value.update(cache=cache, propagate=propagate)
+        return value
+    
+    def set_value(self, value):
+        self.write_register(value)
+
+    def set_write_value(self, w_value, timestamp=None, propagate=1):
+        """Sets a new write value for the IO registere
+
+        :param w_value:
+            the new write value for IO register
+        :type w_value:
+            :class:`~numbers.Number`
+        :param propagate:
+            0 for not propagating, 1 to propagate, 2 propagate with priority
+        :type propagate:
+            int"""
+        self._value.set_write_value(w_value, timestamp=timestamp,
+                                    propagate=propagate)
+
+    value = property(get_value, set_value, doc="ioregister value")
+    
+    def write_register(self, value):    
+        self._aborted = False
+        self._stopped = False
+        if not self._simulation_mode:
+            self.set_write_value(value, timestamp=timestamp, propagate=0)
+            self.controller.write_one(self.axis, value)
