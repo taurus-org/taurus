@@ -31,14 +31,11 @@ def set_src():
     import sys
     import os.path as osp
     sar_dir = osp.join(osp.dirname(osp.abspath(__file__)), osp.pardir, osp.pardir, 'src')
-    sys.path.append(osp.abspath(sar_dir))
+    sys.path.insert(0, osp.abspath(sar_dir))
 
-try:
-    import sardana
-except ImportError:
-    # try to use code from src distribution
-    set_src()
-    import sardana
+# try to use code from src distribution
+set_src()
+import sardana
 
 as_pdf_extension = True
 try:
