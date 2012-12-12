@@ -293,6 +293,8 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         "expandNode",
         "collapseNode",
         )
+        
+    TRACE_ALL = False
 
     def __init__(self, parent=None, designMode = False):
         name = "TaurusDevTree"
@@ -381,11 +383,14 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         ret['group'] = 'Taurus Views'
         ret['icon'] = ":/designer/listview.png"
         return ret
-
+    
     def defineStyle(self):
         self.setWindowTitle('TaurusDevTree')
         self.setHeaderLabel('Device Browser')
         self.setGeometry(Qt.QRect(90,60,256,192))
+        self.actionFindInTree = Qt.QAction(self)
+        self.actionFindInTree.setShortcut(Qt.QKeySequence.Find)
+        self.connect(self.actionFindInTree, Qt.SIGNAL("triggered()"), self.findDialog)
         from taurus.qt.qtgui.table.qdictionary import QDictionaryEditor,QListEditor
         self.ExpertMenu.append(
             ('Edit Model Filters',
@@ -421,7 +426,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             ]        
             
     def trace(self,msg):
-        if self.getLogLevel()=='DEBUG':
+        if self.TRACE_ALL or self.getLogLevel() in ('DEBUG'):
             print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
     def setTangoHost(self,tango_host):
@@ -452,7 +457,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     
     def setModelCheck(self,model):
         # Called from TaurusBaseWidget.setModel()
-        self.trace('setModelCheck(%s)'%model)
+        self.trace('setModelCheck(%s)'%str(model)[:80])
         self.setFilters(model)
         
     @Qt.pyqtSignature("addModels(QStringList)")
@@ -461,7 +466,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         :param modelNames:  (sequence<str>) the names of the models to be added
         .. seealso:: :meth:`removeModels`
         '''
-        self.trace('In addModels(%s)'%modelNames)
+        self.trace('In addModels(%s)'%str(modelNames)[:80])
         #print 'Adding %d models to (%s)'%(len(modelNames),self.getFilters())
         modelNames = split_model_list(modelNames)
         #dct = self.getTangoDict(modelNames)
@@ -534,7 +539,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getTangoDict(self,filters):
-        self.trace('In TaurusDevTree.getTangoDict(%s(%s))'%(type(filters),str(filters)))
+        self.trace('In TaurusDevTree.getTangoDict(%s(%s))'%(type(filters),str(filters)[:80]))
         if filters is None: return
         result = {}
         filters = split_model_list(filters)
@@ -724,6 +729,9 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
     def expandAll(self,queue=True):
         self.findInTree('*',select=False,queue=queue)
+        
+    def findDialog(self):
+        self.findInTree(str(Qt.QInputDialog.getText(self,'Search ...','Write a part of the name',Qt.QLineEdit.Normal)[0]))
         
     @Qt.pyqtSignature("findInTree(const QString &)")
     def findInTree(self,regexp,collapseAll=None,exclude=None,select=True,queue=True):
@@ -1387,7 +1395,7 @@ def taurusDevTreeMain():
         #app = TaurusApplication(sys.argv)
         if not args: args = ['database']
     else:
-        taurus.setLogLevel(taurus.core.util.Logger.Debug)
+        taurus.setLogLevel(taurus.Debug)
         parser = argparse.get_taurus_parser()
         parser.set_usage("%prog [options] devname [attrs]")
         parser.set_description("Taurus Application inspired in Jive and Atk Panel")
@@ -1408,8 +1416,8 @@ def taurusDevTreeMain():
     def trace(m): print(m)
     [setattr(form.tree,f,trace) for f in ('info','warning','error','trace')]
     
-    form.setLogLevel('DEBUG')
-    form.tree.setLogLevel('DEBUG')
+    form.setLogLevel(taurus.Debug)
+    form.tree.setLogLevel(taurus.Debug)
     #set a model list from the command line or launch the chooser  
     if options.config_file is not None: 
         form.tree.loadConfigFile(options.config_file)
