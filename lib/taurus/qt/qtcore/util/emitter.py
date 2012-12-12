@@ -147,7 +147,7 @@ class TaurusEmitterThread(Qt.QThread):
         self.method = method
         self.cursor = Qt.QCursor(Qt.Qt.WaitCursor) if cursor is True else cursor
         self._cursor = False
-        self.sleep = sleep
+        self.timewait = sleep
         
         self.emitter = Qt.QObject()
         self.emitter.moveToThread(Qt.QApplication.instance().thread())
@@ -226,7 +226,7 @@ class TaurusEmitterThread(Qt.QThread):
         return
         
     def run(self):
-        Qt.QApplication.instance().thread().wait(self.sleep)
+        Qt.QApplication.instance().thread().sleep(int(self.timewait/1000) if self.timewait>10 else int(self.timewait)) #wait(self.sleep)
         self.log.info('#'*80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
@@ -347,5 +347,5 @@ class SingletonWorker():#Qt.QObject):
     def finished(self): return self.thread.finished()
     def started(self): return self._running
     def terminated(self): return self.thread.terminated()
-    def sleep(self,ms): return self.thread.sleep(ms)
+    def sleep(self,s): return self.thread.sleep(s)
     
