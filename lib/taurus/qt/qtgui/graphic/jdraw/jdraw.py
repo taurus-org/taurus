@@ -256,7 +256,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
         setattr(item,'_name',name)
         if name and not self._delayed:
             if isinstance(item, TaurusGraphicsItem):
-                self.debug('TaurusJDrawGraphicsFactory.set_common_params(): %s.setModel(%s)'%(item,name))
+                #self.debug('TaurusJDrawGraphicsFactory.set_common_params(): %s.setModel(%s)'%(item,name))
                 item.setModel(name)
             else:
                 self.debug('TaurusJDrawGraphicsFactory.set_common_params(%s): %s is not a TaurusGraphicsItem'%(name,type(item).__name__))
@@ -324,7 +324,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
           #except AttributeError,ae: pass
           except Exception,e:
               self.warning('jdraw.set_common_params(%s(%s)).(background,gradient,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
-        self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))
+        #self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))
         
     def set_item_filling(self,item,pattern=Qt.Qt.Dense4Pattern,expand=False):
         count = 0
