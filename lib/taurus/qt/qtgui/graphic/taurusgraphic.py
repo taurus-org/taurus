@@ -177,6 +177,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     '''
     __pyqtSignals__ = ("refreshTree2","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
     ANY_ATTRIBUTE_SELECTS_DEVICE = True
+    TRACE_ALL = False
     
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
@@ -194,10 +195,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         try:
             self.logger = taurus.core.util.Logger(name)
             #self.logger.setLogLevel(self.logger.Info)
-            self.debug = lambda l: self.logger.debug(l)
-            self.info = lambda l: self.logger.info(l)
-            self.warning = lambda l: self.logger.warning(l)
-            self.error = lambda l: self.logger.error(l)
+            if not self.TRACE_ALL:
+                self.debug = lambda l: self.logger.debug(l)
+                self.info = lambda l: self.logger.info(l)
+                self.warning = lambda l: self.logger.warning(l)
+            else: self.debug = self.info = self.warning = self.error = lambda l: self.logger.warning(l)
         except:
             print 'Unable to initialize TaurusGraphicsSceneLogger: %s'%traceback.format_exc()
             
@@ -209,12 +211,12 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         Qt.QGraphicsScene.__del__(self)
 
     def addItem(self,item):
-        self.debug('addItem(%s)'%item)
+        #self.debug('addItem(%s)'%item)
         def expand(i):
             name = str(getattr(i,'_name','')).lower()
             if name: 
                 self._itemnames[name].add(i)
-                self.debug('addItem(%s): %s'%(name,i))
+                #self.debug('addItem(%s): %s'%(name,i))
             if isinstance(i,Qt.QGraphicsItemGroup):
                 for j in i.childItems():
                     expand(j)
@@ -253,9 +255,22 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def getItemByPosition(self,x,y):
         """ This method will try first with named objects; if failed then with itemAt """
         pos = Qt.QPointF(x,y)
-        itemsAtPos = sorted((i.zValue(),i) for v in self._itemnames.values() for i in v if i.contains(pos))
-        obj = itemsAtPos[-1][-1] if itemsAtPos else self.itemAt(x,y)
-        return self.getTaurusParentItem(obj) or obj
+        itemsAtPos = []
+        for z,o in sorted((i.zValue(),i) for v in self._itemnames.values() for i in v if i.contains(pos)):
+            if not hasattr(o,'getExtensions'):
+                self.debug('getItemByPosition(%d,%d): adding Qt primitive %s'%(x,y,o))
+                itemsAtPos.append(o)
+            elif not o.getExtensions().get('noSelect'):
+                self.debug('getItemByPosition(%d,%d): adding GraphicsItem %s'%(x,y,o))
+                itemsAtPos.append(o)
+            else: self.debug('getItemByPosition(%d,%d): object ignored, %s'%(x,y,o))
+        if itemsAtPos:
+            obj = itemsAtPos[-1]
+            return self.getTaurusParentItem(obj) or obj
+        else: 
+            #return self.itemAt(x,y)
+            self.warning('getItemByPosition(%d,%d): no items found!'%(x,y))
+            return None
             
     def getItemClicked(self,mouseEvent):
         pos = mouseEvent.scenePos()
@@ -272,11 +287,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             obj_name = getattr(obj,'_name', '')
             if not obj_name and isinstance(obj,Qt.QGraphicsTextItem): obj_name = obj.toPlainText()
             if (mouseEvent.button() == Qt.Qt.LeftButton):
-                self.clearSelection()
-                self._selectedItems.append(obj)
-                self.selectGraphicItem(obj_name) # A null obj_name should deselect all, we don't send obj because we want all similar to be matched
-                self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name) # A null obj_name should deselect all
-                
+                ## A null obj_name should deselect all, we don't send obj because we want all similar to be matched                
+                if self.selectGraphicItem(obj_name):
+                    self.debug(' => graphicItemSelected(QString)(%s)'%obj_name)
+                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name) # A null obj_name should deselect all
             def addMenuAction(menu,k,action,last_was_separator=False):
                 try:
                     if k:
@@ -291,7 +305,6 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 except Exception,e: 
                     self.warning('Unable to add Menu Action: %s:%s'%(k,e))                    
                 return last_was_separator
-                
             if (mouseEvent.button() == Qt.Qt.RightButton):
                 ''' This function is called when right clicking on TaurusDevTree area. A pop up menu will be shown with the available options. '''
                 self.debug('RightButton Mouse Event on %s'%(obj_name))
@@ -353,9 +366,20 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         A blue circle is drawn around the matching item name.
         If the item_name is empty, or it is a reserved keyword, or it has the "noSelect" extension, then the blue circle is removed from the synoptic.
         """      
-        #self.info('In TaurusGraphicsScene.selectGraphicItem(%s))',item_name)
+        self.debug('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
         retval = False
-        if self._selection: self.clearSelection()
+        selected = [str(getattr(item,'_name',item)) for item in self._selectedItems if item]
+        if selected:
+            iname = str(getattr(item_name,'_name',item_name))
+            #self.info('In TauGraphicsScene.selectGraphicItem(%s): already selected: %s'%(iname,selected))
+            if not iname.strip():
+                self.clearSelection()
+                return False
+            elif any(iname not in i for i in selected): 
+                self.clearSelection()
+            else: 
+                self.info('In TauGraphicsScene.selectGraphicItem(%s): already selected!'%item_name)
+                return True
         if any(isinstance(item_name,t) for t in (TaurusGraphicsItem,Qt.QGraphicsItem)):
             if not getattr(item_name,'_name', ''): 
                 self.debug('In TauGraphicsScene.selectGraphicItem(%s): item name not found.'%item_name)
@@ -401,7 +425,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return retval
 
     def clearSelection(self):
-        self.debug('In clearSelection([%d])'%len(self._selection))
+        self.debug('In clearSelection([%d])'%len(self._selectedItems))
         for i in self._selection:
             i.hide()
             self.removeItem(i)
@@ -648,7 +672,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     
     def __init__(self, name = None, parent = None):
         self.call__init__(TaurusBaseComponent, name, parent) #<- log created here
-        self.debug('TaurusGraphicsItem(%s,%s)' % (name,parent))
+        #self.debug('TaurusGraphicsItem(%s,%s)' % (name,parent))
         self.setName(name)
         self._currFgBrush = None
         self._currBgBrush = None
@@ -692,9 +716,9 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
         self.setName(self._extensions.get('name',self._name))
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
-        self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
+        #self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
         self.setToolTip(tooltip)
-        self.debug('%s.getExtensions(): %s'%(self._name,self._extensions))
+        #self.debug('%s.getExtensions(): %s'%(self._name,self._extensions))
         return self._extensions
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
