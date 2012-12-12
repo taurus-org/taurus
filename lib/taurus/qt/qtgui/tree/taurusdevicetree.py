@@ -426,7 +426,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             ]        
             
     def trace(self,msg):
-        if self.TRACE_ALL or self.getLogLevel() in ('DEBUG'):
+        if self.TRACE_ALL or self.getLogLevel() in ('DEBUG',40,):
             print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
     def setTangoHost(self,tango_host):
