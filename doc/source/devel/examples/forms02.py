@@ -1,10 +1,9 @@
 import sys
-from taurus.qt import Qt
 from taurus.qt.qtgui.panel import TaurusForm
 from taurus.qt.qtgui.display import TaurusValueLabel
-from taurus.qt.qtgui.input import TaurusWheelEdit
+from taurus.qt.qtgui.application import TaurusApplication
 
-app = Qt.QApplication(sys.argv)
+app = TaurusApplication(sys.argv)
 
 panel = TaurusForm()
 props = [ 'state', 'status', 'position', 'velocity', 'acceleration' ]
