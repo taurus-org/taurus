@@ -49,8 +49,6 @@ from taurus.qt.qtgui.input import TaurusWheelEdit, TaurusValueLineEdit
 from taurus.qt.qtgui.button import TaurusLauncherButton
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 
-from taurus.qt.qtgui.resource import getIcon
-
 
 class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
     def __init__(self,*args):
@@ -62,6 +60,13 @@ class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
         return None
     
 class DefaultLabelWidget(TaurusLabel):
+    '''
+    The base class used by default for showing the label of a TaurusValue. 
+        
+    .. note:: It only makes sense to use this class as a part of a TaurusValue,
+              since it assumes that it can get a reference to a TaurusValue via the
+              :meth:`getTaurusValueBuddy` member
+    '''
     
     _dragEnabled=True
     
@@ -82,7 +87,7 @@ class DefaultLabelWidget(TaurusLabel):
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, model + "?configuration=%s"%config)
         elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
-             TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
+            TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
     
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -114,6 +119,7 @@ class DefaultLabelWidget(TaurusLabel):
     def getQtDesignerPluginInfo(cls):
         return None
 
+
 class ExpandingLabel(TaurusLabel):
     '''just a expanding TaurusLabel'''
     def __init__(self,*args):
@@ -124,6 +130,7 @@ class ExpandingLabel(TaurusLabel):
 class CenteredLed(TaurusLed):
     '''just a centered TaurusLed'''
     DefaultAlignment = Qt.Qt.AlignHCenter | Qt.Qt.AlignVCenter
+        
         
 class DefaultUnitsWidget(TaurusLabel):
     def __init__(self,*args):
@@ -143,6 +150,7 @@ class DefaultUnitsWidget(TaurusLabel):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
+    
 
 class _AbstractTaurusValueButton(TaurusLauncherButton):
     _deleteWidgetOnClose = True
@@ -154,6 +162,7 @@ class _AbstractTaurusValueButton(TaurusLauncherButton):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
+    
     
 class TaurusPlotButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusPlot'''
@@ -396,7 +405,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
                 try: 
-                    from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog
+                    from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
                     result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
                 except ImportError:
                     result = [TaurusValuesTableButton, ExpandingLabel]
@@ -979,6 +988,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     allowWrite = Qt.pyqtProperty("bool", getAllowWrite, setAllowWrite, resetAllowWrite)
     modifiableByUser = Qt.pyqtProperty("bool", TaurusBaseWidget.isModifiableByUser, TaurusBaseWidget.setModifiableByUser, TaurusBaseWidget.resetModifiableByUser)
 
+
 class TaurusValuesFrame(TaurusFrame):
     '''This is a container specialized into containing TaurusValue widgets.
     It should be used Only for TaurusValues'''
@@ -1063,6 +1073,7 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
     #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
     #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_spectrum'%s for s in ('float','short','string','long','boolean') ]
+    #models =  ['sys/tg_test/1/float_scalar']
     #container.setModel(models)
     
     #container.getTaurusValueByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
