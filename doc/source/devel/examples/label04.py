@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusValueLabel, TaurusConfigLabel
 
@@ -22,6 +22,6 @@ w1.setShowQuality(False)
 layout.addWidget(w1)
 layout.addWidget(w2)
 layout.addWidget(w3)
-panel.setVisible(True)
+panel.show()
 
 sys.exit(app.exec_())

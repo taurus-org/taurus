@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
 
 app = Qt.QApplication(sys.argv)
@@ -10,7 +10,7 @@ app = Qt.QApplication(sys.argv)
 ##########################
 
 import numpy
-from PyQt4 import Qwt5
+from taurus.qt import Qwt5
 
 panel = TaurusPlot()
 
@@ -40,5 +40,5 @@ panel.attachRawData(rawdata3)
 ########################
 #END EXAMPLE CODE
 ########################
-panel.setVisible(True)
+panel.show()
 sys.exit(app.exec_())

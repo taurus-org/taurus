@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.display import TaurusStateLabel
 
 app = Qt.QApplication(sys.argv)
@@ -13,6 +13,6 @@ for y in range(4):
         w.setShowText(False)
         #w.setShowQualityForeground(False)
         layout.addWidget(w,x,y)
-panel.setVisible(True)
+panel.show()
 
 sys.exit(app.exec_())

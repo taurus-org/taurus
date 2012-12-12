@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.plot import TaurusPlot
 
 app = Qt.QApplication(sys.argv)
@@ -16,5 +16,5 @@ panel.setModel(model)
 ########################
 #END EXAMPLE CODE
 ########################
-panel.setVisible(True)
+panel.show()
 sys.exit(app.exec_())

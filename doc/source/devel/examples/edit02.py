@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusValueLabel, TaurusConfigLabel
 from taurus.qt.qtgui.input import TaurusValueSpinBox
@@ -28,5 +28,5 @@ w2.setModel('/position')
 w3.setModel('/position')
 w4.setModel('/position?configuration=unit')
 
-panel.setVisible(True)
+panel.show()
 sys.exit(app.exec_())

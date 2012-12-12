@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.panel import TaurusForm
 from taurus.qt.qtgui.display import TaurusValueLabel
 from taurus.qt.qtgui.input import TaurusWheelEdit
@@ -10,8 +10,8 @@ panel = TaurusForm()
 props = [ 'state', 'status', 'position', 'velocity', 'acceleration' ]
 model = [ 'sys/taurustest/1/%s' % p for p in props ]
 panel.setModel(model)
-panel.getItemByIndex(0).setReadWidgetClass(TaurusValueLabel)
-panel.getItemByIndex(2).setWriteWidgetClass(TaurusWheelEdit)
+panel[0].readWidgetClass = TaurusValueLabel
+panel[2].writeWidgetClass='TaurusWheelEdit'
 
-panel.setVisible(True)
+panel.show()
 sys.exit(app.exec_())

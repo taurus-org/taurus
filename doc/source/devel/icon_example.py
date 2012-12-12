@@ -1,4 +1,4 @@
-from PyQt4 import Qt
+from taurus.qt import Qt
 from taurus.qt.qtgui.resource import getThemeIcon
 
 class MyGUI(Qt.QMainWindow):

@@ -46,7 +46,7 @@ does not include the following header and footer code lines:
 header::
 
     import sys
-    from PyQt4 import Qt
+    from taurus.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
     
     app = TaurusApplication(sys.argv)
@@ -76,7 +76,7 @@ Displaying a tango attribute value in a GUI is easy with taurus and
 code::
 
     import sys
-    from PyQt4 import Qt
+    from taurus.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
 
     app = TaurusApplication(sys.argv)
@@ -224,8 +224,8 @@ code::
     props = [ 'state', 'status', 'position', 'velocity', 'acceleration' ]
     model = [ 'sys/taurustest/1/%s' % p for p in props ]
     panel.setModel(model)
-    panel.getItemByIndex(0).setReadWidgetClass(TaurusLabel)        # you can provide an arbitrary class...
-    panel.getItemByIndex(2).setWriteWidgetClass('TaurusWheelEdit') # ...or, if Taurus knows it, just give its name
+    panel[0].readWidgetClass = TaurusLabel         # you can provide an arbitrary class...
+    panel[2].writeWidgetClass = 'TaurusWheelEdit'  # ...or, if it is a Taurus class you can just give its name                                                   
 
 *A little configuration goes a long way!*
 
@@ -300,7 +300,7 @@ Oh, and you can can change the display properties of any curve:
 code::
 
     import numpy
-    from PyQt4 import Qwt5
+    from taurus.qt import Qwt5
     from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
     
     panel = TaurusPlot()
