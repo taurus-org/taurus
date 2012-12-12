@@ -30,11 +30,10 @@ __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
-import time
-import weakref
+
 import numpy
 
-from enums import TaurusEventType, AttrAccess
+from enums import AttrAccess
 import taurusmodel
 
 class TaurusConfigurationProxy(object):
@@ -175,7 +174,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
             if cache is set to True (default) and the the configuration has 
             events active then it will return the local cached value. Otherwise
             it will read from the tango layer."""
-        raise RuntimeException("May not be called in abstract TaurusConfiguration")
+        raise RuntimeError("May not be called in abstract TaurusConfiguration")
     
     def getDisplayValue(self,cache=True):
         confvalue = self.getValueObj(cache=cache)
@@ -192,8 +191,8 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
             return [('name', self.getLabel(cache=cache))]
         return attrObj.getDisplayDescrObj(cache=cache)
     
-    def isWritable(self):
-        return True
+#    def isWritable(self):
+#        return True
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
@@ -396,7 +395,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
     def setDescription(self,descr):
         config = self.getValueObj()
         if config:
-            config.description = description
+            config.description = descr
             self._applyConfig()
 
     def setLabel(self,lbl):
