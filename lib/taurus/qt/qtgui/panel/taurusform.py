@@ -123,7 +123,14 @@ class TaurusForm(TaurusWidget):
         
         #properties
         self.registerConfigProperty(self.isWithButtons, self.setWithButtons, 'withButtons')
-        
+
+    def __getitem__(self, key):
+        '''provides a list-like interface: items of the form can be accessed using slice notation'''
+        return self.getItemByIndex(key)
+    
+    def __len__(self):
+        '''returns the number of items contained by the form'''
+        return len(self.getItems())
     
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
