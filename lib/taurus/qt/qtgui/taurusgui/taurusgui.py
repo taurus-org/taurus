@@ -209,8 +209,7 @@ class TaurusGui(TaurusMainWindow):
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
         
-        if configRecursionDepth is not None:
-            self.defaultConfigRecursionDepth = configRecursionDepth
+        self.defaultConfigRecursionDepth = configRecursionDepth
             
         self.__panels = {}   
         self.__synoptics = []
@@ -848,7 +847,9 @@ class TaurusGui(TaurusMainWindow):
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig, instrumentkey=instrumentkey, permanent=True)
             except Exception,e:
                 msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
+                import traceback
                 self.error(msg)
+                self.warning(traceback.format_exc())
                 self.traceback(level=taurus.Info)
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
