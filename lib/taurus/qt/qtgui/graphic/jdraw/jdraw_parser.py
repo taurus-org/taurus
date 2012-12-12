@@ -171,7 +171,7 @@ def p_single_element(p):
 
     # create the corresponding element
     factory = p.parser.factory
-    p.parser.log.debug('ret = factory.getObj(%s,%s)'% (str(p[1]),str(p[3])))
+    #p.parser.log.debug('ret = factory.getObj(%s,%s)'% (str(p[1]),str(p[3])))
     ret = factory.getObj(p[1],p[3])
  
     if ret is None:
