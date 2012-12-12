@@ -99,7 +99,8 @@ class DefaultLabelWidget(TaurusLabel):
         menu = Qt.QMenu(self)  
         menu.addMenu(taurus.qt.qtgui.util.ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
         if self.taurusValueBuddy().isModifiableByUser():
-            cr_action = menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
+            menu.addAction("Change label",self.taurusValueBuddy().onChangeLabelConfig)
+            menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
             cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
         menu.exec_(event.globalPos())
@@ -504,7 +505,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                  values are widgets to be used
         '''
         return self._customWidgetMap
-    
+     
+    def onChangeLabelConfig(self):
+        labelConfig, ok = Qt.QInputDialog.getText(self, 'Change Label', 'Change label text. You can use a configuration parameter', text=self.labelConfig)
+        if ok:
+            self.labelConfig=str(labelConfig)  
+             
     def onChangeReadWidget(self):
         classnames = ['None', 'Auto']+[c.__name__ for c in self.getDefaultReadWidgetClass(returnAll=True)]
         cname, ok = Qt.QInputDialog.getItem(self, 'Change Read Widget', 'Choose a new read widget class', classnames, 1, True)
@@ -1072,15 +1078,19 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/Current','bl97/pc/dummy-02/RemoteMode','bl97/pysignalsimulator/1/value1']
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
     #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
-    #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_spectrum'%s for s in ('float','short','string','long','boolean') ]
-    #models =  ['sys/tg_test/1/float_scalar']
-    #container.setModel(models)
+    models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_spectrum'%s for s in ('float','short','string','long','boolean') ]
+    #models =  ['sys/tg_test/1/float_scalar','sys/tg_test/1/double_scalar']
+    
+    container.setModel(models)
     
     #container.getTaurusValueByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
     #container.getTaurusValueByIndex(0).readWidget().setShowState(True)
     #container.getTaurusValueByIndex(0).setWriteWidgetClass(TaurusValueLineEdit)
     #container.setModel(models)
     
+    print len(container)
+    for c in container[0:-1:2]:
+        c.labelConfig='label'
 
     container.setModifiableByUser(True)
     form.show()

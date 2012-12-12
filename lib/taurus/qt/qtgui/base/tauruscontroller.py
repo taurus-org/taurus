@@ -250,7 +250,9 @@ class TaurusConfigurationControllerHelper(object):
         if self._configParam is None:
             model = self.widget().model
             try:
-                self._configParam = model[model.rfind('=')+1:].lower() #@todo: !!This is assuming tango names.A regexp or a call to a validator should be used
+                #@todo: This works for tango, eval and epics configuration names but is not general.
+                #@todo: This should be done calling to the ConfigurationNameValidator
+                self._configParam = model[model.rfind('?configuration=')+15:].lower() 
             except:
                 self._configParam = ''
         return self._configParam
@@ -269,14 +271,29 @@ class TaurusConfigurationControllerHelper(object):
                     val = widget.getNoneValue()
             except:
                 pass
-        except:
+        except AttributeError:
+            if param:
+                val = str(param)
+                attr = self.attrObj()
+                if attr is not None:
+                    val = val.replace('<label>', attr.label or '---')      
+                    val = val.replace('<attr_name>',attr.name or '---')
+                    val = val.replace('<attr_fullname>',attr.getFullName() or '---')
+                    val = val.replace('<dev_alias>',attr.dev_alias or '---')
+                    val = val.replace('<dev_name>',attr.dev_name or '---')
+                dev = self.deviceObj()   
+                if dev is not None:     
+                    val = val.replace('<dev_fullname>',dev.getFullName() or '---')
+            else:
+                val = widget.getNoneValue()
+        except:    
             widget.debug("Invalid configuration parameter '%s'" % param)
             val = widget.getNoneValue()
         if val is None:
             val = widget.getNoneValue()
         return val
-
-
+ 
+ 
 StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
 
 def _updatePaletteColors(widget, bgBrush, fgBrush, frameBrush):

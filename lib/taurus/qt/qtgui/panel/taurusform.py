@@ -126,6 +126,10 @@ class TaurusForm(TaurusWidget):
         self.connect(self.showButtonsAction, Qt.SIGNAL("triggered(bool)"), self.setWithButtons)
         self.setWithButtons(withButtons)
         
+        self.changeLabelsAction = Qt.QAction('Change labels (all items)', self)
+        self.addAction(self.changeLabelsAction)
+        self.connect(self.changeLabelsAction, Qt.SIGNAL("triggered()"), self.onChangeLabelsAction)
+        
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
         
@@ -408,6 +412,13 @@ class TaurusForm(TaurusWidget):
 #            self.buttonBox.setVisible(True)
 #        else:
 #            self.buttonBox.setVisible(False)
+
+    def onChangeLabelsAction(self):
+        '''changes the labelConfig of all its items'''
+        labelConfig, ok = Qt.QInputDialog.getText(self, 'Change Label', 'Change label text. You can use a configuration parameter', text='label')
+        if ok:
+            for item in self.getItems():
+                item.labelConfig=str(labelConfig)
 
     @Qt.pyqtSignature("apply()")        
     def apply(self):
