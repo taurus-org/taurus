@@ -69,6 +69,14 @@ class TaurusForm(TaurusWidget):
     can be changed and specific mappings can be defined using the
     :meth:`setCustomWidgetMap` method.
     
+    Item objects can be accessed by index using a list-like notation::
+    
+      form = TaurusForm()
+      form.model = ['sys/tg_test/1'+a for a in ('short_image','/float_scalar','/double_scalar')] 
+      form[0].labelConfig = 'dev_alias'
+      form[-1].writeWidgetClass = 'TaurusWheelEdit'
+      print(len(form))  # --> outputs '3' (the length of the form is the number of items)
+    
     By default, the form provides global Apply and Cancel buttons.
     
     You can also see some code that exemplifies the use of TaurusForm in :ref:`Taurus
