@@ -60,6 +60,7 @@ def matchCl(m,k):
     return re.match(m.lower(),k.lower())
 
 def searchCl(m,k):
+    if m.startswith('^') or m.startswith('(^') or '(?!^' in m: return matchCl(m,k)
     return re.search(m.lower(),k.lower())
 
 def get_regexp_dict(dct,key,default=None):
@@ -234,7 +235,7 @@ class TaurusDevicePanel(TaurusWidget):
         if model: self.setModel(model)
         
     def loadConfigFile(self,ifile=None):
-        self.warning('In TaurusDevicePanel.loadConfigFile(%s)'%ifile)
+        self.info('In TaurusDevicePanel.loadConfigFile(%s)'%ifile)
         if isinstance(ifile,file) or isinstance(ifile,str) and not ifile.endswith('.py'):
             TaurusWidget.loadConfigFile(self,ifile)
         else:
@@ -244,6 +245,7 @@ class TaurusDevicePanel(TaurusWidget):
             if af is not None:  self.setAttributeFilters(af)
             if cf is not None:  self.setCommandFilters(cf)
             if im is not None: self.setIconMap(im)
+        self.debug('AttributeFilters are:\n%s'%self.getAttributeFilters())
         
     def duplicate(self):
         self._dups.append(TaurusDevicePanel(bound=False))
@@ -296,8 +298,17 @@ class TaurusDevicePanel(TaurusWidget):
             self._status.setModel(model+'/status')
             try:
                 self._attrsframe.clear()
-                self._attrs = self.get_attrs_form(model,self._attrs,self)
-                if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
+                filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,model,['.*'])
+                if hasattr(filters,'keys'): filters = filters.items() #Dictionary!
+                if filters and isinstance(filters[0],(list,tuple)): #Mapping
+                    self._attrs = []
+                    for tab,attrs in filters:
+                        self._attrs.append(self.get_attrs_form(device=model,filters=attrs,parent=self))
+                        self._attrsframe.addTab(self._attrs[-1],tab)
+                else:
+                    if self._attrs and isinstance(self._attrs,list): self._attrs = self._attrs[0]
+                    self._attrs = self.get_attrs_form(device=model,form=self._attrs,filters=filters,parent=self)
+                    if self._attrs: self._attrsframe.addTab(self._attrs,'Attributes')               
                 if not TaurusDevicePanel.READ_ONLY:
                     self._comms = self.get_comms_form(model,self._comms,self)
                     if self._comms: self._attrsframe.addTab(self._comms,'Commands')
@@ -333,8 +344,8 @@ class TaurusDevicePanel(TaurusWidget):
             _detached.append(obj)
         detach_recursive(self)
         
-    def get_attrs_form(self,device,form=None,parent=None):
-        filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
+    def get_attrs_form(self,device,form=None,filters=None,parent=None):
+        filters = filters or get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
         self.trace( 'In TaurusDevicePanel.get_attrs_form(%s,%s)'%(device,filters))
         allattrs = sorted(str(a) for a in taurus.Device(device).get_attribute_list() if str(a).lower() not in ('state','status'))
         attrs = []
@@ -510,8 +521,6 @@ def TaurusDevicePanelMain():
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.core.util import argparse
     
-    taurus.setLogLevel(taurus.core.util.Logger.Debug)
-        
     parser = argparse.get_taurus_parser()
     parser.set_usage("%prog [options] devname [attrs]")
     parser.set_description("Taurus Application inspired in Jive and Atk Panel")
@@ -522,6 +531,8 @@ def TaurusDevicePanelMain():
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
+    
+    app.setLogLevel(taurus.Debug)
     
     w = TaurusDevicePanel()
     w.show()
