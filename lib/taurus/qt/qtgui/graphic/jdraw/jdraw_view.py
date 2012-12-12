@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import traceback
 import subprocess
+import taurus
 from taurus.qt import Qt
 from taurus.core import DeviceNameValidator,AttributeNameValidator
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri
@@ -142,6 +143,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     @Qt.pyqtSignature("graphicItemSelected(QString)")
     def graphicItemSelected(self,item_name):
+        self.info(' => graphicItemSelected(QString)(%s)'%item_name)
         self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),item_name)
         
     @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
@@ -298,11 +300,13 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         return obj    
 
     @Qt.pyqtSignature("setModel(QString)")
-    def setModel(self, model, alias = None, delayed = False):
+    def setModel(self, model, alias = None, delayed = False, trace = False):
         self.modelName = str(model)
         self._currF = str(model)
         if alias is not None: self.setAlias(alias)
-        self.debug('setModel(%s)'%model)
+        ll = taurus.getLogLevel()
+        if trace: taurus.setLogLevel(taurus.Debug)
+        self.info('setModel("%s")'%model)
         if self._currF:
             #filename = str(self._currFile.absoluteFilePath())
             filename = self._currF
@@ -330,6 +334,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.fitting(True)
             else:
                 self.setScene(None)
+        self.info('out of setModel()')
+        taurus.setLogLevel(ll)
             
     #def destroy(destroyWindow=True,destroySubWindows=True):
     def closeEvent(self,event):
@@ -348,20 +354,20 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def getModel(self):
         return self._currF
 
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['group'] = 'Taurus Display'
-        ret['module'] = 'taurus.qt.qtgui.graphic'
-        ret['icon'] = ":/designer/graphicsview.png"
-        return ret
+    #@classmethod
+    #def getQtDesignerPluginInfo(cls):
+        #ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        #ret['group'] = 'Taurus Display'
+        #ret['module'] = 'taurus.qt.qtgui.graphic'
+        #ret['icon'] = ":/designer/graphicsview.png"
+        #return ret
     
-    model = Qt.pyqtProperty("QString", getModel, setModel)
+    #model = Qt.pyqtProperty("QString", getModel, setModel)
     
     
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def jdraw_view_main():
-    import sys
+    import sys,time
     import taurus.qt.qtgui.graphic
     taurus.setLogLevel(taurus.Info)
     app = Qt.QApplication(sys.argv)
@@ -373,13 +379,15 @@ def jdraw_view_main():
     #for m in sys.argv[1:]:
         #tv=TaurusJDrawSynopticsView(container, designMode=False)
         #tv.setModel(m)
-        
+    print '%s init()'%(time.ctime())
     form = taurus.qt.qtgui.graphic.TaurusJDrawSynopticsView(designMode=False)
     form.show()
+    print '%s setModel(%s)'%(time.ctime(),sys.argv[1])
     form.setModel(sys.argv[1])
     form.setWindowTitle(sys.argv[1].rsplit('.',1)[0])
     #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
     #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
+    print '%s fitting()'%time.ctime()
     form.fitting()
     sys.exit(app.exec_())
 
