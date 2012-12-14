@@ -128,13 +128,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     A Taurus-aware QMainWindow with several customizations:
     
         - It takes care of (re)storing its geometry and state (see :meth:`loadSettings`)
-        - Supports perspectives (programatic access and, optionally, 
+        - Supports perspectives (programmatic access and, optionally, 
           accessible by user), and allows defining a set of "factory settings" 
         - It provides a customizable splashScreen (optional)
         - Supports spawning remote consoles and remote debugging
         - Supports full-screen mode toggling
         - Supports adding launchers to external applications
-        - It provides a statusBar with an optional heartbeat LED
+        - It provides a statusBar with an optional heart-beat LED
         - The following Menus are optionally provided and populated with basic actions:
             - File  (accessible by derived classes  as `self.fileMenu`)
             - View (accessible by derived classes  as `self.viewMenu`)
