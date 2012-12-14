@@ -273,6 +273,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if parent is not None:
             self.setParent(parent)
             
+        self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labeConfig')
+            
     def setVisible(self, visible):
         for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(), self.customWidget(), self.extraWidget()):
             if w is not None: w.setVisible(visible)
@@ -507,7 +509,18 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         return self._customWidgetMap
      
     def onChangeLabelConfig(self):
-        labelConfig, ok = Qt.QInputDialog.getText(self, 'Change Label', 'Change label text. You can use a configuration parameter', text=self.labelConfig)
+        keys = ['label', 'attr_name', 'attr_fullname', 'dev_alias', 'dev_name', 'dev_fullname']
+        try:
+            current = keys.index(self.labelConfig)
+        except:
+            current= len(keys)
+            keys.append(self.labelConfig)
+            
+        msg = 'Choose new source for the label. \n'+\
+              'You can also write a more complex text\n'+\
+              'using any of the proposed sources as a\n'+\
+              'placeholder by enclosing it in "< >" brackets'
+        labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg, keys, current, True)
         if ok:
             self.labelConfig=str(labelConfig)  
              
