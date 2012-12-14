@@ -41,7 +41,7 @@ from taurus.core import MatchLevel, TaurusSWDevState, SubscriptionState, TaurusE
 try:
     import epics 
 except ImportError: #note that if epics is not installed the factory will not be available
-    logger= taurus.core.util.warning('cannot import epics module. Taurus will not support the "epics" scheme')
+    logger= taurus.core.util.info('cannot import epics module. Taurus will not support the "epics" scheme')
     raise
 
 class AbstractEpicsNameValidator(taurus.core.util.Singleton):
