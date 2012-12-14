@@ -1122,15 +1122,20 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: :meth:`setCurvesTitle`, :meth:`setDefaultCurvesTitle`
         '''
         newTitlesDict = None
-        titletext, ok = Qt.QInputDialog.getText( self,
-                                                'New Title for Curves',
-                                                'New text to be used for the curves.'\
-                                                'You can use any of the following placeholders:\n'\
-                                                '<label>, <model>, <attr_name>, <attr_fullname>,'\
-                                                '<dev_alias>, <dev_name>, <dev_fullname>,' \
-                                                '<current_title>, <trend_index>, <[trend_index]>',
-                                                Qt.QLineEdit.Normal,
-                                                self._defaultCurvesTitle)
+        
+        placeholders = ['<label>', '<model>', '<attr_name>', '<attr_fullname>', 
+                        '<dev_alias>', '<dev_name>', '<dev_fullname>', '<current_title>',
+                        '<trend_index>', '<[trend_index]>']
+        try:
+            current = placeholders.index(self._defaultCurvesTitle)
+            items = placeholders
+        except:
+            current= len(placeholders)
+            items = placeholders+[self._defaultCurvesTitle]
+            
+        msg = 'New text to be used for the curves.\nYou can use any of the following placeholders:\n%s'%", ".join(placeholders)
+        titletext, ok = Qt.QInputDialog.getItem(self, 'New Title for Curves', msg, items, current, True)
+             
         if ok:
             titletext = str(titletext)
             if curveNamesList is None:
