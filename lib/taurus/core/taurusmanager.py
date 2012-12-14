@@ -306,7 +306,7 @@ class TaurusManager(util.Singleton, util.Logger):
                     m = __import__(full_module_name, globals(), locals(), ['*'])
                 except:
                     self.debug('Failed to inspect %s' % (package_name))
-                    self.traceback()
+                    self.debug('Details:', exc_info=1)
                     continue
             for s in m.__dict__.values():
                 plugin = None
