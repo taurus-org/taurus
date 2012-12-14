@@ -209,7 +209,8 @@ class TaurusGui(TaurusMainWindow):
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
         
-        self.defaultConfigRecursionDepth = configRecursionDepth
+        if configRecursionDepth is not None:
+            self.defaultConfigRecursionDepth = configRecursionDepth
             
         self.__panels = {}   
         self.__synoptics = []
@@ -370,14 +371,19 @@ class TaurusGui(TaurusMainWindow):
         return TaurusMainWindow.createConfig(self, *args, **kwargs)   
     
     def removePanel(self, name=None):
-        ''' remove the given panel from the GUI
+        ''' remove the given panel from the GUI.
+        
+        .. note:: The panel; is actually removed from the current perspective.
+                  If the panel is saved in other perspectives, it should be removed from
+                  them as well.
         
         :param name: (str or None) the name of the panel to be removed
                      If None given, the user will be prompted
         '''
         if name is None:
             items = sorted(self.getPanelNames())
-            name,ok = Qt.QInputDialog.getItem (self, "Remove Panel", "Panel to be removed", items, 0, False)
+            name,ok = Qt.QInputDialog.getItem (self, "Remove Panel", 
+                                               "Panel to be removed.\n Important: you may want to save the perspective afterwards,\n and maybe remove the panel from other perspectives as well", items, 0, False)
             if not ok:
                 return
         name = unicode(name)
@@ -847,9 +853,7 @@ class TaurusGui(TaurusMainWindow):
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig, instrumentkey=instrumentkey, permanent=True)
             except Exception,e:
                 msg='Cannot create panel %s'%getattr(p,'name','__Unknown__')
-                import traceback
                 self.error(msg)
-                self.warning(traceback.format_exc())
                 self.traceback(level=taurus.Info)
                 result = Qt.QMessageBox.critical(self,'Initialization error', '%s\n\n%s'%(msg,repr(e)), Qt.QMessageBox.Abort|Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
