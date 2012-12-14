@@ -76,7 +76,7 @@ class DefaultLabelWidget(TaurusLabel):
         self.setSizePolicy(Qt.QSizePolicy.Preferred,Qt.QSizePolicy.Maximum)
         self.setBgRole(None)
         self.autoTrim = False
-        self.setStyleSheet('border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;')
+        self.setStyleSheet('DefaultLabelWidget {border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;}')
     
     def setModel(self, model):
         if model is None or model=='': 
@@ -98,11 +98,15 @@ class DefaultLabelWidget(TaurusLabel):
         see :meth:`QWidget.contextMenuEvent`"""
         menu = Qt.QMenu(self)  
         menu.addMenu(taurus.qt.qtgui.util.ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
+        if hasattr(self.taurusValueBuddy().writeWidget(), 'resetPendingOperations'):
+            r_action = menu.addAction("reset write value",self.taurusValueBuddy().writeWidget().resetPendingOperations)
+            r_action.setEnabled(self.taurusValueBuddy().hasPendingOperations())
         if self.taurusValueBuddy().isModifiableByUser():
             menu.addAction("Change label",self.taurusValueBuddy().onChangeLabelConfig)
             menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
             cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
+            
         menu.exec_(event.globalPos())
         event.accept()
         
@@ -956,23 +960,22 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             pass
         
     def hasPendingOperations(self):
-        '''self.getPendingOperations will alwaysd return an empty list, but still
+        '''self.getPendingOperations will always return an empty list, but still
         self.hasPendingOperations will look at the writeWidget's operations.
         If you want to ask the TaurusValue for its pending operations, call
         self.writeWidget().getPendingOperations()'''
         w = self.writeWidget()
-        if w is None: return []
+        if w is None: return False
         return w.hasPendingOperations()
-        
-    
+                
     def updatePendingOpsStyle(self):
         if self._labelWidget is None: return
         if self.hasPendingOperations():
             self._labelWidget.setStyleSheet(
-                'border-style: solid ; border-width: 1px; border-color: blue; color: blue; border-radius:4px;')
+                '%s {border-style: solid ; border-width: 1px; border-color: blue; color: blue; border-radius:4px;}'%self._labelWidget.__class__.__name__)
         else:
             self._labelWidget.setStyleSheet(
-                'border-style: solid; border-width: 1px; border-color: transparent; color: black;  border-radius:4px;')
+                '%s {border-style: solid; border-width: 1px; border-color: transparent; color: black;  border-radius:4px;}'%self._labelWidget.__class__.__name__)
             
     def getLabelConfig(self):
         return self._labelConfig
@@ -1091,7 +1094,7 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/Current','bl97/pc/dummy-02/RemoteMode','bl97/pysignalsimulator/1/value1']
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
     #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
-    models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_spectrum'%s for s in ('float','short','string','long','boolean') ]
+    #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_scalar'%s for s in ('float','short','string','long','boolean') ]
     #models =  ['sys/tg_test/1/float_scalar','sys/tg_test/1/double_scalar']
     
     container.setModel(models)
@@ -1101,10 +1104,6 @@ if __name__ == "__main__":
     #container.getTaurusValueByIndex(0).setWriteWidgetClass(TaurusValueLineEdit)
     #container.setModel(models)
     
-    print len(container)
-    for c in container[0:-1:2]:
-        c.labelConfig='label'
-
     container.setModifiableByUser(True)
     form.show()
 
