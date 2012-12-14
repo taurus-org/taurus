@@ -333,6 +333,8 @@ class TaurusForm(TaurusWidget):
         '''
         TaurusWidget.setModifiableByUser(self, modifiable)
         self.chooseModelsAction.setEnabled(modifiable)
+        self.showButtonsAction.setEnabled(modifiable)
+        self.changeLabelsAction.setEnabled(modifiable)
         for item in self.getItems():
             try: 
                 item.setModifiableByUser(modifiable)
