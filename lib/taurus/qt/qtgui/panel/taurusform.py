@@ -461,7 +461,7 @@ class TaurusForm(TaurusWidget):
                                                 resetWithButtons)
     
     modifiableByUser = Qt.pyqtProperty("bool", TaurusWidget.isModifiableByUser, 
-                                               TaurusWidget.setModifiableByUser,
+                                               setModifiableByUser,
                                                TaurusWidget.resetModifiableByUser)
       
     
