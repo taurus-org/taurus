@@ -45,7 +45,8 @@ except ImportError: #note that if epics is not installed the factory will not be
     raise
 
 class AbstractEpicsNameValidator(taurus.core.util.Singleton):
-    base_sep = ':'
+    #@todo: provide a mechanism to make base_sep configurable at installation time. 
+    base_sep = ':' #the following characters need to be escaped with "\":  ^$()<>[{\|.*+?
     name_pattern = ''
     
     def __init__(self):
@@ -79,7 +80,7 @@ class AbstractEpicsNameValidator(taurus.core.util.Singleton):
         if m is None:
             return None
         devname = m.group('devname') or EpicsFactory.DEFAULT_DEVICE
-        return 'epics://%s%s'%(devname,m.group('base_sep'))
+        return 'epics://%s%s'%(devname,m.group('base_sep') or self.base_sep )
     
     def getDBName(self, s):
         '''returns the full data base name for the given attribute name.
@@ -103,7 +104,7 @@ class EpicsAttributeNameValidator(AbstractEpicsNameValidator):
     #    fullname= "epics://%s"%($2)
     # 
     #                1                   2             34                  5                 6
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
     
 #    def isValid(self,s, matchLevel = MatchLevel.ANY):
 #        m = self.name_re.match(s)
@@ -133,7 +134,7 @@ class EpicsDeviceNameValidator(AbstractEpicsNameValidator):
     the model name for an epics device name *must* end with the base separator
     (in order to distinguish device names from attribute names)'''
     
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s)))$'%(AbstractEpicsNameValidator.base_sep)
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s)))$'%(AbstractEpicsNameValidator.base_sep)
     
 #    def isValid(self,s, matchLevel = MatchLevel.ANY):
 #        m = self.name_re.match(s)
@@ -165,7 +166,7 @@ class EpicsConfigurationNameValidator(AbstractEpicsNameValidator):
     #   +1: configuration extension
     #   +2: configuration key;optional; named as 'cfgkey'
     
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]+)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)\?configuration=?(?P<cfgkey>[^#?]*))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)\?configuration=?(?P<cfgkey>[^#?]*))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
         
     def getNames(self, s, factory=None):
         """Returns the complete, normal and short names"""
@@ -662,11 +663,13 @@ def test1():
     f = EpicsFactory()
     d = f.getDevice('epics://foo:bar:')
     a = f.getAttribute('epics://foo:bar:baz')
+    p = a.getParentObj()
     c = f.getConfiguration('epics://foo:bar:baz?configuration=label')
 #    cp = a.getConfig()
     print "FACTORY:", f
     print "DEVICE:", d, d.getSimpleName(), d.getNormalName(), d.getFullName()
     print "ATTRIBUTE", a, a.getSimpleName(), a.getNormalName(), a.getFullName()
+    print "ATTRIBUTE PARENT", p, p.getSimpleName(), p.getNormalName(), p.getFullName(), p is d
     print "CONFIGURATION", c, c.getSimpleName(), c.getNormalName(), c.getFullName()
 #    print "CONFIGPROXY", cp, cp.getSimpleName()
 #    print
@@ -698,6 +701,7 @@ def test3():
     app = TaurusApplication()
     
     w = TaurusForm()
+    w.modifiableByUser=True
     w2=TaurusTrend()
 #    w=TaurusLabel()
 
