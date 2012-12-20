@@ -185,7 +185,7 @@ class TaurusForm(TaurusWidget):
         if self.__modelChooser is None: 
             self.__modelChooser = TaurusModelChooser()
             self.connect(self.__modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
-            self.__modelChooser.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle()))
+            self.__modelChooser.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle())) 
         self.__modelChooser.setListedModels(self.getModel())
         self.__modelChooser.show()
         self.__modelChooser.raise_()
@@ -261,7 +261,11 @@ class TaurusForm(TaurusWidget):
             obj=taurus.Attribute(model) #if it is not an attribute, it will get an exception here
             return self._defaultFormWidget,(),{}
         except:
-            obj=taurus.Device(model)
+            try:
+                obj=taurus.Device(model)
+            except:
+                self.warning('Cannot handle model "%s". Using default widget.'%(model))
+                return self._defaultFormWidget,(),{}
             try:
                 key = obj.getHWObj().info().dev_class
             except:
