@@ -168,7 +168,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if position is None or position==-1: position = self.rowCount()
         if parentindex is None: parentindex = Qt.QModelIndex()
         if items is None:
-            slice = [TaurusModelItem() for i in range(rows)]
+            slice = [TaurusModelItem() for i in xrange(rows)]
         else:
             slice=list(items)
             rows = len(slice) #note that the rows parameter is ignored if items is passed
@@ -254,7 +254,7 @@ class TaurusModelList(Qt.QListView):
     '''A list view widget to display and manage a list of models
     
     Tries to identify the type of model and show the state of the device/attr
-    associated qith it. It also allows drag and drop of models and sorting.
+    associated with it. It also allows drag and drop of models and sorting.
     '''
     
     def __init__(self, parent=None, items=None, designMode=False):
