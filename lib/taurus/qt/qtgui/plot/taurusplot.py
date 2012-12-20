@@ -1079,6 +1079,24 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 #                    self.info('Dropped data is invalid (%s)'%repr(modelname))
 #                return
 
+    def getCurveTitle(self, curvename):
+        '''return the current title associated to a given curve name
+        
+        :param curvename: (str) the name of the curve
+        
+        :return:(str)
+        '''
+        self.curves_lock.acquire()
+        try:
+            curve = self.getCurve(curvename)
+            if curve is None:
+                title = None
+            else:
+                title = unicode(curve.title().text())
+        finally:
+            self.curves_lock.release()
+        return title
+    
     def getCurveNames(self):
         '''returns the names of all TaurusCurves attached to the plot (in arbitrary
         order, if you need a sorted list, see :meth:`getCurveNamesSorted`).
@@ -2451,7 +2469,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.connect(self.DataImportDlg.rawDataChooser, Qt.SIGNAL("ReadFromFiles"), self.readFromFiles)
             self.connect(self.DataImportDlg.rawDataChooser, Qt.SIGNAL("AddCurve"), self.attachRawData)
 
-        self.DataImportDlg.modelChooser.setListedModels(self._modelNames)
+        models_and_display = [(m,self.getCurveTitle(m.split('|')[-1])) for m in self._modelNames]
+        
+        self.DataImportDlg.modelChooser.setListedModels(models_and_display)
         self.DataImportDlg.show()
 
     def readFromFiles(self, xcol, skiprows):

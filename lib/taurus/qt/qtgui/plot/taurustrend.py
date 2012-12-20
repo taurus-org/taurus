@@ -93,6 +93,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._yBuffer = None
         self.forcedReadingTimer = None
         self.droppedEventsCount = 0
+        self.compiledTitle = name
         try: self._maxBufferSize = self.parent().getMaxDataBufferSize()
         except: self._maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
         if curves is None:
@@ -215,8 +216,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             basetitle = basetitle.replace('<dev_full_name>',dev.getFullName() or '---')
 
         if len(self._curves)==1: basetitle = basetitle.replace('<[trend_index]>','')
-        else: basetitle = basetitle.replace('<[trend_index]>','[<trend_index>]')    
+        else: basetitle = basetitle.replace('<[trend_index]>','[<trend_index>]')
             
+        self.compiledTitle = basetitle    
         return basetitle
         
     def addCurve(self, name, curve):
@@ -1104,6 +1106,31 @@ class TaurusTrend(TaurusPlot):
         finally:
             self.curves_lock.release()
         return ret
+    
+    def getCurveTitle(self, trendsetname, index=None):
+        '''reimplemented from :class:`TaurusPlot`.
+        Returns the title of a curve from a trendset
+        
+        :param trendsetname: (str) 
+        :param index: (int or None) the index of the curve in the trend set. 
+                      If None is passed, it returns the base title of the trendset
+                      
+        :return: (str) the title 
+        '''
+        self.curves_lock.acquire()
+        try:
+            tset = self.trendSets.get(trendsetname)
+            if tset is None:
+                return None
+            if index is None:
+                if len(tset) == 1:
+                    index = 0
+                else:
+                    return tset.compiledTitle
+            title = unicode(tset[index].title().text())
+        finally:
+            self.curves_lock.release()
+        return title
     
     def changeCurvesTitlesDialog(self, curveNamesList=None):
         '''Shows a dialog to set the curves titles (it will change the current
