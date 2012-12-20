@@ -186,7 +186,23 @@ class TaurusForm(TaurusWidget):
             self.__modelChooser = TaurusModelChooser()
             self.connect(self.__modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
             self.__modelChooser.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle())) 
-        self.__modelChooser.setListedModels(self.getModel())
+            
+        models_and_labels = []
+        models = [m.lower() for m in self.getModel()]
+        indexdict = {}
+        for m in models:
+            indexdict[m]=indexdict.get(m,-1)+1
+            item = self.getItemByModel(m,indexdict[m])
+            if item is None:
+                label = None
+            else:
+                try: 
+                    label = str(item.labelWidget().text()) #this assumes that the readwidget is a QLabel subclass (or something that has text())
+                except:
+                    label = None
+            models_and_labels.append((m,label))
+            
+        self.__modelChooser.setListedModels(models_and_labels)
         self.__modelChooser.show()
         self.__modelChooser.raise_()
         
