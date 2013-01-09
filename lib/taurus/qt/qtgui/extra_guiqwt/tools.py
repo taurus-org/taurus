@@ -38,7 +38,7 @@ from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem,TaurusTrendItem
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
-from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg, CurveItemConf
+from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core import TaurusElementType
 from taurus.qt.qtgui.plot import DateTimeScaleEngine
@@ -118,38 +118,35 @@ class TimeAxisTool(CommandTool):
         """Create and return menu for the tool's action"""
         menu = Qt.QMenu()
         group = QActionGroup(manager.get_main())
-        y_x = manager.create_action("y(x)", toggled=self.set_scale_y_x)
-        y_t = manager.create_action("y(t)", toggled=self.set_scale_y_t)
-        t_x = manager.create_action("t(x)", toggled=self.set_scale_t_x)
-        t_t = manager.create_action("t(t)", toggled=self.set_scale_t_t)
-        self.scale_menu = {(False, False): y_x, (False, True): y_t,
-                           (True, False): t_x, (True, True): t_t}
-        for obj in (group, menu):
-           add_actions(obj, (y_x, y_t, t_x, t_t))
+        y_x = manager.create_action("y(x)", triggered=self.set_scale_y_x)
+        y_t = manager.create_action("y(t)", triggered=self.set_scale_y_t)
+        t_x = manager.create_action("t(x)", triggered=self.set_scale_t_x)
+        t_t = manager.create_action("t(t)", triggered=self.set_scale_t_t)
+        self.scale_menu = {(False, False): y_x, (True, False): y_t,
+                           (False, True): t_x, (True, True): t_t}
+        for action in (y_x, y_t, t_x, t_t):#I need to do this because the manager.create_action does not accept the "checkable" keyword. 
+            action.setCheckable(True)      #see http://code.google.com/p/guiqwt/issues/detail?id=41
+        for obj in (group, menu):     
+            add_actions(obj, (y_x, y_t, t_x, t_t))
+        
         return menu
     
-    def _getAxesUseTime(self, item):
+    def _getAxesUseTime(self, plot):
         """
-        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the item's x
-        axis uses a TimeScale. yIsTime is True if the item's y axis uses a Time
+        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the plot's active x 
+        axis uses a TimeScale. yIsTime is True if plot's active y axis uses a Time
         Scale. Otherwise they are False.
         """
-        plot = item.plot()
         if plot is None:
             return (False,False)
-        xEngine = plot.axisScaleEngine(item.xAxis())
-        yEngine = plot.axisScaleEngine(item.yAxis())
+        xaxis,yaxis = plot.get_active_axes()
+        xEngine = plot.axisScaleEngine(xaxis)
+        yEngine = plot.axisScaleEngine(yaxis)
         return isinstance(xEngine, DateTimeScaleEngine), isinstance(yEngine, DateTimeScaleEngine)
          
     def update_status(self, plot):
-        item = plot.get_active_item()
-        active_scale = (False, False)
-        if item is not None:
-            active_scale = self._getAxesUseTime(item)
+        active_scale = self._getAxesUseTime(plot)
         for scale_type, scale_action in self.scale_menu.items():
-            if item is None:
-                scale_action.setEnabled(True)
-            else:
                 scale_action.setEnabled(True)
                 if active_scale == scale_type:
                     scale_action.setChecked(True)
@@ -166,7 +163,6 @@ class TimeAxisTool(CommandTool):
                     DateTimeScaleEngine.disableInAxis(plot, axis)
             plot.replot()
             
-        
     def set_scale_y_x(self, checked):
         if not checked:
             return
