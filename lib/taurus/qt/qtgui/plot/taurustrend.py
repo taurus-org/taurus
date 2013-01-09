@@ -279,36 +279,56 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         SPECTRUM attribute with dim_x=8. Then the return value will be (X,Y)
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
-        v = value.value
-        if numpy.isscalar(v):
-            ntrends = 1
-        else:
-            try:
-                v = float(v)
+        if value is not None:
+            v = value.value
+            if numpy.isscalar(v):
                 ntrends = 1
-            except:
-                ntrends = len(v)
-            
+            else:
+                try:
+                    v = float(v)
+                    ntrends = 1
+                except:
+                    ntrends = len(v)
+        else: ntrends = len(self._curves)
+        
         if self._xBuffer is None:
             self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
         if self._yBuffer is None:
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
-        
-        self._yBuffer.append(v)
+            
         #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
+        if value is not None: self._yBuffer.append(v)
         
         if self.parent().getXIsTime():
             #add the timestamp to the x buffer
-            self._xBuffer.append(value.time.totime())
+            if value is not None: self._xBuffer.append(value.time.totime())
             ##Adding archiving values
             if self.parent().getUseArchiving():
                 if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom): #Do not open a mysql connection for autoscaled plots
                     startdate = self.parent().axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
-                    stopdate = self._xBuffer[0] #Older value already read
+                    stopdate = self.parent().axisScaleDiv(Qwt5.QwtPlot.xBottom).upperBound()
+                    if self._xBuffer.contentsSize()>0:
+                        first,last = self._xBuffer[0],self._xBuffer[-1]
+                        if self.parent().getXDynScale(): stopdate = first
+                    else: first,last = 0,0
                     try:
                         archived = getArchivedTrendValues(self,model,startdate,stopdate)
                         if archived is not None and len(archived): 
-                            del(archived[:-self._xBuffer.remainingSize()]) #limit the archived values according to the maximum size of the buffer
+                            ntrends = self._checkDataDimensions(archived[0].value) #It may clean existing buffers!
+                            if None in (self._xBuffer,self._yBuffer):
+                                self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
+                                self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
+                            elif not self.parent().getXDynScale():
+                                #If timescale is overriden, buffers should be wiped
+                                #self.clearTrends() #It will delete buffers
+                                self._xBuffer.moveLeft(self._xBuffer.maxSize())
+                                self._yBuffer.moveLeft(self._yBuffer.maxSize())
+                            remaining = self._xBuffer.remainingSize()
+                            if remaining<len(archived): 
+                                self.debug('Resizing XBuffer to %d to allocate archived values'%(self._xBuffer.maxSize()+len(archived)))
+                                self.parent().setMaxDataBufferSize(self._xBuffer.maxSize()+len(archived))
+                                #self._xBuffer.setMaxSize(self._xBuffer.maxSize()+len(archived))
+                                #self._yBuffer.setMaxSize(self._yBuffer.maxSize()+len(archived))
                             t = numpy.zeros(len(archived), dtype=float)
                             y = numpy.zeros((len(archived), ntrends), dtype=float)#self._yBuffer.dtype)
                             for i,v in enumerate(archived):
@@ -316,17 +336,16 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                                 y[i]=v.value
                             self._xBuffer.extendLeft(t)
                             self._yBuffer.extendLeft(y)
-                            self.parent().replot()
+                            self.parent().replot() #To be done always
                     except Exception,e:
                         import traceback
                         self.warning('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),traceback.format_exc()))     
-        else:
+        elif value is not None:
             #add the event number to the x buffer
             try:
                 self._xBuffer.append(1.+self._xBuffer[-1]) 
             except IndexError: #this will happen when the x buffer is empty
                 self._xBuffer.append(0) 
-        
         return self._xBuffer.contents(), self._yBuffer.contents()
 
     def clearTrends(self, replot=True):
@@ -356,31 +375,54 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         curves in the set according to the value of the attribute.
         
         For documentation about the parameters of this method, see
-        :meth:`TaurusBaseComponent.handleEvent`'''
+        :meth:`TaurusBaseComponent.handleEvent`
+        '''
         if evt_type == taurus.core.TaurusEventType.Config:
             #self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle()) #this did not work well (it overwrites custom titles!)
             return
-        
-        if evt_type == taurus.core.TaurusEventType.Error:
-            self._onDroppedEvent(reason='Error event')
-            return
-        
-        model = evt_src if evt_src is not None else self.getModelObj()
-        if model is None: 
-            self._onDroppedEvent(reason='unknown model')
-            return
-        
-        value = evt_value if isinstance(evt_value, (taurus.core.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
-        if value is None or value.value is None: 
-            self._onDroppedEvent(reason='invalid value')
-            return
-        
-        #Check that the data dimensions are consistent with what was plotted before
+        else:
+            model = evt_src if evt_src is not None else self.getModelObj()
+            if evt_type == taurus.core.TaurusEventType.Error:
+                self._onDroppedEvent(reason='Error event')
+                if not self.parent().getUseArchiving(): return
+                else: value = None
+            elif model is None: 
+                self._onDroppedEvent(reason='unknown model')
+                if not self.parent().getUseArchiving(): return
+                else: value = None
+            else:
+                value = evt_value if isinstance(evt_value, (taurus.core.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
+                if value is None or value.value is None: 
+                    self._onDroppedEvent(reason='invalid value')
+                    if not self.parent().getUseArchiving(): return
+                else:
+                    self._checkDataDimensions(value.value)
+
+        #get the data from the event
         try:
-            float(value.value)
+            self._xValues, self._yValues = self._updateHistory(model=model or self.getModel(),value=value)
+        except Exception, e:
+            self._onDroppedEvent(reason=str(e))
+            raise
+
+        #assign xvalues and yvalues to each of the curves in self._curves
+        for i,(n,c) in enumerate(self.getCurves()):
+            c._xValues, c._yValues = self._xValues, self._yValues[:,i]
+            c._updateMarkers()
+            
+        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
+        
+    def _checkDataDimensions(self,value):
+        '''
+        Check that the data dimensions are consistent with what was plotted before
+        '''
+        if value is None:
+            return len(self._curves)
+        try:
+            float(value)
             ntrends=1
         except:
-            ntrends=len(value.value)
+            ntrends=len(value)
         if ntrends != len(self._curves):
             #clean previous curves
             self.clearTrends(replot=False)
@@ -393,21 +435,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 self.addCurve(subname, self.parent().curves[subname])
             self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle())
             self.parent().autoShowYAxes()
-
-        #get the data from the event
-        try:
-            self._xValues, self._yValues = self._updateHistory(model=model,value=value)
-        except Exception, e:
-            self._onDroppedEvent(reason=str(e))
-            raise
-
-        #assign xvalues and yvalues to each of the curves in self._curves
-        for i,(n,c) in enumerate(self.getCurves()):
-            c._xValues, c._yValues = self._xValues, self._yValues[:,i]
-            c._updateMarkers()
-            
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-
+        return ntrends
+    
     def _onDroppedEvent(self, reason='Unknown'):
         '''inform the user about a dropped event
         
@@ -1445,9 +1474,11 @@ class TaurusTrend(TaurusPlot):
         '''shows a dialog warning of the potential isuues with 
         archiving performance. It offers the user to disable archiving retrieval'''
         #stop the scale change notification temporally (to avoid duplicate warnings)
+        self.setUseArchiving(False)
         self.disconnect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning)
         #show a dialog
         dlg = Qt.QDialog(self)
+        dlg.setModal(True)
         dlg.setLayout(Qt.QVBoxLayout())
         dlg.setWindowTitle('Archiving warning')
         msg = 'Archiving retrieval is enabled.\n'+\
@@ -1467,8 +1498,10 @@ class TaurusTrend(TaurusPlot):
         if dlg.result() == dlg.Accepted:
             self.setUseArchiving(False)
         #restore the scale change notification only if the user chose to keep archiving AND did not want to disable warnings
-        elif not rememberCB.isChecked(): 
-            self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning) 
+        else:
+            self.setUseArchiving(True)
+            if not rememberCB.isChecked(): 
+                self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning) 
     
     def setMaxDataBufferSize(self, maxSize=None):
         '''sets the maximum number of events that can be plotted in the trends
