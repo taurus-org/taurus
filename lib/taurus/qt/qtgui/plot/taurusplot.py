@@ -2872,8 +2872,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 if stats is None:
                     continue
                 table.setItem(row,0, Qt.QTableWidgetItem("%i"%stats['x'].size))
-                table.setItem(row,1, Qt.QTableWidgetItem("[%g,%g]"%stats['min']))
-                table.setItem(row,2, Qt.QTableWidgetItem("[%g,%g]"%stats['max']))
+                minx,miny=stats['min']
+                maxx,maxy=stats['max']
+                if self.xIsTime:
+                    minx = datetime.fromtimestamp(minx).ctime()
+                    maxx = datetime.fromtimestamp(maxx).ctime()
+                    table.setItem(row,1, Qt.QTableWidgetItem("t=%s\ny=%g"%(minx,miny)))
+                    table.setItem(row,2, Qt.QTableWidgetItem("t=%s\ny=%g"%(maxx,maxy)))
+                else:
+                    table.setItem(row,1, Qt.QTableWidgetItem("x=%g\ny=%g"%(minx,miny)))
+                    table.setItem(row,2, Qt.QTableWidgetItem("x=%g\ny=%g"%(maxx,maxy)))
                 table.setItem(row,3, Qt.QTableWidgetItem("%g"%stats['mean']))
                 table.setItem(row,4, Qt.QTableWidgetItem("%g"%stats['std']))
                 table.setItem(row,5, Qt.QTableWidgetItem("%g"%stats['rms']))
