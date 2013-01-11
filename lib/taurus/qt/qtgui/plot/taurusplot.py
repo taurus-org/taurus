@@ -245,7 +245,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._yValues = None
         self._showMaxPeak = False
         self._showMinPeak = False
-        self._markerFormatter = self.defaultMarkerFormatter
+        #self._markerFormatter = self.defaultMarkerFormatter
         self._filteredWhenLog = True
         self._history = []
         self._titleText = '<label>'
@@ -276,44 +276,45 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 self.traceback()
 
                 
-    @staticmethod
-    def defaultMarkerFormatter(self,curve,label,i,x,y,xIsTime):
-        """ 
-        Returns the text to be shown in  plot tooltips/markers.
-        :param curve: the name of the curve
-        :param label: the label to be displayed
-        :param i: the index of the point in the curve
-        :param x: x axis position
-        :param y: y axis position
-        :param xIsTime: To adapt format to time if needed
-        :return: (str)
-        """           
-        if self.getXIsTime():
-            infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveName,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
-        else:
-            infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())   
-        return infotxt
-                
-    def setMarkerFormatter(self,formatter):
-        """ 
-        Sets formatter method for plot tooltips/markers.
-        The method must have at least 4 arguments:
-        :param curve: the name of the curve
-        :param label: the label to be displayed
-        :param i: the index of the point in the curve
-        :param x: x axis position
-        :param y: y axis position
-        :param xIsTime: To adapt format to time if needed
-        """        
-        self._markerFormatter = formatter
-        
-    def markerFormatter(self):
-        """ 
-        Returns the method used to format plot tooltips
-        
-        :return: (function)
-        """
-        return self._formatter
+#    @staticmethod
+#    def defaultMarkerFormatter(self,curve,label,i,x,y,xIsTime):
+#        """ 
+#        Returns the text to be shown in  plot tooltips/markers.
+#        :param curve: the name of the curve
+#        :param label: the label to be displayed
+#        :param i: the index of the point in the curve
+#        :param x: x axis position
+#        :param y: y axis position
+#        :param xIsTime: To adapt format to time if needed
+#        :return: (str)
+#        """           
+#        #@todo: Check: is this method ever called??? It seems it is not since it is buggy and we don't see problems
+#        if self.getXIsTime():
+#            infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveName,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
+#        else:
+#            infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())   
+#        return infotxt
+#                
+#    def setMarkerFormatter(self,formatter):
+#        """ 
+#        Sets formatter method for plot tooltips/markers.
+#        The method must have at least 4 arguments:
+#        :param curve: the name of the curve
+#        :param label: the label to be displayed
+#        :param i: the index of the point in the curve
+#        :param x: x axis position
+#        :param y: y axis position
+#        :param xIsTime: To adapt format to time if needed
+#        """        
+#        self._markerFormatter = formatter
+#        
+#    def markerFormatter(self):
+#        """ 
+#        Returns the method used to format plot tooltips
+#        
+#        :return: (function)
+#        """
+#        return self._formatter
         
     def getCurveName(self):
         '''Returns the name of the curve (in the case of non RawDataCurves, it
@@ -786,6 +787,57 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''see :meth:`TaurusBaseComponent.isReadOnly`'''
         return True
 
+    def getStats(self, limits=None, inclusive=(True,True), imin=None, imax=None):
+        '''
+        returns a dict containing several descriptive statistics of a region of
+        the curve defined by the limits given by the keyword arguments. It also
+        contains a copy of the data in the considered region.
+        
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
+                        Points of the curve whose abscisa value is outside of 
+                        these limits are ignored. If None is passed, the limit is not enforced
+        :param inclusive: (tuple<bool,bool>). A tuple consisting of the (lower flag, upper flag).
+                          These flags determine whether values exactly equal to the lower or 
+                          upper limits are included. The default value is (True, True).
+        :param imin: (int) lowest index to be considered. If None is given, 
+                     the limit is not enforced 
+        :param imax: (int) higest index to be considered. If None is given,
+                     the limit is not enforced
+        '''
+        
+        data = self.data()
+        if imin is None: imin = 0
+        if imax is None: imax = data.size()
+        
+        x = numpy.array([data.x(i) for i in xrange(imin, imax)])
+        y = numpy.array([data.y(i) for i in xrange(imin, imax)])
+        
+        if limits is not None:
+            xmin,xmax = limits
+            if xmax is None: xmax=numpy.inf
+            if inclusive:
+                mask = (x>=xmin) * (x<=xmax)
+            else:
+                mask = (x>xmin) * (x<xmax)
+            x = x[mask]
+            y = y[mask]
+        
+        if  x.size == 0:
+            return None
+        
+        argmin = y.argmin()
+        argmax = y.argmax()
+        
+        ret = {'x'    : x, 
+               'y'    : y,  
+               'min'  : (x[argmin],y[argmin]), 
+               'max'  : (x[argmax],y[argmax]),
+               'mean' : y.mean(),
+               'std'  : y.std(),
+               'rms'  : numpy.sqrt((y**2).sum()/y.size)}
+        
+        return ret
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Methods necessary to show/hide peak values
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -814,7 +866,6 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''
         if not self.isVisible(): return None
         return self.yAxis()
-
 
 
 #class TaurusPlot(Qwt5.QwtPlot, Logger):
@@ -933,14 +984,22 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             z.setMaxStackDepth(self._max_zoom_stack)
             z.setKeyPattern(z.KeyHome, Qt.Qt.Key_unknown) #this disables the escape key for going to the top of the zoom stack (we use escape via an action for autoscaling)
 
-        # picker
-        self._picker=Qwt5.QwtPicker(self.canvas())
-#        self._picker = TaurusPicker(self.canvas())
-        self._picker.setSelectionFlags(Qwt5.QwtPicker.PointSelection )
+        # point picker
+        self._pointPicker = Qwt5.QwtPicker(self.canvas())
+        self._pointPicker.setSelectionFlags(Qwt5.QwtPicker.PointSelection )
 
-        self._pickedMarker=TaurusCurveMarker("Picked", labelOpacity=0.8)
-        self._pickedCurveName=""
-        self.connect(self._picker, Qt.SIGNAL('selected(QwtPolygon)'), self.pickDataPoint)
+        self._pickedMarker = TaurusCurveMarker("Picked", labelOpacity=0.8)
+        self._pickedCurveName = ""
+        self.connect(self._pointPicker, Qt.SIGNAL('selected(QwtPolygon)'), self.pickDataPoint)      
+        
+        #xRegion picker
+        self._xRegionPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom, 
+                                                 Qwt5.QwtPlot.yLeft,
+                                                 Qwt5.QwtPicker.PointSelection,
+                                                 Qwt5.QwtPicker.VLineRubberBand,
+                                                 Qwt5.QwtPicker.AlwaysOn, self.canvas())
+        self._xRegionPicker.setEnabled(False)
+        self.connect(self._xRegionPicker, Qt.SIGNAL('selected(QwtDoublePoint)'), self._onXRegionEvent)
 
         # magnifier
         self._magnifier = Qwt5.QwtPlotMagnifier(self.canvas())
@@ -984,8 +1043,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction = Qt.QAction("Data &Inspector mode", None)
         self._dataInspectorAction.setShortcut(Qt.Qt.Key_I)
         self._dataInspectorAction.setCheckable(True)
-        self._dataInspectorAction.setChecked(self._picker.isEnabled())
+        self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
         self.connect(self._dataInspectorAction, Qt.SIGNAL("toggled(bool)"), self.toggleDataInspectorMode)
+
+        self._curveStatsAction = Qt.QAction("Calculate statistics", None)
+        self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
+        self.connect(self._curveStatsAction, Qt.SIGNAL("triggered()"), self.onCurveStatsAction)
 
         self._pauseAction = Qt.QAction("&Pause", None)
         self._pauseAction.setShortcuts([Qt.Qt.Key_P,Qt.Qt.Key_Pause])
@@ -1051,7 +1114,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                   self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
                   self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
                   self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
-                  self._exportAsciiAction, self._setCurvesTitleAction):
+                  self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
             action.setShortcutContext(Qt.Qt.WidgetShortcut) #this is needed to avoid ambiguity when more than one TaurusPlot is used in the same window
             self.canvas().addAction(action) #because of the line above, we must add the actions to the widget that gets the focus (the canvas instead of self)
     
@@ -1650,10 +1713,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.detachRawData(name)
         return names
 
-    def getCurveData(self,curvename):
+    def getCurveData(self,curvename, numpy=False):
         """returns the data in the curve as two lists (x,y) of values
 
         :param curvename: (str) the curve name
+        :param numpy: (bool) if True, the result is returned as numpy arrays instead of lists
 
         :return: (tuple<list,list>) tuple of two lists (x,y) containing the curve data
         """
@@ -1668,6 +1732,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 raise KeyError()
         finally:
             self.curves_lock.release()
+        if numpy:
+            x,y = numpy.array(x), numpy.array(y)
         return x,y
 
     def updateCurves(self, names):
@@ -1890,7 +1956,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addSeparator()
         exportSubMenu=menu.addMenu("&Export && Print")
-
+        menu.addAction(self._curveStatsAction)
         exportSubMenu.addAction(self._printAction)
         exportSubMenu.addAction(self._exportPdfAction)
         exportSubMenu.addAction(self._exportAsciiAction)
@@ -2640,16 +2706,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self._pickedMarker.attach(self)
             self._pickedCurveName=pickedCurveName
             self._pickedMarker.pickedIndex=pickedIndex
+            pickedCurveTitle = self.getCurveTitle(pickedCurveName)
             self.replot()
             label=self._pickedMarker.label()
             if self.getXIsTime():
-                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveName,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveTitle,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
             else:
-                infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveTitle,pickedIndex,picked.x(),picked.y())
             label.setText(infotxt)
             fits = label.textSize().width()<self.size().width()
             if fits:
-                label.setText(infotxt)
                 self._pickedMarker.setLabel(Qwt5.QwtText (label))
                 self._pickedMarker.alignLabel()
                 self.replot()
@@ -2662,10 +2728,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 popup.move(self.pos().x()-popup.size().width(),self.pos().y() )
                 popup.move(self.pos())
                 Qt.QTimer.singleShot(5000, popup.hide)
-            
-            
-            
-            
+                
         return picked,pickedCurveName,pickedIndex
 
     def toggleDataInspectorMode(self, enable=None):
@@ -2684,7 +2747,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if enable is None:
             enable=not(self._inspectorMode)
 
-        self._picker.setEnabled(enable)#enables/disables the picker
+        self._pointPicker.setEnabled(enable)#enables/disables the picker
         self._zoomer.setEnabled(self._allowZoomers and not(enable)) #disables/enables the zoomers
 
         if enable:
@@ -2698,6 +2761,128 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._inspectorMode=enable
 
         return self._inspectorMode
+    
+    def onCurveStatsAction(self):
+        ''' 
+        slot for the curveStatsAction. Allows the user to select a range and 
+        then shows curve statistics on that range. 
+        '''
+        self.selectXRegion(callback=self.showCurveStats)
+            
+    def selectXRegion(self, axis=Qwt5.QwtPlot.xBottom, callback=None):
+        '''Changes the input mode to allow the user to select a region of the X axis
+        
+        :param axis: (Qwt5.QwtPlot.xBottom or Qwt5.QwtPlot.xTop) on which the
+                     region will be defined (Default=Qwt5.QwtPlot.xBottom)
+        :param callback: (method) a function that will be called when the user
+                        finishes selecting the region. If None passed (default)
+                        nothing is done
+        '''
+        self.__xRegionCallback = callback
+        self._xRegionPicker.setAxis(axis,Qwt5.QwtPlot.yLeft)
+        self._beginXRegionMode()
+        
+    def _onXRegionEvent(self, pos):
+        '''slot called when the _xRegionPicker picks a point'''
+        if self.__xRegionEnd is not None:
+            self.debug('Ignoring xRegionEvent. Reason: not-reset region')
+            return
+        x = pos.x()
+        if self.__xRegionStart is None:
+            self.__xRegionStart = x
+            self.__xRegionStartMarker.setXValue(x)
+            self.__xRegionStartMarker.attach(self)
+            self.replot()
+        else:
+            self.__xRegionEnd = x
+            self.__xRegionEndMarker.setXValue(x)
+            self.__xRegionEndMarker.attach(self)
+            
+            xmin,xmax = self.__xRegionStart,self.__xRegionEnd
+            if xmin>xmax: xmin,xmax = xmax,xmin
+            
+            self.__xRegionCallback((xmin,xmax))
+            
+            self.replot()
+            self._endXRegionMode()
+            
+    def _beginXRegionMode(self):
+        '''pre-region selection tasks'''
+        self.__xRegionStart = None
+        self.__xRegionEnd = None
+        self.__xRegionStartMarker = Qwt5.QwtPlotMarker()
+        self.__xRegionStartMarker.setLineStyle(Qwt5.QwtPlotMarker.VLine)
+        self.__xRegionStartMarker.setLinePen(Qt.QPen(Qt.Qt.green, 2))
+        self.__xRegionEndMarker = Qwt5.QwtPlotMarker()
+        self.__xRegionEndMarker.setLineStyle(Qwt5.QwtPlotMarker.VLine)
+        self.__xRegionEndMarker.setLinePen(Qt.QPen(Qt.Qt.green, 2))
+        
+        self._zoomer.setEnabled(False) #disables the zoomers
+        self.canvas().setCursor(Qt.Qt.SplitHCursor) 
+        self._xRegionPicker.setEnabled(True) 
+        
+    def _endXRegionMode(self):
+        '''post-region selection tasks'''
+        self._xRegionPicker.setEnabled(False)
+        self.canvas().setCursor(Qt.Qt.CrossCursor)
+        self._zoomer.setEnabled(self._allowZoomers)
+        self.__xRegionStartMarker.detach()
+        self.__xRegionEndMarker.detach()
+        self.replot()
+    
+    def showCurveStats(self, limits=None, curveNames=None):
+        '''Shows a dialog containing descriptive statistics on curves
+        
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
+                       Points of the curve whose abscisa value is outside of 
+                       these limits are ignored. If None is passed, the limit is not enforced
+        :param curveNames: (seq<str>) sequence of curve names for which
+                           statistics are requested. If None passed (default), all curves are
+                           considered
+        '''
+        if curveNames is None:
+            curveNames=self.getCurveNamesSorted()        
+        dialog = Qt.QDialog(self)
+        dialog.setWindowTitle('Statistics on curves')
+        layout = Qt.QVBoxLayout()
+        dialog.setLayout(layout)
+        if limits is not None:
+            xmin,xmax = limits
+            if self.xIsTime:
+                label = Qt.QLabel('Statistics for t between %s and %s'%(datetime.fromtimestamp(xmin).ctime(), datetime.fromtimestamp(xmax).ctime()))
+            else:
+                label = Qt.QLabel('Statistics for x between %g and %g'%(xmin,xmax))
+            
+        layout.addWidget(label)
+        table = Qt.QTableWidget()
+        dialog.layout().addWidget(table)
+        dialog.resize(800,400)
+        
+        table.setRowCount(len(curveNames))
+        table.setColumnCount(6)
+        
+        table.setHorizontalHeaderLabels(('#points','min', 'max', 'mean', 'std', 'rms'))
+        
+        self.curves_lock.acquire()
+        try:
+            for row,name in enumerate(curveNames):
+                curve = self.curves.get(name, None)
+                stats = curve.getStats(limits=limits)
+                table.setVerticalHeaderItem(row, Qt.QTableWidgetItem(curve.title().text()))                
+                if stats is None:
+                    continue
+                table.setItem(row,0, Qt.QTableWidgetItem("%i"%stats['x'].size))
+                table.setItem(row,1, Qt.QTableWidgetItem("[%g,%g]"%stats['min']))
+                table.setItem(row,2, Qt.QTableWidgetItem("[%g,%g]"%stats['max']))
+                table.setItem(row,3, Qt.QTableWidgetItem("%g"%stats['mean']))
+                table.setItem(row,4, Qt.QTableWidgetItem("%g"%stats['std']))
+                table.setItem(row,5, Qt.QTableWidgetItem("%g"%stats['rms']))
+        finally:
+            self.curves_lock.release()
+        
+        table.resizeColumnsToContents()
+        dialog.exec_()      
+        
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition
