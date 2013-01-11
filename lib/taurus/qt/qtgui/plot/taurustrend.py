@@ -1136,11 +1136,14 @@ class TaurusTrend(TaurusPlot):
             self.curves_lock.release()
         return ret
     
-    def getCurveTitle(self, trendsetname, index=None):
+    def getCurveTitle(self, name, index=None):
         '''reimplemented from :class:`TaurusPlot`.
         Returns the title of a curve from a trendset
         
-        :param trendsetname: (str) 
+        :param name: (str) The name of the trendset. If the name is not a known 
+                     trendset name and index is None, we will try with tsetname and 
+                     index obtained from parsing the given name (assuming the 
+                     format '<tsetname>[<index>]').
         :param index: (int or None) the index of the curve in the trend set. 
                       If None is passed, it returns the base title of the trendset
                       
@@ -1148,9 +1151,15 @@ class TaurusTrend(TaurusPlot):
         '''
         self.curves_lock.acquire()
         try:
-            tset = self.trendSets.get(trendsetname)
-            if tset is None:
-                return None
+            tset = self.trendSets.get(name)
+            if tset is None: #name not found...
+                if index is None: # maybe name was actually a curve name including the index? 
+                    match = re.match(r'^(.*)\[([0-9]+)\]$', name) 
+                    if match:
+                        name,index = match.groups()
+                        index = int(index)
+                        return self.getCurveTitle(name, index=index) #recursive call with parsed tsetname and index
+                return None 
             if index is None:
                 if len(tset) == 1:
                     index = 0
