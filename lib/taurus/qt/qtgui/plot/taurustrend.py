@@ -297,46 +297,17 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
             
         #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
-        if value is not None: self._yBuffer.append(v)
+        if value is not None: self._yBuffer.append(value.value)
         
         if self.parent().getXIsTime():
             #add the timestamp to the x buffer
             if value is not None: self._xBuffer.append(value.time.totime())
             ##Adding archiving values
             if self.parent().getUseArchiving():
-                if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom): #Do not open a mysql connection for autoscaled plots
-                    startdate = self.parent().axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
-                    stopdate = self.parent().axisScaleDiv(Qwt5.QwtPlot.xBottom).upperBound()
-                    if self._xBuffer.contentsSize()>0:
-                        first,last = self._xBuffer[0],self._xBuffer[-1]
-                        if self.parent().getXDynScale(): stopdate = first
-                    else: first,last = 0,0
+                #open a mysql connection for online trends or any not autoscaled plots
+                if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom):
                     try:
-                        archived = getArchivedTrendValues(self,model,startdate,stopdate)
-                        if archived is not None and len(archived): 
-                            ntrends = self._checkDataDimensions(archived[0].value) #It may clean existing buffers!
-                            if None in (self._xBuffer,self._yBuffer):
-                                self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
-                                self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
-                            elif not self.parent().getXDynScale():
-                                #If timescale is overriden, buffers should be wiped
-                                #self.clearTrends() #It will delete buffers
-                                self._xBuffer.moveLeft(self._xBuffer.maxSize())
-                                self._yBuffer.moveLeft(self._yBuffer.maxSize())
-                            remaining = self._xBuffer.remainingSize()
-                            if remaining<len(archived): 
-                                self.debug('Resizing XBuffer to %d to allocate archived values'%(self._xBuffer.maxSize()+len(archived)))
-                                self.parent().setMaxDataBufferSize(self._xBuffer.maxSize()+len(archived))
-                                #self._xBuffer.setMaxSize(self._xBuffer.maxSize()+len(archived))
-                                #self._yBuffer.setMaxSize(self._yBuffer.maxSize()+len(archived))
-                            t = numpy.zeros(len(archived), dtype=float)
-                            y = numpy.zeros((len(archived), ntrends), dtype=float)#self._yBuffer.dtype)
-                            for i,v in enumerate(archived):
-                                t[i]=v.time.totime()
-                                y[i]=v.value
-                            self._xBuffer.extendLeft(t)
-                            self._yBuffer.extendLeft(y)
-                            self.parent().replot() #To be done always
+                        getArchivedTrendValues(self,model,insert=True)
                     except Exception,e:
                         import traceback
                         self.warning('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),traceback.format_exc()))     
