@@ -829,12 +829,13 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         argmax = y.argmax()
         
         ret = {'x'    : x, 
-               'y'    : y,  
+               'y'    : y,
+               'points': x.size,
                'min'  : (x[argmin],y[argmin]), 
                'max'  : (x[argmax],y[argmax]),
                'mean' : y.mean(),
                'std'  : y.std(),
-               'rms'  : numpy.sqrt((y**2).sum()/y.size)}
+               'rms'  : numpy.sqrt(numpy.mean(y**2))}
         
         return ret
 
@@ -2761,14 +2762,20 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._inspectorMode=enable
 
         return self._inspectorMode
-    
+        
     def onCurveStatsAction(self):
         ''' 
         slot for the curveStatsAction. Allows the user to select a range and 
         then shows curve statistics on that range. 
         '''
-        self.selectXRegion(callback=self.showCurveStats)
-            
+        if getattr(self, '_curveStatsDialog',None) is None:
+            from taurus.qt.qtgui.plot import CurveStatsDialog
+            self._curveStatsDialog = CurveStatsDialog(self)
+        elif not self._curveStatsDialog.isVisible():
+            self._curveStatsDialog.refreshCurves()
+        
+        self._curveStatsDialog.show()
+        
     def selectXRegion(self, axis=Qwt5.QwtPlot.xBottom, callback=None):
         '''Changes the input mode to allow the user to select a region of the X axis
         
@@ -2829,8 +2836,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.__xRegionStartMarker.detach()
         self.__xRegionEndMarker.detach()
         self.replot()
-    
-    def showCurveStats(self, limits=None, curveNames=None):
+        
+    def getCurveStats(self, limits=None, curveNames=None):
         '''Shows a dialog containing descriptive statistics on curves
         
         :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
@@ -2839,58 +2846,26 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param curveNames: (seq<str>) sequence of curve names for which
                            statistics are requested. If None passed (default), all curves are
                            considered
+                           
+        :return: (dict) Returns a dictionary whose keys are the curve names and
+                        whose values are the dictionaries returned by
+                        :meth:`TaurusCurve.getStats`
         '''
+        if limits is not None and limits[0] is None and limits[1] is None: 
+            limits = None
         if curveNames is None:
-            curveNames=self.getCurveNamesSorted()        
-        dialog = Qt.QDialog(self)
-        dialog.setWindowTitle('Statistics on curves')
-        layout = Qt.QVBoxLayout()
-        dialog.setLayout(layout)
-        if limits is not None:
-            xmin,xmax = limits
-            if self.xIsTime:
-                label = Qt.QLabel('Statistics for t between %s and %s'%(datetime.fromtimestamp(xmin).ctime(), datetime.fromtimestamp(xmax).ctime()))
-            else:
-                label = Qt.QLabel('Statistics for x between %g and %g'%(xmin,xmax))
-            
-        layout.addWidget(label)
-        table = Qt.QTableWidget()
-        dialog.layout().addWidget(table)
-        dialog.resize(800,400)
+            curveNames=self.getCurveNamesSorted()
         
-        table.setRowCount(len(curveNames))
-        table.setColumnCount(6)
-        
-        table.setHorizontalHeaderLabels(('#points','min', 'max', 'mean', 'std', 'rms'))
-        
+        stats = {}
         self.curves_lock.acquire()
         try:
-            for row,name in enumerate(curveNames):
+            for name in curveNames:
                 curve = self.curves.get(name, None)
-                stats = curve.getStats(limits=limits)
-                table.setVerticalHeaderItem(row, Qt.QTableWidgetItem(curve.title().text()))                
-                if stats is None:
-                    continue
-                table.setItem(row,0, Qt.QTableWidgetItem("%i"%stats['x'].size))
-                minx,miny=stats['min']
-                maxx,maxy=stats['max']
-                if self.xIsTime:
-                    minx = datetime.fromtimestamp(minx).ctime()
-                    maxx = datetime.fromtimestamp(maxx).ctime()
-                    table.setItem(row,1, Qt.QTableWidgetItem("t=%s\ny=%g"%(minx,miny)))
-                    table.setItem(row,2, Qt.QTableWidgetItem("t=%s\ny=%g"%(maxx,maxy)))
-                else:
-                    table.setItem(row,1, Qt.QTableWidgetItem("x=%g\ny=%g"%(minx,miny)))
-                    table.setItem(row,2, Qt.QTableWidgetItem("x=%g\ny=%g"%(maxx,maxy)))
-                table.setItem(row,3, Qt.QTableWidgetItem("%g"%stats['mean']))
-                table.setItem(row,4, Qt.QTableWidgetItem("%g"%stats['std']))
-                table.setItem(row,5, Qt.QTableWidgetItem("%g"%stats['rms']))
+                stats[name] = curve.getStats(limits=limits)
+                stats[name]['title'] = unicode(curve.title().text())
         finally:
             self.curves_lock.release()
-        
-        table.resizeColumnsToContents()
-        dialog.exec_()      
-        
+        return stats
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition

@@ -40,3 +40,4 @@ from .taurusarrayedit import TaurusArrayEditor
 from .curvesAppearanceChooserDlg import CurveAppearanceProperties, CurvesAppearanceChooser
 from .curveprops import CurvePropertiesView
 from .monitor import TaurusMonitorTiny
+from .curveStatsDlg import CurveStatsDialog
