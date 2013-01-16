@@ -1047,9 +1047,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
         self.connect(self._dataInspectorAction, Qt.SIGNAL("toggled(bool)"), self.toggleDataInspectorMode)
 
-        self.curveStatsAction = Qt.QAction("Calculate statistics", None)
-        self.curveStatsAction.setShortcut(Qt.Qt.Key_S)
-        self.connect(self.curveStatsAction, Qt.SIGNAL("triggered()"), self.onCurveStatsAction)
+        self._curveStatsAction = Qt.QAction("Calculate statistics", None)
+        self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
+        self.connect(self._curveStatsAction, Qt.SIGNAL("triggered()"), self.onCurveStatsAction)
 
         self._pauseAction = Qt.QAction("&Pause", None)
         self._pauseAction.setShortcuts([Qt.Qt.Key_P,Qt.Qt.Key_Pause])
@@ -1115,7 +1115,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                   self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
                   self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
                   self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
-                  self._exportAsciiAction, self._setCurvesTitleAction, self.curveStatsAction):
+                  self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
             action.setShortcutContext(Qt.Qt.WidgetShortcut) #this is needed to avoid ambiguity when more than one TaurusPlot is used in the same window
             self.canvas().addAction(action) #because of the line above, we must add the actions to the widget that gets the focus (the canvas instead of self)
     
@@ -1957,7 +1957,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addSeparator()
         exportSubMenu=menu.addMenu("&Export && Print")
-        menu.addAction(self.curveStatsAction)
+        menu.addAction(self._curveStatsAction)
         exportSubMenu.addAction(self._printAction)
         exportSubMenu.addAction(self._exportPdfAction)
         exportSubMenu.addAction(self._exportAsciiAction)
@@ -2771,10 +2771,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if getattr(self, '_curveStatsDialog',None) is None:
             from taurus.qt.qtgui.plot import CurveStatsDialog
             self._curveStatsDialog = CurveStatsDialog(self)
+            self.connect(self._curveStatsDialog, Qt.SIGNAL('closed'),self._onCurveStatsDialogClosed)
+            self.connect(self._curveStatsDialog, Qt.SIGNAL('finished(int)'),self._onCurveStatsDialogClosed)
         elif not self._curveStatsDialog.isVisible():
             self._curveStatsDialog.refreshCurves()
-        self.curveStatsAction.setEnabled(False) #it will be reenabed by self._curveStatsDialog.closeEvent()
+        self._curveStatsAction.setEnabled(False) #it will be reenabed by _onCurveStatsDialogClosed
         self._curveStatsDialog.show()
+        
+    def _onCurveStatsDialogClosed(self, *args):
+        '''slot called when the Curve Stats dialog is closed'''
+        self._curveStatsAction.setEnabled(True)
         
     def selectXRegion(self, axis=Qwt5.QwtPlot.xBottom, callback=None):
         '''Changes the input mode to allow the user to select a region of the X axis

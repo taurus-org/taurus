@@ -109,10 +109,10 @@ class CurveStatsDialog(Qt.QDialog):
             self.ui.minSB.setValue(xmin)
             self.ui.maxSB.setValue(xmax)
         
-        curveStatsAction = Qt.QAction(getThemeIcon('view-refresh'), "Refresh available curves", self.ui.statsTW)
-        curveStatsAction.setShortcut(Qt.Qt.Key_F5)
-        self.connect(curveStatsAction, Qt.SIGNAL("triggered()"), self.refreshCurves)
-        self.ui.statsTW.addAction(curveStatsAction)
+        refreshAction = Qt.QAction(getThemeIcon('view-refresh'), "Refresh available curves", self.ui.statsTW)
+        refreshAction.setShortcut(Qt.Qt.Key_F5)
+        self.connect(refreshAction, Qt.SIGNAL("triggered()"), self.refreshCurves)
+        self.ui.statsTW.addAction(refreshAction)
         
         #connections
         for cb in cbs:
@@ -288,9 +288,8 @@ class CurveStatsDialog(Qt.QDialog):
         
     def closeEvent(self, event):
         '''See :meth:`Qwidget.closeEvent`'''
-        plot = self.parent()
         self.restorePlot()
-        plot.curveStatsAction.setEnabled(True)
+        self.emit(Qt.SIGNAL('closed'))
         
     def showEvent(self, event):
         '''See :meth:`Qwidget.showEvent`'''
