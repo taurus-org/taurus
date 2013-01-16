@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpGVB3YS.ui'
+# Form implementation generated from reading ui file '/tmp/tmpCPhivc.ui'
 #
-# Created: Tue Jan 15 16:43:34 2013
+# Created: Wed Jan 16 09:11:13 2013
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ class Ui_CurveStatsDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.minDTE.sizePolicy().hasHeightForWidth())
         self.minDTE.setSizePolicy(sizePolicy)
-        self.minDTE.setCurrentSection(QtGui.QDateTimeEdit.SecondSection)
+        self.minDTE.setCurrentSection(QtGui.QDateTimeEdit.YearSection)
         self.minDTE.setObjectName("minDTE")
         self.horizontalLayout.addWidget(self.minDTE)
         self.selectMinPB = QtGui.QToolButton(self.groupBox)
@@ -71,7 +71,7 @@ class Ui_CurveStatsDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.maxDTE.sizePolicy().hasHeightForWidth())
         self.maxDTE.setSizePolicy(sizePolicy)
-        self.maxDTE.setCurrentSection(QtGui.QDateTimeEdit.SecondSection)
+        self.maxDTE.setCurrentSection(QtGui.QDateTimeEdit.YearSection)
         self.maxDTE.setObjectName("maxDTE")
         self.horizontalLayout_2.addWidget(self.maxDTE)
         self.selectMaxPB = QtGui.QToolButton(self.groupBox)
@@ -110,6 +110,7 @@ class Ui_CurveStatsDialog(object):
         self.gridLayout.addWidget(self.rmsStatCB, 1, 2, 1, 1)
         self.gridLayout_2.addWidget(self.groupBox_2, 0, 1, 1, 1)
         self.statsTW = QtGui.QTableWidget(CurveStatsDialog)
+        self.statsTW.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.statsTW.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.statsTW.setObjectName("statsTW")
         self.statsTW.setColumnCount(0)

@@ -32,7 +32,7 @@ curvesAppearanceChooserDlg.py:
 from taurus.qt import Qt, Qwt5
 from ui.ui_CurveStatsDialog import  Ui_CurveStatsDialog
 from datetime import datetime
-from taurus.qt.qtgui.resource import getIcon
+from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
 
 class CurveStatsDialog(Qt.QDialog):
@@ -46,7 +46,8 @@ class CurveStatsDialog(Qt.QDialog):
         self.ui = Ui_CurveStatsDialog()
         self.ui.setupUi(self)
         
-        xIsTime = parent.getXIsTime()
+        plot = parent
+        xIsTime = plot.getXIsTime()
         self.ui.minDTE.setVisible(xIsTime)
         self.ui.maxDTE.setVisible(xIsTime)
         self.ui.minSB.setVisible(not xIsTime)
@@ -67,23 +68,51 @@ class CurveStatsDialog(Qt.QDialog):
         cbs = (self.ui.npointsStatCB, self.ui.minStatCB, self.ui.maxStatCB, 
                self.ui.meanStatCB, self.ui.stdStatCB, self.ui.rmsStatCB)
         self._checkboxToColMap = dict(zip(cbs, xrange(len(self.statColumns))))
-        #self._colToCheckboxMap = dict(zip(xrange(1,len(self.statColumns)+1), cbs))
         
         self.minPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom, 
                                          Qwt5.QwtPlot.yLeft,
                                          Qwt5.QwtPicker.PointSelection,
                                          Qwt5.QwtPicker.VLineRubberBand,
-                                         Qwt5.QwtPicker.AlwaysOn, parent.canvas())
+                                         Qwt5.QwtPicker.AlwaysOn, plot.canvas())
         
         self.maxPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom, 
                                          Qwt5.QwtPlot.yLeft,
                                          Qwt5.QwtPicker.PointSelection,
                                          Qwt5.QwtPicker.VLineRubberBand,
-                                         Qwt5.QwtPicker.AlwaysOn, parent.canvas())
-        
+                                         Qwt5.QwtPicker.AlwaysOn, plot.canvas())
         
         self.minPicker.setEnabled(False)
         self.maxPicker.setEnabled(False)
+        
+        #initialize min and max display
+        xmin = plot.axisScaleDiv(Qwt5.QwtPlot.xBottom).lowerBound()
+        xmax = plot.axisScaleDiv(Qwt5.QwtPlot.xBottom).upperBound()
+        
+        self.minMarker = Qwt5.QwtPlotMarker()
+        self.minMarker.setLineStyle(Qwt5.QwtPlotMarker.VLine)
+        self.minMarker.setLinePen(Qt.QPen(Qt.Qt.green, 3))
+        self.minMarker.setXValue(xmin)
+        self.minMarker.attach(plot)
+        self.minMarker.hide()
+        
+        self.maxMarker = Qwt5.QwtPlotMarker()
+        self.maxMarker.setLineStyle(Qwt5.QwtPlotMarker.VLine)
+        self.maxMarker.setLinePen(Qt.QPen(Qt.Qt.red, 3))
+        self.maxMarker.setXValue(xmax)
+        self.maxMarker.attach(plot)
+        self.maxMarker.hide()
+        
+        if xIsTime:
+            self.ui.minDTE.setDateTime(self._timestamptToQDateTime(xmin))
+            self.ui.minDTE.setDateTime(self._timestamptToQDateTime(xmax))
+        else:
+            self.ui.minSB.setValue(xmin)
+            self.ui.maxSB.setValue(xmax)
+        
+        curveStatsAction = Qt.QAction(getThemeIcon('view-refresh'), "Refresh available curves", self.ui.statsTW)
+        curveStatsAction.setShortcut(Qt.Qt.Key_F5)
+        self.connect(curveStatsAction, Qt.SIGNAL("triggered()"), self.refreshCurves)
+        self.ui.statsTW.addAction(curveStatsAction)
         
         #connections
         for cb in cbs:
@@ -93,7 +122,20 @@ class CurveStatsDialog(Qt.QDialog):
         self.connect(self.ui.selectMaxPB, Qt.SIGNAL('clicked()'),self.onSelectMax)
         self.connect(self.minPicker, Qt.SIGNAL('selected(QwtDoublePoint)'), self.minSelected)
         self.connect(self.maxPicker, Qt.SIGNAL('selected(QwtDoublePoint)'), self.maxSelected)
+        self.connect(self.ui.minSB, Qt.SIGNAL('valueChanged(double)'), self.onMinChanged)
+        self.connect(self.ui.minDTE, Qt.SIGNAL('dateTimeChanged(QDateTime)'), self.onMinChanged)
+        self.connect(self.ui.maxSB, Qt.SIGNAL('valueChanged(double)'), self.onMaxChanged)
+        self.connect(self.ui.maxDTE, Qt.SIGNAL('dateTimeChanged(QDateTime)'), self.onMaxChanged)
+        self.connect(self.ui.minCB, Qt.SIGNAL('toggled(bool)'), self.onMinChanged)
+        self.connect(self.ui.maxCB, Qt.SIGNAL('toggled(bool)'), self.onMaxChanged)
         
+    def _timestamptToQDateTime(self, ts):
+        dt = datetime.fromtimestamp(ts)
+        return Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond/1000)
+    
+    def _QDateTimeToTimestamp(self, qdt):
+        return qdt.toTime_t() + qdt.time().msec()/1000.
+    
     def onSelectMin(self):
         '''slot called when the user clicks on the selectMin button'''
         plot = self.parent()
@@ -110,12 +152,21 @@ class CurveStatsDialog(Qt.QDialog):
         plot = self.parent()
         xmin = pos.x()
         if plot.getXIsTime():
-            dt = datetime.fromtimestamp(xmin)
-            time = Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond/1000)
-            self.ui.minDTE.setDateTime(time)
+            self.ui.minDTE.setDateTime(self._timestamptToQDateTime(xmin)) #this triggers a call to onMinChanged()
         else:
-            self.ui.minSB.setValue(xmin)
-        self.restorePlot()
+            self.ui.minSB.setValue(xmin) #this triggers a call to onMinChanged()
+        self.restorePlot(keepMarkers=True)
+        
+    def onMinChanged(self, x):
+        '''slot called when the min value is changed''' 
+        plot = self.parent()     
+        if isinstance(x, bool):
+            self.minMarker.setVisible(x)
+        else:
+            if isinstance(x, Qt.QDateTime):
+                x = self._QDateTimeToTimestamp(x)
+            self.minMarker.setXValue(x)
+        plot.replot()
         
     def onSelectMax(self):
         '''slot called when the user clicks on the selectMax button'''
@@ -134,13 +185,22 @@ class CurveStatsDialog(Qt.QDialog):
         plot = self.parent()
         xmax = pos.x()
         if plot.getXIsTime():
-            dt = datetime.fromtimestamp(xmax)
-            time = Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond/1000)
-            self.ui.maxDTE.setDateTime(time)
+            self.ui.maxnDTE.setDateTime(self._timestamptToQDateTime(xmax)) #this triggers a call to onMaxChanged()
         else:
-            self.ui.maxSB.setValue(xmax)
-        self.restorePlot()
-                     
+            self.ui.maxSB.setValue(xmax) #this triggers a call to onMaxChanged()
+        self.restorePlot(keepMarkers=True)
+                             
+    def onMaxChanged(self, x):
+        '''slot called when the max value is changed'''
+        plot = self.parent()     
+        if isinstance(x, bool):
+            self.maxMarker.setVisible(x)
+        else:
+            if isinstance(x, Qt.QDateTime):
+                x = self._QDateTimeToTimestamp(x)
+            self.maxMarker.setXValue(x)
+        plot.replot()
+        
     def onStatToggled(self, checked):
         '''slot called when any of the stat checkboxes is toggled'''
         cb = self.sender()
@@ -216,16 +276,29 @@ class CurveStatsDialog(Qt.QDialog):
                 table.setItem(row, self.statColumns.index(s), Qt.QTableWidgetItem("%g"%stats[s]))
         table.resizeColumnsToContents()
     
-    def restorePlot(self):
+    def restorePlot(self, keepMarkers=False):
         '''leaves the parent plot in its original state'''
         plot = self.parent()
         plot.canvas().setCursor(Qt.Qt.CrossCursor)
         plot.getZoomers()[0].setEnabled(plot.getAllowZoomers())
+        if not keepMarkers:
+            self.minMarker.detach()
+            self.maxMarker.detach()
+        plot.replot()
         
-    
     def closeEvent(self, event):
         '''See :meth:`Qwidget.closeEvent`'''
+        plot = self.parent()
         self.restorePlot()
+        plot.curveStatsAction.setEnabled(True)
+        
+    def showEvent(self, event):
+        '''See :meth:`Qwidget.showEvent`'''
+        plot = self.parent()
+        self.minMarker.attach(plot)       
+        self.maxMarker.attach(plot)        
+        plot.replot()
+            
         
                 
 
