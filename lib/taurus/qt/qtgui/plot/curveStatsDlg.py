@@ -104,7 +104,7 @@ class CurveStatsDialog(Qt.QDialog):
         
         if xIsTime:
             self.ui.minDTE.setDateTime(self._timestamptToQDateTime(xmin))
-            self.ui.minDTE.setDateTime(self._timestamptToQDateTime(xmax))
+            self.ui.maxDTE.setDateTime(self._timestamptToQDateTime(xmax))
         else:
             self.ui.minSB.setValue(xmin)
             self.ui.maxSB.setValue(xmax)
