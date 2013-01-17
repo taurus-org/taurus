@@ -260,20 +260,33 @@ class CurveStatsDialog(Qt.QDialog):
         statsdict = plot.getCurveStats(limits=limits, curveNames=selectedCurves)
     
         for row, name in zip(selectedRows,selectedCurves):
-            stats = statsdict[name]
-            minx,miny = stats['min']
-            maxx,maxy = stats['max']
-            if plot.xIsTime:
-                minx = datetime.fromtimestamp(minx).isoformat()
-                maxx = datetime.fromtimestamp(maxx).isoformat()
-                table.setItem(row,self.statColumns.index('min'), Qt.QTableWidgetItem("t=%s \ny=%g"%(minx,miny)))
-                table.setItem(row,self.statColumns.index('max'), Qt.QTableWidgetItem("t=%s \ny=%g"%(maxx,maxy)))
-            else:
-                table.setItem(row, self.statColumns.index('min'), Qt.QTableWidgetItem("x=%g\ny=%g"%(minx,miny)))
-                table.setItem(row, self.statColumns.index('max'), Qt.QTableWidgetItem("x=%g\ny=%g"%(maxx,maxy)))           
+            stats = statsdict.get(name, {})
             
+            minxy = stats.get('min')
+            if minxy is None:
+                text = "---"
+            elif plot.xIsTime:
+                text = "t=%s \ny=%g"%(datetime.fromtimestamp(minxy[0]).isoformat(),minxy[1])
+            else:
+                text = "x=%g \ny=%g"%minxy
+            table.setItem(row,self.statColumns.index('min'), Qt.QTableWidgetItem(text))            
+            
+            maxxy = stats.get('max')
+            if maxxy is None:
+                text = "---"
+            elif plot.xIsTime:
+                text = "t=%s \ny=%g"%(datetime.fromtimestamp(maxxy[0]).isoformat(),maxxy[1])
+            else:
+                text = "x=%g \ny=%g"%maxxy
+            table.setItem(row,self.statColumns.index('max'), Qt.QTableWidgetItem(text))
+                          
             for s in ('points', 'mean', 'std', 'rms'):
-                table.setItem(row, self.statColumns.index(s), Qt.QTableWidgetItem("%g"%stats[s]))
+                r = stats.get(s)
+                if r is None: 
+                    text = "---"
+                else:
+                    text = "%g"%r
+                table.setItem(row, self.statColumns.index(s), Qt.QTableWidgetItem(text))
         table.resizeColumnsToContents()
     
     def restorePlot(self, keepMarkers=False):

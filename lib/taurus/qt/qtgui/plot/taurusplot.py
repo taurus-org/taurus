@@ -791,7 +791,19 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''
         returns a dict containing several descriptive statistics of a region of
         the curve defined by the limits given by the keyword arguments. It also
-        contains a copy of the data in the considered region.
+        contains a copy of the data in the considered region. The keys of the
+        returned dictionary correspond to:
+                 
+                 -'x' : the abscissas for the considered points (numpy.array)
+                 -'y' : the ordinates for the considered points (numpy.array)
+                 -'points': number of considered points (int)
+                 -'min' : (x,y) pair of the minimum of the curve (float,float)
+                 -'max' : (x,y) pair of the maximum of the curve (float,float)
+                 -'mean' : arithmetic average of y (float)
+                 -'std' : (biased)standard deviation of y (float)
+                 -'rms' : root mean square of y (float)
+                 
+        Note that some of the values may be None if that cannot be computed.
         
         :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
                         Points of the curve whose abscisa value is outside of 
@@ -803,6 +815,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                      the limit is not enforced 
         :param imax: (int) higest index to be considered. If None is given,
                      the limit is not enforced
+                     
+        :return: (dict) A dict containing the stats.
         '''
         
         data = self.data()
@@ -822,21 +836,23 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             x = x[mask]
             y = y[mask]
         
-        if  x.size == 0:
-            return None
-        
-        argmin = y.argmin()
-        argmax = y.argmax()
-        
         ret = {'x'    : x, 
                'y'    : y,
                'points': x.size,
-               'min'  : (x[argmin],y[argmin]), 
-               'max'  : (x[argmax],y[argmax]),
-               'mean' : y.mean(),
-               'std'  : y.std(),
-               'rms'  : numpy.sqrt(numpy.mean(y**2))}
+               'min'  : None, 
+               'max'  : None,
+               'mean' : None,
+               'std'  : None,
+               'rms'  : None}
         
+        if  x.size > 0:
+            argmin = y.argmin()
+            argmax = y.argmax()
+            ret.update({'min'  : (x[argmin],y[argmin]), 
+                        'max'  : (x[argmax],y[argmax]),
+                        'mean' : y.mean(),
+                        'std'  : y.std(),
+                        'rms'  : numpy.sqrt(numpy.mean(y**2))})
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -2867,7 +2883,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         try:
             for name in curveNames:
                 curve = self.curves.get(name, None)
-                stats[name] = curve.getStats(limits=limits)
+                stats[name] = curve.getStats(limits=limits)             
                 stats[name]['title'] = unicode(curve.title().text())
         finally:
             self.curves_lock.release()
