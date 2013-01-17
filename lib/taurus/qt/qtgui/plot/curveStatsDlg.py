@@ -185,7 +185,7 @@ class CurveStatsDialog(Qt.QDialog):
         plot = self.parent()
         xmax = pos.x()
         if plot.getXIsTime():
-            self.ui.maxnDTE.setDateTime(self._timestamptToQDateTime(xmax)) #this triggers a call to onMaxChanged()
+            self.ui.maxDTE.setDateTime(self._timestamptToQDateTime(xmax)) #this triggers a call to onMaxChanged()
         else:
             self.ui.maxSB.setValue(xmax) #this triggers a call to onMaxChanged()
         self.restorePlot(keepMarkers=True)
