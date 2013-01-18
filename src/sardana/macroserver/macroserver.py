@@ -411,6 +411,9 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     # (Re)load code
     # --------------------------------------------------------------------------
     
+    def reload_lib(self, lib_name):
+        return self.macro_manager.reloadLib(lib_name)   
+    
     def reload_macro_lib(self, lib_name):
         manager = self.macro_manager
         
