@@ -47,7 +47,6 @@ DevHealth = taurus.core.TaurusSWDevHealth
 Size = Qt.QSize
 
 __INITIALIZED = False
-__INITIALIZED_THEME = False
 # Theme capacity was only added in Qt 4.6
 __THEME_CAPACITY = hasattr(Qt.QIcon, "fromTheme")
 # Uncomment the following line to force NOT to use OS theme.
@@ -66,56 +65,38 @@ __3DQS = Size(3*__DW, __DH)
 
 def __init():
     global __INITIALIZED
+    global __THEME_MEMBERS
     
     if __INITIALIZED: return
-    
+        
+    #register only the tango-icons rcc files (and initialize the THEME_MEMBERS)
     res_dir = os.path.dirname(os.path.abspath(__file__))
     Qt.QDir.addSearchPath("resource", res_dir)
+    prefix = 'qrc_tango_icons_'
+    suffix = '.rcc'
+    lp, ls = len(prefix),len(suffix)
+    theme_members = {}
+    other_rcc_files = []
+    for f in os.listdir(res_dir):
+        if f.endswith(suffix):
+            if f.startswith(prefix):
+                if Qt.QResource.registerResource("resource:" + f):
+                    d = f[lp:-ls]
+                    theme_members[d] = [str(e)[:-4] for e in Qt.QDir(":%s"%d).entryList() if str(e).endswith('.svg')] 
+                else:
+                    __LOGGER.info("Failed to load resource %s" % f)
+            else:
+                other_rcc_files.append(f) #we remember these and will register later
+    __THEME_MEMBERS = theme_members
     
-    for res_file in [ f for f in os.listdir(res_dir) if f.endswith(".rcc") ]:
-        if not Qt.QResource.registerResource("resource:" + res_file):
-            __LOGGER.info("Failed to load resource %s" % res_file)
+    #register the rest of the resource files
+    for f in other_rcc_files:
+        if not Qt.QResource.registerResource("resource:" + f):
+            __LOGGER.info("Failed to load resource %s" % f)
     
     __INITIALIZED = True
 
 __init()
-
-def __init_theme_members():
-    global __INITIALIZED_THEME
-    global __THEME_MEMBERS
-    global __THEME_CAPACITY
-    global __LOGGER
-    
-    if __INITIALIZED_THEME: return __THEME_MEMBERS
-    
-    app = Qt.QApplication.instance()
-    if app is None and __THEME_CAPACITY:
-        raise Exception("Cannot calculate theme without QApplication instance")
-    
-    res_dir = os.path.dirname(os.path.abspath(__file__))
-    theme_icon_dir = os.path.join(res_dir, "tango-icons")
-    members = {}
-    if os.path.isdir(theme_icon_dir):
-        for d in os.listdir(theme_icon_dir):
-            abs_dir = os.path.join(theme_icon_dir, d)
-            if d[0] == "." or not os.path.isdir(abs_dir):
-                continue
-            elems = []
-            for elem in os.listdir(abs_dir):
-                abs_elem = os.path.join(abs_dir, elem)
-                idx = elem.rfind(".svg")
-                if elem[0] == "." or idx < 0 or not os.path.isfile(abs_elem):
-                    continue
-                elems.append(elem[:idx])
-            members[d] = elems
-    else:
-        __LOGGER.warning('Cannot find dir "%s". Tango-Icon fallback for themed icons will not work',theme_icon_dir)
-        __LOGGER.debug('Please report this error with the following info:\n Theme_Capacity:%s , Qt=%s, PyQt=%s',__THEME_CAPACITY, Qt.QT_VERSION_STR, Qt.PYQT_VERSION_STR)
-        
-    __THEME_MEMBERS = members
-
-    __INITIALIZED_THEME = True
-    return __THEME_MEMBERS
 
 def getThemeMembers():
     """Returns the current icon theme elements
@@ -123,7 +104,8 @@ def getThemeMembers():
     :return: the current icon theme elements in a dictionary where each key is
              a group name and the value is a sequence of theme icon name.
     :rtype: dict<str,seq<str>>"""
-    return __init_theme_members()
+    global __THEME_MEMBERS
+    return __THEME_MEMBERS
 
 def getPixmap(key, size=None):
     """Returns a PyQt4.QtGui.QPixmap object for the given key and size
