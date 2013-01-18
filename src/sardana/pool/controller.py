@@ -275,25 +275,25 @@ class Controller(object):
     #:                 self._encodersource[axis] = value
     axis_attributes = {}
 
+    #: A :class:`dict` containing the standard attributes present on each axis
+    #: device
+    standard_axis_attributes = {}
+
     #: A :obj:`str` representing the controller gender
     gender = None
 
     #: A :obj:`str` representing the controller model name
-    model = None
+    model = 'Generic'
 
     #: A :obj:`str` representing the controller organization
-    organization = None
+    organization = 'Sardana team'
 
     #: A :obj:`str` containning the path to the image file
     image = None
 
     #: A :obj:`str` containning the path to the image logo file
     logo = None
-
-    #: A :class:`dict` containing the standard attributes present on each axis
-    #: device
-    standard_axis_attributes = {}
-
+    
     def __init__(self, inst, props, *args, **kwargs):
         self._inst_name = inst
         self._log = Logger("Controller.%s" % inst)
@@ -764,6 +764,9 @@ class MotorController(Controller, Startable, Stopable, Readable):
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
 
+    #: A :obj:`str` representing the controller gender
+    gender = 'Motor controller'
+
     def GetAxisAttributes(self, axis):
         """**Motor Controller API**. Override if necessary.
         Returns a sequence of all attributes per axis.
@@ -830,6 +833,9 @@ class CounterTimerController(Controller, Readable, Startable, Stopable, Loadable
                           'description' : 'Value', },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
+
+    #: A :obj:`str` representing the controller gender
+    gender = 'Counter/Timer controller'
 
     def __init__(self, inst, props, *args, **kwargs):
         Controller.__init__(self, inst, props, *args, **kwargs)
@@ -937,6 +943,9 @@ class ZeroDController(Controller, Readable, Stopable):
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
     
+    #: A :obj:`str` representing the controller gender
+    gender = '0D controller'
+
     def AbortOne(self, axis):
         """This method is not executed by the system.
         Default implementation does nothing.
@@ -957,7 +966,10 @@ class OneDController(Controller, Readable, Startable, Stopable, Loadable):
                           'maxdimsize' : (16*1024,) },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
-    
+
+    #: A :obj:`str` representing the controller gender
+    gender = '1D controller'
+        
     def GetAxisPar(self, axis, parameter):
         """**Controller API**. Override is MANDATORY.
         Called to get a parameter value on the given axis.
@@ -983,6 +995,9 @@ class TwoDController(Controller, Readable, Startable, Stopable, Loadable):
                           'maxdimsize' : (4*1024, 4*1024) },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
+
+    #: A :obj:`str` representing the controller gender
+    gender = '2D controller'
 
     def GetAxisPar(self, axis, parameter):
         """**Controller API**. Override is MANDATORY.
@@ -1054,6 +1069,9 @@ class PseudoMotorController(PseudoController):
                              'description' : 'Position', },
     }
 
+    #: A :obj:`str` representing the controller gender
+    gender = 'Pseudo motor controller'
+    
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
         self.__pseudo_motor_role_elements = {}
@@ -1273,6 +1291,9 @@ class PseudoCounterController(Controller):
                           'description' : 'Value', },
     }
 
+    #: A :obj:`str` representing the controller gender
+    gender = 'Pseudo counter controller'
+    
     def Calc(self, axis, values):
         """**Pseudo Counter Controller API**. Override is **MANDATORY**.
            Calculate pseudo counter position given the counter values.
@@ -1335,6 +1356,9 @@ class IORegisterController(Controller, Readable):
                           'description' : 'Value', },
     }
 
+    #: A :obj:`str` representing the controller gender
+    gender = 'I/O register controller'
+    
     def __init__(self, inst, props, *args, **kwargs):
         Controller.__init__(self, inst, props, *args, **kwargs)
 
