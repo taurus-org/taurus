@@ -31,6 +31,7 @@ __all__ = [ "PoolPseudoCounter" ]
 __docformat__ = 'restructuredtext'
 
 import sys
+import time
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from sardana.sardanaattribute import SardanaAttribute
@@ -85,7 +86,10 @@ class Value(SardanaAttribute):
         return exc_info
     
     def _get_timestamp(self):
-        return max( [ value_attr.timestamp for value_attr in self.obj.get_physical_value_attribute_iterator() ] )
+        timestamps = [ value_attr.timestamp for value_attr in self.obj.get_physical_value_attribute_iterator() ]
+        if not len(timestamps):
+            timestamps = self._local_timestamp,
+        return max(timestamps)
 
     def get_physical_write_values(self):
         ret = []
@@ -107,7 +111,7 @@ class Value(SardanaAttribute):
     def get_physical_values(self):
         ret = []
         for value_attr in self.obj.get_physical_value_attribute_iterator():
-            # if underlying moveable doesn't have position yet, it is because
+            # if underlying channel doesn't have value yet, it is because
             # of a cold start
             if not value_attr.has_value():
                 value_attr.update(propagate=0)
@@ -164,6 +168,8 @@ class Value(SardanaAttribute):
                     break
         if not cache:
             values = self.obj.acquisition.read_value(serial=True)
+            if not len(values):
+                self._local_timestamp = time.time()
             for acq_obj, value in values.items():
                 acq_obj.put_value(value, propagate=propagate)
 
