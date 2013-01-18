@@ -217,7 +217,7 @@ def getStandardIcon(key, widget=None):
     QStyle.StandardPixmap enumeration member. The widget argument is optional 
     and can also be used to aid the determination of the icon.
     
-    :param key: (QStyle.StandardPixmap) a standard pixmap which can follow some existing GUI style or guidelin
+    :param key: (QStyle.StandardPixmap) a standard pixmap which can follow some existing GUI style or guideline
     :param widget: (Qt.QWidget) the widget argument (optional) can also be used to aid the determination of the icon.
     
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
@@ -232,7 +232,7 @@ def getStandardIcon(key, widget=None):
 __IDX_ELEM_TYPE_ICON, __IDX_ELEM_TYPE_SIZE, __IDX_ELEM_TYPE_TOOLTIP = range(3)
 
 # New default role map
-# Elements are: icon theme, prefered size, description/tooltip
+# Elements are: icon theme, preferred size, description/tooltip
 _ELEM_TYPE_MAP = { ElemType.Name : ("folder", __3DQS, None),
             ElemType.Device : ("applications-system", Size(210, __DH), "Tango device name"),
        ElemType.DeviceAlias : ("applications-system", Size(140, __DH), "Tango device alias"),
