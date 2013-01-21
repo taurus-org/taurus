@@ -29,7 +29,7 @@ __all__ = ["sar_demo"]
 
 import PyTango
 
-from sardana.macroserver.macro import macro
+from sardana.macroserver.macro import macro, Type
 
 _ENV = "_SAR_DEMO"
 
@@ -159,5 +159,11 @@ def sar_demo(self):
     
     self.print("DONE!")
 
-    
-
+@macro([["motor", Type.Moveable, None, '']])
+def mym2(self, pm):
+    self.output(pm.getMotorNames())
+    elements = map(self.getMoveable, pm.elements)
+    self.output(elements)
+    self.output(type(pm))
+    self.output(type(elements[0]))
+ 

@@ -24,6 +24,8 @@
 """This file contains the code for an hypothetical Springfield counter/timer
 controller used in documentation"""
 
+import time
+
 import springfieldlib
 
 from sardana import State
@@ -37,35 +39,39 @@ class SpringfieldBaseCounterTimerController(CounterTimerController):
     
     This example is so basic that it is not even directly described in the
     documentation"""
-
-    MaxDevice = 128
     
     def __init__(self, inst, props, *args, **kwargs):
         """Constructor"""
         super(SpringfieldBaseCounterTimerController, self).__init__(inst, props, *args, **kwargs)
-        self.springfield = springfieldlib.Springfield()
+        self.springfield = springfieldlib.SpringfieldCounterHW()
         
     def ReadOne(self, axis):
-        """Get the specified motor position"""
+        """Get the specified counter value"""
         return self.springfield.getValue(axis)
         
     def StateOne(self, axis):
-        """Get the specified motor state"""
+        """Get the specified counter state"""
         springfield = self.springfield
         state = springfield.getState(axis)
         if state == 1:
             return State.On, "Counter is stopped"
         elif state == 2:
-            return State.Moving, "Counter is running"
+            return State.Moving, "Counter is acquiring"
         elif state == 3:
             return State.Fault, "Counter has an error"
-    
-    def StartOne(self, axis, position):
-        """Move the specified motor to the specified position"""
-        self.springfield.move(axis, position)              
 
+    def StartAll(self):
+        self.springfield.start_count()
+            
+    def StartOne(self, axis, value=None):
+        """acquire the specified counter"""
+        self.springfield.activate_channel(axis)              
+
+    def LoadOne(self, axis, value):
+        self.springfield.set_master(axis, value)
+        
     def StopOne(self, axis):
-        """Stop the specified motor"""
+        """Stop the specified counter"""
         self.springfield.stop(axis)        
 
 

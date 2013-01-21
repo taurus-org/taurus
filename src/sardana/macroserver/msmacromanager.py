@@ -26,7 +26,7 @@
 """This module contains the class definition for the MacroServer macro
 manager"""
 
-__all__ = ["MacroManager", "MacroExecutor",]
+__all__ = ["MacroManager", "MacroExecutor", "is_macro"]
 
 __docformat__ = 'restructuredtext'
 
@@ -391,6 +391,38 @@ class MacroManager(MacroServerManager):
             if m: ret.append(m)
         return ret
 
+    def reloadLib(self, module_name, path=None):
+        """Reloads the given library(=module) names.
+
+        :raises:
+            ImportError in case the reload process is not successful
+            LibraryError if trying to reload a macro library
+            
+        :param module_name: module name
+        :param path:
+            a list of absolute path to search for libraries [default: None,
+            meaning search in MacroPath. If not found, search for a built-in,
+            frozen or special module and continue search in sys.path. ]
+        :return: the reloaded python module object"""
+        
+        if module_name in self._modules:
+            raise LibraryError("Cannot use simple reload to reload a Macro Library")
+        
+        mod_manager = ModuleManager()
+        retry = path is None
+        try:
+            if retry:
+                path = self.getMacroPath()
+                if path:
+                    path = copy.copy(path)
+                    path.reverse()                
+            return mod_manager.reloadModule(module_name, path)
+        except ImportError:
+            if retry:
+                return mod_manager.reloadModule(module_name, path=None)
+            else:
+                raise
+
     def reloadMacroLib(self, module_name, path=None):
         """Reloads the given library(=module) names.
 
@@ -410,7 +442,7 @@ class MacroManager(MacroServerManager):
             path = copy.copy(path)
             path.reverse()
 
-        # if there was previous Macro Lib info remove it
+        # if there was previous Macro Library info remove it
         old_macro_lib = self._modules.pop(module_name, None)
         if old_macro_lib is not None:
             for macro in old_macro_lib.get_macros():

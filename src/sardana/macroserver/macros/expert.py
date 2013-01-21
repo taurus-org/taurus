@@ -28,13 +28,14 @@ from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
-           "edctrllib", "prdef", "relmac", "relmaclib", "send2ctrl",
+           "edctrllib", "prdef", "rellib", "relmac", "relmaclib", "send2ctrl",
            "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
+import sys
 import traceback
 import array
 
-from sardana.macroserver.macro import Macro, Type, ParamRepeat, Table
+from sardana.macroserver.macro import Macro, Type, ParamRepeat, Table, LibraryError
 
 ################################################################################
 #
@@ -272,6 +273,34 @@ class prdef(Macro):
            self.output(code_line.strip('\n'))
 
 
+class rellib(Macro):
+    
+    """Reloads the given python library code from the macro server filesystem.
+    
+    .. warning:: use with extreme care! Accidentally reloading a system
+                 module or an installed python module may lead to unpredictable
+                 behavior 
+    
+    .. note:: if python module is used by any macro, don't forget to reload
+              the corresponding macros afterward so the changes take effect."""
+
+    param_def = [
+        ['module_name', Type.String, None,
+         'The module name to be reloaded (without extension)']
+    ]
+
+    def run(self, module_name):
+        try:
+            self.reloadLibrary(module_name)
+            self.output("%s successfully (re)loaded", module_name)
+        except LibraryError:
+            self.error("Cannot use rellib to reload a macro library. " \
+                       "Use 'relmaclib' instead")
+        except ImportError:
+            msg = "".join(traceback.format_exception_only(*sys.exc_info()[:2]))
+            self.error(msg)
+            
+
 class relmaclib(Macro):
     """Reloads the given macro library code from the macro server filesystem."""
 
@@ -282,7 +311,7 @@ class relmaclib(Macro):
 
     def run(self, macro_library):
         name = macro_library.name
-        new_macro_library = self.reloadMacroLib(name)
+        new_macro_library = self.reloadMacroLibrary(name)
         if new_macro_library.has_errors():
             exc_info = new_macro_library.get_error()
             #msg = "".join(traceback.format_exception(*exc_info))
@@ -305,7 +334,7 @@ class relmac(Macro):
         name = macro_code.name
         macro_library_name = macro_code.lib.name
         self.reloadMacro(name)
-        macro_library = self.getMacroLib(macro_library_name)
+        macro_library = self.getMacroLibrary(macro_library_name)
         if macro_library.has_errors():
             exc_info = macro_library.get_error()
             #msg = "".join(traceback.format_exception(*exc_info))

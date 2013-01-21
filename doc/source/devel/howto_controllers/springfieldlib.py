@@ -23,12 +23,12 @@
 
 """This file contains the code for an hypothetical Springfield motor hardware
 access library. It is intended to be used in the sardana documentation as
-an aid to writting a sardana motor controller library.
+an aid to writing a sardana motor controller library.
 
 If you intend to use this code please put it in a directory accessible to
 Python or in the same directory as sf_motor_ctrl.py"""
 
-__all__ = ["SpringfieldMotorHW"]
+__all__ = ["SpringfieldMotorHW", "SpringfieldCounterHW"]
 
 import time
 from math import pow, sqrt
@@ -603,3 +603,51 @@ class SpringfieldMotorHW(object):
         motion = self.getMotion(axis)
         motion.abortMotion()
         
+
+class Channel:
+    
+    def __init__(self,idx):
+        self.idx = idx            # 1 based index
+        self.value = 0.0
+        self.is_counting = False
+        self.active = True
+
+    
+class SpringfieldCounterHW(object):
+
+    DefaultHost = "localhost"
+    DefaultPort = 10124
+    
+    def __init__(self, host=DefaultHost, port=DefaultPort):
+        self.host = host
+        self.port = port
+        self._channels = {}
+        
+    def getChannel(self, axis):
+        channel = self._channels.get(axis)
+        if channel is None:
+            self._channels[axis] = channel = Channel(axis)
+        return channel
+        
+    def getState(self, axis):
+        channel = self.getChannel(axis)
+        channel.getCurrentUserValue()
+        if channel.isAcquiring():
+            return 2
+        if not channel.hasPower():
+            return 3
+        return 1
+    
+    def getStatus(self, axis):
+        channel = self.getChannel(axis)
+        channel.getCurrentUserValue()
+        status = "Counter HW is ON"
+        if channel.isAcquiring():
+            status = "Counter HW is ACQUIRING"
+        if not channel.hasPower():
+            status = "Counter is powered OFF"
+        return status
+
+    def getValue(self, axis):
+        motion = self.getMotion(axis)
+        return motion.getCurrentUserPosition()    

@@ -26,10 +26,9 @@
 
 import sys
 import os
+import os.path as osp
 
 def set_src():
-    import sys
-    import os.path as osp
     sar_dir = osp.join(osp.dirname(osp.abspath(__file__)), osp.pardir, osp.pardir, 'src')
     sys.path.insert(0, osp.abspath(sar_dir))
 

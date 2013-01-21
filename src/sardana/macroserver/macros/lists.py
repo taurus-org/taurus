@@ -29,7 +29,7 @@ scan"""
 
 __all__ = ["ls0d", "ls1d", "ls2d", "lsa", "lscom", "lsct", "lsctrl",
            "lsctrllib", "lsdef", "lsexp", "lsi", "lsior", "lsm", "lsmeas",
-           "lspc", "lspm", "lsmac"]
+           "lspc", "lspm", "lsmac", "lsmaclib"]
 
 __docformat__ = 'restructuredtext'
 
@@ -227,11 +227,13 @@ class lsmeas(_lsobj):
         return active, o.name, o.getTimerName(), ", ".join(o.getChannelLabels())
 
 class lsmac(_lsobj):
-    """Lists existing macros."""
+    """Lists existing macros"""
+    
     type = Type.MacroCode
     cols = 'Name', ('Location', 'file_path')
 
 class lsmaclib(_lsobj):
     """Lists existing macro libraries."""
+    
     type = Type.MacroLibrary
     cols = 'Name', ('Location', 'file_path')

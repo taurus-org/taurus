@@ -31,7 +31,8 @@ from __future__ import print_function
 
 __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
            "MacroFinder", "Macro", "macro", "iMacro", "imacro",
-           "MacroFunc", "Type", "ParamRepeat", "Table", "List", "ViewOption"]
+           "MacroFunc", "Type", "ParamRepeat", "Table", "List", "ViewOption",
+           "LibraryError"]
 
 __docformat__ = 'restructuredtext'
 
@@ -53,10 +54,11 @@ from taurus.core.tango.sardana.pool import PoolElement
 
 from sardana.sardanadefs import State
 from sardana.util.wrap import wraps
-from msparameter import Type, ParamType, ParamRepeat
-from msexception import StopException, AbortException, \
-    MacroWrongParameterType, UnknownEnv, UnknownMacro
-from msoptions import ViewOption
+
+from .msparameter import Type, ParamType, ParamRepeat
+from .msexception import StopException, AbortException, \
+    MacroWrongParameterType, UnknownEnv, UnknownMacro, LibraryError
+from .msoptions import ViewOption
 
 asyncexc = ctypes.pythonapi.PyThreadState_SetAsyncExc
 # first define the async exception function args. This is
@@ -1415,7 +1417,7 @@ class Macro(Logger):
         return ret
 
     @mAPI
-    def getMacroLibs(self, filter=None):
+    def getMacroLibraries(self, filter=None):
         """**Macro API**. Returns a sequence of
         :class:`~sardana.macroserver.msmetamacro.MacroLibrary` objects for all
         known macros that obey the filter expression.
@@ -1432,7 +1434,7 @@ class Macro(Logger):
         return ret
 
     @mAPI 
-    def getMacroLib(self, lib_name):
+    def getMacroLibrary(self, lib_name):
         """**Macro API**. Returns a
         :class:`~sardana.macroserver.msmetamacro.MacroLibrary` object for the
         given library name.
@@ -1445,6 +1447,9 @@ class Macro(Logger):
         :rtype: :class:`~sardana.macroserver.msmetamacro.MacroLibrary`"""
         ret = self.door.get_macro_lib(lib_name)
         return ret
+
+    getMacroLib = getMacroLibrary
+    getMacroLibs = getMacroLibraries
 
     @mAPI
     def getMacroInfo(self, macro_name):
@@ -1691,6 +1696,20 @@ class Macro(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Reload API
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    
+    @mAPI
+    def reloadLibrary(self, lib_name):
+        """**Macro API**. Reloads the given library(=module) names
+
+        :raises: ImportError in case the reload process is not
+                 successfull
+
+        :param lib_name: library(=module) name
+        :type lib_name: :obj:`str`
+
+        :return:
+            the reloaded python module object"""
+        return self.door.reload_lib(lib_name)    
 
     @mAPI
     def reloadMacro(self, macro_name):
@@ -1717,8 +1736,8 @@ class Macro(Logger):
         return self.reload_macros(macro_names)
 
     @mAPI
-    def reloadMacroLib(self, lib_name):
-        """**Macro API**. Reloads the given lib(=module) names
+    def reloadMacroLibrary(self, lib_name):
+        """**Macro API**. Reloads the given library(=module) names
 
         :raises: MacroServerExceptionList in case the reload process is not
                  successfull
@@ -1733,8 +1752,8 @@ class Macro(Logger):
         return self.door.reload_macro_lib(lib_name)
 
     @mAPI
-    def reloadMacroLibs(self, lib_names):
-        """**Macro API**. Reloads the given lib(=module) names
+    def reloadMacroLibraries(self, lib_names):
+        """**Macro API**. Reloads the given library(=module) names
 
         :raises: MacroServerExceptionList in case the reload process is not
                  successfull for at least one lib
@@ -1747,7 +1766,10 @@ class Macro(Logger):
             objects for the reloaded libraries
         :rtype: seq<:class:`~sardana.macroserver.metamacro.MacroLibrary`\>"""
         return self.door.reload_macro_libs(lib_names)
-        
+    
+    reloadMacroLib = reloadMacroLibrary
+    reloadMacroLibs = reloadMacroLibraries
+    
     @mAPI
     def getViewOption(self, name):
         return self._getViewOptions()[name]
