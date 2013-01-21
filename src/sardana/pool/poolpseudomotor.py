@@ -88,7 +88,10 @@ class Position(SardanaAttribute):
         return exc_info
     
     def _get_timestamp(self):
-        return max( [ pos_attr.timestamp for pos_attr in self.obj.get_physical_position_attribute_iterator() ] )
+        timestamps = [ pos_attr.timestamp for pos_attr in self.obj.get_physical_position_attribute_iterator() ]
+        if not len(timestamps):
+            timestamps = self._local_timestamp,
+        return max(timestamps)
 
     def get_physical_write_positions(self):
         ret = []
@@ -186,6 +189,8 @@ class Position(SardanaAttribute):
                     break
         if not cache:
             dial_position_values = self.obj.motion.read_dial_position(serial=True)
+            if not len(dial_position_values):
+                self._local_timestamp = time.time()
             for motion_obj, position_value in dial_position_values.items():
                 motion_obj.put_dial_position(position_value, propagate=propagate)
 
