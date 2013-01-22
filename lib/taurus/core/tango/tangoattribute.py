@@ -180,7 +180,8 @@ class TangoAttribute(taurus.core.TaurusAttribute):
             if PyTango.is_float_type(type):
                 attrvalue = float(value)
             elif PyTango.is_int_type(type):
-                attrvalue = int(value)
+                #attrvalue = int(value)
+                attrvalue = long(value) #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)
             elif type == DataType.DevBoolean:
                 try:
                     attrvalue = bool(int(value))
@@ -504,3 +505,15 @@ class TangoAttributeEventListener(EventListener):
         if t not in (TaurusEventType.Change, TaurusEventType.Periodic):
             return
         self.fireEvent(v.value)
+
+
+
+def test1():
+    import numpy
+    a = taurus.Attribute('sys/tg_test/1/ulong64_scalar')
+    
+    a.write(numpy.uint64(88))
+
+if __name__ == "__main__":
+    test1()
+    
