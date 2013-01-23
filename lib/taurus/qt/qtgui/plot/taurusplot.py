@@ -44,6 +44,7 @@ from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
                            DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
 from curvesAppearanceChooserDlg import CurveAppearanceProperties
+from taurus.qt.qtgui.resource import getThemeIcon
 
 def isodatestr2float(s, sep='_'):
     '''
@@ -1125,6 +1126,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         self._setCurvesTitleAction = Qt.QAction("Change Curves Titles...", None)
         self.connect(self._setCurvesTitleAction, Qt.SIGNAL("triggered()"), self.changeCurvesTitlesDialog)
+        
+        self._closeWindowAction =  Qt.QAction(getThemeIcon("process-stop"),'Close Plot', self)
+        self.connect(self._closeWindowAction, Qt.SIGNAL("triggered()"), self.close)
 
         #add all actions and limit the scope of the key shortcuts to the widget (default is Window)
         for action in (self._dataInspectorAction, self._pauseAction, self._autoscaleAllAxisAction,
@@ -1980,6 +1984,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addSeparator()
         menu.addAction(self._pauseAction)
+        
+        if self.isWindow():
+            menu.addAction(self._closeWindowAction)
 
         return menu
 

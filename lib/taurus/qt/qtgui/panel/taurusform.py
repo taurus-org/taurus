@@ -132,7 +132,7 @@ class TaurusForm(TaurusWidget):
         
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
-        
+
         #properties
         self.registerConfigProperty(self.isWithButtons, self.setWithButtons, 'withButtons')
 
@@ -914,16 +914,20 @@ def taurusFormMain():
     dialog.setModifiableByUser(True)
     dialog.setModelInConfig(True)
     dialog.setWindowTitle(options.window_name)
+            
+    from taurus.qt.qtgui.resource import getThemeIcon
+    quitApplicationAction =  Qt.QAction(getThemeIcon("process-stop"),'Close Form', dialog)
+    dialog.connect(quitApplicationAction, Qt.SIGNAL("triggered()"), dialog.close)
     
     saveConfigAction = Qt.QAction("Save current settings...", dialog)
     saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-    dialog.connect(saveConfigAction, Qt.SIGNAL("triggered()"), dialog.saveConfigFile)    
-    dialog.addAction(saveConfigAction)
-        
+    dialog.connect(saveConfigAction, Qt.SIGNAL("triggered()"), dialog.saveConfigFile)  
+    
     loadConfigAction = Qt.QAction("&Retrieve saved settings...", dialog)
     loadConfigAction.setShortcut(Qt.QKeySequence.Open)
     dialog.connect(loadConfigAction, Qt.SIGNAL("triggered()"), dialog.loadConfigFile)
-    dialog.addAction(loadConfigAction)
+    
+    dialog.addActions ((saveConfigAction, loadConfigAction, quitApplicationAction) )
     
     #set the default map for this installation
     from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
