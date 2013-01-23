@@ -65,6 +65,12 @@ class Position(SardanaAttribute):
             if not position_attr.has_value():
                 return False
         return True
+
+    def _has_write_value(self):
+        for position_attr in self.obj.get_physical_position_attribute_iterator():
+            if not position_attr.has_write_value():
+                return False
+        return True
     
     def _get_value(self):
         return self.calc_pseudo().value
