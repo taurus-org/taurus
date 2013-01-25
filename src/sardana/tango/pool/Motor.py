@@ -388,6 +388,8 @@ with this value is sent to clients using events.
                 else:
                     value = event_value.value
                 timestamp = event_value.timestamp
+            else:
+                value = event_value
             state = self.motor.get_state(propagate=0)
 
             if name == "position":
@@ -396,7 +398,7 @@ with this value is sent to clients using events.
                     quality = AttrQuality.ATTR_CHANGING
             elif name == "dialposition" and state == State.Moving:
                 quality = AttrQuality.ATTR_CHANGING
-                
+        
         self.set_attribute(attr, value=value, w_value=w_value,
                            timestamp=timestamp, quality=quality,
                            priority=priority, error=error, synch=False)
