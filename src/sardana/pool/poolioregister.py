@@ -30,6 +30,8 @@ __all__ = [ "PoolIORegister" ]
 
 __docformat__ = 'restructuredtext'
 
+import time
+
 from sardana import ElementType
 from sardana.sardanaevent import EventType
 from sardana.sardanaattribute import SardanaAttribute
@@ -114,8 +116,8 @@ class PoolIORegister(PoolElement):
         value.update(cache=cache, propagate=propagate)
         return value
     
-    def set_value(self, value):
-        self.write_register(value)
+    def set_value(self, value, timestamp=None):
+        self.write_register(value, timestamp=timestamp)
 
     def set_write_value(self, w_value, timestamp=None, propagate=1):
         """Sets a new write value for the IO registere
@@ -133,9 +135,11 @@ class PoolIORegister(PoolElement):
 
     value = property(get_value, set_value, doc="ioregister value")
     
-    def write_register(self, value):    
+    def write_register(self, value, timestamp=None):    
         self._aborted = False
         self._stopped = False
         if not self._simulation_mode:
+            if timestamp is None:
+                timestamp = time.time()
             self.set_write_value(value, timestamp=timestamp, propagate=0)
             self.controller.write_one(self.axis, value)

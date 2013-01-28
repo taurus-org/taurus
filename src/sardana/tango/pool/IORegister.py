@@ -44,7 +44,7 @@ from PoolDevice import PoolElementDevice, PoolElementDeviceClass
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
-
+from sardana.pool.poolexception import PoolException
 
 class IORegister(PoolElementDevice):
 
