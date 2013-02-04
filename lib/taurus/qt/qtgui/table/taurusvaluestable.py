@@ -577,9 +577,20 @@ class TaurusValuesTable(TaurusWidget):
         '''Reimplemented from :meth:`TaurusWidget.setModel`'''
         TaurusWidget.setModel(self, model)
         value = self.getModelValueObj()
-        if value is not None: 
-            self._tableView.setModel([value.dim_x, value.dim_y])
-        self._label.setModel(value)
+        if value is not None:
+            try: 
+                dim_x,dim_y = value.dim_x, value.dim_y #@this is tango-centric. dim_x and dim_y attribute is not present in TaurusConfiguration
+            except:
+                v = numpy.array(value.value)
+                if v.ndim == 1:
+                    dim_x, dim_y = v.shape[0], 1
+                elif v.ndim == 2:
+                    dim_x,dim_y = v.shape
+                else:
+                    self.error('Cannot display %i-dimensional data', v.ndim)
+                    return
+            self._tableView.setModel([dim_x, dim_y]) 
+        self._label.setModel(model)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         '''see :meth:`TaurusWidget.handleEvent`'''

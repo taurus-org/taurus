@@ -467,6 +467,18 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         v = attr.read(cache=cache)
         return numpy.isscalar(v.value)
     
+    def isSpectrum(self, cache=True):
+        attr = self.getParentObj()
+        if attr is None: return False
+        v = attr.read(cache=cache)
+        return not numpy.isscalar(v.value) and numpy.array(v.value).ndim == 1
+    
+    def isImage(self, cache=True):
+        attr = self.getParentObj()
+        if attr is None: return False
+        v = attr.read(cache=cache)
+        return not numpy.isscalar(v.value) and numpy.array(v.value).ndim == 2
+    
     def isWrite(self, cache=True):
         return self.getWritable(cache) == AttrAccess.WRITE
     

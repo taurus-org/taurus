@@ -127,11 +127,18 @@ class TaurusQubDataImageDisplay(QubDataImageDisplay, TaurusBaseWidget):
                 data = self.getModelObj().getImageData()
                 if data:
                     data = data[self._image_attr_name][1]
+                    try:
+                        dim_x, dim_y = data.dim_x, data.dim_y #this is tango-centric. dim_x does not exist in TaurusConfiguration
+                    except AttributeError:
+                        try:
+                            dim_x,dim_y = data.value.shape
+                        except AttributeError:
+                            dim_x,dim_y = numpy.array(data.value).shape
                     self.setData(data.value)
                     self.setInfo({
                         'name'     : data.name,
-                        'width'    : data.dim_x,
-                        'height'   : data.dim_y,
+                        'width'    : dim_x, 
+                        'height'   : dim_y, 
                         'quality'  : data.quality,
                         'type'     : data.type,
                         'timestamp': data.time

@@ -185,9 +185,9 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
             return '---'
         config = modelobj.getConfig()
         if config.isSpectrum():
-            return 'Spect[%i]' % modelobj.read().dim_x
+            return 'Spect[%i]' % modelobj.read().value.shape[0]
         elif config.isImage():
-            return 'Imag[%ix%i]'%(modelobj.read().dim_x,modelobj.read().dim_y)
+            return 'Imag[%ix%i]'%(modelobj.read().value.shape)
         else:
             self.debug('Unknown model type for TaurusLauncherButton')
             return '---'
