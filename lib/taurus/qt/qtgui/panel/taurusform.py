@@ -250,7 +250,7 @@ class TaurusForm(TaurusWidget):
         model = self._splitModel(model)
         self.destroyChildren()
         self._model = model
-        if True or model is not None:
+        if True or model is not None: #@todo: !NOTE THAT This if has been disabled by the first True. Check why!
             self.fillWithChildren()
         #update the modelchooser list
         if self.__modelChooser is not None:
