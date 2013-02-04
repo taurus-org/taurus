@@ -336,7 +336,7 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
     def setDescription(self,descr):
         config = self.getValueObj()
         if config:
-            config.description = description
+            config.description = descr
             self._applyConfig()
 
     def setLabel(self,lbl):
