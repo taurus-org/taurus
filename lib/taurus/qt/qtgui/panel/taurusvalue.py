@@ -406,15 +406,18 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 else:
                     result = [ExpandingLabel]
             elif config.isSpectrum():
-                if PyTango.is_numerical_type(configType):
+                if PyTango.is_numerical_type(configType): #@todo: tango-centric!!
                     result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
-                try: 
-                    from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
-                    result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
-                except ImportError:
+                if PyTango.is_numerical_type(configType): #@todo: tango-centric!!
+                    try: 
+                        from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
+                        result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
+                    except ImportError:
+                        result = [TaurusValuesTableButton, ExpandingLabel]
+                else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             else:
                 self.warning('Unsupported attribute type %s'%configType)
