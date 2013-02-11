@@ -2969,6 +2969,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`addModels`, :meth:`removeModels`
         '''
+        if modelNames is None:
+            modelNames = []
         modelNames = self._splitModel(modelNames)
         self._modelNames = CaselessList([str(n) for n in modelNames])
         self.updateCurves(self._modelNames)

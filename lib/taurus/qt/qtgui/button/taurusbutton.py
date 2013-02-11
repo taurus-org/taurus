@@ -122,7 +122,12 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         self._text = text
         self.setText(self.getDisplayValue())
         self._dialog = _ButtonDialog(self)
-        self.setWidget(widget)
+        if isinstance(widget, Qt.QWidget):
+            self._widgetClassName = widget.__class__.__name__
+            self.setWidget(widget)
+        else:
+            self._widgetClassName = widget
+            self.createWidget()
         self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
         self.setDefault(False)
         self.setAutoDefault(False)
@@ -526,40 +531,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
         
     model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, setModel,
                             TaurusBaseWidget.resetModel)
-  
-#if __name__ == "__main__":
-#    import sys
-#    from taurus.widget.qwt import TaurusPlot, TaurusArrayEditor
-#    #from taurus.widget import TaurusAttrForm
-#    import taurus.widget.resources.qrc_taurusdesigner_icons
-#    
-#    app = Qt.QApplication(sys.argv)
-#    
-#    ##Uncomment the following for testing TaurusLauncherButton
-#    w=TaurusArrayEditor()
-#    form = TaurusLauncherButton(parent=None, designMode=False, widget = w, icon=':/taurus.png', text = 'show')
-#    form.setModel('bl97/pc/dummy-03/waveform')
-#    #form.setModel('bl97/pc/dummy-03')
-#    #form.setModel('bl97/pyattributeprocessor/1/a|bl97/pyattributeprocessor/1/b')
-#    
-#    ##Uncomment the following for testing TaurusCommandButton
-#    ##form = TaurusCommandButton(parent=None, designMode=False, command = 'Exec', parameters=['2+2'], icon=':/taurus.png', text = None)
-#    #form = TaurusCommandButton(parent=None, designMode=False, command = 'Status', parameters=None, icon=':/taurus.png', text = None)
-#    #form.setModel('bl97/pc/dummy-03')
-#    #form.setDangerMessage('Booo scary command!!\n Maybe you should think twice!')
-#    #def f(*a):print a
-#    #form.connect(form, Qt.SIGNAL('commandExecuted'),f)
-#    form.show()
-#    
-#    sys.exit(app.exec_())
-#
-#
 
-
-def demo():
-    lock_button = TaurusLockButton()
-    lock_button.model = "sys/tg_test/1"
-    return lock_button
 
 def lockButtonMain():
     import sys
@@ -598,8 +570,6 @@ def lockButtonMain():
     else:
         return w
 
-def main():
-    lockButtonMain()
 
 def commandButtonMain():
     import sys
@@ -615,6 +585,33 @@ def commandButtonMain():
     sys.exit(app.exec_())
 
 
+def launcherButtonMain():
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    
+    app = TaurusApplication()
+    
+#    from taurus.qt.qtgui.plot import TaurusPlot
+#    w=TaurusPlot()
+#    form = TaurusLauncherButton(parent=None, designMode=False, widget = w, icon=':/taurus.png', text = 'show')
+    
+    form = TaurusLauncherButton(parent=None, designMode=False, widget = 'TaurusPlot', icon=':/taurus.png', text = 'show')
+    form.setModel('sys/tg_test/1/wave')
+    form.show()
+    sys.exit(app.exec_())
+
+
+def main():
+    lockButtonMain()
+    
+    
+def demo():
+    lock_button = TaurusLockButton()
+    lock_button.model = "sys/tg_test/1"
+    return lock_button
+
+
 if __name__ == '__main__':
     lockButtonMain()
+    #launcherButtonMain()
     #commandButtonMain()
