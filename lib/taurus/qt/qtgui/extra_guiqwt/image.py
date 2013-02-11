@@ -38,6 +38,7 @@ from guiqwt.image import ImageItem, RGBImageItem, XYImageItem, INTERP_NEAREST, I
 
 import numpy
 
+
 class TaurusBaseImageItem(TaurusBaseComponent):
     '''A ImageItem that gets its data from a taurus attribute'''
     def __init__(self, classname):
@@ -63,20 +64,36 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
+        
+        #Try to cast if value type is not one supported by guiqwt
+        #see: http://code.google.com/p/guiqwt/issues/detail?id=44 and
+        #     https://sourceforge.net/tracker/?func=detail&atid=484769&aid=3603991&group_id=57612
+        v = evt_value.value
+        if (not isinstance(v, (float, numpy.double, numpy.uint32, numpy.int32, numpy.uint16, numpy.int16, numpy.uint8, numpy.int8, bool)) 
+                and numpy.issubdtype(getattr(v,'dtype', type(v)), int)):  
+            try:
+                v = numpy.int32(v)
+            except OverflowError:
+                self.info("type %s not supported by qwt and cannot be casted to int32. Dropping event"%repr(v.dtype))
+                return
+        
         lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
         if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
-        self.set_data(evt_value.value, lut_range=lut_range)
+        self.set_data(v, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
+        
+
 
 class TaurusImageItem(ImageItem, TaurusBaseImageItem):
     '''A ImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
         ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
         TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+
 
 class TaurusEncodedImageItem(TaurusImageItem):
     '''A ImageItem that gets its data from a DevEncoded attribute'''
@@ -101,6 +118,7 @@ class TaurusEncodedImageItem(TaurusImageItem):
             codec = CodecFactory().getCodec(data[0])
             format,decoded_data = codec.decode(data)
             TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)
+
 
 class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
     '''A XYImageItem that gets its data from a taurus attribute'''
@@ -447,6 +465,7 @@ def test1():
         
     #define a taurus image
     model1 = 'sys/tg_test/1/short_image_ro'
+    model1 = 'sys/tg_test/1/long64_image_ro'
     #taurusimage = make.image(taurusmodel= model1)
     #taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
     taurusxyimage= make.xyimage(taurusmodel= model1)
