@@ -47,7 +47,7 @@ from taurus.qt.qtgui.display import TaurusLed
 from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueCheckBox
 from taurus.qt.qtgui.input import TaurusWheelEdit, TaurusValueLineEdit
 from taurus.qt.qtgui.button import TaurusLauncherButton
-from taurus.qt.qtgui.util import TaurusWidgetFactory
+from taurus.qt.qtgui.util import TaurusWidgetFactory, ConfigurationMenu
 
 
 class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
@@ -97,7 +97,7 @@ class DefaultLabelWidget(TaurusLabel):
         
         see :meth:`QWidget.contextMenuEvent`"""
         menu = Qt.QMenu(self)  
-        menu.addMenu(taurus.qt.qtgui.util.ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
+        menu.addMenu(ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
         if hasattr(self.taurusValueBuddy().writeWidget(), 'resetPendingOperations'):
             r_action = menu.addAction("reset write value",self.taurusValueBuddy().writeWidget().resetPendingOperations)
             r_action.setEnabled(self.taurusValueBuddy().hasPendingOperations())
@@ -193,10 +193,12 @@ class TaurusValuesTableButton(_AbstractTaurusValueButton):
     _widgetClassName = 'TaurusValuesTable'
     _icon  = ':/designer/table.png'
 
+
 class TaurusValuesTableButton_W(TaurusValuesTableButton):
     '''A button that launches a TaurusValuesTable'''
     _text = 'Edit'
     _kwargs={'defaultWriteMode':True}
+
 
 class TaurusDevButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusAttrForm'''
