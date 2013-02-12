@@ -47,6 +47,7 @@ class _ButtonDialog(Qt.QDialog):
         Qt.QDialog.__init__(self, parent, Qt.Qt.WindowTitleHint)
         l = Qt.QVBoxLayout()
         self.setLayout(l)
+        self.previousWidgetConfig = None
         
     def setWidget(self, widget):
         oldWidget = self.widget()
@@ -67,6 +68,10 @@ class _ButtonDialog(Qt.QDialog):
         
     def closeEvent(self, event):
         if self.deleteWidgetOnClose:
+            try:
+                self.previousWidgetConfig = self.widget().createConfig()
+            except:
+                self.previousWidgetConfig = None
             self.setWidget(None)
         Qt.QDialog.closeEvent(self, event)
 
@@ -165,6 +170,11 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         klass = TaurusWidgetFactory().getWidgetClass(self._widgetClassName)
         widget = klass(*self._args, **self._kwargs)
         self.setWidget(widget)
+        if self._dialog.previousWidgetConfig is not None:
+            try:
+                widget.applyConfig(self._dialog.previousWidgetConfig)
+            except Exception,e:
+                self.warning('Cannot apply previous configuration to widget. Reason: %s',repr(e))
     
     def widget(self):
         return self._dialog.widget()
