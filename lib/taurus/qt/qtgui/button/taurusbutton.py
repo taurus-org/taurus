@@ -122,12 +122,13 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         self._text = text
         self.setText(self.getDisplayValue())
         self._dialog = _ButtonDialog(self)
-        if isinstance(widget, Qt.QWidget):
-            self._widgetClassName = widget.__class__.__name__
+        if widget is None:
+            pass
+        elif isinstance(widget, Qt.QWidget):
+            self._deleteWidgetOnClose = False # we cannot be sure on recreating the same widget again
             self.setWidget(widget)
         else:
-            self._widgetClassName = widget
-            self.createWidget()
+            self.setWidgetClassName(widget)
         self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
         self.setDefault(False)
         self.setAutoDefault(False)
@@ -174,7 +175,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         :param widget: (Qt.QWidget)
         '''
         self._dialog.setWidget(widget)
-        if self._text is None and self.self.widget() is not None:
+        if self._text is None and self.widget() is not None:
             self._text = self.widget().__class__.__name__
         
     def displayValue(self,v):
@@ -591,11 +592,21 @@ def launcherButtonMain():
     
     app = TaurusApplication()
     
+    #Creating button giving the widget
 #    from taurus.qt.qtgui.plot import TaurusPlot
 #    w=TaurusPlot()
 #    form = TaurusLauncherButton(parent=None, designMode=False, widget = w, icon=':/taurus.png', text = 'show')
+#    
+    #Creating button giving the widget class name
+#    form = TaurusLauncherButton(parent=None, designMode=False, widget = 'TaurusPlot', icon=':/taurus.png', text = 'show')
     
-    form = TaurusLauncherButton(parent=None, designMode=False, widget = 'TaurusPlot', icon=':/taurus.png', text = 'show')
+    #Creating button using a derived class with the name widget class hardcoded
+    class MyButton(TaurusLauncherButton):
+        _widgetClassName = 'TaurusPlot'   
+        _icon = ':/taurus.png'
+        _text = 'show'
+    form = MyButton()
+    
     form.setModel('sys/tg_test/1/wave')
     form.show()
     sys.exit(app.exec_())
@@ -612,6 +623,6 @@ def demo():
 
 
 if __name__ == '__main__':
-    lockButtonMain()
-    #launcherButtonMain()
+    #lockButtonMain()
+    launcherButtonMain()
     #commandButtonMain()
