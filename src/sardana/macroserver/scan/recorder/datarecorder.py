@@ -44,7 +44,7 @@ class DataHandler:
     given to recorders for final saving """
 
     def __init__(self):
-       self.recorders = []
+        self.recorders = []
    
     def addRecorder(self, recorder):
         if recorder is not None:
@@ -99,9 +99,9 @@ class DataRecorder(Logger):
         self._startRecordList(recordlist)
         
         if is_idle:
-           return 0
+            return 0
         else:
-           return -1
+            return -1
 
     def _startRecordList(self, recordlist):
         pass
@@ -119,7 +119,7 @@ class DataRecorder(Logger):
         """ Only in BLOCK_MODE. Will write whole RecordList """
         self._startRecordList( recordlist )
         for record in recordlist.records:
-           self.writeRecord(record)
+            self.writeRecord(record)
         self._endRecordList( recordlist )
 
     def writeRecord(self, record):
@@ -138,8 +138,8 @@ class DumbRecorder(DataRecorder):
         print "# Title :     ", recordlist.getEnvironValue('title')
         env = recordlist.getEnviron()
         for envky in env.keys():
-           if envky != 'title' and envky != 'labels':
-               print "# %8s :    %s " % (envky,str(env[envky]))
+            if envky != 'title' and envky != 'labels':
+                print "# %8s :    %s " % (envky,str(env[envky]))
         print "# Started:    ", time.ctime( env['starttime'] )
         print "# L:  ",   
         print "  ".join( env['labels'] )
