@@ -90,6 +90,9 @@ class TaurusModelItem(object):
             except TaurusException:
                 self.display, self.icon, self.ok = src, getThemeIcon('dialog-warning'), False
                 return
+            except Exception: #@todo: this catchall except is here as an emergency bugfix, but should probably be narrowed to PyTango DevFailed. 
+                self.display, self.icon, self.ok = src, getThemeIcon('network-error'),False
+                return
             if not dev.isValidDev():
                 self.display, self.icon, self.ok = src, getThemeIcon('network-error'),False
                 return
