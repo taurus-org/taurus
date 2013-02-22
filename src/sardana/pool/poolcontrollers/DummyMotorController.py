@@ -552,8 +552,9 @@ class BasicDummyMotorController(MotorController):
         #raise Exception("Cannot ReadOne")
         idx = axis - 1
         m = self.m[idx]
-        return SardanaValue(m.getCurrentUserPosition(), timestamp=1)
-        return m.getCurrentUserPosition()
+        ts = time.time() #simulate as if we got it from hardware
+        return SardanaValue(m.getCurrentUserPosition(), timestamp=ts)
+        #return m.getCurrentUserPosition()
 
     def PreStartAll(self):
         #raise Exception("Cannot move on PreStartAll")
