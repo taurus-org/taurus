@@ -122,7 +122,13 @@ class TaurusBaseController(object):
         # should handle the state event here. Because this is invoked by a random
         # thread, we pass it to the widget, which will forward to the proper
         # thread
-        self.widget().eventReceived(evt_src, evt_type, evt_value)
+        
+        #@todo: sometimes we get this method called but self.widget() is None. Check why. 
+        #       For the moment I just protect it by substituting the following line by the ones after it
+        #self.widget().eventReceived(evt_src, evt_type, evt_value)
+        w = self.widget()
+        if w is not None:            
+            w.eventReceived(evt_src, evt_type, evt_value)
     
     def update(self):
         widget = self.widget()
