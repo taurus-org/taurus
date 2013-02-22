@@ -85,7 +85,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     update its values)
     
     """
-    droppedEventsWarning = 3 #number of dropped events before issuing a warning
+    consecutiveDroppedEventsWarning = 3 #number consecutive of dropped events before issuing a warning (-1 for disabling)
+    droppedEventsWarning = -1 #absolute number of dropped events before issuing a warning (-1 for disabling)
     def __init__(self, name, parent = None, curves=None):
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
@@ -93,6 +94,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         self._yBuffer = None
         self.forcedReadingTimer = None
         self.droppedEventsCount = 0
+        self.consecutiveDroppedEventsCount = 0
         self.compiledTitle = name
         try: self._maxBufferSize = self.parent().getMaxDataBufferSize()
         except: self._maxBufferSize = TaurusTrend.DEFAULT_MAX_BUFFER_SIZE
@@ -375,6 +377,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         except Exception, e:
             self._onDroppedEvent(reason=str(e))
             raise
+                    
+        #this was a good event, so we reset the consecutive dropped events count
+        self.consecutiveDroppedEventsCount = 0
 
         #assign xvalues and yvalues to each of the curves in self._curves
         for i,(n,c) in enumerate(self.getCurves()):
@@ -415,13 +420,23 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''
         self.debug("Droping event. Reason %s", reason)
         self.droppedEventsCount += 1
+        self.consecutiveDroppedEventsCount += 1
+        mustwarn = False
         if self.droppedEventsCount == self.droppedEventsWarning:
+            mustwarn = True
             msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
                    'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning (we do not want it if we got this one)
+        if self.consecutiveDroppedEventsCount == self.consecutiveDroppedEventsWarning:
+            mustwarn = True
+            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.consecutiveDroppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning 
+        if mustwarn:
             self.warning(msg)
             p = self.parent()
             if p:
-                Qt.QMessageBox.warning(p, "Errors in set %s"%self._titleText, msg, Qt.QMessageBox.Ok)            
+                Qt.QMessageBox.warning(p, "Errors in %s"%self._titleText, msg, Qt.QMessageBox.Ok)     
 
     def isReadOnly(self):
         return True
