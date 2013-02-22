@@ -2734,9 +2734,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.replot()
             label=self._pickedMarker.label()
             if self.getXIsTime():
-                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveTitle,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.5g)"%(pickedCurveTitle,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
             else:
-                infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveTitle,pickedIndex,picked.x(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.5g)"%(pickedCurveTitle,pickedIndex,picked.x(),picked.y())
             label.setText(infotxt)
             fits = label.textSize().width()<self.size().width()
             if fits:
