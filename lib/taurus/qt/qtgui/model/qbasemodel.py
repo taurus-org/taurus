@@ -485,14 +485,18 @@ class QBaseModelWidget(Qt.QMainWindow):
 
     def onSwitchPerspective(self, perspective):
         self._setPerspective(perspective)
+        #set the taurus model (if any) to the qmodel
+        if hasattr(self,'getModelObj'):
+            taurusModel =  self.getModelObj()
+            if taurusModel is not None:
+                self.getQModel().setDataSource(taurusModel)
 
     def _setPerspective(self, perspective):
         qmodel_classes = self.KnownPerspectives[perspective]["model"]
-        qmodel_class, qmodel_proxy_classes = qmodel_classes[-1], qmodel_classes[:-1]
-        qmodel_proxy_classes.reverse()
+        qmodel_class, qmodel_proxy_classes = qmodel_classes[-1], qmodel_classes[-2::-1] #reversed
         qmodel = qmodel_class(self)
         qmodel_source = qmodel
-        if self._proxyModel is None:
+        if self._proxyModel is None: #applies the chain of proxies
             for qmodel_proxy_class in qmodel_proxy_classes:
                 qproxy = qmodel_proxy_class(self)
                 qproxy.setSourceModel(qmodel_source)

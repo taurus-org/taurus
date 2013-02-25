@@ -59,7 +59,7 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
         'PlainDevice' : {
             "label"   : "By plain device",
             "icon"    : getElementTypeIconName(TaurusElementType.Device),
-            "tooltip" : "View by plain device tree",
+            "tooltip" : "View by plain device tree (it may take a long time if there are problems with the exported devices)",
             "model"   : [TaurusDbDeviceProxyModel, TaurusDbPlainDeviceModel,],
         },
 
