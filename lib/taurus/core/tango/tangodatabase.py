@@ -93,6 +93,8 @@ class TangoDevInfo(taurus.core.TaurusDevInfo):
         attrs = []
         try:
             dev = self.getHWObj()
+            if dev is None:
+                raise PyTango.DevFailed() # @todo: check if this is the right exception to throw
             attr_info_list = dev.attribute_list_query_ex()
             for attr_info in attr_info_list:
                 full_name = "%s/%s" % (self.fullName(), attr_info.name)
