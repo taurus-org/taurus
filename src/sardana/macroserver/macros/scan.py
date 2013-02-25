@@ -334,7 +334,7 @@ class a4scan(aNscan, Macro):
 
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, nr_interv,
                 integ_time, **opts):
-        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], nr_interv, integ_time, **opts)
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,s4], [f1,f2,f3,f4], nr_interv, integ_time, **opts)
 
 
 class amultiscan(aNscan, Macro): 
