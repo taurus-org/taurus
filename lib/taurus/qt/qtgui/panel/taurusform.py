@@ -105,7 +105,7 @@ class TaurusForm(TaurusWidget):
         self.scrollArea.setWidget(frame)
         self.scrollArea.setWidgetResizable(True)
         self.layout().addWidget(self.scrollArea)
-        self.__modelChooser = None
+        self.__modelChooserDlg = None
         
         self.buttonBox = QButtonBox(buttons = buttons, parent = self)
         self.layout().addWidget(self.buttonBox)
@@ -182,11 +182,14 @@ class TaurusForm(TaurusWidget):
     
     def chooseModels(self):
         '''launches a model chooser dialog to modify the contents of the form'''
-        if self.__modelChooser is None: 
-            self.__modelChooser = TaurusModelChooser(self)
-            self.__modelChooser.setWindowFlags(Qt.Qt.Dialog)
-            self.connect(self.__modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
-            self.__modelChooser.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle())) 
+        if self.__modelChooserDlg is None: 
+            self.__modelChooserDlg = Qt.QDialog(self)
+            self.__modelChooserDlg.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle()))
+            self.__modelChooserDlg.modelChooser = TaurusModelChooser()
+            layout = Qt.QVBoxLayout()
+            layout.addWidget(self.__modelChooserDlg.modelChooser)
+            self.__modelChooserDlg.setLayout(layout)
+            self.connect(self.__modelChooserDlg.modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
             
         models_and_labels = []
         models = [m.lower() for m in self.getModel()]
@@ -203,9 +206,9 @@ class TaurusForm(TaurusWidget):
                     label = None
             models_and_labels.append((m,label))
             
-        self.__modelChooser.setListedModels(models_and_labels)
-        self.__modelChooser.show()
-        self.__modelChooser.raise_()
+        self.__modelChooserDlg.modelChooser.setListedModels(models_and_labels)
+        self.__modelChooserDlg.show()
+        self.__modelChooserDlg.raise_()
         
     def chooseAttrs(self):
         self.info('TaurusForm.chooseAttrs() ahs been deprecated. Use TaurusForm.chooseModels() instead')
@@ -254,8 +257,8 @@ class TaurusForm(TaurusWidget):
         if True or model is not None: #@todo: !NOTE THAT This if has been disabled by the first True. Check why!
             self.fillWithChildren()
         #update the modelchooser list
-        if self.__modelChooser is not None:
-            self.__modelChooser.setListedModels(self._model)
+        if self.__modelChooserDlg is not None:
+            self.__modelChooserDlg.modelChooser.setListedModels(self._model)
                 
     def resetModel(self):
         self.destroyChildren()
