@@ -818,10 +818,21 @@ class MacroExecutor(Logger):
                 macro.set('id', eid)
             name = macro.get('name')
             params = []
-            for p in macro.xpath('param|paramrepeat'):
+            
+            # SEEMS THERE IS A MEMORY LEAK IN lxml.etree Element.xpath :
+            # https://bugs.launchpad.net/lxml/+bug/397933
+            # https://mailman-mail5.webfaction.com/pipermail/lxml/2011-October/006205.html
+            # We work around it using findall:
+            
+            #for p in macro.xpath('param|paramrepeat'):
+            #    if p.tag == 'param':
+            #        params.append(p.get('value'))
+            #    else:
+            #        params.extend([ p2.get('value') for p2 in p.findall(".//param")])
+            for p in macro.findall('*'):
                 if p.tag == 'param':
                     params.append(p.get('value'))
-                else:
+                elif p.tag == 'paramrepeat':
                     params.extend([ p2.get('value') for p2 in p.findall(".//param")])
             macro.set('macro_line', "%s(%s)" % (name, ", ".join(params)))
 
