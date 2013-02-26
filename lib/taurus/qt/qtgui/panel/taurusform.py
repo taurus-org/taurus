@@ -183,7 +183,8 @@ class TaurusForm(TaurusWidget):
     def chooseModels(self):
         '''launches a model chooser dialog to modify the contents of the form'''
         if self.__modelChooser is None: 
-            self.__modelChooser = TaurusModelChooser()
+            self.__modelChooser = TaurusModelChooser(self)
+            self.__modelChooser.setWindowFlags(Qt.Qt.Dialog)
             self.connect(self.__modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
             self.__modelChooser.setWindowTitle("%s - Model Chooser"%unicode(self.windowTitle())) 
             
