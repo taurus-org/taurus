@@ -506,7 +506,7 @@ class d4scan(dNscan, Macro):
 
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, nr_interv,
                 integ_time, **opts):
-        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], nr_interv, integ_time, **opts)
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,s4], [f1,f2,f3,f4], nr_interv, integ_time, **opts)
         
 
 class mesh(Macro,Hookable): 
@@ -885,7 +885,7 @@ class a4scanc(aNscan, Macro):
 
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4,
                 integ_time, slow_down, **opts):
-        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,s4], [f1,f2,f3,f4], slow_down,
                       integ_time, mode=ContinuousMode, **opts)
 
 
@@ -978,7 +978,7 @@ class d4scanc(dNscanc, Macro):
 
     def prepare(self, m1, s1, f1, m2, s2, f2, m3, s3, f3, m4, s4, f4, integ_time,
                 slow_down, **opts):
-        self._prepare([m1,m2,m3,m4], [s1,s2,s3,m4], [f1,f2,f3,f4], slow_down,
+        self._prepare([m1,m2,m3,m4], [s1,s2,s3,s4], [f1,f2,f3,f4], slow_down,
                       integ_time, mode=ContinuousMode, **opts)
 
 
