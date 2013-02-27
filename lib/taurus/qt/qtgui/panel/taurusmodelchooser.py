@@ -41,7 +41,8 @@ import taurus.qt.qtgui.resource
 class TaurusModelSelectorTree(TaurusWidget):
     def __init__(self, parent = None, selectables=None, buttonsPos=None, designMode = None):
         TaurusWidget.__init__(self, parent)
-        if selectables is None: selectables = [taurus.core.TaurusElementType.Attribute, taurus.core.TaurusElementType.Member]
+        if selectables is None: selectables = [taurus.core.TaurusElementType.Attribute, taurus.core.TaurusElementType.Member, 
+                                               taurus.core.TaurusElementType.Device]
         self._selectables = selectables
                         
         #tree
