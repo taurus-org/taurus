@@ -221,7 +221,8 @@ class ExperimentConfiguration(object):
                     data = codec.encode(('', mnt_grp_cfg))[1]
                     mnt_grp_dev.write_attribute('configuration', data)
             except Exception,e:
-                self.error('Could not create/delete/modify Measurement group "%s": %s',mnt_grp,repr(e))
+                from taurus.core.util.log import error
+                error('Could not create/delete/modify Measurement group "%s": %s',mnt_grp,repr(e))
 
     def _getPoolOfElement(self, elementname):
         ms = self._door.macro_server
