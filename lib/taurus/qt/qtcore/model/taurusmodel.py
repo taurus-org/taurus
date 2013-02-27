@@ -29,6 +29,7 @@ __all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
+import taurus.core
 from taurus.qt import Qt
 from taurus.core.util import Logger
 
@@ -157,7 +158,7 @@ class TaurusBaseTreeItem(object):
         as the model that is used is compatible.
         
         :return: (taurus.core.TaurusElementType) the role in form of element type"""
-        return ElemType.Unknown
+        return taurus.core.TaurusElementType.Unknown
 
     def __str__(self):
         return self.display()
@@ -190,7 +191,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         return getattr(self.dataSource(), name)
     
     def createNewRootItem(self):
-        return TaurusTreeBaseItem(self, self.ColumnNames)
+        return TaurusBaseTreeItem(self, self.ColumnNames)
     
     def refresh(self, refresh_source=False):
         self.beginResetModel()
