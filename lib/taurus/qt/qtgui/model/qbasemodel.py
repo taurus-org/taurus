@@ -484,7 +484,13 @@ class QBaseModelWidget(Qt.QMainWindow):
         return self._perspectiveBar.perspective()
 
     def onSwitchPerspective(self, perspective):
+        old_qmodel =  self.getQModel()
         self._setPerspective(perspective)
+        
+        #set the selectables as they where in the previous model
+        if hasattr(old_qmodel, "selectables"):
+            self.getQModel().setSelectables(old_qmodel.selectables())
+        
         #set the taurus model (if any) to the qmodel
         if hasattr(self,'getModelObj'):
             taurusModel =  self.getModelObj()
