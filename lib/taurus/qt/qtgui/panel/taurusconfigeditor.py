@@ -318,7 +318,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         result = None
         qstate = Qt.from_qvariant(self._settings.value(key), 'toByteArray')
-        if not qstate.isNull():
+        if qstate is not None and not qstate.isNull():
             try: result = pickle.loads(qstate.data())
             except Exception,e: 
                 msg = 'problems loading TaurusConfig: \n%s'%repr(e)
