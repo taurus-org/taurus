@@ -290,7 +290,7 @@ intersphinx_mapping = {
     'http://ipython.org/ipython-doc/stable/' : None,
     'http://www.tango-controls.org/static/PyTango/latest/doc/html' : None,
     'http://www.tango-controls.org/static/taurus/latest/doc/html' : None,
-    'http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html' : None,
+    'http://pyqt.sourceforge.net/Docs/PyQt4/' : None,
     'http://matplotlib.sourceforge.net/' : None,
     'http://packages.python.org/guiqwt/' : None,
 }
