@@ -197,8 +197,8 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         #   If there is it will try to add new RepeatNode.
         
         self.currentIndex = Qt.QModelIndex()
-        mlist = self.text().split(" ",Qt.QString.SkipEmptyParts)
-        problems = Qt.QStringList()
+        mlist = str(self.text()).split()
+        problems = []
         try:
             if str(mlist[0]) != str(self.model().root().name()):
                 try:
@@ -219,7 +219,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         except IndexError:
                 problems.append("<b>Macro<\b> is missing!")
                 self.setStyleSheet("")
-                self.setToolTip(problems.join('<br>'))
+                self.setToolTip('<br>'.join(problems))
                 return
             
         self.currentIndex = Qt.QModelIndex()
@@ -234,21 +234,21 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                     self.model().setData(self.currentIndex, Qt.QVariant(propValue))
                 except Exception as e:
                     self.model().setData(self.currentIndex, Qt.QVariant('None'))
-                    txt = Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str)
+                    txt = str(Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str))
                     message = "<b>" + txt + "</b> " + e[0]
                     problems.append(message)
             except IndexError:
-                txt = Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str)
+                txt = str(Qt.from_qvariant(ix.sibling(ix.row(),0).data(), str))
                 problems.append("<b>" + txt + "</b> is missing!")
                 
-                data = Qt.from_qvariant(ix.data(), str)
+                data = str(Qt.from_qvariant(ix.data(), str))
                 if data != 'None':
                     self.model().setData(self.currentIndex, Qt.QVariant('None'))
             counter+=1
             ix = self.getIndex()
             self.currentIndex = ix
 
-        if mlist.count() > counter: #if there are more values than parameters 
+        if len(mlist) > counter: #if there are more values than parameters 
             repeatNode = None
             for i in self.model().root().params():
                 repeatNode = i
@@ -266,7 +266,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             if repeatNode == None:
                 problems.append("Too many values.")
         
-        elif counter - mlist.count() >= 1:
+        elif counter - len(mlist) >= 1:
             repeatNode = None
             node = None
             for i in self.model().root().params():
@@ -279,7 +279,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                 repeatNode = None
                 
             if repeatNode is not None:
-                while counter - mlist.count() > sub-1:
+                while counter - len(mlist) > sub-1:
                     if len(node.children()) == 1 and node.isReachedMin():
                         break
                     self.model()._removeRow(index.child(len(node.children())-1,0))
@@ -289,12 +289,12 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                     self.validateAllExpresion(True)
                     return
             
-        if problems.count() == 0:
+        if len(problems) == 0:
             self.setStyleSheet('SpockCommandWidget {background-color: %s; color: %s; border: %s; border-radius: %s}'%('yellow', 'black','3px solid green','5px'))
             self.setToolTip("")
         else:
             self.setStyleSheet("")
-            self.setToolTip(problems.join('<br>'))   
+            self.setToolTip('<br>'.join(problems))   
         return 
 
     def findParamRepeat(self, repeatNode):
@@ -323,7 +323,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
     def textChanged(self, strs):
         #SLOT called when QLineEdit text is changed
         if strs == "":
-            self.updateMacroEditor(Qt.QString(""))
+            self.updateMacroEditor("")
         
         if not self.disableEditMode and self.disableSpockCommandUpdate:
             self.validateAllExpresion()
@@ -366,7 +366,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         
         self.disableSpockCommandUpdate = False
         self.emit(Qt.SIGNAL("elementDown"))
-        text = self.text().split(" ", Qt.QString.SkipEmptyParts)
+        text = str(self.text()).split()
         if len(text) > 0:
             self.validateMacro(text[0])
         self.disableSpockCommandUpdate = True
@@ -374,7 +374,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
     def upAction(self):
         self.disableSpockCommandUpdate = False
         self.emit(Qt.SIGNAL("elementUp"))
-        text = self.text().split(" ", Qt.QString.SkipEmptyParts)
+        text = str(self.text()).split()
         if len(text) > 0:
             self.validateMacro(text[0])
         self.disableSpockCommandUpdate = True
@@ -391,28 +391,29 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             elif len(self.text()) == self.cursorPosition() and self.text()[c-1] == " ":
                 newValue = True
         try:
-            txt = self.text().left(self.text().indexOf(" ",c))
+            txt = str(self.text())
+            txt = txt[:txt.find(" ",c)]
         except IndexError:
-            txt = self.text().left(c)
-        elementsNum = txt.split(' ', Qt.QString.SkipEmptyParts)
+            txt = str(self.text())[:c]
+        elementsNum = txt.split()
         
         if newValue:
             self.insert("0")
-            self.currentIndex = self.getIndex(elementsNum.count())
+            self.currentIndex = self.getIndex(len(elementsNum))
             if not self.currentIndex.isValid():
-                if elementsNum.count() > 0:
+                if len(elementsNum) > 0:
                     self.backspace()
                     return
-            value = self.prevValue(Qt.QString(""))
+            value = self.prevValue("")
             self.backspace()
             self.insert(value)
             self.model().setData(self.currentIndex, Qt.QVariant(value))
         else:
-            self.currentIndex = self.getIndex(elementsNum.count()-1)
+            self.currentIndex = self.getIndex(len(elementsNum)-1)
             if not self.currentIndex.isValid():
-                if elementsNum.count() > 1:
+                if len(elementsNum) > 1:
                     return
-            value = self.prevValue(elementsNum[elementsNum.count()-1])
+            value = self.prevValue(elementsNum[len(elementsNum)-1])
             sel = self.measureSelection(self.cursorPosition())
             self.setSelection(sel[0], sel[1])
             c = c - (sel[1] - len(str(value)))
@@ -430,30 +431,31 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             if c == 0:
                 newValue = True
             elif len(self.text()) == self.cursorPosition() and self.text()[c-1] == " ":
-                newValue = True
+                newValue = True       
         try:
-            txt = self.text().left(self.text().indexOf(" ",c))
+            txt = str(self.text())
+            txt = txt[:txt.find(" ",c)]
         except IndexError:
-            txt = self.text().left(c)
-        elementsNum = txt.split(' ', Qt.QString.SkipEmptyParts)
+            txt = str(self.text())[:c]
+        elementsNum = txt.split()
         
         if newValue:
             self.insert("0")
-            self.currentIndex = self.getIndex(elementsNum.count())
+            self.currentIndex = self.getIndex(len(elementsNum))
             if not self.currentIndex.isValid():
-                if elementsNum.count() > 0:
+                if len(elementsNum) > 0:
                     self.backspace()
                     return
-            value = self.nextValue(Qt.QString(""))
+            value = self.nextValue("")
             self.backspace()
             self.insert(value)
             self.model().setData(self.currentIndex, Qt.QVariant(value))
         else:
-            self.currentIndex = self.getIndex(elementsNum.count()-1)
+            self.currentIndex = self.getIndex(len(elementsNum)-1)
             if not self.currentIndex.isValid():
-                if elementsNum.count() > 1:
+                if len(elementsNum) > 1:
                     return
-            value = self.nextValue(elementsNum[elementsNum.count()-1])
+            value = self.nextValue(elementsNum[len(elementsNum)-1])
             sel = self.measureSelection(self.cursorPosition())
             self.setSelection(sel[0], sel[1])
             c = c - (sel[1] - len(str(value)))
@@ -473,6 +475,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         return items, type
     
     def nextValue(self, current):
+        current = str(current)
         if self.currentIndex.isValid():
             items, type = self.getParamItems(self.currentIndex)
             items = sorted(items)
@@ -482,9 +485,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             type = "Macro"
         
         if type == "Float":
-            value = Qt.from_qvariant(current, float) + 0.1
+            value = float(current) + 0.1
         elif type == "Integer":
-            value = Qt.from_qvariant(current, int) + 1
+            value = int(current) + 1
         elif type == "Boolean":
             value = True
         else:
@@ -492,7 +495,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                 textindex = items.index(current)
                 value = items[textindex-1]
             except:
-                tmpitems = [s for s in items if s.startswith(str(current))]
+                tmpitems = [s for s in items if s.startswith(current)]
                 if len(tmpitems) > 0:
                     value = tmpitems[0]
                 else:
@@ -500,6 +503,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         return str(value)
     
     def prevValue(self, current):
+        current = str(current)
         if self.currentIndex.isValid():
             items, type = self.getParamItems(self.currentIndex)
             items = sorted(items)
@@ -509,9 +513,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             type = "Macro"
         
         if type == "Float":
-            value = Qt.from_qvariant(current, float) - 0.1
+            value = float(current) - 0.1
         elif type == "Integer":
-            value = Qt.from_qvariant(current, int) - 1
+            value = int(current) - 1
         elif type == "Boolean":
             value = True
         else:
@@ -519,7 +523,7 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
                 textindex = items.index(current)
                 value = items[textindex+1]
             except:
-                tmpitems = [s for s in items if s.startswith(str(current))]
+                tmpitems = [s for s in items if s.startswith(current)]
                 if len(tmpitems)>0:
                     value = tmpitems[0]
                 else:
@@ -533,14 +537,14 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         self.emit(Qt.SIGNAL("spockComboBox"), str(macroName).lower())
     
     def measureSelection(self, position):
-        s = self.text()+" "
+        s = str(self.text())+" "
         try:
             if s[position] == " ":
                 position-=1
         except IndexError:
             position -=1
-        end = s.indexOf(' ',position)
-        beg = s.lastIndexOf(' ',position)
+        end = s.find(' ', position)
+        beg = s.rfind(' ',0, position+1)
         if end == -1:
             end = s.length()-1
         return beg+1, end-beg-1 #returns the start and length of the value
