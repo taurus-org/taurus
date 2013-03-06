@@ -71,7 +71,8 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         self.currentIndex = Qt.QModelIndex()
         self.newValue = False
         self.disableSpockCommandUpdate = False
-        self.disableEditMode = False
+        self.disableEditMode = True
+        self.setEnabled(False)
         
         self.setActions()
         self.connect(self,Qt.SIGNAL("textChanged(const QString &)"), self.textChanged)
@@ -109,6 +110,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
             self.setText(command)
         
     def setModel(self, model):
+        enable = bool(model)
+        self.disableEditMode = not enable
+        self.setEnabled(enable)
         self._model = model
         self.connect(self._model, Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self.setCommand)
         self.connect(self._model, Qt.SIGNAL("modelReset()"), self.setCommand)
@@ -196,6 +200,9 @@ class SpockCommandWidget(Qt.QLineEdit, TaurusBaseContainer):
         #3. If there are more values entered than SingleParamNodes in macro it will check if there is RepeatParamNode.
         #   If there is it will try to add new RepeatNode.
         
+        if self.model() is None:
+            raise RuntimeError('Door must be set in order to use the macroexecutor.')
+            
         self.currentIndex = Qt.QModelIndex()
         mlist = str(self.text()).split()
         problems = []
