@@ -188,6 +188,7 @@ def getThemeIcon(key):
             return Qt.QIcon.fromTheme(key)
         else:
             __LOGGER.debug('Theme icon "%s" not supported. Trying to provide a fallback...',key)
+            __LOGGER.stack()
     for member, items in getThemeMembers().items():
         if not key in items: continue
         return Qt.QIcon(":/%s/%s.svg" % (member, key))
