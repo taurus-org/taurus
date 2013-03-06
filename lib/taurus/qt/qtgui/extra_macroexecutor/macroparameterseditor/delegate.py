@@ -46,9 +46,22 @@ class ParamEditorDelegate(Qt.QStyledItemDelegate):
                 paramType = node.type()
                 if paramType in globals.EDITOR_COMBOBOX_PARAMS:
                     comboBox = MSAttrListComboBoxParam(parent, node)
-                    comboBox.setUseParentModel(True)
                     comboBox.setElementType(paramType)
-                    comboBox.setModel('/elements')
+                    
+                    ##################
+                    # The setUseParentModel mechanism is not working
+                    # we do it manually here as a hack 
+                    #comboBox.setUseParentModel(True)
+                    #comboBox.setModel('/elements')
+                    w=parent
+                    while w is not None:
+                        if hasattr(w, 'getModelName'):
+                            model = w.getModelName()+'/elements'
+                            break
+                        w=w.parent()
+                    comboBox.setModel(model)
+                    ###################
+                        
                     return comboBox
                 elif paramType in globals.EDITOR_SPINBOX_PARAMS:
                     return SpinBoxParam(parent, node)
