@@ -68,7 +68,7 @@ TYPE_MAP = {
     "CommunicationChannel" : ("Communication channels", _TNG, "Communication channel",),
     "MacroLibrary"         : ("Macro libraries", _MOD, "Macro library",),
     "MacroClass"           : ("Macro classes", _CLS, "Macro class",),
-    "Instrument"           : ("Instruments", _TNG, "Instrument"),
+    "Instrument"           : ("Instruments", _TNG, "Instrument",),
     "MacroFunction"        : ("Macro functions", _FNC, "Macro function",),
 }
 
@@ -78,7 +78,7 @@ def getElementTypeLabel(t):
 def getElementTypeIcon(t):
     import taurus.qt.qtgui.resource
     try:
-        return taurus.qt.qtgui.resource.getIcon(TYPE_MAP.get(t, _TNG)[1])
+        return taurus.qt.qtgui.resource.getIcon(TYPE_MAP.get(t, (None,_TNG))[1])
     except:
         return None
     
@@ -86,7 +86,7 @@ def getElementTypeSize(t):
     return Qt.QSize(200,24)
 
 def getElementTypeToolTip(t):
-    return TYPE_MAP.get(t, 'no information')[2]
+    return TYPE_MAP.get(t, (None,None,'no information'))[2]
 
 
 class SardanaBaseTreeItem(TaurusBaseTreeItem):
