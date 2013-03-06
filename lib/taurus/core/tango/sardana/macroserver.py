@@ -1007,7 +1007,7 @@ class BaseMacroServer(MacroServerDevice):
 
     def fillMacroNodeAdditionalInfos(self, macroNode):
         """
-        This method filles macroNode information which couldn't be stored
+        This method fills macroNode information which couldn't be stored
         in XML file.
 
         :param macroNode: (MacroNode) macro node obj populated from XML information
@@ -1019,7 +1019,8 @@ class BaseMacroServer(MacroServerDevice):
         if macroInfoObj is None:
             raise Exception("It was not possible to get information about %s macro.\nCheck if MacroServer is alive and if this macro exist." % macroName)
         allowedHookPlaces = []
-        for hook in macroInfoObj.hints.get("allowsHooks", []):
+        hints = macroInfoObj.hints or {}
+        for hook in hints.get("allowsHooks", []):
             allowedHookPlaces.append(str(hook))
         macroNode.setAllowedHookPlaces(allowedHookPlaces)
         hasParams = macroInfoObj.hasParams()
@@ -1063,7 +1064,8 @@ class BaseMacroServer(MacroServerDevice):
         if macroInfoObj is None:
             raise Exception("It was not possible to get information about %s macro.\nCheck if MacroServer is alive and if this macro exist." % macroName)
         allowedHookPlaces = []
-        for hook in macroInfoObj.hints.get("allowsHooks", []):
+        hints = macroInfoObj.hints or {}
+        for hook in hints.get("allowsHooks", []):
             allowedHookPlaces.append(str(hook))
         macroNode.setAllowedHookPlaces(allowedHookPlaces)
         hasParams = macroInfoObj.hasParams()
