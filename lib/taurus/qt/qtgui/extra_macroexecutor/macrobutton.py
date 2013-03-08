@@ -222,6 +222,13 @@ class MacroButton(TaurusWidget):
         else:
             self.ui.button.setChecked(True)
             self.door.ResumeMacro()
+            
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return {'container': False, 
+                'group': 'Taurus Sardana', 
+                'module': 'taurus.qt.qtgui.extra_macroexecutor', 
+                'icon': ':/designer/pushbutton.png'}
 
 
 
