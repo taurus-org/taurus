@@ -158,13 +158,14 @@ class SardanaConsoleExtension(BaseConsoleExtension):
         profile = 'spockdoor'
         if not config.Spock:
             if hasattr(Qt.qApp, 'SDM'):
-                dm = Qt.qApp.SDM.getDataModel('doorName')
-                door_name = dm.getData()
-                door = Device(door_name)
-                dalias, dname = door.getSimpleName(), door.getNormalName()
-                create_sardana_profile(dalias, dname)
-                profile = dalias
-                config.Spock.door_name = dname
+                dm = Qt.qApp.SDM.getDataModelProxy('doorName')
+                if dm is not None:
+                    door_name = dm.getData()
+                    door = Device(door_name)
+                    dalias, dname = door.getSimpleName(), door.getNormalName()
+                    create_sardana_profile(dalias, dname)
+                    profile = dalias
+                    config.Spock.door_name = dname
         sardana.spock.load_config(config)
         return profile
     
