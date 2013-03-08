@@ -198,6 +198,26 @@ class SharedDataManager(QtCore.QObject):
             self.__models[dataUID] = DataModel(self,dataUID)
         return self.__models[dataUID]
     
+    def getDataModelProxy(self, dataUID, callback=None):
+        '''
+        Returns a :class:`weakref.proxy` to a :class:`DataModel` object for the
+        given data UID or None if the UID is not registered.
+        
+        .. note:: The underlying :class:`DataModel` object may cease to exist if
+                  all its readers and writers are unregistered.
+        
+        :param dataUID: (str) the unique identifier of the data
+        :param callback: (callable) same as in :class:`weakref.ref` callback parameter
+        
+        :return: (weakref.proxy or None)
+        
+        .. seealso:: :meth:`connectReader`,  :meth:`connectWriter`, :class:`DataModel`
+        '''
+        if dataUID not in self.__models:
+            return None
+        dm = self.__getDataModel(dataUID)
+        return weakref.proxy(dm,callback)
+    
     def connectReader(self, dataUID, slot, readOnConnect=True):
         '''
         Registers the given slot method to receive notifications whenever the
