@@ -210,9 +210,9 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
         self._drift_correction = kwargs.pop('drift_correction', None)
         user_elements = kwargs.pop('user_elements')
         kwargs['elem_type'] = ElementType.PseudoMotor
+        PoolElement.__init__(self, **kwargs)
         PoolBaseGroup.__init__(self, user_elements=user_elements,
                                pool=kwargs['pool'])
-        PoolElement.__init__(self, **kwargs)
         self._position = Position(self, listeners=self.on_change)
 
     # --------------------------------------------------------------------------
