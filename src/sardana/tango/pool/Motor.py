@@ -547,7 +547,6 @@ with this value is sent to clients using events.
     def read_Limit_switches(self, attr):
         motor = self.motor
         use_cache = motor.is_in_operation() and not self.Force_HW_Read
-        self.info("read_Limit_switches(%s)", use_cache)
         limit_switches = motor.get_limit_switches(cache=use_cache)
         self.set_attribute(attr, value=limit_switches.value, priority=0,
                            timestamp=limit_switches.timestamp)
