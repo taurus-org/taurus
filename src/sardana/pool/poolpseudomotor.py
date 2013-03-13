@@ -51,8 +51,22 @@ class Position(SardanaAttribute):
     def __init__(self, *args, **kwargs):
         self._exc_info = None
         super(Position, self).__init__(*args, **kwargs)
-        for position_attr in self.obj.get_physical_position_attribute_iterator():
-            position_attr.add_listener(self.on_change)
+
+        # 130226: We found a bug https://sourceforge.net/p/sardana/tickets/2/ that makes the Pool segfault with some pseudomotor configuration:
+        # It can be reproduced by:
+        # 4 physical motors: m1 m2 m3 m4
+        # 2 slits: s1g,s1o = f(m1,m2) and s2g,s2o = f(m3,m4)
+        # The pool will not be able to start if we create a third slit with s3g,s3o = f(s1g, s2g)
+        # self.obj.get_physical_position_attribute_iterator() raises a KeyError exception
+        # so we will flag the Position object as no_listeners for later configuration
+        # We should still investigate the root of the problem when ordering the creation of elements
+        self._listeners_configured = False
+        try:
+            for position_attr in self.obj.get_physical_position_attribute_iterator():
+                position_attr.add_listener(self.on_change)
+            self._listeners_configured = True
+        except KeyError:
+            pass
     
     def _in_error(self):
         for position_attr in self.obj.get_physical_position_attribute_iterator():
@@ -430,6 +444,13 @@ class PoolPseudoMotor(PoolBaseGroup, PoolElement):
 
     _STD_STATUS = "{name} is {state}\n{ctrl_status}"
     def calculate_state_info(self, status_info=None):
+
+        # Refer to Position.__init__ method for an explanation on this 'hack'
+        if not self._position._listeners_configured:
+            for position_attr in self.get_physical_position_attribute_iterator():
+                position_attr.add_listener(self._position.on_change)
+            self._position._listeners_configured = True
+        
         if status_info is None:
             status_info = self._state, self._status
         state, status = status_info
