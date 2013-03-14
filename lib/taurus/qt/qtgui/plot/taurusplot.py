@@ -788,7 +788,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''see :meth:`TaurusBaseComponent.isReadOnly`'''
         return True
 
-    def getStats(self, limits=None, inclusive=(True,True), imin=None, imax=None):
+    def getStats(self, limits=None, inclusive=(True,True), imin=None, imax=None, ignorenans=True):
         '''
         returns a dict containing several descriptive statistics of a region of
         the curve defined by the limits given by the keyword arguments. It also
@@ -806,6 +806,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                  
         Note that some of the values may be None if that cannot be computed.
         
+        Also, 
+        
         :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
                         Points of the curve whose abscisa value is outside of 
                         these limits are ignored. If None is passed, the limit is not enforced
@@ -816,6 +818,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                      the limit is not enforced 
         :param imax: (int) higest index to be considered. If None is given,
                      the limit is not enforced
+        :param ignorenans: (bool) if True (defaul), the points with NaN values are stripped 
+                     before calculating the stats
                      
         :return: (dict) A dict containing the stats.
         '''
@@ -833,10 +837,15 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             if inclusive:
                 mask = (x>=xmin) * (x<=xmax)
             else:
-                mask = (x>xmin) * (x<xmax)
+                mask = (x>xmin) * (x<xmax)                
+            x = x[mask]
+            y = y[mask]    
+        
+        if ignorenans: 
+            mask = ~numpy.isnan(x) * ~numpy.isnan(y)
             x = x[mask]
             y = y[mask]
-        
+            
         ret = {'x'    : x, 
                'y'    : y,
                'points': x.size,
