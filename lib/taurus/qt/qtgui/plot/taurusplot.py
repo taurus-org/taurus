@@ -842,7 +842,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             y = y[mask]    
         
         if ignorenans: 
-            mask = ~numpy.isnan(x) * ~numpy.isnan(y)
+            mask = numpy.invert(numpy.isnan(x+y)) #we remove points where either x or y are Nan
             x = x[mask]
             y = y[mask]
             
