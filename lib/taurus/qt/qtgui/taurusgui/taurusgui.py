@@ -780,7 +780,8 @@ class TaurusGui(TaurusMainWindow):
                     
         #configure the macro infrastructure       
         MACROSERVER_NAME = getattr(conf,'MACROSERVER_NAME', self.__getVarFromXML(xmlroot,"MACROSERVER_NAME", None))
-        if MACROSERVER_NAME is not None:
+        MACRO_PANELS = getattr(conf,'MACRO_PANELS', self.__getVarFromXML(xmlroot,"MACRO_PANELS", True))
+        if MACRO_PANELS and MACROSERVER_NAME is not None:# macro infrastructure will only be created if MACROSERVER_NAME is set
             from taurus.qt.qtgui.taurusgui import MacroBroker
             self.__macroBroker =  MacroBroker(self)
         if MACROSERVER_NAME: 
