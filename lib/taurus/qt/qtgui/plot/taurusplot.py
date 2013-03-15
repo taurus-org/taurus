@@ -236,7 +236,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     information about which TaurusCurves are attached. Therefore the programmer
     should never attach/detach a TaurusCurve manually.
     '''
-    droppedEventsWarning = 3 #number of dropped events before issuing a warning
+    consecutiveDroppedEventsWarning = 3 #number consecutive of dropped events before issuing a warning (-1 for disabling)
+    droppedEventsWarning = -1 #absolute number of dropped events before issuing a warning (-1 for disabling)
     def __init__(self, name, xname=None, parent = None, rawData=None, optimized=False):
 
         Qwt5.QwtPlotCurve.__init__(self)
@@ -257,6 +258,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self.__curveName = name
         self.isRawData= not(rawData is None)
         self.droppedEventsCount = 0
+        self.consecutiveDroppedEventsCount = 0
         if optimized:
             self.setPaintAttribute(self.PaintFiltered, True)
             self.setPaintAttribute(self.ClipPolygons, True)
@@ -568,13 +570,39 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''
         self.debug("Droping event. Reason %s", reason)
         self.droppedEventsCount += 1
+        self.consecutiveDroppedEventsCount += 1
+        mustwarn = False
         if self.droppedEventsCount == self.droppedEventsWarning:
+            mustwarn = True
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning (we do not want it if we got this one)
+        if self.consecutiveDroppedEventsCount == self.consecutiveDroppedEventsWarning:
+            mustwarn = True
+            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.consecutiveDroppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning 
+        if mustwarn:        
+            self.warning(msg)
+            p = self.plot() 
+            if p:
+                c = p.canvas()
+                msg2 = "Errors reading %s (%s)"%(self.titleText(compiled=True), self.modelName)
+                Qt.QToolTip.showText(c.mapToGlobal(c.pos()), msg2, c)
+                #Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
+            
+
+        if self.droppedEventsCount == self.droppedEventsWarning:
+            mustwarn = True
             msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
                    'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
             self.warning(msg)
-            p = self.plot()
+            p = self.plot() 
             if p:
-                Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
+                c = p.canvas()
+                msg = ''
+                Qt.QToolTip.showText(c.pos(), msg, c)
+                #Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
             
     def _updateMarkers(self):
         '''updates min & max markers if needed'''
@@ -1066,6 +1094,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __initActions(self):
         '''Create and attach TaurusPlot actions'''
+        
+        #=======================================================================
+        ## This action is for debug only. Comment out when not debugging
+        #self._debugAction = Qt.QAction("Calculate statistics", None)
+        #self._debugAction.setShortcut(Qt.Qt.Key_D)
+        #self.connect(self._debugAction, Qt.SIGNAL("triggered()"), self.__debug)
+        #self.canvas().addAction(self._debugAction)
+        #=======================================================================
 
         self._dataInspectorAction = Qt.QAction("Data &Inspector mode", None)
         self._dataInspectorAction.setShortcut(Qt.Qt.Key_I)
@@ -1302,13 +1338,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __debug(self, *args, **kwargs):
         '''put code here that you want to debug'''
-        #print '--------------'
-        ##self.setAxisCustomLabels(Qwt5.QwtPlot.xBottom , [[-2.4,"one position"],[-2.,"another"],[-1,"yet another"]], rotation = -45)
-        ##self.setAxisCustomLabels(Qwt5.QwtPlot.yLeft , [[0.5,"shorty"],[2.,"normalLbl"],[3,"looooooong Label"]])
-        #for i,z in enumerate((self._zoomer1,self._zoomer2)):
-        #    print i,'STACK:',z.zoomStack()
-        #    print i,'BRECT:',z.zoomRect()
-        #print '--------------'
+        print "!!!!!!!!!!!!!!!1",self.pos()
+        Qt.QToolTip.showText(self.mapToGlobal(self.pos()), "ASDASDASDASD DASDAS ASDA", self)
+        
         return
 
     def getDefaultAxisLabelsAlignment(self, axis, rotation):
@@ -3430,6 +3462,7 @@ def main():
     #if no models are passed, show the data import dialog
     if len(models) == 0 and options.config_file is None:
         w.showDataImportDlg()
+        
     sys.exit(app.exec_())
 
     

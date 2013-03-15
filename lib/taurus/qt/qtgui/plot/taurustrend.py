@@ -436,7 +436,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self.warning(msg)
             p = self.parent()
             if p:
-                Qt.QMessageBox.warning(p, "Errors in %s"%self._titleText, msg, Qt.QMessageBox.Ok)     
+                c = p.canvas()
+                msg2 = "Errors reading %s (%s)"%(self._titleText, self.modelName)
+                Qt.QToolTip.showText(c.mapToGlobal(c.pos()), msg2, c)
+                #Qt.QMessageBox.warning(p, "Errors in %s"%self._titleText, msg, Qt.QMessageBox.Ok)
 
     def isReadOnly(self):
         return True
