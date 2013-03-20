@@ -600,7 +600,7 @@ class NXscan_FileRecorder(BaseNAPI_FileRecorder):
                 raise RuntimeError(('"%s" already exists in %s. To prevent data corruption the macro will be aborted.\n'%(self.entryname, self.filename)+
                                     'This is likely caused by a wrong ScanID\n'+
                                     'Possible workarounds:\n'+
-                                    '  * first, try re-running this macro (the ScanID may be automatically corrected)'
+                                    '  * first, try re-running this macro (the ScanID may be automatically corrected)\n'
                                     '  * if not, try changing ScanID with senv, or...\n'+
                                     '  * change the file name (%s will be in both files containing different data)\n'%self.entryname+
                                     '\nPlease report this problem.'))
