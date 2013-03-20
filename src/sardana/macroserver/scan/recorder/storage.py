@@ -383,7 +383,8 @@ class BaseNEXUS_FileRecorder(BaseFileRecorder):
             self.nxs = nxs
         except ImportError:
             raise Exception("NeXus is not available")
-
+        
+        self.macro = macro
         self.overwrite = overwrite
         if filename:
             self.setFileName(filename)
@@ -588,7 +589,39 @@ class NXscan_FileRecorder(BaseNAPI_FileRecorder):
         if not self.overwrite and os.path.exists(self.filename): nxfilemode='rw'
         self.fd = nxs.open(self.filename, nxfilemode)
         self.entryname = "entry%d" % serialno
-        self.fd.makegroup(self.entryname,"NXentry") 
+        try:
+            self.fd.makegroup(self.entryname,"NXentry")
+        except NeXusError:
+            entrynames = self.fd.getentries().keys()
+            
+            #===================================================================
+            ##Warn and abort
+            if self.entryname in entrynames:
+                raise RuntimeError(('"%s" already exists in %s. To prevent data corruption the macro will be aborted.\n'%(self.entryname, self.filename)+
+                                    'This is likely caused by a wrong ScanID\n'+
+                                    'Possible workarounds:\n'+
+                                    '  * first, try re-running this macro (the scanID may be automatically corrected)'
+                                    '  * if not, try changing ScanID with senv, or...\n'+
+                                    '  * change the file name (%s will be in both files containing different data)\n'%self.entryname+
+                                    '\nPlease report this problem.'))
+            else:
+                raise              
+            #===================================================================
+            
+            #===================================================================
+            ## Warn and continue writing to another entry
+            #if self.entryname in entrynames:
+            #    i = 2
+            #    newname = "%s_%i"%(self.entryname,i)
+            #    while(newname in entrynames):
+            #        i +=1
+            #        newname = "%s_%i"%(self.entryname,i)
+            #    self.warning('"%s" already exists. Using "%s" instead. This may indicate a bug in %s',self.entryname, newname, self.macro.name)
+            #    self.macro.warning('"%s" already exists. Using "%s" instead. \nThis may indicate a bug in %s. Please report it.',self.entryname, newname, self.macro.name)
+            #    self.entryname = newname
+            #    self.fd.makegroup(self.entryname,"NXentry")
+            #===================================================================
+            
         self.fd.opengroup(self.entryname,"NXentry") 
         
         
