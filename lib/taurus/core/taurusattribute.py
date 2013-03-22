@@ -314,9 +314,10 @@ class TaurusAttribute(taurusmodel.TaurusModel):
            :param period: polling period (in miliseconds)
            :type period: int
         """
-        self.deprecated("use changePollingPeriod(). Not exactly the same functionality. Only activates polling if necessary")
-        self.changePollingPeriod(period, force=force)
-        self.enablePolling()
+        ## REENABLED, used to solve problems with ID GUI's and other systems where event independency is needed.
+        #self.deprecated("use changePollingPeriod(). Not exactly the same functionality. Only activates polling if necessary")
+        self.changePollingPeriod(period)
+        self.enablePolling(force=force)
 
     def deactivatePolling(self, maintain_enabled=False):
         """unregister attribute from polling"""
