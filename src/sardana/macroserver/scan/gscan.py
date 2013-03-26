@@ -495,8 +495,7 @@ class GScan(Logger):
         
         # Initialize the data_desc list (and add the point number column)
         data_desc = [
-            ColumnDesc(name='point_nb', label='#Pt No', dtype='int64'),
-            ColumnDesc(name='timestamp', label='dt', dtype='float64')
+            ColumnDesc(name='point_nb', label='#Pt No', dtype='int64')
         ]
         
         # add motor columns
@@ -556,6 +555,8 @@ class GScan(Logger):
             data_desc.append(extra_column.getColumnDesc())
         # add extra columns 
         data_desc += self._extrainfodesc
+        data_desc.append(ColumnDesc(name='timestamp', label='dt', dtype='float64'))
+        
         env['datadesc'] = data_desc
         
         #set the data compression default
