@@ -142,15 +142,16 @@ pymca = ExternalApp(['pymca'])
 
 #===============================================================================
 # Macro execution configuration
-# (comment out or make MACRO_SERVER=None to skip creating a macro execution 
-# infrastructure)
+# Comment out or make MACRO_SERVER=None or set MACRO_PANELS=False to skip 
+# creating a macro execution infrastructure.
+# Give empty strings if you want to select the values manually in the GUI
 #===============================================================================
 #MACROSERVER_NAME = 
 #DOOR_NAME = 
 #MACROEDITORS_PATH = 
 
 #===============================================================================
-# Monitor widget (This is obsolete now, you can get the same result defining a
+# Monitor widget (This is *obsolete* now, you can get the same result defining a
 # custom applet with classname='TaurusMonitorTiny')
 #===============================================================================
 # MONITOR = ['sys/tg_test/1/double_scalar_rww']
@@ -166,3 +167,10 @@ EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit',':/taurus.png'),
                         ('PyQt4.Qt.QSpinBox','images/syn2.jpg'),
                         ('PyQt4.Qt.QTextEdit','/tmp/kk.png'),
                         ('PyQt4.Qt.QLabel',None)]
+
+#===============================================================================
+# Define one or more embedded consoles in the GUI.
+# Possible items for console are 'ipython', 'tango', 'spock'
+# Note: This is still experimental
+#===============================================================================
+#CONSOLE = ['tango']
