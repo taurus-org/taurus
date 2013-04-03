@@ -931,12 +931,7 @@ class MotorGroup(PoolElement, Moveable):
     #
 
     def _start(self, *args, **kwargs):
-        #+++ 25.2.2013, TK
-        new_pos = []
-        for elm in args[0]:
-            new_pos.append(elm)
-        #+++
-        # new_pos = args[0]
+        new_pos = args[0]
         try:
             self.write_attribute('position', new_pos)
         except DevFailed, df:
