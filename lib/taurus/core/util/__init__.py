@@ -61,7 +61,10 @@ from .user import *
 
 import eventfilters
 
-from lxml import etree
+try:
+    from lxml import etree
+except:
+    etree = None
 
 def str_DevFailed(df):
     """Returns a string representation of a :class:`PyTango.DevFailed`.
