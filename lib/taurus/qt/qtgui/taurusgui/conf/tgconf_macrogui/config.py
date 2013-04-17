@@ -80,8 +80,8 @@ pymca = ExternalApp(['pymca'])
 
 #===============================================================================
 # Macro execution configuration
-# (comment out or make MACRO_SERVER=None to skip creating a macro execution 
-# infrastructure)
+# Comment out or make MACRO_SERVER=None or set MACRO_PANELS=False to skip 
+# creating a macro execution infrastructure.
 # Give empty strings if you want to select the values manually in the GUI
 #===============================================================================
 MACROSERVER_NAME = ''
