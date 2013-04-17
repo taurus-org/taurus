@@ -62,7 +62,7 @@ def main():
     
     for scan in s.split('\n\n'):
         lines = scan.split('\n')
-        if not lines[0].startswith('#S'):
+        if not lines[0].startswith('#S '):
             continue
         scan_name = lines[0].split()[1]
         if scanids is None or scan_name in scanids: #extract only selected ids
@@ -74,8 +74,8 @@ def main():
                 print 'Cannot create file "%s". Skipping.'%ofname
                 continue
             for line in lines[1:]:
-                if line.startswith('#L'):
-                    ofile.write('\t'.join(line.split()[1:])+'\n')
+                if line.startswith('#L '):
+                    ofile.write('\t'.join(line[3:].split('  '))+'\n')
                 elif line.startswith('#'):
                     continue
                 else:
