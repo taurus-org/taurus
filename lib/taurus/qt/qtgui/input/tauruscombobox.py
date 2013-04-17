@@ -262,7 +262,7 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
             
     def handleEvent(self, evt_src, evt_type, evt_value):
         self.clear()

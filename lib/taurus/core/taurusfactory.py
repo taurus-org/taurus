@@ -41,11 +41,11 @@ __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
 
-from enums import OperationMode
-import taurusdatabase
-import taurusdevice
-import taurusattribute
-import taurusconfiguration
+from .taurusbasetypes import OperationMode
+from .taurusdatabase import TaurusDatabase
+from .taurusdevice import TaurusDevice
+from .taurusattribute import TaurusAttribute
+from .taurusconfiguration import TaurusConfiguration
 
 class TaurusFactory(object):
     """The base class for valid Factories in Taurus."""
@@ -98,7 +98,7 @@ class TaurusFactory(object):
                            " TaurusFactory")
 
     def getDatabase(self, db_name=None):
-        """getDatabase(string db_name) -> taurus.core.TaurusDatabase
+        """getDatabase(string db_name) -> taurus.core.taurusdatabase.TaurusDatabase
            
         Obtain the object corresponding to the given database name or the 
         default database if db_name is None.
@@ -110,14 +110,14 @@ class TaurusFactory(object):
                            it will use the default schema. if db_name is None, 
                            the default database is used
                            
-        @return a taurus.core.TaurusDatabase object 
+        @return a taurus.core.taurusdatabase.TaurusDatabase object 
         @throws TaurusException if the given name is invalid.
         """
         raise RuntimeError("getDatabase cannot be called for abstract" \
                            " TaurusFactory")
 
     def getDevice(self, dev_name, **kw):
-        """getDevice(string dev_name) -> taurus.core.TaurusDevice
+        """getDevice(string dev_name) -> taurus.core.taurusdevice.TaurusDevice
            
         Obtain the object corresponding to the given device name. If the 
         corresponding device already exists, the existing instance is returned. 
@@ -129,14 +129,14 @@ class TaurusFactory(object):
                             If authority is ommited then it will use the 
                             default authority for the schema.
         
-        @return a taurus.core.TaurusDevice object 
+        @return a taurus.core.taurusdevice.TaurusDevice object 
         @throws TaurusException if the given name is invalid.
         """
         raise RuntimeError("getDevice cannot be called for abstract" \
                            " TaurusFactory")
 
     def getAttribute(self, attr_name):
-        """getAttribute(string attr_name) -> taurus.core.TaurusAttribute
+        """getAttribute(string attr_name) -> taurus.core.taurusattribute.TaurusAttribute
 
         Obtain the object corresponding to the given attribute name.
         If the corresponding attribute already exists, the existing instance
@@ -144,22 +144,22 @@ class TaurusFactory(object):
 
         @param[in] attr_name string attribute name
              
-        @return a taurus.core.TaurusAttribute object 
+        @return a taurus.core.taurusattribute.TaurusAttribute object 
         @throws TaurusException if the given name is invalid.
         """
         raise RuntimeError("getAttribute cannot be called for abstract" \
                            " TaurusFactory")
 
     def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.TaurusConfiguration
+        """getConfiguration(param) -> taurus.core.taurusconfiguration.TaurusConfiguration
 
         Obtain the object corresponding to the given attribute or full name.
         If the corresponding configuration already exists, the existing instance
         is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] param taurus.core.TaurusAttribute object or full configuration name
+        @param[in] param taurus.core.taurusattribute.TaurusAttribute object or full configuration name
            
-        @return a taurus.core.TaurusAttribute object
+        @return a taurus.core.taurusattribute.TaurusAttribute object
         @throws TaurusException if the given name is invalid.
         """
         raise RuntimeError("getConfiguration cannot be called for abstract" \
@@ -209,15 +209,15 @@ class TaurusFactory(object):
         return obj
 
     def getObject(self, cls, name):
-        if issubclass(cls, taurusdatabase.TaurusDatabase):
+        if issubclass(cls, TaurusDatabase):
             return self.getDatabase(name)
-        elif issubclass(cls, taurusdevice.TaurusDevice):
+        elif issubclass(cls, TaurusDevice):
             return self.getDevice(name)
-        elif issubclass(cls, taurusattribute.TaurusAttribute):
+        elif issubclass(cls, TaurusAttribute):
             return self.getAttribute(name)
-        elif issubclass(cls, taurusconfiguration.TaurusConfiguration):
+        elif issubclass(cls, TaurusConfiguration):
             return self.getConfiguration(name)
-        elif issubclass(cls, taurusconfiguration.TaurusConfigurationProxy):
+        elif issubclass(cls, TaurusConfigurationProxy):
             return self.getConfiguration(name)
         else:
             return None
@@ -271,3 +271,9 @@ class TaurusFactory(object):
         """
         raise RuntimeError("removeAttributeFromPolling cannot be called for abstract" \
                            " TaurusFactory")
+
+    def __str__(self):
+        return '{0}()'.format(self.__class__.__name__)
+
+    def __repr__(self):
+        return '{0}(schemes={1})'.format(self.__class__.__name__, ", ".join(self.schemes))

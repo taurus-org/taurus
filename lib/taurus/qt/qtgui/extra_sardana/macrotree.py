@@ -247,7 +247,7 @@ class MacroTreeWidget(TaurusBaseTreeWidget):
     DftPerspective = MacroView.MacroModule
         
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
 
 
 class MacroSelectionDialog(Qt.QDialog):

@@ -284,7 +284,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return taurus.core.taurusdatabase.TaurusDatabase
 
     #: This property holds the unique URI string representing the model name 
     #: with which this widget will get its data from. The convention used for 
@@ -367,7 +367,7 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return taurus.core.taurusdatabase.TaurusDatabase
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
@@ -655,7 +655,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return taurus.core.taurusdatabase.TaurusDatabase
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)

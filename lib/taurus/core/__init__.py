@@ -27,25 +27,17 @@
 
 __docformat__ = "restructuredtext"
 
-import release as Release
-from .enums import *
+# import release as Release
 from .taurusbasetypes import *
-from .taurusexception import *
-from .taurusmodel import *
-from .tauruslistener import *
-from .taurusdevice import *
-from .taurusattribute import *
-from .taurusconfiguration import *
-from .taurusdatabase import *
-from .taurusfactory import *
-from .taurusmanager import *
-from .taurusoperation import *
-from .tauruspollingtimer import *
-from .taurusvalidator import *
-
-# enable compatibility code with tau V1 if tauv1 package is present
-try:
-    from .tauv1 import *
-except:
-    pass
-
+# from .taurusexception import *
+# from .taurusmodel import *
+# from .tauruslistener import *
+# from .taurusdevice import *
+# from .taurusattribute import *
+# from .taurusconfiguration import *
+# from .taurusdatabase import *
+# from .taurusfactory import *
+# from .taurusmanager import *
+# from .taurusoperation import *
+# from .tauruspollingtimer import *
+# from .taurusvalidator import *

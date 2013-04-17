@@ -34,8 +34,8 @@ import traceback
 import subprocess
 import taurus
 from taurus.qt import Qt
-from taurus.core import DeviceNameValidator,AttributeNameValidator
-from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri
+from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
+from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser
@@ -347,7 +347,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def setModels(self):
         """ This method triggers item.setModel(item._name) in all internal items. """
         for item in self.scene().items():
-            if item._name and isinstance(item, taurus.qt.qtgui.graphic.TaurusGraphicsItem):
+            if item._name and isinstance(item, TaurusGraphicsItem):
                 self.debug('TaurusJDrawGraphicsFactory.setModels(): calling item.setModel(%s)'%(item._name))
                 item.setModel(item._name)
 

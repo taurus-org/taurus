@@ -74,7 +74,7 @@ class TaurusBoolLed(QLed, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def isReadOnly(self):
         return True

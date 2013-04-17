@@ -32,18 +32,16 @@ __docformat__ = 'restructuredtext'
 import sys
 
 from taurus.qt import Qt
-import taurus.core.util
-import taurus.qt.qtgui.resource
-import qpixmapwidget
+from taurus.core.util.enumeration import Enumeration
+from taurus.qt.qtgui.resource import getPixmap
+from .qpixmapwidget import QPixmapWidget
 
-getPixmap = taurus.qt.qtgui.resource.getPixmap
-
-LedColor  = taurus.core.util.Enumeration("LedColor",  ["BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "MAGENTA", "GRENOBLE", "BLACK", "WHITE"])
-LedStatus = taurus.core.util.Enumeration("LedStatus", ["ON", "OFF"])
-LedSize   = taurus.core.util.Enumeration("LedSize",   [("SMALL", 24), ("LARGE", 48)])
+LedColor  = Enumeration("LedColor",  ["BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "MAGENTA", "GRENOBLE", "BLACK", "WHITE"])
+LedStatus = Enumeration("LedStatus", ["ON", "OFF"])
+LedSize   = Enumeration("LedSize",   [("SMALL", 24), ("LARGE", 48)])
 
     
-class QLed(qpixmapwidget.QPixmapWidget):
+class QLed(QPixmapWidget):
     """A Led"""
     
     DefaultLedPattern = ":leds/images256/led_{color}_{status}.png"
@@ -59,13 +57,13 @@ class QLed(qpixmapwidget.QPixmapWidget):
         self._ledInverted = self.DefaultLedInverted
         self._ledName = self.toLedName()
         self._timer = None
-        qpixmapwidget.QPixmapWidget.__init__(self, parent)
+        QPixmapWidget.__init__(self, parent)
         self._refresh()
     
     def sizeHint(self):
         if self.layout() is None:
             return Qt.QSize(24, 24)
-        return qpixmapwidget.QPixmapWidget.sizeHint(self)
+        return QPixmapWidget.sizeHint(self)
     
     def minimumSizeHint(self):
         """Overwrite the default minimum size hint (0,0) to be (16,16)

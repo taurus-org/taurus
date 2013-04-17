@@ -33,7 +33,7 @@ from .taurusgraphicview import *
 try:
     from .jdraw import *
 except:
-    import taurus.core.util
-    _logger = taurus.core.util.Logger(__name__)
+    import taurus.core.util.log
+    _logger = taurus.core.util.log.Logger(__name__)
     _logger.debug("jdraw widgets could not be initialized")
     _logger.traceback()

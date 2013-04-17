@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from taurus.core.util import CaselessDict
+from taurus.core.util.containers import CaselessDict
 
 class Moveable:
     """ An item that can 'move'. In order to move it you need to provide a list

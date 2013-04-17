@@ -101,7 +101,7 @@ class ExpDescriptionEditor(Qt.QWidget, TaurusBaseWidget):
              
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
         
     def onChooseScanDirButtonClicked(self):
         ret = Qt.QFileDialog.getExistingDirectory ( self, 'Choose directory for saving files', self.ui.pathLE.text())

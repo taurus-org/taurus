@@ -29,12 +29,12 @@ __all__ = ["TaurusOperation", "WriteAttrOperation"]
 
 __docformat__ = "restructuredtext"
 
-import util
+from .util.log import Logger
 
-class TaurusOperation(util.Logger):
+class TaurusOperation(Logger):
 
     def __init__(self, name='TaurusOperation', parent=None, callbacks = None):
-        self.call__init__(util.Logger, name, parent)
+        self.call__init__(Logger, name, parent)
         if callbacks is None: callbacks = []
         self._callbacks = callbacks
         self._dangerMessage = None

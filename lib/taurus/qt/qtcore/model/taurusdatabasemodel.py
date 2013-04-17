@@ -39,13 +39,14 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-import taurus.core
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
+from taurus.core.taurusdatabase import TaurusInfo, TaurusDatabase
 import taurus.qt.qtcore.mimetypes
 
-from taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
+from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
-ElemType = taurus.core.TaurusElementType
-DevHealth = taurus.core.TaurusSWDevHealth
+ElemType = TaurusElementType
+DevHealth = TaurusSWDevHealth
 
 def getElementTypeIcon(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
@@ -74,7 +75,7 @@ def getSWDevHealthToolTip(*args, **kwargs):
 
 
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
-    DisplayFunc = taurus.core.TaurusInfo.name
+    DisplayFunc = TaurusInfo.name
 
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
@@ -448,7 +449,7 @@ class TaurusDbBaseModel(TaurusBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -477,7 +478,7 @@ class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -499,7 +500,7 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -522,7 +523,7 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.deviceTree()
 
         rootItem = self._rootItem
@@ -548,7 +549,7 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
 
         servers = data.servers()
@@ -576,7 +577,7 @@ class TaurusDbServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
 
         servers, klasses, devices = data.servers(), data.klasses(), data.devices()
@@ -624,7 +625,7 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, taurus.core.TaurusDatabase):
+        if isinstance(data, TaurusDatabase):
             data = data.cache()
 
         rootItem = self._rootItem

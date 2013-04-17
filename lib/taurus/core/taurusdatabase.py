@@ -34,9 +34,9 @@ __docformat__ = "restructuredtext"
 import weakref
 import operator
 
-from enums import TaurusEventType, TaurusSWDevHealth
-import taurusmodel
-import util
+from .taurusbasetypes import TaurusEventType, TaurusSWDevHealth, TaurusElementType
+from .taurusmodel import TaurusModel
+from .util.containers import CaselessDict
 
 DFT_DATABASE_DESCRIPTION = "A database"
 
@@ -131,7 +131,7 @@ class TaurusDevInfo(TaurusInfo):
 class TaurusServInfo(TaurusInfo):
     def __init__(self, container, name=None, full_name=None):
         super(TaurusServInfo, self).__init__(container, name=name, full_name=full_name)
-        self._devices = util.CaselessDict()
+        self._devices = CaselessDict()
         self._exported = False
         self._alive = None
         self._host = ""
@@ -187,7 +187,7 @@ class TaurusServInfo(TaurusInfo):
 class TaurusDevClassInfo(TaurusInfo):
     def __init__(self, container, name=None, full_name=None):
         super(TaurusDevClassInfo, self).__init__(container, name=name, full_name=full_name)
-        self._devices = util.CaselessDict()
+        self._devices = CaselessDict()
     
     def devices(self):
         return self._devices
@@ -217,11 +217,11 @@ class TaurusAttrInfo(TaurusInfo):
         return getattr(self._info, name)
 
 
-class TaurusDevTree(util.CaselessDict):
+class TaurusDevTree(CaselessDict):
 
     def __init__(self, other=None):
         super(TaurusDevTree, self).__init__()
-        self._devices = util.CaselessDict()
+        self._devices = CaselessDict()
         if other is not None:
             self._update(other)
 
@@ -240,11 +240,11 @@ class TaurusDevTree(util.CaselessDict):
     def addDevice(self, dev_info):
         domain, family, member = dev_info.domain(), dev_info.family(), dev_info.member()
         
-        families = self[domain] = self.get(domain, util.CaselessDict())
-        devs = self._devices[domain] = self._devices.get(domain, util.CaselessDict())
+        families = self[domain] = self.get(domain, CaselessDict())
+        devs = self._devices[domain] = self._devices.get(domain, CaselessDict())
         devs[dev_info.name()] = dev_info
         
-        families[family] = members = families.get(family, util.CaselessDict())
+        families[family] = members = families.get(family, CaselessDict())
         
         members[member] = dev_info
 
@@ -406,22 +406,22 @@ class TaurusDatabaseCache(object):
         return self.serverTree().getServerNameInstances(serverName)
 
 
-class TaurusDatabase(taurusmodel.TaurusModel):
+class TaurusDatabase(TaurusModel):
     
     def __init__(self, complete_name, parent=None):
         self._descr = None
-        self.call__init__(taurusmodel.TaurusModel, complete_name, parent)
+        self.call__init__(TaurusModel, complete_name, parent)
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
     def cleanUp(self):
         self.trace("[TaurusDatabase] cleanUp")
-        taurusmodel.TaurusModel.cleanUp(self)
+        TaurusModel.cleanUp(self)
 
     def getTaurusElementType(self):
-        import taurus.core
-        return taurus.core.TaurusElementType.Database
+        
+        return TaurusElementType.Database
     
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
@@ -432,8 +432,8 @@ class TaurusDatabase(taurusmodel.TaurusModel):
     
     @classmethod
     def getNameValidator(cls):
-        import taurusvalidator
-        return taurusvalidator.DatabaseNameValidator()
+        from .taurusvalidator import DatabaseNameValidator
+        return DatabaseNameValidator()
     
     def getDescription(self,cache=True):
         if self._descr is None or not cache:
@@ -457,7 +457,7 @@ class TaurusDatabase(taurusmodel.TaurusModel):
         return obj
     
     def addListener(self, listener):
-        ret = taurusmodel.TaurusModel.addListener(self, listener)
+        ret = TaurusModel.addListener(self, listener)
         if not ret:
             return ret
         self.fireEvent(TaurusEventType.Change, self.getDisplayValue(), listener)

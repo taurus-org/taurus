@@ -44,8 +44,8 @@ from taurus.qt import Qt, QtGui, QtCore
 
 import taurus
 from taurus.qt.qtcore.util.emitter import modelSetter,TaurusEmitterThread,SingletonWorker,MethodModel
-from taurus.core import TaurusManager
-from taurus.core.util import Logger
+from taurus.core.taurusmanager import TaurusManager
+from taurus.core.util.log import Logger
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.panel import TaurusValue
 from taurus.qt.qtgui.display import TaurusValueLabel,TaurusStateLabel
@@ -78,7 +78,7 @@ def get_all_models(expressions,limit=1000):
         expressions = list(str(e) for e in expressions)
         
     #self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    taurus_db = taurus.core.TaurusManager().getFactory()().getDatabase()
+    taurus_db = taurus.core.taurusmanager.TaurusManager().getFactory()().getDatabase()
     #taurus_db = taurus.Database(os.environ['TANGO_HOST'])
     if 'SimulationDatabase' in str(type(taurus_db)):
         #self.info( 'Using a simulated database ...')
@@ -106,8 +106,8 @@ def get_all_models(expressions,limit=1000):
                 if any(c in attribute for c in '.*[]()+?'):
                     if '*' in attribute and '.*' not in attribute: attribute = attribute.replace('*','.*')
                     try:
-                        #taurus_dp = taurus.core.TaurusDevice(dev)
-                        taurus_dp = taurus.core.TaurusManager().getFactory()().getDevice(dev)
+                        #taurus_dp = taurus.core.taurusdevice.TaurusDevice(dev)
+                        taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(dev)
                         #self.debug( "taurus_dp = %s"%taurus_dp.getFullName())
                         attrs = [att.name for att in taurus_dp.attribute_list_query() if re_match_low(attribute,att.name)]
                         targets.extend(dev+'/'+att for att in attrs)
@@ -138,7 +138,7 @@ def get_readwrite_models(expressions,limit=1000):
     elif any(isinstance(expressions,klass) for klass in (QtCore.QStringList,list,tuple,dict)):
         expressions = list(str(e) for e in expressions)
         
-    taurus_db = taurus.core.TaurusManager().getFactory()().getDatabase()
+    taurus_db = taurus.core.taurusmanager.TaurusManager().getFactory()().getDatabase()
     if 'SimulationDatabase' in str(type(taurus_db)):
       models = expressions
     else:
@@ -161,7 +161,7 @@ def get_readwrite_models(expressions,limit=1000):
               if any(c in attribute for c in '.*[]()+?'):
                   if '*' in attribute and '.*' not in attribute: attribute = attribute.replace('*','.*')
                   try: 
-                      taurus_dp = taurus.core.TaurusManager().getFactory()().getDevice(dev)
+                      taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(dev)
                       attrs = [att.name for att in taurus_dp.attribute_list_query() if re_match_low(attribute,att.name) and att.isReadOnly()]
                       targets.extend(dev+'/'+att for att in attrs)
                   except Exception,e: 

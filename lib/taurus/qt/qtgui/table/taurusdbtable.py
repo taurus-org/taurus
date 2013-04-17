@@ -31,7 +31,8 @@ __all__ = ["TaurusDbTableWidget"]
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-from taurus.core import TaurusElementType, TaurusDatabase
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.taurusdatabase import TaurusDatabase
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.resource import getElementTypeIcon, getElementTypeIconName
 from taurustable import TaurusBaseTableWidget
@@ -39,7 +40,7 @@ from taurustable import TaurusBaseTableWidget
 
 class TaurusDbTableWidget(TaurusBaseTableWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTableWidget` that connects to a
-    :class:`taurus.core.TaurusDatabase` model. It can show the list of database
+    :class:`taurus.core.taurusdatabase.TaurusDatabase` model. It can show the list of database
     elements in two different perspectives:
     
     - device : a device list based perspective

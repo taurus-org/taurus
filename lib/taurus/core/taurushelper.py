@@ -25,6 +25,16 @@
 
 """a list of helper methods"""
 
+__all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
+           'Manager', 'Factory', 'Device', 'Attribute', 'Configuration',
+           'Database', 'Object', 'Logger',
+           'Critical', 'Error', 'Warning', 'Info', 'Debug', 'Trace',
+           'setLogLevel', 'setLogFormat', 'getLogLevel', 'getLogFormat',
+           'resetLogLevel', 'resetLogFormat',
+           'enableLogOutput', 'disableLogOutput',
+           'log', 'trace', 'debug', 'info', 'warning', 'error', 'critical',
+           'changeDefaultPollingPeriod']
+
 __docformat__ = "restructuredtext"
 
 import sys
@@ -167,7 +177,7 @@ def check_dependencies():
         print m
 
 def log_dependencies():
-    from taurus.core.util import Logger
+    from taurus.core.util.log import Logger
     l = Logger("taurus")
     for msg in _check_dependencies(forlog=True):
         if msg[0] != -1:
@@ -295,32 +305,37 @@ def Manager():
     It is a shortcut to::
 
         import taurus.core
-        manager = taurus.core.TaurusManager()
+        manager = taurus.core.taurusmanager.TaurusManager()
     
     :return: the TaurusManager
-    :rtype: :class:`taurus.core.TaurusManager`
+    :rtype: :class:`taurus.core.taurusmanager.TaurusManager`
     
-    .. seealso:: :class:`taurus.core.TaurusManager`"""
-    import taurusmanager
-    return taurusmanager.TaurusManager()
+    .. seealso:: :class:`taurus.core.taurusmanager.TaurusManager`"""
+    from taurus.core.taurusmanager import TaurusManager
+    return TaurusManager()
 
 def Factory(scheme=None):
     """Returns the one and only Factory for the given scheme
     
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory(scheme)
 
     :param scheme: a string representing the scheme. Default value is None meaning ``tango`` scheme
     :type scheme: str
     :return: a taurus factory
-    :rtype: :class:`taurus.core.TaurusFactory`"""
-    f = Manager().getFactory(scheme=scheme)
+    :rtype: :class:`taurus.core.taurusfactory.TaurusFactory`"""
+    manager = Manager()
+    f = manager.getFactory(scheme=scheme)
     if f is None:
-        import taurusexception
-        raise taurusexception.TaurusException('Cannot create Factory for scheme %s'%repr(scheme))
+        from taurus.core.taurusexception import TaurusException
+        if scheme is None:
+            scheme = "default scheme '" + manager.default_scheme + "'"
+        else:
+            scheme = "'" + scheme + "'"
+        raise TaurusException('Cannot create Factory for %s' % scheme)
     return f()
 
 def Device(device_name):
@@ -328,15 +343,15 @@ def Device(device_name):
 
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         device  = factory.getDevice(device_name)
     
     :param device_name: the device name
     :type device_name: str
     :return: a taurus device
-    :rtype: :class:`taurus.core.TaurusDevice`"""
+    :rtype: :class:`taurus.core.taurusdevice.TaurusDevice`"""
     return Factory(scheme=getSchemeFromName(device_name)).getDevice(device_name)
 
 def Attribute(dev_or_attr_name, attr_name=None):
@@ -348,15 +363,15 @@ def Attribute(dev_or_attr_name, attr_name=None):
 
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         attribute  = factory.getAttribute(full_attribute_name)
     
     or::
     
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         device  = factory.getDevice(device_name)
         attribute = device.getAttribute(attribute_name)
@@ -366,7 +381,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
     :param attr_name: attribute name
     :type attr_name: str
     :return: a taurus attribute
-    :rtype: :class:`taurus.core.TaurusAttribute`"""
+    :rtype: :class:`taurus.core.taurusattribute.TaurusAttribute`"""
     import types
     
     if attr_name is None:
@@ -387,15 +402,15 @@ def Configuration(attr_or_conf_name, conf_name=None):
     
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         conf  = factory.getConfiguration(attr_or_conf_name)
 
     or::
     
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         attribute  = factory.getAttribute(attribute_name)
         conf = attribute.getConfig(conf_name)
@@ -405,7 +420,7 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :param conf_name: conf name
     :type conf_name: str or None
     :return: a taurus configuration
-    :rtype: :class:`taurus.core.TaurusConfiguration`"""
+    :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
     if conf_name is None:
         return Factory(scheme=getSchemeFromName(attr_or_conf_name)).getConfiguration(attr_or_conf_name)
     else:
@@ -416,15 +431,15 @@ def Database(db_name=None):
     
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         db  = factory.getDatabase(db_name)
         
     :param db_name: database name. If None (default) it will use the TANGO_HOST value
     :type db_name: str or None
     :return: a taurus database
-    :rtype: :class:`taurus.core.TaurusDatabase`"""
+    :rtype: :class:`taurus.core.taurusdatabase.TaurusDatabase`"""
     return Factory(getSchemeFromName(db_name)).getDatabase(db_name)
 
 def Object(klass, name):
@@ -432,8 +447,8 @@ def Object(klass, name):
     
     It is a shortcut to::
 
-        import taurus.core
-        manager = taurus.core.TaurusManager()
+        import taurus.core.taurusmanager
+        manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
         obj  = factory.getObject(klass, name)
 
@@ -445,33 +460,36 @@ def Object(klass, name):
     :rtype: :class:`taurus.core.TaurusModel`"""
     return Factory(getSchemeFromName(name)).getObject(klass, name)
 
-import util
+from taurus.core.util import log as __log_mod
 
-Critical = util.Logger.Critical
-Error    = util.Logger.Error
-Warning  = util.Logger.Warning
-Info     = util.Logger.Info
-Debug    = util.Logger.Debug
-Trace    = util.Logger.Trace
-    
-setLogLevel = util.Logger.setLogLevel
-setLogFormat = util.Logger.setLogFormat
-getLogLevel = util.Logger.getLogLevel
-getLogFormat = util.Logger.getLogFormat
-resetLogLevel = util.Logger.resetLogLevel
-resetLogFormat = util.Logger.resetLogFormat
+Logger   = __log_mod.Logger
+Critical = Logger.Critical
+Error    = Logger.Error
+Warning  = Logger.Warning
+Info     = Logger.Info
+Debug    = Logger.Debug
+Trace    = Logger.Trace
 
-enableLogOutput = util.Logger.enableLogOutput
-disableLogOutput = util.Logger.disableLogOutput
+setLogLevel = Logger.setLogLevel
+setLogFormat = Logger.setLogFormat
+getLogLevel = Logger.getLogLevel
+getLogFormat = Logger.getLogFormat
+resetLogLevel = Logger.resetLogLevel
+resetLogFormat = Logger.resetLogFormat
 
-log = util._log
-trace = util.trace
-debug = util.debug
-info = util.info
-warning = util.warning
-error = util.error
-critical = util.critical
+enableLogOutput = Logger.enableLogOutput
+disableLogOutput = Logger.disableLogOutput
 
+log = __log_mod._log
+trace = __log_mod.trace
+debug = __log_mod.debug
+info = __log_mod.info
+warning = __log_mod.warning
+error = __log_mod.error
+critical = __log_mod.critical
 
 def changeDefaultPollingPeriod(period):
     Manager().changeDefaultPollingPeriod(period)
+
+#del __log_mod
+#del __translate_version_str2int

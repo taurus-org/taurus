@@ -33,10 +33,11 @@ import weakref
 import operator
 import threading
 
-import util
-from enums import TaurusEventType, MatchLevel
+from .util.log import Logger
+from .util.event import CallableRef, BoundMethodWeakref
+from .taurusbasetypes import TaurusEventType, MatchLevel
 
-class TaurusModel(util.Logger):
+class TaurusModel(Logger):
     
     RegularEvent = (TaurusEventType.Change, TaurusEventType.Config, TaurusEventType.Periodic)
 
@@ -48,7 +49,7 @@ class TaurusModel(util.Logger):
             self.trace("invalid name")
         
         name = self._simp_name or self._norm_name or self._full_name or 'TaurusModel'
-        self.call__init__(util.Logger, name, parent)
+        self.call__init__(Logger, name, parent)
         
         if serializationMode is None:
             s_obj = parent
@@ -63,18 +64,21 @@ class TaurusModel(util.Logger):
             self._parentObj = None
         self._listeners = []
 
+    def __str__name__(self, name):
+        return '{0}({1})'.format(self.__class__.__name__, name)
+    
     def __str__(self):
-        return '%s(%s)' % (self.__class__.__name__, self.getSimpleName())
+        return self.__str__name__(self.getNormalName())
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self.getFullName())
+        return self.__str__name__(self.getFullName())
     
 
     def cleanUp(self):
         self.trace("[TaurusModel] cleanUp")
         #self._parentObj = None
         self._listeners = None
-        util.Logger.cleanUp(self)
+        Logger.cleanUp(self)
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for Factory access
@@ -184,7 +188,7 @@ class TaurusModel(util.Logger):
         if meth is not None and operator.isCallable(meth):
             return weakref.ref(listener, cb)
         else:
-            return util.CallableRef(listener, cb)
+            return CallableRef(listener, cb)
     
     def addListener(self, listener):
         if self._listeners is None or listener is None: 
@@ -242,7 +246,7 @@ class TaurusModel(util.Logger):
             listeners = listeners,
             
         for listener in listeners:
-            if isinstance(listener, weakref.ref) or isinstance(listener, util.BoundMethodWeakref):
+            if isinstance(listener, weakref.ref) or isinstance(listener, BoundMethodWeakref):
                 l = listener()
             else:
                 l = listener

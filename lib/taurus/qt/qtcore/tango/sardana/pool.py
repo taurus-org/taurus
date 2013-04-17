@@ -32,7 +32,7 @@ import json
 
 from taurus.qt import Qt
 
-from taurus.core import TaurusEventType
+from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic

@@ -31,15 +31,16 @@ __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
 
 __docformat__ = 'restructuredtext'
 
-import taurus.core
-import taurus.core.tango
-import taurus.core.util
 
-class ImageDevice(taurus.core.tango.TangoDevice):
+from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.tango import TangoDevice
+from taurus.core.util.containers import CaselessDict
+
+class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
     
     def __init__(self, name, image_name='image', **kw):
-        self.call__init__(taurus.core.tango.TangoDevice, name, **kw)
+        self.call__init__(TangoDevice, name, **kw)
         self.setImageAttrName(image_name)
 
     def addImageAttrName(self, attr_name):
@@ -48,7 +49,7 @@ class ImageDevice(taurus.core.tango.TangoDevice):
         self._image_attr_names.append(attr_name)
             
     def setImageAttrName(self, attr_name):
-        self._image_attr_names = taurus.core.util.CaselessList()
+        self._image_attr_names = CaselessList()
         self.addImageAttrName(attr_name)
         
     def getImageAttrName(self, idx=0):
@@ -56,13 +57,14 @@ class ImageDevice(taurus.core.tango.TangoDevice):
     
     def getImageAttrNames(self):
         return self._image_attr_names
-        
+
+
 class ImageCounterDevice(ImageDevice):
     """A class encapsulating a generic image device that has an image counter
     attribute"""
     
     def __init__(self, name, image_name='image', **kw):
-        self._image_data = taurus.core.util.CaselessDict()
+        self._image_data = CaselessDict()
         self.call__init__(ImageDevice, name, **kw)
         self._image_id_attr = self.getAttribute(self.getImageIDAttrName())
         self._image_id_attr.addListener(self)
@@ -87,7 +89,7 @@ class ImageCounterDevice(ImageDevice):
     
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
-            if evt_type == taurus.core.TaurusEventType.Change:
+            if evt_type == TaurusEventType.Change:
                 self._setDirty()
                 self.fireEvent(evt_type, evt_value)
         else:
@@ -123,7 +125,7 @@ class Falcon(ImageCounterDevice):
     
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self.getAttribute("imageformat"):
-            if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+            if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
                 self._color = evt_value.value.lower() == "rgb24"
                 return
         ImageCounterDevice.eventReceived(self, evt_src, evt_type, evt_value)

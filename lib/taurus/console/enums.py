@@ -29,7 +29,7 @@ __all__ = ["Alignment"]
 
 __docformat__ = "restructuredtext"
 
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 
 #: Flaggable alignment for both horizontal and vertical text
 #: Conflicting combinations of flags have undefined meanings.

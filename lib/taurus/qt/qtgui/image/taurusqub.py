@@ -119,7 +119,7 @@ class TaurusQubDataImageDisplay(QubDataImageDisplay, TaurusBaseWidget):
         return True
     
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
     
     def handleEvent(self, evt_src, evt_type, evt_value):
         if self._updateAction.state():

@@ -41,7 +41,7 @@ from taurus.qt.qtgui.table import TaurusBaseTableWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
 from taurus.core.tango.sardana.pool import getChannelConfigs
-from taurus.core import TaurusElementType
+from taurus.core.taurusbasetypes import TaurusElementType
 
 #===============================================================================
 # some dummydict for developing the "Experimental Configuration widget"
@@ -900,7 +900,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         return ta
 
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
 
     def addChannel(self, channel=None):
         qmodel = self.getQModel()

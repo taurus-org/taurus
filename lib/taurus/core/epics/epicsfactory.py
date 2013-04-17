@@ -34,17 +34,29 @@ __all__ = ['EpicsFactory', 'EpicsDatabase', 'EpicsDevice',
 
 import time, re, weakref
 import numpy
-import taurus.core
-from taurus.core.taurusexception import TaurusException
-import taurus.core.util
-from taurus.core import MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
+
+from taurus import Factory
+from taurus.core.taurusexception import TaurusException, DoubleRegistration
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.log import Logger
+from taurus.core.taurusbasetypes import MatchLevel, TaurusSWDevState, \
+    SubscriptionState, TaurusEventType, TaurusAttrValue, TaurusTimeVal, \
+    AttrQuality
+from taurus.core.taurusfactory import TaurusFactory
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusconfiguration import TaurusConfiguration
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
+
 try:
     import epics 
 except ImportError: #note that if epics is not installed the factory will not be available
-    taurus.core.util.debug('cannot import epics module. Taurus will not support the "epics" scheme')
-    raise
+    from taurus.core.util.log import debug
+    debug('cannot import epics module. Taurus will not support the "epics" scheme')
+    #raise
 
-class AbstractEpicsNameValidator(taurus.core.util.Singleton):
+class AbstractEpicsNameValidator(Singleton):
     #@todo: provide a mechanism to make base_sep configurable at installation time. 
     base_sep = ':' #the following characters need to be escaped with "\":  ^$()<>[{\|.*+?
     name_pattern = ''
@@ -185,7 +197,7 @@ class EpicsConfigurationNameValidator(AbstractEpicsNameValidator):
         return names[0].rsplit('?configuration')[0]#remove the "?configuration..." substring from the fullname 
         
 
-class EpicsDatabase(taurus.core.TaurusDatabase):
+class EpicsDatabase(TaurusDatabase):
     '''
     Dummy database class for Epics (the Database concept is not used in the Epics scheme)
     
@@ -199,7 +211,7 @@ class EpicsDatabase(taurus.core.TaurusDatabase):
         return "EpicsDatabase object calling %s" % name
 
 
-class EpicsDevice(taurus.core.TaurusDevice):
+class EpicsDevice(TaurusDevice):
     '''
     An Epics device object. 
     @todo: For the moment is a dummy object. Eventually we may map it to an epics record.
@@ -219,7 +231,7 @@ class EpicsDevice(taurus.core.TaurusDevice):
     @classmethod
     def factory(cls):
         if cls._factory is None:
-            cls._factory = taurus.Factory(scheme='epics')
+            cls._factory = Factory(scheme='epics')
         return cls._factory
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -244,12 +256,12 @@ class EpicsDevice(taurus.core.TaurusDevice):
         else:
             self.info("Unexpected value to decode: %s" % str(event_value))
             new_sw_state = TaurusSWDevState.Crash
-        value = taurus.core.TaurusAttrValue() 
+        value = TaurusAttrValue() 
         value.value = new_sw_state
         return value
     
 
-class EpicsAttribute(taurus.core.TaurusAttribute):
+class EpicsAttribute(TaurusAttribute):
     '''
     A :class:`TaurusAttribute` that gives access to an Epics Process Variable.
     
@@ -260,7 +272,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
     '''
     
     def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(taurus.core.TaurusAttribute, name, parent, storeCallback=storeCallback)
+        self.call__init__(TaurusAttribute, name, parent, storeCallback=storeCallback)
                
         self.__attr_config = None
         self.__pv = epics.PV(self.getNormalName(), callback=self.onEpicsEvent)
@@ -270,7 +282,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
             self._value = self.decode_pv(self.__pv)
         else:
             self.info('connection to epics PV failed')
-            self._value = taurus.core.TaurusAttrValue()
+            self._value = TaurusAttrValue()
         
         #print "INIT",self.__pv, connected
         
@@ -322,37 +334,37 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
     def decode_pv(self, pv):
         """Decodes an epics pv into the expected taurus representation"""
         #@todo: This is a very basic implementation, and things like quality may not be correct
-        attr_value = taurus.core.TaurusAttrValue()
+        attr_value = TaurusAttrValue()
         attr_value.value = pv.value
         if pv.write_access:
             attr_value.w_value = pv.value
         if pv.timestamp is None: 
-            attr_value.time = taurus.core.TaurusTimeVal.now()
+            attr_value.time = TaurusTimeVal.now()
         else:
-            attr_value.time = taurus.core.TaurusTimeVal.fromtimestamp(pv.timestamp)
+            attr_value.time = TaurusTimeVal.fromtimestamp(pv.timestamp)
         if pv.severity > 0:
-            attr_value.quality = taurus.core.AttrQuality.ATTR_ALARM
+            attr_value.quality = AttrQuality.ATTR_ALARM
         else:
-            attr_value.quality = taurus.core.AttrQuality.ATTR_VALID
+            attr_value.quality = AttrQuality.ATTR_VALID
         attr_value.config.data_format = len(numpy.shape(attr_value.value))
         return attr_value
     
     def decode_epics_evt(self, evt):
         """Decodes an epics event (a callback keywords dict) into the expected taurus representation"""
         #@todo: This is a very basic implementation, and things like quality may not be correct
-        attr_value = taurus.core.TaurusAttrValue()
+        attr_value = TaurusAttrValue()
         attr_value.value = evt.get('value')
         if evt.get('write_access', False):
             attr_value.w_value = attr_value.value
         timestamp =  evt.get('timestamp', None)
         if timestamp is None: 
-            attr_value.time = taurus.core.TaurusTimeVal.now()
+            attr_value.time = TaurusTimeVal.now()
         else:
-            attr_value.time = taurus.core.TaurusTimeVal.fromtimestamp(timestamp)
+            attr_value.time = TaurusTimeVal.fromtimestamp(timestamp)
         if evt.get('severity', 1) > 0:
-            attr_value.quality = taurus.core.AttrQuality.ATTR_ALARM
+            attr_value.quality = AttrQuality.ATTR_ALARM
         else:
-            attr_value.quality = taurus.core.AttrQuality.ATTR_VALID
+            attr_value.quality = AttrQuality.ATTR_VALID
         attr_value.config.data_format = len(numpy.shape(attr_value.value))
         return attr_value
 
@@ -410,7 +422,7 @@ class EpicsAttribute(taurus.core.TaurusAttribute):
 
     
 
-class EpicsConfiguration(taurus.core.TaurusConfiguration):
+class EpicsConfiguration(TaurusConfiguration):
     '''
     A :class:`TaurusConfiguration` 
     
@@ -420,7 +432,7 @@ class EpicsConfiguration(taurus.core.TaurusConfiguration):
                  Instead it should be done via the :meth:`EpicsFactory.getConfig`
     '''
     def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(taurus.core.TaurusConfiguration, name, parent, storeCallback=storeCallback)
+        self.call__init__(TaurusConfiguration, name, parent, storeCallback=storeCallback)
         
         #fill the attr info
         i = parent.read().config
@@ -457,7 +469,7 @@ class EpicsConfiguration(taurus.core.TaurusConfiguration):
         return self._attr_info   
     
     
-class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
+class EpicsFactory(Singleton, TaurusFactory, Logger):
     """
     A Singleton class that provides Epics related objects.
     """
@@ -472,8 +484,8 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
     def init(self, *args, **kwargs):
         """Singleton instance initialization."""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
-        self.call__init__(taurus.core.TaurusFactory)
+        self.call__init__(Logger, name)
+        self.call__init__(TaurusFactory)
         self.epics_attrs = weakref.WeakValueDictionary()
         self.epics_devs = weakref.WeakValueDictionary()
         self.epics_configs = weakref.WeakValueDictionary()
@@ -553,15 +565,15 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         return a
 
     def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.TaurusConfiguration
+        """getConfiguration(param) -> taurus.core.taurusconfiguration.TaurusConfiguration
 
         Obtain the object corresponding to the given attribute or full name.
         If the corresponding configuration already exists, the existing instance
         is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] param taurus.core.TaurusAttribute object or full configuration name
+        @param[in] param taurus.core.taurusattribute.TaurusAttribute object or full configuration name
            
-        @return a taurus.core.TaurusAttribute object
+        @return a taurus.core.taurusattribute.TaurusAttribute object
         @throws TaurusException if the given name is invalid.
         """
         if isinstance(param, str):
@@ -594,10 +606,10 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         if exists is not None:
             if exists == dev: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.epics_devs[name] = dev
     
     def _storeAttr(self, attr):
@@ -606,10 +618,10 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         if exists is not None:
             if exists == attr: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.epics_attrs[name] = attr
         
     def _storeConfig(self, fullname, config):
@@ -619,10 +631,10 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         if exists is not None:
             if exists == config: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.epics_configs[name] = config
         
     def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
@@ -633,7 +645,7 @@ class EpicsFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
-        tmr = self.polling_timers.get(period,taurus.core.TaurusPollingTimer(period))
+        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
         self.polling_timers[period] = tmr
         tmr.addAttribute(attribute, self.isPollingEnabled())
         
@@ -678,7 +690,8 @@ def test1():
     
 
 def test2():
-    a=taurus.Attribute('epics://mp49t:sim1.RBV')
+    from taurus import Attribute
+    a = Attribute('epics://mp49t:sim1.RBV')
     class Dummy:
         n=0
         def eventReceived(self, s,t,v):

@@ -30,20 +30,22 @@ __all__ = ["TangoConfiguration"]
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
-import taurus.core
 import threading
 import weakref
 import time
 
 import PyTango
 
-from enums import EVENT_TO_POLLING_EXCEPTIONS
+from taurus import Factory, Manager
+from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.taurusconfiguration import TaurusConfiguration
+from .enums import EVENT_TO_POLLING_EXCEPTIONS
 
-class TangoConfiguration(taurus.core.TaurusConfiguration):
+class TangoConfiguration(TaurusConfiguration):
     
     def __init__(self, name, parent, storeCallback = None):
         self._events_working = False
-        self.call__init__(taurus.core.TaurusConfiguration, name, parent, storeCallback)
+        self.call__init__(TaurusConfiguration, name, parent, storeCallback)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
@@ -55,7 +57,7 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
     @classmethod
     def factory(cls):
         if cls._factory is None:
-            cls._factory = taurus.Factory("tango")
+            cls._factory = Factory("tango")
         return cls._factory
 
     def __getattr__(self, name):
@@ -129,18 +131,18 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
     def __fireRegisterEvent(self, listener):
         value = self.getValueObj()
         if value is not None:
-            self.fireEvent(taurus.core.TaurusEventType.Config, value, listener)
+            self.fireEvent(TaurusEventType.Config, value, listener)
 
     def addListener(self, listener):
         """ Add a TaurusListener object in the listeners list.
             If the listener is already registered nothing happens."""
-        ret = taurus.core.TaurusConfiguration.addListener(self, listener)
+        ret = TaurusConfiguration.addListener(self, listener)
         if not ret:
             return ret
         
         #fire a first configuration event
         #if len(self._listeners) > 1 or not self._events_working:
-        taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+        Manager().addJob(self.__fireRegisterEvent, None, (listener,))
         return ret
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -234,12 +236,12 @@ class TangoConfiguration(taurus.core.TaurusConfiguration):
         self._attr_timestamp = time.time()
         self._attr_info = self.decode(event.attr_conf)
         listeners = tuple(self._listeners)
-        #taurus.Manager().addJob(self._push_event, None, event)
-        taurus.Manager().addJob(self.fireEvent, None, taurus.core.TaurusEventType.Config, self._attr_info, listeners=listeners)
+        #Manager().addJob(self._push_event, None, event)
+        Manager().addJob(self.fireEvent, None, TaurusEventType.Config, self._attr_info, listeners=listeners)
         
     #def _push_event(self, event):
     #    """ Notify listeners when event received"""
-    #    self.fireEvent(taurus.core.TaurusEventType.Config, self._attr_info)
+    #    self.fireEvent(TaurusEventType.Config, self._attr_info)
     
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration

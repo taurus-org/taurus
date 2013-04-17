@@ -29,15 +29,13 @@ __all__ = ["TaurusListener", "TaurusExceptionListener"]
 
 __docformat__ = "restructuredtext"
 
-import PyTango
+from .util.log import Logger
 
-import util
-
-class TaurusListener(util.Logger):
+class TaurusListener(Logger):
     """ TaurusListener Interface"""
     
     def __init__(self, name, parent=None):
-        self.call__init__(util.Logger, name, parent)
+        self.call__init__(Logger, name, parent)
     
     def eventReceived(self, src, type, evt_value):
         """ Method to implement the event notification"""
@@ -60,6 +58,7 @@ class TaurusExceptionListener(object):
         self._printException(self)
 
     def exceptionReceived(self, exception):
+        import PyTango
         if isinstance(exception, PyTango.ConnectionFailed):
             self.connectionFailed(exception)
 

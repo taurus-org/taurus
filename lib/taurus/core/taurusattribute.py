@@ -31,14 +31,14 @@ __docformat__ = "restructuredtext"
 
 import weakref
 
-import taurusmodel
-import taurusconfiguration
-#from enums import TaurusEventType
+from taurus.core.taurusbasetypes import TaurusElementType
+from .taurusmodel import TaurusModel
+from .taurusconfiguration import TaurusConfigurationProxy
 
-class TaurusAttribute(taurusmodel.TaurusModel):
+class TaurusAttribute(TaurusModel):
     
     def __init__(self, name, parent, **kwargs):
-        self.call__init__(taurusmodel.TaurusModel, name, parent)
+        self.call__init__(TaurusModel, name, parent)
 
         self.__parentDevice = parent # just to keep it alive
         
@@ -65,22 +65,18 @@ class TaurusAttribute(taurusmodel.TaurusModel):
 
         self._dev_hw_obj = parent.getHWObj()
     
-    def __str__(self):
-        return self.getFullName()
-    
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
         self._unsubscribeEvents()
         self._dev_hw_obj = None
-        taurusmodel.TaurusModel.cleanUp(self)
+        TaurusModel.cleanUp(self)
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getTaurusElementType(self):
-        import taurus.core
-        return taurus.core.TaurusElementType.Attribute
+        return TaurusElementType.Attribute
             
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
@@ -343,7 +339,7 @@ class TaurusAttribute(taurusmodel.TaurusModel):
         if ob is not None:
             return ob
 
-        ob = taurusconfiguration.TaurusConfigurationProxy(self)
+        ob = TaurusConfigurationProxy(self)
         self.__weakFakeConfigObj = weakref.ref(ob)
         return ob
     
@@ -372,4 +368,6 @@ class TaurusStateAttribute(TaurusAttribute):
     def isInformDeviceOfErrors(self):
         return True
 
-
+#del weakef
+#del TaurusModel
+#del TaurusConfigurationProxy

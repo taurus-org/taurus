@@ -36,8 +36,8 @@ import os.path
 
 from taurus.qt import Qt
 
-import taurus.core.util
-import taurus.qt.qtgui.base
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
 
 
 def _getWidgetsOfType(widget, widgets, class_or_type_or_tuple):
@@ -64,7 +64,7 @@ def getWidgetsOfType(widget, class_or_type_or_tuple):
     return widgets
 
 
-class TaurusWidgetFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
+class TaurusWidgetFactory(Singleton, Logger):
     """The TaurusWidgetFactory is a utility class that provides information
     about all Qt widgets (Taurus and non Taurus) that are found in the
     current taurus distribution.
@@ -85,7 +85,7 @@ class TaurusWidgetFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
     def init(self, *args):
         """Singleton instance initialization."""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
+        self.call__init__(Logger, name)
         
         path = os.path.dirname(os.path.abspath(__file__))
         path, tail = os.path.split(path)

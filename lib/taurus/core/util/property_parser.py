@@ -30,7 +30,8 @@ import os
 import ply.lex as lex
 import ply.yacc as yacc
 
-from taurus.core.util import CaselessDict
+from .containers import CaselessDict
+from .log import Logger
 
 reserved = CaselessDict({
     'true'  : 'true',
@@ -171,13 +172,12 @@ def p_value_list_elems2(p):
     '''value_list : value'''
     p[0] = [p[1]]
 
-import taurus.core.util
 
-class PropertyParser(taurus.core.util.Logger):
+class PropertyParser(Logger):
     
     def __init__(self, parent=None):
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name, parent)
+        self.call__init__(Logger, name, parent)
         self._last_filename = None
 
     def parse_file(self, f, logger=None, debug=0, optimize=1):

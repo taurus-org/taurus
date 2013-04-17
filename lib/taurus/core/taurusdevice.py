@@ -29,16 +29,14 @@ __all__ = ["TaurusDevice"]
 
 __docformat__ = "restructuredtext"
 
-import sys
-
-from enums import TaurusSWDevState, TaurusEventType
-from taurusbasetypes import TaurusLockInfo
-import taurusmodel
+from .taurusbasetypes import TaurusSWDevState, TaurusEventType, \
+    TaurusLockInfo, TaurusElementType
+from .taurusmodel import TaurusModel
 
 DFT_DEVICE_DESCRIPTION = "A device"
 
 
-class TaurusDevice(taurusmodel.TaurusModel):
+class TaurusDevice(TaurusModel):
 
     SHUTDOWNS = (TaurusSWDevState.Shutdown, TaurusSWDevState.Crash,
                  TaurusSWDevState.EventSystemShutdown)
@@ -51,7 +49,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         parent = kw.pop('parent', None)
         storeCallback = kw.pop('storeCallback', None)
         self.__dict__.update(kw)
-        self.call__init__(taurusmodel.TaurusModel, name, parent)
+        self.call__init__(TaurusModel, name, parent)
 
         self._deviceObj = self._createHWObject()
         self._deviceStateObj = None
@@ -70,7 +68,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
         if not self._deviceStateObj is None:
             self._deviceStateObj.removeListener(self)
         self._deviceStateObj = None
-        taurusmodel.TaurusModel.cleanUp(self)
+        TaurusModel.cleanUp(self)
 
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
@@ -159,8 +157,7 @@ class TaurusDevice(taurusmodel.TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getTaurusElementType(self):
-        import taurus.core
-        return taurus.core.TaurusElementType.Device
+        return TaurusElementType.Device
 
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
@@ -189,8 +186,8 @@ class TaurusDevice(taurusmodel.TaurusModel):
         if not self.hasListeners() or not cache:
             try:
                 v = self.getStateObj().read(cache=cache)
-            except Exception:
-                v = sys.exc_info()[1]
+            except Exception as e:
+                v = e
             self._deviceSwState = self.decode(v)
         return self._deviceSwState
 
@@ -216,14 +213,14 @@ class TaurusDevice(taurusmodel.TaurusModel):
         return self._descr
 
     def removeListener(self, listener):
-        ret = taurusmodel.TaurusModel.removeListener(self, listener)
+        ret = TaurusModel.removeListener(self, listener)
         if not ret or self.hasListeners():
             return ret # False, None or True
         return self.getStateObj().removeListener(self)
 
     def addListener(self, listener):
         weWereListening = self.hasListeners()
-        ret = taurusmodel.TaurusModel.addListener(self, listener)
+        ret = TaurusModel.addListener(self, listener)
         if not ret:
             return ret
 

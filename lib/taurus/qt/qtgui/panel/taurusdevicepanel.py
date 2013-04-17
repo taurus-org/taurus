@@ -264,10 +264,10 @@ class TaurusDevicePanel(TaurusWidget):
         elif raw is None or not model or not modelclass: 
             if self.getModel(): self.detach()
             return
-        elif issubclass(modelclass,taurus.core.TaurusAttribute):
+        elif issubclass(modelclass,taurus.core.taurusattribute.TaurusAttribute):
             #if model.lower().endswith('/state'): 
             model = model.rsplit('/',1)[0]
-        elif not issubclass(modelclass,taurus.core.TaurusDevice):
+        elif not issubclass(modelclass,taurus.core.taurusdevice.TaurusDevice):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
         try:

@@ -72,7 +72,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
   
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
     
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
@@ -212,7 +212,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
     
     def getTaurusTrendItems(self):
         return [item for item in self.get_plot().get_public_items() if isinstance(item, TaurusTrendItem)]
@@ -439,7 +439,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
         
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''

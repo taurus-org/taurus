@@ -34,13 +34,19 @@ import os
 
 import PyTango
 import PyTango.utils
-import taurus.core
-import taurus.core.util
+
+from taurus import Factory
+from taurus.core.taurusbasetypes import TaurusSWDevHealth
+from taurus.core.taurusdatabase import TaurusDatabaseCache, TaurusDevInfo, \
+    TaurusAttrInfo, TaurusServInfo, TaurusDevClassInfo, TaurusDevTree, \
+    TaurusServerTree
+from taurus.core.util.containers import CaselessDict
+from taurus.core.taurusdatabase import TaurusDatabase
 
 InvalidAlias = "nada"
 
 
-class TangoDevInfo(taurus.core.TaurusDevInfo):
+class TangoDevInfo(TaurusDevInfo):
     
     def __init__(self, container, name=None, full_name=None, alias=None, server=None, klass=None, exported=False, host=None):
         super(TangoDevInfo, self).__init__(container, name=name, full_name=full_name, alias=alias, server=server, klass=klass, exported=exported, host=host)
@@ -84,9 +90,9 @@ class TangoDevInfo(taurus.core.TaurusDevInfo):
             return self._health
         exported = self.exported()
         if exported:
-            self._health = taurus.core.TaurusSWDevHealth.Exported
+            self._health = TaurusSWDevHealth.Exported
         else:
-            self._health = taurus.core.TaurusSWDevHealth.NotExported
+            self._health = TaurusSWDevHealth.NotExported
         return self._health
     
     def refreshAttributes(self):
@@ -98,18 +104,18 @@ class TangoDevInfo(taurus.core.TaurusDevInfo):
             attr_info_list = dev.attribute_list_query_ex()
             for attr_info in attr_info_list:
                 full_name = "%s/%s" % (self.fullName(), attr_info.name)
-                attr_obj = taurus.core.TaurusAttrInfo(self.container(), 
+                attr_obj = TaurusAttrInfo(self.container(), 
                     name=attr_info.name.lower(), full_name=full_name.lower(),
                     device=self, info=attr_info)
                 attrs.append(attr_obj)
             attrs = sorted(attrs, key=lambda attr : attr.name())
-        except PyTango.DevFailed, df:
-            if self.health() == taurus.core.TaurusSWDevHealth.Exported:
-                self._health = taurus.core.TaurusSWDevHealth.ExportedNotAlive
+        except PyTango.DevFailed as df:
+            if self.health() == TaurusSWDevHealth.Exported:
+                self._health = TaurusSWDevHealth.ExportedNotAlive
         self.setAttributes(attrs)
 
 
-class TangoServInfo(taurus.core.TaurusServInfo):
+class TangoServInfo(TaurusServInfo):
     
     def __init__(self, container, name=None, full_name=None):
         super(TangoServInfo, self).__init__(container, name=name, full_name=full_name)
@@ -134,7 +140,7 @@ class TangoServInfo(taurus.core.TaurusServInfo):
         return self._alive
 
 
-class TangoDatabaseCache(taurus.core.TaurusDatabaseCache):
+class TangoDatabaseCache(TaurusDatabaseCache):
 
     def refresh(self):
         db = self.db
@@ -146,7 +152,7 @@ class TangoDatabaseCache(taurus.core.TaurusDatabaseCache):
         results, data = r[0][:-2], r[1]
         assert row_nb == len(data) / column_nb
         
-        CD = taurus.core.util.CaselessDict
+        CD = CaselessDict
         #CD = dict
         dev_dict, serv_dict, klass_dict, alias_dict = CD(), {}, {}, CD()
 
@@ -157,13 +163,13 @@ class TangoDatabaseCache(taurus.core.TaurusDatabaseCache):
             if not len(alias): alias = None
 
             serv_dict[server] = si = serv_dict.get(server, 
-                                                   TangoServInfo(self, name=server, 
+                                                   TangoServInfo(self, name=server,
                                                                  full_name=server))
             
             klass_dict[klass] = dc = klass_dict.get(klass,
-                                                    taurus.core.TaurusDevClassInfo(self, 
-                                                                                   name=klass, 
-                                                                                   full_name=klass))
+                                                    TaurusDevClassInfo(self,
+                                                                       name=klass,
+                                                                       full_name=klass))
             
             full_name = "tango://%s/%s" % (db.getFullName(), name) 
             dev_dict[name] = di = TangoDevInfo(self, name=name, full_name=full_name, 
@@ -176,8 +182,8 @@ class TangoDatabaseCache(taurus.core.TaurusDatabaseCache):
                 alias_dict[alias] = di
         
         self._devices = dev_dict
-        self._device_tree = taurus.core.TaurusDevTree(dev_dict)
-        self._server_tree = taurus.core.TaurusServerTree(serv_dict)
+        self._device_tree = TaurusDevTree(dev_dict)
+        self._server_tree = TaurusServerTree(serv_dict)
         self._servers = serv_dict
         self._klasses = klass_dict
         self._aliases = alias_dict
@@ -196,13 +202,12 @@ class TangoDatabaseCache(taurus.core.TaurusDatabaseCache):
             attr_info_list = dev.attribute_list_query_ex()
             for attr_info in attr_info_list:
                 full_attr_name = "%s/%s" % (full_name, attr_info.name)
-                attr_obj = taurus.core.TaurusAttrInfo(self, name=attr_info.name, 
-                                                      full_name=full_attr_name, 
-                                                      device=device, 
-                                                      info=attr_info) 
+                attr_obj = TaurusAttrInfo(self, name=attr_info.name,
+                                          full_name=full_attr_name,
+                                          device=device, info=attr_info) 
                 attrs.append(attr_obj)
             attrs = sorted(attrs, key=lambda attr : attr.name().lower())
-        except PyTango.DevFailed, df:
+        except PyTango.DevFailed as df:
             pass
         device.setAttributes(attrs)
 
@@ -278,7 +283,7 @@ def get_env_var(env_var_name):
             return val
 
 
-class TangoDatabase(taurus.core.TaurusDatabase):
+class TangoDatabase(TaurusDatabase):
 
     def __init__(self,host=None,port=None,parent=None):
         pars = ()
@@ -295,7 +300,7 @@ class TangoDatabase(taurus.core.TaurusDatabase):
         self._dbCache = None
         
         complete_name = "%s:%s" % (host, port)
-        self.call__init__(taurus.core.TaurusDatabase, complete_name, parent)
+        self.call__init__(TaurusDatabase, complete_name, parent)
 
         try:
             self.get_class_for_device(self.dev_name())
@@ -343,7 +348,7 @@ class TangoDatabase(taurus.core.TaurusDatabase):
     @classmethod
     def factory(cls):
         if cls._factory is None:
-            cls._factory = taurus.Factory(scheme='tango')
+            cls._factory = Factory(scheme='tango')
         return cls._factory
         
     def getValueObj(self,cache=True):

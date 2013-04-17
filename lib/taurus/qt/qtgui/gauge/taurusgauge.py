@@ -55,7 +55,7 @@ class TaurusLinearGauge(qtcontrols.ELinearGauge, TaurusBaseWidget):
     
     def getModelClass(self):
         import taurus.core
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         v, v_ref = None, None
@@ -147,7 +147,7 @@ class TaurusCircularGauge(qtcontrols.ECircularGauge, TaurusBaseWidget):
     
     def getModelClass(self):
         import taurus.core
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         v, v_ref = None, None

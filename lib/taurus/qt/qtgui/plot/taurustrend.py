@@ -204,7 +204,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         attr = self.getModelObj()
         basetitle = basetitle.replace('<current_title>',self._titleText)
         basetitle = basetitle.replace('<model>',self.getModel())
-        if isinstance(attr, taurus.core.TaurusAttribute):
+        if isinstance(attr, taurus.core.taurusattribute.TaurusAttribute):
             basetitle = basetitle.replace('<label>',attr.label or '---')
             basetitle = basetitle.replace('<attr_name>',attr.name or '---')
             basetitle = basetitle.replace('<attr_fullname>',attr.getFullName() or '---')
@@ -252,7 +252,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def registerDataChanged(self,listener,meth):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''

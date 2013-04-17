@@ -31,13 +31,12 @@ __all__ = ["TaurusAttributeChooser"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 from taurus.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from taurus.core.util import CaselessList
+from taurus.core.util.containers import CaselessList
 
-from ui.ui_AttributeChooser import *
+from .ui.ui_AttributeChooser import *
 
 class TaurusAttributeChooser(Qt.QWidget, TaurusBaseWidget):
     
@@ -209,7 +208,8 @@ def main(args):
     win.show()
     app.connect(app, Qt.SIGNAL("lastWindowClosed()"),app,Qt.SLOT("quit()"))
 
-    sys.exit(app.exec_())
+    return app.exec_()
 
 if __name__=="__main__":
-    main(sys.argv)
+    import sys
+    sys.exit(main(sys.argv))

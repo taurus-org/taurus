@@ -31,6 +31,7 @@ import numpy
 from taurus.qt import Qt
 
 import taurus
+from taurus.core.util.colors import DEVICE_STATE_PALETTE
 import taurus.qt.qtcore.mimetypes
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -414,7 +415,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         pos_btnstylesheet = ''
         enabled = True
         if pos_lim:
-            pos_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+            pos_btnstylesheet = 'QPushButton{%s}'%DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
         self.ui.btnMax.setStyleSheet(pos_btnstylesheet)
         self.ui.btnGoToPos.setEnabled(enabled)
@@ -426,7 +427,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         neg_btnstylesheet = ''
         enabled = True
         if neg_lim:
-            neg_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+            neg_btnstylesheet = 'QPushButton{%s}'%DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
         self.ui.btnMin.setStyleSheet(neg_btnstylesheet)
         self.ui.btnGoToNeg.setEnabled(enabled)
@@ -1283,7 +1284,7 @@ class PoolMotorTV(TaurusValue):
         pos_btnstylesheet = ''
         enabled = True
         if pos_lim:
-            pos_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+            pos_btnstylesheet = 'QPushButton{%s}'%DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
         self.readWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
 
@@ -1296,7 +1297,7 @@ class PoolMotorTV(TaurusValue):
         neg_btnstylesheet = ''
         enabled = True
         if neg_lim:
-            neg_btnstylesheet = 'QPushButton{%s}'%taurus.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+            neg_btnstylesheet = 'QPushButton{%s}'%DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
         self.readWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
 

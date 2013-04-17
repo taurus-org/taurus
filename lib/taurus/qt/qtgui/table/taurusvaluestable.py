@@ -37,7 +37,7 @@ from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 
 TableRWState = Enumeration("TableRWState", ("Read", "Write"))
 
@@ -571,7 +571,7 @@ class TaurusValuesTable(TaurusWidget):
     
     def getModelClass(self):
         '''see :meth:`TaurusWidget.getModelClass`'''
-        return taurus.core.TaurusAttribute    
+        return taurus.core.taurusattribute.TaurusAttribute    
     
     def setModel(self, model):
         '''Reimplemented from :meth:`TaurusWidget.setModel`'''

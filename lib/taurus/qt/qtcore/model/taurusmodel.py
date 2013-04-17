@@ -29,9 +29,9 @@ __all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
-import taurus.core
 from taurus.qt import Qt
-from taurus.core.util import Logger
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.util.log import Logger
 
 class TaurusBaseTreeItem(object):
     """A generic node"""
@@ -158,7 +158,7 @@ class TaurusBaseTreeItem(object):
         as the model that is used is compatible.
         
         :return: (taurus.core.TaurusElementType) the role in form of element type"""
-        return taurus.core.TaurusElementType.Unknown
+        return TaurusElementType.Unknown
 
     def __str__(self):
         return self.display()

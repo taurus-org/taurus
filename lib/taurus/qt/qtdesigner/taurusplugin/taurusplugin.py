@@ -41,27 +41,23 @@ taurusplugin.py:
       editing the widget model (same has 'Edit model...' task menu item
 """
 
-import os
-
 from taurus.qt import Qt
-from PyQt4 import QtDesigner
+from taurus.qt import QtDesigner
 
-import taurus.core
-import taurus.core.util
-import logging
+from taurus.core.util.log import Logger
 
 def Q_TYPEID(class_name):
     """ Helper function to generate an IID for Qt. Returns a QString."""
     return Qt.QString("com.trolltech.Qt.Designer.%s" % class_name)
 
-designer_logger = taurus.core.util.Logger("QtDesigner")
+designer_logger = Logger("PyQtDesigner")
 
 class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
     """TaurusWidgetPlugin"""
     
     def __init__(self, parent = None):
         QtDesigner.QPyDesignerCustomWidgetPlugin.__init__(self)
-        self._log = taurus.core.util.Logger(self._getWidgetClassName(), designer_logger)
+        self._log = Logger(self._getWidgetClassName(), designer_logger)
         self.initialized = False
     
     def initialize(self, formEditor):
@@ -95,10 +91,10 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
             w = None
         return w
     
-    def getWidgetInfo(self, key):
+    def getWidgetInfo(self, key, dft=None):
         if not hasattr(self, '_widgetInfo'):
             self._widgetInfo = self.getWidgetClass().getQtDesignerPluginInfo()
-        return self._widgetInfo.get(key)
+        return self._widgetInfo.get(key, dft)
     
     # This method returns the name of the custom widget class that is provided
     # by this plugin.
@@ -109,10 +105,7 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         """ Returns the name of the group in Qt Designer's widget box that this 
             widget belongs to.
             It returns 'Taurus Widgets'. Overwrite if want another group."""
-        group = self.getWidgetInfo('group')
-        if group is None:
-            group = 'Taurus Widgets'
-        return group
+        return self.getWidgetInfo('group', 'Taurus Widgets')
 
     def getIconName(self):
         return self.getWidgetInfo('icon')
@@ -149,9 +142,4 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return whatsthis
     
     def isContainer(self):
-        container = self.getWidgetInfo('container')
-        if container is None:
-            container = False
-        return container
-    
-    
+        return self.getWidgetInfo('container', False)

@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 # ugly
 import PyTango
 
-from taurus.core import TaurusEventType
+from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import LedStatus, LedColor
@@ -83,7 +83,7 @@ class TaurusStateLed(QLed, TaurusBaseWidget):
 
     def getModelClass(self):
         import taurus.core
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def isReadOnly(self):
         return True

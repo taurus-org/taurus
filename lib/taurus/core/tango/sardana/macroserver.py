@@ -39,17 +39,25 @@ import os.path as osp
 
 import PyTango
 
+from lxml import etree
+
 from taurus import Device, Factory
-from taurus.core import TaurusManager, TaurusEventType, TaurusSWDevState, \
+from taurus.core.taurusmanager import TaurusManager
+from taurus.core.taurusbasetypes import TaurusEventType, TaurusSWDevState, \
     TaurusSerializationMode
-from taurus.core.util import etree, CodecFactory, CaselessDict, Logger, \
-    EventGenerator, AttributeEventWait
+
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.event import EventGenerator, AttributeEventWait
 from taurus.core.tango import TangoDevice
 
-from macro import MacroInfo, Macro, MacroNode, ParamFactory, RepeatNode, \
+from .macro import MacroInfo, Macro, MacroNode, ParamFactory, RepeatNode, \
     RepeatParamNode, SingleParamNode, ParamNode
-from sardana import BaseSardanaElementContainer, BaseSardanaElement
-from pool import getChannelConfigs
+from .sardana import BaseSardanaElementContainer, BaseSardanaElement
+from .pool import getChannelConfigs
+
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
 

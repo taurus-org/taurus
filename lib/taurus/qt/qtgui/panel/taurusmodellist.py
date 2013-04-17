@@ -33,7 +33,8 @@ import copy
 
 from taurus.qt import Qt
 import taurus
-from taurus.core import TaurusException, TaurusElementType
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.taurusexception import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getIcon
 

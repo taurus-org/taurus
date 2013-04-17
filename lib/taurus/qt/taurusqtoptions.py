@@ -38,8 +38,8 @@ QT_USE_API2 = True
 
 
 def get_logger():
-    import taurus.core.util
-    return taurus.core.util.Logger('TaurusQt')
+    import taurus.core.util.log
+    return taurus.core.util.log.Logger('TaurusQt')
 
 
 def prepare_pyqt():

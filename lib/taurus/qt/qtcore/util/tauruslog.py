@@ -23,29 +23,29 @@
 ##
 #############################################################################
 
-"""This module sets the taurus.core.util.Logger to be the Qt message handler"""
+"""This module sets the taurus.core.util.log.Logger to be the Qt message handler"""
 
 __all__ = ['getQtLogger', 'initTaurusQtLogger']
 
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-import taurus.core.util
+from taurus import Logger
 
 qtLogger = None
 
 QT_LEVEL_MATCHER = {
-    Qt.QtDebugMsg    : taurus.core.util.Logger.debug,
-    Qt.QtWarningMsg  : taurus.core.util.Logger.warning,
-    Qt.QtCriticalMsg : taurus.core.util.Logger.error,
-    Qt.QtFatalMsg    : taurus.core.util.Logger.error,
-    Qt.QtSystemMsg   : taurus.core.util.Logger.info
+    Qt.QtDebugMsg    : Logger.debug,
+    Qt.QtWarningMsg  : Logger.warning,
+    Qt.QtCriticalMsg : Logger.error,
+    Qt.QtFatalMsg    : Logger.error,
+    Qt.QtSystemMsg   : Logger.info
 }
 
 def getQtLogger():
     global qtLogger
     if qtLogger is None:
-        qtLogger = taurus.core.util.Logger('QtLogger')
+        qtLogger = Logger('QtLogger')
     return qtLogger
     
 def qtTaurusMsgHandler(type, msg):

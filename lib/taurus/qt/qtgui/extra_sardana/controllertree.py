@@ -266,7 +266,7 @@ class ControllerClassTreeWidget(TaurusBaseTreeWidget):
     DftPerspective = PoolControllerView.ControllerModule
         
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
 
 
 class ControllerClassSelectionDialog(Qt.QDialog):

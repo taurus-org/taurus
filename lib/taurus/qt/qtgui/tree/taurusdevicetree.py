@@ -39,15 +39,15 @@ except:icons_dev_tree = None
 from taurus.qt import Qt
 
 import taurus.core
-from taurus.core.util import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
-from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
-from taurus.qt.qtgui.container import TaurusWidget
+from taurus.core.util.colors import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE
+from taurus.core.util.containers import CaselessDict
+from taurus.core.tango.search import * #@TODO: Avoid implicit imports
 from taurus.qt.qtcore.util.emitter import SingletonWorker
-from taurus.core.util import CaselessDict
 from taurus.qt.qtcore.mimetypes import *  #@TODO: Avoid implicit imports
 from taurus.qt.qtcore.util import properties
 from taurus.qt.qtcore.util.properties import djoin
-from taurus.core.tango.search import * #@TODO: Avoid implicit imports
+from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
+from taurus.qt.qtgui.container import TaurusWidget
 
 TREE_ITEM_MIME_TYPE = 'application/x-qabstractitemmodeldatalist'
 
@@ -440,7 +440,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         return self._filters    
     
     def getModelClass(self):
-        return list #taurus.core.TaurusDatabase
+        return list #taurus.core.taurusdatabase.TaurusDatabase
     
     def setFilters(self,filters):
         filters = split_model_list(filters)
@@ -1136,7 +1136,7 @@ class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
         return self.log_name + "(" + self.modelName + ")"
 
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseComponent over writing

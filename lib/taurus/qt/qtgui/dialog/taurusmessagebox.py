@@ -33,8 +33,11 @@ __docformat__ = 'restructuredtext'
 import sys
 
 from taurus.qt import Qt
+
 from taurus.core.util.excepthook import BaseExceptHook
+from taurus.core.util.log import LogExceptHook
 from taurus.core.util.wrap import wraps
+
 
 class TaurusMessageBox(Qt.QDialog):
     """A panel intended to display a taurus error.
@@ -264,7 +267,7 @@ class TaurusExceptHookMessageBox(BaseExceptHook):
         app = Qt.QApplication.instance()
         if app is None:
             import taurus.core.util
-            taurus.core.util.LogExceptHook().report(*exc_info)
+            LogExceptHook().report(*exc_info)
             return
         msgbox = self._getMessageBox(*exc_info)
         if msgbox is None:

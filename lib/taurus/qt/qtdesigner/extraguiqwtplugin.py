@@ -27,11 +27,13 @@
 guiqwt widgets plugins for Qt Designer
 """
 
-from guiqwt.qtdesigner import create_qtdesigner_plugin
+try:
+    from guiqwt.qtdesigner import create_qtdesigner_plugin
+    PlotPlugin = create_qtdesigner_plugin("guiqwt", "guiqwt.plot", "CurveWidget",
+                                      icon="curve.png")
 
-PlotPlugin = create_qtdesigner_plugin("guiqwt", "guiqwt.plot", "CurveWidget",
-                                  icon="curve.png")
-
-ImagePlotPlugin = create_qtdesigner_plugin("guiqwt", "guiqwt.plot", "ImageWidget",
-                                  icon="image.png")
-
+    ImagePlotPlugin = create_qtdesigner_plugin("guiqwt", "guiqwt.plot", "ImageWidget",
+                                      icon="image.png")
+except ImportError:
+    from taurus.core.util.log import debug
+    debug("failed to load guiqwt designer plugin")

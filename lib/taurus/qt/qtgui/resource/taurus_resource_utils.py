@@ -37,13 +37,13 @@ import os
 
 from taurus.qt import Qt
 
-import taurus.core
-import taurus.core.util
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
+from taurus.core.util.log import Logger
 
-__LOGGER = taurus.core.util.Logger(__name__)
+__LOGGER = Logger(__name__)
 
-ElemType = taurus.core.TaurusElementType
-DevHealth = taurus.core.TaurusSWDevHealth
+ElemType = TaurusElementType
+DevHealth = TaurusSWDevHealth
 Size = Qt.QSize
 
 __INITIALIZED = False

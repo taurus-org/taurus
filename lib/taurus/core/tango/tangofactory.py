@@ -34,24 +34,27 @@ import os
 import threading
 import PyTango
 
-import taurus.core
-import taurus.core.util
-from taurus.core import OperationMode, MatchLevel, TaurusException
+from taurus.core.taurusfactory import TaurusFactory
+from taurus.core.taurusbasetypes import OperationMode, MatchLevel
+from taurus.core.taurusexception import TaurusException, DoubleRegistration
+from taurus.core.util.enumeration import Enumeration
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.containers import CaselessWeakValueDict, CaselessDict
 
-import tangodatabase
-import tangoattribute
-import tangodevice
-import tangoconfiguration
+from .tangodatabase import TangoDatabase, InvalidAlias
+from .tangoattribute import TangoAttribute, TangoStateAttribute
+from .tangodevice import TangoDevice
+from .tangoconfiguration import TangoConfiguration
 
-_Database = tangodatabase.TangoDatabase
-_Attribute = tangoattribute.TangoAttribute
-_StateAttribute = tangoattribute.TangoStateAttribute
-_Device = tangodevice.TangoDevice
-_Configuration = tangoconfiguration.TangoConfiguration
+_Database = TangoDatabase
+_Attribute = TangoAttribute
+_StateAttribute = TangoStateAttribute
+_Device = TangoDevice
+_Configuration = TangoConfiguration
 
-from taurus.core import DoubleRegistration
 
-class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
+class TangoFactory(Singleton, TaurusFactory, Logger):
     """A Singleton class designed to provide Tango related objects.
 
       The TangoFactory model containning the Factory for the Tango scheme
@@ -94,8 +97,8 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         """Singleton instance initialization.
            **For internal usage only**"""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
-        self.call__init__(taurus.core.TaurusFactory)
+        self.call__init__(Logger, name)
+        self.call__init__(TaurusFactory)
         self._polling_enabled = True
         self.reInit()
 
@@ -104,20 +107,20 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         self._default_tango_host = None
         self.operation_mode = OperationMode.ONLINE
         self.dft_db = None
-        self.tango_db = taurus.core.util.CaselessWeakValueDict()
-        self.tango_db_queries = taurus.core.util.CaselessWeakValueDict()
-        self.tango_configs = taurus.core.util.CaselessWeakValueDict()
-        self.tango_attrs = taurus.core.util.CaselessWeakValueDict()
-        self.tango_devs = taurus.core.util.CaselessWeakValueDict()
-        self.tango_dev_queries = taurus.core.util.CaselessWeakValueDict()
-        self.tango_alias_devs = taurus.core.util.CaselessWeakValueDict()
+        self.tango_db = CaselessWeakValueDict()
+        self.tango_db_queries = CaselessWeakValueDict()
+        self.tango_configs = CaselessWeakValueDict()
+        self.tango_attrs = CaselessWeakValueDict()
+        self.tango_devs = CaselessWeakValueDict()
+        self.tango_dev_queries = CaselessWeakValueDict()
+        self.tango_alias_devs = CaselessWeakValueDict()
         self.polling_timers = {}
         
         # Plugin device classes
         self.tango_dev_klasses = {}
         
         # Plugin attribute classes
-        self.tango_attr_klasses = taurus.core.util.CaselessDict()
+        self.tango_attr_klasses = CaselessDict()
         self.tango_attr_klasses["state"] = _StateAttribute
 
     def cleanUp(self):
@@ -333,7 +336,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         if dev_name:
             try:
                 alias = db.get_alias(dev_name)
-                if alias and alias.lower() == taurus.core.InvalidAlias:
+                if alias and alias.lower() == InvalidAlias:
                     alias = None 
             except:
                 alias = None
@@ -455,7 +458,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
            If the corresponding configuration already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
 
-           :param param: (taurus.core.TaurusAttribute or str) attrubute object or full configuration name
+           :param param: (taurus.core.taurusattribute.TaurusAttribute or str) attrubute object or full configuration name
            
            :return: (taurus.core.tango.TangoConfiguration) configuration object
         """
@@ -490,7 +493,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         params = validator.getParams(cfg_name)
                 
         if params is None:
-            raise taurus.core.TaurusException("Invalid Tango configuration name %s" % cfg_name)
+            raise TaurusException("Invalid Tango configuration name %s" % cfg_name)
         
         host,port = params.get('host'),params.get('port')
         db = None
@@ -639,7 +642,7 @@ class TangoFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus
         if dev_name:
             try:
                 alias = db.get_alias(dev_name)
-                if alias and alias.lower() == taurus.core.InvalidAlias:
+                if alias and alias.lower() == InvalidAlias:
                     alias = None 
             except:
                 alias = None

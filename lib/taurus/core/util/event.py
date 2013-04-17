@@ -460,7 +460,7 @@ class ListEventGenerator(EventGenerator):
 
 
 class AttributeEventWait(object):
-    """Class designed to connect to a :class:`taurus.core.TaurusAttribute` and
+    """Class designed to connect to a :class:`taurus.core.taurusattribute.TaurusAttribute` and
     fire events or wait for a certain event."""
 
     def __init__(self, attr=None):
@@ -474,7 +474,7 @@ class AttributeEventWait(object):
     def connect(self, attr):
         """Connect to the given attribute
         :param attr: the attribute to connect to
-        :type  attr: taurus.core.TaurusAttribute"""
+        :type  attr: taurus.core.taurusattribute.TaurusAttribute"""
         needAdd = True
         if self._attr is not None:
             if attr == self._attr:

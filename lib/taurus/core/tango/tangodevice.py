@@ -32,8 +32,9 @@ __docformat__ = "restructuredtext"
 import time
 import PyTango
 
-import taurus.core
-from taurus.core import TaurusSWDevState, TaurusLockInfo, LockStatus
+from taurus import Factory
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusLockInfo, LockStatus
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
@@ -46,10 +47,10 @@ class _TangoInfo(object):
         self.server_id = 'Unknown'
         self.server_version = 1
                 
-class TangoDevice(taurus.core.TaurusDevice):
+class TangoDevice(TaurusDevice):
     def __init__(self, name, **kw):
         """Object initialization."""
-        self.call__init__(taurus.core.TaurusDevice, name, **kw)
+        self.call__init__(TaurusDevice, name, **kw)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
@@ -60,7 +61,7 @@ class TangoDevice(taurus.core.TaurusDevice):
     @classmethod
     def factory(cls):
         if cls._factory is None:
-            cls._factory = taurus.Factory(scheme='tango')
+            cls._factory = Factory(scheme='tango')
         return cls._factory
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

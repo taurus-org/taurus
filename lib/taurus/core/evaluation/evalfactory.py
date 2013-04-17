@@ -35,10 +35,21 @@ __all__ = ['EvaluationFactory', 'EvaluationDatabase', 'EvaluationDevice',
 import time, re, weakref
 import numpy
 
+import taurus
 from taurus.core.taurusexception import TaurusException
-import taurus.core
-from taurus.core import MatchLevel, TaurusSWDevState, SubscriptionState, TaurusEventType
-from taurus.core.util import SafeEvaluator, Singleton, Logger
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
+from taurus.core.taurusbasetypes import MatchLevel, TaurusSWDevState, \
+    SubscriptionState, TaurusEventType, TaurusAttrValue, TaurusTimeVal, \
+    AttrQuality
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.safeeval import SafeEvaluator
+from taurus.core.taurusfactory import TaurusFactory
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusconfiguration import TaurusConfiguration
+
 
 class AbstractEvaluationNameValidator(Singleton):
     #the object name class. *must* be implemented in subclasses
@@ -242,7 +253,7 @@ class EvaluationConfigurationNameValidator(AbstractEvaluationNameValidator):
             transf = re.sub(k,v, transf)
         return transf
 
-class EvaluationDatabase(taurus.core.TaurusDatabase):
+class EvaluationDatabase(TaurusDatabase):
     '''
     Dummy database class for Evaluation (the Database concept is not used in the Evaluation scheme)
     
@@ -256,7 +267,7 @@ class EvaluationDatabase(taurus.core.TaurusDatabase):
         return "EvaluationDatabase object calling %s" % name
 
 
-class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
+class EvaluationDevice(TaurusDevice, SafeEvaluator):
     '''
     The evaluator object. It is a :class:`TaurusDevice` and is used as the
     parent of :class:`EvaluationAttribute` objects for which it performs the
@@ -271,7 +282,7 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
     
     def __init__(self, name, **kw):
         """Object initialization."""
-        self.call__init__(taurus.core.TaurusDevice, name, **kw)
+        self.call__init__(TaurusDevice, name, **kw)
         safedict = {}
         for s in self._symbols:
             if hasattr(self,s):
@@ -312,12 +323,12 @@ class EvaluationDevice(taurus.core.TaurusDevice, SafeEvaluator):
         else:
             self.info("Unexpected value to decode: %s" % str(event_value))
             new_sw_state = TaurusSWDevState.Crash
-        value = taurus.core.TaurusAttrValue() 
+        value = TaurusAttrValue() 
         value.value = new_sw_state
         return value
     
 
-class EvaluationAttribute(taurus.core.TaurusAttribute):
+class EvaluationAttribute(TaurusAttribute):
     '''
     A :class:`TaurusAttribute` that can be used to perform mathematical
     operations involving other arbitrary Taurus attributes. The mathematical
@@ -335,15 +346,15 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
     cref_RegExp = re.compile("\{(.+?)\}") #regexp for references to other taurus models within operation model names
 
     def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(taurus.core.TaurusAttribute, name, parent, storeCallback=storeCallback)
+        self.call__init__(TaurusAttribute, name, parent, storeCallback=storeCallback)
         
-        self._value = taurus.core.TaurusAttrValue()
+        self._value = TaurusAttrValue()
         self._value.config.writable = False #Evaluation Attributes are always read-only (at least for now)
         self._references = [] 
         self._validator= self.getNameValidator()
         self._transformation = None
         # reference to the configuration object
-        self.__attr_config = None#taurus.core.TaurusConfiguration()
+        self.__attr_config = None#taurus.core.configuration.TaurusConfiguration()
         self.__subscription_state = SubscriptionState.Unsubscribed
 
         
@@ -475,11 +486,11 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         try:
             evaluator = self.getParentObj() 
             self._value.value = evaluator.eval(self._transformation)
-            self._value.time = taurus.core.TaurusTimeVal.now()
-            self._value.quality = taurus.core.AttrQuality.ATTR_VALID
+            self._value.time = TaurusTimeVal.now()
+            self._value.quality = AttrQuality.ATTR_VALID
             self._value.config.data_format = len(numpy.shape(self._value.value))
         except Exception, e:
-            self._value.quality = taurus.core.AttrQuality.ATTR_INVALID
+            self._value.quality = AttrQuality.ATTR_INVALID
             self.warning("the function '%s' could not be evaluated. Reason: %s"%(self._transformation, repr(e)))
             #self.traceback(taurus.Warning)
             
@@ -566,7 +577,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         
         initial_subscription_state = self.__subscription_state
         
-        ret = taurus.core.TaurusAttribute.addListener(self, listener)
+        ret = TaurusAttribute.addListener(self, listener)
 
         if not ret:
             return ret
@@ -586,7 +597,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         """ Remove a TaurusListener from the listeners list. If polling enabled 
             and it is the last element then stop the polling timer.
             If the listener is not registered nothing happens."""
-        ret = taurus.core.TaurusAttribute.removeListener(self, listener)
+        ret = TaurusAttribute.removeListener(self, listener)
 
         cfg = self._getRealConfig()
         cfg.removeListener(listener)
@@ -597,7 +608,7 @@ class EvaluationAttribute(taurus.core.TaurusAttribute):
         return ret
     
 
-class EvaluationConfiguration(taurus.core.TaurusConfiguration):
+class EvaluationConfiguration(TaurusConfiguration):
     '''
     A :class:`TaurusConfiguration` 
     
@@ -607,7 +618,7 @@ class EvaluationConfiguration(taurus.core.TaurusConfiguration):
                  Instead it should be done via the :meth:`EvaluationFactory.getConfig`
     '''
     def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(taurus.core.TaurusConfiguration, name, parent, storeCallback=storeCallback)
+        self.call__init__(TaurusConfiguration, name, parent, storeCallback=storeCallback)
         
         #fill the attr info
         i = parent.read().config
@@ -643,7 +654,7 @@ class EvaluationConfiguration(taurus.core.TaurusConfiguration):
         """ Returns the current configuration for the attribute."""
         return self._attr_info   
     
-class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
+class EvaluationFactory(Singleton, TaurusFactory, Logger):
     """
     A Singleton class that provides Evaluation related objects.
     """
@@ -659,7 +670,7 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
         """Singleton instance initialization."""
         name = self.__class__.__name__
         self.call__init__(Logger, name)
-        self.call__init__(taurus.core.TaurusFactory)
+        self.call__init__(TaurusFactory)
         self.eval_attrs = weakref.WeakValueDictionary()
         self.eval_devs = weakref.WeakValueDictionary()
         self.eval_configs = weakref.WeakValueDictionary()
@@ -752,15 +763,15 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
         return a
 
     def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.TaurusConfiguration
+        """getConfiguration(param) -> taurus.core.taurusconfiguration.TaurusConfiguration
 
         Obtain the object corresponding to the given attribute or full name.
         If the corresponding configuration already exists, the existing instance
         is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] param taurus.core.TaurusAttribute object or full configuration name
+        @param[in] param taurus.core.taurusattribute.TaurusAttribute object or full configuration name
            
-        @return a taurus.core.TaurusAttribute object
+        @return a taurus.core.taurusattribute.TaurusAttribute object
         @throws TaurusException if the given name is invalid.
         """
         if isinstance(param, str):
@@ -793,10 +804,10 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
         if exists is not None:
             if exists == dev: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.eval_devs[name] = dev
     
     def _storeAttr(self, attr):
@@ -805,10 +816,10 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
         if exists is not None:
             if exists == attr: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.eval_attrs[name] = attr
         
     def _storeConfig(self, fullname, config):
@@ -818,10 +829,10 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
         if exists is not None:
             if exists == config: 
                 self.debug("%s has already been registered before" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
             else:
                 self.debug("%s has already been registered before with a different object!" % name)
-                raise taurus.core.DoubleRegistration
+                raise DoubleRegistration
         self.eval_configs[name] = config
         
     def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
@@ -832,7 +843,7 @@ class EvaluationFactory(Singleton, taurus.core.TaurusFactory, Logger):
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
-        tmr = self.polling_timers.get(period,taurus.core.TaurusPollingTimer(period))
+        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
         self.polling_timers[period] = tmr
         tmr.addAttribute(attribute, self.isPollingEnabled())
         

@@ -38,8 +38,8 @@ The Epics extension implements :mod:`taurus.core` objects that connect to Epics
 objects. The scheme prefix for epics objects is 'epics://'.
 
 You should never create objects of epics classes directly. Instead you
-should use the :class:`taurus.core.TaurusManager` and :class:`taurus.core.TaurusFactory` APIs
-to access all elements.
+should use the :class:`taurus.core.taurusmanager.TaurusManager` and 
+:class:`taurus.core.taurusmanager.TaurusFactory` APIs to access all elements.
 
 For example, to get a reference to the epics process variable (PV) "my:example.RBV" you
 should do something like::

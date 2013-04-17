@@ -33,10 +33,11 @@ __docformat__ = 'restructuredtext'
 import PyTango
 
 from taurus.qt import Qt
-from taurus.core import TaurusDevice, LockStatus, TaurusLockInfo
+from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
+from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 
@@ -340,7 +341,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                            passed, the currently set parameters are used.
         :param command: (str) the command name. If None is passed, the currently
                         set command is used.
-        :param dev: (taurus.core.TaurusDevice) the device on which the command is
+        :param dev: (taurus.core.taurusdevice.TaurusDevice) the device on which the command is
                     executed. If None is passed, the current model is used.
         
         :return: (sequence or scalar) a sequence of parameters (or a scalar if only one parameter)

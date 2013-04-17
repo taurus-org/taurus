@@ -111,19 +111,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == taurus.core.TaurusEventType.Config:
-            if evt_value.min_alarm != taurus.core.TaurusConfiguration.no_min_alarm:
+            if evt_value.min_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_alarm:
                 self.__minAlarm = float(evt_value.min_alarm)
             else:
                 self.__minAlarm = -float("inf")
-            if evt_value.max_alarm != taurus.core.TaurusConfiguration.no_max_alarm:
+            if evt_value.max_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_alarm:
                 self.__maxAlarm = float(evt_value.max_alarm)
             else:
                 self.__maxAlarm = float("inf")
-            if evt_value.min_value != taurus.core.TaurusConfiguration.no_min_value:
+            if evt_value.min_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_value:
                 self.__minLimit = float(evt_value.min_value)
             else:
                 self.__minLimit = -float("inf")
-            if evt_value.max_value != taurus.core.TaurusConfiguration.no_max_value:
+            if evt_value.max_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_value:
                 self.__maxLimit = float(evt_value.max_value)
             else:
                 self.__maxLimit = float("inf")
@@ -276,7 +276,7 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.valueChanged()
 
     def getModelClass(self):
-        return taurus.core.TaurusConfiguration
+        return taurus.core.taurusconfiguration.TaurusConfiguration
 
     def setValue(self, v):
         model = self.getModelObj()

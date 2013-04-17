@@ -42,7 +42,7 @@ try:
 except:
     pygments = None
 
-from taurus.core import TaurusDevice
+from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt import Qt
 from taurus.core.util import Enumeration
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, \

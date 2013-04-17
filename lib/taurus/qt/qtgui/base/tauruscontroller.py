@@ -37,7 +37,7 @@ import weakref
 
 from taurus.qt import Qt
 
-from taurus.core import DataFormat, TaurusEventType
+from taurus.core.taurusbasetypes import DataFormat, TaurusEventType
 
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.util import QT_DEVICE_STATE_PALETTE

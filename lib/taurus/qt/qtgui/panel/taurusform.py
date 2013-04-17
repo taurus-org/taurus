@@ -554,7 +554,7 @@ class TaurusCommandsForm(TaurusWidget):
         
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
         
     def _updateCommandWidgets(self, *args):
         '''
@@ -732,7 +732,7 @@ class TaurusAttrForm(TaurusWidget):
         
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
     
     def _updateAttrWidgets(self):
         '''Populates the form with an item for each of the attributes shown

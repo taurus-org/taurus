@@ -29,15 +29,15 @@ __all__ = ["ActionFactory"]
 
 __docformat__ = 'restructuredtext'
 
-import os
-import xml.dom.minidom
-
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
 from taurus.qt import Qt
-import taurus.core.util
-import taurus.qt.qtgui.resource
+from taurus.qt.qtgui.resource import getThemeIcon
+
 import taurusaction
 
-class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
+
+class ActionFactory(Singleton, Logger):
     """A Singleton class designed to provide Action related objects."""
 
     def __init__(self):
@@ -46,7 +46,7 @@ class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
 
     def init(self, *args):
         """Singleton instance initialization."""
-        self.call__init__(taurus.core.util.Logger,'ActionFactory')
+        self.call__init__(Logger, 'ActionFactory')
         self.actions = self.__getActions()
         self.menus = self.__getMenus()
     
@@ -82,6 +82,7 @@ class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
         return klass(widget)
 
     def getNewMenu(self, widget, data):
+        import xml.dom.minidom
         doc = xml.dom.minidom.parseString(data)
         m_node = doc.childNodes[0]
         return self.buildMenu(widget, m_node)
@@ -130,7 +131,7 @@ class ActionFactory(taurus.core.util.Singleton, taurus.core.util.Logger):
             action.setCheckable(True)
         if icon is not None:
             if isinstance(icon, (str, unicode)):
-                icon = taurus.qt.qtgui.resource.getThemeIcon(icon)
+                icon = getThemeIcon(icon)
             action.setIcon( icon )
         if shortcut is not None:
             action.setShortcut(shortcut)

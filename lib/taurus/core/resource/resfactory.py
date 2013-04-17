@@ -29,9 +29,17 @@ simfactory.py:
 
 import os, imp, operator, types
 
-import taurus.core
-import taurus.core.util
-from taurus.core import OperationMode, MatchLevel
+from taurus import Factory, Database, Manager
+from taurus.core.taurusexception import TaurusException
+from taurus.core.taurusbasetypes import OperationMode, MatchLevel, \
+    TaurusAttrValue, TaurusEventType
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.log import Logger
+from taurus.core.taurusfactory import TaurusFactory
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusconfiguration import TaurusConfiguration
 
 class ModuleDict(dict):
     def __init__(self, mod):
@@ -40,7 +48,7 @@ class ModuleDict(dict):
     def __getitem__(self, name):
         return self.__mod.__getattribute__(name)
 
-class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, taurus.core.util.Logger):
+class ResourcesFactory(Singleton, TaurusFactory, Logger):
     """A Singleton class designed to provide Simulation related objects."""
 
     #: the list of schemes that this factory supports. For this factory: 'res' 
@@ -61,8 +69,8 @@ class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
         """Singleton instance initialization.
            **For internal usage only**"""
         name = self.__class__.__name__
-        self.call__init__(taurus.core.util.Logger, name)
-        self.call__init__(taurus.core.TaurusFactory)
+        self.call__init__(Logger, name)
+        self.call__init__(TaurusFactory)
         
         self._resource_map = {}
         self._resource_priority = {}
@@ -203,18 +211,18 @@ class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
         :param alias: (str) database name string alias. If None, the 
                      default database is used
                            
-        :return: (taurus.core.TaurusDatabase) database object
+        :return: (taurus.core.taurusdatabase.TaurusDatabase) database object
         :raise: (NameError) if the alias does not exist
         :raise: (taurus.core.TaurusException) if the given alias is invalid.
         """
         if alias is None:
-            return taurus.Database()
+            return Database()
         
         alias = self.getValue(alias)
         if not alias:
             raise NameError(alias)
         
-        return taurus.Manager().getDatabase(alias)
+        return Manager().getDatabase(alias)
 
     def getDevice(self, alias):
         """
@@ -224,14 +232,14 @@ class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
            
         :param alias: device name string alias.
         
-        :return: (taurus.core.TaurusDevice) device object
+        :return: (taurus.core.taurusdevice.TaurusDevice) device object
         :raise: (NameError) if the alias does not exist
         :raise: (taurus.core.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:
             raise NameError(alias)
-        return taurus.Manager().getDevice(alias)
+        return Manager().getDevice(alias)
         
     def getAttribute(self, alias):
         """
@@ -241,14 +249,14 @@ class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
 
         :param alias: (str) attribute name string alias
              
-        :return: (taurus.core.TaurusAttribute) attribute object
+        :return: (taurus.core.taurusattribute.TaurusAttribute) attribute object
         :raise: (NameError) if the alias does not exist
         :raise: (taurus.core.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:
             raise NameError(alias)
-        return taurus.Manager().getAttribute(alias)
+        return Manager().getAttribute(alias)
 
     def getConfiguration(self, alias):
         """
@@ -258,12 +266,12 @@ class ResourcesFactory(taurus.core.util.Singleton, taurus.core.TaurusFactory, ta
 
         :param alias: (str) configuration name string alias
              
-        :return: (taurus.core.TaurusConfiguration) configuration object
+        :return: (taurus.core.taurusconfiguration.TaurusConfiguration) configuration object
         :raise: (NameError) if the alias does not exist
         :raise: (taurus.core.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:
             raise NameError(alias)
-        return taurus.Manager().getConfiguration(alias)
+        return Manager().getConfiguration(alias)
 

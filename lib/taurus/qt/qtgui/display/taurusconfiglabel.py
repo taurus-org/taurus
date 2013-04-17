@@ -94,7 +94,7 @@ class TaurusConfigLabel(Qt.QLabel, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
-        return taurus.core.TaurusConfiguration
+        return taurus.core.taurusconfiguration.TaurusConfiguration
 
     def getDisplayValue(self):
         cfg_value = self.getConfigurationAttributeValue()

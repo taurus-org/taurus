@@ -34,15 +34,17 @@ import time
 import threading
 import PyTango
 
-import taurus.core
-from taurus.core import TaurusEventType, TaurusSerializationMode, \
-    SubscriptionState, WriteAttrOperation
-from taurus.core.util import EventListener
-from enums import EVENT_TO_POLLING_EXCEPTIONS
+from taurus import Factory, Manager
+from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
+from taurus.core.taurusbasetypes import TaurusEventType, TaurusSerializationMode, \
+    SubscriptionState
+from taurus.core.taurusoperation import WriteAttrOperation
+from taurus.core.util.event import EventListener
+from .enums import EVENT_TO_POLLING_EXCEPTIONS
 
 DataType = PyTango.CmdArgType
 
-class TangoAttribute(taurus.core.TaurusAttribute):
+class TangoAttribute(TaurusAttribute):
 
     # helper class property that stores a reference to the corresponding factory
     _factory = None
@@ -68,7 +70,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         self.__subscription_state = SubscriptionState.Unsubscribed
         self.__subscription_event = threading.Event()
 
-        self.call__init__(taurus.core.TaurusAttribute, name, parent, **kwargs)
+        self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
     def __getattr__(self,name):
         return getattr(self._getRealConfig(), name)
@@ -88,7 +90,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
     @classmethod
     def factory(cls):
         if cls._factory is None:
-            cls._factory = taurus.Factory(scheme='tango')
+            cls._factory = Factory(scheme='tango')
         return cls._factory
 
     def getNewOperation(self, value):
@@ -332,7 +334,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         listeners = self._listeners
         initial_subscription_state = self.__subscription_state
 
-        ret = taurus.core.TaurusAttribute.addListener(self, listener)
+        ret = TaurusAttribute.addListener(self, listener)
         if not ret:
             return ret
         
@@ -345,7 +347,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
             sm = self.getSerializationMode()
             if sm == TaurusSerializationMode.Concurrent:
-                taurus.Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+                Manager().addJob(self.__fireRegisterEvent, None, (listener,))
             else:
                 self.__fireRegisterEvent((listener,))
         return ret
@@ -354,7 +356,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         """ Remove a TaurusListener from the listeners list. If polling enabled 
             and it is the last element the stop the polling timer.
             If the listener is not registered nothing happens."""
-        ret = taurus.core.TaurusAttribute.removeListener(self, listener)
+        ret = TaurusAttribute.removeListener(self, listener)
 
         cfg = self._getRealConfig()
         cfg.removeListener(listener)
@@ -446,7 +448,7 @@ class TangoAttribute(taurus.core.TaurusAttribute):
            Default implementation propagates the event to all listeners."""
         
         curr_time = time.time()
-        manager = taurus.Manager()
+        manager = Manager()
         sm = self.getSerializationMode()
         if not event.err:
             self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(event.attr_value), None, curr_time
@@ -483,10 +485,10 @@ class TangoAttribute(taurus.core.TaurusAttribute):
         return False
 
 
-class TangoStateAttribute(TangoAttribute, taurus.core.TaurusStateAttribute):
+class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TangoAttribute, name, parent, **kwargs)
-        self.call__init__(taurus.core.TaurusStateAttribute, name, parent, **kwargs)
+        self.call__init__(TaurusStateAttribute, name, parent, **kwargs)
 
 
 class TangoAttributeEventListener(EventListener):
@@ -510,7 +512,8 @@ class TangoAttributeEventListener(EventListener):
 
 def test1():
     import numpy
-    a = taurus.Attribute('sys/tg_test/1/ulong64_scalar')
+    from taurus import Attribute
+    a = Attribute('sys/tg_test/1/ulong64_scalar')
     
     a.write(numpy.uint64(88))
 

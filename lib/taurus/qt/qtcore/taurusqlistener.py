@@ -31,7 +31,7 @@ __all__ = ["QTaurusBaseListener", "QObjectTaurusListener"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core import TaurusListener
+from taurus.core.tauruslistener import TaurusListener
 from taurus.qt import Qt
 
 

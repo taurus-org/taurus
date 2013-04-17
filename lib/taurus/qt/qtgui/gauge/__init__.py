@@ -30,9 +30,8 @@ __docformat__ = 'restructuredtext'
 try:
     from .taurusgauge import *
 except:
-    import taurus.core.util
-    _logger = taurus.core.util.Logger(__name__)
-    _logger.debug("Gauge widgets could not be initialized")
+    from taurus.core.util.log import debug
+    debug("Gauge widgets could not be initialized")
     from taurus.qt.qtgui.display import create_taurus_fallback as __create
     TaurusLinearGauge = __create("TaurusLinearGauge")
     TaurusCircularGauge = __create("TaurusCircularGauge")

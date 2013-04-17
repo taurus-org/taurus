@@ -74,7 +74,7 @@ class TaurusLCDValue(Qt.QLCDNumber, TaurusBaseWidget):
     
     def getModelClass(self):
         import taurus.core
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
         
     def isReadOnly(self):
         return True

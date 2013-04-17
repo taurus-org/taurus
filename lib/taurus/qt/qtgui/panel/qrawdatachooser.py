@@ -27,14 +27,13 @@
 RawDataChooser.py:  widget for importing RawData (from file or from a function)
 """
 
-import sys
 import numpy
 
 from taurus.qt import Qt
+from taurus.core.util.safeeval import SafeEvaluator
 
-from taurus.core.util import SafeEvaluator
+from .ui import ui_RawDataChooser
 
-from ui import ui_RawDataChooser
 
 class QRawDataWidget(Qt.QWidget, ui_RawDataChooser.Ui_RawDataChooser):
     

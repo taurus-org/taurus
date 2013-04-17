@@ -813,15 +813,15 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         return self.__helpManualURI
     
     def resetHelpManualURI(self):
-        from taurus.core import Release
-        uri = getattr(self, 'MANUAL_URI',Release.url)
+        from taurus.core import release
+        uri = getattr(self, 'MANUAL_URI', release.url)
         self.setHelpManualURI(uri)
     
     def showHelpAbout(self):
         appname = unicode(Qt.qApp.applicationName())
         appversion = unicode(Qt.qApp.applicationVersion())
-        from taurus.core import Release
-        abouttext = "%s %s\n\nUsing %s %s"%(appname, appversion, Release.name, Release.version)
+        from taurus.core import release
+        abouttext = "%s %s\n\nUsing %s %s"%(appname, appversion, release.name, release.version)
         Qt.QMessageBox.about(self, 'About', abouttext)
             
     def onShowManual(self, anchor=None):

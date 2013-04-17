@@ -47,7 +47,7 @@ class TaurusMacroDescriptionViewer(Qt.QTextEdit, TaurusBaseWidget):
         self.updateStyle()
 
     def getModelClass(self):
-        return taurus.core.TaurusDevice
+        return taurus.core.taurusdevice.TaurusDevice
 
     def updateStyle(self):
         self.update()

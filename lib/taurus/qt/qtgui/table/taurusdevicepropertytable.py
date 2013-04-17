@@ -67,7 +67,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         return QtGui.QTableWidget.minimumSizeHint(self)
 
     def getModelClass(self):
-        return taurus.core.TaurusDatabase
+        return taurus.core.taurusdatabase.TaurusDatabase
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

@@ -32,10 +32,11 @@ __docformat__ = "restructuredtext"
 import time
 import threading
 
-import util
-from util import DebugIt
+from .util.log import Logger, DebugIt
+from .util.timer import Timer
 
-class TaurusPollingTimer(util.Logger):
+
+class TaurusPollingTimer(Logger):
     """ Polling timer manages a list of attributes that have to be polled in
     the same period """
     
@@ -43,13 +44,13 @@ class TaurusPollingTimer(util.Logger):
         """Constructor
         
            :param period: (int) polling period (miliseconds)
-           :param parent: (util.Logger) parent object (default is None)
+           :param parent: (Logger) parent object (default is None)
         """
         name = "TaurusPollingTimer[%d]" % period
-        self.call__init__(util.Logger, name, parent)
+        self.call__init__(Logger, name, parent)
         self.dev_dict = {}
         self.attr_nb = 0
-        self.timer = util.Timer(period/1000.0, self._pollAttributes, self)
+        self.timer = Timer(period/1000.0, self._pollAttributes, self)
         self.lock = threading.RLock()
         
     def start(self):
@@ -63,7 +64,7 @@ class TaurusPollingTimer(util.Logger):
     def containsAttribute(self,attribute):
         """Determines if the polling timer already contains this attribute
         
-           :param attribute: (taurus.core.TaurusAttribute) the attribute
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute) the attribute
            
            :return: (bool) True if the attribute is registered for polling or
                     False otherwise
@@ -86,7 +87,7 @@ class TaurusPollingTimer(util.Logger):
     def addAttribute(self,attribute, auto_start=True):
         """Registers the attribute in this polling.
         
-           :param attribute: (taurus.core.TaurusAttribute) the attribute to be added
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute) the attribute to be added
            :param auto_start: (bool) if True (default) it tells the polling timer
                               that it should startup as soon as there is at least
                               one attribute registered.
@@ -113,7 +114,7 @@ class TaurusPollingTimer(util.Logger):
            attributes decreses to 0 the polling is stopped automatically in order
            to save resources.
         
-           :param attribute: (taurus.core.TaurusAttribute) the attribute to be added
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute) the attribute to be added
         """
         dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
         self.lock.acquire()

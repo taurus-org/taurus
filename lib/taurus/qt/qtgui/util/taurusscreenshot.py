@@ -32,9 +32,9 @@ __docformat__ = 'restructuredtext'
 import time
 import threading
 import os.path
-from taurus.core.util import Logger
-from taurus.qt import Qt
 
+from taurus.qt import Qt
+from taurus.core.util.log import Logger
 
 _LOGGER = None
 
@@ -43,6 +43,7 @@ def _getLogger():
     if _LOGGER is None:
         _LOGGER = Logger('Grabber')
     return _LOGGER
+
 
 class GrabberThread(threading.Thread):
     

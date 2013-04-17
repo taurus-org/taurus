@@ -36,60 +36,37 @@ The json implementation follows the rule:
 
 __docformat__ = "restructuredtext"
 
-import sys
-import os.path
+# taurus cannot work properly without the following modules so 
+# they are promptly imported here has a facility (also for backward
+# compatibility)
+# However, new applications should in their code use the full import.
+# Example, use:
+#     from taurus.core.util.log import Logger
+# instead of:
+#     from taurus.core.util import Logger
 
-try:
-    import json
-except:
-    json = None
-
-from .codecs import *
-from .colors import *
-from .constant import *
 from .containers import *
 from .enumeration import *
 from .event import *
 from .log import *
 from .object import *
-from .timer import *
 from .singleton import *
-from .safeeval import *
-from .prop import *
-from .threadpool import *
-from .user import *
 
-import eventfilters
+# from .codecs import *
+# from .colors import *
+# from .constant import *
+# from .timer import *
+# from .safeeval import *
+# from .prop import *
+# from .threadpool import *
+# from .user import *
 
-try:
-    from lxml import etree
-except:
-    etree = None
+# import eventfilters
 
-def str_DevFailed(df):
-    """Returns a string representation of a :class:`PyTango.DevFailed`.
-    
-    :param df: (PyTango.DevFailed) the PyTango exception object
-    :return: (str) a string representation of the given exception"""
-    
-    ret = ""
-    try:
-        desc = df.message.desc.rstrip('\n').replace('\n',"              \n")
-    
-        ret += "   Severity = %s\n" % df.message.severity
-        ret += "     Reason = %s\n" % df.message.reason
-        ret += "Description = %s\n" % desc
-        ret += "     Origin = %s\n" % df.message.origin
-    except:
-        ret = "Exception = %s" % str(df)
-    return ret
-
-def print_DevFailed(df):
-    """Prints the contents of the given :class:`PyTango.DevFailed`.
-    
-    :param df: (PyTango.DevFailed) the PyTango exception object"""
-    import PyTango
-    PyTango.Except.print_exception(df)
+# try:
+    # from lxml import etree
+# except:
+    # etree = None
 
 def dictFromSequence(seq):
     """Translates a sequence into a dictionary by converting each to elements of
@@ -103,23 +80,3 @@ def dictFromSequence(seq):
         while True:
             yield itnext(), itnext()
     return dict(_pairwise(seq))
-
-if sys.version_info < (2,6):
-    def relpath(path, start=os.path.curdir):
-        """Return a relative version of a path"""
-
-        if not path:
-            raise ValueError("no path specified")
-
-        start_list = os.path.abspath(start).split(os.path.sep)
-        path_list = os.path.abspath(path).split(os.path.sep)
-
-        # Work out how much of the filepath is shared by start and path.
-        i = len(os.path.commonprefix([start_list, path_list]))
-
-        rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
-        if not rel_list:
-            return os.path.curdir
-        return os.path.join(*rel_list)
-    
-    os.path.relpath = relpath

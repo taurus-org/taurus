@@ -34,7 +34,7 @@ import operator
 # shame of me for importing PyTango!
 import PyTango
 
-from taurus.core import TaurusElementType, TaurusEventType
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.base import TaurusBaseController

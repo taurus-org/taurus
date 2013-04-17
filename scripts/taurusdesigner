@@ -92,10 +92,14 @@ if len(options.tauruspath) > 0:
 # Start Designer.
 designer_bin = str(Qt.QLibraryInfo.location(Qt.QLibraryInfo.BinariesPath))
 
-if sys.platform == "darwin":
-    designer_bin += "/Designer.app/Contents/MacOS/Designer"
-else:
-    designer_bin += "/designer"
+plat = sys.platform
+if plat == "darwin":
+    designer_bin = os.path.join(designer_bin, "Designer.app", "Contents", "MacOS")
+elif plat in ("win32", "nt"):
+    import PyQt4
+    designer_bin = os.path.abspath(os.path.dirname(PyQt4.__file__))
+
+designer_bin = os.path.join(designer_bin, "designer")
 
 designer = Qt.QProcess()
 designer.setProcessChannelMode(Qt.QProcess.ForwardedChannels)

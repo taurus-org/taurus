@@ -30,14 +30,13 @@ __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
 
 __docformat__ = "restructuredtext"
 
-import taurus.core.util
+from taurus.core.taurusbasetypes import SubscriptionState
+from taurus.core.util.enumeration import Enumeration
 
-TangoObjectType = taurus.core.util.Enumeration("TangoObjectType", 
+TangoObjectType = Enumeration("TangoObjectType", 
                               ["Database", "Server", "Class", "Device", 
                                "Attribute","Property","Configuration",
                                "Object"])
-
-SubscriptionState = taurus.core.SubscriptionState #moved from here to taurus.core. Copied here for backwards compatibility
 
 import numpy
 import PyTango

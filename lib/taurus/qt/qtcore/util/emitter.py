@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 #############################################################################
@@ -30,7 +29,8 @@ emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusD
 from functools import partial
 import taurus
 from taurus.qt import Qt
-from taurus.core.util import Logger,Singleton
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
 import Queue,traceback
 
 ###############################################################################
@@ -141,7 +141,6 @@ class TaurusEmitterThread(Qt.QThread):
         self.name = name
         self.log = Logger('TaurusEmitterThread(%s)'%self.name)
         self.log.setLogLevel(self.log.Info)
-        self.log.info('At TaurusEmitterThread.__init__(%s)'%self.name)
         self.queue = queue or Queue.Queue()
         self.todo = Queue.Queue()
         self.method = method

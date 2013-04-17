@@ -111,7 +111,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
         
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''

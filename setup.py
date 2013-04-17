@@ -173,6 +173,12 @@ requires = [
 ]
 
 package_data = { 
+    'taurus.core.epics'        : ['__taurus_plugin__'],
+    'taurus.core.evaluation'   : ['__taurus_plugin__'],
+    'taurus.core.resource'     : ['__taurus_plugin__'],
+    'taurus.core.simulation'   : ['__taurus_plugin__'],
+    'taurus.core.tango'        : ['__taurus_plugin__'],
+
     'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template', 
                                   'tauruswidget_qtdesignerplugin_template'],

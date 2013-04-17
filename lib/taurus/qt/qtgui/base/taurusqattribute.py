@@ -30,10 +30,10 @@ import weakref
 import re
 import PyTango
 
-import taurus.core
+from taurus.core.taurusvalidator import AttributeNameValidator
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.core.util import SafeEvaluator
+from taurus.core.util.safeeval import SafeEvaluator
 
 class TaurusQAttributeFactory(object): #@this probably needs to be ported to a proper TaurusFactory
     '''A factory for TaurusQAttributes that ensures that only one 
@@ -58,7 +58,7 @@ class TaurusQAttributeFactory(object): #@this probably needs to be ported to a p
     
     
 taurusQAttributeFactory = TaurusQAttributeFactory()
-ATTRNAMEVALIDATOR = taurus.core.AttributeNameValidator()
+ATTRNAMEVALIDATOR = AttributeNameValidator()
 
 class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
     '''A listener for taurus attributes.

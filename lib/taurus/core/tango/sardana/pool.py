@@ -46,13 +46,19 @@ from PyTango import DevState, AttrDataFormat, AttrQuality, DevFailed, \
     DeviceProxy
 
 from taurus import Factory, Device
-from taurus.core import TaurusEventType, AttributeNameValidator
-from taurus.core.util import Logger, CaselessDict, CodecFactory, \
-    EventGenerator, AttributeEventWait, AttributeEventIterator
+from taurus.core.taurusbasetypes import TaurusEventType, TaurusSWDevState, \
+    TaurusSerializationMode
+from taurus.core.taurusvalidator import AttributeNameValidator
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.event import EventGenerator, AttributeEventWait, \
+    AttributeEventIterator
 from taurus.core.tango import TangoDevice, FROM_TANGO_TO_STR_TYPE
 
-from sardana import BaseSardanaElementContainer, BaseSardanaElement
-from motion import Moveable, MoveableSource
+from .sardana import BaseSardanaElementContainer, BaseSardanaElement
+from .motion import Moveable, MoveableSource
 
 Ready = Standby = DevState.ON
 Counting = Acquiring = Moving = DevState.MOVING

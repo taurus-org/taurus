@@ -36,9 +36,8 @@ import datetime
 import threading
 import socket
 
-
 import taurus
-from taurus.core.util import Logger
+from taurus.core.util.log import Logger
 from taurus.core.util.remotelogmonitor import LogRecordStreamHandler, \
     LogRecordSocketReceiver
 from taurus.core.util.decorator.memoize import memoized
@@ -54,12 +53,12 @@ LEVEL, TIME, MSG, NAME, ORIGIN = range(5)
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'
 
 __LEVEL_BRUSH = {
-    taurus.Trace    : (Qt.QBrush(Qt.Qt.lightGray), Qt.QBrush(Qt.Qt.black)),
-    taurus.Debug    : (Qt.QBrush(Qt.Qt.green), Qt.QBrush(Qt.Qt.black)),
-    taurus.Info     : (Qt.QBrush(Qt.Qt.blue), Qt.QBrush(Qt.Qt.white)),
-    taurus.Warning  : (Qt.QBrush(Qt.QColor(255,165,0)), Qt.QBrush(Qt.Qt.black)),
-    taurus.Error    : (Qt.QBrush(Qt.Qt.red), Qt.QBrush(Qt.Qt.black)),
-    taurus.Critical : (Qt.QBrush(Qt.QColor(160,32,240)), Qt.QBrush(Qt.Qt.white)),
+    taurus.Trace    : (Qt.Qt.lightGray, Qt.Qt.black),
+    taurus.Debug    : (Qt.Qt.green, Qt.Qt.black),
+    taurus.Info     : (Qt.Qt.blue, Qt.Qt.white),
+    taurus.Warning  : (Qt.QColor(255,165,0), Qt.Qt.black),
+    taurus.Error    : (Qt.Qt.red, Qt.Qt.black),
+    taurus.Critical : (Qt.QColor(160,32,240), Qt.Qt.white),
 }
 
 def getBrushForLevel(level):
@@ -76,7 +75,8 @@ def getBrushForLevel(level):
         elevel = taurus.Error
     elif level <= taurus.Critical:
         elevel = taurus.Critical
-    return __LEVEL_BRUSH[elevel]
+    f, g  = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
+    return f, g
 
 
 def _origin_cmp(rec1, rec2):

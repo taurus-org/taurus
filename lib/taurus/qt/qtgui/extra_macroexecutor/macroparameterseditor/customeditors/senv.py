@@ -24,10 +24,10 @@
 #############################################################################
 
 from taurus.qt import Qt
+from taurus import Database
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusAttrInfo
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
-from taurus import Database
-from taurus.core import TaurusElementType, TaurusAttrInfo
 from taurus.qt.qtgui.resource import getThemeIcon
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import MacroParametersEditor
 from taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.parameditors import LineEditParam, ParamBase, ComboBoxParam, CheckBoxParam, DirPathParam, MSAttrListComboBoxParam

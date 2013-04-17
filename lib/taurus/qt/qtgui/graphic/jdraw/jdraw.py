@@ -33,10 +33,12 @@ import os
 import traceback
 
 from taurus.qt import Qt
-
-import taurus.core
-import taurus.core.util
-from taurus.qt.qtgui.graphic import TaurusBaseGraphicsFactory, TaurusGraphicsScene, TaurusGraphicsItem, parseTangoUri,TaurusTextAttributeItem,TaurusTextStateItem
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.containers import CaselessDict
+from taurus.qt.qtgui.graphic import TaurusBaseGraphicsFactory, \
+    TaurusGraphicsScene, TaurusGraphicsItem, parseTangoUri, \
+    TaurusTextAttributeItem,TaurusTextStateItem
 
 
 LINESTYLE_JDW2QT = { 0: Qt.Qt.SolidLine,
@@ -58,7 +60,7 @@ FILLSTYLE_JDW2QT = { 0: Qt.Qt.NoBrush,
                      10:Qt.Qt.Dense4Pattern,
                      11:Qt.Qt.RadialGradientPattern }
 
-TEXTHINT_JDW2QT = taurus.core.util.CaselessDict({ 
+TEXTHINT_JDW2QT = CaselessDict({ 
     'helvetica'  : Qt.QFont.Helvetica,
     'serif'      : Qt.QFont.Serif,
     'sansserif'  : Qt.QFont.SansSerif,
@@ -68,7 +70,7 @@ TEXTHINT_JDW2QT = taurus.core.util.CaselessDict({
     ''           : Qt.QFont.AnyStyle,})
 
 
-class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsFactory, taurus.core.util.Logger):
+class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
     
     def __init__(self,parent,alias = None, delayed = False):
         """ Initialization. Nothing to be done here for now."""
@@ -80,7 +82,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
 
     def init(self, *args, **kwargs):
         """Singleton instance initialization."""
-        self.call__init__(taurus.core.util.Logger, self.__class__.__name__) 
+        self.call__init__(Logger, self.__class__.__name__) 
         self.call__init__(TaurusBaseGraphicsFactory)
         
     def getZBufferLevel(self):
@@ -106,7 +108,7 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
                     scene.addItem(item)
             except:
                 self.warning("Unable to add item %s to scene" % str(item))
-                self.warning(traceback.format_exc()) #self.traceback()
+                self.debug("Details:", exc_info=1)
         return scene
     
     def getObj(self,name,params):
@@ -117,7 +119,8 @@ class TaurusJDrawGraphicsFactory(taurus.core.util.Singleton, TaurusBaseGraphicsF
             obj.setZValue(self.incZBufferLevel())
             return obj
         except:
-            self.warning(traceback.format_exc())
+            self.warning("Error fetching object")
+            self.debug("Details:", exc_info=1)
             pass
         return None
     

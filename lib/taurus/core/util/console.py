@@ -121,7 +121,7 @@ HTMLTangoColors = { PyTango.DevState.ON      : HTMLColors.Green,
                     PyTango.DevState.UNKNOWN : HTMLColors.LightGray,
                     None                     : HTMLColors.DarkGray }
                     
-from taurus.core import TaurusSWDevState
+from taurus.core.taurusbasetypes import TaurusSWDevState
 
 NoTaurusSWDevStateColors = {
     TaurusSWDevState.Uninitialized       : NoColors.LightGray,

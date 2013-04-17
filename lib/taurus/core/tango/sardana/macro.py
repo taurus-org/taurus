@@ -38,7 +38,10 @@ import copy
 import threading
 import PyTango
 
-from taurus.core.util import etree, USER_NAME, CodecFactory
+from lxml import etree
+
+from taurus.core.util.user import USER_NAME
+from taurus.core.util.codecs import CodecFactory
 
 class MacroRunException(Exception):
     pass

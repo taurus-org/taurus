@@ -152,7 +152,7 @@ class TaurusXValues(TaurusBaseComponent):
 
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def eventHandle(self, src, evt_type, val):
         '''see :meth:`TaurusBaseComponent.eventHandle`'''
@@ -481,7 +481,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
     def getModelClass(self):
         '''See :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.TaurusAttribute
+        return taurus.core.taurusattribute.TaurusAttribute
 
     def getRawData(self):
         '''Returns the rawData

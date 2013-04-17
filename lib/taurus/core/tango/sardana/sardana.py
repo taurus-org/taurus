@@ -39,13 +39,13 @@ __all__ = ["BaseSardanaElement", "BaseSardanaElementContainer",
 
 __docformat__ = 'restructuredtext'
 
-import socket
-
 import PyTango
 
-import taurus
-from taurus.core.util import Enumeration, Singleton, Logger, CaselessDict, \
-    CodecFactory
+from taurus.core.util.enumeration import Enumeration
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.codecs import CodecFactory
 
 PoolElementType = Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister",
@@ -665,6 +665,7 @@ class SardanaManager(Singleton, Logger):
 
     def _get_db_sardana(self, db=None):
         if db is None:
+            import taurus
             db = taurus.Database()
         db_sardana = self._db_sardanas.get(db)
         if db_sardana is None:
@@ -690,6 +691,7 @@ class SardanaManager(Singleton, Logger):
         return 1, 200
 
     def has_localhost_starter(self):
+        import socket
         return socket.gethostname() in self.get_hosts()
 
     @classmethod

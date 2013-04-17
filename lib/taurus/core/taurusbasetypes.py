@@ -26,10 +26,156 @@
 a misc collection of basic types
 '''
 
+__all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
+           "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
+           "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
+           "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState",
+           "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue",
+           "TaurusLockInfo"]
+
+__docformat__ = "restructuredtext"
+
 import time
 import datetime
 
-from enums import AttrQuality, AttrAccess, DataFormat, LockStatus
+from .util.enumeration import Enumeration
+
+TaurusSWDevState = Enumeration(
+'TaurusSWDevState', (
+    'Uninitialized',
+    'Running', 
+    'Shutdown', 
+    'Crash', 
+    'EventSystemShutdown'
+))
+
+TaurusSWDevHealth = Enumeration(
+'TaurusSWDevHealth', (
+    'Exported',           # device reported exported
+    'ExportedAlive',      # device reported exported and confirmed connection
+    'ExportedNotAlive',   # device reported exported but connection failed!!
+    'NotExported',        # device didn't report exported
+    'NotExportedAlive',   # device didn't report exported but connection confirmed!
+    'NotExportedNotAlive' # device didn't report exported and connection failed
+))
+
+OperationMode = Enumeration(
+'OperationMode', (
+    'OFFLINE',
+    'ONLINE'
+))
+
+TaurusSerializationMode = Enumeration(
+'TaurusSerializationMode', (
+    'Serial',
+    'Concurrent'
+))
+
+TaurusEventType = Enumeration(
+'TaurusEventType', (
+    'Change',
+    'Config',
+    'Periodic',
+    'Error'
+))
+
+MatchLevel = Enumeration(
+'MatchLevel', (
+    'ANY', 
+    'SHORT', 
+    'NORMAL', 
+    'COMPLETE', 
+    'SHORT_NORMAL', 
+    'NORMAL_COMPLETE'
+))
+
+TaurusElementType = Enumeration(
+'TaurusElementType', (
+    'Unknown',
+    'Name',
+    'DeviceClass',
+    'Device',
+    'DeviceAlias',
+    'Domain',
+    'Family',
+    'Member',
+    'Server',
+    'ServerName',
+    'ServerInstance',
+    'Exported',
+    'Host',
+    'Attribute',
+    'AttributeAlias',
+    'Command',
+    'Property',
+    'Configuration',
+    'Database',
+))
+
+LockStatus = Enumeration(
+'LockStatus', (
+    'Unlocked',
+    'Locked',
+    'LockedMaster',
+    'Unknown',
+))
+
+DataFormat = Enumeration(
+'DataFormat', (
+    '_0D',
+    '_1D',
+    '_2D'
+))
+
+DataType = Enumeration(
+'DataType', (
+    'Integer',
+    'Float',
+    'String',
+    'Boolean',
+))
+
+SubscriptionState = Enumeration(
+"SubscriptionState", (
+    "Unsubscribed",
+    "Subscribing",
+    "Subscribed", 
+    "PendingSubscribe"
+))
+
+#################
+# Not in use yet:
+
+AttrQuality = Enumeration(
+'AttrQuality', (
+    'ATTR_VALID', 
+    'ATTR_INVALID', 
+    'ATTR_ALARM'
+))
+
+AttrAccess = Enumeration(
+'AttrAccess', (
+    'READ', 
+    'READ_WITH_WRITE', 
+    'WRITE', 
+    'READ_WRITE' 
+))
+
+DisplayLevel = Enumeration(
+'DisplayLevel', (
+    'OPERATOR', 
+    'EXPERT', 
+    'DEVELOPER'
+))
+
+ManagerState =  Enumeration(
+'ManagerState', (
+    'UNINITIALIZED', 
+    'INITED', 
+    'CLEANED'
+)) 
+
+
 
 class TaurusTimeVal(object):
     def __init__(self):
@@ -147,3 +293,8 @@ class TaurusLockInfo(object):
 
     def __repr__(self):
         return self.status_msg
+
+#del time
+#del datetime
+#del Enumeration
+#del AttrQuality, AttrAccess, DataFormat, LockStatus

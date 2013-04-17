@@ -31,7 +31,7 @@ taurus scheme, when specifing a tango model name, the scheme prefix ('tango://')
 be omited.
 
 You should never create objects of tango classes directly. Instead you
-should use the :class:`taurus.core.TaurusManager` and :class:`taurus.core.TaurusFactory` APIs
+should use the :class:`taurus.core.taurusmanager.TaurusManager` and :class:`taurus.core.taurusfactory.TaurusFactory` APIs
 to access all elements.
 
 For example, to get a reference to the Tango attribute my/tango/device/state you

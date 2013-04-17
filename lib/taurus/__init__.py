@@ -26,7 +26,7 @@
 """The main taurus module. It contains a reduced set of wrappers around the
 real taurus model classes and information regarding the current release."""
 
-from .core import Release as __R
+from .core import release as __R
 
 class Release:
     pass

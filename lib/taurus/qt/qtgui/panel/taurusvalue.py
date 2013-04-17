@@ -83,10 +83,10 @@ class DefaultLabelWidget(TaurusLabel):
             return TaurusLabel.setModel(self, None)
         try: config = self.taurusValueBuddy().getLabelConfig()
         except Exception: config = 'label'
-        if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
+        if self.taurusValueBuddy().getModelClass() == taurus.core.taurusattribute.TaurusAttribute:
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, model + "?configuration=%s"%config)
-        elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
+        elif self.taurusValueBuddy().getModelClass() == taurus.core.taurusdevice.TaurusDevice:
             TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
     
     def sizeHint(self):
@@ -114,9 +114,9 @@ class DefaultLabelWidget(TaurusLabel):
         '''reimplemented to use the taurusValueBuddy model instead of its own model'''
         mimeData = TaurusLabel.getModelMimeData(self)
         mimeData.setData(TAURUS_MODEL_MIME_TYPE, self.taurusValueBuddy().getModelName())
-        if self.taurusValueBuddy().getModelClass() == taurus.core.TaurusDevice:
+        if self.taurusValueBuddy().getModelClass() == taurus.core.taurusdevice.TaurusDevice:
             mimeData.setData(TAURUS_DEV_MIME_TYPE, self.taurusValueBuddy().getModelName())
-        elif self.taurusValueBuddy().getModelClass() == taurus.core.TaurusAttribute:
+        elif self.taurusValueBuddy().getModelClass() == taurus.core.taurusattribute.TaurusAttribute:
             mimeData.setData(TAURUS_ATTR_MIME_TYPE, self.taurusValueBuddy().getModelName())
         return mimeData
     
@@ -387,7 +387,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if returnAll: return [ExpandingLabel]
             else: return ExpandingLabel
         
-        if self.getModelClass() == taurus.core.TaurusAttribute:
+        if self.getModelClass() == taurus.core.taurusattribute.TaurusAttribute:
             ##The model is an attribute
             config = modelobj.getConfig()
             #print "---------ATTRIBUTE OBJECT:----------\n",modelobj.read()
@@ -446,7 +446,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                  default one.
         '''
 #        if self._customWidget is not None: return None
-        if self.isReadOnly() or self.getModelClass() != taurus.core.TaurusAttribute: 
+        if self.isReadOnly() or self.getModelClass() != taurus.core.taurusattribute.TaurusAttribute: 
             if returnAll: return []
             else: return None
         modelobj = self.getModelObj()
@@ -483,12 +483,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def getDefaultUnitsWidgetClass(self):
 ##        if self._customWidget is not None: return None
-#        if self.getModelClass() != taurus.core.TaurusAttribute:
+#        if self.getModelClass() != taurus.core.taurusattribute.TaurusAttribute:
 #            return DefaultUnitsWidget
         return DefaultUnitsWidget
     
     def getDefaultCustomWidgetClass(self):
-        if self.getModelClass() == taurus.core.TaurusAttribute:
+        if self.getModelClass() == taurus.core.taurusattribute.TaurusAttribute:
             return None
         try:
             key = self.getModelObj().getHWObj().info().dev_class
@@ -920,9 +920,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def setModel(self, model):
         try:
             taurus.Attribute(model)
-            self.__modelClass = taurus.core.TaurusAttribute
+            self.__modelClass = taurus.core.taurusattribute.TaurusAttribute
         except:
-            self.__modelClass = taurus.core.TaurusDevice
+            self.__modelClass = taurus.core.taurusdevice.TaurusDevice
         TaurusBaseWidget.setModel(self,model)
         if not self._designMode:     #in design mode, no subwidgets are created
             self.updateCustomWidget()

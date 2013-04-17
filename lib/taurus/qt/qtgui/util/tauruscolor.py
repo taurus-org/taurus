@@ -29,12 +29,13 @@ __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
 
-import taurus.core.util
+from taurus.core.util.colors import ColorPalette, \
+    DEVICE_STATE_DATA, ATTRIBUTE_QUALITY_DATA
 
-class QtColorPalette(taurus.core.util.ColorPalette):
+class QtColorPalette(ColorPalette):
 
     def __init__(self, dat, int_decoder_dict):
-        taurus.core.util.ColorPalette.__init__(self, dat, int_decoder_dict)
+        ColorPalette.__init__(self, dat, int_decoder_dict)
         self._qcolor_cache_fg = dict()
         self._qcolor_cache_bg = dict()
         self._qbrush_cache_fg = dict()
@@ -88,5 +89,5 @@ class QtColorPalette(taurus.core.util.ColorPalette):
 
 import PyTango
 
-QT_DEVICE_STATE_PALETTE = QtColorPalette(taurus.core.util.DEVICE_STATE_DATA, PyTango.DevState)
-QT_ATTRIBUTE_QUALITY_PALETTE = QtColorPalette(taurus.core.util.ATTRIBUTE_QUALITY_DATA, PyTango.AttrQuality)
+QT_DEVICE_STATE_PALETTE = QtColorPalette(DEVICE_STATE_DATA, PyTango.DevState)
+QT_ATTRIBUTE_QUALITY_PALETTE = QtColorPalette(ATTRIBUTE_QUALITY_DATA, PyTango.AttrQuality)

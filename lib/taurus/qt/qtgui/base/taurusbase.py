@@ -37,8 +37,14 @@ import PyTango
 
 from taurus.qt import Qt
 
-import taurus.core
+import taurus
 from taurus.core.util import eventfilters
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusconfiguration import TaurusConfiguration
+from taurus.core.tauruslistener import TaurusListener, TaurusExceptionListener
+from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
@@ -78,7 +84,7 @@ TTANGO_TO_TQT = {
     PyTango.ArgType.DevVarUShortArray  : 'QList',
 }
 
-class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
+class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     """A generic Taurus component.
        
        .. note:: 
@@ -97,7 +103,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self.modelName = ''
         self.noneValue = DefaultNoneValue
         self._designMode = designMode
-        self.call__init__(taurus.core.TaurusListener, name, parent)
+        self.call__init__(TaurusListener, name, parent)
         
         BaseConfigurableClass.__init__(self)
         
@@ -121,7 +127,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         if parent != None and hasattr(parent, "_exception_listener"):
             self._exception_listener = parent._exception_listener
         else:
-            self._exception_listener = set([taurus.core.TaurusExceptionListener()])
+            self._exception_listener = set([TaurusExceptionListener()])
         
         #register configurable properties
         self.registerConfigProperty(self.isModifiableByUser, self.setModifiableByUser, "modifiableByUser")
@@ -155,7 +161,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
             import taurus
             manager = taurus.Manager()
         
-        :return: (taurus.core.TaurusManager) the TaurusManager
+        :return: (taurus.core.taurusmanager.TaurusManager) the TaurusManager
         """
         return taurus.Manager()
     
@@ -168,7 +174,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         
         :param scheme: (str or None) the scheme. None defaults to 'tango'.
         
-        :return: (taurus.core.TaurusFactory) the TaurusFactory
+        :return: (taurus.core.taurusfactory.TaurusFactory) the TaurusFactory
         """
         return taurus.Factory(scheme)
     
@@ -199,7 +205,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
 
     def getParentTaurusComponent(self):
         """ Returns a parent Taurus component or None if no parent 
-        :class:`taurus.core.TaurusBaseComponent` is found.
+        :class:`taurus.qt.qtgui.base.TaurusBaseComponent` is found.
         
         :raises: RuntimeError
         """
@@ -473,7 +479,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         """
         model_obj = self.getModelObj()
         if model_obj is None:
-            return taurus.core.TaurusElementType.Unknown
+            return TaurusElementType.Unknown
         return model_obj.getTaurusElementType()
 
     def getModelValueObj(self,cache=True):
@@ -677,7 +683,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
                 self.changeLogName(new_log_name)
             self.modelObj = None
             self._attached = False
-            self.fireEvent(m, taurus.core.TaurusEventType.Change, None)
+            self.fireEvent(m, TaurusEventType.Change, None)
 
         self.postDetach()
 
@@ -835,7 +841,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         self._localModelName = model
         
 #        # if in offline mode don't bother trying to register
-#        opMode = taurus.core.TaurusManager().getOperationMode()
+#        opMode = taurus.core.taurusmanager.TaurusManager().getOperationMode()
 #        if opMode == taurus.core.OperationMode.OFFLINE:
 #            return
 
@@ -913,7 +919,7 @@ class TaurusBaseComponent(taurus.core.TaurusListener, BaseConfigurableClass):
         if showText == self._showText:
             return
         self._showText = showText
-        self.fireEvent(self.getModelObj(),taurus.core.TaurusEventType.Change, self.getModelValueObj())
+        self.fireEvent(self.getModelObj(), TaurusEventType.Change, self.getModelValueObj())
         self.updateStyle()
 
     def getShowText(self):
@@ -1154,12 +1160,12 @@ class TaurusBaseWidget(TaurusBaseComponent):
         if self._setText:
             text = ''
             if self.getShowText():
-                if isinstance(evt_src, taurus.core.TaurusAttribute):
-                    if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+                if isinstance(evt_src, TaurusAttribute):
+                    if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
                         text = self.displayValue(evt_value.value)
-                    elif evt_type == taurus.core.TaurusEventType.Error:
+                    elif evt_type == TaurusEventType.Error:
                         text = self.getNoneValue()
-                    elif evt_type == taurus.core.TaurusEventType.Config:
+                    elif evt_type == TaurusEventType.Config:
                         text = self.getDisplayValue() 
                 else:
                     text = self.getDisplayValue()
@@ -1316,9 +1322,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             modelclass = self.getModelClass()
         except:
             return []
-        if modelclass == taurus.core.TaurusDevice:
+        if modelclass == TaurusDevice:
             return [TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE]
-        elif modelclass == taurus.core.TaurusAttribute:
+        elif modelclass == TaurusAttribute:
             return [TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE]
         else:
             return [TAURUS_MODEL_MIME_TYPE]
@@ -1400,9 +1406,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             modelclass = self.getModelClass()
         except:
             modelclass = None 
-        if issubclass(modelclass, taurus.core.TaurusDevice):
+        if issubclass(modelclass, TaurusDevice):
             mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
-        elif issubclass(modelclass, taurus.core.TaurusAttribute):
+        elif issubclass(modelclass, TaurusAttribute):
             mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData        
     
@@ -1557,7 +1563,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
-        return taurus.core.TaurusAttribute
+        return TaurusAttribute
 
     def isReadOnly(self):
         return False
@@ -1613,8 +1619,8 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         that pending operations are properly created, not calling this method'''
         try:
             v = self.getValue()
-            op = taurus.core.WriteAttrOperation(self.getModelObj(), v, 
-                                            self.getOperationCallbacks())
+            op = WriteAttrOperation(self.getModelObj(), v, 
+                                    self.getOperationCallbacks())
             op.setDangerMessage(self.getDangerMessage())
             self.safeApplyOperations([op])
             self.info('Force-Applied value = %s'%str(v))
@@ -1623,7 +1629,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             self.traceback()
         
     def handleEvent(self, src, evt_type, evt_value):
-        if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+        if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self.emitValueChanged()
     
     def postAttach(self):
@@ -1657,8 +1663,8 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             if model.areStrValuesEqual(model_value, wigdet_value):
                 self._operations = []
             else:
-                operation = taurus.core.WriteAttrOperation(model, wigdet_value, 
-                                                            self.getOperationCallbacks())
+                operation = WriteAttrOperation(model, wigdet_value, 
+                                               self.getOperationCallbacks())
                 operation.setDangerMessage(self.getDangerMessage())
                 self._operations = [operation]
         except:
@@ -1690,15 +1696,15 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         if isinstance(v, Qt.QIntValidator):
             bottom = evt_value.min_value
             top = evt_value.max_value
-            bottom = int(bottom) if bottom != taurus.core.TaurusConfiguration.no_min_value else -sys.maxint
-            top = int(top) if top != taurus.core.TaurusConfiguration.no_max_value else sys.maxint
+            bottom = int(bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxint
+            top = int(top) if top != TaurusConfiguration.no_max_value else sys.maxint
             v.setRange(bottom, top)
             self.debug("Validator range set to %i-%i"%(bottom,top))
         elif isinstance(v, Qt.QDoubleValidator):
             bottom = evt_value.min_value
             top = evt_value.max_value
-            bottom = float(bottom) if bottom != taurus.core.TaurusConfiguration.no_min_value else -float("inf") 
-            top = float(top) if top != taurus.core.TaurusConfiguration.no_max_value else float("inf")
+            bottom = float(bottom) if bottom != TaurusConfiguration.no_min_value else -float("inf") 
+            top = float(top) if top != TaurusConfiguration.no_max_value else float("inf")
             v.setBottom(bottom)
             v.setTop(top)
             self.debug("Validator range set to %f-%f"%(bottom,top))

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #############################################################################
 ##
@@ -29,12 +30,9 @@ __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 
 __docformat__ = "restructuredtext"
 
-# -*- coding: utf-8 -*-
+from .taurusbasetypes import AttrAccess, TaurusElementType
+from .taurusmodel import TaurusModel
 
-import numpy
-
-from enums import AttrAccess
-import taurusmodel
 
 class TaurusConfigurationProxy(object):
     """
@@ -53,7 +51,7 @@ class TaurusConfigurationProxy(object):
         return getattr(self.__parent._getRealConfig(), name)
 
 
-class TaurusConfiguration(taurusmodel.TaurusModel):
+class TaurusConfiguration(TaurusModel):
     
     no_cfg_value = '-----'
     no_unit = 'No unit'
@@ -82,7 +80,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         # the configuration event identifier
         self._cfg_evt_id = None
 
-        self.call__init__(taurusmodel.TaurusModel, name, parent)
+        self.call__init__(TaurusModel, name, parent)
         
         # Everything went ok so now we are sure we can store the object
         if not storeCallback is None:
@@ -103,15 +101,14 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         self._unsubscribeEvents()
         self._attr_info = None
         self._dev_hw_obj = None
-        taurusmodel.TaurusModel.cleanUp(self)        
+        TaurusModel.cleanUp(self)        
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
     def getTaurusElementType(self):
-        import taurus.core
-        return taurus.core.TaurusElementType.Configuration
+        return TaurusElementType.Configuration
 
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
@@ -201,7 +198,7 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
 #    def addListener(self, listener):
 #        """ Add a TaurusListener object in the listeners list.
 #            If the listener is already registered nothing happens."""
-#        ret = taurusmodel.TaurusModel.addListener(self, listener)
+#        ret = TaurusModel.addListener(self, listener)
 #        if not ret:
 #            return ret
         
@@ -465,18 +462,21 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
         attr = self.getParentObj()
         if attr is None: return False
         v = attr.read(cache=cache)
+        import numpy
         return numpy.isscalar(v.value)
     
     def isSpectrum(self, cache=True):
         attr = self.getParentObj()
         if attr is None: return False
         v = attr.read(cache=cache)
+        import numpy
         return not numpy.isscalar(v.value) and numpy.array(v.value).ndim == 1
     
     def isImage(self, cache=True):
         attr = self.getParentObj()
         if attr is None: return False
         v = attr.read(cache=cache)
+        import numpy
         return not numpy.isscalar(v.value) and numpy.array(v.value).ndim == 2
     
     def isWrite(self, cache=True):
@@ -487,3 +487,6 @@ class TaurusConfiguration(taurusmodel.TaurusModel):
 
     def isReadWrite(self, cache=True):
         return self.getWritable(cache) == AttrAccess.READ_WRITE
+
+#del AttrAccess
+#del TaurusModel

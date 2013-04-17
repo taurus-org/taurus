@@ -33,8 +33,8 @@ __docformat__ = "restructuredtext"
 
 import re
 
-import util
-from enums import MatchLevel
+from .taurusbasetypes import MatchLevel
+from .util.singleton import Singleton
 
 InvalidAlias = "nada"
 
@@ -89,7 +89,7 @@ class AbstractTangoValidator:
         return None
 
 
-class DatabaseNameValidator(util.Singleton, AbstractTangoValidator):
+class DatabaseNameValidator(Singleton, AbstractTangoValidator):
     
     protocol_prefix = '((?P<scheme>tango)://)?'
     
@@ -122,7 +122,7 @@ class DatabaseNameValidator(util.Singleton, AbstractTangoValidator):
         return 3*('%s:%s' % (host,port),)
 
 
-class DatabaseQueryValidator(util.Singleton, AbstractTangoValidator):
+class DatabaseQueryValidator(Singleton, AbstractTangoValidator):
     """Deprecated"""
     
     query = '\?query=(?P<query>[\w\-_]+)(?P<params>(\?param=[\w\*\?\%\-_]+)*)'
@@ -152,7 +152,7 @@ class DatabaseQueryValidator(util.Singleton, AbstractTangoValidator):
         return str, normal, short    
             
 
-class DeviceNameValidator(util.Singleton, AbstractTangoValidator):
+class DeviceNameValidator(Singleton, AbstractTangoValidator):
     
     w = AbstractTangoValidator.tango_word
     dev = '(?P<devicename>' + w + '/' + w + '/' + w + ')'
@@ -204,7 +204,7 @@ class DeviceNameValidator(util.Singleton, AbstractTangoValidator):
         return complete, dev_name, alias
 
 
-class DeviceQueryValidator(util.Singleton, AbstractTangoValidator):
+class DeviceQueryValidator(Singleton, AbstractTangoValidator):
     """Deprecated"""
     query = DatabaseQueryValidator.query
 
@@ -233,7 +233,7 @@ class DeviceQueryValidator(util.Singleton, AbstractTangoValidator):
         return str,short    
 
     
-class AttributeNameValidator(util.Singleton, AbstractTangoValidator):
+class AttributeNameValidator(Singleton, AbstractTangoValidator):
     
     w = AbstractTangoValidator.tango_word
     attr = '/(?P<attributename>' + w + ')'
@@ -270,7 +270,7 @@ class AttributeNameValidator(util.Singleton, AbstractTangoValidator):
         return str, normal_name, attr_name
     
     
-class ConfigurationNameValidator(util.Singleton, AbstractTangoValidator):
+class ConfigurationNameValidator(Singleton, AbstractTangoValidator):
     
     w = AbstractTangoValidator.tango_word
     conf = "\?(?i)configuration(=(?P<configparam>" + w + "))*"

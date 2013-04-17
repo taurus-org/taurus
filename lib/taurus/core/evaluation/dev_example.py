@@ -57,7 +57,7 @@ class FreeSpaceDevice(EvaluationDevice):
 #===============================================================================
 
 def test1():
-    import taurus.core
+    import taurus
     a = taurus.Attribute('eval://dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024') #calculates free space in Mb
     print "Free space: %iMb"%a.read().value
     

@@ -31,6 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import copy
 import sys
+import json
 
 from taurus.qt import Qt
 from taurus.qt.qtgui.resource import getThemePixmap, getThemeIcon, getStandardIcon
@@ -61,7 +62,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 
 _TitleLabelStyle = """.QLabel {{ color : {font_color}; }}"""
 
-_ContentBarStyleWithTitle = """.QFrame {{
+_ContentBarStyleWithTitle = """ContentFrame {{
 border-top-width: 0px;
 border-left-width: 1px;
 border-right-width: 1px;
@@ -79,7 +80,7 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0,
 */
 }}"""
 
-_ContentBarStyleWithoutTitle = """.QFrame {{
+_ContentBarStyleWithoutTitle = """ContentFrame {{
 border-width: 1px;
 border-style: solid;
 border-color: {border_color};
@@ -94,6 +95,10 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0,
 */
 }}"""
 
+# Empty content QFrame to avoid frame style to be propagated
+# to child QFrame widgets
+class ContentFrame(Qt.QFrame):
+    pass
 
 class QGroupWidget(Qt.QWidget):
     """An expandable/collapsible composite widget"""
@@ -104,7 +109,7 @@ class QGroupWidget(Qt.QWidget):
         'start_color'  : 'rgb(60, 150, 255)',
         'stop_color'   : 'rgb(0, 65, 200)',
         'font_color'   : 'white',
-        'border_radius': '4px',
+        'border_radius': '5px',
     }
 
     DefaultContentVisible = True
@@ -112,7 +117,7 @@ class QGroupWidget(Qt.QWidget):
         'start_color' : 'rgb(224, 224, 224)',
         'stop_color'  : 'rgb(255, 255, 255)',
         'border_color' : 'rgb(0, 85, 227)',
-        'border_radius': '4px',
+        'border_radius': '5px',
     }
 
     def __init__(self, parent=None, designMode=False):
@@ -126,7 +131,7 @@ class QGroupWidget(Qt.QWidget):
         self.resetContentVisible()
         self.resetTitleHeight()
         self.resetTitleVisible()
-        
+    
     def __init(self):
         panelLayout = Qt.QVBoxLayout()
         panelLayout.setSpacing(0)
@@ -156,7 +161,10 @@ class QGroupWidget(Qt.QWidget):
         l.addWidget(self._titleLabel, 1)
         l.addWidget(self._upDownButton, 0)
         
-        self._content = content = Qt.QFrame()
+        self._content = content = ContentFrame()
+        l = Qt.QHBoxLayout()
+        l.setContentsMargins(0, 0, 0, 0)
+        content.setLayout(l)
         panelLayout.addWidget(content, 1)
     
     def _updateStyle(self):
@@ -185,11 +193,6 @@ class QGroupWidget(Qt.QWidget):
                  'group'     : 'Taurus Containers',
                  'icon'      : ":/designer/groupwidget.png",
                  'container' : True }
-        
-        ret = TaurusBaseContainer.getQtDesignerPluginInfo()
-        ret['icon'] = ":/designer/groupwidget.png"
-        ret['container'] = cls is QGroupWidget
-        return ret
         
     def content(self):
         """Returns the contents widget
@@ -332,6 +335,28 @@ class QGroupWidget(Qt.QWidget):
         """Resets this widget's title style"""
         self.setTitleStyle({})
 
+    def getTitleStyleStr(self):
+        """Returns this widget's title style
+        
+        :return: (dict) this widget's title style"""
+        return json.dumps(self._titleBarStyle)
+
+    def setTitleStyleStr(self, style_map):
+        """Sets this widget's title style
+        Used key/values for style_map:
+        - 'start_color'  : brush (Ex.: '#E0E0E0', 'rgb(0,0,0)', 'white')
+        - 'stop_color'   : brush (Ex.: '#E0E0E0', 'rgb(0,0,0)', 'white')
+        - 'font_color'   : brush (Ex.: '#E0E0E0', 'rgb(0,0,0)', 'white')
+        - 'border_radius': radius (Ex.: '5px', '5px,2px')
+            
+        :param style_map: (dict) the new widget title style"""
+        style_map = json.loads(str(style_map))
+        self.setTitleStyle(style_map)
+
+    def resetTitleStyleStr(self):
+        """Resets this widget's title style"""
+        self.resetTitleStyle()
+
     def getContentStyle(self):
         """Returns this widget's content style
         
@@ -353,6 +378,27 @@ class QGroupWidget(Qt.QWidget):
     def resetContentStyle(self):
         """Resets this widget's content style"""
         self.setContentStyle({})
+
+    def getContentStyleStr(self):
+        """Returns this widget's content style
+        
+        :return: (dict) this widget's content style"""
+        return json.dumps(self._contentStyle)
+
+    def setContentStyleStr(self, style_map):
+        """Sets this widget's content style
+        Used key/values for style_map:
+        - 'start_color'  : brush (Ex.: '#E0E0E0', 'rgb(0,0,0)', 'white')
+        - 'stop_color'   : brush (Ex.: '#E0E0E0', 'rgb(0,0,0)', 'white')
+        
+        :param style_map: (dict) the new widget content style"""
+        style_map = json.loads(str(style_map))
+        self.setContentStyle(style_map)
+        
+    def resetContentStyleStr(self):
+        """Resets this widget's content style"""
+        self.resetContentStyle()
+
         
     #: This property contains the widget's title
     #:
@@ -406,15 +452,26 @@ class QGroupWidget(Qt.QWidget):
     contentVisible = Qt.pyqtProperty("bool", isContentVisible, setContentVisible, resetContentVisible)
    
     ##: This property contains the widget's content style
-    ##:
+    ##: The style must be a json dictionary
+    ##: 
     ##: **Access functions:**
     ##:
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.getContentStyle`
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.setContentStyle`
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.resetContentStyle`
-    #contentStyle = Qt.pyqtProperty("QMap", getContentStyle, setContentStyle, resetContentStyle)
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.getContentStyleStr`
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.setContentStyleStr`
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.resetContentStyleStr`
+    contentStyle = Qt.pyqtProperty("QString", getContentStyleStr, setContentStyleStr,
+                                   resetContentStyleStr, doc="The style must be a json dictionary")
 
-
+    ##: This property contains the widget's title style
+    ##: The style must be a json dictionary
+    ##: 
+    ##: **Access functions:**
+    ##:
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.getTitleStyleStr`
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.setTitleStyleStr`
+    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.resetTitleStyleStr`
+    titleStyle = Qt.pyqtProperty("QString", getTitleStyleStr, setTitleStyleStr,
+                                 resetTitleStyleStr, doc="The style must be a json dictionary")
 def demo():
     "QGroup Widget"
     w = Qt.QWidget()

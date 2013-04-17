@@ -30,11 +30,7 @@ taurusgraphic.py:
 
 __docformat__ = 'restructuredtext'
 
-import time
-import sys
-import signal
 import re
-from threading import Thread 
 import os
 import subprocess
 import traceback
@@ -43,17 +39,20 @@ import types
 
 import Queue
 
+from taurus import Manager
+from taurus.core.util.containers import CaselessDefaultDict
+from taurus.core.util.log import Logger
+from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusattribute import TaurusAttribute
 from taurus.qt import Qt
-import taurus.core
-from taurus.core import DeviceNameValidator,AttributeNameValidator
-import taurus.core.util
-
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
 
 def parseTangoUri(name):
-    from taurus.core import tango,AttributeNameValidator,DeviceNameValidator
-    validator = {tango.TangoDevice:DeviceNameValidator,tango.TangoAttribute:AttributeNameValidator}
+    from taurus.core import tango
+    validator = {tango.TangoDevice    : DeviceNameValidator,
+                 tango.TangoAttribute : AttributeNameValidator }
     try: 
         params = validator[tango.TangoFactory().findObjectClass(name)]().getParams(name)
         return (params if 'devicename' in params else None)
@@ -68,7 +67,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
             raise RuntimeError("Illegal parent for TaurusGraphicsUpdateThread")
         Qt.QThread.__init__(self, parent)
         self.period = period
-        self.log = taurus.core.util.Logger('TaurusGraphicsUpdateThread')
+        self.log = Logger('TaurusGraphicsUpdateThread')
 
     def _updateView(self,v):
         # The first one is the prefered one because it improves performance
@@ -181,11 +180,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
-        #self.call__init__(taurus.core.util.Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT
+        #self.call__init__(taurus.core.util.log.Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT
         Qt.QGraphicsScene.__init__(self, parent)
         self.updateQueue = None
         self.updateThread = None
-        self._itemnames = taurus.core.util.CaselessDefaultDict(lambda k:set())
+        self._itemnames = CaselessDefaultDict(lambda k:set())
         self._selection = []
         self._selectedItems = []
         self.threads = []
@@ -193,7 +192,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self.panel_launcher = taurus.qt.qtgui.util.ExternalAppAction(parent.defaultPanelClass().split() if parent else ['taurusdevicepanel'])
         
         try:
-            self.logger = taurus.core.util.Logger(name)
+            self.logger = Logger(name)
             #self.logger.setLogLevel(self.logger.Info)
             if not self.TRACE_ALL:
                 self.debug = lambda l: self.logger.debug(l)
@@ -728,7 +727,8 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     def setModel(self,model):
         #self.info('In %s.setModel(%s)'%(type(self).__name__,model))
         self.setName(model)
-        if taurus.core.TaurusManager().findObjectClass(self._name) == taurus.core.tango.TangoDevice:
+        
+        if issubclass(Manager().findObjectClass(self._name), TaurusDevice):
             model = self._name+'/state'
         TaurusBaseComponent.setModel(self, model)        
         
@@ -765,7 +765,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         return self.log_name + "(" + self.modelName + ")"
 
     def getModelClass(self):
-        return taurus.core.TaurusAttribute
+        return TaurusAttribute
 
 class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
     """
@@ -970,8 +970,6 @@ class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem,
         Qt.QGraphicsTextItem.paint(self,painter,option,widget)
 
 
-import taurus.core
-
 TYPE_TO_GRAPHICS = { 
     None : { "Rectangle"      : Qt.QGraphicsRectItem,
              "RoundRectangle" : Qt.QGraphicsRectItem,
@@ -983,7 +981,7 @@ TYPE_TO_GRAPHICS = {
              "SwingObject"    : Qt.QGraphicsRectItem, 
              "Image"          : Qt.QGraphicsPixmapItem, },
              
-    taurus.core.TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
+    TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
                            "Polyline"       : TaurusPolygonStateItem, 
@@ -993,7 +991,7 @@ TYPE_TO_GRAPHICS = {
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem, },
 
-    taurus.core.TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
+    TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
                            "Polyline"       : TaurusPolygonStateItem, 
@@ -1046,8 +1044,8 @@ class TaurusBaseGraphicsFactory:
     def getGraphicsClassItem(self,cls,type_):
         ncls = cls
         try:
-            if   issubclass(cls, taurus.core.TaurusDevice):    ncls = taurus.core.TaurusDevice
-            elif issubclass(cls, taurus.core.TaurusAttribute): ncls = taurus.core.TaurusAttribute
+            if   issubclass(cls, TaurusDevice):    ncls = TaurusDevice
+            elif issubclass(cls, TaurusAttribute): ncls = TaurusAttribute
         except:
             pass
         ncls = TYPE_TO_GRAPHICS.get(ncls,TYPE_TO_GRAPHICS.get(None)).get(type_)
@@ -1067,7 +1065,7 @@ class TaurusBaseGraphicsFactory:
                 nname = name.split(':',1)[-1]
                 params[self.getNameParam()] = name = nname
             if name.lower().endswith('/state'): name = name.rsplit('/',1)[0]
-            cls = taurus.core.TaurusManager().findObjectClass(name)
+            cls = Manager().findObjectClass(name)
         else: 
             if name: self.debug('%s does not match a tango name'%name)
         klass = self.getGraphicsClassItem(cls, type_)
