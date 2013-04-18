@@ -97,7 +97,7 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     def setPrefixText(self,prefix):
         self._prefix = prefix
         import taurus.core
-        self.fireEvent(evt_type = taurus.core.TaurusEventType.Change)
+        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
 
     def getSuffixText(self):
         return self._suffix
@@ -106,7 +106,7 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     def setSuffixText(self,suffix):
         self._suffix = suffix
         import taurus.core
-        self.fireEvent(evt_type = taurus.core.TaurusEventType.Change)
+        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

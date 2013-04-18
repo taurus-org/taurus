@@ -70,7 +70,7 @@ class QTaurusBaseListener(TaurusListener):
             (i.e. reimplementing :meth:`handleEvent`)
 
         :param evt_src: (object) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
         self.fireEvent(evt_src, evt_type, evt_value)
@@ -83,7 +83,7 @@ class QTaurusBaseListener(TaurusListener):
         or Qt threads, respectively
 
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
         try:
@@ -97,7 +97,7 @@ class QTaurusBaseListener(TaurusListener):
         unless one of them returns None (in which case the event is discarded)
 
         :param evt_src: (object) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
         r = evt_src, evt_type, evt_value
@@ -122,7 +122,7 @@ class QTaurusBaseListener(TaurusListener):
         Reimplement as necessary
 
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
         pass
@@ -179,11 +179,11 @@ class QObjectTaurusListener(Qt.QObject, QTaurusBaseListener):
 class ListenerDemo(QObjectTaurusListener):
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        self.info("New %s event from %s", taurus.core.TaurusEventType[evt_type], evt_src)
+        self.info("New %s event from %s", taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
         return super(ListenerDemo, self).eventReceived(evt_src, evt_type, evt_value)
     
     def handleEvent(self, evt_src, evt_type, evt_value):
-        self.info("New %s event from %s", taurus.core.TaurusEventType[evt_type], evt_src)
+        self.info("New %s event from %s", taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
 
 
 if __name__ == "__main__":

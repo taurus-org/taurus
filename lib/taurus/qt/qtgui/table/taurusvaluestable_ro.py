@@ -72,7 +72,7 @@ class TaurusValuesTable_OLD(Qt.QTableWidget, TaurusBaseWidget):
         return True
         
     def handleEvent(self, src, evt_type, val):
-        if evt_type in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic] and val is not None:            
+        if evt_type in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic] and val is not None:            
             values=numpy.array(val.value)
             #reshape the table
             if val.data_format == PyTango.AttrDataFormat.SPECTRUM:
@@ -97,7 +97,7 @@ class TaurusValuesTable_OLD(Qt.QTableWidget, TaurusBaseWidget):
         self.info('using deprecated event handling methods.')
         model = self.getModelObj()
         val = model.getValueObj()
-        self.handleEvent(model, taurus.core.TaurusEventType.Change, val)
+        self.handleEvent(model, taurus.core.taurusbasetypes.TaurusEventType.Change, val)
         
     def updateStyle(self):
         if self.getShowQuality():

@@ -936,7 +936,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """Reimplemented from :meth:`TaurusBaseWidget.handleEvent` 
         to update subwidgets on config events
         """
-        if evt_type == taurus.core.TaurusEventType.Config and not self._designMode:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not self._designMode:
             self.updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()

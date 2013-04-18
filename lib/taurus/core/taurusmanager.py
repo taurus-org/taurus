@@ -45,7 +45,7 @@ from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
 
 class TaurusManager(Singleton, Logger):
-    """A :class:`taurus.core.Singleton` class designed to provide Taurus management.
+    """A :class:`taurus.core.util.singleton.Singleton` class designed to provide Taurus management.
     
        Example::
        
@@ -193,9 +193,9 @@ class TaurusManager(Singleton, Logger):
     def getObject(self, cls, name):
         """Gives the object for the given class with the given name
         
-        :param cls: (taurus.core.TaurusModel) object class
+        :param cls: (taurus.core.taurusmodel.TaurusModel) object class
         :param name: (str) the object name
-        :return: (taurus.core.TaurusModel or None) a taurus model object
+        :return: (taurus.core.taurusmodel.TaurusModel or None) a taurus model object
         """
         factory = self._get_factory(name)
         if factory is None: return
@@ -205,7 +205,7 @@ class TaurusManager(Singleton, Logger):
         """Finds the object with the given name
         
         :param absolute_name: (str) the object name
-        :return: (taurus.core.TaurusModel or None) the taurus model object or None if 
+        :return: (taurus.core.taurusmodel.TaurusModel or None) the taurus model object or None if 
                  no suitable name found
         """
         factory = self._get_factory(absolute_name)
@@ -216,7 +216,7 @@ class TaurusManager(Singleton, Logger):
         """Finds the object class for the given object name
         
         :param absolute_name: (str) the object name
-        :return: (class taurus.core.TaurusModel or None) the taurus model class object or 
+        :return: (class taurus.core.taurusmodel.TaurusModel or None) the taurus model class object or 
                  None if no suitable name found
         """
         factory = self._get_factory(absolute_name)
@@ -349,7 +349,7 @@ class TaurusManager(Singleton, Logger):
         """Executes the given operations
         
         :param ops: the sequence of operations
-        :type ops: sequence<taurus.core.TaurusOperation>"""
+        :type ops: sequence<taurus.core.taurusoperation.TaurusOperation>"""
         for o in ops:
             o.execute()
             

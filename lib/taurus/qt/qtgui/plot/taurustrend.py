@@ -350,12 +350,12 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         For documentation about the parameters of this method, see
         :meth:`TaurusBaseComponent.handleEvent`
         '''
-        if evt_type == taurus.core.TaurusEventType.Config:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle()) #this did not work well (it overwrites custom titles!)
             return
         else:
             model = evt_src if evt_src is not None else self.getModelObj()
-            if evt_type == taurus.core.TaurusEventType.Error:
+            if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
                 self._onDroppedEvent(reason='Error event')
                 if not self.parent().getUseArchiving(): return
                 else: value = None
@@ -511,7 +511,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :param cache: (bool) set to True to do cache'd reading (by default is False)
         '''
         vobj=self.getModelValueObj(cache=False)
-        self.fireEvent(self, taurus.core.TaurusEventType.Periodic, vobj)
+        self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Periodic, vobj)
 
 
 class ScanTrendsSet(TaurusTrendsSet):
@@ -1366,7 +1366,7 @@ class TaurusTrend(TaurusPlot):
         self.addModels(models)
         for m in models:
             tset = self.trendSets[m]
-            tset.fireEvent(None, taurus.core.TaurusEventType.Change, None) #a fake event to force generating the curves
+            tset.fireEvent(None, taurus.core.taurusbasetypes.TaurusEventType.Change, None) #a fake event to force generating the curves
         #set curve properties
         self.setCurveAppearanceProperties(configdict["CurveProp"])
         self.updateLegend(force=True)

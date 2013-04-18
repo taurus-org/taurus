@@ -73,7 +73,7 @@ class TaurusPlotConfDlg(Qt.QWidget):
         self.ui.propView = self.__replaceWidget(curveprops.CurvePropertiesView(), self.ui.propView)
         from taurus.qt.qtgui.panel import TaurusModelSelectorTree
         tangoTree =  TaurusModelSelectorTree(parent = None,
-                                            selectables=[taurus.core.TaurusElementType.Attribute], 
+                                            selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute], 
                                             buttonsPos=Qt.Qt.RightToolBarArea)
         self.ui.tangoTree = self.__replaceWidget(tangoTree, self.ui.tangoTree)
 #        l=self.ui.propView.parent().layout()
@@ -82,7 +82,7 @@ class TaurusPlotConfDlg(Qt.QWidget):
 #        l=self.ui.tangoTree.parent().layout()
 #        from taurus.qt.qtgui.panel import TaurusModelSelectorTree
 #        self.ui.tangoTree = TaurusModelSelectorTree(parent = None,
-#                                                     selectables=[taurus.core.TaurusElementType.Attribute], 
+#                                                     selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute], 
 #                                                     buttonsPos=Qt.Qt.RightToolBarArea)
 #        l.insertWidget(0, self.ui.tangoTree)
         ####################################

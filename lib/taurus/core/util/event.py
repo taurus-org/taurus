@@ -521,9 +521,9 @@ class AttributeEventWait(object):
         """Event listener method for the underlying attribute. Do not call this
         method. It will be called internally when the attribute generates
         an event."""
-        if t == taurus.core.TaurusEventType.Config:
+        if t == taurus.core.taurusbasetypes.TaurusEventType.Config:
             return
-        elif t == taurus.core.TaurusEventType.Error:
+        elif t == taurus.core.taurusbasetypes.TaurusEventType.Error:
             self.fireEvent(None)
         else:
             self.fireEvent(v.value)
@@ -662,7 +662,7 @@ class AttributeEventIterator(object):
                   "locked by thread %s" % (curr_th.name, th.name)
     
     def eventReceived(self, s, t, v):
-        if t not in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+        if t not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return
         self.fireEvent(s, v.value)
     

@@ -51,7 +51,7 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
         
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.TaurusEventType.Config and not evt_value is None:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not evt_value is None:
             f = evt_value.format.lower()
             if f[-1] not in ('d', 'f', 'g'):
                 raise ValueError("'%s' format unsupported" % f)

@@ -56,7 +56,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         #... and fire a fake event for initialization
         try:
             value = self.getModelObj().read()
-            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+            self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Change, value)
         except:
             pass
 
@@ -106,7 +106,7 @@ class TaurusEncodedImageItem(TaurusImageItem):
         #... and fire a fake event for initialization
         try:
             format,value = self.codec.decode(self.getModelObj().read())
-            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+            self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Change, value)
         except:
             pass
 
@@ -179,7 +179,7 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         #... and fire a fake event for initialization
         try:
             value = self.getModelObj().read()
-            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+            self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Change, value)
         except:
             pass
 

@@ -36,7 +36,7 @@ import taurus.core.util
 import taurus.qt.qtgui.base
 import taurus.qt.qtgui.resource
 
-ElemType = taurus.core.TaurusElementType
+ElemType = taurus.core.taurusbasetypes.TaurusElementType
 getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
 getPixmap = taurus.qt.qtgui.resource.getPixmap
 getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
@@ -73,7 +73,7 @@ class BaseElementFilter(BaseFilter):
 
 class DeviceFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.TaurusDevInfo.name):
+    def __init__(self, re_expr, func=taurus.core.taurusbasetypes.TaurusDevInfo.name):
         super(DeviceFilter, self).__init__(re_expr, func=func)
 
 
@@ -110,7 +110,7 @@ class KlassFilter(BaseFilter):
 def getFilter(type, re_expr=None):
     if re_expr is None:
         if type == ElemType.Device:
-            return KlassFilter(taurus.core.TaurusDevInfo)
+            return KlassFilter(taurus.core.taurusbasetypes.TaurusDevInfo)
         elif type == ElemType.Server:
             return KlassFilter(taurus.core.TaurusServInfo)
         elif type == ElemType.DeviceClass:
@@ -120,11 +120,11 @@ def getFilter(type, re_expr=None):
     if type == ElemType.Device:
         return DeviceFilter(re_expr)
     elif type == ElemType.Domain:
-        return DeviceFilter(re_expr, taurus.core.TaurusDevInfo.domain)
+        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.domain)
     elif type == ElemType.Family:
-        return DeviceFilter(re_expr, taurus.core.TaurusDevInfo.family)
+        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.family)
     elif type == ElemType.Member:
-        return DeviceFilter(re_expr, taurus.core.TaurusDevInfo.member)
+        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.member)
     elif type == ElemType.Server:
         return ServerFilter(re_expr)
     elif type == ElemType.ServerName:

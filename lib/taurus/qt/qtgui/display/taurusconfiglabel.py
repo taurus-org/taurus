@@ -152,7 +152,7 @@ class TaurusConfigLabel(Qt.QLabel, TaurusBaseWidget):
     @Qt.pyqtSignature("setPrefixText(QString)")
     def setPrefixText(self,prefix):
         self._prefix = prefix
-        self.fireEvent(evt_type = taurus.core.TaurusEventType.Change)
+        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
 
     def resetPrefixText(self):
         self.setPrefixText('')
@@ -163,7 +163,7 @@ class TaurusConfigLabel(Qt.QLabel, TaurusBaseWidget):
     @Qt.pyqtSignature("setSuffixText(QString)")
     def setSuffixText(self,suffix):
         self._suffix = suffix
-        self.fireEvent(evt_type = taurus.core.TaurusEventType.Change)
+        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
     
     def resetSuffixText(self):
         self.setSuffixText('')

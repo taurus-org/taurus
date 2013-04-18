@@ -197,7 +197,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         model = widget.getModelObj()
         if model:
             widget.fireEvent( model,
-                             taurus.core.TaurusEventType.Periodic,
+                             taurus.core.taurusbasetypes.TaurusEventType.Periodic,
                              model.getValueObj()
             )
 
@@ -266,7 +266,7 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
             
     def handleEvent(self, evt_src, evt_type, evt_value):
         self.clear()
-        if evt_type == taurus.core.TaurusEventType.Error:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
             return
         if not (evt_src is None or evt_value is None) :
             attrList = list(evt_value.value)

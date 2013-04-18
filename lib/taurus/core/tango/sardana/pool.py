@@ -384,7 +384,7 @@ class PoolElement(BaseElement, TangoDevice):
         return self._attrEG.get(name)
 
     def getAttrObj(self, name):
-        """Returns the taurus.core.TangoAttribute object"""
+        """Returns the taurus.core.tangoattribute.TangoAttribute object"""
         attrEG = self._attrEG.get(name)
         if attrEG is None:
             return None

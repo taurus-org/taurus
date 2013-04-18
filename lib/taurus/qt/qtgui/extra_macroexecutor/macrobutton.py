@@ -46,7 +46,7 @@ class DoorStateListener(Qt.QObject):
     __pyqtSignals__ = ["doorStateChanged"]
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+        if evt_type not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return
         door_state = evt_value.value
         self.emit(Qt.SIGNAL('doorStateChanged'), door_state)

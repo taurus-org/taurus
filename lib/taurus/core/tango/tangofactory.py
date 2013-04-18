@@ -37,6 +37,7 @@ import PyTango
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode, MatchLevel
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
 from taurus.core.util.enumeration import Enumeration
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
@@ -215,8 +216,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            
         :param absolute_name: (str) the object absolute name string
 
-        :return: (taurus.core.TaurusModel) a class object that should be a subclass of a taurus.core.TaurusModel
-        :raise: (taurus.core.TaurusException) if the given name is invalid.
+        :return: (taurus.core.taurusmodel.TaurusModel) a class object that should be a subclass of a taurus.core.taurusmodel.TaurusModel
+        :raise: (taurus.core.taurusexception.TaurusException) if the given name is invalid.
         """
         objType = None
         try:
@@ -250,8 +251,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         :param db_name: (str) database name string alias. If None, the 
                         default database is used
                            
-        :return: (taurus.core.TangoDatabase) database object
-        :raise: (taurus.core.TaurusException) if the given alias is invalid.
+        :return: (taurus.core.tangodatabase.TangoDatabase) database object
+        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         ret = None
         if db_name is None:
@@ -303,7 +304,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                             (_/_/_) or a device alias.
              
            :return: (taurus.core.tango.TangoDevice) a device object 
-           :raise: (taurus.core.TaurusException) if the given dev_name is invalid.
+           :raise: (taurus.core.taurusexception.TaurusException) if the given dev_name is invalid.
         """
         d = self.tango_devs.get(dev_name)
         if d is None:
@@ -374,8 +375,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
            :param attr_name: (str) attribute name
                  
-           :return: (taurus.core.TangoAttribute) attribute object
-           :raise: (taurus.core.TaurusException) if the given alias is invalid.
+           :return: (taurus.core.tangoattribute.TangoAttribute) attribute object
+           :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         attr = self.tango_attrs.get(attr_name)
 
@@ -701,7 +702,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) wheater or not to unsubscribe from events
         """
-        tmr = self.polling_timers.get(period,taurus.core.TaurusPollingTimer(period))
+        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
         self.polling_timers[period] = tmr
         tmr.addAttribute(attribute, self.isPollingEnabled())
 

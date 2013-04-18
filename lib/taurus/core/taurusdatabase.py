@@ -321,7 +321,7 @@ class TaurusDatabaseCache(object):
         raise RuntimeError("Must be implemented in subclass")
     
     def getDevice(self, name):
-        """Returns a :class:`taurus.core.TaurusDevInfo` object with information 
+        """Returns a :class:`taurus.core.taurusbasetypes.TaurusDevInfo` object with information 
         about the given device name
         
         :param name: (str) the device name

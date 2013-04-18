@@ -34,32 +34,32 @@ def IGNORE_ALL(s, t, v):
 
 def ONLY_CHANGE(s, t, v):
     '''Only change events pass'''
-    if t == taurus.core.TaurusEventType.Change: return s,t,v
+    if t == taurus.core.taurusbasetypes.TaurusEventType.Change: return s,t,v
     else: return None
 
 def IGNORE_CHANGE(s, t, v):
     '''Config events are discarded'''
-    if t != taurus.core.TaurusEventType.Change: return s,t,v
+    if t != taurus.core.taurusbasetypes.TaurusEventType.Change: return s,t,v
     else: return None
 
 def ONLY_CHANGE_AND_PERIODIC(s, t, v):
     '''Only change events pass'''
-    if t in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]: return s,t,v
+    if t in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]: return s,t,v
     else: return None
 
 def IGNORE_CHANGE_AND_PERIODIC(s, t, v):
     '''Config events are discarded'''
-    if t not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]: return s,t,v
+    if t not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]: return s,t,v
     else: return None
     
 def ONLY_CONFIG(s, t, v):
     '''Only config events pass'''
-    if t == taurus.core.TaurusEventType.Config: return s,t,v
+    if t == taurus.core.taurusbasetypes.TaurusEventType.Config: return s,t,v
     else: return None
     
 def IGNORE_CONFIG(s, t, v):
     '''Config events are discarded'''
-    if t != taurus.core.TaurusEventType.Config: return s,t,v
+    if t != taurus.core.taurusbasetypes.TaurusEventType.Config: return s,t,v
     else: return None
     
 def ONLY_VALID(s, t, v):
@@ -95,7 +95,7 @@ class EventValueMap(dict):
     }
 
     def __call__(self, s, t, v):
-        if not t in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+        if not t in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return s, t, v
         if v is None:
             return s, t, v

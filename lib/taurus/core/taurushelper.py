@@ -457,7 +457,7 @@ def Object(klass, name):
     :param name: the full object name
     :type name: str
     :return: a taurus object
-    :rtype: :class:`taurus.core.TaurusModel`"""
+    :rtype: :class:`taurus.core.taurusmodel.TaurusModel`"""
     return Factory(getSchemeFromName(name)).getObject(klass, name)
 
 from taurus.core.util import log as __log_mod

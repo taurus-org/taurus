@@ -243,15 +243,15 @@ def getElementTypeSize(elemType):
     return data[__IDX_ELEM_TYPE_SIZE]
 
 def getElementTypeIconName(elemType):
-    """Gets an icon name string for the given :class:`taurus.core.TaurusElementType`.
+    """Gets an icon name string for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
     
-    If an icon name cannot be found for the given :class:`taurus.core.TaurusElementType`,
+    If an icon name cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
     None is returned.
     
     :param elemType: (TaurusElementType) the taurus element type
     
     :return: (str) a string representing the icon name for the given 
-             :class:`taurus.core.TaurusElementType`"""
+             :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
     if elemType is None:
         return
     data = _ELEM_TYPE_MAP.get(elemType)
@@ -260,15 +260,15 @@ def getElementTypeIconName(elemType):
     return data[__IDX_ELEM_TYPE_ICON]
 
 def getElementTypeIcon(elemType, fallback=None):
-    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.TaurusElementType`.
+    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
     
-    If an icon cannot be found for the given :class:`taurus.core.TaurusElementType`,
+    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
     fallback is returned.
     
     :param elemType: (TaurusElementType) the taurus element type
     :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
     
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.TaurusElementType`"""
+    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
 
     themeIconName = getElementTypeIconName(elemType)
     icon = getThemeIcon(themeIconName)
@@ -277,15 +277,15 @@ def getElementTypeIcon(elemType, fallback=None):
     return icon
 
 def getElementTypePixmap(elemType, size=None):
-    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.TaurusElementType`.
+    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
     
-    If a pixmap cannot be found for the given :class:`taurus.core.TaurusElementType`,
+    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
     fallback is returned.
     
     :param elemType: (TaurusElementType) the taurus element type
     :param fallback: (PyQt4.QtGui.QPixmap) the fallback pixmap. Default is None.
     
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.TaurusElementType`"""
+    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
 
     if elemType is None:
         return

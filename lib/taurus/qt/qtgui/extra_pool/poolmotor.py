@@ -56,7 +56,7 @@ class LimitsListener(Qt.QObject):
         Qt.QObject.__init__(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]:
+        if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
             return
         limits = evt_value.value
         self.emit(Qt.SIGNAL('updateLimits(PyQt_PyObject)'), limits.tolist())
@@ -322,7 +322,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         # ADD AN EVENT FILTER FOR THE STATUS LABEL IN ORDER TO PROVIDE JUST THE STRING FROM THE CONTROLLER (LAST LINE)
         def just_ctrl_status_line(evt_src, evt_type, evt_value):
-            if evt_type not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]:
+            if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
                 return evt_src, evt_type, evt_value
             try:
                 status = evt_value.value
@@ -745,7 +745,7 @@ class TaurusAttributeListener(Qt.QObject):
         Qt.QObject.__init__(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in [taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic]:
+        if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
             return
         value = evt_value.value
         self.emit(Qt.SIGNAL('eventReceived'), value)

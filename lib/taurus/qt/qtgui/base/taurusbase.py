@@ -233,7 +233,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             (i.e. reimplementing :meth:`handleEvent`)
             
         :param evt_src: (object) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
         self.fireEvent(evt_src, evt_type, evt_value)
@@ -246,7 +246,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         or Qt threads, respectively
 
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
         try: self.getSignaller().emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
@@ -257,7 +257,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         unless one of them returns None (in which case the event is discarded)
         
         :param evt_src: (object) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
         r = evt_src, evt_type, evt_value
@@ -282,7 +282,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         Reimplement as necessary
         
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
         pass
@@ -304,7 +304,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         value to be filtered as well. This can be done as in this example::
         
             TaurusBaseComponent.fireEvent( TaurusBaseComponent.getModelObj(),
-                                        taurus.core.TaurusEventType.Periodic,
+                                        taurus.core.taurusbasetypes.TaurusEventType.Periodic,
                                         TaurusBaseComponent.getModelObj().getValueObj())
         
         See also: insertEventFilter
@@ -453,7 +453,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """Returns the parent model object or None if the component has no 
         parent or if the parent's model is None
             
-        :return: (taurus.core.TaurusModel or None) the parent taurus model object
+        :return: (taurus.core.taurusmodel.TaurusModel or None) the parent taurus model object
         """
         try:
             p = self.getParentTaurusComponent()
@@ -467,15 +467,15 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """Returns the taurus model obj associated with this component or None if 
         no taurus model is associated.
             
-        :return: (taurus.core.TaurusModel or None) the taurus model object
+        :return: (taurus.core.taurusmodel.TaurusModel or None) the taurus model object
         """
         return self.modelObj
 
     def getModelType(self):
         """Returns the taurus model type associated with this component or 
-        taurus.core.TaurusElementType.Unknown if no taurus model is associated.
+        taurus.core.taurusbasetypes.TaurusElementType.Unknown if no taurus model is associated.
             
-        :return: (taurus.core.TaurusElementType) the taurus model type
+        :return: (taurus.core.taurusbasetypes.TaurusElementType) the taurus model type
         """
         model_obj = self.getModelObj()
         if model_obj is None:
@@ -727,7 +727,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         Use :meth:`TaurusBaseWidget.safeApplyOperation` if you want to warn the
         user before applying
         
-        :param ops: (sequence<taurus.core.TaurusOperation> or None) list of operations to apply. 
+        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
                     If None is given (default) the component fetches the pending operations
         """
         self.debug("Apply changes")
@@ -753,7 +753,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def getPendingOperations(self):
         """Returns the sequence of pending operations
         
-        :return:  (sequence<taurus.core.TaurusOperation>) a list of pending operations
+        :return:  (sequence<taurus.core.taurusoperation.TaurusOperation>) a list of pending operations
         """
         return self._operations
     
@@ -858,7 +858,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             if self.getUseParentModel():
                 parent_widget = self.getParentTaurusComponent()
         self.setModelName(model, parent_widget)
-        #self.fireEvent(self.getModelObj(), taurus.core.TaurusEventType.Change, self.getModelValueObj())
+        #self.fireEvent(self.getModelObj(), taurus.core.taurusbasetypes.TaurusEventType.Change, self.getModelValueObj())
     
     def resetModel(self):
         """Sets the model name to the empty string"""
@@ -1153,7 +1153,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         Override when necessary.
         
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
         :param evt_value: (object or None) event value
         """
         #Update the text shown by the widget
@@ -1469,7 +1469,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     def safeApplyOperations(self, ops = None):
         """Applies the given operations (or the pending operations if None passed)
         
-        :param ops: (sequence<taurus.core.TaurusOperation> or None) list of operations to apply. 
+        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
                     If None is given (default) the component fetches the pending operations
         """
         

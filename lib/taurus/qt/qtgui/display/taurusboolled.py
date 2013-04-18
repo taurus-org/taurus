@@ -188,7 +188,7 @@ class TaurusBoolLed(QLed, TaurusBaseWidget):
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_value is None:
             return
-        if evt_type == taurus.core.TaurusEventType.Error:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
             self._setProblemsBackground(True)
             self.updateStyle()
             return

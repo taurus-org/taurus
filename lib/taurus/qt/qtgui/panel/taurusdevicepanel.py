@@ -396,7 +396,7 @@ class TaurusDevicePanel(TaurusWidget):
 
 
 def filterNonExported(obj):
-    if not isinstance(obj,taurus.core.TaurusDevInfo) or obj.exported():
+    if not isinstance(obj,taurus.core.taurusbasetypes.TaurusDevInfo) or obj.exported():
         return obj
     return None
 
@@ -420,8 +420,8 @@ class TaurusDevPanel(TaurusMainWindow):
         import taurus.qt.qtgui.tree
         TaurusDbTreeWidget = taurus.qt.qtgui.tree.TaurusDbTreeWidget
 
-        self.deviceTree = TaurusDbTreeWidget(perspective=taurus.core.TaurusElementType.Device)
-        self.deviceTree.getQModel().setSelectables([taurus.core.TaurusElementType.Member])
+        self.deviceTree = TaurusDbTreeWidget(perspective=taurus.core.taurusbasetypes.TaurusElementType.Device)
+        self.deviceTree.getQModel().setSelectables([taurus.core.taurusbasetypes.TaurusElementType.Member])
         #self.deviceTree.insertFilter(filterNonExported)
         self.setCentralWidget(self.deviceTree)        
         
@@ -467,7 +467,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
-        if isinstance(itemData, taurus.core.TaurusDevInfo):
+        if isinstance(itemData, taurus.core.taurusbasetypes.TaurusDevInfo):
             self.onDeviceSelected(itemData)
         
     def onDeviceSelected(self, devinfo):

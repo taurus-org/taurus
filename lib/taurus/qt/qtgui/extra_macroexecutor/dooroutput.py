@@ -187,8 +187,8 @@ class DoorAttrListener(Qt.QObject):
         self.attrObj.addListener(self)
 
     def eventReceived(self, src, type, value):
-        if (type == taurus.core.TaurusEventType.Error or
-            type == taurus.core.TaurusEventType.Config):
+        if (type == taurus.core.taurusbasetypes.TaurusEventType.Error or
+            type == taurus.core.taurusbasetypes.TaurusEventType.Config):
             return
         self.emit(Qt.SIGNAL('door%sChanged' % self.attrName), value.value)
         

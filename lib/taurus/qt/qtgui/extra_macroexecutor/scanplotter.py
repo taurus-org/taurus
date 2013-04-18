@@ -143,7 +143,7 @@ class ScanPlotter(TaurusTrend):
         try:
             for name in self.getTrendSetNames():
                 ts = self.getTrendSet(name)
-                ts.fireEvent(None, taurus.core.TaurusEventType.Change, None)
+                ts.fireEvent(None, taurus.core.taurusbasetypes.TaurusEventType.Change, None)
         finally:
             self.curves_lock.release()
         self.setEventFilters([eventfilters.ONLY_VALID], plotables)

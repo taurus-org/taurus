@@ -103,7 +103,7 @@ class SardanaBaseTreeItem(TaurusBaseTreeItem):
     
     def role(self):
         """Returns the prefered role for the item.
-        This implementation returns taurus.core.TaurusElementType.Unknown
+        This implementation returns taurus.core.taurusbasetypes.TaurusElementType.Unknown
         
         This method should be able to return any kind of python object as long
         as the model that is used is compatible.

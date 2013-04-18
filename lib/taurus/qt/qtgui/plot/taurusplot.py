@@ -548,7 +548,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
             return
 
-        if evt_type == taurus.core.TaurusEventType.Config:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             self.updateTitle()
 
         value = val if isinstance(val, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)) else self.getModelValueObj()
@@ -903,7 +903,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :param show: (bool)
         """
         self._showMaxPeak = show
-        #self.fireEvent(taurus.core.TaurusEventType.Change) #force re-reading attribute to update peak values
+        #self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change) #force re-reading attribute to update peak values
 
     def showMinPeak(self,show):
         """Specififes if we want to show or not the min peak of the curve.
@@ -911,7 +911,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :param show: (bool)
         """
         self._showMinPeak = show
-        #self.fireEvent(taurus.core.TaurusEventType.Change) #force re-reading attribute to update peak values
+        #self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change) #force re-reading attribute to update peak values
 
     def getYAxisStatus(self):
         '''returns either None (if the curve is not visible) or its yAxis (if it
@@ -2586,7 +2586,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             from taurus.qt.qtgui.panel import TaurusModelChooser
             self.DataImportDlg = Qt.QDialog(self)
             self.DataImportDlg.setWindowTitle("%s - Import Data"%(str(self.windowTitle())))
-            self.DataImportDlg.modelChooser = TaurusModelChooser(selectables=[taurus.core.TaurusElementType.Attribute])
+            self.DataImportDlg.modelChooser = TaurusModelChooser(selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute])
             from taurus.qt.qtgui.panel import QRawDataWidget
             self.DataImportDlg.rawDataChooser = QRawDataWidget()
 

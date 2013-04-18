@@ -123,7 +123,7 @@ class TaurusQubDataImageDisplay(QubDataImageDisplay, TaurusBaseWidget):
     
     def handleEvent(self, evt_src, evt_type, evt_value):
         if self._updateAction.state():
-            if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic):
+            if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
                 data = self.getModelObj().getImageData()
                 if data:
                     data = data[self._image_attr_name][1]
@@ -190,7 +190,7 @@ def main():
     panel.setLayout(l)
     if not models:
         from taurus.qt.qtgui.panel import TaurusModelChooser
-        models, ok = TaurusModelChooser.modelChooserDlg(panel, [taurus.core.TaurusElementType.Attribute])
+        models, ok = TaurusModelChooser.modelChooserDlg(panel, [taurus.core.taurusbasetypes.TaurusElementType.Attribute])
         if not ok:
             models = []
     for model in models:

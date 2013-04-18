@@ -194,8 +194,8 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            
         :param absolute_name: (str) the object absolute name string
 
-        :return: (taurus.core.TaurusModel) a class object that should be a subclass of a taurus.core.TaurusModel
-        :raise: (taurus.core.TaurusException) if the given name is invalid.
+        :return: (taurus.core.taurusmodel.TaurusModel) a class object that should be a subclass of a taurus.core.taurusmodel.TaurusModel
+        :raise: (taurus.core.taurusexception.TaurusException) if the given name is invalid.
         """
         objType = None
 
@@ -213,7 +213,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
                            
         :return: (taurus.core.taurusdatabase.TaurusDatabase) database object
         :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         if alias is None:
             return Database()
@@ -234,7 +234,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         
         :return: (taurus.core.taurusdevice.TaurusDevice) device object
         :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:
@@ -251,7 +251,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
              
         :return: (taurus.core.taurusattribute.TaurusAttribute) attribute object
         :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:
@@ -268,7 +268,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
              
         :return: (taurus.core.taurusconfiguration.TaurusConfiguration) configuration object
         :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         alias = self.getValue(alias)
         if not alias:

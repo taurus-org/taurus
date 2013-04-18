@@ -110,7 +110,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.TaurusEventType.Config:
+        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             if evt_value.min_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_alarm:
                 self.__minAlarm = float(evt_value.min_alarm)
             else:

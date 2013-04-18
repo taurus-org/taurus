@@ -598,10 +598,10 @@ class TaurusValuesTable(TaurusWidget):
         model = self._tableView.model()
         if model is None:
             return
-        if evt_type in (taurus.core.TaurusEventType.Change, taurus.core.TaurusEventType.Periodic) and evt_value is not None:            
+        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic) and evt_value is not None:            
             model.setAttr(evt_value)
             self._tableView.resizeColumnsToContents()
-        elif evt_type == taurus.core.TaurusEventType.Config:
+        elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #force a read to set an attr
             model.setAttr(self.getModelValueObj())
             model.setConfig(evt_src)
@@ -721,7 +721,7 @@ class TaurusValuesTable(TaurusWidget):
     def chooseModel(self):
         '''shows a model chooser'''
         from taurus.qt.qtgui.panel import  TaurusModelChooser
-        selectables=[taurus.core.TaurusElementType.Attribute]
+        selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute]
         models, ok = TaurusModelChooser.modelChooserDlg(selectables=selectables, singleModel=True)
         if ok and len(models)==1:
             self.setModel(models[0])

@@ -251,13 +251,13 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
         self.call__init__(TaurusFactory)
         
     def findObjectClass(self, absolute_name):
-        """findObjectClass(string absolute_name) -> taurus.core.TaurusModel subclass
+        """findObjectClass(string absolute_name) -> taurus.core.taurusmodel.TaurusModel subclass
            
         Obtain the class object corresponding to the given name.
            
         @param[in] absolute_name the object absolute name string
 
-        @return a class object that should be a subclass of a taurus.core.TaurusModel
+        @return a class object that should be a subclass of a taurus.core.taurusmodel.TaurusModel
         @throws TaurusException if the given name is invalid.
         """
         objType = None
@@ -371,7 +371,7 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
         params = validator.getParams(name)
                 
         if params is None:
-            raise taurus.core.TaurusException("Invalid configuration name %s." % name)
+            raise taurus.core.taurusexception.TaurusException("Invalid configuration name %s." % name)
 
         if not hasattr(self, "_conf"):
             name = "sim:01/a/b/c/d?configuration"

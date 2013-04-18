@@ -168,7 +168,7 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
         #... and fire a fake event for initialization
         try:
             value = self.getModelObj().read()
-            self.fireEvent(self, taurus.core.TaurusEventType.Change, value)
+            self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Change, value)
         except:
             pass
 

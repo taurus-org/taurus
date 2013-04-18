@@ -41,12 +41,12 @@ import taurus.qt.qtgui.resource
 class TaurusModelSelectorTree(TaurusWidget):
     def __init__(self, parent = None, selectables=None, buttonsPos=None, designMode = None):
         TaurusWidget.__init__(self, parent)
-        if selectables is None: selectables = [taurus.core.TaurusElementType.Attribute, taurus.core.TaurusElementType.Member, 
-                                               taurus.core.TaurusElementType.Device]
+        if selectables is None: selectables = [taurus.core.taurusbasetypes.TaurusElementType.Attribute, taurus.core.taurusbasetypes.TaurusElementType.Member, 
+                                               taurus.core.taurusbasetypes.TaurusElementType.Device]
         self._selectables = selectables
                         
         #tree
-        self._deviceTree = TaurusDbTreeWidget(perspective=taurus.core.TaurusElementType.Device)
+        self._deviceTree = TaurusDbTreeWidget(perspective=taurus.core.taurusbasetypes.TaurusElementType.Device)
         self._deviceTree.getQModel().setSelectables(self._selectables)
         self._deviceTree.setUseParentModel(True)
         
@@ -99,7 +99,7 @@ class TaurusModelSelectorTree(TaurusWidget):
         selected = []
         for item in self._deviceTree.selectedItems():
             nfo = item.itemData()
-            if isinstance(nfo, taurus.core.TaurusDevInfo):
+            if isinstance(nfo, taurus.core.taurusbasetypes.TaurusDevInfo):
                 selected.append(nfo.fullName())
             elif isinstance(nfo, taurus.core.TaurusAttrInfo):
                 selected.append( "%s/%s"%(nfo.device().fullName(),nfo.name()) )
@@ -248,7 +248,7 @@ class TaurusModelChooser(TaurusWidget):
     def _onUpdateModels(self):
         models = self.getListedModels()
         self.emit(Qt.SIGNAL("updateModels"), models)
-        if taurus.core.TaurusElementType.Attribute in self.tree._selectables:
+        if taurus.core.taurusbasetypes.TaurusElementType.Attribute in self.tree._selectables:
             self.emit(Qt.SIGNAL("UpdateAttrs"), models) #for backwards compatibility with the old AttributeChooser
     
     def setSingleModelMode(self, single):

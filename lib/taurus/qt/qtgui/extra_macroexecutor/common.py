@@ -202,7 +202,7 @@ class TaurusMacroConfigurationDialog(Qt.QDialog):
     
     def onMacroServerComboBoxChanged(self, macroServerName):
         self.doorComboBox.setModel(macroServerName + "/doorList")
-        self.doorComboBox.fireEvent(self.doorComboBox, taurus.core.TaurusEventType.Change, self.doorComboBox.getModelValueObj())#fake event
+        self.doorComboBox.fireEvent(self.doorComboBox, taurus.core.taurusbasetypes.TaurusEventType.Change, self.doorComboBox.getModelValueObj())#fake event
         
     def onMacroServerNameChanged(self, macroServerName):
         self.__selectMacroServer(macroServerName)
