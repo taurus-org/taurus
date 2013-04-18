@@ -69,7 +69,7 @@ X, Y, TITLE, VIS = range(NUMCOLS)
 SRC_ROLE =  Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
-ATTRNAMEVALIDATOR = taurus.core.AttributeNameValidator()
+ATTRNAMEVALIDATOR = taurus.core.taurusvalidator.AttributeNameValidator()
 
 class Component(object):
     def __init__(self, src):

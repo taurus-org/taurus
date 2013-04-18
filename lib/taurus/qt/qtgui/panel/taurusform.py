@@ -563,7 +563,7 @@ class TaurusCommandsForm(TaurusWidget):
         '''
         #self.debug('In TaurusCommandsForm._updateCommandWidgets())')
         dev = self.getModelObj()
-        if dev is None or dev.getSWState() != taurus.core.TaurusSWDevState.Running:
+        if dev is None or dev.getSWState() != taurus.core.taurusbasetypes.TaurusSWDevState.Running:
             self.debug('Cannot connect to device')
             self._clearFrame()
             return
@@ -738,7 +738,7 @@ class TaurusAttrForm(TaurusWidget):
         '''Populates the form with an item for each of the attributes shown
         '''
         dev = self.getModelObj()
-        if dev is None or dev.getSWState() != taurus.core.TaurusSWDevState.Running:
+        if dev is None or dev.getSWState() != taurus.core.taurusbasetypes.TaurusSWDevState.Running:
             self.debug('Cannot connect to device')
             self._form.setModel([])
             return

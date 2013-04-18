@@ -312,15 +312,15 @@ def getSWDevHealthToolTip(elemHealth):
     return data[__IDX_HEALTH_TOOLTIP]
 
 def getSWDevHealthIcon(elemHealth, fallback=None):
-    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.TaurusSWDevHealth`.
+    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`.
     
-    If an icon cannot be found for the given :class:`taurus.core.TaurusSWDevHealth`,
+    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`,
     fallback is returned.
     
     :param elemHealth: (TaurusSWDevHealth) the taurus software device health status
     :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
     
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.TaurusSWDevHealth`"""
+    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`"""
     if elemHealth is None:
         return
     data = _HEALTH_MAP.get(elemHealth)
@@ -334,15 +334,15 @@ def getSWDevHealthIcon(elemHealth, fallback=None):
     return icon
 
 def getSWDevHealthPixmap(elemHealth, size=None):
-    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.TaurusSWDevHealth`.
+    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`.
     
-    If a pixmap cannot be found for the given :class:`taurus.core.TaurusSWDevHealth`,
+    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`,
     fallback is returned.
     
     :param elemHealth: (TaurusSWDevHealth) the taurus software device health status
     :param fallback: (PyQt4.QtGui.QPixmap) the fallback icon. Default is None.
     
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.TaurusSWDevHealth`"""
+    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`"""
     if elemHealth is None:
         return
     data = _HEALTH_MAP.get(elemHealth)

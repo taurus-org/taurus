@@ -175,10 +175,11 @@ def init_taurus_args(parser=None, args=None, values=None):
 
     # initialize taurus serialization mode
     if options.taurus_serialization_mode is not None:
-        import taurus.core
+        import taurus.core.taurusbasetypes
+        SerMode = taurus.core.taurusbasetypes.TaurusSerializationMode
         m = options.taurus_serialization_mode.capitalize()
-        if hasattr(taurus.core.TaurusSerializationMode, m):
-            m = getattr(taurus.core.TaurusSerializationMode, m)
+        if hasattr(SerMode, m):
+            m = getattr(SerMode, m)
             taurus.Manager().setSerializationMode(m)
 
     # initialize remote console port

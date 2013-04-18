@@ -364,7 +364,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 if not self.parent().getUseArchiving(): return
                 else: value = None
             else:
-                value = evt_value if isinstance(evt_value, (taurus.core.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
+                value = evt_value if isinstance(evt_value, (taurus.core.taurusbasetypes.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
                 if value is None or value.value is None: 
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving(): return

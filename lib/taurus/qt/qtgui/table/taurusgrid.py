@@ -283,7 +283,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         #-----------------------------------------------------------------------
         # [MANDATORY]
         # Replace your own code here
-        # ex.: return taurus.core.Attribute
+        # ex.: return taurus.core.taurusattribute.Attribute
         raise RuntimeError("Forgot to overwrite %s.getModelClass" % str(self)) 
         return list
     

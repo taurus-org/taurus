@@ -101,7 +101,7 @@ class TaurusModelSelectorTree(TaurusWidget):
             nfo = item.itemData()
             if isinstance(nfo, taurus.core.taurusdatabase.TaurusDevInfo):
                 selected.append(nfo.fullName())
-            elif isinstance(nfo, taurus.core.TaurusAttrInfo):
+            elif isinstance(nfo, taurus.core.taurusdatabase.TaurusAttrInfo):
                 selected.append( "%s/%s"%(nfo.device().fullName(),nfo.name()) )
             else: 
                 self.info("Unknown item '%s' in selection"%repr(nfo))

@@ -79,19 +79,19 @@ class DeviceFilter(BaseElementFilter):
 
 class DeviceClassFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.TaurusDevClassInfo.name):
+    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
         super(DeviceClassFilter, self).__init__(re_expr, func=func)
 
 
 class ServerFilter(BaseElementFilter):
 
-    def __init__(self, re_expr, func=taurus.core.TaurusServInfo.name):
+    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusServInfo.name):
         super(ServerFilter, self).__init__(re_expr, func=func)
 
 
 class AttributeFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.TaurusAttrInfo.name):
+    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusAttrInfo.name):
         super(AttributeFilter, self).__init__(re_expr, func=func)
 
 
@@ -112,9 +112,9 @@ def getFilter(type, re_expr=None):
         if type == ElemType.Device:
             return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
         elif type == ElemType.Server:
-            return KlassFilter(taurus.core.TaurusServInfo)
+            return KlassFilter(taurus.core.taurusdatabase.TaurusServInfo)
         elif type == ElemType.DeviceClass:
-            return KlassFilter(taurus.core.TaurusDevClassInfo)
+            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
         return None
 
     if type == ElemType.Device:
@@ -128,9 +128,9 @@ def getFilter(type, re_expr=None):
     elif type == ElemType.Server:
         return ServerFilter(re_expr)
     elif type == ElemType.ServerName:
-        return ServerFilter(re_expr, taurus.core.TaurusServInfo.serverName)
+        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverName)
     elif type == ElemType.ServerInstance:
-        return ServerFilter(re_expr, taurus.core.TaurusServInfo.serverInstance)
+        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverInstance)
     elif type == ElemType.DeviceClass:
         return DeviceClassFilter(re_expr)
     elif type == ElemType.Attribute:

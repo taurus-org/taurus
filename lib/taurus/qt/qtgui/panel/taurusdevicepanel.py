@@ -34,11 +34,11 @@ __docformat__ = 'restructuredtext'
 import re,traceback
 from taurus.qt import Qt
 
-import taurus.core
-#from taurus.qt.qtgui.container import TaurusMainWindow
-
 import taurus.qt.qtgui.resource
-                    
+from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusElementType
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusdatabase import TaurusDevInfo
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS #@todo: TaurusValueLabel is deprecated. Use TaurusLabel instead
 from taurus.qt.qtgui.display import TaurusStateLed as LED_CLASS #@todo: TaurusStateLed is deprecated. Use TaurusLed instead
@@ -264,10 +264,10 @@ class TaurusDevicePanel(TaurusWidget):
         elif raw is None or not model or not modelclass: 
             if self.getModel(): self.detach()
             return
-        elif issubclass(modelclass,taurus.core.taurusattribute.TaurusAttribute):
+        elif issubclass(modelclass, TaurusAttribute):
             #if model.lower().endswith('/state'): 
             model = model.rsplit('/',1)[0]
-        elif not issubclass(modelclass,taurus.core.taurusdevice.TaurusDevice):
+        elif not issubclass(modelclass, TaurusDevice):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
         try:
@@ -396,7 +396,7 @@ class TaurusDevicePanel(TaurusWidget):
 
 
 def filterNonExported(obj):
-    if not isinstance(obj,taurus.core.taurusdatabase.TaurusDevInfo) or obj.exported():
+    if not isinstance(obj, TaurusDevInfo) or obj.exported():
         return obj
     return None
 
@@ -420,8 +420,8 @@ class TaurusDevPanel(TaurusMainWindow):
         import taurus.qt.qtgui.tree
         TaurusDbTreeWidget = taurus.qt.qtgui.tree.TaurusDbTreeWidget
 
-        self.deviceTree = TaurusDbTreeWidget(perspective=taurus.core.taurusbasetypes.TaurusElementType.Device)
-        self.deviceTree.getQModel().setSelectables([taurus.core.taurusbasetypes.TaurusElementType.Member])
+        self.deviceTree = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
+        self.deviceTree.getQModel().setSelectables([TaurusElementType.Member])
         #self.deviceTree.insertFilter(filterNonExported)
         self.setCentralWidget(self.deviceTree)        
         
@@ -467,7 +467,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
-        if isinstance(itemData, taurus.core.taurusdatabase.TaurusDevInfo):
+        if isinstance(itemData, TaurusDevInfo):
             self.onDeviceSelected(itemData)
         
     def onDeviceSelected(self, devinfo):
@@ -491,14 +491,14 @@ class TaurusDevPanel(TaurusMainWindow):
         dev.state()
         state = dev.getSWState()
         #test the connection
-        if state == taurus.core.TaurusSWDevState.Running:
+        if state == TaurusSWDevState.Running:
             msg = 'Connected to "%s"'%devname
             self.statusBar().showMessage(msg)
             self._ui.attrDW.setWindowTitle('Attributes - %s'%devname)
             self._ui.commandsDW.setWindowTitle('Commands - %s'%devname)
         else:
             #reset the model if the connection failed
-            msg = 'Connection to "%s" failed (state = %s)'%(devname, taurus.core.TaurusSWDevState.whatis(state))
+            msg = 'Connection to "%s" failed (state = %s)' % (devname, TaurusSWDevState.whatis(state))
             self.statusBar().showMessage(msg)
             self.info(msg)
             Qt.QMessageBox.warning(self, "Device unreachable", msg)

@@ -33,6 +33,7 @@ import numpy
 import sys
 
 import taurus.core
+from taurus.core.taurusbasetypes import DataFormat
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
@@ -145,9 +146,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         values = numpy.array(attr.value)
         wvalues = numpy.array(attr.w_value)
         #reshape the table
-        if attr.data_format == taurus.core.DataFormat._1D:
+        if attr.data_format == DataFormat._1D:
             rows, columns = values.size, 1
-        elif attr.data_format == taurus.core.DataFormat._2D:
+        elif attr.data_format == DataFormat._2D:
             rows, columns = values.shape
         else:
             raise TypeError('Unsupported data format "%s"'%repr(attr.data_format))
@@ -174,7 +175,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         Returns the configuration object for the data
         
-        :returns:  (TaurusConfiguration)
+        :returns:  (taurus.core.taurusconfiguration.TaurusConfiguration)
         '''
         return self._attrConfig
     
@@ -182,7 +183,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         Returns Status of the variable
         
-        :returns:  (taurus.core.AttrQuality) 
+        :returns:  (taurus.core.taurusbasetypes.AttrQuality) 
         '''
         return self._attr.quality
     
@@ -244,7 +245,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 else:
                     raise TypeError('Unknown data type "%s"'%kind)
         #reshape if needed
-        if self._attr.data_format == taurus.core.DataFormat._1D:
+        if self._attr.data_format == DataFormat._1D:
             table = table.flatten()
         return table    
      
@@ -295,9 +296,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             #refresh the write data (unless it is dirty)
             wvalues=numpy.array(self._attr.w_value)
             #reshape the table
-            if self._attr.data_format == taurus.core.DataFormat._1D:
+            if self._attr.data_format == DataFormat._1D:
                 rows, columns = wvalues.size, 1
-            elif self._attr.data_format == taurus.core.DataFormat._2D:
+            elif self._attr.data_format == DataFormat._2D:
                 rows, columns = wvalues.shape
             else:
                 self.warning('unsupported data format %s'%str(val.data_format))
