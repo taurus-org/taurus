@@ -73,7 +73,7 @@ class BaseElementFilter(BaseFilter):
 
 class DeviceFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.taurusbasetypes.TaurusDevInfo.name):
+    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
         super(DeviceFilter, self).__init__(re_expr, func=func)
 
 
@@ -110,7 +110,7 @@ class KlassFilter(BaseFilter):
 def getFilter(type, re_expr=None):
     if re_expr is None:
         if type == ElemType.Device:
-            return KlassFilter(taurus.core.taurusbasetypes.TaurusDevInfo)
+            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
         elif type == ElemType.Server:
             return KlassFilter(taurus.core.TaurusServInfo)
         elif type == ElemType.DeviceClass:
@@ -120,11 +120,11 @@ def getFilter(type, re_expr=None):
     if type == ElemType.Device:
         return DeviceFilter(re_expr)
     elif type == ElemType.Domain:
-        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.domain)
+        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.domain)
     elif type == ElemType.Family:
-        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.family)
+        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.family)
     elif type == ElemType.Member:
-        return DeviceFilter(re_expr, taurus.core.taurusbasetypes.TaurusDevInfo.member)
+        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.member)
     elif type == ElemType.Server:
         return ServerFilter(re_expr)
     elif type == ElemType.ServerName:

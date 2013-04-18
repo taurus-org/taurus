@@ -99,7 +99,7 @@ class TaurusModelSelectorTree(TaurusWidget):
         selected = []
         for item in self._deviceTree.selectedItems():
             nfo = item.itemData()
-            if isinstance(nfo, taurus.core.taurusbasetypes.TaurusDevInfo):
+            if isinstance(nfo, taurus.core.taurusdatabase.TaurusDevInfo):
                 selected.append(nfo.fullName())
             elif isinstance(nfo, taurus.core.TaurusAttrInfo):
                 selected.append( "%s/%s"%(nfo.device().fullName(),nfo.name()) )

@@ -396,7 +396,7 @@ class TaurusDevicePanel(TaurusWidget):
 
 
 def filterNonExported(obj):
-    if not isinstance(obj,taurus.core.taurusbasetypes.TaurusDevInfo) or obj.exported():
+    if not isinstance(obj,taurus.core.taurusdatabase.TaurusDevInfo) or obj.exported():
         return obj
     return None
 
@@ -467,7 +467,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
-        if isinstance(itemData, taurus.core.taurusbasetypes.TaurusDevInfo):
+        if isinstance(itemData, taurus.core.taurusdatabase.TaurusDevInfo):
             self.onDeviceSelected(itemData)
         
     def onDeviceSelected(self, devinfo):
