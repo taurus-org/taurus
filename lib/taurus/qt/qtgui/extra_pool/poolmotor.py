@@ -32,6 +32,8 @@ from taurus.qt import Qt
 
 import taurus
 from taurus.core.util.colors import DEVICE_STATE_PALETTE
+from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.taurusvalidator import DeviceNameValidator
 import taurus.qt.qtcore.mimetypes
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -43,7 +45,9 @@ from taurus.qt.qtgui.input import TaurusValueSpinBox
 from taurus.qt.qtgui.panel import DefaultLabelWidget
 from taurus.qt.qtgui.panel import DefaultUnitsWidget
 from taurus.qt.qtgui.panel import TaurusValue, TaurusAttrForm
-from ui_poolmotorslim import Ui_PoolMotorSlim
+from taurus.qt.qtcore.mimetypes import TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtgui.resource import getIcon
+from .ui_poolmotorslim import Ui_PoolMotorSlim
 
 
 class LimitsListener(Qt.QObject):
@@ -56,7 +60,7 @@ class LimitsListener(Qt.QObject):
         Qt.QObject.__init__(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
+        if evt_type not in [TaurusEventType.Change, TaurusEventType.Periodic]:
             return
         limits = evt_value.value
         self.emit(Qt.SIGNAL('updateLimits(PyQt_PyObject)'), limits.tolist())
@@ -129,8 +133,8 @@ class LabelWidgetDragsDeviceAndAttribute(DefaultLabelWidget):
         mimeData.setText(self.text())
         attr_name = model
         dev_name = model.rpartition('/')[0]
-        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE, dev_name)
-        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE, attr_name)
+        mimeData.setData(TAURUS_DEV_MIME_TYPE, dev_name)
+        mimeData.setData(TAURUS_ATTR_MIME_TYPE, attr_name)
 
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
@@ -322,7 +326,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         # ADD AN EVENT FILTER FOR THE STATUS LABEL IN ORDER TO PROVIDE JUST THE STRING FROM THE CONTROLLER (LAST LINE)
         def just_ctrl_status_line(evt_src, evt_type, evt_value):
-            if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
+            if evt_type not in [TaurusEventType.Change, TaurusEventType.Periodic]:
                 return evt_src, evt_type, evt_value
             try:
                 status = evt_value.value
@@ -351,28 +355,28 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         # SET TAURUS ICONS 
         ################
         self.ui.btnMin.setText('')
-        self.ui.btnMin.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-remove.svg'))
+        self.ui.btnMin.setIcon(getIcon(':/actions/list-remove.svg'))
         self.ui.btnMax.setText('')
-        self.ui.btnMax.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-add.svg'))
+        self.ui.btnMax.setIcon(getIcon(':/actions/list-add.svg'))
 
         self.ui.btnGoToNeg.setText('')
-        self.ui.btnGoToNeg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_backward.svg'))
+        self.ui.btnGoToNeg.setIcon(getIcon(':/actions/media_skip_backward.svg'))
         self.ui.btnGoToNegPress.setText('')
-        self.ui.btnGoToNegPress.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_seek_backward.svg'))
+        self.ui.btnGoToNegPress.setIcon(getIcon(':/actions/media_seek_backward.svg'))
         self.ui.btnGoToNegInc.setText('')
-        self.ui.btnGoToNegInc.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_backward.svg'))
+        self.ui.btnGoToNegInc.setIcon(getIcon(':/actions/media_playback_backward.svg'))
         self.ui.btnGoToPos.setText('')
-        self.ui.btnGoToPos.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_forward.svg'))
+        self.ui.btnGoToPos.setIcon(getIcon(':/actions/media_skip_forward.svg'))
         self.ui.btnGoToPosPress.setText('')
-        self.ui.btnGoToPosPress.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_seek_forward.svg'))
+        self.ui.btnGoToPosPress.setIcon(getIcon(':/actions/media_seek_forward.svg'))
         self.ui.btnGoToPosInc.setText('')
-        self.ui.btnGoToPosInc.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_start.svg'))
+        self.ui.btnGoToPosInc.setIcon(getIcon(':/actions/media_playback_start.svg'))
         self.ui.btnStop.setText('')
-        self.ui.btnStop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
+        self.ui.btnStop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
         self.ui.btnHome.setText('')
-        self.ui.btnHome.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/go-home.svg'))
+        self.ui.btnHome.setIcon(getIcon(':/actions/go-home.svg'))
         self.ui.btnCfg.setText('')
-        self.ui.btnCfg.setIcon(taurus.qt.qtgui.resource.getIcon(':/categories/preferences-system.svg'))
+        self.ui.btnCfg.setIcon(getIcon(':/categories/preferences-system.svg'))
         #################################################################################################################
 
 
@@ -579,10 +583,10 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     def dropEvent(self, event):
         mimeData = event.mimeData()
-        if mimeData.hasFormat(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE):
-            model = str(mimeData.data(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE))
-        elif mimeData.hasFormat(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE):
-            model = str(mimeData.data(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE))
+        if mimeData.hasFormat(TAURUS_DEV_MIME_TYPE):
+            model = str(mimeData.data(TAURUS_DEV_MIME_TYPE))
+        elif mimeData.hasFormat(TAURUS_ATTR_MIME_TYPE):
+            model = str(mimeData.data(TAURUS_ATTR_MIME_TYPE))
         else:
             model = str(mimeData.text())
         self.setModel(model)
@@ -629,7 +633,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         # DUE TO A BUG IN TAUGROUPBOX, WE NEED THE FULL MODEL NAME
         try:
             # In case the model is an attribute of a motor, get the device name
-            if not taurus.core.DeviceNameValidator().isValid(model):
+            if not DeviceNameValidator().isValid(model):
                 model = model.rpartition('/')[0]
             model = taurus.Factory().getDevice(model).getFullName()
             self.setMotor(model)
@@ -745,7 +749,7 @@ class TaurusAttributeListener(Qt.QObject):
         Qt.QObject.__init__(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]:
+        if evt_type not in [TaurusEventType.Change, TaurusEventType.Periodic]:
             return
         value = evt_value.value
         self.emit(Qt.SIGNAL('eventReceived'), value)
@@ -841,7 +845,7 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         self.connect(action_expert_view, Qt.SIGNAL('toggled(bool)'), self.taurusValueBuddy().setExpertView)
 
         action_tango_attributes = Qt.QAction(self)
-        action_tango_attributes.setIcon(taurus.qt.qtgui.resource.getIcon(':/categories/preferences-system.svg'))
+        action_tango_attributes.setIcon(getIcon(':/categories/preferences-system.svg'))
         action_tango_attributes.setText('Tango Attributes')
         menu.addAction(action_tango_attributes)
         self.connect(action_tango_attributes, Qt.SIGNAL('triggered()'), self.taurusValueBuddy().showTangoAttributes)
@@ -855,8 +859,8 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         mimeData.setText(self.lbl_alias.text())
         dev_name = model.rpartition('/')[0]
         attr_name = dev_name+'/Position'
-        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_DEV_MIME_TYPE, dev_name)
-        mimeData.setData(taurus.qt.qtcore.mimetypes.TAURUS_ATTR_MIME_TYPE, attr_name)
+        mimeData.setData(TAURUS_DEV_MIME_TYPE, dev_name)
+        mimeData.setData(TAURUS_ATTR_MIME_TYPE, attr_name)
     
         drag = Qt.QDrag(self)
         drag.setMimeData(mimeData)
@@ -885,14 +889,14 @@ class PoolMotorTVReadWidget(TaurusWidget):
         self.btn_lim_neg.setToolTip('Negative Limit')
         #self.btn_lim_neg.setEnabled(False)
         self.prepare_button(self.btn_lim_neg)
-        self.btn_lim_neg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-remove.svg'))
+        self.btn_lim_neg.setIcon(getIcon(':/actions/list-remove.svg'))
         limits_layout.addWidget(self.btn_lim_neg)
 
         self.btn_lim_pos = Qt.QPushButton()
         self.btn_lim_pos.setToolTip('Positive Limit')
         #self.btn_lim_pos.setEnabled(False)
         self.prepare_button(self.btn_lim_pos)
-        self.btn_lim_pos.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/list-add.svg'))
+        self.btn_lim_pos.setIcon(getIcon(':/actions/list-add.svg'))
         limits_layout.addWidget(self.btn_lim_pos)
 
         self.layout().addLayout(limits_layout,0, 0)
@@ -977,13 +981,13 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btn_step_down = Qt.QPushButton()
         self.btn_step_down.setToolTip('Decrements motor position')
         self.prepare_button(self.btn_step_down)
-        self.btn_step_down.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_backward.svg'))
+        self.btn_step_down.setIcon(getIcon(':/actions/media_playback_backward.svg'))
         self.qw_write_relative.layout().addWidget(self.btn_step_down)
 
         self.btn_step_up = Qt.QPushButton()
         self.btn_step_up.setToolTip('Increments motor position')
         self.prepare_button(self.btn_step_up)
-        self.btn_step_up.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_start.svg'))
+        self.btn_step_up.setIcon(getIcon(':/actions/media_playback_start.svg'))
         self.qw_write_relative.layout().addWidget(self.btn_step_up)
 
         self.layout().addWidget(self.qw_write_relative, 0, 0)
@@ -996,7 +1000,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btn_stop = Qt.QPushButton()
         self.btn_stop.setToolTip('Stops the motor')
         self.prepare_button(self.btn_stop)
-        self.btn_stop.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_playback_stop.svg'))
+        self.btn_stop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
         self.layout().addWidget(self.btn_stop, 0, 2)
 
         btns_layout = Qt.QHBoxLayout()
@@ -1008,25 +1012,25 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btn_to_neg = Qt.QPushButton()
         self.btn_to_neg.setToolTip('Moves the motor towards the Negative Software Limit')
         self.prepare_button(self.btn_to_neg)
-        self.btn_to_neg.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_backward.svg'))
+        self.btn_to_neg.setIcon(getIcon(':/actions/media_skip_backward.svg'))
         btns_layout.addWidget(self.btn_to_neg)
 
         self.btn_to_neg_press = Qt.QPushButton()
         self.btn_to_neg_press.setToolTip('Moves the motor (while pressed) towards the Negative Software Limit')
         self.prepare_button(self.btn_to_neg_press)
-        self.btn_to_neg_press.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_seek_backward.svg'))
+        self.btn_to_neg_press.setIcon(getIcon(':/actions/media_seek_backward.svg'))
         btns_layout.addWidget(self.btn_to_neg_press)
 
         self.btn_to_pos_press = Qt.QPushButton()
         self.prepare_button(self.btn_to_pos_press)
         self.btn_to_pos_press.setToolTip('Moves the motor (while pressed) towards the Positive Software Limit')
-        self.btn_to_pos_press.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_seek_forward.svg'))
+        self.btn_to_pos_press.setIcon(getIcon(':/actions/media_seek_forward.svg'))
         btns_layout.addWidget(self.btn_to_pos_press)
 
         self.btn_to_pos = Qt.QPushButton()
         self.btn_to_pos.setToolTip('Moves the motor towards the Positive Software Limit')
         self.prepare_button(self.btn_to_pos)
-        self.btn_to_pos.setIcon(taurus.qt.qtgui.resource.getIcon(':/actions/media_skip_forward.svg'))
+        self.btn_to_pos.setIcon(getIcon(':/actions/media_skip_forward.svg'))
         btns_layout.addWidget(self.btn_to_pos)
 
         btns_layout.addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Minimum))
@@ -1328,6 +1332,7 @@ class PoolMotorTV(TaurusValue):
             limit_switches = [False, False, False]
             if self.hasHwLimits():
                 limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
+                print "update limits", limit_switches
             self.updateLimits(limit_switches, position=position)
         
     def hasEncoder(self):

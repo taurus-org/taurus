@@ -33,6 +33,7 @@ import time
 import threading
 
 from .util.log import Logger, DebugIt
+from .util.containers import CaselessDict
 from .util.timer import Timer
 
 
@@ -97,7 +98,7 @@ class TaurusPollingTimer(Logger):
         try:
             attr_dict = self.dev_dict.get(dev)
             if attr_dict is None:
-                self.dev_dict[dev] = attr_dict = util.CaselessDict()
+                self.dev_dict[dev] = attr_dict = CaselessDict()
             if not attr_dict.has_key(attr_name):
                 attr_dict[attr_name] = attribute
                 self.attr_nb += 1

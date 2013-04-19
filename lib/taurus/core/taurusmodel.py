@@ -73,7 +73,6 @@ class TaurusModel(Logger):
     def __repr__(self):
         return self.__str__name__(self.getFullName())
     
-
     def cleanUp(self):
         self.trace("[TaurusModel] cleanUp")
         #self._parentObj = None

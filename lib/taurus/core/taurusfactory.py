@@ -45,7 +45,7 @@ from .taurusbasetypes import OperationMode
 from .taurusdatabase import TaurusDatabase
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
-from .taurusconfiguration import TaurusConfiguration
+from .taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
 
 class TaurusFactory(object):
     """The base class for valid Factories in Taurus."""
