@@ -230,3 +230,15 @@ class OutputRecorder(DataRecorder):
             
         self._stream.output(scan_line)
         self._stream.flushOutput()
+        
+    def _addCustomData(self, value, name, **kwargs):
+        '''
+        The custom data will be added as an info line in the form:: 
+        Custom data: name : value
+        '''
+        if numpy.rank(value)>0: 
+            v = 'Array(%s)'%str(numpy.shape(value))
+        else:
+            v = str(value)
+        self._stream.output('Custom data: %s : %s'%(name,v) )
+        self._stream.flushOutput()
