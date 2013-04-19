@@ -679,9 +679,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of output file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved', 
-                                                   '', "Ini files (*.ini);;All files (*)")
-            if fname.isNull():
+            fname = unicode(Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved', 
+                                                   '', "Ini files (*.ini);;All files (*)"))
+            if not fname:
                 return
         self.saveSettings()
         ok = Qt.QFile.copy(self.getQSettings().fileName(), fname)
@@ -699,9 +699,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of ini file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
-                                                   '', "Ini files (*.ini);;All files (*)")
-            if fname.isNull():
+            fname = unicode(Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
+                                                   '', "Ini files (*.ini);;All files (*)"))
+            if not fname:
                 return
         s = Qt.QSettings(fname, Qt.QSettings.IniFormat)
         #clone the perspectives found in the "factory" settings
