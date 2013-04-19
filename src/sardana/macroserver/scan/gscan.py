@@ -213,8 +213,8 @@ class GScan(Logger):
         self._generator = generator
         self._extrainfodesc = extrainfodesc
         
-        #nasty hack to make sure macro has access to gScan as soon as possible
-        self._macro._gScan = self
+        #nasty hack to make sure macro has access to gScan as soon as possible 
+        self._macro._gScan = self #@todo: CAUTION! this may be causing a circular reference! 
         
         self._moveables, moveable_names = [], []
         for moveable in moveables:
