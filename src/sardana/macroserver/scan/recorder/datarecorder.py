@@ -69,6 +69,20 @@ class DataHandler:
             else:    # blockSave
                 pass
            
+    def addCustomData(self, value, name, **kwargs):
+        '''Write data other than a record. 
+        
+        :param value: The value to be written
+        :param name: An identification for this value
+        
+        Optional keyword arguments can be passed with information that some
+        recorders may need in order to record this value. For example: the NeXus
+        recorder will make use of "nxpath" info if available to place the value
+        where it belongs in the nexus hierarchy. Check the `addCustomData`
+        method of each recorder to see what they use/require.
+        '''
+        for recorder in self.recorders:
+            recorder.addCustomData(value, name, **kwargs )
 #
 # Recorders
 #
@@ -130,7 +144,13 @@ class DataRecorder(Logger):
 
     def setSaveMode( self, mode ):
         self.savemode = mode
-
+        
+    def addCustomData(self, value, name, **kwargs):
+        self._addCustomData(value, name, **kwargs)
+        
+    def _addCustomData(self, value, name, **kwargs):
+        pass
+    
 
 class DumbRecorder(DataRecorder):
     def _startRecordList(self, recordlist):
