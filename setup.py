@@ -245,6 +245,15 @@ class build_resources(Command):
             self.out = sys.stdout
         else:
             self.out = StringIO.StringIO()
+        if os.name == 'nt':
+            try:
+                self.QTDIR = os.environ["QTDIR"]
+                self.rcc_exec = self.rcc_exec = os.path.join(self.QTDIR, 'bin', 'rcc')
+            except KeyError:
+                raise Exception("You must set the env. variable QTDIR " \
+                    "pointing to the Qt C++ installation directory")
+        else:
+            self.rcc_exec = 'rcc'
 
     def finalize_options (self):
         if self.logo is None:
@@ -296,7 +305,7 @@ class build_resources(Command):
         # Generate binary rcc file
         print("Generating %s... " % rcc_filename, file=out, end='')
         out.flush()
-        cmd = 'rcc -binary %s -o %s' % (qrc_filename, rcc_filename)
+        cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
         if os.system(cmd):
             print("[FAILED]", file=out)
         else:
@@ -360,7 +369,7 @@ class build_resources(Command):
             # Generate binary rcc file
             print("Generating %s... " % rcc_filename, file=out, end='')
             out.flush()
-            cmd = 'rcc -binary %s -o %s' % (qrc_filename, rcc_filename)
+            cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
             if os.system(cmd):
                 print("[FAILED]", file=out)
             else:
@@ -804,26 +813,31 @@ def svg_to_png(arg, dirname, fnames):
                     ok = pix.save(full_target_fname)
                 print(ok and "[OK]" or "[FAIL]", full_source_fname,'->',full_target_fname)
                 
-                
+def main():
+    setup(name             = 'taurus',
+          version          = Release.version,
+          description      = Release.description,
+          long_description = Release.long_description,
+          author           = author[0],
+          author_email     = author[1],
+          url              = Release.url,
+          download_url     = Release.download_url,
+          platforms        = Release.platforms,
+          license          = Release.license,
+          packages         = packages,
+          package_dir      = package_dir,
+          classifiers      = classifiers,
+          package_data     = package_data,
+          data_files       = data_files,
+          scripts          = scripts,
+          provides         = provides,
+          keywords         = Release.keywords,
+          requires         = requires,
+          cmdclass         = cmdclass)
 
-setup(name             = 'taurus',
-      version          = Release.version,
-      description      = Release.description,
-      long_description = Release.long_description,
-      author           = author[0],
-      author_email     = author[1],
-      url              = Release.url,
-      download_url     = Release.download_url,
-      platforms        = Release.platforms,
-      license          = Release.license,
-      packages         = packages,
-      package_dir      = package_dir,
-      classifiers      = classifiers,
-      package_data     = package_data,
-      data_files       = data_files,
-      scripts          = scripts,
-      provides         = provides,
-      keywords         = Release.keywords,
-      requires         = requires,
-      cmdclass         = cmdclass)
-
+if __name__ == "__main__":
+    try:
+        main()
+        print("Setup finished")
+    except Exception as e:
+        print("A error occured: %s\n\nSetup aborted" % str(e))
