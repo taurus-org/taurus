@@ -23,10 +23,6 @@
 ##
 #############################################################################
 
-"""
-taurusplugin.py: 
-"""
-
 """ Every TaurusWidget should have the following Qt Designer extended capabilities:
 
   - Task menu:

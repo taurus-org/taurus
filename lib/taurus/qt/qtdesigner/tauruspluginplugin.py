@@ -106,6 +106,7 @@ def main():
         import traceback; traceback.print_exc()
         #print e
 
+
 class TaurusWidgets(QtDesigner.QPyDesignerCustomWidgetCollectionPlugin):
     
     def __init__(self, parent=None):

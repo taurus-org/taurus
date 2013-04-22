@@ -29,7 +29,6 @@ __all__ = ["QGroupWidget"]
 
 __docformat__ = 'restructuredtext'
 
-import copy
 import sys
 import json
 
@@ -433,15 +432,6 @@ class QGroupWidget(Qt.QWidget):
     #:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.setTitleVisible`
     titleVisible = Qt.pyqtProperty("bool", isTitleVisible, setTitleVisible)
 
-    ##: This property contains the widget's title style
-    ##:
-    ##: **Access functions:**
-    ##:
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.getTitleStyle`
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.setTitleStyle`
-    ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.resetTitleStyle`
-    #titleStyle = Qt.pyqtProperty("QMap", getTitleStyle, setTitleStyle, resetTitleStyle)
-
     #: This property contains the widget's content's visibility
     #:
     #: **Access functions:**
@@ -472,6 +462,7 @@ class QGroupWidget(Qt.QWidget):
     ##:     * :meth:`taurus.qt.qtgui.container.QGroupWidget.resetTitleStyleStr`
     titleStyle = Qt.pyqtProperty("QString", getTitleStyleStr, setTitleStyleStr,
                                  resetTitleStyleStr, doc="The style must be a json dictionary")
+
 def demo():
     "QGroup Widget"
     w = Qt.QWidget()
