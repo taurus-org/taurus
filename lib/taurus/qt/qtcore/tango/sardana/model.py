@@ -44,7 +44,7 @@ except:
 
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt import Qt
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, \
     TaurusBaseProxyModel
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, \

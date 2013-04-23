@@ -326,7 +326,7 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
                 if not isinstance(data,(tuple,list)):
                     raise ValueError
             except:
-                from taurus.core.util import Logger
+                from taurus.core.util.log import Logger
                 Logger(self.__class__.__name__).error('Invalid shape %s',s )
                 data = ()
         else:

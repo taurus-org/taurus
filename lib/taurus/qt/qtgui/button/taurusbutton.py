@@ -36,7 +36,7 @@ from taurus.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from taurus.core.util import eventfilters
+from taurus.core.util.event import eventfilters
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox

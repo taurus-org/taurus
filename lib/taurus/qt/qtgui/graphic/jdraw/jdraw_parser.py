@@ -33,7 +33,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 from jdraw import *
-from taurus.core.util import Logger
+from taurus.core.util.log import Logger
 
 tokens = ( 'NUMBER', 'SYMBOL', 'LBRACKET', 'RBRACKET', 'TWOP', 'COMMA',
 'JDFILE', 'GLOBAL', 'JDLINE', 'JDRECTANGLE', 'JDROUNDRECTANGLE',

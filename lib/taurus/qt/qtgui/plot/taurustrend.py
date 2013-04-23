@@ -36,7 +36,7 @@ import gc
 from taurus.qt import Qt, Qwt5
 
 import taurus.core
-from taurus.core.util import CaselessDict, CaselessList, ArrayBuffer
+from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.plot import TaurusPlot
 import PyTango

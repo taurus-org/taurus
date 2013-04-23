@@ -32,7 +32,7 @@ curvesAppearanceChooserDlg.py:
 from taurus.qt import Qt, Qwt5
 from ui import ui_curvesAppearanceChooser
 from taurus.qt.qtgui.resource import getIcon
-from taurus.core.util import CaselessDict
+from taurus.core.util.containers import CaselessDict
 import copy
 
 NamedLineStyles={None:"",

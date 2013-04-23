@@ -38,7 +38,7 @@ from taurus.qt import Qt
 import PyTango
 
 import taurus.core
-from taurus.core.util import ATTRIBUTE_QUALITY_PALETTE
+from taurus.core.util.colors import ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
 class TaurusValuesTable_OLD(Qt.QTableWidget, TaurusBaseWidget):

@@ -35,7 +35,7 @@ from taurus.qt import Qt
 import PyTango
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
-from taurus.core.util import eventfilters
+from taurus.core.util.event import eventfilters
 
 
 class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):

@@ -44,7 +44,7 @@ from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 #from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from taurus.core.tango.sardana import PlotType
 from taurus.core.tango.sardana.pool import getChannelConfigs
-from taurus.core.util import CaselessList
+from taurus.core.util.containers import CaselessList
 
 class ChannelFilter(object):
     def __init__(self,chlist):

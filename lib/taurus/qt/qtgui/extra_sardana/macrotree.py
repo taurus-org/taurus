@@ -36,7 +36,7 @@ from taurus.qt import Qt
 
 import taurus.core
 
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 from taurus.core.tango.sardana.macro import MacroInfo
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel

@@ -51,7 +51,7 @@ class Enumeration(object):
     as elements of a dictionary.
     Usage::
         
-        from taurus.core.util import Enumeration
+        from taurus.core.util.enumeration import Enumeration
         
         Volkswagen = Enumeration("Volkswagen",
             ["JETTA",

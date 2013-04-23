@@ -36,7 +36,7 @@ class Singleton(object):
     The Singleton is created for the lowest subclass.
     Usage::
     
-        from taurus.core.util import Singleton
+        from taurus.core.util.singleton import Singleton
         
         class MyManager(Singleton):
         

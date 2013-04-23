@@ -32,7 +32,7 @@ __all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
-from taurus.core.util import ArrayBuffer
+from taurus.core.util.containers import ArrayBuffer
 
 from guiqwt.image import ImageItem, RGBImageItem, XYImageItem, INTERP_NEAREST, INTERP_LINEAR
 
@@ -114,7 +114,7 @@ class TaurusEncodedImageItem(TaurusImageItem):
         '''reimplementation to decode data before passing it to 
            TaurusImageItem implementation'''
         if type(data) == tuple:
-            from taurus.core.util import CodecFactory
+            from taurus.core.util.codecs import CodecFactory
             codec = CodecFactory().getCodec(data[0])
             format,decoded_data = codec.decode(data)
             TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)

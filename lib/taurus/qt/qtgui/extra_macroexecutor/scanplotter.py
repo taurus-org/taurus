@@ -38,10 +38,11 @@ import taurus.core
 from taurus.qt import QtGui, Qwt5
 from taurus.qt.Qt import *
 
+from taurus.core.util import dictFromSequence
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.event import eventfilters
 from taurus.qt.qtgui.plot import TaurusTrend
 
-from taurus.core.util import dictFromSequence, CaselessDict, eventfilters
-    
 class ScanPlotter(TaurusTrend):
             
     def __init__(self, parent = None, designMode = False):

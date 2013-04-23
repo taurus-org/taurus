@@ -30,7 +30,7 @@ __docformat__ = 'restructuredtext'
 import weakref
 
 from taurus import Device
-from taurus.core.util import Enumeration 
+from taurus.core.util.enumeration import Enumeration 
 from taurus.qt import Qt
 
 from IPython.config.loader import Config

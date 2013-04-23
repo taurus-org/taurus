@@ -841,7 +841,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         it means that this application is not the only one
         '''
         if key is None:
-            from taurus.core.util import getSystemUserName
+            from taurus.core.util.user import getSystemUserName
             username = getSystemUserName()
             appname = unicode(Qt.QApplication.applicationName())
             key = "__socket_%s-%s__"%(username,appname)

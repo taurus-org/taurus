@@ -33,7 +33,7 @@ import taurus
 from guiqwt.curve import CurveItem
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam, TaurusTrendParam
 
-from taurus.core.util import ArrayBuffer
+from taurus.core.util.containers import ArrayBuffer
 import numpy
 
         

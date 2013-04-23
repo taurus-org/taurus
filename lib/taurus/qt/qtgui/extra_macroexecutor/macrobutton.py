@@ -35,7 +35,7 @@ from taurus.qt import Qt
 import taurus
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
-from taurus.core.util import DEVICE_STATE_PALETTE
+from taurus.core.util.colors import DEVICE_STATE_PALETTE
 
 import functools
 

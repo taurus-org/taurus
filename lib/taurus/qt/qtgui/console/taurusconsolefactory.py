@@ -33,7 +33,7 @@ __all__ = ["TaurusConsoleFactory"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.util import Singleton
+from taurus.core.util.singleton import Singleton
 from taurus.qt import Qt
 
 from taurusconsolewidget import TaurusConsoleWidget

@@ -38,7 +38,7 @@ sequence of codecs. This way you can have codecs 'inside' codecs.
 
 Example::
 
-    >>> from taurus.core.util import CodecFactory
+    >>> from taurus.core.util.codecs import CodecFactory
     >>> cf = CodecFactory()
     >>> json_codec = cf.getCodec('json')
     >>> bz2_json_codec = cf.getCodec('bz2_json')
@@ -55,7 +55,7 @@ A Taurus related example::
 
     >>> # this example shows how to automatically get the data from a DEV_ENCODED attribute
     >>> import taurus
-    >>> from taurus.core.util import CodecFactory
+    >>> from taurus.core.util.codecs import CodecFactory
     >>> cf = CodecFactory()
     >>> devenc_attr = taurus.Attribute('a/b/c/devenc_attr')
     >>> v = devenc_attr.read()
@@ -141,7 +141,7 @@ class ZIPCodec(Codec):
     
     Example::
     
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         
         >>> # first encode something
         >>> data = 100 * "Hello world\\n"
@@ -183,7 +183,7 @@ class BZ2Codec(Codec):
 
     Example::
     
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         
         >>> # first encode something
         >>> data = 100 * "Hello world\\n"
@@ -226,7 +226,7 @@ class PickleCodec(Codec):
     
     Example::
         
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         
         >>> cf = CodecFactory()
         >>> codec = cf.getCodec('pickle')
@@ -281,7 +281,7 @@ class JSONCodec(Codec):
     
     Example::
         
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         
         >>> cf = CodecFactory()
         >>> codec = cf.getCodec('json')
@@ -364,7 +364,7 @@ class BSONCodec(Codec):
     
     Example::
         
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         
         >>> cf = CodecFactory()
         >>> codec = cf.getCodec('bson')
@@ -463,7 +463,7 @@ class VideoImageCodec(Codec):
     
     Example::
     
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         >>> import PyTango
         
         >>> #first get an image from a LImA device to decode
@@ -621,7 +621,7 @@ class CodecPipeline(Codec, list):
 
     Example usage::
         
-        >>> from taurus.core.util import CodecPipeline
+        >>> from taurus.core.util.codecs import CodecPipeline
         
         >>> data = range(100000)
         >>> codec = CodecPipeline('bz2_json')
@@ -676,7 +676,7 @@ class CodecFactory(Singleton, Logger):
     
     To get the singleton object do::
     
-        from taurus.core.util import CodecFactory
+        from taurus.core.util.codecs import CodecFactory
         f = CodecFactory()
         
     The :class:`CodecFactory` class allows you to get a codec object for a given 
@@ -686,7 +686,7 @@ class CodecFactory(Singleton, Logger):
 
     Example::
 
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         >>> cf = CodecFactory()
         >>> json_codec = cf.getCodec('json')
         >>> bz2_json_codec = cf.getCodec('bz2_json')
@@ -703,7 +703,7 @@ class CodecFactory(Singleton, Logger):
 
         >>> # this example shows how to automatically get the data from a DEV_ENCODED attribute
         >>> import taurus
-        >>> from taurus.core.util import CodecFactory
+        >>> from taurus.core.util.codecs import CodecFactory
         >>> cf = CodecFactory()
         >>> devenc_attr = taurus.Attribute('a/b/c/devenc_attr')
         >>> v = devenc_attr.read()

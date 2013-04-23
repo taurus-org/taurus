@@ -38,7 +38,8 @@ from taurus.qt import Qt, Qwt5
 import PyTango
 
 import taurus.core
-from taurus.core.util import SafeEvaluator, LoopList, CaselessDict, CaselessList
+from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
+from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
@@ -63,7 +64,7 @@ class DummyLock(object):
         pass
 
 ##for debugging. Comment out in production
-#from taurus.core.util import TraceIt, DebugIt, InfoIt, WarnIt
+#from taurus.core.util.log import TraceIt, DebugIt, InfoIt, WarnIt
 
 
 DFT_CURVE_PENS = [Qt.QPen(Qt.Qt.red, 2),

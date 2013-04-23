@@ -381,7 +381,7 @@ class EventListener(object):
         with this object's lock before calling this method and always unlock it 
         afterward, of course::
         
-            from taurus.core.util import EventListener
+            from taurus.core.util.event import EventListener
             
             class MyEvtListener(EventListener):
                 # Your specific listener code here

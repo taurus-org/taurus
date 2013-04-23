@@ -79,7 +79,7 @@ class LogIt(object):
     subclass.
     Example::
 
-        from taurus.core.util import *
+        from taurus.core.util.log import Logger, LogIt
 
         class Example(Logger):
 
@@ -98,7 +98,7 @@ class LogIt(object):
     which are set to False by default. Enabling them will had verbose infomation
     about the parameters and return value. The following example::
 
-        from taurus.core.util import *
+        from taurus.core.uti.log import Logger, LogIt
 
         class Example(Logger):
 
@@ -172,7 +172,7 @@ class TraceIt(LogIt):
     """Specialization of LogIt for trace level messages.
     Example::
 
-        from taurus.core.util import TraceIt
+        from taurus.core.util.log import Logger, TraceIt
         class Example(Logger):
 
             @TraceIt()
@@ -188,7 +188,7 @@ class DebugIt(LogIt):
     """Specialization of LogIt for debug level messages.
     Example::
 
-        from taurus.core.util import DebugIt
+        from taurus.core.util.log import Logger, DebugIt
         class Example(Logger):
 
             @DebugIt()
@@ -204,7 +204,7 @@ class InfoIt(LogIt):
     """Specialization of LogIt for info level messages.
     Example::
 
-        from taurus.core.util import InfoIt
+        from taurus.core.util.log import Logger, InfoIt
         class Example(Logger):
 
             @InfoIt()
@@ -220,7 +220,7 @@ class WarnIt(LogIt):
     """Specialization of LogIt for warn level messages.
     Example::
 
-        from taurus.core.util import WarnIt
+        from taurus.core.util.log import Logger, WarnIt
         class Example(Logger):
 
             @WarnIt()
@@ -236,7 +236,7 @@ class ErrorIt(LogIt):
     """Specialization of LogIt for error level messages.
     Example::
 
-        from taurus.core.util import ErrorIt
+        from taurus.core.util.log import Logger, ErrorIt
         class Example(Logger):
 
             @ErrorIt()
@@ -252,7 +252,7 @@ class CriticalIt(LogIt):
     """Specialization of LogIt for critical level messages.
     Example::
 
-        from taurus.core.util import CriticalIt
+        from taurus.core.util.log import Logger, CriticalIt
         class Example(Logger):
 
             @CriticalIt()

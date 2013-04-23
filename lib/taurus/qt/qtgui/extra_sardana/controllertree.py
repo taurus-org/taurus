@@ -36,7 +36,7 @@ from taurus.qt import Qt
 
 import taurus.core
 
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget
