@@ -31,7 +31,7 @@ import os, sys
 from taurus.qt import Qt
 import PyTango
 
-from taurus.core.util import etree
+from lxml import etree
 from taurus.qt.qtgui.extra_macroexecutor.common import MacroExecutionWindow, MacroComboBox, standardPlotablesFilter
 from taurus import Device
 

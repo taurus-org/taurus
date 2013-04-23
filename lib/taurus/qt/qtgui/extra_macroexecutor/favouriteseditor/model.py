@@ -28,7 +28,7 @@ model.py:
 """
 
 from taurus.qt import Qt
-from taurus.core.util import etree
+from lxml import etree
 
 from taurus.core.tango.sardana import macro
         

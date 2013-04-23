@@ -42,7 +42,7 @@ from taurus.qt.qtgui.container import TaurusMainWindow
 from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, ToolBarDescription, AppletDescription
 from taurus.qt.qtgui.panel import QDoubleListDlg
 import taurus.qt.qtgui.resource
-from taurus.core.util import etree
+from lxml import etree
 
 
 class AssociationDialog(Qt.QDialog):

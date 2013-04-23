@@ -30,7 +30,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
-from taurus.core.util import etree
+from lxml import etree
 import os,sys
 
 #this is here only for backwards compatibility. It should not be used at all

@@ -44,7 +44,7 @@ import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
 import copy
-from taurus.core.util import etree
+from lxml import etree
 from taurus.core.util import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
         
