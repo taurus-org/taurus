@@ -93,7 +93,7 @@ def check_requirements(exec_name=None):
         sys.exit(-1)
     
     try:
-        from taurus.core.util import etree
+        from lxml import etree
     except:
         print "Could not find any suitable XML library"
         sys.exit(-1)

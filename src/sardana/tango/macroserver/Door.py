@@ -37,7 +37,8 @@ from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
 
 import taurus
 import taurus.core.util
-from taurus.core.util import etree, CodecFactory, DebugIt
+from lxml import etree
+from taurus.core.util import CodecFactory, DebugIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
