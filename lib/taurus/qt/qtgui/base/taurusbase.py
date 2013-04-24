@@ -38,7 +38,7 @@ import PyTango
 from taurus.qt import Qt
 
 import taurus
-from taurus.core.util.event import eventfilters
+from taurus.core.util import eventfilters
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice

@@ -48,7 +48,7 @@ def main():
     from taurus.core.util.log import Logger
     from taurus.core.taurusbasetypes import OperationMode
     from taurus.qt.qtgui.util import TaurusWidgetFactory
-    Logger.setLogLevel(Logger.Info)
+    Logger.setLogLevel(Logger.Debug)
     _log = Logger(__name__)
     
     Manager().setOperationMode(OperationMode.OFFLINE)
