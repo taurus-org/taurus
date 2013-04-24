@@ -52,21 +52,21 @@ from .log import *
 from .object import *
 from .singleton import *
 
-# from .codecs import *
-# from .colors import *
-# from .constant import *
-# from .timer import *
-# from .safeeval import *
-# from .prop import *
-# from .threadpool import *
-# from .user import *
+from .codecs import *
+from .colors import *
+from .constant import *
+from .timer import *
+from .safeeval import *
+from .prop import *
+from .threadpool import *
+from .user import *
 
-# import eventfilters
+import eventfilters
 
-# try:
-    # from lxml import etree
-# except:
-    # etree = None
+try:
+    from lxml import etree
+except:
+    etree = None
 
 def dictFromSequence(seq):
     """Translates a sequence into a dictionary by converting each to elements of
