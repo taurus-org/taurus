@@ -19,7 +19,7 @@ table.MS { }
          border-radius: 5px;
          border-color: white;
          padding: 4px; 
-         background-image: linear-gradient(to bottom right, #EEEEEE 0%, #008BCC 100%);
+         background-image: linear-gradient(to bottom right, #CCCCCC 0%, #008BCC 100%);
 }
 
 .PanelUp { border-top-width: 1px;
