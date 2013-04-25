@@ -221,9 +221,9 @@ class TaurusGui(TaurusMainWindow):
         
         self.registerConfigProperty(self._getPermanentCustomPanels, self._setPermanentCustomPanels, 'permanentCustomPanels')
         self.registerConfigProperty(self.getAllInstrumentAssociations, self.setAllInstrumentAssociations, 'instrumentAssociation')
-        
-        from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
-        self.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
+                
+        from taurus import tauruscustomsettings
+        dialog.setCustomWidgetMap(getattr(tauruscustomsettings,'T_FORM_CUSTOM_WIDGET_MAP',{}))
         
         #Create a global SharedDataManager
         Qt.qApp.SDM =  SharedDataManager(self)

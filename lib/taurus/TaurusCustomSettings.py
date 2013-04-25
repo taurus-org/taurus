@@ -24,25 +24,6 @@
 #############################################################################
 
 """
-This module contains some Taurus-wide default configurations.
-
-The idea is that the final user may edit the values here to customize certain
-aspects of Taurus.
+Deprecation Note: This module has been renamed to "tauruscustomsettings.py
 """
-
-# A map for using custom widgets for certain devices in TaurusForms. It is a
-# dictionary with the following structure: 
-# device_class_name:(classname_with_full_module_path, args, kwargs)
-# where the args and kwargs will be passed to the constructor of the class
-T_FORM_CUSTOM_WIDGET_MAP = \
-    {'SimuMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
-     'Motor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
-     'PseudoMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV',(),{}),
-     'PseudoCounter':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'CTExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'ZeroDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'OneDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'TwoDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
-     'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegisterTV',(),{})
-    }
-    
+raise DeprecationWarning('"TaurusCustomSettings" module has been renamed. Use "tauruscustomsettings" instead')    

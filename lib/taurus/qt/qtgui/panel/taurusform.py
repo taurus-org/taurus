@@ -934,8 +934,8 @@ def taurusFormMain():
     dialog.addActions ((saveConfigAction, loadConfigAction, quitApplicationAction) )
     
     #set the default map for this installation
-    from taurus.TaurusCustomSettings import T_FORM_CUSTOM_WIDGET_MAP
-    dialog.setCustomWidgetMap(T_FORM_CUSTOM_WIDGET_MAP)
+    from taurus import tauruscustomsettings
+    dialog.setCustomWidgetMap(getattr(tauruscustomsettings,'T_FORM_CUSTOM_WIDGET_MAP',{}))
     
     #set a model list from the command line or launch the chooser  
     if options.config_file is not None: 
