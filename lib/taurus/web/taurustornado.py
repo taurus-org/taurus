@@ -46,7 +46,20 @@ from taurus.core.taurusvalidator import AttributeNameValidator, ConfigurationNam
 from taurus.core.util.colors import ATTRIBUTE_QUALITY_PALETTE
 
 
+def error_str(err):
+    # ugly import to properly manage Tango exceptions
+    import PyTango
+    if isinstance(err, PyTango.DevFailed):
+        err = err[0]
+        return "[{0}] {1}".format(err.reason, err.desc)
+    return str(err)
+
 class TaurusWebAttribute(object):
+    """This object is a listener for the taurus attribute value.
+    When a attribute changes it sends an event. The event
+    triggers a call to *eventReceived*. *eventReceived* will transform
+    the change event into a JSON encoded string and sends this
+    string through the web socket to the client"""
 
     def __init__(self, ws, name):
         self.name = name
@@ -58,12 +71,23 @@ class TaurusWebAttribute(object):
         return Attribute(self.name)
     
     def eventReceived(self, evt_src, evt_type, evt_value):
+        """Transforms the event into a JSON encoded string and sends this
+        string into the web socket
+        
+        The JSON encoded string is a JSON object which contains the members:
+            - model : a string identification of the attribute which changed
+            - html : the new attribute value
+            - css : a hint on the style that should be applied (background color
+                    according to the attribute quality)
+        
+        In case of an error the html member will contain the exception information.
+        The stylesheet will be white font with violet background."""
         modelObj = evt_src
         data = {}
         if evt_type == TaurusEventType.Error:
-            data['css'] = {'color':'white', 'background-color' : 'red'}
+            data['css'] = {'color':'white', 'background-color' : 'violet'}
             
-            data['html'] = str(evt_value)
+            data['html'] = error_str(evt_value)
         else:
             if evt_type == TaurusEventType.Config:
                 modelObj = evt_src.getParentObj()
@@ -86,24 +110,39 @@ class TaurusWebAttribute(object):
     def clear(self):
         self.attribute.removeListener(self)
 
-class TaurusWebConfiguration(object):
 
+class TaurusWebConfiguration(object):
+    """This object is a listener for the taurus attribute configuration.
+    When a attribute configuration changes it sends an event. The event
+    triggers a call to *eventReceived*. *eventReceived* will transform 
+    the configuration event into a JSON encoded string and sends this
+    string through the web socket to the client"""
+    
     def __init__(self, ws, name):
         self.name = name
         self.param = ConfigurationNameValidator().getParams(name)['configparam']
         self.ws = ws
+        self.configuration = Configuration(self.name)
         self.configuration.addListener(self)
     
-    @property
-    def configuration(self):
-        return Configuration(self.name)
-    
     def eventReceived(self, evt_src, evt_type, evt_value):
+        """Transforms the event into a JSON encoded string and sends this
+        string into the web socket
+        
+        The JSON encoded string is a JSON object which contains the members:
+            - model : a string identification of the attribute configuration
+                      which as changed
+            - html : the new attribute configuration value
+            - css : a hint on the style that should be applied (none for now)
+        
+        In case of an error the html member will contain the exception information.
+        The stylesheet will be white font with violet background."""
+
         modelObj = evt_src
         data = {}
         if evt_type == TaurusEventType.Error:
-            data['css'] = {'color':'white', 'background-color' : 'red'}
-            data['html'] = str(evt_value)
+            data['css'] = {'color':'white', 'background-color' : 'violet'}
+            data['html'] = error_str(evt_value)
         else:
             data['css'] = {}
             data['html'] = getattr(modelObj, self.param)
@@ -127,6 +166,23 @@ class TaurusSocket(WebSocketHandler):
         self.models = set()
         
     def on_message(self, json_data):
+        """Executed when a message comes from the client through the websocket.
+        
+        It expected that json_data is a JSON encoded string.
+        It should be a JSON object with *models* member. the value of *models*
+        should be an array of strings, each representing a model name.
+        Example:
+            { models : [ "BO/S05/Pump5/Pressure", 
+                         "BO/S05/Pump5/Pressure?configuration=unit",
+                         "sys/tg_test/1/double_scalar" ]
+            }
+            So far, only attributes and configuration parameters are supported.
+            
+            A TaurusWebXXX object will be created for each different model.
+            This object subscribes itself to taurus events. The callback usually
+            transforms such an event into a JSON encoded string which is sent
+            back to the client through this same web socket.
+        """
         data = json_decode(json_data)
         if 'models' in data:
             self.clear_models()
@@ -167,8 +223,10 @@ def start(handlers=None, static_path=None, port=8888, **kwargs):
     if handlers is None:
         handlers = [ (r"/", MainHandler), 
                      (r"/taurus", TaurusSocket), ]
+    
     application = Application(handlers, static_path=static_path, **kwargs)
     application.listen(port)
+    
     print("Starting...")
     try:
         import tornado.ioloop
