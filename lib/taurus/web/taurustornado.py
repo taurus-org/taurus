@@ -41,14 +41,14 @@ from taurus.core.taurusdatabase import TaurusDatabase
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusconfiguration import TaurusConfiguration
-from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType
+from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
 from taurus.core.taurusvalidator import AttributeNameValidator, ConfigurationNameValidator
 from taurus.core.util.colors import ATTRIBUTE_QUALITY_PALETTE
 
+# ugly import to properly manage Tango exceptions
+import PyTango
 
 def error_str(err):
-    # ugly import to properly manage Tango exceptions
-    import PyTango
     if isinstance(err, PyTango.DevFailed):
         err = err[0]
         return "[{0}] {1}".format(err.reason, err.desc)
@@ -86,8 +86,7 @@ class TaurusWebAttribute(object):
         data = {}
         if evt_type == TaurusEventType.Error:
             data['css'] = {'color':'white', 'background-color' : 'violet'}
-            
-            data['html'] = error_str(evt_value)
+            html = value = error_str(evt_value)
         else:
             if evt_type == TaurusEventType.Config:
                 modelObj = evt_src.getParentObj()
@@ -98,10 +97,25 @@ class TaurusWebAttribute(object):
             bg, fg = ATTRIBUTE_QUALITY_PALETTE.rgb_pair(quality)
             bg, fg = "rgb{0}".format(bg), "rgb{0}".format(fg)
             data['css'] = {'color': fg, 'background-color' : bg}
-            data['html'] = modelObj.displayValue(value).replace('\n', r'<br/>')
-            #data['value'] = value
+            fmt = valueObj.data_format
+            if fmt == DataFormat._0D:
+                html = modelObj.displayValue(value)
+                if isinstance(value, PyTango._PyTango.DevState):
+                    value = int(value)
+            elif fmt in (DataFormat._1D, DataFormat._2D):
+                # bad, very bad performance! Don't worry for now
+                value = value.tolist() 
+                html = "[...]"
+                # html = str(value)
+        data['value'] = value
+        data['html'] = html
         data['model'] = modelObj.getNormalName()
-        json_data = json_encode(data)
+        try:
+            json_data = json_encode(data)
+        except TypeError as te:
+            data['css'] = {'color':'white', 'background-color' : 'violet'}
+            data['html'] = data['value'] = str(te)
+            json_data = json_encode(data)
         self.write_message(json_data)
 
     def write_message(self, message):

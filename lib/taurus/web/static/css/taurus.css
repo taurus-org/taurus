@@ -1,8 +1,5 @@
 
-.taurus-debug-console { 
-    font-family: Monospace; 
-    text-align: left;
-    padding: 2px;
-    border: 1px solid gray;
+@font-face {
+    font-family: "digital";
+    src: url("digital.ttf") format("truetype");
 }
-
