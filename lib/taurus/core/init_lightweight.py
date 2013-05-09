@@ -27,11 +27,17 @@
 
 __docformat__ = "restructuredtext"
 
-import taurus.tauruscustomsettings
-
-LIGHTWEIGHT_IMPORTS = getattr(taurus.tauruscustomsettings, 'LIGHTWEIGHT_IMPORTS', False)
-
-if LIGHTWEIGHT_IMPORTS:
-    from init_lightweight import *
-else:
-    from init_bkcomp import *
+#import release as Release
+from .taurusbasetypes import *
+# from .taurusexception import *
+# from .taurusmodel import *
+# from .tauruslistener import *
+# from .taurusdevice import *
+# from .taurusattribute import *
+# from .taurusconfiguration import *
+# from .taurusdatabase import *
+# from .taurusfactory import *
+# from .taurusmanager import *
+# from .taurusoperation import *
+# from .tauruspollingtimer import *
+# from .taurusvalidator import *

@@ -45,4 +45,8 @@ T_FORM_CUSTOM_WIDGET_MAP = \
      'TwoDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV',(),{}),
      'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegisterTV',(),{})
     }
-    
+
+# Lightweight imports:
+# True enables delayed imports (may break older code). 
+# False (or commented out) for backwards compatibility
+LIGHTWEIGHT_IMPORTS = False     

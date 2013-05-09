@@ -36,11 +36,47 @@ The json implementation follows the rule:
 
 __docformat__ = "restructuredtext"
 
-import taurus.tauruscustomsettings
+# taurus cannot work properly without the following modules so 
+# they are promptly imported here has a facility (also for backward
+# compatibility)
+# However, new applications should in their code use the full import.
+# Example, use:
+#     from taurus.core.util.log import Logger
+# instead of:
+#     from taurus.core.util import Logger
 
-LIGHTWEIGHT_IMPORTS = getattr(taurus.tauruscustomsettings, 'LIGHTWEIGHT_IMPORTS', False)
+from .containers import *
+from .enumeration import *
+from .event import *
+from .log import *
+from .object import *
+from .singleton import *
 
-if LIGHTWEIGHT_IMPORTS:
-    from init_lightweight import *
-else:
-    from init_bkcomp import *
+from .codecs import *
+from .colors import *
+from .constant import *
+from .timer import *
+from .safeeval import *
+from .prop import *
+from .threadpool import *
+from .user import *
+
+import eventfilters
+
+try:
+    from lxml import etree
+except:
+    etree = None
+
+def dictFromSequence(seq):
+    """Translates a sequence into a dictionary by converting each to elements of
+    the sequence (k,v) into a k:v pair in the dictionary
+    
+    :param seq: (sequence) any sequence object
+    :return: (dict) dictionary built from the given sequence"""
+    def _pairwise(iterable):
+        """Utility method used by dictFromSequence"""
+        itnext = iter(iterable).next
+        while True:
+            yield itnext(), itnext()
+    return dict(_pairwise(seq))

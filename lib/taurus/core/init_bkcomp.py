@@ -27,11 +27,25 @@
 
 __docformat__ = "restructuredtext"
 
-import taurus.tauruscustomsettings
+import release as Release
+#from .enums import * #note: all the enums from enums.py were moved to taurusbasetypes.py
+from .taurusbasetypes import *
+from .taurusexception import *
+from .taurusmodel import *
+from .tauruslistener import *
+from .taurusdevice import *
+from .taurusattribute import *
+from .taurusconfiguration import *
+from .taurusdatabase import *
+from .taurusfactory import *
+from .taurusmanager import *
+from .taurusoperation import *
+from .tauruspollingtimer import *
+from .taurusvalidator import *
 
-LIGHTWEIGHT_IMPORTS = getattr(taurus.tauruscustomsettings, 'LIGHTWEIGHT_IMPORTS', False)
+# enable compatibility code with tau V1 if tauv1 package is present
+try:
+    from .tauv1 import *
+except:
+    pass
 
-if LIGHTWEIGHT_IMPORTS:
-    from init_lightweight import *
-else:
-    from init_bkcomp import *
