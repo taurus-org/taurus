@@ -70,10 +70,24 @@ class MotionPath(object):
     #: time the motion will take
     duration = -1
 
-    def __init__(self, motor, initial_user_pos, final_user_pos):
+    def __init__(self, motor, 
+                       initial_user_pos, 
+                       final_user_pos, 
+                       active_time=None):
+        """MotionPath constructor - creates and calculates 
+        motion path parameters.
+        :param initial_user_pos: position at which constant vel 
+                                 should be reached
+        :param final_user_pos: position at which deceleration should 
+                               start
+        :param active_time: if passed, will fix the constant velocity 
+                            (abs(final_user_pos - initial_user_pos)/active_time)
+                            otherwise motor constant velocity
+                            will be selected as high as possible"""
         self.motor = motor
         self.initial_user_pos = initial_user_pos
         self.final_user_pos = final_user_pos
+        self.active_time = active_time
         self._calculateMotionPath()
 
     def setInitialUserPos(self, initial_user_pos):
@@ -93,6 +107,24 @@ class MotionPath(object):
         final_pos = final_user_pos * motor.step_per_unit
 
         displacement = abs(final_pos - initial_pos)
+                    
+        # in this case active_time forces that the user range
+        # correspond to the constant velocity
+        # and 
+        if self.active_time != None:
+            velocity = displacement / self.active_time
+            self.motor.setMaxVelocity(velocity)
+            sign = final_pos > initial_pos and 1 or -1
+            accel_time = motor.getAccelerationTime()
+            decel_time = motor.getDecelerationTime()
+            base_vel = motor.getMinVelocity()
+            accel_displacement = accel_time * 0.5 * (velocity + base_vel)
+            decel_displacement = decel_time * 0.5 * (velocity + base_vel)
+            initial_pos -= sign * accel_displacement
+            final_pos += sign * decel_displacement
+            displacement = abs(final_pos - initial_pos)            
+            self.initial_user_pos = initial_pos
+            self.final_user_pos = final_pos
 
         if displacement == 0:
             positive_displacement = False
@@ -201,12 +233,12 @@ class MotionPath(object):
         self.small_motion = small_motion
 
         self.accel = accel
-        self.decel = decel        
-        
+        self.decel = decel
+
         self.displacement_reach_max_vel = displacement_reach_max_vel
         self.displacement_reach_min_vel = displacement_reach_min_vel
-        self.max_vel = max_vel
-        self.min_vel = min_vel
+        self.max_vel = abs(max_vel) #velocity must be a positive value
+        self.min_vel = abs(min_vel)
         self.max_vel_pos = max_vel_pos
         self.at_max_vel_displacement = at_max_vel_displacement
         self.max_vel_time = max_vel_time
@@ -511,8 +543,10 @@ class Motor(BaseMotor):
 
         self.min_vel = vi
 
+        #TODO: consult this solution with others
         if self.max_vel < self.min_vel:
-            self.max_vel = self.min_vel
+            pass
+            #self.max_vel = self.min_vel (original version)
 
         # force recalculation of accelerations
         if self.accel_time >= 0:
@@ -530,9 +564,12 @@ class Motor(BaseMotor):
             raise Exception("Maximum velocity must be > 0")
 
         self.max_vel = vf
-
+        
+        #TODO: consult this solution with others
         if self.min_vel > self.max_vel:
-            self.min_vel = self.max_vel
+            pass
+            #self.min_vel = self.max_vel #accel set to zero (original version)
+            #self.setMinVelocity(0) another solution could be to set it to 0
 
         # force recalculation of accelerations
         if self.accel_time >= 0:
@@ -556,6 +593,7 @@ class Motor(BaseMotor):
             self.accel = float('inf')
 
         self.__recalculate_acc_constants()
+       
 
     def getAccelerationTime(self):
         return self.accel_time
