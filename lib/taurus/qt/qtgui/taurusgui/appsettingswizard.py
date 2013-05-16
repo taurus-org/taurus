@@ -223,8 +223,8 @@ class ProjectPage(BasePage):
         Qt.QObject.connect(self._projectDirBT, Qt.SIGNAL("clicked()"), self.onSelectDir)       
         
     def onSelectDir(self):
-        dirname = Qt.QFileDialog.getExistingDirectory(self, 'Choose the project directory', self._projectDirLE.text())
-        if dirname.isNull(): return
+        dirname = unicode(Qt.QFileDialog.getExistingDirectory(self, 'Choose the project directory', self._projectDirLE.text()))
+        if not dirname: return
         self._projectDirLE.setText(dirname)
         
     def validatePage(self):
