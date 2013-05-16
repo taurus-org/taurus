@@ -223,7 +223,7 @@ class TaurusGui(TaurusMainWindow):
         self.registerConfigProperty(self.getAllInstrumentAssociations, self.setAllInstrumentAssociations, 'instrumentAssociation')
                 
         from taurus import tauruscustomsettings
-        dialog.setCustomWidgetMap(getattr(tauruscustomsettings,'T_FORM_CUSTOM_WIDGET_MAP',{}))
+        self.setCustomWidgetMap(getattr(tauruscustomsettings,'T_FORM_CUSTOM_WIDGET_MAP',{}))
         
         #Create a global SharedDataManager
         Qt.qApp.SDM =  SharedDataManager(self)
