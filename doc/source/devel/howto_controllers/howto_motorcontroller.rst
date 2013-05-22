@@ -312,7 +312,7 @@ Define a position
 ~~~~~~~~~~~~~~~~~
 
 Sometimes it is useful to reset the current position to a certain value.
-Imagine you are writting a controller for a hardware controller which handles
+Imagine you are writing a controller for a hardware controller which handles
 stepper motors. When the hardware is asked for a motor position it will
 probably answer some value from an internal register which is
 incremented/decremented each time the motor goes up/down a step. Probably this
@@ -320,7 +320,7 @@ value as physical meaning so the usual procedure is to move the motor to a known
 position (home switch, for example) and once there, set a meaningful position to
 the current position. Some motor controllers support reseting the internal
 register to the desired value. If your motor controller can do this the
-implementation is as easy as writting the 
+implementation is as easy as writing the 
 :meth:`~sardana.pool.controller.MotorController.DefinePosition` and call the
 proper code of your hardware library to do it:
 
@@ -343,7 +343,7 @@ proper code of your hardware library to do it:
 What to do when...
 ~~~~~~~~~~~~~~~~~~
 
-This chapter describes common difficult situations you may face when writting
+This chapter describes common difficult situations you may face when writing
 a motor controller in sardana, and possible solutions to solve them. 
 
 *my controller doesn't support steps per unit*

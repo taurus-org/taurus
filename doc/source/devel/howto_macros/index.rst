@@ -3,7 +3,7 @@
 .. _sardana-macro-howto:
 
 ================
-Writting macros
+Writing macros
 ================
 
 

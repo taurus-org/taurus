@@ -29,7 +29,7 @@ Doors at the same time but a Door can only run one macro at a time.
 Each Door is exposed on the sardana server as a Tango_ device.
 
 You are not in any way restricted to the standard macros provided by the sardana
-system. You can write as many macros as you need. Writting your own macros is
+system. You can write as many macros as you need. Writing your own macros is
 easy. The macro equivalent of Python_\'s *Hello, World!* example::
 
     from sardana.macroserver.macro import macro

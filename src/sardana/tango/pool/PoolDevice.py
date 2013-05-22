@@ -690,7 +690,7 @@ class PoolElementDevice(PoolDevice):
         :type attr: :class:`~PyTango.Attribute`"""
         name = attr.get_name()
         value = attr.get_write_value()
-        self.debug("writting dynamic attribute %s with value %s", name, value)
+        self.debug("writing dynamic attribute %s with value %s", name, value)
         ctrl = self.ctrl
         if ctrl is None:
             raise Exception("Cannot write %s. Controller not build!" % name)

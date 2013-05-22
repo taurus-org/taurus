@@ -86,7 +86,7 @@ Coding conventions
   like statement (see template below)
 * document all code using Sphinx_ extension to reStructuredText_
 
-The following code can serve as a template for writting new python modules to
+The following code can serve as a template for writing new python modules to
 sardana::
 
     #!/usr/bin/env python

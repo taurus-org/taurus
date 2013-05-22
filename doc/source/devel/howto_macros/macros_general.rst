@@ -7,7 +7,7 @@
 .. _sardana-macros-howto:
 
 ===============
-Writting macros
+Writing macros
 ===============
 
 This chapter provides the necessary information to write macros in sardana. The
@@ -38,9 +38,9 @@ If you are a scientist, and you have a programming background on a functional
 language (like fortran, matlab, SPEC_), then you might prefer to write macro
 functions. Computer scientists (young ones, specially), on the other hand,
 often have a background on object oriented languages (Java, C++, C#) and feel
-more confortable writting macro classes.
+more confortable writing macro classes.
 
-Classes tend to scale better with the size of a program or library. By writting
+Classes tend to scale better with the size of a program or library. By writing
 a macro class you can benefit from all advantages of object-oriented
 programming. This means that, in theory:
 
@@ -52,18 +52,18 @@ programming. This means that, in theory:
       software components
 
 In practice, however, and specially if you don't come from a programming
-background, writting classes requires a different way of thinking. It will also
+background, writing classes requires a different way of thinking. It will also
 require you to extend your knowledge in terms of syntax of a programming
 language.
 
 Furthermore, most tasks you will probably need to execute as macros, often don't
 fit the class paradigm that object-oriented languages offer. If you are
-writting a sequencial procedure to run an experiment then you are probably
-better of writting a python function which does the job plain and simple.
+writing a sequencial procedure to run an experiment then you are probably
+better of writing a python function which does the job plain and simple.
 
 One reason to write a macro as a class is if, for example, you want to extend
 the behaviour of the :class:`~sardana.macroserver.macros.standard.mv` macro. In
-this case, probably you would want to *extend* the existing macro by writting
+this case, probably you would want to *extend* the existing macro by writing
 your own macro class which *inherits* from the original macro and this way
 benefit from most of the functionallity already existing in the original macro.
 
@@ -89,13 +89,13 @@ convert the functions/classes of the original library into macros because:
     alphabetical order)
 
 
-How to start writting a macro
+How to start writing a macro
 -----------------------------
 
 Since macros are essencially Python_ code, they reside inside a Python_ file. In
 sardana, we call a Python_ file which contains macros a *macro library*.
 
-At the time of writting, the easiest way to create a new macro is from spock (we
+At the time of writing, the easiest way to create a new macro is from spock (we
 are currently working on a macro editor :term:`GUI`). 
 
 Preparing your text editor
@@ -135,7 +135,7 @@ code:
     
     .. image:: ../../_static/kwrite_config.png
 
-Now you are ready to start writting your macro! Type *spock* on the command
+Now you are ready to start writing your macro! Type *spock* on the command
 line. Once you are in spock, you can use the
 :class:`~sardana.macroserver.macros.expert.edmac` to create/edit macros. Let's
 say you want to create a new macro called *hello_world* in a new macro library
@@ -164,7 +164,7 @@ answer 'y'.
     Editing...
     Do you want to apply the new code on the server? [y] y
     
-.. _macro_function_writting:
+.. _macro_function_writing:
 
 
 Writing a macro function
@@ -564,16 +564,16 @@ the macro using :meth:`~Macro.data`:
 A set of macro call examples can be found
 :ref:`here <sardana-devel-macro-call-examples>`.
 
-.. _sardana-macro-class-writting:
+.. _sardana-macro-class-writing:
 
-Writting a macro class
+Writing a macro class
 ----------------------
 
-This chapter describes an advanced alternative to writting macros as Python_
+This chapter describes an advanced alternative to writing macros as Python_
 classes. If words like *inheritance*, *polimorphism* sound like a lawyer's
 horror movie then you probably should only read this if someone expert in
 sardana already told you that the task you intend to do cannot be accomplished
-by writting macro functions.
+by writing macro functions.
 
 The simplest macro class that you can write **MUST** obey the following rules:
 
