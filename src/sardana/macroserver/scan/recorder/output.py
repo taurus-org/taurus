@@ -99,6 +99,18 @@ class JsonRecorder(DataRecorder):
         #data = self._codec.encode(('', kwargs))
         #self._stream.sendRecordData(*data)
         self._stream.sendRecordData(kwargs, codec='json')
+        
+    def _addCustomData(self, value, name, **kwargs):
+        '''
+        The custom data will be sent as a packet with type='custom_data' and its
+        data will be the dictionary of keyword arguments passed to this method
+        plus 'name' and 'value'
+        '''
+        macro_id = self.recordlist.getEnvironValue('macro_id')
+        data = dict(kwargs) #shallow copy
+        data['name'] = name
+        data['value'] = value
+        self._sendPacket(type="custom_data", data=data, macro_id=macro_id)
 
 
 class OutputRecorder(DataRecorder):
