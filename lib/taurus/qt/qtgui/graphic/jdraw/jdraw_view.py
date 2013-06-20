@@ -143,7 +143,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     @Qt.pyqtSignature("graphicItemSelected(QString)")
     def graphicItemSelected(self,item_name):
-        self.info(' => graphicItemSelected(QString)(%s)'%item_name)
+        self.debug(' => graphicItemSelected(QString)(%s)'%item_name)
         self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),item_name)
         
     @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
@@ -306,7 +306,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         if alias is not None: self.setAlias(alias)
         ll = taurus.getLogLevel()
         if trace: taurus.setLogLevel(taurus.Debug)
-        self.info('setModel("%s")'%model)
+        #self.debug('setModel("%s")'%model)
         if self._currF:
             #filename = str(self._currFile.absoluteFilePath())
             filename = self._currF
@@ -334,7 +334,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.fitting(True)
             else:
                 self.setScene(None)
-        self.info('out of setModel()')
+        #self.debug('out of setModel()')
         taurus.setLogLevel(ll)
             
     #def destroy(destroyWindow=True,destroySubWindows=True):
