@@ -47,7 +47,9 @@ from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE
+from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
+                                  ExternalAppAction, TaurusWidgetFactory)
+
 
 def parseTangoUri(name):
     from taurus.core import tango
@@ -180,7 +182,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
-        #self.call__init__(taurus.core.util.log.Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT
+        #self.call__init__(Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT
         Qt.QGraphicsScene.__init__(self, parent)
         self.updateQueue = None
         self.updateThread = None
@@ -189,7 +191,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._selectedItems = []
         self.threads = []
         self.pids = []
-        self.panel_launcher = taurus.qt.qtgui.util.ExternalAppAction(parent.defaultPanelClass().split() if parent else ['taurusdevicepanel'])
+        self.panel_launcher = ExternalAppAction(parent.defaultPanelClass().split() if parent else ['taurusdevicepanel'])
         
         try:
             self.logger = Logger(name)
@@ -570,7 +572,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 myclass = getattr(Qt,clName)
             except:
                 try:
-                    wf = taurus.qt.qtgui.util.TaurusWidgetFactory()
+                    wf = TaurusWidgetFactory()
                     myclass = wf.getTaurusWidgetClass(clName)
                 except:
                     self.warning( "The class ",clName, "can not be found!\n" + '-'*80)
