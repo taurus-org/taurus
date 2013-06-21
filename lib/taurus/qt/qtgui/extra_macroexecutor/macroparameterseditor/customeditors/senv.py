@@ -25,7 +25,8 @@
 
 from taurus.qt import Qt
 from taurus import Database
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusAttrInfo
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.taurusdatabase import TaurusAttrInfo
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.qt.qtgui.resource import getThemeIcon
