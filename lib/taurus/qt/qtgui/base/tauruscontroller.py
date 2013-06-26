@@ -105,17 +105,18 @@ class TaurusBaseController(object):
         return self.widget().getDisplayValue()
     
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
-            self._last_value = evt_value
-        elif evt_type == TaurusEventType.Config:
-            self._last_config_value = evt_value
-        else:
-            self._last_error_value = evt_value
-            #In case of error, modify the last_value as well
-            try:
-                self._last_value = self.modelObj().getValueObj()
-            except:
-                pass
+        if evt_src == self.modelObj(): #update the "_last" values only if the event source is the model (it could be the background...) 
+            if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
+                self._last_value = evt_value
+            elif evt_type == TaurusEventType.Config:
+                self._last_config_value = evt_value
+            else:
+                self._last_error_value = evt_value
+                #In case of error, modify the last_value as well
+                try:
+                    self._last_value = self.modelObj().getValueObj()
+                except:
+                    pass
         self.update()
 
     def eventReceived(self, evt_src, evt_type, evt_value):
