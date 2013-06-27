@@ -1234,7 +1234,7 @@ SearchEdit = TaurusDevTreeOptions
 #####################################################################################
     
 class ServerBrowser(TaurusDevTree):
-    """ This class is used only when browsing by Server/Instance instead of Domain/Family/Member schema """
+    """ This class is used only when browsing by Server/Instance instead of Domain/Family/Member scheme """
     
     def getDeviceDict(self,filters):
         '''

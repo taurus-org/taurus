@@ -113,7 +113,7 @@ Some examples of valid evaluation models are:
         `eval://2*{tango://a/b/c/d}`
         
     - An attribute that adds two tango attributes together (note we can omit the `tango://` part
-      because tango is the default schema in taurus)
+      because tango is the default scheme in taurus)
       
         `eval://{a/b/c/d}+{f/g/h/i}`
     

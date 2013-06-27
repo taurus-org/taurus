@@ -167,7 +167,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
                 return i, c, alias.split(c, 1)
         return None, '', [alias]
     
-    def __splitSchema(self, alias):
+    def __splitScheme(self, alias):
         try:
             i = alias.index('://')
             return alias[:i], alias[i+3:]
@@ -181,7 +181,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            
            :return: (str) the value for the given key
         """
-        alias = self.__splitSchema(key)
+        alias = self.__splitScheme(key)
         if alias[0] and not alias[0] in ResourcesFactory.schemes:
             return None
         i, c, alias = self.__splitResourceName(alias[1])

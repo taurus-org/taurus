@@ -106,8 +106,8 @@ class TaurusFactory(object):
         instance is returned. Otherwise a new instance is stored and returned.
            
         @param[in] db_name database name string. It should be formed like: 
-                           <schema>://<authority>. If <schema> is ommited then 
-                           it will use the default schema. if db_name is None, 
+                           <scheme>://<authority>. If <scheme> is ommited then 
+                           it will use the default scheme. if db_name is None, 
                            the default database is used
                            
         @return a taurus.core.taurusdatabase.TaurusDatabase object 
@@ -124,10 +124,10 @@ class TaurusFactory(object):
         Otherwise a new instance is stored and returned.
            
         @param[in] dev_name the device name string. It should be formed like:
-                            <schema>://<authority>/<device name>. If <schema> 
-                            is ommited then it will use the default schema. 
+                            <scheme>://<authority>/<device name>. If <scheme> 
+                            is ommited then it will use the default scheme. 
                             If authority is ommited then it will use the 
-                            default authority for the schema.
+                            default authority for the scheme.
         
         @return a taurus.core.taurusdevice.TaurusDevice object 
         @throws TaurusException if the given name is invalid.

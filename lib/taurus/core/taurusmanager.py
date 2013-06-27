@@ -103,7 +103,7 @@ class TaurusManager(Singleton, Logger):
         if self._plugins is None:
             return
         self.trace("[TaurusManager] cleanUp")
-        for f_schema, f in self._plugins.items():
+        for f_scheme, f in self._plugins.items():
             f().cleanUp()
         self._plugins = None
         
@@ -256,18 +256,21 @@ class TaurusManager(Singleton, Logger):
         return self.getObject(TaurusConfiguration, name)
         
     def _get_factory(self, name):
-        scheme = self._get_schema(name)
+        scheme = self._get_scheme(name)
         if scheme is None: return
         try:
             return self.getPlugins()[scheme]()
         except:
             raise TaurusException('Invalid scheme "%s"'%scheme)
 
-    def _get_schema(self, name):
+    def _get_scheme(self, name):
         try:
             return name[:name.index('://')]
         except ValueError, e:
             return self.default_scheme
+        
+    def _get_schema(self, name):
+        raise DeprecationWarning('_get_schema is deprecated. Use _get_scheme instead')
 
     def _build_plugins(self):
         plugin_classes = self._get_plugin_classes()
