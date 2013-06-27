@@ -308,17 +308,19 @@ class TaurusManager(Singleton, Logger):
         
         plugins = []
         
-        for d in dirs:
-            package_name = d.split(os.path.sep)[-1]
+        full_module_names = ['taurus.core.%s'%d.split(os.path.sep)[-1] for d in dirs]
+        from taurus import tauruscustomsettings
+        full_module_names.extend(getattr(tauruscustomsettings,'EXTRA_SCHEME_MODULES',[]))
+        
+        for full_module_name in full_module_names:
             try:
-                full_module_name = 'taurus.core.%s' % package_name
                 m = __import__(full_module_name, fromlist=['*'], level=0)
             except Exception, imp1:
                 # just in case we are in python 2.4
                 try:
                     m = __import__(full_module_name, globals(), locals(), ['*'])
                 except:
-                    self.debug('Failed to inspect %s' % (package_name))
+                    self.debug('Failed to inspect %s' % (full_module_name))
                     self.debug('Details:', exc_info=1)
                     continue
             for s in m.__dict__.values():
