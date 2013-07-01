@@ -382,9 +382,9 @@ class TaurusGui(TaurusMainWindow):
                      If None given, the user will be prompted
         '''
         if name is None:
-            items = sorted(self.getPanelNames())
+            items = sorted([n for n,p in self.__panels.iteritems() if p.isCustom()])
             name,ok = Qt.QInputDialog.getItem (self, "Remove Panel", 
-                                               "Panel to be removed.\n Important: you may want to save the perspective afterwards,\n and maybe remove the panel from other perspectives as well", items, 0, False)
+                                               "Panel to be removed (only custom panels can be removed).\n Important: you may want to save the perspective afterwards,\n and maybe remove the panel from other perspectives as well", items, 0, False)
             if not ok:
                 return
         name = unicode(name)
