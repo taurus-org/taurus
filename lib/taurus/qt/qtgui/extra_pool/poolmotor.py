@@ -83,7 +83,7 @@ class PoolMotorClient():
             self.has_limits = hasattr(self.motor_dev, 'Limit_Switches')
             self.has_encoder = hasattr(self.motor_dev, 'Encoder')
         except Exception,e:
-            print 'EXCEPTION CREATING MOTOR DEVICE...\n'+str(e)
+            taurus.warning('Exception Creating Motor Device %s', str(e))
 
     def moveMotor(self, pos):
         #self.motor_dev['position'] = pos
@@ -1332,7 +1332,7 @@ class PoolMotorTV(TaurusValue):
             limit_switches = [False, False, False]
             if self.hasHwLimits():
                 limit_switches = self.motor_dev.getAttribute('Limit_switches').read().value
-                print "update limits", limit_switches
+                #print "update limits", limit_switches
             self.updateLimits(limit_switches, position=position)
         
     def hasEncoder(self):
