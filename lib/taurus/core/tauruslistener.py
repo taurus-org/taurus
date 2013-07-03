@@ -47,9 +47,7 @@ class TaurusListener(Logger):
 
 
 class TaurusExceptionListener(object):
-    """Class for handling ConnectionFailed, DevFailed and TaurusException exceptions.
-
-    The TaurusExceptionListeners are invoked when the """
+    """Class for handling ConnectionFailed, DevFailed and TaurusException exceptions."""
 
     def connectionFailed(self, ex):
         self._printException(ex)
@@ -66,7 +64,7 @@ class TaurusExceptionListener(object):
             self.devFailed(exception)
 
         else:
-            self._printException(self, exception)
+            self._printException(exception)
 
     def _printException(self, exception):
         print self.__class__.__name__, "received", exception.__class__.__name__, str(exception)
