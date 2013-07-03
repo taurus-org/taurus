@@ -1252,9 +1252,6 @@ def main():
 
     if options.new_gui: #launch app settings wizard instead of taurusgui
         from taurus.qt.qtgui.taurusgui import AppSettingsWizard
-        Qt.QMessageBox.information(None, 'Alpha-quality warning', 
-                                   'The Applications settings wizard is still under heavy development.\n Use it at your own risk and report any problems',
-                                   Qt.QMessageBox.Ok)
         wizard = AppSettingsWizard()
         wizard.show()
         sys.exit(app.exec_())
