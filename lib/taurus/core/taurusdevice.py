@@ -227,8 +227,8 @@ class TaurusDevice(TaurusModel):
         # We are only listening to State if someone is listening to us
         if weWereListening:
             # We were listening already, so we must fake an event to the new
-            # subscrived listener with the current value
-            self.fireEvent(taurusmodel.TaurusEventType.Change, self.getValueObj(), hasattr(listener,'__iter__') and listener or [listener])
+            # subscribed listener with the current value
+            self.fireEvent(TaurusEventType.Change, self.getValueObj(), hasattr(listener,'__iter__') and listener or [listener])
         else:
             # We were not listening to events, but now we have to
             self.getStateObj().addListener(self)
