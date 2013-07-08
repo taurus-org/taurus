@@ -30,7 +30,7 @@ __all__ = [ "PoolBaseGroup"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core import AttributeNameValidator
+from taurus.core.taurusvalidator import AttributeNameValidator
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
 from poolexternal import PoolExternalObject

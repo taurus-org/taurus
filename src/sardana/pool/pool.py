@@ -35,8 +35,8 @@ __docformat__ = 'restructuredtext'
 import os.path
 import logging.handlers
 
-from taurus.core import AttributeNameValidator
-from taurus.core.util import CaselessDict
+from taurus.core.taurusvalidator import AttributeNameValidator
+from taurus.core.util.containers import CaselessDict
 
 from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
     TYPE_PSEUDO_ELEMENTS, TYPE_PHYSICAL_ELEMENTS, TYPE_MOVEABLE_ELEMENTS

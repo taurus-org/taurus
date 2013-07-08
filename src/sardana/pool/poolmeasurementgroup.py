@@ -30,7 +30,7 @@ __all__ = [ "PoolMeasurementGroup" ]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core import AttributeNameValidator
+from taurus.core.taurusvalidator import AttributeNameValidator
 from taurus.core.tango.sardana import PlotType, Normalization
 
 from sardana import State,ElementType, \
