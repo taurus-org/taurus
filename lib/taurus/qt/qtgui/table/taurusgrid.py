@@ -64,7 +64,7 @@ def get_all_models(expressions,limit=1000):
     It practically equals to fandango.get_matching_attributes; check which is better!
     Move this method to taurus.core.tango.search 
     '''
-    print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
+    #print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions,str):
         #if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
             ##self.debug( 'evaluating expressions ....')
@@ -81,13 +81,13 @@ def get_all_models(expressions,limit=1000):
     taurus_db = taurus.core.taurusmanager.TaurusManager().getFactory()().getDatabase()
     #taurus_db = taurus.Database(os.environ['TANGO_HOST'])
     if 'SimulationDatabase' in str(type(taurus_db)):
-        #self.info( 'Using a simulated database ...')
+        #self.trace( 'Using a simulated database ...')
         models = expressions
     else:
         all_devs = taurus_db.get_device_exported('*')
         models = []
         for exp in expressions:
-            #self.info( 'evaluating exp = "%s"' % exp)
+            #self.trace( 'evaluating exp = "%s"' % exp)
             exp = str(exp)
             devs = []
             targets = []
@@ -100,7 +100,7 @@ def get_all_models(expressions,limit=1000):
             else:
                 devs = [device]
                 
-            #self.info( 'TaurusGrid.get_all_models(): devices matched by %s / %s are %d:' % (device,attribute,len(devs)))
+            #self.trace( 'TaurusGrid.get_all_models(): devices matched by %s / %s are %d:' % (device,attribute,len(devs)))
             #self.debug( '%s' % (devs))
             for dev in devs:
                 if any(c in attribute for c in '.*[]()+?'):
@@ -118,7 +118,7 @@ def get_all_models(expressions,limit=1000):
             #print 'TaurusGrid.get_all_models(): targets added by %s are: %s' % (exp,targets)
             models.extend(targets)
     models = models[:limit]
-    print( 'Out of TaurusGrid.get_all_models(...)')
+    #print( 'Out of TaurusGrid.get_all_models(...)')
     return models   
                     
 def get_readwrite_models(expressions,limit=1000):
@@ -129,10 +129,10 @@ def get_readwrite_models(expressions,limit=1000):
     #self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions,str):
         if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
-            #self.debug( 'evaluating expressions ....')
+            #self.trace( 'evaluating expressions ....')
             expressions = list(eval(expressions))
         else:
-            #self.debug( 'expressions as string separated by commas ...')
+            #self.trace( 'expressions as string separated by commas ...')
             expressions = expressions.split(',')
             
     elif any(isinstance(expressions,klass) for klass in (QtCore.QStringList,list,tuple,dict)):
@@ -236,7 +236,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         f.close()
         
     def load(self,filename,delayed=False):
-        self.info('In TauGrid.load(%s,%s)'%(filename,delayed))
+        self.trace('In TauGrid.load(%s,%s)'%(filename,delayed))
         if not isinstance(filename,dict):
             import pickle
             f = open(filename)
@@ -337,9 +337,9 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     def updateStyle(self):
         #-----------------------------------------------------------------------
         # Write your own code here to update your widget style
-        self.debug('@'*80)
-        self.debug('In TaurusGrid.updateStyle() ....... It seems never called!!!!')
-        self.debug('@'*80)
+        self.trace('@'*80)
+        self.trace('In TaurusGrid.updateStyle() ....... It seems never called!!!!')
+        self.trace('@'*80)
         
         #It was showing an annoying "True" in the widget
         #value = self.getShowText() or ''
@@ -366,8 +366,8 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.load(model)
         else:
             model = isinstance(model,(str,QtCore.QString)) and [model] or list(model)
-            self.debug('#'*80)
-            self.debug('In TaurusGrid.setModel(%s)'%str(model)[:100])
+            self.trace('#'*80)
+            self.trace('In TaurusGrid.setModel(%s)'%str(model)[:100])
     
             self.delayed = delayed
             self.filter = model
@@ -386,7 +386,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.debug(('In TaurusGrid.setModel(...): modelNames are %s'%(self._modelNames))[:100]+'...')
             
             if load:
-                self.info('In TaurusGrid.setModel(%s,load=True): modelNames are %d'%(str(model)[:100]+'...',len(self._modelNames)))#,self._modelNames)) 
+                self.trace('In TaurusGrid.setModel(%s,load=True): modelNames are %d'%(str(model)[:100]+'...',len(self._modelNames)))#,self._modelNames)) 
                 if devsInRows:
                     self.setRowLabels(','.join(set(d.rsplit('/',1)[0] for d in self._modelNames)))
                 self.create_widgets_table(self._modelNames)
@@ -398,19 +398,19 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 self.updateStyle()        
                         
                 if not self.delayed:
-                    self.info('In setModel(): not delayed loading of models')
+                    self.trace('In setModel(): not delayed loading of models')
                     if not self.modelsThread.isRunning(): 
-                        print 'In setModel(): Starting Thread! (%d objs in queue)'%(self.modelsThread.queue.qsize())
-                        self.debug('<'*80)
+                        #print 'In setModel(): Starting Thread! (%d objs in queue)'%(self.modelsThread.queue.qsize())
+                        self.trace('<'*80)
                         self.modelsThread.start()#self.modelsThread.IdlePriority)        
                     else:
-                        print 'In setModel(): Thread already started! (%d objs in queue)'%(self.modelsThread.queue.qsize())
+                        #print 'In setModel(): Thread already started! (%d objs in queue)'%(self.modelsThread.queue.qsize())
                         self.modelsThread.next()
                 else: 
-                    self.info('In setModel(): models loading delayed!')
+                    self.trace('In setModel(): models loading delayed!')
                     pass
                     
-            self.debug('Out of TaurusGrid.setModel(%s)'%str(model)[:100])
+            self.trace('Out of TaurusGrid.setModel(%s)'%str(model)[:100])
             self.updateStyle()
         return
     
@@ -503,7 +503,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 self.columns_frame.hide()
                 
     def showAttributeLabels(self,boolean):
-        self.info('In showAttributeLabels(%s)'%boolean)
+        self.trace('In showAttributeLabels(%s)'%boolean)
         self._show_attr_labels = boolean
         for tv in self._widgets_list:
             try:
@@ -514,7 +514,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         return self._show_attr_labels
         
     def showAttributeUnits(self,boolean):
-        self.info('In showAttributeUnits(%s)'%boolean)
+        self.trace('In showAttributeUnits(%s)'%boolean)
         self._show_attr_units = boolean
         for tv in self._widgets_list:
             try:
@@ -751,7 +751,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         This is a builder. For all the elements in widgets matrix,
         just set the corresponding cells of the QTableWidget.
         """
-        self.debug('In TaurusGrid.build_table(%s)'%values)
+        self.trace('In TaurusGrid.build_table(%s)'%values)
         widgets_matrix = self.build_widgets(values,self.showLabels)
         rows = len(widgets_matrix)
         cols = rows and len(widgets_matrix[0]) or 0
@@ -804,7 +804,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     
                 #Done in this way as TauValue.mousePressEvent are never called
                 def mousePressEvent(event,obj):
-                    print 'In cell clicked'
+                    #print 'In cell clicked'
                     targets = set(str(child.getModelName()) for child in obj.children() 
                         if hasattr(child,'underMouse') and child.underMouse() and hasattr(child,'getModelName'))
                     [obj.emit(Qt.SIGNAL("itemClicked(QString)"),t) for t in targets]
@@ -817,17 +817,17 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         return widgets_matrix
         
     def itemClicked(self,item_name):
-        self.info('In TaurusGrid.itemClicked(%s)'%item_name)
+        self.trace('In TaurusGrid.itemClicked(%s)'%item_name)
         self.setItemSelected(item_name)
         self.emit(QtCore.SIGNAL("itemClicked(QString)"),str(item_name))
         
     def setItemSelected(self,item_name='',selected=True):
         """ it adds a blue frame around a clicked item. """
         if isinstance(item_name,TaurusValue): 
-            self.info('In TaurusGrid.setItemSelected(%s,%s)'%(str(item_name.getModel()),selected))
+            self.trace('In TaurusGrid.setItemSelected(%s,%s)'%(str(item_name.getModel()),selected))
             item = item_name
         else: 
-            self.info('In TaurusGrid.setItemSelected(%s,%s)'%(str(item_name),selected))
+            self.trace('In TaurusGrid.setItemSelected(%s,%s)'%(str(item_name),selected))
             if item_name: item = self.getItemByModel(item_name)
             else: item = self._last_selected
         if item:
