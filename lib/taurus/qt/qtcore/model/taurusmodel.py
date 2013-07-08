@@ -33,6 +33,8 @@ from taurus.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.util.log import Logger
 
+QtQt = Qt.Qt
+
 class TaurusBaseTreeItem(object):
     """A generic node"""
     
@@ -248,35 +250,35 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         s = self.roleSize(role)
         return s
     
-    def pyData(self, index, role=Qt.Qt.DisplayRole):
+    def pyData(self, index, role=QtQt.DisplayRole):
         if not index.isValid():
             return None
         
         item = index.internalPointer()
         
         ret = None
-        if role == Qt.Qt.DisplayRole or role == Qt.Qt.EditRole:
+        if role == QtQt.DisplayRole or role == QtQt.EditRole:
             ret = item.data(index)
-#        elif role == Qt.Qt.CheckStateRole:
+#        elif role == QtQt.CheckStateRole:
 #            data = item.data(index)
 #            if type(data) != bool:
 #                data = str(data).lower() == 'true'
-#            ret = Qt.Qt.Unchecked
+#            ret = QtQt.Unchecked
 #            if data == True:
-#                ret = Qt.Qt.Checked
-        elif role == Qt.Qt.DecorationRole:
+#                ret = QtQt.Checked
+        elif role == QtQt.DecorationRole:
             ret = item.icon(index)
-        elif role == Qt.Qt.ToolTipRole:
+        elif role == QtQt.ToolTipRole:
             ret = item.toolTip(index)
-        #elif role == Qt.Qt.SizeHintRole:
+        #elif role == QtQt.SizeHintRole:
         #    ret = self.columnSize(column)
-        elif role == Qt.Qt.FontRole:
+        elif role == QtQt.FontRole:
             ret = self.DftFont
-        elif role == Qt.Qt.UserRole:
+        elif role == QtQt.UserRole:
             ret = Qt.QVariant(item)
         return ret
     
-    def data(self, index, role=Qt.Qt.DisplayRole):
+    def data(self, index, role=QtQt.DisplayRole):
         ret = self.pyData(index, role)
         if ret is None:
             ret = Qt.QVariant()
@@ -284,7 +286,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
             ret = Qt.QVariant(ret)
         return ret
 
-    def _setData(self, index, qvalue, role=Qt.Qt.EditRole):
+    def _setData(self, index, qvalue, role=QtQt.EditRole):
         item = index.internalPointer()
         pyobj = Qt.from_qvariant(qvalue)
         if pyobj is NotImplemented:
@@ -296,29 +298,29 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         if not index.isValid():
             return 0
         
-        ret = Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsDragEnabled
+        ret = QtQt.ItemIsEnabled | QtQt.ItemIsDragEnabled
         
         item = index.internalPointer()
         column, depth = index.column(), item.depth()
         taurus_role = self.role(column, depth)
         
         if taurus_role in self.selectables():
-            ret |= Qt.Qt.ItemIsSelectable
+            ret |= QtQt.ItemIsSelectable
         return ret
     
-    def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
+    def headerData(self, section, orientation, role=QtQt.DisplayRole):
         ret = None
-        if orientation == Qt.Qt.Horizontal:
-            if role == Qt.Qt.TextAlignmentRole:
-                ret = int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
-            elif role == Qt.Qt.DisplayRole:
+        if orientation == QtQt.Horizontal:
+            if role == QtQt.TextAlignmentRole:
+                ret = int(QtQt.AlignLeft | QtQt.AlignVCenter)
+            elif role == QtQt.DisplayRole:
                 ret = self.ColumnNames[section]
-            elif role == Qt.Qt.SizeHintRole:
+            elif role == QtQt.SizeHintRole:
                 ret = Qt.QSize(self.columnSize(section))
                 ret.setHeight(24)
-            elif role == Qt.Qt.ToolTipRole:
+            elif role == QtQt.ToolTipRole:
                 ret = self.columnToolTip(section)
-            elif role == Qt.Qt.DecorationRole:
+            elif role == QtQt.DecorationRole:
                 ret = self.columnIcon(section)
                 
         return Qt.QVariant(ret)
@@ -379,16 +381,16 @@ class TaurusBaseProxyModel(Qt.QSortFilterProxyModel):
         Qt.QSortFilterProxyModel.__init__(self, parent)
         
         # filter configuration
-        self.setFilterCaseSensitivity(Qt.Qt.CaseInsensitive)
+        self.setFilterCaseSensitivity(QtQt.CaseInsensitive)
         self.setFilterKeyColumn(0)
-        self.setFilterRole(Qt.Qt.DisplayRole)
+        self.setFilterRole(QtQt.DisplayRole)
         
         # sort configuration
-        self.setSortCaseSensitivity(Qt.Qt.CaseInsensitive)
-        self.setSortRole(Qt.Qt.DisplayRole)
+        self.setSortCaseSensitivity(QtQt.CaseInsensitive)
+        self.setSortRole(QtQt.DisplayRole)
         
         # general configuration
-        self.sort(0, Qt.Qt.AscendingOrder)
+        self.sort(0, QtQt.AscendingOrder)
         
     def __getattr__(self, name):
         return getattr(self.sourceModel(), name)

@@ -26,7 +26,7 @@
 """
 """
 
-__all__ = ["QObjectRepresentation", "get_widget_tree", "get_widget_tree_str",
+__all__ = ["QObjectRepresentation", "get_qobject_tree", "get_qobject_tree_str",
            "TreeQObjectModel", "TreeQObjectWidget"]
 
 __docformat__ = 'restructuredtext'
@@ -179,12 +179,6 @@ class TreeQObjectWidget(QBaseTreeWidget):
             "icon"    : "",
             "model"   : [TreeQObjectModel],
         },
-        "Blas" : {
-            "label"   : "Default perspecive",
-            "tooltip" : "QObject tree view",
-            "icon"    : "",
-            "model"   : [TreeQObjectModel],
-        },
     }
 
     DftPerspective = "Default"
@@ -224,10 +218,11 @@ def main():
     app = TaurusApplication()
 
     w = build_gui()
-    tree = TreeQObjectWidget()    
+    tree = TreeQObjectWidget(qobject_root=w)    
     tree.show()
     #import pprint
     #pprint.pprint(get_qobject_tree_str())
+    w.dumpObjectTree()
     app.exec_()
 
 if __name__ == "__main__":
