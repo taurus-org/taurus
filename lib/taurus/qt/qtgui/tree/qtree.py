@@ -35,32 +35,6 @@ from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
 
-class _NavigationLabel(Qt.QWidget):
-    """Internal widget providing a navigation label & icon"""
-
-    def __init__(self, pixmap, text, cont, index, parent=None):
-        super(_NavigationLabel, self).__init__(parent)
-        self._index = index
-
-        l = Qt.QHBoxLayout()
-        l.setContentsMargins(0,0,0,0)
-        self.setLayout(l)
-        if pixmap is not None:
-            p = Qt.QLabel()
-            p.setPixmap(pixmap)
-            l.addWidget(p)
-        self._label = Qt.QLabel(text)
-        l.addWidget(self._label)
-        if cont:
-            l.addWidget(Qt.QLabel(u" \u00bb "))
-
-    def label(self):
-        return self._label
-
-    def index(self):
-        return self._index
-
-
 class _NavigationWidget(Qt.QFrame):
     """Internal widget that provides a navigation path to be placed in a toolbar"""
 
@@ -68,9 +42,12 @@ class _NavigationWidget(Qt.QFrame):
         super(_NavigationWidget, self).__init__(parent)
         self._tree = treeWidget
         self._toolbar = toolBarWidget
+        self._label = Qt.QLabel()
         l = Qt.QHBoxLayout()
         l.setContentsMargins(4, 0, 4, 0)
         self.setLayout(l)
+        l.addWidget(self._label)
+        
 
     def treeWidget(self):
         return self._tree
@@ -81,49 +58,19 @@ class _NavigationWidget(Qt.QFrame):
     def toolBarWidget(self):
         return self._toolbar
 
-    def clean(self):
-        l = self.layout()
-        w = l.takeAt(0)
-        while w is not None:
-            w = w.widget()
-            Qt.QObject.disconnect(w, Qt.SIGNAL("clicked()"), self.onGotoNode)
-            w.setParent(None)
-            w = l.takeAt(0)
-
     def updateSelection(self, index):
-        self.clean()
         treeWidget = self.treeWidget()
-        viewWidget = treeWidget.viewWidget()
-        model = viewWidget.model()
         src_model = treeWidget.getBaseQModel()
         toolbar = self.toolBarWidget()
-        rootPixmap = getThemeIcon("go-home").pixmap(toolbar.iconSize())
-        rootText = u"Top"
-
-        l = self.layout()
-        n = 0
+        txt = u""
+        
         while index.isValid():
             src_index = treeWidget._mapToSource(index)
             name = src_model.pyData(src_index, Qt.Qt.DisplayRole)
-            font = src_model.pyData(src_index, Qt.Qt.FontRole)
-            tooltip = src_model.pyData(src_index, Qt.Qt.ToolTipRole)
-            decoration = src_model.pyData(src_index, Qt.Qt.DecorationRole)
-            pixmap = None
-            if isinstance(decoration, Qt.QIcon):
-                pixmap = decoration.pixmap(toolbar.iconSize())
-            elif isinstance(decoration, Qt.QPixmap):
-                pixmap = decoration
-            button = _NavigationLabel(pixmap, name, n>0, Qt.QPersistentModelIndex(index))
-            font = font or model.DftFont
-            button.setFont(font)
-            button.setToolTip(tooltip)
-            Qt.QObject.connect(button.label(), Qt.SIGNAL("linkActivated(const QString &)"), self.onGotoNode)
-            l.insertWidget(0, button)
+            txt = u" \u00bb " + name + txt
             index = index.parent()
-            n += 1
-        rootButton = _NavigationLabel(rootPixmap, rootText, n>0, Qt.QPersistentModelIndex(index))
-        rootButton.setFont(model.DftFont)
-        l.insertWidget(0, rootButton)
+        txt = u"Root" + txt
+        self._label.setText(txt)
 
     def onGotoNode(self, *args):
         label = self.sender()
