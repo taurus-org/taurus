@@ -785,7 +785,12 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
             _, ds_name = os.path.split(args[0])
             ds_name, _ = os.path.splitext(ds_name)
             ds_instance = args[-1].lower()
-            path = os.path.join(os.sep, "tmp", "tango", ds_name, ds_instance)
+            import getpass
+            try:
+                tangodir = 'tango-%s'%getpass.getuser() #include the user name to avoid permission errors
+            except:
+                tangodir = 'tango'%getpass.getuser()
+            path = os.path.join(os.sep, "tmp", tangodir, ds_name, ds_instance)
             log_file_name = os.path.join(path, 'log.txt')
         else:
             log_file_name = options.log_file_name
