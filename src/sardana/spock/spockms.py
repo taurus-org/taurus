@@ -63,10 +63,17 @@ class GUIViewer(BaseGUIViewer):
 
     def show_scan(self, scan_nb=None, scan_history_info=None, directory_map=None):
         if scan_nb is None and scan_history_info is None:
-            import taurus.qt.qtgui.plot
-            w = taurus.qt.qtgui.plot.TaurusTrend()
-            w.model = "scan://" + self._door.getNormalName()
-            w.show()
+            #===================================================================
+            ##Hack to avoid ipython-qt issues. See similar workaround in expconf magic command
+            ## @todo: do this in a better way
+            #import taurus.qt.qtgui.plot
+            #w = taurus.qt.qtgui.plot.TaurusTrend()
+            #w.model = "scan://" + self._door.getNormalName()
+            #w.show()
+            import subprocess
+            args = ['taurustrend','scan://%s'%self._door.getNormalName()]
+            subprocess.Popen(args)
+            #===================================================================
             return
 
         scan_dir, scan_file = None, None
