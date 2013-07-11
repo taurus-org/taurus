@@ -52,6 +52,7 @@ def get_free_names(db, prefix, nb, start_at=1):
 
 @macro()
 def clear_sar_demo(self):
+    """Undoes changes done with sar_demo"""
     try:
         SAR_DEMO = self.getEnv(_ENV)
     except:
@@ -76,6 +77,7 @@ def clear_sar_demo(self):
     
 @macro()
 def sar_demo(self):
+    """Sets up a demo environment. It creates many elements for testing"""
     
     try:
         SAR_DEMO = self.getEnv(_ENV)

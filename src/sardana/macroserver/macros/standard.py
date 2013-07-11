@@ -340,11 +340,12 @@ class mv(Macro):
             self.info("\n".join(msg))
 
 class mstate(Macro):
+    """Prints the state of a motor"""
+    
+    param_def = [['motor', Type.Moveable, None, 'Motor to check state']]
 
-        param_def = [['motor', Type.Moveable, None, 'Motor to check state']]
-
-        def run(self, motor):
-            self.info("Motor %s" % str(motor.getState()))
+    def run(self, motor):
+        self.info("Motor %s" % str(motor.getState()))
 
 class umv(Macro):
     """Move motor(s) to the specified position(s) and update"""

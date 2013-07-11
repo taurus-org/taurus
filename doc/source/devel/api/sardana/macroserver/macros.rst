@@ -67,7 +67,7 @@
     The step size for each motor is (start_pos-final_pos)/nr_interv.
     The number of data points collected will be nr_interv+1.
     Count time is given by time which if positive, specifies seconds and
-    if negative, specifies monitor counts."""
+    if negative, specifies monitor counts.
     
 
 .. class:: scan.ascan
@@ -95,8 +95,9 @@
     will be nr_interv+1. Count time is given by time which if positive,
     specifies seconds and if negative, specifies monitor counts. 
     
-.. autoclass:: demo.clear_sar_demo
+.. class:: demo.clear_sar_demo
 
+    Undoes changes done with sar_demo
 
 .. class:: expert.commit_ctrllib
 
@@ -211,7 +212,7 @@
     The step size for each motor is (start_pos-final_pos)/nr_interv.
     The number of data points collected will be nr_interv+1.
     Count time is given by time which if positive, specifies seconds and
-    if negative, specifies monitor counts."""
+    if negative, specifies monitor counts.
     
 
 .. class:: scan.dscan
@@ -375,8 +376,9 @@
 
     Lists all existing motors
     
-.. autoclass:: env.lsvo
+.. class:: env.lsvo
 
+    Lists the view options
 
 .. class:: mca.mca_start
 
@@ -404,7 +406,9 @@
 
     2d grid scan. scans continuous
     
-.. autoclass:: standard.mstate
+.. class:: standard.mstate
+
+    Prints the state of a motor
 
 
 .. class:: standard.mv
@@ -469,8 +473,9 @@
 
     Logs a new record into the message report system (if active)
     
-.. autoclass:: demo.sar_demo
+.. class:: demo.sar_demo
 
+   Sets up a demo environment. It creates many elements for testing
 
 .. class:: expert.sar_info
 

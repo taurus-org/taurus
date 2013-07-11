@@ -62,7 +62,7 @@ class dumpenv(Macro):
 
 
 class lsvo(Macro):
-
+    """Lists the view options"""
     def run(self):
         vo = self.getViewOptions()
         out = List(['View option', 'Value'])
