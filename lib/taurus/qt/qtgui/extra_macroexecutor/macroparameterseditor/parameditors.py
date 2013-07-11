@@ -207,7 +207,7 @@ class SpinBoxParam(ParamBase, Qt.QSpinBox):
     def __init__(self, parent=None, paramModel=None):
         ParamBase.__init__(self, paramModel)
         Qt.QSpinBox.__init__(self,parent)
-        self.setRange(-999999,999999)
+        self.setRange(-999999999,999999999)
         self.setAccelerated(True)
 #        self.setToolTip(self.paramModel().description())
     
@@ -225,10 +225,10 @@ class DoubleSpinBoxParam(ParamBase, Qt.QDoubleSpinBox):
     def __init__(self, parent=None, paramModel=None):
         ParamBase.__init__(self, paramModel)
         Qt.QDoubleSpinBox.__init__(self,parent)
-        self.setRange(-999999.999,999999.999)
+        self.setRange(-999999999.999999,999999999.999999)
         self.setAccelerated(True)
-        self.setDecimals(3)
-        self.setSingleStep(0.01)
+        self.setDecimals(6)
+        self.setSingleStep(0.000001)
 #        self.setToolTip(self.paramModel().description())
         
     def getValue(self):
