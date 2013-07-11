@@ -45,9 +45,24 @@ def expconf(self, parameter_s=''):
     except:
         print "Error importing ExpDescriptionEditor "\
               "(hint: is taurus extra_sardana installed?)"
+        return
     doorname = get_door().name()
-    w = ExpDescriptionEditor(door=doorname)
-    w.show()
+        
+    #===========================================================================
+    ## ugly hack to avoid ipython/qt thread problems #e.g. see
+    ## https://sourceforge.net/p/sardana/tickets/10/ 
+    ## this hack does not allow inter-process communication and leaves the 
+    ## widget open after closing spock 
+    ## @todo: investigate cause of segfaults when using launching qt widgets from ipython
+    # 
+    #w = ExpDescriptionEditor(door=doorname)
+    #w.show() #launching it like this, produces the problem of https://sourceforge.net/p/sardana/tickets/10/
+    import subprocess
+    import sys
+    fname = sys.modules[ExpDescriptionEditor.__module__].__file__
+    args = ['python', fname, doorname]
+    subprocess.Popen(args)
+    #===========================================================================
 
 
 def showscan(self, parameter_s=''):
