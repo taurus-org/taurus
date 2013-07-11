@@ -30,6 +30,7 @@ __all__ = ["ExpDescriptionEditor"]
 from taurus.qt import Qt
 import copy
 import taurus
+import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.tango.sardana.model import SardanaBaseProxyModel, SardanaTypeTreeItem
 
@@ -45,8 +46,13 @@ class SardanaAcquirableProxyModel(SardanaBaseProxyModel):
 #        item = idx.internalPointer()
 #        return 'Acquirable' in item.itemData().interfaces
 
-    ALLOWED_TYPES = ('Motor', 'CTExpChannel') #@todo: add IORegisters too!
-    
+#    ALLOWED_TYPES = ['Motor', 'CTExpChannel', 'ZeroDExpChannel', 'OneDExpChannel',
+#                     'TwoDExpChannel', 'ComChannel', 'IORegister', 'PseudoMotor',
+#                     'PseudoCounter']
+
+    from sardana.sardanadefs import ElementType, TYPE_ACQUIRABLE_ELEMENTS
+    ALLOWED_TYPES = [ElementType[t] for t in TYPE_ACQUIRABLE_ELEMENTS]
+
     def filterAcceptsRow(self, sourceRow, sourceParent):
         sourceModel = self.sourceModel()
         idx = sourceModel.index(sourceRow, 0, sourceParent)
