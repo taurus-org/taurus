@@ -328,6 +328,9 @@ class BaseConfigurableClass:
         :param item: (object or str) The object that should be unregistered.
                      Alternatively, the name under which the object was registered
                      can be passed as a python string.
+        :param raiseOnError: (bool) If True (default), it raises a KeyError 
+                             exception if item was not registered. If False, it 
+                             just logs a debug message 
         
         .. seealso:: :meth:`registerConfigProperty`, :meth:`registerConfigDelegate`
         '''
@@ -340,7 +343,7 @@ class BaseConfigurableClass:
         elif raiseOnError:
             raise KeyError('"%s" was not registered.'%name)
         else:
-            self.info('"%s" was not registered. Skipping'%name)
+            self.debug('"%s" was not registered. Skipping'%name)
             return False
 
       
