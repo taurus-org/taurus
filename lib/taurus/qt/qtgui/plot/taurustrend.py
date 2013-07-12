@@ -761,6 +761,15 @@ class ScanTrendsSet(TaurusTrendsSet):
         '''
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
         self.connect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
+        
+            
+    def disconnectQDoor(self, qdoor):
+        '''connects this ScanTrendsSet to a QDoor
+        
+        :param qdoor: (QDoor or str) either a QDoor instance or the QDoor name
+        '''
+        if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
+        self.disconnect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
     
     def getModel(self):
         return self.__model 
@@ -1081,6 +1090,10 @@ class TaurusTrend(TaurusPlot):
                 tset.unregisterDataChanged(self, self.curveDataChanged)
                 tset.forcedReadingTimer = None
                 tset.clearTrends(replot=False)
+                matchScan = re.search(r"scan:\/\/(.*)", name)
+                if matchScan:
+                    olddoorname = matchScan.group(1)
+                    tset.disconnectQDoor(olddoorname)
             if del_sets:        
                 self.autoShowYAxes()
                 
