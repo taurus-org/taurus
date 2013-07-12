@@ -397,6 +397,7 @@ class TaurusGui(TaurusMainWindow):
         panel.setParent(None)
         panel.setAttribute(Qt.Qt.WA_DeleteOnClose)
         panel.close()
+        self.debug('Panel "%s" removed'%name)
         
     def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False, 
                     permanent=False, icon=None, instrumentkey=None):
