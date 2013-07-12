@@ -572,41 +572,41 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     def labelWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultLabelWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
 
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultReadWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
     
     def writeWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
         
     def unitsWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultUnitsWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
         
     def customWidgetClassFactory(self, classID):
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
         
     def extraWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
-        if classID is None or classID is 'None': return None
+        if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
@@ -1100,13 +1100,14 @@ if __name__ == "__main__":
     #models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
     #models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
     #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_scalar'%s for s in ('float','short','string','long','boolean') ]
-    #models =  ['sys/tg_test/1/float_scalar','sys/tg_test/1/double_scalar']
+    #models =  ['sys/tg_test/1/float_scalar','sys/tg#_test/1/double_scalar']
     
     container.setModel(models)
     
-    #container.getTaurusValueByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
-    #container.getTaurusValueByIndex(0).readWidget().setShowState(True)
-    #container.getTaurusValueByIndex(0).setWriteWidgetClass(TaurusValueLineEdit)
+    #container.getItemByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
+    #container.getItemByIndex(0).readWidget().setShowState(True)
+    #container.getItemByIndex(0).setWriteWidgetClass(TaurusValueLineEdit)
+    #container[0].setWriteWidgetClass('None')
     #container.setModel(models)
     
     container.setModifiableByUser(True)
