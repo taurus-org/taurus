@@ -276,13 +276,26 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                 else:
                     self.warning('Cannot create plot for %s', chname)
                     
-        self._updateTemporaryTrends1D(trends1d)
+        new1d,removed1d = self._updateTemporaryTrends1D(trends1d)
+        self.emit(Qt.SIGNAL("newShortMessage"),"Changed panels (%i new, %i removed)"%(len(new1d),len(removed1d)))
 #        self._updateTemporaryTrends2D(trends2d)
         
     def _updateTemporaryTrends1D(self, trends1d):
+        '''adds necessary trend1D panels and removes no longer needed ones
+        
+        :param trends1d: (dict) A dict whose keys are tuples of axes and 
+                         whose values are list of model names to plot
+        
+        :returns: (tuple) two lists new,rm:new contains the names of the new
+                  panels and rm contains the names of the removed panels  
+        '''
+        
         from taurus.qt.qtgui.plot import TaurusTrend
-        mainwindow = self.parent()                
+        mainwindow = self.parent()
+        newpanels = []                
         for axes,plotables in trends1d.items():
+            if not axes:
+                continue
             if axes not in self._trends1d:     
                 w = TaurusTrend()
                 w.setXIsTime(False)
@@ -292,10 +305,17 @@ class MacroBroker(Qt.QObject, TaurusBaseComponent):
                 panel = mainwindow.createPanel(w, pname, registerconfig=False, permanent=False)
                 panel.raise_()
                 self._trends1d[axes] = pname
+                newpanels.append(pname)
             else:
                 panel = mainwindow.getPanel(self._trends1d[axes])
             flt = ChannelFilter(plotables)
             panel.widget().onScanPlotablesFilterChanged(flt)
+        
+        #remove trends that aren no longer configured 
+        removedpanels = [name for axes,name in self._trends1d.items() if axes not in trends1d]
+        self.removeTemporaryPanels(removedpanels)
+        return newpanels,removedpanels
+         
             
     def _updateTemporaryTrends2D(self, trends2d):
         try:
