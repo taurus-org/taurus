@@ -392,6 +392,11 @@ class TaurusGui(TaurusMainWindow):
             self.debug('Cannot remove panel "%s" (not found)'%name)
             return
         panel = self.__panels.pop(name)
+        try:
+            panel.widget().setModel(None) #in case the widget is a Taurus one and does some cleaning when setting model to None
+        except:
+            pass
+        
         self.unregisterConfigurableItem(name, raiseOnError=False)
         self.removeDockWidget(panel)
         panel.setParent(None)
