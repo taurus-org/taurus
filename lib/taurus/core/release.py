@@ -53,7 +53,7 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (3,0,1,'dev',0)
+version_info = (3,1,0,'rc',0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
@@ -65,7 +65,7 @@ It is build on top of PyTango and PyQt."""
 
 license = 'LGPL'
 
-authors = {'Tiago'          : ('Tiago Coutinho','tcoutinho@cells.es'),
+authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
            'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es') }
             
 
