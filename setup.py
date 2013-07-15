@@ -245,6 +245,8 @@ def main():
     Release = get_release_info()
 
     author = Release.authors['Tiago']
+    maintainer = Release.authors['Pascual-Izarra']
+    
     package_name = Release.name
 
     package_dir = { 'sardana' : abspath('src', 'sardana') }
@@ -290,9 +292,9 @@ def main():
 
     requires = [ 
         'PyTango (>=7.2.3)',
-        'taurus (>= 2.1)',
+        'taurus (>= 3.1)',
         'lxml (>=2.1)',
-        'ipython (>=0.10)'
+        'ipython (>=0.10, !=0.11),'
     ]
      
     package_data = { 
@@ -328,6 +330,8 @@ def main():
           long_description = Release.long_description,
           author           = author[0],
           author_email     = author[1],
+          maintainer       = maintainer[0],
+          maintainer_email = maintainer[1],
           url              = Release.url,
           download_url     = Release.download_url,
           platforms        = Release.platforms,

@@ -39,7 +39,7 @@ name = 'spock'
 revision = '1'
 
 #version = '0.8.1.svn.r' + revision.rstrip('M')
-version = '1.0.0'
+version = '1.1.0'
 
 description = "An enhanced interactive Macro Server shell."
 
@@ -52,7 +52,8 @@ replacement for the interactive Python interpreter with extra functionality.
 
 license = 'GNU'
 
-authors = {'Tiago' : ('Tiago Coutinho','tcoutinho@cells.es') }
+authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
+           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es') }
 
 url = ''
 
