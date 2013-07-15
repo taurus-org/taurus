@@ -98,6 +98,7 @@ ALLOWS_HOOKS_FILTER = 'allowsHooks'
 
 PARAM_REPEAT           = "ParamRepeat"
 
+PARAM_OBJECT                = "Object"
 PARAM_MOTOR                 = "Moveable"
 PARAM_CONTROLLER_CLASS      = "ControllerClass"
 PARAM_CONTROLLER            = "Controller"
@@ -106,7 +107,11 @@ PARAM_MEASUREMENT_GROUP     = "MeasurementGroup"
 PARAM_IO_REGISTER           = "IORegister"
 PARAM_COMMUNICATION_CHANNEL = "ComChannel"
 PARAM_EXPERIMENTAL_CHANNEL  = "ExpChannel"
-PARAM_MACRO                 = "Macro"
+PARAM_MACRO_CODE            = "MacroCode"
+PARAM_MACRO_CLASS           = "MacroClass"
+PARAM_MACRO_FUNCTION        = "MacroFunction"
+PARAM_MACRO_LIBRARY         = "MacroLibrary"
+
 
 PARAM_STRING                = "String"
 
@@ -127,7 +132,8 @@ PARAM_BOOLEAN               = "Boolean"
 MAX_REPEATS =   "max"
 MIN_REPEATS =   "min"   
 
-EDITOR_COMBOBOX_PARAMS = [PARAM_MOTOR,
+EDITOR_COMBOBOX_PARAMS = [PARAM_OBJECT,
+                          PARAM_MOTOR,
                           PARAM_CONTROLLER_CLASS,
                           PARAM_CONTROLLER,
                           PARAM_MOTOR_PARAM, 
@@ -135,7 +141,10 @@ EDITOR_COMBOBOX_PARAMS = [PARAM_MOTOR,
                           PARAM_IO_REGISTER, 
                           PARAM_COMMUNICATION_CHANNEL, 
                           PARAM_EXPERIMENTAL_CHANNEL, 
-                          PARAM_MACRO]
+                          PARAM_MACRO_CODE,
+                          PARAM_MACRO_CLASS,
+                          PARAM_MACRO_FUNCTION,
+                          PARAM_MACRO_LIBRARY]
 
 EDITOR_LINEEDIT_PARAMS = [PARAM_STRING, 
                           PARAM_FILENAME, 
