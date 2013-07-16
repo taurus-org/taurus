@@ -14,8 +14,8 @@ Installing
 
         #. Download the sardana source code:
             #. from latest stable version of `sardana <http://pypi.python.org/pypi/sardana>`_ (|version|)
-            #. from `SVN snapshot <http://tango-cs.svn.sourceforge.net/viewvc/tango-cs/share/Sardana/trunk/?view=tar>`_
-
+            #. from `SVN snapshot <https://sourceforge.net/p/sardana/code/HEAD/tarball?path=/trunk>`_
+            
         #. Extract the downloaded tar.gz into a temporary directory
 
         #. type [2]_ ::
@@ -57,6 +57,10 @@ necessary to run sardana on your windows machine
 
 Working from SVN
 ----------------
+
+.. warning:: These instructions will become obsolete as soon as Sardana 1.2 
+             is released because the code development will be moved from SVN to
+             Git. Updated instructions for using Git will be posted ASAP.
 
 You can checkout sardana from SVN from the following location::
 

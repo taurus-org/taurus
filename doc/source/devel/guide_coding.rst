@@ -14,21 +14,25 @@ development of sardana. So if you want to help out, read on!
 How to contribute to sardana
 ----------------------------
 
-Sardana development is done using SVN. Because sardana is part of Tango_, it uses
-its `tango-cs sourceforge project <https://sourceforge.net/projects/tango-cs/>`_
-to host the source code. This makes it easy for people to contribute to the 
-development of sardana.
+Sardana development is managed with the `Sardana sourceforge project
+<https://sourceforge.net/projects/sardana/>`_. Until release 1.2, a svn
+repository has been used to host the source code. From then on, the version
+control will be moved to a git repository.
 
 How to checkout sardana from SVN
 --------------------------------
 
+.. warning:: These instructions will become obsolete as soon as Sardana 1.2 
+             is released because the code development will be moved from SVN to
+             Git. Updated instructions for using Git will be posted ASAP.
+
 **For read-only**::
 
-    svn co https://tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
+    svn co https://svn.code.sf.net/p/sardana/code/trunk Sardana
 
 **To being able to commit**::
 
-    svn co https://<user name>@tango-cs.svn.sourceforge.net/svnroot/tango-cs/share/Sardana/trunk Sardana
+    svn co https://<user name>@svn.code.sf.net/p/sardana/code/trunk Sardana
 
 .. note::
     
