@@ -294,7 +294,7 @@ def main():
         'PyTango (>=7.2.3)',
         'taurus (>= 3.1)',
         'lxml (>=2.1)',
-        'ipython (>=0.10, !=0.11),'
+        'ipython (>=0.10, !=0.11)'
     ]
      
     package_data = { 
