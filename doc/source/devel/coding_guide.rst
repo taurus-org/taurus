@@ -14,21 +14,32 @@ development of taurus. So if you want to help out, read on!
 How to contribute to taurus
 ----------------------------
 
-Taurus development is done using SVN. Because taurus is part of Tango_, it uses
-its `tango-cs sourceforge project <https://sourceforge.net/projects/tango-cs/>`_
-to host the source code. This makes it easy for people to contribute to the 
-development of taurus.
+Taurus is part of Tango_ and, more specifically, part of Sardana_. Until release
+3.1 (included) the development of Taurus was managed within the `tango-cs
+sourceforge project <https://sourceforge.net/projects/tango-cs/>`_  and its
+source code was hosted in the Tango SVN repository. Starting from right after
+the Taurus 3.1 release, the source code hosting and general project management
+(tickets, mailing list, etc) will be managed within the Sardana `Sardana
+sourceforge project <https://sourceforge.net/projects/sardana/>`_. The Sardana
+project itself is in the process of migrating its source code hosting from SVN
+to Git and consequently, Taurus code will be hosted on a Git repository after
+the release of Taurus 3.1.
+
 
 How to checkout taurus from SVN
 -------------------------------
 
+.. warning:: These instructions will become obsolete as soon as Taurus 3.1 
+             is released because the code development will be moved from SVN to
+             Git. Updated instructions for using Git will be posted ASAP.
+
 **For read-only**::
 
-    svn co https://tango-cs.svn.sourceforge.net/svnroot/tango-cs/taurus/trunk taurus
+    svn co https://svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus
 
 **To being able to commit**::
 
-    svn co https://<user name>@tango-cs.svn.sourceforge.net/svnroot/tango-cs/taurus/trunk taurus
+    svn co https://<user name>@svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus
 
 .. note::
     
@@ -195,6 +206,7 @@ PyQt4/PySide versions.
    :func:`~taurus.qt.Qt.from_qvariant`.)
 
 .. _Tango: http://www.tango-controls.org/
+.. _Sardana: http://www.sardana-controls.org/
 .. _tango_cs: https://sourceforge.net/projects/tango-cs/
 .. _reStructuredText:  http://docutils.sourceforge.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org/

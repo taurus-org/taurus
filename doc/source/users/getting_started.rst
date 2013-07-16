@@ -56,9 +56,13 @@ necessary to run taurus on your windows machine
 Working from SVN
 ----------------
 
+.. warning:: These instructions will become obsolete as soon as Taurus 3.1 
+             is released because the code development will be moved from SVN to
+             Git. Updated instructions for using Git will be posted ASAP.
+             
 You can checkout taurus from SVN from the following location::
 
-    svn co http://tango-cs.svn.sourceforge.net/svnroot/tango-cs/gui/taurus/trunk taurus
+    svn co https://svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus taurus
 
 Afterward, if you decide to work directly from SVN code (without installing):
 
