@@ -151,11 +151,14 @@ class TaurusDevicePanel(TaurusWidget):
         """ 
         It will set the command filters
         filters will be like: {device_regexp:[command_regexps]}
-        example:  {'.*/IPCT-.*': (
-                    ('setmode',('SERIAL','LOCAL','STEP','FIXED','START','PROTECT')), 
-                    ('onhv1',()), ('offhv1',()), ('onhv2',()), ('offhv2',()), 
-                    ('sendcommand',())
-                ),}
+        example::
+        
+          {'.*/IPCT-.*': (
+                           ('setmode',('SERIAL','LOCAL','STEP','FIXED','START','PROTECT')), 
+                           ('onhv1',()), ('offhv1',()), ('onhv2',()), ('offhv2',()), 
+                           ('sendcommand',())
+                         ),}
+                         
         """
         klass._command_filter.update(filters)        
         

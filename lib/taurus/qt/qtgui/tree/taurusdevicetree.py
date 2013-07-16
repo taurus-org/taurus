@@ -349,8 +349,14 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
     def initConfig(self):
         """
         Initializing the attributes that will be kept persitent as Qt settings.
-        e.g.; for Filters property are created:
-            self.filters / self._filters / self.setFilters / self.getFilters / self.resetFilters
+        e.g. for Filters property, the following attributes are created:
+        
+            - self.filters
+            - self._filters
+            - self.setFilters
+            - self.getFilters
+            - self.resetFilters
+            
         """
         properties.set_property_methods(self,'Filters','QStringList',default='',
             #setter = self.setFilters,

@@ -234,7 +234,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def getItemByName(self,item_name,strict=None):
         """
         Returns a list with all items matching a given name.
-        :param: strict, controls wheter full_name (strict=True) or only device name (False) must match
+        
+        :param strict: (bool or None) controls whether full_name (strict=True) or only device name (False) must match
+        
+        :return: (list) items
         """
         strict = (not self.ANY_ATTRIBUTE_SELECTS_DEVICE) if strict is None else strict
         alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'

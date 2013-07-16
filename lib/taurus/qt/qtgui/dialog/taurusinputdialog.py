@@ -70,13 +70,11 @@ def get_input(input_data, parent=None, input_panel_klass=None):
           allow more than one value to be selected (makes sence when data_type
           is a sequence of possibilities)
 
-    :param input_data:
-        a dictionary with information on how to build the input dialog
+    :param input_data: a dictionary with information on how to build the input dialog
     :type input_data: :py:obj:`dict`
     :param parent: parent widget
     :type parent: PyQt4.QtGui.QWidget
-    :param input_panel_klass:
-        python class to be used as input panel [default: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`]
+    :param input_panel_klass: python class to be used as input panel [default: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`]
     :type input_panel_klass: :class:`~taurus.qt.qtgui.panel.TaurusInputPanel`
                         
     :return: a tuple containing value selected and boolean which is true if
@@ -101,11 +99,12 @@ def get_input(input_data, parent=None, input_panel_klass=None):
         d7 = dict(prompt="Do you like bears?",
                   data_type='Boolean', key="Yes/No", default_value=True)
         d8 = dict(prompt="Please write your memo",
-                  data_type='Text', key="Memo", default_value="By default a memo is\na long thing")
-
+                  data_type='Text', key="Memo", default_value="By default a memo is a long thing")
         for d in [d1, d2, d3, d4, d5, d6, d7, d8]:
-            get_input(input_data=d, title=d['prompt'])    
+            get_input(input_data=d, title=d['prompt'])
+           
     """
+            
     if input_panel_klass is None:
         from taurus.qt.qtgui.panel import TaurusInputPanel
         input_panel_klass = TaurusInputPanel

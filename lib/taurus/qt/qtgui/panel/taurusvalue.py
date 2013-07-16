@@ -64,8 +64,8 @@ class DefaultLabelWidget(TaurusLabel):
     The base class used by default for showing the label of a TaurusValue. 
         
     .. note:: It only makes sense to use this class as a part of a TaurusValue,
-              since it assumes that it can get a reference to a TaurusValue via the
-              :meth:`getTaurusValueBuddy` member
+              since it assumes that it can get a reference to a TaurusValue via 
+              the :meth:`getTaurusValueBuddy` member
     '''
     
     _dragEnabled=True
