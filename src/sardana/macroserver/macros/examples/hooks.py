@@ -99,7 +99,7 @@ class hooked_scan(Macro):
     demonstration purposes"""
     
     param_def = [
-       ['motor',      Type.Motor,   None, 'Motor to move'],
+       ['motor',      Type.Moveable,None, 'Motor to move'],
        ['start_pos',  Type.Float,   None, 'Scan start position'],
        ['final_pos',  Type.Float,   None, 'Scan final position'],
        ['nr_interv',  Type.Integer, None, 'Number of scan intervals'],
@@ -114,9 +114,23 @@ class hooked_scan(Macro):
     def hook3(self):
         self.info("\thook3 execution")
     
+    def hook4(self):
+        self.info("\thook4 execution")
+    
+    def hook5(self):
+        self.info("\thook5 execution")
+    
+    def hook6(self):
+        self.info("\thook6 execution")
+    
     def run(self, motor, start_pos, final_pos, nr_interv, integ_time):
         ascan, pars = self.createMacro("ascan",motor, start_pos, final_pos, nr_interv, integ_time)
-        ascan.hooks = [ (self.hook1, ["pre-acq"]), (self.hook2, ["pre-acq","post-acq","pre-move", "post-move","aaaa"]), self.hook3 ]
+        ascan.hooks = [ (self.hook1, ["pre-acq"]), 
+                       (self.hook2, ["pre-acq","post-acq","pre-move", "post-move","aaaa"]), 
+                       self.hook3,
+                       (self.hook4, ["pre-scan"]),
+                       (self.hook5, ["pre-scan", "post-scan"]),
+                       (self.hook6, ["post-step"])]
         self.runMacro(ascan)
 
 
