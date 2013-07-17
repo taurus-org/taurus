@@ -137,25 +137,28 @@ class GScan(Logger):
     a generator function pointer, a list of moveable items, an extra 
     environment and a sequence of constrains.
     
+    If the referenced macro is hookable, 'pre-scan' and 'post-scan' hook hints
+    will be used to execute callables before the start and after the end of the
+    scan, respectively
+    
     The generator must be a function yielding a dictionary with the following
     content (minimum) at each step of the scan:
       - 'positions'  : In a step scan, the position where the moveables should go
       - 'integ_time' : In a step scan, a number representing the integration time for the step 
                      (in seconds)
       - 'integ_time' : In a continuous scan, the time between acquisitions
-      - 'pre-scan-hooks' : (optional) a sequence of callables to be called in strict order before starting the scan.
       - 'pre-move-hooks' : (optional) a sequence of callables to be called in strict order before starting to move.
       - 'post-move-hooks': (optional) a sequence of callables to be called in strict order after finishing the move.
       - 'pre-acq-hooks'  : (optional) a sequence of callables to be called in strict order before starting to acquire.
       - 'post-acq-hooks' : (optional) a sequence of callables to be called in strict order after finishing acquisition but before recording the step.
       - 'post-step-hooks' : (optional) a sequence of callables to be called in strict order after finishing recording the step.
-      - 'post-scan-hooks' : (optional) a sequence of callables to be called in strict order after finishing the scan
       - 'hooks' : (deprecated, use post-acq-hooks instead)
       - 'point_id' : a hashable identifing the scan point.
       - 'check_func' : (optional) a list of callable objects. callable(moveables, counters)
       - 'extravalues': (optional) a dictionary containing the values for each extra info
                        field. The extra information fields must be described in
                        extradesc (passed in the constructor of the Gscan) 
+    
     
     The moveables must be a sequence Motion or MoveableDesc objects.
     
@@ -832,8 +835,8 @@ class SScan(GScan):
         else:
             yield 0.0
         
-        if hasattr(macro, "pre_scan_hooks"):
-            for hook in macro.pre_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('pre-scan'):
                 hook()
         
         self._sum_motion_time = 0
@@ -847,8 +850,8 @@ class SScan(GScan):
             if scream:
                 yield ((i+1) / nr_points) * 100.0
         
-        if hasattr(macro, "post_scan_hooks"):
-            for hook in macro.post_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('post-scan'):
                 hook()
 
         if not scream:
@@ -1465,8 +1468,8 @@ class CSScan(CScan):
         point_nb, step = -1, None
         data = self.data
         
-        if hasattr(macro, "pre_scan_hooks"):
-            for hook in macro.pre_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('pre-scan'):
                 hook()
         
         # start move & acquisition as close as possible
@@ -1579,8 +1582,8 @@ class CSScan(CScan):
 
         self.motion_end_event.wait()
 
-        if hasattr(macro, "post_scan_hooks"):
-            for hook in macro.post_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('post-scan'):
                 hook()
         
         
@@ -1894,9 +1897,9 @@ class CTScan(CScan):
             startTimestamp = time.time()
         
             #extra pre configuration
-            preConfigurationHooks = self.macro.getHooks('pre-configuration')
-            for hook in preConfigurationHooks:
-                hook()
+            if hasattr(macro, 'getHooks'):
+                for hook in macro.getHooks('pre-configuration'):
+                    hook()
             self.macro.checkPoint()
     
             #configuring trigger lines
@@ -1916,10 +1919,10 @@ class CTScan(CScan):
                                        timePerTrigger)
             self.macro.checkPoint()
     
-            #extra pre configuration
-            postConfigurationHooks = self.macro.getHooks('post-configuration')
-            for hook in postConfigurationHooks:
-                hook()
+            #extra post configuration
+            if hasattr(macro, 'getHooks'):
+                for hook in macro.getHooks('post-configuration'):
+                    hook()
             self.macro.checkPoint()
     
             endTimestamp = time.time()
@@ -1949,9 +1952,9 @@ class CTScan(CScan):
             if macro.isStopped():
                 return self.on_waypoints_end()
             
-            preStartHooks = self.macro.getHooks('pre-start')
-            for hook in preStartHooks:
-                hook()
+            if hasattr(macro, 'getHooks'):
+                for hook in macro.getHooks('pre-start'):
+                    hook()
             self.macro.checkPoint()
     
             self.macro.debug("Starting measurement group")
@@ -2041,15 +2044,15 @@ class CTScan(CScan):
         point_nb, step = -1, None
         data = self.data
         
-        if hasattr(macro, "pre_scan_hooks"):
-            for hook in macro.pre_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('pre-scan'):
                 hook()
                 
         self.go_through_waypoints()
         
         
-        if hasattr(macro, "post_scan_hooks"):
-            for hook in macro.post_scan_hooks:
+        if hasattr(macro, 'getHooks'):
+            for hook in macro.getHooks('post-scan'):
                 hook()
         
         env = self._env
@@ -2080,14 +2083,14 @@ class CTScan(CScan):
                 self.warning("Exception while trying to stop trigger.")
                 self.debug(e)
 
-        cleanupHooks = self.macro.getHooks('pre-cleanup')
-        for hook in cleanupHooks:
-            self.debug("Executing pre-cleanup hook")
-            try:
-                hook()
-            except Exception, e:
-                self.warning("Exception while trying to execute a pre-cleanup hook")
-                self.debug(e)
+        if hasattr(self.macro, 'getHooks'):
+            for hook in self.macro.getHooks('pre-cleanup'):
+                self.debug("Executing pre-cleanup hook")
+                try:
+                    hook()
+                except Exception, e:
+                    self.warning("Exception while trying to execute a pre-cleanup hook")
+                    self.debug(e)
 
         if self.__mntGrpConfigured:
             self.debug("Restoring configuration of measurement group")
@@ -2098,14 +2101,14 @@ class CTScan(CScan):
                 self.warning("Exception while trying to restore measurement group parameters")
                 self.debug(e)
 
-        cleanupHooks = self.macro.getHooks('post-cleanup')
-        for hook in cleanupHooks:
-            self.debug("Executing post-cleanup hook")
-            try:
-                hook()
-            except Exception, e:
-                self.warning("Exception while trying to execute a post-cleanup hook")
-                self.debug(e)
+        if hasattr(self.macro, 'getHooks'):
+            for hook in self.macro.getHooks('post-cleanup'):
+                self.debug("Executing post-cleanup hook")
+                try:
+                    hook()
+                except Exception, e:
+                    self.warning("Exception while trying to execute a post-cleanup hook")
+                    self.debug(e)
 
         endTimestamp = time.time()
         self.debug("Cleanup took %s time." % repr(endTimestamp - startTimestamp))

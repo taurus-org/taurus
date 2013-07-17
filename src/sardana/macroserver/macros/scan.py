@@ -109,8 +109,9 @@ class aNscan(Hookable):
         constrains = [getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
 
-        self.pre_scan_hooks = self.getHooks('pre-scan')
-        self.post_scan_hooks = self.getHooks('post-scan')
+        #Hooks are not always set at this point. We will call getHooks later on in the scan_loop
+        #self.pre_scan_hooks = self.getHooks('pre-scan')
+        #self.post_scan_hooks = self.getHooks('post-scan'
           
         if mode == StepMode:
             self.nr_interv = scan_length
@@ -629,8 +630,9 @@ class mesh(Macro,Hookable):
         env=opts.get('env',{})
         constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
     
-        self.pre_scan_hooks = self.getHooks('pre-scan')
-        self.post_scan_hooks = self.getHooks('post-scan')
+        #Hooks are not always set at this point. We will call getHooks later on in the scan_loop
+        #self.pre_scan_hooks = self.getHooks('pre-scan')
+        #self.post_scan_hooks = self.getHooks('post-scan')
 
         self._gScan=SScan(self, generator, moveables, env, constrains)
 
@@ -746,8 +748,10 @@ class fscan(Macro,Hookable):
         env=opts.get('env',{})
         constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         
-        self.pre_scan_hooks = self.getHooks('pre-scan')
-        self.post_scan_hooks = self.getHooks('post-scan')
+        #Hooks are not always set at this point. We will call getHooks later on in the scan_loop
+        #self.pre_scan_hooks = self.getHooks('pre-scan')
+        #self.post_scan_hooks = self.getHooks('post-scan'
+        
         self._gScan=SScan(self, generator, moveables, env, constrains)
         
     def _generator(self):
@@ -1096,8 +1100,9 @@ class meshc(Macro,Hookable):
         constrains=[getCallable(cns) for cns in opts.get('constrains',[UNCONSTRAINED])]
         extrainfodesc = opts.get('extrainfodesc',[])
     
-        self.pre_scan_hooks = self.getHooks('pre-scan')
-        self.post_scan_hooks = self.getHooks('post-scan')
+        #Hooks are not always set at this point. We will call getHooks later on in the scan_loop
+        #self.pre_scan_hooks = self.getHooks('pre-scan')
+        #self.post_scan_hooks = self.getHooks('post-scan'
 
         self._gScan = CScan(self, self._waypoint_generator, self._period_generator, moveables, env, constrains, extrainfodesc)
         self._gScan.frozen_motors = [m2]
