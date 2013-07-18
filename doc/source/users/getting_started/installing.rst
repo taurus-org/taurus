@@ -45,7 +45,7 @@ necessary to run sardana on your windows machine
 
     #. from scratch:
         #. Download and install `PyQwt`_ < 6.0 from `PyQwt downdoad page <http://pyqwt.sourceforge.net/download.html>`_
-            #. Download and install compatible python with from link in the same `PyQwt`_ page
+            #. Download and install compatible python from link in the same `PyQwt`_ page
             #. Download and install compatible `numpy`_ from link in the same `PyQwt`_ page.
             #. Download and install compatible `PyQt`_ from link in the same `PyQwt`_ page.
 

@@ -69,8 +69,8 @@ wait for motors to accelerate and decelerate between acquisitions.
 .. note:: The synchronization of movement and acquisition can be done via
    hardware or via software. Currently Sardana only provides an interface for
    software-synchronized continuous scans. An API abstracting the specificities
-   of hardware-synchronized systems has not been yet implemented, and therefore
-   it cannot be supported by Sardana yet.
+   of hardware-synchronized systems is being implemented too but it is not yet
+   available for production.
 
 The (software-synchronized) continuous scans introduce some constraints and
 issues that should be considered.

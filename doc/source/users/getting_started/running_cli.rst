@@ -40,7 +40,7 @@ you should get an output like this::
 
     Door_lab-01_1 [1]: 
 
-That't it! You now have a running sardana client. Still not impressed, I see!
+That's it! You now have a running sardana client. Still not impressed, I see!
 The next chapter describes how to start adding new elements to your sardana
 environment.
 

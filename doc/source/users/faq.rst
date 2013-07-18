@@ -1,18 +1,28 @@
 
 .. _sardana-faq:
 
+
+.. todo:: The FAQ is work-in-progress. Many answers need polishing and mostly
+          links need to be added
+
+
 ===
 FAQ
 ===
 
 What is the Sardana SCADA_ and how do I get an overview over the different components?
 ---------------------------------------------------------------------------------------
-An overview over the different Sardana components can be found here **<LINK>**.
+An overview over the different Sardana components is shown in the following figure:
+
+.. image:: /_static/sardana_sketch.png
+  :align: center 
+  :width: 500
+
 The basic Sardana SCADA_ philosophy can be found :ref:`here <sardana-overview>`.
 
 How do I install Sardana?
 -------------------------
-The Sardan SCADA_ system consists of different components which have to be
+The Sardana SCADA_ system consists of different components which have to be
 installed:
     
     * Tango_: The control system middleware and tools
@@ -26,7 +36,7 @@ The complete sardana installation instructions can be found
 How to work with Taurus_ :term:`GUI`?
 -------------------------------------
 A user documentation for the Taurus_ :term:`GUI` application can be found
-`here <http://packages.python.org/taurus/>`_.
+`here <http://packages.python.org/taurus/>`__.
 
 How to produce your own Taurus_ :term:`GUI` panel?
 --------------------------------------------------
@@ -34,10 +44,10 @@ How to produce your own Taurus_ :term:`GUI` panel?
 The basic philosophy of Taurus_ :term:`GUI` is to provide automatic
 :term:`GUI` s which are automatically replaced by more and more specific
 :term:`GUI` s if these are found.
-The documentation how to create a generic panel which can be filled via
-selection and cut and paste can be found here **<LINK>**.
-A more advanced usage is to create a Taurus_ widget and ingrate it into the
-application. Documentation for this approach can be found here **<LINK>**.
+
+Refer to the `user documentation on TaurusGUI <http://www.tango-
+controls.org/static/taurus/latest/doc/html/users/ui/taurusgui.html>`_  for more
+details on how to work with panels
 
 How to call procedures?
 -----------------------
@@ -46,12 +56,11 @@ The execution can be started from either:
 
     * *spock* offers a command line interface with commands very similar to SPEC_.
       It is documented :ref:`here <sardana-spock>`.
-    * Procedures can also be executed with a  macro executor :term:`GUI`.
-      This :term:`GUI` interface offering input from the keyboard and the generic
-      widgets is documented here **<LINK>**. A macro can be associated with a
-      specific :term:`GUI` interface. This mechanism is documented here **<LINK>**.
+    * Procedures can also be executed with from a :term:`GUI`. Taurus provides
+      `generic widgets for macro execution <http://www.tango-
+      controls.org/static/taurus/latest/doc/html/users/ui/macros/>`__.
     * Procedures can also be executed in specific :term:`GUI` s and specific Taurus_
-      widgets. The :term:`API` to execute macros from this python code is documented
+      widgets. The :term:`API` to execute macros from python code is documented
       here **<LINK>**.
 
 How to write procedures?
@@ -64,16 +73,15 @@ Macro writers might also find the following documentation interesting:
     * In addition of the strength of the python language macro writers can
       interface with common elements (motors, counters) , call other macros
       and use many utilities provided. The macro :term:`API` can be found 
-      :class:`here <MacroServer.macro.Macro>`.
+      :ref:`here <sardana-macro-api>`.
     * Documentation how to document your macros can be found 
       :ref:`here <sardana-macros-howto>`
 
 How to write scan procedures?
 -----------------------------
-A very common type of procedure is the *ascan* where some quantity is 
-varied while recording some other quantities. Many common types of 
-general-purpose scans procedures are already available in Sardana **<LINK>**,
-and a simple :term:`API` is provided for writing more specific ones.
+A very common type of procedure is the *scan* where some quantity is 
+varied while recording some other quantities. See the documentation on the 
+:ref:`Sardana Scan API <sardana-macros-scanframework>`
 
 How to adapt SARDANA to your own hardware?
 ------------------------------------------

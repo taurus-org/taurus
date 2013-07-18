@@ -47,7 +47,7 @@ Running Pool and MacroServer tango servers separately
 
 .. note::
 
-    You should only read this chapter if you are if you have Tango <= 7.2.6
+    You should only read this chapter if you have Tango <= 7.2.6
     without all patches applied. If you do, please follow in instructions from
     :ref:`sardana-getting-started-running-server` instead.
 
