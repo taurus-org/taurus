@@ -10,8 +10,21 @@ Getting started
 Installing
 ----------
 
-Linux
-~~~~~
+Linux (Debian-based)
+~~~~~~~~~~~~~~~~~~~~
+
+Since v3.0, Taurus is part of the official repositories of Debian (and Ubuntu
+and other Debian-based distros). You can install it and all its dependencies by
+doing (as root)::
+
+       aptitude install python-taurus
+       
+(see more detailed instructions in `this step-by-step howto
+<https://sourceforge.net/p/sardana/wiki/Howto-SardanaFromScratch/>`__)
+
+
+Linux (generic)
+~~~~~~~~~~~~~~~
 
 #. Download the latest version of taurus from http://pypi.python.org/pypi/taurus
 #. Extract the downloaded tar.gz into a temporary directory
@@ -139,18 +152,17 @@ Optional packages
 
       python -c 'import PyQt4.Qwt5; print PyQt4.Qwt5.QWT_VERSION_STR'
 
-- The image widgets are only available if you have Qub_. Qub_ is a graphical
-  library provided by the BLISS group in ESRF_.
-  You may already have Qub_ installed. You will need Qub for qt4.
-  You can check it by doing::
-
-      python -c 'import Qub'
+- The image widgets are provided by the guiqwt_ library. The widgets based on
+  this library replace the previously used Qub_-based image widget which is now
+  considered deprecated in Taurus
     
 - The Gauge widgets are only available if you have the python extension of
   qtcontrols. qtcontrols is part of QTango_.
 
 - The JDraw synoptics widgets are only available if you have the :mod:`ply` 
   package installed.
+  
+- The NeXus browser widget is only available if you have PyMca_ installed
 
 
 .. _numpy: http://numpy.scipy.org/
@@ -163,6 +175,7 @@ Optional packages
 .. _Qt: http://qt.nokia.com/products/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _PyQwt: http://pyqwt.sourceforge.net/
+.. _guiqwt: http://code.google.com/p/guiqwt/
 .. _IPython: http://ipython.scipy.org/
 .. _Qub: http://www.blissgarden.org/projects/qub/
-.. _ESRF: http://www.esrf.eu/
+.. _PyMca: http://pymca.sourceforge.net/
