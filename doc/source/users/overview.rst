@@ -209,7 +209,7 @@ Symbolic Sketch
 I would like to end this summary with a symbolic sketch of the different
 subsystems in Sardana.
 
-.. image:: /_static/snapshot11.png
+.. image:: /_static/sardana_sketch.png
   :align: center 
   :width: 500
 
