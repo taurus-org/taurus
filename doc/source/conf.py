@@ -244,6 +244,6 @@ intersphinx_mapping = {
     'http://docs.scipy.org/doc/scipy/reference' : None,
     'http://docs.scipy.org/doc/numpy' : None,
     'http://www.tango-controls.org/static/PyTango/latest/doc/html' : None,
-    'http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html' : None,
+    'http://pyqt.sourceforge.net/Docs/PyQt4/' : None,
 }
 
