@@ -10,6 +10,6 @@ Experiment Configuration user interface
 .. contents::
 
 .. todo:: 
-    Documentation to be written  
+    Experiment Configuration documentation to be written  
 
  

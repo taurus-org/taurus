@@ -10,6 +10,6 @@ Sardana Editor's interface
 .. contents::
 
 .. todo:: 
-    Documentation to be written  
+    Sardana Editor documentation to be written  
 
  
