@@ -290,8 +290,15 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                     v = float(v)
                     ntrends = 1
                 except:
-                    ntrends = len(v)
-        else: ntrends = len(self._curves)
+                    try:
+                        #Trying with spectrums
+                        ntrends = len(v)
+                    except:
+                        #Simply unreadable
+                        value = None
+                        ntrends = len(self._curves)
+        else: 
+            ntrends = len(self._curves)
         
         if self._xBuffer is None:
             self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
