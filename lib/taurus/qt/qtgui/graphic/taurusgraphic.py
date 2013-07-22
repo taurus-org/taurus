@@ -105,7 +105,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
             item_rects = [ i.boundingRect() for i in item ]
             
             for v in p.views():
-                #p.info("emit('updateView')")
+                #p.debug("emit('updateView')")
                 emitter.emit(Qt.SIGNAL("updateView"), v)
             self.sleep(self.period) #This sleep is needed to reduce CPU usage of the application!
             #End of while
@@ -252,7 +252,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         result = []
         for k in self._itemnames.keys():
             if re.match(target.lower(),k.lower()):
-                #self.info('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
+                #self.debug('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
         return result
             
@@ -281,11 +281,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         x,y = pos.x(),pos.y()
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),Qt.QPoint(x,y))
         obj = self.getItemByPosition(x,y)
-        self.info('mouse clicked on %s(%s) at (%s,%s)'%(type(obj).__name__,getattr(obj,'_name',''),x,y))
+        #self.debug('mouse clicked on %s(%s) at (%s,%s)'%(type(obj).__name__,getattr(obj,'_name',''),x,y))
         return obj
 
     def mousePressEvent(self,mouseEvent):
-        self.info('In TaurusGraphicsScene.mousePressEvent(%s,%s))'%(str(type(mouseEvent)),str(mouseEvent.button())))
+        #self.debug('In TaurusGraphicsScene.mousePressEvent(%s,%s))'%(str(type(mouseEvent)),str(mouseEvent.button())))
         try: 
             obj = self.getItemClicked(mouseEvent)
             obj_name = getattr(obj,'_name', '')
@@ -370,19 +370,19 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         A blue circle is drawn around the matching item name.
         If the item_name is empty, or it is a reserved keyword, or it has the "noSelect" extension, then the blue circle is removed from the synoptic.
         """      
-        self.debug('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
+        #self.debug('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
         retval = False
         selected = [str(getattr(item,'_name',item)) for item in self._selectedItems if item]
         if selected:
             iname = str(getattr(item_name,'_name',item_name))
-            #self.info('In TauGraphicsScene.selectGraphicItem(%s): already selected: %s'%(iname,selected))
+            #self.debug('In TauGraphicsScene.selectGraphicItem(%s): already selected: %s'%(iname,selected))
             if not iname.strip():
                 self.clearSelection()
                 return False
             elif any(iname not in i for i in selected): 
                 self.clearSelection()
             else: 
-                self.info('In TauGraphicsScene.selectGraphicItem(%s): already selected!'%item_name)
+                self.debug('In TauGraphicsScene.selectGraphicItem(%s): already selected!'%item_name)
                 return True
         if any(isinstance(item_name,t) for t in (TaurusGraphicsItem,Qt.QGraphicsItem)):
             if not getattr(item_name,'_name', ''): 
@@ -429,7 +429,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return retval
 
     def clearSelection(self):
-        self.debug('In clearSelection([%d])'%len(self._selectedItems))
+        #self.debug('In clearSelection([%d])'%len(self._selectedItems))
         for i in self._selection:
             i.hide()
             self.removeItem(i)
@@ -445,7 +445,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         If no picture is provided, a blue ellipse will be drawn around the selected object.
         h/w will be used for height/width of the drawn object.
         """
-        self.debug('In setSelectionMark(%s,%d,%d)'%(picture,w,h))
+        #self.debug('In setSelectionMark(%s,%d,%d)'%(picture,w,h))
         if picture is None: self.SelectionMark = None #Reset of previous icon generators
         else: self.SelectionMark = (lambda p=picture,x=w,y=h:self.getSelectionMark(p,x,y))
         return self.SelectionMark
@@ -492,7 +492,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         If h or w has a value the mark is drawn in the center of the region ((x,y)(x+w,y+h))
         """        
         #self.debug('%s has parent %s' % (item_name,getattr(item.parentItem(),'_name','ung')  if item.parentItem() else 'None'))
-        self.debug('drawSelectionMark(): center and width,height are: (%d,%d),(%d,%d)' % (x,y,w,h))
+        #self.debug('drawSelectionMark(): center and width,height are: (%d,%d),(%d,%d)' % (x,y,w,h))
 
         mark = self.getSelectionMark()
         self._selection.append(mark)
@@ -518,7 +518,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     x,y = x-.5*w,y-.5*h
             else: 
                 w,h = [.5*t for t in MAX_CIRCLE_SIZE]
-                self.debug('drawSelectionMark(): center and width,height are: (%d,%d),(%d,%d)' % (x,y,w,h))
+                #self.debug('drawSelectionMark(): center and width,height are: (%d,%d),(%d,%d)' % (x,y,w,h))
             mark.setRect(*bound((x,y,w*2,h*2)))
             #mark.setRect(x,y,w*2,h*2)
         elif isinstance(mark,Qt.QGraphicsPixmapItem):
@@ -565,7 +565,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return
 
     def getClass(self,clName,clParam,objName,standAlone=False):
-        #self.info('getClass(%s,%s,%s)'%(clName,clParam,objName))
+        #self.debug('getClass(%s,%s,%s)'%(clName,clParam,objName))
         if clName in globals():
             myclass = globals()[clName]
         elif clName in locals():
@@ -730,7 +730,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def setModel(self,model):
-        #self.info('In %s.setModel(%s)'%(type(self).__name__,model))
+        #self.debug('In %s.setModel(%s)'%(type(self).__name__,model))
         self.setName(model)
         
         if issubclass(Manager().findObjectClass(self._name), TaurusDevice):
@@ -866,7 +866,7 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
             }
         #Parsing _map to manage visibility (a list of values for which the item is visible or not)
         if v and not self._map is None and self._currText in states:
-            #self.info('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
+            #self.debug('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
             if states[self._currText] == self._map[1]:
                 self.setVisible(self._map[2])
                 self._visible = self._map[2]
@@ -967,7 +967,7 @@ class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem,
         self.call__init__(TaurusGraphicsAttributeItem, name, parent)
         
     def paint(self,painter,option,widget):
-        self.debug('TaurusTextAttributeItem(%s,%s,%s)'%(self.getName(),self._currText,self._currHtmlText))
+        #self.debug('TaurusTextAttributeItem(%s,%s,%s)'%(self.getName(),self._currText,self._currHtmlText))
         if self._currHtmlText:
             self.setHtml(self._currHtmlText)
         else:
