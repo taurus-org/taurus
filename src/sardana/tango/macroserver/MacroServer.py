@@ -98,6 +98,7 @@ class MacroServer(SardanaDevice):
             import tempfile
             env_db = os.path.join(tempfile.mkdtemp(),
                                   MacroServerClass.DefaultEnvRelDir)
+            env_db = self._calculate_name(env_db)
             db = Util.instance().get_database()
             db.put_device_property(self.get_name(), dict(EnvironmentDb=env_db))
             self.EnvironmentDb = env_db
