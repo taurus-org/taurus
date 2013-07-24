@@ -1618,7 +1618,7 @@ class Macro(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     @mAPI
-    def getEnv(self, key, macro_name=None, door_name=None):
+    def getEnv(self, key=None, macro_name=None, door_name=None):
         """**Macro API**. Gets the local environment matching the given
         parameters:
 
