@@ -630,7 +630,7 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         try:
             self.motor_dev.getAttribute('Position').disablePolling()
         except AttributeError, e:
-            self.debug('Error in showEvent: %s', repr(e))
+            self.debug('Error in hideEvent: %s', repr(e))
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
