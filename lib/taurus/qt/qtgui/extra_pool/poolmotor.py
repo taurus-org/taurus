@@ -47,7 +47,7 @@ from taurus.qt.qtgui.panel import DefaultUnitsWidget
 from taurus.qt.qtgui.panel import TaurusValue, TaurusAttrForm
 from taurus.qt.qtcore.mimetypes import TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.resource import getIcon
-from .ui_poolmotorslim import Ui_PoolMotorSlim
+from ui_poolmotorslim import Ui_PoolMotorSlim
 
 
 class LimitsListener(Qt.QObject):
@@ -605,13 +605,12 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        return None
-#        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-#        ret['module'] = 'taurus.qt.qtgui.extra_pool'
-#        ret['group'] = 'Taurus Sardana'
-#        ret['icon'] = ':/designer/extra_pool.png'
-#        ret['container'] = False
-#        return ret
+        ret = TaurusWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.extra_pool'
+        ret['group'] = 'Taurus Sardana'
+        ret['icon'] = ':/designer/extra_motor.png'
+        ret['container'] = False
+        return ret
 
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)
@@ -1393,7 +1392,9 @@ def main():
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
     args = app.get_command_line_args()
 
-    models = ['tango://controls02:10000/motor/gcipap10ctrl/8']
+    #models = ['tango://controls02:10000/motor/gcipap10ctrl/8']
+    models = ['motor/motctrl06/3']
+    
     if len(args)>0:
         models = args
 
