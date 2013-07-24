@@ -301,6 +301,10 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
         self.ui = Ui_PoolMotorSlim()
         self.ui.setupUi(self)
+        
+        if designMode:
+            self.__setTaurusIcons()
+            return
 
         # CREATE THE TaurusValue that can not be configured in the Designer
         self.taurus_value = TaurusValue(self.ui.taurusValueContainer)
@@ -350,36 +354,9 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.toggleMoveAbsolute(True)
         self.toggleStopMove(True)
 
-        #################################################################################################################
-        ################
         # SET TAURUS ICONS 
-        ################
-        self.ui.btnMin.setText('')
-        self.ui.btnMin.setIcon(getIcon(':/actions/list-remove.svg'))
-        self.ui.btnMax.setText('')
-        self.ui.btnMax.setIcon(getIcon(':/actions/list-add.svg'))
-
-        self.ui.btnGoToNeg.setText('')
-        self.ui.btnGoToNeg.setIcon(getIcon(':/actions/media_skip_backward.svg'))
-        self.ui.btnGoToNegPress.setText('')
-        self.ui.btnGoToNegPress.setIcon(getIcon(':/actions/media_seek_backward.svg'))
-        self.ui.btnGoToNegInc.setText('')
-        self.ui.btnGoToNegInc.setIcon(getIcon(':/actions/media_playback_backward.svg'))
-        self.ui.btnGoToPos.setText('')
-        self.ui.btnGoToPos.setIcon(getIcon(':/actions/media_skip_forward.svg'))
-        self.ui.btnGoToPosPress.setText('')
-        self.ui.btnGoToPosPress.setIcon(getIcon(':/actions/media_seek_forward.svg'))
-        self.ui.btnGoToPosInc.setText('')
-        self.ui.btnGoToPosInc.setIcon(getIcon(':/actions/media_playback_start.svg'))
-        self.ui.btnStop.setText('')
-        self.ui.btnStop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
-        self.ui.btnHome.setText('')
-        self.ui.btnHome.setIcon(getIcon(':/actions/go-home.svg'))
-        self.ui.btnCfg.setText('')
-        self.ui.btnCfg.setIcon(getIcon(':/categories/preferences-system.svg'))
-        #################################################################################################################
-
-
+        self.__setTaurusIcons()
+        
         self.ui.motorGroupBox.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
         self.connect(self.ui.motorGroupBox, Qt.SIGNAL('customContextMenuRequested(QPoint)'), self.buildContextMenu)
 
@@ -411,6 +388,34 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         self.registerConfigProperty(self.ui.btnCfg.isVisible, self.toggleConfig, 'Config')
         self.registerConfigProperty(self.ui.lblStatus.isVisible, self.toggleStatus, 'Status')
         #################################################################################################################
+
+    def __setTaurusIcons(self):
+        self.ui.btnMin.setText('')
+        self.ui.btnMin.setIcon(getIcon(':/actions/list-remove.svg'))
+        self.ui.btnMax.setText('')
+        self.ui.btnMax.setIcon(getIcon(':/actions/list-add.svg'))
+
+        self.ui.btnGoToNeg.setText('')
+        self.ui.btnGoToNeg.setIcon(getIcon(':/actions/media_skip_backward.svg'))
+        self.ui.btnGoToNegPress.setText('')
+        self.ui.btnGoToNegPress.setIcon(getIcon(':/actions/media_seek_backward.svg'))
+        self.ui.btnGoToNegInc.setText('')
+        self.ui.btnGoToNegInc.setIcon(getIcon(':/actions/media_playback_backward.svg'))
+        self.ui.btnGoToPos.setText('')
+        self.ui.btnGoToPos.setIcon(getIcon(':/actions/media_skip_forward.svg'))
+        self.ui.btnGoToPosPress.setText('')
+        self.ui.btnGoToPosPress.setIcon(getIcon(':/actions/media_seek_forward.svg'))
+        self.ui.btnGoToPosInc.setText('')
+        self.ui.btnGoToPosInc.setIcon(getIcon(':/actions/media_playback_start.svg'))
+        self.ui.btnStop.setText('')
+        self.ui.btnStop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
+        self.ui.btnHome.setText('')
+        self.ui.btnHome.setIcon(getIcon(':/actions/go-home.svg'))
+        self.ui.btnCfg.setText('')
+        self.ui.btnCfg.setIcon(getIcon(':/categories/preferences-system.svg'))
+        #################################################################################################################
+
+
 
     #@Qt.pyqtSlot(list)
     def updateLimits(self, limits):
@@ -614,11 +619,18 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     def showEvent(self, event):
         TaurusWidget.showEvent(self, event)
-        self.motor_dev.getAttribute('Position').enablePolling(force=True)
+        try:
+            self.motor_dev.getAttribute('Position').enablePolling(force=True)
+        except AttributeError, e:
+            self.debug('Error in showEvent: %s', repr(e))
+            
 
     def hideEvent(self, event):
         TaurusWidget.hideEvent(self, event)
-        self.motor_dev.getAttribute('Position').disablePolling()
+        try:
+            self.motor_dev.getAttribute('Position').disablePolling()
+        except AttributeError, e:
+            self.debug('Error in showEvent: %s', repr(e))
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties 
