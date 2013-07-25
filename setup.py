@@ -36,15 +36,14 @@ from distutils.core import setup, Extension, Command
 from distutils.dist import Distribution
 from distutils.command.build import build as dftbuild
 from distutils.command.install import install as dftinstall
-
+from distutils.version import StrictVersion as V
 import distutils.sysconfig
 
 try:
     import sphinx
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda : False
-    sphinx_v = tuple(map(int, sphinx.__version__.split(".",3)))
-    if sphinx_v < (1,0,0):
+    if V(sphinx.__version__) < V("1.0.0"):
         sphinx = None
 except:
     sphinx = None
