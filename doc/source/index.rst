@@ -10,14 +10,15 @@ Welcome to Taurus's |version| documentation!
 
 .. sidebar:: Latest news
 
+
+    2013-07-25
+        Taurus 3.1.0 released!
+
     2012-04-24
         Taurus 3.0.0 released!
 
     2011-03-23
         Taurus 2.1.1 released!
-
-    2011-03-22:
-        Taurus 2.1.0 released!
 
 
 Taurus is a python framework for both CLI and GUI tango applications. It is
