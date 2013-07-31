@@ -1,0 +1,166 @@
+Taurus is Free Software by the CELLS / ALBA Synchrotron, Bellaterra, Spain
+
+SECTION 1: GENERAL LICENSE FOR TAURUS SOURCE CODE
+=================================================
+
+The files in Taurus, except for the cases described in SECTION 2
+are distributed under the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version.
+See <http://www.gnu.org/licenses/>
+
+SECTION 2: EXCEPTIONS
+=====================
+
+Some files (e.g., those authored by 3rd parties or the documentation 
+sources) are distributed under Free Software / documentation licenses 
+that may differ from the the general one defined in SECTION 1.
+
+The following is a list of these exceptions:
+
+2.1: Explicit copyright info in header/metadata:
+------------------------------------------------
+ 
+If a file contains an explicit license or other copyright information in
+its header or metadata which differs from the one defined in SECTION 1, 
+such license/copyright info mentioned in the header/metadata prevails.
+
+2.2: Documentation:
+-------------------
+
+The .py scripts in the doc directory are treated as per SECTION 1, 
+and the rest of its files are distributed under a Creative Commons 
+Attribution 3.0 License 
+See <http://creativecommons.org/licenses/by/3.0/>
+
+2.3: Snapshots:
+---------------
+
+The image files in lib/qt/qtgui/resource/large/snapshot have been 
+created in ALBA/CELLS and are licensed under the Creative Commons 
+Attribution 3.0 License 
+See <http://creativecommons.org/licenses/by/3.0/>
+
+2.4: Extra-Icons:
+-----------------
+
+The following icons in the lib/qt/qtgui/resource/extra-icons/
+directory have been created in ALBA/CELLS and are licensed under the 
+Creative Commons Attribution 3.0 License
+See: <http://creativecommons.org/licenses/by/3.0/>
+
+titlebar_*.png files
+leds/images*/*.png
+actions/expand-*.png
+actions/collapse-*.png
+designer/wheeledit.png
+designer/tau.png
+designer/extra_motor.png 
+designer/circular_gauge.png 
+designer/groupwidget.png 
+designer/horizontal_linear_gauge.png 
+designer/vertical_linear_gauge.png
+designer/state.png 
+
+The following icons in the lib/qt/qtgui/resource/extra-icons/ 
+directory have been copied/derived from Qt open-source code, distributed
+under the LGPL v 2.1 license.
+See <http://qt.nokia.com/products/licensing/licensing> for more info
+
+designer/datetimeedit.png
+designer/mdiarea.png
+designer/vspacer.png
+designer/dialogbuttonbox.png
+designer/vscrollbar.png
+designer/toolbutton.png
+designer/lcdnumber.png
+designer/pushbutton.png
+designer/vline.png
+designer/spacer.png
+designer/plaintextedit.png
+designer/line.png
+designer/columnview.png
+designer/textedit.png
+designer/frame.png
+designer/minus.png
+designer/wizard.png
+designer/hsplit.png
+designer/progress.png
+designer/timeedit.png
+designer/listview.png
+designer/calendarwidget.png
+designer/widget.png
+designer/dockwidget.png
+designer/toolbox.png
+designer/hslider.png
+designer/hscrollbar.png
+designer/tabbar.png
+designer/lineedit.png
+designer/fontcombobox.png
+designer/groupbox.png
+designer/down.png
+designer/vslider.png
+designer/editdelete.png
+designer/combobox.png
+designer/tabwidget.png
+designer/doublespinbox.png
+designer/groupboxcollapsible.png
+designer/spinbox.png
+designer/plus.png
+designer/table.png
+designer/back.png
+designer/forward.png
+designer/dial.png
+designer/widgetstack.png
+designer/label.png
+designer/dateedit.png
+designer/listbox.png
+designer/up.png
+designer/checkbox.png
+designer/scrollarea.png
+designer/commandlinkbutton.png
+designer/radiobutton.png
+designer/graphicsview.png
+designer/devs_tree.png
+designer/devs_table.png
+designer/props_table.png
+
+
+2.4: External Icons:
+--------------------
+
+The following icons in the lib/qt/qtgui/resource/external/
+directory have been adapted from the Spyderlib project 
+(http://code.google.com/p/spyderlib/)and are licensed under the MIT License
+See: http://www.opensource.org/licenses/mit-license.php
+
+class.png
+function.png
+ipython.png
+python-module.png 
+
+The following icons in the lib/qt/qtgui/resource/external/
+directory have been adapted from the Python project
+(http://python.org) and are licensed under the PSF License Agreement.
+"Python" and the Python logo are trademarks or registered
+trademarks of the Python Software Foundation. 
+See:  http://docs.python.org/license.html
+
+python.png 
+python-console.png
+python-file.png   
+python-package.png   
+pythonw-console.png
+
+
+The following icons in the lib/qt/qtgui/resource/external/
+directory are part of the Tango-Controls project 
+(http://www.tango-controls.org) and are licensed under the LGPL v3+ 
+See http://www.gnu.org/licenses/
+(@todo: Confirm This!)
+
+tango.png
+jive/*.png 
+
+
+

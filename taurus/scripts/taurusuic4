@@ -1,0 +1,311 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+## 
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+import sys
+import time
+import atexit
+import optparse
+import os.path
+import lxml.etree
+import PyQt4.Qt as Qt
+
+import taurus.core.util
+import taurus.qt.qtgui.util
+import taurus.qt.uic
+
+_template = """#!/usr/bin/env python
+
+# Code implementation generated from reading ui file '{filename}'
+#
+# Created: {ctime} 
+#      by: Taurus UI code generator {version}
+#
+# WARNING! All changes made in this file will be lost!
+
+__docformat__ = 'restructuredtext'
+
+import sys
+import PyQt4.Qt as Qt
+from {pyui_modulename} import {ui_klass}
+from {super_modulename} import {super_klass}
+
+class {klass}({super_klass}):
+
+    def __init__(self, parent=None, designMode=False):
+        {super_klass}.__init__(self, parent, designMode=designMode)
+        
+        self._ui = {ui_klass}()
+        self._ui.setupUi(self)
+        
+    {qt_info}
+
+def main():
+    app = Qt.QApplication(sys.argv)
+    w = {klass}()
+    w.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
+"""
+
+_template_qt_info = """
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        ret = {super_klass}.getQtDesignerPluginInfo()
+        ret['module'] = '{qt_module}'
+        ret['group'] = '{qt_group}'
+        ret['container'] = '{qt_icon}'
+        ret['container'] = {qt_container}
+        return ret
+"""
+
+def ask_yes_no(prompt,default=None):
+    """Asks a question and returns a boolean (y/n) answer.
+
+    If default is given (one of 'y','n'), it is used if the user input is
+    empty. Otherwise the question is repeated until an answer is given.
+
+    An EOF is treated as the default answer.  If there is no default, an
+    exception is raised to prevent infinite loops.
+
+    Valid answers are: y/yes/n/no (match is not case sensitive)."""
+    answers = {'y':True,'n':False,'yes':True,'no':False}
+    ans = None
+    if default is not None:
+        d_l = default.lower()
+        if d_l in ('y','yes'):
+            prompt += " (Y/n) ?"
+        elif d_l in ('n','no'):
+            prompt += " (N/y) ?"
+    
+    while ans not in answers.keys():
+        try:
+            ans = raw_input(prompt+' ').lower()
+            if not ans:  # response was an empty string
+                ans = default
+        except KeyboardInterrupt:
+            pass
+        except EOFError:
+            if default in answers.keys():
+                ans = default
+                print
+            else:
+                raise
+
+    return answers[ans]
+
+_ARGS = None
+
+def parse_args():
+    version = "taurusuic4 %s" % (taurus.Release.version)
+    usage = "taurusuic4 [options] <ui-file>"
+    description = "a taurus customized pyuic4"
+    parser = optparse.OptionParser(usage=usage, description=description,
+                                   version=version)
+    # Default pyuic4 parameters
+    parser.add_option("-p", "--preview")
+    parser.add_option("-o", "--output", dest="output", default="-", metavar="FILE",
+            help="write generated code to FILE instead of stdout")
+    parser.add_option("-x", "--execute", dest="execute", action="store_true",
+            default=False,
+            help="generate extra code to test and display the class")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+            default=False, help="show debug output")
+    parser.add_option("-i", "--indent", dest="indent", action="store", type="int",
+            default=4, metavar="N",
+            help="set indent width to N spaces, tab if N is 0 (default: 4)")
+    parser.add_option("-w", "--pyqt3-wrapper", dest="pyqt3_wrapper",
+            action="store_true", default=False,
+            help="generate a PyQt v3 style wrapper")
+
+    # Extra taurus parameters
+    parser.add_option("-T", action="store_true", dest="tauruswidget",
+                      default=None, help="generate an additional taurus python file")
+
+    return parser.parse_args()
+
+
+def _generate_widget():
+    
+    factory = taurus.qt.qtgui.util.TaurusWidgetFactory()
+    
+    global _ARGS
+    opts, args = _ARGS
+    ui_filename = args[0]
+    pyui_path = opts.output
+    pyui_dirname, pyui_filename = os.path.split(pyui_path)
+    pyui_modulename = os.path.splitext(pyui_filename)[0]
+    
+    source = file(ui_filename)
+    xml_source = lxml.etree.parse(source)
+    root_node = xml_source.getroot()
+    assert(root_node.tag == "ui")
+    klass_node = root_node.find("class")
+    widget_node = root_node.find("widget")
+    klass_name = klass_node.text
+    ui_klass = "Ui_%s" % klass_name
+    super_klass_name = widget_node.get("class") 
+
+    if super_klass_name not in factory.getTaurusWidgetClassNames():
+        return
+    
+    if pyui_filename == '-':
+        return
+         
+    if not ask_yes_no("Do you whish to generate a Taurus widget", default='n'):
+        return
+    
+    orig_output_filename = os.path.join(pyui_dirname, "%s.py" % klass_name.lower())
+    output_filename = raw_input("Python file name (%s) ? " % orig_output_filename)
+    if output_filename == "": output_filename = orig_output_filename
+    
+    package_parts = os.path.split(os.path.splitext(output_filename)[0])
+    package_parts = [ part for part in package_parts if len(part)>0 ]
+    orig_package_name = ".".join(package_parts)
+    package_name = raw_input("Python package name (%s) ? " % orig_package_name)
+    if package_name == "": package_name = orig_package_name
+    
+    klass_name = raw_input("Python class name (%s) ? " % klass_name)
+    if klass_name == "": klass_name = klass_node.text
+    
+    super_klass_name = raw_input("Python super class name (%s) ? " % super_klass_name)
+    if super_klass_name == "": super_klass_name = widget_node.get("class") 
+    
+    super_module_name, super_klass = factory.getTaurusWidgets()[super_klass_name]
+
+    qt_info = ""
+    if ask_yes_no("Generate Qt designer info", default='y'):
+        super_qt_info = super_klass.getQtDesignerPluginInfo()
+        qt_module = package_name
+        qt_group = super_qt_info['group']
+        qt_group = raw_input("\tQt group (%s) ? " % qt_group)
+        if qt_group == '': qt_group = super_qt_info['group']
+        qt_icon = super_qt_info['icon']
+        qt_icon = raw_input("\tQt icon (%s) ? " % qt_icon)
+        if qt_icon == '': qt_icon = super_qt_info['icon']
+        qt_container = ask_yes_no("\tQt container", default='n')
+        if qt_container == '': qt_container = super_qt_info['container']
+        qt_info = _template_qt_info.format(super_klass=super_klass_name,
+                                           qt_module=qt_module, qt_group=qt_group,
+                                           qt_icon=qt_icon, qt_container=qt_container)
+        
+    pars = { 'filename'         : ui_filename,
+             'ctime'            : time.ctime(),
+             'version'          : taurus.Release.version,
+             'pyui_modulename'  : pyui_modulename,
+             'ui_klass'         : ui_klass,
+             'klass'            : klass_name,
+             'super_klass'      : super_klass_name,
+             'super_modulename' : super_module_name,
+             'qt_info'          : qt_info,
+    }
+
+    f = file(output_filename, "w")
+    f.write(_template.format(**pars))
+    f.close()
+
+def generate_widget():
+    try:
+        _generate_widget()
+    except KeyboardInterrupt:
+        print "\n\nCanceled Taurus widget creation by user\n"
+
+def is_pyuic4_recent():
+    # keep the import local
+    import PyQt4.uic
+    return hasattr(PyQt4.uic, "widgetPluginPath")
+
+def pyuic4():
+    atexit.register(generate_widget)
+       
+    # this import does all the stuff
+    import PyQt4.uic.pyuic
+    
+def generate():
+    """Generate. This version needs a 'recent' pyuic4"""
+    
+    # keep the import local
+    import PyQt4.uic
+
+    # find taurus directory which contains uic plugin
+    taurus_base_file = os.path.abspath(taurus.__file__)
+    taurus_base_dir = os.path.dirname(taurus_base_file)
+    plugin_dir = os.path.join(taurus_base_dir, 'qt', 'uic', 'pyuic4')
+
+    if not os.path.isdir(plugin_dir):
+        raise Exception("Expected uic plugin directory '%s' not found" % plugin_dir)
+    
+    # 'new' pyuic4: add taurus plugin path to pyuic
+    PyQt4.uic.widgetPluginPath.append(plugin_dir)
+    
+    pyuic4()
+
+def generate_with_old_pyuic4():
+    # keep the import local
+    import tempfile
+    import PyQt4.uic
+
+    # create a temporary .ui file with extra info so that pyuic4 is able to 
+    # properly generate python code
+    orig_ui_filename = sys.argv[-1]
+    tmp_ui = tempfile.NamedTemporaryFile(suffix=".ui", delete=False)
+    new_ui_filename = tmp_ui.name
+    
+    orig_ui_file = file(orig_ui_filename)
+    xml = lxml.etree.parse(orig_ui_file)
+    orig_ui_file.close()
+    xml = taurus.qt.uic.resolve_inheritance(xml)
+    tmp_ui.write(lxml.etree.tostring(xml, pretty_print=True))
+    tmp_ui.close()
+    
+    # intercept the call to compileUi
+    compileUi_orig = PyQt4.uic.compileUi
+
+    def compileUi_new(uifname, pyfile, execute, indent, pyqt3_wrapper):
+        # ignore the 'uifname' and use our temporary file
+        return compileUi_orig(new_ui_filename, pyfile, execute, indent, pyqt3_wrapper)
+    
+    PyQt4.uic.compileUi = compileUi_new
+    
+    pyuic4()
+    
+    os.remove(new_ui_filename)
+
+def main():
+    try:
+        if is_pyuic4_recent():
+            go = generate
+        else:
+            go = generate_with_old_pyuic4
+        global _ARGS
+        _ARGS = parse_args()
+        go()
+    except Exception, e:
+        print "Error running taurusuic4:"
+        print str(e)
+        
+if __name__ == "__main__":
+    main()

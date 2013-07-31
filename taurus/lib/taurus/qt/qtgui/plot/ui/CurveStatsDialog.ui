@@ -1,0 +1,341 @@
+<ui version="4.0" >
+ <class>CurveStatsDialog</class>
+ <widget class="QDialog" name="CurveStatsDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>723</width>
+    <height>382</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Curve Stats Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2" >
+   <item row="0" column="0" >
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>X limits</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout" >
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout" >
+        <item>
+         <widget class="QCheckBox" name="minCB" >
+          <property name="text" >
+           <string>min</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="minSB" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="MinimumExpanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="decimals" >
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateTimeEdit" name="minDTE" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="MinimumExpanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentSection" >
+           <enum>QDateTimeEdit::YearSection</enum>
+          </property>
+          <property name="displayFormat" >
+           <string>yyyy-MM-ddThh:mm:ss.zzz</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="selectMinPB" >
+          <property name="enabled" >
+           <bool>true</bool>
+          </property>
+          <property name="toolTip" >
+           <string>Select from plot</string>
+          </property>
+          <property name="text" >
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2" >
+        <item>
+         <widget class="QCheckBox" name="maxCB" >
+          <property name="text" >
+           <string>max</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="maxSB" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="MinimumExpanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="decimals" >
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateTimeEdit" name="maxDTE" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="MinimumExpanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentSection" >
+           <enum>QDateTimeEdit::YearSection</enum>
+          </property>
+          <property name="displayFormat" >
+           <string>yyyy-MM-ddThh:mm:ss.zzz</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="selectMaxPB" >
+          <property name="enabled" >
+           <bool>true</bool>
+          </property>
+          <property name="toolTip" >
+           <string>Select from plot</string>
+          </property>
+          <property name="text" >
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QGroupBox" name="groupBox_2" >
+     <property name="title" >
+      <string>Stats</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout" >
+      <item row="0" column="0" >
+       <widget class="QCheckBox" name="npointsStatCB" >
+        <property name="toolTip" >
+         <string>Number of points considered for the statistical analysis</string>
+        </property>
+        <property name="text" >
+         <string>#points</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="QCheckBox" name="minStatCB" >
+        <property name="toolTip" >
+         <string>x and y values for the minimum of the curve in the considered range</string>
+        </property>
+        <property name="text" >
+         <string>min</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" >
+       <widget class="QCheckBox" name="stdStatCB" >
+        <property name="toolTip" >
+         <string>biased standard deviation:
+std = sqrt(mean(abs(y - y.mean())**2))</string>
+        </property>
+        <property name="text" >
+         <string>std</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QCheckBox" name="meanStatCB" >
+        <property name="toolTip" >
+         <string>arithmetic mean</string>
+        </property>
+        <property name="text" >
+         <string>mean</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QCheckBox" name="maxStatCB" >
+        <property name="toolTip" >
+         <string>x and y values for the maximum of the curve in the considered range</string>
+        </property>
+        <property name="text" >
+         <string>max</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" >
+       <widget class="QCheckBox" name="rmsStatCB" >
+        <property name="toolTip" >
+         <string>Root Mean Square:
+rms=sqrt(mean(y**2))</string>
+        </property>
+        <property name="text" >
+         <string>rms</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2" >
+    <widget class="QTableWidget" name="statsTW" >
+     <property name="contextMenuPolicy" >
+      <enum>Qt::ActionsContextMenu</enum>
+     </property>
+     <property name="toolTip" >
+      <string>select the curve names for which statistics will be calculated</string>
+     </property>
+     <property name="selectionBehavior" >
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2" >
+    <layout class="QHBoxLayout" name="horizontalLayout_4" >
+     <item>
+      <spacer name="horizontalSpacer_2" >
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="calculatePB" >
+       <property name="toolTip" >
+        <string>(re) calculate statistics for the selected curves (or for all curves if None is selected)</string>
+       </property>
+       <property name="text" >
+        <string>(re)calculate</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>minCB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minSB</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>84</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>132</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minCB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minDTE</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>73</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>221</x>
+     <y>62</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxCB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>maxSB</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>37</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>122</x>
+     <y>91</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxCB</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>maxDTE</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>71</x>
+     <y>84</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>242</x>
+     <y>96</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

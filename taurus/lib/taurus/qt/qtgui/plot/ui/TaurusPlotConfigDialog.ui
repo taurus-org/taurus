@@ -1,0 +1,332 @@
+<ui version="4.0" >
+ <class>TauPlotConfigDialog</class>
+ <widget class="QDialog" name="TauPlotConfigDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>573</width>
+    <height>486</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Configure plot</string>
+  </property>
+  <property name="modal" >
+   <bool>true</bool>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" colspan="3" >
+    <widget class="QGroupBox" name="curveAppearanceGB" >
+     <property name="title" >
+      <string>Curves Appearance</string>
+     </property>
+    </widget>
+   </item>
+   <item rowspan="2" row="1" column="0" >
+    <widget class="QGroupBox" name="xGroupBox" >
+     <property name="title" >
+      <string>X Axis</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" colspan="2" >
+       <widget class="QGroupBox" name="xAutoGroupBox" >
+        <property name="toolTip" >
+         <string>Customize scale range (this disables autoscaling)</string>
+        </property>
+        <property name="title" >
+         <string>Custom scale</string>
+        </property>
+        <property name="checkable" >
+         <bool>true</bool>
+        </property>
+        <property name="checked" >
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" >
+         <item row="0" column="0" >
+          <widget class="QLabel" name="xLabelMin" >
+           <property name="text" >
+            <string>Min.:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" >
+          <widget class="QLineEdit" name="xEditMin" >
+           <property name="minimumSize" >
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" >
+          <widget class="QLabel" name="xLabelMax" >
+           <property name="text" >
+            <string>Max:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" >
+          <widget class="QLineEdit" name="xEditMax" >
+           <property name="minimumSize" >
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="xLabelRange" >
+        <property name="text" >
+         <string>Range</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QComboBox" name="xRangeCB" >
+        <property name="editable" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="xModeLabel" >
+        <property name="text" >
+         <string>Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="xModeComboBox" />
+      </item>
+      <item row="3" column="0" colspan="2" >
+       <widget class="QCheckBox" name="xDynScaleCheckBox" >
+        <property name="toolTip" >
+         <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;span style=" font-size:9pt; font-style:italic;">AKA&lt;/span>&lt;span style=" font-size:9pt;">, "Trend Mode":&lt;/span>&lt;/p>
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:9pt;">(If checked, the X scale range will be kept constant but its offset will move to guarantee that the newest point is shown.)&lt;/p>
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:9pt;">&lt;/p>&lt;/body>&lt;/html></string>
+        </property>
+        <property name="text" >
+         <string>Fixed-range scale</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item rowspan="2" row="1" column="1" >
+    <widget class="QTabWidget" name="tabWidget" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="currentIndex" >
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="y1Tab" >
+      <attribute name="title" >
+       <string>Y1 Axis</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <item row="0" column="0" colspan="2" >
+        <widget class="QGroupBox" name="y1AutoGroupBox" >
+         <property name="toolTip" >
+          <string>Customize scale range (this disables autoscaling)</string>
+         </property>
+         <property name="title" >
+          <string>Custom scale</string>
+         </property>
+         <property name="checkable" >
+          <bool>true</bool>
+         </property>
+         <property name="checked" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="y1LabelMin" >
+            <property name="text" >
+             <string>Min.:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="y1EditMin" />
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="y1LabelMax" >
+            <property name="text" >
+             <string>Max:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QLineEdit" name="y1EditMax" />
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="y1ModeLabel" >
+         <property name="text" >
+          <string>Mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" >
+        <widget class="QComboBox" name="y1ModeComboBox" />
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="y2Tab" >
+      <attribute name="title" >
+       <string>Y2 Axis</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <item row="0" column="0" colspan="2" >
+        <widget class="QGroupBox" name="y2AutoGroupBox" >
+         <property name="toolTip" >
+          <string>Customize scale range (this disables autoscaling)</string>
+         </property>
+         <property name="title" >
+          <string>Custom scale</string>
+         </property>
+         <property name="checkable" >
+          <bool>true</bool>
+         </property>
+         <property name="checked" >
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="y2LabelMin" >
+            <property name="text" >
+             <string>Min.:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="y2EditMin" />
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="y2LabelMax" >
+            <property name="text" >
+             <string>Max:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QLineEdit" name="y2EditMax" />
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="y2ModeLabel" >
+         <property name="text" >
+          <string>Mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" >
+        <widget class="QComboBox" name="y2ModeComboBox" />
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="2" >
+    <layout class="QHBoxLayout" >
+     <item>
+      <widget class="QLabel" name="y1PeaksLabel" >
+       <property name="text" >
+        <string>Peak Markers</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="peaksComboBox" />
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="2" >
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::NoButton</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>xDynScaleCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>xLabelRange</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>77</x>
+     <y>449</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>40</x>
+     <y>402</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xDynScaleCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>xRangeCB</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>125</x>
+     <y>445</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>131</x>
+     <y>399</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xDynScaleCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>xAutoGroupBox</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>73</x>
+     <y>446</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>83</x>
+     <y>365</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -1,0 +1,35 @@
+JDFile v11 {
+  Global {
+  }
+  JDImage {
+    summit:10,4,1220,329
+    origin:615,167
+    lineWidth:0
+    name:"Image"
+    file_name:"example01.jpg"
+  }
+  JDRoundRectangle {
+    summit:1023,30,1134,100
+    origin:1044,46
+    foreground:255,0,51
+    lineWidth:3
+    isShadowed:true
+    name:"instrument1"
+  }
+  JDRoundRectangle {
+    summit:883,40,1012,117
+    origin:899,58
+    foreground:255,0,51
+    lineWidth:3
+    isShadowed:true
+    name:"instrument2"
+  }
+  JDRoundRectangle {
+    summit:13,86,306,211
+    origin:39,89
+    foreground:255,0,51
+    lineWidth:3
+    isShadowed:true
+    name:"BigInstrument"
+  }
+}

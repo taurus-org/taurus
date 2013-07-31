@@ -1,0 +1,460 @@
+
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Tau, a Tango User Interface Library
+##
+## http://www.tango-controls.org/static/tau/latest/doc/html/index.html
+##
+## (copyleft) CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## This is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+from taurus.qt import QtCore, QtGui, Qt
+import PyTango
+import tau
+from tau.widget import TauBaseWidget
+from ui_poolmotorslim import Ui_PoolMotorSlim
+
+import sys
+import copy
+
+class LimitsListener(QtCore.QObject):
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        
+    def eventReceived(self, evt_src, evt_type, evt_value):
+        if evt_type not in [tau.core.TauEventType.Change, tau.core.TauEventType.Periodic]:
+            return
+        limits = evt_value.value
+        self.emit(Qt.SIGNAL('updateLimits'), limits)
+
+class PoolMotorClient():
+
+    maxint_in_32_bits = 2147483647
+    def __init__(self):
+        self.motor_dev = None
+
+    def setMotor(self, pool_motor_dev_name):
+        # AT SOME POINT THIS WILL BE USING THE 'POOL' TAU EXTENSION
+        # TO OPERATE THE MOTOR INSTEAD OF A 'TANGO' TAUDEVICE
+        try:
+            self.motor_dev = tau.Device(pool_motor_dev_name)
+            pool_ds_id = self.motor_dev.getHWObj().info().server_id
+            tau_db = tau.Database()
+            pool_devices = tuple(tau_db.get_device_class_list(pool_ds_id).value_string)
+            pool_dev_name = pool_devices[pool_devices.index('Pool') - 1]
+            self.pool_dev = tau.Factory().getDevice(pool_dev_name)
+            # IT IS IMPORTANT TO KNOW IF IT IS AN ICEPAP MOTOR, SO EXTRA FEATURES CAN BE PROVIDED
+            # PENDING.
+        except Exception,e:
+            print 'NOT A POOL MOTOR, BUT LET\'S CHECK IT HAS POSITION ATTRIBUTE AND ABORT COMMAND...\n'+str(e)
+        
+    def moveMotor(self, pos):
+        self.motor_dev['position'] = pos
+        
+    def moveInc(self, inc):
+        self.moveMotor(self.motor_dev['position'].value + inc)
+        
+    def jogNeg(self):
+        neg_limit = - ( (self.maxint_in_32_bits / 2) - 1)
+        try:
+            min_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().min_value
+            neg_limit = float(min_value)
+        except Exception,e:
+            pass
+        self.moveMotor(neg_limit)
+        
+    def jogPos(self):
+        pos_limit = (self.maxint_in_32_bits / 2) - 1
+        try:
+            max_value = self.motor_dev.getAttribute('Position').getConfig().getValueObj().max_value
+            pos_limit = float(max_value)
+        except Exception,e:
+            pass
+        self.moveMotor(pos_limit)
+
+    def goHome(self):
+        pass
+
+    def abort(self):
+        self.motor_dev.abort()
+
+    def getPoolMotors(self):
+        pool_motors = []
+        try:
+            pool_motors = [ motor_info.split(' ')[0] for motor_info in self.pool_dev['MotorList'].value]
+            pool_motors.sort()
+        except:
+            print 'Can not find pool motors...'
+        return pool_motors
+        
+
+class PoolMotorSlim(QtGui.QWidget, PoolMotorClient):
+
+    __pyqtSignals__ = ("modelChanged(const QString &)",)
+
+    def __init__(self, parent = None, designMode = False):
+        QtGui.QWidget.__init__(self, parent)
+        #self.call__init__wo_kw(QtGui.QWidget, parent)
+        #self.call__init__(TauBaseWidget, str(self.objectName()), designMode=designMode)
+        PoolMotorClient.__init__(self)
+        self.show_context_menu = True
+        self.show_pool_motors = True
+        
+        self.setAcceptDrops(True)
+
+        self.ui = Ui_PoolMotorSlim()
+        self.ui.setupUi(self)
+
+        # CREATE THE TauValue that can not be configured in the Designer
+        self.tau_value = tau.widget.TauValue(self.ui.tauValueContainer)
+        self.tau_value.setModel('/Position')
+        self.tau_value.setUseParentModel(True)
+        self.tau_value.setLabelWidgetClass(None)
+
+        # THIS WILL BE DONE IN THE DESIGNER
+        # Config Button will launch a TauAttrForm
+        tau_attr_form = tau.widget.TauAttrForm()
+        tau_attr_form.setViewFilters([lambda x: x.name.lower() in ['state', 'status', 'position', 'velocity', 'acceleration', 'dialposition', 'offset', 'step_per_unit', 'backlash', 'poweron', 'position_register', 'posencin', 'posinpos', 'posabsenc', 'encencin', 'encinpos', 'encabsenc', 'pulses_per_unit', 'powerinfo', 'positionsource', 'positionsourceformula', 'statusdriverboard', 'statusdisable', 'statushome', 'statuslim+', 'statuslim-', 'statusmoving', 'statusoutofwin', 'statusready', 'statussettling', 'statusstopcode', 'statuswarning']])
+        tau_attr_form.setMinimumSize(Qt.QSize(300,550))
+        self.ui.btnCfg.setWidget(tau_attr_form)
+        self.ui.btnCfg.setUseParentModel(True)
+
+        # ADD AN EVENT FILTER FOR THE STATUS LABEL IN ORDER TO PROVIDE JUST THE STRING FROM THE CONTROLLER (LAST LINE)
+        def just_ctrl_status_line(evt_src, evt_type, evt_value):
+            if evt_type not in [tau.core.TauEventType.Change, tau.core.TauEventType.Periodic]:
+                return evt_src, evt_type, evt_value
+            try:
+                status = evt_value.value
+                last_line = status.split('\n')[-1]
+                new_evt_value = PyTango.DeviceAttribute(evt_value)
+                new_evt_value.value = last_line
+                return evt_src, evt_type, new_evt_value
+            except:
+                return evt_src, evt_type, evt_value
+        self.ui.lblStatus.insertEventFilter(just_ctrl_status_line)
+
+        # HOMING NOT IMPLMENTED YET
+        self.ui.btnHome.setEnabled(False)
+
+        # DEFAULT VISIBLE COMPONENTS
+        self.toggleHideAll()
+        self.toggleMoveAbsolute(True)
+        self.toggleMoveRelative(True)
+        self.toggleStopMove(True)
+
+        self.ui.motorGroupBox.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.connect(self.ui.motorGroupBox, QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.buildContextMenu)
+        
+        self.connect(self.ui.btnGoToNeg, QtCore.SIGNAL('clicked()'), self.jogNeg)
+        self.connect(self.ui.btnGoToNegPress, QtCore.SIGNAL('pressed()'), self.jogNeg)
+        self.connect(self.ui.btnGoToNegPress, QtCore.SIGNAL('released()'), self.abort)
+        self.connect(self.ui.btnGoToNegInc, QtCore.SIGNAL('clicked()'), self.goToNegInc)
+        self.connect(self.ui.btnGoToPos, QtCore.SIGNAL('clicked()'), self.jogPos)
+        self.connect(self.ui.btnGoToPosPress, QtCore.SIGNAL('pressed()'), self.jogPos)
+        self.connect(self.ui.btnGoToPosPress, QtCore.SIGNAL('released()'), self.abort)
+        self.connect(self.ui.btnGoToPosInc, QtCore.SIGNAL('clicked()'), self.goToPosInc)
+
+        self.connect(self.ui.btnHome, QtCore.SIGNAL('clicked()'), self.goHome)
+        self.connect(self.ui.btnStop, QtCore.SIGNAL('clicked()'), self.abort)
+
+    def updateLimits(self, limits):
+        pos_lim = limits[1]
+        pos_stylesheet = ''
+        if pos_lim:
+            pos_stylesheet = 'QPushButton{%s}'%tau.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+        self.ui.btnGoToPos.setStyleSheet(pos_stylesheet)
+        self.ui.btnGoToPosPress.setStyleSheet(pos_stylesheet)
+        self.ui.btnGoToPosInc.setStyleSheet(pos_stylesheet)
+        
+        neg_lim = limits[2]
+        neg_stylesheet = ''
+        if neg_lim:
+            neg_stylesheet = 'QPushButton{%s}'%tau.core.util.DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
+        self.ui.btnGoToNeg.setStyleSheet(neg_stylesheet)
+        self.ui.btnGoToNegPress.setStyleSheet(neg_stylesheet)
+        self.ui.btnGoToNegInc.setStyleSheet(neg_stylesheet)
+
+    def sizeHint(self):
+        return QtCore.QSize(600,30)
+
+    def goToNegInc(self):
+        self.moveInc(-1 * self.ui.inc.value())
+        
+    def goToPosInc(self):
+        self.moveInc(self.ui.inc.value())
+        
+    def buildContextMenu(self, point):
+        if not self.show_context_menu:
+            return
+        menu = Qt.QMenu(self)
+
+        motors = self.getPoolMotors()
+        if  len(motors) > 0 and self.show_pool_motors:
+            motors_menu = Qt.QMenu('Change motor...',self)
+            for motor in self.getPoolMotors():
+                action_change_motor = Qt.QAction(self)
+                action_change_motor.setText(motor)
+                motors_menu.addAction(action_change_motor)
+                self.connect(action_change_motor, QtCore.SIGNAL('triggered()'), lambda model=motor: self.setModel(model))
+            menu.addMenu(motors_menu)
+
+        action_hide_all = Qt.QAction(self)
+        action_hide_all.setText('Hide All')
+        menu.addAction(action_hide_all)
+
+        action_show_all = Qt.QAction(self)
+        action_show_all.setText('Show All')
+        menu.addAction(action_show_all)
+
+        action_move_absolute = Qt.QAction(self)
+        action_move_absolute.setText('Move Absolute')
+        action_move_absolute.setCheckable(True)
+        action_move_absolute.setChecked(self.tau_value.writeWidget().isVisible())
+        menu.addAction(action_move_absolute)
+
+        action_move_relative = Qt.QAction(self)
+        action_move_relative.setText('Move Relative')
+        action_move_relative.setCheckable(True)
+        action_move_relative.setChecked(self.ui.inc.isVisible())
+        menu.addAction(action_move_relative)
+
+        action_move_continuous = Qt.QAction(self)
+        action_move_continuous.setText('Move Continuous')
+        action_move_continuous.setCheckable(True)
+        action_move_continuous.setChecked(self.ui.btnGoToNegPress.isVisible())
+        menu.addAction(action_move_continuous)
+
+        action_move_to_limits = Qt.QAction(self)
+        action_move_to_limits.setText('Move to Limits')
+        action_move_to_limits.setCheckable(True)
+        action_move_to_limits.setChecked(self.ui.btnGoToNeg.isVisible())
+        menu.addAction(action_move_to_limits)
+
+        action_stop_move = Qt.QAction(self)
+        action_stop_move.setText('Stop Movement')
+        action_stop_move.setCheckable(True)
+        action_stop_move.setChecked(self.ui.btnStop.isVisible())
+        menu.addAction(action_stop_move)
+
+        action_homing = Qt.QAction(self)
+        action_homing.setText('Homing')
+        action_homing.setCheckable(True)
+        action_homing.setChecked(self.ui.btnHome.isVisible())
+        menu.addAction(action_homing)
+        
+        action_config = Qt.QAction(self)
+        action_config.setText('Config')
+        action_config.setCheckable(True)
+        action_config.setChecked(self.ui.btnCfg.isVisible())
+        menu.addAction(action_config)
+        
+        action_status = Qt.QAction(self)
+        action_status.setText('Status')
+        action_status.setCheckable(True)
+        action_status.setChecked(self.ui.lblStatus.isVisible())
+        menu.addAction(action_status)
+        
+        self.connect(action_hide_all, QtCore.SIGNAL('triggered()'), self.toggleHideAll)
+        self.connect(action_show_all, QtCore.SIGNAL('triggered()'), self.toggleShowAll)
+        self.connect(action_move_absolute, QtCore.SIGNAL('toggled(bool)'), self.toggleMoveAbsolute)
+        self.connect(action_move_relative, QtCore.SIGNAL('toggled(bool)'), self.toggleMoveRelative)
+        self.connect(action_move_continuous, QtCore.SIGNAL('toggled(bool)'), self.toggleMoveContinuous)
+        self.connect(action_move_to_limits, QtCore.SIGNAL('toggled(bool)'), self.toggleMoveToLimits)
+        self.connect(action_stop_move, QtCore.SIGNAL('toggled(bool)'), self.toggleStopMove)
+        self.connect(action_homing, QtCore.SIGNAL('toggled(bool)'), self.toggleHoming)
+        self.connect(action_config, QtCore.SIGNAL('toggled(bool)'), self.toggleConfig)
+        self.connect(action_status, QtCore.SIGNAL('toggled(bool)'), self.toggleStatus)
+        
+        menu.popup(self.cursor().pos())
+
+    def toggleHideAll(self):
+        self.toggleAll(False)
+
+    def toggleShowAll(self):
+        self.toggleAll(True)
+
+    def toggleAll(self, visible):
+        self.toggleMoveAbsolute(visible)
+        self.toggleMoveRelative(visible)
+        self.toggleMoveContinuous(visible)
+        self.toggleMoveToLimits(visible)
+        self.toggleStopMove(visible)
+        self.toggleHoming(visible)
+        self.toggleConfig(visible)
+        self.toggleStatus(visible)
+
+    def toggleMoveAbsolute(self, visible):
+        self.tau_value.writeWidget().setVisible(visible)
+
+    def toggleMoveRelative(self, visible):
+        self.ui.btnGoToNegInc.setVisible(visible)
+        self.ui.inc.setVisible(visible)
+        self.ui.btnGoToPosInc.setVisible(visible)
+
+    def toggleMoveContinuous(self, visible):
+        self.ui.btnGoToNegPress.setVisible(visible)
+        self.ui.btnGoToPosPress.setVisible(visible)
+
+    def toggleMoveToLimits(self, visible):
+        self.ui.btnGoToNeg.setVisible(visible)
+        self.ui.btnGoToPos.setVisible(visible)
+
+    def toggleStopMove(self, visible):
+        self.ui.btnStop.setVisible(visible)
+
+    def toggleHoming(self, visible):
+        self.ui.btnHome.setVisible(visible)
+
+    def toggleConfig(self, visible):
+        self.ui.btnCfg.setVisible(visible)
+
+    def toggleStatus(self, visible):
+        self.ui.lblStatus.setVisible(visible)
+
+    def dragEnterEvent(self, event):
+        event.accept()
+        
+    def dropEvent(self, event):
+        model = str(event.mimeData().text())
+        self.setModel(model)
+
+    def keyPressEvent(self, key_event):
+        if key_event.key() == Qt.Qt.Key_Escape:
+            self.abort()
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # QT properties 
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    @QtCore.pyqtSignature("getModel()")
+    def getModel(self):
+        return self.ui.motorGroupBox.getModel()
+
+    @QtCore.pyqtSignature("setModel(QString)")
+    def setModel(self, model):
+        # DUE TO A BUG IN TAUGROUPBOX, WE NEED THE FULL MODEL NAME
+        try:
+            model = tau.Factory().getDevice(model).getFullName()
+            self.setMotor(model)
+            self.ui.motorGroupBox.setModel(model)
+            self.ui.motorGroupBox.setEnabled(True)
+            
+            # CONFIGURE A LISTENER IN ORDER TO UPDATE LIMIT SWITCHES STATES
+            self.limits_listener = LimitsListener()
+            self.connect(self.limits_listener, QtCore.SIGNAL('updateLimits'), self.updateLimits)
+            self.motor_dev.getAttribute('Limit_switches').addListener(self.limits_listener)
+        except:
+            self.ui.motorGroupBox.setEnabled(False)
+        
+    @QtCore.pyqtSignature("resetModel()")
+    def resetModel(self):
+        self.ui.motorGroupBox.resetModel()
+
+    @QtCore.pyqtSignature("getShowContextMenu()")
+    def getShowContextMenu(self):
+        return self.show_context_menu
+
+    @QtCore.pyqtSignature("setShowContextMenu(bool)")
+    def setShowContextMenu(self, showContextMenu):
+        self.show_context_menu = showContextMenu
+
+    @QtCore.pyqtSignature("resetShowContextMenu()")
+    def resetShowContextMenu(self):
+        self.show_context_menu = True
+
+    @QtCore.pyqtSignature("getShowPoolMotors()")
+    def getShowPoolMotors(self):
+        return self.show_pool_motors
+
+    @QtCore.pyqtSignature("setShowPoolMotors(bool)")
+    def setShowPoolMotors(self, showPoolMotors):
+        self.show_pool_motors = showPoolMotors
+
+    @QtCore.pyqtSignature("resetShowPoolMotors()")
+    def resetShowPoolMotors(self):
+        self.show_pool_motors = True
+
+    @QtCore.pyqtSignature("getStepSize()")
+    def getStepSize(self):
+        return self.ui.inc.value()
+
+    @QtCore.pyqtSignature("setStepSize(double)")
+    def setStepSize(self, stepSize):
+        self.ui.inc.setValue(stepSize)
+
+    @QtCore.pyqtSignature("resetStepSize()")
+    def resetStepSize(self):
+        self.setStepSize(1)
+
+    @QtCore.pyqtSignature("getStepSizeIncrement()")
+    def getStepSizeIncrement(self):
+        return self.ui.inc.singleStep()
+
+    @QtCore.pyqtSignature("setStepSizeIncrement(double)")
+    def setStepSizeIncrement(self, stepSizeIncrement):
+        self.ui.inc.setSingleStep(stepSizeIncrement)
+
+    @QtCore.pyqtSignature("resetStepSizeIncrement()")
+    def resetStepSizeIncrement(self):
+        self.setStepSizeIncrement(1)
+
+    model = QtCore.pyqtProperty("QString", getModel,setModel,resetModel)
+    showPoolMotors = QtCore.pyqtProperty("bool", getShowPoolMotors,setShowPoolMotors,resetShowPoolMotors)
+    stepSize = QtCore.pyqtProperty("bool", getStepSize,setStepSize,resetStepSize)
+    stepSizeIncrement = QtCore.pyqtProperty("bool", getStepSizeIncrement,setStepSizeIncrement,resetStepSizeIncrement)
+
+if __name__ == '__main__':
+    app = QtGui.QApplication(sys.argv)
+    qw = QtGui.QWidget()
+    qw.setLayout(QtGui.QVBoxLayout())
+
+    tau.setLogLevel(tau.Debug)
+    
+    motors = ['tango://controls02:10000/motor/gc_ipap_ctrl/1', 'tango://controls02:10000/motor/gc_dummymot_ctrl/1']
+    if len(sys.argv)>1:
+        motors = sys.argv[1:]
+    
+    # A QTIMER IS SET TO DETECT IF THE APPLICATION STARTED PROPERLY
+    # WE HAVE A GHOST BUG THAT 'SOMETIMES' MAKE THE APPLICATIONS NOT START
+    # IF THIS IS THE CASE, THE APPLICATION WILL EXIT LEAVING A MESSAGE TO THE USER.
+    # WE GUARANTEE A STARTUP TIME OF 2" OF STARTUP + 0.1" per PMS
+    APP_STARTED = False
+    def check_app_started():
+        print 'CHECKING TIMER.....'
+        if not APP_STARTED:
+            print 'There was an startup error (Known Bug), please, try again.'
+            QtGui.QApplication.instance().exit(1)
+        # FOR THE TESTS WE WANT, THE IDEA IS TO KEEP THE LOGS IF IT HANGS, JUST THE OPOSITE
+        else:
+            print "........................................................................................................."
+            print "NORMAL STATE, WE SHOULD KEEP THE APPLICATION RUNNING BUT SINCE WE ARE TESTING 'NOT NORMAL STATES' WE EXIT"
+            print "........................................................................................................."
+            sys.exit(1)
+    timer = Qt.QTimer()
+    time_to_wait = 2000+len(motors)*0.1
+    timer.singleShot(time_to_wait, check_app_started)
+
+    
+    for motor in motors:
+        pms = PoolMotorSlim()
+        pms.setStepSize(1000)
+        pms.setStepSizeIncrement(1000)
+        qw.layout().addWidget(pms)
+        pms.setModel(motor)
+    qw.show()
+    APP_STARTED = True
+    sys.exit(app.exec_())

@@ -1,0 +1,226 @@
+<ui version="4.0">
+ <class>TaurusMotorH</class>
+ <widget class="QWidget" name="TaurusMotorH">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>392</width>
+    <height>48</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="TaurusGroupBox" name="TaurusGroupBox">
+     <property name="showText">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="TaurusValueLabel" name="labelState">
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="showQuality">
+           <bool>false</bool>
+          </property>
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/State</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusStateLed" name="ledState">
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/State</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusValueLineEdit" name="positionWrite">
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/Position</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusValueLabel" name="positionRead">
+          <property name="sizePolicy">
+           <sizepolicy vsizetype="Fixed" hsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/Position</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusConfigLabel" name="positionUnits">
+          <property name="minimumSize">
+           <size>
+            <width>35</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>35</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="prefixText">
+           <string/>
+          </property>
+          <property name="model">
+           <string>/Position?configuration=unit</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="config">
+          <property name="text">
+           <string>cfg</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusBoolLed" name="limitN">
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/Limit_switches</string>
+          </property>
+          <property name="boolIndex">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="limitLabel">
+          <property name="text">
+           <string>- lim +</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="TaurusBoolLed" name="limitP">
+          <property name="useParentModel">
+           <bool>true</bool>
+          </property>
+          <property name="model">
+           <string>/Limit_switches</string>
+          </property>
+          <property name="boolIndex">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TaurusGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>taurus.qt.qtgui.container</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TaurusStateLed</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusBoolLed</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusValueLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>taurus.qt.qtgui.input</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusConfigLabel</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusValueLabel</class>
+   <extends>QLabel</extends>
+   <header>taurus.qt.qtgui.display</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+

@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+## 
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+"""tau upgrade tool"""
+
+__docformat__ = 'restructuredtext'
+
+import os
+import sys
+import optparse
+import lxml.etree
+
+import taurus.qt.uic
+
+def main():
+    version = "tau2taurus %s" % (taurus.Release.version)
+    usage = "usage: %prog [options] inputfile"
+    description = "tau to taurus ui file translator"
+    parser = optparse.OptionParser(usage=usage, version=version, description=description)
+    
+    parser.add_option("-o", '--output', dest="output", default="",
+                      help="output FILE [default=console]", metavar="FILE")
+
+    options, args = parser.parse_args()
+
+    if len(args) != 1:
+        parser.error("incorrect number of arguments")
+    
+    try:
+        source = file(args[0])
+    except Exception, e:
+            parser.error(str(e))
+    
+    xml = lxml.etree.parse(source)
+    source.close()
+
+    if len(options.output) == 0:
+        output = sys.stdout
+    else:
+        try:
+            output = file(options.output, "w")
+        except Exception, e:
+            parser.error(str(e))
+
+    xml = taurus.qt.uic.tau2taurus(xml)
+    xml = taurus.qt.uic.resolve_inheritance(xml)
+
+    output.write(lxml.etree.tostring(xml, pretty_print=True))
+    output.close()
+    
+if __name__ == "__main__":
+    main()

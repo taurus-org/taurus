@@ -1,0 +1,21 @@
+import tauplugin
+
+from <_Module_> import <_TauClass_>
+                
+class <_TauClass_>Plugin(tauplugin.TauWidgetPlugin):
+
+    """<_TauClass_>Plugin(tauplugin.TauWidgetPlugin) 
+    
+    Provides a Python custom plugin for Qt Designer by implementing the
+    QDesignerCustomWidgetPlugin via a PyQt-specific custom plugin class.
+    """
+
+    def getWidgetClass(self):
+        return <_TauClass_>
+
+    def getIconName(self):
+        # give your widget icon file name here
+        return 'label.png'
+
+    def includeFile(self):
+        return "<_Module_>"

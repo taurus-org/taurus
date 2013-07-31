@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+##
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+import optparse
+import logging.handlers
+import socket
+
+import taurus
+from taurus.qt.qtgui.application import TaurusApplication
+from taurus.qt.qtgui.table import QLoggingWidget
+
+def main():
+    import taurus
+    dft_port = logging.handlers.DEFAULT_TCP_LOGGING_PORT
+    host = socket.gethostname()
+
+    help_gui = "gui mode [default]"
+    help_con = "console mode"
+    help_port = "port where log server is running [default: %d]" % dft_port
+    help_name = "filter specific log object [default: None, meaning don't " \
+                "filter]"
+    help_level = "filter specific log level." \
+                 "Allowed values are (case insensitive): critical, "\
+                 "error, warning/warn, info, debug, trace [default: debug]."
+
+    parser = optparse.OptionParser()
+    parser.add_option("-g", "--gui", dest="gui", default=True,
+                      action="store_true", help=help_gui)
+    parser.add_option("-c", "--console", dest="gui",
+                      action="store_false", help=help_con)
+    parser.add_option("--log-port", dest="log_port", default=dft_port,
+                      type="int", help=help_port)
+    parser.add_option("--log-name", dest="log_name", default=None,
+                      type="string", help=help_name)
+    parser.add_option("--log-level", dest="log_level", default="debug",
+                      type="string", help=help_level)
+
+    app = TaurusApplication(app_name="Taurus remote logger",
+                            app_version="1.0",
+                            org_domain="Taurus", org_name="Taurus community",
+                            cmd_line_parser=parser)
+
+    options = app.get_command_line_options()
+
+    port, name = options.log_port, options.log_name
+    level_str = options.log_level.capitalize()
+    gui = options.gui
+
+    level = taurus.Trace
+    if hasattr(taurus, level_str):
+        level = getattr(taurus, level_str)
+
+    if gui:
+        w = QLoggingWidget(perspective="Remote")
+        w.setMinimumSize(1024, 600)
+        
+        filterbar = w.getFilterBar()
+        filterbar.setLogLevel(level)                
+        if name is not None:
+            filterbar.setFilterText(name)
+        w.getPerspectiveBar().setEnabled(False)
+        w.getQModel().connect_logging(host, port)
+        w.show()
+        app.exec_()
+        w.getQModel().disconnect_logging()
+    else:
+        import taurus.core.util.remotelogmonitor
+        taurus.core.util.remotelogmonitor.log(host=host, port=port, name=name,
+                                              level=level)
+if __name__ == '__main__':
+    main()

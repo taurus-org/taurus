@@ -1,0 +1,76 @@
+
+.MS { color: #FFFFFF; 
+      font-family: Sans-serif; }
+
+body.MS { background-color: #444444; }
+
+table.MS { }
+
+.Panel { width: 100%;
+         border-width: 1px;
+         border-style: solid;
+         border-radius: 5px;
+         border-color: white;
+         padding: 4px; }
+
+.Form {
+         border-width: 1px;
+         border-style: solid;
+         border-radius: 5px;
+         border-color: white;
+         padding: 4px; 
+         background-image: linear-gradient(to bottom right, #CCCCCC 0%, #008BCC 100%);
+}
+
+.PanelUp { border-top-width: 1px;
+            border-left-width: 1px;
+            border-right-width: 1px;
+            border-top-style :solid;
+            border-left-style: solid;
+            border-right-style: solid;
+            border-bottom-style: none;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border-color: whitesmoke; 
+            margin: 2px;
+            padding: 4px; }
+            
+.MSBLTitle { font-family: arial, serif;
+             font-size : xx-large;
+             font-weight : bold;
+             text-align  : left; }
+
+.MSFETitle { font-family: arial, serif;
+             font-size : x-large;
+             font-weight : normal;
+             text-align  : left; }
+
+.MSIDTitle { font-family: arial, serif;
+             font-size : x-large;
+             font-weight : normal;
+             text-align  : left;  }
+
+.Label { 
+         font-weight : normal;
+         font-family : monospace;
+         text-align  : right;
+         vertical-align: middle; }
+             
+.FELabel { font-size   : large;
+           font-weight : normal;
+           font-family : monospace;
+           text-align  : center; 
+           vertical-align: middle; }
+
+.IDLabel { font-size   : large;
+           font-weight : normal;
+           font-family : monospace;
+           text-align  : right;
+           vertical-align: middle; }
+
+.BorderLabel { border-width:0px;
+          border-style:solid;
+          border-radius: 2px;
+          margin: auto;
+          padding: 4px; }
+          

@@ -1,0 +1,28 @@
+{% extends "sphinxdoc/layout.html" %}
+
+{% block rootrellink %}
+    <li><a href="{{ pathto('index') }}">home</a>|&nbsp;</li>
+    <li><a href="{{ pathto('devel/examples') }}">examples</a>|&nbsp;</li>
+    <li><a href="{{ pathto('users/screenshots') }}">screenshots</a>|&nbsp;</li>
+    <li><a href="{{ pathto('contents') }}">documentation </a> &raquo;</li>
+{% endblock %}
+
+{% block relbar1 %}
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+    <table cellpading='0' cellspacing='0' width='100%'>
+        <tr>
+            <td align='left'>
+                <a href="{{ pathto('index') }}">
+                    <img src="{{ pathto("_static/logo.png", 1) }}" border="0" alt="taurus"/>
+                </a>
+            </td>
+            <td align='right'>
+                <img src="{{ pathto("_static/taurus_codelogo01.png", 1) }}" border="0" alt="taurus"/>
+            </td>
+        </tr>
+    </table>
+</div>
+{{ super() }}
+{% endblock %}
+
+
