@@ -3,21 +3,21 @@
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -103,7 +103,7 @@ class build(dftbuild):
 
     def run(self):
         dftbuild.run(self)
-            
+
     def has_doc(self):
         if self.no_doc:
             return False
@@ -116,17 +116,17 @@ class build(dftbuild):
 
 
 class install_man(Command):
-    
+
     user_options = [
         ('install-dir=', 'd', 'base directory for installing man page files')]
-    
+
     def initialize_options(self):
         self.install_dir = None
-        
+
     def finalize_options(self):
         self.set_undefined_options('install',
                                    ('install_man', 'install_dir'))
-                                   
+
     def run(self):
         src_man_dir = abspath('doc', 'man')
         man_elems = os.listdir(src_man_dir)
@@ -136,12 +136,12 @@ class install_man(Command):
             if not os.path.isfile(f): continue
             if not f.endswith(".1"): continue
             man_pages.append(f)
-        
+
         install_dir = os.path.join(self.install_dir, 'man1')
-        
+
         if not os.path.isdir(install_dir):
             os.makedirs(install_dir)
-        
+
         for man_page in man_pages:
             self.copy_file(man_page, install_dir)
 
@@ -150,14 +150,14 @@ class install_html(Command):
 
     user_options = [
         ('install-dir=', 'd', 'base directory for installing HTML documentation files')]
-    
+
     def initialize_options(self):
         self.install_dir = None
-        
+
     def finalize_options(self):
         self.set_undefined_options('install',
                                    ('install_html', 'install_dir'))
-                                   
+
     def run(self):
         build_doc = self.get_finalized_command('build_doc')
         src_html_dir = abspath(build_doc.build_dir, 'html')
@@ -165,7 +165,7 @@ class install_html(Command):
 
 
 class install(dftinstall):
-    
+
     user_options = list(dftinstall.user_options)
     user_options.extend([
         ('install-man=', None, 'installation directory for Unix man pages'),
@@ -175,19 +175,19 @@ class install(dftinstall):
         self.install_man = None
         self.install_html = None
         dftinstall.initialize_options(self)
-    
+
     def finalize_options(self):
-        
+
         # We do a hack here. We cannot trust the 'install_base' value because it
         # is not always the final target. For example, in unix, the install_base
         # is '/usr' and all other install_* are directly relative to it. However,
-        # in unix-local (like ubuntu) install_base is still '/usr' but, for 
+        # in unix-local (like ubuntu) install_base is still '/usr' but, for
         # example, install_data, is '$install_base/local' which breaks everything.
         #
         # The hack consists in using install_data instead of install_base since
         # install_data seems to be, in practice, the proper install_base on all
         # different systems.
-        
+
         dftinstall.finalize_options(self)
         if os.name != "posix":
             if self.install_man is not None:
@@ -205,10 +205,10 @@ class install(dftinstall):
 
     def has_man(self):
         return os.name == "posix"
-    
+
     def has_html(self):
         return sphinx is not None
-    
+
     sub_commands = list(dftinstall.sub_commands)
     sub_commands.append(('install_man', has_man))
     sub_commands.append(('install_html', has_html))
@@ -223,21 +223,21 @@ if sphinx:
     from sphinx.setup_command import BuildDoc
 
     class build_doc(BuildDoc):
-        
+
         def has_doc_api(self):
             return True
 
         #sub_commands = BuildDoc.sub_commands + [(('build_doc_api', has_doc_api))]
-        
+
         def run(self):
             try:
                 return self.doit()
             except Exception,e:
                 self.warn("Failed to build doc. Reason: %s" % str(e))
-        
+
         def doit(self):
             BuildDoc.run(self)
-    
+
     cmdclass['build_doc'] = build_doc
 
 def main():
@@ -245,7 +245,7 @@ def main():
 
     author = Release.authors['Tiago']
     maintainer = Release.authors['Pascual-Izarra']
-    
+
     package_name = Release.name
 
     package_dir = { 'sardana' : abspath('src', 'sardana') }
@@ -255,24 +255,24 @@ def main():
     ]
     packages = [
         'sardana',
-        
+
         'sardana.util',
         'sardana.util.motion',
-        
+
         'sardana.pool',
         'sardana.pool.poolcontrollers',
-        
+
         'sardana.macroserver',
         'sardana.macroserver.macros',
         'sardana.macroserver.macros.examples',
         'sardana.macroserver.scan',
         'sardana.macroserver.scan.recorder',
-        
+
         'sardana.tango',
         'sardana.tango.core',
         'sardana.tango.pool',
         'sardana.tango.macroserver',
-        
+
         'sardana.spock',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
@@ -289,14 +289,14 @@ def main():
         'sardana.tango',
     ]
 
-    requires = [ 
+    requires = [
         'PyTango (>=7.2.3)',
         'taurus (>= 3.1)',
         'lxml (>=2.1)',
         'ipython (>=0.10, !=0.11)'
     ]
-     
-    package_data = { 
+
+    package_data = {
 
     }
 
