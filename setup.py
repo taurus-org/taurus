@@ -262,10 +262,6 @@ def main():
         'ipython (>=0.10, !=0.11)'
     ]
 
-    package_data = {
-
-    }
-
     scripts = [
         "scripts/h5toascii",
         "scripts/h5tospec",
@@ -309,7 +305,6 @@ def main():
           packages=packages,
           package_dir=package_dir,
           classifiers=classifiers,
-          package_data=package_data,
           scripts=scripts,
           provides=provides,
           keywords=Release.keywords,
