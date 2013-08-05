@@ -66,23 +66,32 @@ necessary to run taurus on your windows machine
     #. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
     #. Download and install latest taurus from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
 
-Working from SVN
+Working from Git
 ----------------
 
-.. warning:: These instructions will become obsolete as soon as Taurus 3.1 
-             is released because the code development will be moved from SVN to
-             Git. Updated instructions for using Git will be posted ASAP.
-             
-You can checkout taurus from SVN from the following location::
+Sometimes it is convenient to work directly from the git source without
+installing. Taurus code is hosted in a `subdirectory
+<http://sourceforge.net/p/sardana/sardana.git/ci/master/tree/taurus/>`_ of the
+`main Sardana git repository <http://sourceforge.net/p/sardana/sardana.git>`_
 
-    svn co https://svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus taurus
+You can clone sardana from our main git repository::
 
-Afterward, if you decide to work directly from SVN code (without installing):
+    git clone git://git.code.sf.net/p/sardana/sardana.git sardana
 
-    1. add <taurus checkout dir>/lib to PYTHONPATH
-    2. build the resources once::
+and you will find the taurus code in the `sardana/taurus` directory.
+
+Then, if you decide to work directly from Git code (without installing):
+
+    1. add <sardana_root_dir>/taurus/lib to PYTHONPATH
+    2. add <sardana_root_dir>/taurus/scripts to PATH
+    3. build the resources::
     
+        cd <sardana_root_dir>/taurus
         python setup.py build_resources
+        
+
+
+
 
 .. _dependencies:
 

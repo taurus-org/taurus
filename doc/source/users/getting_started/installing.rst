@@ -55,22 +55,23 @@ necessary to run sardana on your windows machine
 
 .. _sardana-working-from-svn:
 
-Working from SVN
-----------------
+Working directly from Git
+-------------------------
 
-.. warning:: These instructions will become obsolete as soon as Sardana 1.2 
-             is released because the code development will be moved from SVN to
-             Git. Updated instructions for using Git will be posted ASAP.
+Sometimes it is convenient to work directly from the git source without installing. To do so,
+you can clone sardana from our main git repository::
 
-You can checkout sardana from SVN from the following location::
-
-    svn co http://svn.code.sf.net/p/sardana/code/trunk Sardana
-
-You can directly execute sardana binaries (Pool, MacroServer, Sardana or spock
+    git clone git://git.code.sf.net/p/sardana/sardana.git sardana
+    
+And then you can directly execute sardana binaries (Pool, MacroServer, Sardana or spock
 from the command line)::
 
-    homer@pc001:~/workspace$ cd Sardana
-    homer@pc001:~/workspace/Sardana$ scripts/Sardana
+    homer@pc001:~/workspace$ cd sardana
+    homer@pc001:~/workspace/sardana$ scripts/Sardana
+    
+.. tip:: If you plan to work normally from git without installing, you may want
+         to add the `sardana/scripts` directory to your `PATH` variable and 
+         `sardana/src` to your `PYTHONPATH` variable.
 
 
 .. rubric:: Footnotes

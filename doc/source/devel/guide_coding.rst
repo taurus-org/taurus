@@ -8,38 +8,50 @@ Overview
 ---------
 
 This document describes sardana from the perspective of developers. Most 
-importantly, it gives information for people who want to contribute to the 
+importantly, it gives information for people who want to contribute code to the 
 development of sardana. So if you want to help out, read on!
 
 How to contribute to sardana
 ----------------------------
 
 Sardana development is managed with the `Sardana sourceforge project
-<https://sourceforge.net/projects/sardana/>`_. Until release 1.2, a svn
-repository has been used to host the source code. From then on, the version
-control will be moved to a git repository.
+<https://sourceforge.net/projects/sardana/>`_. 
 
-How to checkout sardana from SVN
---------------------------------
+Apart from directly contributing code, you can contribute to sardana in many
+ways, such as reporting bugs or proposing new features. In all cases you will
+probably need a sourceforge account and you are strongly encouragedto subscribe to the
+`sardana-devel and sardana-users mailing lists <https://sourceforge.net/p/sardana/mailman/>_`.
 
-.. warning:: These instructions will become obsolete as soon as Sardana 1.2 
-             is released because the code development will be moved from SVN to
-             Git. Updated instructions for using Git will be posted ASAP.
+The rest of this document will focus on how to contribute code.
 
-**For read-only**::
+Cloning and forking sardana from Git
+------------------------------------
 
-    svn co https://svn.code.sf.net/p/sardana/code/trunk Sardana
+You are welcome to clone the Sardana code from our main Git repository::
 
-**To being able to commit**::
+    git clone git://git.code.sf.net/p/sardana/sardana.git sardana
 
-    svn co https://<user name>@svn.code.sf.net/p/sardana/code/trunk Sardana
+Code contributions (bug patches, new features) are welcome,
+but the review process/workflow for accepting new code is yet to be discussed. For the
+moment, use the sardana-devel mailing list for proposing patches.
 
-.. note::
-    
-    You must have a sourceforge user account and have SVN write
-    access to the tango-cs project. You can ask write access to any of the 
-    tango-cs project administrators.
+Note that you can also `fork the git repository in sourceforge
+<https://sourceforge.net/p/sardana/sardana.git/fork>`_ to get your own
+sourceforge-hosted clone of the sardana repository to which you will have full
+access. This will create a new git repository associated to your personal account in
+sourceforge, so that your changes can be easily shared and eventually merged
+into the official repository.
+ 
+The old SVN code repository
+---------------------------
 
+After the release of Sardana 1.2 the Sardana code was migrated from its previous
+host in a SVN server to its current Git repository
+
+The old SVN repository is still `accessible for reference
+<https://sourceforge.net/p/sardana/code/>`_, but writing has been disabled and
+its contents are frozen as of 2013-07-31. For development, see the instructions
+above on cloning from Git
 
 Documentation
 -------------
@@ -113,7 +125,7 @@ sardana::
         """This class is written for template purposes only"""
         
     def main():
-        print "SardanaDemo"
+        print "SardanaDemo"s
     
     if __name__ == "__main__":
         main()
