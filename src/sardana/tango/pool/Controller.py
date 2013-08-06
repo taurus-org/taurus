@@ -85,7 +85,7 @@ class Controller(PoolDevice):
             name = self.alias or full_name
             args = dict(type=self.Type, name=name, full_name=full_name,
                         library=self.Library, klass=self.Klass,
-                        id=self.Id, role_ids=self.Role_ids,
+                        id=self.Id, role_ids=role_ids,
                         properties=self._get_ctrl_properties())
             ctrl = self.pool.create_controller(**args)
             ctrl.add_listener(self.on_controller_changed)
