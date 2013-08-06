@@ -1259,9 +1259,15 @@ class PseudoMotorController(PseudoController):
         :type index_or_role: int or str
         :return: PseudoMotor object for the given role/index
         :rtype: :class:`~sardana.pool.poolpseudomotor.PoolPseudoMotor`"""
+        dict_ids = self._getPoolController().get_element_ids()
+        dict_axis = self._getPoolController().get_element_axis()
+        pseudo_motor_ids = []
+        for akey, aname in dict_axis.items():
+            pseudo_motor_ids.append(dict_ids.keys()[dict_ids.values().index(aname)])
         return self._getElem(index_or_role, self.pseudo_motor_roles,
                              self.__pseudo_motor_role_elements,
-                             self._kwargs['pseudo_motor_roles'])
+                             pseudo_motor_ids)
+#                             self._kwargs['pseudo_motor_roles'])
 
 
 class PseudoCounterController(Controller):
