@@ -891,10 +891,7 @@ class BaseMacroServer(MacroServerDevice):
         return dict(self.getElementsInfo().getElementsWithInterface('MacroCode'))
 
     def getMacroInfoObj(self, macro_name):
-        ret = self.getElementInfo(macro_name)
-        if ret is not None and not 'MacroCode' in ret.interfaces:
-            return None
-        return ret
+        return self.getElementsInfo().getElementWithInterface(macro_name,'MacroCode')
 
     def getMacroStrList(self):
         return self.getElementNamesWithInterface('MacroCode')
