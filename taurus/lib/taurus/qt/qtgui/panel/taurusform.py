@@ -318,7 +318,7 @@ class TaurusForm(TaurusWidget):
         if formWidget is None:
             from taurus.qt.qtgui.panel import TaurusValue
             self._defaultFormWidget = TaurusValue
-        elif isinstance(formWidget,Qt.QWidget):
+        elif issubclass(formWidget, Qt.QWidget):
             self._defaultFormWidget = formWidget
         else:
             raise TypeError('formWidget must be one of None, QWidget. %s passed'%repr(type(formWidget)))
