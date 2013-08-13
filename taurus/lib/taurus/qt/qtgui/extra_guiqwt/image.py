@@ -346,8 +346,8 @@ class TaurusTrend2DScanItem(TaurusTrend2DItem):
             chval = recordData[self._channelKey]
         except KeyError:
             self.warning('Cannot find data "%s" in the current scan record. Ignoring',self._channelKey)
-        if yval.shape !=  self._yValues.shape:
-            self.warning('Incompatible shape of "%s" (%s). Ignoring',self._channelKey, repr(yval.shape))
+        if chval.shape !=  self._yValues.shape:
+            self.warning('Incompatible shape of "%s" (%s). Ignoring',self._channelKey, repr(chval.shape))
             return
           
         #initialization
