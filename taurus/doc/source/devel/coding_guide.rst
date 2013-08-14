@@ -19,33 +19,15 @@ Taurus is part of Tango_ and, more specifically, part of Sardana_. Until release
 sourceforge project <https://sourceforge.net/projects/tango-cs/>`_  and its
 source code was hosted in the Tango SVN repository. Starting from right after
 the Taurus 3.1 release, the source code hosting and general project management
-(tickets, mailing list, etc) will be managed within the Sardana `Sardana
-sourceforge project <https://sourceforge.net/projects/sardana/>`_. The Sardana
-project itself is in the process of migrating its source code hosting from SVN
-to Git and consequently, Taurus code will be hosted on a Git repository after
-the release of Taurus 3.1.
+(tickets, mailing list, etc) is managed within the Sardana `Sardana
+sourceforge project <https://sourceforge.net/projects/sardana/>`_.
 
+The Taurus source code is now hosted in a `subdirectory
+<http://sourceforge.net/p/sardana/sardana.git/ci/master/tree/taurus/>`_ of the
+`main Sardana git repository <http://sourceforge.net/p/sardana/sardana.git>`_. 
 
-How to checkout taurus from SVN
--------------------------------
-
-.. warning:: These instructions will become obsolete as soon as Taurus 3.1 
-             is released because the code development will be moved from SVN to
-             Git. Updated instructions for using Git will be posted ASAP.
-
-**For read-only**::
-
-    svn co https://svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus
-
-**To being able to commit**::
-
-    svn co https://<user name>@svn.code.sf.net/p/tango-cs/code/gui/taurus/trunk taurus
-
-.. note::
-    
-    You must have a sourceforge user account and have SVN write
-    access to the tango-cs project. You can ask write access to any of the 
-    tango-cs project administrators.
+See `instructions from Sardana about cloning and forking the sardana git
+repository <http://www.sardana-controls.org/devel/guide_coding.html>`_.
 
 
 Documentation

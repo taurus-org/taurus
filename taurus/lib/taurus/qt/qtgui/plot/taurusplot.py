@@ -2441,6 +2441,19 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         #update the data in the curves (because of the filtering done for possitive values in log mode)
         self.__updateCurvesData()
         return
+    
+    def axisScaleDiv(self, axis):
+        """ Return the scale division of a specified axis.
+
+        :param axis: (Qwt5.QwtPlot.Axis) the axis
+
+        :return: (Qwt5.QwtScaleDiv) scale division
+        """
+        div = Qwt5.QwtPlot.axisScaleDiv(self, axis)
+        if Qwt5.QWT_VERSION < 0x050200: #fix compatibility issue with Qwt < 5.2 (contributed by A. Persson)
+            div.lowerBound = div.lBound
+            div.upperBound = div.hBound
+        return div
 
     def __updateCurvesData(self):
         '''call safeSetData again on all curves to force a refiltering in case the scale changed its type'''

@@ -498,9 +498,7 @@ class VideoImageCodec(Codec):
         #frameNumber, unknown then -1
         height,width = data[1].shape
         header = self.__packHeader(imgMode,-1,width,height)
-        img2D = data[1]
-        img1D = img2D.flatten()
-        buffer = struct.pack(self.__getFormatId(imgMode)*img1D.size,*img1D)
+        buffer = data[1].tostring()
         return format,header+buffer
     
     def decode(self, data, *args, **kwargs):
@@ -515,11 +513,10 @@ class VideoImageCodec(Codec):
         header = self.__unpackHeader(data[1][:struct.calcsize(self.VIDEO_HEADER_FORMAT)])
         
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
-        fmt = self.__getFormatId(header['imageMode'])
-        img1D = numpy.array(struct.unpack(fmt*(len(imgBuffer)/struct.calcsize(fmt)),
-                                          imgBuffer),
-                            dtype=self.__getDtypeId(header['imageMode']))
+        dtype = self.__getDtypeId(header['imageMode'])
+        img1D = numpy.fromstring(imgBuffer, dtype)
         img2D = img1D.reshape(header['height'],header['width'])
+
         return '',img2D
 
     def __unpackHeader(self,header):
@@ -533,7 +530,7 @@ class VideoImageCodec(Codec):
         headerDict['height']        = h[5]
         headerDict['endianness']    = h[6]
         headerDict['headerSize']    = h[7]
-        headerDict['padding']       = h[7:]
+        headerDict['padding']       = h[8:]
         return headerDict
     
     def __packHeader(self,imgMode,frameNumber,width,height):

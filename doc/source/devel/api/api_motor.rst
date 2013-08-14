@@ -21,8 +21,8 @@ device server:
 Every motor in sardana is represented in the sardana kernel as a
 :class:`PoolMotor`. The :class:`PoolMotor` :term:`API` is not directly
 accessible from outside the sardana server. This is a low level :term:`API`
-that is only accessbile to someone writting a server extension to sardana. At
-the time of writting, the only available sardana server extension is Tango.
+that is only accessbile to someone writing a server extension to sardana. At
+the time of writing, the only available sardana server extension is Tango.
 
 The second motor interface consists on the one provided by the server extension,
 which is in this case the one provided by the Tango motor device interface:
