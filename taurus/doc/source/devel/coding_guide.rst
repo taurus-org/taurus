@@ -27,7 +27,7 @@ The Taurus source code is now hosted in a `subdirectory
 `main Sardana git repository <http://sourceforge.net/p/sardana/sardana.git>`_. 
 
 See `instructions from Sardana about cloning and forking the sardana git
-repository <http://www.sardana-controls.org/static/sardana/latest/doc/html/devel/guide_coding.html>`_.
+repository <http://www.sardana-controls.org/devel/guide_coding.html>`_.
 
 
 Documentation
