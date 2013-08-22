@@ -203,7 +203,7 @@ def edmac(self, parameter_s=''):
     try:
         remote_fname, code, line_nb = ms.GetMacroCode(macro_info)
     except PyTango.DevFailed, e:
-        taurus.core.util.print_DevFailed(e)
+        PyTango.Except.print_exception(e)
         return
 
     fd, local_fname = tempfile.mkstemp(prefix='spock_%s_' % pars[0],
