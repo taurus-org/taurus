@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
@@ -21,26 +22,3 @@
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-
-
-"""Unit tests for Taurus"""
-
-import unittest
-
-class TaurusImportTestCase(unittest.TestCase):
-    def setUp(self):
-        from moduleexplorer import ModuleExplorer
-        self.explore = ModuleExplorer.explore
-    
-    def testImportSubmodules(self):
-        """All submodules should import without problems"""
-        moduleinfo, wrn = self.explore('taurus', verbose=False)
-        msg = None
-        if wrn:
-            msg = '\n%s'%'\n'.join(zip(*wrn)[1]) 
-        self.assertEqual(len(wrn),0, msg=msg)
-        
-        
-       
-if __name__ == "__main__":
-    unittest.main()

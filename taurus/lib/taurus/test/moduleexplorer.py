@@ -24,7 +24,7 @@
 ##
 ###########################################################################
 
-''' Returns info about a module'''
+'''Utility code for returning info about a module'''
 
 import sys, os, inspect, glob, re
 
@@ -86,21 +86,21 @@ class ModuleExplorer(object):
         if self.verbose: print "Exploring %s..."%modulename  
         warnings = []
         try:
-          module = __import__(modulename, fromlist = [''])
+            module = __import__(modulename, fromlist = [''])
         except Exception,e:
-          msg = 'exploreModule: WARNING: Cannot import %s. Reason: %s'%(modulename,repr(e))
-          warnings.append(msg)
-          if self.verbose: print msg
-          return dict(modulename = modulename,
-                    basemodulename = modulename.split('.')[-1],
-                    modulepath = None,
-                    submodulenames = [], 
-                    localclassnames = [], 
-                    localfunctionnames = [],
-                    localenumerationnames = [],
-                    externalmembernames = [],
-                    submodules = {},
-                    warnings = warnings)
+            msg = 'exploreModule: WARNING: Cannot import %s. Reason: %s'%(modulename,repr(e))
+            warnings.append(msg)
+            if self.verbose: print msg
+            return dict(modulename = modulename,
+                        basemodulename = modulename.split('.')[-1],
+                        modulepath = None,
+                        submodulenames = [], 
+                        localclassnames = [], 
+                        localfunctionnames = [],
+                        localenumerationnames = [],
+                        externalmembernames = [],
+                        submodules = {},
+                        warnings = warnings)
         modulepath, tail = os.path.split(inspect.getabsfile(module))
         
         submodulenames = sorted(self._getSubmodulesFromPath(modulepath))
