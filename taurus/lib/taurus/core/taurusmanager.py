@@ -40,9 +40,11 @@ from .util.threadpool import ThreadPool
 from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
 from .taurusdatabase import TaurusDatabase
 from .taurusdevice import TaurusDevice
+from .taurusattribute import TaurusAttribute
 from .taurusconfiguration import TaurusConfiguration
 from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
+
 
 class TaurusManager(Singleton, Logger):
     """A :class:`taurus.core.util.singleton.Singleton` class designed to provide Taurus management.
