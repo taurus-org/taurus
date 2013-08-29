@@ -34,7 +34,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
-from taurus.core.util.containers import CaselessDict
+from taurus.core.util.containers import CaselessDict, CaselessList
 
 class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
