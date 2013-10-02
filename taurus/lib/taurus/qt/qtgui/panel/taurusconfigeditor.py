@@ -322,7 +322,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             try: result = pickle.loads(qstate.data())
             except Exception,e: 
                 msg = 'problems loading TaurusConfig: \n%s'%repr(e)
-                Qt.QMessageBox.critical(self, 'Error loading settings', msg)
+                Qt.QMessageBox.critical(None, 'Error loading settings', msg)
         return result
     
     def reloadFile(self):
