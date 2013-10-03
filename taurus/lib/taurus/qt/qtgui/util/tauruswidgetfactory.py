@@ -39,6 +39,7 @@ from taurus.qt import Qt
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 
+import taurus.qt.qtgui.base
 
 def _getWidgetsOfType(widget, widgets, class_or_type_or_tuple):
     
