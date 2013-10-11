@@ -381,11 +381,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             return self._findAbsoluteModelClass(self.getModel())
         
     def _findAbsoluteModelClass(self, absolute_name):
-        obj = taurus.Manager().findObject(absolute_name)
-        if obj is None:
-            return None
-        else:
-            return obj.__class__
+        return taurus.Manager().findObjectClass(absolute_name)
         
     def _findRelativeModelClass(self, relative_name):
         parent_widget = self.getParentTaurusComponent()
