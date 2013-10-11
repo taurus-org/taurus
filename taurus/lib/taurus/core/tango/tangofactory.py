@@ -320,7 +320,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         params = validator.getParams(dev_name)
         
         if params is None:
-            raise TaurusException("Invalid Tango device name %s" % dev_name)
+            raise TaurusException("Invalid Tango device name '%s'" % dev_name)
         
         host,port = params.get('host'),params.get('port')
         db = None
@@ -390,7 +390,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         params = validator.getParams(attr_name)
         
         if params is None:
-            raise TaurusException("Invalid Tango attribute name %s" % attr_name)
+            raise TaurusException("Invalid Tango attribute name '%s'" % attr_name)
         
         host,port = params.get('host'),params.get('port')
         
@@ -433,7 +433,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                         # attribute objects will register themselves in this factory
                         # so there is no need to do it here
                     except DoubleRegistration:
-                         attr = self.tango_attrs.get(full_attr_name)
+                        attr = self.tango_attrs.get(full_attr_name)
             except:
                 self.debug("Error creating attribute %s", attr_name, exc_info=1)
                 raise
@@ -700,7 +700,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
            :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
            :param period: (float) polling period (in seconds)
-           :param unsubscribe_evts: (bool) wheater or not to unsubscribe from events
+           :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
         tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
         self.polling_timers[period] = tmr
