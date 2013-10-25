@@ -398,6 +398,9 @@ class TangoAttribute(TaurusAttribute):
         # configuration info in order to know how to decode the value
         self._getRealConfig().addListener(self)
         
+
+        self.trace("Subscribing to change events...")
+
         dev = self.getParentObj()
         if dev is None:
             self.debug("failed to subscribe change events: device is None")
