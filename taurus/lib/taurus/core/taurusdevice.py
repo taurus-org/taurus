@@ -156,7 +156,8 @@ class TaurusDevice(TaurusModel):
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def getTaurusElementType(self):
+    @classmethod
+    def getTaurusElementType(cls):
         return TaurusElementType.Device
 
     @classmethod

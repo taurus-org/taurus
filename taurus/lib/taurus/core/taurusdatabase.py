@@ -419,8 +419,8 @@ class TaurusDatabase(TaurusModel):
         self.trace("[TaurusDatabase] cleanUp")
         TaurusModel.cleanUp(self)
 
-    def getTaurusElementType(self):
-        
+    @classmethod
+    def getTaurusElementType(cls):
         return TaurusElementType.Database
     
     @classmethod

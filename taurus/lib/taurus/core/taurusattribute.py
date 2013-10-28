@@ -75,7 +75,8 @@ class TaurusAttribute(TaurusModel):
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def getTaurusElementType(self):
+    @classmethod
+    def getTaurusElementType(cls):
         return TaurusElementType.Attribute
             
     @classmethod

@@ -91,7 +91,8 @@ class TaurusModel(Logger):
     # API for naming
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
-    def getTaurusElementType(self):
+    @classmethod
+    def getTaurusElementType(cls):
         raise RuntimeError("TaurusModel::getTaurusElementType cannot be called")
 
     def getFullName(self):

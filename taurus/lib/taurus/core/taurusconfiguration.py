@@ -41,7 +41,7 @@ class TaurusConfigurationProxy(object):
     TaurusConfiguration has a weak reference to TaurusAttribute. But then we must
     be sure that no other references to TaurusConfiguration exist so that
     no one tries to use it after its TaurusAttribute has disappeared.
-    That's why to the outside world we don't give acces to it directly
+    That's why to the outside world we don't give access to it directly
     but to objects of this new TaurusConfigurationProxy class.
     """
     def __init__(self, parent):
@@ -107,7 +107,8 @@ class TaurusConfiguration(TaurusModel):
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
-    def getTaurusElementType(self):
+    @classmethod
+    def getTaurusElementType(cls):
         return TaurusElementType.Configuration
 
     @classmethod
