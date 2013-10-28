@@ -251,18 +251,19 @@ class TaurusForm(TaurusWidget):
         self.setModel(currentModels)
     
     def setModelCheck(self, model, check=True):
-        model = self._splitModel(model)
+        if model is None:
+            model = []
+        model = [str(m or '') for m in self._splitModel(model)]
         self.destroyChildren()
         self._model = model
-        if True or model is not None: #@todo: !NOTE THAT This if has been disabled by the first True. Check why!
-            self.fillWithChildren()
+        self.fillWithChildren()
         #update the modelchooser list
         if self.__modelChooserDlg is not None:
             self.__modelChooserDlg.modelChooser.setListedModels(self._model)
                 
     def resetModel(self):
         self.destroyChildren()
-        self._model = Qt.QStringList()
+        self._model = []
         
     def getFormWidget(self, model=None):
         '''Returns a tuple that can be used for creating a widget for a given model.
@@ -390,8 +391,9 @@ class TaurusForm(TaurusWidget):
             if parent_model:
                 parent_name = parent_model.getFullName()
         
-        for i,model in enumerate(self.getModel()): 
-            model = str(model)
+        for i,model in enumerate(self.getModel()):
+            if not model:
+                continue
             if parent_name: model = "%s/%s" % (parent_name, model) #@todo: Change this (it assumes tango model naming!)
             klass, args, kwargs = self.getFormWidget(model=model)
             widget = klass(frame,*args,**kwargs)
