@@ -168,7 +168,7 @@ class ascanr(Macro, Hookable):
         return self._gScan.data
         
 
-class toothedtriangle(Macro):
+class toothedtriangle(Macro, Hookable):
     """toothedtriangle macro implemented with the gscan framework.
     It performs nr_cycles cycles, each consisting of two stages: the first half
     of the cycle it behaves like the ascan macro (from start_pos to stop_pos in
@@ -177,7 +177,10 @@ class toothedtriangle(Macro):
     At each step, nr_samples acquisitions are performed.
     The total number of points in the scan is nr_interv*2*nr_cycles*nr_samples+1"""
 
-    hints = { 'scan' : 'toothedtriangle', 'allowsHooks':('pre-move', 'post-move', 'pre-acq', 'post-acq') }
+    hints = { 'scan' : 'toothedtriangle',
+             'allowsHooks':('pre-scan', 'pre-move', 'post-move', 'pre-acq',
+                            'post-acq', 'post-step', 'post-scan')
+             }
     env = ('ActiveMntGrp',)
 
     param_def = [
@@ -224,8 +227,11 @@ class toothedtriangle(Macro):
     def _generator(self):
         step = {}
         step["integ_time"] =  self.integ_time
-        step["post-acq-hooks"] = []
-        step["post-step-hooks"] = []
+        step["pre-move-hooks"] = self.getHooks('pre-move')
+        step["post-move-hooks"] = self.getHooks('post-move')
+        step["pre-acq-hooks"] = self.getHooks('pre-acq')
+        step["post-acq-hooks"] = self.getHooks('post-acq') + self.getHooks('_NOHINT_')
+        step["post-step-hooks"] = self.getHooks('post-step')
         step["check_func"] = []
         extrainfo = {"cycle":None, "interval":None, "sample":None, } 
         step['extrainfo'] = extrainfo
