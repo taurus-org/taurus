@@ -648,6 +648,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if cls is None:
             self._attached = False
             #self.trace("Failed to attach: Model class not found")
+        elif self.modelName == '':
+            self._attached = False
+            self.modelObj = None
         else:
             try:
                 self.modelObj = taurus.Manager().getObject(cls, self.modelName)
