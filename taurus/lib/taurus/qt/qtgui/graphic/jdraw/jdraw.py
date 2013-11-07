@@ -120,7 +120,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
             return obj
         except:
             self.warning("Error fetching object")
-            self.debug("Details:", exc_info=1)
+            self.info("Details:", exc_info=1)
             pass
         return None
     
@@ -171,7 +171,16 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         item.setPolygon(polygon)
 
         return item
-    
+
+    def getSplineObj(self, params):
+        item = self.getGraphicsItem('Spline', params)
+                
+        p = params.get('summit')
+        p = [Qt.QPointF(p[i],p[i+1]) for i in xrange(0,len(p),2)]
+        item.setControlPoints(p)
+
+        return item
+
     def getLabelObj(self,params):
         item = self.getGraphicsItem('Label',params)
         

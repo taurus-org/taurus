@@ -671,6 +671,52 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             #v.invalidateScene(self.SelectionCircle.boundingRect())
         return
 
+
+class QSpline(Qt.QGraphicsPathItem):
+
+    def __init__(self, parent=None, closed=False, control_points=None):
+        super(QSpline, self).__init__(parent)
+        self.__closed = closed
+        if control_points is None:
+            control_points = []
+        self.setControlPoints(control_points)
+
+    def setControlPoints(self, control_points):
+        self.__control_points = control_points
+    
+    def clearPath(self):
+        path = Qt.QPainterPath()
+        self.setPath(path)
+        return path
+
+    def nextMiddlePoint(self, i):
+        cp = self.__control_points
+        p1, p2 = cp[i], cp[(i+1)%len(cp)]
+        return p1+0.5*(p2-p1)
+
+    def updateSplinePath(self):
+        path = self.clearPath()
+        cp = self.__control_points
+        nb_points = len(cp)
+        nmp = self.nextMiddlePoint
+        if nb_points == 0:
+            return
+        elif nb_points == 2:
+            path.moveTo(cp[0])
+            path.lineTo(cp[1])
+        else:
+            if self.__closed:
+                path.moveTo(nmp(0))
+                for i in range(1, nb_points):
+                    path.quadTo(cp[i], nmp(i))
+            else:
+                path.moveTo(cp[0])
+                path.lineTo(nmp(0))
+                for i in range(1, nb_points-1):
+                    path.quadTo(cp[i], nmp(i))
+                path.lineTo(cp[nb_points-1])
+
+
 class TaurusGraphicsItem(TaurusBaseComponent):
     """Base class for all Taurus Graphics Items"""
     
@@ -984,7 +1030,8 @@ TYPE_TO_GRAPHICS = {
              "Line"           : Qt.QGraphicsLineItem,
              "Group"          : Qt.QGraphicsItemGroup, 
              "SwingObject"    : Qt.QGraphicsRectItem, 
-             "Image"          : Qt.QGraphicsPixmapItem, },
+             "Image"          : Qt.QGraphicsPixmapItem,
+             "Spline"         : QSpline, },
              
     TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
@@ -994,7 +1041,8 @@ TYPE_TO_GRAPHICS = {
                            "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
                            "Group"          : TaurusGroupStateItem, 
                            "SwingObject"    : TaurusTextAttributeItem,
-                           "Image"          : Qt.QGraphicsPixmapItem, },
+                           "Image"          : Qt.QGraphicsPixmapItem,
+                           "Spline"         : QSpline, },
 
     TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
@@ -1004,7 +1052,8 @@ TYPE_TO_GRAPHICS = {
                            "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
                            "Group"          : TaurusGroupStateItem, 
                            "SwingObject"    : TaurusTextAttributeItem,
-                           "Image"          : Qt.QGraphicsPixmapItem, },
+                           "Image"          : Qt.QGraphicsPixmapItem,
+                           "Spline"         : QSpline, },
 }
 
 
@@ -1046,6 +1095,9 @@ class TaurusBaseGraphicsFactory:
     def getImageObj(self,parms):
         raise RuntimeError("Invalid call to AbstractGraphicsFactory::getImageObj()")
     
+    def getSplineObj(self, params):
+        raise RuntimeError("Invalid call to AbstractGraphicsFactory::getSplineObj()")
+
     def getGraphicsClassItem(self,cls,type_):
         ncls = cls
         try:

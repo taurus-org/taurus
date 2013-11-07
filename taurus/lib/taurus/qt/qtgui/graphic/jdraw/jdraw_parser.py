@@ -38,7 +38,7 @@ from taurus.core.util.log import Logger
 tokens = ( 'NUMBER', 'SYMBOL', 'LBRACKET', 'RBRACKET', 'TWOP', 'COMMA',
 'JDFILE', 'GLOBAL', 'JDLINE', 'JDRECTANGLE', 'JDROUNDRECTANGLE',
 'JDGROUP', 'JDELLIPSE', 'JDBAR', 'JDSWINGOBJECT', 'JDLABEL', 'JDPOLYLINE', 
-'JDIMAGE', 'JDAXIS', 'JDSLIDER', 'TEXT', 
+'JDIMAGE', 'JDAXIS', 'JDSLIDER', 'JDSPLINE', 'TEXT', 
 'true', 'false',
 )
 
@@ -198,7 +198,8 @@ def p_obj(p):
            | JDPOLYLINE
            | JDIMAGE
            | JDAXIS
-           | JDSLIDER'''
+           | JDSLIDER
+           | JDSPLINE'''
     p[0] = p[1]
 
 def p_parameter_list(p):
