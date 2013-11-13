@@ -31,7 +31,6 @@ __docformat__ = 'restructuredtext'
 
 import os
 import traceback
-import subprocess
 import taurus
 from taurus.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
@@ -215,7 +214,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             self.setHorizontalScrollBarPolicy(Qt.Qt.ScrollBarAlwaysOff)
             self.fitting()
             self.emitColors()
-        except Exception,e:
+        except Exception:
             self.warning('Exception in JDrawView('+self._fileName+').resizeEvent: %s' % traceback.format_exc())
             pass
 
@@ -278,8 +277,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
                     mimeData.setData(TAURUS_MODEL_MIME_TYPE, model)
         except:
-            self.warning('jdrawView.getModelMimeData(%s): unable to get MimeData'%model)
-            self.warning(traceback.format_exc())
+            self.debug('jdrawView.getModelMimeData(%s): unable to get MimeData'%model)
+            self.debug(traceback.format_exc())
         return mimeData
         
 

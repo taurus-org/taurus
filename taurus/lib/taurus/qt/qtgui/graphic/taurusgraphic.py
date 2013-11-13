@@ -81,7 +81,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
             #prevents a proper update when the view is inside a QTab 
             v.viewport().update()
         else:
-            v.updateScene(item_rects)
+            v.updateScene(item_rects) #@todo This is probably a bug (item_rects is not defined). But it is defined in .run(), see "todo" below...
             #v.invalidateScene(item.boundingRect())
         return
 
@@ -102,7 +102,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
                     continue
             if not operator.isSequenceType(item):
                 item = (item,)
-            item_rects = [ i.boundingRect() for i in item ]
+            item_rects = [ i.boundingRect() for i in item ]  # @todo: Unless the call to boundingRect() has a side effect, this line is useless..  probably related to todo in _updateView()
             
             for v in p.views():
                 #p.debug("emit('updateView')")
@@ -273,7 +273,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             return self.getTaurusParentItem(obj) or obj
         else: 
             #return self.itemAt(x,y)
-            self.warning('getItemByPosition(%d,%d): no items found!'%(x,y))
+            self.debug('getItemByPosition(%d,%d): no items found!'%(x,y))
             return None
             
     def getItemClicked(self,mouseEvent):
@@ -334,7 +334,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     if not menu.isEmpty():
                         menu.exec_(Qt.QPoint(mouseEvent.screenPos().x(),mouseEvent.screenPos().y()))
                     del menu
-        except Exception,e:
+        except Exception:
             self.error( traceback.format_exc())
             
     def mouseDoubleClickEvent(self,event):
@@ -604,7 +604,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         """ Searches within a group hierarchy and returns a parent Taurus component or None if no parent TaurusBaseComponent 
             is found."""
         if item is None: return None
-        first,p,next= None,item.parentItem(),None
+        first,p= None,item.parentItem()
         while p:
             if isinstance(p, TaurusGraphicsItem):
                 if first is None: 
