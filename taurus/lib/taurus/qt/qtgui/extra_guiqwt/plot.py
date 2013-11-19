@@ -451,6 +451,9 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
                 plot.del_item(self.imgItem)
             except:
                 self.info("Unable to delete item from plot")
+        if not model:
+            self.imgItem = None
+            return
         if self.rgbmode:
             self.imgItem = make.rgbimage(taurusmodel=model)
         else:
