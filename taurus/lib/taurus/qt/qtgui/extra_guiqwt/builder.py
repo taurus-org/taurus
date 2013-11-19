@@ -38,6 +38,7 @@ from guiqwt.image import ImageParam, XYImageItem
 from guiqwt.styles import XYImageParam
 from guiqwt.config import _
 from guiqwt.baseplot import BasePlot
+from guiqwt.histogram import lut_range_threshold
 import numpy
 
 
@@ -80,7 +81,6 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
         Extension to meth:`guiqwt.builder.PlotItemBuilder.image` to support passing a 
         'taurusmodel' as a keyword argument instead passing 'data' or 'filename'.
         """
-        
         if taurusmodel is None:
             image = guiqwt.builder.PlotItemBuilder.image(self, **kwargs)
         else:
@@ -112,7 +112,8 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 xmin, xmax = xdata
                 ymin, ymax = ydata
             else:
-                attr = taurus.Attribute(taurusmodel)
+                from taurus import Attribute
+                attr = Attribute(taurusmodel)
                 valueobj = attr.read()
                 attrdata = getattr(valueobj, 'value', numpy.zeros((1,1)))
                 xmin, xmax, ymin, ymax = self.compute_bounds(attrdata, pixel_size)
