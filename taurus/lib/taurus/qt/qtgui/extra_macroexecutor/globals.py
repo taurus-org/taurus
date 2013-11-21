@@ -99,7 +99,9 @@ ALLOWS_HOOKS_FILTER = 'allowsHooks'
 PARAM_REPEAT           = "ParamRepeat"
 
 PARAM_OBJECT                = "Object"
-PARAM_MOTOR                 = "Moveable"
+PARAM_MOTOR                 = "Motor"
+PARAM_PSEUDOMOTOR           = "PseudoMotor"
+PARAM_MOVEABLE              = "Moveable"
 PARAM_CONTROLLER_CLASS      = "ControllerClass"
 PARAM_CONTROLLER            = "Controller"
 PARAM_MOTOR_PARAM           = "MotorParam"
@@ -134,6 +136,8 @@ MIN_REPEATS =   "min"
 
 EDITOR_COMBOBOX_PARAMS = [PARAM_OBJECT,
                           PARAM_MOTOR,
+                          PARAM_PSEUDOMOTOR,
+                          PARAM_MOVEABLE,
                           PARAM_CONTROLLER_CLASS,
                           PARAM_CONTROLLER,
                           PARAM_MOTOR_PARAM, 
