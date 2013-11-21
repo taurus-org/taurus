@@ -551,6 +551,20 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         cname, ok = Qt.QInputDialog.getItem(self, 'Change Write Widget', 'Choose a new write widget class', classnames, 1, True)
         if ok:
             self.setWriteWidgetClass(str(cname))
+
+    def _destroyWidget(self, widget):
+        '''get rid of a widget in a safe way'''
+        widget.hide()
+        widget.setParent(None)
+        if hasattr(widget,'setModel'):
+            widget.setModel(None)
+        # COULD NOT INVESTIGATE DEEPER, BUT THE STARTUP-HANGING
+        # HAPPENS WITH SOME SIGNALS RELATED WITH THE LINEEDIT...
+        # MAYBE OTHER 'WRITE WIDGETS' HAVE THE SAME PROBLEM ?!?!?!
+        if isinstance(widget, Qt.QLineEdit):
+            widget.blockSignals(True)
+        # THIS HACK REDUCES THE STARTUP-HANGING RATE
+        widget.deleteLater()
         
     def _newSubwidget(self, oldWidget, newClass):
         '''eliminates oldWidget and returns a new one.
@@ -558,21 +572,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         If newClass is the same as the olWidget class, nothing happens'''
         if oldWidget.__class__ == newClass: return oldWidget
         if oldWidget is not None:
-            oldWidget.hide()
-            oldWidget.setParent(None)
-            # THIS HACK REDUCES THE STARTUP-HANGING RATE
-            if hasattr(oldWidget,'setModel'):
-                oldWidget.setModel(None)
-            
-            # COULD NOT INVESTIGATE DEEPER, BUT THE STARTUP-HANGING
-            # HAPPENS WITH SOME SIGNALS RELATED WITH THE LINEEDIT...
-            # MAYBE OTHER 'WRITE WIDGETS' HAVE THE SAME PROBLEM ?!?!?!
-            if isinstance(oldWidget, Qt.QLineEdit):
-                oldWidget.blockSignals(True)
-                
-            # THIS HACK REDUCES THE STARTUP-HANGING RATE
-            oldWidget.deleteLater()
-
+            self._destroyWidget(oldWidget)
         if newClass is None: result = None
         else: result = newClass()
         return result
@@ -644,6 +644,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             klass = self.readWidgetClassFactory(self.readWidgetClassID)
             self._readWidget = self._newSubwidget(self._readWidget, klass)
         except Exception,e:
+            self._destroyWidget(self._readWidget)
             self._readWidget = Qt.QLabel('[Error]')
             msg='Error creating read widget:\n'+str(e)
             self._readWidget.setToolTip(msg)
