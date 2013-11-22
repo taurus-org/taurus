@@ -356,7 +356,10 @@ class PanelDescription(TaurusGuiComponentDescription):
     def fromPanel(panel):
         name = str(panel.objectName())
         classname = panel.getWidgetClassName()
-        modulename = None
+        modulename = panel.getWidgetModuleName()
+        #in the case of classes known to the TaurusWidgetFactory, do not store the modulename
+        if modulename.startswith('taurus.') and classname in TaurusWidgetFactory().getWidgetClassNames():
+            modulename = None
         widgetname = None
         floating = panel.isFloating()
         sharedDataWrite = None
