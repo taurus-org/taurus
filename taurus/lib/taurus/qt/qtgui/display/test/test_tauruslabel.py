@@ -32,7 +32,9 @@ from taurus.qt.qtgui.display import TaurusLabel
 
 class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
     _klass = TaurusLabel
-    modelnames = ['sys/tg_test/1/wave','', 'eval://1', None]
+    modelnames = ['sys/tg_test/1/wave', '', 'eval://1', None]
 
 
-    
+#     
+# if __name__ == "__main__":
+#     unittest.main()
