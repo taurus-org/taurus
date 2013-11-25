@@ -43,15 +43,18 @@ class GenericWidgetTestCase(object):
     _klass = None
     initargs = []
     initkwargs = {}
-    modelnames = ['sys/tg_test/1/short_scalar']
+    modelnames = []
     
     def setUp(self):
         if self._klass is None:
             self.skipTest('klass is None')
             return
-        from taurus.qt.qtgui.application import TaurusApplication
-        app = TaurusApplication()
+        
         unittest.TestCase.setUp(self)
+        
+        from taurus.qt.qtgui.application import TaurusApplication
+        if getattr(self, '_app', None) is None:
+            self._app = TaurusApplication([])
         self._widget = self._klass(*self.initargs, **self.initkwargs)
                
         #construct a list of models corresponding to the test model names provided by the widget
@@ -59,9 +62,12 @@ class GenericWidgetTestCase(object):
         self._models = []
         for n in self.modelnames:
             if not n: #an empty string or None are "valid" modelnames which should lead to a reset in the model
-                self._models.append(None) 
+                self._models.append(None)
             else:
-                model = taurusManager.findObject(n) #note, an unsupported model name will result in a None, which will be caught later on
+                try:
+                    model = taurusManager.findObject(n) #note, an unsupported model name will result in a None, which will be caught later on
+                except:
+                    model = None
                 self._models.append(model)
         
     def test00_Instantiation(self):
@@ -70,8 +76,8 @@ class GenericWidgetTestCase(object):
                 
     def test10_SetModelsSequentially(self):
         '''check that we can set several models sequentially'''
-        if not any(self._models): 
-            self.skipTest('%s does not provide enough non-trivial models for testing') 
+#        if not any(self._models): 
+#            self.skipTest('%s does not provide enough non-trivial models for testing') 
         for name,model in zip(self.modelnames, self._models):
             self._widget.setModel(name)
             modelobj = self._widget.getModelObj() #model obj is the one returned by the widget while model is the ine returned by the manager
@@ -79,8 +85,7 @@ class GenericWidgetTestCase(object):
                 continue #the modelname is not supported by the manager (we cannot test it apart from the fact that setModel does not raise an exception
             else:
                 self.assertIs(modelobj, model,'failed to set model "%s" for %s'%(name, self._klass.__name__) )
-                 
-            
+
 #    def test10_ModelProperty(self):
 #        pass
 
@@ -93,7 +98,7 @@ if __name__ == "__main__":
         _klass = TaurusLabel
         modelnames = ['sys/tg_test/1/wave','', 'eval://1', None]
         
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TaurusLabelTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-    #unittest.main()
-    #TaurusLabelTest().run()
+#     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TaurusLabelTest)
+#     unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.main()
+    TaurusLabelTest().run()
