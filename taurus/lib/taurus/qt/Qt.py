@@ -136,7 +136,10 @@ if QT_API == QT_API_PYQT:
         PyQt4.QtCore.QStringList = PyQt4.Qt.QStringList = QStringList = __QStringList_2
     
 elif QT_API == QT_API_PYSIDE:
-    from PySide.Qt import *
+    #from PySide.Qt import *
+    from QtCore import *
+    from QtGui import *
+
 
     QVariant = __QVariant_2
     to_qvariant = __to_qvariant_2
