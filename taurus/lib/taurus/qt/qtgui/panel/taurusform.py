@@ -112,6 +112,7 @@ class TaurusForm(TaurusWidget):
         
         self._connectButtons()
         
+        self.resetCompact()
         
         #Actions (they automatically populate the context menu)
         self.setContextMenuPolicy(Qt.Qt.ActionsContextMenu)
@@ -130,12 +131,18 @@ class TaurusForm(TaurusWidget):
         self.addAction(self.changeLabelsAction)
         self.connect(self.changeLabelsAction, Qt.SIGNAL("triggered()"), self.onChangeLabelsAction)
         
-        self.resetCompact()
+        self.compactModeAction = Qt.QAction('Compact mode (all items)', self)
+        self.compactModeAction.setCheckable(True)
+        self.compactModeAction.setChecked(self.isCompact())
+        self.addAction(self.compactModeAction)
+        self.connect(self.compactModeAction, Qt.SIGNAL("triggered(bool)"), self.setCompact)
+        
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
 
         #properties
         self.registerConfigProperty(self.isWithButtons, self.setWithButtons, 'withButtons')
+        self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
 
     def __getitem__(self, key):
         '''provides a list-like interface: items of the form can be accessed using slice notation'''
@@ -341,6 +348,8 @@ class TaurusForm(TaurusWidget):
         
     def setCompact(self, compact):
         self._compact = compact
+        for item in self.getItems():
+            item.setCompact(compact)
 
     def isCompact(self):
         return self._compact
