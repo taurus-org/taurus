@@ -109,6 +109,11 @@ class DefaultLabelWidget(TaurusLabel):
             menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
             cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
+            cm_action = menu.addAction("Compact")
+            cm_action.setCheckable(True)
+            cm_action.setChecked(self.taurusValueBuddy().isCompact())
+            self.connect(cm_action, Qt.SIGNAL("toggled(bool)"), self.taurusValueBuddy().setCompact)
+            
             
         menu.exec_(event.globalPos())
         event.accept()
@@ -284,6 +289,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.setParent(parent)
             
         self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labeConfig')
+        self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
             
     def setVisible(self, visible):
         for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(), self.customWidget(), self.extraWidget()):
@@ -879,7 +885,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.extraWidgetClassID = 'Auto'
         
     def setCompact(self, compact):
+        if compact == self._compact:
+            return
         self._compact = compact
+        if self.getModel():
+            self.updateReadWidget()
+            self.updateWriteWidget()
+
+    def isCompact(self):
+        return self._compact
         
     def isReadOnly(self):
         if not self.getAllowWrite(): return True 
