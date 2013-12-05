@@ -130,6 +130,7 @@ class TaurusForm(TaurusWidget):
         self.addAction(self.changeLabelsAction)
         self.connect(self.changeLabelsAction, Qt.SIGNAL("triggered()"), self.onChangeLabelsAction)
         
+        self.resetCompact()
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
 
@@ -337,6 +338,16 @@ class TaurusForm(TaurusWidget):
         
     def resetWithButtons(self):
         self.setWithButtons(True)
+        
+    def setCompact(self, compact):
+        self._compact = compact
+
+    def isCompact(self):
+        return self._compact
+    
+    def resetCompact(self):
+        from taurus import tauruscustomsettings
+        self.setCompact(getattr(tauruscustomsettings,'T_FORM_COMPACT',{}))
     
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in forms'''
@@ -398,7 +409,9 @@ class TaurusForm(TaurusWidget):
             klass, args, kwargs = self.getFormWidget(model=model)
             widget = klass(frame,*args,**kwargs)
             widget.setMinimumHeight(20)  #@todo UGLY... See if this can be done in other ways... (this causes trouble with widget that need more vertical space , like PoolMotorTV)
-            try: 
+
+            try:
+                widget.setCompact(self.isCompact())
                 widget.setModel(model)
                 widget.setParent(frame)
             except: 
@@ -489,6 +502,8 @@ class TaurusForm(TaurusWidget):
     modifiableByUser = Qt.pyqtProperty("bool", TaurusWidget.isModifiableByUser, 
                                                setModifiableByUser,
                                                TaurusWidget.resetModifiableByUser)
+    
+    compact = Qt.pyqtProperty("bool", isCompact, setCompact, resetCompact)
       
     
 

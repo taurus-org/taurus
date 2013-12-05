@@ -49,6 +49,7 @@ from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueCheckBox
 from taurus.qt.qtgui.input import TaurusWheelEdit, TaurusValueLineEdit
 from taurus.qt.qtgui.button import TaurusLauncherButton
 from taurus.qt.qtgui.util import TaurusWidgetFactory, ConfigurationMenu
+from taurus.qt.qtgui.compact import TaurusReadWriteSwitcher
 
 
 class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
@@ -232,6 +233,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         breaks some conventions on the way it manages layouts of its parent model.
     '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
+    _compact = False
     
     def __init__(self, parent = None, designMode = False, customWidgetMap=None):
         name = self.__class__.__name__
@@ -587,13 +589,26 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
-        if isinstance(classID, type): return classID
-        elif str(classID) == 'Auto': return self.getDefaultReadWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        
+        if isinstance(classID, type): ret = classID
+        elif str(classID) == 'Auto': ret = self.getDefaultReadWidgetClass()
+        else: ret = TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        
+        if self._compact:
+            R = ret
+            W = self.writeWidgetClassFactory(self.writeWidgetClassID, ignoreCompact=True)
+            if W is None: 
+                return R
+            class klass(TaurusReadWriteSwitcher):
+                readWClass = R
+                writeWClass = W
+            return klass
+        return ret
     
-    def writeWidgetClassFactory(self, classID):
+    def writeWidgetClassFactory(self, classID, ignoreCompact=False):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        if self._compact and not ignoreCompact: return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
         else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
@@ -862,6 +877,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def resetExtraWidgetClass(self):
         self.extraWidgetClassID = 'Auto'
+        
+    def setCompact(self, compact):
+        self._compact = compact
         
     def isReadOnly(self):
         if not self.getAllowWrite(): return True 
