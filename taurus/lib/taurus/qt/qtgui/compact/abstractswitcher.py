@@ -102,6 +102,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         
         TaurusWidget.__init__(self, parent=parent, designMode=designMode)
         
+        self.setFocusPolicy(Qt.Qt.StrongFocus)
         self.setLayout(Qt.QStackedLayout())
         self.readWidget = None
         self.writeWidget = None
@@ -125,9 +126,11 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         #Actions for entering and exiting the edit
         self.enterEditAction = Qt.QAction("Start Editing", self)
         self.enterEditAction.setShortcuts(self.enterEditShortCuts)
+        self.enterEditAction.setShortcutContext(Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.enterEditAction)
         self.exitEditAction = Qt.QAction("Abort Editing", self)
         self.exitEditAction.setShortcuts(self.exitEditShortCuts)
+        self.exitEditAction.setShortcutContext(Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.exitEditAction)
         self.connect(self.enterEditAction, Qt.SIGNAL("triggered()"), self._onEnterEditActionTriggered)
         self.connect(self.exitEditAction, Qt.SIGNAL("triggered()"), self._onExitEditActionTriggered)
@@ -320,9 +323,38 @@ def demo2():
     
     f.show()
     sys.exit(app.exec_())
+    
+def demo3():
+    '''simple demo including more than one widget'''
+    
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.qt.qtgui.display import TaurusLabel, TaurusBoolLed
+    from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
+    
+    app = TaurusApplication()
+        
+    w1 = TaurusReadWriteSwitcher(readWClass=TaurusLabel, 
+                                writeWClass=TaurusValueLineEdit)
+    w1.model = "sys/tg_test/1/long_scalar"
+    
+    w2 = TaurusReadWriteSwitcher(readWClass=TaurusBoolLed, 
+                                writeWClass=TaurusValueCheckBox)
+    w2.model = "sys/tg_test/1/boolean_scalar"
+    
+    
+    f = Qt.QWidget()
+    f.setLayout(Qt.QVBoxLayout())
+    f.layout().addWidget(w1)
+    f.layout().addWidget(w2)
+    f.layout().addWidget(TaurusReadWriteSwitcher()) #add non-initialized switcher
+    f.show()
+    
+    sys.exit(app.exec_()) 
 
 
 if __name__ == "__main__":
-    demo1()
+    #demo1()
     #demo2()
+    demo3()
     
