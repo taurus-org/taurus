@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 
 class TaurusReadWriteSwitcher(TaurusWidget):
     '''
@@ -46,15 +47,33 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             readWClass = TaurusLabel
             writeWClass = TaurusValueLineEdit 
             
-    The class will normally show the read widget, but it will allow to 
-    switch to "edit mode" (where the write widget is shown instead).
+    Alternatively, you can instantiate the TaurusReadWriteSwitcher class 
+    directly and pass the read and write classes to the constructor::
+    
+        w = TaurusReadWriteSwitcher(readWClass=TaurusLabel, 
+                                    writeWClass=TaurusValueLineEdit)
+    
+    Or you can even set the read and write widgets (instead of classes) 
+    after instantiation::
+    
+        w = TaurusReadWriteSwitcher()
+        a = TaurusLabel()
+        b = TaurusValueLineEdit()
+        w.setReadWidget(a)
+        w.setWriteWidget(b)
+    
+    TaurusReadWriteSwitcher will normally show the read widget by default,
+    but it will allow to switch to "edit mode" (where the write widget 
+    is shown instead). Enetering and exiting the edit mode is controlled
+    by "triggers". Triggers can be key presses, QEvents or signals.
     
     The default implementation sets pressing F2 or doubleclicking the read 
-    widget as the triggers for entering edit mode, and pressing Escape or 
-    losing the focus on the write widget as the triggers for leaving the 
-    edit mode. This can be customized in derived classes by changing
-    the contents of the `enterEditTriggers` and `exitEditTriggers` class 
-    members:
+    widget as the triggers for entering edit mode, and pressing Escape,
+    losing the focus or applying the value on the write widget as the 
+    triggers for leaving the edit mode. This can be customized by changing 
+    `enterEditTriggers` and `exitEditTriggers` class members or by passing 
+    `enterEditTriggers` and `exitEditTriggers` keyword parameters to the
+    constructor of TaurusReadWriteSwitcher:
     
         - `enterEditTriggers` is a tuple containing one or more of the following:
         
@@ -68,22 +87,31 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             - event type on the write widget (a Qt.QEvent.Type)
             - signal from the write widget (a str representing a Signal signature)
 
-    #@todo: propagate the pending operations from the writeW
+    #@todo: check integration with designer
     
     '''    
     readWClass = None
     writeWClass = None
     
     enterEditTriggers = (Qt.Qt.Key_F2, Qt.QEvent.MouseButtonDblClick)
-    exitEditTriggers = (Qt.Qt.Key_Escape, Qt.QEvent.FocusOut)
+    exitEditTriggers = (Qt.Qt.Key_Escape, Qt.QEvent.FocusOut, TaurusBaseWritableWidget.appliedSignalSignature)
 
-    def __init__(self, parent=None):
-        TaurusWidget.__init__(self, parent=parent)
+    def __init__(self, parent=None, designMode = False, 
+                 readWClass=None, writeWClass=None, 
+                 enterEditTriggers=None, exitEditTriggers=None):
+        
+        TaurusWidget.__init__(self, parent=parent, designMode=designMode)
         
         self.setLayout(Qt.QStackedLayout())
         self.readWidget = None
         self.writeWidget = None
         
+        #Use parameters from constructor args or defaults from class
+        self.readWClass = readWClass or self.readWClass
+        self.writeWClass = writeWClass or self.writeWClass
+        self.enterEditTriggers = enterEditTriggers or self.enterEditTriggers
+        self.exitEditTriggers = exitEditTriggers or self.exitEditTriggers
+                
         #classify the triggers
         sc, et, sig = self._classifyTriggers(self.enterEditTriggers)
         self.enterEditShortCuts = sc
@@ -104,7 +132,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.connect(self.enterEditAction, Qt.SIGNAL("triggered()"), self._onEnterEditActionTriggered)
         self.connect(self.exitEditAction, Qt.SIGNAL("triggered()"), self._onExitEditActionTriggered)
         
-        #add read and write widgets
+        #add read and write widgets        
         if self.readWClass is not None:
             self.setReadWidget(self.readWClass())
         if self.writeWClass is not None:
@@ -141,7 +169,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         return obj.eventFilter(obj, event)
         
     def setReadWidget(self, widget):
-        '''set the read Widget to be used
+        '''set the read Widget to be used. You can reimplement this 
+        method to tweak the read widget. 
         
         :param widget: (QWidget) This should be Taurus widget
         '''
@@ -151,13 +180,17 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.layout().insertWidget(0, self.readWidget)
         self.readWidget.setCursor(Qt.Qt.IBeamCursor)
         self.readWidget.setModel(self.getModelName())
+        #setup EnterEdit triggers
         if self.enterEditEventTypes:
             self.readWidget.installEventFilter(self)
         for sig in self.enterEditSignals:
             self.connect(self.readWidget, sig, self.enterEdit)
+        #register configuration (we use the class name to avoid mixing configs in the future)
+        self.registerConfigDelegate(self.readWidget, name='_R_'+self.readWidget.__class__.__name__)
     
     def setWriteWidget(self, widget):
-        '''set the write Widget to be used
+        '''set the write Widget to be used You can reimplement this 
+        method to tweak the write widget.
         
         :param widget: (Qt.QWidget) This should be Taurus widget
                        (typically a TaurusBaseWritableWidget)
@@ -171,6 +204,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             self.writeWidget.installEventFilter(self)
         for sig in self.exitEditSignals:
             self.connect(self.writeWidget, sig, self.exitEdit)
+        #register configuration (we use the class name to avoid mixing configs in the future)
+        self.registerConfigDelegate(self.readWidget, name='_W_'+self.writeWidget.__class__.__name__)
         
     def enterEdit(self, *args, **kwargs):
         '''Slot for entering Edit mode
@@ -201,7 +236,19 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         if self.writeWidget is not None:
             self.writeWidget.setModel(model)
         TaurusWidget.setModel(self, model)
-
+    
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        print cls
+        ret = TaurusWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.compact'
+        ret['group'] = 'Taurus R+W'
+        ret['icon'] = ":/designer/frame.png"
+        if (cls.readWClass or cls.readWClass) is None:
+            ret['container'] = True #for base classes
+        else:
+            ret['container'] = False #for classes which already define the subwidgets
+        return ret
 
     model = Qt.pyqtProperty("QString", TaurusWidget.getModel,
                             setModel,
@@ -227,14 +274,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
 #            return self.writeWidget.setForceDangerousOperations(yesno)
 #        except AttributeError:
 #            pass
-#        
-#    def hasPendingOperations(self):
-#        '''self.getPendingOperations will always return an empty list, but still
-#        self.hasPendingOperations will look at the writeWidget's operations.
-#        If you want to ask the TaurusReadWriteSwitcher for its pending operations, call
-#        self.writeWidget.getPendingOperations()'''
-#        if self.writeWidget is None: return False
-#        return self.writeWidget.hasPendingOperations()
+#  
 #                
 #######################################
     
@@ -244,21 +284,17 @@ def demo1():
     '''Simple demo'''
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.input import TaurusValueLineEdit
-    class DemoSwitcher(TaurusReadWriteSwitcher):
-            readWClass = TaurusLabel
-            writeWClass = TaurusValueLineEdit 
-            exitEditTriggers = ('editingFinished()',Qt.Qt.Key_Escape)
-
+    
     app = TaurusApplication()
         
-    w = DemoSwitcher()
+    w = TaurusReadWriteSwitcher(readWClass=TaurusLabel, 
+                                writeWClass=TaurusValueLineEdit)
     w.model = "sys/tg_test/1/long_scalar"
     
     w.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_()) 
 
 def demo2():
     '''demo of integrability in a form'''
@@ -267,6 +303,7 @@ def demo2():
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.input import TaurusValueLineEdit
+    
     class DemoSwitcher(TaurusReadWriteSwitcher):
             readWClass = TaurusLabel
             writeWClass = TaurusValueLineEdit 
@@ -286,6 +323,6 @@ def demo2():
 
 
 if __name__ == "__main__":
-    #demo1()
-    demo2()
+    demo1()
+    #demo2()
     

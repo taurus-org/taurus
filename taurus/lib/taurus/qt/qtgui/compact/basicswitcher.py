@@ -36,17 +36,18 @@ from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
 from abstractswitcher import TaurusReadWriteSwitcher
 
 class TaurusLabelEditRW(TaurusReadWriteSwitcher):
+    '''A Switcher combining a TaurusLabel and a TaurusValueLineEdit''' 
     readWClass = TaurusLabel
     writeWClass = TaurusValueLineEdit 
-    exitEditTriggers = ('editingFinished()',Qt.Qt.Key_Escape)
         
 class TaurusBoolRW(TaurusReadWriteSwitcher):
+    '''A Switcher combining a TaurusBoolLed and a TaurusValueCheckBox'''
     readWClass = TaurusBoolLed
-    writeWClass = TaurusValueCheckBox 
-    exitEditTriggers = TaurusReadWriteSwitcher.exitEditTriggers + (Qt.QEvent.MouseButtonDblClick, )
-    def __init__(self, *args, **kwargs):
-        TaurusReadWriteSwitcher.__init__(self, *args, **kwargs)
-        self.writeWidget.setShowText(False)
+    writeWClass = TaurusValueCheckBox
+    
+    def setWriteWidget(self, widget):
+        widget.setShowText(False)
+        TaurusReadWriteSwitcher.setWriteWidget(self, widget)
         
 def demo():
     '''demo of integrability in a form'''
