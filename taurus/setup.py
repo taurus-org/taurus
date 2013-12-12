@@ -35,6 +35,7 @@ import StringIO
 from distutils.core import setup, Command
 from distutils.command.build import build as dftbuild
 from distutils.command.install import install as dftinstall
+from distutils.command.install_scripts import install_scripts as dftinstall_scripts
 
 try:
     import sphinx
@@ -234,7 +235,7 @@ class build_resources(Command):
 
     description = "\"build\" Qt resource files"
     
-    user_options = [('logo=', None, "alternative logo file (default is taurus.png)"),]
+    user_options = [('logo=', None, "alternative logo file (default is taurus.png)")]
     
     AllowedExt = ('svg', 'png', 'jpg', 'jpeg', 'gif')
     
@@ -246,15 +247,6 @@ class build_resources(Command):
             self.out = sys.stdout
         else:
             self.out = StringIO.StringIO()
-        if os.name == 'nt':
-            try:
-                self.QTDIR = os.environ["QTDIR"]
-                self.rcc_exec = self.rcc_exec = os.path.join(self.QTDIR, 'bin', 'rcc')
-            except KeyError:
-                raise Exception("You must set the env. variable QTDIR " \
-                    "pointing to the Qt C++ installation directory")
-        else:
-            self.rcc_exec = 'rcc'
 
     def finalize_options (self):
         if self.logo is None:
@@ -266,6 +258,25 @@ class build_resources(Command):
         if not os.path.isabs(self.logo):
             self.logo = os.path.abspath(self.logo)
         self.logo = os.path.realpath(self.logo)
+
+        if os.name == 'nt':
+            try:
+                self.QTDIR = os.environ["QTDIR"]
+                self.rcc_exec = self.rcc_exec = os.path.join(self.QTDIR, 'bin', 'rcc')
+            except KeyError:
+                msg = "Cannot find QT installation. " \
+                    "You should set the env. variable QTDIR " \
+                    "pointing to the Qt C++ installation directory"
+                if build.with_tango_icons:
+                    msg += ". Skipping creation of rcc files"
+                    print (msg, file=self.out, end='')
+                    self.rcc_exec = None
+                else:
+                    msg += " or allow skipping creation of the rcc files by " \
+                           "passing --with-tango-icons parameter to the build command"
+                    raise Exception(msg)
+        else:
+            self.rcc_exec = 'rcc'
     
     def run(self):
         orig_dir = os.path.abspath(os.curdir)
@@ -304,19 +315,20 @@ class build_resources(Command):
         print("[DONE]", file=out)
         
         # Generate binary rcc file
-        print("Generating %s... " % rcc_filename, file=out, end='')
-        out.flush()
-        cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
-        if os.system(cmd):
-            print("[FAILED]", file=out)
-        else:
-            print("[DONE]", file=out)
+        if self.rcc_exec:
+            print("Generating %s... " % rcc_filename, file=out, end='')
+            out.flush()
+            cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
+            if os.system(cmd):
+                print("[FAILED]", file=out)
+            else:
+                print("[DONE]", file=out)
         
         return [ [qrc_filename], [rcc_filename]]
     
     def _build_res(self, abs_dir, bases=list()):
         """Builds the resources in the abs_dir recursively.
-        The result is a list of 5 items:
+        The result is a list of 2 items:
             - a list of generated qrc files
             - a list of generated rcc files
         """
@@ -368,14 +380,15 @@ class build_resources(Command):
             print("[DONE]", file=out)
             
             # Generate binary rcc file
-            print("Generating %s... " % rcc_filename, file=out, end='')
-            out.flush()
-            cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
-            if os.system(cmd):
-                print("[FAILED]", file=out)
-            else:
-                result[1].append(rcc_filename)
-                print("[DONE]", file=out)
+            if self.rcc_exec:
+                print("Generating %s... " % rcc_filename, file=out, end='')
+                out.flush()
+                cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
+                if os.system(cmd):
+                    print("[FAILED]", file=out)
+                else:
+                    result[1].append(rcc_filename)
+                    print("[DONE]", file=out)
             
         return result
 
@@ -489,6 +502,77 @@ class install_html(Command):
         self.copy_tree(src_html_dir, self.install_dir)
 
 
+class install_scripts(dftinstall_scripts):
+    '''Customization to create .bat wrappers for the scripts 
+    when installing on windows.
+    Adapted from a recipe by Matthew Brett (who licensed it under CC0):
+    https://github.com/matthew-brett/myscripter/blob/master/setup.py
+    See rationale in: 
+    http://matthew-brett.github.io/pydagogue/installing_scripts.html
+    '''
+    
+    user_options = list(dftinstall_scripts.user_options)
+    user_options.extend(
+            [
+             ('wrappers', None, 'Install .bat wrappers for windows (enabled by default on windows)'),
+             ('ignore-shebang', None, 'Use "python" as the interpreter in .bat wrappers (instead of using the interpreter found in the shebang line of the scripts). Note: this only affects to windows .bat wrappers!'),
+             ])
+    
+    
+    BAT_TEMPLATE_SHEBANG = \
+r"""@echo off
+REM wrapper to use shebang first line of {FNAME}
+set mypath=%~dp0
+set pyscript="%mypath%{FNAME}"
+set /p line1=<%pyscript%
+if "%line1:~0,2%" == "#!" (goto :goodstart)
+echo First line of %pyscript% does not start with "#!"
+exit /b 1
+:goodstart
+set py_exe=%line1:~2%
+call %py_exe% %pyscript% %*
+"""
+    BAT_TEMPLATE_PATH = \
+r"""@echo off
+REM wrapper to launch {FNAME}
+set mypath=%~dp0
+set pyscript="%mypath%{FNAME}"
+set py_exe="python"
+call %py_exe% %pyscript% %*
+"""
+
+    def initialize_options(self):
+        self.ignore_shebang = None
+        self.wrappers = (os.name == "nt")
+        dftinstall_scripts.initialize_options(self)
+        
+    def run(self):    
+        dftinstall_scripts.run(self)
+        if self.wrappers:
+            for filepath in self.get_outputs():
+                # If we can find an executable name in the #! top line of the script
+                # file, make .bat wrapper for script.
+                with open(filepath, 'rt') as fobj:
+                    first_line = fobj.readline()
+                if not (first_line.startswith('#!') and
+                        'python' in first_line.lower()):
+                    print("No #!python executable found, skipping .bat wrapper")
+                    continue
+                pth, fname = os.path.split(filepath)
+                froot, ext = os.path.splitext(fname)
+                bat_file = os.path.join(pth, froot + '.bat')
+                if self.ignore_shebang:
+                    template = self.BAT_TEMPLATE_PATH
+                else:
+                    template = self.BAT_TEMPLATE_SHEBANG
+                bat_contents = template.replace('{FNAME}', fname)
+                print("Making %s wrapper for %s" % (bat_file, filepath))
+                if self.dry_run:
+                    continue
+                with open(bat_file, 'wt') as fobj:
+                    fobj.write(bat_contents)
+
+
 class install(dftinstall):
     
     user_options = list(dftinstall.user_options)
@@ -583,11 +667,13 @@ class build_doc_api(Command):
         for i in r:
             print(i,file=out)
 
+
 cmdclass = { 'build' : build,
              'build_resources' : build_resources,
              'install' : install,
              'install_man' : install_man,
              'install_html' : install_html,
+             'install_scripts' : install_scripts,
              'build_doc_api' : build_doc_api }
 
 if sphinx:
