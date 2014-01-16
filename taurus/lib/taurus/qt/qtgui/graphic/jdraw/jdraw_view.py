@@ -353,15 +353,15 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def getModel(self):
         return self._currF
 
-    #@classmethod
-    #def getQtDesignerPluginInfo(cls):
-        #ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        #ret['group'] = 'Taurus Display'
-        #ret['module'] = 'taurus.qt.qtgui.graphic'
-        #ret['icon'] = ":/designer/graphicsview.png"
-        #return ret
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['group'] = 'Taurus Display'
+        ret['module'] = 'taurus.qt.qtgui.graphic'
+        ret['icon'] = ":/designer/graphicsview.png"
+        return ret
     
-    #model = Qt.pyqtProperty("QString", getModel, setModel)
+    model = Qt.pyqtProperty("QString", getModel, setModel)
     
     
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
