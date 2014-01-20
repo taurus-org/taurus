@@ -1,0 +1,12 @@
+parser.out
+parsetab.py
+*.pyc
+*.rcc
+*.qrc
+*~
+.settings
+build
+taurus/doc/source/devel/catalog.html
+taurus/lib/taurus/qt/qtgui/resource/catalog.html
+taurus/doc/source/devel/api/
+
