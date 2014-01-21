@@ -30,30 +30,34 @@ __all__ = ["MacroManager", "MacroExecutor", "is_macro"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import os
-import inspect
-import copy
 import re
+import os
+import sys
+import copy
+import inspect
 import functools
 import traceback
 
 from lxml import etree
 
 from PyTango import DevFailed
-from taurus.core.util import Logger, CodecFactory
+
+from taurus.core.util.log import Logger
+from taurus.core.util.codecs import  CodecFactory
 
 from sardana.sardanadefs import ElementType
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaexception import format_exception_only_str
 from sardana.sardanautils import is_pure_str, is_non_str_seq
 
-from .msmanager import MacroServerManager
-from .msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
-from .msparameter import ParamDecoder
-from .macro import Macro, MacroFunc
-from .msexception import UnknownMacroLibrary, LibraryError, UnknownMacro, \
-    MissingEnv, AbortException, StopException, MacroServerException
+from sardana.macroserver.msmanager import MacroServerManager
+from sardana.macroserver.msmetamacro import MACRO_TEMPLATE, MacroLibrary, \
+    MacroClass, MacroFunction
+from sardana.macroserver.msparameter import ParamDecoder
+from sardana.macroserver.macro import Macro, MacroFunc
+from sardana.macroserver.msexception import UnknownMacroLibrary, \
+    LibraryError, UnknownMacro, MissingEnv, AbortException, StopException, \
+    MacroServerException
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,6 +66,7 @@ def islambda(f):
     """inspect doesn't come with islambda so I create one :-P"""
     return inspect.isfunction(f) and \
            f.__name__ == (lambda: True).__name__
+
 
 def is_macro(macro, abs_file=None, logger=None):
     """Helper function to determine if a certain python object is a valid
@@ -208,7 +213,7 @@ class MacroManager(MacroServerManager):
         for p in reversed(path):
             try:
                 for f in os.listdir(p):
-                    name,ext = os.path.splitext(f)
+                    name, ext = os.path.splitext(f)
                     if name.startswith("_"):
                         continue
                     if ext.endswith('py'):
@@ -404,10 +409,10 @@ class MacroManager(MacroServerManager):
             meaning search in MacroPath. If not found, search for a built-in,
             frozen or special module and continue search in sys.path. ]
         :return: the reloaded python module object"""
-        
+
         if module_name in self._modules:
             raise LibraryError("Cannot use simple reload to reload a Macro Library")
-        
+
         mod_manager = ModuleManager()
         retry = path is None
         try:
@@ -415,7 +420,7 @@ class MacroManager(MacroServerManager):
                 path = self.getMacroPath()
                 if path:
                     path = copy.copy(path)
-                    path.reverse()                
+                    path.reverse()
             return mod_manager.reloadModule(module_name, path)
         except ImportError:
             if retry:
@@ -453,7 +458,7 @@ class MacroManager(MacroServerManager):
         try:
             m = mod_manager.reloadModule(module_name, path)
         except:
-            exc_info=sys.exc_info()
+            exc_info = sys.exc_info()
         macro_lib = None
 
         params = dict(module=m, name=module_name,
@@ -544,7 +549,7 @@ class MacroManager(MacroServerManager):
                 continue
             ret[name] = macro
         return ret
-    
+
     def getMacroClasses(self, filter=None):
         """Returns a :obj:`dict` containing information about macro classes.
 
@@ -578,7 +583,7 @@ class MacroManager(MacroServerManager):
             if macro.get_type() == ElementType.MacroFunction:
                 macro_classes[name] = macro
         return macro_classes
-        
+
     def getMacroNames(self):
         return sorted(self._macro_dict.keys())
 
@@ -641,7 +646,7 @@ class MacroManager(MacroServerManager):
         out_par_list = ParamDecoder(door, macro_meta, in_par_list)
         return macro_meta, in_par_list, out_par_list
 
-    def strMacroParamValues(self,par_list):
+    def strMacroParamValues(self, par_list):
         """strMacroParamValues(list<string> par_list) -> list<string>
 
            Creates a short string representantion of the parameter values list.
@@ -653,7 +658,7 @@ class MacroManager(MacroServerManager):
         ret = []
         for p in par_list:
             param_str = str(p)
-            if len(param_str)>9:
+            if len(param_str) > 9:
                 param_str = param_str[:9] + "..."
             ret.append(param_str)
         return ret
@@ -818,12 +823,12 @@ class MacroExecutor(Logger):
                 macro.set('id', eid)
             name = macro.get('name')
             params = []
-            
+
             # SEEMS THERE IS A MEMORY LEAK IN lxml.etree Element.xpath :
             # https://bugs.launchpad.net/lxml/+bug/397933
             # https://mailman-mail5.webfaction.com/pipermail/lxml/2011-October/006205.html
             # We work around it using findall:
-            
+
             #for p in macro.xpath('param|paramrepeat'):
             #    if p.tag == 'param':
             #        params.append(p.get('value'))

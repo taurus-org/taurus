@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -34,10 +34,11 @@ import datetime
 import operator
 import string
 
-from taurus.core.util import CodecFactory, CaselessList
+from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.containers import CaselessList
 
-from datarecorder import DataRecorder
-from storage import BaseFileRecorder
+from sardana.macroserver.scan.recorder.datarecorder import DataRecorder
+from sardana.macroserver.scan.recorder.storage import BaseFileRecorder
 
 
 class JsonRecorder(DataRecorder):
@@ -61,12 +62,12 @@ class JsonRecorder(DataRecorder):
         self.column_desc = []
         discarded = []
         for e in column_desc:
-            if len(e.shape)==0:
+            if len(e.shape) == 0:
                 self.column_desc.append(e)
             else:
                 discarded.append(e.label)
         if discarded:
-            self.info('The following data will not be json-serialized: %s', " ".join(discarded) )
+            self.info('The following data will not be json-serialized: %s', " ".join(discarded))
         column_desc = [ d.toDict() for d in self.column_desc ]
         data = { 'column_desc' : column_desc,
                  'ref_moveables' : ref_moveables,
@@ -79,27 +80,27 @@ class JsonRecorder(DataRecorder):
                  'scandir' : scandir,
                  'serialno': serialno}
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
-    
+
     def _endRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
         data = { 'endtime'  : recordlist.getEnvironValue('endtime').ctime(),
                  'deadtime' : recordlist.getEnvironValue('deadtime') }
         self._sendPacket(type="record_end", data=data, macro_id=macro_id)
-    
+
     def _writeRecord(self, record):
         macro_id = self.recordlist.getEnvironValue('macro_id')
-        data = {} # dict(record.data)
+        data = {}  # dict(record.data)
         for k in self.column_desc:
             name = k.name
             data[name] = record.data[name]
         self._sendPacket(type="record_data", data=data, macro_id=macro_id)
-        
+
     def _sendPacket(self, **kwargs):
         '''creates a JSON packet using the keyword arguments passed and then sends it'''
         #data = self._codec.encode(('', kwargs))
         #self._stream.sendRecordData(*data)
         self._stream.sendRecordData(kwargs, codec='json')
-        
+
     def _addCustomData(self, value, name, **kwargs):
         '''
         The custom data will be sent as a packet with type='custom_data' and its
@@ -107,14 +108,14 @@ class JsonRecorder(DataRecorder):
         plus 'name' and 'value'
         '''
         macro_id = self.recordlist.getEnvironValue('macro_id')
-        data = dict(kwargs) #shallow copy
+        data = dict(kwargs)  #shallow copy
         data['name'] = name
         data['value'] = value
         self._sendPacket(type="custom_data", data=data, macro_id=macro_id)
 
 
 class OutputRecorder(DataRecorder):
-    
+
     def __init__(self, stream, cols=None, number_fmt='%8.4f', col_width=8,
                  col_sep='  ', **pars):
         DataRecorder.__init__(self, **pars)
@@ -130,7 +131,7 @@ class OutputRecorder(DataRecorder):
         else:
             cols = None
         self._columns = cols
-        
+
     def _startRecordList(self, recordlist):
         starttime = recordlist.getEnvironValue('starttime').ctime()
         estimatedtime = recordlist.getEnvironValue('estimatedtime')
@@ -141,9 +142,9 @@ class OutputRecorder(DataRecorder):
         number_fmt = self._number_fmt
         col_width = self._col_width
         dh = recordlist.getDataHandler()
-        
+
         for fr in [r for r in dh.recorders if isinstance(r, BaseFileRecorder)]:
-            self._stream.info('Operation will be saved in %s (%s)', 
+            self._stream.info('Operation will be saved in %s (%s)',
                               fr.getFileName(), fr.getFormat())
 
         msg = "Scan #%d started at %s." % (serialno, starttime)
@@ -174,7 +175,7 @@ class OutputRecorder(DataRecorder):
             col_size = max(col_width, max(map(len, label)))
             header_len += col_size
             col_sizes.append(col_size)
-        
+
         nb_cols = len(col_names)
         header_len += (nb_cols - 1) * len(col_sep)
         self._labels = labels
@@ -185,27 +186,27 @@ class OutputRecorder(DataRecorder):
         for col, (label, col_size) in enumerate(zip(labels, col_sizes)):
             empty_row_nb = header_rows - len(label)
             for row in range(empty_row_nb):
-                header[row].append(col_size*" ")
+                header[row].append(col_size * " ")
             for i, l in enumerate(label):
-                header[i+empty_row_nb].append(string.center(l, col_size))
+                header[i + empty_row_nb].append(string.center(l, col_size))
         head = []
         for header_row in header:
             head.append(col_sep.join(header_row))
-            
+
         header = "\n".join(head)
-            
+
         cell_t_number = '%%%%(%%s)%s' % number_fmt[1:]
-        
-        self._scan_line_t  = [(col_names[0], '%%(%s)8d' % col_names[0])]
+
+        self._scan_line_t = [(col_names[0], '%%(%s)8d' % col_names[0])]
         self._scan_line_t += [(name, cell_t_number % name) for name in col_names[1:]]
-        
+
         self._stream.output(header)
         self._stream.flushOutput()
-    
+
     def _endRecordList(self, recordlist):
         self._stream.flushOutput()
         starttime = recordlist.getEnvironValue('starttime')
-        endtime   = recordlist.getEnvironValue('endtime')
+        endtime = recordlist.getEnvironValue('endtime')
         deadtime = recordlist.getEnvironValue('deadtime')
         motiontime = recordlist.getEnvironValue('motiontime')
         totaltime = endtime - starttime
@@ -213,17 +214,17 @@ class OutputRecorder(DataRecorder):
         serialno = recordlist.getEnvironValue('serialno')
 
         dh = recordlist.getDataHandler()
-        
+
         for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
             self._stream.info('Operation saved in %s (%s)', fr.getFileName(),
                               fr.getFormat())
-        
-        totaltimets =  recordlist.getEnvironValue('endts') - recordlist.getEnvironValue('startts')
+
+        totaltimets = recordlist.getEnvironValue('endts') - recordlist.getEnvironValue('startts')
         deadtime_perc = deadtime * 100.0 / totaltimets
         motiontime_perc = motiontime * 100.0 / totaltimets
         self._stream.info('Scan #%s ended at %s, taking %s. Dead time %.1f%% (motion dead time %.1f%%)'
                           % (serialno, endtime, totaltime, deadtime_perc, motiontime_perc))
-    
+
     def _writeRecord(self, record):
         cells = []
         for i, (name, cell) in enumerate(self._scan_line_t):
@@ -239,18 +240,18 @@ class OutputRecorder(DataRecorder):
             cell = string.center(cell.strip(), self._col_sizes[i])
             cells.append(cell)
         scan_line = self._col_sep.join(cells)
-            
+
         self._stream.output(scan_line)
         self._stream.flushOutput()
-        
+
     def _addCustomData(self, value, name, **kwargs):
         '''
         The custom data will be added as an info line in the form:: 
         Custom data: name : value
         '''
-        if numpy.rank(value)>0: 
-            v = 'Array(%s)'%str(numpy.shape(value))
+        if numpy.rank(value) > 0:
+            v = 'Array(%s)' % str(numpy.shape(value))
         else:
             v = str(value)
-        self._stream.output('Custom data: %s : %s'%(name,v) )
+        self._stream.output('Custom data: %s : %s' % (name, v))
         self._stream.flushOutput()

@@ -36,19 +36,19 @@ import PyTango
 from taurus.core import TaurusEventType, TaurusSWDevState
 
 from sardana.sardanautils import is_pure_str, is_non_str_seq
-import genutils
-from .inputhandler import SpockInputHandler, InputHandler
+from sardana.spock import genutils
+from sardana.spock.inputhandler import SpockInputHandler, InputHandler
 
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
 
 if genutils.get_gui_mode() == 'qt':
-    from taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
+    from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor, QMacroServer
     BaseDoor = QDoor
     BaseMacroServer = QMacroServer
     BaseGUIViewer = object
 else:
-    from taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
+    from sardana.taurus.core.tango.sardana.macroserver import BaseDoor, BaseMacroServer
     BaseGUIViewer = object
 
 
@@ -71,7 +71,7 @@ class GUIViewer(BaseGUIViewer):
             #w.model = "scan://" + self._door.getNormalName()
             #w.show()
             import subprocess
-            args = ['taurustrend','scan://%s'%self._door.getNormalName()]
+            args = ['taurustrend', 'scan://%s' % self._door.getNormalName()]
             subprocess.Popen(args)
             #===================================================================
             return
@@ -178,14 +178,14 @@ class GUIViewer(BaseGUIViewer):
 
         try:
             env = dict(door.getEnvironmentObj().read().value)
-        except Exception,e:
+        except Exception, e:
             print 'Unable to read environment. No plotting'
             print str(e)
             return
 
-        program = door.getNormalName().replace('/','').replace('_','')
+        program = door.getNormalName().replace('/', '').replace('_', '')
         try:
-            array = env['ActiveMntGrp'].replace('/','').replace('_','').upper() + "0D"
+            array = env['ActiveMntGrp'].replace('/', '').replace('_', '').upper() + "0D"
             array_ENV = '%s_ENV' % array
         except:
             print 'ActiveMntGrp not defined. No plotting'
@@ -215,7 +215,7 @@ class GUIViewer(BaseGUIViewer):
         while mem_ENV[i][0] != '':
             line = mem_ENV[i].tostring()
             eq, end = line.index('='), line.index('\x00')
-            k,v = line[:eq], line[eq+1:end]
+            k, v = line[:eq], line[eq + 1:end]
             env[k] = v
             i += 1
 
@@ -234,14 +234,14 @@ class GUIViewer(BaseGUIViewer):
 
         x = m[1][:rows]
         colors = 'bgrcmyk'
-        col_nb = min(col_nb, len(colors)+3)
+        col_nb = min(col_nb, len(colors) + 3)
         # skip point_nb, motor and timer columns
-        for i in xrange(3,col_nb):
+        for i in xrange(3, col_nb):
             y = m[i][:rows]
-            line, = pylab.plot(x, y, label = labels[i])
+            line, = pylab.plot(x, y, label=labels[i])
             line.linestyle = '-'
             line.linewidth = 1
-            line.color = colors[i-3]
+            line.color = colors[i - 3]
         pylab.legend()
 
 
@@ -332,15 +332,15 @@ class SpockBaseDoor(BaseDoor):
                 reason, desc = e.args[0].reason, e.args[0].desc
                 macro_obj = self.getRunningMacro()
                 if reason == 'MissingParam':
-                    print "Missing parameter:",desc
+                    print "Missing parameter:", desc
                     print macro_obj.getInfo().doc
                 elif reason == 'WrongParam':
-                    print "Wrong parameter:",desc
+                    print "Wrong parameter:", desc
                     print macro_obj.getInfo().doc
                 elif reason == 'UnkownParamObj':
-                    print "Unknown parameter:",desc
+                    print "Unknown parameter:", desc
                 elif reason == 'MissingEnv':
-                    print "Missing environment:",desc
+                    print "Missing environment:", desc
                 elif reason in ('API_CantConnectToDevice', 'API_DeviceNotExported'):
                     self._updateState(self._old_sw_door_state, TaurusSWDevState.Shutdown, silent=True)
                     print "Unable to run macro: No connection to door '%s'" % self.getSimpleName()
@@ -366,7 +366,7 @@ class SpockBaseDoor(BaseDoor):
                 remote_f_name = ret[1]
                 line_nb = ret[3]
                 commit = CommitFile(commit_cmd, local_f_name, remote_f_name)
-                self.pending_commits.update( { remote_f_name : commit } )
+                self.pending_commits.update({ remote_f_name : commit })
                 ip = genutils.get_ipapi()
                 editor = genutils.get_editor()
 
@@ -451,7 +451,7 @@ class SpockBaseDoor(BaseDoor):
                 func_name = self.MathFrontend + "." + func_name
             args = data['args']
             kwargs = data['kwargs']
-            
+
             members = func_name.split(".")
             mod_list, fname = members[:-1], members[-1]
             mod_name = ".".join(mod_list)
@@ -465,7 +465,7 @@ class SpockBaseDoor(BaseDoor):
             except Exception as e:
                 self.logReceived(self.Warning, ['Unable to execute %s: ' % func_name, str(e)])
 
-    _RECORD_DATA_THRESOLD = 4*1024*1024 # 4Mb
+    _RECORD_DATA_THRESOLD = 4 * 1024 * 1024  # 4Mb
 
     def _processRecordData(self, data):
         if data is None: return
@@ -476,7 +476,7 @@ class SpockBaseDoor(BaseDoor):
             self.logReceived(self.Info, ['Received long data record (%d Kb)' % sizekb,
                 'It may take some time to process. Please wait...'])
         return BaseDoor._processRecordData(self, data)
-        
+
 
 from taurus.qt import Qt
 
@@ -484,7 +484,7 @@ class QSpockDoor(SpockBaseDoor):
 
     def __init__(self, name, **kw):
         self.call__init__(SpockBaseDoor, name, **kw)
-        
+
         Qt.QObject.connect(self, Qt.SIGNAL('recordDataUpdated'),
                            self.processRecordData)
 
@@ -496,7 +496,7 @@ class QSpockDoor(SpockBaseDoor):
         else:
             res = SpockBaseDoor.recordDataReceived(self, s, t, v)
         return res
-               
+
     def create_input_handler(self):
         return InputHandler()
 
@@ -553,7 +553,7 @@ class SpockMacroServer(BaseMacroServer):
             door = genutils.get_door()
             door.runMacro(macro_name, parameters, synch=True)
             macro = door.getLastRunningMacro()
-            if macro is not None: # maybe none if macro was aborted
+            if macro is not None:  # maybe none if macro was aborted
                 return macro.getResult()
 
         macro_fn.func_name = macro_name

@@ -3,54 +3,56 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """
-macrobutton.py: 
+macrobutton.py:
 """
-__all__=['MacroButton']
+
+__all__ = ['MacroButton']
+
+import functools
 
 import PyTango
 
-from taurus.qt import Qt
-
 import taurus
+from  taurus.core import TaurusEventType
+from taurus.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.core.util.colors import DEVICE_STATE_PALETTE
 
-import functools
+from .ui_macrobutton import Ui_MacroButton
 
-from ui_macrobutton import Ui_MacroButton
 
 class DoorStateListener(Qt.QObject):
 
     __pyqtSignals__ = ["doorStateChanged"]
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_type not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
+        if evt_type not in (TaurusEventType.Change, TaurusEventType.Periodic):
             return
         door_state = evt_value.value
         self.emit(Qt.SIGNAL('doorStateChanged'), door_state)
-        
+
 
 class MacroButton(TaurusWidget):
     ''' This class is intended to be used as a button to execute macros.
@@ -72,7 +74,7 @@ class MacroButton(TaurusWidget):
     '''
 
     __pyqtSignals__ = ['statusUpdated', 'resultUpdated']
-    
+
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
         self.door = None
@@ -110,7 +112,7 @@ class MacroButton(TaurusWidget):
         self.door.getAttribute('State').addListener(self.door_state_listener)
 
     def doorStateChanged(self, state):
-        color = '#'+DEVICE_STATE_PALETTE.hex(state)
+        color = '#' + DEVICE_STATE_PALETTE.hex(state)
         stylesheet = 'QFrame{border: 4px solid %s;}' % color
         self.ui.frame.setStyleSheet(stylesheet)
 
@@ -119,15 +121,15 @@ class MacroButton(TaurusWidget):
         if state not in [PyTango.DevState.ON, PyTango.DevState.ALARM] and not self.ui.button.isChecked():
             door_available = False
             self.ui.progress.setValue(0)
-            
+
         self.ui.button.setEnabled(door_available)
         self.ui.progress.setEnabled(door_available)
-            
+
 
     def statusUpdated(self, *args):
         # SHOULD SEE THE DOCUMENTATION ABOUT THE ARGS AND ALSO THE STATUS STATE MACHINE
         # ARGS FORMAT IS (GUESSING WITH PRINT STATEMENTS)
-        # e.g. ((<taurus.core.tango.sardana.macro.Macro object at 0x7f29300bc210>, [{u'step': 100.0, u'state': u'stop', u'range': [0.0, 100.0], u'id': u'b226f5e8-c807-11e0-8abe-001d0969db5b'}]),)
+        # e.g. ((<sardana.taurus.core.tango.sardana.macro.Macro object at 0x7f29300bc210>, [{u'step': 100.0, u'state': u'stop', u'range': [0.0, 100.0], u'id': u'b226f5e8-c807-11e0-8abe-001d0969db5b'}]),)
         # ( (MacroObj, [status_dict, .?.]), .?.)
 
         # QUESTIONS: THIS MACRO OBJECT HAS ALOS STEP, RANGE, ...
@@ -150,7 +152,7 @@ class MacroButton(TaurusWidget):
 
         if state in ['stop', 'abort', 'finish', 'alarm']:
             self.ui.button.setChecked(False)
-        
+
         self.emit(Qt.SIGNAL('statusUpdated'), status_dict)
 
     def resultUpdated(self, *args):
@@ -174,11 +176,11 @@ class MacroButton(TaurusWidget):
     def updateMacroArgument(self, index, value):
         while len(self.macro_args) < index + 1:
             self.macro_args.append('')
-            
+
         self.macro_args[index] = str(value)
 
     def updateMacroArgumentFromSignal(self, index, obj, signal):
-        self.connect(obj, signal, functools.partial(self.updateMacroArgument,index))
+        self.connect(obj, signal, functools.partial(self.updateMacroArgument, index))
 
     def button_clicked(self):
         if self.ui.button.isChecked():
@@ -200,7 +202,7 @@ class MacroButton(TaurusWidget):
         try:
             #self.door.runMacro(macro_cmd)
             self.door.runMacro(macro_cmd_xml)
-        except Exception,e:
+        except Exception, e:
             self.ui.button.setChecked(False)
             raise e
 
@@ -222,12 +224,12 @@ class MacroButton(TaurusWidget):
         else:
             self.ui.button.setChecked(True)
             self.door.ResumeMacro()
-            
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        return {'container': False, 
-                'group': 'Taurus Sardana', 
-                'module': 'taurus.qt.qtgui.extra_macroexecutor', 
+        return {'container': False,
+                'group': 'Taurus Sardana',
+                'module': 'taurus.qt.qtgui.extra_macroexecutor',
                 'icon': ':/designer/pushbutton.png'}
 
 
@@ -244,7 +246,7 @@ class MacroButtonAbortDoor(TaurusWidget):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         self.btn_abort.setSizePolicy(sizePolicy)
-        
+
         self.door = None
         self.btn_abort.setToolTip('Abort Macro')
 
@@ -273,7 +275,7 @@ if __name__ == '__main__':
     col = 0
     clear_button = Qt.QPushButton('clear')
     w.layout().addWidget(clear_button, 0, col, 2, 1)
-    
+
     col += 1
     w.layout().addWidget(Qt.QLabel('macro name'), 0, col)
     macro_name = Qt.QLineEdit()
@@ -304,7 +306,7 @@ if __name__ == '__main__':
     arg4 = Qt.QLineEdit()
     w.layout().addWidget(arg4, 1, col)
 
-    from taurus.qt.qtcore.tango.sardana.macroserver import registerExtensions
+    from sardana.taurus.qt.qtcore.tango.sardana.macroserver import registerExtensions
     registerExtensions()
     mb = MacroButton()
     mb.setModel('door/gc/1')
@@ -338,7 +340,7 @@ if __name__ == '__main__':
 
     def update_result(result):
         result_label.setText(str(result))
-    
+
     def toggle_progress(showProgress):
         visible = show_progress.isChecked()
         mb.toggleProgress(visible)
@@ -353,7 +355,7 @@ if __name__ == '__main__':
     Qt.QObject.connect(mb, Qt.SIGNAL('resultUpdated'), update_result)
     # Clear parameters
     Qt.QObject.connect(clear_button, Qt.SIGNAL('clicked()'), clear_params)
-    
+
     # Since everything is now connected, the parameters will be updated
     macro_name.setText('ascan')
     arg0.setText('gcdmot1')

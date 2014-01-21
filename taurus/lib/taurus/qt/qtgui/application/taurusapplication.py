@@ -179,11 +179,11 @@ class TaurusApplication(Qt.QApplication, Logger):
         # lock to safely get singleton elements (like IPython taurus
         # console app)
         self._lock = threading.Lock()
-        
+
         if len(args) == 0:
             args = getattr(sys, 'argv', []),
 
-        parser=None
+        parser = None
         app_name, app_version, org_name, org_domain = None, None, None, None
         if 'app_name' in kwargs:
             app_name = kwargs.pop('app_name')
@@ -245,8 +245,8 @@ class TaurusApplication(Qt.QApplication, Logger):
     def __registerExtensions(self):
         """Registers taurus Qt extensions"""
         try:
-            import taurus.qt.qtcore.tango.sardana
-            taurus.qt.qtcore.tango.sardana.registerExtensions()
+            import sardana.taurus.qt.qtcore.tango.sardana
+            sardana.taurus.qt.qtcore.tango.sardana.registerExtensions()
         except:
             self.info("Failed to load sardana extensions", exc_info=1)
         try:

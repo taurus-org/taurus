@@ -43,13 +43,12 @@ from sardana import InvalidId, ElementType, TYPE_ACQUIRABLE_ELEMENTS, \
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaevent import EventType
-
-from .poolobject import PoolObject
-from .poolcontainer import PoolContainer
-from .poolcontroller import PoolController
-from .poolmonitor import PoolMonitor
-from .poolmetacontroller import TYPE_MAP_OBJ
-from .poolcontrollermanager import ControllerManager
+from sardana.pool.poolobject import PoolObject
+from sardana.pool.poolcontainer import PoolContainer
+from sardana.pool.poolcontroller import PoolController
+from sardana.pool.poolmonitor import PoolMonitor
+from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
+from sardana.pool.poolcontrollermanager import ControllerManager
 
 
 class Graph(dict):
@@ -63,7 +62,8 @@ class Graph(dict):
         for node in self[start]:
             if node not in path:
                 newpath = self.find_path(node, end, path)
-                if newpath: return newpath
+                if newpath:
+                    return newpath
         return None
 
     def find_all_paths(self, start, end, path=[]):
@@ -95,7 +95,7 @@ class Graph(dict):
                         shortest = newpath
         return shortest
 
-        
+
 class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
     """The central pool class."""
 
@@ -123,7 +123,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         self._acq_loop_sleep_time = self.Default_AcqLoop_SleepTime
         self._drift_correction = self.Default_DriftCorrection
         self._remote_log_handler = None
-        
+
         # dict<str, dict<str, str>>
         # keys are acquisition channel names and value is a dict describing the
         # channel containing:
@@ -139,9 +139,9 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         self._monitor = PoolMonitor(self, "PMonitor", auto_start=False)
         #self.init_local_logging()
         ControllerManager().set_pool(self)
-    
+
     # TODO: not ready to use. path must be the same as the one calculated in
-    # sardana.tango.core.util:prepare_logging 
+    # sardana.tango.core.util:prepare_logging
     def init_local_logging(self):
         log = logging.getLogger("Controller")
         log.propagate = 0
@@ -160,7 +160,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         except:
             self.warning("Controller logs could not be created!")
             self.debug("Details:", exc_info=1)
-        
+
     def clear_remote_logging(self):
         rh = self._remote_log_handler
         if rh is None:
@@ -168,7 +168,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         log = logging.getLogger("Controller")
         log.removeHandler(rh)
         self._remote_log_handler = None
-        
+
     def init_remote_logging(self, host=None, port=None):
         """Initializes remote logging.
 
@@ -669,7 +669,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         for elem_type in TYPE_PHYSICAL_ELEMENTS:
             physical_elems_id_map.update(elem_type_map[elem_type])
         #TODO
-        
+
     def _build_element_id_dependencies(self, elem_id, graph=None):
         if graph is None:
             graph = Graph()
@@ -678,7 +678,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
             return graph
         graph[elem_id] = list(elem.get_user_element_ids())
         return graph
-        
+
     def get_moveable_id_graph(self):
         moveable_elems_id_map = {}
         elem_type_map = self.get_element_type_map()
@@ -696,7 +696,7 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
             return graph
         graph[elem] = list(elem.get_user_elements())
         return graph
-        
+
     def get_moveable_graph(self):
         moveable_elems_map = {}
         elem_type_map = self.get_element_type_map()
@@ -705,4 +705,4 @@ class Pool(PoolContainer, PoolObject, SardanaElementManager, SardanaIDManager):
         graph = Graph()
         for moveable in moveable_elems_map.values():
             self._build_element_dependencies(moveable, graph)
-        return graph    
+        return graph

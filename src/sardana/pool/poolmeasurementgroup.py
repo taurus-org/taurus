@@ -26,21 +26,21 @@
 """This module is part of the Python Pool library. It defines the base classes
 for"""
 
-__all__ = [ "PoolMeasurementGroup" ]
+__all__ = ["PoolMeasurementGroup"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.core.taurusvalidator import AttributeNameValidator
-from taurus.core.tango.sardana import PlotType, Normalization
 
-from sardana import State,ElementType, \
+from sardana import State, ElementType, \
     TYPE_EXP_CHANNEL_ELEMENTS, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanaevent import EventType
+from sardana.pool.pooldefs import AcqMode, AcqTriggerType
+from sardana.pool.poolgroupelement import PoolGroupElement
+from sardana.pool.poolacquisition import PoolAcquisition
+from sardana.pool.poolexternal import PoolExternalObject
 
-from .pooldefs import AcqMode, AcqTriggerType
-from .poolgroupelement import PoolGroupElement
-from .poolacquisition import PoolAcquisition
-from .poolexternal import PoolExternalObject
+from sardana.taurus.core.tango.sardana import PlotType, Normalization
 
 #----------------------------------------------
 # Measurement Group Configuration information
@@ -191,7 +191,7 @@ class PoolMeasurementGroup(PoolGroupElement):
         channel_data['source'] = channel_data.get('source', source)
         channel_data['enabled'] = channel_data.get('enabled', True)
         channel_data['label'] = channel_data.get('label', channel_data['name'])
-        channel_data['instrument'] = channel_data.get('instrument', getattr(instrument,'name',None))
+        channel_data['instrument'] = channel_data.get('instrument', getattr(instrument, 'name', None))
         channel_data['ndim'] = ndim
         # Probably should be initialized by measurement group
         channel_data['output'] = channel_data.get('output', True)
@@ -231,7 +231,7 @@ class PoolMeasurementGroup(PoolGroupElement):
             if elem_type == ElementType.External:
                 external_user_elements.append((index, element))
                 continue
-            
+
             ctrl = element.controller
             ctrl_data = controllers.get(ctrl)
 
@@ -346,7 +346,7 @@ class PoolMeasurementGroup(PoolGroupElement):
                 ch_count += len(u_data['channels'])
             if ch_count == 0:
                 continue
-                
+
             external = c_name.startswith('__')
             if external:
                 ctrl = c_name

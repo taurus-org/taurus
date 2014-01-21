@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -26,49 +26,49 @@
 """This module is part of the Python Pool library. It defines the class which
 controls finding, loading/unloading of device pool controller plug-ins."""
 
-__all__ = ["ControllerManager" ]
+__all__ = ["ControllerManager"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import os
-import inspect
-import copy
-
-import types
 import re
+import sys
+import copy
+import types
+import inspect
 
 from taurus.core import ManagerState
-from taurus.core.util import Singleton, Logger
+from taurus.core.util.log import Logger
+from taurus.core.util.singleton import Singleton
 
 from sardana.sardanamodulemanager import ModuleManager
-
-import controller
-from poolexception import UnknownController
-from poolmetacontroller import ControllerLibrary, ControllerClass
+from sardana.pool import controller
+from sardana.pool.poolexception import UnknownController
+from sardana.pool.poolmetacontroller import ControllerLibrary, ControllerClass
 
 CONTROLLER_TEMPLATE = '''
 
 class @controller_name@(MotorController):
     """This class representes a Sardana motor controller."""
-    
+
     ctrl_features = []
     MaxDevice = 1024
-    
+
     ctrl_properties = {}
     ctrl_attributes = {}
     axis_attributes = {}
-    
+
     def __init__(self, inst, props, *args, **kwargs):
         MotorController.__init__(self, inst, props, *args, **kwargs)
 
 '''
 
+
 class ControllerManager(Singleton, Logger):
     """The singleton class responsible for managing controller plug-ins."""
-    
+
     DEFAULT_CONTROLLER_DIRECTORIES = 'poolcontrollers',
-    
+
     def __init__(self):
         """Initialization. Nothing to be done here for now."""
         pass
@@ -85,50 +85,50 @@ class ControllerManager(Singleton, Logger):
         """Singleton re-initialization."""
         if self._state == ManagerState.INITED:
             return
-        
+
         #: dict<str, metacontroller.ControllerLibray>
         #: key   - module name (without path and without extension)
-        #: value - ControllerLibrary object representing the module 
+        #: value - ControllerLibrary object representing the module
         self._modules = {}
-        
+
         #: dict<str, <metacontroller.ControllerClass>
         #: key   - controller name
         #: value - ControllerClass object representing the controller
         self._controller_dict = {}
-    
+
         #: list<str>
         #: elements are absolute paths
         self._controller_path = []
-        
+
         l = []
         for _, klass in inspect.getmembers(controller, inspect.isclass):
             if not issubclass(klass, controller.Controller):
                 continue
             l.append(klass)
         self._base_classes = l
-        
+
         self._state = ManagerState.INITED
 
     def cleanUp(self):
         """Singleton clean up."""
         if self._state == ManagerState.CLEANED:
             return
-        
+
         #if self._modules:
         #    ModuleManager().unloadModules(self._modules.keys())
-        
+
         self._controller_path = None
         self._controller_dict = None
         self._modules = None
-        
+
         self._state = ManagerState.CLEANED
-    
+
     def set_pool(self, pool):
         self._pool = pool
-    
+
     def get_pool(self):
         return self._pool
-    
+
     def setControllerPath(self, controller_path, reload=True):
         """Registers a new list of controller directories in this manager.
         
@@ -143,27 +143,27 @@ class ControllerManager(Singleton, Logger):
         p = []
         for item in controller_path:
             p.extend(item.split(":"))
-        
+
         # filter empty and commented paths
         p = [ i for i in p if i and not i.startswith("#") ]
-        
+
         # add basic dummy controller directory(ies)
         pool_dir = os.path.dirname(os.path.abspath(__file__))
         for ctrl_dir in self.DEFAULT_CONTROLLER_DIRECTORIES:
             ctrl_dir = os.path.join(pool_dir, ctrl_dir)
             if not ctrl_dir in p:
                 p.append(ctrl_dir)
-        
+
         self._controller_path = p
-        
+
         controller_file_names = self._findControllerLibNames()
-        
+
         for controller_file_name in controller_file_names:
             try:
                 self.reloadControllerLib(controller_file_name, reload=reload)
             except Exception:
                 pass
-        
+
     def getControllerPath(self):
         """Returns the current sequence of absolute paths used to look for
         controllers.
@@ -179,7 +179,7 @@ class ControllerManager(Singleton, Logger):
         for p in path:
             try:
                 for f in os.listdir(p):
-                    name,ext = os.path.splitext(f)
+                    name, ext = os.path.splitext(f)
                     if not name[0].isalpha():
                         continue
                     if ext.endswith('py'):
@@ -194,7 +194,7 @@ class ControllerManager(Singleton, Logger):
         f_name = lib_name
         if not f_name.endswith('.py'):
             f_name += '.py'
-            
+
         if os.path.isabs(f_name):
             path, _ = os.path.split(f_name)
             if not path in self.getControllerPath():
@@ -222,7 +222,7 @@ class ControllerManager(Singleton, Logger):
         """
         # if only given the module name
         controller_lib = self.getControllerLib(lib_name)
-        
+
         if controller_name is None:
             line_nb = 0
             if controller_lib is None:
@@ -246,7 +246,7 @@ class ControllerManager(Singleton, Logger):
                     f = file(f_name)
                     code = f.read()
                     f.close()
-                
+
         return [ f_name, code, line_nb ]
 
     def setControllerLib(self, lib_name, code):
@@ -267,10 +267,10 @@ class ControllerManager(Singleton, Logger):
     def createControllerLib(self, lib_name, path=None):
         """Creates a new empty controller library (python module)"""
         f_name = self._fromNameToFileName(lib_name, path)
-        
+
         if os.path.exists(f_name):
             raise Exception("Unable to create controller lib: '%s' already exists" % f_name)
-            
+
         f = open(f_name, 'w')
         f.close()
         return f_name
@@ -278,9 +278,9 @@ class ControllerManager(Singleton, Logger):
     def createController(self, lib_name, controller_name):
         """Creates a new controller"""
         f_name = self._fromNameToFileName(lib_name)
-        
+
         create = not os.path.exists(f_name)
-        
+
         template = ''
         if create:
             template += 'from sardana.pool.controller import *\n\n'
@@ -292,7 +292,7 @@ class ControllerManager(Singleton, Logger):
             for line_nb, _ in enumerate(t): pass
             line_nb += 3
             t.close()
-            
+
         f = open(f_name, 'a+')
         try:
             dir_name = os.path.realpath(__file__)
@@ -307,7 +307,7 @@ class ControllerManager(Singleton, Logger):
             template += CONTROLLER_TEMPLATE
             if f_templ:
                 f_templ.close()
-                
+
         template = template.replace('@controller_name@', controller_name)
         try:
             f.write(template)
@@ -330,7 +330,7 @@ class ControllerManager(Singleton, Logger):
                               [default: None, meaning the current ControllerPath
                               will be used]"""
         self.reloadControllers([controller_name], path=path)
-        
+
     def reloadControllers(self, controller_names, path=None):
         """Reloads the modules corresponding to the given controller names
         
@@ -347,7 +347,7 @@ class ControllerManager(Singleton, Logger):
             module_name = self.getControllerMetaClass(controller_name).get_module_name()
             module_names.append(module_name)
         self.reloadControllerLibs(module_names, path=path)
-    
+
     def reloadControllerLibs(self, module_names, path=None, reload=True):
         """Reloads the given library(=module) names
         
@@ -368,7 +368,7 @@ class ControllerManager(Singleton, Logger):
                 self.info("Failed to reload controller library %s", module_name)
                 self.debug("Failed to reload controller library %s details",
                            module_name, exc_info=1)
-        
+
         return ret
 
     def reloadControllerLib(self, module_name, path=None, reload=True):
@@ -393,17 +393,17 @@ class ControllerManager(Singleton, Logger):
         if path:
             path = copy.copy(path)
             path.reverse()
-        
+
         # if there was previous Controller Lib info remove it
         if self._modules.has_key(module_name):
             self._modules.pop(module_name)
-        
+
         m, exc_info = None, None
         try:
             m = ModuleManager().reloadModule(module_name, path, reload=reload)
         except:
             exc_info = sys.exc_info()
-            
+
         controller_lib = None
         params = dict(module=m, name=module_name, pool=self.get_pool())
         if m is None or exc_info is not None:
@@ -423,12 +423,12 @@ class ControllerManager(Singleton, Logger):
                         continue
                     lib_contains_controllers = True
                     self.addController(controller_lib, klass)
-            
+
             if lib_contains_controllers:
                 self._modules[module_name] = controller_lib
-        
+
         return controller_lib
-    
+
     def addController(self, controller_lib, klass):
         """Adds a new controller class"""
         controller_name = klass.__name__
@@ -437,32 +437,32 @@ class ControllerManager(Singleton, Logger):
             action = "Updating"
         else:
             action = "Adding"
-        
+
         self.debug("%s controller %s" % (action, controller_name))
-        
+
         try:
             controller_class = ControllerClass(pool=self.get_pool(),
                                                lib=controller_lib, klass=klass)
             #self._setControllerTypes(klass, controller_class)
             controller_lib.add_controller(controller_class)
             self._controller_dict[controller_name] = controller_class
-            
+
         except:
             self.warning("Failed to add controller class %s", controller_name,
                          exc_info=1)
-        
+
         if exists:
             action = "Updated"
         else:
             action = "Added"
         self.debug("%s controller %s" % (action, controller_name))
-   
+
     def getControllerNames(self):
         return sorted(self._controller_dict.keys())
 
     def getControllerLibNames(self):
         return sorted(self._modules.keys())
-    
+
     def getControllerLibs(self, filter=None):
         ret, expr = [], None
         if filter is not None:
@@ -473,28 +473,28 @@ class ControllerManager(Singleton, Logger):
             ret.append(lib)
         ret.sort()
         return ret
-    
+
     def getControllers(self, filter=None):
         if filter is None:
             return sorted(self._controller_dict.values())
         expr = re.compile(filter, re.IGNORECASE)
-        
+
         ret = [ kls for n, kls in self._controller_dict.iteritems() if not expr.match(n) is None ]
         ret.sort()
         return ret
-    
+
     def getControllerMetaClass(self, controller_name):
         ret = self._controller_dict.get(controller_name)
         if ret is None:
             raise UnknownController("Unknown controller %s" % controller_name)
         return ret
-    
+
     def getControllerMetaClasses(self, controller_names):
         ret = {}
         for name in controller_names:
             ret[name] = self._controller_dict.get(name)
         return ret
-    
+
     def getControllerLib(self, name):
         if os.path.isabs(name):
             abs_file_name = name
@@ -508,10 +508,10 @@ class ControllerManager(Singleton, Logger):
                     return lib
         module_name = name
         return self._modules.get(module_name)
-    
+
     def getControllerClass(self, controller_name):
         return self.getControllerMetaClass(controller_name).klass
-    
+
     def _getPlainControllerInfo(self, controller_names):
         ret = []
         for controller_name in controller_names:
@@ -519,7 +519,7 @@ class ControllerManager(Singleton, Logger):
             if controller_class is not None:
                 ret += controller_class.getInfo()
         return ret
-    
+
     def decodeControllerParameters(self, in_par_list):
         if len(in_par_list) == 0:
             raise RuntimeError('Controller name not specified')
@@ -529,11 +529,11 @@ class ControllerManager(Singleton, Logger):
             controller_class = self.getControllerClass(controller_class)
         if controller_class is None:
             raise UnknownController("Unknown controller %s" % controller_name_or_klass)
-        import parameter
-        out_par_list = msparameter.ParamDecoder(controller_class, in_par_list)
+        from sardana.macroserver.msparameter import ParamDecoder
+        out_par_list = ParamDecoder(controller_class, in_par_list)
         return controller_class, in_par_list, out_par_list
 
-    def strControllerParamValues(self,par_list):
+    def strControllerParamValues(self, par_list):
         """Creates a short string representation of the parameter values list.
            
            :param par_list: list of strings representing the parameter values.
@@ -545,7 +545,7 @@ class ControllerManager(Singleton, Logger):
         ret = []
         for p in par_list:
             param_str = str(p)
-            if len(param_str)>9:
+            if len(param_str) > 9:
                 param_str = param_str[:9] + "..."
             ret.append(param_str)
         return ret

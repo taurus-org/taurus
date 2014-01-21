@@ -26,10 +26,13 @@
 """
 model.py:
 """
-from taurus.qt import Qt
+
 from lxml import etree
-from taurus.core.tango.sardana import macro
-from taurus.qt.qtgui.extra_macroexecutor import globals
+
+from taurus.qt import Qt
+
+from sardana.taurus.core.tango.sardana import macro
+from sardana.taurus.qt.qtgui.extra_macroexecutor import globals
 
 
 class ParamEditorModel(Qt.QAbstractItemModel):
@@ -38,7 +41,7 @@ class ParamEditorModel(Qt.QAbstractItemModel):
         Qt.QAbstractItemModel.__init__(self, parent)
         self.columns = 2
         self.setRoot()
-        self.headers = ["Parameter","Value"]
+        self.headers = ["Parameter", "Value"]
 
     def root(self):
         return self._root

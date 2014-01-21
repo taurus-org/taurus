@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -30,10 +30,9 @@ import os.path
 from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
-#from taurus.core.util import Logger
-from taurus.core.util import CodecFactory
+from taurus.core.util.codecs import CodecFactory
 
-from sardana import State, SardanaServer #, ElementType
+from sardana import State, SardanaServer
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macroserver import MacroServer as MS
@@ -41,27 +40,27 @@ from sardana.macroserver.macroserver import MacroServer as MS
 
 class MacroServer(SardanaDevice):
     """The MacroServer tango class"""
-    
+
     ElementsCache = None
     EnvironmentCache = None
-    
-    def __init__(self,cl, name):
+
+    def __init__(self, cl, name):
         self._macro_server = None
-        SardanaDevice.__init__(self,cl, name)
-    
+        SardanaDevice.__init__(self, cl, name)
+
     def init(self, name):
         SardanaDevice.init(self, name)
-        
+
         if self._alias is None:
             self._alias = Util.instance().get_ds_inst_name()
-        
+
         self._macro_server = ms = MS(self.get_full_name(), self.alias)
         ms.add_listener(self.on_macro_server_changed)
-    
+
     @property
     def macro_server(self):
         return self._macro_server
-    
+
     def delete_device(self):
         SardanaDevice.delete_device(self)
         self.clear_log_report()
@@ -76,19 +75,19 @@ class MacroServer(SardanaDevice):
         self.set_change_event('MacroLibList', True, False)
         self.set_change_event('Elements', True, False)
         self.set_change_event('Environment', True, False)
-        
+
         dev_class = self.get_device_class()
         self.get_device_properties(dev_class)
-        
+
         self.EnvironmentDb = self._calculate_name(self.EnvironmentDb)
         self.LogReportFilename = self._calculate_name(self.LogReportFilename)
 
         macro_server = self.macro_server
         macro_server.set_python_path(self.PythonPath)
         macro_server.set_max_parallel_macros(self.MaxParallelMacros)
-        
-        # if it is not possible to store/retrieve the environment from the 
-        # current path then setup a new unique path and store the environment 
+
+        # if it is not possible to store/retrieve the environment from the
+        # current path then setup a new unique path and store the environment
         # there forever
         try:
             macro_server.set_environment_db(self.EnvironmentDb)
@@ -103,17 +102,17 @@ class MacroServer(SardanaDevice):
             db.put_device_property(self.get_name(), dict(EnvironmentDb=env_db))
             self.EnvironmentDb = env_db
             macro_server.set_environment_db(self.EnvironmentDb)
-        
+
         try:
             macro_server.set_log_report(self.LogReportFilename, self.LogReportFormat)
         except:
             self.error("Failed to setup log report to %s",
                        self.LogReportFilename)
             self.debug("Details:", exc_info=1)
-        
+
         macro_server.set_macro_path(self.MacroPath)
         macro_server.set_pool_names(self.PoolNames)
-        
+
         if self.RConsolePort:
             try:
                 import rfoo.utils.rconsole
@@ -122,7 +121,7 @@ class MacroServer(SardanaDevice):
                 self.warning("Failed to start rconsole")
                 self.debug("Details:", exc_info=1)
         self.set_state(DevState.ON)
-    
+
     def _calculate_name(self, name):
         if name is None:
             return None
@@ -130,15 +129,15 @@ class MacroServer(SardanaDevice):
         return name % { 'ds_name' : util.get_ds_name().lower(),
                         'ds_exec_name' : util.get_ds_exec_name(),
                         'ds_inst_name' : util.get_ds_inst_name().lower() }
-    
+
     def on_macro_server_changed(self, evt_src, evt_type, evt_value):
         # during server startup and shutdown avoid processing element
         # creation events
         if SardanaServer.server_state != State.Running:
             return
-        
+
         evt_name = evt_type.name.lower()
-        
+
         multi_attr = self.get_device_attr()
         elems_attr = multi_attr.get_attr_by_name("Elements")
         if evt_name == "poolelementschanged":
@@ -153,7 +152,7 @@ class MacroServer(SardanaDevice):
             self.ElementsCache = None
 
             elem = evt_value
-            
+
             value = { }
             if "created" in evt_name:
                 key = 'new'
@@ -168,7 +167,7 @@ class MacroServer(SardanaDevice):
             # force the element list cache to be rebuild next time someone reads
             # the element list
             self.ElementsCache = None
-            
+
             ms_name = self.macro_server.full_name
             new_values, changed_values, deleted_values = [], [], []
             for elem in evt_value['new']:
@@ -190,31 +189,31 @@ class MacroServer(SardanaDevice):
             env_attr = multi_attr.get_attr_by_name("Environment")
             value = CodecFactory().getCodec('pickle').encode(('', evt_value))
             self.set_attribute(env_attr, value=value)
-            
-    
+
+
     def always_executed_hook(self):
         pass
-    
-    def read_attr_hardware(self,data):
+
+    def read_attr_hardware(self, data):
         pass
-    
+
     def read_DoorList(self, attr):
         door_names = self.macro_server.get_door_names()
         attr.set_value(door_names)
-        
+
     @DebugIt()
     def read_MacroList(self, attr):
         macro_names = self.macro_server.get_macro_names()
         attr.set_value(macro_names)
-    
+
     def read_MacroLibList(self, attr):
         macro_lib_names = self.macro_server.get_macro_lib_names()
         attr.set_value(macro_lib_names)
-    
+
     def read_TypeList(self, attr):
         type_names = self.macro_server.get_data_type_names_with_asterisc()
         attr.set_value(type_names)
-        
+
     #@DebugIt()
     def getElements(self, cache=True):
         value = self.ElementsCache
@@ -225,7 +224,7 @@ class MacroServer(SardanaDevice):
         value = CodecFactory().getCodec('json').encode(('', value))
         self.ElementsCache = value
         return value
-    
+
     #@DebugIt()
     def read_Elements(self, attr):
         fmt, data = self.getElements()
@@ -238,7 +237,7 @@ class MacroServer(SardanaDevice):
     is_MacroList_allowed = \
     is_MacroLibList_allowed = \
     is_TypeList_allowed = is_Elements_allowed
-        
+
     def GetMacroInfo(self, macro_names):
         """GetMacroInfo(list<string> macro_names):
         
@@ -256,7 +255,7 @@ class MacroServer(SardanaDevice):
             for macro in macro_server.get_macros()
                 if macro.name in macro_names ]
         return ret
-    
+
     def ReloadMacro(self, macro_names):
         """ReloadMacro(list<string> macro_names):"""
         try:
@@ -265,7 +264,7 @@ class MacroServer(SardanaDevice):
         except MacroServerException, mse:
             Except.throw_exception(mse.type, mse.msg, 'ReloadMacro')
         return ['OK']
-    
+
     def ReloadMacroLib(self, lib_names):
         """ReloadMacroLib(sequence<string> lib_names):
         """
@@ -275,13 +274,13 @@ class MacroServer(SardanaDevice):
         except MacroServerException, mse:
             Except.throw_exception(mse.type, mse.msg, 'ReloadMacroLib')
         return ['OK']
-    
+
     def GetMacroCode(self, argin):
         """GetMacroCode(<module name> [, <macro name>]) -> full filename, code, line_nb
         """
         ret = self.macro_server.get_or_create_macro_lib(*argin)
         return map(str, ret)
-    
+
     def SetMacroCode(self, argin):
         lib_name, code = argin[:2]
         auto_reload = True
@@ -299,33 +298,33 @@ class MacroServer(SardanaDevice):
         value = CodecFactory().getCodec('pickle').encode(('', value))
         self.EnvironmentCache = value
         return value
-    
+
     def read_Environment(self, attr):
         fmt, data = self.getEnvironment()
         attr.set_value(fmt, data)
-    
+
     def write_Environment(self, attr):
         data = attr.get_write_value()
         data = CodecFactory().getCodec('pickle').decode(data)[1]
         self.macro_server.change_env(data)
-    
+
     def is_Environment_allowed(self, req_type):
         return True
 
 
 class MacroServerClass(SardanaDeviceClass):
     """MacroServer Tango class class"""
-    
+
     #    Class Properties
     class_property_list = {
     }
-    
-    
+
+
     DefaultEnvBaseDir = "/tmp/tango"
     DefaultEnvRelDir = "%(ds_exec_name)s/%(ds_inst_name)s/macroserver.properties"
-    
+
     DefaultLogReportFormat = '%(levelname)-8s %(asctime)s: %(message)s'
-    
+
     #    Device Properties
     device_property_list = {
         'PoolNames':
@@ -403,11 +402,11 @@ class MacroServerClass(SardanaDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'DoorList'     : [ [ DevString,  SPECTRUM, READ, 256 ] ],
-        'MacroList'    : [ [ DevString,  SPECTRUM, READ, 4096 ] ],
-        'MacroLibList' : [ [ DevString,  SPECTRUM, READ, 1024 ] ],
-        'TypeList'     : [ [ DevString,  SPECTRUM, READ, 256 ] ],
-        'Elements'     : [ [ DevEncoded, SCALAR,   READ ],
+        'DoorList'     : [ [ DevString, SPECTRUM, READ, 256 ] ],
+        'MacroList'    : [ [ DevString, SPECTRUM, READ, 4096 ] ],
+        'MacroLibList' : [ [ DevString, SPECTRUM, READ, 1024 ] ],
+        'TypeList'     : [ [ DevString, SPECTRUM, READ, 256 ] ],
+        'Elements'     : [ [ DevEncoded, SCALAR, READ ],
                            { 'label'       : "Elements",
                              'description' : "the list of all elements "
                                              "(a JSON encoded dict)", } ],
@@ -416,4 +415,4 @@ class MacroServerClass(SardanaDeviceClass):
                              'description' : "The macro server environment "
                                              "(a JSON encoded dict)", } ],
     }
-    
+

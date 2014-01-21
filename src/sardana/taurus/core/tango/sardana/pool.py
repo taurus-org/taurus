@@ -35,10 +35,10 @@ __all__ = ["InterruptException", "StopException", "AbortException",
 
 __docformat__ = 'restructuredtext'
 
-import sys
 import os
-import weakref
+import sys
 import time
+import weakref
 import operator
 import traceback
 
@@ -112,7 +112,7 @@ class BaseElement(object):
             return CodecFactory.encode(('json'), self.serialize())
         return self._str_tuple[:n]
 
-    def __cmp__(self,o):
+    def __cmp__(self, o):
         return cmp(self.getPoolData()['full_name'], o.getPoolData()['full_name'])
 
     def getName(self):
@@ -267,7 +267,7 @@ class PoolElement(BaseElement, TangoDevice):
         self._reserved = None
         self._evt_wait = None
         self.__go_start_time = 0
-        self.__go_end_time = 0        
+        self.__go_end_time = 0
         self.__go_time = 0
         self._total_go_time = 0
         self.call__init__(TangoDevice, name, **kwargs)
@@ -306,7 +306,7 @@ class PoolElement(BaseElement, TangoDevice):
         self.unreserve()
 
     def unreserve(self):
-        self._reserved =None
+        self._reserved = None
 
     def isReserved(self, obj=None):
         if obj is None:
@@ -442,20 +442,20 @@ class PoolElement(BaseElement, TangoDevice):
     @reservedOperation
     def go(self, *args, **kwargs):
         self._total_go_time = 0
-        start_time  = time.time()
+        start_time = time.time()
         eid = self.start(*args, **kwargs)
         self.waitFinish(id=eid)
         self._total_go_time = time.time() - start_time
-    
+
     def getLastGoTime(self):
         """Returns the time it took for last go operation"""
         return self.__go_time
-    
+
     def getTotalLastGoTime(self):
         """Returns the time it took for last go operation, including dead time
         to prepare, wait for events, etc"""
         return self._total_go_time
-    
+
     def abort(self, wait_ready=True, timeout=None):
         state = self.getStateEG()
         state.lock()
@@ -481,13 +481,13 @@ class PoolElement(BaseElement, TangoDevice):
         return "\n".join(msg)
 
     def _information(self, tab='    '):
-        indent = "\n" + tab + 10*' '
+        indent = "\n" + tab + 10 * ' '
         msg = [ self.getName() + ":" ]
         try:
             state = str(self.state()).capitalize()
         except DevFailed, df:
             if len(df.args):
-                state =  df.args[0].desc
+                state = df.args[0].desc
             else:
                 e_info = sys.exc_info()[:2]
                 state = traceback.format_exception_only(*e_info)
@@ -502,7 +502,7 @@ class PoolElement(BaseElement, TangoDevice):
             status = status.replace('\n', indent)
         except DevFailed, df:
             if len(df.args):
-                status =  df.args[0].desc
+                status = df.args[0].desc
             else:
                 e_info = sys.exc_info()[:2]
                 status = traceback.format_exception_only(*e_info)
@@ -713,7 +713,7 @@ class Motor(PoolElement, Moveable):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Moveable interface
     #
-        
+
     def _start(self, *args, **kwargs):
         new_pos = args[0]
         if operator.isSequenceType(new_pos):
@@ -729,10 +729,10 @@ class Motor(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
-        start_time  = time.time()
+        start_time = time.time()
         PoolElement.go(self, *args, **kwargs)
         ret = self.getStateEG().readValue(), self.readPosition()
-        self._total_go_time = time.time() - start_time        
+        self._total_go_time = time.time() - start_time
         return ret
 
     startMove = PoolElement.start
@@ -807,7 +807,7 @@ class Motor(PoolElement, Moveable):
                 pos += " [" + QUALITY[position.quality] + "]"
         except DevFailed, df:
             if len(df.args):
-                pos =  df.args[0].desc
+                pos = df.args[0].desc
             else:
                 e_info = sys.exc_info()[:2]
                 pos = traceback.format_exception_only(*e_info)
@@ -858,10 +858,10 @@ class PseudoMotor(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
-        start_time  = time.time()
+        start_time = time.time()
         PoolElement.go(self, *args, **kwargs)
         ret = self.getStateEG().readValue(), self.readPosition()
-        self._total_go_time = time.time() - start_time        
+        self._total_go_time = time.time() - start_time
         return ret
 
     startMove = PoolElement.start
@@ -869,7 +869,7 @@ class PseudoMotor(PoolElement, Moveable):
     move = go
     getLastMotionTime = PoolElement.getLastGoTime
     getTotalLastMotionTime = PoolElement.getTotalLastGoTime
-    
+
     def readPosition(self, force=False):
         return [ self.getPosition(force=force) ]
 
@@ -896,7 +896,7 @@ class PseudoMotor(PoolElement, Moveable):
                 pos += " [" + QUALITY[position.quality] + "]"
         except DevFailed, df:
             if len(df.args):
-                pos =  df.args[0].desc
+                pos = df.args[0].desc
             else:
                 e_info = sys.exc_info()[:2]
                 pos = traceback.format_exception_only(*e_info)
@@ -917,7 +917,7 @@ class MotorGroup(PoolElement, Moveable):
         self.call__init__(Moveable)
 
     def _create_str_tuple(self):
-        return 3*["TODO"]
+        return 3 * ["TODO"]
 
     def getMotorNames(self):
         return self.getPoolData()['elements']
@@ -949,10 +949,10 @@ class MotorGroup(PoolElement, Moveable):
         self.final_pos = new_pos
 
     def go(self, *args, **kwargs):
-        start_time  = time.time()
+        start_time = time.time()
         PoolElement.go(self, *args, **kwargs)
         ret = self.getStateEG().readValue(), self.readPosition()
-        self._total_go_time = time.time() - start_time        
+        self._total_go_time = time.time() - start_time
         return ret
 
     startMove = PoolElement.start
@@ -960,7 +960,7 @@ class MotorGroup(PoolElement, Moveable):
     move = go
     getLastMotionTime = PoolElement.getLastGoTime
     getTotalLastMotionTime = PoolElement.getTotalLastGoTime
-    
+
     def readPosition(self, force=False):
         return self.getPosition(force=force)
 
@@ -990,7 +990,7 @@ class MotorGroup(PoolElement, Moveable):
                 pos += " [" + QUALITY[position.quality] + "]"
         except DevFailed, df:
             if len(df.args):
-                pos =  df.args[0].desc
+                pos = df.args[0].desc
             else:
                 e_info = sys.exc_info()[:2]
                 pos = traceback.format_exception_only(*e_info)
@@ -1016,19 +1016,19 @@ class TangoChannelInfo(BaseChannelInfo):
     def __init__(self, data, info):
         BaseChannelInfo.__init__(self, data)
         # PyTango.AttributeInfoEx
-        self.set_info(info)    
-    
+        self.set_info(info)
+
     def has_info(self):
         return self.raw_info is not None
-    
+
     def set_info(self, info):
         self.raw_info = info
-        
+
         if info is None:
             return
-        
+
         data = self.raw_data
-        
+
         if 'data_type' not in data:
             self.data_type = FROM_TANGO_TO_STR_TYPE[info.data_type]
 
@@ -1042,7 +1042,7 @@ class TangoChannelInfo(BaseChannelInfo):
         else:
             shape = self.shape
         self.shape = list(shape)
-        
+
     def __getattr__(self, name):
         if self.has_info():
             return getattr(self.raw_info, name)
@@ -1074,12 +1074,12 @@ def getChannelConfigs(mgconfig, ctrls=None, units=None, sort=True):
             for unit_id, unit_data in ctrl_data['units'].items():
                 if units is None or unit_id in units:
                     for ch_name, ch_data in unit_data['channels'].items():
-                        ch_data.update({'_controller_name':ctrl_name, '_unit_id':unit_id}) #add controller and unit ids
-                        chconfigs.append((ch_name,ch_data))
+                        ch_data.update({'_controller_name':ctrl_name, '_unit_id':unit_id})  #add controller and unit ids
+                        chconfigs.append((ch_name, ch_data))
     if sort:
         #sort the channel configs by index (primary sort) and then by channel name.
-        chconfigs = sorted(chconfigs, key=lambda c:c[0]) #sort by channel_name
-        chconfigs = sorted(chconfigs, key=lambda c:c[1].get('index',1e16)) #sort by index (give a very large index for those which don't have it)
+        chconfigs = sorted(chconfigs, key=lambda c:c[0])  #sort by channel_name
+        chconfigs = sorted(chconfigs, key=lambda c:c[1].get('index', 1e16))  #sort by index (give a very large index for those which don't have it)
     return chconfigs
 
 
@@ -1110,7 +1110,7 @@ class MGConfiguration(object):
         # seq<dict> each element is the channel data in form of a dict as
         # receveid by the MG configuration attribute. This seq is just a cache
         # ordered by channel index in the MG.
-        self.channel_list = len(channels)*[None]
+        self.channel_list = len(channels) * [None]
 
         for channel in channels.values():
             self.channel_list[channel['index']] = channel
@@ -1196,16 +1196,16 @@ class MGConfiguration(object):
                             self._build_empty_tango_attr_info(channel_data)
                         self.tango_channels_info_in_error += 1
                     attr_info = TangoChannelInfo(channel_data, tg_attr_info)
-                        
+
                 tg_chs_info[channel_name] = dev_name, attr_name, attr_info
-    
+
     def _build_empty_tango_attr_info(self, channel_data):
         import PyTango
         ret = PyTango.AttributeInfoEx()
         ret.name = channel_data['name']
         ret.label = channel_data['label']
         return ret
-        
+
     def prepare(self):
         # first time? build everything
         if self.tango_dev_channels is None:
@@ -1254,8 +1254,8 @@ class MGConfiguration(object):
 
     def getChannelsInfoList(self):
         channels_info = self.getChannelsInfo()
-        ret = len(channels_info)*[None]
-        for _, (_,_,ch_info) in channels_info.items():
+        ret = len(channels_info) * [None]
+        for _, (_, _, ch_info) in channels_info.items():
             ret[ch_info.index] = ch_info
         return ret
 
@@ -1269,12 +1269,12 @@ class MGConfiguration(object):
         if idx >= 0:
             channels_info.pop(idx)
         return channels_info
-    
+
     def read(self, parallel=True):
         if parallel:
             return self._read_parallel()
         return self._read()
-    
+
     def _read_parallel(self):
         self.prepare()
         ret = CaselessDict(self.cache)
@@ -1289,7 +1289,7 @@ class MGConfiguration(object):
                 dev_replies[dev] = dev.read_attributes_asynch(attrs.keys()), attrs
             except:
                 dev_replies[dev] = None, attrs
-                
+
         # gather all replies
         for dev, reply_data in dev_replies.items():
             reply, attrs = reply_data
@@ -1305,7 +1305,7 @@ class MGConfiguration(object):
             except:
                 for _, channel_data in attrs.items():
                     ret[channel_data['full_name']] = None
-                
+
         return ret
 
     def _read(self):
@@ -1387,7 +1387,7 @@ class MeasurementGroup(PoolElement):
             self.getChannel(timer_name)
         except KeyError:
             raise Exception("%s does not contain a channel named '%s'"
-                            % (str(self),timer_name))
+                            % (str(self), timer_name))
         cfg = self.getConfiguration().raw_data
         cfg['timer'] = timer_name
         import json
@@ -1444,9 +1444,9 @@ class MeasurementGroup(PoolElement):
 
     def _start(self, *args, **kwargs):
         self.Start()
-        
+
     def go(self, *args, **kwargs):
-        start_time  = time.time()
+        start_time = time.time()
         cfg = self.getConfiguration()
         cfg.prepare()
         duration = args[0]
@@ -1455,7 +1455,7 @@ class MeasurementGroup(PoolElement):
         self.putIntegrationTime(duration)
         PoolElement.go(self, *args, **kwargs)
         ret = self.getStateEG().readValue(), self.getValues()
-        self._total_go_time = time.time() - start_time        
+        self._total_go_time = time.time() - start_time
         return ret
 
     startCount = PoolElement.start
@@ -1714,14 +1714,14 @@ class Pool(TangoDevice, MoveableSource):
             time.sleep(nap)
 
     def createMotorGroup(self, mg_name, elements):
-        params = [mg_name,] + map(str, elements)
+        params = [mg_name, ] + map(str, elements)
         self.debug('trying to create motor group for elements: %s', params)
         self.command_inout('CreateMotorGroup', params)
         elements_info = self.getElementsInfo()
         return self._wait_for_element_in_container(elements_info, mg_name)
 
     def createMeasurementGroup(self, mg_name, elements):
-        params = [mg_name,] + map(str,elements)
+        params = [mg_name, ] + map(str, elements)
         self.debug('trying to create measurement group: %s', params)
         self.command_inout('CreateMeasurementGroup', params)
         elements_info = self.getElementsInfo()
@@ -1771,7 +1771,7 @@ def registerExtensions():
     hw_type_names = [
         'Controller',
         'ComChannel', 'Motor', 'PseudoMotor',
-        'CTExpChannel','ZeroDExpChannel','OneDExpChannel', 'TwoDExpChannel',
+        'CTExpChannel', 'ZeroDExpChannel', 'OneDExpChannel', 'TwoDExpChannel',
         'PseudoCounter', 'IORegister', 'MotorGroup', 'MeasurementGroup']
 
     hw_type_map = [ (name, globals()[name]) for name in hw_type_names ]

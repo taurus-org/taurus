@@ -36,7 +36,7 @@ from PyTango import DevFailed, Except, DevVoid, DevShort, \
     DevLong, DevDouble, DevBoolean, DispLevel, DevState, AttrQuality, \
     READ, READ_WRITE, SCALAR, SPECTRUM
 
-from taurus.core.util import DebugIt
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanautils import str_to_value
@@ -44,7 +44,8 @@ from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
 from sardana.tango.core.util import memorize_write_attribute, exception_str, \
     to_tango_type_format, throw_sardana_exception
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class Motor(PoolElementDevice):
@@ -265,7 +266,7 @@ the Tango polling buffer and is read a last time after a tunable
 waiting time (Sleep_bef_last_read property). A forced change event
 with this value is sent to clients using events. 
     """
-    
+
     def __init__(self, dclass, name):
         """Constructor"""
         self.in_write_position = False
@@ -291,28 +292,28 @@ with this value is sent to clients using events.
             data = dict(DialPosition=dict(__value=dial.w_value, __value_ts=dial.w_timestamp))
             db = self.get_database()
             db.put_device_attribute_property(self.get_name(), data)
-    
+
     def get_write_dial_position_from_db(self):
         name = 'DialPosition'
         db = self.get_database()
         pos_props = db.get_device_attribute_property(self.get_name(), name)[name]
         w_pos = pos_props["__value"][0]
-        
+
         _, _, attr_info = self.get_dynamic_attributes()[0][name]
         w_pos = str_to_value(w_pos, attr_info.dtype, attr_info.dformat)
-        
+
         w_pos, w_ts = float(pos_props["__value"][0]), None
         if "__value_ts" in pos_props:
             w_ts = float(pos_props["__value_ts"][0])
-        return w_pos, w_ts 
-    
+        return w_pos, w_ts
+
     @DebugIt()
     def delete_device(self):
         PoolElementDevice.delete_device(self)
         motor = self.motor
         if motor is not None:
             motor.remove_listener(self.on_motor_changed)
-            
+
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
@@ -338,12 +339,12 @@ with this value is sent to clients using events.
                         self.in_write_position = False
                 except KeyError:
                     pass
-                
+
         if self.Sleep_bef_last_read > 0:
             motor.set_instability_time(self.Sleep_bef_last_read / 1000.0)
         motor.add_listener(self.on_motor_changed)
         self.set_state(DevState.ON)
-        
+
     def on_motor_changed(self, event_source, event_type, event_value):
         try:
             self._on_motor_changed(event_source, event_type, event_value)
@@ -362,21 +363,21 @@ with this value is sent to clients using events.
 
         timestamp = time.time()
         name = event_type.name.lower()
-        
+
         if name == "w_position" and not self.in_write_position:
             self.debug("Storing dial set point: %s", self.motor.dial_position.w_value)
             self.set_write_dial_position_to_db()
             return
-        
+
         try:
             attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
-        
+
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         value, w_value, error = None, None, None
-        
+
         if name == "state":
             value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -398,7 +399,7 @@ with this value is sent to clients using events.
                     quality = AttrQuality.ATTR_CHANGING
             elif name == "dialposition" and state == State.Moving:
                 quality = AttrQuality.ATTR_CHANGING
-        
+
         self.set_attribute(attr, value=value, w_value=w_value,
                            timestamp=timestamp, quality=quality,
                            priority=priority, error=error, synch=False)
@@ -411,10 +412,10 @@ with this value is sent to clients using events.
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For position attribute, listen to what the controller says for data
             # type (between long and float)
@@ -453,7 +454,7 @@ with this value is sent to clients using events.
         self.set_attribute(attr, value=position.value, w_value=position.w_value,
                            quality=quality, priority=0,
                            timestamp=position.timestamp)
-    
+
     def write_Position(self, attr):
         self.in_write_position = True
         position = attr.get_write_value()
@@ -467,22 +468,22 @@ with this value is sent to clients using events.
                 self.motor.position = position
             except PoolException, pe:
                 throw_sardana_exception(pe)
-            
+
             # manually store write dial position in the database
             self.set_write_dial_position_to_db()
         finally:
             self.in_write_position = False
-        
+
     def read_Acceleration(self, attr):
         attr.set_value(self.motor.get_acceleration(cache=False))
-    
+
     @memorize_write_attribute
     def write_Acceleration(self, attr):
         self.motor.acceleration = attr.get_write_value()
 
     def read_Deceleration(self, attr):
         attr.set_value(self.motor.get_deceleration(cache=False))
-    
+
     @memorize_write_attribute
     def write_Deceleration(self, attr):
         self.motor.deceleration = attr.get_write_value()
@@ -496,7 +497,7 @@ with this value is sent to clients using events.
 
     def read_Velocity(self, attr):
         attr.set_value(self.motor.get_velocity(cache=False))
-    
+
     @memorize_write_attribute
     def write_Velocity(self, attr):
         self.motor.velocity = attr.get_write_value()

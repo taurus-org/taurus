@@ -32,13 +32,14 @@ __docformat__ = 'restructuredtext'
 import sys
 from multiprocessing import Process, Pipe
 
-import genutils
-
 from taurus.core import TaurusManager
-from taurus.core.util import Singleton
-from taurus.core.tango.sardana.macroserver import BaseInputHandler
+from taurus.core.util.singleton import Singleton
 from taurus.qt import Qt
 from taurus.qt.qtgui.dialog import TaurusMessageBox, TaurusInputDialog
+
+from sardana.taurus.core.tango.sardana.macroserver import BaseInputHandler
+
+from sardana.spock import genutils
 
 
 class SpockInputHandler(BaseInputHandler):
@@ -72,10 +73,10 @@ class MessageHandler(Qt.QObject):
         self._conn = conn
         self._dialog = None
         self.connect(self, Qt.SIGNAL("messageArrived"), self.on_message)
-        
+
     def handle_message(self, input_data):
         self.emit(Qt.SIGNAL("messageArrived"), input_data)
-    
+
     def on_message(self, input_data):
         msg_type = input_data['type']
         if msg_type == 'input':
@@ -99,18 +100,18 @@ class MessageHandler(Qt.QObject):
 
 
 class InputHandler(Singleton, BaseInputHandler):
-    
+
     def __init__(self):
         # don't call super __init__ on purpose
         pass
-            
+
     def init(self, *args, **kwargs):
         self._conn, child_conn = Pipe()
         self._proc = proc = Process(target=self.safe_run,
             name="SpockInputHandler", args=(child_conn,))
         proc.daemon = True
         proc.start()
-    
+
     def input(self, input_data=None):
         # parent process
         data_type = input_data.get('data_type', 'String')
@@ -126,7 +127,7 @@ class InputHandler(Singleton, BaseInputHandler):
     def input_timeout(self, input_data):
         # parent process
         self._conn.send(input_data)
-        
+
     def safe_run(self, conn):
         # child process
         try:
@@ -135,7 +136,7 @@ class InputHandler(Singleton, BaseInputHandler):
             msgbox = TaurusMessageBox(*sys.exc_info())
             conn.send((e, False))
             msgbox.exec_()
-    
+
     def run(self, conn):
         # child process
         self._conn = conn
@@ -148,7 +149,7 @@ class InputHandler(Singleton, BaseInputHandler):
         app.exec_()
         conn.close()
         print "Quit input handler"
-                
+
     def run_forever(self):
         # child process
         message, conn = True, self._conn

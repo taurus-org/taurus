@@ -25,21 +25,21 @@
 
 """The macroserver submodule. It contains specific part of macroserver"""
 
-__all__ = [ 'BaseInputHandler', 'BaseDoor', 'BaseMacroServer',
-            'registerExtensions' ]
+__all__ = ['BaseInputHandler', 'BaseDoor', 'BaseMacroServer',
+           'registerExtensions']
 
 __docformat__ = 'restructuredtext'
 
 import sys
-import weakref
-import threading
 import time
 import uuid
+import weakref
+import threading
 import os.path as osp
 
-import PyTango
-
 from lxml import etree
+
+import PyTango
 
 from taurus import Device, Factory
 from taurus.core.taurusmanager import TaurusManager
@@ -47,14 +47,15 @@ from taurus.core.taurusbasetypes import TaurusEventType, TaurusSWDevState, \
     TaurusSerializationMode
 
 from taurus.core.util.log import Logger
-from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.codecs import CodecFactory
 from taurus.core.util.event import EventGenerator, AttributeEventWait
 from taurus.core.tango import TangoDevice
 
-from .macro import MacroInfo, Macro, MacroNode, ParamFactory, RepeatNode, \
-    RepeatParamNode, SingleParamNode, ParamNode
+
+from .macro import MacroInfo, Macro, \
+    MacroNode, ParamFactory, RepeatNode, RepeatParamNode, SingleParamNode, \
+    ParamNode
 from .sardana import BaseSardanaElementContainer, BaseSardanaElement
 from .pool import getChannelConfigs
 
@@ -65,7 +66,7 @@ class Attr(Logger, EventGenerator):
 
     def __init__(self, dev, name, obj_class, attr):
         self._dev = weakref.ref(dev)
-        self._obj_class  = obj_class
+        self._obj_class = obj_class
         self._attr = attr
         self.call__init__(Logger, name)
         event_name = '%s %s' % (dev.getNormalName(), name)
@@ -138,7 +139,7 @@ class BaseInputHandler(object):
 
     def input_timeout(self, input_data):
         print "input timeout"
-        
+
 
 class MacroServerDevice(TangoDevice):
     """A class encapsulating a generic macro server device (usually a
@@ -176,7 +177,7 @@ class ExperimentConfiguration(object):
         active_mnt_grp = env.get('ActiveMntGrp')
         if active_mnt_grp is None and len(mnt_grps):
             active_mnt_grp = mnt_grps[0]
-            door.putEnvironment('ActiveMntGrp',  active_mnt_grp)
+            door.putEnvironment('ActiveMntGrp', active_mnt_grp)
 
         ret['ActiveMntGrp'] = active_mnt_grp
         ret['MntGrpConfigs'] = mnt_grp_configs = CaselessDict()
@@ -194,9 +195,9 @@ class ExperimentConfiguration(object):
                 mnt_grp_configs[mnt_grp] = \
                         codec.decode(('json', reply.get_data().value),
                                      ensure_ascii=True)[1]
-            except Exception,e:
+            except Exception, e:
                 from taurus.core.util.log import warning
-                warning('Cannot load Measurement group "%s": %s',repr(mnt_grp), repr(e))
+                warning('Cannot load Measurement group "%s": %s', repr(mnt_grp), repr(e))
         return ret
 
     def set(self, conf, mnt_grps=None):
@@ -214,17 +215,17 @@ class ExperimentConfiguration(object):
         for mnt_grp in mnt_grps:
             try:
                 mnt_grp_cfg = conf['MntGrpConfigs'][mnt_grp]
-                if mnt_grp_cfg is None: #a mntGrp to be deleted
+                if mnt_grp_cfg is None:  #a mntGrp to be deleted
                     pool = self._getPoolOfElement(mnt_grp)
                     pool.DeleteElement(mnt_grp)
                 else:
                     try:
                         mnt_grp_dev = Device(mnt_grp)
-                    except: #if the mnt_grp did not already exist, create it now
+                    except:  #if the mnt_grp did not already exist, create it now
                         chconfigs = getChannelConfigs(mnt_grp_cfg)
-                        chnames,chinfos = zip(*chconfigs) #unzipping
-                        pool = self._getPoolOfElement(chnames[0]) #We assume that all the channels belong to the same pool!
-                        pool.createMeasurementGroup([mnt_grp]+list(chnames))
+                        chnames, chinfos = zip(*chconfigs)  #unzipping
+                        pool = self._getPoolOfElement(chnames[0])  #We assume that all the channels belong to the same pool!
+                        pool.createMeasurementGroup([mnt_grp] + list(chnames))
                         mnt_grp_dev = Device(mnt_grp)
 
                     # TODO when we start using measurement group extension change the
@@ -232,9 +233,9 @@ class ExperimentConfiguration(object):
                     # mnt_grp.setConfiguration(mnt_grp_cfg)
                     data = codec.encode(('', mnt_grp_cfg))[1]
                     mnt_grp_dev.write_attribute('configuration', data)
-            except Exception,e:
+            except Exception, e:
                 from taurus.core.util.log import error
-                error('Could not create/delete/modify Measurement group "%s": %s',mnt_grp,repr(e))
+                error('Could not create/delete/modify Measurement group "%s": %s', mnt_grp, repr(e))
 
     def _getPoolOfElement(self, elementname):
         ms = self._door.macro_server
@@ -269,7 +270,7 @@ class BaseDoor(MacroServerDevice):
     Result = 'Result'
     RecordData = 'RecordData'
 
-    BlockStart  = '<BLOCK>'
+    BlockStart = '<BLOCK>'
     BlockFinish = '</BLOCK>'
 
     log_streams = (Error, Warning, Info, Output, Debug, Result)
@@ -285,7 +286,7 @@ class BaseDoor(MacroServerDevice):
         self._running_macros = None
         self._running_macro = None
         self._last_running_macro = None
-        self._user_xml =None
+        self._user_xml = None
         self._ignore_logs = kw.get("ignore_logs", False)
         self._silent = kw.get("silent", True)
         self._debug = kw.get("debug", False)
@@ -455,14 +456,14 @@ class BaseDoor(MacroServerDevice):
         map(LogAttr.clearLogBuffer, self._log_attr.values())
         self._running_macros = None
         self._running_macro = None
-        self._user_xml =None
+        self._user_xml = None
         self._block_lines = 0
 
     def preRunMacro(self, obj, parameters):
         self._clearRunMacro()
 
         xml_root = None
-        if isinstance(obj ,(str, unicode)):
+        if isinstance(obj , (str, unicode)):
             if obj.startswith('<') and not parameters:
                 xml_root = etree.fromstring(obj)
             else:
@@ -566,7 +567,7 @@ class BaseDoor(MacroServerDevice):
             self.write_attribute('Input', result)
         elif input_type == 'timeout':
             self._input_handler.input_timeout(input_data)
-            
+
     def recordDataReceived(self, s, t, v):
         if t not in CHANGE_EVT_TYPES: return
         return self._processRecordData(v)
@@ -583,10 +584,10 @@ class BaseDoor(MacroServerDevice):
         codec = CodecFactory().getCodec(format)
         data = codec.decode(data)
         return data
-    
+
     def processRecordData(self, data):
         pass
-    
+
     def macroStatusReceived(self, s, t, v):
         if v is None or self._running_macros is None:
             return
@@ -627,7 +628,7 @@ class BaseDoor(MacroServerDevice):
             if not self._debug:
                 if line == self.BlockStart:
                     for i in xrange(self._block_lines):
-                        o += '\x1b[2K\x1b[1A\x1b[2K' #erase current line, up one line, erase current line
+                        o += '\x1b[2K\x1b[1A\x1b[2K'  #erase current line, up one line, erase current line
                     self._block_lines = 0
                     continue
                 elif line == self.BlockFinish:
@@ -644,7 +645,7 @@ class BaseDoor(MacroServerDevice):
         self._output_stream = sys.stdout
         out = self._output_stream
         if not stream is None:
-            start,stop = self.log_start.get(stream), self.log_stop.get(stream)
+            start, stop = self.log_start.get(stream), self.log_stop.get(stream)
             if start is not None and stop is not None:
                 out.write(start)
                 out.write(msg)
@@ -895,7 +896,7 @@ class BaseMacroServer(MacroServerDevice):
         return dict(self.getElementsInfo().getElementsWithInterface('MacroCode'))
 
     def getMacroInfoObj(self, macro_name):
-        return self.getElementsInfo().getElementWithInterface(macro_name,'MacroCode')
+        return self.getElementsInfo().getElementWithInterface(macro_name, 'MacroCode')
 
     def getMacroStrList(self):
         return self.getElementNamesWithInterface('MacroCode')
@@ -1049,7 +1050,7 @@ class BaseMacroServer(MacroServerDevice):
         paramNode.setMin(min)
         max = paramInfo.get("max")
         paramNode.setMax(max)
-        if isinstance(type,list):
+        if isinstance(type, list):
             paramNode.setParamsInfo(type)
             for repeatNode in paramNode.children():
                 for internalParamNode, internalParamInfo in zip(repeatNode.children(), type):
@@ -1086,7 +1087,7 @@ class BaseMacroServer(MacroServerDevice):
         paramIndex = 0
         for paramNode, paramInfo in zip(paramNodes, paramInfosList):
             paramType = paramInfo.get('type')
-            if isinstance(paramType,list):
+            if isinstance(paramType, list):
                 paramNode = self.__recreateParamRepeatNodes(macroNode, paramIndex, paramInfo)
             else:
                 paramNode.setName(paramInfo.get("name"))

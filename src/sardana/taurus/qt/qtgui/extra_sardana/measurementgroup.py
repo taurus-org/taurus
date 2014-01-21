@@ -33,15 +33,17 @@ __docformat__ = 'restructuredtext'
 from taurus.qt import Qt
 #import copy
 import taurus
+import taurus.core.taurusdevice
 
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.table import TaurusBaseTableWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
-from taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
-from taurus.core.tango.sardana.pool import getChannelConfigs
 from taurus.core.taurusbasetypes import TaurusElementType
+
+from sardana.taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
+from sardana.taurus.core.tango.sardana.pool import getChannelConfigs
 
 #===============================================================================
 # some dummydict for developing the "Experimental Configuration widget"
@@ -79,7 +81,7 @@ from taurus.core.taurusbasetypes import TaurusElementType
 
 
 #===============================================================================
-DEFAULT_STRING_LENGTH = 80 #just an arbitrary value to use as default string length...
+DEFAULT_STRING_LENGTH = 80  #just an arbitrary value to use as default string length...
 
 def createChannelDict(channel, index=None, **kwargs):
     from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
@@ -114,15 +116,15 @@ def createChannelDict(channel, index=None, **kwargs):
            'label': label,
            'full_name': full_name,
            'enabled': True,  # bool. Whether this channel is enabled (if not enabled, it won't be used for output or plot)
-           'output': True,   # bool. Whether to show output in the stdout
+           'output': True,  # bool. Whether to show output in the stdout
            'data_type':'float64',
            'data_units': 'No unit',
 #           'timer': '', #should contain a channel name
 #           'monitor': '', #should contain a channel name
 #           'trigger': '', #should contain a channel name
-           'conditioning': '', #this is a python expresion to be evaluated for conditioning the data. The data for this channel can be referred as 'x' and data from other channels can be referred by channel name
-           'normalization': Normalization.No, # one of the Normalization enumeration members
-           'nexus_path': '', #string indicating the location of the data of this channel within the nexus tree
+           'conditioning': '',  #this is a python expresion to be evaluated for conditioning the data. The data for this channel can be referred as 'x' and data from other channels can be referred by channel name
+           'normalization': Normalization.No,  # one of the Normalization enumeration members
+           'nexus_path': '',  #string indicating the location of the data of this channel within the nexus tree
            }
 
     #If the channel is a Tango one, try to guess data_type, shape and data_units
@@ -134,7 +136,7 @@ def createChannelDict(channel, index=None, **kwargs):
         # avoid trying to read for scalars. We know that their shape must be ()
         if attrconf.data_format != PyTango.AttrDataFormat.SCALAR:
             value = attrproxy.read().value
-    except Exception,e:
+    except Exception, e:
         print str(e)
 
     if value is not None:
@@ -145,7 +147,7 @@ def createChannelDict(channel, index=None, **kwargs):
         if attrconf.data_format == PyTango.AttrDataFormat.SCALAR:
             shape = []
         else:
-            shape = [n for n in (attrconf.max_dim_x,attrconf.max_dim_y) if n>0]
+            shape = [n for n in (attrconf.max_dim_x, attrconf.max_dim_y) if n > 0]
         dtype = FROM_TANGO_TO_STR_TYPE[attrconf.data_type]
         ret['data_units'] = attrconf.unit
 
@@ -171,13 +173,13 @@ def createChannelDict(channel, index=None, **kwargs):
         default_plot_type = {0:PlotType.Spectrum, 2:PlotType.Image, None:PlotType.No}
         try: rank = len(ret['shape'])
         except KeyError:
-            rank = None #if shape is not known, use the default plot_type
+            rank = None  #if shape is not known, use the default plot_type
         ret['plot_type'] = default_plot_type.get(rank, PlotType.No)
 
     #And a default value for plot_axes
     if 'plot_axes' not in ret:
-        default_axes = {PlotType.No:[], PlotType.Spectrum:['<mov>'], PlotType.Image:['<idx>','<idx>']}
-        ret['plot_axes'] = default_axes[ret['plot_type']] # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute
+        default_axes = {PlotType.No:[], PlotType.Spectrum:['<mov>'], PlotType.Image:['<idx>', '<idx>']}
+        ret['plot_axes'] = default_axes[ret['plot_type']]  # a string defining a colon-separated list of axis names. An axis can be a channel name or "<idx>". This shares the syntax of the NeXus @axes attribute
 
     return ret
 
@@ -208,14 +210,14 @@ def getElementTypeIcon(t):
 
 def getElementTypeSize(t):
     if t == ChannelView.Channel:
-        return Qt.QSize(200,24)
+        return Qt.QSize(200, 24)
     elif t == ChannelView.Enabled:
-        return Qt.QSize(50,24)
+        return Qt.QSize(50, 24)
     elif t == ChannelView.Output:
-        return Qt.QSize(50,24)
+        return Qt.QSize(50, 24)
     elif t == ChannelView.PlotType:
-        return Qt.QSize(50,24)
-    return Qt.QSize(50,24)
+        return Qt.QSize(50, 24)
+    return Qt.QSize(50, 24)
 
 
 def getElementTypeToolTip(t):
@@ -322,12 +324,12 @@ class MntGrpChannelItem(BaseMntGrpChannelItem):
         elif taurus_role == ChannelView.Shape:
             s = str_value
             try:
-                data = eval(s,{},{})
-                if not isinstance(data,(tuple,list)):
+                data = eval(s, {}, {})
+                if not isinstance(data, (tuple, list)):
                     raise ValueError
             except:
                 from taurus.core.util.log import Logger
-                Logger(self.__class__.__name__).error('Invalid shape %s',s )
+                Logger(self.__class__.__name__).error('Invalid shape %s', s)
                 data = ()
         else:
             raise NotImplementedError('Unknown role')
@@ -353,7 +355,7 @@ class MntGrpUnitItem(TaurusBaseTreeItem):
 
 class BaseMntGrpChannelModel(TaurusBaseModel):
     ColumnNames = ("Channel", "enabled", "output", "Shape", "Data Type", "Plot Type", "Plot Axes", "Timer",
-                  "Monitor", "Trigger", "Conditioning", "Normalization","NeXus Path")
+                  "Monitor", "Trigger", "Conditioning", "Normalization", "NeXus Path")
     ColumnRoles = ((ChannelView.Channel, ChannelView.Channel), ChannelView.Enabled,
                   ChannelView.Output, ChannelView.Shape, ChannelView.DataType, ChannelView.PlotType,
                   ChannelView.PlotAxes, ChannelView.Timer, ChannelView.Monitor,
@@ -372,7 +374,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         self._mgconfig = None
         self._dirty = False
 
-    def setAvailableChannels(self,cdict):
+    def setAvailableChannels(self, cdict):
         self._availableChannels = cdict
 
     def getAvailableChannels(self):
@@ -411,7 +413,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
     def setupModelData(self, mgconfig):
         if mgconfig is None:
             return
-        root = self._rootItem #@The root could eventually be changed for each unit or controller
+        root = self._rootItem  #@The root could eventually be changed for each unit or controller
         channelNodes = [MntGrpChannelItem(self, chcfg, root) for chcfg in getChannelConfigs(mgconfig)]
         for ch in channelNodes:
             root.appendChild(ch)
@@ -431,13 +433,13 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
         if root is None:
             root = self._rootItem
         for row in range(root.childCount()):
-            chname,chdata = root.child(row).itemData()
+            chname, chdata = root.child(row).itemData()
             chdata['index'] = row
 
     def flags(self, index):
         flags = TaurusBaseModel.flags(self, index)
         taurus_role = self.role(index.column())
-        if taurus_role == ChannelView.Channel: #channel column is not editable
+        if taurus_role == ChannelView.Channel:  #channel column is not editable
             return flags
         elif taurus_role == ChannelView.Trigger:
             ch_name, ch_data = index.internalPointer().itemData()
@@ -530,7 +532,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                   index, index)
         return True
 
-    def addChannel(self, chname=None, chinfo=None, ctrlname=None, unitname=None, external=False): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows
+    def addChannel(self, chname=None, chinfo=None, ctrlname=None, unitname=None, external=False):  #@todo: Very inefficient implementation. We should use {begin|end}InsertRows
 
         if chname is None:
             chname = chinfo['full_name']
@@ -540,10 +542,10 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             ctrlname = desc['controller']
         if unitname is None:
             desc = self.getAvailableChannels()[chname]
-            unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+            unitname = desc.get('unit', '0')  #@fixme: at the moment of writing, the unit info cannot be obtained from desc
 
         #update the internal data
-        self.beginResetModel() #we are altering the internal data here, so we need to protect it
+        self.beginResetModel()  #we are altering the internal data here, so we need to protect it
         ctrlsdict = self.dataSource()['controllers']
         if not ctrlsdict.has_key(ctrlname): ctrlsdict[ctrlname] = {'units':{}}
         unitsdict = ctrlsdict[ctrlname]['units']
@@ -555,7 +557,7 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                 unit['trigger_type'] = AcqTriggerType.Software
         channelsdict = unitsdict[unitname]['channels']
         if channelsdict.has_key(chname):
-            self.error('Channel "%s" is already in the measurement group. It will not be added again'%chname)
+            self.error('Channel "%s" is already in the measurement group. It will not be added again' % chname)
             return
 
         self._dirty = True
@@ -563,22 +565,22 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
             channelsdict[chname] = createChannelDict(chname)
         else:
             channelsdict[chname] = createChannelDict(chinfo)
-        self.endResetModel() #we are altering the internal data here, so we need to protect it
-        self.refresh() #note that another reset will be done here...
+        self.endResetModel()  #we are altering the internal data here, so we need to protect it
+        self.refresh()  #note that another reset will be done here...
 
         #import pprint
         #pprint.pprint(self.dataSource())
 
-    def removeChannels(self, chnames): #@todo: Very inefficient implementation. We should use {begin|end}InsertRows
+    def removeChannels(self, chnames):  #@todo: Very inefficient implementation. We should use {begin|end}InsertRows
         #update the internal data
         self._dirty = True
-        self.beginResetModel() #we are altering the internal data here, so we need to protect it
+        self.beginResetModel()  #we are altering the internal data here, so we need to protect it
         for chname in chnames:
             avail_channels = self.getAvailableChannels()
             if chname in avail_channels:
                 desc = self.getAvailableChannels()[chname]
                 ctrlname = desc['controller']
-                unitname = desc.get('unit','0') #@fixme: at the moment of writing, the unit info cannot be obtained from desc
+                unitname = desc.get('unit', '0')  #@fixme: at the moment of writing, the unit info cannot be obtained from desc
             else:
                 #@todo: This assumes that if it is not in the list of avail_channels, it must be an external tango channel
                 ctrlname = '__tango__'
@@ -593,17 +595,17 @@ class BaseMntGrpChannelModel(TaurusBaseModel):
                 except:
                     self.error('error cleaning the data source dictionary')
             except:
-                self.error('cannot find "%s" for removing'%chname)
-            
-        self.endResetModel() #we are altering the internal data here, so we need to protect it
-        self.refresh() #note that another reset will be done here...
+                self.error('cannot find "%s" for removing' % chname)
 
-    def swapChannels(self, root, row1, row2): #@todo: Very inefficient implementation. We should use {begin|end}MoveRows
+        self.endResetModel()  #we are altering the internal data here, so we need to protect it
+        self.refresh()  #note that another reset will be done here...
+
+    def swapChannels(self, root, row1, row2):  #@todo: Very inefficient implementation. We should use {begin|end}MoveRows
         self._dirty = True
-        n1,d1 = root.child(row1).itemData()
-        n2,d2 = root.child(row2).itemData()
+        n1, d1 = root.child(row1).itemData()
+        n2, d2 = root.child(row2).itemData()
         d1['index'], d2['index'] = d2['index'], d1['index']
-        self.debug("swapping %s with %s"%(n1,n2))
+        self.debug("swapping %s with %s" % (n1, n2))
         self.refresh()
 
     def isDataChanged(self):
@@ -683,8 +685,8 @@ class AxesSelector(Qt.QWidget):
     def setCurrentChoices(self, choice):
         if self._LE is None:
             texts = str(choice).split(':')
-            for t,cb in zip(texts[:len(self._CBs)],self._CBs):
-                cb.setCurrentIndex(max(0,cb.findText(t)))
+            for t, cb in zip(texts[:len(self._CBs)], self._CBs):
+                cb.setCurrentIndex(max(0, cb.findText(t)))
         else:
             self._LE.setText(str(choice))
 
@@ -700,9 +702,9 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
             item = index.internalPointer()
             ptype = item.itemData()[1]['plot_type']
             if ptype == PlotType.Spectrum:
-                n=1
+                n = 1
             elif ptype == PlotType.Image:
-                n=2
+                n = 2
             else:
                 return None
             ret = AxesSelector(parent, n=n)
@@ -741,14 +743,14 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
                         if key in unit_data:
                             channel = all_channels[unit_data[key]]
                             editor.addItem(channel['name'], Qt.QVariant(channel['full_name']))
-                current = dataSource.get(key) # current global timer/monitor
+                current = dataSource.get(key)  # current global timer/monitor
                 editor.setCurrentIndex(editor.findData(Qt.QVariant(current)))
         elif taurus_role == ChannelView.Trigger:
             editor.addItems(AcqTriggerType.keys())
             current = Qt.from_qvariant(model.data(index), str)
             editor.setCurrentIndex(editor.findText(current))
         elif taurus_role == ChannelView.PlotAxes:
-            selectables = ['<idx>','<mov>']+[n for n,d in getChannelConfigs(dataSource)]
+            selectables = ['<idx>', '<mov>'] + [n for n, d in getChannelConfigs(dataSource)]
             editor.setChoices(selectables)
             current = Qt.from_qvariant(model.data(index), str)
             editor.setCurrentChoices(current)
@@ -768,11 +770,11 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
                 return
             ch_name, ch_data = index.internalPointer().itemData()
             channels = getChannelConfigs(dataSource, ctrls=[ch_data['_controller_name']], units=[ch_data['_unit_id']])
-            affected = [d['name'] for n,d in channels]
-            if len(affected) >1:
+            affected = [d['name'] for n, d in channels]
+            if len(affected) > 1:
                 op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
-                                            "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected),
-                                            Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                                            "This change will also affect the following channels:\n- %s \nContinue?" % "\n- ".join(affected),
+                                            Qt.QMessageBox.Yes | Qt.QMessageBox.Cancel)
                 if op != Qt.QMessageBox.Yes:
                     return
             data = Qt.QVariant(new_value)
@@ -805,10 +807,10 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
                             continue
                         affected.append(d['name'])
 
-                if len(affected) >1:
+                if len(affected) > 1:
                     op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
-                                                "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected),
-                                                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                                                "This change will also affect the following channels:\n- %s \nContinue?" % "\n- ".join(affected),
+                                                Qt.QMessageBox.Yes | Qt.QMessageBox.Cancel)
                     if op != Qt.QMessageBox.Yes:
                         return
             else:
@@ -821,10 +823,10 @@ class ChannelDelegate(Qt.QStyledItemDelegate):
                     if ch_info['type'] in ('CTExpChannel', 'OneDExpChannel', 'TwoDExpChannel'):
                         continue
                     affected.append(d['name'])
-                if len(affected) >1:
+                if len(affected) > 1:
                     op = Qt.QMessageBox.question(editor, "Caution: multiple channels affected",
-                                                "This change will also affect the following channels:\n- %s \nContinue?"%"\n- ".join(affected),
-                                                Qt.QMessageBox.Yes|Qt.QMessageBox.Cancel)
+                                                "This change will also affect the following channels:\n- %s \nContinue?" % "\n- ".join(affected),
+                                                Qt.QMessageBox.Yes | Qt.QMessageBox.Cancel)
                     if op != Qt.QMessageBox.Yes:
                         return
             model.setData(index, selected_master)
@@ -844,7 +846,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             "label"   : "Channels",
             "icon"    : ":/actions/system-shutdown.svg",
             "tooltip" : "View by channel",
-            "model"   : [BaseMntGrpChannelModel,],
+            "model"   : [BaseMntGrpChannelModel, ],
         },
     }
 
@@ -852,7 +854,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
     _simpleViewColumns = (ChannelView.Channel, ChannelView.Output, ChannelView.Shape, ChannelView.PlotType, ChannelView.PlotAxes)
     _simpleView = False
 
-    def __init__(self,parent=None, designMode=False, with_filter_widget=True, perspective=None):
+    def __init__(self, parent=None, designMode=False, with_filter_widget=True, perspective=None):
         TaurusBaseTableWidget.__init__(self, parent=parent, designMode=designMode,
                                        with_filter_widget=with_filter_widget,
                                        perspective=perspective, proxy=None)
@@ -870,7 +872,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         if simpleview == self.isSimpleView():
             return
         columnRoles = list(self.getQModel().ColumnRoles)
-        columnRoles[0] = columnRoles[0][-1] #account for the fact that the first element is a tuple instead of a role
+        columnRoles[0] = columnRoles[0][-1]  #account for the fact that the first element is a tuple instead of a role
         columnIndexes = [columnRoles.index(r) for r in self._simpleViewColumns]
         for i in range(self.getQModel().columnCount()):
             hide = simpleview and (i not in columnIndexes)
@@ -906,18 +908,18 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         qmodel = self.getQModel()
         dataSource = qmodel.dataSource()
         if channel is None:
-            shown = [n for n,d in getChannelConfigs(dataSource)]
+            shown = [n for n, d in getChannelConfigs(dataSource)]
             avail_channels = qmodel.getAvailableChannels()
             clist = [ ch_info['name'] for ch_name, ch_info in avail_channels.items()
                       if ch_name not in shown ]
             clist = sorted(clist) + ['(Other...)']
-            chname,ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", clist, 0, False)
+            chname, ok = Qt.QInputDialog.getItem(self, "New Channel", "Choose channel:", clist, 0, False)
             if not ok:
                 return
         chname = str(chname)
         if chname == '(Other...)':
-            models, ok = TaurusModelChooser.modelChooserDlg(parent = self, singleModel=False, windowTitle='Choose source of data',
-                                                            selectables = [TaurusElementType.Attribute])
+            models, ok = TaurusModelChooser.modelChooserDlg(parent=self, singleModel=False, windowTitle='Choose source of data',
+                                                            selectables=[TaurusElementType.Attribute])
             if not ok:
                 return
             for m in models:
@@ -945,8 +947,8 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
             return
 
         model = self.getQModel()
-        model.swapChannels(parent, row, row-1)
-        idx = model.index(row-1,0)
+        model.swapChannels(parent, row, row - 1)
+        idx = model.index(row - 1, 0)
         self.viewWidget().setCurrentIndex(idx)
 
     def moveDownChannel(self, channel=None):
@@ -960,8 +962,8 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         if row >= parent.childCount() - 1:
             return
         model = self.getQModel()
-        self.getQModel().swapChannels(parent, row, row+1)
-        idx = model.index(row+1,0)
+        self.getQModel().swapChannels(parent, row, row + 1)
+        idx = model.index(row + 1, 0)
         self.viewWidget().setCurrentIndex(idx)
 
     def getLocalConfig(self):

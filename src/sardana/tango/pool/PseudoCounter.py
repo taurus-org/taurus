@@ -41,7 +41,8 @@ from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import to_tango_type_format, exception_str, \
     throw_sardana_exception
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class PseudoCounter(PoolElementDevice):
@@ -86,7 +87,7 @@ class PseudoCounter(PoolElementDevice):
             if self.instrument is not None:
                 pseudo_counter.set_instrument(self.instrument)
         pseudo_counter.add_listener(self.on_pseudo_counter_changed)
-        
+
         self.set_state(DevState.ON)
 
     def on_pseudo_counter_changed(self, event_source, event_type,
@@ -114,7 +115,7 @@ class PseudoCounter(PoolElementDevice):
             attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
-        
+
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         value, w_value, error = None, None, None
@@ -128,7 +129,7 @@ class PseudoCounter(PoolElementDevice):
                 if event_value.error:
                     error = Except.to_dev_failed(*event_value.exc_info)
                 else:
-                    value = event_value.value                    
+                    value = event_value.value
                 timestamp = event_value.timestamp
             else:
                 value = event_value
@@ -146,15 +147,15 @@ class PseudoCounter(PoolElementDevice):
         #state = to_tango_state(self.pseudo_counter.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For value attribute, listen to what the controller says for data
             # type (between long and float)
@@ -190,7 +191,7 @@ class PseudoCounter(PoolElementDevice):
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value.value, quality=quality,
                            priority=0, timestamp=value.timestamp)
-                           
+
     is_Value_allowed = _is_allowed
 
     def CalcPseudo(self, physical_values):

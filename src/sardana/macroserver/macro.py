@@ -36,29 +36,30 @@ __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
 
 __docformat__ = 'restructuredtext'
 
+import sys
+import time
+import types
+import ctypes
+import weakref
+import operator
+import StringIO
 import threading
 import traceback
-import time
-import sys
-import operator
-import types
-import weakref
-import StringIO
-import ctypes
 
-from taurus.core.util import Logger, propertx
+from taurus.core.util.log import Logger
+from taurus.core.util.prop import  propertx
 from taurus.console.table import Table
 from taurus.console.list import List
-
-from taurus.core.tango.sardana.pool import PoolElement
 
 from sardana.sardanadefs import State
 from sardana.util.wrap import wraps
 
-from .msparameter import Type, ParamType, ParamRepeat
-from .msexception import StopException, AbortException, \
+from sardana.macroserver.msparameter import Type, ParamType, ParamRepeat
+from sardana.macroserver.msexception import StopException, AbortException, \
     MacroWrongParameterType, UnknownEnv, UnknownMacro, LibraryError
-from .msoptions import ViewOption
+from sardana.macroserver.msoptions import ViewOption
+
+from sardana.taurus.core.tango.sardana.pool import PoolElement
 
 asyncexc = ctypes.pythonapi.PyThreadState_SetAsyncExc
 # first define the async exception function args. This is
@@ -102,7 +103,7 @@ class OverloadPrint(object):
 
 class PauseEvent(Logger):
 
-    def __init__(self, macro_obj, abort_timeout = 0.2):
+    def __init__(self, macro_obj, abort_timeout=0.2):
         self._name = self.__class__.__name__
         self._pause_cb = None
         self._resume_cb = None
@@ -138,7 +139,7 @@ class PauseEvent(Logger):
             self._wait_for_abort_exception = True
             self._event.set()
 
-    def wait(self,timeout=None):
+    def wait(self, timeout=None):
         pauseit = not self._event.isSet()
         if pauseit and self._pause_cb is not None:
             self._pause_cb(self.macro_obj)
@@ -196,7 +197,7 @@ class Hookable(Logger):
         if hint is None:
             return self._getHooks()
         else:
-            return self._getHookHintsDict().get(hint,[])
+            return self._getHookHintsDict().get(hint, [])
 
     @propertx
     def hooks():
@@ -224,16 +225,16 @@ class Hookable(Logger):
             #store self._hooks, making sure it is of type: list<callable,list<str>>
             self._hooks = []
             for h in hooks:
-                if  isinstance(h,(tuple, list)) and len(h)==2:
+                if  isinstance(h, (tuple, list)) and len(h) == 2:
                     self._hooks.append(h)
-                else: #we assume that hooks is a list<callable>
-                    self._hooks.append((h,[]))
+                else:  #we assume that hooks is a list<callable>
+                    self._hooks.append((h, []))
                     self.info('Deprecation warning: hooks should be set with a list of hints. See Hookable API docs')
 
             #create _hookHintsDict
             self._getHookHintsDict()['_ALL_'] = zip(*self._hooks)[0]
             nohints = self._hookHintsDict['_NOHINTS_']
-            for hook,hints in self._hooks:
+            for hook, hints in self._hooks:
                 if len(hints) == 0:
                     nohints.append(hook)
                 else:
@@ -242,7 +243,7 @@ class Hookable(Logger):
                             self._hookHintsDict[hint].append(hook)
                         except KeyError:
                             self._hookHintsDict[hint] = [hook]
-        return get,set
+        return get, set
 
 
 class ExecMacroHook(object):
@@ -350,31 +351,31 @@ class Macro(Logger):
     from this class."""
 
     #: internal variable
-    Init     = State.Init
+    Init = State.Init
 
     #: internal variable
-    Running  = State.Running
+    Running = State.Running
 
     #: internal variable
-    Pause    = State.Standby
+    Pause = State.Standby
 
     #: internal variable
-    Stop     = State.Standby
+    Stop = State.Standby
 
     #: internal variable
-    Fault    = State.Fault
+    Fault = State.Fault
 
     #: internal variable
     Finished = State.On
 
     #: internal variable
-    Ready    = State.On
+    Ready = State.On
 
     #: internal variable
-    Abort    = State.Alarm
+    Abort = State.Alarm
 
     #: Constant used to specify all elements in a parameter
-    All      = ParamType.All
+    All = ParamType.All
 
     #: internal variable
     BlockStart = '<BLOCK>'
@@ -437,7 +438,7 @@ class Macro(Logger):
     #: a set of mandatory environment variable names without which your macro
     #: cannot run
     env = ()
-    
+
     #: decide if the macro should be able to receive input from the user
     #: [default: False]. A macro which asks input but has this flag set to False
     #: will print a warning message each time it is executed
@@ -714,7 +715,7 @@ class Macro(Logger):
         self.pyplot.plot(*args, **kwargs)
 #        data = dict(args=args, kwargs=kwargs)
 #        self.sendRecordData(data, codec='bz2_pickle_plot')
-            
+
     @property
     @mAPI
     def pylab(self):
@@ -732,7 +733,7 @@ class Macro(Logger):
         except AttributeError:
             self._pyplot = pyplot = self.door.pyplot
         return pyplot
-    
+
     @mAPI
     def getData(self):
         """**Macro API**.
@@ -745,7 +746,7 @@ class Macro(Logger):
         if not hasattr(self, "_data"):
             raise Exception("Macro '%s' does not produce any data" % self.getName())
         return self._data
-    
+
     @mAPI
     def setData(self, data):
         """**Macro API**. Sets the data for this macro
@@ -756,7 +757,7 @@ class Macro(Logger):
     data = property(getData, setData, doc="macro data")
 
     @mAPI
-    def print(self,  *args, **kwargs):
+    def print(self, *args, **kwargs):
         """**Macro API**.
         Prints a message. Accepted *args* and
         *kwargs* are the same as :func:`print`. Example::
@@ -839,7 +840,7 @@ class Macro(Logger):
                 else:
                     return self.getEnv(kwargs['key'])
             return kwargs['default_value']
-    
+
     @mAPI
     def output(self, msg, *args, **kwargs):
         """**Macro API**.
@@ -1186,7 +1187,7 @@ class Macro(Logger):
         if len(args) == 1:
             if type(par0) in types.StringTypes :
                 args = par0.split()
-                
+
             elif operator.isSequenceType(par0):
                 args = par0
         args = map(str, args)
@@ -1433,7 +1434,7 @@ class Macro(Logger):
         ret.sort()
         return ret
 
-    @mAPI 
+    @mAPI
     def getMacroLibrary(self, lib_name):
         """**Macro API**. Returns a
         :class:`~sardana.macroserver.msmetamacro.MacroLibrary` object for the
@@ -1488,7 +1489,7 @@ class Macro(Logger):
 
         :return: a Motion object """
 
-        decoupled=False
+        decoupled = False
         try:
             decoupled = self.getEnv("MotionDecoupled")
         except UnknownEnv:
@@ -1696,7 +1697,7 @@ class Macro(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Reload API
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
+
     @mAPI
     def reloadLibrary(self, lib_name):
         """**Macro API**. Reloads the given library(=module) names
@@ -1709,7 +1710,7 @@ class Macro(Logger):
 
         :return:
             the reloaded python module object"""
-        return self.door.reload_lib(lib_name)    
+        return self.door.reload_lib(lib_name)
 
     @mAPI
     def reloadMacro(self, macro_name):
@@ -1766,14 +1767,14 @@ class Macro(Logger):
             objects for the reloaded libraries
         :rtype: seq<:class:`~sardana.macroserver.metamacro.MacroLibrary`\>"""
         return self.door.reload_macro_libs(lib_names)
-    
+
     reloadMacroLib = reloadMacroLibrary
     reloadMacroLibs = reloadMacroLibraries
-    
+
     @mAPI
     def getViewOption(self, name):
         return self._getViewOptions()[name]
-    
+
     @mAPI
     def getViewOptions(self):
         return self._getViewOptions()
@@ -1783,14 +1784,14 @@ class Macro(Logger):
         vo = self._getViewOptions()
         vo[name] = value
         self.setEnv('_ViewOptions', vo)
-    
+
     @mAPI
     def resetViewOption(self, name):
         vo = self._getViewOptions()
         ViewOption.reset_option(vo, name)
         self.setEnv('_ViewOptions', vo)
         return vo.get(name)
-    
+
     #@}
 
     ## @name Unofficial Macro API
@@ -1802,7 +1803,7 @@ class Macro(Logger):
     #  consider informing the MacroServer developer so he may expose this in a
     #  safe way.
     #@{
-    
+
     def _getViewOptions(self):
         try:
             vo = self.getEnv('_ViewOptions')
@@ -1868,7 +1869,7 @@ class Macro(Logger):
                 else:
                     return self.getEnv(kwargs['key'])
             return kwargs['default_value']
-    
+
     def _output(self, msg, *args, **kwargs):
         """**Macro API**.
         Record a log message in this object's output. Accepted *args* and
@@ -2121,7 +2122,7 @@ class Macro(Logger):
         macro"""
         for obj in args:
             # isiterable
-            if not type(obj) in map(type,([],())):
+            if not type(obj) in map(type, ([], ())):
             #if not operator.isSequenceType(obj) or type(obj) in types.StringTypes:
                 obj = (obj,)
             for sub_obj in obj:
@@ -2138,8 +2139,8 @@ class Macro(Logger):
 
         # allow any macro to be paused at the beginning of its execution
         self.pausePoint()
-        
-        # Run the macro or obtain a generator 
+
+        # Run the macro or obtain a generator
         res = self.run(*self._in_pars)
 
         # If macro returns a generator then running the macro means go through
@@ -2166,7 +2167,7 @@ class Macro(Logger):
         macro_status['state'] = 'finish'
         yield macro_status
 
-    def __prepareResult(self,out):
+    def __prepareResult(self, out):
         """**Internal method**. Decodes the given output in order to be able to
         send to the result channel
 
@@ -2177,7 +2178,7 @@ class Macro(Logger):
         if out is None:
             out = ()
         if operator.isSequenceType(out) and not type(out) in types.StringTypes:
-            out = map(str,out)
+            out = map(str, out)
         else:
             out = (str(out),)
         return out
@@ -2305,7 +2306,7 @@ class MacroFunc(Macro):
         if function.interactive is not None:
             self.interactive = function.interactive
         Macro.__init__(self, *args, **kwargs)
-        
+
     def run(self, *args):
         return self._function(self, *args)
 

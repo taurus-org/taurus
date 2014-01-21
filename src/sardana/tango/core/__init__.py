@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -32,8 +32,8 @@ import PyTango.constants
 
 def __init_pytango_devfailed(mod):
     consts = (
-"API_AttrConfig", "API_AttrEventProp", "API_AttrIncorrectDataNumber", 
-"API_AttrNoAlarm", "API_AttrNotAllowed", "API_AttrNotFound", 
+"API_AttrConfig", "API_AttrEventProp", "API_AttrIncorrectDataNumber",
+"API_AttrNoAlarm", "API_AttrNotAllowed", "API_AttrNotFound",
 "API_AttrNotWritable", "API_AttrOptProp", "API_AttrPropValueNotSet",
 "API_AttrValueNotSet", "API_AttrWrongDefined", "API_AttrWrongMemValue",
 "API_BadConfigurationProperty", "API_BlackBoxArgument", "API_BlackBoxEmpty",
@@ -58,13 +58,14 @@ def __init_pytango_devfailed(mod):
 "API_PolledDeviceNotInPoolMap", "API_PollingThreadNotFound",
 "API_ReadOnlyMode", "API_SignalOutOfRange", "API_SystemCallFailed",
 "API_WAttrOutsideLimit", "API_WizardConfError", "API_WrongEventData",
-"API_WrongHistoryDataBuffer", "API_WrongLockingStatus", "API_ZmqInitFailed") 
+"API_WrongHistoryDataBuffer", "API_WrongLockingStatus", "API_ZmqInitFailed")
 
     for const in consts:
         setattr(mod, const, const)
 
+
 def __prepare_pytango():
-    
+
     if not hasattr(PyTango.constants, "API_DeviceNotFound"):
         __init_pytango_devfailed(PyTango.constants)
 

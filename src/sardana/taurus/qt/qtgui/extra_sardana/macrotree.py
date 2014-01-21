@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -29,19 +29,16 @@ __all__ = ["MacroTreeWidget", "MacroSelectionDialog"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import os
-
-from taurus.qt import Qt
-
 import taurus.core
-
 from taurus.core.util.enumeration import Enumeration
-from taurus.core.tango.sardana.macro import MacroInfo
-
+from taurus.qt import Qt
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE, TAURUS_MODEL_LIST_MIME_TYPE
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
+
+from sardana.taurus.core.tango.sardana.macro import MacroInfo
+
 
 MacroView = Enumeration("MacroView", ("MacroModule", "Macro", "Unknown"))
 
@@ -51,9 +48,9 @@ def getElementTypeIcon(t):
     elif t == MacroView.Macro:
         return getIcon(":/python.png")
     return getIcon(":/tango.png")
-    
+
 def getElementTypeSize(t):
-    return Qt.QSize(200,24)
+    return Qt.QSize(200, 24)
 
 def getElementTypeToolTip(t):
     """Wrapper to prevent loading qtgui when this module is imported"""
@@ -73,7 +70,7 @@ class MacroTreeBaseItem(TaurusBaseTreeItem):
         :return: (object) the data for the given index
         """
         return self._itemData
-    
+
     def role(self):
         """Returns the prefered role for the item.
         This implementation returns taurus.core.taurusbasetypes.TaurusElementType.Unknown
@@ -92,11 +89,11 @@ class MacroModuleTreeItem(MacroTreeBaseItem):
 
     def toolTip(self, index):
         return "The macro module '%s'" % self.display()
-    
+
     def icon(self, index):
         return getIcon(":/python-file.png")
-    
-    
+
+
 class MacroTreeItem(MacroTreeBaseItem):
 
     def data(self, index):
@@ -117,10 +114,10 @@ class MacroTreeItem(MacroTreeBaseItem):
 
 
 class MacroBaseModel(TaurusBaseModel):
-    
+
     ColumnNames = "Macros",
     ColumnRoles = (MacroView.MacroModule, MacroView.MacroModule, MacroView.Macro),
-    
+
     def setDataSource(self, ms):
         if self._data_src is not None:
             Qt.QObject.disconnect(self._data_src, Qt.SIGNAL('macrosUpdated'), self.macrosUpdated)
@@ -133,19 +130,19 @@ class MacroBaseModel(TaurusBaseModel):
 
     def createNewRootItem(self):
         return MacroTreeBaseItem(self, self.ColumnNames)
-    
+
     def roleIcon(self, role):
         return getElementTypeIcon(role)
-    
+
     def columnIcon(self, column):
         return self.roleIcon(self.role(column))
-    
+
     def roleToolTip(self, role):
         return getElementTypeToolTip(role)
 
     def columnToolTip(self, column):
         return self.roleToolTip(self.role(column))
-    
+
     def roleSize(self, role):
         return getElementTypeSize(role)
 
@@ -153,9 +150,9 @@ class MacroBaseModel(TaurusBaseModel):
         role = self.role(column)
         s = self.roleSize(role)
         return s
-    
+
     def mimeTypes(self):
-        return ["text/plain", taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE]
+        return ["text/plain", TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE]
 
     def mimeData(self, indexes):
         ret = Qt.QMimeData()
@@ -167,10 +164,10 @@ class MacroBaseModel(TaurusBaseModel):
             if mime_data_item is None:
                 continue
             data.append(mime_data_item)
-        ret.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
+        ret.setData(TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
         ret.setText(", ".join(data))
-        if len(data)==1:
-            ret.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
+        if len(data) == 1:
+            ret.setData(TAURUS_MODEL_MIME_TYPE, str(data[0]))
         return ret
 
 
@@ -191,7 +188,7 @@ class MacroBaseModel(TaurusBaseModel):
                 macro_modules[module_name] = moduleNode
             macroNode = MacroTreeItem(self, macro, moduleNode)
             moduleNode.appendChild(macroNode)
-    
+
 
 class MacroModuleModel(MacroBaseModel):
     pass
@@ -230,7 +227,7 @@ class MacroPlainMacroModelProxy(MacroBaseModelProxy):
 
 
 class MacroTreeWidget(TaurusBaseTreeWidget):
-    
+
     KnownPerspectives = { MacroView.MacroModule : {
                             "label" : "By module",
                             "icon" : ":/python-file.png",
@@ -241,26 +238,26 @@ class MacroTreeWidget(TaurusBaseTreeWidget):
                             "label" : "By macro",
                             "icon" : ":/python.png",
                             "tooltip" : "View by macro",
-                            "model" : [MacroPlainMacroModelProxy, MacroPlainMacroModel], 
+                            "model" : [MacroPlainMacroModelProxy, MacroPlainMacroModel],
                           }
     }
     DftPerspective = MacroView.MacroModule
-        
+
     def getModelClass(self):
         return taurus.core.taurusdevice.TaurusDevice
 
 
 class MacroSelectionDialog(Qt.QDialog):
-    
+
     def __init__(self, parent=None, designMode=False, model_name=None, perspective=None):
         Qt.QDialog.__init__(self, parent)
-        
+
         self.setWindowTitle("Macro Selection Dialog")
-        
+
         layout = Qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-        self._panel = MacroTreeWidget(parent=self, perspective=perspective, 
+        self._panel = MacroTreeWidget(parent=self, perspective=perspective,
                                       designMode=designMode,
                                       with_navigation_bar=False)
         self._panel.setModel(model_name)
@@ -272,23 +269,23 @@ class MacroSelectionDialog(Qt.QDialog):
         layout.addWidget(self._buttonBox)
         self.connect(self._buttonBox, Qt.SIGNAL("accepted()"), self.accept)
         self.connect(self._buttonBox, Qt.SIGNAL("rejected()"), self.reject)
-    
+
     def selectedItems(self):
         return self._panel.selectedItems()
-        
+
     def getSelectedMacros(self):
         return [ i.itemData() for i in self.selectedItems() ]
 
 
 def main_MacroSelecionDialog(ms, perspective=MacroView.MacroModule):
     w = MacroSelectionDialog(model_name=ms, perspective=perspective)
-    
+
     if w.result() == Qt.QDialog.Accepted:
         print w.getSelectedMacros()
     return w
-    
+
 def main_MacroTreeWidget(ms, perspective=MacroView.MacroModule):
-    w = MacroTreeWidget(perspective=perspective,with_navigation_bar=False)
+    w = MacroTreeWidget(perspective=perspective, with_navigation_bar=False)
     w.setModel(ms)
     w.show()
     return w
@@ -302,10 +299,10 @@ def main():
     import sys
     import taurus.qt.qtgui.application
     Application = taurus.qt.qtgui.application.TaurusApplication
-    
+
     app = Application.instance()
     owns_app = app is None
-    
+
     if owns_app:
         app = Application(app_name="MacroServer macro tree demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
@@ -315,6 +312,6 @@ def main():
         sys.exit(app.exec_())
     else:
         return w
-    
+
 if __name__ == "__main__":
     main()

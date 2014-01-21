@@ -42,7 +42,8 @@ from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.controller import TwoDController, MaxDimSize, Type
 from sardana.tango.core.util import to_tango_type_format, exception_str
 
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class TwoDExpChannel(PoolElementDevice):
@@ -67,7 +68,7 @@ class TwoDExpChannel(PoolElementDevice):
         twod = self.twod
         if twod is not None:
             twod.remove_listener(self.on_twod_changed)
-            
+
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
@@ -96,7 +97,7 @@ class TwoDExpChannel(PoolElementDevice):
             self.error(msg, self.motor.name, event_type.name,
                        exception_str(*exc_info[:2]))
             self.debug("Details", exc_info=exc_info)
-            
+
     def _on_twod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -105,12 +106,12 @@ class TwoDExpChannel(PoolElementDevice):
 
         timestamp = time.time()
         name = event_type.name.lower()
-        
+
         try:
             attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
-                
+
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         value, w_value, error = None, None, None
@@ -139,15 +140,15 @@ class TwoDExpChannel(PoolElementDevice):
         #state = to_tango_state(self.twod.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For value attribute, listen to what the controller says for data
             # type (between long and float) and length
@@ -160,7 +161,7 @@ class TwoDExpChannel(PoolElementDevice):
                 data_info[0][3] = shape[0]
                 data_info[0][4] = shape[1]
         return std_attrs, dyn_attrs
-        
+
     def read_Value(self, attr):
         twod = self.twod
         use_cache = twod.is_in_operation() and not self.Force_HW_Read
@@ -173,7 +174,7 @@ class TwoDExpChannel(PoolElementDevice):
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value.value, quality=quality,
                            timestamp=value.timestamp, priority=0)
-        
+
     def is_Value_allowed(self, req_type):
         if self.get_state() in [DevState.FAULT, DevState.UNKNOWN]:
             return False
@@ -182,7 +183,7 @@ class TwoDExpChannel(PoolElementDevice):
     def read_DataSource(self, attr):
         data_source = self.twod.get_data_source()
         attr.set_value(data_source)
-        
+
     def Start(self):
         self.twod.start_acquisition()
 
@@ -215,12 +216,12 @@ class TwoDExpChannelClass(PoolElementDeviceClass):
     attr_list.update(PoolElementDeviceClass.attr_list)
 
     standard_attr_list = {
-        'Value'     : [ [ _DFT_VALUE_TYPE, _DFT_VALUE_FORMAT, READ, 
+        'Value'     : [ [ _DFT_VALUE_TYPE, _DFT_VALUE_FORMAT, READ,
                           _DFT_VALUE_MAX_SHAPE[0], _DFT_VALUE_MAX_SHAPE[1] ],
                         { 'abs_change' : '1.0', } ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
-    
+
     def _get_class_properties(self):
         ret = PoolElementDeviceClass._get_class_properties(self)
         ret['Description'] = "2D device class"
