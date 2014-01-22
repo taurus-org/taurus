@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 
-#############################################################################
+##############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
-## 
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
+##
+## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
+##
+## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
-#############################################################################
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
 
 """
 motor.py: 
@@ -38,10 +38,10 @@ from ui_taurusmotorv2 import Ui_TaurusMotorV2
 
 def showDialogConfigureMotor(parent):
     Dialog = Qt.QDialog(parent)
-    Dialog.resize((Qt.QSize(Qt.QRect(0,0,310,309).size()).expandedTo(Dialog.minimumSizeHint())))
+    Dialog.resize((Qt.QSize(Qt.QRect(0, 0, 310, 309).size()).expandedTo(Dialog.minimumSizeHint())))
     motorV2 = TaurusMotorV2(Dialog)
     motorV2.setModel(parent.model)
-    motorV2.setGeometry(Qt.QRect(10,10,291,291))
+    motorV2.setGeometry(Qt.QRect(10, 10, 291, 291))
     Dialog.show()
 
 
@@ -49,7 +49,7 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         self.ui = Ui_TaurusMotorH()
@@ -57,7 +57,7 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
-        return Qt.QSize(330,50)
+        return Qt.QSize(330, 50)
 
     def configureMotor(self):
         showDialogConfigureMotor(self.ui.TaurusGroupBox)
@@ -70,9 +70,9 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
 #        ret['group'] = 'Taurus Sardana'
 #        ret['icon'] = ':/designer/extra_pool.png'
 #        return ret
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     @Qt.pyqtSignature("getModel()")
     def getModel(self):
@@ -99,16 +99,16 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
     def resetShowText(self):
         self.ui.TaurusGroupBox.resetShowText()
 
-    model = Qt.pyqtProperty("QString", getModel,setModel,resetModel)
-    showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
+    model = Qt.pyqtProperty("QString", getModel, setModel, resetModel)
+    showText = Qt.pyqtProperty("bool", getShowText, setShowText, resetShowText)
 
-   
+
 
 class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
-    
+
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         self.ui = Ui_TaurusMotorH2()
@@ -116,7 +116,7 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
-        return Qt.QSize(215,85)
+        return Qt.QSize(215, 85)
 
     def configureMotor(self):
         showDialogConfigureMotor(self.ui.TaurusGroupBox)
@@ -129,9 +129,9 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
 #        ret['group'] = 'Taurus Sardana'
 #        ret['icon'] = ':/designer/extra_pool.png'
 #        return ret
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     @Qt.pyqtSignature("getModel()")
     def getModel(self):
@@ -159,15 +159,15 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
         self.ui.TaurusGroupBox.resetShowText()
 
 
-    model = Qt.pyqtProperty("QString", getModel,setModel,resetModel)
-    showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
+    model = Qt.pyqtProperty("QString", getModel, setModel, resetModel)
+    showText = Qt.pyqtProperty("bool", getShowText, setShowText, resetShowText)
 
 
 class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
-    
+
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         self.ui = Ui_TaurusMotorV()
@@ -175,7 +175,7 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
-        return Qt.QSize(120,145)
+        return Qt.QSize(120, 145)
 
     def configureMotor(self):
         showDialogConfigureMotor(self.ui.TaurusGroupBox)
@@ -188,9 +188,9 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
 #        ret['group'] = 'Taurus Sardana'
 #        ret['icon'] = ':/designer/extra_pool.png'
 #        return ret
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     @Qt.pyqtSignature("getModel()")
     def getModel(self):
@@ -218,22 +218,22 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
         self.ui.TaurusGroupBox.resetShowText()
 
 
-    model = Qt.pyqtProperty("QString", getModel,setModel,resetModel)
-    showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
+    model = Qt.pyqtProperty("QString", getModel, setModel, resetModel)
+    showText = Qt.pyqtProperty("bool", getShowText, setShowText, resetShowText)
 
 
 class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
-    
+
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         self.ui = Ui_TaurusMotorV2()
         self.ui.setupUi(self)
 
     def sizeHint(self):
-        return Qt.QSize(300,275)
+        return Qt.QSize(300, 275)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -243,9 +243,9 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 #        ret['group'] = 'Taurus Sardana'
 #        ret['icon'] = ':/designer/extra_pool.png'
 #        return ret
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     @Qt.pyqtSignature("getModel()")
     def getModel(self):
@@ -273,23 +273,23 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
         self.ui.TaurusGroupBox.resetShowText()
 
 
-    model = Qt.pyqtProperty("QString", getModel,setModel,resetModel)
-    showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
-   
+    model = Qt.pyqtProperty("QString", getModel, setModel, resetModel)
+    showText = Qt.pyqtProperty("bool", getShowText, setShowText, resetShowText)
+
 
 ###class TaurusMotorH2(Qt.QGroupBox, TaurusBaseWidget):
-###    
+###
 ###    def __init__(self, parent = None, designMode = False):
 ###        name = "TaurusMotorH2"
 ###        self._prefix = ''
 ###        self._suffix = ''
-###        
+###
 ###        self.call__init__wo_kw(Qt.QGroupBox, parent)
 ###        self.call__init__(TaurusBaseWidget, name, designMode = designMode)
-###        
+###
 ###        self.setObjectName(name)
 ###        self.defineStyle()
-###        
+###
 ###
 ###        ## I CAN NOT INHERIT FROM TAUGROUPBOX !
 ###        ## SO ALL THE STUFFABOVE IS NECESSARY
@@ -318,10 +318,10 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def minimumSizeHint(self):
 ###        return Qt.QSize(211,80)
-###    
+###
 ###    def sizeHint(self):
 ###        return Qt.QSize(211,80)
-###    
+###
 ###
 ###    def setupUi(self):
 ###
@@ -419,22 +419,22 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###    ## SO ALL THE STUFF BELOW IS NECESSARY
 ###
 ###
-###        
+###
 ###    def defineStyle(self):
 ###        palette = Qt.QPalette()
 ###        self.setPalette(palette)
 ###        self.updateStyle()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 ###    # TaurusBaseWidget over writing
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###                    
+###
 ###    def getDisplayValue(self):
 ###        return (self._prefix or '') + TaurusBaseWidget.getDisplayValue(self) + (self._suffix or '')
-###    
+###
 ###    def isReadOnly(self):
 ###        return True
-###    
+###
 ###    def updateStyle(self):
 ###        if self.getShowQuality():
 ###            self.setAutoFillBackground(True)
@@ -443,14 +443,14 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###            self.setAutoFillBackground(False)
 ###            #TODO: restore colors
 ###        self.update()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###    # QT properties 
+###    # QT properties
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###   
+###
 ###    def getPrefixText(self):
 ###        return self._prefix
-###    
+###
 ###    @Qt.pyqtSignature("setPrefixText(QString)")
 ###    def setPrefixText(self,prefix):
 ###        self._prefix = prefix
@@ -458,44 +458,44 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def getSuffixText(self):
 ###        return self._suffix
-###    
+###
 ###    @Qt.pyqtSignature("setSuffixText(QString)")
 ###    def setSuffixText(self,suffix):
 ###        self._suffix = suffix
 ###        self.fireValueChanged()
 ###
-###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
+###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
 ###                                TaurusBaseWidget.setModel, TaurusBaseWidget.resetModel)
-###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, 
-###                                         TaurusBaseWidget.setUseParentModel, 
+###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel,
+###                                         TaurusBaseWidget.setUseParentModel,
 ###                                         TaurusBaseWidget.resetUseParentModel)
-###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality, 
-###                                      TaurusBaseWidget.setShowQuality, 
+###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality,
+###                                      TaurusBaseWidget.setShowQuality,
 ###                                      TaurusBaseWidget.resetShowQuality)
-###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText, 
-###                                   TaurusBaseWidget.setShowText, 
+###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText,
+###                                   TaurusBaseWidget.setShowText,
 ###                                   TaurusBaseWidget.resetShowText)
-###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText, 
+###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText,
 ###                                     doc="prefix text (optional)")
-###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText, 
+###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText,
 ###                                    doc="suffix text (optional)")
 ###
-###        
+###
 ###
 ###
 ###class TaurusMotorV(Qt.QGroupBox, TaurusBaseWidget):
-###    
+###
 ###    def __init__(self, parent = None):
 ###        name = "TaurusMotorV"
 ###        self._prefix = ''
 ###        self._suffix = ''
-###        
+###
 ###        self.call__init__wo_kw(Qt.QGroupBox, parent)
 ###        self.call__init__(TaurusBaseWidget, name)
-###        
+###
 ###        self.setObjectName(name)
 ###        self.defineStyle()
-###        
+###
 ###
 ###        ## I CAN NOT INHERIT FROM TAUGROUPBOX !
 ###        ## SO ALL THE STUFFABOVE IS NECESSARY
@@ -525,10 +525,10 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def minimumSizeHint(self):
 ###        return Qt.QSize(150,128)
-###    
+###
 ###    def sizeHint(self):
 ###        return Qt.QSize(150,128)
-###    
+###
 ###    def setupUi(self):
 ###
 ###        self.gridlayout = Qt.QGridLayout(self)
@@ -623,22 +623,22 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###    ## SO ALL THE STUFF BELOW IS NECESSARY
 ###
 ###
-###        
+###
 ###    def defineStyle(self):
 ###        palette = Qt.QPalette()
 ###        self.setPalette(palette)
 ###        self.updateStyle()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 ###    # TaurusBaseWidget over writing
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###                    
+###
 ###    def getDisplayValue(self):
 ###        return (self._prefix or '') + TaurusBaseWidget.getDisplayValue(self) + (self._suffix or '')
-###    
+###
 ###    def isReadOnly(self):
 ###        return True
-###    
+###
 ###    def updateStyle(self):
 ###        if self.getShowQuality():
 ###            self.setAutoFillBackground(True)
@@ -647,14 +647,14 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###            self.setAutoFillBackground(False)
 ###            #TODO: restore colors
 ###        self.update()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###    # QT properties 
+###    # QT properties
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###   
+###
 ###    def getPrefixText(self):
 ###        return self._prefix
-###    
+###
 ###    @Qt.pyqtSignature("setPrefixText(QString)")
 ###    def setPrefixText(self,prefix):
 ###        self._prefix = prefix
@@ -662,43 +662,43 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def getSuffixText(self):
 ###        return self._suffix
-###    
+###
 ###    @Qt.pyqtSignature("setSuffixText(QString)")
 ###    def setSuffixText(self,suffix):
 ###        self._suffix = suffix
 ###        self.fireValueChanged()
 ###
-###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
+###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
 ###                                TaurusBaseWidget.setModel, TaurusBaseWidget.resetModel)
-###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, 
-###                                         TaurusBaseWidget.setUseParentModel, 
+###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel,
+###                                         TaurusBaseWidget.setUseParentModel,
 ###                                         TaurusBaseWidget.resetUseParentModel)
-###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality, 
-###                                      TaurusBaseWidget.setShowQuality, 
+###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality,
+###                                      TaurusBaseWidget.setShowQuality,
 ###                                      TaurusBaseWidget.resetShowQuality)
-###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText, 
-###                                   TaurusBaseWidget.setShowText, 
+###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText,
+###                                   TaurusBaseWidget.setShowText,
 ###                                   TaurusBaseWidget.resetShowText)
-###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText, 
+###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText,
 ###                                     doc="prefix text (optional)")
-###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText, 
+###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText,
 ###                                    doc="suffix text (optional)")
 ###
-###        
+###
 ###
 ###class TaurusMotorV2(Qt.QGroupBox, TaurusBaseWidget):
-###    
+###
 ###    def __init__(self, parent = None):
 ###        name = "TaurusMotorV2"
 ###        self._prefix = ''
 ###        self._suffix = ''
-###        
+###
 ###        self.call__init__wo_kw(Qt.QGroupBox, parent)
 ###        self.call__init__(TaurusBaseWidget, name)
-###        
+###
 ###        self.setObjectName(name)
 ###        self.defineStyle()
-###        
+###
 ###
 ###        ## I CAN NOT INHERIT FROM TAUGROUPBOX !
 ###        ## SO ALL THE STUFFABOVE IS NECESSARY
@@ -716,10 +716,10 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def minimumSizeHint(self):
 ###        return Qt.QSize(260,270)
-###    
+###
 ###    def sizeHint(self):
 ###        return Qt.QSize(260,270)
-###    
+###
 ###
 ###    def setupUi(self):
 ###
@@ -1064,22 +1064,22 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###    ## SO ALL THE STUFF BELOW IS NECESSARY
 ###
 ###
-###        
+###
 ###    def defineStyle(self):
 ###        palette = Qt.QPalette()
 ###        self.setPalette(palette)
 ###        self.updateStyle()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 ###    # TaurusBaseWidget over writing
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###                    
+###
 ###    def getDisplayValue(self):
 ###        return (self._prefix or '') + TaurusBaseWidget.getDisplayValue(self) + (self._suffix or '')
-###    
+###
 ###    def isReadOnly(self):
 ###        return True
-###    
+###
 ###    def updateStyle(self):
 ###        if self.getShowQuality():
 ###            self.setAutoFillBackground(True)
@@ -1088,14 +1088,14 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###            self.setAutoFillBackground(False)
 ###            #TODO: restore colors
 ###        self.update()
-###        
+###
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###    # QT properties 
+###    # QT properties
 ###    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-###   
+###
 ###    def getPrefixText(self):
 ###        return self._prefix
-###    
+###
 ###    @Qt.pyqtSignature("setPrefixText(QString)")
 ###    def setPrefixText(self,prefix):
 ###        self._prefix = prefix
@@ -1103,38 +1103,38 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
 ###
 ###    def getSuffixText(self):
 ###        return self._suffix
-###    
+###
 ###    @Qt.pyqtSignature("setSuffixText(QString)")
 ###    def setSuffixText(self,suffix):
 ###        self._suffix = suffix
 ###        self.fireValueChanged()
 ###
-###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
+###    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
 ###                                TaurusBaseWidget.setModel, TaurusBaseWidget.resetModel)
-###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel, 
-###                                         TaurusBaseWidget.setUseParentModel, 
+###    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWidget.getUseParentModel,
+###                                         TaurusBaseWidget.setUseParentModel,
 ###                                         TaurusBaseWidget.resetUseParentModel)
-###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality, 
-###                                      TaurusBaseWidget.setShowQuality, 
+###    showQuality = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowQuality,
+###                                      TaurusBaseWidget.setShowQuality,
 ###                                      TaurusBaseWidget.resetShowQuality)
-###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText, 
-###                                   TaurusBaseWidget.setShowText, 
+###    showText = Qt.pyqtProperty("bool", TaurusBaseWidget.getShowText,
+###                                   TaurusBaseWidget.setShowText,
 ###                                   TaurusBaseWidget.resetShowText)
-###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText, 
+###    prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText,
 ###                                     doc="prefix text (optional)")
-###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText, 
+###    suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText,
 ###                                    doc="suffix text (optional)")
 ###
-###        
+###
 ###
 
 if __name__ == "__main__":
-    
+
     import sys
     app = Qt.QApplication(sys.argv)
-    
+
     form = TaurusMotorH()
     form.setModel(sys.argv[1])
-        
+
     form.show()
     sys.exit(app.exec_())

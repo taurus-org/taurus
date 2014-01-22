@@ -1,4 +1,4 @@
-.. currentmodule:: taurus.qt.qtgui.extra_sardana
+.. currentmodule:: sardana.taurus.qt.qtgui.extra_sardana
 
 .. _sardanaeditor_ui:
 

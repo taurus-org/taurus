@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 
-#############################################################################
+##############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
+## This file is part of Sardana
 ##
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
+## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
+## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
 ##
 ## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
-#############################################################################
+##############################################################################
 
 """The sardana submodule. It contains specific part of sardana"""
 
@@ -49,11 +49,11 @@ from taurus.core.util.codecs import CodecFactory
 
 PoolElementType = Enumeration("PoolElementType",
     ("0D", "1D", "2D", "Communication", "CounterTimer", "IORegister",
-      "Motor","PseudoCounter", "PseudoMotor"))
+      "Motor", "PseudoCounter", "PseudoMotor"))
 
 ChannelView = Enumeration("ChannelView",
     ("Channel", "Enabled", "Output", "PlotType", "PlotAxes", "Timer",
-     "Monitor", "Trigger", "Conditioning", "Normalization","NXPath",
+     "Monitor", "Trigger", "Conditioning", "Normalization", "NXPath",
      "Shape", "DataType",
      "Unknown"))
 
@@ -62,16 +62,16 @@ PlotType = Enumeration("PlotType", ("No", "Spectrum", "Image"))
 Normalization = Enumeration("Normalization", ("No", "Avg", "Integ"))
 
 #: an enumeration describing all possible acquisition trigger types
-AcqTriggerType = Enumeration("AcqTriggerType", ( \
-    "Software", # channel triggered by software - start and stop by software
-    "Gate",     # channel triggered by HW - start and stop by external
-    "Unknown") )
+AcqTriggerType = Enumeration("AcqTriggerType", (\
+    "Software",  # channel triggered by software - start and stop by software
+    "Gate",  # channel triggered by HW - start and stop by external
+    "Unknown"))
 
 #: an enumeration describing all possible acquisition mode types
-AcqMode = Enumeration("AcqMode", ( \
+AcqMode = Enumeration("AcqMode", (\
     "Timer",
     "Monitor",
-    "Unknown") )
+    "Unknown"))
 
 
 class BaseSardanaElement(object):
@@ -202,7 +202,7 @@ class BaseSardanaElementContainer:
     def getElement(self, elem_name):
         elem_name = elem_name.lower()
         for elems in self._type_elems_dict.values():
-            elem = elems.get(elem_name) # full_name?
+            elem = elems.get(elem_name)  # full_name?
             if elem is not None:
                 return elem
             for elem in elems.values():
@@ -240,7 +240,7 @@ class PropertyInfo():
         self._name = name
         self._type = type
         self._format = format
-        self._default_value=default_value
+        self._default_value = default_value
 
     def get_name(self):
         return self._name
@@ -275,7 +275,7 @@ class ControllerClassInfo(object):
 
     def get_model(self):
         # fake data ###############
-        return "Model of "+ self._name
+        return "Model of " + self._name
 
     def get_icon(self):
         # fake data ###############
@@ -285,19 +285,19 @@ class ControllerClassInfo(object):
 
     def get_organization(self):
         # fake data ###############
-        return "Organization of "+ self._name
+        return "Organization of " + self._name
 
     def get_description(self):
         #fake data############
-        descr="This is description of "
+        descr = "This is description of "
         for i in range(20):
-            descr=descr + " and " +self._name
+            descr = descr + " and " + self._name
         ####################
         return descr
 
     def get_family(self):
         # fake data ###############
-        return "Family of "+ self._name
+        return "Family of " + self._name
 
     def get_properties(self):
         properties = []
@@ -309,15 +309,15 @@ class ControllerClassInfo(object):
         properties.append(PropertyInfo("boollll0", "boolean", "0D", False))
         properties.append(PropertyInfo("number1", "float", "0D", 3.5))
         properties.append(PropertyInfo("string2", "string", "0D", "hehe"))
-        properties.append(PropertyInfo("tableIntegerD1", "integer", "1D", [1,2,3]))
-        properties.append(PropertyInfo("tablestringD1", "string", "1D", ["aaaa","bbb","ccc"]))
-        properties.append(PropertyInfo("tablefloatD1", "float", "1D", [1.0,2.5,3.6]))
-        properties.append(PropertyInfo("tablebooleanD1", "boolean", "1D", [True,False,True,False]))
-        properties.append(PropertyInfo("tablebleintegerD1", "integer", "1D", [1,2,3]))
-        properties.append(PropertyInfo("tablebooleanD2", "boolean", "2D",[ [True,False,True],[True,True,True],[False,False,False] ]))
-        properties.append(PropertyInfo("tableinteger2", "integer", "2D",[ [1,2,3],[11,22,33],[-10,-20,-30] ]))
-        properties.append(PropertyInfo("tablefloatD2", "float", "2D",[ [0.5,0.6,0.8],[0.4,0.0,0.333333],[-0.1111,1,123123.6] ]))
-        properties.append(PropertyInfo("tablestringD2", "string", "2D",[ ["aaaa","bbb","ccc"],["aaaa2","bbb2","ccc2"],["aaaa3","bbb3","ccc3"] ]))
+        properties.append(PropertyInfo("tableIntegerD1", "integer", "1D", [1, 2, 3]))
+        properties.append(PropertyInfo("tablestringD1", "string", "1D", ["aaaa", "bbb", "ccc"]))
+        properties.append(PropertyInfo("tablefloatD1", "float", "1D", [1.0, 2.5, 3.6]))
+        properties.append(PropertyInfo("tablebooleanD1", "boolean", "1D", [True, False, True, False]))
+        properties.append(PropertyInfo("tablebleintegerD1", "integer", "1D", [1, 2, 3]))
+        properties.append(PropertyInfo("tablebooleanD2", "boolean", "2D", [ [True, False, True], [True, True, True], [False, False, False] ]))
+        properties.append(PropertyInfo("tableinteger2", "integer", "2D", [ [1, 2, 3], [11, 22, 33], [-10, -20, -30] ]))
+        properties.append(PropertyInfo("tablefloatD2", "float", "2D", [ [0.5, 0.6, 0.8], [0.4, 0.0, 0.333333], [-0.1111, 1, 123123.6] ]))
+        properties.append(PropertyInfo("tablestringD2", "string", "2D", [ ["aaaa", "bbb", "ccc"], ["aaaa2", "bbb2", "ccc2"], ["aaaa3", "bbb3", "ccc3"] ]))
 
         return properties
 
@@ -396,9 +396,9 @@ class Pool(object):
         #fake data ########################
         data = []
         for i in range(5):
-            data.append(ControllerClassInfo("motorController"+str(i), PoolElementType.Motor, None))
+            data.append(ControllerClassInfo("motorController" + str(i), PoolElementType.Motor, None))
         for i in range(5):
-            data.append(ControllerClassInfo("counterTimerController"+str(i), PoolElementType.CounterTimer, None))
+            data.append(ControllerClassInfo("counterTimerController" + str(i), PoolElementType.CounterTimer, None))
 
         return data
 
@@ -406,12 +406,12 @@ class Pool(object):
         ctrl_classes = self.get_controller_class_infos()
         data = []
         for i in range(2):
-            data.append(ControllerInfo("My_motor_ctrl_"+str(i), ctrl_classes[i]))
+            data.append(ControllerInfo("My_motor_ctrl_" + str(i), ctrl_classes[i]))
         for i in range(2):
-            data.append(ControllerInfo("My_ct_ctrl_"+str(i), ctrl_classes[i+5]))
+            data.append(ControllerInfo("My_ct_ctrl_" + str(i), ctrl_classes[i + 5]))
         return data
 
-    def create_controller(self,controller_class_info, name, properties ):
+    def create_controller(self, controller_class_info, name, properties):
         pass
 
     def create_element(self, controller_name, name, axis):
@@ -516,7 +516,7 @@ class Sardana(object):
             ms = MacroServer(self, ms_name, ms_props.get("macropath"), ms_props.get("poolnames"),
                              ms_props.get("version"), ms_alias, ms_dev_name)
             self._macroservers.append(ms)
-            for pool_dev_name in ms_props.get("poolnames",()):
+            for pool_dev_name in ms_props.get("poolnames", ()):
                 pool_prop_list = map(str.lower, db.get_device_property_list(pool_dev_name, "*"))
                 pool_props = db.get_device_property(pool_dev_name, pool_prop_list)
                 pool_dev_info = cache.devices()[pool_dev_name]
@@ -559,7 +559,7 @@ class Sardana(object):
         if alias:
             db.put_device_alias(device_name, alias)
 
-        db.put_device_property(device_name,{"PoolPath" : poolpath, "Version": version} )
+        db.put_device_property(device_name, {"PoolPath" : poolpath, "Version": version})
         pool = Pool(self, name, poolpath, version, alias=alias, device_name=device_name)
         self._pools.append(pool)
         db.cache().refresh()
@@ -583,7 +583,7 @@ class Sardana(object):
         if alias:
             db.put_device_alias(device_name, alias)
 
-        db.put_device_property(device_name,{"MacroPath" : macropath, "Version": version, "PoolNames":pool_names} )
+        db.put_device_property(device_name, {"MacroPath" : macropath, "Version": version, "PoolNames":pool_names})
         ms = MacroServer(self, name, macropath, pool_names, version, alias=alias, device_name=device_name)
         self._macroservers.append(ms)
         db.cache().refresh()

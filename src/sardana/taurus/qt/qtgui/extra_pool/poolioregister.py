@@ -1,32 +1,32 @@
 #!/usr/bin/env python
 
-#############################################################################
+##############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
-## 
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
+##
+## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
+##
+## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
-#############################################################################
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
 
 """
 poolioregister.py: 
 """
-__all__=["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
+__all__ = ["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
 from taurus.qt import Qt
 
 from taurus.qt.qtgui.display import TaurusLabel
@@ -48,7 +48,7 @@ class PoolIORegisterReadWidget(TaurusLabel):
         TaurusLabel.__init__(self, parent, designMode)
 
     def setModel(self, model):
-        TaurusLabel.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
+        TaurusLabel.setModel(self, '%s/value' % model)  #@todo: change this (it assumes tango naming!)
 
         try: ior_dev = taurus.Device(model)
         except: return
@@ -80,14 +80,14 @@ class PoolIORegisterReadWidget(TaurusLabel):
                 label = self.readEventValueMap[value]
                 value_label_info = '%d: %s' % (value, label)
                 if value == display_value:
-                    value_label_info = '<B>* '+value_label_info+' *</B>'
-                extended_tooltip += value_label_info+'<BR>'
+                    value_label_info = '<B>* ' + value_label_info + ' *</B>'
+                extended_tooltip += value_label_info + '<BR>'
             return taurus_label_tooltip + '<HR>' + extended_tooltip
         except:
             pass
         return taurus_label_tooltip
     ##########################################################
-    
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return None
@@ -101,14 +101,14 @@ class PoolIORegisterWriteWidget(TaurusValueComboBox):
         TaurusValueComboBox.setForcedApply(self, True)
 
     def setModel(self, model):
-        TaurusValueComboBox.setModel(self, '%s/value' % model) #@todo: change this (it assumes tango naming!)
+        TaurusValueComboBox.setModel(self, '%s/value' % model)  #@todo: change this (it assumes tango naming!)
 
         try: ior_dev = taurus.Device(model)
         except: return
 
         labels = ior_dev.getAttribute('Labels').read().value
         labels_list = labels.split(' ')
-            
+
         # Update the mapping
         self.writeValueNames = []
         for label_and_value in labels_list:
@@ -124,8 +124,8 @@ class PoolIORegisterTV(TaurusValue):
     ''' A widget that displays and controls a pool IORegister device.  It
     behaves as a TaurusValue.
     '''
-    def __init__(self, parent = None, designMode = False):
-        TaurusValue.__init__(self, parent = parent, designMode = designMode)
+    def __init__(self, parent=None, designMode=False):
+        TaurusValue.__init__(self, parent=parent, designMode=designMode)
         self.setLabelWidgetClass("LabelWidgetDragsDeviceAndAttribute")
         self.setLabelConfig('dev_alias')
         self.setReadWidgetClass('PoolIORegisterReadWidget')
@@ -136,7 +136,7 @@ class PoolIORegisterTV(TaurusValue):
         TaurusValue.setModel(self, model)
         try: self.ioreg_dev = taurus.Device(model)
         except: return
-        
+
     def showEvent(self, event):
         TaurusValue.showEvent(self, event)
         if self.ioreg_dev is not None:
@@ -154,22 +154,22 @@ class PoolIORegister(TaurusWidget):
     NOTE: It would be nice to provide 'ABORT' button if the device allows it.
     NOTE: It would be nice to set icons for each possible value label.
     '''
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
         self.ioreg_dev = None
-        
+
         self.setLayout(Qt.QHBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
-        
+
         self.alias_label = TaurusLabel()
         self.alias_label.setBgRole('state')
         self.layout().addWidget(self.alias_label)
-        
+
         self.read_widget = PoolIORegisterReadWidget()
         self.layout().addWidget(self.read_widget)
-        
+
         self.write_widget = PoolIORegisterWriteWidget()
         self.layout().addWidget(self.write_widget)
 
@@ -198,7 +198,7 @@ class PoolIORegisterButtons(TaurusWidget):
     NOTE: It would be nice to provide 'ABORT' button if the device allows it.
     NOTE: It would be nice to set icons for each possible value label.
     '''
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
         self.ioreg_dev = None
@@ -267,7 +267,7 @@ def test_form():
     form = TaurusForm()
     form.setCustomWidgetMap(tgclass_map)
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         model = sys.argv[1]
 
     form.setModel([model])
@@ -276,16 +276,16 @@ def test_form():
 def test_widget():
     w = PoolIORegister()
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         model = sys.argv[1]
 
     w.setModel(model)
     w.show()
-    
+
 def test_buttons():
     w = PoolIORegisterButtons()
     model = 'tango://controls02:10000/ioregister/gc_tgiorctrl/1'
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         model = sys.argv[1]
 
     w.setModel(model)

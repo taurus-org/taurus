@@ -244,7 +244,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>SardanaElementTreeWidget</class>
    <extends>QMainWindow</extends>
-   <header>taurus.qt.qtgui.extra_sardana</header>
+   <header>sardana.taurus.qt.qtgui.extra_sardana</header>
   </customwidget>
   <customwidget>
    <class>TaurusModelList</class>
@@ -254,7 +254,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>MntGrpChannelEditor</class>
    <extends>QMainWindow</extends>
-   <header>taurus.qt.qtgui.extra_sardana</header>
+   <header>sardana.taurus.qt.qtgui.extra_sardana</header>
    <container>1</container>
   </customwidget>
   <customwidget>

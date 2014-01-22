@@ -248,12 +248,12 @@ class TaurusApplication(Qt.QApplication, Logger):
             import sardana.taurus.qt.qtcore.tango.sardana
             sardana.taurus.qt.qtcore.tango.sardana.registerExtensions()
         except:
-            self.info("Failed to load sardana extensions", exc_info=1)
+            self.debug("Failed to load sardana extensions", exc_info=1)
         try:
             import taurus.core.tango.img
             taurus.core.tango.img.registerExtensions()
         except:
-            self.info("Failed to load image extensions", exc_info=1)
+            self.debug("Failed to load image extensions", exc_info=1)
 
     def __redirect_std(self):
         """Internal method to redirect stdout and stderr to log messages"""

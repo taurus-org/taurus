@@ -163,4 +163,4 @@ class Ui_ExpDescriptionEditor(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("ExpDescriptionEditor", "Storage", None, QtGui.QApplication.UnicodeUTF8))
 
 from taurus.qt.qtgui.panel import TaurusModelList, TaurusModelSelectorTree
-from taurus.qt.qtgui.extra_sardana import SardanaElementTreeWidget, MntGrpChannelEditor
+from sardana.taurus.qt.qtgui.extra_sardana import SardanaElementTreeWidget, MntGrpChannelEditor

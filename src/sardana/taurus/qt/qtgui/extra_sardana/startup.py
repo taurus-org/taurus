@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 
-#############################################################################
+##############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
-## 
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
+##
+## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
+##
+## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
-#############################################################################
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
 
 """This file is executed by the python interpreter running as subprocess of
 SpockShell"""
@@ -61,19 +61,19 @@ class UserModuleDeleter(object):
     def __init__(self, namelist=None, pathlist=None):
         if namelist is None:
             namelist = []
-        self.namelist = namelist+['sitecustomize', 'spyderlib', 'spyderplugins']
+        self.namelist = namelist + ['sitecustomize', 'spyderlib', 'spyderplugins']
         if pathlist is None:
             pathlist = []
         self.pathlist = pathlist
         self.previous_modules = sys.modules.keys()
 
     def is_module_blacklisted(self, modname, modpath):
-        for path in [sys.prefix]+self.pathlist:
+        for path in [sys.prefix] + self.pathlist:
             if modpath.startswith(path):
                 return True
         else:
             return set(modname.split('.')) & set(self.namelist)
-        
+
     def run(self, verbose=False):
         """
         Del user modules to force Python to deeply reload them
@@ -87,8 +87,8 @@ class UserModuleDeleter(object):
             if modname not in self.previous_modules:
                 modpath = getattr(module, '__file__', None)
                 if modpath is None:
-                    # *module* is a C module that is statically linked into the 
-                    # interpreter. There is no way to know its path, so we 
+                    # *module* is a C module that is statically linked into the
+                    # interpreter. There is no way to know its path, so we
                     # choose to ignore it.
                     continue
                 if not self.is_module_blacklisted(modname, modpath):
@@ -96,7 +96,7 @@ class UserModuleDeleter(object):
                     del sys.modules[modname]
         if verbose and log:
             print "\x1b[4;33m%s\x1b[24m%s\x1b[0m" % ("UMD has deleted",
-                                                     ": "+", ".join(log))
+                                                     ": " + ", ".join(log))
 
 __umd__ = None
 
@@ -132,7 +132,7 @@ def runfile(filename, args=None, wdir=None):
     execfile(filename, glbs)
     sys.argv = ['']
     glbs.pop('__file__')
-    
+
 
 def debugfile(filename, args=None, wdir=None):
     """
@@ -151,7 +151,7 @@ def debugfile(filename, args=None, wdir=None):
 
 if __name__ == "__main__":
     __remove_from_syspath__()
-    
+
     __commands__ = __run_init_commands()
     if __commands__:
         for command in __commands__.split(';'):
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
-                  '__remove_sys_argv__']+['_name']:
+                  '__remove_sys_argv__'] + ['_name']:
         if _name in locals():
             locals().pop(_name)
 
@@ -177,9 +177,9 @@ if __name__ == "__main__":
         import pyreadline
         pyreadline.GetOutputFile = lambda: None
     import spocklib.genutils
-    
+
     __ipythonshell__ = spocklib.genutils.start(user_ns={'runfile': runfile,
                                                         'debugfile': debugfile})
     __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
-    
+
     spocklib.genutils.mainloop(shell=__ipythonshell__)

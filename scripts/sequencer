@@ -22,3 +22,6 @@
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
+
+from sardana.taurus.qt.qtgui.extra_macroexecutor.sequenceeditor import main
+main()
