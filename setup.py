@@ -38,7 +38,10 @@ try:
     import sphinx
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
-    if V(sphinx.__version__) < V("1.0.0"):
+    if V(sphinx.__version__) < V("1.0.0") \
+       or V(sphinx.__version__) == V("1.2.0"):
+        print("Sphinx documentation can not be compiled"
+              " with sphinx < 1.0.0 or the 1.2.0 version")
         sphinx = None
 except ImportError:
     sphinx = None
