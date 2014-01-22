@@ -33,105 +33,63 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import parameter
 
 
-
-class ParameterTestCase(unittest.TestCase):
+class ParamTestCase(unittest.TestCase):
     """
-    Description: Unit Test for parameter module (from Spock folder).
-
-    Steps: 
-    1: Instantiate a Param without arguments.
-
-    2: Instantiate a Param with a name.
-    3: Instantiate a Param with a name and a description.
-    4: Instantiate a Param with a name, a description and a type.
-    5: Instantiate a Param with a name, a description, a type and a default value.
-
-    6: Verify that the function testFormatParamValue returns the expected value as output.
+    Description: Unit Test for Param class (from Spock folder).
     """
-
-    def setUp(self):
-        pass
-             
-   
-    def tearDown(self):
-        pass
-
 
     def testInstanceCreation(self):
-        """Purpose: Instantiate a Param object without arguments and verify that it is a correct instance from the class Param.
-
-        Steps: 1
+        """
+        Purpose: Instantiate in different ways a Param object and verify that 
+        they are correct instances from the class Param. The consecutive 
+        numbers correspond to the different ways of instantiation.
 
         Input Data:
-        None
+        1: None
+        2: name='sardanaName' 
+        3: name='sardanaName', desc='description_is_present' 
+        4: name='sardanaName', desc='description_is_present', 
+                type_name='integer' 
+        5: name='sardanaName', desc='description_is_present', 
+                type_name='integer', defvalue=7 
 
-        Expected Results:            
-        No exception. Object can be instantiated.             
+        Expected Results:
+        1: No exception. Object can be instantiated.              
+        2: Object can be instantiated with argument name.
+        3: Object can be instantiated with arguments name and desc. 
+        4: Object can be instantiated with arguments name, desc and 
+                 type_name.  
+        5: No exception. Object can be instantiated with arguments 
+                 name, desc, type_name and defvalue.                
         """
 
         spock_param = parameter.Param()
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of an object Param without arguments does not work')
-    
-
-    def testInstanceWithArguments(self):
-        """
-        Purpose: Instantiate in different ways a Param object and verify that they are correct instances from the class Param.
-
-        Steps: 2, 3, 4 and 5
-
-        Input Data:
-        1: Assert1: name='sardanaName' 
-        2: Assert2: name='sardanaName', desc='description_is_present' 
-        3: Assert3: name='sardanaName', desc='description_is_present', type_name='integer' 
-        4: Assert4: name='sardanaName', desc='description_is_present', type_name='integer', defvalue=7 
-
-        Expected Results:             
-        1: Assert1: No exception. Object can be instantiated with argument name.
-        2: Assert2: No exception. Object can be instantiated with arguments name and desc. 
-        3: Assert3: No exception. Object can be instantiated with arguments name, desc and type_name.  
-        4: Assert4: No exception. Object can be instantiated with arguments name, desc, type_name and defvalue.                
-        """
+        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
+                            ' an object Param without arguments does not work')
 
         spock_param = parameter.Param(name='sardanaName')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of an object Param with argument name does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' + 
+                            ' an object Param with argument name does not work')
 
-        spock_param = parameter.Param(name='sardanaName', desc='description_is_present')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of an object Param with arguments name and description does not work')
+        spock_param = parameter.Param(name='sardanaName', 
+                                            desc='description_is_present')
+        spock_param= None
+        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
+           ' an object Param with arguments name and description does not work')
 
-        spock_param = parameter.Param(name='sardanaName', desc='description_is_present', type_name='integer')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of an object Param with arguments name, description and type_name does not work')
+        spock_param = parameter.Param(name='sardanaName', 
+                            desc='description_is_present', type_name='integer')
+        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
+                           ' an object Param with arguments name, description' +
+                           ' and type_name does not work')
 
-        spock_param = parameter.Param(name='sardanaName', desc='description_is_present', type_name='integer', defvalue=7)
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of an object Param with arguments name, description, type_name and defvalue does not work')
+        spock_param = parameter.Param(name='sardanaName', 
+                desc='description_is_present', type_name='integer', defvalue=7)
+        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
+                   ' an object Param with arguments name, description,' +
+                   ' type_name and defvalue does not work')
 
-
-    def testFormatParamValue(self):
-        """Purpose: Instantiate a Param object and verify that the function 'formatParamValue' give us the good output result based on the input.
-
-        Steps: 6
-
-        Input Data:
-        45
-
-        Expected Results:            
-        45             
-        """
-
-        spock_param = parameter.Param(name='sardanaName', desc='description_is_present', type_name='integer', defvalue=7)
-        returnedValue = spock_param.formatParamValue(45)
-        self.assertEqual(returnedValue, 45, 'returned value should correspond with the one passed as input, and it is not the case')
-
-
-
-class ReleaseTestSuite(unittest.TestSuite):
-    def __init__(self):
-        unittest.TestSuite.__init__(self, map(ParameterTestCase, ("testInstanceCreation", "testInstanceWithArguments", "testFormatParamValue")))
 
 
 if __name__ == "__main__":
     unittest.main()
-
-
-
-
-

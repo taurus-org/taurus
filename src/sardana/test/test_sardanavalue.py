@@ -57,41 +57,25 @@ class SardanaValueTestCase(unittest.TestCase):
         9: Read the returned string by the method __repr__() of the SardanaValue
            Class.
         10: See that the value 5 is contained in the returned string.
-
-        11: Instantiate a SardanaValue with only one argument: value=6.
-        12: Read the returned string by the method __repr__() of the 
-           SardanaValue Class.
-        13: See that the value 6 is contained in the returned string.
     """
-
-
-    def setUp(self):
-        pass
-             
-   
-    def tearDown(self):
-        pass
-
 
 
     def testInstanceCreation(self):
         """
-        Purpose: Instantiate in different ways a SardanaValue object.
+        Purpose: Instantiate in different ways a SardanaValue object. The 
+        consecutive numbers correspond to the different ways of instantiation.
 
         Steps:
         1, 2, 3 and 4.
 
         Input Data:
-        1: Test1: None
-        2: Test2: value=9
-        3: Test3: value=8
-        4: Test4: value=7
-
-        Expected Results:          
-        1: Test1: No exception. Object can be instantiated. 
-        2: Test2: No exception. Object can be instantiated.
-        3: Test3: No exception. Object can be instantiated. 
-        4: Test4: No exception. Object can be instantiated.                 
+        1: None
+        2: value=9
+        3: value=8, exc_info = None, timestamp = '09:30', dtype = 'int', 
+                  dformat = 'int'
+        4: value=7, exc_info = 'exception_info', timestamp = '09:30', 
+                  dtype = 'int', dformat = 'int' 
+               
         """
 
         sar_val = SardanaValue()
@@ -116,126 +100,54 @@ class SardanaValueTestCase(unittest.TestCase):
             'object SardanaValue with arguments and exc_info ' +
             'different of None, does not work.')
 
-
-    def testSardanaValueExceptionInfo(self):
-        """Purpose: Verify that the value given as input to SardanaValue is not 
-        set if ExcInfo is not None.
+    def testSardanaValueWithExceptionInfo(self):
+        """Purpose: Verify the creation of SardanaValue when exc_info != None.
 
         Steps:
         5, 6 and 7
 
         Input Data:
-        - val = 4
-        - exc_info = 'exception_info' 
-        - boolean = False
-        - boolean_is = True
+        - exc_info argument is 'exception_info' 
 
-        Expected Results:             
-        - No exception. 
-        - boolean = True.
-        - The returned string by the method __repr__() shall contain the string 
-          'Error'.        
+        Expected Results:
+        - error attribute is True
+        - the SardanaValue representation shall contain '<Error>'        
         """
 
         val = 4
-        sar_val4 = SardanaValue(value = val, exc_info = 'exception_info')
-        returned_string = sar_val4.__repr__()
         
-        boolean = False
-        if ("Error" or "error" or "ERROR") in returned_string: 
-            boolean = True        
+        sar_val = SardanaValue(value = val, exc_info = 'exception_info')
+        representation = repr(sar_val)     
 
-        boolean_is = True
+        self.assertEqual(sar_val.error, True, 
+                'The error attribute is not True.')
+                
+        self.assertRegexpMatches(representation, ".*<Error>.*", 
+                'The SardanaValue representation does not contain <Error>.')
 
-        if boolean == False:
-            print(returned_string)
-        self.assertEqual(boolean_is, boolean, 'exc_info is not None, thus ' +
-                'the returned string of __repr__ method should return Error.')
-
-
-
-    def testSardanaValueExcInfoNone(self):
-        """Purpose: Verify that the value given as input to SardanaValue is well 
-        set if ExcInfo is not set.
+    def testSardanaValueWithNoExceptionInfo(self):
+        """Purpose: Verify the creation of SardanaValue when exc_info is None.
 
         Steps:
         8, 9 and 10
 
         Input Data:
-        - val = 5
-        - exc_info = None 
-        - boolean = False
-        - boolean_is = True
+        - value = 5
 
         Expected Results:             
-        - No exception. 
-        - boolean = True.
-        - The returned string by the method __repr__() shall contain 
-          the value 5.        
+        - error attribute is False
+        - the SardanaValue representation shall contain its value
         """
 
-        val = 5
-        sar_val5 = SardanaValue(value = val, exc_info = None)
-        returned_string = sar_val5.__repr__()
+        value = 5
+        sar_val = SardanaValue(value = value)
+        returned_string = sar_val.__repr__()
 
-        boolean = False
-        if ("value="+str(val) or "value = "+str(val)) in returned_string: 
-            boolean = True        
+        self.assertRegexpMatches(returned_string, repr(value), 
+                   'The SardanaValue representation does not contain its value')
 
-        boolean_is = True
-
-        if boolean == False:
-            print(returned_string)
-        self.assertEqual(boolean_is, boolean, 'exc_info is None, thus the ' +
-                                 'returned string of __repr__ method should ' + 
-                                 'return the corresponding value.')
-
-
-
-    def testSardanaValueWithoutArgumentExcInfo(self):
-        """Purpose: Verify that the value given as input to SardanaValue is 
-        well set if ExcInfo is None.
-
-        Steps:
-        11, 12 and 13
-
-        Input Data:
-        - val = 6 
-        - boolean = False
-        - boolean_is = True
-
-        Expected Results:           
-        - No exception. 
-        - boolean = True.
-        - The returned string by the method __repr__() shall contain 
-          the value 6.        
-        """
-
-        val = 6
-        sar_val6 = SardanaValue(value = val)
-        returned_string = sar_val6.__repr__()
-        
-        boolean = False
-        if ("value="+str(6) or "value = "+str(val)) in returned_string: 
-            boolean = True        
-
-        boolean_is = True
-
-        if boolean == False:
-            print(returned_string)
-        self.assertEqual(boolean_is, boolean, 'exc_info is None ' + 
-            '(instantiation without the ExcInfo argument), thus the returned' + 
-            'string of __repr__ method should return the corresponding value.')
-
-
-
-class SardanaValueTestSuite(unittest.TestSuite):
-    def __init__(self):
-        unittest.TestSuite.__init__(self, map(SardanaValueTestCase, 
-            ("testInstanceCreation", "testSardanaValueExceptionInfo", 
-             "testSardanaValueExcInfoNone", 
-             "testSardanaValueWithoutArgumentExcInfo")))
-
+        self.assertEqual(sar_val.error, False, 
+                'The error attribute is not False.')
 
 
 if __name__ == "__main__":
