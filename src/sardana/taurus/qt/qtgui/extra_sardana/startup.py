@@ -172,14 +172,13 @@ if __name__ == "__main__":
     if os.name == 'nt':
         # Windows platforms: monkey-patching *pyreadline* module
         # to make IPython work in a remote process
-        from pyreadline import unicode_helper
-        unicode_helper.pyreadline_codepage = "ascii"
         import pyreadline
+        pyreadline.unicode_helper.pyreadline_codepage = "ascii"
         pyreadline.GetOutputFile = lambda: None
-    import spocklib.genutils
+    from sardana.spock.genutils import start, mainloop
 
-    __ipythonshell__ = spocklib.genutils.start(user_ns={'runfile': runfile,
-                                                        'debugfile': debugfile})
+    __ipythonshell__ = start(user_ns={'runfile': runfile,
+                                      'debugfile': debugfile})
     __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
 
-    spocklib.genutils.mainloop(shell=__ipythonshell__)
+    mainloop(shell=__ipythonshell__)
