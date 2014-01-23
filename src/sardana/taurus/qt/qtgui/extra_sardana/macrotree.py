@@ -29,13 +29,15 @@ __all__ = ["MacroTreeWidget", "MacroSelectionDialog"]
 
 __docformat__ = 'restructuredtext'
 
-import taurus.core
+from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt import Qt
-from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE, TAURUS_MODEL_LIST_MIME_TYPE
-from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE, \
+    TAURUS_MODEL_LIST_MIME_TYPE
+from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, \
+    TaurusBaseProxyModel
 from taurus.qt.qtgui.tree import TaurusBaseTreeWidget
-from taurus.qt.qtgui.resource import getThemeIcon, getIcon
+from taurus.qt.qtgui.resource import getIcon
 
 from sardana.taurus.core.tango.sardana.macro import MacroInfo
 
@@ -244,7 +246,7 @@ class MacroTreeWidget(TaurusBaseTreeWidget):
     DftPerspective = MacroView.MacroModule
 
     def getModelClass(self):
-        return taurus.core.taurusdevice.TaurusDevice
+        return TaurusDevice
 
 
 class MacroSelectionDialog(Qt.QDialog):

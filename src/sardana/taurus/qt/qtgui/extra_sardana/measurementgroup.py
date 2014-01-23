@@ -30,11 +30,8 @@ __all__ = ["MntGrpChannelEditor"]
 
 __docformat__ = 'restructuredtext'
 
+from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt import Qt
-#import copy
-import taurus
-import taurus.core.taurusdevice
-
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
@@ -42,7 +39,8 @@ from taurus.qt.qtgui.table import TaurusBaseTableWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.core.taurusbasetypes import TaurusElementType
 
-from sardana.taurus.core.tango.sardana import ChannelView, PlotType, Normalization, AcqTriggerType
+from sardana.taurus.core.tango.sardana import ChannelView, PlotType, \
+    Normalization, AcqTriggerType
 from sardana.taurus.core.tango.sardana.pool import getChannelConfigs
 
 #===============================================================================
@@ -902,7 +900,7 @@ class MntGrpChannelEditor(TaurusBaseTableWidget):
         return ta
 
     def getModelClass(self):
-        return taurus.core.taurusdevice.TaurusDevice
+        return TaurusDevice
 
     def addChannel(self, channel=None):
         qmodel = self.getQModel()
