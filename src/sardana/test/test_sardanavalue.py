@@ -27,10 +27,7 @@
 """Documentation module docstring"""
 
 import unittest
-
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from sardanavalue import SardanaValue
+from sardana.sardanavalue import SardanaValue
 
 
 class SardanaValueTestCase(unittest.TestCase):

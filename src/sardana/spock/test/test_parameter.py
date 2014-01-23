@@ -26,11 +26,8 @@
 
 """Documentation module docstring"""
 
-import os
-import sys
 import unittest
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import parameter
+from sardana.spock import parameter
 
 
 class ParamTestCase(unittest.TestCase):
@@ -73,7 +70,6 @@ class ParamTestCase(unittest.TestCase):
 
         spock_param = parameter.Param(name='sardanaName', 
                                             desc='description_is_present')
-        spock_param= None
         self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
            ' an object Param with arguments name and description does not work')
 
