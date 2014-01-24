@@ -64,19 +64,12 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
-        
-        #Try to cast if value type is not one supported by guiqwt
-        #see: http://code.google.com/p/guiqwt/issues/detail?id=44 and
-        #     https://sourceforge.net/tracker/?func=detail&atid=484769&aid=3603991&group_id=57612
         v = evt_value.value
-        if (not isinstance(v, (float, numpy.double, numpy.uint32, numpy.int32, numpy.uint16, numpy.int16, numpy.uint8, numpy.int8, bool)) 
-                and numpy.issubdtype(getattr(v,'dtype', type(v)), int)):  
-            try:
-                v = numpy.int32(v)
-            except OverflowError:
-                self.info("type %s not supported by qwt and cannot be casted to int32. Dropping event"%repr(v.dtype))
-                return
-        
+        try:
+            v = self.filterData(v)
+        except Exception, e:
+            self.info('Ignoring event. Reason: %s', e.message)
+            return
         lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
         if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
         self.set_data(v, lut_range=lut_range)
@@ -85,9 +78,39 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
+            
+    def filterData(self, data):
+        '''Reimplement this method if you want to pre-process 
+        the data that will be passed to set_data.
         
-
-
+        It should return something acceptable by :meth:`setData`
+        and raise an exception if the data cannot be processed.
+        
+        This default implementation casts array types not 
+        supported by guiqwt to numpy.int32
+        
+        See: 
+          - http://code.google.com/p/guiqwt/issues/detail?id=44 and
+          - https://sourceforge.net/tracker/?func=detail&atid=484769&aid=3603991&group_id=57612
+          - https://sourceforge.net/p/sardana/tickets/70/
+        '''
+        try:
+            dtype = data.dtype
+            v = data
+        except:
+            v = numpy.array(data) #note that this is potentially expensive
+            dtype = v.dtype
+        
+        if dtype not in (float, numpy.double, numpy.int32, numpy.uint16,
+                          numpy.int16, numpy.uint8, numpy.int8, bool): 
+            #note: numpy.uint32 was not included because of https://sourceforge.net/p/sardana/tickets/70/    
+            try:
+                self.debug('casting to numpy.int32')
+                v = numpy.int32(v)
+            except OverflowError:
+                raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
+        return v
+        
 class TaurusImageItem(ImageItem, TaurusBaseImageItem):
     '''A ImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
@@ -105,19 +128,20 @@ class TaurusEncodedImageItem(TaurusImageItem):
         TaurusBaseComponent.setModel(self, model)
         #... and fire a fake event for initialization
         try:
-            format,value = self.codec.decode(self.getModelObj().read())
+            fmt,value = self.codec.decode(self.getModelObj().read())
             self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Change, value)
         except:
             pass
 
-    def set_data(self, data, lut_range=None, **kwargs):
-        '''reimplementation to decode data before passing it to 
-           TaurusImageItem implementation'''
+    def filterData(self, data):
+        '''reimplementation to decode data using the DevEncoded codecs'''
         if type(data) == tuple:
             from taurus.core.util.codecs import CodecFactory
             codec = CodecFactory().getCodec(data[0])
-            format,decoded_data = codec.decode(data)
-            TaurusImageItem.set_data(self, decoded_data, lut_range=lut_range)
+            fmt,decoded_data = codec.decode(data)[1]
+            return decoded_data
+        else:
+            raise ValueError('Unexpected data type (%s) for DevEncoded attribute (tuple expected)'%type(data))
 
 
 class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
@@ -464,15 +488,16 @@ def test1():
     app = TaurusApplication()
         
     #define a taurus image
-    model1 = 'sys/tg_test/1/short_image_ro'
-    model1 = 'sys/tg_test/1/long64_image_ro'
-    #taurusimage = make.image(taurusmodel= model1)
+    #model1 = 'sys/tg_test/1/short_image_ro'
+    #model1 = 'sys/tg_test/1/long64_image_ro'
+    model1 = 'sys/tg_test/1/ulong_image_ro'
+    taurusimage = make.image(taurusmodel= model1)
     #taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
-    taurusxyimage= make.xyimage(taurusmodel= model1)
-    taurusxyimage.set_xy(numpy.arange(251)*10,numpy.arange(251)*100 )
+    #taurusxyimage= make.xyimage(taurusmodel= model1)
+    #taurusxyimage.set_xy(numpy.arange(251)*10,numpy.arange(251)*100 )
     
     #define normal image (guiqwt standard)
-    data = numpy.random.rand(100,100)
+    #data = numpy.random.rand(100,100)
     #image = make.image(data=data)
     
     #create a dialog with a plot and add the images
@@ -481,8 +506,8 @@ def test1():
     from taurus.qt.qtgui.extra_guiqwt.tools import TaurusImageChooserTool
     win.add_tool(TaurusImageChooserTool)
     plot = win.get_plot()
-#    plot.add_item(taurusimage)
-    plot.add_item(taurusxyimage)
+    plot.add_item(taurusimage)
+#    plot.add_item(taurusxyimage)
 #    plot.add_item(image)
 #    plot.add_item(taurusrgbimage)
 
