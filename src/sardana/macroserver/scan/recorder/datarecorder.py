@@ -146,7 +146,11 @@ class DataRecorder(Logger):
         self.savemode = mode
         
     def addCustomData(self, value, name, **kwargs):
-        self._addCustomData(value, name, **kwargs)
+        try:
+            self._addCustomData(value, name, **kwargs)
+        except Exception,e:
+            raise RuntimeError('%s can not process custom data: %s' % \
+                               (self.__class__.__name__, e))
         
     def _addCustomData(self, value, name, **kwargs):
         pass

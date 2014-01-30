@@ -106,7 +106,12 @@ class JsonRecorder(DataRecorder):
         data will be the dictionary of keyword arguments passed to this method
         plus 'name' and 'value'
         '''
-        macro_id = self.recordlist.getEnvironValue('macro_id')
+        #try to convert to list to avoid serialization problems
+        try:
+            value = value.tolist()
+        except:
+            pass
+        macro_id = self._stream.getID()
         data = dict(kwargs) #shallow copy
         data['name'] = name
         data['value'] = value
