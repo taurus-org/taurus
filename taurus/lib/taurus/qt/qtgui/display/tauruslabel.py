@@ -243,7 +243,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.call__init__wo_kw(Qt.QLabel, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
 
-	self.setAlignment(self.DefaultAlignment)
+        self.setAlignment(self.DefaultAlignment)
 
         self.connect(self, Qt.SIGNAL("linkActivated (const QString &)"), 
                      self.showValueDialog)
