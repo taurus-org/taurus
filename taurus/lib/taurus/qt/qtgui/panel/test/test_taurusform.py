@@ -22,15 +22,19 @@
 ##
 #############################################################################
 
-
-
 """Unit tests for Taurus Forms"""
+
 import unittest
 from taurus.qt.qtgui.test.base import GenericWidgetTestCase    
 from taurus.qt.qtgui.panel import TaurusForm, TaurusAttrForm
 
 
 class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
+    '''
+    Generic tests for TaurusForm widget. 
+    
+    .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
+    '''
     _klass = TaurusForm
     modelnames = [['sys/tg_test/1'],
                   ['sys/tg_test/1/wave'],
@@ -49,6 +53,11 @@ class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
                  ]
     
 class TaurusAttrFormTest(GenericWidgetTestCase, unittest.TestCase):
+    '''
+    Generic tests for TaurusAttrForm widget. 
+    
+    .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
+    '''
     _klass = TaurusAttrForm
     modelnames = ['sys/tg_test/1', None]
     

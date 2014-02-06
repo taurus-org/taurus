@@ -31,6 +31,11 @@ from taurus.qt.qtgui.test.base import GenericWidgetTestCase
 from taurus.qt.qtgui.display import TaurusLabel
 
 class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
+    '''
+    Generic tests for TaurusLabel. 
+    
+    .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
+    '''
     _klass = TaurusLabel
     modelnames = ['sys/tg_test/1/wave', '', 'eval://1', None]
 
