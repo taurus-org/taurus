@@ -1,0 +1,10 @@
+/MANIFEST
+/contrib
+/dist
+/makedist.sh
+*.pyc
+*.qrc
+*.rcc
+/build/
+parser.out
+parsetab.py
