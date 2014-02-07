@@ -49,7 +49,7 @@ name = 'sardana'
 #: the new substring. We have to avoid using either dashes or underscores,
 #: because bdist_rpm does not accept dashes (an RPM) convention, and
 #: bdist_deb does not accept underscores (a Debian convention).
-version_info = (1, 2, 1, 'dev', 0)
+version_info = (1, 3, 0, 'rc', 0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
@@ -63,7 +63,8 @@ and the standard basis of collaborations in control."""
 license = 'LGPL'
 
 authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
-           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es') }
+           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es'),
+           'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
 
 url = 'http://packages.python.org/sardana'
 

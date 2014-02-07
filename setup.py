@@ -294,7 +294,7 @@ def main():
     Release = get_release_info()
 
     author = Release.authors['Tiago']
-    maintainer = Release.authors['Pascual-Izarra']
+    maintainer = Release.authors['Reszela']
 
     package_dir = {'sardana': abspath('src', 'sardana')}
 
