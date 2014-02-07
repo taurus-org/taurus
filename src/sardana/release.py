@@ -53,13 +53,15 @@ version_info = (1, 3, 0, 'rc', 0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
-description = "Sardana is a generic program for control applications in large and small installations"
+description = "instrument control and data acquisition system"
 
-long_description = """Produce a modular, high performance, robust and generic user environment 
-for control applications in large and small installations. 
-Make Sardana the generic user environment distributed in the TANGO project 
-and the standard basis of collaborations in control."""
-
+long_description = \
+'''Sardana is a Supervision, Control And Data Acquisition (SCADA) system for
+ scientific installations. It is written in Python and based on the TANGO
+ library. The hardware control and data acquisition routines can be
+ accessed via an IPython console and a generic graphical user interface
+ (both of which are easily extensible by the user).'''
+ 
 license = 'LGPL'
 
 authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
