@@ -217,8 +217,20 @@ class TangoConfiguration(TaurusConfiguration):
         # add dev_name, dev_alias, attr_name, attr_full_name
         i.dev_name = self._getDev().getNormalName()
         i.dev_alias = self._getDev().getSimpleName()
-        i.attr_name = self._getAttr().getSimpleName()
-        i.attr_fullname = self._getAttr().getNormalName()
+        try:
+            attr = self._getAttr()
+            if attr is not None:
+                i.attr_fullname = self._getAttr().getNormalName()
+                i.attr_name = self._getAttr().getSimpleName()
+            else: 
+                self.debug(('TangoConfiguration.decode(%s/%s): ' +
+                              'self._getAttr() returned None (failed detach?)'), 
+                           i.dev_name, i.name)
+        except:
+            import traceback
+            self.warning('at TangoConfiguration.decode(%s/%s)', i.dev_name, i.name)
+            self.warning(traceback.format_exc())
+            i.attr_name = i.attr_fullname = ''
         
         # %6.2f is the default value that Tango sets when the format is
         # unassigned. This is only good for float types! So for other
