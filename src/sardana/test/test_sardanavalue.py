@@ -31,7 +31,8 @@ from sardana.sardanavalue import SardanaValue
 
 
 class SardanaValueTestCase(unittest.TestCase):
-    """Description: Unit Test of sardanavalue module.
+    """Unit Test of sardanavalue module. Instantiating in different ways a 
+       Sardana Value.
 
     Steps:
         1: Instantiate a SardanaValue without arguments and verify if it is a 
@@ -43,25 +44,19 @@ class SardanaValueTestCase(unittest.TestCase):
         4: Instantiate a SardanaValue with exc_info different than None and 
            verify if it is a correct instance of SardanaValue.
 
-        5: Instantiate a SardanaValue with two arguments: value=4; 
-           exc_info=exception_info.
-        6: Read the returned string by the method __repr__() of the 
-           SardanaValue Class.
-        7: See that the 'Error' is contained in the returned string. 
 
-        8: Instantiate a SardanaValue with two arguments: value=5; 
-           exc_info=None.
-        9: Read the returned string by the method __repr__() of the SardanaValue
-           Class.
-        10: See that the value 5 is contained in the returned string.
+
+
     """
 
 
     def testInstanceCreation(self):
         """
-        Purpose: Instantiate in different ways a SardanaValue object. The 
+        Instantiate in different ways a SardanaValue object. The 
         consecutive numbers correspond to the different ways of instantiation.
+	"""
 
+	"""
         Steps:
         1, 2, 3 and 4.
 
@@ -98,10 +93,14 @@ class SardanaValueTestCase(unittest.TestCase):
             'different of None, does not work.')
 
     def testSardanaValueWithExceptionInfo(self):
-        """Purpose: Verify the creation of SardanaValue when exc_info != None.
+        """Verify the creation of SardanaValue when exc_info != None.
 
         Steps:
-        5, 6 and 7
+         5: Instantiate a SardanaValue with two arguments: value=4; 
+           exc_info=exception_info.
+        6: Read the returned string by the method __repr__() of the 
+           SardanaValue Class.
+        7: See that the 'Error' is contained in the returned string. 
 
         Input Data:
         - exc_info argument is 'exception_info' 
@@ -123,10 +122,15 @@ class SardanaValueTestCase(unittest.TestCase):
                 'The SardanaValue representation does not contain <Error>.')
 
     def testSardanaValueWithNoExceptionInfo(self):
-        """Purpose: Verify the creation of SardanaValue when exc_info is None.
+        """Verify the creation of SardanaValue when exc_info is None. """
 
+	"""
         Steps:
-        8, 9 and 10
+         8: Instantiate a SardanaValue with two arguments: value=5; 
+           exc_info=None.
+        9: Read the returned string by the method __repr__() of the SardanaValue
+           Class.
+        10: See that the value 5 is contained in the returned string.
 
         Input Data:
         - value = 5

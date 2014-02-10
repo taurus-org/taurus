@@ -32,58 +32,49 @@ from sardana.spock import parameter
 
 class ParamTestCase(unittest.TestCase):
     """
-    Description: Unit Test for Param class (from Spock folder).
+    Instantiate in different ways a Param object and verify that  
+    they are correct instances from the class Param.
     """
 
     def testInstanceCreation(self):
         """
-        Purpose: Instantiate in different ways a Param object and verify that 
-        they are correct instances from the class Param. The consecutive 
-        numbers correspond to the different ways of instantiation.
-
-        Input Data:
-        1: None
-        2: name='sardanaName' 
-        3: name='sardanaName', desc='description_is_present' 
-        4: name='sardanaName', desc='description_is_present', 
-                type_name='integer' 
-        5: name='sardanaName', desc='description_is_present', 
-                type_name='integer', defvalue=7 
-
-        Expected Results:
-        1: No exception. Object can be instantiated.              
-        2: Object can be instantiated with argument name.
-        3: Object can be instantiated with arguments name and desc. 
-        4: Object can be instantiated with arguments name, desc and 
-                 type_name.  
-        5: No exception. Object can be instantiated with arguments 
-                 name, desc, type_name and defvalue.                
+        Instantiate in different ways a Param object.            
         """
 
         spock_param = parameter.Param()
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
-                            ' an object Param without arguments does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 'Inputs: None. \n' +
+	            'Expected outputs: Param object can be instantiated. \n ' +	
+		    'Instantiation of an object Param without arguments ' +
+		    'does not work \n')
 
         spock_param = parameter.Param(name='sardanaName')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' + 
-                            ' an object Param with argument name does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 
+		   'Inputs: name= sardanaName \n' +
+	           'Instantiation of an object Param with argument name ' + 
+		   'does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                                             desc='description_is_present')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
-           ' an object Param with arguments name and description does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 
+     		    'Inputs: name= sardanaName, desc=description_is_present \n' +
+	            'Instantiation of an object Param with arguments name ' + 
+		    'and description does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                             desc='description_is_present', type_name='integer')
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
-                           ' an object Param with arguments name, description' +
-                           ' and type_name does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 
+		    'Inputs: name= sardanaName, desc=description_is_present ' +
+		    ' and type_name=integer \n'	
+	            'Instantiation of an object Param with arguments name, ' + 
+		    'description and type_name does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                 desc='description_is_present', type_name='integer', defvalue=7)
-        self.assertIsInstance(spock_param, parameter.Param, 'Instantiation of' +
-                   ' an object Param with arguments name, description,' +
-                   ' type_name and defvalue does not work')
+        self.assertIsInstance(spock_param, parameter.Param, 
+		    'Inputs: name= sardanaName, desc=description_is_present, ' +
+		    'type_name=integer and defvalue=7 \n'	
+	            'Instantiation of an object Param with arguments name, ' + 
+		    'description, type_name and defvalue does not work')
 
 
 
