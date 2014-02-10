@@ -332,8 +332,8 @@ class TaurusDevicePanel(TaurusWidget):
         self.trace('In TaurusDevicePanel(%s).detach()'%self.getModel())
         _detached = []
         #long imports to avoid comparison problems in the isinstance below 
-        import taurus.qt.qtgui.container.TaurusBaseContainer 
-        import taurus.qt.qtgui.base.TaurusBaseWidget
+        import taurus.qt.qtgui.container
+        import taurus.qt.qtgui.base
         def detach_recursive(obj):
             if obj in _detached: return
             if isinstance(obj,taurus.qt.qtgui.container.TaurusBaseContainer):
