@@ -274,8 +274,8 @@ class TaurusDevicePanel(TaurusWidget):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
         try:
-            if self.getModel(): self.detach()
             taurus.Device(model).ping()
+            if self.getModel(): self.detach() #Do not dettach previous model before pinging the new one (fail message will be shown at except: clause)
             TaurusWidget.setModel(self,model)
             self.setWindowTitle(str(model).upper())
             model = self.getModel()
@@ -331,6 +331,9 @@ class TaurusDevicePanel(TaurusWidget):
     def detach(self):
         self.trace('In TaurusDevicePanel(%s).detach()'%self.getModel())
         _detached = []
+        #long imports to avoid comparison problems in the isinstance below 
+        import taurus.qt.qtgui.container.TaurusBaseContainer 
+        import taurus.qt.qtgui.base.TaurusBaseWidget
         def detach_recursive(obj):
             if obj in _detached: return
             if isinstance(obj,taurus.qt.qtgui.container.TaurusBaseContainer):
@@ -346,6 +349,14 @@ class TaurusDevicePanel(TaurusWidget):
                     self.warning(traceback.format_exc())                    
             _detached.append(obj)
         detach_recursive(self)
+        try:
+            self._label.setText('')
+            self._state.setModel('')
+            if hasattr(self,'_statelabel'): self._statelabel.setModel('')
+            self._status.setModel('')
+            self._image.setPixmap(Qt.QPixmap())
+        except:
+            self.warning(traceback.format_exc())
         
     def get_attrs_form(self,device,form=None,filters=None,parent=None):
         filters = filters or get_regexp_dict(TaurusDevicePanel._attribute_filter,device,['.*'])
