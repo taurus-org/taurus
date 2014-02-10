@@ -24,7 +24,7 @@
 ##
 ##############################################################################
 
-"""Documentation module docstring"""
+"""test_parameter module documentation"""
 
 import unittest
 from sardana.spock import parameter
@@ -42,38 +42,31 @@ class ParamTestCase(unittest.TestCase):
         """
 
         spock_param = parameter.Param()
-        self.assertIsInstance(spock_param, parameter.Param, 'Inputs: None. \n' +
-	            'Expected outputs: Param object can be instantiated. \n ' +	
+        self.assertIsInstance(spock_param, parameter.Param, 	
 		    'Instantiation of an object Param without arguments ' +
 		    'does not work \n')
 
         spock_param = parameter.Param(name='sardanaName')
         self.assertIsInstance(spock_param, parameter.Param, 
-		   'Inputs: name= sardanaName \n' +
-	           'Instantiation of an object Param with argument name ' + 
+		   'Instantiation of an object Param with argument name ' + 
 		   'does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                                             desc='description_is_present')
         self.assertIsInstance(spock_param, parameter.Param, 
-     		    'Inputs: name= sardanaName, desc=description_is_present \n' +
-	            'Instantiation of an object Param with arguments name ' + 
+     		    'Instantiation of an object Param with arguments name ' + 
 		    'and description does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                             desc='description_is_present', type_name='integer')
         self.assertIsInstance(spock_param, parameter.Param, 
-		    'Inputs: name= sardanaName, desc=description_is_present ' +
-		    ' and type_name=integer \n'	
-	            'Instantiation of an object Param with arguments name, ' + 
+		    'Instantiation of an object Param with arguments name, ' + 
 		    'description and type_name does not work')
 
         spock_param = parameter.Param(name='sardanaName', 
                 desc='description_is_present', type_name='integer', defvalue=7)
         self.assertIsInstance(spock_param, parameter.Param, 
-		    'Inputs: name= sardanaName, desc=description_is_present, ' +
-		    'type_name=integer and defvalue=7 \n'	
-	            'Instantiation of an object Param with arguments name, ' + 
+		    'Instantiation of an object Param with arguments name, ' + 
 		    'description, type_name and defvalue does not work')
 
 

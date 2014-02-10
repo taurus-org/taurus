@@ -24,51 +24,22 @@
 ##
 ##############################################################################
 
-"""Documentation module docstring"""
+"""Unit tests for sardanavalue module"""
 
 import unittest
 from sardana.sardanavalue import SardanaValue
 
 
 class SardanaValueTestCase(unittest.TestCase):
-    """Unit Test of sardanavalue module. Instantiating in different ways a 
-       Sardana Value.
-
-    Steps:
-        1: Instantiate a SardanaValue without arguments and verify if it is a 
-           correct instance of SardanaValue.
-        2: Instantiate a SardanaValue with a value and verify if it is a 
-           correct instance of SardanaValue.
-        3: Instantiate a SardanaValue with exc_info equal None and verify if
-           it is a correct instance of SardanaValue.
-        4: Instantiate a SardanaValue with exc_info different than None and 
-           verify if it is a correct instance of SardanaValue.
-
-
-
-
+    """Instantiating in different ways a Sardana Value and perform some 
+       verifications.
     """
 
 
     def testInstanceCreation(self):
         """
-        Instantiate in different ways a SardanaValue object. The 
-        consecutive numbers correspond to the different ways of instantiation.
+        Instantiate in different ways a SardanaValue object.
 	"""
-
-	"""
-        Steps:
-        1, 2, 3 and 4.
-
-        Input Data:
-        1: None
-        2: value=9
-        3: value=8, exc_info = None, timestamp = '09:30', dtype = 'int', 
-                  dformat = 'int'
-        4: value=7, exc_info = 'exception_info', timestamp = '09:30', 
-                  dtype = 'int', dformat = 'int' 
-               
-        """
 
         sar_val = SardanaValue()
         self.assertIsInstance(sar_val, SardanaValue, 'Instantiation of an ' + 
@@ -94,20 +65,7 @@ class SardanaValueTestCase(unittest.TestCase):
 
     def testSardanaValueWithExceptionInfo(self):
         """Verify the creation of SardanaValue when exc_info != None.
-
-        Steps:
-         5: Instantiate a SardanaValue with two arguments: value=4; 
-           exc_info=exception_info.
-        6: Read the returned string by the method __repr__() of the 
-           SardanaValue Class.
-        7: See that the 'Error' is contained in the returned string. 
-
-        Input Data:
-        - exc_info argument is 'exception_info' 
-
-        Expected Results:
-        - error attribute is True
-        - the SardanaValue representation shall contain '<Error>'        
+	   Verify that 'Error' is contained in the returned string.       
         """
 
         val = 4
@@ -116,30 +74,17 @@ class SardanaValueTestCase(unittest.TestCase):
         representation = repr(sar_val)     
 
         self.assertEqual(sar_val.error, True, 
-                'The error attribute is not True.')
+                'The error attribute should be True.')
                 
         self.assertRegexpMatches(representation, ".*<Error>.*", 
                 'The SardanaValue representation does not contain <Error>.')
 
     def testSardanaValueWithNoExceptionInfo(self):
-        """Verify the creation of SardanaValue when exc_info is None. """
-
+        """Verify the creation of SardanaValue when exc_info is not specified
+	   and we give a value as argument of the SardanaValue constructor.
+	   SardanaValue representation shall contain its value.		
 	"""
-        Steps:
-         8: Instantiate a SardanaValue with two arguments: value=5; 
-           exc_info=None.
-        9: Read the returned string by the method __repr__() of the SardanaValue
-           Class.
-        10: See that the value 5 is contained in the returned string.
-
-        Input Data:
-        - value = 5
-
-        Expected Results:             
-        - error attribute is False
-        - the SardanaValue representation shall contain its value
-        """
-
+	        
         value = 5
         sar_val = SardanaValue(value = value)
         returned_string = sar_val.__repr__()
@@ -148,7 +93,7 @@ class SardanaValueTestCase(unittest.TestCase):
                    'The SardanaValue representation does not contain its value')
 
         self.assertEqual(sar_val.error, False, 
-                'The error attribute is not False.')
+                'The error attribute should be False')
 
 
 if __name__ == "__main__":
