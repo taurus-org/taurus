@@ -46,7 +46,8 @@ import weakref
 import StringIO
 import ctypes
 
-from taurus.core.util import Logger, propertx
+from taurus.core.util.log import Logger
+from taurus.core.util.prop import propertx
 from taurus.console.table import Table
 from taurus.console.list import List
 

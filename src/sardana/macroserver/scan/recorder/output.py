@@ -34,7 +34,8 @@ import datetime
 import operator
 import string
 
-from taurus.core.util import CodecFactory, CaselessList
+from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.containers import CaselessList
 
 from datarecorder import DataRecorder
 from storage import BaseFileRecorder

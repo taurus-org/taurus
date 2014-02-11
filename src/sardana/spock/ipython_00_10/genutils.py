@@ -60,7 +60,9 @@ import IPython
 import IPython.genutils
 import PyTango
 import PyTango.ipython
-import taurus.core.util
+
+from taurus.core.taurushelper import Factory
+from taurus.core.util.codecs import CodecFactory
 
 from sardana.spock import exception
 from sardana.spock import colors
@@ -453,7 +455,8 @@ def clean_up():
 
 def get_taurus_core_version():
     try:
-        return taurus.core.Release.version
+        import taurus
+        return taurus.core.release.version
     except:
         return '0.0.0'
         
@@ -548,7 +551,7 @@ def _get_dev(dev_type):
     
     dev_obj_name = '%s_NAME' % dev_type
     dev_name = ip.user_ns[dev_obj_name]
-    factory = taurus.Factory()
+    factory = Factory()
     dev_obj = factory.getDevice(dev_name)
     ip.user_ns[dev_type] = PyTango.DeviceProxy(dev_name) 
     ip.user_ns["_" + dev_type] = dev_obj
@@ -925,9 +928,9 @@ def init_pre_spock(ip, macro_server, door):
     # the CodecFactory is not thread safe. There are two attributes who will
     # request for it in the first event at startup in different threads
     # therefore this small hack: make sure CodecFactory is initialized.
-    taurus.core.util.CodecFactory()
+    CodecFactory()
     
-    factory = taurus.Factory()
+    factory = Factory()
 
     import sardana.spock.spockms
     macroserver = sardana.spock.spockms
@@ -962,10 +965,9 @@ def start(user_ns=None):
     if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
 
     # Make sure the log level is changed to warning
-    import taurus
-    import taurus.core.util
-    taurus.core.util.CodecFactory()
-    taurus.setLogLevel(taurus.Warning)
+    from taurus.core.taurushelper import setLogLevel, Warning
+    CodecFactory()
+    setLogLevel(Warning)
 
     try:
         check_requirements()

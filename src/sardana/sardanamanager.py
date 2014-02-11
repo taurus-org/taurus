@@ -30,7 +30,7 @@ __all__ = ["SardanaElementManager", "SardanaIDManager"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.util import CodecFactory
+from taurus.core.util.codecs import CodecFactory
 
 from sardana import InvalidId
 
