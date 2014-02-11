@@ -519,40 +519,39 @@ class TaurusDevPanel(TaurusMainWindow):
 
 def TaurusDevicePanelMain():
     '''A launcher for TaurusDevicePanel.'''
-    #!/usr/bin/python
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.core.util import argparse
     
     parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] devname [attrs]")
+    parser.set_usage("%prog [options] [devname [attrs]]")
     parser.set_description("Taurus Application inspired in Jive and Atk Panel")
     parser.add_option("", "--config-file", dest="config_file", default=None,
-                  help="launch a wizard for creating a new TaurusGUI application")
+                  help="load a config file (TODO: document this option)") 
                       
     app = TaurusApplication(cmd_line_parser=parser,app_name="TaurusDevicePanel",
                             app_version=taurus.Release.version)
     args = app.get_command_line_args()
     options = app.get_command_line_options()
     
-    app.setLogLevel(taurus.Debug)
-    
     w = TaurusDevicePanel()
     w.show()
-    if options.tango_host is None:
-        options.tango_host = taurus.Database().getNormalName()
-    try: w.setTangoHost(options.tango_host)
-    except: pass
     
     if options.config_file is not None:
         w.loadConfigFile(options.config_file)
     else:
-        w.setAttributeFilters({args[0]:args[1:]})
-        
-    if len(args)<1:
-        parser.print_help() #@todo use modelchooser instead of printing the help
-        return
-    w.setModel(args[0])
+        if len(args) == 0:
+            from taurus.qt.qtgui.panel import TaurusModelChooser
+            models, ok = TaurusModelChooser.modelChooserDlg(w, 
+                                       selectables = [TaurusElementType.Member],
+                                       singleModel= True )
+            if ok and models:
+                w.setModel(models[0])
+        else:
+            model = args[0]
+            filters = args[1:]
+            w.setAttributeFilters({model:filters})        
+            w.setModel(model)
     
     sys.exit(app.exec_())             
 
