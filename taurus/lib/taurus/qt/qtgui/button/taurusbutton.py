@@ -37,7 +37,6 @@ from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
-from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 
@@ -257,7 +256,9 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
-    __pyqtSignals__ = ("commandExecuted()",)
+
+    __pyqtSignals__ = ("commandExecuted",)
+    
     def __init__(self, parent=None, designMode=False, command=None, 
                  parameters=None, icon=None, text=None,
                  timeout=None):
