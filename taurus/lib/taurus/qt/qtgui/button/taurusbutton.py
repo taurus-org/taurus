@@ -509,7 +509,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     
     CustomText = Qt.pyqtProperty("QString", getCustomText, setCustomText, resetCustomText)
     
-    Timeout = Qt.pyqtProperty(float, getTimeout, setTimeout, resetTimeout)
+    Timeout = Qt.pyqtProperty("double", getTimeout, setTimeout, resetTimeout)
 
 
 class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):

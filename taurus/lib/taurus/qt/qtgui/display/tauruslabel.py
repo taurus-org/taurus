@@ -541,11 +541,19 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #:     * :meth:`TaurusLabel.textInteractionFlags`
     #:     * :meth:`TaurusLabel.setTextInteractionFlags`
-    #:     * :meth:`TaurusLabel.resetTextInteractionFlags`
-    textInteractionFlags = Qt.pyqtProperty(Qt.Qt.TextInteractionFlag, Qt.QLabel.textInteractionFlags,
-                                  setTextInteractionFlags,
-                                  resetTextInteractionFlags,
-                                  doc="Specifies how the label should interact with user input if it displays text.")
+    #:     * :meth:`TaurusLabel.resetTextInteractionFlags
+    try:
+        textInteractionFlags = Qt.pyqtProperty(Qt.Qt.TextInteractionFlag,
+                                   Qt.QLabel.textInteractionFlags,
+                                   setTextInteractionFlags,
+                                   resetTextInteractionFlags,
+                                   doc="Specifies how the label should interact with user input if it displays text.")
+    except TypeError: #Old PyQt4 version only accept strings for the type arg
+        textInteractionFlags = Qt.pyqtProperty("int",
+                                   Qt.QLabel.textInteractionFlags,
+                                   setTextInteractionFlags,
+                                   resetTextInteractionFlags,
+                                   doc="Specifies how the label should interact with user input if it displays text.")
 
     
 def demo():

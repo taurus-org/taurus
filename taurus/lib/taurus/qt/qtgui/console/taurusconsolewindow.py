@@ -36,7 +36,10 @@ __docformat__ = 'restructuredtext'
 import functools
 
 from taurus.qt import Qt
-from IPython.frontend.qt.console.mainwindow import MainWindow
+try:
+    from IPython.qt.console.mainwindow import MainWindow
+except ImportError:
+    from IPython.frontend.qt.console.mainwindow import MainWindow
 
 
 class TaurusConsoleWindow(MainWindow):
