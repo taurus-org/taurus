@@ -75,6 +75,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         self.set_data(v, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
+
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
@@ -100,15 +101,16 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         except:
             v = numpy.array(data) #note that this is potentially expensive
             dtype = v.dtype
-        
+
         if dtype not in (float, numpy.double, numpy.int32, numpy.uint16,
                           numpy.int16, numpy.uint8, numpy.int8, bool): 
             #note: numpy.uint32 was not included because of https://sourceforge.net/p/sardana/tickets/70/    
-            try:
+            try: 
                 self.debug('casting to numpy.int32')
-                v = numpy.int32(v)
+                v = numpy.int32(v)  
             except OverflowError:
                 raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
+            
         return v
         
 class TaurusImageItem(ImageItem, TaurusBaseImageItem):
@@ -138,8 +140,29 @@ class TaurusEncodedImageItem(TaurusImageItem):
         if type(data) == tuple:
             from taurus.core.util.codecs import CodecFactory
             codec = CodecFactory().getCodec(data[0])
-            fmt,decoded_data = codec.decode(data)[1]
-            return decoded_data
+
+            try:
+                fmt,decoded_data = codec.decode(data)[1]
+            except:
+                decoded_data = codec.decode(data)[1]
+
+            try:
+                dtype = decoded_data.dtype
+                v = decoded_data
+            except:
+                v = numpy.array(decoded_data) #note that this is potentially expensive
+                dtype = v.dtype
+
+            if dtype not in (float, numpy.double, numpy.int32, numpy.uint16,
+                             numpy.int16, numpy.uint8, numpy.int8, bool): 
+            #note: numpy.uint32 was not included because of https://sourceforge.net/p/sardana/tickets/70/    
+                try:
+                    self.debug('casting to numpy.int32')
+                    v = numpy.int32(v)  
+                except OverflowError:
+                    raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
+
+            return v
         else:
             raise ValueError('Unexpected data type (%s) for DevEncoded attribute (tuple expected)'%type(data))
 
