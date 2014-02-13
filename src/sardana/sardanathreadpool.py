@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import threading
 
-from taurus.core.util import ThreadPool
+from taurus.core.util.threadpool import ThreadPool
 
 __thread_pool_lock = threading.Lock()
 __thread_pool = None

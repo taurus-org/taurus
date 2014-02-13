@@ -454,13 +454,17 @@ class TaurusSequencerWidget(TaurusWidget):
         menu.exec_(event.globalPos())
     
     def checkDoorState(self):
+        '''Method used by "Check door state" action (available in the context
+        menu). It is a workaround for situations when the event notification
+        about the macro status does not reach the sequencer widget.'''
+
         door = Device(self.doorName())
         doorState = door.state()
         if doorState == PyTango.DevState.RUNNING:
             self.playSequenceAction.setEnabled(False)
             self.pauseSequenceAction.setEnabled(True)
             self.stopSequenceAction.setEnabled(True)
-        elif doorState == PyTango.DevState.ON or doorState == PyTango.DevState.ON:
+        elif doorState in (PyTango.DevState.ON, PyTango.DevState.ALARM):
             self.playSequenceAction.setEnabled(True)
             self.pauseSequenceAction.setEnabled(False)
             self.stopSequenceAction.setEnabled(False)

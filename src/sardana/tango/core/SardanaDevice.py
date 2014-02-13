@@ -38,7 +38,7 @@ import PyTango.constants
 from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
     AttrQuality, TimeVal, ArgType, ApiUtil, DevFailed, WAttribute
 
-from taurus.core.util import ThreadPool
+from taurus.core.util.threadpool import ThreadPool
 from taurus.core.util.log import Logger
 
 from util import to_tango_state, NO_DB_MAP

@@ -68,8 +68,10 @@ from IPython.config.application import Application
 from IPython.terminal.ipapp import TerminalIPythonApp, launch_new_instance
 
 import taurus
-from taurus.core import Release as TCRelease
-from taurus.core.util import CodecFactory
+#from taurus.core import Release as TCRelease
+
+from taurus.core.taurushelper import Factory
+from taurus.core.util.codecs import CodecFactory
 
 # make sure Qt is properly initialized
 from taurus.qt import Qt
@@ -411,7 +413,8 @@ def clean_up():
 
 def get_taurus_core_version():
     try:
-        return TCRelease.version
+        import taurus
+        return taurus.core.release.version
     except:
         import traceback
         traceback.print_exc()
@@ -516,7 +519,7 @@ def _get_dev(dev_type):
         taurus_dev = getattr(spock_config, taurus_dev_var)
     if taurus_dev is None:
         dev_name = getattr(spock_config, dev_type + '_name')
-        factory = taurus.Factory()
+        factory = Factory()
         taurus_dev = factory.getDevice(dev_name)
         import PyTango
         dev = PyTango.DeviceProxy(dev_name)
@@ -769,7 +772,7 @@ def init_taurus():
     # therefore this small hack: make sure CodecFactory is initialized.
     CodecFactory()
 
-    factory = taurus.Factory()
+    factory = Factory()
 
     import sardana.spock.spockms
     macroserver = sardana.spock.spockms

@@ -306,7 +306,13 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
             
         #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
-        if value is not None: self._yBuffer.append(value.value)
+        if value is not None: 
+            try:
+                self._yBuffer.append(value.value)
+            except Exception,e: 
+                self.warning('Problem updating history (%s=%s):%s', 
+                             model, value.value, e)
+                value = None
         
         if self.parent().getXIsTime():
             #add the timestamp to the x buffer

@@ -31,7 +31,7 @@ from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
 #from taurus.core.util import Logger
-from taurus.core.util import CodecFactory
+from taurus.core.util.codecs import CodecFactory
 
 from sardana import State, SardanaServer #, ElementType
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass

@@ -34,7 +34,7 @@ from multiprocessing import Process, Pipe
 
 import genutils
 
-from taurus.core import TaurusManager
+from taurus.core.taurusmanager import TaurusManager
 from taurus.core.util import Singleton
 from taurus.core.tango.sardana.macroserver import BaseInputHandler
 from taurus.qt import Qt
