@@ -548,21 +548,23 @@ def TaurusDevicePanelMain():
     w = TaurusDevicePanel()
     w.show()
     
-    if options.config_file is not None:
-        w.loadConfigFile(options.config_file)
-    else:
-        if len(args) == 0:
-            from taurus.qt.qtgui.panel import TaurusModelChooser
-            models, ok = TaurusModelChooser.modelChooserDlg(w, 
+    if len(args) == 0:
+        from taurus.qt.qtgui.panel import TaurusModelChooser
+        models, ok = TaurusModelChooser.modelChooserDlg(w, 
                                        selectables = [TaurusElementType.Member],
                                        singleModel= True )
-            if ok and models:
-                w.setModel(models[0])
-        else:
-            model = args[0]
-            filters = args[1:]
-            w.setAttributeFilters({model:filters})        
-            w.setModel(model)
+        model = models[0] if ok and models else None
+        filters = ''
+    else:
+        model = args[0]
+        filters = args[1:]
+
+    if options.config_file is not None:
+        w.loadConfigFile(options.config_file)
+    elif model and filters:
+        w.setAttributeFilters({model:filters})
+
+    w.setModel(model)
     
     sys.exit(app.exec_())             
 
