@@ -187,29 +187,13 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         s = params.get('summit')
         x1, y1 = s[0], s[1]
         item.setPos(x1,y1)
-
+        #Font size and type is set at set_common_params
         txt = params.get('text')
         if txt:
             if any(isinstance(txt,t) for t in (list,tuple,set)): #Parsing several lines of text
                 txt = '\n'.join(txt)            
             item.setPlainText(Qt.QString(txt))
             item._currText = txt
-            
-        fnt = params.get('font')
-        if fnt:
-            family,style,size = fnt
-            f = Qt.QFont(family, int(.85*size), Qt.QFont.Light, False)
-            f.setStyleHint(TEXTHINT_JDW2QT.get(family, Qt.QFont.AnyStyle))
-            f.setStyleStrategy(Qt.QFont.PreferMatch)
-            if style == 1:
-                f.setWeight(Qt.QFont.DemiBold)
-            elif style == 2:
-                f.setItalic(True)
-            elif style == 3:
-                f.setWeight(Qt.QFont.DemiBold)
-                f.setItalic(True)
-            #TODO: Improve code in order to be able to set a suitable font
-            item.setFont(f)
         return item        
     
     def getGroupObj(self,params):
@@ -232,6 +216,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         x1, y1 = s[0], s[1]
         item.setPos(x1,y1)
         ext = params.get('extensions')
+        #Font size and type is set at set_common_params
         return item
     
     def getImageObj(self,params):
@@ -290,12 +275,27 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
             item._extensions = extensions
 
         if isinstance(item,Qt.QGraphicsTextItem):
-          try:
-            fg = params.get("foreground", (0,0,0))
-            color = Qt.QColor(fg[0],fg[1],fg[2])
-            item.setDefaultTextColor(color)
-          except:
-            self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
+            try:
+                fnt = params.get('font',None)
+                if fnt:
+                    family,style,size = fnt
+                    f = Qt.QFont(family, int(.85*size), Qt.QFont.Light, False)
+                    f.setStyleHint(TEXTHINT_JDW2QT.get(family, Qt.QFont.AnyStyle))
+                    f.setStyleStrategy(Qt.QFont.PreferMatch)
+                    if style == 1:
+                        f.setWeight(Qt.QFont.DemiBold)
+                    elif style == 2:
+                        f.setItalic(True)
+                    elif style == 3:
+                        f.setWeight(Qt.QFont.DemiBold)
+                        f.setItalic(True)
+                    #TODO: Improve code in order to be able to set a suitable font
+                    item.setFont(f)                
+                fg = params.get("foreground", (0,0,0))
+                color = Qt.QColor(fg[0],fg[1],fg[2])
+                item.setDefaultTextColor(color)
+            except:
+                self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
 
         else:
           try:

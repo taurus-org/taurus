@@ -30,7 +30,11 @@ __all__ = ["TaurusConsoleWidget"]
 __docformat__ = 'restructuredtext'
 
 from IPython.utils.traitlets import Unicode
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+try:
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+except ImportError:
+    from IPython.frontend.qt.console.rich_ipython_widget \
+         import RichIPythonWidget
 
 default_gui_banner = """\
 Taurus console -- An enhanced IPython console for taurus.

@@ -37,8 +37,31 @@ if QT_API == QT_API_PYQT:
         Signal = pyqtSignal
     if hasattr(__QtCore, "pyqtSlot"):
         Slot = pyqtSlot
+    else: #implement dummy pyqtSlot decorator for PyQt<4.6
+        class DummyPyqtSlot(object):
+            def __init__(self, *a, **kw):
+                pass
+            def __call__(self, f):
+                return f
+        Slot = pyqtSlot = DummyPyqtSlot
     if hasattr(__QtCore, "pyqtProperty"):
         Property = pyqtProperty
     __version__ = QT_VERSION_STR
+
 elif QT_API == QT_API_PYSIDE:
+    from PySide import QtCore as __QtCore
     from PySide.QtCore import *
+
+    #a dummy pyqtsignature decorator
+    # CAUTION this totally nulifies the pupose of decorating with pyqtSignature
+    # todo: do a proper implementation of pyqtsignature
+    def pyqtSignature(f):
+        return f
+
+    # Alias PySide functions for PyQt compatibility.
+    if hasattr(__QtCore, "Signal"):
+        pyqtSignal = Signal
+    if hasattr(__QtCore, "Slot"):
+        pyqtSlot = Slot
+    if hasattr(__QtCore, "Property"):
+        pyqtProperty = Property

@@ -64,7 +64,9 @@ def get_ipython_version_list():
 ipv = get_ipython_version_list()
 if ipv >= [0, 10] and ipv < [0, 11]:
     from ipython_00_10.genutils import *
-else:
+elif ipv >= [0, 11] and ipv < [1, 0]:
     from ipython_00_11.genutils import *
+else:
+    from ipython_01_00.genutils import *
 
 

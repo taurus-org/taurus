@@ -39,6 +39,7 @@ from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
 from taurus.qt.qtgui.util import TaurusWidgetFactory
+from taurus.core.util.log import Logger
 import inspect, copy
 
 class ExpertWidgetChooserDlg(Qt.QDialog):
@@ -90,7 +91,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             self.module = sys.modules[modulename] #We use this because __import__('x.y') returns x instead of y !! 
             self.moduleNameLE.setStyleSheet('QLineEdit {color: green}')
         except Exception, e:
-            print repr(e)
+            Logger().debug(repr(e))
             self.moduleNameLE.setStyleSheet('QLineEdit {color: red}')
             return
         #inspect the module to find the members we want (classes or widgets inheriting from QWidget)
@@ -113,10 +114,10 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
         try:
             membername = str(self.membersCB.currentText())
             member = getattr(self.module, membername, None)
+            result = {'modulename':self.module.__name__}
         except Exception,e:
-            print "Problem in ExpertWidgetChooserDlg.getMemberDescription:"+repr(e)
+            Logger().debug('Cannot get member description: %s', repr(e))
             return None
-        result = {'modulename':self.module.__name__}
         if inspect.isclass(member):
             result['classname'] = membername
         else:
@@ -377,7 +378,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         try:
             widget = self.wizard().getPanelDescription().getWidget()
         except Exception, e:
-            print "!!!", repr(e)
+            Logger().debug(repr(e))
             widget = None
         #prevent the user from changing the model if it was already set
         if isinstance(widget, TaurusBaseComponent) and widget.getModelName() != '':
@@ -388,7 +389,7 @@ class AdvSettingsPage(Qt.QWizardPage):
             if isinstance(Qt.qApp.SDM, SharedDataManager):
                 sdm = Qt.qApp.SDM
         except Exception, e:
-            print '!!!!',repr(e)
+            Logger().debug(repr(e))
             sdm = None
         #@todo set selection filter in modelChooser based on the widget's modelclass
         self.itemDelegate = CommItemDelegate(widget=widget, sdm=sdm)

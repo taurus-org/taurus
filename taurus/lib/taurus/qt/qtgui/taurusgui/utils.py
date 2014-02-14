@@ -28,10 +28,11 @@ by specific TaurusGui-based GUIs"""
 
 __docformat__ = 'restructuredtext'
 
+import os,sys
+from lxml import etree
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
-from lxml import etree
-import os,sys
+from taurus.core.util.log import Logger
 
 #this is here only for backwards compatibility. It should not be used at all
 class Qt_Qt: 
@@ -356,18 +357,33 @@ class PanelDescription(TaurusGuiComponentDescription):
     def fromPanel(panel):
         name = str(panel.objectName())
         classname = panel.getWidgetClassName()
-        modulename = None
+        modulename = panel.getWidgetModuleName()
+        # in the case of classes known to the TaurusWidgetFactory, 
+        # do not store the modulename
+        if modulename.startswith('taurus.') and \
+           classname in TaurusWidgetFactory().getWidgetClassNames():
+            modulename = None
         widgetname = None
         floating = panel.isFloating()
         sharedDataWrite = None
         sharedDataRead = None
         model = getattr(panel.widget(),'model',None)
-        if model is not None and not isinstance(model,basestring):#if it is not a string or None, we assume it is a sequence of strings,...
-            model = " ".join(model)                                            #...and we convert it to a space-separated string
+        # check if model is not None and is a sequence but not a string,
+        # and convert it to a space-separated string
+        if model is not None and not hasattr(model,'__iter__'):
+            try:
+                model = " ".join(model)
+            except Exception, e:
+                msg = 'Could not compose a string representation ' + \
+                      'of a model from a sequence: %s' % e
+                Logger().debug(msg)
+                model = None
             
-        return PanelDescription(name, classname=classname, modulename=modulename, widgetname=widgetname, 
-                                floating=floating, sharedDataWrite=sharedDataWrite, sharedDataRead=sharedDataRead, 
-                                model=model)
+        return PanelDescription(name, classname=classname, 
+                                modulename=modulename, widgetname=widgetname,
+                                floating=floating, 
+                                sharedDataWrite=sharedDataWrite, 
+                                sharedDataRead=sharedDataRead, model=model)
         
 
 class ToolBarDescription(TaurusGuiComponentDescription):

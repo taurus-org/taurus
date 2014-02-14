@@ -4,7 +4,7 @@ graft src
 graft doc
 graft build/sphinx/html
 
-global-exclude *.pyc .cvsignore .svnignore
+global-exclude *.pyc .cvsignore .svnignore .gitignore
 exclude setup.cfg
 exclude .project
 exclude .pydevproject

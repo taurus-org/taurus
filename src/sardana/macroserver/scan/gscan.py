@@ -40,7 +40,8 @@ import numpy as np
 
 import PyTango
 import taurus
-from taurus.core.util import USER_NAME, Logger
+from taurus.core.util.user import USER_NAME
+from taurus.core.util.log import Logger
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
 from taurus.core.tango.sardana.pool import Ready
 

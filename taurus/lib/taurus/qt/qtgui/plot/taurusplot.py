@@ -767,6 +767,9 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             else:
                 self.debug("Curve is not connected but still receiving data")
 
+        if len(x)!=len(y): 
+            self.warning("setData(x[%d],y[%d]): array sizes don't match!"%(len(x),len(y)))
+
         #now proceed as usual
         Qwt5.QwtPlotCurve.setData(self, x,y)
 

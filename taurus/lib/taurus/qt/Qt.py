@@ -107,6 +107,7 @@ __QStringList_2 = list
 if QT_API == QT_API_PYQT:
     import PyQt4.Qt
     import PyQt4.QtCore
+    from QtCore import *  #required to import tweaks done in taurus.qt.QtCore
     from PyQt4.Qt import *
     from PyQt4.Qt import Qt
     
@@ -136,7 +137,10 @@ if QT_API == QT_API_PYQT:
         PyQt4.QtCore.QStringList = PyQt4.Qt.QStringList = QStringList = __QStringList_2
     
 elif QT_API == QT_API_PYSIDE:
-    from PySide.Qt import *
+    #from PySide.Qt import *
+    from QtCore import *
+    from QtGui import *
+
 
     QVariant = __QVariant_2
     to_qvariant = __to_qvariant_2

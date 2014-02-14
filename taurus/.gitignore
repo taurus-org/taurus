@@ -1,0 +1,11 @@
+MANIFEST
+/dist
+*.pyc
+*.qrc
+*.rcc
+/build/
+/doc/source/devel/api/
+/doc/source/devel/catalog.html
+/lib/taurus/qt/qtgui/resource/catalog.html
+parser.out
+parsetab.py

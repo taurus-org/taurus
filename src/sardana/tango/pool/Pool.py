@@ -36,7 +36,8 @@ import os.path
 import PyTango
 
 from taurus import Factory
-from taurus.core.util import CaselessDict, CodecFactory
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.codecs import CodecFactory
 from taurus.core.util.log import Logger, DebugIt
 
 from sardana import State, SardanaServer, ElementType, Interface, \

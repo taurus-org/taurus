@@ -46,7 +46,8 @@ import weakref
 import StringIO
 import ctypes
 
-from taurus.core.util import Logger, propertx
+from taurus.core.util.log import Logger
+from taurus.core.util.prop import propertx
 from taurus.console.table import Table
 from taurus.console.list import List
 
@@ -1060,8 +1061,8 @@ class Macro(Logger):
 
         :param pars: the command parameters as explained above
         :return:
-            a sequence of two elemetns: the macro class and a sequence of
-            parameters
+            a sequence of two elements: the macro object and the result of
+            preparing the macro
         :rtype: :obj:`tuple`\<:class:`~sardana.macroserver.macro.Macro`\, seq<obj>>
         """
         return self.prepareMacro(*pars)
