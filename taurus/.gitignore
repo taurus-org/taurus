@@ -1,6 +1,5 @@
 MANIFEST
 /dist
-/makedist.sh
 *.pyc
 *.qrc
 *.rcc

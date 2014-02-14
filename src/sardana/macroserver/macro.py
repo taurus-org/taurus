@@ -1061,8 +1061,8 @@ class Macro(Logger):
 
         :param pars: the command parameters as explained above
         :return:
-            a sequence of two elemetns: the macro class and a sequence of
-            parameters
+            a sequence of two elements: the macro object and the result of
+            preparing the macro
         :rtype: :obj:`tuple`\<:class:`~sardana.macroserver.macro.Macro`\, seq<obj>>
         """
         return self.prepareMacro(*pars)
