@@ -321,6 +321,7 @@ def main():
         'sardana.spock',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
+        'sardana.spock.ipython_01_00',
     ]
 
     provides = [
