@@ -311,7 +311,7 @@ class Door(SardanaDevice):
     
     def write_Input(self, attr):
         value = attr.get_write_value()
-        self._input_handler.input_received(value)
+        self.door.get_input_handler().input_received(value)
     
     #@DebugIt()
     def read_ElementList(self, attr):
