@@ -37,6 +37,7 @@ import re
 import numpy
 
 from datarecorder import DataRecorder, DataFormats, SaveModes
+from taurus.core.util.containers import chunks
 from taurus.core.tango.sardana import PlotType
 from sardana.macroserver.macro import Type
 import PyTango
@@ -271,6 +272,9 @@ class SPEC_FileRecorder(BaseFileRecorder):
     """ Saves data to a file """
 
     formats = { DataFormats.Spec : '.spec' }
+    supported_dtypes = ('float32','float64','int8',
+                        'int16','int32','int64','uint8',
+                        'uint16','uint32','uint64')
 
     def __init__(self, filename=None, macro=None, **pars):
         BaseFileRecorder.__init__(self)
@@ -296,7 +300,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
         return DataFormats.whatis(DataFormats.Spec)
     
     def _startRecordList(self, recordlist):
-
+        '''Prepares and writes the scan header.'''
         if self.filename is None:
             return
 
@@ -317,6 +321,10 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 labels.append(sanitizedlabel)
                 names.append(e.name)
         self.names = names
+        
+        # prepare pre-scan snapshot
+        snapshot_labels, snapshot_values = self._preparePreScanSnapshot(env)
+        # format scan header
         data = {
                 'serialno':  serialno,
                 'title':     env['title'],
@@ -326,18 +334,72 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 'nocols':    len(names),
                 'labels':    '  '.join(labels)
                }
-               
+        header = ''
+        header += '#S %(serialno)s %(title)s\n'
+        header += '#U %(user)s\n'
+        header += '#D %(epoch)s\n'
+        header += '#C Acquisition started at %(starttime)s\n'
+        # add a pre-scan snapshot (sep is two spaces for labels!!)
+        header += self._prepareMultiLines('O', '  ', snapshot_labels)
+        header += self._prepareMultiLines('P', ' ', snapshot_values)
+        header += '#N %(nocols)s\n'
+        header += '#L %(labels)s\n'
+        
         self.fd = open(self.filename,'a')
-        self.fd.write("""
-#S %(serialno)s %(title)s
-#U %(user)s
-#D %(epoch)s
-#C Acquisition started at %(starttime)s
-#N %(nocols)s
-#L %(labels)s
-""" % data )
+        self.fd.write(header % data )
         self.fd.flush()
-
+        
+    def _prepareMultiLines(self, character, sep, items_list):
+        '''Translate list of lists of items into multiple line string
+        
+        :param character (string): each line will start #<character><line_nr>
+        :sep: separator (string): separator to use between items
+        :param items_list (list):list of lists of items
+        
+        :return multi_lines (string): string with all the items'''
+        multi_lines = ''
+        for nr, items in enumerate(items_list):
+            start = '#%s%d ' % (character, nr)
+            items_str = sep.join(map(str, items))
+            end = '\n'
+            line = start + items_str + end
+            multi_lines += line 
+        return multi_lines
+    
+    def _preparePreScanSnapshot(self, env):
+        '''Extract pre-scan snapshot, filters elements of shape different 
+        than scalar and split labels and values into chunks of 8 items.
+        
+        :param: env (dict) scan environment
+        
+        :return: labels, values (tuple<list,list>)
+                 labels - list of chunks with 8 elements containing labels 
+                 values - list of chunks with 8 elements containing values    
+        '''
+        # preScanSnapShot is a list o ColumnDesc objects
+        pre_scan_snapshot = env.get('preScanSnapShot',[])
+        labels = []; values = []
+        for column_desc in pre_scan_snapshot:
+            shape = column_desc.shape # shape is a tuple of dimensions
+            label = column_desc.label
+            dtype = column_desc.dtype
+            pre_scan_value = column_desc.pre_scan_value
+            # skip items with shape different than scalar
+            if  len(shape) > 0:
+                self.info('Pre-scan snapshot of "%s" will not be stored.' + \
+                          ' Reason: value is non-scalar', label)
+                continue
+            if dtype not in self.supported_dtypes:
+                self.info('Pre-scan snapshot of "%s" will not be stored.' + \
+                          ' Reason: type %s not supported', label, dtype)
+                continue
+            labels.append(label)
+            values.append(pre_scan_value)
+            # split labels in chunks o 8 items
+            labels_chunks = list(chunks(labels, 8))
+            values_chunks = list(chunks(values, 8))
+        return labels_chunks, values_chunks
+        
     def _writeRecord(self, record):
         if self.filename is None:
             return
