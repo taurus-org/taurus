@@ -28,12 +28,39 @@
 import unittest
 from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
+from sardana.macroserver.macros.test import BaseMacroExecutor
 
 class LsmTest(RunMacroTestCase, unittest.TestCase):
+	
+    door_name = "door/demo1/1"
+    macro_executor_klass = TangoMacroExecutor	
+    tango_macro_executor = macro_executor_klass(door_name)
+    tango_macro_executor.registerAll()
+    macro_name = "lsm"	
+    motor = "gap05"
 
-    macro_name = 'lsm'	
-    macro_executor_klass = TangoMacroExecutor
+    def testFindMotor(self):
+        screen_output = self.tango_macro_executor.getLog("output")
+        output = screen_output[0]
+
+        print("\n")
+        count_motor = False
+        for i in range (len(output)):
+            
+            print(output[i])       
+            if (output[i].find(self.motor) != -1):
+                count_motor = True
+        
+        msg = "lsm does not contain {0}".format(self.motor)
+        self.assertTrue(count_motor, msg)         
+        print("\n")
+
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(LsmTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
+
+
+
+        
+
