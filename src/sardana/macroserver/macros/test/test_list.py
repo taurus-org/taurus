@@ -31,28 +31,35 @@ from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
 
 class LsmTest(RunMacroTestCase, unittest.TestCase):
-	
-    door_name = "door/demo1/1"
-    macro_executor_klass = TangoMacroExecutor	
-    tango_macro_executor = macro_executor_klass(door_name)
-    tango_macro_executor.registerAll()
-    macro_name = "lsm"	
-    motor = "gap05"
 
-    def testFindMotor(self):
-        screen_output = self.tango_macro_executor.getLog("output")
+    door_name = "door/demo1/1"
+
+    #TODO: This will change to use a Factory.
+    macro_executor_klass = TangoMacroExecutor
+    macro_name = "lsm"
+
+    #tango_macro_executor = macro_executor_klass(door_name)
+
+    def setUp(self):
+        RunMacroTestCase.setUp(self)
+        self.macro_executor.registerAll()
+        self.element = "gap05"
+
+    def testFindElement(self):
+
+        screen_output = self.macro_executor.getLog("output")
         output = screen_output[0]
 
         print("\n")
-        count_motor = False
+        count_element = False
         for i in range (len(output)):
-            
-            print(output[i])       
-            if (output[i].find(self.motor) != -1):
-                count_motor = True
-        
-        msg = "lsm does not contain {0}".format(self.motor)
-        self.assertTrue(count_motor, msg)         
+
+            print(output[i])
+            if (output[i].find(self.element) != -1):
+                count_element = True
+
+        msg = "lsm does not contain {0}".format(self.element)
+        self.assertTrue(count_element, msg)
         print("\n")
 
 
