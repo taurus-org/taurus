@@ -161,5 +161,7 @@ time
         
 class GenericMacroTestCase(RunMacroTestCase, StopMacroTestCase):
     #TODO setUp is called twice! maybe it is not the best solution
-    pass
-
+    
+    def setUp(self):
+        RunMacroTestCase.setUp(self)
+        StopMacroTestCase.setUp(self)
