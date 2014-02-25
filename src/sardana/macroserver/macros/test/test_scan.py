@@ -30,7 +30,7 @@ from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import GenericMacroTestCase
 
 
-class ScanTest(GenericMacroTestCase, unittest.TestCase):
+class ScanTest(GenericMacroTestCase):
 
     logOutput = {}
     logInfo = {}
@@ -68,17 +68,29 @@ class ScanTest(GenericMacroTestCase, unittest.TestCase):
         interval = abs(self.finalPos - self.initPos) / self.steps
         pre = self.data[0]
         for d in self.data[1:]:
-            self.assertTrue(abs(abs(pre[1] - d[1]) - interval) 
-                            < interval * 0.01, 
+            # TODO use assertAlmostEqual
+            #self.assertAlmostEqual(abs(pre[1] - d[1]), interval,
+            #                       "Real interval differs from set interval")
+            self.assertTrue(abs(abs(pre[1] - d[1]) - interval)
+                            < interval * 0.01,
                             "Step interval differs for more than 1% ")
             pre = d
 
-
+    @unittest.skip("Test not ready")
     def test01_outputSpec(self):
         #TODO Define ScanDir and ScanFile
 
         self.macro_executor.run(macro_name = self.macro_name, 
                                 macro_params = self.macro_params, 
+                                sync = True)
+
+        logInfo = self.macro_executor.getLog('info')
+
+    @unittest.skip("Test not ready")
+    def test02_outputNxScan(self):
+        #TODO Define ScanDir and ScanFile
+        self.macro_executor.run(macro_name = self.macro_name,
+                                macro_params = self.macro_params,
                                 sync = True)
 
         logInfo = self.macro_executor.getLog('info')
@@ -89,32 +101,39 @@ class ScanTest(GenericMacroTestCase, unittest.TestCase):
         pass
 
 
-class AscanTest(scanTest):
+class AscanTest(ScanTest, unittest.TestCase):
     macro_name = 'ascan'
-    #TODO use generator to get a random motor from sar_demo
+    #TODO use generator to get a arbitrary motor from sar_demo
     macro_params = ['mot17', '0', '1', '10', '.1']
     macro_executor_klass = TangoMacroExecutor
     run_timeout = 3.
 
     def test00_outputLog(self):
-        scanTest.test00_outputLog(self)
+        ScanTest.test00_outputLog(self)
+        self.assertEqual(self.data[0][1], self.initPos,
+                         "Initial possition differs from set value")
+        self.assertEqual(self.data[-1][1], self.finalPos,
+                         "Final possition differs from set value")
 
-        self.assertEqual(self.data[0][1], self.initPos)
-        self.assertEqual(self.data[-1][1], self.finalPos)
 
-
-class DscanTest(scanTest):
+class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
-    #TODO use generator to get a random motor from sar_demo
+    #TODO use generator to get a arbitrary motor from sar_demo
     macro_params = ['mot17', '0', '1', '10', '.1']
     macro_executor_klass = TangoMacroExecutor
     run_timeout = 3.
 
-  
+    def test00_outputLog(self):
+        ScanTest.test00_outputLog(self)
+        self.assertAlmostEqual(self.data[0][1] - self.data[-1][1],
+                               self.initPos - self.finalPos,
+                               "")
+
+
 if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(ascanTest)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(AscanTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
 
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dscanTest)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(DscanTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
 
