@@ -28,6 +28,7 @@
 import copy
 import time
 import unittest
+from sardana import sardanacustomsettings
 
 
 class BaseMacroTestCase(object):
@@ -48,7 +49,7 @@ class BaseMacroTestCase(object):
       - macro_executor_initkwargs (dict) a dict of keyword arguments for the klass init method 
                    (default={})
     '''
-    door_name = 'door/sardana_test/1' 
+    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME') 
     macro_name = None
     macro_params = None
     #TODO implement proper macro executor factory

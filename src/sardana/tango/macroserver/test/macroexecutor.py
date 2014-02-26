@@ -4,6 +4,7 @@ import PyTango
 from sardana.macroserver.macros.test import BaseMacroExecutor
 # TODO: not sure if use this codecs, or prepare some easy one...
 from taurus.core.util.codecs import CodecFactory
+from sardana import sardanacustomsettings
 
 class TangoAttrCb(object):
 
@@ -87,7 +88,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
     def __init__(self, door_name=None):
         super(TangoMacroExecutor, self).__init__()
         if door_name == None:
-            door_name = DOOR_NAME
+            door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
         self._door = PyTango.DeviceProxy(door_name)
         self._done_event = None
         self._started_event = None
@@ -207,5 +208,5 @@ def printLog(logs):
         print line
 
 if __name__ == '__main__':
-    door_name = 'door/sardana_test/1'
+    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
     testTangoMacroExecutorRunLsm(door_name)
