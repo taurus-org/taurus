@@ -107,6 +107,7 @@ __QStringList_2 = list
 if QT_API == QT_API_PYQT:
     import PyQt4.Qt
     import PyQt4.QtCore
+    from QtCore import *  #required to import tweaks done in taurus.qt.QtCore
     from PyQt4.Qt import *
     from PyQt4.Qt import Qt
     

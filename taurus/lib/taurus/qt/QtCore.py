@@ -37,6 +37,13 @@ if QT_API == QT_API_PYQT:
         Signal = pyqtSignal
     if hasattr(__QtCore, "pyqtSlot"):
         Slot = pyqtSlot
+    else: #implement dummy pyqtSlot decorator for PyQt<4.6
+        class DummyPyqtSlot(object):
+            def __init__(self, *a, **kw):
+                pass
+            def __call__(self, f):
+                return f
+        Slot = pyqtSlot = DummyPyqtSlot
     if hasattr(__QtCore, "pyqtProperty"):
         Property = pyqtProperty
     __version__ = QT_VERSION_STR

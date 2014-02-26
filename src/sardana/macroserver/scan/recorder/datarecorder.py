@@ -35,7 +35,8 @@ import time
 from taurus.core.util.log import Logger
 from taurus.core.util.enumeration import Enumeration
 
-DataFormats = Enumeration('DataFormats', ('Spec', 'CSV', 'XLS', 'w5', 'w4', 'wx', 'fio'))
+DataFormats = Enumeration('DataFormats', ('Spec', 'CSV', 'XLS', 'w5', 'w4',
+                                          'wx', 'fio'))
 SaveModes = Enumeration('SaveModes', ('Record', 'Block'))
 RecorderStatus = Enumeration('RecorderStatus', ('Idle', 'Active', 'Disable'))
 
@@ -148,7 +149,11 @@ class DataRecorder(Logger):
         self.savemode = mode
 
     def addCustomData(self, value, name, **kwargs):
-        self._addCustomData(value, name, **kwargs)
+        try:
+            self._addCustomData(value, name, **kwargs)
+        except Exception, e:
+            raise RuntimeError('%s can not process custom data: %s' %
+                               (self.__class__.__name__, e))
 
     def _addCustomData(self, value, name, **kwargs):
         pass
@@ -173,4 +178,3 @@ class DumbRecorder(DataRecorder):
         print "Ending recording"
         env = recordlist.getEnviron()
         print "Recording ended at: ", time.ctime(env['endtime'])
-

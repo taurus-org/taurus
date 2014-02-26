@@ -37,7 +37,7 @@ __docformat__ = 'restructuredtext'
 
 import copy
 
-import taurus
+from taurus.core.taurushelper import getLogLevel
 from taurus.core.util.log import Logger
 
 from sardana import DataAccess
@@ -75,8 +75,8 @@ FSet = "fset"
 #: and :obj:`NotMemorized`
 Memorize = "memorized"
 
-#: Constant memorized (to be used as a *value* in the :obj:`Memorize` field
-#: definition in :attr:`~Controller.axis_attributes` or
+#: Constant memorized (to be used as a *value* in the :obj:`Memorize` field 
+#: definition in :attr:`~Controller.axis_attributes` or 
 #: :attr:`~Controller.ctrl_attributes`)
 Memorized = "true"
 
@@ -130,19 +130,19 @@ class Controller(object):
     #:
     #:     - for :obj:`DefaultValue`, value is a python object or None if no
     #:       default value exists for the property.
-    #:
+    #: 
     #: Example::
     #:
     #:     from sardana.pool.controller import MotorController, \
     #:         Type, Description, DefaultValue
-    #:
+    #: 
     #:     class MyCtrl(MotorController):
-    #:
+    #:          
     #:         ctrl_properties = \
     #:         {
     #:             'host' : { Type : str,
     #:                        Description : "host name" },
-    #:             'port' : { Type : int,
+    #:             'port' : { Type : int, 
     #:                        Description : "port number",
     #:                        DefaultValue: 5000 }
     #:         }
@@ -159,7 +159,7 @@ class Controller(object):
     #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`sardana-controller-data-type`
     #:
-    #:     - for :obj:`Access`, value is one of
+    #:     - for :obj:`Access`, value is one of 
     #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
     #:       (case insensitive) strings are also accepted) [default: ReadWrite]
     #:
@@ -194,22 +194,22 @@ class Controller(object):
     #:       .. versionadded:: 1.1
     #:
     #: .. versionadded:: 1.0
-    #:
+    #: 
     #: Example::
-    #:
+    #:      
     #:     from sardana.pool.controller import PseudoMotorController, \
     #:         Type, Description, DefaultValue, DataAccess
-    #:
+    #: 
     #:     class HKLCtrl(PseudoMotorController):
-    #:
+    #:          
     #:         ctrl_attributes = \
     #:         {
     #:             'ReflectionMatrix' : { Type : ( (float,), ),
     #:                                    Description : "The reflection matrix",
     #:                                    Access : DataAccess.ReadOnly,
-    #:                                    FGet : 'getReflectionMatrix', },
+    #:                                    FGet : 'getReflectionMatrix', },    
     #:         }
-    #:
+    #:         
     #:         def getReflectionMatrix(self):
     #:             return ( (1.0, 0.0), (0.0, 1.0) )
     ctrl_attributes = {}
@@ -224,7 +224,7 @@ class Controller(object):
     #:     - for :obj:`Type`, value is one of the values described in
     #:       :ref:`sardana-controller-data-type`
     #:
-    #:     - for :obj:`Access`, value is one of
+    #:     - for :obj:`Access`, value is one of 
     #:       :obj:`~sardana.sardanadefs.DataAccess` ("read" or "read_write"
     #:       (case insensitive) strings are also accepted)
     #:
@@ -252,25 +252,25 @@ class Controller(object):
     #:       .. versionadded:: 1.1
     #:
     #: .. versionadded:: 1.0
-    #:
+    #: 
     #: Example::
-    #:
+    #:      
     #:     from sardana.pool.controller import MotorController, \
     #:         Type, Description, DefaultValue, DataAccess
-    #:
+    #: 
     #:     class MyMCtrl(MotorController):
-    #:
+    #:          
     #:         axis_attributes = \
     #:         {
     #:             'EncoderSource' : { Type : str,
     #:                                 Description : 'motor encoder source', },
     #:         }
-    #:
+    #:         
     #:         def getAxisPar(self, axis, name):
     #:             name = name.lower()
     #:             if name == 'encodersource':
     #:                 return self._encodersource[axis]
-    #:
+    #:         
     #:         def setAxisPar(self, axis, name, value):
     #:             name = name.lower()
     #:             if name == 'encodersource':
@@ -295,11 +295,11 @@ class Controller(object):
 
     #: A :obj:`str` containning the path to the image logo file
     logo = None
-
+    
     def __init__(self, inst, props, *args, **kwargs):
         self._inst_name = inst
         self._log = Logger("Controller.%s" % inst)
-        self._log.log_obj.setLevel(taurus.getLogLevel())
+        self._log.log_obj.setLevel(getLogLevel())
         self._args = args
         self._kwargs = kwargs
         self._api_version = self._findAPIVersion()
@@ -944,7 +944,7 @@ class ZeroDController(Controller, Readable, Stopable):
                           'description' : 'Value', },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
-
+    
     #: A :obj:`str` representing the controller gender
     gender = '0D controller'
 
@@ -965,13 +965,13 @@ class OneDController(Controller, Readable, Startable, Stopable, Loadable):
     standard_axis_attributes = {
         'Value'       : { 'type' : (float,),
                           'description' : 'Value',
-                          'maxdimsize' : (16 * 1024,) },
+                          'maxdimsize' : (16*1024,) },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
 
     #: A :obj:`str` representing the controller gender
     gender = '1D controller'
-
+        
     def GetAxisPar(self, axis, parameter):
         """**Controller API**. Override is MANDATORY.
         Called to get a parameter value on the given axis.
@@ -994,7 +994,7 @@ class TwoDController(Controller, Readable, Startable, Stopable, Loadable):
     standard_axis_attributes = {
         'Value'       : { 'type' : ((float,),),
                           'description' : 'Value',
-                          'maxdimsize' : (4 * 1024, 4 * 1024) },
+                          'maxdimsize' : (4*1024, 4*1024) },
     }
     standard_axis_attributes.update(Controller.standard_axis_attributes)
 
@@ -1073,7 +1073,7 @@ class PseudoMotorController(PseudoController):
 
     #: A :obj:`str` representing the controller gender
     gender = 'Pseudo motor controller'
-
+    
     def __init__(self, inst, props, *args, **kwargs):
         self.__motor_role_elements = {}
         self.__pseudo_motor_role_elements = {}
@@ -1098,7 +1098,7 @@ class PseudoMotorController(PseudoController):
            .. versionadded:: 1.0"""
         ret = []
         for i in range(len(self.pseudo_motor_roles)):
-            ret.append(self.CalcPseudo(i + 1, physical_pos, curr_pseudo_pos))
+            ret.append(self.CalcPseudo(i+1, physical_pos, curr_pseudo_pos))
         return ret
 
     def CalcAllPhysical(self, pseudo_pos, curr_physical_pos):
@@ -1119,7 +1119,7 @@ class PseudoMotorController(PseudoController):
            .. versionadded:: 1.0"""
         ret = []
         for i in range(len(self.motor_roles)):
-            pos = self.CalcPhysical(i + 1, pseudo_pos, curr_physical_pos)
+            pos = self.CalcPhysical(i+1, pseudo_pos, curr_physical_pos)
             ret.append(pos)
         return ret
 
@@ -1174,7 +1174,7 @@ class PseudoMotorController(PseudoController):
                implement :meth:`~PseudoMotorController.CalcAllPseudo` instead"""
         ret = []
         for i in range(len(self.pseudo_motor_roles)):
-            ret.append(self.calc_pseudo(i + 1, physical_pos))
+            ret.append(self.calc_pseudo(i+1, physical_pos))
         return ret
 
 
@@ -1195,7 +1195,7 @@ class PseudoMotorController(PseudoController):
                instead"""
         ret = []
         for i in range(len(self.motor_roles)):
-            pos = self.calc_physical(i + 1, pseudo_pos)
+            pos = self.calc_physical(i+1, pseudo_pos)
             ret.append(pos)
         return ret
 
@@ -1301,7 +1301,7 @@ class PseudoCounterController(Controller):
 
     #: A :obj:`str` representing the controller gender
     gender = 'Pseudo counter controller'
-
+    
     def Calc(self, axis, values):
         """**Pseudo Counter Controller API**. Override is **MANDATORY**.
            Calculate pseudo counter position given the counter values.
@@ -1345,7 +1345,7 @@ class PseudoCounterController(Controller):
 
            .. versionadded:: 1.2"""
         f, n = self.Calc, len(self.pseudo_counter_roles)
-        return [ f(i + 1, values) for i in range(n) ]
+        return [ f(i+1, values) for i in range(n) ]
 
 
 class IORegisterController(Controller, Readable):
@@ -1366,7 +1366,7 @@ class IORegisterController(Controller, Readable):
 
     #: A :obj:`str` representing the controller gender
     gender = 'I/O register controller'
-
+    
     def __init__(self, inst, props, *args, **kwargs):
         Controller.__init__(self, inst, props, *args, **kwargs)
 

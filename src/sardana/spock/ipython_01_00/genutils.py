@@ -4,21 +4,21 @@
 ##############################################################################
 ##
 ## This file is part of Sardana
-## 
+##
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -27,58 +27,67 @@
 """This package provides the spock generic utilities"""
 
 __all__ = ['page', 'arg_split', 'get_gui_mode', 'get_pylab_mode',
-           'get_color_mode', 'get_ipapi',
-           'get_editor', 'ask_yes_no', 'spock_input',
+           'get_color_mode', 'get_app',
+           'get_shell', 'get_ipapi', 'get_config', 'get_editor', 'ask_yes_no',
+           'spock_input',
            'translate_version_str2int', 'get_ipython_version',
            'get_ipython_version_number', 'get_python_version',
            'get_python_version_number', 'get_ipython_dir',
-           'get_ipython_profiles', 'get_spock_profiles', 
-           'get_non_spock_profiles', 'get_spock_user_profile_module',
+           'get_ipython_profiles',
            'get_pytango_version', 'get_pytango_version_number',
            'get_server_for_device', 'get_macroserver_for_door',
            'get_device_from_user', 'get_tango_db', 'get_tango_host_from_user',
            'print_dev_from_class', 'from_name_to_tango', 'clean_up',
            'get_taurus_core_version', 'get_taurus_core_version_number',
-           'check_requirements', 'get_door', 'get_macro_server', 'expose_magic',
-           'unexpose_magic', 'expose_variable', 'expose_variables',
-           'unexpose_variable',
+           'check_requirements', 'get_door', 'get_macro_server',
+           'expose_magic', 'unexpose_magic', 'expose_variable',
+           'expose_variables', 'unexpose_variable',
            'create_spock_profile', 'check_for_upgrade', 'get_args',
-           'init_console', 'init_magic', 'init_pre_spock', 'init_post_spock',
-           'init_spock', 'start', 'mainloop', 'run',
+           'start', 'mainloop', 'run',
            'load_ipython_extension', 'unload_ipython_extension', 'load_config',
-           'MSG_FAILED','MSG_FAILED_WR', 'MSG_R', 'MSG_ERROR',
-           'MSG_DONE', 'MSG_OK' ]
+           'MSG_FAILED', 'MSG_FAILED_WR', 'MSG_R', 'MSG_ERROR',
+           'MSG_DONE', 'MSG_OK']
 
 __docformat__ = 'restructuredtext'
 
 import sys
 import os
 import socket
-import imp
 
 import IPython
-import IPython.genutils
-import PyTango
-import PyTango.ipython
+import IPython.core.magic
+from IPython.core.page import page
+from IPython.core.profiledir import ProfileDirError, ProfileDir
+from IPython.core.application import BaseIPythonApplication
+from IPython.core.interactiveshell import InteractiveShell
+from IPython.utils.io import ask_yes_no as _ask_yes_no
+from IPython.utils.path import get_ipython_dir
+from IPython.utils.process import arg_split
+from IPython.utils.coloransi import TermColors
+from IPython.config.application import Application
+from IPython.terminal.ipapp import TerminalIPythonApp, launch_new_instance
+
+import taurus
+#from taurus.core import Release as TCRelease
 
 from taurus.core.taurushelper import Factory
 from taurus.core.util.codecs import CodecFactory
+
+# make sure Qt is properly initialized
+from taurus.qt import Qt
 
 from sardana.spock import exception
 from sardana.spock import colors
 from sardana.spock import release
 
-arg_split = IPython.iplib.arg_split
-page = IPython.genutils.page
-TermColors = colors.TermColors
-
+SpockTermColors = colors.TermColors
 
 requirements = {
-#     module     minimum  recommended 
-    "IPython"     : ("0.10.0", "0.10.0"),
+#     module     minimum  recommended
+    "IPython"     : ("0.11.0", "0.12.0"),
     "Python"      : ("2.6.0", "2.6.0"),
-    "PyTango"     : ("7.1.2", "7.2.0"),
-    "taurus.core" : ("2.0.0", "2.1.0")
+    "PyTango"     : ("7.2.0", "7.2.3"),
+    "taurus.core" : ("3.0.0", "3.0.0")
 }
 
 ENV_NAME = "_E"
@@ -88,25 +97,31 @@ ENV_NAME = "_E"
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 def get_gui_mode():
-    if '-q4thread' in sys.argv:
-        return 'qt'
-    elif '-gthread' in sys.argv:
-        return 'gtk'
-    elif '-wthread' in sys.argv:
-        return 'wx'
-    return ''
+    return 'qt'
 
 def get_pylab_mode():
-    return get_gui_mode()
-    
+    return get_app().pylab
+
 def get_color_mode():
-    return get_ipapi().options.colors
-    
+    return get_config().InteractiveShell.colors
+
+def get_app():
+    #return TerminalIPythonApp.instance()
+    return Application.instance()
+
+def get_shell():
+    """Get the global InteractiveShell instance."""
+    return get_app().shell
+
 def get_ipapi():
-    return IPython.ipapi.get()
+    """Get the global InteractiveShell instance."""
+    return InteractiveShell.instance()
+
+def get_config():
+    return get_app().config
 
 def get_editor():
-    return get_ipapi().options.editor
+    return get_ipapi().editor
 
 def ask_yes_no(prompt,default=None):
     """Asks a question and returns a boolean (y/n) answer.
@@ -121,10 +136,10 @@ def ask_yes_no(prompt,default=None):
 
     if default:
         prompt = '%s [%s]' % (prompt, default)
-    return IPython.genutils.ask_yes_no(prompt, default)
+    return _ask_yes_no(prompt, default)
 
 def spock_input(prompt='',  ps2='... '):
-    return IPython.genutils.raw_input_ext(prompt=prompt, ps2=ps2)   
+    return raw_input(prompt)
 
 def translate_version_str2int(version_str):
     """Translates a version string in format x[.y[.z[...]]] into a 000000 number"""
@@ -141,14 +156,14 @@ def translate_version_str2int(version_str):
             return v
         if not l: return v
     return v
-    
+
     try:
         v += 10000*int(parts[0])
         l -= 1
     except ValueError:
         return v
     if not l: return v
-    
+
     try:
         v += 100*int(parts[1])
         l -= 1
@@ -172,10 +187,10 @@ def get_ipython_version():
         except Exception:
             try:
                 v = IPython.release.version
-            except Exception:
-                pass
-    except Exception:
-        pass
+            except Exception, e2:
+                print e2
+    except Exception, e3:
+        print e3
     return v
 
 def get_ipython_version_number():
@@ -191,76 +206,18 @@ def get_python_version_number():
     pyver_str = get_python_version()
     return translate_version_str2int(pyver_str)
 
-def get_ipython_dir():
-    """Find the ipython local directory. Usually is <home>/.ipython"""
-    if hasattr(PyTango.ipython, "get_ipython_dir"):
-        return PyTango.ipython.get_ipython_dir()
-    
-    if hasattr(IPython.iplib, 'get_ipython_dir'):
-        # Starting from ipython 0.9 they hadded this method
-        return IPython.iplib.get_ipython_dir()
-    
-    # Try to find the profile in the current directory and then in the 
-    # default IPython dir
-    #userdir = os.path.realpath(os.path.curdir)
-    home_dir = IPython.genutils.get_home_dir()
-    
-    if os.name == 'posix':
-        ipdir = '.ipython'
-    else:
-        ipdir = '_ipython'
-    ipdir = os.path.join(home_dir, ipdir)
-    ipythondir = os.path.abspath( os.environ.get('IPYTHONDIR', ipdir) )
-    return ipythondir
+def get_ipython_profiles(path=None):
+    """list profiles in a given root directory"""
+    if path is None:
+        path = get_ipython_dir()
+    files = os.listdir(path)
+    profiles = []
+    for f in files:
+        full_path = os.path.join(path, f)
+        if os.path.isdir(full_path) and f.startswith('profile_'):
+            profiles.append(f.split('_',1)[-1])
+    return profiles
 
-def get_ipython_profiles():
-    """Helper function to find all ipython profiles"""
-    if hasattr(PyTango.ipython, "get_ipython_profiles"):
-        return PyTango.ipython.get_ipython_profiles()
-
-    ret = []
-    ipydir = get_ipython_dir()
-    if os.path.isdir(ipydir):
-        for i in os.listdir(ipydir):
-            fullname = os.path.join(ipydir, i)
-            if i.startswith("ipy_profile_") and i.endswith(".py"):
-                if os.path.isfile(fullname):
-                    ret.append(i[len("ipy_profile_"):i.rfind(".")])
-    return ret
-
-def get_spock_profiles(ipython_profiles=None):
-    """Helper function to find all spock ipython profiles"""
-    ret = []
-    ipydir = get_ipython_dir()
-    if not os.path.isdir(ipydir):
-        return ret
-    if ipython_profiles is None:
-        ipython_profiles = get_ipython_profiles()
-    ret = []
-    for profile in ipython_profiles:
-        profile_f = os.path.join(ipydir, "ipy_profile_%s.py" % profile)
-        if not os.path.isfile(profile_f): continue
-        try:
-            for i, l in enumerate(file(profile_f)):
-                if i > 10: break
-                if l.find("spock_creation_version") >= 0:
-                    ret.append(profile)
-                    break
-        except:
-            pass
-    return ret
-
-def get_non_spock_profiles(ipython_profiles=None):
-    """Helper function to find all non spock ipython profiles"""
-    if ipython_profiles is None:
-        ipython_profiles = get_ipython_profiles()
-    ipython_profiles = set(ipython_profiles)
-    spock_profiles = set(get_spock_profiles(ipython_profiles=ipython_profiles))
-    return ipython_profiles.difference(spock_profiles)
-
-def get_spock_user_profile_module(profile_name):
-    return 'ipy_profile_%s' % profile_name
-    
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # PyTango utilities
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -268,18 +225,18 @@ def get_spock_user_profile_module(profile_name):
 def get_pytango_version():
     try:
         import PyTango
+        try:
+            return PyTango.Release.version
+        except:
+            return '0.0.0'
     except:
         return None
-    try:
-        return PyTango.Release.version
-    except:
-        return '0.0.0'
 
 def get_pytango_version_number():
     tgver_str = get_pytango_version()
     if tgver_str is None: return None
     return translate_version_str2int(tgver_str)
-    
+
 def get_server_for_device(device_name):
     db = get_tango_db()
     device_name = device_name.lower()
@@ -289,11 +246,11 @@ def get_server_for_device(device_name):
             if dev.lower() == device_name:
                 return server
     return None
-    
+
 def get_macroserver_for_door(door_name):
     """Returns the MacroServer device name in the same DeviceServer as the
     given door device"""
-    full_door_name, door_name, door_alias = from_name_to_tango(door_name)
+    _, door_name, _ = from_name_to_tango(door_name)
     db = get_tango_db()
     door_name = door_name.lower()
     server_list = list(db.get_server_list('MacroServer/*'))
@@ -318,14 +275,14 @@ def get_device_from_user(expected_class, dft = None):
         prompt += "[%s]" % dft
     prompt += "? "
     from_user = raw_input(prompt).strip() or dft
-    
+
     name = ''
     try:
-        full_name, name, alias = from_name_to_tango(from_user)
+        full_name, name, _ = from_name_to_tango(from_user)
     except:
         print "Warning: the given %s does not exist" % expected_class
-        return name 
-    
+        return name
+
     try:
         db = get_tango_db()
         cl_name = db.get_class_for_device(name)
@@ -338,6 +295,7 @@ def get_device_from_user(expected_class, dft = None):
     return full_name
 
 def get_tango_db():
+    import PyTango
     tg_host = PyTango.ApiUtil.get_env_var("TANGO_HOST")
 
     db = None
@@ -354,16 +312,16 @@ def get_tango_db():
             host,port = get_tango_host_from_user()
             tg_host = "%s:%d" % (host,port)
             os.environ["TANGO_HOST"] = tg_host
-            
+
             db = PyTango.Database()
     return db
 
 def get_tango_host_from_user():
-
-    while True: 
+    import PyTango
+    while True:
         prompt = "Please enter a valid tango host (<host>:<port>): "
         from_user = raw_input(prompt).strip()
-    
+
         try:
             host, port = from_user.split(':')
             try:
@@ -371,10 +329,10 @@ def get_tango_host_from_user():
                 try:
                     socket.gethostbyname(host)
                     try:
-                        db = PyTango.Database(host,port)
-                        return db.get_db_host(), db.get_db_port()
+                        PyTango.Database(host, port)
+                        return (host, port)
                     except:
-                        exp = "No tango database found at %s:%d" % (host,port)
+                        exp = "No tango database found at %s:%d" % (host, port)
                 except:
                     exp = "Invalid host name %s" % host
             except:
@@ -392,44 +350,44 @@ def print_dev_from_class(classname, dft = None):
         server_wildcard = '*'
         try:
             exp_dev_list = db.get_device_exported_for_class(classname)
-        except Exception:
+        except:
             exp_dev_list = []
     else:
         server_wildcard = '%'
         exp_dev_list = []
-    
+
     res = None
     dev_list = db.get_device_name(server_wildcard,classname)
     tg_host = "%s:%s" % (db.get_db_host(),db.get_db_port())
     print "Available",classname,"devices from",tg_host,":"
     for dev in dev_list:
-        full_name, name, alias = from_name_to_tango(dev)
+        _, name, alias = from_name_to_tango(dev)
         out = alias or name
         if alias: out += ' (a.k.a. %s)' % name
-        out = "%-25s" % out 
+        out = "%-25s" % out
         if dev in exp_dev_list:
             out += " (running)"
         print out
         if dft:
             if dft.lower() == name.lower(): res = name
-            elif not alias is None and dft.lower() == alias.lower(): res = alias 
-    
+            elif not alias is None and dft.lower() == alias.lower(): res = alias
+
     return res
-    
+
 def from_name_to_tango(name):
-    
+
     db = get_tango_db()
-    
+
     alias = None
-    
+
     c = name.count('/')
     # if the db prefix is there, remove it first
     if c == 3 or c == 1:
         name = name[name.index("/")+1:]
-    
+
     elems = name.split('/')
     l = len(elems)
-    
+
     if l == 3:
         try:
             alias = db.get_alias(name)
@@ -442,7 +400,7 @@ def from_name_to_tango(name):
         name = db.get_device_alias(alias)
     else:
         raise Exception("Invalid device name '%s'" % name)
-    
+
     full_name = "%s:%s/%s" % (db.get_db_host(), db.get_db_port(), name)
     return full_name, name, alias
 
@@ -458,8 +416,10 @@ def get_taurus_core_version():
         import taurus
         return taurus.core.release.version
     except:
+        import traceback
+        traceback.print_exc()
         return '0.0.0'
-        
+
 def get_taurus_core_version_number():
     tgver_str = get_taurus_core_version()
     if tgver_str is None: return None
@@ -475,15 +435,15 @@ def check_requirements():
     minIPython, recIPython = map(translate_version_str2int, r["IPython"])
     minPython, recPython = map(translate_version_str2int, r["Python"])
     minTaurusCore, recTaurusCore = map(translate_version_str2int, r["taurus.core"])
-    
+
     currPython = get_python_version_number()
     currIPython = get_ipython_version_number()
     currPyTango = get_pytango_version_number()
     currTaurusCore = get_taurus_core_version_number()
-    
+
     errMsg = ""
     warnMsg = ""
-    
+
     errPython, errIPython, errPyTango, errTaurusCore = False, False, False, False
     if currPython is None:
         errMsg += "Spock needs Python version >= %s. No python installation found\n" % requirements["Python"][0]
@@ -520,49 +480,62 @@ def check_requirements():
         else:
             errMsg += "Current version is unknown (most surely too old)\n"
         errTaurusCore = True
-        
+
     # Warnings
     if not errPython and currPython < recPython:
-        warnMsg += "Spock recommends Python version >= %s. Current version is %s\n" % (requirements["Python"][1], get_python_version())
+        warnMsg += "Spock recommends Python version >= %s. Current version " \
+                   "is %s\n" % (requirements["Python"][1],
+                                get_python_version())
 
     if not errIPython and currIPython < recIPython:
-        warnMsg += "Spock recommends IPython version >= %s. Current version is %s\n" % (requirements["IPython"][1], get_ipython_version())
+        warnMsg += "Spock recommends IPython version >= %s. Current version " \
+                   "is %s\n" % (requirements["IPython"][1],
+                                get_ipython_version())
 
     if not errPyTango and currPyTango < recPyTango:
-        warnMsg += "Spock recommends PyTango version >= %s. Current version is %s\n" % (requirements["PyTango"][1], get_pytango_version())
-            
+        warnMsg += "Spock recommends PyTango version >= %s. Current version " \
+                   "is %s\n" % (requirements["PyTango"][1],
+                                get_pytango_version())
+
     if not errTaurusCore and currTaurusCore < recTaurusCore:
-        warnMsg += "Spock recommends taurus.core version >= %s. Current version is %s\n" % (requirements["taurus.core"][1], get_taurus_core_version())
+        warnMsg += "Spock recommends taurus.core version >= %s. Current " \
+                   "version is %s\n" % (requirements["taurus.core"][1],
+                                        get_taurus_core_version())
 
     if errMsg:
         errMsg += warnMsg
         raise exception.SpockMissingRequirement, errMsg
 
-    if warnMsg: 
+    if warnMsg:
         raise exception.SpockMissingRecommended, warnMsg
-    
+
     return True
 
 def _get_dev(dev_type):
-    ip = get_ipapi()
-    ret = ip.user_ns.get("_" + dev_type)
-    if ret is not None:
-        return ret
-    
-    dev_obj_name = '%s_NAME' % dev_type
-    dev_name = ip.user_ns[dev_obj_name]
-    factory = Factory()
-    dev_obj = factory.getDevice(dev_name)
-    ip.user_ns[dev_type] = PyTango.DeviceProxy(dev_name) 
-    ip.user_ns["_" + dev_type] = dev_obj
-    setattr(ip, '_%s' % dev_type, dev_obj)
-    return dev_obj
+    spock_config = get_config().Spock
+    taurus_dev = None
+    taurus_dev_var = "_" + dev_type
+    if hasattr(spock_config, taurus_dev_var):
+        taurus_dev = getattr(spock_config, taurus_dev_var)
+    if taurus_dev is None:
+        dev_name = getattr(spock_config, dev_type + '_name')
+        factory = Factory()
+        taurus_dev = factory.getDevice(dev_name)
+        import PyTango
+        dev = PyTango.DeviceProxy(dev_name)
+        setattr(spock_config, dev_type, dev)
+        setattr(spock_config, taurus_dev_var, taurus_dev)
+        shell = get_shell()
+        dev_type_upper = dev_type.upper()
+        shell.user_ns[dev_type_upper] = dev
+        shell.user_ns["_" + dev_type_upper] = taurus_dev
+    return taurus_dev
 
 def get_door():
-    return _get_dev('DOOR')
+    return _get_dev('door')
 
 def get_macro_server():
-    return _get_dev('MACRO_SERVER')
+    return _get_dev('macro_server')
 
 def _macro_completer(self, event):
     """Method called by the IPython autocompleter. It will determine possible
@@ -571,7 +544,6 @@ def _macro_completer(self, event):
     ms = get_macro_server()
 
     macro_name = event.command.lstrip('%')
-    
     # calculate parameter index
     param_idx = len(event.line.split()) - 1
     if not event.line.endswith(' '): param_idx -= 1
@@ -587,106 +559,116 @@ def _macro_completer(self, event):
         for param in possible_params:
             res.extend(ms.getElementNamesWithInterface(param['type']))
         return res
-        
+
 def expose_magic(name, fn, completer_func=_macro_completer):
-    ip = get_ipapi()
-    ip.expose_magic(name, fn)
-    
+    shell = get_shell()
+    fn.old_magic = shell.define_magic(name, fn)
+    fn.old_completer = completer_func
+
     if completer_func is None:
         return
-    
-    # enable macro param completion
-    ip.set_hook('complete_command', completer_func, str_key = name)
 
-    # register also when the command as is typed with the magic prefix '%'
-    name = str('%') + name
-    ip.set_hook('complete_command', completer_func, str_key = name)
-    
+    # enable macro param completion
+    if completer_func is not None:
+        shell.set_hook('complete_command', completer_func, str_key = name)
+        shell.set_hook('complete_command', completer_func, str_key = '%'+name)
+
 def unexpose_magic(name):
-    ip = get_ipapi()
-    mg = 'magic_%s' % name
-    delattr(ip.IP, mg)
+    shell = get_shell()
+    mg_name = 'magic_' + name
+    if hasattr(shell, mg_name):
+        magic_fn  = getattr(shell, mg_name)
+        delattr(shell, mg_name)
+        if hasattr(magic_fn, 'old_magic') and magic_fn.old_magic is not None:
+            expose_magic(name, magic_fn.old_magic, magic_fn.old_completer)
 
 def expose_variable(name, value):
-    get_ipapi().to_user_ns({ name : value })
+    get_shell().user_ns[name] = value
+
+def expose_variables(d):
+    get_shell().user_ns.update(d)
 
 def unexpose_variable(name):
-    user_ns = get_ipapi().user_ns
+    user_ns = get_shell().user_ns
     del user_ns[name]
-    
-def expose_variables(d):
-    get_ipapi().to_user_ns(d)
-
-#def _expose_device(name):
-#    ip.to_user_ns({ name : PyTango.DeviceProxy(name) })
-    
-#def expose_device(name):
-#    ip = get_ipapi()
-#    ip.magic("bg _expose_device(%s)" % name)
 
 def create_spock_profile(userdir, dft_profile, profile, door_name=None):
     """Create a profile file from a profile template file """
+    if not os.path.isdir(userdir):
+        ProfileDir.create_profile_dir(userdir)
+    p_dir = ProfileDir.create_profile_dir_by_name(userdir, profile)
+    ###########################################################################
+    # NOTE: BaseIPythonApplication.config_file_name.default_value should return
+    # the config file name, but it returns an empty string instead (at least 
+    # in some cases). For now, we give a hardcoded name if it is empty
+    # TODO: Check why this is the case
+    config_file_name = BaseIPythonApplication.config_file_name.default_value 
+    config_file_name = config_file_name or 'ipython_config.py' 
+    ###########################################################################
+    abs_config_file_name = os.path.join(p_dir.location, config_file_name)
+    create_config = True
+    if os.path.isfile(abs_config_file_name):
+        create_config = ask_yes_no("Spock configuration file already exists. "\
+                                   "Do you wish to replace it?", default='y')
+    if not create_config:
+        return
 
     src_data = """\
 \"\"\"Settings for Spock session\"\"\"
 
 #
-# Please do not delete the next lines has they are used to check the version 
+# Please do not delete the next lines has they are used to check the version
 # number for possible upgrades
 # spock_creation_version = {version}
 # door_name = {door_name}
 #
 
-import IPython
-from sardana.spock.genutils import init_spock
+import PyTango.ipython
+import sardana.spock.genutils
+from sardana.spock.config import Spock
 
-def main():
-    ip = IPython.ipapi.get()
-    init_spock(ip, '{macroserver_name}', '{door_name}')
+config = get_config()
+config.Spock.macro_server_name = '{macroserver_name}'
+config.Spock.door_name = '{door_name}'
 
-main()
+load_subconfig('ipython_config.py', profile='default')
+sardana.spock.load_config(config)
+
+# Put any additional environment here and/or overwrite default sardana config
+config.IPKernelApp.pylab = 'inline'
+
 """
-    
     #
     # Discover door name
     #
     if door_name is None:
         door_name = get_device_from_user("Door", profile)
     else:
-        full_door_name, door_name, door_alias = from_name_to_tango(door_name)
+        full_door_name, door_name, _ = from_name_to_tango(door_name)
         door_name = full_door_name
-    
+
     #
     # Discover macro server name
     #
     ms_name = get_macroserver_for_door(door_name)
-    
+
     dest_data = src_data.format(version=release.version,
                                 macroserver_name=ms_name,
                                 door_name=door_name)
-    
-    f_name = '%s.py' % get_spock_user_profile_module(profile)
-    
-    dest_name = os.path.join(userdir, f_name)
-    
-    sys.stdout.write('Storing %s in %s... ' % (f_name, userdir))
+
+    sys.stdout.write('Storing %s in %s... ' % (config_file_name, p_dir.location))
     sys.stdout.flush()
-    res = MSG_FAILED
-    try:
-        dest = open(dest_name,"w")
-        dest.write(dest_data)
-        dest.flush()
-        dest.close()
-        res = MSG_DONE
-    finally:
-        sys.stdout.write(res + '\n')
-        sys.stdout.flush()
+
+    with file(abs_config_file_name, "w") as f:
+        f.write(dest_data)
+        f.close()
+    sys.stdout.write(MSG_DONE + '\n')
 
 def check_for_upgrade(ipy_profile_file, ipythondir, session, profile):
     # Check if the current profile is up to date with the spock version
     spock_profile_ver_str = '0.0.0'
     door_name = None
-    
+
     # search for version and door inside the ipy_profile file
     for i, line in enumerate(ipy_profile_file):
         if i > 20 : break; # give up after 20 lines
@@ -694,19 +676,19 @@ def check_for_upgrade(ipy_profile_file, ipythondir, session, profile):
             spock_profile_ver_str = line[line.index('=')+1:].strip()
         if line.startswith('# door_name = '):
             door_name = line[line.index('=')+1:].strip()
-    
+
     # convert version from string to numbers
     spocklib_ver = translate_version_str2int(release.version)
     spock_profile_ver = translate_version_str2int(spock_profile_ver_str)
-    
+
     if spocklib_ver == spock_profile_ver:
         return
     if spocklib_ver < spock_profile_ver:
         print '%sYour spock profile (%s) is newer than your spock version ' \
-              '(%s)!' % (TermColors.Brown, spock_profile_ver_str, release.version)
-        print 'Please upgrade spock or delete the current profile %s' % TermColors.Normal
+              '(%s)!' % (SpockTermColors.Brown, spock_profile_ver_str, release.version)
+        print 'Please upgrade spock or delete the current profile %s' % SpockTermColors.Normal
         sys.exit(1)
-        
+
     # there was no version track of spock profiles since spock 0.2.0 so change
     # the message
     if spock_profile_ver_str == '0.0.0':
@@ -722,74 +704,58 @@ def check_for_upgrade(ipy_profile_file, ipythondir, session, profile):
         sys.exit(0)
 
 def get_args(argv):
-    
+
     script_name = argv[0]
-    script_dir, session = os.path.split(script_name)
+    _, session = os.path.split(script_name)
     script_name = os.path.realpath(script_name)
-    #script_dir = os.path.dirname(script_name)
-    
+
     macro_server = None
     door = None
-    
+
     # Define the profile file
     profile = "spockdoor"
     try:
-        profile_idx = argv.index('-p') + 1
-        if len(argv) > profile_idx:
-            profile = argv[profile_idx]
+        for _, arg in enumerate(argv[:1]):
+            if arg.startswith('--profile='):
+                profile=arg[10:]
+                break
+        else:
+            argv.append("--profile=" + profile)
     except:
         pass
 
-    profile_modulename = get_spock_user_profile_module(profile)
-    
-    # Try to find the profile in the current directory and then in the 
-    # default IPython dir
-    #userdir = os.path.realpath(os.path.curdir)
-    ipythondir = get_ipython_dir()
-    
-    if not os.path.isdir(ipythondir):
-        # Platform-dependent suffix.
-        if os.name == 'posix':
-            rc_suffix = ''
-        else:
-            rc_suffix = '.ini'
-        IPython.iplib.user_setup(ipythondir, rc_suffix, mode='install',
-                                 interactive=False)
-    
+    ipython_dir = get_ipython_dir()
     try:
-        f, name, t = imp.find_module(profile_modulename, [ipythondir])
-        check_for_upgrade(f, ipythondir, session, profile)
-    except ImportError:
-        # Create a new profile
+        ProfileDir.find_profile_dir_by_name(ipython_dir, profile)
+    except ProfileDirError:
         r = ''
-        while not r in ['y','n']:
+        while not r in ('y','n'):
             prompt = 'Profile \'%s\' does not exist. Do you want to create '\
                      'one now ([y]/n)? ' % profile
             r = raw_input(prompt) or 'y'
         if r.lower() == 'y':
-            create_spock_profile(ipythondir, session, profile)
+            create_spock_profile(ipython_dir, session, profile)
         else:
             sys.stdout.write('No spock door extension profile was created. Starting normal spock...\n')
             sys.stdout.flush()
             profile = ''
-    
+
     # inform the shell of the profile it should use
-    if not '-p' in argv and profile:
-        argv.append('-p')
-        argv.append(profile)
-    
+    if not '--profile=' in argv and profile:
+        argv.append('--profile=' + profile)
+
     user_ns = { 'MACRO_SERVER_NAME' : macro_server,
                 'DOOR_NAME'         : door,
                 'PROFILE'           : profile }
-    
+
     return user_ns
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # Useful constants
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-MSG_G = '[%s%%s%s]' % (TermColors.Green, TermColors.Normal)
-MSG_R = '[%s%%s%s]' % (TermColors.Red, TermColors.Normal)
+MSG_G = '[%s%%s%s]' % (SpockTermColors.Green, SpockTermColors.Normal)
+MSG_R = '[%s%%s%s]' % (SpockTermColors.Red, SpockTermColors.Normal)
 MSG_FAILED = MSG_R % 'FAILED'
 MSG_FAILED_WR = MSG_R % 'FAILED: %s'
 MSG_ERROR  = MSG_R % 'ERROR'
@@ -800,82 +766,117 @@ MSG_OK     = MSG_G % 'OK'
 # initialization methods
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-def init_console(ip):
-    # Handy tab-completers for %cd, %run, import etc.
-    # Try commenting this out if you have completion problems/slowness
-    import ipy_stock_completers
+def init_taurus():
+    # the CodecFactory is not thread safe. There are two attributes who will
+    # request for it in the first event at startup in different threads
+    # therefore this small hack: make sure CodecFactory is initialized.
+    CodecFactory()
 
+    factory = Factory()
+
+    import sardana.spock.spockms
+    macroserver = sardana.spock.spockms
+
+    factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
+
+    mode = get_gui_mode()
+    if mode == 'qt':
+        factory.registerDeviceClass('Door', macroserver.QSpockDoor)
+    else:
+        factory.registerDeviceClass('Door', macroserver.SpockDoor)
+
+
+def load_ipython_extension(ipython):
+    import sardana.spock.magic
+    magic = sardana.spock.magic
+
+    init_taurus()
+
+    config = ipython.config
+    user_ns = ipython.user_ns
+    user_ns['MACRO_SERVER_NAME'] = config.Spock.macro_server_name
+    user_ns['MACRO_SERVER_ALIAS'] = config.Spock.macro_server_alias
+    user_ns['DOOR_NAME'] = config.Spock.door_name
+    user_ns['DOOR_ALIAS'] = config.Spock.door_alias
+    user_ns['DOOR_STATE'] = ""
+
+    #shell.set_hook('late_startup_hook', magic.spock_late_startup_hook)
+    ipython.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
+
+    #if ip.IP.alias_table.has_key('mv'):
+    #    del ip.IP.alias_table['mv']
+
+    door = get_door()
+    macro_server = get_macro_server()
+
+    # Initialize the environment
+    expose_variable(ENV_NAME, macro_server.getEnvironment())
+    
+    new_style_magics = hasattr(IPython.core.magic, 'Magics') and hasattr(IPython.core.magic, 'magics_class')
+    
+    if new_style_magics:
+        @IPython.core.magic.magics_class
+        class Sardana(IPython.core.magic.Magics):
+            debug = IPython.core.magic.line_magic(magic.debug)
+            www = IPython.core.magic.line_magic(magic.www)
+            post_mortem = IPython.core.magic.line_magic(magic.post_mortem)
+            spsplot = IPython.core.magic.line_magic(magic.post_mortem)
+            macrodata = IPython.core.magic.line_magic(magic.macrodata)
+            edmac = IPython.core.magic.line_magic(magic.edmac)
+            showscan = IPython.core.magic.line_magic(magic.showscan)
+            expconf = IPython.core.magic.line_magic(magic.expconf)
+        
+        ipython.register_magics(Sardana)
+    else:
+        expose_magic('debug', magic.debug, magic.debug_completer)
+        expose_magic('www', magic.www, magic.www_completer)
+        expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
+        expose_magic('spsplot', magic.spsplot, None)
+        expose_magic('macrodata', magic.macrodata, None)
+        expose_magic('edmac', magic.edmac, None)
+        expose_magic('showscan', magic.showscan, None)
+        expose_magic('expconf', magic.expconf, None)
+
+    door.setConsoleReady(True)
+
+def unload_ipython_extension(ipython):
+    pass
+
+def load_config(config):
     spockver = release.version
     pyver = get_python_version()
     ipyver = get_ipython_version()
     pytangover = get_pytango_version()
     tauruscorever = get_taurus_core_version()
-    
-    TermColors = IPython.ColorANSI.TermColors
-    
+
+    door = config.Spock.door_name
+
+    if not hasattr(config.Spock, 'macro_server_name'):
+        macro_server = get_macroserver_for_door(door)
+    else:
+        macro_server = config.Spock.macro_server_name
+
+    full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
+    door_alias = door_tg_alias or door_tg_name
+    full_ms_tg_name, ms_tg_name, ms_tg_alias = from_name_to_tango(macro_server)
+    ms_alias = ms_tg_alias or ms_tg_name
+
+    config.Spock.macro_server_name = full_ms_tg_name
+    config.Spock.door_name = full_door_tg_name
+    config.Spock.macro_server_alias = ms_alias
+    config.Spock.door_alias = door_alias
+
     d = { "version" : spockver,
           "pyver" : pyver,
           "ipyver" : ipyver,
           "pytangover" : pytangover,
           "taurusver" : tauruscorever,
-          "profile" : ip.user_ns["PROFILE"],
-          "door" : ip.user_ns["DOOR_ALIAS"] }
-          
+          #"profile" : ip.user_ns["PROFILE"],
+          "door" : door_alias }
+
     d.update(TermColors.__dict__)
 
-    # IPython options
-    o = ip.options
-    o.autocall = 1
-    o.autoedit_syntax = 0
-    o.autoindent = 1
-    o.automagic = 1
-    o.cache_size = 1000
-    o.colors = 'Linux'
-    o.color_info = 1
-    o.confirm_exit = 0
-    o.deep_reload = 0
-    #o.editor = 'gedit'
-    o.log = 0
-    o.logfile = ''
-    o.messages = 1
-    o.pdb = 0
-    o.pprint = 1
-    o.quick = 0
-    o.readline = 1
-    o.screen_length = 0
-    o.separate_in = '\n'
-    o.separate_out = '\n'
-    o.separate_out2 = ''
-    o.nosep = 0
-    o.wildcards_case_sensitive = 0
-    o.object_info_string_level = 0
-    o.xmode = 'Context'
-    o.multi_line_specials = 1
-    o.system_header = 'IPython system call: '
-    o.system_verbose = 1
-    o.wxversion = '0'
-    o.colors = "GreenTango"
-    o.prompt_in1 = "$DOOR_ALIAS$DOOR_STATE [\\#]: "
-    o.prompt_out = "Result [\\#]: "
-    o.readline_parse_and_bind.append('tab: complete')
-    #o.readline_parse_and_bind.append('tab: menu-complete')
-    o.readline_parse_and_bind.append('"\C-l": possible-completions')
-    o.readline_parse_and_bind.append('set show-all-if-ambiguous on')
-    o.readline_parse_and_bind.append('"\C-o": tab-insert')
-    o.readline_parse_and_bind.append('"\M-i": "    "')
-    o.readline_parse_and_bind.append('"\M-o": "\d\d\d\d"')
-    o.readline_parse_and_bind.append('"\M-I": "\d\d\d\d"')
-    o.readline_parse_and_bind.append('"\C-r": reverse-search-history')
-    o.readline_parse_and_bind.append('"\C-s": forward-search-history')
-    o.readline_parse_and_bind.append('"\C-p": history-search-backward')
-    o.readline_parse_and_bind.append('"\C-n": history-search-forward')
-    o.readline_parse_and_bind.append('"\e[A": history-search-backward')
-    o.readline_parse_and_bind.append('"\e[B": history-search-forward')
-    o.readline_parse_and_bind.append('"\C-k": kill-line')
-    o.readline_parse_and_bind.append('"\C-u": unix-line-discard')
-    o.readline_remove_delims = '-/~'
-    o.readline_merge_completions = 1
-    o.readline_omit__names = 0
+    gui_mode = get_gui_mode()
 
     banner = """\
 %(Purple)sSpock %(version)s%(Normal)s -- An interactive laboratory application.
@@ -886,88 +887,157 @@ object?   -> Details about 'object'. ?object also works, ?? prints more.
     banner = banner % d
     banner = banner.format(**d)
 
-    o.banner = banner
+    ipy_ver = get_ipython_version_number()
 
-def init_magic(ip):
-    import sardana.spock.magic
-    magic = sardana.spock.magic
-    expose_magic('debug', magic.debug, magic.debug_completer)
-    expose_magic('www', magic.www, None)
-    expose_magic('post_mortem', magic.post_mortem, None)
-    expose_magic('spsplot', magic.spsplot, None)
-    expose_magic('macrodata', magic.macrodata, None)
-    expose_magic('edmac', magic.edmac, None)
-    expose_magic('showscan', magic.showscan, None)
-    expose_magic('expconf', magic.expconf, None)
-    ip.set_hook('late_startup_hook', magic.spock_late_startup_hook)
-    ip.set_hook('pre_prompt_hook', magic.spock_pre_prompt_hook)
+    # ------------------------------------
+    # Application
+    # ------------------------------------
+    app = config.Application
+    app.log_level = 30
 
-def init_pre_spock(ip, macro_server, door):
-    so = IPython.ipstruct.Struct()
-    full_door_tg_name, door_tg_name, door_tg_alias = from_name_to_tango(door)
-    #macro_server = get_ms_for_door(door_tg_name)
-    full_ms_tg_name, ms_tg_name, ms_tg_alias = from_name_to_tango(macro_server)
-    ip.user_ns['MACRO_SERVER_NAME'] = full_ms_tg_name
-    ip.user_ns['MACRO_SERVER_ALIAS'] = ms_tg_alias or ms_tg_name
-    ip.user_ns['DOOR_NAME'] = full_door_tg_name
-    ip.user_ns['DOOR_ALIAS'] = door_tg_alias or door_tg_name
-    ip.user_ns['DOOR_STATE'] = ""
-    ip.user_ns['spock_options'] = so
-    
-    if ip.IP.alias_table.has_key('mv'):
-        del ip.IP.alias_table['mv']
-    
-    v = release.version
-    alias = ip.user_ns['DOOR_ALIAS']
-    profile = ip.user_ns['PROFILE']
-    
-    so.spock_banner = """\
-{Blue}Spock's sardana extension %s loaded with profile: %s (linked to door '%s'){Normal}
-""" % (v, profile, alias)
+    # ------------------------------------
+    # BaseIPythonApplication
+    # ------------------------------------
+    i_app = config.BaseIPythonApplication
+    extensions = getattr(i_app, 'extensions', [])
+    extensions.extend(["PyTango.ipython", "sardana.spock"])
+    i_app.extensions = extensions
 
-    # the CodecFactory is not thread safe. There are two attributes who will
-    # request for it in the first event at startup in different threads
-    # therefore this small hack: make sure CodecFactory is initialized.
-    CodecFactory()
-    
-    factory = Factory()
+    # ------------------------------------
+    # InteractiveShell
+    # (IPython.core.interactiveshell)
+    # ------------------------------------
+    i_shell = config.InteractiveShell
+    i_shell.autocall = 0
+    i_shell.automagic = True
+    i_shell.color_info = True
+    i_shell.colors = 'Linux'
+    i_shell.deep_reload = True
+    i_shell.confirm_exit = False
 
-    import sardana.spock.spockms
-    macroserver = sardana.spock.spockms
-
-    factory.registerDeviceClass('MacroServer', macroserver.SpockMacroServer)
-    
-    mode = get_gui_mode()
-    if mode == 'qt':
-        factory.registerDeviceClass('Door', macroserver.QSpockDoor)
+    if ipy_ver >= 1200:
+        # ------------------------------------
+        # PromptManager (ipython >= 0.12)
+        # ------------------------------------
+        prompt = config.PromptManager
+        prompt.in_template = '{DOOR_ALIAS} [\\#]: '
+        prompt.in2_template = '   .\\D.: '
+        prompt.out_template = 'Result [\\#]: '
+        prompt.color_scheme = 'Linux'
     else:
-        factory.registerDeviceClass('Door', macroserver.SpockDoor)
-    
-    door = get_door()
-    macro_server = get_macro_server()
-    
-    # Initialize the environment
-    expose_variable(ENV_NAME, macro_server.getEnvironment())
+        # (Deprecated in ipython >= 0.12 use PromptManager.in_template)
+        i_shell.prompt_in1 = config.Spock.door_alias + ' [\\#]: '
 
+        # (Deprecated in ipython >= 0.12 use PromptManager.in2_template)
+        i_shell.prompt_in2 = '   .\\D.: '
 
-def init_post_spock(ip):
-    init_console(ip)
-    init_magic(ip)
-    
-def init_spock(ip, macro_server, door):
-    init_pre_spock(ip, macro_server, door)
-    PyTango.ipython.init_ipython(ip)
-    init_post_spock(ip)
+        # (Deprecated in ipython >= 0.12 use PromptManager.out_template)
+        i_shell.prompt_out = 'Result [\\#]: '
 
+        # (Deprecated in ipython >= 0.12 use PromptManager.justify)
+        i_shell.prompts_pad_left = True
+
+    # ------------------------------------
+    # IPCompleter
+    # ------------------------------------
+    completer = config.IPCompleter
+    completer.omit__names = 2
+    completer.greedy = False
+
+    # ------------------------------------
+    # InteractiveShellApp
+    # ------------------------------------
+    i_shell_app = config.InteractiveShellApp
+    i_shell_app.ignore_old_config = True
+
+    # ------------------------------------
+    # TerminalIPythonApp: options for the IPython terminal (and not Qt Console)
+    # ------------------------------------
+    term_app = config.TerminalIPythonApp
+    term_app.display_banner = True
+    term_app.gui = gui_mode
+    term_app.pylab='qt'
+    #term_app.nosep = False
+    #term_app.classic = True
+
+    # ------------------------------------
+    # IPKernelApp: options for the  Qt Console
+    # ------------------------------------
+    #kernel_app = config.IPKernelApp
+    ipython_widget = config.IPythonWidget
+    ipython_widget.in_prompt  = ' Spock [<span class="in-prompt-number">%i</span>]: '
+    ipython_widget.out_prompt = 'Result [<span class="out-prompt-number">%i</span>]: '
+    ipython_widget.input_sep = '\n'
+    ipython_widget.output_sep = ''
+    ipython_widget.output_sep2 = ''
+    ipython_widget.enable_calltips = True
+    if ipy_ver >= 1300:
+        ipython_widget.gui_completion = 'droplist'
+    else:
+        ipython_widget.gui_completion = True
+    ipython_widget.ansi_codes = True
+    ipython_widget.paging = 'inside'
+    #ipython_widget.pylab = 'inline'
+
+    # ------------------------------------
+    # ConsoleWidget
+    # ------------------------------------
+    # console_widget = config.ConsoleWidget
+
+    # ------------------------------------
+    # FrontendWidget
+    # ------------------------------------
+    frontend_widget = config.FrontendWidget
+    frontend_widget.banner = banner
+
+    # ------------------------------------
+    # TerminalInteractiveShell
+    # ------------------------------------
+    term_i_shell = config.TerminalInteractiveShell
+    term_i_shell.autocall = 2
+    term_i_shell.automagic = True
+    #term_i_shell.editor = 'gedit'
+    #term_i_shell.editor = 'nano'
+
+    term_i_shell.banner1 = banner
+    term_i_shell.banner2 = "Connected to " + door_alias + "\n"
+    #term_app.banner1 = banner
+    #term_app.banner2 = "Connected to " + door_alias + "\n"
+
+    # ------------------------------------
+    # InlineBackend
+    # ------------------------------------
+    inline_backend = config.InlineBackend
+    inline_backend.figure_format = 'svg'
+
+    # ------------------------------------
+    # InteractiveShellEmbed
+    # ------------------------------------
+    #i_shell_embed = config.InteractiveShellEmbed
+
+    # ------------------------------------
+    # NotebookApp
+    # ------------------------------------
+    #notebook_app = config.NotebookApp
+
+    # ------------------------------------
+    # NotebookManager
+    # ------------------------------------
+    #notebook_manager = config.NotebookManager
+
+    # ------------------------------------
+    # ZMQInteractiveShell
+    # ------------------------------------
+    #zmq_i_shell = config.ZMQInteractiveShell
+
+    # Tell console everything is ready.
+    config.Spock.ready = True
+    return config
 
 def start(user_ns=None):
-    if '-pylab' not in sys.argv: sys.argv.insert(1, '-pylab')
-    if '-q4thread' not in sys.argv: sys.argv.insert(1, '-q4thread')
-
     # Make sure the log level is changed to warning
-    from taurus.core.taurushelper import setLogLevel, Warning
     CodecFactory()
-    setLogLevel(Warning)
+    taurus.setLogLevel(taurus.Warning)
 
     try:
         check_requirements()
@@ -976,7 +1046,7 @@ def start(user_ns=None):
         sys.exit(-1)
     except exception.SpockMissingRecommended, recommended:
         print str(recommended)
-    
+
     user_ns = user_ns or {}
     try:
         user_ns.update(get_args(sys.argv))
@@ -989,35 +1059,89 @@ def start(user_ns=None):
     except Exception, e:
         print 'spock exited with an unmanaged exception: %s' % str(e)
         sys.exit(-2)
-        
-    return IPython.Shell.start(user_ns=user_ns)
 
-def mainloop(shell=None, user_ns=None):
-    if shell is None:
-        shell = start(user_ns)
-    shell.mainloop()
+    app = TerminalIPythonApp.instance()
+    app.initialize()
+    #config = get_config()
+    return app
 
-def run(user_ns=None):
+def mainloop(app=None, user_ns=None):
+    if app is None:
+        app = start(user_ns)
+    app.start()
+
+def prepare_input_handler():
     # initialize input handler as soon as possible
     import sardana.spock.inputhandler
-    input_handler = sardana.spock.inputhandler.InputHandler()
+    _ = sardana.spock.inputhandler.InputHandler()
+
+
+def prepare_cmdline(argv=None):
+    if argv is None:
+        argv = sys.argv
+
+    script_name = argv[0]
+    _, session = os.path.split(script_name)
+    script_name = os.path.realpath(script_name)
+
+    # Define the profile file
+    profile, append_profile = "spockdoor", True
+    try:
+        for _, arg in enumerate(argv[:1]):
+            if arg.startswith('--profile='):
+                profile=arg[10:]
+                append_profile = False
+                break
+    except:
+        pass
+
+    ipython_dir = get_ipython_dir()
+    try:
+        ProfileDir.find_profile_dir_by_name(ipython_dir, profile)
+    except ProfileDirError:
+        r = ''
+        while not r in ('y', 'n'):
+            prompt = "Profile '%s' does not exist. Do you want to create "\
+                     "one now ([y]/n)? " % profile
+            r = raw_input(prompt) or 'y'
+        if r.lower() == 'y':
+            create_spock_profile(ipython_dir, session, profile)
+        else:
+            sys.stdout.write('No spock profile was created. '
+                             'Starting ipython with default profile...\n')
+            sys.stdout.flush()
+            append_profile = False
+
+    if append_profile:
+        argv.append("--profile=" + profile)
+
+
+def run():
+    from IPython.utils.traitlets import Unicode
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+
+    class SpockConsole(RichIPythonWidget):
+        
+        banner = Unicode(config=True)
+
+        def _banner_default(self):
+            config = get_config()
+            return config.FrontendWidget.banner
+
+    import IPython.qt.console.qtconsoleapp
+    IPythonQtConsoleApp = IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp
+    IPythonQtConsoleApp.widget_factory = SpockConsole
 
     try:
-        mainloop(user_ns=user_ns)
-    finally:
-        try:
-            clean_up()
-        except Exception:
-            pass
-
-# for compatibility reasons with new IPython API (>=0.11) we add the following
-# empty methods
-            
-def load_ipython_extension(ipython):
-    pass
-
-def unload_ipython_extension(ipython):
-    pass
+        check_requirements()
+    except exception.SpockMissingRequirement, requirement:
+        print str(requirement)
+        sys.exit(-1)
+    except exception.SpockMissingRecommended, recommended:
+        print str(recommended)
     
-def load_config(config):
-    pass
+    prepare_input_handler()
+    prepare_cmdline()
+
+    launch_new_instance()
+

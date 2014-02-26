@@ -67,7 +67,6 @@ def islambda(f):
     return inspect.isfunction(f) and \
            f.__name__ == (lambda: True).__name__
 
-
 def is_macro(macro, abs_file=None, logger=None):
     """Helper function to determine if a certain python object is a valid
     macro"""
@@ -409,10 +408,10 @@ class MacroManager(MacroServerManager):
             meaning search in MacroPath. If not found, search for a built-in,
             frozen or special module and continue search in sys.path. ]
         :return: the reloaded python module object"""
-
+        
         if module_name in self._modules:
             raise LibraryError("Cannot use simple reload to reload a Macro Library")
-
+        
         mod_manager = ModuleManager()
         retry = path is None
         try:
@@ -420,7 +419,7 @@ class MacroManager(MacroServerManager):
                 path = self.getMacroPath()
                 if path:
                     path = copy.copy(path)
-                    path.reverse()
+                    path.reverse()                
             return mod_manager.reloadModule(module_name, path)
         except ImportError:
             if retry:
@@ -549,7 +548,7 @@ class MacroManager(MacroServerManager):
                 continue
             ret[name] = macro
         return ret
-
+    
     def getMacroClasses(self, filter=None):
         """Returns a :obj:`dict` containing information about macro classes.
 
@@ -583,7 +582,7 @@ class MacroManager(MacroServerManager):
             if macro.get_type() == ElementType.MacroFunction:
                 macro_classes[name] = macro
         return macro_classes
-
+        
     def getMacroNames(self):
         return sorted(self._macro_dict.keys())
 
@@ -823,12 +822,12 @@ class MacroExecutor(Logger):
                 macro.set('id', eid)
             name = macro.get('name')
             params = []
-
+            
             # SEEMS THERE IS A MEMORY LEAK IN lxml.etree Element.xpath :
             # https://bugs.launchpad.net/lxml/+bug/397933
             # https://mailman-mail5.webfaction.com/pipermail/lxml/2011-October/006205.html
             # We work around it using findall:
-
+            
             #for p in macro.xpath('param|paramrepeat'):
             #    if p.tag == 'param':
             #        params.append(p.get('value'))

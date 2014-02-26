@@ -47,14 +47,14 @@ def expconf(self, parameter_s=''):
               "(hint: is taurus extra_sardana installed?)"
         return
     doorname = get_door().name()
-
+        
     #===========================================================================
     ## ugly hack to avoid ipython/qt thread problems #e.g. see
-    ## https://sourceforge.net/p/sardana/tickets/10/
-    ## this hack does not allow inter-process communication and leaves the
-    ## widget open after closing spock
+    ## https://sourceforge.net/p/sardana/tickets/10/ 
+    ## this hack does not allow inter-process communication and leaves the 
+    ## widget open after closing spock 
     ## @todo: investigate cause of segfaults when using launching qt widgets from ipython
-    #
+    # 
     #w = ExpDescriptionEditor(door=doorname)
     #w.show() #launching it like this, produces the problem of https://sourceforge.net/p/sardana/tickets/10/
     import subprocess
@@ -149,7 +149,7 @@ def post_mortem(self, parameter_s='', from_www=False):
             msg = "\n".join(logger.read(cache=False).value)
         except:
             from_www = True
-
+            
     if from_www:
         msg = "------------------------------\n" \
               "Server is offline.\n" \
@@ -165,11 +165,11 @@ def macrodata(self, parameter_s=''):
     door = get_door()
     macro_data = door.read_attribute("RecordData")
 
-    import taurus.core.util
-    factory = taurus.core.util.CodecFactory()
-    data = factory.decode(macro_data.value)
+    from taurus.core.util.codecs import CodecFactory
+    factory = CodecFactory()
+    data = factory.decode(macro_data.value)    
     return data
-
+    
 
 def edmac(self, parameter_s=''):
     """edmac <macro name> [<module>]
@@ -181,7 +181,6 @@ def edmac(self, parameter_s=''):
     import os
     import tempfile
     import PyTango
-    import taurus.core.util
 
     ms = get_macro_server()
 

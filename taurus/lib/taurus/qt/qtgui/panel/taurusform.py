@@ -598,6 +598,7 @@ class TaurusCommandsForm(TaurusWidget):
                         pwidget.setEditable(False)
                         button.setParameters(self._defaultParameters[c.cmd_name.lower()][0])
                 self.connect(pwidget, Qt.SIGNAL('editTextChanged (const QString&)'),button.setParameters)
+                self.connect(pwidget, Qt.SIGNAL('currentIndexChanged (const QString&)'),button.setParameters)
                 self.connect(pwidget, Qt.SIGNAL('activated (int)'), button.setFocus)
                 self.connect(button, Qt.SIGNAL('commandExecuted'), pwidget.rememberCurrentText)
                 layout.addWidget(pwidget, row, 1)

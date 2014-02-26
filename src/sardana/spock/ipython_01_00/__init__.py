@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 ##############################################################################
 ##
 ## This file is part of Sardana
-##
+## 
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
@@ -21,43 +24,4 @@
 ##
 ##############################################################################
 
-"""IORegister related macros"""
-
-__docformat__ = 'restructuredtext'
-
-__all__ = ["write_ioreg", "read_ioreg"]
-
-from sardana.macroserver.macro import *
-
-import array
-
-
-class write_ioreg(Macro):
-    """Writes a value to an input register"""
-    
-    param_def = [
-       ['input/output register', Type.IORegister, None, 'input/output register'],
-       ['data', Type.Integer, None, 'value to be send']
-    ]
-    
-    def run(self, ioreg, data):
-        name = ioreg.getName()
-        o = "Writing " + str(data) + " to " + name + " register "
-        self.output(o)
-        data = ioreg.writeIORegister(data)
-
-
-
-class read_ioreg(Macro):
-    """Reads an output register"""
-    
-    param_def = [
-       ['input/output register', Type.IORegister, None, 'input/output register']
-    ]
-    
-    def run(self, ioreg):
-        name = ioreg.getName()
-        data = ioreg.readIORegister(force=True)
-        o = "Reading " +  name + " register "
-        self.output(o)
-        self.output(data)
+"""This package provides the spock generic utilities for ipython > 0.10"""

@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
+## 
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
+## 
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -27,9 +27,9 @@ from __future__ import with_statement
 
 import os
 import re
-import time
 import codecs
 import logging.handlers
+import time
 
 from taurus import Device
 from taurus.core import TaurusEventType
@@ -57,9 +57,9 @@ from sardana.macroserver.msexception import UnknownMacroLibrary
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
 ET = ElementType
-#: dictionary dict<:data:`~sardana.ElementType`, :class:`tuple`>
+#: dictionary dict<:data:`~sardana.ElementType`, :class:`tuple`> 
 #: where tuple is a sequence:
-#:
+#: 
 #: #. type string representation
 #: #. family
 #: #. internal macro server class
@@ -70,7 +70,7 @@ TYPE_MAP = {
 
 class TypeData(object):
     """Information for a specific Element type"""
-
+    
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -128,14 +128,14 @@ class NonOverlappingTimedRotatingFileHandler(logging.handlers.TimedRotatingFileH
 
 
 class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager):
-
+    
     All = "All"
-
+    
     MaxParalellMacros = 5
-
+    
     logReportParams = dict(when='midnight', interval=1, backupCount=365)
     logReportKlass = NonOverlappingTimedRotatingFileHandler
-
+    
     def __init__(self, full_name, name=None, macro_path=None,
                  environment_db=None):
         # dict<str, Pool>
@@ -144,13 +144,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         self._pools = CaselessDict()
         self._max_parallel_macros = self.MaxParalellMacros
         self._path_id = None
-
+        
         MSContainer.__init__(self)
         MSObject.__init__(self, full_name=full_name, name=name, id=InvalidId,
                           macro_server=self, elem_type=ElementType.MacroServer)
-
+        
         registerExtensions()
-
+        
         self._type_manager = TypeManager(self)
         self._environment_manager = EnvironmentManager(self,
                                         environment_db=environment_db)
@@ -162,7 +162,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         kwargs['id'] = InvalidId
         kwargs['parent'] = None
         return kwargs
-
+    
     def add_job(self, job, callback=None, *args, **kw):
         th_pool = get_thread_pool()
         th_pool.add(job, callback, *args, **kw)
@@ -211,7 +211,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
 
     def set_log_report(self, filename=None, format=None):
         log = self.get_report_logger()
-
+        
         # first check that the handler has not been initialized yet. If it has
         # we remove previous handlers. We only allow one timed rotating file
         # handler at a time
@@ -219,30 +219,30 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         for handler in log.handlers:
             if isinstance(handler, logging.handlers.TimedRotatingFileHandler):
                 to_remove.append(handler)
-
+        
         for handler in to_remove:
             handler.close()
             log.removeHandler(handler)
-
+        
         if filename is None:
             return
-
+        
         if format is None:
             format = Logger.DftLogMessageFormat
         formatter = logging.Formatter(format)
-
+        
         self.info("Reports are being stored in %s", filename)
         klass = self.logReportKlass
         handler = klass(filename, **self.logReportParams)
         handler.setFormatter(formatter)
         log.addHandler(handler)
-
+    
     def clear_log_report(self):
         self.set_log_report()
-
+    
     def get_report_logger(self):
         return logging.getLogger("Sardana.Report")
-
+    
     report_logger = property(get_report_logger)
 
     def report(self, msg, *args, **kwargs):
@@ -266,11 +266,11 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :param kwargs: list of keyword arguments"""
         level = kwargs.pop('level', logging.INFO)
         return self.report_logger.log(level, msg, *args, **kwargs)
-
+    
     # --------------------------------------------------------------------------
     # Pool related methods
     # --------------------------------------------------------------------------
-
+    
     def set_pool_names(self, pool_names):
         """Registers a new list of device pools in this manager
         
@@ -279,7 +279,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         for pool in self._pools.values():
             elements_attr = pool.getAttribute("Elements")
             elements_attr.removeListener(self.on_pool_elements_changed)
-
+        
         for name in pool_names:
             self.debug("Creating pool %s", name)
             pool = Device(name)
@@ -289,7 +289,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             self._pools[name] = pool
             elements_attr = pool.getAttribute("Elements")
             elements_attr.addListener(self.on_pool_elements_changed)
-
+    
     def get_pool_names(self):
         """Returns the list of names of the pools this macro server is connected
         to.
@@ -299,7 +299,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :rtype:
             seq<str>"""
         return self._pools.keys()
-
+    
     def get_pool(self, pool_name):
         """Returns the device pool object corresponding to the given device name
         or None if no match is found.
@@ -308,38 +308,38 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :type pool_name: str
         :return: Pool object or None if no match is found"""
         return self._pools.get(pool_name)
-
+    
     def get_pools(self):
         """Returns the list of pools this macro server is connected to.
         
         :return: the list of pools this macro server is connected to
         :rtype: seq<Pool>"""
         return self._pools.values()
-
+    
     def on_pool_elements_changed(self, evt_src, evt_type, evt_value):
         if evt_type not in CHANGE_EVT_TYPES:
             return
         self.fire_event(EventType("PoolElementsChanged"), evt_value)
-
+    
     # --------------------------------------------------------------------------
     # Door related methods
     # --------------------------------------------------------------------------
-
+    
     def create_element(self, **kwargs):
         type = kwargs['type']
         elem_type = ElementType[type]
         name = kwargs['name']
-
+        
         kwargs['macro_server'] = self
-
+        
         td = TYPE_MAP_OBJ[elem_type]
         klass = td.klass
         auto_full_name = td.auto_full_name
-
+        
         full_name = kwargs.get("full_name", auto_full_name.format(**kwargs))
-
+        
         self.check_element(name, full_name)
-
+        
         id = kwargs.get('id')
         if id is None:
             kwargs['id'] = id = self.get_new_id()
@@ -349,22 +349,22 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         ret = self.add_element(elem)
         self.fire_event(EventType("ElementCreated"), elem)
         return ret
-
+    
     def create_door(self, **kwargs):
         return self.create_element(type="Door", **kwargs)
-
+        
     # --------------------------------------------------------------------------
     # General access to elements
     # --------------------------------------------------------------------------
-
+    
     def get_elements_info(self):
         return self.get_remote_elements_info() + self.get_local_elements_info()
-
+    
     def get_remote_elements_info(self):
         return [ elem.serialize()
             for pool in self.get_pools()
                 for elem in pool.getElements() ]
-
+    
     def get_local_elements_info(self):
         # fill macro library info
         ret = [ macrolib.serialize()
@@ -375,58 +375,58 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         # fill parameter type info
         ret += [ paramtype.serialize()
             for paramtype in self.get_data_types().values() ]
-
+        
         return ret
-
+    
     # --------------------------------------------------------------------------
     # macro execution
     # --------------------------------------------------------------------------
-
+    
     def set_max_parallel_macros(self, nb):
         assert nb > 0, "max parallel macros number must be > 0"
         th_pool = get_thread_pool()
         if th_pool.size + 5 < nb:
             th_pool.size = nb
         self._max_parallel_macros = nb
-
+        
     def get_max_parallel_macros(self):
         return self._max_parallel_macros
-
+    
     max_parallel_macros = property(get_max_parallel_macros,
         set_max_parallel_macros, doc="maximum number of macros which can "
         "execute at the same time")
-
+    
     @property
     def macro_manager(self):
         return self._macro_manager
-
+    
     @property
     def environment_manager(self):
         return self._environment_manager
-
+    
     @property
     def type_manager(self):
         return self._type_manager
-
+    
     # --------------------------------------------------------------------------
     # (Re)load code
     # --------------------------------------------------------------------------
-
+    
     def reload_lib(self, lib_name):
-        return self.macro_manager.reloadLib(lib_name)
-
+        return self.macro_manager.reloadLib(lib_name)   
+    
     def reload_macro_lib(self, lib_name):
         manager = self.macro_manager
-
+        
         try:
             old_lib = manager.getMacroLib(lib_name)
         except UnknownMacroLibrary:
             old_lib = None
-
+        
         new_elements, changed_elements, deleted_elements = [], [], []
-
+        
         new_lib = manager.reloadMacroLib(lib_name)
-
+        
         if old_lib is None:
             new_elements.extend(new_lib.get_macros())
             new_elements.append(new_lib)
@@ -437,49 +437,49 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             changed_names = set.intersection(new_names, old_names)
             deleted_names = old_names.difference(new_names)
             new_names = new_names.difference(old_names)
-
+            
             for new_name in new_names:
                 new_elements.append(new_lib.get_macro(new_name))
             for changed_name in changed_names:
                 changed_elements.append(new_lib.get_macro(changed_name))
             for deleted_name in deleted_names:
                 deleted_elements.append(old_lib.get_macro(deleted_name))
-
+        
         evt = { "new" : new_elements, "change" : changed_elements,
                 "del" : deleted_elements }
         self.fire_event(EventType("ElementsChanged"), evt)
         return new_lib
-
+        
     reload_macro_lib.__doc__ = MacroManager.reloadMacroLib.__doc__
-
+    
     def reload_macro_libs(self, lib_names):
         for lib_name in lib_names:
             self.reload_macro_lib(lib_name)
-
+    
     def reload_macro(self, macro_name):
         macro_info = self.macro_manager.getMacro(macro_name)
         lib_name = macro_info.module_name
         self.reload_macro_lib(lib_name)
-
+    
     def reload_macros(self, macro_names):
         lib_names = set()
         for macro_name in macro_names:
             macro_info = self.macro_manager.getMacro(macro_name)
             lib_names.add(macro_info.module_name)
         self.reload_macro_libs(lib_names)
-
+    
     def get_macro_lib(self, lib_name):
         return self.macro_manager.getMacroLib(lib_name)
     get_macro_lib.__doc__ = MacroManager.getMacroLib.__doc__
-
+    
     def get_macro_libs(self, filter=None):
         return self.macro_manager.getMacroLibs(filter=filter)
     get_macro_libs.__doc__ = MacroManager.getMacroLibs.__doc__
-
+    
     def get_macro_lib_names(self):
         return self.macro_manager.getMacroLibNames()
     get_macro_lib_names.__doc__ = MacroManager.getMacroLibNames.__doc__
-
+    
     def get_macro(self, name):
         return self.macro_manager.getMacro(name)
     get_macro.__doc__ = MacroManager.getMacro.__doc__
@@ -487,19 +487,19 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     def get_macros(self, filter=None):
         return self.macro_manager.getMacros(filter=filter)
     get_macros.__doc__ = MacroManager.getMacros.__doc__
-
+    
     def get_macro_names(self):
         return self.macro_manager.getMacroNames()
     get_macro_names.__doc__ = MacroManager.getMacroNames.__doc__
-
+    
     def get_macro_classes(self):
         return self.macro_manager.getMacroClasses()
     get_macro_classes.__doc__ = MacroManager.getMacroClasses.__doc__
-
+        
     def get_macro_functions(self):
         return self.macro_manager.getMacroFunctions()
     get_macro_functions.__doc__ = MacroManager.getMacroFunctions.__doc__
-
+    
     def get_macro_libs_summary_info(self):
         libs = self.get_macro_libs()
         ret = []
@@ -507,7 +507,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             elem = "%s (%s)" % (macro_lib_info.name, macro_lib_info.file_path)
             ret.append(elem)
         return ret
-
+    
     def get_macro_classes_summary_info(self):
         macros = self.get_macros()
         ret = []
@@ -515,7 +515,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             elem = "%s (%s)" % (macro_info.name, macro_info.file_path)
             ret.append(elem)
         return ret
-
+    
     def get_or_create_macro_lib(self, lib_name, macro_name=None):
         """Gets the exiting macro lib or creates a new macro lib file. If
         name is not None, a macro template code for the given macro name is 
@@ -538,49 +538,49 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return self.macro_manager.getOrCreateMacroLib(lib_name,
                                                       macro_name=macro_name)
     get_or_create_macro_lib.__doc__ = MacroManager.getOrCreateMacroLib.__doc__
-
+    
     def set_macro_lib(self, lib_name, code, auto_reload=True):
         module_name = self.macro_manager.setMacroLib(lib_name, code,
                                                      auto_reload=False)
         if auto_reload:
             self.reload_macro_lib(module_name)
-
+        
     set_macro_lib.__doc__ = MacroManager.setMacroLib.__doc__
-
+    
     # --------------------------------------------------------------------------
     # Data types
     # --------------------------------------------------------------------------
-
+    
     def get_data_types(self):
         return self.type_manager.getTypes()
     get_data_types.__doc__ = TypeManager.getTypes.__doc__
-
+    
     def get_data_type(self, type_name):
         return self.type_manager.getTypeObj(type_name)
     get_data_type.__doc__ = TypeManager.getTypeObj.__doc__
-
+    
     def get_data_type_names(self):
         return self.type_manager.getTypeNames()
     get_data_type_names.__doc__ = TypeManager.getTypeNames.__doc__
-
+    
     def get_data_type_names_with_asterisc(self):
         return self.type_manager.getTypeListStr()
     get_data_type_names_with_asterisc.__doc__ = TypeManager.getTypeListStr.__doc__
-
+    
     # --------------------------------------------------------------------------
     # Doors
     # --------------------------------------------------------------------------
-
+    
     def get_doors(self):
         return self.get_elements_by_type(ElementType.Door)
-
+    
     def get_door_names(self):
         return [ door.full_name for door in self.get_doors() ]
-
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Environment access methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
+    
     def get_env(self, key=None, door_name=None, macro_name=None):
         """Gets the environment matching the given parameters:
         
@@ -609,7 +609,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         :raises: UnknownEnv"""
         return self.environment_manager.getEnv(key=key, macro_name=macro_name,
                                                door_name=door_name)
-
+    
     def set_env(self, key, value):
         """Sets the environment key to the new value and stores it persistently.
         
@@ -622,13 +622,13 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             evt_type = "change"
         else:
             evt_type = "new"
-
-        k, v = self.environment_manager.setEnv(key, value)
-
+        
+        k,v = self.environment_manager.setEnv(key, value)
+        
         evt = { evt_type : { k : v } }
         self.fire_event(EventType("EnvironmentChanged"), evt)
-        return k, v
-
+        return k,v
+    
     def set_env_obj(self, data):
         """Sets the environment key to the new value and stores it persistently.
         
@@ -637,40 +637,40 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         
         :return: a tuple with the key and value objects stored"""
         env_man = self.environment_manager
-
+        
         new, change = {}, {}
         for key, value in data.items():
             d = new
             if env_man.hasEnv(key):
                 d = change
             d[key] = value
-
+        
         ret = env_man.setEnvObj(data)
-
+        
         evt = dict(new=new, change=change)
         self.fire_event(EventType("EnvironmentChanged"), evt)
         return ret
-
+    
     def change_env(self, data):
         env_man = self.environment_manager
         new_change_env = data.get('new', {})
         new_change_env.update(data.get('change', {}))
         del_env = data.get('del', [])
-
+        
         new, change = {}, {}
         for key, value in new_change_env.items():
             d = new
             if env_man.hasEnv(key):
                 d = change
             d[key] = value
-
+        
         del_keys = env_man.unsetEnv(del_env)
         env_man.setEnvObj(new_change_env)
-
+        
         evt = dict(new=new, change=change)
         evt['del'] = del_keys
         self.fire_event(EventType("EnvironmentChanged"), evt)
-
+    
     def unset_env(self, key):
         """Unsets the environment for the given key.
         
@@ -679,15 +679,15 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         evt = { 'del' : { key : None } }
         self.fire_event(EventType("EnvironmentChanged"), evt)
         return ret
-
+        
     def has_env(self, key, macro_name=None, door_name=None):
         return self.environment_manager.hasEnv(key,
             macro_name=macro_name, door_name=door_name)
-
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # General object access methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
+    
     def get_object(self, name, type_class=All, subtype=All, pool=All):
         objs = self.find_objects(name, type_class, subtype, pool)
         if len(objs) == 0:
@@ -703,7 +703,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
     def find_objects(self, param, type_class=All, subtype=All, pool=All):
         if is_pure_str(param):
             param = param,
-
+        
         if type_class == MacroServer.All:
             type_name_list = self.get_data_type_names()
         else:
@@ -739,29 +739,29 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
                                obj_type != "MotorGroup":
                                 obj_set.add(obj)
         return list(obj_set)
-
+    
     def get_motion(self, elems, motion_source=None, read_only=False, cache=True,
                    decoupled=False):
         if motion_source is None:
             motion_source = self.get_pools()
-
+        
         motion_klass = Motion
-        if decoupled:  # and len(elems)>1:
+        if decoupled: # and len(elems)>1:
             motion_klass = MotionGroup
         return motion_klass(elems, motion_source)
-
+    
     _LOCAL_INTERFACES = {
         Interface.MacroLibrary : get_macro_libs,
         Interface.MacroCode : get_macros,
         Interface.MacroClass: get_macro_classes,
-        Interface.MacroFunction: get_macro_functions,
+        Interface.MacroFunction: get_macro_functions, 
     }
-
+    
     def is_macroserver_interface(self, interface):
         if is_pure_str(interface):
             interface = Interface[interface]
         return interface in self._LOCAL_INTERFACES
-
+    
     def get_elements_with_interface(self, interface):
         ret = CaselessDict()
         if is_pure_str(interface):
@@ -776,87 +776,87 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
             for pool in self.get_pools():
                 ret.update(pool.getElementsWithInterface(interface_str))
         return ret
-
+    
     def get_element_with_interface(self, name, interface):
         for pool in self.get_pools():
             element = pool.getElementWithInterface(name, interface)
             if element is not None:
                 return element
-
+    
     def get_controllers(self):
         return self.get_elements_with_interface("Controller")
-
+    
     def get_moveables(self):
         return self.get_elements_with_interface("Moveable")
-
+    
     def get_motors(self):
         return self.get_elements_with_interface("Motor")
-
+    
     def get_pseudo_motors(self):
         return self.get_elements_with_interface("PseudoMotor")
-
+    
     def get_io_registers(self):
         return self.get_elements_with_interface("IORegister")
-
+    
     def get_measurement_groups(self):
         return self.get_elements_with_interface("MeasurementGroup")
-
+    
     def get_exp_channels(self):
         return self.get_elements_with_interface("ExpChannel")
-
+        
     def get_counter_timers(self):
         return self.get_elements_with_interface("CTExpChannel")
-
+    
     def get_0d_exp_channels(self):
         return self.get_elements_with_interface("ZeroDExpChannel")
-
+    
     def get_1d_exp_channels(self):
         return self.get_elements_with_interface("OneDExpChannel")
-
+    
     def get_2d_exp_channels(self):
         return self.get_elements_with_interface("TwoDExpChannel")
-
+    
     def get_pseudo_counters(self):
         return self.get_elements_with_interface("PseudoCounter")
-
+    
     def get_instruments(self):
         return self.get_elements_with_interface("Instrument")
-
+    
     def get_controller(self, name):
         return self.get_element_with_interface(name, "Controller")
-
+    
     def get_moveable(self, name):
         return self.get_element_with_interface(name, "Moveable")
-
+    
     def get_motor(self, name):
         return self.get_element_with_interface(name, "Motor")
-
+    
     def get_pseudo_motor(self, name):
         return self.get_element_with_interface(name, "PseudoMotor")
-
+    
     def get_io_register(self, name):
         return self.get_element_with_interface(name, "IORegister")
-
+    
     def get_measurement_group(self, name):
         return self.get_element_with_interface(name, "MeasurementGroup")
-
+    
     def get_exp_channel(self, name):
         return self.get_element_with_interface(name, "ExpChannel")
-
+        
     def get_counter_timer(self, name):
         return self.get_element_with_interface(name, "CTExpChannel")
-
+    
     def get_0d_exp_channel(self, name):
         return self.get_element_with_interface(name, "ZeroDExpChannel")
-
+    
     def get_1d_exp_channel(self, name):
         return self.get_element_with_interface(name, "OneDExpChannel")
-
+    
     def get_2d_exp_channel(self, name):
         return self.get_element_with_interface(name, "TwoDExpChannel")
-
+    
     def get_pseudo_counter(self, name):
         return self.get_element_with_interface(name, "PseudoCounter")
-
+    
     def get_instrument(self, name):
         return self.get_element_with_interface(name, "Instrument")

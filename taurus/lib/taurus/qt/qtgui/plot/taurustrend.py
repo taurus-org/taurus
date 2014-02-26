@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-##
+## 
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
+## 
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-##
+## 
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-##
+## 
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -28,22 +28,21 @@ taurustrend.py: Generic trend widget for Taurus
 """
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
-import gc
-import re
+from datetime import datetime
 import time
 import numpy
-from datetime import datetime
-
-import PyTango
+import re
+import gc
+from taurus.qt import Qt, Qwt5
 
 import taurus.core
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
-from taurus.qt import Qt, Qwt5
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.plot import TaurusPlot
 
 from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
 
+import PyTango
 
 def getArchivedTrendValues(*args, **kwargs):
     try:
@@ -59,7 +58,7 @@ def stripShape(s):
     have all dimensions with length 1 removed, and it will be a list regardless
     of the input shape
     '''
-    return [e for e in s if e != 1]
+    return [e for e in s if e!=1]
 
 class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     """A collection of TaurusCurves generated from a Taurus Attribute.
@@ -88,9 +87,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     update its values)
     
     """
-    consecutiveDroppedEventsWarning = 3  #number consecutive of dropped events before issuing a warning (-1 for disabling)
-    droppedEventsWarning = -1  #absolute number of dropped events before issuing a warning (-1 for disabling)
-    def __init__(self, name, parent=None, curves=None):
+    consecutiveDroppedEventsWarning = 3 #number consecutive of dropped events before issuing a warning (-1 for disabling)
+    droppedEventsWarning = -1 #absolute number of dropped events before issuing a warning (-1 for disabling)
+    def __init__(self, name, parent = None, curves=None):
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._xBuffer = None
@@ -109,18 +108,18 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._orderedCurveNames = curves.keys()
         self._titleText = None
         self.setModel(name)
-
+        
     def __getitem__(self, key):
         if isinstance(key, int):
             key = self._orderedCurveNames[key]
         return self._curves[key]
-
+        
     def __len__(self):
         return len(self._orderedCurveNames)
-
+        
     def __contains__(self, k):
         return self._curves.__contains__(k)
-
+        
     def index(self, curveName):
         '''Returns the index in the trend for the given curve name. It gives an
         exception if the curve is not in the set.
@@ -130,7 +129,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :return: (int) The index associated to the given curve in the TrendSet
         '''
         return self.getCurveNames().index(curveName)
-
+    
     def setTitleText(self, basetitle):
         '''Sets the title text of the trends this trendset. The name will be
         constructed by appending "[%i]" to the basetitle, where %i is the index
@@ -146,9 +145,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''
         self._titleText = basetitle
         titles = self.compileTitles(basetitle)
-        for t, (n, c) in zip(titles, self.getCurves()):
+        for t,(n,c) in zip(titles, self.getCurves()):
             c.setTitleText(t)
-
+    
     def compileTitles(self, basetitle):
         '''Return a list of titles. Each title corresponds to a trend of the
         trendset (ordered). Substitution of known placeholders is performed.
@@ -176,11 +175,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         basetitle = self.compileBaseTitle(basetitle)
         ntrends = len(self._curves)
         if '<trend_index>' in basetitle:
-            ret = [basetitle.replace('<trend_index>', "%i" % i) for i in xrange(ntrends)]
+            ret = [basetitle.replace('<trend_index>', "%i"%i) for i in xrange(ntrends)]
         else:
-            ret = [basetitle] * ntrends
+            ret = [basetitle]*ntrends
         return ret
-
+    
     def compileBaseTitle(self, basetitle):
         '''Return a base tile for a trend in whichs substitution of known
         placeholders has been performed.
@@ -205,36 +204,36 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         .. seealso:: :meth:`compileTitles`
         '''
         attr = self.getModelObj()
-        basetitle = basetitle.replace('<current_title>', self._titleText)
-        basetitle = basetitle.replace('<model>', self.getModel())
+        basetitle = basetitle.replace('<current_title>',self._titleText)
+        basetitle = basetitle.replace('<model>',self.getModel())
         if isinstance(attr, taurus.core.taurusattribute.TaurusAttribute):
-            basetitle = basetitle.replace('<label>', attr.label or '---')
-            basetitle = basetitle.replace('<attr_name>', attr.name or '---')
-            basetitle = basetitle.replace('<attr_fullname>', attr.getFullName() or '---')
-            basetitle = basetitle.replace('<attr_full_name>', attr.getFullName() or '---')
-            basetitle = basetitle.replace('<dev_alias>', attr.dev_alias or '---')
-            basetitle = basetitle.replace('<dev_name>', attr.dev_name or '---')
-
+            basetitle = basetitle.replace('<label>',attr.label or '---')
+            basetitle = basetitle.replace('<attr_name>',attr.name or '---')
+            basetitle = basetitle.replace('<attr_fullname>',attr.getFullName() or '---')
+            basetitle = basetitle.replace('<attr_full_name>',attr.getFullName() or '---')
+            basetitle = basetitle.replace('<dev_alias>',attr.dev_alias or '---')
+            basetitle = basetitle.replace('<dev_name>',attr.dev_name or '---')
+        
         dev = attr.getParentObj()
         if dev is not None:
-            basetitle = basetitle.replace('<dev_fullname>', dev.getFullName() or '---')
-            basetitle = basetitle.replace('<dev_full_name>', dev.getFullName() or '---')
+            basetitle = basetitle.replace('<dev_fullname>',dev.getFullName() or '---')
+            basetitle = basetitle.replace('<dev_full_name>',dev.getFullName() or '---')
 
-        if len(self._curves) == 1: basetitle = basetitle.replace('<[trend_index]>', '')
-        else: basetitle = basetitle.replace('<[trend_index]>', '[<trend_index>]')
-
-        self.compiledTitle = basetitle
+        if len(self._curves)==1: basetitle = basetitle.replace('<[trend_index]>','')
+        else: basetitle = basetitle.replace('<[trend_index]>','[<trend_index>]')
+            
+        self.compiledTitle = basetitle    
         return basetitle
-
+        
     def addCurve(self, name, curve):
         '''add a curve (with the given name) to the internal curves dictionary of this TaurusTrendSet
         
         :param name: (str) the name of the curve
         :param curve: (TaurusCurve) the curve object to be added
-        '''
+        '''  
         self._curves[name] = curve
         self._orderedCurveNames.append(name)
-
+        
     def getCurves(self):
         '''returns an iterator of (curveName,curveObject) tuples associated to
         this TaurusTrendSet. The curves will always be returned in the order they
@@ -242,8 +241,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         
         :return: (iterator<str,TaurusCurve>)
         '''
-        return iter([(n, self._curves[n]) for n in self._orderedCurveNames])
-
+        return iter([(n,self._curves[n]) for n in self._orderedCurveNames])
+    
     def getCurveNames(self):
         '''returns a list of the names of the curves associated to this
         TaurusTrendSet. The curve names will always be returned in the order they
@@ -252,20 +251,20 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :return: (list<str>) the names of the curves
         '''
         return self._orderedCurveNames
-
+        
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
         return taurus.core.taurusattribute.TaurusAttribute
 
-    def registerDataChanged(self, listener, meth):
+    def registerDataChanged(self,listener,meth):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''
         listener.connect(self, Qt.SIGNAL("dataChanged(const QString &)"), meth)
-
-    def unregisterDataChanged(self, listener, meth):
+        
+    def unregisterDataChanged(self,listener,meth):
         '''see :meth:`TaurusBaseComponent.unregisterDataChanged`'''
         listener.disconnect(self, Qt.SIGNAL("dataChanged(const QString &)"), meth)
 
-    def _updateHistory(self, model, value):
+    def _updateHistory(self,model, value):
         '''Update the history data buffers using the latest value from the event
         
         :param model: (str) the source of the event (needed to retrieve data from archiving)
@@ -300,17 +299,23 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                         #Simply unreadable
                         value = None
                         ntrends = len(self._curves)
-        else:
+        else: 
             ntrends = len(self._curves)
-
+        
         if self._xBuffer is None:
-            self._xBuffer = ArrayBuffer(numpy.zeros(min(128, self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize)
+            self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
         if self._yBuffer is None:
-            self._yBuffer = ArrayBuffer(numpy.zeros((min(128, self._maxBufferSize), ntrends), dtype='d'), maxSize=self._maxBufferSize)
-
+            self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
+            
         #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
-        if value is not None: self._yBuffer.append(value.value)
-
+        if value is not None: 
+            try:
+                self._yBuffer.append(value.value)
+            except Exception,e: 
+                self.warning('Problem updating history (%s=%s):%s', 
+                             model, value.value, e)
+                value = None
+        
         if self.parent().getXIsTime():
             #add the timestamp to the x buffer
             if value is not None: self._xBuffer.append(value.time.totime())
@@ -319,16 +324,16 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 #open a mysql connection for online trends or any not autoscaled plots
                 if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom):
                     try:
-                        getArchivedTrendValues(self, model, insert=True)
-                    except Exception, e:
+                        getArchivedTrendValues(self,model,insert=True)
+                    except Exception,e:
                         import traceback
-                        self.warning('%s: reading from archiving failed: %s' % (datetime.now().isoformat('_'), traceback.format_exc()))
+                        self.warning('%s: reading from archiving failed: %s'%(datetime.now().isoformat('_'),traceback.format_exc()))     
         elif value is not None:
             #add the event number to the x buffer
             try:
-                self._xBuffer.append(1. + self._xBuffer[-1])
-            except IndexError:  #this will happen when the x buffer is empty
-                self._xBuffer.append(0)
+                self._xBuffer.append(1.+self._xBuffer[-1]) 
+            except IndexError: #this will happen when the x buffer is empty
+                self._xBuffer.append(0) 
         return self._xBuffer.contents(), self._yBuffer.contents()
 
     def clearTrends(self, replot=True):
@@ -352,7 +357,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self.parent().replot()
         #Force immediate garbage collection (otherwise the buffered data remains in memory)
         gc.collect()
-
+        
     def handleEvent(self, evt_src, evt_type, evt_value):
         ''' processes Change (and Periodic) Taurus Events: updates the data of all
         curves in the set according to the value of the attribute.
@@ -369,13 +374,13 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 self._onDroppedEvent(reason='Error event')
                 if not self.parent().getUseArchiving(): return
                 else: value = None
-            elif model is None:
+            elif model is None: 
                 self._onDroppedEvent(reason='unknown model')
                 if not self.parent().getUseArchiving(): return
                 else: value = None
             else:
                 value = evt_value if isinstance(evt_value, (taurus.core.taurusbasetypes.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
-                if value is None or value.value is None:
+                if value is None or value.value is None: 
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving(): return
                 else:
@@ -383,22 +388,22 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
 
         #get the data from the event
         try:
-            self._xValues, self._yValues = self._updateHistory(model=model or self.getModel(), value=value)
+            self._xValues, self._yValues = self._updateHistory(model=model or self.getModel(),value=value)
         except Exception, e:
             self._onDroppedEvent(reason=str(e))
             raise
-
+                    
         #this was a good event, so we reset the consecutive dropped events count
         self.consecutiveDroppedEventsCount = 0
 
         #assign xvalues and yvalues to each of the curves in self._curves
-        for i, (n, c) in enumerate(self.getCurves()):
-            c._xValues, c._yValues = self._xValues, self._yValues[:, i]
+        for i,(n,c) in enumerate(self.getCurves()):
+            c._xValues, c._yValues = self._xValues, self._yValues[:,i]
             c._updateMarkers()
-
+            
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-
-    def _checkDataDimensions(self, value):
+        
+    def _checkDataDimensions(self,value):
         '''
         Check that the data dimensions are consistent with what was plotted before
         '''
@@ -406,9 +411,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             return len(self._curves)
         try:
             float(value)
-            ntrends = 1
+            ntrends=1
         except:
-            ntrends = len(value)
+            ntrends=len(value)
         if ntrends != len(self._curves):
             #clean previous curves
             self.clearTrends(replot=False)
@@ -416,13 +421,13 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             name = self.getModelName()
             rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
             for i in xrange(ntrends):
-                subname = "%s[%i]" % (name, i)
-                self.parent().attachRawData(rawdata, id=subname)
+                subname = "%s[%i]"%(name,i)
+                self.parent().attachRawData(rawdata,id=subname)
                 self.addCurve(subname, self.parent().curves[subname])
             self.setTitleText(self._titleText or self.parent().getDefaultCurvesTitle())
             self.parent().autoShowYAxes()
         return ntrends
-
+    
     def _onDroppedEvent(self, reason='Unknown'):
         '''inform the user about a dropped event
         
@@ -434,26 +439,26 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         mustwarn = False
         if self.droppedEventsCount == self.droppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' +
-                   'Future occurrences will be silently ignored') % (self.droppedEventsWarning, self.modelName)
-            self.consecutiveDroppedEventsWarning = -1  #disable the consecutive Dropped events warning (we do not want it if we got this one)
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning (we do not want it if we got this one)
         if self.consecutiveDroppedEventsCount == self.consecutiveDroppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' +
-                   'Future occurrences will be silently ignored') % (self.consecutiveDroppedEventsWarning, self.modelName)
-            self.consecutiveDroppedEventsWarning = -1  #disable the consecutive Dropped events warning
+            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' + 
+                   'Future occurrences will be silently ignored')%(self.consecutiveDroppedEventsWarning, self.modelName)
+            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning 
         if mustwarn:
             self.warning(msg)
             p = self.parent()
             if p:
                 c = p.canvas()
-                msg2 = "Errors reading %s (%s)" % (self._titleText, self.modelName)
+                msg2 = "Errors reading %s (%s)"%(self._titleText, self.modelName)
                 Qt.QToolTip.showText(c.mapToGlobal(c.pos()), msg2, c)
                 #Qt.QMessageBox.warning(p, "Errors in %s"%self._titleText, msg, Qt.QMessageBox.Ok)
 
     def isReadOnly(self):
         return True
-
+    
     def setMaxDataBufferSize(self, maxSize):
         '''sets the maximum number of events that are stored in the internal
         buffers of the trend. Note that this sets the maximum amount of memory
@@ -471,7 +476,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         if self._yBuffer is not None:
             self._yBuffer.setMaxSize(maxSize)
         self._maxBufferSize = maxSize
-
+        
     def maxDataBufferSize(self):
         return self._maxBufferSize
 
@@ -489,38 +494,38 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''
         if self.forcedReadingTimer is None:
             self.forcedReadingTimer = Qt.QTimer()
-            self.connect(self.forcedReadingTimer, Qt.SIGNAL('timeout()'), self.forceReading)
-
+            self.connect(self.forcedReadingTimer, Qt.SIGNAL('timeout()'),self.forceReading)
+        
         #stop the timer and remove the __ONLY_OWN_EVENTS filter
         self.forcedReadingTimer.stop()
         filters = self.getEventFilters()
-        if self.__ONLY_OWN_EVENTS in filters:
+        if self.__ONLY_OWN_EVENTS in filters: 
             filters.remove(self.__ONLY_OWN_EVENTS)
             self.setEventFilters(filters)
-
+        
         #if msec is positive, set the filter and start
         if msec >= 0:
             self.insertEventFilter(self.__ONLY_OWN_EVENTS)
             self.forcedReadingTimer.start(msec)
-
+            
     def getForcedReadingPeriod(self):
         if self.forcedReadingTimer is None or not self.forcedReadingTimer.isActive():
             return -1
         else:
             return self.forcedReadingTimer.interval()
-
-    def __ONLY_OWN_EVENTS(self, s , t, v):
+    
+    def __ONLY_OWN_EVENTS(self, s ,t, v):
         '''An event filter that rejects all events except those that originate from this object'''
-        if s is self:return s, t, v
+        if s is self:return s,t,v
         else: return None
-
+        
     def forceReading(self, cache=False):
         '''Forces a read of the attribute and generates a fake event with it. 
         By default it ignores the cache
         
         :param cache: (bool) set to True to do cache'd reading (by default is False)
         '''
-        vobj = self.getModelValueObj(cache=False)
+        vobj=self.getModelValueObj(cache=False)
         self.fireEvent(self, taurus.core.taurusbasetypes.TaurusEventType.Periodic, vobj)
 
 
@@ -540,8 +545,8 @@ class ScanTrendsSet(TaurusTrendsSet):
     .. seealso:: :class:`TaurusTrendSet`
     """
     DEFAULT_X_DATA_KEY = 'point_nb'
-
-    def __init__(self, name, parent=None, autoClear=True, xDataKey=None):
+    
+    def __init__(self, name, parent = None, autoClear=True, xDataKey=None):
         '''
         Creator
         
@@ -565,20 +570,20 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._endMarkers = []
         self.setModel(name)
         self._endMacroMarkerEnabled = True
-
+        
     def setAutoClear(self, enable):
         self._autoClear = enable
-
+        
     def setXDataKey(self, key):
         if key == self._xDataKey: return
         self._xDataKey = key
         self.clearTrends()
-
+        
     def setEndMacroMarkerEnabled(self, enable):
         '''Sets whether a marker should be put at the end of each macro or not
         
         :param enabled: (bool)
-        '''
+        ''' 
         self._endMacroMarkerEnabled = enable
 
     def scanDataReceived(self, packet):
@@ -589,17 +594,17 @@ class ScanTrendsSet(TaurusTrendsSet):
         if packet is None:
             self.debug('Ignoring empty scan data packet')
             return
-        pkgid, packet = packet
-        pcktype = packet.get("type", "__UNKNOWN_PCK_TYPE__")
-        if pcktype == "data_desc":
+        pkgid,packet = packet
+        pcktype = packet.get("type","__UNKNOWN_PCK_TYPE__")
+        if pcktype == "data_desc": 
             self._dataDescReceived(packet["data"])
-        elif pcktype == "record_data":
+        elif pcktype == "record_data": 
             self._scanLineReceived(packet["data"])
         elif pcktype == "record_end":
             self._addEndMarker()
         else:
-            self.debug("Ignoring packet of type %s" % repr(pcktype))
-
+            self.debug("Ignoring packet of type %s"%repr(pcktype))
+            
     def clearTrends(self, replot=True):
         '''
         Reimplemented from :meth:`TaurusTrendsSet.clearTrends`. 
@@ -617,7 +622,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         self._currentpoint = -1
         #call the superclass
         TaurusTrendsSet.clearTrends(self, replot=replot)
-
+    
     def onPlotablesFilterChanged(self, flt):
         '''
         slot to be called whenever the plotables filter is changed. It will call
@@ -628,11 +633,11 @@ class ScanTrendsSet(TaurusTrendsSet):
         if flt is None:
             self.clearTrends()
         else:
-            self.setPlotablesFilter(flt)
-
+            self.setPlotablesFilter(flt) 
+    
     def setPlotablesFilter(self, flt):
         self._plotablesFilter = flt
-
+    
     def _addEndMarker(self):
         if self._endMacroMarkerEnabled:
             m = Qwt5.QwtPlotMarker()
@@ -645,20 +650,20 @@ class ScanTrendsSet(TaurusTrendsSet):
             self._endMarkers.append(m)
             self._currentpoint -= 1
             self.parent().replot()
-
+    
     def getDataDesc(self):
-        return self.__datadesc
-
+        return self.__datadesc     
+    
     def _dataDescReceived(self, datadesc):
         '''prepares the plot according to the info in the datadesc dictionary'''
         #backwards compatibility (datadesc was a list and now is a dict)
-        if isinstance(datadesc, list):
-            datadesc = {'column_desc':datadesc}
+        if isinstance(datadesc,list):
+            datadesc={'column_desc':datadesc}
         #clear existing curves if required
         if self._autoClear:
             self.clearTrends()
         #decide which data to use for x
-        if self._xDataKey is None or self._xDataKey == "<mov>":  #@todo use a standard key for <mov> and <idx>
+        if self._xDataKey is None or self._xDataKey == "<mov>": #@todo use a standard key for <mov> and <idx>
             try:
                 self._autoXDataKey = datadesc['ref_moveables'][0]
             except (KeyError, IndexError):
@@ -668,7 +673,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         else:
             self._autoXDataKey = self._xDataKey
         #set the x axis
-        columndesc = datadesc.get('column_desc', [])
+        columndesc = datadesc.get('column_desc',[])
         xinfo = {'min_value':None, 'max_value':None}
         for e in columndesc:
             if e['label'] == self._autoXDataKey:
@@ -678,12 +683,12 @@ class ScanTrendsSet(TaurusTrendsSet):
         xmin, xmax = xinfo.get('min_value'), xinfo.get('max_value')
         self.parent().setXDynScale(False)
         if xmin is None or xmax is None:
-            self.parent().setAxisAutoScale(self.parent().xBottom)  #autoscale if any limit is unknown
+            self.parent().setAxisAutoScale(self.parent().xBottom) #autoscale if any limit is unknown
         else:
             self.parent().setAxisScale(self.parent().xBottom, xmin, xmax)
         #create trends
         self._createTrends(datadesc["column_desc"])
-
+       
     def _createTrends(self, datadesc):
         '''
         Creates the needed curves using the information from the DataDesc
@@ -697,11 +702,11 @@ class ScanTrendsSet(TaurusTrendsSet):
         rawdata = {'x':numpy.zeros(0), 'y':numpy.zeros(0)}
         self.parent()._curvePens.setCurrentIndex(0)
         for dd in self.__datadesc:
-            if len(stripShape(dd['shape'])) == 0:  #an scalar
+            if len(stripShape(dd['shape']))== 0: #an scalar
                 name = dd["name"]
                 if name not in self._curves and self._plotablesFilter(name) and name != self._autoXDataKey:
                     rawdata["title"] = dd["label"]
-                    curve = self.parent().attachRawData(rawdata, id=name)
+                    curve = self.parent().attachRawData(rawdata,id=name)
                     prop = curve.getAppearanceProperties()
                     prop.sColor = prop.lColor
                     prop.sStyle = Qwt5.QwtSymbol.Ellipse
@@ -712,7 +717,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     self.addCurve(name, curve)
         self.parent().autoShowYAxes()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-
+    
     def _scanLineReceived(self, recordData):
         '''Receives a recordData dictionary and updates the curves associated to it
         
@@ -726,44 +731,44 @@ class ScanTrendsSet(TaurusTrendsSet):
             try:
                 self._currentpoint = recordData[self._autoXDataKey]
             except KeyError:
-                self.warning('Cannot find data "%s" in the current scan record. Ignoring' % self._autoXDataKey)
+                self.warning('Cannot find data "%s" in the current scan record. Ignoring'%self._autoXDataKey)
                 return
             if not numpy.isscalar(self._currentpoint):
-                self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring' % (self._autoXDataKey, type(self._currentpoint)))
+                self.warning('Data for "%s" is of type "%s". Cannot use it for the X values. Ignoring'%(self._autoXDataKey, type(self._currentpoint)))
                 return
-
+            
         #If autoclear is True, we use buffers
         if self._autoClear:
             curvenames = self.getCurveNames()
             if self._xBuffer is None:
-                self._xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize())
+                self._xBuffer = ArrayBuffer(numpy.zeros(128, dtype='d'), maxSize=self.maxDataBufferSize() )
             if self._yBuffer is None:
-                self._yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)), dtype='d'), maxSize=self.maxDataBufferSize())
+                self._yBuffer = ArrayBuffer(numpy.zeros((128, len(curvenames)),dtype='d'), maxSize=self.maxDataBufferSize() )
             #x values
             self._xBuffer.append(self._currentpoint)
-            #y values
-            y = numpy.array([recordData.get(n, numpy.NaN) for n in curvenames])
+            #y values        
+            y = numpy.array([recordData.get(n,numpy.NaN) for n in curvenames])
             self._yBuffer.append(y)
-
+            
             self._xValues, self._yValues = self._xBuffer.contents(), self._yBuffer.contents()
-
+    
             #assign xvalues and yvalues to each of the curves in self._curves
-            for i, (n, c) in enumerate(self.getCurves()):
+            for i,(n,c) in enumerate(self.getCurves()):
                 c._xValues = self._xValues
-                c._yValues = self._yValues[:, i]  #this is an assigment by reference
+                c._yValues = self._yValues[:,i] #this is an assigment by reference
                 c._updateMarkers()
-
+        
         #if autoclear is False we have to work directly with each curve (and cannot buffer)
         else:
-            for n, v in recordData.items():
+            for n,v in recordData.items():
                 c = self._curves.get(n, None)
                 if c is None: continue
-                c._xValues = numpy.append(c._xValues, self._currentpoint)
+                c._xValues = numpy.append(c._xValues, self._currentpoint) 
                 c._yValues = numpy.append(c._yValues, v)
                 c._updateMarkers()
-
+                
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(self.getModel()))
-
+        
     def connectWithQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
         
@@ -771,8 +776,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         '''
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
         self.connect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
-
-
+        
+            
     def disconnectQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
         
@@ -780,13 +785,13 @@ class ScanTrendsSet(TaurusTrendsSet):
         '''
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
         self.disconnect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
-
+    
     def getModel(self):
-        return self.__model
+        return self.__model 
     def setModel(self, model):
         self.__model = model
-
-
+    
+           
 class TaurusTrend(TaurusPlot):
     '''
     A :class:`TaurusPlot` -derived widget specialised in plotting trends (i.e.,
@@ -819,25 +824,25 @@ class TaurusTrend(TaurusPlot):
                  :ref:`TaurusTrend User's Interface Guide <trend_ui>`, 
                  :ref:`The TaurusTrend coding examples <examples_taurustrend>`
     '''
-
-    DEFAULT_MAX_BUFFER_SIZE = 65536  #(=2**16, i.e., 64K events))
-
-    def __init__(self, parent=None, designMode=False):
-        TaurusPlot.__init__(self, parent=parent, designMode=designMode)
+    
+    DEFAULT_MAX_BUFFER_SIZE = 65536 #(=2**16, i.e., 64K events))
+    
+    def __init__(self, parent = None, designMode = False):
+        TaurusPlot.__init__(self, parent = parent, designMode = designMode)
         self.trendSets = CaselessDict()
-        self._supportedConfigVersions = ["ttc-1"]
+        self._supportedConfigVersions = ["ttc-1"]        
         self._xDynScaleSupported = True
         self._useArchiving = False
         self._usePollingBuffer = False
         self.setDefaultCurvesTitle('<label><[trend_index]>')
-        self._maxDataBufferSize = self.DEFAULT_MAX_BUFFER_SIZE
+        self._maxDataBufferSize = self.DEFAULT_MAX_BUFFER_SIZE 
         self.__qdoorname = None
         self._scansXDataKey = None
         self.__initActions()
         self._startingTime = time.time()
         self._archivingWarningLocked = False
         self._forcedReadingPeriod = None
-        self._replotTimer = None
+        self._replotTimer = None 
         self.setXIsTime(True)
         #Use a rotated labels x timescale by default
         rotation = -45
@@ -846,8 +851,8 @@ class TaurusTrend(TaurusPlot):
         self.setAxisLabelAlignment(self.xBottom, alignment)
         #use dynamic scale by default
         self.setXDynScale(True)
-        self._scrollStep = 0.2
-
+        self._scrollStep = 0.2        
+    
     def __initActions(self):
         '''Create TaurusTrend actions'''
         self._useArchivingAction = Qt.QAction("Use Archiver", None)
@@ -868,7 +873,7 @@ class TaurusTrend(TaurusPlot):
         self._autoClearOnScanAction.setCheckable(True)
         self._autoClearOnScanAction.setChecked(True)
         self.connect(self._autoClearOnScanAction, Qt.SIGNAL("toggled(bool)"), self._onAutoClearOnScanAction)
-
+    
     def isTimerNeeded(self, checkMinimized=True):
         '''checks if it makes sense to activate the replot timer. 
         The following conditions must be met:
@@ -888,7 +893,7 @@ class TaurusTrend(TaurusPlot):
                bool(len(self.trendSets)) and \
                self.isVisible() and \
                not (checkMinimized and self.isMinimized())
-
+               
     def showEvent(self, event):
         '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
         the replot timer is active only when needed'''
@@ -896,7 +901,7 @@ class TaurusTrend(TaurusPlot):
         if self.isTimerNeeded(checkMinimized=False):
             self.debug('(re)starting the timer (in showEvent)')
             self._replotTimer.start()
-
+    
     def hideEvent(self, event):
         '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
         the replot timer is active only when needed'''
@@ -904,12 +909,12 @@ class TaurusTrend(TaurusPlot):
         if self._replotTimer is not None:
             self.debug('stopping the timer (in hideEvent)')
             self._replotTimer.stop()
-
-    def resizeEvent(self, event):
+    
+    def resizeEvent(self,event):
         '''reimplemented from :meth:`TaurusPlot.resizeEvent` so that 
         the replot timer is active only when needed'''
         TaurusPlot.resizeEvent(self, event)
-        if event.oldSize().isEmpty():  #do further checks only if previous size was 0
+        if event.oldSize().isEmpty(): #do further checks only if previous size was 0
             if self.isTimerNeeded():
                 self.debug('(re)starting the timer (in resizeEvent)')
                 self._replotTimer.start()
@@ -917,27 +922,27 @@ class TaurusTrend(TaurusPlot):
                 if self._replotTimer is not None:
                     self.debug('stopping the timer (in resizeEvent)')
                     self._replotTimer.stop()
-
+            
     def setXIsTime(self, enable, axis=Qwt5.QwtPlot.xBottom):
         '''Reimplemented from :meth:`TaurusPlot.setXIsTime`'''
         #set a reasonable scale
         if enable:
-            self.setAxisScale(axis, self._startingTime - 60, self._startingTime)  #Set a range of 1 min
+            self.setAxisScale(axis, self._startingTime-60, self._startingTime)#Set a range of 1 min
         else:
-            self.setAxisScale(axis, 0, 10)  #Set a range of 10 events
-            self.disconnect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)  #disconnects the previous axis
+            self.setAxisScale(axis, 0, 10) #Set a range of 10 events   
+            self.disconnect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot) #disconnects the previous axis
         #enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
         #call the parent class method
-        TaurusPlot.setXIsTime(self, enable, axis=axis)  #the axis is changed here
+        TaurusPlot.setXIsTime(self, enable, axis=axis) #the axis is changed here
         #set the replot timer if needed
         if enable and not self._designMode:
             if self._replotTimer is None:
                 self._dirtyPlot = True
                 self._replotTimer = Qt.QTimer()
-                self.connect(self._replotTimer, Qt.SIGNAL('timeout()'), self.doReplot)
+                self.connect(self._replotTimer,Qt.SIGNAL('timeout()'),self.doReplot)
             self.rescheduleReplot(axis)
-            self.connect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot)  #connects the new axis
+            self.connect(self.axisWidget(axis), Qt.SIGNAL("scaleDivChanged ()"), self.rescheduleReplot) #connects the new axis
         else:
             self._replotTimer = None
 
@@ -945,10 +950,10 @@ class TaurusTrend(TaurusPlot):
         if scanname is None:
             if self.__qdoorname is None:
                 return
-            scanname = "scan://%s" % self.__qdoorname
+            scanname = "scan://%s"%self.__qdoorname
         tset = self.getTrendSet(scanname)
         tset.onPlotablesFilterChanged(flt)
-
+        
     def setScansAutoClear(self, enable):
         '''
         sets whether the trend sets associated to scans should be reset every
@@ -959,19 +964,19 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: :meth:`setScanDoor` and :class:`ScanTrendsSet`
         '''
         self._autoClearOnScanAction.setChecked(enable)
-
-    def _onAutoClearOnScanAction(self, enable, scanname=None):
-        self.info('Autoclear on Scan set to %s', bool(enable))
+    
+    def _onAutoClearOnScanAction(self,enable, scanname=None):
+        self.info('Autoclear on Scan set to %s',bool(enable))
         if scanname is None:
             if self.__qdoorname is None:
                 return
-            scanname = "scan://%s" % self.__qdoorname
+            scanname = "scan://%s"%self.__qdoorname
         tset = self.getTrendSet(scanname)
         tset.setAutoClear(enable)
-
+        
     def getScansAutoClear(self):
         return self._autoClearOnScanAction.isChecked()
-
+        
     def setScansUsePointNumber(self, enable):
         '''
         .. note:: This method is deprecated. Please use :meth:`setScansXDataKey` instead
@@ -988,7 +993,7 @@ class TaurusTrend(TaurusPlot):
         else:
             key = '__SCAN_TREND_INDEX__'
         self.setScansXDataKey(key)
-
+        
     def setScansXDataKey(self, key, scanname=None):
         '''
         selects the source for the data to be used as abscissas in the scan plot.
@@ -1005,23 +1010,23 @@ class TaurusTrend(TaurusPlot):
         if scanname is None:
             if self.__qdoorname is None:
                 return
-            scanname = "scan://%s" % self.__qdoorname
+            scanname = "scan://%s"%self.__qdoorname
         tset = self.getTrendSet(scanname)
         tset.setXDataKey(key)
         if key is None: key = ''
         self.setAxisTitle(self.xBottom, key)
         self._scansXDataKey = key
-
+            
     def setScanDoor(self, qdoorname):
         '''
         sets the door to which TaurusTrend will listen for scans.
         This removes any previous scan set using this method, but respects scans set with setModel
         '''
-        if self.__qdoorname is not None:
-            self.removeModels(["scan://%s" % self.__qdoorname])
-        self.addModels(["scan://%s" % qdoorname])
-        self.__qdoorname = qdoorname
-
+        if self.__qdoorname is not None: 
+            self.removeModels(["scan://%s"%self.__qdoorname])
+        self.addModels(["scan://%s"%qdoorname])
+        self.__qdoorname=qdoorname
+        
     def clearScan(self, scanname):
         '''resets the curves associated to the given scan
         
@@ -1029,7 +1034,7 @@ class TaurusTrend(TaurusPlot):
         '''
         tset = self.getTrendSet(scanname)
         tset.clearTrends()
-
+        
     def clearBuffers(self):
         '''clears the buffers of existing trend sets (note that this does
         not remove the models, it simply removes all stored data)'''
@@ -1040,7 +1045,7 @@ class TaurusTrend(TaurusPlot):
         finally:
             self.curves_lock.release()
         self.replot()
-
+          
     def updateCurves(self, names):
         '''Defines the curves that need to be plotted. For a TaurusTrend, the
         models can refer to:
@@ -1070,25 +1075,25 @@ class TaurusTrend(TaurusPlot):
             # For it to work properly, 'names' must be a CaselessList, just as
             # self.trendSets is a CaselessDict
             del_sets = [ name for name in self.trendSets.keys() if name not in names]
-
+            
             #if all trends were removed, reset the color palette
             if len(del_sets) == len(self.trendSets):
                 self._curvePens.setCurrentIndex(0)
-
+            
             #update new/existing trendsets
             for name in names:
                 name = str(name)
                 if "|" in name: raise ValueError('composed ("X|Y") models are not supported by TaurusTrend')
                 #create a new TrendSet if not already there
                 if not self.trendSets.has_key(name):
-                    matchScan = re.search(r"scan:\/\/(.*)", name)  #check if the model name is of scan type and provides a door
+                    matchScan = re.search(r"scan:\/\/(.*)", name) #check if the model name is of scan type and provides a door
                     if matchScan:
                         tset = ScanTrendsSet(name, parent=self, autoClear=self.getScansAutoClear(), xDataKey=self._scansXDataKey)
-                        self.__qdoorname = matchScan.group(1)  #the name of the door
-                        tset.connectWithQDoor(self.__qdoorname)
+                        self.__qdoorname = matchScan.group(1) #the name of the door
+                        tset.connectWithQDoor(self.__qdoorname)                        
                     else:
                         tset = TaurusTrendsSet(name, parent=self)
-                        if self._forcedReadingPeriod is not None:
+                        if self._forcedReadingPeriod is not None: 
                             tset.setForcedReadingPeriod(self._forcedReadingPeriod)
                     self.trendSets[name] = tset
                     tset.registerDataChanged(self, self.curveDataChanged)
@@ -1104,13 +1109,13 @@ class TaurusTrend(TaurusPlot):
                 if matchScan:
                     olddoorname = matchScan.group(1)
                     tset.disconnectQDoor(olddoorname)
-            if del_sets:
+            if del_sets:        
                 self.autoShowYAxes()
-
+                
             # legend
             self.showLegend(len(self.curves) > 1, forever=False)
             self.replot()
-
+            
             #keep the replotting timer active only if there is something to refresh
             if self.isTimerNeeded():
                 self.debug('(re)starting the timer (in updateCurves)')
@@ -1119,17 +1124,17 @@ class TaurusTrend(TaurusPlot):
                 if self._replotTimer is not None:
                     self.debug('stopping the timer (in updateCurves)')
                     self._replotTimer.stop()
-
+            
         finally:
             self.curves_lock.release()
-
+        
     def getTrendSetNames(self):
         '''returns the names of all TrendSets attached to this TaurusTrend.
         
         :return: (list<str>) a copy of self.trendSets.keys()
         '''
         return self.getModel()
-
+    
     def getTrendSet(self, name):
         '''gets a trend set object by name.
         
@@ -1147,7 +1152,7 @@ class TaurusTrend(TaurusPlot):
         finally:
             self.curves_lock.release()
         return ret
-
+    
     def getCurveTitle(self, name, index=None):
         '''reimplemented from :class:`TaurusPlot`.
         Returns the title of a curve from a trendset
@@ -1164,14 +1169,14 @@ class TaurusTrend(TaurusPlot):
         self.curves_lock.acquire()
         try:
             tset = self.trendSets.get(name)
-            if tset is None:  #name not found...
-                if index is None:  # maybe name was actually a curve name including the index?
-                    match = re.match(r'^(.*)\[([0-9]+)\]$', name)
+            if tset is None: #name not found...
+                if index is None: # maybe name was actually a curve name including the index? 
+                    match = re.match(r'^(.*)\[([0-9]+)\]$', name) 
                     if match:
-                        name, index = match.groups()
+                        name,index = match.groups()
                         index = int(index)
-                        return self.getCurveTitle(name, index=index)  #recursive call with parsed tsetname and index
-                return None
+                        return self.getCurveTitle(name, index=index) #recursive call with parsed tsetname and index
+                return None 
             if index is None:
                 if len(tset) == 1:
                     index = 0
@@ -1181,7 +1186,7 @@ class TaurusTrend(TaurusPlot):
         finally:
             self.curves_lock.release()
         return title
-
+    
     def changeCurvesTitlesDialog(self, curveNamesList=None):
         '''Shows a dialog to set the curves titles (it will change the current
         curves titles and the default curves titles)
@@ -1199,20 +1204,20 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: :meth:`setCurvesTitle`, :meth:`setDefaultCurvesTitle`
         '''
         newTitlesDict = None
-
-        placeholders = ['<label>', '<model>', '<attr_name>', '<attr_fullname>',
+        
+        placeholders = ['<label>', '<model>', '<attr_name>', '<attr_fullname>', 
                         '<dev_alias>', '<dev_name>', '<dev_fullname>', '<current_title>',
                         '<trend_index>', '<[trend_index]>']
         try:
             current = placeholders.index(self._defaultCurvesTitle)
             items = placeholders
         except:
-            current = len(placeholders)
-            items = placeholders + [self._defaultCurvesTitle]
-
-        msg = 'New text to be used for the curves.\nYou can use any of the following placeholders:\n%s' % ", ".join(placeholders)
+            current= len(placeholders)
+            items = placeholders+[self._defaultCurvesTitle]
+            
+        msg = 'New text to be used for the curves.\nYou can use any of the following placeholders:\n%s'%", ".join(placeholders)
         titletext, ok = Qt.QInputDialog.getItem(self, 'New Title for Curves', msg, items, current, True)
-
+             
         if ok:
             titletext = str(titletext)
             if curveNamesList is None:
@@ -1221,13 +1226,13 @@ class TaurusTrend(TaurusPlot):
             else:
                 self.curves_lock.acquire()
                 try:
-                    newTitlesDict = CaselessDict()
+                    newTitlesDict = CaselessDict() 
                     for curveName in curveNamesList:
                         curvetitle = titletext
                         for ts in self.trendSets.itervalues():
                             if curveName in ts:
                                 curvetitle = ts.compileBaseTitle(curvetitle)
-                                curvetitle = curvetitle.replace('<trend_index>', "%i" % ts.index(curveName))
+                                curvetitle = curvetitle.replace('<trend_index>', "%i"%ts.index(curveName))
                                 break
                         curve = self.curves.get(curveName)
                         curve.setTitleText(curvetitle)
@@ -1237,7 +1242,7 @@ class TaurusTrend(TaurusPlot):
                 finally:
                     self.curves_lock.release()
         return newTitlesDict
-
+    
     def setTrendSetsTitles(self, basetitle, setNames=None):
         '''Calls setTitleText(basetitle) for each Trend Set set in setNames
         
@@ -1264,22 +1269,22 @@ class TaurusTrend(TaurusPlot):
         
         :param name: (str) curve name
         '''
-        name = str(name)
+        name=str(name)
         self.curves_lock.acquire()
         try:
-            curve = None
-            for n, curve in self.trendSets[name].getCurves():
-                curve.setData(curve._xValues, curve._yValues)
+            curve = None 
+            for n,curve in self.trendSets[name].getCurves():
+                curve.setData(curve._xValues,curve._yValues)
             #self._zoomer.setZoomBase()
-            if curve is not None and self.getXDynScale() and len(curve._xValues) > 0:  #keep the scale width constant, but translate it to get the last value
+            if curve is not None and self.getXDynScale() and len(curve._xValues)>0: #keep the scale width constant, but translate it to get the last value
                 sdiv = self.axisScaleDiv(self.xBottom)
                 currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
                 datamax = curve._xValues[-1]
                 if datamax > currmax or datamax < currmin:
-                    minstep = datamax - currmax  #the new scale max must be above the latest point
-                    maxstep = datamax - currmin  #the new scale min must be below the latest point
-                    step = min(max(self.getXAxisRange() * self._scrollStep, minstep), maxstep)
-                    self.setAxisScale(self.xBottom, currmin + step, currmax + step)
+                    minstep = datamax - currmax #the new scale max must be above the latest point
+                    maxstep = datamax - currmin #the new scale min must be below the latest point
+                    step = min(max(self.getXAxisRange()*self._scrollStep, minstep), maxstep)
+                    self.setAxisScale(self.xBottom, currmin+step, currmax+step)
         finally:
             self.curves_lock.release()
         self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
@@ -1308,19 +1313,19 @@ class TaurusTrend(TaurusPlot):
         if self.xIsTime:
             sdiv = self.axisScaleDiv(axis)
             currmin, currmax = sdiv.lowerBound(), sdiv.upperBound()
-            plot_refresh = int(1000 * (currmax - currmin) / width)
-            plot_refresh = min((max((plot_refresh, 250)), 1800000))  #enforce limits
-            if self._replotTimer.interval() != plot_refresh:
+            plot_refresh = int(1000*(currmax-currmin)/width)
+            plot_refresh = min((max((plot_refresh,250)),1800000)) #enforce limits
+            if self._replotTimer.interval() != plot_refresh: 
                 #note: calling QTimer.setInterval() very often seems to eventually trigger some bug
                 #      that stops the timer from emitting the timeout signal. We avoid this by
-                #      calling setInterval only when really needed.
-                self._replotTimer.setInterval(plot_refresh)
-                self.debug('New replot period is %1.2f seconds', (plot_refresh / 1000.))
-
+                #      calling setInterval only when really needed. 
+                self._replotTimer.setInterval(plot_refresh) 
+                self.debug('New replot period is %1.2f seconds',(plot_refresh/1000.))
+                
         else:
             self.warning('rescheduleReplot() called but X axis is not in time mode')
 
-    def setPaused(self, paused=True):
+    def setPaused(self, paused = True):
         '''Pauses itself and other listeners (e.g. the trendsets) depending on it
         
         .. seealso:: :meth:`TaurusBaseComponent.setPaused`
@@ -1328,7 +1333,7 @@ class TaurusTrend(TaurusPlot):
         for ts in self.trendSets.itervalues():
             ts.setPaused(paused)
         self._isPaused = paused
-
+    
     def createConfig(self, tsnames=None, **kwargs):
         '''Returns a pickable dictionary containing all relevant information
         about the current plot.
@@ -1347,11 +1352,11 @@ class TaurusTrend(TaurusPlot):
         
         :return: (dict) configurations (which can be loaded with applyConfig)
         '''
-        configdict = TaurusPlot.createConfig(self, curvenames=None)  #use the superclass configdict as a starting point
+        configdict = TaurusPlot.createConfig(self, curvenames=None) #use the superclass configdict as a starting point
         if tsnames is None: tsnames = CaselessList(self.getModel())
         model = CaselessList([m for m in self.getModel() if m in tsnames])
-        configdict["model"] = model  #overwrite the value created by TaurusPlot.createConfig()
-        configdict.pop("TangoCurves")  #delete the TangoCurves key since it is meaningless in a TaurusTrend
+        configdict["model"] = model #overwrite the value created by TaurusPlot.createConfig()
+        configdict.pop("TangoCurves") #delete the TangoCurves key since it is meaningless in a TaurusTrend
         tsetsdict = CaselessDict()
         rawdatadict = CaselessDict(configdict["RawData"])
         miscdict = CaselessDict(configdict["Misc"])
@@ -1359,18 +1364,18 @@ class TaurusTrend(TaurusPlot):
         miscdict["MaxBufferSize"] = self.getMaxDataBufferSize()
         self.curves_lock.acquire()
         try:
-            for tsname, ts in self.trendSets.iteritems():
+            for tsname,ts in self.trendSets.iteritems():
                 if tsname in tsnames:
-                    tsetsdict[tsname] = tsname  #store a dict containing just model names (key and value are the same)
+                    tsetsdict[tsname] = tsname #store a dict containing just model names (key and value are the same)
                 for cname in CaselessList(ts.getCurveNames()):
-                    rawdatadict.pop(cname)  #clean the rawdatadict of rawdata curves that come from trendsets (but we keep the properties!)
+                    rawdatadict.pop(cname)#clean the rawdatadict of rawdata curves that come from trendsets (but we keep the properties!)                
         finally:
             self.curves_lock.release()
         configdict["TrendSets"] = tsetsdict
         configdict["RawData"] = rawdatadict
         configdict["Misc"] = miscdict
         return configdict
-
+        
     def applyConfig(self, configdict, **kwargs):
         """applies the settings stored in a configdict to the current plot.
         
@@ -1385,11 +1390,11 @@ class TaurusTrend(TaurusPlot):
             self.setMaxDataBufferSize(maxBufferSize)
         #attach the curves
         for rd in configdict["RawData"].values(): self.attachRawData(rd)
-        models = configdict.get("model", configdict["TrendSets"].values())  #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
+        models = configdict.get("model",configdict["TrendSets"].values()) #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
         self.addModels(models)
         for m in models:
             tset = self.trendSets[m]
-            tset.fireEvent(None, taurus.core.taurusbasetypes.TaurusEventType.Change, None)  #a fake event to force generating the curves
+            tset.fireEvent(None, taurus.core.taurusbasetypes.TaurusEventType.Change, None) #a fake event to force generating the curves
         #set curve properties
         self.setCurveAppearanceProperties(configdict["CurveProp"])
         self.updateLegend(force=True)
@@ -1400,7 +1405,7 @@ class TaurusTrend(TaurusPlot):
         forcedreadingperiod = configdict["Misc"].get("ForcedReadingPeriod")
         if forcedreadingperiod is not None:
             self.setForcedReadingPeriod(forcedreadingperiod)
-
+            
     @classmethod
     def getQtDesignerPluginInfo(cls):
         """Returns pertinent information in order to be able to build a valid
@@ -1412,19 +1417,19 @@ class TaurusTrend(TaurusPlot):
             'group'     : 'Taurus Display',
             'icon'      : ':/designer/qwtplot.png',
             'container' : False }
-
+                
     def setEventFilters(self, filters=None, tsetnames=None):
         '''propagates a list of taurus filters to the trendsets given by tsetnames.
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
-        if tsetnames is None: tsetnames = self.getModel()
+        if tsetnames is None: tsetnames=self.getModel()
         self.curves_lock.acquire()
         try:
             for name in tsetnames:
                 self.trendSets[name].setEventFilters(filters)
         finally:
             self.curves_lock.release()
-
+             
     def setUsePollingBuffer(self, enable):
         '''enables/disables looking up in the PollingBuffer for data
         
@@ -1444,8 +1449,8 @@ class TaurusTrend(TaurusPlot):
 
     def resetUsePollingBuffer(self):
         '''Same as setUsePollingBuffer(True)'''
-        self.setUsePollingBuffer(True)
-
+        self.setUsePollingBuffer(True)   
+    
     def setUseArchiving(self, enable):
         '''enables/disables looking up in the archiver for data stored before
         the Trend was started
@@ -1455,7 +1460,7 @@ class TaurusTrend(TaurusPlot):
         if not self.getXIsTime():
             self.info('ignoring setUseArchiving. Reason: not in X time scale')
         self._useArchivingAction.setChecked(enable)
-
+        
     def getUseArchiving(self):
         '''whether TaurusTrend is looking for data in the archiver when needed
         
@@ -1467,15 +1472,15 @@ class TaurusTrend(TaurusPlot):
 
     def resetUseArchiving(self):
         '''Same as setUseArchiving(True)'''
-        self.setUseArchiving(True)
-
+        self.setUseArchiving(True)   
+    
     def _onUseArchivingAction(self, enable):
         '''slot being called when toggling the useArchiving action
         
         .. seealso:: :meth:`setUseArchiving`
         '''
         if enable:
-            self._archivingWarningThresshold = self._startingTime - 600  #10 min before the widget was created
+            self._archivingWarningThresshold = self._startingTime - 600 #10 min before the widget was created
             self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning)
         else:
             self.disconnect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning)
@@ -1489,8 +1494,8 @@ class TaurusTrend(TaurusPlot):
         smin = sdiv.lowerBound()
         if smin < self._archivingWarningThresshold:
             self.showArchivingWarning()
-            self._archivingWarningThresshold = smin - 2 * sdiv.range()  #lower the thresshold by twice the current range
-
+            self._archivingWarningThresshold = smin-2*sdiv.range() #lower the thresshold by twice the current range 
+    
     def showArchivingWarning(self):
         '''shows a dialog warning of the potential isuues with 
         archiving performance. It offers the user to disable archiving retrieval'''
@@ -1502,9 +1507,9 @@ class TaurusTrend(TaurusPlot):
         dlg.setModal(True)
         dlg.setLayout(Qt.QVBoxLayout())
         dlg.setWindowTitle('Archiving warning')
-        msg = 'Archiving retrieval is enabled.\n' + \
-              'Rescaling to previous date/times may cause performance loss.\n' + \
-              '\nDisable archiving retrieval?\n'
+        msg = 'Archiving retrieval is enabled.\n'+\
+              'Rescaling to previous date/times may cause performance loss.\n'+\
+              '\nDisable archiving retrieval?\n'            
         dlg.layout().addWidget(Qt.QLabel(msg))
         rememberCB = Qt.QCheckBox('Do not ask again')
         buttonbox = Qt.QDialogButtonBox()
@@ -1521,9 +1526,9 @@ class TaurusTrend(TaurusPlot):
         #restore the scale change notification only if the user chose to keep archiving AND did not want to disable warnings
         else:
             self.setUseArchiving(True)
-            if not rememberCB.isChecked():
-                self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning)
-
+            if not rememberCB.isChecked(): 
+                self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL("scaleDivChanged ()"), self._scaleChangeWarning) 
+    
     def setMaxDataBufferSize(self, maxSize=None):
         '''sets the maximum number of events that can be plotted in the trends
         
@@ -1534,44 +1539,44 @@ class TaurusTrend(TaurusPlot):
         '''
         if maxSize is None:
             maxSize = self._maxDataBufferSize
-            try:  #API changed in QInputDialog since Qt4.4
+            try: #API changed in QInputDialog since Qt4.4
                 qgetint = Qt.QInputDialog.getInt
             except AttributeError:
                 qgetint = Qt.QInputDialog.getInteger
-            maxSize, ok = qgetint(self, 'New buffer data size',
-                                               'Enter the number of points to be kept in memory for each curve',
+            maxSize,ok = qgetint(self, 'New buffer data size', 
+                                               'Enter the number of points to be kept in memory for each curve', 
                                                maxSize, 2, 10000000, 1000)
-            if not ok:
-                return
-
+            if not ok: 
+                return 
+        
         choiceOnClear = None
-
+        
         self.curves_lock.acquire()
         try:
-            for n, ts in self.trendSets.iteritems():
+            for n,ts in self.trendSets.iteritems():
                 try:
                     ts.setMaxDataBufferSize(maxSize)
                 except ValueError:
                     if choiceOnClear is None:
-                        choiceOnClear = Qt.QMessageBox.question(self, "Clear buffers?", "Clear the curves that contain too many points for the selected buffer size?", Qt.QMessageBox.No | Qt.QMessageBox.Yes)
+                        choiceOnClear = Qt.QMessageBox.question(self, "Clear buffers?", "Clear the curves that contain too many points for the selected buffer size?", Qt.QMessageBox.No|Qt.QMessageBox.Yes) 
                     if choiceOnClear == Qt.QMessageBox.Yes:
                         ts.clearTrends(replot=False)
                         ts.setMaxDataBufferSize(maxSize)
         finally:
             self.curves_lock.release()
         self._maxDataBufferSize = maxSize
-
+        
     def getMaxDataBufferSize(self):
         '''returns the maximum number of events that can be plotted in the trend
         
         :return: (int)
         '''
         return self._maxDataBufferSize
-
+            
     def resetMaxDataBufferSize(self):
         '''Same as setMaxDataBufferSize(self.DEFAULT_MAX_BUFFER_SIZE)'''
         self.setMaxDataBufferSize(self.DEFAULT_MAX_BUFFER_SIZE)
-
+    
     def _canvasContextMenu(self):
         ''' see :meth:`TaurusPlot._canvasContextMenu` '''
         menu = TaurusPlot._canvasContextMenu(self)
@@ -1583,35 +1588,35 @@ class TaurusTrend(TaurusPlot):
         if self.__qdoorname is not None:
             menu.insertAction(self._setCurvesTitleAction, self._autoClearOnScanAction)
         return menu
-
-    def _axisContextMenu(self, axis=None):
+    
+    def _axisContextMenu(self,axis=None):
         ''' see :meth:`TaurusPlot._axisContextMenu` '''
         menu = TaurusPlot._axisContextMenu(self, axis=axis)
         if axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop) and self.__qdoorname is not None:
             menu.addAction('Source of X values...', self.onChangeXDataKeyAction)
         return menu
-
+    
     def onChangeXDataKeyAction(self):
         options = ['[Auto Selection]', '[Internal Scan Index]']
         if self.__qdoorname is not None:
-            scanname = "scan://%s" % self.__qdoorname
+            scanname = "scan://%s"%self.__qdoorname
             tset = self.getTrendSet(scanname)
             datadesc = tset.getDataDesc()
             if datadesc is not None:
                 for dd in datadesc:
-                    if len(stripShape(dd['shape'])) == 0:  #an scalar
+                    if len(stripShape(dd['shape']))== 0: #an scalar
                         options.append(dd["label"])
-
-        key, ok = Qt.QInputDialog.getItem(self, 'X data source selection',
+    
+        key, ok = Qt.QInputDialog.getItem(self, 'X data source selection', 
                                           'Which data is to be used for the abscissas in scans?',
                                           options, 0, True)
         if ok:
-            key = str(key)
+            key=str(key)
             if key == options[0]: key = None
             elif key == options[1]: key = '__SCAN_TREND_INDEX__'
             self.setScansXDataKey(key, scanname)
-
-
+            
+    
     def setForcedReadingPeriod(self, msec=None, tsetnames=None):
         '''Sets the forced reading period for the trend sets given by tsetnames.
         
@@ -1625,29 +1630,29 @@ class TaurusTrend(TaurusPlot):
         '''
         if msec is None:
             msec = self._forcedReadingPeriod
-            try:  #API changed in QInputDialog since Qt4.4
+            try: #API changed in QInputDialog since Qt4.4
                 qgetint = Qt.QInputDialog.getInt
             except AttributeError:
                 qgetint = Qt.QInputDialog.getInteger
-            msec, ok = qgetint(self, 'New forced reading period',
-                                               'Enter the new period for forced reading (in ms).\n Enter "0" for disabling',
-                                               max(0, msec), 0, 604800000, 100)
-            if not ok:
+            msec,ok = qgetint(self, 'New forced reading period', 
+                                               'Enter the new period for forced reading (in ms).\n Enter "0" for disabling', 
+                                               max(0,msec), 0, 604800000, 100)
+            if not ok: 
                 return
-            if msec == 0:
-                msec = -1
-
+            if msec == 0: 
+                msec=-1
+        
         self._forcedReadingPeriod = msec
-
-        if tsetnames is None:
-            tsetnames = self.getModel()
+        
+        if tsetnames is None: 
+            tsetnames=self.getModel()
         self.curves_lock.acquire()
         try:
             for name in tsetnames:
                 self.trendSets[name].setForcedReadingPeriod(msec)
         finally:
             self.curves_lock.release()
-
+            
     def getForcedReadingPeriod(self, tsetname=None):
         '''returns the forced reading period for the given trend (or the general period 
         if None is given)
@@ -1666,11 +1671,11 @@ class TaurusTrend(TaurusPlot):
                 return self.trendSets[tsetname].getForcedReadingPeriod()
             finally:
                 self.curves_lock.release()
-
+                
     def resetForcedReadingPeriod(self):
         '''Equivalent to setForcedReadingPeriod(msec=-1, tsetnames=None)'''
         self.setForcedReadingPeriod(msec=-1, tsetnames=None)
-
+            
     def setScrollStep(self, scrollStep):
         '''
         Sets the scroll step when in Dynamic X mode. This is used to avoid
@@ -1687,39 +1692,39 @@ class TaurusTrend(TaurusPlot):
         .. seealso:: :meth:`setXDynScale`
         '''
         self._scrollStep = scrollStep
-
+        
     def getScrollStep(self):
         '''returns the value of the scroll step
         
         :return: (float)
         '''
-        return self._scrollStep
-
+        return self._scrollStep 
+    
     def resetScrollStep(self):
         '''equivalent to setScrollStep(0.2)'''
         self.setScrollStep(0.2)
-
+    
     useArchiving = Qt.pyqtProperty("bool", getUseArchiving, setUseArchiving, resetUseArchiving)
     usePollingBuffer = Qt.pyqtProperty("bool", getUsePollingBuffer, setUsePollingBuffer, resetUsePollingBuffer)
     maxDataBufferSize = Qt.pyqtProperty("int", getMaxDataBufferSize, setMaxDataBufferSize, resetMaxDataBufferSize)
     scrollstep = Qt.pyqtProperty("double", getScrollStep, setScrollStep, resetScrollStep)
     forcedReadingPeriod = Qt.pyqtProperty("int", getForcedReadingPeriod, setForcedReadingPeriod, resetForcedReadingPeriod)
-
-
+    
+    
 
 def test():
     import sys
     import taurus.qt.qtgui.application
     app = taurus.qt.qtgui.application.TaurusApplication()
-    w = Qt.QWidget()
+    w=Qt.QWidget()
     w.setLayout(Qt.QVBoxLayout())
-    s = Qt.QSplitter()
+    s=Qt.QSplitter()
     w.layout().addWidget(s)
-    t = TaurusTrend()
-    l = Qt.QLabel('asdasdasdasdasd')
+    t=TaurusTrend()
+    l=Qt.QLabel('asdasdasdasdasd')
     s.addWidget(l)
     s.addWidget(t)
-    s.setSizes([1, 0])
+    s.setSizes([1,0])
     w.show()
     t.setModel(['bl97/pc/dummy-01/voltage'])
     sys.exit(app.exec_())
@@ -1728,14 +1733,14 @@ def main():
     import sys
     import taurus.qt.qtgui.application
     import taurus.core.util.argparse
-
+    
     parser = taurus.core.util.argparse.get_taurus_parser()
     parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
     parser.set_description("a taurus application for plotting trends")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|e",
                   help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")
-    parser.add_option("-b", "--buffer", dest="max_buffer_size", default=TaurusTrend.DEFAULT_MAX_BUFFER_SIZE,
-                  help="maximum number of values per curve to be plotted (default = %i) (when reached, the oldest values will be discarded)" % TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
+    parser.add_option("-b", "--buffer", dest="max_buffer_size", default=TaurusTrend.DEFAULT_MAX_BUFFER_SIZE, 
+                  help="maximum number of values per curve to be plotted (default = %i) (when reached, the oldest values will be discarded)"%TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
                   help="use the given config file for initialization")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
@@ -1745,8 +1750,8 @@ def main():
     parser.add_option("-a", "--use-archiving", action="store_true", dest="use_archiving", default=False)
     parser.add_option("--window-name", dest="window_name", default="TaurusTrend", help="Name of the window")
 
-
-
+    
+    
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
                                                         app_name="taurustrend",
                                                         app_version=taurus.Release.version)
@@ -1757,53 +1762,53 @@ def main():
         sys.exit(1)
 
     models = args
-
+    
     w = TaurusTrend()
     w.setWindowTitle(options.window_name)
-
+    
     #xistime option
     w.setXIsTime(options.x_axis_mode.lower() == 't')
     #max buffer size option
     w.setMaxDataBufferSize(int(options.max_buffer_size))
     #configuration file option
     if options.config_file is not None: w.loadConfig(options.config_file)
-    #set models
+    #set models 
     if models: w.setModel(models)
     #export option
     if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets.keys(), 0)
-        def exportIfAllCurves(curve, trend=w, counters=curves):
+        curves = dict.fromkeys(w.trendSets.keys(),0)        
+        def exportIfAllCurves(curve,trend=w,counters=curves):
             curve = str(curve)
-            print '*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10
+            print '*'*10 + ' %s: Event received for %s  '%(datetime.now().isoformat(),curve) +'*'*10        
             if curve in counters:
-                counters[curve] += 1
+                counters[curve]+=1
                 if all(counters.values()):
                     trend.exportPdf(options.export_file)
-                    print '*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10
+                    print '*'*10 + ' %s: Exported to : %s  '%(datetime.now().isoformat(),options.export_file) +'*'*10        
                     trend.close()
             return
         if not curves: w.close()
         else:
             for ts in w.trendSets.values():
                 Qt.QObject.connect(ts, Qt.SIGNAL("dataChanged(const QString &)"), exportIfAllCurves)
-        sys.exit(app.exec_())  #exit without showing the widget
-
+        sys.exit(app.exec_()) #exit without showing the widget
+    
     # period option
-    if options.forced_read_period > 0:
+    if options.forced_read_period >0:
         w.setForcedReadingPeriod(options.forced_read_period)
-
-    #archiving option
+    
+    #archiving option     
     w.setUseArchiving(options.use_archiving)
-
+    
     #show the widget
     w.show()
-
+    
     #if no models are passed, show the data import dialog
     if len(models) == 0 and options.config_file is None:
         w.showDataImportDlg()
-
+    
     sys.exit(app.exec_())
-
+ 
 if __name__ == "__main__":
-    main()
+    main()    
 

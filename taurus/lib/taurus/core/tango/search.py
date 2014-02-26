@@ -36,10 +36,10 @@ import taurus
 # Utils
 
 def searchCl(regexp,target): 
-    return re.search(regexp.lower(),target.lower())
+    return re.search(extend_regexp(regexp).lower(),target.lower())
 
 def matchCl(regexp,target): 
-    return re.match(regexp.lower(),target.lower())
+    return re.match(extend_regexp(regexp).lower(),target.lower())
 
 def is_regexp(s):
     return any(c in s for c in '.*[]()+?')

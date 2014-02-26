@@ -67,18 +67,19 @@ class JsonRecorder(DataRecorder):
             else:
                 discarded.append(e.label)
         if discarded:
-            self.info('The following data will not be json-serialized: %s', " ".join(discarded))
-        column_desc = [ d.toDict() for d in self.column_desc ]
-        data = { 'column_desc' : column_desc,
-                 'ref_moveables' : ref_moveables,
-                 'estimatedtime' : estimatedtime,
-                 'total_scan_intervals' : total_scan_intervals,
-                 'starttime': start_time,
-                 'title': title,
-                 'counters': counters,
-                 'scanfile': scanfile,
-                 'scandir' : scandir,
-                 'serialno': serialno}
+            self.info('The following data will not be json-serialized: %s',
+                      " ".join(discarded))
+        column_desc = [d.toDict() for d in self.column_desc]
+        data = {'column_desc': column_desc,
+                'ref_moveables': ref_moveables,
+                'estimatedtime': estimatedtime,
+                'total_scan_intervals': total_scan_intervals,
+                'starttime': start_time,
+                'title': title,
+                'counters': counters,
+                'scanfile': scanfile,
+                'scandir': scandir,
+                'serialno': serialno}
         self._sendPacket(type="data_desc", data=data, macro_id=macro_id)
 
     def _endRecordList(self, recordlist):
@@ -96,19 +97,25 @@ class JsonRecorder(DataRecorder):
         self._sendPacket(type="record_data", data=data, macro_id=macro_id)
 
     def _sendPacket(self, **kwargs):
-        '''creates a JSON packet using the keyword arguments passed and then sends it'''
+        '''creates a JSON packet using the keyword arguments passed
+        and then sends it'''
         #data = self._codec.encode(('', kwargs))
         #self._stream.sendRecordData(*data)
         self._stream.sendRecordData(kwargs, codec='json')
 
     def _addCustomData(self, value, name, **kwargs):
         '''
-        The custom data will be sent as a packet with type='custom_data' and its
-        data will be the dictionary of keyword arguments passed to this method
-        plus 'name' and 'value'
+        The custom data will be sent as a packet with type='custom_data'
+        and its data will be the dictionary of keyword arguments passed to this
+        method plus 'name' and 'value'
         '''
-        macro_id = self.recordlist.getEnvironValue('macro_id')
-        data = dict(kwargs)  #shallow copy
+        #try to convert to list to avoid serialization problems
+        try:
+            value = value.tolist()
+        except:
+            pass
+        macro_id = self._stream.getID()
+        data = dict(kwargs)  # shallow copy
         data['name'] = name
         data['value'] = value
         self._sendPacket(type="custom_data", data=data, macro_id=macro_id)
@@ -120,11 +127,13 @@ class OutputRecorder(DataRecorder):
                  col_sep='  ', **pars):
         DataRecorder.__init__(self, **pars)
         self._stream = stream
-        if not number_fmt.startswith('%'): number_fmt = '%%s' % number_fmt
+        if not number_fmt.startswith('%'):
+            number_fmt = '%%s' % number_fmt
         self._number_fmt = number_fmt
         self._col_sep = col_sep
         self._col_width = col_width
-        if operator.isSequenceType(cols) and not isinstance(cols, (str, unicode)):
+        if operator.isSequenceType(cols) and \
+                not isinstance(cols, (str, unicode)):
             cols = CaselessList(cols)
         elif operator.isNumberType(cols):
             cols = cols
@@ -219,11 +228,15 @@ class OutputRecorder(DataRecorder):
             self._stream.info('Operation saved in %s (%s)', fr.getFileName(),
                               fr.getFormat())
 
-        totaltimets = recordlist.getEnvironValue('endts') - recordlist.getEnvironValue('startts')
+        endts = recordlist.getEnvironValue('endts')
+        startts = recordlist.getEnvironValue('startts')
+        totaltimets = endts - startts
         deadtime_perc = deadtime * 100.0 / totaltimets
         motiontime_perc = motiontime * 100.0 / totaltimets
-        self._stream.info('Scan #%s ended at %s, taking %s. Dead time %.1f%% (motion dead time %.1f%%)'
-                          % (serialno, endtime, totaltime, deadtime_perc, motiontime_perc))
+        info_string = 'Scan #%s ended at %s, taking %s.' + \
+                      'Dead time %.1f%% (motion dead time %.1f%%)'
+        self._stream.info(info_string % (serialno, endtime, totaltime,
+                                         deadtime_perc, motiontime_perc))
 
     def _writeRecord(self, record):
         cells = []
@@ -246,7 +259,7 @@ class OutputRecorder(DataRecorder):
 
     def _addCustomData(self, value, name, **kwargs):
         '''
-        The custom data will be added as an info line in the form:: 
+        The custom data will be added as an info line in the form:
         Custom data: name : value
         '''
         if numpy.rank(value) > 0:
