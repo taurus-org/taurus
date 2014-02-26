@@ -64,9 +64,6 @@ class LsmTest(RunMacroTestCase, unittest.TestCase):
         print("\n")
 
 
-if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(LsmTest)
-    unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
 
 
 
