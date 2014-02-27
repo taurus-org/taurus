@@ -105,7 +105,6 @@ class AscanTest(ScanTest, unittest.TestCase):
     macro_name = 'ascan'
     #TODO use generator to get a arbitrary motor from sar_demo
     macro_params = ['mot17', '0', '1', '10', '.1']
-    macro_executor_klass = TangoMacroExecutor
     run_timeout = 3.
 
     def test00_outputLog(self):
@@ -120,7 +119,6 @@ class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
     #TODO use generator to get a arbitrary motor from sar_demo
     macro_params = ['mot17', '0', '1', '10', '.1']
-    macro_executor_klass = TangoMacroExecutor
     run_timeout = 3.
 
     def test00_outputLog(self):

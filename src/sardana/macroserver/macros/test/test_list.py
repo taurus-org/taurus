@@ -34,12 +34,7 @@ from sardana import sardanacustomsettings
 class LsmTest(RunMacroTestCase, unittest.TestCase):
 
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
-
-    #TODO: This will change to use a Factory.
-    macro_executor_klass = TangoMacroExecutor
     macro_name = "lsm"
-
-    #tango_macro_executor = macro_executor_klass(door_name)
 
     def setUp(self):
         RunMacroTestCase.setUp(self)

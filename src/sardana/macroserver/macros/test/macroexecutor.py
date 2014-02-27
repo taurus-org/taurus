@@ -1,8 +1,5 @@
-import copy
-import threading
-import PyTango
-# TODO: not sure if use this codecs, or prepare some easy one...
-from taurus.core.util.codecs import CodecFactory
+
+from taurus.core.util.singleton import Singleton
 
 class BaseMacroExecutor(object):
     '''
@@ -231,4 +228,50 @@ class BaseMacroExecutor(object):
         Get buffer (history) of macro execution states.
         '''
         return self._state_buffer
+    
+
+class MacroExecutorFactory(Singleton):
+    '''A scheme-agnostic factory for MacroExecutor instances
+    
+    Example::
+    
+        f =  MacroExecutorFactory()
+        f.getMacroExecutor('tango://my/door/name') #returns a TangoMacroExecutor
+    
+    ..note:: For the moment, only TangoMacroExecutor is supported
+    '''
         
+    def getMacroExecutor(self, door_name=None):
+        '''
+        Returns a macro executor instance (a subclass of 
+        :class:`BaseMacroExecutor`) depending on the door being used.
+        ''' 
+        if door_name == None:
+            from sardana import sardanacustomsettings
+            door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
+    
+        #=======================================================================
+        # TODO: Once SEP3 is done, it will define a better way to get the scheme
+        # from a model name (including customized default schemes)
+        # For the moment I implement it by calling an internal member of 
+        # TaurusManager
+        from taurus.core import TaurusManager
+        scheme = TaurusManager()._get_scheme(door_name)
+        #=======================================================================
+
+        if scheme == 'tango':
+            return self._getTangoMacroExecutor(door_name)
+        else:
+            raise ValueError('No MacroExecutor supported for scheme %s' % \
+                             scheme)
+                        
+    def _getTangoMacroExecutor(self, door_name):
+        from sardana.tango.macroserver.test.macroexecutor import (
+                 TangoMacroExecutor)
+        return TangoMacroExecutor(door_name=door_name)
+    
+if __name__ == '__main__':
+    from sardana import sardanacustomsettings
+    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
+    print MacroExecutorFactory().getMacroExecutor(door_name)
+    

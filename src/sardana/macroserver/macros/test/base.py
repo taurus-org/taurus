@@ -29,6 +29,7 @@ import copy
 import time
 import unittest
 from sardana import sardanacustomsettings
+from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 
 
 class BaseMacroTestCase(object):
@@ -42,20 +43,10 @@ class BaseMacroTestCase(object):
                  (default='door/sardana_test/1')
       - macro_name (string) name of the macro to be tested (mandatory)
       - macro_params (list<string>) macro parameters, if any
-      .. warning:: the following class members probably will be removed
-      - macro_executor_klass (class) class of the macro executor to be used
-      - macro_executor_initargs (list) a list of arguments for the klass init method 
-                 (default=[])
-      - macro_executor_initkwargs (dict) a dict of keyword arguments for the klass init method 
-                   (default={})
     '''
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME') 
     macro_name = None
     macro_params = None
-    #TODO implement proper macro executor factory
-    macro_executor_klass = None
-    macro_executor_initargs = []
-    macro_executor_initkwargs = {}
     
     def setUp(self):
         """ 
@@ -68,12 +59,8 @@ class BaseMacroTestCase(object):
         
         unittest.TestCase.setUp(self)
         
-        klass = self.macro_executor_klass
-        #TODO implement proper factory of the macro executors
-        initargs = copy.copy(self.macro_executor_initargs)
-        initargs.insert(0, self.door_name)
-        initkwargs = self.macro_executor_initkwargs
-        self.macro_executor = klass(*initargs, **initkwargs)
+        mefact = MacroExecutorFactory()
+        self.macro_executor = mefact.getMacroExecutor(self.door_name)
 
     def assertFinished(self, msg):
         '''Asserts that macro has finished.'''
