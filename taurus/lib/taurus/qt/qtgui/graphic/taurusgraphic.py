@@ -134,7 +134,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     __pyqtSignals__ = ("refreshTree2","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
     ANY_ATTRIBUTE_SELECTS_DEVICE = True
     TRACE_ALL = False
-    
+
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
         #self.call__init__(Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT

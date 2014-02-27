@@ -152,17 +152,15 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def selectGraphicItem(self,item_name):
         self.scene().selectGraphicItem(item_name)
         return False
-    
-    @Qt.pyqtSignature("graphicItemSelected(QString)")
-    def graphicItemSelected(self,item_name):
+
+    def _graphicItemSelected(self,item_name):
         self.debug(' => graphicItemSelected(QString)(%s)'%item_name)
         self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),item_name)
-        
-    @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
-    def graphicSceneClicked(self,point):
+
+    def _graphicSceneClicked(self,point):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
-        
+
     def modelsChanged(self):
         items = self.get_item_list()
         self.debug('modelsChanged(%s)'%len(items))
@@ -354,8 +352,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     self.h_scene = scene.sceneRect().height()
                 else: self.debug('JDrawView.sceneRect() is NONE!!!')
                 self.setScene(scene)
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self._graphicItemSelected)
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self._graphicSceneClicked)
                 #Qt.QObject.connect(Qt.QApplication.instance(), Qt.SIGNAL("lastWindowClosed()"), self.close) #It caused a segfault!
                 self.modelsChanged()
                 self.setWindowTitle(self.modelName)
