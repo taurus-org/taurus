@@ -329,7 +329,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 ## A null obj_name should deselect all, we don't send obj because we want all similar to be matched                
                 if self.selectGraphicItem(obj_name):
                     self.debug(' => graphicItemSelected(QString)(%s)'%obj_name)
-                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name) # A null obj_name should deselect all
+                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name)
+                else:
+                    # It should send None but the signature do not allow it
+                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), "")
             def addMenuAction(menu,k,action,last_was_separator=False):
                 try:
                     if k:
