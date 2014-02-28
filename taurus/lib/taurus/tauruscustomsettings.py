@@ -49,7 +49,7 @@ T_FORM_CUSTOM_WIDGET_MAP = \
 # Lightweight imports:
 # True enables delayed imports (may break older code).
 # False (or commented out) for backwards compatibility
-LIGHTWEIGHT_IMPORTS = True
+LIGHTWEIGHT_IMPORTS = False
 
 # Extra Taurus schemes. You can add a list of modules to be loaded for
 # providing support to new schemes
