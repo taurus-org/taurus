@@ -49,7 +49,7 @@ import PyTango
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.qt import Qt
 from taurus.qt.qtgui.resource import getThemePixmap
-import ui.ui_TaurusMessagePanel
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
 class TaurusMessageErrorHandler(object):
@@ -227,6 +227,7 @@ An error occured in '{appName} {appVersion}' on {time}
 --------------------------------------------------------------------------------
 """
 
+@UILoadable(with_ui='_ui')
 class TaurusMessagePanel(Qt.QWidget):
     """A panel intended to display a taurus error.
     Example::
@@ -255,16 +256,18 @@ class TaurusMessagePanel(Qt.QWidget):
 
     def __init__(self, err_type=None, err_value=None, err_traceback=None, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
+        self.loadUi()
         self._exc_info = err_type, err_value, err_traceback
-        self._ui = _ui = ui.ui_TaurusMessagePanel.Ui_TaurusMessagePanel()
-        _ui.setupUi(self)
-        _ui.detailsWidget.setVisible(False)
-        _ui.checkBox.setVisible(False)
-        _ui.checkBox.setCheckState(Qt.Qt.Unchecked)
+
+        self._ui._detailsWidget.setVisible(False)
+        self._ui._checkBox.setVisible(False)
+        self._ui._checkBox.setCheckState(Qt.Qt.Unchecked)
         self._initReportCombo()
 
-        Qt.QObject.connect(_ui.showDetailsButton, Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
-        Qt.QObject.connect(_ui.reportComboBox, Qt.SIGNAL("activated(int)"), self._onReportTriggered)
+        Qt.QObject.connect(self._ui._showDetailsButton,
+                           Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
+        Qt.QObject.connect(self._ui._reportComboBox,
+                           Qt.SIGNAL("activated(int)"), self._onReportTriggered)
 
         pixmap = getThemePixmap("emblem-important")
         self.setIconPixmap(pixmap)
@@ -296,24 +299,24 @@ class TaurusMessagePanel(Qt.QWidget):
         report.report(txt)
 
     def _onShowDetails(self, show):
-        self._ui.detailsWidget.setVisible(show)
+        self._ui._detailsWidget.setVisible(show)
         if show:
             text = "Hide details..."
         else:
             text = "Show details..."
-        self._ui.showDetailsButton.setText(text)
+        self._ui._showDetailsButton.setText(text)
         self.adjustSize()
         self.emit(Qt.SIGNAL("toggledDetails(bool)"), show)
 
     def reportComboBox(self):
-        return self._ui.reportComboBox
+        return self._ui._reportComboBox
 
     def checkBox(self):
         """Returns the check box from this panel
 
         :return: the check box from this panel
         :rtype: PyQt4.Qt.QCheckBox"""
-        return self._ui.checkBox
+        return self._ui._checkBox
 
     def checkBoxState(self):
         """Returns the check box state
@@ -355,7 +358,7 @@ class TaurusMessagePanel(Qt.QWidget):
 
         :return: the button box from this panel
         :rtype: PyQt4.Qt.QDialogButtonBox"""
-        return self._ui.buttonBox
+        return self._ui._buttonBox
 
     def addButton(self, button, role=Qt.QDialogButtonBox.ActionRole):
         """Adds the given button with the given to the button box
@@ -364,84 +367,84 @@ class TaurusMessagePanel(Qt.QWidget):
         :type button: PyQt4.QtGui.QPushButton
         :param role: button role
         :type role: PyQt4.Qt.QDialogButtonBox.ButtonRole"""
-        self._ui.buttonBox.addButton(button, role)
+        self._ui._buttonBox.addButton(button, role)
 
     def setIconPixmap(self, pixmap):
         """Sets the icon to the dialog
 
         :param pixmap: the icon pixmap
         :type pixmap: PyQt4.Qt.QPixmap"""
-        self._ui.iconLabel.setPixmap(pixmap)
+        self._ui._iconLabel.setPixmap(pixmap)
 
     def setText(self, text):
         """Sets the text of this panel
 
         :param text: the new text
         :type text: str"""
-        self._ui.textLabel.setText(text)
+        self._ui._textLabel.setText(text)
 
     def getText(self):
         """Returns the current text of this panel
 
         :return: the text for this panel
         :rtype: str"""
-        return self._ui.textLabel.text()
+        return self._ui._textLabel.text()
 
     def setDetailedText(self, text):
         """Sets the detailed text of the dialog
 
         :param text: the new text
         :type text: str"""
-        self._ui.detailsTextEdit.setPlainText(text)
+        self._ui._detailsTextEdit.setPlainText(text)
 
     def setDetailedHtml(self, html):
         """Sets the detailed HTML of the dialog
 
         :param html: the new HTML text
         :type html: str"""
-        self._ui.detailsTextEdit.setHtml(html)
+        self._ui._detailsTextEdit.setHtml(html)
 
     def getDetailedText(self):
         """Returns the current detailed text of this panel
 
         :return: the detailed text for this panel
         :rtype: str"""
-        return self._ui.detailsTextEdit.toPlainText()
+        return self._ui._detailsTextEdit.toPlainText()
 
     def getDetailedHtml(self):
         """Returns the current detailed HTML of this panel
 
         :return: the detailed HTML for this panel
         :rtype: str"""
-        return self._ui.detailsTextEdit.toHtml()
+        return self._ui._detailsTextEdit.toHtml()
 
     def setOriginText(self, text):
         """Sets the origin text of the dialog
 
         :param text: the new text
         :type text: str"""
-        self._ui.originTextEdit.setPlainText(text)
+        self._ui._originTextEdit.setPlainText(text)
 
     def setOriginHtml(self, html):
         """Sets the origin HTML of the dialog
 
         :param html: the new HTML text
         :type html: str"""
-        self._ui.originTextEdit.setHtml(html)
+        self._ui._originTextEdit.setHtml(html)
 
     def getOriginText(self):
         """Returns the current origin text of this panel
 
         :return: the origin text for this panel
         :rtype: str"""
-        return self._ui.originTextEdit.toPlainText()
+        return self._ui._originTextEdit.toPlainText()
 
     def getOriginHtml(self):
         """Returns the current origin HTML of this panel
 
         :return: the origin HTML for this panel
         :rtype: str"""
-        return self._ui.originTextEdit.toHtml()
+        return self._ui._originTextEdit.toHtml()
 
     def setError(self, err_type=None, err_value=None, err_traceback=None):
         """Sets the exception object.

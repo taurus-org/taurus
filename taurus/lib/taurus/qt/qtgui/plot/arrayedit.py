@@ -30,20 +30,16 @@ arrayedit.py: Widget for editing a spectrum/array via control points
 
 import numpy
 from taurus.qt import Qt, Qwt5
+from taurus.qt.qtgui.util.ui import UILoadable
 from curvesAppearanceChooserDlg import CurveAppearanceProperties 
 
-import ui.ui_EditCPointsDialog as ui_EditCPointsDialog
-import ui.ui_AddCPointsDialog as ui_AddCPointsDialog
-import ui.ui_ArrayEditor as ui_ArrayEditor
-import ui.ui_ControllerBox as ui_ControllerBox
 
-
-
-class ControllerBox(Qt.QWidget, ui_ControllerBox.Ui_ControllerBox):
+@UILoadable
+class ControllerBox(Qt.QWidget):
     
     def __init__(self, parent=None, x=0, y=0, corr=0):
         Qt.QWidget.__init__(self, parent)
-        self.setupUi(self)
+        self.loadUi()
         self._x = x
         self.setY(y)
         self.box.setTitle('x=%6g'%self._x)
@@ -71,25 +67,29 @@ class ControllerBox(Qt.QWidget, ui_ControllerBox.Ui_ControllerBox):
         enable = (self._y + self.corrSB.value()) != 0
         self.lScaleBT.setEnabled(enable)
         self.rScaleBT.setEnabled(enable)
-                
-class EditCPointsDialog(Qt.QDialog, ui_EditCPointsDialog.Ui_EditCPointsDialog):
+
+
+@UILoadable
+class EditCPointsDialog(Qt.QDialog):
     
     def __init__(self, parent=None, x=0):
         Qt.QDialog.__init__(self, parent)
         self.setupUi(self)
-        
-class AddCPointsDialog(Qt.QDialog, ui_AddCPointsDialog.Ui_AddCPointsDialog):
+
+@UILoadable
+class AddCPointsDialog(Qt.QDialog):
     
     def __init__(self, parent=None, x=0):
         Qt.QDialog.__init__(self, parent)
-        self.setupUi(self)
+        self.loadUi()
         
 
-class ArrayEditor(Qt.QWidget, ui_ArrayEditor.Ui_ArrayEditor):
+@UILoadable
+class ArrayEditor(Qt.QWidget):
     
     def __init__(self, parent=None):
         Qt.QWidget.__init__(self, parent)
-        self.setupUi(self)
+        self.loadUi()
         
         self._controllers = []
         

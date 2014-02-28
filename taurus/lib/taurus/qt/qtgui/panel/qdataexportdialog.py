@@ -30,10 +30,11 @@ import os.path
 from datetime import datetime
 
 from taurus.qt import Qt
+from taurus.qt.qtgui.util.ui import UILoadable
 
-from ui import ui_DataExportDlg
 
-class QDataExportDialog(Qt.QDialog, ui_DataExportDlg.Ui_DataExportDlg):
+@UILoadable(with_ui='ui')
+class QDataExportDialog(Qt.QDialog):
     """
     This creates a Qt dialog for showing and exporting x-y Ascii data from one or more curves 
     The data sets are passed (by calling setDataSets() or at instantiation time) as a dictionary::
@@ -51,7 +52,7 @@ class QDataExportDialog(Qt.QDialog, ui_DataExportDlg.Ui_DataExportDlg):
 
     def __init__(self, parent=None, datadict=None):
         super(QDataExportDialog,self).__init__(parent)
-        self.setupUi(self)
+        self.loadUi()
         self._xIsTime = False
         
         #connections

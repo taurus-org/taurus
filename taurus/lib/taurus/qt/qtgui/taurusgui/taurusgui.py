@@ -32,8 +32,10 @@ __docformat__ = 'restructuredtext'
 
 import os, sys
 import weakref, inspect, copy
-from taurus.qt import Qt
 
+from lxml import etree
+
+from taurus.qt import Qt
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
@@ -42,19 +44,17 @@ from taurus.qt.qtgui.container import TaurusMainWindow
 from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, ToolBarDescription, AppletDescription
 from taurus.qt.qtgui.panel import QDoubleListDlg
 import taurus.qt.qtgui.resource
-from lxml import etree
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
+@UILoadable(with_ui='ui')
 class AssociationDialog(Qt.QDialog):
     '''A dialog for viewing and editing the associations between instruments and panels''' 
     def __init__(self, parent, flags= None):
         if flags is None: flags = Qt.Qt.Widget
         Qt.QDialog.__init__(self, parent, flags)
-        
-        from ui.ui_PanelAssociationsDlg import Ui_PanelAssociationsDlg
-        self.ui = Ui_PanelAssociationsDlg()
-        self.ui.setupUi(self)
-        
+        self.loadUi()
+
         self.refresh()
         self.connect(self.ui.instrumentCB, Qt.SIGNAL('activated (QString)'), self.onInstrumentChanged)
         self.connect(self.ui.buttonBox, Qt.SIGNAL("clicked(QAbstractButton *)"), self.onDialogButtonClicked)

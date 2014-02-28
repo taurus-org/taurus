@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.qt import Qt
-from ui import ui_SendMailForm
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
 class ClipboardReportHandler(TaurusMessageReportHandler):
@@ -48,14 +48,14 @@ class ClipboardReportHandler(TaurusMessageReportHandler):
             "Message Copied to clipboard")
 
 
+@UILoadable(with_ui='ui')
 class SendMailDialog(Qt.QDialog):
 
     def __init__(self, parent=None):
         Qt.QDialog.__init__(self, parent)
-        self.ui = ui = ui_SendMailForm.Ui_SendMailForm()
-        ui.setupUi(self)
-        self.connect(ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
-        self.connect(ui.buttonBox, Qt.SIGNAL("rejected()"), self.reject)
+        self.loadUi(filename="SendMailForm.ui")
+        self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
+        self.connect(self.ui.buttonBox, Qt.SIGNAL("rejected()"), self.reject)
         self.ui.editMessage.setFont(Qt.QFont("Monospace"))
 
     def setFrom(self, efrom):

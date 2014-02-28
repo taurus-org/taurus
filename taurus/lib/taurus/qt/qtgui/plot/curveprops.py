@@ -35,8 +35,8 @@ from taurus.qt import Qt, Qwt5
 import taurus
 import taurus.core
 from taurus.qt.qtgui.resource import getThemeIcon
-from ui.ui_CurvePropertiesView import Ui_CurvePropertiesView
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtgui.util.ui import UILoadable
 
 from curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
                                        NamedCurveStyles, ReverseNamedCurveStyles, \
@@ -332,9 +332,7 @@ class ExtendedSelectionModel(Qt.QItemSelectionModel):
         return [model.index(row, 0) for row in temp]
 
 
-
-
-
+@UILoadable(with_ui='ui')
 class CurvePropertiesView(Qt.QAbstractItemView):
     '''This widget is a view on a CurvesTableModel. It displays and allows to change the 
     properties of selected curve(s). Note that this widget does not allow to
@@ -343,11 +341,7 @@ class CurvePropertiesView(Qt.QAbstractItemView):
     '''
     def __init__(self, parent=None, designMode=False):
         super(CurvePropertiesView,self).__init__(parent)
-        
-        self.ui = Ui_CurvePropertiesView()
-        self.ui.setupUi(self)
-        
-        
+        self.loadUi()
         
         self.ui.sStyleCB.insertItems(0,sorted(NamedSymbolStyles.values()))
         self.ui.lStyleCB.insertItems(0,NamedLineStyles.values())

@@ -36,10 +36,10 @@ import taurus
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.core.util.colors import DEVICE_STATE_PALETTE
+from taurus.qt.qtgui.util.ui import UILoadable
 
 import functools
 
-from ui_macrobutton import Ui_MacroButton
 
 class DoorStateListener(Qt.QObject):
 
@@ -50,8 +50,9 @@ class DoorStateListener(Qt.QObject):
             return
         door_state = evt_value.value
         self.emit(Qt.SIGNAL('doorStateChanged'), door_state)
-        
 
+        
+@UILoadable(with_ui='ui')
 class MacroButton(TaurusWidget):
     ''' This class is intended to be used as a button to execute macros.
     The model must be a valid door.
@@ -75,14 +76,13 @@ class MacroButton(TaurusWidget):
     
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
+        self.loadUi()
         self.door = None
         self.door_state_listener = None
         self.macro_name = ''
         self.macro_args = []
         self.running_macro = None
 
-        self.ui = Ui_MacroButton()
-        self.ui.setupUi(self)
         self.ui.progress.setValue(0)
 
         self.ui.button.setCheckable(True)

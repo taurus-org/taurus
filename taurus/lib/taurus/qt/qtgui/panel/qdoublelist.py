@@ -34,8 +34,10 @@ __all__ = ["QDoubleListDlg"]
 __docformat__ = 'restructuredtext'
 
 from taurus.qt import Qt
-from ui.ui_DoubleListDlg import Ui_DoubleListDlg
+from taurus.qt.qtgui.util.ui import UILoadable
 
+
+@UILoadable(with_ui='ui')
 class QDoubleListDlg(Qt.QDialog):
     '''Generic dialog providing two lists. Items can be moved from one to the other
     '''
@@ -49,9 +51,7 @@ class QDoubleListDlg(Qt.QDialog):
             list2=[]
         
         super(QDoubleListDlg,self).__init__(parent)
-        
-        self.ui = Ui_DoubleListDlg()
-        self.ui.setupUi(self)
+        self.loadUi()
         
         if winTitle:
             self.setWindowTitle(winTitle)

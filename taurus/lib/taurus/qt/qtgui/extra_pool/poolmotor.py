@@ -47,7 +47,7 @@ from taurus.qt.qtgui.panel import DefaultUnitsWidget
 from taurus.qt.qtgui.panel import TaurusValue, TaurusAttrForm
 from taurus.qt.qtcore.mimetypes import TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.resource import getIcon
-from ui_poolmotorslim import Ui_PoolMotorSlim
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
 class LimitsListener(Qt.QObject):
@@ -285,6 +285,8 @@ class PoolMotorConfigurationForm(TaurusAttrForm):
         #self.setViewFilters([lambda a: a.name.lower() in attributes])
         self.setSortKey(lambda att: attributes.index(att.name.lower()) if att.name.lower() in attributes else 1)
 
+
+@UILoadable(with_ui='ui')
 class PoolMotorSlim(TaurusWidget, PoolMotorClient):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -295,13 +297,12 @@ class PoolMotorSlim(TaurusWidget, PoolMotorClient):
         #self.call__init__wo_kw(Qt.QWidget, parent)
         #self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
         PoolMotorClient.__init__(self)
+        self.loadUi()
+
         self.show_context_menu = True
 
         self.setAcceptDrops(True)
 
-        self.ui = Ui_PoolMotorSlim()
-        self.ui.setupUi(self)
-        
         if designMode:
             self.__setTaurusIcons()
             return

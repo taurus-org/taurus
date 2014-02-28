@@ -31,15 +31,15 @@ import numpy
 
 from taurus.qt import Qt
 from taurus.core.util.safeeval import SafeEvaluator
+from taurus.qt.qtgui.util.ui import UILoadable
 
-from .ui import ui_RawDataChooser
 
-
-class QRawDataWidget(Qt.QWidget, ui_RawDataChooser.Ui_RawDataChooser):
+@UILoadable(with_ui='ui')
+class QRawDataWidget(Qt.QWidget):
     
     def __init__(self, parent=None):
         super(QRawDataWidget,self).__init__(parent)
-        self.setupUi(self)
+        self.loadUi()
 
         #connecttions
         self.connect(self.openFilesBT,Qt.SIGNAL( "clicked()"), self.onOpenFilesButtonClicked)
@@ -76,7 +76,7 @@ class QRawDataWidget(Qt.QWidget, ui_RawDataChooser.Ui_RawDataChooser):
         
 if __name__ == "__main__":
     import sys 
-    app = QApplication(sys.argv)
+    app = Qt.QApplication(sys.argv)
     form = QRawDataWidget()
     form.show()
     sys.exit(app.exec_())

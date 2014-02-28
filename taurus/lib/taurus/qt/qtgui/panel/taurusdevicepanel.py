@@ -44,6 +44,7 @@ from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS #@todo: Taur
 from taurus.qt.qtgui.display import TaurusStateLed as LED_CLASS #@todo: TaurusStateLed is deprecated. Use TaurusLed instead
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
+from taurus.qt.qtgui.util.ui import UILoadable
 
 ###############################################################################
 # TaurusDevicePanel (from Vacca)
@@ -415,6 +416,7 @@ def filterNonExported(obj):
     return None
 
 
+@UILoadable(with_ui='_ui')
 class TaurusDevPanel(TaurusMainWindow):
     '''
     TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
@@ -424,10 +426,7 @@ class TaurusDevPanel(TaurusMainWindow):
     '''
     def __init__(self, parent=None, designMode = False):
         TaurusMainWindow.__init__(self, parent, designMode=designMode)
-        
-        import taurus.qt.qtgui.ui.ui_TaurusDevPanel
-        self._ui = taurus.qt.qtgui.ui.ui_TaurusDevPanel.Ui_TaurusDevPanel()
-        self._ui.setupUi(self)
+        self.loadUi()
         
         #setting up the device Tree. 
         #@todo: This should be done in the ui file when the TaurusDatabaseTree Designer plugin is available
@@ -472,7 +471,7 @@ class TaurusDevPanel(TaurusMainWindow):
         self.showAttrAction = self.viewMenu.addAction(self._ui.attrDW.toggleViewAction())
         self.showCommandsAction = self.viewMenu.addAction(self._ui.commandsDW.toggleViewAction())
         self.showTrendAction = self.viewMenu.addAction(self._ui.trendDW.toggleViewAction())
-        
+
     def setTangoHost(self, host):
         '''extended from :class:setTangoHost'''
         TaurusMainWindow.setTangoHost(self, host)

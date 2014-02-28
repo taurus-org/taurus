@@ -32,14 +32,15 @@ import functools
 #TODO: Change to taurus.external
 from taurus.qt import Qt
 from PyQt4 import uic
-
+#from taurus.external.qt import Qt
+#from taurus.external.qt import uic
 
 def loadUi(obj, filename=None, path=None):
     """
     Loads a QtDesigner .ui file into the given widget.
     If no filename is given, it tries to load from a file name which is the
-    widget class name in lower case plus the extension ".ui" (example: if your
-    widget class is called MyWidget it tries to find a mywidget.ui).
+    widget class name plus the extension ".ui" (example: if your
+    widget class is called MyWidget it tries to find a MyWidget.ui).
     If path is not given it uses the directory where the python file which
     defines the widget is located plus a *ui* directory (example: if your widget
     is defined in a file /home/homer/workspace/taurusgui/my_widget.py then it uses
@@ -57,7 +58,7 @@ def loadUi(obj, filename=None, path=None):
         obj_file = sys.modules[obj.__module__].__file__
         path = os.path.join(os.path.dirname(obj_file), 'ui')
     if filename is None:
-        filename = obj.__class__.__name__.lower() + os.path.extsep + 'ui'
+        filename = obj.__class__.__name__ + os.path.extsep + 'ui'
     full_name = os.path.join(path, filename)
     uic.loadUi(full_name, baseinstance=obj)
 
@@ -70,7 +71,7 @@ def UILoadable(klass=None, with_ui=None):
     optionaly a property with a name given by *with_ui* parameter.
 
     The folowing example assumes the existence of the ui file 
-    :file:`<my_widget_dir>/ui/mywidget.ui` which is a QWidget panel with *at
+    :file:`<my_widget_dir>/ui/MyWidget.ui` which is a QWidget panel with *at
     least* a QPushButton with objectName *my_button* ::
 
         from taurus.external.qt import Qt

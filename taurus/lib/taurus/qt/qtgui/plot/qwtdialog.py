@@ -27,10 +27,11 @@
 qwtdialog.py: Dialogs for Taurusplot
 """
 
-from taurus.qt import Qt, Qwt5
 import time
 
-from ui.ui_TaurusPlotConfigDialog import Ui_TaurusPlotConfigDialog
+from taurus.qt import Qt, Qwt5
+from taurus.qt.qtgui.util.ui import UILoadable
+
 
 #class TaurusPlotConfigCapable:
 #    """This class is aimed to act as an interface for class TaurusPlot. Every class that uses
@@ -51,13 +52,13 @@ from ui.ui_TaurusPlotConfigDialog import Ui_TaurusPlotConfigDialog
 #    def setAxisScaleType(self, axis=None, scale=None):
 #        raise NotImplementedError, "TaurusPlotConfigCapable: method setAxisScaleType() not implemented in child class"
 
+
+@UILoadable(with_ui='ui')
 class TaurusPlotConfigDialog(Qt.QDialog):
     """This class is used to build and manage the plot configuration dialog. It
-    has been designed using the qt designer application, translating it into
-    python code, and finally importing the file ui_TaurusPlotConfigDialog to use
-    setupUI() and retranslateUI() functions. Hence, if you need to modify the
-    dialog, you can use the TaurusPlotConfig.ui file (under ui directory) to make
-    it easier."""
+    has been designed using the qt designer application, and then loaded to this
+    widget. Hence, if you need to modify the dialog, you can use the
+    TaurusPlotConfigDialog.ui file (under ui directory) to make it easier."""
 
     def __init__(self, parent=None, flags=Qt.Qt.WindowFlags()):
         self.parent = parent
@@ -65,8 +66,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         #    raise NotImplementedError, "Parent object doesn't implement TaurusPlotConfigCapable class"
         #call qt designer generated functions to initialize GUI
         Qt.QDialog.__init__(self, parent, flags)
-        self.ui = Ui_TaurusPlotConfigDialog()
-        self.ui.setupUi(self)
+        self.loadUi()
         
         #insert the CurvesAppearanceWidget 
         #(@TODO:must be changed to be done directly in the ui, but I couldn't make the widget available to TaurusDesigner)

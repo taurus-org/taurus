@@ -39,7 +39,7 @@ import taurus
 from taurus.core import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
-from .ui.ui_CurveItemConfDlg import Ui_CurveItemConfDlg    
+from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 
 AXIS_ID2NAME = {Qwt5.QwtPlot.yLeft:'left', Qwt5.QwtPlot.yRight:'right',
@@ -292,6 +292,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         #mimedata.setData()
     
 
+@UILoadable(with_ui='ui')
 class CurveItemConfDlg(Qt.QWidget):
     ''' A configuration dialog for creating new CurveItems.
     
@@ -301,14 +302,11 @@ class CurveItemConfDlg(Qt.QWidget):
     
     def __init__(self, parent=None, curves=None, showXcol=True):
         super(CurveItemConfDlg,self).__init__(parent)
-        
+        self.loadUi()
         self._showXcol = showXcol
         
         if curves is None:
             curves = [CurveItemConf()]
-        self.ui = Ui_CurveItemConfDlg()
-        self.ui.setupUi(self)
-        
         #add the NeXusWidget if extra_nexus is available
         try:
             from taurus.qt.qtgui.extra_nexus import TaurusNeXusBrowser

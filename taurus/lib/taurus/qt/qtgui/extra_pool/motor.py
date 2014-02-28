@@ -30,10 +30,7 @@ motor.py:
 
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from ui_taurusmotorh import Ui_TaurusMotorH
-from ui_taurusmotorh2 import Ui_TaurusMotorH2
-from ui_taurusmotorv import Ui_TaurusMotorV
-from ui_taurusmotorv2 import Ui_TaurusMotorV2
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
 def showDialogConfigureMotor(parent):
@@ -45,6 +42,7 @@ def showDialogConfigureMotor(parent):
     Dialog.show()
 
 
+@UILoadable(with_ui='ui')
 class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -52,8 +50,7 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
     def __init__(self, parent = None, designMode = False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
-        self.ui = Ui_TaurusMotorH()
-        self.ui.setupUi(self)
+        self.loadUi()
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
@@ -103,7 +100,7 @@ class TaurusMotorH(Qt.QWidget, TaurusBaseWidget):
     showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
 
    
-
+@UILoadable(with_ui='ui')
 class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
     
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -111,8 +108,7 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
     def __init__(self, parent = None, designMode = False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
-        self.ui = Ui_TaurusMotorH2()
-        self.ui.setupUi(self)
+        self.loadUi()
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
@@ -163,6 +159,7 @@ class TaurusMotorH2(Qt.QWidget, TaurusBaseWidget):
     showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
 
 
+@UILoadable(with_ui='ui')
 class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
     
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -170,8 +167,7 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
     def __init__(self, parent = None, designMode = False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
-        self.ui = Ui_TaurusMotorV()
-        self.ui.setupUi(self)
+        self.loadUi()        
         Qt.QObject.connect(self.ui.config, Qt.SIGNAL("clicked()"), self.configureMotor)
 
     def sizeHint(self):
@@ -222,6 +218,7 @@ class TaurusMotorV(Qt.QWidget, TaurusBaseWidget):
     showText = Qt.pyqtProperty("bool", getShowText,setShowText,resetShowText)
 
 
+@UILoadable(with_ui='ui')
 class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
     
     __pyqtSignals__ = ("modelChanged(const QString &)",)
@@ -229,8 +226,7 @@ class TaurusMotorV2(Qt.QWidget, TaurusBaseWidget):
     def __init__(self, parent = None, designMode = False):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()), designMode=designMode)
-        self.ui = Ui_TaurusMotorV2()
-        self.ui.setupUi(self)
+        self.loadUi()
 
     def sizeHint(self):
         return Qt.QSize(300,275)

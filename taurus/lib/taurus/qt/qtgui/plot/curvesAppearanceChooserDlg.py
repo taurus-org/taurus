@@ -29,11 +29,13 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
-from taurus.qt import Qt, Qwt5
-from ui import ui_curvesAppearanceChooser
-from taurus.qt.qtgui.resource import getIcon
-from taurus.core.util.containers import CaselessDict
 import copy
+
+from taurus.qt import Qt, Qwt5
+from taurus.core.util.containers import CaselessDict
+from taurus.qt.qtgui.resource import getIcon
+from taurus.qt.qtgui.util.ui import UILoadable
+
 
 NamedLineStyles={None:"",
                 Qt.Qt.NoPen:"No line",
@@ -81,7 +83,9 @@ for k,v in NamedSymbolStyles.iteritems(): ReverseNamedSymbolStyles[v]=k
 
 NamedColors=["Black","Red","Blue","Magenta","Green","Cyan","Yellow","Gray","White"]
 
-class CurvesAppearanceChooser(Qt.QWidget,ui_curvesAppearanceChooser.Ui_curvesAppearanceChooserDlg):
+
+@UILoadable
+class CurvesAppearanceChooser(Qt.QWidget):
     """
     A widget for choosing plot appearance for one or more curves.
     The current curves properties are passed using the setCurves() method using
@@ -92,11 +96,13 @@ class CurvesAppearanceChooser(Qt.QWidget,ui_curvesAppearanceChooser.Ui_curvesApp
     where propX is an instance of :class:`CurveAppearanceProperties`
     When applying, a signal is emitted and the chosen properties are made
     available in a similar dictionary. """
+
     NAME_ROLE = Qt.Qt.UserRole
+    
     def __init__(self, parent=None, curvePropDict={}, showButtons=False, autoApply=False, designMode=False):
         #try:
             super(CurvesAppearanceChooser,self).__init__(parent)
-            self.setupUi(self)
+            self.loadUi()
             self.autoApply=autoApply
             self.sStyleCB.insertItems(0,sorted(NamedSymbolStyles.values()))
             self.lStyleCB.insertItems(0,NamedLineStyles.values())
