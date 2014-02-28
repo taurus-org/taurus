@@ -42,6 +42,7 @@ from sardana.taurus.core.tango.sardana import PlotType
 from sardana.macroserver.macro import Type
 from sardana.macroserver.scan.recorder.datarecorder import DataRecorder, \
     DataFormats, SaveModes
+from taurus.core.util.containers import chunks
 
 
 class BaseFileRecorder(DataRecorder):
