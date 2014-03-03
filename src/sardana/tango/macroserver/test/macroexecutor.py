@@ -20,7 +20,7 @@ class TangoResultCb(TangoAttrCb):
             result = event_data.errors
         else:
             result = event_data.attr_value.value
-            print 'TangoResultCb.push_event: result = ', result
+            #print 'TangoResultCb.push_event: result = ', result
         self._tango_macro_executor._result = result
 
 
@@ -73,10 +73,10 @@ class TangoStatusCb(TangoAttrCb):
         for macro_status in data:
             state = macro_status['state']
             if state in self.START_STATES:
-                print 'TangoStatusCb.push_event: setting _started_event'
+                #print 'TangoStatusCb.push_event: setting _started_event'
                 tango_macro_executor._started_event.set()
             elif state in self.DONE_STATES:
-                print 'TangoStatusCb.push_event: setting _done_event'
+                #print 'TangoStatusCb.push_event: setting _done_event'
                 tango_macro_executor._done_event.set()
             tango_macro_executor._state_buffer.append(state)
 
@@ -131,14 +131,14 @@ class TangoMacroExecutor(BaseMacroExecutor):
         id_log =  self._door.subscribe_event(log_level,
                                              PyTango.EventType.CHANGE_EVENT, 
                                              log_cb)
-        print 'subscribed %s with id %d' % (log_level, id_log)
+        #print 'subscribed %s with id %d' % (log_level, id_log)
         setattr(self, id_log_name, id_log)
         
     def _unregisterLog(self, log_level):
         id_log_name = '_%s_id' % log_level
         id_log = getattr(self, id_log_name)
         self._door.unsubscribe_event(id_log)
-        print 'unsubscribed %s with id %d' % (log_level, id_log)
+        #print 'unsubscribed %s with id %d' % (log_level, id_log)
         
     def _registerResult(self, result):
         result_cb = TangoResultCb(self)

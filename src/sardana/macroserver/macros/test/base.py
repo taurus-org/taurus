@@ -53,14 +53,26 @@ class BaseMacroTestCase(object):
         Preconditions: 
         
         """
-        if self.macro_name is None:
-            self.skipTest('_macro_name is None')
-            return
         
+        if self.macro_name is None:
+            raise Exception('_macro_name is None') 
+
         unittest.TestCase.setUp(self)
         
         mefact = MacroExecutorFactory()
         self.macro_executor = mefact.getMacroExecutor(self.door_name)
+
+class RunMacroTestCase(BaseMacroTestCase):
+    #TODO how to pass necessary class members from the super class?
+    '''A base class for testing execution of arbitrary Sardana macros.
+    
+    To use it, simply inherit from RunMacroTestCase *and* unittest.TestCase
+    and provide the following class members:
+      - run_timeout (float): normal macro execution should not exceed this time
+    '''
+    
+    wait_timeout = 3.
+    sync = True
 
     def assertFinished(self, msg):
         '''Asserts that macro has finished.'''
@@ -71,33 +83,14 @@ class BaseMacroTestCase(object):
         msg = msg + '; State was buffer %s' % state_buffer
         self.assertIn(state, finishStates, msg)
 
-    def assertStopped(self, msg):
-        '''Asserts that macro was stopped'''
-        stoppedStates = [u'stop']
-        state = self.macro_executor.getState()
-        #TODO buffer is just for debugging, attach only the last state
-        state_buffer = self.macro_executor.getStateBuffer()
-        msg = msg + '; State buffer was %s' % state_buffer
-        self.assertIn(state, stoppedStates, msg)          
-
-class RunMacroTestCase(BaseMacroTestCase):
-    #TODO how to pass necessary class members from the super class?
-    '''A base class for testing execution of arbitrary Sardana macros
-    
-    To use it, simply inherit from RunMacroTestCase *and* unittest.TestCase
-    and provide the following class members:
-      - run_timeout (float): normal macro execution should not exceed this time
-    '''
-
-    wait_timeout = 3.
-    
     def setUp(self):
         '''
         Preconditions: 
         - Those from :class:`BaseWidgetTestCase`
         '''
         BaseMacroTestCase.setUp(self)
-               
+        
+                  
     def test_Run(self):
         '''Check that the macro can be executed'''
         self.macro_executor.run(macro_name = self.macro_name, 
@@ -106,11 +99,12 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.assertFinished('Macro %s did not finish' % self.macro_name)
         #TODO debug stream
         print self.macro_executor.getStateBuffer()
-    
-        
-class StopMacroTestCase(BaseMacroTestCase):
-    '''A base class for testing common cases of arbitrary Sardana macros
-    
+     
+
+class RunStopMacroTestCase(RunMacroTestCase):
+    '''A base class for testing common cases of arbitrary Sardana macros.
+       Useful for Runnable and Stopable macros.
+
     To use it, simply inherit from StopMacroTestCase *and* unittest.TestCase
     and provide the following class members:
       - stop_delay (float): macro will be stopped after this amount of time
@@ -125,20 +119,31 @@ time
     '''
 
     stop_delay = None
-    wait_timeout = 3.
-    
+    sync = False
+
+    def assertStopped(self, msg):
+        '''Asserts that macro was stopped'''
+        stoppedStates = [u'stop']
+        state = self.macro_executor.getState()
+        #TODO buffer is just for debugging, attach only the last state
+        state_buffer = self.macro_executor.getStateBuffer()
+        msg = msg + '; State buffer was %s' % state_buffer
+        self.assertIn(state, stoppedStates, msg) 
+
     def setUp(self):
         '''
         Preconditions: 
-        - Those from :class:`BaseWidgetTestCase`
+        - Those from :class:`RunMacroTestCase`
         '''
-        BaseMacroTestCase.setUp(self)
-                   
+        RunMacroTestCase.setUp(self)
+   
     def test_Stop(self):
         '''Check that the macro can be aborted'''
+        self.sync = False    
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = self.macro_params, 
                                  sync = False)
+
         if not self.stop_delay is None:
             time.sleep(self.stop_delay)
         self.macro_executor.stop()
@@ -146,10 +151,5 @@ time
         self.assertStopped('Macro %s did not stop' % self.macro_name)
         #TODO debug stream
         print self.macro_executor.getStateBuffer()
-        
-class GenericMacroTestCase(RunMacroTestCase, StopMacroTestCase):
-    #TODO setUp is called twice! maybe it is not the best solution
-    
-    def setUp(self):
-        RunMacroTestCase.setUp(self)
-        StopMacroTestCase.setUp(self)
+
+

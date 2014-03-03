@@ -29,38 +29,37 @@ import unittest
 from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
-from sardana import sardanacustomsettings
+from sardemoparsing import SarDemoParsing
 
-class LsmTest(RunMacroTestCase, unittest.TestCase):
-
-    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
-    macro_name = "lsm"
+class LsTest(RunMacroTestCase, unittest.TestCase):
 
     def setUp(self):
         RunMacroTestCase.setUp(self)
         self.macro_executor.registerAll()
-        self.element = "gap05"
 
     def testFindElement(self):
+        _output = self.macro_executor.getLog("output")
+        msg = "generic ls macro does not contain elements"
+        self.assertTrue(len(_output) > 0, msg)
 
-        screen_output = self.macro_executor.getLog("output")
-        output = screen_output[0]
+class LsmTest(LsTest):
+    macro_name = "lsm"
+    sar_demo = SarDemoParsing()
 
-        print("\n")
-        count_element = False
+    def setUp(self):
+        LsBasicTest.setUp(self)
+        self.motorlist = self.sar_demo.getMotors() + \
+                            self.sar_demo.getPseudoMotors()
+
+    def testFindAllSarDemoMotors(self):
+        _output = self.macro_executor.getLog("output")
+        output = _output[0]
+        #parsing output to get all motors
+        output_ml = []
         for i in range (len(output)):
+            output_ml.append(output[i].split()[0])
 
-            print(output[i])
-            if (output[i].find(self.element) != -1):
-                count_element = True
-
-        msg = "lsm does not contain {0}".format(self.element)
-        self.assertTrue(count_element, msg)
-        print("\n")
-
-
-
-
-
-        
+        for i in self.motorlist:
+            msg = "lsm does not contain {0}".format(i)
+            self.assertTrue(i in output_ml, msg)
 

@@ -27,16 +27,20 @@
 
 import unittest
 from sardana.tango.macroserver.test import TangoMacroExecutor
-from sardana.macroserver.macros.test import GenericMacroTestCase
+from sardana.macroserver.macros.test import RunStopMacroTestCase
 
 
-class ScanTest(GenericMacroTestCase):
+def getMotors():
+    from sardemoparsing import SarDemoParsing
+    sar_demo = SarDemoParsing()
+    return sar_demo.getMotors()
 
-    logOutput = {}
-    logInfo = {}
+class ScanTest(RunStopMacroTestCase):
+
+    motor_list = getMotors()
 
     def setUp(self):
-        GenericMacroTestCase.setUp(self)
+        RunStopMacroTestCase.setUp(self)
 
         self.macro_executor.registerAll()
         self.motor = self.macro_params[0]
@@ -95,16 +99,17 @@ class ScanTest(GenericMacroTestCase):
 
         logInfo = self.macro_executor.getLog('info')
 
-
     def tearDown(self):
         #self.macro_executor.unregisterAll()
-        pass
+        pass  
 
+
+    
 
 class AscanTest(ScanTest, unittest.TestCase):
     macro_name = 'ascan'
     #TODO use generator to get a arbitrary motor from sar_demo
-    macro_params = ['mot17', '0', '1', '10', '.1']
+    macro_params = [ScanTest.motor_list[0], '0', '1', '10', '.1']
     run_timeout = 3.
 
     def test00_outputLog(self):
@@ -117,21 +122,13 @@ class AscanTest(ScanTest, unittest.TestCase):
 
 class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
-    #TODO use generator to get a arbitrary motor from sar_demo
-    macro_params = ['mot17', '0', '1', '10', '.1']
+
+    macro_params = [ScanTest.motor_list[0], '0', '1', '10', '.1']
     run_timeout = 3.
 
     def test00_outputLog(self):
         ScanTest.test00_outputLog(self)
-        self.assertAlmostEqual(self.data[0][1] - self.data[-1][1],
-                               self.initPos - self.finalPos,
-                               "")
-
-
-if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(AscanTest)
-    unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
-
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(DscanTest)
-    unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
+        #self.assertAlmostEqual(self.data[0][1] - self.data[-1][1],
+        #                       self.initPos - self.finalPos,
+        #                       "")
 

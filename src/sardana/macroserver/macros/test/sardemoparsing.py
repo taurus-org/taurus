@@ -40,8 +40,8 @@ class SarDemoParsing(Singleton):
         try:
             door = Device(door_name)
             self.ms = door.macro_server
-        except:
-            raise ValueError 'The  door %s does not exist' %(door_name)
+        except ValueError:
+            raise 'The  door %s does not exist' %(door_name)
         
         self.cts = []
         self.motors = []
