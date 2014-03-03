@@ -467,9 +467,9 @@ class TangoAttribute(TaurusAttribute):
                 self.fireEvent(TaurusEventType.Change, self.__attr_value,
                                listeners=listeners)
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
-            self.error("activate polling because %s", event.errors[0].reason)
             if self.isPollingActive():
                 return
+            self.info("Activating polling. Reason: %s", event.errors[0].reason)
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
         else:
