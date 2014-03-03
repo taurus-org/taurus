@@ -31,7 +31,7 @@ from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
 from sardemoparsing import SarDemoParsing
 
-class LsTest(RunMacroTestCase, unittest.TestCase):
+class LsTest(RunMacroTestCase):
 
     def setUp(self):
         RunMacroTestCase.setUp(self)
@@ -42,12 +42,12 @@ class LsTest(RunMacroTestCase, unittest.TestCase):
         msg = "generic ls macro does not contain elements"
         self.assertTrue(len(_output) > 0, msg)
 
-class LsmTest(LsTest):
+class LsmTest(LsTest, unittest.TestCase):
     macro_name = "lsm"
     sar_demo = SarDemoParsing()
 
     def setUp(self):
-        LsBasicTest.setUp(self)
+        LsTest.setUp(self)
         self.motorlist = self.sar_demo.getMotors() + \
                             self.sar_demo.getPseudoMotors()
 
