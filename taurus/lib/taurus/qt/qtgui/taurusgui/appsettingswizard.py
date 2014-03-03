@@ -51,10 +51,13 @@ import taurus.qt.qtgui.input
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
 
-from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
-    TaurusMacroConfigurationDialog
-
-
+try:
+    from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
+        TaurusMacroConfigurationDialog
+    SARDANA_INSTALLED = True
+except:
+    SARDANA_INSTALLED = False
+    
 class BooleanWidget(Qt.QWidget):
     """
     This class represents the simple boolean widget with two RadioButtons
@@ -119,12 +122,6 @@ class BasePage(Qt.QWizardPage):
 
     def _setupUI(self):
         pass
-
-    def __setitem__(self, name, value):
-        self._item_funcs[name] = value
-
-    def __getitem__(self, name):
-        return self._item_funcs[name]
 
     def checkData(self):
         self._valid = True
@@ -919,8 +916,6 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
         self._setIcon(ExternalAppAction.DEFAULT_ICON_NAME)
 
-    def _getExecFile(self):
-        return self._execFileLineEdit.text()
 
     def checkData(self):
         if len(self._execFileLineEdit.text()) > 0:
@@ -942,6 +937,9 @@ class ExternalAppEditor(Qt.QDialog):
         if len(filePath):
             self._execFileLineEdit.setText(filePath)
             self._setDefaultText()
+            
+    def _getExecFile(self):
+        return str(self._execFileLineEdit.text())
 
     def _selectIcon(self):
         iconNameList = []
@@ -992,10 +990,6 @@ class ExternalAppEditor(Qt.QDialog):
         else:
             self._iconLogo.setText(name)
             self._icon = name
-
-
-    def _getExecFile(self):
-        return str(self._execFileLineEdit.text())
 
     def _getParams(self):
         return str(self._paramsLineEdit.text())
@@ -1458,15 +1452,20 @@ class AppSettingsWizard(Qt.QWizard):
 
         synoptic_page = SynopticPage()
         self.setPage(self.Pages.SynopticPage, synoptic_page)
-        synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
-
-        macroserver_page = MacroServerInfoPage()
-        self.setPage(self.Pages.MacroServerInfo, macroserver_page)
-        macroserver_page.setNextPageId(self.Pages.InstrumentsPage)
-
-        instruments_page = InstrumentsPage()
-        self.setPage(self.Pages.InstrumentsPage, instruments_page)
-        instruments_page.setNextPageId(self.Pages.PanelsPage)
+        
+        if SARDANA_INSTALLED:
+            synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
+            
+            macroserver_page = MacroServerInfoPage()
+            self.setPage(self.Pages.MacroServerInfo, macroserver_page)
+            macroserver_page.setNextPageId(self.Pages.InstrumentsPage)
+            
+            instruments_page = InstrumentsPage()
+            self.setPage(self.Pages.InstrumentsPage, instruments_page)
+            instruments_page.setNextPageId(self.Pages.PanelsPage) 
+            
+        else:
+            synoptic_page.setNextPageId(self.Pages.PanelsPage)
 
         panels_page = PanelsPage()
         self.setPage(self.Pages.PanelsPage, panels_page)
@@ -1534,7 +1533,7 @@ class AppSettingsWizard(Qt.QWizard):
                         self._projectWarnings.append((short, long))
 
         #macroserver page
-        if self.__getitem__("macroServerName"):
+        if SARDANA_INSTALLED and self.__getitem__("macroServerName"):
             macroServerName = etree.SubElement(root, "MACROSERVER_NAME")
             macroServerName.text = self.__getitem__("macroServerName")
             doorName = etree.SubElement(root, "DOOR_NAME")
