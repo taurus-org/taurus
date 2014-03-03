@@ -35,6 +35,7 @@ def getMotors():
     sar_demo = SarDemoParsing()
     return sar_demo.getMotors()
 
+
 class ScanTest(RunStopMacroTestCase):
 
     motor_list = getMotors()
@@ -42,17 +43,15 @@ class ScanTest(RunStopMacroTestCase):
     def setUp(self):
         RunStopMacroTestCase.setUp(self)
 
-        self.macro_executor.registerAll()
         self.motor = self.macro_params[0]
         self.initPos = float(self.macro_params[1])
         self.finalPos = float(self.macro_params[2])
         self.steps = int(self.macro_params[3])
         self.dt = float(self.macro_params[4])
 
-    def test00_outputLog(self):
-        self.macro_executor.run(macro_name = self.macro_name, 
-                                macro_params = self.macro_params, 
-                                sync = True)
+    def test_Run(self):
+        RunStopMacroTestCase.test_Run(self)
+
         logOutput = self.macro_executor.getLog('output')
         #import pdb; pdb.set_trace()
         # loginfo - 1 not counting titles
@@ -100,11 +99,8 @@ class ScanTest(RunStopMacroTestCase):
         logInfo = self.macro_executor.getLog('info')
 
     def tearDown(self):
-        #self.macro_executor.unregisterAll()
         pass  
 
-
-    
 
 class AscanTest(ScanTest, unittest.TestCase):
     macro_name = 'ascan'
@@ -112,13 +108,12 @@ class AscanTest(ScanTest, unittest.TestCase):
     macro_params = [ScanTest.motor_list[0], '0', '1', '10', '.1']
     run_timeout = 3.
 
-    def test00_outputLog(self):
-        ScanTest.test00_outputLog(self)
+    def test_Run(self):
+        ScanTest.test_Run(self)
         self.assertEqual(self.data[0][1], self.initPos,
                          "Initial possition differs from set value")
         self.assertEqual(self.data[-1][1], self.finalPos,
                          "Final possition differs from set value")
-
 
 class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
@@ -126,8 +121,8 @@ class DscanTest(ScanTest, unittest.TestCase):
     macro_params = [ScanTest.motor_list[0], '0', '1', '10', '.1']
     run_timeout = 3.
 
-    def test00_outputLog(self):
-        ScanTest.test00_outputLog(self)
+    def test_Run(self):
+        ScanTest.test_Run(self)
         #self.assertAlmostEqual(self.data[0][1] - self.data[-1][1],
         #                       self.initPos - self.finalPos,
         #                       "")

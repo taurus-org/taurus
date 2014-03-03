@@ -93,6 +93,7 @@ class RunMacroTestCase(BaseMacroTestCase):
                   
     def test_Run(self):
         '''Check that the macro can be executed'''
+        self.macro_executor.registerAll()
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = self.macro_params,
                                  sync = True, timeout = self.wait_timeout)
