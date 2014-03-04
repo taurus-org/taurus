@@ -185,11 +185,11 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
     def getSplineObj(self, params):
         item = self.getGraphicsItem('Spline', params)
-                
         p = params.get('summit')
         p = [Qt.QPointF(p[i],p[i+1]) for i in xrange(0,len(p),2)]
         item.setControlPoints(p)
-
+        isClosed = params.get('isClosed', True)
+        item.setClose(isClosed)
         return item
 
     def getLabelObj(self, params):

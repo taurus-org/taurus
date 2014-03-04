@@ -748,38 +748,34 @@ class QSpline(Qt.QGraphicsPathItem):
 
     def setControlPoints(self, control_points):
         self.__control_points = control_points
-    
-    def clearPath(self):
-        path = Qt.QPainterPath()
-        self.setPath(path)
-        return path
+        self.updateSplinePath()
 
-    def nextMiddlePoint(self, i):
-        cp = self.__control_points
-        p1, p2 = cp[i], cp[(i+1)%len(cp)]
-        return p1+0.5*(p2-p1)
+    def setClose(self, isClosed):
+        if self.__closed == isClosed:
+            return
+        self.__closed = isClosed
+        self.updateSplinePath()
 
     def updateSplinePath(self):
-        path = self.clearPath()
+        path = Qt.QPainterPath()
         cp = self.__control_points
         nb_points = len(cp)
-        nmp = self.nextMiddlePoint
-        if nb_points == 0:
-            return
+        if nb_points <= 1:
+            pass
         elif nb_points == 2:
             path.moveTo(cp[0])
             path.lineTo(cp[1])
         else:
+            path.moveTo(cp[0])
+            for i in xrange(1, nb_points - 1, 3):
+                p1 = cp[i + 0]
+                p2 = cp[i + 1]
+                end = cp[i + 2]
+                path.cubicTo(p1, p2, end)
             if self.__closed:
-                path.moveTo(nmp(0))
-                for i in range(1, nb_points):
-                    path.quadTo(cp[i], nmp(i))
-            else:
-                path.moveTo(cp[0])
-                path.lineTo(nmp(0))
-                for i in range(1, nb_points-1):
-                    path.quadTo(cp[i], nmp(i))
-                path.lineTo(cp[nb_points-1])
+                path.lineTo(cp[0])
+
+        self.setPath(path)
 
 
 class TaurusGraphicsItem(TaurusBaseComponent):
