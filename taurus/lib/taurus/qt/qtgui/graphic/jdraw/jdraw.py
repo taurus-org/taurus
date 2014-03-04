@@ -192,9 +192,12 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         return item
 
-    def getLabelObj(self,params):
-        item = self.getGraphicsItem('Label',params)
+    def getLabelObj(self, params):
+        item = self.getGraphicsItem('Label', params)
+        self.readLabelObj(item, params)
+        return item
 
+    def readLabelObj(self, item, params):
         origin = params.get('origin')
         item.setPos(origin[0], origin[1])
 
@@ -237,8 +240,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                 txt = '\n'.join(txt)            
             item.setPlainText(Qt.QString(txt))
             item._currText = txt
-        return item        
-    
+
     def getGroupObj(self,params):
         item = self.getGraphicsItem('Group',params)
         s = params.get('summit')
@@ -252,16 +254,20 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                     item.addToGroup(child)
         if item._fillStyle: self.set_item_filling(item,expand=True)
         return item
-    
+
     def getSwingObjectObj(self,params):
         item = self.getGraphicsItem('SwingObject', params)
         s = params.get('summit')
         x1, y1 = s[0], s[1]
         item.setPos(x1,y1)
         ext = params.get('extensions')
-        #Font size and type is set at set_common_params
+
+        className = params.get('className')
+        if className == "fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer":
+            self.readLabelObj(item, params)
+
         return item
-    
+
     def getImageObj(self,params):
         item = self.getGraphicsItem('Image',params)
         s = params.get('summit')
