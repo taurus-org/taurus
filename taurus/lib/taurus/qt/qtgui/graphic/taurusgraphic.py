@@ -1021,6 +1021,21 @@ class TaurusRectStateItem(Qt.QGraphicsRectItem, TaurusGraphicsStateItem):
             self.setBrush(self._currBgBrush)
         Qt.QGraphicsRectItem.paint(self,painter,option,widget)
 
+
+class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
+
+    def __init__(self, name=None, parent=None, scene=None):
+        name = name or self.__class__.__name__
+        QSpline.__init__(self, parent, scene)
+        self.call__init__(TaurusGraphicsStateItem, name, parent)
+
+    def paint(self, painter, option, widget):
+        if self._currBgBrush:
+            self._currBgBrush.setStyle(self.brush().style())
+            self.setBrush(self._currBgBrush)
+        QSpline.paint(self, painter, option, widget)
+
+
 class TaurusGroupStateItem(Qt.QGraphicsItemGroup, TaurusGraphicsStateItem):
 
     def __init__(self, name = None, parent = None, scene = None):
@@ -1114,7 +1129,7 @@ TYPE_TO_GRAPHICS = {
                            "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
-                           "Spline"         : QSpline, },
+                           "Spline"         : TaurusSplineStateItem, },
 
     TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
@@ -1125,7 +1140,7 @@ TYPE_TO_GRAPHICS = {
                            "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
-                           "Spline"         : QSpline, },
+                           "Spline"         : TaurusSplineStateItem, },
 }
 
 
