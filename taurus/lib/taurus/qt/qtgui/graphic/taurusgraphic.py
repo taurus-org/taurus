@@ -830,6 +830,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
         self.setName(self._extensions.get('name',self._name))
         self._unitVisible = str(self._extensions.get('unitVisible',True)).lower().strip() in ('yes','true','1')
+        self._userFormat = self._extensions.get('userFormat', None)
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
         #self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
         self.setToolTip(tooltip)
@@ -892,6 +893,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
         name = name or self.__class__.__name__
         self._unitVisible = True
         self._currValue = None
+        self._userFormat = None
         self.call__init__(TaurusGraphicsItem, name, parent)
 
     def getUnit(self):
@@ -917,7 +919,13 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 #self._currHtmlText += "</tr></table>"
                 self._currHtmlText = QT_ATTRIBUTE_QUALITY_PALETTE.htmlStyle('P',quality)
                 unit = (self._unitVisible and self.getUnit()) or ''
-                self._currHtmlText += "<p class='%s'>%s%s</p>" % (quality,self._currText,' '+unit if unit else '')            
+                if self._userFormat:
+                    text = self._userFormat % (v.value)
+                    if unit:
+                        text += ' ' + unit
+                else:
+                    text = "%s%s" % (self._currText,' '+unit if unit else '')
+                self._currHtmlText += "<p class='%s'>%s</p>" % (quality, text)
                 self._currHtmlText = self._currHtmlText.decode('unicode-escape')
             except:
                 self.warning('In TaurusGraphicsAttributeItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
@@ -928,6 +936,9 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
             self._currHtmlText = self.currText
         
         TaurusGraphicsItem.updateStyle(self)
+
+    def setUserFormat(self, format):
+        self._userFormat = format
 
     def setUnitVisible(self,yesno):
         self._unitVisible = yesno
