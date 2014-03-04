@@ -324,7 +324,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         try: 
             obj = self.getItemClicked(mouseEvent)
             obj_name = getattr(obj,'_name', '')
-            if not obj_name and isinstance(obj,Qt.QGraphicsTextItem): obj_name = obj.toPlainText()
+            if not obj_name and isinstance(obj,QGraphicsTextBoxing): obj_name = obj.toPlainText()
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 ## A null obj_name should deselect all, we don't send obj because we want all similar to be matched                
                 if self.selectGraphicItem(obj_name):
@@ -644,6 +644,99 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return
 
 
+class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
+    """Display a text inside a virtual box. Support horizontal and vertical alignment"""
+
+    _TEXT_RATIO = 0.8
+
+    def __init__(self, parent=None, scene=None):
+        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+        self._rect = Qt.QGraphicsRectItem(self, scene)
+        self._rect.setBrush(Qt.QBrush(Qt.Qt.NoBrush))
+        self._rect.setPen(Qt.QPen(Qt.Qt.NoPen))
+        self._text = Qt.QGraphicsTextItem(self, scene)
+        self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
+        # using that like the previous code create a worst result
+        self.__layoutValide = True
+        self._alignment = Qt.Qt.AlignCenter | Qt.Qt.AlignVCenter
+
+    def setRect(self, x, y, width, height):
+        self._rect.setRect(x, y, width, height)
+        self._invalidateLayout()
+
+    def setPlainText(self, text):
+        self._text.setPlainText(text)
+        self._invalidateLayout()
+
+    def toPlainText(self):
+        return self._text.toPlainText()
+
+    def brush(self):
+        return self._rect.brush()
+
+    def setBrush(self, brush):
+        self._rect.setBrush(brush)
+
+    def setPen(self, pen):
+        self._text.setDefaultTextColor(pen.color())
+
+    def setDefaultTextColor(self, color):
+        self._text.setDefaultTextColor(color)
+
+    def setHtml(self, html):
+        self._text.setHtml(html)
+        self._invalidateLayout()
+
+    def setFont(self, font):
+        self._text.setFont(font)
+        self._invalidateLayout()
+
+    def setAlignment(self, alignment):
+        self._alignment = alignment
+        self._invalidateLayout()
+
+    def _invalidateLayout(self):
+        """Invalidate the current location of the text"""
+        if not self.__layoutValide:
+            return
+        self.__layoutValide = False
+        self.update()
+
+    def _validateLayout(self):
+        """Compute the text location"""
+        if self.__layoutValide:
+            return
+
+        rect = self._rect.rect()
+        width, height = rect.width(), rect.height()
+        textRect = self._text.boundingRect()
+
+        # horizontal layout
+        x = rect.x()
+        alignment = int(self._alignment)
+        if (alignment & int(Qt.Qt.AlignLeft)) != 0:
+            x += 0
+        elif (alignment & int(Qt.Qt.AlignHCenter)) != 0:
+            x += width * 0.5 - textRect.width() * 0.5 * self._TEXT_RATIO
+        elif (alignment & int(Qt.Qt.AlignRight)) != 0:
+            x += width - textRect.width() * self._TEXT_RATIO
+
+        # vertical layout
+        y = rect.y()
+        if (alignment & int(Qt.Qt.AlignTop)) != 0:
+            y += 0
+        elif (alignment & int(Qt.Qt.AlignVCenter)) != 0:
+            y += height * 0.5 - textRect.height() * 0.5 * self._TEXT_RATIO
+        elif (alignment & int(Qt.Qt.AlignBottom)) != 0:
+            y += height - textRect.height() * self._TEXT_RATIO
+
+        self._text.setPos(x, y)
+        self.__layoutValide = True
+
+    def paint(self, painter, option, widget):
+        self._validateLayout()
+        Qt.QGraphicsItemGroup.paint(self, painter, option, widget)
+
 class QSpline(Qt.QGraphicsPathItem):
 
     def __init__(self, parent=None, closed=False, control_points=None):
@@ -956,32 +1049,32 @@ class TaurusLineStateItem(Qt.QGraphicsLineItem,TaurusGraphicsStateItem):
         if self._currBgBrush:
             self._currBgBrush.setStyle(self.brush().style())
             self.setBrush(self._currBgBrush)
-        Qt.QGraphicsLineItem.paint(self,painter,option,widget)
-        
-class TaurusTextStateItem(Qt.QGraphicsTextItem, TaurusGraphicsStateItem):
+        Qt.QGraphicsLineItem.paint(self, painter, option, widget)
+
+class TaurusTextStateItem(QGraphicsTextBoxing, TaurusGraphicsStateItem):
     """
     A QGraphicsItem that represents a text related to a device state or attribute quality
     """      
-    def __init__(self, name = None, parent = None, scene = None):
+    def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsTextItem.__init__(self, parent, scene)
+        QGraphicsTextBoxing.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
         
     def paint(self,painter,option,widget):
         if self._currHtmlText:
             self.setHtml(self._currHtmlText)
         else:
-            self.setPlainText(self._currText or '') 
-        Qt.QGraphicsTextItem.paint(self,painter,option,widget)
+            self.setPlainText(self._currText or '')
+        QGraphicsTextBoxing.paint(self, painter, option, widget)
 
 
-class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem, Qt.QGraphicsRectItem):
+class TaurusTextAttributeItem(QGraphicsTextBoxing, TaurusGraphicsAttributeItem):
     """
     A QGraphicsItem that represents a text related to an attribute value
     """
-    def __init__(self, name = None, parent = None, scene = None):
+    def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsTextItem.__init__(self, parent, scene)
+        QGraphicsTextBoxing.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsAttributeItem, name, parent)
         
     def paint(self,painter,option,widget):
@@ -990,28 +1083,28 @@ class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem,
             self.setHtml(self._currHtmlText)
         else:
             self.setPlainText(self._currText or '')
-        Qt.QGraphicsTextItem.paint(self,painter,option,widget)
+        QGraphicsTextBoxing.paint(self, painter, option, widget)
 
 
-TYPE_TO_GRAPHICS = { 
+TYPE_TO_GRAPHICS = {
     None : { "Rectangle"      : Qt.QGraphicsRectItem,
              "RoundRectangle" : Qt.QGraphicsRectItem,
              "Ellipse"        : Qt.QGraphicsEllipseItem,
              "Polyline"       : Qt.QGraphicsPolygonItem,
-             "Label"          : Qt.QGraphicsTextItem,
+             "Label"          : QGraphicsTextBoxing,
              "Line"           : Qt.QGraphicsLineItem,
-             "Group"          : Qt.QGraphicsItemGroup, 
-             "SwingObject"    : Qt.QGraphicsRectItem, 
+             "Group"          : Qt.QGraphicsItemGroup,
+             "SwingObject"    : Qt.QGraphicsRectItem,
              "Image"          : Qt.QGraphicsPixmapItem,
              "Spline"         : QSpline, },
-             
+
     TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
-                           "Polyline"       : TaurusPolygonStateItem, 
+                           "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextStateItem,
-                           "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
-                           "Group"          : TaurusGroupStateItem, 
+                           "Line"           : Qt.QGraphicsLineItem,  #TaurusLineStateItem,
+                           "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
                            "Spline"         : QSpline, },
@@ -1019,10 +1112,10 @@ TYPE_TO_GRAPHICS = {
     TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
-                           "Polyline"       : TaurusPolygonStateItem, 
+                           "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextAttributeItem,
-                           "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
-                           "Group"          : TaurusGroupStateItem, 
+                           "Line"           : Qt.QGraphicsLineItem,  #TaurusLineStateItem,
+                           "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
                            "Spline"         : QSpline, },
@@ -1103,8 +1196,6 @@ class TaurusBaseGraphicsFactory:
         self.set_common_params(item,params)
         if hasattr(item,'getExtensions'):
             item.getExtensions() #<= must be called here to take extensions from params
-        if 'text' in klass.__name__.lower():
-            item.scale(.8,.8)
         return item
 
     def getNameParam(self):
