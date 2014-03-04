@@ -49,16 +49,16 @@ LINESTYLE_JDW2QT = { 0: Qt.Qt.SolidLine,
 
 FILLSTYLE_JDW2QT = { 0: Qt.Qt.NoBrush,
                      1: Qt.Qt.SolidPattern,
-                     2: Qt.Qt.BDiagPattern,
-                     3: Qt.Qt.FDiagPattern,
+                     2: Qt.Qt.FDiagPattern,
+                     3: Qt.Qt.BDiagPattern,
                      4: Qt.Qt.DiagCrossPattern,
-                     5: Qt.Qt.BDiagPattern,
-                     6: Qt.Qt.FDiagPattern,
+                     5: Qt.Qt.FDiagPattern,
+                     6: Qt.Qt.BDiagPattern,
                      7: Qt.Qt.Dense5Pattern,
                      8: Qt.Qt.Dense7Pattern,
                      9: Qt.Qt.Dense6Pattern,
                      10:Qt.Qt.Dense4Pattern,
-                     11:Qt.Qt.RadialGradientPattern }
+                     11:Qt.Qt.LinearGradientPattern }
 
 TEXTHINT_JDW2QT = CaselessDict({ 
     'helvetica'  : Qt.QFont.Helvetica,
@@ -341,7 +341,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         if hasattr(item,'brush'):
             brush = Qt.QBrush()
-            if fillStyle == Qt.Qt.RadialGradientPattern:
+            if fillStyle == Qt.Qt.LinearGradientPattern:
                 ox, oy = params.get('origin', (0, 0))
                 gradient = Qt.QLinearGradient(ox + params.get('gradX1',0),
                                                 oy + params.get('gradY1',0),
