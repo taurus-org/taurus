@@ -38,21 +38,34 @@ class SarDemoParsing(Singleton):
             door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
         registerExtensions()
         try:
-            door = Device(door_name)
-            self.ms = door.macro_server
+            self.door = Device(door_name)
+            self.ms = self.door.macro_server
         except ValueError:
             raise 'The  door %s does not exist' %(door_name)
-        
+
+        self.controllers = []        
         self.cts = []
         self.motors = []
-        self.oneds = []
         self.pseudos = []
-        self.twods = []
         self.zerods = []
+        self.oneds = []
+        self.twods = []
+
         try:
             self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements']
+            self.envCtrl = self.ms.getEnvironment()['_SAR_DEMO']['controllers']
         except KeyError:
-            raise 'Macro SarDemo has not executed for this door %' %(door_name)   
+            raise 'sar_demo has not been executed for this door %' %(door_name)   
+        
+    def getControllers(self):
+        '''Return the name of controllers(s) defined by SarDemo 
+        '''
+        if len(self.controllers):
+            return self.controllers
+        controllers = self.ms.getElementNamesOfType('controller')
+        [self.controllers.append(i) 
+            for i in controllers if i in self.envCtrl is not None]
+        return self.controllers
             
     def getCTs(self):
         '''Return the name of counter timer exp channel(s) defined by SarDemo 
@@ -62,7 +75,7 @@ class SarDemoParsing(Singleton):
         cts = self.ms.getElementNamesOfType('ctexpchannel')
         [self.cts.append(i) for i in cts if i in self.env is not None]
         return self.cts
-        
+
     def getMotors(self):
         '''Return the name of motor(s) defined by SarDemo 
         '''
@@ -71,15 +84,6 @@ class SarDemoParsing(Singleton):
         motors = self.ms.getElementNamesOfType('motor')
         [self.motors.append(i) for i in motors if i in self.env is not None]
         return self.motors
-
-    def getOneds(self):
-        '''Return the name of one exp channel(s) defined by SarDemo 
-        '''
-        if len(self.oneds):
-            return self.oneds
-        oneds = self.ms.getElementNamesOfType('onedexpchannel')
-        [self.oneds.append(i) for i in oneds if i in self.env is not None]
-        return self.oneds
 
     def getPseudoMotors(self):
         '''Return the name of pseudomotor(s) defined by SarDemo 
@@ -90,15 +94,6 @@ class SarDemoParsing(Singleton):
         [self.pseudos.append(i) for i in pseudos if i in self.env is not None]
         return self.pseudos
 
-    def getTwods(self):
-        '''Return the name of two exp channel(s) defined by SarDemo 
-        '''
-        if len(self.twods):
-            return self.twods
-        twods = self.ms.getElementNamesOfType('twodexpchannel')
-        [self.twods.append(i) for i in twods if i in self.env is not None]
-        return self.twods
-
     def getZerods(self):
         '''Return the name of zerod exp channel(s) defined by SarDemo 
         '''
@@ -107,6 +102,24 @@ class SarDemoParsing(Singleton):
         zerods = self.ms.getElementNamesOfType('zerodexpchannel')
         [self.zerods.append(i) for i in zerods if i in self.env is not None]
         return self.zerods
+
+    def getOneds(self):
+        '''Return the name of one exp channel(s) defined by SarDemo 
+        '''
+        if len(self.oneds):
+            return self.oneds
+        oneds = self.ms.getElementNamesOfType('onedexpchannel')
+        [self.oneds.append(i) for i in oneds if i in self.env is not None]
+        return self.oneds
+
+    def getTwods(self):
+        '''Return the name of two exp channel(s) defined by SarDemo 
+        '''
+        if len(self.twods):
+            return self.twods
+        twods = self.ms.getElementNamesOfType('twodexpchannel')
+        [self.twods.append(i) for i in twods if i in self.env is not None]
+        return self.twods
     
     def changeDoor(self, door_name):
         '''Change the door name and reset all lists 
@@ -117,10 +130,13 @@ class SarDemoParsing(Singleton):
 if __name__ == '__main__':    
     s = SarDemoParsing()
     print s.env
+    print s.getControllers()
     print s.getCTs()
     print s.getMotors()
+    print s.getPseudoMotors()
+    print s.getZerods()
     print s.getOneds()
     print s.getTwods()
-    print s.getZerods()
-    print s.getPseudoMotors()
 
+
+    

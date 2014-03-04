@@ -69,3 +69,46 @@ class LsmTest(LsTest, unittest.TestCase):
             msg = "lsm does not contain {0}".format(i)
             self.assertTrue(i in output_ml, msg)
 
+class LspmTest(LsTest, unittest.TestCase):
+    """Class used for testing the 'lspm' macro.
+       It verifies that all motors created by sar_demo are listed after 
+       execution of the macro 'lspm'.
+    """
+    macro_name = "lspm"
+    sar_demo = SarDemoParsing()
+
+    def setUp(self):
+        LsTest.setUp(self)
+        self.pseudomotorlist = self.sar_demo.getPseudoMotors()
+
+    def test_Run(self):
+        LsTest.test_Run(self)
+        #parsing output to get all pseudomotors
+        output_pmlist = []
+        for i in self.logOutput[2:]:
+            output_pmlist.append(i[0].split()[0])
+        for i in self.pseudomotorlist:
+            msg = "lspm does not contain {0}".format(i)
+            self.assertTrue(i in output_pmlist, msg)
+
+class LsctrlTest(LsTest, unittest.TestCase):
+    """Class used for testing the 'lsctrl' macro.
+       It verifies that all controllers created by sar_demo are listed after 
+       execution of the macro 'lsctrl'.
+    """
+    macro_name = "lsctrl"
+    sar_demo = SarDemoParsing()
+
+    def setUp(self):
+        LsTest.setUp(self)
+        self.controllerlist = self.sar_demo.getControllers()
+
+    def test_Run(self):
+        LsTest.test_Run(self)
+        #parsing output to get all controllers
+        output_ctrllist = []
+        for i in self.logOutput[2:]:
+            output_ctrllist.append(i[0].split()[0])
+        for i in self.controllerlist:
+            msg = "lsctrl does not contain {0}".format(i)
+            self.assertTrue(i in output_ctrllist, msg)
