@@ -143,8 +143,12 @@ extra_packages = [
     'taurus.qt.qtgui.extra_guiqwt.ui',
 
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01',
-    #'taurus.qt.qtgui.taurusgui.conf.tgconf_example01.images',
     'taurus.qt.qtgui.taurusgui.conf.tgconf_macrogui',
+    
+    #For backwards compat. They may be removed later on:
+    'taurus.qt.qtgui.extra_macroexecutor',
+    'taurus.qt.qtgui.extra_sardana',
+    'taurus.qt.qtgui.extra_pool',
 ]
 
 provides = [
