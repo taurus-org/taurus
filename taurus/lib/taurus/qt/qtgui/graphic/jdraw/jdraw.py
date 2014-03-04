@@ -252,7 +252,8 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                 if child:
                     #self.info('jdraw.py: "%s".addItem("%s")'%(str(params.get('name')),str(child)))
                     item.addToGroup(child)
-        if item._fillStyle: self.set_item_filling(item,expand=True)
+        if item._fillStyle:
+            self.set_item_filling(item, expand=True)
         return item
 
     def getSwingObjectObj(self,params):
@@ -337,31 +338,31 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         fillStyle = FILLSTYLE_JDW2QT[params.get('fillStyle', 0)]
         item._fillStyle = fillStyle
-        try:
-            if hasattr(item,'brush'):
-                brush = Qt.QBrush()
-                if fillStyle == Qt.Qt.RadialGradientPattern:
-                    x1, y1, x2, y2 = params.get('summit')
-                    w, h = (x2-x1)/2.0, (y2-y1)/2.0
-                    gradient = Qt.QLinearGradient(params.get('gradX1',0)+w,
-                                                    params.get('gradY1',0)+h,
-                                                    params.get('gradX2',0)+w,
-                                                    params.get('gradY2',0)+h)
-                    c = params.get('gradC1',(0,0,0))
-                    gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
-                    c = params.get('gradC2',(255,255,255))
-                    gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2]))
-                    brush = Qt.QBrush(gradient)
-                else:
-                    brush.setStyle(fillStyle)
 
-                bg = params.get('background',(255,255,255))
-                brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
-                item.setBrush(brush)
-        #except AttributeError,ae: pass
-        except Exception,e:
-            self.warning('jdraw.set_common_params(%s(%s)).(background,gradient,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
-        #self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))
+        if hasattr(item,'brush'):
+            brush = Qt.QBrush()
+            if fillStyle == Qt.Qt.RadialGradientPattern:
+                ox, oy = params.get('origin', (0, 0))
+                gradient = Qt.QLinearGradient(ox + params.get('gradX1',0),
+                                                oy + params.get('gradY1',0),
+                                                ox + params.get('gradX2',0),
+                                                oy + params.get('gradY2',0))
+                c = params.get('gradC1',(0,0,0))
+                gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
+                c = params.get('gradC2',(255,255,255))
+                gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2]))
+
+                gradCyclic = params.get('gradCyclic', False)
+                if gradCyclic:
+                    gradient.setSpread(Qt.QGradient.ReflectSpread)
+
+                brush = Qt.QBrush(gradient)
+            else:
+                brush.setStyle(fillStyle)
+
+            bg = params.get('background',(255,255,255))
+            brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
+            item.setBrush(brush)
 
     def set_item_filling(self,item,pattern=Qt.Qt.Dense4Pattern,expand=False):
         count = 0
