@@ -32,20 +32,23 @@ from sardana.macroserver.macros.test import BaseMacroExecutor
 from sardemoparsing import SarDemoParsing
 
 class LsTest(RunMacroTestCase):
-
-    def setUp(self):
+    """Base class for testing macros used to list elements.
+    """
+    def setUp(self):    
         RunMacroTestCase.setUp(self)
-        self.macro_executor.registerAll()
 
-    def testFindElement(self):
-        _output = self.macro_executor.getLog("output")
+    def test_Run(self):
+        RunMacroTestCase.test_Run(self)
+        self.logOutput = self.macro_executor.getLog("output")
         msg = "generic ls macro does not contain elements"
-        self.assertTrue(len(_output) > 0, msg)
+        self.assertTrue(len(self.logOutput) > 0, msg)
 
-    def tearDown(self):
-        self.macro_executor.unregisterAll()
 
 class LsmTest(LsTest, unittest.TestCase):
+    """Class used for testing the 'lsm' macro.
+       It verifies that all motors created by sar_demo are listed after 
+       execution of the macro 'lsm'.
+    """
     macro_name = "lsm"
     sar_demo = SarDemoParsing()
 
@@ -54,14 +57,14 @@ class LsmTest(LsTest, unittest.TestCase):
         self.motorlist = self.sar_demo.getMotors() + \
                             self.sar_demo.getPseudoMotors()
 
-    def testFindAllSarDemoMotors(self):
-        _output = self.macro_executor.getLog("output")
-        output = _output[0]
-        #parsing output to get all motors
-        output_ml = []
-        for i in range (len(output)):
-            output_ml.append(output[i].split()[0])
+    def tearDown(self):
+        self.macro_executor.unregisterAll()
 
+    def test_Run(self):      
+        LsTest.test_Run(self)
+        output_ml = []
+        for i in self.logOutput[2:]:
+            output_ml.append(i[0].split()[0])
         for i in self.motorlist:
             msg = "lsm does not contain {0}".format(i)
             self.assertTrue(i in output_ml, msg)
