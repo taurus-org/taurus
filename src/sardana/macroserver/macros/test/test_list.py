@@ -42,6 +42,9 @@ class LsTest(RunMacroTestCase):
         msg = "generic ls macro does not contain elements"
         self.assertTrue(len(_output) > 0, msg)
 
+    def tearDown(self):
+        self.macro_executor.unregisterAll()
+
 class LsmTest(LsTest, unittest.TestCase):
     macro_name = "lsm"
     sar_demo = SarDemoParsing()
