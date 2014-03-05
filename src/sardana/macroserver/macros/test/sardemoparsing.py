@@ -55,14 +55,49 @@ class SarDemoParsing(Singleton):
             self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements']
             self.envCtrl = self.ms.getEnvironment()['_SAR_DEMO']['controllers']
         except KeyError:
-            raise 'sar_demo has not been executed for this door %' %(door_name)   
+            raise 'sar_demo has not been executed for this door %' %(door_name) 
+
+    def getElementOfType(self, elem_type):
+        '''Return the name of element(s) of given elem type  
+        '''
+        return self.ms.getElementNamesOfType(elem_type)
+
+    def getElements(self, elem_type=None):
+        '''Return the name of sardemo element(s) of given elem type  
+        '''
+        elems = []
+        if not elem_type:
+            elem_type = 'all'
+        if elem_type.lower() == 'moveable' or elem_type.lower == 'all':
+            elems +=  self.getMoveables()
+        if elem_type.lower() == 'motor' or elem_type.lower == 'all':
+            elems +=  self.getMotors()
+        if elem_type.lower() == 'pseudomotor' or elem_type.lower == 'all':
+            elems +=  self.getPseudoMotors()
+        if elem_type.lower() == 'controller' or elem_type.lower == 'all':
+            elems +=  self.getControllers()
+        if elem_type.lower() == 'ctexpchannel' or elem_type.lower == 'all':
+            elems +=  self.getCTs()
+        if elem_type.lower() == 'zerodexpchannel' or elem_type.lower == 'all':
+            elems +=  self.getZerods()
+        if elem_type.lower() == 'onedexpchannel' or elem_type.lower == 'all':
+            elems +=  self.getOneds()
+        if elem_type.lower() == 'twodexpchannel' or elem_type.lower == 'all':
+            elems +=  self.getTwods()
+        return elems
+     
+        
+    def getMoveables(self):
+        '''Return the name of moveable(s) defined by SarDemo 
+        '''
+        return self.getMotors() + self.getPseudoMotors()
         
     def getControllers(self):
         '''Return the name of controllers(s) defined by SarDemo 
         '''
         if len(self.controllers):
             return self.controllers
-        controllers = self.ms.getElementNamesOfType('controller')
+        controllers = self.getElementOfType('controller')
         [self.controllers.append(i) 
             for i in controllers if i in self.envCtrl is not None]
         return self.controllers
@@ -72,7 +107,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.cts):
             return self.cts
-        cts = self.ms.getElementNamesOfType('ctexpchannel')
+        cts = self.getElementOfType('ctexpchannel')
         [self.cts.append(i) for i in cts if i in self.env is not None]
         return self.cts
 
@@ -81,7 +116,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.motors):
             return self.motors
-        motors = self.ms.getElementNamesOfType('motor')
+        motors = self.getElementOfType('motor')
         [self.motors.append(i) for i in motors if i in self.env is not None]
         return self.motors
 
@@ -90,7 +125,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.pseudos):
             return self.pseudos
-        pseudos = self.ms.getElementNamesOfType('pseudomotor')
+        pseudos = self.getElementOfType('pseudomotor')
         [self.pseudos.append(i) for i in pseudos if i in self.env is not None]
         return self.pseudos
 
@@ -99,7 +134,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.zerods):
             return self.zerods
-        zerods = self.ms.getElementNamesOfType('zerodexpchannel')
+        zerods = self.getElementOfType('zerodexpchannel')
         [self.zerods.append(i) for i in zerods if i in self.env is not None]
         return self.zerods
 
@@ -108,7 +143,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.oneds):
             return self.oneds
-        oneds = self.ms.getElementNamesOfType('onedexpchannel')
+        oneds = self.getElementOfType('onedexpchannel')
         [self.oneds.append(i) for i in oneds if i in self.env is not None]
         return self.oneds
 
@@ -117,7 +152,7 @@ class SarDemoParsing(Singleton):
         '''
         if len(self.twods):
             return self.twods
-        twods = self.ms.getElementNamesOfType('twodexpchannel')
+        twods = self.getElementOfType('twodexpchannel')
         [self.twods.append(i) for i in twods if i in self.env is not None]
         return self.twods
     
@@ -137,6 +172,8 @@ if __name__ == '__main__':
     print s.getZerods()
     print s.getOneds()
     print s.getTwods()
+    print s.getElementOfType('Motor')
+    print s.getElements('Moveable')
 
 
     
