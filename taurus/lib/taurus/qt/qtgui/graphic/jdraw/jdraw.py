@@ -49,16 +49,16 @@ LINESTYLE_JDW2QT = { 0: Qt.Qt.SolidLine,
 
 FILLSTYLE_JDW2QT = { 0: Qt.Qt.NoBrush,
                      1: Qt.Qt.SolidPattern,
-                     2: Qt.Qt.BDiagPattern,
-                     3: Qt.Qt.FDiagPattern,
+                     2: Qt.Qt.FDiagPattern,
+                     3: Qt.Qt.BDiagPattern,
                      4: Qt.Qt.DiagCrossPattern,
-                     5: Qt.Qt.BDiagPattern,
-                     6: Qt.Qt.FDiagPattern,
+                     5: Qt.Qt.FDiagPattern,
+                     6: Qt.Qt.BDiagPattern,
                      7: Qt.Qt.Dense5Pattern,
                      8: Qt.Qt.Dense7Pattern,
                      9: Qt.Qt.Dense6Pattern,
                      10:Qt.Qt.Dense4Pattern,
-                     11:Qt.Qt.RadialGradientPattern }
+                     11:Qt.Qt.LinearGradientPattern }
 
 TEXTHINT_JDW2QT = CaselessDict({ 
     'helvetica'  : Qt.QFont.Helvetica,
@@ -69,6 +69,17 @@ TEXTHINT_JDW2QT = CaselessDict({
     'times'      : Qt.QFont.Times,
     ''           : Qt.QFont.AnyStyle,})
 
+ALIGNMENT = {
+    0: Qt.Qt.AlignHCenter,
+    1: Qt.Qt.AlignLeft,
+    2: Qt.Qt.AlignRight,
+}
+
+VALIGNMENT = {
+    0: Qt.Qt.AlignVCenter,
+    1: Qt.Qt.AlignTop,
+    2: Qt.Qt.AlignBottom,
+}
 
 class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
     
@@ -174,28 +185,62 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
     def getSplineObj(self, params):
         item = self.getGraphicsItem('Spline', params)
-                
         p = params.get('summit')
         p = [Qt.QPointF(p[i],p[i+1]) for i in xrange(0,len(p),2)]
         item.setControlPoints(p)
-
+        isClosed = params.get('isClosed', True)
+        item.setClose(isClosed)
         return item
 
-    def getLabelObj(self,params):
-        item = self.getGraphicsItem('Label',params)
-        
-        s = params.get('summit')
-        x1, y1 = s[0], s[1]
-        item.setPos(x1,y1)
-        #Font size and type is set at set_common_params
+    def getLabelObj(self, params):
+        item = self.getGraphicsItem('Label', params)
+        self.readLabelObj(item, params)
+        return item
+
+    def readLabelObj(self, item, params):
+        origin = params.get('origin')
+        item.setPos(origin[0], origin[1])
+
+        summit = params.get('summit')
+        x, y = summit[0] - origin[0], summit[1] - origin[1]
+        width, height = summit[2] - summit[0], summit[3] - summit[1]
+        item.setRect(x, y, width, height)
+
+        # it is parsed as a float
+        vAlignment = int(params.get('vAlignment', 0))
+        hAlignment = int(params.get('hAlignment', 0))
+        assert(vAlignment in VALIGNMENT.keys())
+        assert(hAlignment in ALIGNMENT.keys())
+        vAlignment = VALIGNMENT[vAlignment]
+        hAlignment = ALIGNMENT[hAlignment]
+        item.setAlignment(hAlignment | vAlignment)
+
+        fnt = params.get('font',None)
+        if fnt:
+            family,style,size = fnt
+            f = Qt.QFont(family, int(.85*size), Qt.QFont.Light, False)
+            f.setStyleHint(TEXTHINT_JDW2QT.get(family, Qt.QFont.AnyStyle))
+            f.setStyleStrategy(Qt.QFont.PreferMatch)
+            if style == 1:
+                f.setWeight(Qt.QFont.DemiBold)
+            elif style == 2:
+                f.setItalic(True)
+            elif style == 3:
+                f.setWeight(Qt.QFont.DemiBold)
+                f.setItalic(True)
+            #TODO: Improve code in order to be able to set a suitable font
+            item.setFont(f)
+        fg = params.get("foreground", (0,0,0))
+        color = Qt.QColor(fg[0],fg[1],fg[2])
+        item.setDefaultTextColor(color)
+
         txt = params.get('text')
         if txt:
             if any(isinstance(txt,t) for t in (list,tuple,set)): #Parsing several lines of text
                 txt = '\n'.join(txt)            
             item.setPlainText(Qt.QString(txt))
             item._currText = txt
-        return item        
-    
+
     def getGroupObj(self,params):
         item = self.getGraphicsItem('Group',params)
         s = params.get('summit')
@@ -207,18 +252,23 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                 if child:
                     #self.info('jdraw.py: "%s".addItem("%s")'%(str(params.get('name')),str(child)))
                     item.addToGroup(child)
-        if item._fillStyle: self.set_item_filling(item,expand=True)
+        if item._fillStyle:
+            self.set_item_filling(item, expand=True)
         return item
-    
+
     def getSwingObjectObj(self,params):
         item = self.getGraphicsItem('SwingObject', params)
         s = params.get('summit')
         x1, y1 = s[0], s[1]
         item.setPos(x1,y1)
         ext = params.get('extensions')
-        #Font size and type is set at set_common_params
+
+        className = params.get('className')
+        if className == "fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer":
+            self.readLabelObj(item, params)
+
         return item
-    
+
     def getImageObj(self,params):
         item = self.getGraphicsItem('Image',params)
         s = params.get('summit')
@@ -274,70 +324,46 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         if extensions:
             item._extensions = extensions
 
-        if isinstance(item,Qt.QGraphicsTextItem):
-            try:
-                fnt = params.get('font',None)
-                if fnt:
-                    family,style,size = fnt
-                    f = Qt.QFont(family, int(.85*size), Qt.QFont.Light, False)
-                    f.setStyleHint(TEXTHINT_JDW2QT.get(family, Qt.QFont.AnyStyle))
-                    f.setStyleStrategy(Qt.QFont.PreferMatch)
-                    if style == 1:
-                        f.setWeight(Qt.QFont.DemiBold)
-                    elif style == 2:
-                        f.setItalic(True)
-                    elif style == 3:
-                        f.setWeight(Qt.QFont.DemiBold)
-                        f.setItalic(True)
-                    #TODO: Improve code in order to be able to set a suitable font
-                    item.setFont(f)                
-                fg = params.get("foreground", (0,0,0))
-                color = Qt.QColor(fg[0],fg[1],fg[2])
-                item.setDefaultTextColor(color)
-            except:
-                self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
+        try:
+            getattr(item,'setPen')
+            fg = params.get("foreground", (0,0,0))
+            pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
+            pen.setWidth(params.get("lineWidth", 1))
+            pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
+            item.setPen(pen)
+        except AttributeError,ae:
+            pass
+        except Exception,e:
+            self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
 
-        else:
-          try:
-              getattr(item,'setPen')
-              fg = params.get("foreground", (0,0,0))
-              pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
-              pen.setWidth(params.get("lineWidth", 1))
-              pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
-              item.setPen(pen)
-          except AttributeError,ae:
-              pass
-          except Exception,e:
-              self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
+        fillStyle = FILLSTYLE_JDW2QT[params.get('fillStyle', 0)]
+        item._fillStyle = fillStyle
 
-          fillStyle = FILLSTYLE_JDW2QT[params.get('fillStyle', 0)]
-          item._fillStyle = fillStyle
-          try:
-              if hasattr(item,'brush'):
-                  brush = Qt.QBrush()
-                  if fillStyle == Qt.Qt.RadialGradientPattern:
-                      x1, y1, x2, y2 = params.get('summit')
-                      w, h = (x2-x1)/2.0, (y2-y1)/2.0
-                      gradient = Qt.QLinearGradient(params.get('gradX1',0)+w,
-                                                      params.get('gradY1',0)+h,
-                                                      params.get('gradX2',0)+w,
-                                                      params.get('gradY2',0)+h)
-                      c = params.get('gradC1',(0,0,0))
-                      gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
-                      c = params.get('gradC2',(255,255,255))
-                      gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2]))
-                      brush = Qt.QBrush(gradient)
-                  else:
-                      brush.setStyle(fillStyle)
+        if hasattr(item,'brush'):
+            brush = Qt.QBrush()
+            if fillStyle == Qt.Qt.LinearGradientPattern:
+                ox, oy = params.get('origin', (0, 0))
+                gradient = Qt.QLinearGradient(ox + params.get('gradX1',0),
+                                                oy + params.get('gradY1',0),
+                                                ox + params.get('gradX2',0),
+                                                oy + params.get('gradY2',0))
+                c = params.get('gradC1',(0,0,0))
+                gradient.setColorAt(0,Qt.QColor(c[0],c[1],c[2]))
+                c = params.get('gradC2',(255,255,255))
+                gradient.setColorAt(1,Qt.QColor(c[0],c[1],c[2]))
 
-                  bg = params.get('background',(255,255,255))
-                  brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
-                  item.setBrush(brush)
-          #except AttributeError,ae: pass
-          except Exception,e:
-              self.warning('jdraw.set_common_params(%s(%s)).(background,gradient,style) failed!: \n\t%s'%(type(item).__name__,name,traceback.format_exc()))
-        #self.debug('Out of TaurusJDrawGraphicsFactory.%s.set_common_params(%s)'%(type(item).__name__,name))
-        
+                gradCyclic = params.get('gradCyclic', False)
+                if gradCyclic:
+                    gradient.setSpread(Qt.QGradient.ReflectSpread)
+
+                brush = Qt.QBrush(gradient)
+            else:
+                brush.setStyle(fillStyle)
+
+            bg = params.get('background',(255,255,255))
+            brush.setColor(Qt.QColor(bg[0],bg[1],bg[2]))
+            item.setBrush(brush)
+
     def set_item_filling(self,item,pattern=Qt.Qt.Dense4Pattern,expand=False):
         count = 0
         item._fillStyle = item._fillStyle or pattern
