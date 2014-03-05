@@ -31,6 +31,60 @@ import unittest
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 
+# macroTest Decorator
+#
+# This decorator will add tests in the macro test cases and define the 
+# macro parameters.
+#
+# Inputs: Test type and test params
+#
+# The resulting test method will be the addition of the inherited test and 
+# the class test.
+# The test method name is composed by "test", test type and macro name
+#
+# For example:
+# @macroTest('run', 'mot2', '0', '100', '10', '.1'])
+# @macroTest('run', 'mot1', '0', '100', '10', '.1'])
+# <test runnig ascan macro>
+#
+# will add the test "test_run_ascan_0 and test_run_ascan_1".
+# Both will be the addition of inherited and class defined _test_run methods,
+# test_run_ascan_0 will be tested with mot1 and test_run_ascan_1 with mot2.
+# Since they are nested decorators, the last will be applied first.
+
+def macroTest(test, params=[], wait_timeout=1000):
+    '''Decorator to create tests'''
+
+    # Name of the test implementation 
+    testName = '_test_%s' % test
+    
+    def decorator(klass):
+        # New test implementation
+        # Sets the passed parameters and adds super and self implementation
+        def newTest(self):
+            self.macro_params = params
+            self.wait_timeout = wait_timeout
+            # If there test method would be overrided the super method is added
+            if testName in klass.__dict__.keys():
+                getattr(super(klass, self),testName)()
+            getattr(self, testName)()
+        
+        # To avoid overriding tests defined by other decorators a counter is
+        # added in the test name.
+        i = 0
+        methodName = 'test_%s_%s_0' % (test, klass.macro_name)
+        while (hasattr(klass, methodName)):
+            i += 1
+            methodName = 'test_%s_%s_%d' % (test, klass.macro_name, i)
+
+        # Add the new test method with the new implementation
+        setattr(klass, methodName, newTest)
+        return klass
+    return decorator
+
+
+macroTestRun = functools.partial(macroTest, 'run')
+macroTestStop = functools.partial(macroTest, 'stop')
 
 class BaseMacroTestCase(object):
     '''

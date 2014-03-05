@@ -25,10 +25,12 @@
 
 """Tests for list macros"""
 
+import time
 import unittest
 from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
+from sardana.macroserver.macros.test import macroTestRun
 from sardemoparsing import SarDemoParsing
 
 class LsTest(RunMacroTestCase):
@@ -48,8 +50,8 @@ class LsTest(RunMacroTestCase):
             msg = "{0} does not contain {1}".format(self.macro_name, i)
             self.assertTrue(i in outputlist, msg)
 
-    def test_Run(self):
-        RunMacroTestCase.test_Run(self)
+    def _test_run(self):
+        RunMacroTestCase._test_run(self)
         self.logOutput = self.macro_executor.getLog("output")
         msg = "generic ls macro does not contain elements"
         self.assertTrue(len(self.logOutput) > 0, msg)
@@ -65,9 +67,11 @@ class LsTest(RunMacroTestCase):
             macro_output.append(row[0].split()[self.names_column_index])
         self.check_elements(list_sardemo, macro_output)
 
+    def tearDown(self):    
+        RunMacroTestCase.tearDown(self)
 
 
-
+@macroTestRun()
 class LsmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsm' macro.
        It verifies that all motors created by sar_demo are listed after 
@@ -77,6 +81,7 @@ class LsmTest(LsTest, unittest.TestCase):
     elem_type = "moveable"
 
 
+@macroTestRun()
 class LspmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all motors created by sar_demo are listed after 
@@ -86,6 +91,7 @@ class LspmTest(LsTest, unittest.TestCase):
     elem_type = "pseudomotor"
 
 
+@macroTestRun()
 class LsctrlTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all controllers created by sar_demo are listed after 
@@ -95,6 +101,7 @@ class LsctrlTest(LsTest, unittest.TestCase):
     elem_type = "controller"
 
 
+@macroTestRun()
 class LsctTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all ct created by sar_demo are listed after 
@@ -104,6 +111,7 @@ class LsctTest(LsTest, unittest.TestCase):
     elem_type = "ctexpchannel"
 
 
+@macroTestRun()
 class Ls0dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all 0d created by sar_demo are listed after 
@@ -113,6 +121,7 @@ class Ls0dTest(LsTest, unittest.TestCase):
     elem_type = "zerodexpchannel"
 
 
+@macroTestRun()
 class Ls1dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all 1d created by sar_demo are listed after 
@@ -122,6 +131,7 @@ class Ls1dTest(LsTest, unittest.TestCase):
     elem_type = "onedexpchannel"
 
 
+@macroTestRun()
 class Ls2dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all 2d created by sar_demo are listed after 
