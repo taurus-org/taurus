@@ -42,6 +42,11 @@ class LsTest(RunMacroTestCase):
         self.logOutput = self.macro_executor.getLog("output")
         msg = "generic ls macro does not contain elements"
         self.assertTrue(len(self.logOutput) > 0, msg)
+    
+    def check_elements(self, sardemolist, outputlist):
+        for i in sardemolist:
+            msg = "{0} does not contain {1}".format(self.macro_name, i)
+            self.assertTrue(i in outputlist, msg)
 
 
 class LsmTest(LsTest, unittest.TestCase):
@@ -65,9 +70,7 @@ class LsmTest(LsTest, unittest.TestCase):
         output_ml = []
         for i in self.logOutput[2:]:
             output_ml.append(i[0].split()[0])
-        for i in self.motorlist:
-            msg = "lsm does not contain {0}".format(i)
-            self.assertTrue(i in output_ml, msg)
+        self.check_elements(self.motorlist, output_ml)
 
 class LspmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
@@ -87,9 +90,7 @@ class LspmTest(LsTest, unittest.TestCase):
         output_pmlist = []
         for i in self.logOutput[2:]:
             output_pmlist.append(i[0].split()[0])
-        for i in self.pseudomotorlist:
-            msg = "lspm does not contain {0}".format(i)
-            self.assertTrue(i in output_pmlist, msg)
+        self.check_elements(self.pseudomotorlist, output_pmlist)
 
 class LsctrlTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsctrl' macro.
@@ -109,6 +110,4 @@ class LsctrlTest(LsTest, unittest.TestCase):
         output_ctrllist = []
         for i in self.logOutput[2:]:
             output_ctrllist.append(i[0].split()[0])
-        for i in self.controllerlist:
-            msg = "lsctrl does not contain {0}".format(i)
-            self.assertTrue(i in output_ctrllist, msg)
+        self.check_elements(self.controllerlist, output_ctrllist)
