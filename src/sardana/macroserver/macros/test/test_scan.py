@@ -28,6 +28,10 @@
 import unittest
 from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunStopMacroTestCase
+from sardana.macroserver.macros.test import macroTest
+from sardana.macroserver.macros.test import macroTestRun
+from sardana.macroserver.macros.test import macroTestStop
+from sardana.macroserver.macros.test.sardemoparsing import SarDemoParsing
 
 
 def getMotors():
@@ -68,7 +72,20 @@ class ScanTest(RunStopMacroTestCase):
             l[0]= int(l[0])
             self.data.append(l)
 
-        interval = abs(self.finalPos - self.initPos) / self.steps
+@macroTest('run',[SarDemoParsing().getMotors()[0], '0', '100', '4', '.1'])
+@macroTest('stop',[SarDemoParsing().getMotors()[0], '0', '100', '4', '.1'])
+class AscanTest(ScanTest, unittest.TestCase):
+    macro_name = 'ascan'
+
+    def _test_run(self):
+        #super(ScanTest, self).test_Run()
+        #ScanTest._test_run(self)
+
+        #ascan
+        initPos = float(self.macro_params[1])
+        finalPos = float(self.macro_params[2])
+
+        interval = abs(finalPos - initPos) / self.steps
         pre = self.data[0]
         for d in self.data[1:]:
             # TODO use assertAlmostEqual
@@ -115,6 +132,8 @@ class AscanTest(ScanTest, unittest.TestCase):
         self.assertEqual(self.data[-1][1], self.finalPos,
                          "Final possition differs from set value")
 
+@macroTestRun([SarDemoParsing().getMotors()[0], '-10', '10', '2', '.1'])
+@macroTestStop([SarDemoParsing().getMotors()[0], '-10', '10', '3', '.1'])
 class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
 
