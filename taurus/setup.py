@@ -420,8 +420,23 @@ class build(dftbuild):
         if self.with_extra_widgets:
             self.distribution.packages.extend(extra_packages)
         self.distribution.package_data['taurus.qt.qtgui.resource'].extend(self.get_extra_resource_package_data())
+        self.build_jdraw()
         dftbuild.run(self)
 
+    def build_jdraw(self):
+        print("Building jdraw grammar...", end='')
+        jd_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'graphic', 'jdraw')        
+        sys.path.append(jd_dir)
+        try:
+            import jdraw_parser
+            jdraw_parser.new_parser()
+            print(" [DONE]")
+        except:
+            print("[ERROR]")
+            raise
+        finally:
+            sys.path.pop()
+        
     def has_doc(self):
         if self.no_doc:
             return False
