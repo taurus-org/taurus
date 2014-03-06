@@ -104,7 +104,7 @@ class LspmTest(LsTest, unittest.TestCase):
 
 @macroTestRun()
 class LsctrlTest(LsTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
+    """Class used for testing the 'lsctrl' macro.
        It verifies that all controllers created by sar_demo are listed after 
        execution of the macro 'lsctrl'.
     """
@@ -114,7 +114,7 @@ class LsctrlTest(LsTest, unittest.TestCase):
 
 @macroTestRun()
 class LsctTest(LsTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
+    """Class used for testing the 'lsct' macro.
        It verifies that all ct created by sar_demo are listed after 
        execution of the macro 'lsct'.
     """
@@ -124,7 +124,7 @@ class LsctTest(LsTest, unittest.TestCase):
 
 @macroTestRun()
 class Ls0dTest(LsTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
+    """Class used for testing the 'ls0d' macro.
        It verifies that all 0d created by sar_demo are listed after 
        execution of the macro 'ls0d'.
     """
@@ -134,7 +134,7 @@ class Ls0dTest(LsTest, unittest.TestCase):
 
 @macroTestRun()
 class Ls1dTest(LsTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
+    """Class used for testing the 'ls1d' macro.
        It verifies that all 1d created by sar_demo are listed after 
        execution of the macro 'ls1d'.
     """
@@ -144,7 +144,7 @@ class Ls1dTest(LsTest, unittest.TestCase):
 
 @macroTestRun()
 class Ls2dTest(LsTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
+    """Class used for testing the 'ls2d' macro.
        It verifies that all 2d created by sar_demo are listed after 
        execution of the macro 'ls2d'.
     """
