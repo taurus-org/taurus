@@ -34,7 +34,7 @@ import traceback
 import taurus
 from taurus.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
-from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem
+from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser
@@ -83,6 +83,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.h_scene = None
         self._fileName ="Root"
         self._mousePos = (0,0)
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.setResizable(resizable)
         self.setInteractive(True)
         self.setAlias(alias)
@@ -344,6 +345,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
                 scene = jdraw_parser.parse(filename, factory)
+                scene.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__,filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!"%(model,filename))
@@ -388,8 +390,22 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         return ret
     
     model = Qt.pyqtProperty("QString", getModel, setModel)
-    
-    
+
+    def setSelectionStyle(self, selectionStyle):
+        if self.scene() != None:
+            self.scene().setSelectionStyle(selectionStyle)
+        self._selectionStyle = selectionStyle
+
+    def getSelectionStyle(self, selectionStyle):
+        return self._selectionStyle
+
+    def resetSelectionStyle(self, selectionStyle):
+        self.setSelectionStyle(SynopticSelectionStyle.ELLIPSE)
+
+    selectionStyle = Qt.pyqtProperty(str, getSelectionStyle,
+                                         setSelectionStyle,
+                                         resetSelectionStyle)
+
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def jdraw_view_main():
     import sys,time

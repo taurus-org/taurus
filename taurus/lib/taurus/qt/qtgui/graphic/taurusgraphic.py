@@ -45,10 +45,18 @@ from taurus.core.util.log import Logger
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.util.enumeration import Enumeration
 from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
+
+SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
+    # A blue ellipse is displayed around the selected objects
+    "ELLIPSE",
+    # The own outline of selected object is displayed in blue and bolder
+    "OUTLINE",
+    ])
 
 def parseTangoUri(name):
     from taurus.core import tango
@@ -144,6 +152,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._itemnames = CaselessDefaultDict(lambda k:set())
         self._selection = []
         self._selectedItems = []
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.threads = []
         self.pids = []
         self.panels = []
@@ -391,6 +400,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         except:
             self.warning(traceback.format_exc())
 
+    def setSelectionStyle(self, selectionStyle):
+        # TODO We should test that selectionStyle is part of SynopticSelectionStyle but there is nothing about it
+        self._selectionStyle = selectionStyle
+
     #@Qt.pyqtSignature("selectGraphicItem(const QString &)")
     def selectGraphicItem(self,item_name):
         """
@@ -398,7 +411,6 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         If the item_name is empty, or it is a reserved keyword, or it has the "noSelect" extension, then the blue circle is removed from the synoptic.
         """      
         #self.debug('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
-        retval = False
         selected = [str(getattr(item,'_name',item)) for item in self._selectedItems if item]
         if selected:
             iname = str(getattr(item_name,'_name',item_name))
@@ -425,6 +437,16 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             items = [i for i in items if self.getTaurusParentItem(i) not in (items+self._selectedItems)]
             self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
+        if self._selectionStyle == SynopticSelectionStyle.ELLIPSE:
+            displaySelection = self._displaySelectionAsEllipse
+        elif self._selectionStyle == SynopticSelectionStyle.OUTLINE:
+            displaySelection = self._displaySelectionAsOutline
+        else:
+            raise Exception("Unexpected selectionStyle '%s'" % SynopticSelectionStyle.whatis(self._selectionStyle))
+        return displaySelection(items)
+
+    def _displaySelectionAsEllipse(self, items):
+        retval = False
         for item in items:
             try:
                 if ( (isinstance(item,TaurusGraphicsItem) and item.getExtensions().get('noSelect'))
@@ -454,6 +476,61 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.warning(traceback.format_exc())
                 #return False           
         return retval
+
+    def _displaySelectionAsOutline(self, items):
+        def _outline(shapes):
+            """"Compute the boolean union from a list of QGraphicsItem. """
+            shape = None
+            # TODO we can use a stack instead of recursivity
+            for s in shapes:
+                # TODO we should skip text and things like that
+                if isinstance(s, TaurusGroupItem):
+                    s = _outline(s.childItems())
+                    if s == None:
+                        continue
+
+                s = s.shape()
+                if shape != None:
+                    shape = shape.united(s)
+                else:
+                    shape = s
+
+            if shape == None:
+                return None
+
+            return Qt.QGraphicsPathItem(shape)
+
+        # TODO we can cache the outline instead of computing it again and again
+        selectionShape = _outline(items)
+        if selectionShape:
+            # copy-paste from getSelectionMark
+            color = Qt.QColor(Qt.Qt.blue)
+            color.setAlphaF(.10)
+            pen = Qt.QPen(Qt.Qt.SolidLine)
+            pen.setWidth(4)
+            pen.setColor(Qt.QColor(Qt.Qt.blue))
+            selectionShape.setBrush(color)
+            selectionShape.setPen(pen)
+
+            for item in items:
+                if item not in self._selectedItems: self._selectedItems.append(item)
+
+            # TODO i dont think this function work... or i dont know how...
+            #self.setSelectionMark(picture=selectionShape)
+            # ... Then do it it with hands...
+            # copy-paste from drawSelectionMark
+            self._selection.append(selectionShape)
+            # It's better to add it hidden to avoid resizings
+            selectionShape.hide()
+            self.addItem(selectionShape)
+            # Put on Top
+            selectionShape.setZValue(9999)
+            selectionShape.show()
+            self.updateSceneViews()
+
+            return True
+
+        return False
 
     def clearSelection(self):
         #self.debug('In clearSelection([%d])'%len(self._selectedItems))
@@ -1038,16 +1115,20 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
             self.setBrush(self._currBgBrush)
         QSpline.paint(self, painter, option, widget)
 
+class TaurusGroupItem(Qt.QGraphicsItemGroup):
 
-class TaurusGroupStateItem(Qt.QGraphicsItemGroup, TaurusGraphicsStateItem):
+    def __init__(self, name = None, parent = None, scene = None):
+        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+
+class TaurusGroupStateItem(TaurusGroupItem, TaurusGraphicsStateItem):
 
     def __init__(self, name = None, parent = None, scene = None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+        TaurusGroupItem.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self,painter,option,widget):
-        Qt.QGraphicsItemGroup.paint(self,painter,option,widget)
+        TaurusGroupItem.paint(self,painter,option,widget)
         
 class TaurusPolygonStateItem(Qt.QGraphicsPolygonItem,TaurusGraphicsStateItem):
     
@@ -1118,7 +1199,7 @@ TYPE_TO_GRAPHICS = {
              "Polyline"       : Qt.QGraphicsPolygonItem,
              "Label"          : QGraphicsTextBoxing,
              "Line"           : Qt.QGraphicsLineItem,
-             "Group"          : Qt.QGraphicsItemGroup,
+             "Group"          : TaurusGroupItem,
              "SwingObject"    : Qt.QGraphicsRectItem,
              "Image"          : Qt.QGraphicsPixmapItem,
              "Spline"         : QSpline, },
