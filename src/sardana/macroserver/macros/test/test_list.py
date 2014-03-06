@@ -46,9 +46,14 @@ class LsTest(RunMacroTestCase):
         RunMacroTestCase.setUp(self)
         
     def check_elements(self, sardemolist, outputlist):
-        for i in sardemolist:
-            msg = "{0} does not contain {1}".format(self.macro_name, i)
-            self.assertTrue(i in outputlist, msg)
+        for elem in sardemolist:
+            msg = "{0} does not contain {1}".format(self.macro_name, elem)
+            self.assertTrue(elem in outputlist, msg)
+
+    def check_atleastNelements(self, outputlist, sardemolist):
+        for elem in outputlist:
+            msg = "{0} does not contain {1}".format(self.macro_name, elem)
+            self.assertTrue(elem in sardemolist, msg)
 
     def _test_run(self):
         RunMacroTestCase._test_run(self)
@@ -63,14 +68,20 @@ class LsTest(RunMacroTestCase):
                 
         #parsing output to get all elements
         macro_output = []
-        for row in self.logOutput[self.header_rows:]:
-            macro_output.append(row[0].split()[self.names_column_index])
-        self.check_elements(list_sardemo, macro_output)
+        for row, in self.logOutput[self.header_rows:]:
+            macro_output.append(row.split()[self.names_column_index])
+        if len(macro_output)>= len(list_sardemo):
+            self.check_elements(list_sardemo, macro_output)
+        else:
+            self.check_atleastNelements(macro_output, list_sardemo)  
 
     def tearDown(self):    
         RunMacroTestCase.tearDown(self)
 
+import random 
 
+@macroTestRun(random.choice(SarDemoParsing().getMoveables()))
+@macroTestRun('l.*')
 @macroTestRun()
 class LsmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsm' macro.

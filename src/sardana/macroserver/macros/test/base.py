@@ -52,17 +52,18 @@ from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 # test_run_ascan_0 will be tested with mot1 and test_run_ascan_1 with mot2.
 # Since they are nested decorators, the last will be applied first.
 
-def macroTest(test, params=[], wait_timeout=1000):
+def macroTest(test, params=None, wait_timeout=1000):
     '''Decorator to create tests'''
 
     # Name of the test implementation 
     testName = '_test_%s' % test
-    
+
     def decorator(klass):
         # New test implementation
         # Sets the passed parameters and adds super and self implementation
         def newTest(self):
-            self.macro_params = params
+            if params:
+                self.macro_params = list(params)
             self.wait_timeout = wait_timeout
             # If there test method would be overrided the super method is added
             if testName in klass.__dict__.keys():
@@ -71,11 +72,11 @@ def macroTest(test, params=[], wait_timeout=1000):
         
         # To avoid overriding tests defined by other decorators a counter is
         # added in the test name.
-        i = 0
+        method_index = 0
         methodName = 'test_%s_%s_0' % (test, klass.macro_name)
         while (hasattr(klass, methodName)):
-            i += 1
-            methodName = 'test_%s_%s_%d' % (test, klass.macro_name, i)
+            method_index += 1
+            methodName = 'test_%s_%s_%d' % (test, klass.macro_name, method_index)
 
         # Add the new test method with the new implementation
         setattr(klass, methodName, newTest)
@@ -100,7 +101,7 @@ class BaseMacroTestCase(object):
     '''
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME') 
     macro_name = None
-    macro_params = None
+    macro_params = []
     
     def setUp(self):
         """ 
