@@ -152,7 +152,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._itemnames = CaselessDefaultDict(lambda k:set())
         self._selection = []
         self._selectedItems = []
-        self._selectionStyle = SynopticSelectionStyle.ELLIPSE
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.threads = []
         self.pids = []
         self.panels = []

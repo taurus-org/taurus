@@ -83,7 +83,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.h_scene = None
         self._fileName ="Root"
         self._mousePos = (0,0)
-        self._selectionStyle = SynopticSelectionStyle.ELLIPSE
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.setResizable(resizable)
         self.setInteractive(True)
         self.setAlias(alias)
