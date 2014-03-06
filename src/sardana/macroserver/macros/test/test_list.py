@@ -75,8 +75,10 @@ class LsTest(RunMacroTestCase):
         else:
             self.check_atleastNelements(macro_output, list_sardemo)  
 
-    def tearDown(self):    
+    def tearDown(self):  
+        time.sleep(0.15)  
         RunMacroTestCase.tearDown(self)
+        time.sleep(0.15)
 
 import random 
 
