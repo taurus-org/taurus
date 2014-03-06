@@ -2,7 +2,7 @@ graft doc
 graft lib/taurus
 graft scripts
 graft tests
-global-exclude *.pyc .cvsignore .svnignore .ropeproject
+global-exclude *.pyc .cvsignore .svnignore .ropeproject .gitignore
 recursive-exclude lib/taurus/qt/qtgui/resource *.rcc *.qrc qrc_*.py
 include LICENSE.txt
 include taurus.bmp

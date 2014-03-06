@@ -142,7 +142,7 @@ class TaurusWidgetFactory(Singleton, Logger):
         designer_path = os.environ.get('TAURUSQTDESIGNERPATH')
         if designer_path is None:
             return taurus_ret
-        designer_path = designer_path.split(":")
+        designer_path = designer_path.split(os.path.pathsep)
         for path in designer_path:
             self._addExtraTaurusWidgetsPath(taurus_ret, qt_widgets, path)
     

@@ -35,11 +35,11 @@ __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
 
 __docformat__ = "restructuredtext"
 
-import weakref
 import copy
-import numpy
 import time
+import weakref
 import operator
+
 
 class CaselessList(list):
     """A case insensitive lists that has some caseless methods. Only allows 
@@ -1054,8 +1054,9 @@ class ArrayBuffer(object):
         shape = list(self.__buffer.shape)
         shape[0] = newlen
         try:
-            self.buffer.resize(shape) #first try to resize in-place
+            self.__buffer.resize(shape) #first try to resize in-place
         except:
+            import numpy
             self.__buffer = numpy.resize(self.__buffer, shape) #if not possible, do it by copying
         self.__bsize = self.__buffer.shape[0]
     
@@ -1214,4 +1215,7 @@ class ArrayBuffer(object):
         ''' 
         return self.maxSize() - self.contentsSize()
 
-    
+def chunks(l, n):
+    '''Generator which yields successive n-sized chunks from l'''
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]

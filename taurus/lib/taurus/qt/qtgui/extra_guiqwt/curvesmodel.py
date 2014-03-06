@@ -36,6 +36,7 @@ from guiqwt.styles import CurveParam, AxesParam, update_style_attr
 from guiqwt.builder import make
 
 import taurus
+from taurus.core import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from .ui.ui_CurveItemConfDlg import Ui_CurveItemConfDlg    
@@ -105,7 +106,7 @@ class CurveItemConf(object):
             self.curveparam.label = taurusparam.xModel
         
     def __repr__(self):
-        ret = "CurveItemConf(xModel='%s', yModel='%s')"%(taurusparam.xModel, taurusparam.yModel)
+        ret = "CurveItemConf(xModel='%s', yModel='%s')"%(self.taurusparam.xModel, self.taurusparam.yModel)
         return ret
     
     @staticmethod
@@ -156,10 +157,10 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         column = index.column()
         #Display Role
         if role == Qt.Qt.DisplayRole:
-            if column == X: return Qt.QVariant(Qt.QString(self.curves[row].x.display))
-            elif column == Y: return Qt.QVariant(Qt.QString(self.curves[row].y.display))
+            if column == X: return Qt.QVariant(str(self.curves[row].x.display))
+            elif column == Y: return Qt.QVariant(str(self.curves[row].y.display))
             elif column == TITLE: 
-                return Qt.QVariant(Qt.QString(self.curves[row].curveparam.label))
+                return Qt.QVariant(str(self.curves[row].curveparam.label))
             else: return Qt.QVariant()
         elif role == Qt.Qt.DecorationRole:
             if column == X: return Qt.QVariant(self.curves[row].x.icon)
@@ -170,17 +171,17 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             elif column == Y: Qt.QVariant(Qt.QColor(self.curves[row].y.ok and 'green' or 'red'))
             else: return Qt.QVariant()
         elif role == SRC_ROLE:
-            if column == X: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.xModel))
-            elif column == Y: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.yModel))
+            if column == X: return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+            elif column == Y: return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
             else: return Qt.QVariant()
         elif role == Qt.Qt.ToolTipRole:
-            if column == X: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.xModel))
-            elif column == Y: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.yModel))
+            if column == X: return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+            elif column == Y: return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
             else: return Qt.QVariant()
         if role == Qt.Qt.EditRole:
-            if column == X: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.xModel))
-            elif column == Y: return Qt.QVariant(Qt.QString(self.curves[row].taurusparam.yModel))
-            elif column == TITLE: return Qt.QVariant(Qt.QString(self.curves[row].curveparam.label))
+            if column == X: return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+            elif column == Y: return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
+            elif column == TITLE: return Qt.QVariant(str(self.curves[row].curveparam.label))
             else: return Qt.QVariant()
         return Qt.QVariant()
     
@@ -198,7 +199,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             elif section == TITLE: return Qt.QVariant("Title")
             return Qt.QVariant()
         else:
-            return Qt.QVariant(Qt.QString.number(section+1))
+            return Qt.QVariant(str(section+1))
         
     def flags(self, index): #use this to set the editable flag when fix is selected
         if not index.isValid():

@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/bin/bash
 
 #############################################################################
-##
 ## This file is part of Taurus, a Tango User Interface Library
 ##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
@@ -23,40 +22,14 @@
 ##
 #############################################################################
 
-""" A minimal application using the Qt console-style IPython frontend.
+# Note: this is a helper script for creating the distribution packages
+# It is meant for internal taurus distribution managers use so do not expect 
+# in an arbitrary system (i.e. do not cry about bugs in this script)
 
-This is not a complete console app, as subprocess will not be able to receive
-input, there is no real readline support, among other limitations.
-"""
-
-__all__ = ["TaurusConsoleApplication"]
-
-__docformat__ = 'restructuredtext'
-
-
-from taurus.qt import Qt
-
-try:
-    from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
-except ImportError: #for IPython v<1.x
-    from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-     
-
-class TaurusConsoleApplication(IPythonQtConsoleApp):
-
-    name='taurusconsole'
-
-    def init_qt_elements(self):
-        self.app = Qt.QApplication.instance()
-        self.app.icon = Qt.QIcon()
-
-    def init_signal(self):
-        pass
-
-    def init_kernel_manager(self):
-        # avoid starting a default kernel 
-        self.kernel_manager = None
-
-    
-
-
+#Create distribution packages
+rm -rf build
+#create windows installable
+python setup.py bdist_wininst --plat-name win install --no-doc install_scripts --wrappers --ignore-shebang build --no-doc
+#create source tarball (without docs)
+rm  -rf build
+python setup.py sdist 

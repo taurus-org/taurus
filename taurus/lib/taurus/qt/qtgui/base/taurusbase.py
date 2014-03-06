@@ -1570,9 +1570,11 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         return TaurusAttribute
 
     def isReadOnly(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         return False
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -1580,27 +1582,55 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def setAutoApply(self, auto):
+        '''
+        Sets autoApply mode. In autoApply mode, the widget writes the value
+        automatically whenever it is changed by the user (e.g., when 
+        :meth:`valueChanged` is called). If False, a value changed just 
+        flags a "pending operation" which needs to be applied manually by 
+        the user before the value gets written.
+        
+        :param auto: (bool) True for setting autoApply mode. False for disabling
+        '''
         self._autoApply = auto
         
     def getAutoApply(self):
+        '''whether autoApply mode is enabled or not.
+        
+        :return: (bool) 
+        '''
         return self._autoApply
 
     def resetAutoApply(self):
+        '''resets the autoApply mode (i.e.: sets it to False)'''
         self.setAutoApply(False)
         
     def setForcedApply(self, forced):
+        '''Sets the forcedApply mode. In forcedApply mode, values are written even 
+        if there are not pending operations (e.g. even if the displayed value is 
+        the same as the currently applied one).
+        
+        .. seealso: :meth:`forceApply` and :meth:`writeValue`
+        
+        :param forced: (bool) True for setting forcedApply mode. False for disabling
+        '''
         self._forcedApply = forced
         
     def getForcedApply(self):
+        '''whether forcedApply mode is enabled or not.
+        
+        :return: (bool) 
+        '''
         return self._forcedApply
 
     def resetForcedApply(self):
+        '''resets the forcedApply mode (i.e.: sets it to False)'''
         self.setForcedApply(False)
         
     def valueChanged(self, *args):
         '''Subclasses should connect some particular signal to this method for
         indicating that something has changed.
-        e.g., a QLineEdit should connect its "textChanged" signal...'''
+        e.g., a QLineEdit should connect its "textChanged" signal...
+        '''
         self.emitValueChanged()
         if self._autoApply:
             self.writeValue()
@@ -1610,7 +1640,12 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         operations or (if the ForcedApply flag is True), it writes directly when
         no operations are pending
         
-        It emits the applied signal if apply is not aborted.'''
+        It emits the applied signal if apply is not aborted.
+
+        :param forceApply: (bool) If True, it behaves as in forceApply mode 
+                           (even if the forceApply mode is disabled by 
+                           :meth:`setForceApply`)
+        '''
         
         if self.hasPendingOperations():
             applied = self.safeApplyOperations()
@@ -1630,6 +1665,9 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         that pending operations are properly created, not calling this method
         
         It emits the applied signal if apply is not aborted.
+
+        .. seealso: :meth:`setForceApply` and :meth:`writeValue`
+        
         '''
         try:
             v = self.getValue()
@@ -1645,10 +1683,12 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             self.traceback()
         
     def handleEvent(self, src, evt_type, evt_value):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self.emitValueChanged()
     
     def postAttach(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         TaurusBaseWidget.postAttach(self)
         if self.isAttached():
             try:
@@ -1662,6 +1702,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def resetPendingOperations(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         if self.isAttached():
             try:
                 v = self.getModelValueObj().w_value
@@ -1672,6 +1713,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         self.updateStyle()
 
     def updatePendingOperations(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         model = self.getModelObj()
         try:
             model_value = model.getValueObj().w_value
@@ -1688,15 +1730,35 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         self.updateStyle()
         
     def getOperationCallbacks(self):
+        '''returns the operation callbacks (i.e., a sequence of methods that will be called after an operation is executed
+           (this default implementation it returns an empty list).
+           
+        :return: (sequence<callable>)   
+        '''
         return []
 
     def getValue(self):
+        '''
+        This method must be implemented in derived classes to return 
+        the value to be written. Note that this may differ 
+        from the displayed value (e.g. for a numeric value being 
+        edited by a QLineEdit-based widget, the displayed value will 
+        be a string while getValue will return a number)
+        '''
         raise NotImplementedError("Not allowed to call TaurusBaseWritableWidget.getValue()")
 
     def setValue(self, v):
+        '''
+        This method must be implemented in derived classes to provide 
+        a (widget-specific) way of updating the displayed value based 
+        on a given attribute value
+        
+        :param v: The attribute value 
+        '''
         raise NotImplementedError("Not allowed to call TaurusBaseWritableWidget.setValue()")
 
     def updateStyle(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         if self._autoTooltip:
             toolTip = self.getFormatedToolTip()
             if self.hasPendingOperations():
@@ -1727,6 +1789,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Input'
         return ret

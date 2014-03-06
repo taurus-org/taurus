@@ -37,7 +37,6 @@ from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
-from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 
@@ -257,8 +256,12 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
-    __pyqtSignals__ = ("commandExecuted()",)
-    def __init__(self, parent=None, designMode=False, command=None, parameters=None, icon=None, text=None):
+
+    __pyqtSignals__ = ("commandExecuted",)
+    
+    def __init__(self, parent=None, designMode=False, command=None, 
+                 parameters=None, icon=None, text=None,
+                 timeout=None):
         '''Constructor
 
         :param parent: (Qt.QWidget or None) parent of this widget
@@ -267,6 +270,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         :param parameters: (sequence<str>) the list of parameteres. Default value is None meaning no parameters 
         :param icon: (Qt.QIcon) icon for the button
         :param text: (str) the button text (if None passed, `command` is used)
+        :param timeout: (float) the command timeout (in seconds)
         '''
         name = self.__class__.__name__
         if command is None: command = ""
@@ -274,6 +278,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         if text is None: text = ""
         self._command = command
         self._parameters = parameters
+        self._timeout = timeout
         self.call__init__wo_kw(Qt.QPushButton, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
         if icon is not None: self.setIcon(Qt.QIcon(icon))
@@ -325,11 +330,17 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             if result != Qt.QMessageBox.Ok:
                 return
         #After all the checks, we can finally do the action
+        orig_timeout = modelobj.get_timeout_millis()
         try:
+            if self._timeout is not None:
+                modelobj.set_timeout_millis(int(self._timeout*1000))
             result = modelobj.command_inout(self._command, self._castParameters(self._parameters, self._command, modelobj))
         except Exception, e:
             self.error('Unexpected error when executing command %s of %s: %s'%(self._command, modelobj.getNormalName(), str(e)))
             raise
+        finally:
+            modelobj.set_timeout_millis(orig_timeout)
+            
         self.emit(Qt.SIGNAL('commandExecuted'), result)
         return result
     
@@ -422,7 +433,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         return self._parameters
     
     def resetParameters(self):
-        '''Equivalent to setParameters(None)
+        '''Equivalent to setParameters([])
         '''
         self.setParameters([])
         
@@ -446,7 +457,35 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     def resetCustomText(self):
         '''Equivalent to setCustomText(None)'''
         self.setCustomText(None)
-
+        
+    @Qt.pyqtSlot(float)    
+    @Qt.pyqtSlot(int)
+    def setTimeout(self, timeout):
+        '''Sets the number of seconds to wait for the result of the command.
+        
+        .. seealso:: :meth:`PyTango.DeviceProxy.command_inout`
+        
+        :param timeout: (float) the command timeout in seconds 
+                        (timeout <0 or timeout=None disables the timeout)
+        '''
+        if timeout < 0:
+            timeout = None 
+        self._timeout = timeout 
+           
+    def getTimeout(self):
+        '''
+        Returns the number of seconds to wait for the result of the command
+        (or -1 if timeout is disabled) 
+        '''
+        ret = self._timeout
+        if ret is None or ret < 0:
+            ret = -1
+        return ret 
+                    
+    def resetTimeout(self):
+        '''Equivalent to setTimeout(None)'''
+        self.setTimeout(None)
+    
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return { 
@@ -469,7 +508,9 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     
     DangerMessage = Qt.pyqtProperty("QString", TaurusBaseWidget.getDangerMessage, TaurusBaseWidget.setDangerMessage, TaurusBaseWidget.resetDangerMessage)
     
-    CustomText = Qt.pyqtProperty("QString", getCustomText, setCustomText, resetCustomText)  
+    CustomText = Qt.pyqtProperty("QString", getCustomText, setCustomText, resetCustomText)
+    
+    Timeout = Qt.pyqtProperty("double", getTimeout, setTimeout, resetTimeout)
 
 
 class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):

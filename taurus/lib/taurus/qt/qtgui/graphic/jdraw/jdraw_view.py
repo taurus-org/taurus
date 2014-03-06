@@ -34,13 +34,25 @@ import traceback
 import taurus
 from taurus.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
-from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem
+from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     '''
+    Taurus Class that visualizes Synoptics drawn with the JDraw tool (by ESRF). It is equivalent to ATK Synoptic Player (Java).
+    
+    After initialization call setModel('/your/file.jdw') to parse the synoptic file and connect to controlled objects.
+    
+    Arguments to TaurusJDrawSynopticsView() creator are:
+    
+        - designMode; used by Qt Designer
+        - updateMode; controls Qt Viewport refresh (disabled by default)
+        - alias; a dictionary of name replacements to be applied on graphical objects
+        - resizable: whether to allow resizing or not
+        - panelClass: class object, class name or shell command to be shown when an object is clicked (None will show default panel, '' or 'noPanel' will disable it)
+
     TaurusJDrawSynopticsView and TaurusGraphicsScene signals/slots
     
     External events::
@@ -55,13 +67,13 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     Mouse Right-button events::
     
-     TaurusGraphicItem.setContextMenu([(ActionName,ActionMethod(device_name))]
+     TaurusGraphicsItem.setContextMenu([(ActionName,ActionMethod(device_name))]
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''    
     __pyqtSignals__ = ("itemsChanged","modelsChanged","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
 
-    def __init__(self, parent = None, designMode = False, updateMode=None, alias = None, resizable = True):
+    def __init__(self, parent = None, designMode = False, updateMode=None, alias = None, resizable = True, panelClass = None):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QGraphicsView, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
@@ -71,10 +83,12 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.h_scene = None
         self._fileName ="Root"
         self._mousePos = (0,0)
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.setResizable(resizable)
         self.setInteractive(True)
         self.setAlias(alias)
         self.setDragEnabled(True)
+        self.setPanelClass(panelClass)
         
         # By default the items will update the view when necessary.
         # This default value is much more efficient then the QQraphicsView default
@@ -139,17 +153,15 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def selectGraphicItem(self,item_name):
         self.scene().selectGraphicItem(item_name)
         return False
-    
-    @Qt.pyqtSignature("graphicItemSelected(QString)")
-    def graphicItemSelected(self,item_name):
+
+    def _graphicItemSelected(self,item_name):
         self.debug(' => graphicItemSelected(QString)(%s)'%item_name)
         self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),item_name)
-        
-    @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
-    def graphicSceneClicked(self,point):
+
+    def _graphicSceneClicked(self,point):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
-        
+
     def modelsChanged(self):
         items = self.get_item_list()
         self.debug('modelsChanged(%s)'%len(items))
@@ -263,7 +275,11 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         model,mimeData = '',None
         try:
             #model = getattr(self.scene().itemAt(*self.mousePos),'_name','')
-            model = getattr(self.scene()._selectedItems[0],'_name','')
+            selected = self.scene()._selectedItems
+            if not selected: 
+                self.debug('jdrawView.getModelMimeData(%s): nothing to drag'%model)
+                return
+            model = getattr(([s for s in selected if s.isUnderMouse() and getattr(s,'_name','')] or [selected])[0],'_name','')
             self.debug('getModelMimeData(%s)'%model)
             mimeData = Qt.QMimeData()
             if model:
@@ -286,17 +302,31 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     # QT properties 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
-    @staticmethod
-    def setDefaultPanelClass(other):
-        TaurusJDrawSynopticsView._defaultClass = other
-    @staticmethod
-    def defaultPanelClass():
-        if not hasattr(TaurusJDrawSynopticsView,'_defaultClass'): 
-            #from taurus.qt.qtgui.panel import TaurusDevicePanel
-            TaurusJDrawSynopticsView._defaultClass = 'taurusdevicepanel'
-        #print('defaultPanelClass == %s'%TaurusJDrawSynopticsView._defaultClass)
-        obj = TaurusJDrawSynopticsView._defaultClass
-        return obj    
+    @classmethod
+    def setDefaultPanelClass(klass,other):
+        """
+        This method returns the Class used to open new object panels on double-click (TaurusDevicePanel by default)
+        """
+        klass._defaultClass = other
+        
+    @classmethod
+    def defaultPanelClass(klass):
+        """
+        This method assigns the Class used to open new object panels on double-click (TaurusDevicePanel by default)
+        If an string is used it can be either a Taurus class or an OS launcher
+        """
+        if not hasattr(klass,'_defaultClass'): 
+            from taurus.qt.qtgui.panel import TaurusDevicePanel
+            klass._defaultClass = TaurusDevicePanel #'taurusdevicepanel' #You can use an executable or a class
+        obj = klass._defaultClass
+        return obj
+        
+    def setPanelClass(self,widget):
+        self._panelClass = widget
+        
+    def panelClass(self):
+        if self._panelClass is None: return self.defaultPanelClass()
+        else: return self._panelClass
 
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self, model, alias = None, delayed = False, trace = False):
@@ -315,6 +345,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
                 scene = jdraw_parser.parse(filename, factory)
+                scene.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__,filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!"%(model,filename))
@@ -323,9 +354,9 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     self.h_scene = scene.sceneRect().height()
                 else: self.debug('JDrawView.sceneRect() is NONE!!!')
                 self.setScene(scene)
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
-                Qt.QObject.connect(Qt.QApplication.instance(), Qt.SIGNAL("lastWindowClosed()"), self.scene().panel_launcher.kill )
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self._graphicItemSelected)
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self._graphicSceneClicked)
+                #Qt.QObject.connect(Qt.QApplication.instance(), Qt.SIGNAL("lastWindowClosed()"), self.close) #It caused a segfault!
                 self.modelsChanged()
                 self.setWindowTitle(self.modelName)
                 #The emitted signal contains the filename and a dictionary with the name of items and its color
@@ -336,12 +367,9 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         #self.debug('out of setModel()')
         taurus.setLogLevel(ll)
             
-    #def destroy(destroyWindow=True,destroySubWindows=True):
-    def closeEvent(self,event):
-        try: self.scene().panel_launcher.kill()
-        except: print(traceback.format_exc())
+    def closeEvent(self,event=None):
+        if self.scene(): self.scene().closeAllPanels()
         Qt.QGraphicsView.closeEvent(self,event)
-        #Qt.QGraphicsView.destroy(self,destroyWindow,destroySubWindows)
 
     def setModels(self):
         """ This method triggers item.setModel(item._name) in all internal items. """
@@ -353,17 +381,31 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def getModel(self):
         return self._currF
 
-    #@classmethod
-    #def getQtDesignerPluginInfo(cls):
-        #ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        #ret['group'] = 'Taurus Display'
-        #ret['module'] = 'taurus.qt.qtgui.graphic'
-        #ret['icon'] = ":/designer/graphicsview.png"
-        #return ret
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
+        ret['group'] = 'Taurus Display'
+        ret['module'] = 'taurus.qt.qtgui.graphic'
+        ret['icon'] = ":/designer/graphicsview.png"
+        return ret
     
-    #model = Qt.pyqtProperty("QString", getModel, setModel)
-    
-    
+    model = Qt.pyqtProperty("QString", getModel, setModel)
+
+    def setSelectionStyle(self, selectionStyle):
+        if self.scene() != None:
+            self.scene().setSelectionStyle(selectionStyle)
+        self._selectionStyle = selectionStyle
+
+    def getSelectionStyle(self, selectionStyle):
+        return self._selectionStyle
+
+    def resetSelectionStyle(self, selectionStyle):
+        self.setSelectionStyle(SynopticSelectionStyle.ELLIPSE)
+
+    selectionStyle = Qt.pyqtProperty(str, getSelectionStyle,
+                                         setSelectionStyle,
+                                         resetSelectionStyle)
+
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def jdraw_view_main():
     import sys,time
@@ -378,15 +420,13 @@ def jdraw_view_main():
     #for m in sys.argv[1:]:
         #tv=TaurusJDrawSynopticsView(container, designMode=False)
         #tv.setModel(m)
-    print '%s init()'%(time.ctime())
     form = taurus.qt.qtgui.graphic.TaurusJDrawSynopticsView(designMode=False)
     form.show()
-    print '%s setModel(%s)'%(time.ctime(),sys.argv[1])
+    #print '%s setModel(%s)'%(time.ctime(),sys.argv[1])
     form.setModel(sys.argv[1])
     form.setWindowTitle(sys.argv[1].rsplit('.',1)[0])
     #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
     #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    print '%s fitting()'%time.ctime()
     form.fitting()
     sys.exit(app.exec_())
 

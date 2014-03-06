@@ -31,13 +31,17 @@ import imp
 from distutils.core import setup, Command
 from distutils.command.build import build as dftbuild
 from distutils.command.install import install as dftinstall
+from distutils.command.install_scripts import install_scripts as dftinstall_scripts
 from distutils.version import StrictVersion as V
 
 try:
     import sphinx
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
-    if V(sphinx.__version__) < V("1.0.0"):
+    if V(sphinx.__version__) < V("1.0.0") \
+       or V(sphinx.__version__) == V("1.2.0"):
+        print("Sphinx documentation can not be compiled"
+              " with sphinx < 1.0.0 or the 1.2.0 version")
         sphinx = None
 except ImportError:
     sphinx = None
@@ -136,6 +140,77 @@ class install_html(Command):
         self.copy_tree(src_html_dir, self.install_dir)
 
 
+class install_scripts(dftinstall_scripts):
+    '''Customization to create .bat wrappers for the scripts 
+    when installing on windows.
+    Adapted from a recipe by Matthew Brett (who licensed it under CC0): 
+    https://github.com/matthew-brett/myscripter/blob/master/setup.py
+    See rationale in: 
+    http://matthew-brett.github.io/pydagogue/installing_scripts.html
+    '''
+    
+    user_options = list(dftinstall_scripts.user_options)
+    user_options.extend(
+            [
+             ('wrappers', None, 'Install .bat wrappers for windows (enabled by default on windows)'),
+             ('ignore-shebang', None, 'Use "python" as the interpreter in .bat wrappers (instead of using the interpreter found in the shebang line of the scripts). Note: this only affects to windows .bat wrappers!'),
+             ])
+    
+    
+    BAT_TEMPLATE_SHEBANG = \
+r"""@echo off
+REM wrapper to use shebang first line of {FNAME}
+set mypath=%~dp0
+set pyscript="%mypath%{FNAME}"
+set /p line1=<%pyscript%
+if "%line1:~0,2%" == "#!" (goto :goodstart)
+echo First line of %pyscript% does not start with "#!"
+exit /b 1
+:goodstart
+set py_exe=%line1:~2%
+call %py_exe% %pyscript% %*
+"""
+    BAT_TEMPLATE_PATH = \
+r"""@echo off
+REM wrapper to launch {FNAME}
+set mypath=%~dp0
+set pyscript="%mypath%{FNAME}"
+set py_exe="python"
+call %py_exe% %pyscript% %*
+"""
+
+    def initialize_options(self):
+        self.ignore_shebang = None
+        self.wrappers = (os.name == "nt")
+        dftinstall_scripts.initialize_options(self)
+        
+    def run(self):
+        dftinstall_scripts.run(self)
+        if self.wrappers:
+            for filepath in self.get_outputs():
+                # If we can find an executable name in the #! top line of the script
+                # file, make .bat wrapper for script.
+                with open(filepath, 'rt') as fobj:
+                    first_line = fobj.readline()
+                if not (first_line.startswith('#!') and
+                        'python' in first_line.lower()):
+                    print("No #!python executable found, skipping .bat wrapper")
+                    continue
+                pth, fname = os.path.split(filepath)
+                froot, ext = os.path.splitext(fname)
+                bat_file = os.path.join(pth, froot + '.bat')
+                if self.ignore_shebang:
+                    template = self.BAT_TEMPLATE_PATH
+                else:
+                    template = self.BAT_TEMPLATE_SHEBANG
+                bat_contents = template.replace('{FNAME}', fname)
+                print("Making %s wrapper for %s" % (bat_file, filepath))
+                if self.dry_run:
+                    continue
+                with open(bat_file, 'wt') as fobj:
+                    fobj.write(bat_contents)
+
+
 class install(dftinstall):
 
     user_options = list(dftinstall.user_options)
@@ -192,7 +267,8 @@ class install(dftinstall):
 cmdclass = {'build': build,
             'install': install,
             'install_man': install_man,
-            'install_html': install_html }
+            'install_html': install_html,
+            'install_scripts' : install_scripts}
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
@@ -218,7 +294,7 @@ def main():
     Release = get_release_info()
 
     author = Release.authors['Tiago']
-    maintainer = Release.authors['Pascual-Izarra']
+    maintainer = Release.authors['Reszela']
 
     package_dir = {'sardana': abspath('src', 'sardana')}
 
@@ -245,6 +321,7 @@ def main():
         'sardana.spock',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
+        'sardana.spock.ipython_01_00',
     ]
 
     provides = [

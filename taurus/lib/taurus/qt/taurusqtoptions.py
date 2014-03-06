@@ -72,17 +72,18 @@ QT_APIs = {
 }
 
 QT_PREFERED_APIs = QT_API_PYQT, QT_API_PYSIDE
-
+#QT_PREFERED_APIs = (QT_API_PYSIDE,)
 
 def init():
     # Select Qt binding, using the QT_API environment variable if available.
     ret_api = os.environ.get('QT_API')
-
     if ret_api is None:
         for api in QT_PREFERED_APIs:
             try:
                 imp.find_module(QT_APIs[api][0])
                 ret_api = api
+                if ret_api is not None:
+                    break
             except ImportError:
                 pass
         if ret_api is None:
@@ -94,3 +95,4 @@ def init():
     return ret_api
 
 QT_API = init()
+get_logger().info('Using "%s" as Qt python binding', QT_API)

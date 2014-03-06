@@ -165,8 +165,8 @@ def macrodata(self, parameter_s=''):
     door = get_door()
     macro_data = door.read_attribute("RecordData")
 
-    import taurus.core.util
-    factory = taurus.core.util.CodecFactory()
+    from taurus.core.util.codecs import CodecFactory
+    factory = CodecFactory()
     data = factory.decode(macro_data.value)    
     return data
     
@@ -181,7 +181,6 @@ def edmac(self, parameter_s=''):
     import os
     import tempfile
     import PyTango
-    import taurus.core.util
 
     ms = get_macro_server()
 

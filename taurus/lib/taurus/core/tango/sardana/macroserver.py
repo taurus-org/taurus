@@ -190,9 +190,13 @@ class ExperimentConfiguration(object):
         codec = CodecFactory().getCodec('json')
         replies = mnt_grp_grps.read_attribute("configuration")
         for mnt_grp, reply in zip(mnt_grps, replies):
-            mnt_grp_configs[mnt_grp] = \
-                codec.decode(('json', reply.get_data().value),
-                             ensure_ascii=True)[1]
+            try:
+                mnt_grp_configs[mnt_grp] = \
+                        codec.decode(('json', reply.get_data().value),
+                                     ensure_ascii=True)[1]
+            except Exception,e:
+                from taurus.core.util.log import warning
+                warning('Cannot load Measurement group "%s": %s',repr(mnt_grp), repr(e))
         return ret
 
     def set(self, conf, mnt_grps=None):

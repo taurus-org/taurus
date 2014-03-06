@@ -238,25 +238,21 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     def load(self,filename,delayed=False):
         self.trace('In TauGrid.load(%s,%s)'%(filename,delayed))
         if not isinstance(filename,dict):
+            manual = False
             import pickle
             f = open(filename)
             d = pickle.load(f)
             f.close()
         else: 
+            manual = True
             d = filename
         self.setRowLabels(d['row_labels'])
         self.setColumnLabels(d['column_labels'])  
-        #self._show_attr_labels = d.get('labels',True) #self.showAttributeLabels(d.get('labels',True))
-        #self._show_attr_units = d.get('units',True) #self.showAttributeUnits(d.get('units',True))
-        #self._show_others = d.get('others',True)
-        #self._show_row_frame = d.get('frames',True)
-        #self._show_column_frame = d.get('frames',True)
         self.showAttributeLabels(d.get('labels',True))
         self.showAttributeUnits(d.get('units',True))
         self.showOthers(d.get('others',True))
         self.showRowFrame(d.get('frames',True))
-        self.showColumnFrame(d.get('frames',True))
-        
+        if manual: self.showColumnFrame(d.get('frames',True))
         self.setModel(d['model'],delayed=d.get('delayed',delayed))
         return self._modelNames 
     

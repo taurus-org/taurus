@@ -41,7 +41,8 @@ import traceback
 from lxml import etree
 
 from PyTango import DevFailed
-from taurus.core.util import Logger, CodecFactory
+from taurus.core.util.log import Logger
+from taurus.core.util.codecs import CodecFactory
 
 from sardana.sardanadefs import ElementType
 from sardana.sardanamodulemanager import ModuleManager
