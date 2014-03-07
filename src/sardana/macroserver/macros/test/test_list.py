@@ -80,9 +80,7 @@ class LsTest(RunMacroTestCase):
         RunMacroTestCase.tearDown(self)
         time.sleep(0.15)
 
-import random 
 
-@macroTestRun(random.choice(SarDemoParsing().getMoveables()))
 @macroTestRun('l.*')
 @macroTestRun()
 class LsmTest(LsTest, unittest.TestCase):
