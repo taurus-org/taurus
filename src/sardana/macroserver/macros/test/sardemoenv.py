@@ -30,7 +30,7 @@ from taurus.core.util.singleton import Singleton
 from sardana import sardanacustomsettings
 
 class SarDemoEnv(Singleton):
-    '''Class to parse _SAR_DEMO environment variable with cross checking with
+    '''Class to get _SAR_DEMO environment variable with cross checking with
        the MacroServer (given by 'UNITTEST_DOOR_NAME') 
     '''
     def __init__(self, door_name=None):
@@ -43,50 +43,32 @@ class SarDemoEnv(Singleton):
         except ValueError:
             raise 'The  door %s does not exist' %(door_name)
 
-        self.controllers = []        
-        self.cts = []
-        self.motors = []
-        self.pseudos = []
-        self.zerods = []
-        self.oneds = []
-        self.twods = []
+        self.controllers = None        
+        self.cts = None
+        self.motors = None
+        self.pseudos = None
+        self.zerods = None
+        self.oneds = None
+        self.twods = None
 
         try:
-            self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements']
-            self.envCtrl = self.ms.getEnvironment()['_SAR_DEMO']['controllers']
+            self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements'] + \
+                      list(self.ms.getEnvironment()['_SAR_DEMO']['controllers'])
         except KeyError:
             raise 'sar_demo has not been executed for this door %' %(door_name) 
 
-    def getElementOfType(self, elem_type):
-        '''Return the name of element(s) of given elem type  
-        '''
-        return self.ms.getElementNamesOfType(elem_type)
-
-    def getElements(self, elem_type=None):
+    def getElements(self, elem_type='all'):
         '''Return the name of sardemo element(s) of given elem type  
         '''
+        if elem_type.lower() == 'all':
+            return self.env
+        if elem_type.lower() == 'moveable':
+            return self.getElements('motor') + self.getElements('pseudomotor')
         elems = []
-        if not elem_type:
-            elem_type = 'all'
-        if elem_type.lower() == 'moveable' or elem_type.lower == 'all':
-            elems +=  self.getMoveables()
-        if elem_type.lower() == 'motor' or elem_type.lower == 'all':
-            elems +=  self.getMotors()
-        if elem_type.lower() == 'pseudomotor' or elem_type.lower == 'all':
-            elems +=  self.getPseudoMotors()
-        if elem_type.lower() == 'controller' or elem_type.lower == 'all':
-            elems +=  self.getControllers()
-        if elem_type.lower() == 'ctexpchannel' or elem_type.lower == 'all':
-            elems +=  self.getCTs()
-        if elem_type.lower() == 'zerodexpchannel' or elem_type.lower == 'all':
-            elems +=  self.getZerods()
-        if elem_type.lower() == 'onedexpchannel' or elem_type.lower == 'all':
-            elems +=  self.getOneds()
-        if elem_type.lower() == 'twodexpchannel' or elem_type.lower == 'all':
-            elems +=  self.getTwods()
+        ms_elems = self.ms.getElementNamesOfType(elem_type)
+        [elems.append(elem) for elem in ms_elems if elem in self.env is not None]
         return elems
-     
-        
+
     def getMoveables(self):
         '''Return the name of moveable(s) defined by SarDemo 
         '''
@@ -95,65 +77,52 @@ class SarDemoEnv(Singleton):
     def getControllers(self):
         '''Return the name of controllers(s) defined by SarDemo 
         '''
-        if len(self.controllers):
-            return self.controllers
-        controllers = self.getElementOfType('controller')
-        [self.controllers.append(i) 
-            for i in controllers if i in self.envCtrl is not None]
+        if not self.controllers:
+            self.controllers =  self.getElements('controller')
         return self.controllers
             
     def getCTs(self):
         '''Return the name of counter timer exp channel(s) defined by SarDemo 
         '''
-        if len(self.cts):
-            return self.cts
-        cts = self.getElementOfType('ctexpchannel')
-        [self.cts.append(i) for i in cts if i in self.env is not None]
+        if not self.cts:
+            self.cts =  self.getElements('ctexpchannel')
         return self.cts
 
     def getMotors(self):
         '''Return the name of motor(s) defined by SarDemo 
         '''
-        if len(self.motors):
-            return self.motors
-        motors = self.getElementOfType('motor')
-        [self.motors.append(i) for i in motors if i in self.env is not None]
+        if not self.motors:
+            self.motors =  self.getElements('motor')
         return self.motors
 
     def getPseudoMotors(self):
         '''Return the name of pseudomotor(s) defined by SarDemo 
         '''
-        if len(self.pseudos):
-            return self.pseudos
-        pseudos = self.getElementOfType('pseudomotor')
-        [self.pseudos.append(i) for i in pseudos if i in self.env is not None]
+        if not self.pseudos:
+            self.pseudos =  self.getElements('pseudomotor')
         return self.pseudos
+
 
     def getZerods(self):
         '''Return the name of zerod exp channel(s) defined by SarDemo 
         '''
-        if len(self.zerods):
-            return self.zerods
-        zerods = self.getElementOfType('zerodexpchannel')
-        [self.zerods.append(i) for i in zerods if i in self.env is not None]
+        if not self.zerods:
+            self.zerods =  self.getElements('zerodexpchannel')
         return self.zerods
+
 
     def getOneds(self):
         '''Return the name of one exp channel(s) defined by SarDemo 
         '''
-        if len(self.oneds):
-            return self.oneds
-        oneds = self.getElementOfType('onedexpchannel')
-        [self.oneds.append(i) for i in oneds if i in self.env is not None]
+        if not self.oneds:
+            self.oneds =  self.getElements('onedexpchannel')
         return self.oneds
 
     def getTwods(self):
         '''Return the name of two exp channel(s) defined by SarDemo 
         '''
-        if len(self.twods):
-            return self.twods
-        twods = self.getElementOfType('twodexpchannel')
-        [self.twods.append(i) for i in twods if i in self.env is not None]
+        if not self.twods:
+            self.twods =  self.getElements('twodexpchannel')
         return self.twods
     
     def changeDoor(self, door_name):
@@ -172,8 +141,6 @@ if __name__ == '__main__':
     print s.getZerods()
     print s.getOneds()
     print s.getTwods()
-    print s.getElementOfType('Motor')
     print s.getElements('Moveable')
-
-
-    
+    print s.getMoveables()
+    print s.getElements()
