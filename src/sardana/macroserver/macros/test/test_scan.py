@@ -31,18 +31,13 @@ from sardana.macroserver.macros.test import RunStopMacroTestCase
 from sardana.macroserver.macros.test import macroTest
 from sardana.macroserver.macros.test import macroTestRun
 from sardana.macroserver.macros.test import macroTestStop
-from sardana.macroserver.macros.test.sardemoparsing import SarDemoParsing
-
-
-def getMotors():
-    from sardemoparsing import SarDemoParsing
-    sar_demo = SarDemoParsing()
-    return sar_demo.getMotors()
+from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 
 
 class ScanTest(RunStopMacroTestCase):
 
-    motor_list = getMotors()
+    motor_list = SarDemoEnv().getMotors()
+    data = []    
 
     def setUp(self):
         RunStopMacroTestCase.setUp(self)
@@ -72,8 +67,8 @@ class ScanTest(RunStopMacroTestCase):
             l[0]= int(l[0])
             self.data.append(l)
 
-@macroTest('run',[SarDemoParsing().getMotors()[0], '0', '100', '4', '.1'])
-@macroTest('stop',[SarDemoParsing().getMotors()[0], '0', '100', '4', '.1'])
+@macroTest('run',[SarDemoEnv().getMotors()[0], '0', '100', '4', '.1'])
+@macroTest('stop',[SarDemoEnv().getMotors()[0], '0', '100', '4', '.1'])
 class AscanTest(ScanTest, unittest.TestCase):
     macro_name = 'ascan'
 
@@ -132,8 +127,8 @@ class AscanTest(ScanTest, unittest.TestCase):
         self.assertEqual(self.data[-1][1], self.finalPos,
                          "Final possition differs from set value")
 
-@macroTestRun([SarDemoParsing().getMotors()[0], '-10', '10', '2', '.1'])
-@macroTestStop([SarDemoParsing().getMotors()[0], '-10', '10', '3', '.1'])
+@macroTestRun([SarDemoEnv().getMotors()[0], '-10', '10', '2', '.1'])
+@macroTestStop([SarDemoEnv().getMotors()[0], '-10', '10', '3', '.1'])
 class DscanTest(ScanTest, unittest.TestCase):
     macro_name = 'dscan'
 

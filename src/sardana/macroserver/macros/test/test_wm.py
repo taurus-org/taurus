@@ -31,7 +31,7 @@ from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
 from sardana.macroserver.macros.test import macroTestRun
-from sardemoparsing import SarDemoParsing
+from sardemoenv import SarDemoEnv
 
 class WTest(RunMacroTestCase):
     """Base class for testing macros used to list elements.
@@ -39,7 +39,7 @@ class WTest(RunMacroTestCase):
 
     header_rows = 2
     names_column_index = 0
-    sar_demo = SarDemoParsing()
+    sar_demo = SarDemoEnv()
  
     def setUp(self):    
         RunMacroTestCase.setUp(self)
@@ -61,7 +61,7 @@ class WTest(RunMacroTestCase):
         time.sleep(0.15)
 
 
-@macroTestRun([SarDemoParsing().getMotors()[0]],3.0)
+@macroTestRun([SarDemoEnv().getMotors()[0]],3.0)
 class WmTest(WTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all motors created by sar_demo are listed after 

@@ -31,7 +31,7 @@ from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import BaseMacroExecutor
 from sardana.macroserver.macros.test import macroTestRun
-from sardemoparsing import SarDemoParsing
+from sardemoenv import SarDemoEnv
 
 class LsTest(RunMacroTestCase):
     """Base class for testing macros used to list elements.
@@ -40,7 +40,7 @@ class LsTest(RunMacroTestCase):
     header_rows = 2
     names_column_index = 0
     elem_type = None
-    sar_demo = SarDemoParsing()
+    sar_demo = SarDemoEnv()
  
     def setUp(self):    
         RunMacroTestCase.setUp(self)

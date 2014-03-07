@@ -29,7 +29,7 @@ from taurus.core.tango.sardana.macroserver import registerExtensions
 from taurus.core.util.singleton import Singleton
 from sardana import sardanacustomsettings
 
-class SarDemoParsing(Singleton):
+class SarDemoEnv(Singleton):
     '''Class to parse _SAR_DEMO environment variable with cross checking with
        the MacroServer (given by 'UNITTEST_DOOR_NAME') 
     '''
@@ -163,7 +163,7 @@ class SarDemoParsing(Singleton):
 
 
 if __name__ == '__main__':    
-    s = SarDemoParsing()
+    s = SarDemoEnv()
     print s.env
     print s.getControllers()
     print s.getCTs()
