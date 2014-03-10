@@ -142,3 +142,11 @@ class DscanTest(DNscanTest, unittest.TestCase):
     run_timeout = 3.
 
 
+@macroTestRun([SarDemoParsing().getMotors()[0], '-10', '10', '4', SarDemoParsing().getMotors()[1], '-10', '0', '3', '.1'])
+@macroTestRun([SarDemoParsing().getMotors()[0], '-5', '5', '4', SarDemoParsing().getMotors()[1], '-8', '0', '2', '.1'])
+@macroTestStop([SarDemoParsing().getMotors()[0], '-5', '3', '4', SarDemoParsing().getMotors()[1], '-8', '0', '2', '.1'])
+class MeshTest(RunStopMacroTestCase, unittest.TestCase):
+    macro_name = 'mesh'
+    
+
+
