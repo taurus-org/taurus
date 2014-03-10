@@ -92,12 +92,17 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
                 self.lineEdit().writeValue(forceApply=True)
     
     def stepEnabled(self):
-        le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
         ret = Qt.QAbstractSpinBox.StepEnabled(Qt.QAbstractSpinBox.StepNone)
-        
+        if self.getModelObj() == None:
+            return ret
+        if self.getModelObj().getValueObj() == None:
+            return ret
+
+        le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
+
         if curr_val == None:
             return ret
-        
+
         if not le._outOfRange(curr_val + ss):
             ret |= Qt.QAbstractSpinBox.StepUpEnabled
         if not le._outOfRange(curr_val - ss):
