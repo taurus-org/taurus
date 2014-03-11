@@ -37,14 +37,17 @@ from PyTango import DevVoid, DevLong
 from PyTango import DevState, AttrQuality
 from PyTango import READ_WRITE, SCALAR
 
-
-from taurus.core.util import DebugIt
-
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.poolexception import PoolException
+from sardana.sardanautils import str_to_value
+
+from sardana.tango.core.util import exception_str, throw_sardana_exception
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
+
 
 class IORegister(PoolElementDevice):
 
@@ -75,14 +78,14 @@ class IORegister(PoolElementDevice):
         db = self.get_database()
         val_props = db.get_device_attribute_property(self.get_name(), name)[name]
         w_val = val_props["__value"][0]
-        
+
         _, _, attr_info = self.get_dynamic_attributes()[0][name]
         w_val = str_to_value(w_val, attr_info.dtype, attr_info.dformat)
-        
+
         w_val, w_ts = int(val_props["__value"][0]), None
         if "__value_ts" in val_props:
             w_ts = float(val_props["__value_ts"][0])
-        return w_val, w_ts 
+        return w_val, w_ts
 
     @DebugIt()
     def delete_device(self):
@@ -94,7 +97,7 @@ class IORegister(PoolElementDevice):
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-        
+
         ior = self.ior
         if ior is None:
             full_name = self.get_full_name()
@@ -106,7 +109,7 @@ class IORegister(PoolElementDevice):
             if self.instrument is not None:
                 ior.set_instrument(self.instrument)
         ior.add_listener(self.on_ior_changed)
-        
+
         ## force a state read to initialize the state attribute
         #state = ior.get_state(cache=False)
         self.set_state(DevState.ON)
@@ -134,7 +137,7 @@ class IORegister(PoolElementDevice):
             self.debug("Storing value set point: %s", self.ior.value.w_value)
             self.set_write_value_to_db()
             return
-        
+
         multi_attr = self.get_device_attr()
         try:
             attr = multi_attr.get_attr_by_name(name)
@@ -157,9 +160,9 @@ class IORegister(PoolElementDevice):
                     value = event_value.value
                 timestamp = event_value.timestamp
             state = self.ior.get_state(propagate=0)
-            
+
             if name == "value":
-                w_value = event_source.get_value_attribute().w_value                
+                w_value = event_source.get_value_attribute().w_value
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value, w_value=w_value,
@@ -170,7 +173,7 @@ class IORegister(PoolElementDevice):
         #state = to_tango_state(self.ior.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def initialize_dynamic_attributes(self):
@@ -190,7 +193,7 @@ class IORegister(PoolElementDevice):
     def read_Value(self, attr):
         value = self.ior.get_value(cache=False)
         if value.error:
-            Except.throw_python_exception(*value.exc_info)        
+            Except.throw_python_exception(*value.exc_info)
         self.set_attribute(attr, value=value.value, w_value=value.w_value,
                            priority=0, timestamp=value.timestamp)
 

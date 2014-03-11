@@ -109,14 +109,13 @@ class TangoConsoleExtension(BaseConsoleExtension):
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir
 
-from sardana.spock.genutils import create_spock_profile, get_macroserver_for_door
-
 def create_sardana_profile(profile, door_name):
 
     ipython_dir = get_ipython_dir()
     try:
         ProfileDir.find_profile_dir_by_name(ipython_dir, profile)
     except ProfileDirError:
+        from sardana.spock.genutils import create_spock_profile
         create_spock_profile(ipython_dir, "spock", profile, door_name)
 
 def get_profile_from_args(args):

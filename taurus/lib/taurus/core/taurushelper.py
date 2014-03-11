@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -39,33 +39,34 @@ __docformat__ = "restructuredtext"
 
 import sys
 
+
 def __translate_version_str2int(version_str):
     """Translates a version string in format x[.y[.z[...]]] into a 000000 number"""
     import math
     parts = version_str.split('.')
     i, v, l = 0, 0, len(parts)
     if not l: return v
-    while i<3:
+    while i < 3:
         try:
-            v += int(parts[i])*int(math.pow(10,(2-i)*2))
+            v += int(parts[i]) * int(math.pow(10, (2 - i) * 2))
             l -= 1
             i += 1
-        except ValueError,ve:
+        except ValueError, ve:
             return v
         if not l: return v
     return v
-    
+
     try:
-        v += 10000*int(parts[0])
+        v += 10000 * int(parts[0])
         l -= 1
-    except ValueError,ve:
+    except ValueError, ve:
         return v
     if not l: return v
-    
+
     try:
-        v += 100*int(parts[1])
+        v += 100 * int(parts[1])
         l -= 1
-    except ValueError,ve:
+    except ValueError, ve:
         return v
     if not l: return v
 
@@ -77,7 +78,7 @@ def __translate_version_str2int(version_str):
     if not l: return v
 
 def __get_python_version():
-    return '.'.join(map(str,sys.version_info[:3]))
+    return '.'.join(map(str, sys.version_info[:3]))
 
 def __get_python_version_number():
     pyver_str = __get_python_version()
@@ -162,13 +163,13 @@ def __get_spyderlib_version_number():
     spyderlibver_str = __get_spyderlib_version()
     if spyderlibver_str is None: return None
     return __translate_version_str2int(spyderlibver_str)
-    
+
 def __w(msg):
     sys.stdout.write(msg)
     sys.stdout.flush()
 
 def __wn(msg):
-    __w(msg+'\n')
+    __w(msg + '\n')
 
 def check_dependencies():
     for msg in _check_dependencies(forlog=False):
@@ -185,34 +186,34 @@ def log_dependencies():
 
 def _check_dependencies(forlog=False):
     """Checks for the required and optional packages of taurus"""
-    
+
     if forlog:
         MSG = { 'OK' : '[OK]', 'ERR' : '[ERROR]', 'WARN' : '[WARNING]' }
     else:
-        MSG = { 
+        MSG = {
             'OK'   : "[\033[0;32mOK\033[0m]",
             'ERR'  : "[\033[0;31mERROR\033[0m]",
             'WARN' : "[\033[0;33mWARNING\033[0m]" }
-        
+
     core_requirements = {
-    #    module       minimum  recommended 
+    #    module       minimum  recommended
         "Python"   : ("2.6.0", "2.6.0"),
         "PyTango"  : ("7.1.0", "7.1.0"),
     }
-    
+
     widget_requirements = {
-    #    module       minimum  recommended 
+    #    module       minimum  recommended
         "PyQt"     : ("4.4.0", "4.4.0"),
         "PyQwt"     : ("5.2.0", "5.2.0"),
     }
 
     widget_optional_requirements = {
-    #    module       minimum  recommended 
+    #    module       minimum  recommended
         "Qub"       : ("1.0.0", "1.0.0"),
         "qtcontrols": ("1.0.0", "1.0.0"),
         "spyderlib" : ("2.0.0", "2.0.0"),
     }
-    
+
     yield -1, "Checking required dependencies of taurus.core..."
     r = core_requirements
 
@@ -222,20 +223,20 @@ def _check_dependencies(forlog=False):
     if currPython is None:
         yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
     elif currPython < minPython:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPythonStr, rec=r['Python'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPythonStr, rec=r['Python'][1], **MSG)
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPythonStr, **MSG)
 
     m = "Checking for PyTango >=%s..." % r["PyTango"][0]
     minPyTango, recPyTango = map(__translate_version_str2int, r["PyTango"])
-    currPyTango, currPyTangoStr = __get_pytango_version_number(),__get_pytango_version()
+    currPyTango, currPyTangoStr = __get_pytango_version_number(), __get_pytango_version()
     if currPyTango is None:
         yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
     elif currPyTango < minPyTango:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyTangoStr, rec=r['PyTango'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyTangoStr, rec=r['PyTango'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyTangoStr,**MSG)
-    
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyTangoStr, **MSG)
+
     yield -1, "Checking required dependencies of taurus.qt..."
     r = widget_requirements
 
@@ -245,9 +246,9 @@ def _check_dependencies(forlog=False):
     if currPyQt is None:
         yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
     elif currPyQt < minPyQt:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQtStr, rec=r['PyQt'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQtStr, rec=r['PyQt'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQtStr,**MSG)
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQtStr, **MSG)
 
     m = "Checking for PyQwt >=%s..." % r["PyQwt"][0]
     minPyQwt, recPyQwt = map(__translate_version_str2int, r["PyQwt"])
@@ -255,22 +256,22 @@ def _check_dependencies(forlog=False):
     if currPyQwt is None:
         yield 1, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
     elif currPyQwt < minPyQwt:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQwtStr, rec=r['PyQwt'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQwtStr, rec=r['PyQwt'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQwtStr,**MSG)
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQwtStr, **MSG)
 
     yield -1, "Checking OPTIONAL dependencies of taurus.qt..."
     r = widget_optional_requirements
-    
+
     m = "Checking for Qub >=%s..." % r["Qub"][0]
     minQub, recQub = map(__translate_version_str2int, r["Qub"])
     currQub, currQubStr = __get_qub_version_number(), __get_qub_version()
     if currQub is None:
         yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
     elif currQub < minQub:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currQubStr, rec=r['Qub'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currQubStr, rec=r['Qub'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr,**MSG)
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr, **MSG)
 
     m = "Checking for spyderlib >=%s..." % r["spyderlib"][0]
     minspyderlib, recspyderlib = map(__translate_version_str2int, r["spyderlib"])
@@ -278,24 +279,24 @@ def _check_dependencies(forlog=False):
     if currspyderlib is None:
         yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
     elif currspyderlib < minspyderlib:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderlibStr, rec=r['spyderlib'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderlibStr, rec=r['spyderlib'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderlibStr,**MSG)
-    
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderlibStr, **MSG)
+
     m = "Checking for qtcontrols >=%s..." % r["qtcontrols"][0]
     minqtcontrols, recqtcontrols = map(__translate_version_str2int, r["qtcontrols"])
     currqtcontrols, currqtcontrolsStr = __get_qtcontrols_version_number(), __get_qtcontrols_version()
     if currqtcontrols is None:
         yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
     elif currqtcontrols < minqtcontrols:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currqtcontrolsStr, rec=r['qtcontrols'][1],**MSG)
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currqtcontrolsStr, rec=r['qtcontrols'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currqtcontrolsStr,**MSG)
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currqtcontrolsStr, **MSG)
 
 
 def getSchemeFromName(name):
     if name is None: return None
-    i=name.find('://')
+    i = name.find('://')
     if i == -1: return None
     return name[:i]
 
@@ -383,7 +384,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
     :return: a taurus attribute
     :rtype: :class:`taurus.core.taurusattribute.TaurusAttribute`"""
     import types
-    
+
     if attr_name is None:
         return Factory(scheme=getSchemeFromName(dev_or_attr_name)).getAttribute(dev_or_attr_name)
     else:
@@ -462,13 +463,13 @@ def Object(klass, name):
 
 from taurus.core.util import log as __log_mod
 
-Logger   = __log_mod.Logger
+Logger = __log_mod.Logger
 Critical = Logger.Critical
-Error    = Logger.Error
-Warning  = Logger.Warning
-Info     = Logger.Info
-Debug    = Logger.Debug
-Trace    = Logger.Trace
+Error = Logger.Error
+Warning = Logger.Warning
+Info = Logger.Info
+Debug = Logger.Debug
+Trace = Logger.Trace
 
 setLogLevel = Logger.setLogLevel
 setLogFormat = Logger.setLogFormat

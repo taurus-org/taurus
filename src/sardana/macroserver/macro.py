@@ -36,30 +36,30 @@ __all__ = ["OverloadPrint", "PauseEvent", "Hookable", "ExecMacroHook",
 
 __docformat__ = 'restructuredtext'
 
+import sys
+import time
+import types
+import ctypes
+import weakref
+import operator
+import StringIO
 import threading
 import traceback
-import time
-import sys
-import operator
-import types
-import weakref
-import StringIO
-import ctypes
 
 from taurus.core.util.log import Logger
 from taurus.core.util.prop import propertx
 from taurus.console.table import Table
 from taurus.console.list import List
 
-from taurus.core.tango.sardana.pool import PoolElement
-
 from sardana.sardanadefs import State
 from sardana.util.wrap import wraps
 
-from .msparameter import Type, ParamType, ParamRepeat
-from .msexception import StopException, AbortException, \
+from sardana.macroserver.msparameter import Type, ParamType, ParamRepeat
+from sardana.macroserver.msexception import StopException, AbortException, \
     MacroWrongParameterType, UnknownEnv, UnknownMacro, LibraryError
-from .msoptions import ViewOption
+from sardana.macroserver.msoptions import ViewOption
+
+from sardana.taurus.core.tango.sardana.pool import PoolElement
 
 asyncexc = ctypes.pythonapi.PyThreadState_SetAsyncExc
 # first define the async exception function args. This is
@@ -103,7 +103,7 @@ class OverloadPrint(object):
 
 class PauseEvent(Logger):
 
-    def __init__(self, macro_obj, abort_timeout = 0.2):
+    def __init__(self, macro_obj, abort_timeout=0.2):
         self._name = self.__class__.__name__
         self._pause_cb = None
         self._resume_cb = None
@@ -197,7 +197,7 @@ class Hookable(Logger):
         if hint is None:
             return self._getHooks()
         else:
-            return self._getHookHintsDict().get(hint,[])
+            return self._getHookHintsDict().get(hint, [])
 
     @propertx
     def hooks():
@@ -225,16 +225,16 @@ class Hookable(Logger):
             #store self._hooks, making sure it is of type: list<callable,list<str>>
             self._hooks = []
             for h in hooks:
-                if  isinstance(h,(tuple, list)) and len(h)==2:
+                if  isinstance(h, (tuple, list)) and len(h) == 2:
                     self._hooks.append(h)
-                else: #we assume that hooks is a list<callable>
-                    self._hooks.append((h,[]))
+                else:  #we assume that hooks is a list<callable>
+                    self._hooks.append((h, []))
                     self.info('Deprecation warning: hooks should be set with a list of hints. See Hookable API docs')
 
             #create _hookHintsDict
             self._getHookHintsDict()['_ALL_'] = zip(*self._hooks)[0]
             nohints = self._hookHintsDict['_NOHINTS_']
-            for hook,hints in self._hooks:
+            for hook, hints in self._hooks:
                 if len(hints) == 0:
                     nohints.append(hook)
                 else:
@@ -351,31 +351,31 @@ class Macro(Logger):
     from this class."""
 
     #: internal variable
-    Init     = State.Init
+    Init = State.Init
 
     #: internal variable
-    Running  = State.Running
+    Running = State.Running
 
     #: internal variable
-    Pause    = State.Standby
+    Pause = State.Standby
 
     #: internal variable
-    Stop     = State.Standby
+    Stop = State.Standby
 
     #: internal variable
-    Fault    = State.Fault
+    Fault = State.Fault
 
     #: internal variable
     Finished = State.On
 
     #: internal variable
-    Ready    = State.On
+    Ready = State.On
 
     #: internal variable
-    Abort    = State.Alarm
+    Abort = State.Alarm
 
     #: Constant used to specify all elements in a parameter
-    All      = ParamType.All
+    All = ParamType.All
 
     #: internal variable
     BlockStart = '<BLOCK>'
@@ -715,7 +715,7 @@ class Macro(Logger):
         self.pyplot.plot(*args, **kwargs)
 #        data = dict(args=args, kwargs=kwargs)
 #        self.sendRecordData(data, codec='bz2_pickle_plot')
-            
+
     @property
     @mAPI
     def pylab(self):
@@ -733,7 +733,7 @@ class Macro(Logger):
         except AttributeError:
             self._pyplot = pyplot = self.door.pyplot
         return pyplot
-    
+
     @mAPI
     def getData(self):
         """**Macro API**.
@@ -746,7 +746,7 @@ class Macro(Logger):
         if not hasattr(self, "_data"):
             raise Exception("Macro '%s' does not produce any data" % self.getName())
         return self._data
-    
+
     @mAPI
     def setData(self, data):
         """**Macro API**. Sets the data for this macro
@@ -757,7 +757,7 @@ class Macro(Logger):
     data = property(getData, setData, doc="macro data")
 
     @mAPI
-    def print(self,  *args, **kwargs):
+    def print(self, *args, **kwargs):
         """**Macro API**.
         Prints a message. Accepted *args* and
         *kwargs* are the same as :func:`print`. Example::
@@ -840,7 +840,7 @@ class Macro(Logger):
                 else:
                     return self.getEnv(kwargs['key'])
             return kwargs['default_value']
-    
+
     @mAPI
     def output(self, msg, *args, **kwargs):
         """**Macro API**.

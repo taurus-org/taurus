@@ -43,7 +43,7 @@ from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool import AcqMode
 from sardana.tango.core.util import exception_str
-from PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
+from sardana.tango.pool.PoolDevice import PoolGroupDevice, PoolGroupDeviceClass
 
 
 class MeasurementGroup(PoolGroupDevice):
@@ -73,7 +73,7 @@ class MeasurementGroup(PoolGroupDevice):
     def init_device(self):
         PoolGroupDevice.init_device(self)
 
-        detect_evts = () # state and status are already set by the super class
+        detect_evts = ()  # state and status are already set by the super class
         non_detect_evts = "configuration", "integrationtime", "monitorcount", \
                           "acquisitionmode", "elementlist"
         self.set_change_events(detect_evts, non_detect_evts)
@@ -107,7 +107,7 @@ class MeasurementGroup(PoolGroupDevice):
             self.error(msg, self.measurement_group.name, event_type.name,
                        exception_str(*exc_info[:2]))
             self.debug("Details", exc_info=exc_info)
-            
+
     def _on_measurement_group_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -116,13 +116,13 @@ class MeasurementGroup(PoolGroupDevice):
 
         timestamp = time.time()
         name = event_type.name
-        name = name.replace('_','')
+        name = name.replace('_', '')
         multi_attr = self.get_device_attr()
         attr = multi_attr.get_attr_by_name(name)
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         error = None
-        
+
         if name == "state":
             event_value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -148,7 +148,7 @@ class MeasurementGroup(PoolGroupDevice):
         pass
         #state = to_tango_state(self.motor_group.get_state(cache=False))
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def read_IntegrationTime(self, attr):

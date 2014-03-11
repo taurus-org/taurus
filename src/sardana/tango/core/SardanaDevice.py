@@ -41,11 +41,12 @@ from PyTango import Device_4Impl, DeviceClass, Util, DevState, \
 from taurus.core.util.threadpool import ThreadPool
 from taurus.core.util.log import Logger
 
-from util import to_tango_state, NO_DB_MAP
+from sardana.tango.core.util import to_tango_state, NO_DB_MAP
 
 
 __thread_pool_lock = threading.Lock()
 __thread_pool = None
+
 
 def get_thread_pool():
     """Returns the global pool of threads for Sardana
@@ -68,7 +69,7 @@ def get_thread_pool():
 class SardanaDevice(Device_4Impl, Logger):
     """SardanaDevice represents the base class for all Sardana 
     :class:`PyTango.DeviceImpl` classes"""
-    
+
     def __init__(self, dclass, name):
         """Constructor"""
         self.in_constructor = True
@@ -76,16 +77,16 @@ class SardanaDevice(Device_4Impl, Logger):
             Device_4Impl.__init__(self, dclass, name)
             self.init(name)
             Logger.__init__(self, name)
-    
+
             self._state = DevState.INIT
             self._status = 'Waiting to be initialized...'
-    
+
             # access to some tango API (like MultiAttribute and Attribute) is
             # still not thread safe so we have this lock to protect
             # Wa can't always use methods which use internally the
             # C++ AutoTangoMonitor because it blocks the entire tango device.
             self.tango_lock = threading.RLock()
-    
+
             self._event_thread_pool = get_thread_pool()
             self.init_device()
         finally:
@@ -96,7 +97,7 @@ class SardanaDevice(Device_4Impl, Logger):
         necessary but **always** call the method from your super class
         
         :param str name: device name"""
-        
+
         db = self.get_database()
         if db is None:
             self._alias = self._get_nodb_device_info()[0]
@@ -185,7 +186,7 @@ class SardanaDevice(Device_4Impl, Logger):
             with tango filter inactive. Use this with care! Attributes
             configured with no change event filter may potentially generated a
             lot of events!
-        :type evts_not_checked: seq<:obj:`str`\>"""     
+        :type evts_not_checked: seq<:obj:`str`\>"""
         for evt in evts_checked:
             self.set_change_event(evt, True, True)
         for evt in evts_not_checked:
@@ -203,7 +204,7 @@ class SardanaDevice(Device_4Impl, Logger):
         :return: the sardana :class:`~taurus.core.util.ThreadPool`
         :rtype: :class:`~taurus.core.util.ThreadPool`"""
         return self._event_thread_pool
-    
+
     def get_attribute_by_name(self, attr_name):
         """Gets the attribute for the given name.
         
@@ -212,7 +213,7 @@ class SardanaDevice(Device_4Impl, Logger):
         :return: the attribute object
         :rtype: :class:`~PyTango.Attribute`"""
         return self.get_device_attr().get_attr_by_name(attr_name)
-    
+
     def get_wattribute_by_name(self, attr_name):
         """Gets the writable attribute for the given name.
         
@@ -221,14 +222,14 @@ class SardanaDevice(Device_4Impl, Logger):
         :return: the attribute object
         :rtype: :class:`~PyTango.WAttribute`"""
         return self.get_device_attr().get_w_attr_by_name(attr_name)
-    
+
     def get_database(self):
         """Helper method to return a reference to the current tango database
         
         :return: the Tango database
         :rtype: :class:`~PyTango.Database`"""
         return Util.instance().get_database()
-    
+
     def set_write_attribute(self, attr, w_value):
         try:
             attr.set_write_value(w_value)
@@ -241,7 +242,7 @@ class SardanaDevice(Device_4Impl, Logger):
                 _df = DevFailed(*df[1:])
                 PyTango.Except.re_throw_exception(_df, df0.reason, desc, df0.origin)
             raise df
-    
+
     def set_attribute(self, attr, value=None, w_value=None, timestamp=None,
                       quality=None, error=None, priority=1, synch=True):
         """Sets the given attribute value. If timestamp is not given, *now* is
@@ -299,7 +300,7 @@ class SardanaDevice(Device_4Impl, Logger):
         """Synchronous internal implementation of :meth:`set_attribute` (synch
         is passed to this method because it might need to know if it is being
         executed in a synchronous or asynchronous context)."""
-        
+
         if priority > 0 and not synch:
             with self.tango_lock:
                 return self._set_attribute_push(attr, value=value,
@@ -319,7 +320,7 @@ class SardanaDevice(Device_4Impl, Logger):
         if priority > 1 and attr.is_check_change_criteria():
             attr.set_change_event(True, False)
             recover = True
-        
+
         attr_name = attr.get_name().lower()
 
         if value is None and error is None:
@@ -406,10 +407,10 @@ class SardanaDevice(Device_4Impl, Logger):
 class SardanaDeviceClass(DeviceClass):
     """SardanaDeviceClass represents the base class for all Sardana
     :class:`PyTango.DeviceClass` classes"""
-    
+
     #:
     #: Sardana device class properties definition
-    #: 
+    #:
     #: .. seealso:: :ref:`server`
     #:
     class_property_list = {
@@ -417,7 +418,7 @@ class SardanaDeviceClass(DeviceClass):
 
     #:
     #: Sardana device properties definition
-    #: 
+    #:
     #: .. seealso:: :ref:`server`
     #:
     device_property_list = {
@@ -425,7 +426,7 @@ class SardanaDeviceClass(DeviceClass):
 
     #:
     #: Sardana device command definition
-    #: 
+    #:
     #: .. seealso:: :ref:`server`
     #:
     cmd_list = {
@@ -433,7 +434,7 @@ class SardanaDeviceClass(DeviceClass):
 
     #:
     #: Sardana device attribute definition
-    #: 
+    #:
     #: .. seealso:: :ref:`server`
     #:
     attr_list = {
@@ -449,7 +450,7 @@ class SardanaDeviceClass(DeviceClass):
                     doc_url="http://sardana-controls.org/",
                     __icon=self.get_name().lower() + ".png",
                     InheritedFrom=["Device_4Impl"])
-    
+
     def write_class_property(self):
         """Write class properties ``ProjectTitle``, ``Description``, 
         ``doc_url``, ``InheritedFrom`` and ``__icon``"""

@@ -7,23 +7,25 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
 
 """This module contains the most generic sardana constants and enumerations"""
+
+from __future__ import absolute_import
 
 __all__ = ["EpsilonError", "SardanaServer", "ServerRunMode", "State",
            "DataType", "DataFormat", "DataAccess", "DTYPE_MAP", "R_DTYPE_MAP",
@@ -41,13 +43,13 @@ __docformat__ = 'restructuredtext'
 
 import math
 
-from taurus.core.util import Enumeration
+from taurus.core.util.enumeration import Enumeration
 
 #: maximum difference between two floats so that they are considered equal
 EpsilonError = 1E-16
 
 #: sardana element state enumeration
-State = Enumeration("State", ( \
+State = Enumeration("State", (\
     "On",
     "Off",
     "Close",
@@ -62,19 +64,19 @@ State = Enumeration("State", ( \
     "Alarm",
     "Disable",
     "Unknown",
-    "Invalid") )
+    "Invalid"))
 
 
 class _SardanaServer(object):
     """Class representing the current sardana server state"""
-    
+
     def __init__(self):
         self.server_state = State.Invalid
-    
+
     def __repr__(self):
         return "SardanaServer()"
-    
-    
+
+
 #: the global object containing the SardanaServer information
 SardanaServer = _SardanaServer()
 
@@ -96,29 +98,29 @@ ServerRunMode = Enumeration("ServerRunMode", \
                              "AsynchThread", "AsynchProcess"))
 
 #: sardana data types (used by device pool controllers)
-DataType = Enumeration("DataType", ( \
+DataType = Enumeration("DataType", (\
     "Integer",
     "Double",
     "String",
     "Boolean",
     "Encoded",
-    "Invalid") )
+    "Invalid"))
 
 #: sardana data format enumeration (used by device pool controllers)
-DataFormat = Enumeration("DataFormat", ( \
+DataFormat = Enumeration("DataFormat", (\
     "Scalar",
     "OneD",
     "TwoD",
-    "Invalid") )
+    "Invalid"))
 
 #: sardana data access (used by device pool controllers)
-DataAccess = Enumeration("DataAccess", ( \
+DataAccess = Enumeration("DataAccess", (\
     "ReadOnly",
     "ReadWrite",
-    "Invalid") )
+    "Invalid"))
 
 #: dictionary dict<data type, :class:`sardana.DataType`>
-DTYPE_MAP = { 
+DTYPE_MAP = {
     'int'            : DataType.Integer,
     'integer'        : DataType.Integer,
     int              : DataType.Integer,
@@ -140,7 +142,7 @@ DTYPE_MAP = {
 }
 
 #: dictionary dict<data type, :class:`sardana.DataType`>
-R_DTYPE_MAP = { 
+R_DTYPE_MAP = {
     'int'            : int,
     'integer'        : int,
     int              : int,
@@ -164,7 +166,7 @@ R_DTYPE_MAP = {
 #DTYPE_MAP.setdefault(DataType.Invalid)
 
 #: dictionary dict<access type, :class:`sardana.DataAccess`>
-DACCESS_MAP = { 
+DACCESS_MAP = {
     'read'               : DataAccess.ReadOnly,
     DataAccess.ReadOnly  : DataAccess.ReadOnly,
     'readwrite'          : DataAccess.ReadWrite,
@@ -267,7 +269,7 @@ InvalidId = 0
 InvalidAxis = 0
 
 #: An enumeration describing the all possible element types in sardana
-ElementType = Enumeration("ElementType", ( \
+ElementType = Enumeration("ElementType", (\
     "Pool",
     "Controller",
     "Motor",
@@ -293,7 +295,7 @@ ElementType = Enumeration("ElementType", ( \
     "External",
     "Meta",
     "ParameterType",
-    "Unknown") )
+    "Unknown"))
 
 ET = ElementType
 
@@ -332,7 +334,7 @@ TYPE_EXP_CHANNEL_ELEMENTS = set((ET.CTExpChannel, ET.ZeroDExpChannel, \
 
 #: a set containing the possible timer-able elements.
 #: Constant values belong to :class:`~sardana.sardanadefs.ElementType`
-TYPE_TIMERABLE_ELEMENTS = set((ET.CTExpChannel, ET.OneDExpChannel, 
+TYPE_TIMERABLE_ELEMENTS = set((ET.CTExpChannel, ET.OneDExpChannel,
     ET.TwoDExpChannel))
 
 #: a set containing the possible types of pseudo elements.
@@ -368,7 +370,7 @@ TYPE_PSEUDO_ELEMENTS = set((ET.PseudoMotor, ET.PseudoCounter))
 #    ("ControllerClass",   0b0000000000000001),
 #    ("Constraint",        0b0000000000000001),
 #    ("External",          0b0000000000000001),
-    
+
 #    ("MacroServerObject", 0b0000000000000001),
 #    ("MacroServerElement",0b0000000000000001),
 #    ("MacroServer",       0b0000000000000001),
@@ -408,7 +410,7 @@ INTERFACES = {
     "ControllerClass" : (set(("Class", "PoolObject")), "A controller class"),
     "Constraint" : (set(("PoolObject",)), "A constraint"),
     "External" : (set(("Object",)), "An external object"),
-    
+
     "MacroServerObject" : (set(("Object",)), "A generic macro server object"),
     "MacroServerElement" : (set(("Element", "MacroServerObject")), "A generic macro server element"),
     "MacroServer" : (set(("MacroServerElement",)), "A MacroServer"),
@@ -418,7 +420,7 @@ INTERFACES = {
     "MacroClass" : (set(("Class", "MacroCode")), "A macro server macro class"),
     "MacroFunction" : (set(("Function", "MacroCode")), "A macro server macro function"),
     "Macro" : (set(("MacroClass", "MacroFunction")), "A macro server macro"),
-    
+
     "ParameterType" : (set(("Meta",)), "A generic macro server parameter type"),
 }
 
@@ -458,7 +460,7 @@ def __expand_sardana_interface_data(si_map, name, curr_id):
             curr_id = __expand_sardana_interface_data(si_map, interface, curr_id)
         d |= si_map[interface]
     si_map[name] = long(d | curr_id)
-    return 2*curr_id
+    return 2 * curr_id
 
 def __root_expand_sardana_interface_data():
     curr_id = 1
@@ -489,7 +491,7 @@ _Interfaces, _InterfacesExpanded = __create_sardana_interfaces()
 #: (:obj:`dict` <:obj:`sardana.sardanadefs.Interface`, :obj:`set` < :obj:`sardana.sardanadefs.Interface`> >)
 Interfaces = _Interfaces
 
-#: a dictionary containing the *all* interfaces supported by each type. 
+#: a dictionary containing the *all* interfaces supported by each type.
 #: (:obj:`dict` <:obj:`sardana.sardanadefs.Interface`, :obj:`set` < :obj:`sardana.sardanadefs.Interface`> >)
 InterfacesExpanded = _InterfacesExpanded
 
@@ -497,9 +499,9 @@ InterfacesExpanded = _InterfacesExpanded
 class ScalarNumberFilter(object):
     """A simple scalar number filter that returns ``False`` if two numbers are
     indentical (i.e. |a-b| < error)"""
-    
+
     def __call__(self, a, b):
         try:
-            return math.fabs(a-b) > EpsilonError
+            return math.fabs(a - b) > EpsilonError
         except:
             return a != b

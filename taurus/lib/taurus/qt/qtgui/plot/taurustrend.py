@@ -26,7 +26,7 @@
 """
 taurustrend.py: Generic trend widget for Taurus
 """
-__all__=["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
+__all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 from datetime import datetime
 import time
@@ -39,6 +39,7 @@ import taurus.core
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.plot import TaurusPlot
+
 import PyTango
 
 def getArchivedTrendValues(*args, **kwargs):
@@ -48,7 +49,6 @@ def getArchivedTrendValues(*args, **kwargs):
     except:
         return []
 
-from taurus.qt.qtcore.tango.sardana.macroserver import QDoor
 
 def stripShape(s):
     '''
@@ -772,6 +772,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         
         :param qdoor: (QDoor or str) either a QDoor instance or the QDoor name
         '''
+        from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
         self.connect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
         
@@ -781,6 +782,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         
         :param qdoor: (QDoor or str) either a QDoor instance or the QDoor name
         '''
+        from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
         self.disconnect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
     

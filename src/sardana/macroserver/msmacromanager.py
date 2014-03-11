@@ -30,31 +30,34 @@ __all__ = ["MacroManager", "MacroExecutor", "is_macro"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import os
-import inspect
-import copy
 import re
+import os
+import sys
+import copy
+import inspect
 import functools
 import traceback
 
 from lxml import etree
 
 from PyTango import DevFailed
+
 from taurus.core.util.log import Logger
-from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.codecs import  CodecFactory
 
 from sardana.sardanadefs import ElementType
 from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanaexception import format_exception_only_str
 from sardana.sardanautils import is_pure_str, is_non_str_seq
 
-from .msmanager import MacroServerManager
-from .msmetamacro import MACRO_TEMPLATE, MacroLibrary, MacroClass, MacroFunction
-from .msparameter import ParamDecoder
-from .macro import Macro, MacroFunc
-from .msexception import UnknownMacroLibrary, LibraryError, UnknownMacro, \
-    MissingEnv, AbortException, StopException, MacroServerException
+from sardana.macroserver.msmanager import MacroServerManager
+from sardana.macroserver.msmetamacro import MACRO_TEMPLATE, MacroLibrary, \
+    MacroClass, MacroFunction
+from sardana.macroserver.msparameter import ParamDecoder
+from sardana.macroserver.macro import Macro, MacroFunc
+from sardana.macroserver.msexception import UnknownMacroLibrary, \
+    LibraryError, UnknownMacro, MissingEnv, AbortException, StopException, \
+    MacroServerException
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -209,7 +212,7 @@ class MacroManager(MacroServerManager):
         for p in reversed(path):
             try:
                 for f in os.listdir(p):
-                    name,ext = os.path.splitext(f)
+                    name, ext = os.path.splitext(f)
                     if name.startswith("_"):
                         continue
                     if ext.endswith('py'):
@@ -454,7 +457,7 @@ class MacroManager(MacroServerManager):
         try:
             m = mod_manager.reloadModule(module_name, path)
         except:
-            exc_info=sys.exc_info()
+            exc_info = sys.exc_info()
         macro_lib = None
 
         params = dict(module=m, name=module_name,
@@ -642,7 +645,7 @@ class MacroManager(MacroServerManager):
         out_par_list = ParamDecoder(door, macro_meta, in_par_list)
         return macro_meta, in_par_list, out_par_list
 
-    def strMacroParamValues(self,par_list):
+    def strMacroParamValues(self, par_list):
         """strMacroParamValues(list<string> par_list) -> list<string>
 
            Creates a short string representantion of the parameter values list.
@@ -654,7 +657,7 @@ class MacroManager(MacroServerManager):
         ret = []
         for p in par_list:
             param_str = str(p)
-            if len(param_str)>9:
+            if len(param_str) > 9:
                 param_str = param_str[:9] + "..."
             ret.append(param_str)
         return ret

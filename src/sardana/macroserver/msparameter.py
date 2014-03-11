@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -29,25 +29,27 @@ macros"""
 __all__ = ["WrongParam", "MissingParam", "UnknownParamObj", "WrongParamType",
            "TypeNames", "Type", "ParamType", "ParamRepeat", "ElementParamType",
            "ElementParamInterface", "AttrParamType", "AbstractParamTypes",
-           "ParamDecoder" ]
+           "ParamDecoder"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.core.util import CaselessDict
+from taurus.core.util.containers import CaselessDict
 
 from sardana import ElementType, INTERFACES_EXPANDED
 from sardana.macroserver.msbase import MSBaseObject
-from .msexception import MacroServerException, UnknownMacro, UnknownMacroLibrary
+from sardana.macroserver.msexception import MacroServerException, \
+    UnknownMacro, UnknownMacroLibrary
+
 
 class WrongParam(MacroServerException):
-    
+
     def __init__(self, *args):
         MacroServerException.__init__(self, *args)
         self.type = 'Wrong parameter'
 
 
 class MissingParam(WrongParam):
-    
+
     def __init__(self, *args):
         WrongParam.__init__(self, *args)
         self.type = 'Missing parameter'
@@ -69,18 +71,18 @@ class WrongParamType(WrongParam):
 
 class TypeNames:
     """Class that holds the list of registered macro parameter types"""
-    
+
     def __init__(self):
         self._type_names = {}
         self._pending_type_names = {}
-    
+
     def addType(self, name):
         """Register a new macro parameter type"""
         setattr(self, name, name)
         self._type_names[name] = name
         if name in self._pending_type_names:
             del self._pending_type_names[name]
-    
+
     def removeType(self, name):
         """remove a macro parameter type"""
         delattr(self, name)
@@ -88,44 +90,44 @@ class TypeNames:
             del self._type_names[name]
         except ValueError:
             pass
-        
+
     def __str__(self):
         return str(self._type_names.keys())
-    
+
 #    def __getattr__(self, name):
 #        if name not in self._pending_type_names:
 #            self._pending_type_names[name] = name
 #        return self._pending_type_names[name]
 
 
-# This instance of TypeNames is intended to provide access to types to the 
+# This instance of TypeNames is intended to provide access to types to the
 # Macros in a "Type.Motor" fashion
 Type = TypeNames()
 
 
 class ParamType(MSBaseObject):
-    
-    All             = 'All'
-    
+
+    All = 'All'
+
     # Capabilities
-    ItemList        = 'ItemList'
-    ItemListEvents  = 'ItemListEvents'
-    
-    capabilities    = []
-    
+    ItemList = 'ItemList'
+    ItemListEvents = 'ItemListEvents'
+
+    capabilities = []
+
     type_class = str
-    
+
     def __init__(self, macro_server, name):
         MSBaseObject.__init__(self, name=name, full_name=name,
                               macro_server=macro_server,
                               elem_type=ElementType.ParameterType)
-    
+
     def getName(self):
         return self.name
 
     def getObj(self, str_repr):
         return self.type_class(str_repr)
-        
+
     @classmethod
     def hasCapability(cls, cap):
         return cap in cls.capabilities
@@ -147,24 +149,24 @@ class ParamRepeat(object):
 
     def items(self):
         return self.opts.items()
-    
+
     def __getattr__(self, name):
         return self.opts[name]
-    
+
     def obj(self):
         return self._obj
-    
+
 
 class ElementParamType(ParamType):
-    
+
     capabilities = ParamType.ItemList, ParamType.ItemListEvents
-    
+
     def __init__(self, macro_server, name):
         ParamType.__init__(self, macro_server, name)
-    
+
     def accepts(self, elem):
         return elem.getType() == self._name
-    
+
     def getObj(self, name, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
         if pool == ParamType.All:
@@ -181,12 +183,12 @@ class ElementParamType(ParamType):
             return macro_server.get_macro(name)
         except UnknownMacro:
             pass
-        
+
         try:
             return macro_server.get_macro_lib(name)
         except UnknownMacroLibrary:
             pass
-    
+
     def getObjDict(self, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
         objs = CaselessDict()
@@ -204,9 +206,9 @@ class ElementParamType(ParamType):
         for macro_name, macro in macro_server.get_macros().items():
             if self.accepts(macro):
                 objs[macro_name] = macro
-        
+
         return objs
-    
+
     def getObjListStr(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.keys()
@@ -227,14 +229,14 @@ class ElementParamInterface(ElementParamType):
         ElementParamType.__init__(self, macro_server, name)
         bases, doc = INTERFACES_EXPANDED.get(name)
         self._interfaces = bases
-    
+
     def accepts(self, elem):
         elem_type = elem.getType()
         elem_interfaces = INTERFACES_EXPANDED.get(elem_type)[0]
         if elem_interfaces is None:
             return ElementParamType.accepts(self, elem)
         return self._name in elem_interfaces
-    
+
     def getObj(self, name, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
         if pool == ParamType.All:
@@ -251,18 +253,18 @@ class ElementParamInterface(ElementParamType):
             return macro_server.get_macro(name)
         except UnknownMacro:
             pass
-        
+
         try:
             return macro_server.get_macro_lib(name)
         except UnknownMacroLibrary:
             pass
-    
+
     def getObjDict(self, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
         objs = CaselessDict()
         if macro_server.is_macroserver_interface(self._name):
             return macro_server.get_elements_with_interface(self._name)
-        
+
         if pool == ParamType.All:
             pools = macro_server.get_pools()
         else:
@@ -272,11 +274,11 @@ class ElementParamInterface(ElementParamType):
                 if self.accepts(elem_info):
                     objs[elem_info.name] = elem_info
         return objs
-    
+
     def getObjListStr(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.keys()
-    
+
     def getObjList(self, pool=ParamType.All, cache=False):
         obj_dict = self.getObjDict(pool=pool, cache=cache)
         return obj_dict.values()
@@ -301,7 +303,7 @@ class ParamDecoder:
     @property
     def type_manager(self):
         return self.door.type_manager
-    
+
     def decode(self):
         macro_meta = self.macro_meta
         macro_type = macro_meta.get_type()
@@ -380,7 +382,7 @@ class ParamDecoder:
                   (rep_nr, name, min_rep)
             raise RuntimeError, msg
         return dec_token, obj_list
-        
+
     def getParamList(self):
         return self.param_list
 

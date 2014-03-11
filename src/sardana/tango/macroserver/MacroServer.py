@@ -30,10 +30,9 @@ import os.path
 from PyTango import Util, Except, DevVoid, DevLong, DevString, DevState, \
     DevEncoded, DevVarStringArray, READ, READ_WRITE, SCALAR, SPECTRUM, DebugIt
 
-#from taurus.core.util import Logger
 from taurus.core.util.codecs import CodecFactory
 
-from sardana import State, SardanaServer #, ElementType
+from sardana import State, SardanaServer
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.macroserver.msexception import MacroServerException
 from sardana.macroserver.macroserver import MacroServer as MS

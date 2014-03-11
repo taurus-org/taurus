@@ -38,9 +38,8 @@ from sardana.sardanaattribute import SardanaAttribute, ScalarNumberAttribute, \
     SardanaSoftwareAttribute
 from sardana.sardanaevent import EventType
 from sardana.sardanautils import assert_type, is_number
-
-from poolelement import PoolElement
-from poolmotion import PoolMotion, MotionState
+from sardana.pool.poolelement import PoolElement
+from sardana.pool.poolmotion import PoolMotion, MotionState
 
 
 class Position(SardanaAttribute):
@@ -50,25 +49,25 @@ class Position(SardanaAttribute):
         self.get_offset().add_listener(self.on_change)
         self.get_sign().add_listener(self.on_change)
         self.get_dial().add_listener(self.on_change)
-        
+
     def get_dial(self):
         return self.obj.get_dial_position_attribute()
-    
+
     def get_offset(self):
         return self.obj.get_offset_attribute()
-    
+
     def get_sign(self):
         return self.obj.get_sign_attribute()
 
     def _in_error(self):
         return self.get_dial().in_error()
-    
+
     def _has_value(self):
         return self.get_dial().has_value()
-    
+
     def _has_write_value(self):
         return self.get_dial().has_write_value()
-    
+
     def _get_value(self):
         return self.calc_position()
 
@@ -78,7 +77,7 @@ class Position(SardanaAttribute):
 
     def _set_value(self, value, exc_info=None, timestamp=None, propagate=1):
         raise Exception("Cannot set position value for %s" % self.obj.name)
-    
+
     def _set_write_value(self, w_value, timestamp=None, propagate=1):
         # let the write value be stored by dial using the current offset and
         # sign. This way, retrieving the write value is done in reverse applying
@@ -86,10 +85,10 @@ class Position(SardanaAttribute):
         w_dial = self.calc_dial_position(w_value)
         self.get_dial().set_write_value(w_dial, timestamp=timestamp, propagate=0)
         self.fire_write_event(propagate=propagate)
-        
+
     def _get_exc_info(self):
         return self.get_dial().get_exc_info()
-    
+
     def _get_timestamp(self):
         return self.get_dial().get_timestamp()
 
@@ -118,8 +117,8 @@ class Position(SardanaAttribute):
         if not is_number(dial):
             raise Exception("Controller returns not a number %s" % dial)
         sign, offset = obj.sign.value, obj.offset.value
-        return sign*dial + offset
-    
+        return sign * dial + offset
+
     def calc_dial_position(self, position=None):
         """Returns the dial position for the  given position. If position is
         not given (or is None) it uses this object's *write* value.
@@ -134,7 +133,7 @@ class Position(SardanaAttribute):
         if position is None:
             position = self.w_value
         sign, offset = obj.sign.value, obj.offset.value
-        return (position-offset) / sign
+        return (position - offset) / sign
 
     def calc_motion(self, new_position):
         """Calculate the motor position, dial position, backlash for the
@@ -168,7 +167,7 @@ class Position(SardanaAttribute):
 
         # compute a rounding value if necessary
         if ctrl.wants_rounding():
-            nb_step  = round(new_dial * step_per_unit)
+            nb_step = round(new_dial * step_per_unit)
             new_dial = nb_step / step_per_unit
 
         backlash_position = new_dial
@@ -176,13 +175,13 @@ class Position(SardanaAttribute):
             backlash_position = new_dial + backlash / step_per_unit
 
         return new_position, new_dial, do_backlash, backlash_position
-        
+
     def on_change(self, evt_src, evt_type, evt_value):
         self.fire_read_event(propagate=evt_type.priority)
 
     def update(self, cache=True, propagate=1):
         self.get_dial().update(cache=cache, propagate=propagate)
-        
+
 
 class DialPosition(ScalarNumberAttribute):
 
@@ -190,8 +189,8 @@ class DialPosition(ScalarNumberAttribute):
         if not cache or not self.has_value():
             dial_position_value = self.obj.read_dial_position()
             self.set_value(dial_position_value, propagate=propagate)
-            
-    
+
+
 class LimitSwitches(ScalarNumberAttribute):
     pass
 
@@ -220,7 +219,7 @@ class PoolMotor(PoolElement):
         self._backlash = 0
         self._step_per_unit = 1.0
         self._limit_switches = LimitSwitches(self, name="Limit_switches",
-                                             initial_value=3*(False,),
+                                             initial_value=3 * (False,),
                                              listeners=on_change)
         self._acceleration = None
         self._deceleration = None
@@ -234,7 +233,7 @@ class PoolMotor(PoolElement):
     # --------------------------------------------------------------------------
     # Event forwarding
     # --------------------------------------------------------------------------
-    
+
     def on_change(self, evt_src, evt_type, evt_value):
         # forward all events coming from attributes to the listeners
         self.fire_event(evt_type, evt_value)
@@ -245,13 +244,13 @@ class PoolMotor(PoolElement):
 
     def _from_ctrl_state_info(self, state_info):
         state_info, _ = state_info
-        
+
         try:
             state_str = State.whatis(state_info)
             return int(state_info), "{0} is in {1}".format(self.name, state_str), 0
         except KeyError:
             pass
-        
+
         if len(state_info) > 2:
             state, status, ls = state_info[:3]
         else:
@@ -260,7 +259,7 @@ class PoolMotor(PoolElement):
                 ls, status = other, ''
             else:
                 ls, status = 0, other
-        state, ls = int(state), tuple(map(bool, (ls&1,ls&2,ls&4)))
+        state, ls = int(state), tuple(map(bool, (ls & 1, ls & 2, ls & 4)))
         return state, status, ls
 
     def _set_state_info(self, state_info, propagate=1):
@@ -350,14 +349,14 @@ class PoolMotor(PoolElement):
 
     def _set_limit_switches(self, ls, propagate=1):
         self._limit_switches.set_value(tuple(ls), propagate=propagate)
-    
+
     limit_switches = property(get_limit_switches, set_limit_switches,
                               doc="motor limit switches")
 
     # --------------------------------------------------------------------------
     # instability time
     # --------------------------------------------------------------------------
-    
+
     def has_instability_time(self, cache=True):
         it = self._instability_time
         return it is not None and it > 0.0
@@ -461,7 +460,7 @@ class PoolMotor(PoolElement):
         step_per_unit = self.controller.get_axis_par(self.axis, "step_per_unit")
         assert_type(float, step_per_unit)
         return step_per_unit
-        
+
     step_per_unit = property(get_step_per_unit, set_step_per_unit,
                              doc="motor steps per unit")
 
@@ -517,7 +516,7 @@ class PoolMotor(PoolElement):
         deceleration = self.controller.get_axis_par(self.axis, "deceleration")
         assert_type(float, deceleration)
         return deceleration
-        
+
     deceleration = property(get_deceleration, set_deceleration,
                             doc="motor deceleration")
     # --------------------------------------------------------------------------
@@ -572,7 +571,7 @@ class PoolMotor(PoolElement):
         velocity = self.controller.get_axis_par(self.axis, "velocity")
         assert_type(float, velocity)
         return velocity
-        
+
     velocity = property(get_velocity, set_velocity,
                         doc="motor velocity")
 
@@ -635,7 +634,7 @@ class PoolMotor(PoolElement):
             int"""
         self._position.set_write_value(w_position, timestamp=timestamp,
                                        propagate=propagate)
-                                       
+
     def read_dial_position(self):
         """Reads the dial position from hardware.
 
@@ -745,7 +744,7 @@ class PoolMotor(PoolElement):
 
         # compute a rounding value if necessary
         if ctrl.wants_rounding():
-            nb_step  = round(new_dial * step_per_unit)
+            nb_step = round(new_dial * step_per_unit)
             new_dial = nb_step / step_per_unit
 
         backlash_position = new_dial
@@ -763,23 +762,22 @@ class PoolMotor(PoolElement):
             return self._start_move(new_position)
         finally:
             self._in_start_move = False
-            
+
     def _start_move(self, new_position):
         if not self._simulation_mode:
             # update the dial value from the controller in case motor has been
             # moved outside sardana.
-            # TODO: also update step_per_unit 
+            # TODO: also update step_per_unit
             self.get_dial_position_attribute().update(cache=False, propagate=1)
-            
+
             # calculate the motion (dial position, backlash, etc)
             items = self.calculate_motion(new_position)
             self.debug("Start motion user=%f, dial=%f, backlash? %s, "
                        "dial_backlash=%f", *items[self])
-            
+
             timestamp = time.time()
             # update the write position
             self.set_write_position(items[self][0], timestamp=timestamp, propagate=0)
-            
+
             # move!
             self.motion.run(items=items)
-        

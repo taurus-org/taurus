@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -42,11 +42,11 @@ __all__ = ["get_tango_version_str", "get_tango_version_number",
            "run"]
 
 import sys
-import os.path
-import string
-import traceback
 import time
+import string
 import logging
+import os.path
+import traceback
 
 import PyTango
 from PyTango import Util, Database, WAttribute, DbDevInfo, DevFailed, \
@@ -69,77 +69,77 @@ from sardana.pool.poolmetacontroller import DataInfo
 
 NO_DB_MAP = {
     "Pool" : (
-        ("pool_demo", "sardana/pool/demo", dict(Version="1.0.0"), ),
+        ("pool_demo", "sardana/pool/demo", dict(Version="1.0.0"),),
     ),
     "Controller" : (
         ("motctrl", "controller/dummymotorcontroller/motctrl",
          dict(Id=1, Type="Motor", Klass="DummyMotorController",
-              Library="DummyMotorController.py", Role_ids=(), ), ),
+              Library="DummyMotorController.py", Role_ids=(),),),
         ("iorctrl", "controller/dummyiorcontroller/iorctrl",
          dict(Id=2, Type="IORegister", Klass="DummyIORController",
-              Library="DummyIORController.py", Role_ids=(), ), ),
+              Library="DummyIORController.py", Role_ids=(),),),
         ("ctctrl", "controller/dummycountertimercontroller/ctctrl",
          dict(Id=3, Type="CTExpChannel", Klass="DummyCounterTimerController",
-              Library="DummyCounterTimerController.py", Role_ids=(), ), ),
+              Library="DummyCounterTimerController.py", Role_ids=(),),),
         ("zerodctrl", "controller/dummyzerodcontroller/zerodctrl",
          dict(Id=4, Type="ZeroDExpChannel", Klass="DummyZeroDController",
-              Library="DummyZeroDController.py", Role_ids=(), ), ),
+              Library="DummyZeroDController.py", Role_ids=(),),),
         ("slitctrl", "controller/slit/slitctrl",
          dict(Id=5, Type="PseudoMotor", Klass="Slit",
-              Library="Slit.py", Role_ids=(), ), ),
+              Library="Slit.py", Role_ids=(),),),
         ("ioi0ctrl", "controller/ioveri0/ioi0ctrl",
          dict(Id=6, Type="PseudoCounter", Klass="IoverI0",
-              Library="IoverI0.py", Role_ids=(), ), ),
+              Library="IoverI0.py", Role_ids=(),),),
     ),
     "Motor" : (
-        ("slt",  "motor/motctrl/1",  dict(Id=101, Axis=1,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("slb",  "motor/motctrl/2",  dict(Id=102, Axis=2,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("mot1", "motor/motctrl/3",  dict(Id=103, Axis=3,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("mot2", "motor/motctrl/4",  dict(Id=104, Axis=4,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("mot3", "motor/motctrl/5",  dict(Id=105, Axis=5,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("mot4", "motor/motctrl/6",  dict(Id=106, Axis=6,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("th",   "motor/motctrl/7",  dict(Id=107, Axis=7,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("tth",  "motor/motctrl/8",  dict(Id=108, Axis=8,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("chi",  "motor/motctrl/9",  dict(Id=109, Axis=9,  Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
-        ("phi",  "motor/motctrl/10", dict(Id=110, Axis=10, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0), ),
+        ("slt", "motor/motctrl/1", dict(Id=101, Axis=1, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("slb", "motor/motctrl/2", dict(Id=102, Axis=2, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("mot1", "motor/motctrl/3", dict(Id=103, Axis=3, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("mot2", "motor/motctrl/4", dict(Id=104, Axis=4, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("mot3", "motor/motctrl/5", dict(Id=105, Axis=5, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("mot4", "motor/motctrl/6", dict(Id=106, Axis=6, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("th", "motor/motctrl/7", dict(Id=107, Axis=7, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("tth", "motor/motctrl/8", dict(Id=108, Axis=8, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("chi", "motor/motctrl/9", dict(Id=109, Axis=9, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
+        ("phi", "motor/motctrl/10", dict(Id=110, Axis=10, Ctrl_id=1, Instrument_id=InvalidId, Sleep_bef_last_read=0),),
     ),
     "IORegister" : (
-        ("ior1", "ioregister/iorctrl/1", dict(Id=201, Axis=1, Ctrl_id=2, Instrument_id=InvalidId), ),
-        ("ior2", "ioregister/iorctrl/2", dict(Id=202, Axis=2, Ctrl_id=2, Instrument_id=InvalidId), ),
-        ("ior3", "ioregister/iorctrl/3", dict(Id=203, Axis=3, Ctrl_id=2, Instrument_id=InvalidId), ),
-        ("ior4", "ioregister/iorctrl/4", dict(Id=204, Axis=4, Ctrl_id=2, Instrument_id=InvalidId), ),
+        ("ior1", "ioregister/iorctrl/1", dict(Id=201, Axis=1, Ctrl_id=2, Instrument_id=InvalidId),),
+        ("ior2", "ioregister/iorctrl/2", dict(Id=202, Axis=2, Ctrl_id=2, Instrument_id=InvalidId),),
+        ("ior3", "ioregister/iorctrl/3", dict(Id=203, Axis=3, Ctrl_id=2, Instrument_id=InvalidId),),
+        ("ior4", "ioregister/iorctrl/4", dict(Id=204, Axis=4, Ctrl_id=2, Instrument_id=InvalidId),),
     ),
     "CTExpChannel" : (
-        ("ct1", "expchan/ctctrl/1", dict(Id=301, Axis=1, Ctrl_id=3, Instrument_id=InvalidId), ),
-        ("ct2", "expchan/ctctrl/2", dict(Id=302, Axis=2, Ctrl_id=3, Instrument_id=InvalidId), ),
-        ("ct3", "expchan/ctctrl/3", dict(Id=303, Axis=3, Ctrl_id=3, Instrument_id=InvalidId), ),
-        ("ct4", "expchan/ctctrl/4", dict(Id=304, Axis=4, Ctrl_id=3, Instrument_id=InvalidId), ),
+        ("ct1", "expchan/ctctrl/1", dict(Id=301, Axis=1, Ctrl_id=3, Instrument_id=InvalidId),),
+        ("ct2", "expchan/ctctrl/2", dict(Id=302, Axis=2, Ctrl_id=3, Instrument_id=InvalidId),),
+        ("ct3", "expchan/ctctrl/3", dict(Id=303, Axis=3, Ctrl_id=3, Instrument_id=InvalidId),),
+        ("ct4", "expchan/ctctrl/4", dict(Id=304, Axis=4, Ctrl_id=3, Instrument_id=InvalidId),),
     ),
     "ZeroDExpChannel" : (
-        ("zerod1", "expchan/zerodctrl/1", dict(Id=401, Axis=1, Ctrl_id=4, Instrument_id=InvalidId), ),
-        ("zerod2", "expchan/zerodctrl/2", dict(Id=402, Axis=2, Ctrl_id=4, Instrument_id=InvalidId), ),
-        ("zerod3", "expchan/zerodctrl/3", dict(Id=403, Axis=3, Ctrl_id=4, Instrument_id=InvalidId), ),
-        ("zerod4", "expchan/zerodctrl/4", dict(Id=404, Axis=4, Ctrl_id=4, Instrument_id=InvalidId), ),
+        ("zerod1", "expchan/zerodctrl/1", dict(Id=401, Axis=1, Ctrl_id=4, Instrument_id=InvalidId),),
+        ("zerod2", "expchan/zerodctrl/2", dict(Id=402, Axis=2, Ctrl_id=4, Instrument_id=InvalidId),),
+        ("zerod3", "expchan/zerodctrl/3", dict(Id=403, Axis=3, Ctrl_id=4, Instrument_id=InvalidId),),
+        ("zerod4", "expchan/zerodctrl/4", dict(Id=404, Axis=4, Ctrl_id=4, Instrument_id=InvalidId),),
     ),
     "PseudoMotor" : (
-        ("gap",    "pm/slitctrl/1",  dict(Id=501, Axis=1,  Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",) ), ),
-        ("offset", "pm/slitctrl/2",  dict(Id=502, Axis=2,  Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",) ), ),
+        ("gap", "pm/slitctrl/1", dict(Id=501, Axis=1, Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",)),),
+        ("offset", "pm/slitctrl/2", dict(Id=502, Axis=2, Ctrl_id=5, Instrument_id=InvalidId, Elements=("101", "102",)),),
     ),
     "PseudoCounter" : (
-        ("inorm", "pc/ioi0ctrl/1",  dict(Id=601, Axis=1,  Ctrl_id=6, Instrument_id=InvalidId, Elements=("301", "302",) ), ),
+        ("inorm", "pc/ioi0ctrl/1", dict(Id=601, Axis=1, Ctrl_id=6, Instrument_id=InvalidId, Elements=("301", "302",)),),
     ),
     "MotorGroup" : (
-        ("motgrp1", "mg/pool_demo/motgrp1",  dict(Id=701, Elements=("103", "104",) ), ),
+        ("motgrp1", "mg/pool_demo/motgrp1", dict(Id=701, Elements=("103", "104",)),),
     ),
     "MeasurementGroup" : (
-        ("mntgrp1", "mntgrp/pool_demo/mntgrp1",  dict(Id=701, Elements=("301", "302", "303", "401",) ), ),
+        ("mntgrp1", "mntgrp/pool_demo/mntgrp1", dict(Id=701, Elements=("301", "302", "303", "401",)),),
     ),
     "MacroServer" : (
-        ("MS_demo", "sardana/ms/demo",  dict(PoolNames=["sardana/pool/demo"] ), ),
+        ("MS_demo", "sardana/ms/demo", dict(PoolNames=["sardana/pool/demo"]),),
     ),
     "Door" : (
         ("Door_demo", "sardana/door/demo",
-         dict(Id=1001, MacroServerName="sardana/ms/demo", MaxMsgBufferSize=512), ),
+         dict(Id=1001, MacroServerName="sardana/ms/demo", MaxMsgBufferSize=512),),
     ),
 }
 
@@ -173,7 +173,7 @@ def get_tango_version_str():
         return PyTango.constants.TgLibVers
     except:
         return '0.0.0'
-    
+
 def get_tango_version_number():
     tgver_str = get_tango_version_str()
     if tgver_str is None:
@@ -186,7 +186,7 @@ class GenericScalarAttr(Attr):
 
 
 class GenericSpectrumAttr(SpectrumAttr):
-    
+
     def __init__(self, name, tg_type, tg_access, dim_x=2048):
         SpectrumAttr.__init__(self, name, tg_type, tg_access, dim_x)
 
@@ -234,7 +234,7 @@ def memorize_write_attribute(write_attr_func):
        :type write_attr_func: callable
        :return: a write method safely wrapping the given write method
        :rtype: callable"""
-       
+
     @wraps(write_attr_func)
     def write_attr_wrapper(self, attribute):
         ts = repr(time.time())
@@ -243,7 +243,7 @@ def memorize_write_attribute(write_attr_func):
 
         if not isinstance(attribute, WAttribute):
             return write_attr_func(self, attribute)
-        
+
         lwv = __get_last_write_value(attribute)
         wv = attribute.get_write_value(), ts
         store, raises_exc = wv, True
@@ -266,9 +266,9 @@ def memorize_write_attribute(write_attr_func):
                 attr_values['__value'] = store[0]
             db.put_device_attribute_property(dev_name, { attr_name : attr_values })
         return ret
-        
+
     return write_attr_wrapper
-    
+
 def tango_protect(wrapped, *args, **kwargs):
     @wraps(wrapped)
     def wrapper(self, *args, **kwargs):
@@ -296,10 +296,10 @@ def from_deviceattribute(da):
     else:
         exc_info = None
         value = from_deviceattribute_value(da.value)
-    
-    dtype, dformat = from_tango_type_format(da.type, da.data_format) 
-    
-    ret = SardanaValue(value=value, exc_info=exc_info, 
+
+    dtype, dformat = from_tango_type_format(da.type, da.data_format)
+
+    ret = SardanaValue(value=value, exc_info=exc_info,
                        timestamp=da.time.totime(), dtype=dtype, dformat=dformat)
     return ret
 
@@ -316,7 +316,7 @@ TTYPE_MAP = {
     DataType.String  : DevString,
     DataType.Boolean : DevBoolean,
 }
-R_TTYPE_MAP = dict((v,k) for k,v in TTYPE_MAP.items())
+R_TTYPE_MAP = dict((v, k) for k, v in TTYPE_MAP.items())
 
 #: dictionary dict<:class:`sardana.DataFormat`, :class:`PyTango.AttrFormat`>
 TFORMAT_MAP = {
@@ -324,7 +324,7 @@ TFORMAT_MAP = {
     DataFormat.OneD   : SPECTRUM,
     DataFormat.TwoD   : IMAGE,
 }
-R_TFORMAT_MAP = dict((v,k) for k,v in TFORMAT_MAP.items())
+R_TFORMAT_MAP = dict((v, k) for k, v in TFORMAT_MAP.items())
 
 #: dictionary dict<:class:`sardana.DataAccess`, :class:`PyTango.AttrWriteType`>
 TACCESS_MAP = {
@@ -332,7 +332,7 @@ TACCESS_MAP = {
     DataAccess.ReadWrite : READ_WRITE,
 }
 
-R_TACCESS_MAP = dict((v,k) for k,v in TACCESS_MAP.items())
+R_TACCESS_MAP = dict((v, k) for k, v in TACCESS_MAP.items())
 
 def exception_str(etype=None, value=None, sep='\n'):
     if etype is None:
@@ -399,7 +399,7 @@ def to_tango_attr_info(attr_name, attr_info):
         data_access = to_daccess(attr_info.get('r/w type'))
         desc = attr_info.get('description')
         memorized = attr_info.get('memorized')
-    
+
     tg_type, tg_format = to_tango_type_format(data_type, data_format)
     tg_access = to_tango_access(data_access)
     tg_attr_info = [ [ tg_type, tg_format, tg_access ] ]
@@ -424,8 +424,8 @@ def throw_sardana_exception(exc):
             Except.throw_exception(exc.msg, tb, exc.type)
     elif hasattr(exc, 'exc_info'):
         Except.throw_python_exception(*exc.exc_info)
-        
-def ask_yes_no(prompt,default=None):
+
+def ask_yes_no(prompt, default=None):
     """Asks a question and returns a boolean (y/n) answer.
 
     If default is given (one of 'y','n'), it is used if the user input is
@@ -435,18 +435,18 @@ def ask_yes_no(prompt,default=None):
     exception is raised to prevent infinite loops.
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
-    answers = {'y':True,'n':False,'yes':True,'no':False}
+    answers = {'y':True, 'n':False, 'yes':True, 'no':False}
     ans = None
     if default is not None:
         d_l = default.lower()
-        if d_l in ('y','yes'):
+        if d_l in ('y', 'yes'):
             prompt += " (Y/n) ?"
-        elif d_l in ('n','no'):
+        elif d_l in ('n', 'no'):
             prompt += " (N/y) ?"
-    
+
     while ans not in answers.keys():
         try:
-            ans = raw_input(prompt+' ').lower()
+            ans = raw_input(prompt + ' ').lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
@@ -459,10 +459,10 @@ def ask_yes_no(prompt,default=None):
                 raise
 
     return answers[ans]
-    
+
 def clean_tango_args(args):
     ret, ret_for_tango, ret_for_ORB = [], [], []
-    
+
     tango_args = "-?", "-nodb", "-file="
     nb_args = len(args)
     i = 0
@@ -499,7 +499,7 @@ def clean_tango_args(args):
         ret.append(arg)
         i += 1
     return ret, ret_for_tango, ret_for_ORB
-        
+
 def prepare_cmdline(parser=None, args=None):
     """Prepares the command line separating tango options from server specific
     options.
@@ -509,13 +509,13 @@ def prepare_cmdline(parser=None, args=None):
     import optparse
     if args is None:
         args = []
-    
+
     proc_args, tango_args, ORB_args = clean_tango_args(args)
-    
+
     if parser is None:
         version = "%s" % (Release.version)
         parser = optparse.OptionParser(version=version)
-    
+
     parser.usage = "usage: %prog instance_name [options]"
     log_level_choices = "critical", "error", "warning", "info", "debug", "trace", \
                         "0", "1", "2", "3", "4", "5"
@@ -539,11 +539,11 @@ def prepare_cmdline(parser=None, args=None):
                       help=help_fnlog, type="str", default=None)
     parser.add_option("--without-log-file", dest="without_log_file",
                       help=help_wflog, default=False)
-    
+
     parser.add_option("--rconsole-port", dest="rconsole_port",
                       metavar="RCONSOLE_PORT", help=help_rfoo, type="int", default=0)
 
-    res = list( parser.parse_args(proc_args) )
+    res = list(parser.parse_args(proc_args))
     tango_args = res[1][:2] + tango_args
     res.append(tango_args)
     res.append(ORB_args)
@@ -558,9 +558,9 @@ def prepare_environment(args, tango_args, ORB_args):
     ORB_args_len = len(ORB_args)
     for i in range(ORB_args_len):
         arg = ORB_args[i]
-        if arg.startswith("-ORB") and i+1 < ORB_args_len:
+        if arg.startswith("-ORB") and i + 1 < ORB_args_len:
             env_name = arg[1:]
-            env_val = ORB_args[i+1]
+            env_val = ORB_args[i + 1]
             os.environ[env_name] = env_val
             log_messages.append(("setting %s=%s", env_name, env_val))
     return log_messages
@@ -569,33 +569,33 @@ def prepare_server(args, tango_args):
     """Register a proper server if the user gave an unknown server"""
     log_messages = []
     _, bin_name = os.path.split(args[0])
-    
+
     if "-?" in tango_args:
         return log_messages
-    
+
     nodb = "-nodb" in tango_args
     if nodb and not hasattr(DeviceClass, "device_name_factory"):
         print "In order to start %s with 'nodb' you need PyTango >= 7.2.3" % bin_name
         sys.exit(1)
-    
+
     if len(tango_args) < 2:
         valid = False
         while not valid:
             inst_name = raw_input("Please indicate %s instance name: " % bin_name)
             #should be a instance name validator.
-            valid_set=string.letters + string.digits + '_' + '-'
-            out=''.join([c for c in inst_name if c not in valid_set])
-            valid = len(inst_name) > 0 and len(out)==0
+            valid_set = string.letters + string.digits + '_' + '-'
+            out = ''.join([c for c in inst_name if c not in valid_set])
+            valid = len(inst_name) > 0 and len(out) == 0
             if not valid:
                 print "We only accept alphanumeric combinations"
         args.append(inst_name)
         tango_args.append(inst_name)
     else:
         inst_name = tango_args[1].lower()
-    
+
     if "-nodb" in tango_args:
         return log_messages
-    
+
     db = Database()
     if not exists_server_instance(db, bin_name, inst_name):
         if ask_yes_no('%s does not exist. Do you wish create a new one' % inst_name, default='y'):
@@ -624,7 +624,7 @@ def prepare_server(args, tango_args):
             else:
                 log_messages += register_sardana(db, bin_name, inst_name)
     return log_messages
-    
+
 def exists_server_instance(db, server_name, server_instance):
     known_inst = map(str.lower, db.get_instance_name_list(server_name))
     return server_instance.lower() in known_inst
@@ -637,7 +637,7 @@ def register_sardana(db, bin_name, inst_name, pool_names=None):
         ms_alias = get_free_alias(db, "MS_" + inst_name)
         devices.append(('MacroServer', None, ms_alias, props))
         door_alias = get_free_alias(db, "Door_" + inst_name)
-        devices.append(("Door", None, door_alias, {}))                
+        devices.append(("Door", None, door_alias, {}))
     elif bin_name == 'Pool':
         pool_alias = get_free_alias(db, 'Pool_' + inst_name)
         devices.append(('Pool', None, pool_alias, {}))
@@ -684,7 +684,7 @@ def register_server_with_devices(db, server_name, server_instance, devices):
         if prefix.count("/") == 1:
             prefix = get_free_device(db, prefix)
         info._class = dev_class
-        info.name   = prefix
+        info.name = prefix
         db.add_device(info)
         if alias is None:
             alias_prefix = dev_class + "_" + server_instance
@@ -695,15 +695,15 @@ def register_server_with_devices(db, server_name, server_instance, devices):
 
 def from_name_to_tango(db, name):
     alias = None
-    
+
     c = name.count('/')
     # if the db prefix is there, remove it first
     if c == 3 or c == 1:
-        name = name[name.index("/")+1:]
-    
+        name = name[name.index("/") + 1:]
+
     elems = name.split('/')
     l = len(elems)
-    
+
     if l == 3:
         try:
             alias = db.get_alias(name)
@@ -716,7 +716,7 @@ def from_name_to_tango(db, name):
         name = db.get_device_alias(alias)
     else:
         raise Exception("Invalid device name '%s'" % name)
-    
+
     full_name = "%s:%s/%s" % (db.get_db_host(), db.get_db_port(), name)
     return full_name, name, alias
 
@@ -725,16 +725,16 @@ def get_dev_from_class(db, classname):
     server_wildcard = '*'
     try:
         exp_dev_list = db.get_device_exported_for_class(classname)
-    except Exception: 
+    except Exception:
         exp_dev_list = []
-    
+
     res = {}
     dev_list = db.get_device_name(server_wildcard, classname)
     for dev in dev_list:
         full_name, name, alias = from_name_to_tango(db, dev)
         out = alias or name
         if alias: out += ' (a.k.a. %s)' % name
-        out = "%-25s" % out 
+        out = "%-25s" % out
         if dev in exp_dev_list:
             out += " (running)"
         res[dev] = full_name, name, alias, out
@@ -759,14 +759,14 @@ def prepare_taurus(options, args, tango_args):
     # make sure the polling is not active
     factory = taurus.Factory()
     factory.disablePolling()
-    
+
 def prepare_logging(options, args, tango_args, start_time=None, log_messages=None):
     taurus.setLogLevel(taurus.Debug)
     root = Logger.getRootLog()
-    
+
     # output logger configuration
     log_output_level = options.log_level
-    log_level_map  = { "0" : taurus.Critical, "critical" : taurus.Critical,
+    log_level_map = { "0" : taurus.Critical, "critical" : taurus.Critical,
                        "1" : taurus.Error, "error" : taurus.Error,
                        "2" : taurus.Warning, "warning" : taurus.Warning,
                        "3" : taurus.Info, "info" : taurus.Info,
@@ -775,11 +775,11 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
                      }
     log_output_level = log_level_map[log_output_level]
     root.handlers[0].setLevel(log_output_level)
-    
+
     if not options.without_log_file:
         log_file_level = options.log_file_level
         log_file_level = log_level_map[log_file_level]
-        
+
         # Create a file handler
         if options.log_file_name is None:
             _, ds_name = os.path.split(args[0])
@@ -787,15 +787,15 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
             ds_instance = args[-1].lower()
             import getpass
             try:
-                tangodir = 'tango-%s'%getpass.getuser() #include the user name to avoid permission errors
+                tangodir = 'tango-%s' % getpass.getuser()  #include the user name to avoid permission errors
             except:
-                tangodir = 'tango'%getpass.getuser()
+                tangodir = 'tango' % getpass.getuser()
             path = os.path.join(os.sep, "tmp", tangodir, ds_name, ds_instance)
             log_file_name = os.path.join(path, 'log.txt')
         else:
             log_file_name = options.log_file_name
         path = os.path.dirname(log_file_name)
-        
+
         # because some versions of python have a bug in logging.shutdown (this
         # function is not protected against deleted handlers) we store the
         # handlers we create to make sure a strong reference exists when the
@@ -804,7 +804,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
         try:
             if not os.path.exists(path):
                 os.makedirs(path, 0777)
-            
+
             fmt = Logger.getLogFormat()
             f_h = logging.handlers.RotatingFileHandler(log_file_name,
                                                        maxBytes=1E7,
@@ -813,7 +813,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
             f_h.setLevel(log_file_level)
             root.addHandler(f_h)
             handlers.append(f_h)
-            
+
             if start_time is not None:
                 taurus.info("Started at %s", start_time)
             else:
@@ -827,7 +827,7 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
             taurus.warning("'%s' could not be created. Logs will not be stored",
                            log_file_name)
             taurus.debug("Error description", exc_info=1)
-    
+
     if log_messages is None:
         log_messages = []
     for log_message in log_messages:
@@ -881,18 +881,18 @@ def run_tango_server(tango_util=None, start_time=None):
     taurus.info("Exited")
 
 def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
-    
+
     if mode is None:
         mode = ServerRunMode.SynchPure
-        
+
     if args is None:
         if mode != ServerRunMode.SynchPure:
             raise Exception("When running in separate thread/process, " \
                             "'args' must be given")
         args = sys.argv
-    
+
     name = args[0]
-    
+
     if mode != ServerRunMode.SynchPure:
         if mode in (ServerRunMode.SynchThread, ServerRunMode.AsynchThread):
             import threading
@@ -909,7 +909,7 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
         task_args = prepare_func,
         task_kwargs = dict(args=args, tango_util=tango_util,
                            start_time=start_time, mode=ServerRunMode.SynchPure)
-        
+
         task = task_klass(name=name, target=run, args=task_args,
                           kwargs=task_kwargs)
         task.daemon = False
@@ -917,23 +917,23 @@ def run(prepare_func, args=None, tango_util=None, start_time=None, mode=None):
         if mode in (ServerRunMode.SynchThread, ServerRunMode.SynchProcess):
             task.join()
         return task
-    
+
     log_messages = []
     try:
         options, args, tango_args, ORB_args = prepare_cmdline(args=args)
     except KeyboardInterrupt:
         pass
-    
+
     log_messages.extend(prepare_environment(args, tango_args, ORB_args))
     log_messages.extend(prepare_server(args, tango_args))
 
     if tango_util == None:
         tango_util = Util(tango_args)
-    
+
     prepare_func(tango_util)
     prepare_taurus(options, args, tango_args)
     prepare_logging(options, args, tango_args, start_time=start_time,
                     log_messages=log_messages)
     prepare_rconsole(options, args, tango_args)
-    
+
     run_tango_server(tango_util, start_time=start_time)

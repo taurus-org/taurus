@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -26,17 +26,20 @@
 """This module is part of the Python Sardana library. It defines some
 utility methods"""
 
+from __future__ import absolute_import
+
 __all__ = ["is_pure_str", "is_non_str_seq", "is_integer", "is_number",
-           "is_bool", "check_type", "assert_type", "str_to_value", "is_callable",
-           "translate_version_str2int", "translate_version_str2list"]
+           "is_bool", "check_type", "assert_type", "str_to_value",
+           "is_callable", "translate_version_str2int",
+           "translate_version_str2list"]
 
 __docformat__ = 'restructuredtext'
 
-import collections
-import numbers
 import numpy
+import numbers
+import collections
 
-from sardanadefs import DataType, DataFormat, DTYPE_MAP, R_DTYPE_MAP
+from sardana.sardanadefs import DataType, DataFormat, DTYPE_MAP, R_DTYPE_MAP
 
 __str_klasses = [str]
 __int_klasses = [int, numpy.integer]
@@ -98,7 +101,7 @@ def check_type(type_info, value):
     tinfo = __DTYPE_MAP.get(type_info, type_info)
     tmeth = __METH_MAP.get(tinfo, type_info)
     return tmeth(value)
-    
+
 def assert_type(type_info, value):
     ret = check_type(type_info, value)
     if not ret:
@@ -141,9 +144,9 @@ def translate_version_str2int(version_str):
     parts = version_str.split('.')
     i, v, l = 0, 0, len(parts)
     if not l: return v
-    while i<3:
+    while i < 3:
         try:
-            v += int(parts[i])*int(math.pow(10,(2-i)*2))
+            v += int(parts[i]) * int(math.pow(10, (2 - i) * 2))
             l -= 1
             i += 1
         except ValueError:
@@ -152,14 +155,14 @@ def translate_version_str2int(version_str):
     return v
 
     try:
-        v += 10000*int(parts[0])
+        v += 10000 * int(parts[0])
         l -= 1
     except ValueError:
         return v
     if not l: return v
 
     try:
-        v += 100*int(parts[1])
+        v += 100 * int(parts[1])
         l -= 1
     except ValueError:
         return v
@@ -176,7 +179,7 @@ def translate_version_str2list(version_str, depth=2):
     """Translates a version string in format 'x[.y[.z[...]]]' into a list of
     numbers"""
     if version_str is None:
-        ver = depth*[0,]
+        ver = depth * [0, ]
     else:
         ver = []
         for i in version_str.split(".")[:depth]:

@@ -26,7 +26,7 @@
 """This module is part of the Python Pool library. It defines the base classes
 for"""
 
-__all__ = [ "PoolMotorGroup" ]
+__all__ = ["PoolMotorGroup"]
 
 __docformat__ = 'restructuredtext'
 
@@ -35,48 +35,47 @@ import collections
 
 from sardana import ElementType
 from sardana.sardanaattribute import SardanaAttribute
-
-from .poolgroupelement import PoolGroupElement
-from .poolmotion import PoolMotion
+from sardana.pool.poolgroupelement import PoolGroupElement
+from sardana.pool.poolmotion import PoolMotion
 
 
 class Position(SardanaAttribute):
-    
+
     def __init__(self, *args, **kwargs):
         self._w_value_map = None
         super(Position, self).__init__(*args, **kwargs)
         for pos_attr in self.obj.get_physical_position_attribute_iterator():
             pos_attr.add_listener(self.on_change)
-                
+
     def _has_value(self):
         for pos_attr in self.obj.get_physical_position_attribute_iterator():
             if not pos_attr.has_value():
                 return False
         return True
-    
+
     def _in_error(self):
         for pos_attr in self.obj.get_physical_position_attribute_iterator():
             if pos_attr.in_error():
                 return True
         return False
-    
+
     def get_elements(self):
         return self.obj.get_user_elements()
-    
+
     def get_element_nb(self):
-        return len(self.get_user_elements())    
-   
+        return len(self.get_user_elements())
+
     def _get_exc_info(self):
         for position_attr in self.obj.get_physical_position_attribute_iterator():
             if position_attr.error:
                 return position_attr.get_exc_info()
-    
+
     def _get_timestamp(self):
-        return max( [ pos_attr.timestamp for pos_attr in self.obj.get_physical_position_attribute_iterator() ] )
+        return max([ pos_attr.timestamp for pos_attr in self.obj.get_physical_position_attribute_iterator() ])
 
     def _set_value(self, value, exc_info=None, timestamp=None, propagate=1):
         raise Exception("Cannot set position value for motor group %s" % self.obj.name)
-    
+
     def _get_value(self):
         return [ position.value for position in self.obj.get_physical_position_attribute_iterator() ]
 
@@ -96,7 +95,7 @@ class Position(SardanaAttribute):
                 w_value.append(w_value_map[elem])
         self._w_value_map = w_value
         super(Position, self).set_write_value(w_value, timestamp=timestamp,
-                                              propagate=propagate) 
+                                              propagate=propagate)
 
     def on_change(self, evt_src, evt_type, evt_value):
         self.fire_read_event(propagate=evt_type.priority)
@@ -130,7 +129,7 @@ class PoolMotorGroup(PoolGroupElement):
     # --------------------------------------------------------------------------
     # Event forwarding
     # --------------------------------------------------------------------------
-    
+
     def on_change(self, evt_src, evt_type, evt_value):
         # forward all events coming from attributes to the listeners
         self.fire_event(evt_type, evt_value)
@@ -145,7 +144,7 @@ class PoolMotorGroup(PoolGroupElement):
                 propagate_state = 0
             self.set_state(state, propagate=propagate_state)
             self.set_status(status, propagate=propagate_state)
-                
+
     def add_user_element(self, element, index=None):
         elem_type = element.get_type()
         if elem_type == ElementType.Motor:
@@ -167,13 +166,13 @@ class PoolMotorGroup(PoolGroupElement):
 
     def get_low_level_physical_position_attribute_iterator(self):
         return self.get_physical_elements_attribute_iterator()
-        
+
     def get_physical_position_attribute_iterator(self):
         return self.get_user_elements_attribute_iterator()
-    
+
     def get_physical_positions_attribute_sequence(self):
         return self.get_user_elements_attribute_sequence()
-    
+
     def get_physical_positions_attribute_map(self):
         return self.get_user_elements_attribute_map()
 
@@ -195,7 +194,7 @@ class PoolMotorGroup(PoolGroupElement):
             :class:`~sardana.sardanaattribute.SardanaAttribute`"""
         position = self._position
         position.update(cache=cache, propagate=propagate)
-        return position        
+        return position
 
     def set_position(self, positions):
         """Moves the motor group to the specified user positions
@@ -203,7 +202,7 @@ class PoolMotorGroup(PoolGroupElement):
         :param positions:
             the user positions to move to
         :type positions:
-            sequence< :class:`~numbers.Number` >"""        
+            sequence< :class:`~numbers.Number` >"""
         self.start_move(positions)
 
     def set_write_position(self, w_position, timestamp=None, propagate=1):
@@ -227,7 +226,7 @@ class PoolMotorGroup(PoolGroupElement):
 
     def get_default_attribute(self):
         return self.get_position_attribute()
-    
+
     # --------------------------------------------------------------------------
     # motion
     # --------------------------------------------------------------------------
@@ -260,7 +259,7 @@ class PoolMotorGroup(PoolGroupElement):
             return self._start_move(new_position)
         finally:
             self._in_start_move = False
-            
+
     def _start_move(self, new_positions):
         self._aborted = False
         items = self.calculate_motion(new_positions)
