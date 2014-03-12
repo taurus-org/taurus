@@ -25,8 +25,9 @@
 
 """System tests for Macros"""
 
+__all__ =  ['macroTest', 'BaseMacroTestCase', 'RunMacroTestCase', 
+            'RunStopMacroTestCase', 'macroTestRun', 'macroTestStop']
 import time
-import unittest
 import functools
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
@@ -45,7 +46,7 @@ from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 # For example:
 # @macroTest('run', 'mot2', '0', '100', '10', '.1'])
 # @macroTest('run', 'mot1', '0', '100', '10', '.1'])
-# <test runnig ascan macro>
+# <test running ascan macro>
 #
 # will add the test "test_run_ascan_0 and test_run_ascan_1".
 # Both will be the addition of inherited and class defined _test_run methods,
@@ -65,7 +66,7 @@ def macroTest(test, params=None, wait_timeout=1000):
             if params:
                 self.macro_params = list(params)
             self.wait_timeout = wait_timeout
-            # If there test method would be overrided the super method is added
+            # If the test method would be overrided the super method is added
             if testName in klass.__dict__.keys():
                 getattr(super(klass, self),testName)()
             getattr(self, testName)()

@@ -2,29 +2,29 @@
 
 #############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
+## This file is part of Sardana, a Tango User Interface Library
 ## 
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
-## Taurus is free software: you can redistribute it and/or modify
+## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ## 
-## Taurus is distributed in the hope that it will be useful,
+## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
 ## 
 ## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
-from taurus.core.taurushelper import Device 
-from taurus.core.tango.sardana.macroserver import registerExtensions
+from taurus import Device 
+from sardana.taurus.core.tango.sardana import registerExtensions
 from taurus.core.util.singleton import Singleton
 from sardana import sardanacustomsettings
 
@@ -40,7 +40,7 @@ class SarDemoEnv(Singleton):
             self.door = Device(door_name)
             self.ms = self.door.macro_server
         except ValueError:
-            raise 'The  door %s does not exist' %(door_name)
+            raise ValueError('The  door %s does not exist' %(door_name))
 
         self.controllers = None        
         self.cts = None
@@ -54,7 +54,8 @@ class SarDemoEnv(Singleton):
             self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements'] + \
                       list(self.ms.getEnvironment()['_SAR_DEMO']['controllers'])
         except KeyError:
-            raise 'sar_demo has not been executed for this door %' %(door_name) 
+            raise ValueError('sar_demo has not been executed for this door %s'%\
+                             (door_name)) 
 
 
     def getElements(self, elem_type='all'):

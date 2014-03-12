@@ -26,14 +26,17 @@
 """Tests for scan macros"""
 
 import unittest
-from sardana.macroserver.macros.test import RunStopMacroTestCase
-from sardana.macroserver.macros.test import macroTest
-from sardana.macroserver.macros.test import macroTestRun
-from sardana.macroserver.macros.test import macroTestStop
+from sardana.macroserver.macros.test import (RunStopMacroTestCase, macroTest, 
+                                             macroTestRun, macroTestStop)
 from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 
-#Mockup tool
+#get handy motor names from sardemo 
+_MOTORS = SarDemoEnv().getMotors()
+_m1,_m2 = _MOTORS[:2]
+
+
 def parsingOutput(logOutput):
+    #@TODO: Document!
     firstdataline = 1
     scan_index = 0
     data = []
@@ -47,80 +50,30 @@ def parsingOutput(logOutput):
         data.append(l)
     return data 
 
-# Mockup
-class ScanTest(RunStopMacroTestCase):
-
-    motor_list = SarDemoEnv().getMotors()
-    data = []    
-
-    def setUp(self):
-        RunStopMacroTestCase.setUp(self)
-
-    def _test_run(self):
-        self.steps = int(self.macro_params[-2])
-        RunStopMacroTestCase._test_run(self)
-        logOutput = self.macro_executor.getLog('output')
-
-        # loginfo - 1 not counting titles
-        # steps + 1 is the number of data points
-        self.assertEqual(len(logOutput) - 1, self.steps + 1,
-                         ("Output data lines (%d) differs " + 
-                          "from expected data points (%d)\n Macro input: %s") 
-                         % (len(logOutput) - 1, self.steps + 1,
-                            ",".join(map(str, self.macro_params))))
-
-        self.data = parsingOutput(logOutput)
-
-
-    def tearDown(self):
-        RunStopMacroTestCase.tearDown(self)
-
 
 class ANscanTest(RunStopMacroTestCase):
-
-    def setUp(self):
-        RunStopMacroTestCase.setUp(self)
-
-    def _test_run(self):
-        RunStopMacroTestCase._test_run(self)
-
-    def tearDown(self):
-        RunStopMacroTestCase.tearDown(self)
-
+    #@TODO: naming convention for TestCase classes? RunStopMacroTest{Case}?
+    #@TODO: Document!
+    pass
 
 class DNscanTest(ANscanTest):
-
-    def setUp(self):
-        ANscanTest.setUp(self)
-
-    def _test_run(self):
-        ANscanTest._test_run(self)
-
-    def tearDown(self):
-        ANscanTest.tearDown(self)
-
+    #@TODO: Document!
+    pass
 
 class DNscancTest(DNscanTest):
-
-    def setUp(self):
-        DNscanTest.setUp(self)
-
-    def _test_run(self):
-        DNscanTest._test_run(self)
-
-    def tearDown(self):
-        DNscanTest.tearDown(self)
+    #@TODO: Document!
+    pass
 
 
-@macroTest('run',[SarDemoEnv().getMotors()[0], '0', '100', '4', '.1'])
-@macroTest('stop',[SarDemoEnv().getMotors()[0], '0', '100', '4', '.1'])
+@macroTest('run',[_m1, '0', '100', '4', '.1'])
+@macroTest('stop',[_m1, '0', '100', '4', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
+    #@TODO: Document!
     macro_name = 'ascan'
 
     def _test_run(self):
-        #super(ScanTest, self).test_Run()
-        #ScanTest._test_run(self)
-
+        #@TODO: Document!
+        
         #ascan
         initPos = float(self.macro_params[1])
         finalPos = float(self.macro_params[2])
@@ -146,15 +99,15 @@ class AscanTest(ANscanTest, unittest.TestCase):
 
 
 
-@macroTestRun([SarDemoEnv().getMotors()[0], '-10', '10', '2', '.1'])
-@macroTestStop([SarDemoEnv().getMotors()[0], '-10', '10', '3', '.1'])
+@macroTestRun([_m1, '-10', '10', '2', '.1'])
+@macroTestStop([_m1, '-10', '10', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
     macro_name = 'dscan'
 
 
-@macroTestRun([SarDemoParsing().getMotors()[0], '-10', '10', '4', SarDemoParsing().getMotors()[1], '-10', '0', '3', '.1'])
-@macroTestRun([SarDemoParsing().getMotors()[0], '-5', '5', '4', SarDemoParsing().getMotors()[1], '-8', '0', '2', '.1'])
-@macroTestStop([SarDemoParsing().getMotors()[0], '-5', '3', '4', SarDemoParsing().getMotors()[1], '-8', '0', '2', '.1'])
+@macroTestRun([_m1, '-10', '10', '4', _m2, '-10', '0', '3', '.1'])
+@macroTestRun([_m1, '-5', '5', '4', _m2, '-8', '0', '2', '.1'])
+@macroTestStop([_m1, '-5', '3', '4', _m2, '-8', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
     macro_name = 'mesh'
     
