@@ -65,7 +65,7 @@ class DNscancTest(DNscanTest):
     pass
 
 
-@testRun(macro_params=[_m1, '0', '100', '4', '.1'])
+@testRun(macro_params=[_m1, '0', '100', '4', '.1'], wait_timeout=None)
 @testStop(macro_params=[_m1, '0', '100', '4', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
     #@TODO: Document!

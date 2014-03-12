@@ -36,11 +36,10 @@ class TangoLogCb(TangoAttrCb):
     def push_event(self, *args, **kwargs):
         event_data = args[0]
         log = event_data.attr_value.value
-        tango_macro_executor = self._tango_macro_executor
         log_buffer_name = '_%s' % self._log_name
-        log_buffer = getattr(tango_macro_executor, log_buffer_name) 
+        log_buffer = getattr(self._tango_macro_executor, log_buffer_name) 
         log_buffer.append(log)
-        common_buffer = tango_macro_executor._common
+        common_buffer = self._tango_macro_executor._common
         if common_buffer != None:
             common_buffer.append(log)
 
@@ -69,16 +68,17 @@ class TangoStatusCb(TangoAttrCb):
         # object and json.loads doesn't support buffer objects (only str)
         v[1] = str(v[1])
         fmt, data = codec.decode(v)
-        tango_macro_executor = self._tango_macro_executor
         for macro_status in data:
             state = macro_status['state']
             if state in self.START_STATES:
                 #print 'TangoStatusCb.push_event: setting _started_event'
-                tango_macro_executor._started_event.set()
+                self._tango_macro_executor._started_event.set()
             elif state in self.DONE_STATES:
-                #print 'TangoStatusCb.push_event: setting _done_event'
-                tango_macro_executor._done_event.set()
-            tango_macro_executor._state_buffer.append(state)
+                #print 'TangoStatusCb.push_event: setting _done_event %s' %(state)
+                self._tango_macro_executor._done_event.set()
+            #else:
+            #    print 'State %s' %(state)
+            self._tango_macro_executor._state_buffer.append(state)
 
 
 class TangoMacroExecutor(BaseMacroExecutor):
@@ -100,6 +100,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._done_event = threading.Event()
     
     def _run(self, macro_name, macro_params):
+        #import pdb; pdb.set_trace()
         # preaparing RunMacro command input arguments 
         argin = copy.copy(macro_params)
         argin.insert(0, macro_name)
@@ -112,11 +113,12 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._door.RunMacro(argin)
 
     def _wait(self, timeout):
-        self._done_event.wait(timeout)
-        self._door.unsubscribe_event(self._status_id)
+        if self._done_event:
+            self._done_event.wait(timeout)
+            self._door.unsubscribe_event(self._status_id)
 
     def _stop(self, timeout):
-        self._started_event.wait(timeout)
+        #self._started_event.wait(timeout) #it should be stop_delay
         try:
             self._door.StopMacro()
         except PyTango.DevFailed, e:
@@ -138,9 +140,8 @@ class TangoMacroExecutor(BaseMacroExecutor):
         id_log_name = '_%s_id' % log_level
         id_log = getattr(self, id_log_name)
         self._door.unsubscribe_event(id_log)
-        #print 'unsubscribed %s with id %d' % (log_level, id_log)
         
-    def _registerResult(self, result):
+    def _registerResult(self):
         result_cb = TangoResultCb(self)
         self._result_id = self._door.subscribe_event('result',
                                                PyTango.EventType.CHANGE_EVENT, 
