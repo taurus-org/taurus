@@ -25,4 +25,4 @@
 
 from macroexecutor import BaseMacroExecutor
 from base import (macroTest, BaseMacroTestCase, RunMacroTestCase, 
-                  RunStopMacroTestCase, macroTestRun, macroTestStop)
+                  RunStopMacroTestCase, testRun, testStop)

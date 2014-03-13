@@ -26,29 +26,18 @@
 """Tests for list macros"""
 
 import unittest
-from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import RunStopMacroTestCase
-from sardana.macroserver.macros.test import macroTestRun
-from sardana.macroserver.macros.test import macroTestStop
+from sardana.macroserver.macros.test import testRun
+from sardana.macroserver.macros.test import testStop
 
 
 
-@macroTestRun(params='1', wait_timeout=3.0)
-@macroTestRun(params='3', wait_timeout=3.5)
-@macroTestRun(params='2', wait_timeout=3.0)
-class CtTest(RunMacroTestCase, unittest.TestCase):
-    """Class for testing ct.
-    """
-
-    macro_name = "ct"
-
-
-@macroTestRun(params='2', wait_timeout=3.0)
-@macroTestStop(params='2')
+@testRun(macro_params=['2'], wait_timeout=3.0)
+@testRun(macro_params=['3'], wait_timeout=3.5)
+@testStop(macro_params=['2'])
 class CtTestAbort(RunStopMacroTestCase, unittest.TestCase):
     """Class for testing ct.
     """
-
     macro_name = "ct"
 
 

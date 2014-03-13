@@ -26,8 +26,8 @@
 """Tests for scan macros"""
 
 import unittest
-from sardana.macroserver.macros.test import (RunStopMacroTestCase, macroTest, 
-                                             macroTestRun, macroTestStop)
+from sardana.macroserver.macros.test import (RunStopMacroTestCase, 
+                                             testRun, testStop)
 from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 
 #get handy motor names from sardemo 
@@ -65,19 +65,23 @@ class DNscancTest(DNscanTest):
     pass
 
 
-@macroTest('run',[_m1, '0', '100', '4', '.1'])
-@macroTest('stop',[_m1, '0', '100', '4', '.1'])
+@testRun(macro_params=[_m1, '0', '100', '4', '.1'])
+@testStop(macro_params=[_m1, '0', '100', '4', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
     #@TODO: Document!
     macro_name = 'ascan'
 
-    def _test_run(self):
+    def macro_runs(self, macro_params=None, wait_timeout=1000):
         #@TODO: Document!
         
-        #ascan
-        initPos = float(self.macro_params[1])
-        finalPos = float(self.macro_params[2])
-        self.steps = int(self.macro_params[-2])
+        #call the parent class implementation
+        ANscanTest.macro_runs(self, macro_params=macro_params, 
+                              wait_timeout=wait_timeout)
+        
+        #check extra assertions
+        initPos = float(macro_params[1])
+        finalPos = float(macro_params[2])
+        self.steps = int(macro_params[-2])
 
         logOutput = self.macro_executor.getLog('output')
         self.data = parsingOutput(logOutput)
@@ -99,15 +103,15 @@ class AscanTest(ANscanTest, unittest.TestCase):
 
 
 
-@macroTestRun([_m1, '-10', '10', '2', '.1'])
-@macroTestStop([_m1, '-10', '10', '3', '.1'])
+@testRun(macro_params=[_m1, '-10', '10', '2', '.1'])
+@testStop(macro_params=[_m1, '-10', '10', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
     macro_name = 'dscan'
 
 
-@macroTestRun([_m1, '-10', '10', '4', _m2, '-10', '0', '3', '.1'])
-@macroTestRun([_m1, '-5', '5', '4', _m2, '-8', '0', '2', '.1'])
-@macroTestStop([_m1, '-5', '3', '4', _m2, '-8', '0', '2', '.1'])
+@testRun(macro_params=[_m1, '-10', '10', '4', _m2, '-10', '0', '3', '.1'])
+@testRun(macro_params=[_m1, '-5', '5', '4', _m2, '-8', '0', '2', '.1'])
+@testStop(macro_params=[_m1, '-5', '3', '4', _m2, '-8', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
     macro_name = 'mesh'
     

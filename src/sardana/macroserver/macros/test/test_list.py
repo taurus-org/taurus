@@ -27,10 +27,8 @@
 
 import time
 import unittest
-from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
-from sardana.macroserver.macros.test import BaseMacroExecutor
-from sardana.macroserver.macros.test import macroTestRun
+from sardana.macroserver.macros.test import testRun
 from sardemoenv import SarDemoEnv
 
 class LsTest(RunMacroTestCase):
@@ -55,8 +53,8 @@ class LsTest(RunMacroTestCase):
             msg = "{0} does not contain {1}".format(self.macro_name, elem)
             self.assertTrue(elem in sardemolist, msg)
 
-    def _test_run(self):
-        RunMacroTestCase._test_run(self)
+    def macro_runs(self, **kwargs):
+        RunMacroTestCase.macro_runs(self, **kwargs)
         self.logOutput = self.macro_executor.getLog("output")
         msg = "generic ls macro does not contain elements"
         self.assertTrue(len(self.logOutput) > 0, msg)
@@ -76,13 +74,13 @@ class LsTest(RunMacroTestCase):
             self.check_atleastNelements(macro_output, list_sardemo)  
 
     def tearDown(self):  
-        time.sleep(0.15)  
+        time.sleep(0.15)  #why the sleeps????
         RunMacroTestCase.tearDown(self)
         time.sleep(0.15)
 
 
-@macroTestRun('l.*')
-@macroTestRun()
+@testRun(macro_params=['l.*'])
+@testRun
 class LsmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsm' macro.
        It verifies that all motors created by sar_demo are listed after 
@@ -92,7 +90,7 @@ class LsmTest(LsTest, unittest.TestCase):
     elem_type = "moveable"
 
 
-@macroTestRun()
+@testRun
 class LspmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
        It verifies that all motors created by sar_demo are listed after 
@@ -102,7 +100,7 @@ class LspmTest(LsTest, unittest.TestCase):
     elem_type = "pseudomotor"
 
 
-@macroTestRun()
+@testRun
 class LsctrlTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsctrl' macro.
        It verifies that all controllers created by sar_demo are listed after 
@@ -112,7 +110,7 @@ class LsctrlTest(LsTest, unittest.TestCase):
     elem_type = "controller"
 
 
-@macroTestRun()
+@testRun
 class LsctTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lsct' macro.
        It verifies that all ct created by sar_demo are listed after 
@@ -122,7 +120,7 @@ class LsctTest(LsTest, unittest.TestCase):
     elem_type = "ctexpchannel"
 
 
-@macroTestRun()
+@testRun
 class Ls0dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'ls0d' macro.
        It verifies that all 0d created by sar_demo are listed after 
@@ -132,7 +130,7 @@ class Ls0dTest(LsTest, unittest.TestCase):
     elem_type = "zerodexpchannel"
 
 
-@macroTestRun()
+@testRun
 class Ls1dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'ls1d' macro.
        It verifies that all 1d created by sar_demo are listed after 
@@ -142,7 +140,7 @@ class Ls1dTest(LsTest, unittest.TestCase):
     elem_type = "onedexpchannel"
 
 
-@macroTestRun()
+@testRun
 class Ls2dTest(LsTest, unittest.TestCase):
     """Class used for testing the 'ls2d' macro.
        It verifies that all 2d created by sar_demo are listed after 

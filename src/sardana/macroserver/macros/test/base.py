@@ -26,7 +26,7 @@
 """System tests for Macros"""
 
 __all__ =  ['macroTest', 'BaseMacroTestCase', 'RunMacroTestCase', 
-            'RunStopMacroTestCase', 'macroTestRun', 'macroTestStop']
+            'RunStopMacroTestCase', 'testRun', 'testStop']
 import time
 import functools
 from sardana import sardanacustomsettings
@@ -53,56 +53,79 @@ from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 # test_run_ascan_0 will be tested with mot1 and test_run_ascan_1 with mot2.
 # Since they are nested decorators, the last will be applied first.
 
-def macroTest(test, params=None, wait_timeout=1000):
-    '''Decorator to create tests'''
+# def macroTest(klass=None, test=None, params=None, wait_timeout=1000, 
+#               test_method_name=None):
+#     '''Decorator to create tests'''
 
-    # Name of the test implementation 
-    testName = '_test_%s' % test
+def macroTest(klass=None, helper_name=None, test_method_name=None, 
+              test_method_doc = None, **helper_kwargs):
+    '''Decorator to insert test methods from a helper method that accepts
+    arguments'''
+    #TODO Doc it!
+    #TODO: Note: this could be generalized to general tests. 
+    #      In fact the only "macro-specific" thing here is the assumption 
+    #      that klass.macro_name exists
 
-    def decorator(klass):
-        # New test implementation
-        # Sets the passed parameters and adds super and self implementation
-        def newTest(self):
-            if params:
-                self.macro_params = list(params)
-            self.wait_timeout = wait_timeout
-            # If the test method would be overrided the super method is added
-            if testName in klass.__dict__.keys():
-                getattr(super(klass, self),testName)()
-            getattr(self, testName)()
+    if klass is None: #recipe to use 
+        return functools.partial(macroTest, helper_name=helper_name, 
+                                 test_method_name=test_method_name,
+                                 test_method_doc = test_method_doc,
+                                 **helper_kwargs)
+    
+    if helper_name is None:
+        raise ValueError('helper_name argument is not optional')
+    
+    if test_method_name is None:
+        test_method_name = 'test_%s_%s' % (klass.macro_name, helper_name)
+    #Append an index if necessary to avoid overwriting the test method
+    name, i = test_method_name, 1
+    while (hasattr(klass, name)):
+        i += 1
+        name = "%s_%i" % (test_method_name, i)
+    test_method_name = name
+    
+    if test_method_doc is None:
+        argsrep = ', '.join(['%s=%s'%(k,v) for k,v in helper_kwargs.items()])
+        test_method_doc = 'Testing %s with %s(%s)'%(klass.macro_name, 
+                                                    helper_name, argsrep)
+            
+    # New test implementation
+    # Sets the passed parameters and adds super and self implementation
+    def newTest(obj):
+        #TODO: make dynamic docstring
+        helper = getattr(obj, helper_name)
+        return helper(**helper_kwargs)
         
-        # To avoid overriding tests defined by other decorators a counter is
-        # added in the test name.
-        method_index = 0
-        methodName = 'test_%s_%s_0' % (test, klass.macro_name)
-        while (hasattr(klass, methodName)):
-            method_index += 1
-            methodName = 'test_%s_%s_%d' % (test, klass.macro_name, method_index)
-
-        # Add the new test method with the new implementation
-        setattr(klass, methodName, newTest)
-        return klass
-    return decorator
-
-
-macroTestRun = functools.partial(macroTest, 'run')
-macroTestStop = functools.partial(macroTest, 'stop')
+    # Add the new test method with the new implementation
+    setattr(klass, test_method_name, newTest)
+    #setup a customized docstring
+    setattr(getattr(klass,test_method_name).__func__, 
+            '__doc__', test_method_doc)
+    return klass
+    
+#TODO: Document these decorators!
+testRun = functools.partial(macroTest, helper_name='macro_runs')
+testStop = functools.partial(macroTest, helper_name='macro_stops')
 
 class BaseMacroTestCase(object):
     '''
     A base class for macro testing 
     
-    To use it, simply inherit from BaseWidgetTestCase *and* unittest.TestCase
+    To use it, simply inherit from BaseMacroTestCase *and* unittest.TestCase
     and provide the following class members:
     
-      - door_name (string) name of the door where the macro will be executed
-                 (default='door/sardana_test/1')
+      - door_name (string) name of the door where the macro will be executed.
+                 If not set, it will use the value of 
+                 sardanacustomsettings.UNITTEST_DOOR_NAME
       - macro_name (string) name of the macro to be tested (mandatory)
-      - macro_params (list<string>) macro parameters, if any
+      
+    Then you may define test methods.
+    
+    BaseMacroTestCase will provide a macro_executor member which is an instance
+    of BaseMacroExecutor
     '''
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME') 
     macro_name = None
-    macro_params = []
     
     def setUp(self):
         """ 
@@ -123,11 +146,8 @@ class RunMacroTestCase(BaseMacroTestCase):
     
     To use it, simply inherit from RunMacroTestCase *and* unittest.TestCase
     and provide the following class members:
-    - wait_timeout (float): normal macro execution should not exceed this time
     '''
     
-    wait_timeout = 2000
-
     def assertFinished(self, msg):
         '''Asserts that macro has finished.'''
         finishStates = [u'finish']
@@ -146,11 +166,11 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.macro_executor.registerAll()
         
                   
-    def _test_run(self):
+    def macro_runs(self, macro_params=None, wait_timeout=1000):
         '''Check that the macro can be executed'''
         self.macro_executor.run(macro_name = self.macro_name, 
-                                 macro_params = self.macro_params,
-                                 sync = True, timeout = self.wait_timeout)
+                                 macro_params = macro_params,
+                                 sync = True, timeout = wait_timeout)
         self.assertFinished('Macro %s did not finish' % self.macro_name)
         #TODO debug stream
         #print self.macro_executor.getStateBuffer()
@@ -165,19 +185,8 @@ class RunStopMacroTestCase(RunMacroTestCase):
 
     To use it, simply inherit from StopMacroTestCase *and* unittest.TestCase
     and provide the following class members:
-      - stop_delay (float): macro will be stopped after this amount of time
-      - wait_timeout (float): macro execution should get stopped within this 
-time
-      - _klass (typeobject) the widget class to test (mandatory)
-      - initargs (list) a list of arguments for the klass init method 
-                 (default=[])
-      - initkwargs (dict) a dict of keyword arguments for the klass init method
-                   (default={})
       
     '''
-
-    stop_delay = None
-
     def assertStopped(self, msg):
         '''Asserts that macro was stopped'''
         stoppedStates = [u'stop']
@@ -194,18 +203,31 @@ time
         '''
         RunMacroTestCase.setUp(self)
    
-    def _test_stop(self):
+    def macro_stops(self, macro_params=None, stop_delay=None, wait_timeout=1000):
         '''Check that the macro can be aborted'''
         self.macro_executor.run(macro_name = self.macro_name, 
-                                 macro_params = self.macro_params, 
+                                 macro_params = macro_params, 
                                  sync = False)
 
-        if not self.stop_delay is None:
-            time.sleep(self.stop_delay)
+        if stop_delay is not None:
+            time.sleep(stop_delay)
         self.macro_executor.stop()
-        self.macro_executor.wait(timeout = self.wait_timeout)
+        self.macro_executor.wait(timeout = wait_timeout)
         self.assertStopped('Macro %s did not stop' % self.macro_name)
         #TODO debug stream
         #print self.macro_executor.getStateBuffer()
 
-
+if __name__ == '__main__':
+    import unittest
+    from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
+    
+    _m1 = SarDemoEnv().getMotors()[0]
+    
+    #@testRun(macro_params=[_m1, '0', '100', '4', '.1'])
+    @testRun(macro_params=[_m1, '1', '0', '2', '.1'])
+    @testRun(macro_params=[_m1, '0', '1', '4', '.1'])
+    class dummyAscanTest(RunStopMacroTestCase, unittest.TestCase):
+        macro_name = 'ascan'
+    
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dummyAscanTest)
+    unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)  

@@ -27,16 +27,15 @@
 
 import time
 import unittest
-from sardana.tango.macroserver.test import TangoMacroExecutor
 from sardana.macroserver.macros.test import RunMacroTestCase
-from sardana.macroserver.macros.test import BaseMacroExecutor
-from sardana.macroserver.macros.test import macroTestRun
+from sardana.macroserver.macros.test import testRun
 from sardemoenv import SarDemoEnv
 
 class WTest(RunMacroTestCase):
     """Base class for testing macros used to list elements.
     """
-
+    #TODO: copypaste error in docstring
+    #TODO: Improve this whole class... not ready for deployment!!!
     header_rows = 2
     names_column_index = 0
     sar_demo = SarDemoEnv()
@@ -44,8 +43,8 @@ class WTest(RunMacroTestCase):
     def setUp(self):    
         RunMacroTestCase.setUp(self)
         
-    def _test_run(self):
-        RunMacroTestCase._test_run(self)
+    def macro_runs(self, **kw):
+        RunMacroTestCase.macro_runs(self, **kw)
         self.logOutput = self.macro_executor.getLog("output")
         msg = "wm does not contain any position"
         self.assertTrue(len(self.logOutput) > 0, msg)
@@ -54,19 +53,22 @@ class WTest(RunMacroTestCase):
         macro_output = []
         for row, in self.logOutput[self.header_rows:]:
             macro_output.append(row.split()[self.names_column_index])
+        #TODO: FINISH THIS IMPLEMENATION!!!
 
     def tearDown(self):  
-        time.sleep(0.15)  
+        time.sleep(0.15)  #TODO: Why the sleeps????
         RunMacroTestCase.tearDown(self)
         time.sleep(0.15)
 
 
-@macroTestRun([SarDemoEnv().getMotors()[0]],3.0)
-class WmTest(WTest, unittest.TestCase):
-    """Class used for testing the 'lspm' macro.
-       It verifies that all motors created by sar_demo are listed after 
-       execution of the macro 'lspm'.
-    """
-    macro_name = "wm"
+
+# @testRun(macro_params = [SarDemoEnv().getMotors()[0], '3.0'])
+# class WmTest(WTest, unittest.TestCase):
+#     """Class used for testing the 'lspm' macro.
+#        It verifies that all motors created by sar_demo are listed after 
+#        execution of the macro 'lspm'.
+#     """
+#     TODO: copypaste error in docstring
+#     macro_name = "wm"
 
 
