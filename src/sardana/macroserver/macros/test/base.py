@@ -92,15 +92,15 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
     # New test implementation
     # Sets the passed parameters and adds super and self implementation
     def newTest(obj):
-        #TODO: make dynamic docstring
         helper = getattr(obj, helper_name)
         return helper(**helper_kwargs)
+    
+    #setup a custom docstring
+    newTest.__doc__ = test_method_doc
         
     # Add the new test method with the new implementation
     setattr(klass, test_method_name, newTest)
-    #setup a customized docstring
-    setattr(getattr(klass,test_method_name).__func__, 
-            '__doc__', test_method_doc)
+    
     return klass
     
 #TODO: Document these decorators!
@@ -203,7 +203,7 @@ class RunStopMacroTestCase(RunMacroTestCase):
         '''
         RunMacroTestCase.setUp(self)
    
-    def macro_stops(self, macro_params=None, stop_delay=None, wait_timeout=1000):
+    def macro_stops(self, macro_params=None, stop_delay=0.1, wait_timeout=1000):
         '''Check that the macro can be aborted'''
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = macro_params, 
