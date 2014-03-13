@@ -114,6 +114,11 @@ class TangoMacroExecutor(BaseMacroExecutor):
 
     def _wait(self, timeout):
         if self._done_event:
+            if timeout is None or timeout>10:
+                self._done_event.wait(3)    
+                if self.getState() is None:
+                    self._door.unsubscribe_event(self._status_id)
+                    return     
             self._done_event.wait(timeout)
             self._door.unsubscribe_event(self._status_id)
 

@@ -51,23 +51,12 @@ class BaseMacroExecutor(object):
         if macro_params == None:
             macro_params = []
 
-        finish = True
-
         self._clean()
         self._run(macro_name, macro_params)
 
         #sync events when a macro fail #TODO
-        if self._done_event:
-            self._done_event.wait(0.5)
-
-        if self.getState() is None:
-            finish = False
-            sync = False
-
         if sync:
             self.wait(timeout)
-
-        return finish
 
 
     def _run(self, macro_name, macro_params):
@@ -89,7 +78,8 @@ class BaseMacroExecutor(object):
         
         param timeout: (float) waiting timeout'''
         if timeout <= 0:
-            timeout = None
+            timeout =  None
+
         self._wait(timeout)
     
     def _wait(self, timeout):
