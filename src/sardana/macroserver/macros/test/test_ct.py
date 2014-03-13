@@ -32,9 +32,9 @@ from sardana.macroserver.macros.test import testStop
 
 
 
-@testRun(macro_params=['2'], wait_timeout=3.0)
-@testRun(macro_params=['3'], wait_timeout=3.5)
-@testStop(macro_params=['2'])
+@testRun(macro_params=['.1'], wait_timeout=.5)
+@testRun(macro_params=['.3'], wait_timeout=.5)
+@testStop(macro_params=['1'], stop_delay=.1, wait_timeout=2)
 class CtTestAbort(RunStopMacroTestCase, unittest.TestCase):
     """Class for testing ct.
     """

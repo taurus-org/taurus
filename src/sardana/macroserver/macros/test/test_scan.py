@@ -65,8 +65,8 @@ class DNscancTest(DNscanTest):
     pass
 
 
-@testRun(macro_params=[_m1, '0', '100', '4', '.1'], wait_timeout=None)
-@testStop(macro_params=[_m1, '0', '100', '4', '.1'])
+@testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=None)
+@testStop(macro_params=[_m1, '0', '5', '3', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
     #@TODO: Document!
     macro_name = 'ascan'
@@ -103,15 +103,15 @@ class AscanTest(ANscanTest, unittest.TestCase):
 
 
 
-@testRun(macro_params=[_m1, '-10', '10', '2', '.1'])
-@testStop(macro_params=[_m1, '-10', '10', '3', '.1'])
+@testRun(macro_params=[_m1, '-1', '1', '2', '.1'])
+@testStop(macro_params=[_m1, '1', '-1', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
     macro_name = 'dscan'
 
 
-@testRun(macro_params=[_m1, '-10', '10', '4', _m2, '-10', '0', '3', '.1'])
-@testRun(macro_params=[_m1, '-5', '5', '4', _m2, '-8', '0', '2', '.1'])
-@testStop(macro_params=[_m1, '-5', '3', '4', _m2, '-8', '0', '2', '.1'])
+@testRun(macro_params=[_m1, '-1', '1', '3', _m2, '-1', '0', '2', '.1'])
+@testRun(macro_params=[_m1, '-2', '2', '3', _m2, '-2', '-1', '2', '.1'])
+@testStop(macro_params=[_m1, '-3', '0', '3', _m2, '-3', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
     macro_name = 'mesh'
     
