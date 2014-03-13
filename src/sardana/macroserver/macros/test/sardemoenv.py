@@ -54,8 +54,8 @@ class SarDemoEnv(Singleton):
             self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements'] + \
                       list(self.ms.getEnvironment()['_SAR_DEMO']['controllers'])
         except KeyError:
-            raise ValueError('sar_demo has not been executed for this door %s'%\
-                             (door_name)) 
+            err = 'sar_demo has not been executed for this door %s' % door_name
+            raise RuntimeError(err) 
 
 
     def getElements(self, elem_type='all'):
