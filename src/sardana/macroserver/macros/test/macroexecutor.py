@@ -33,7 +33,8 @@ class BaseMacroExecutor(object):
         if self._common:
             self._common.__init__()
 
-    def run(self, macro_name, macro_params = None, sync = True, timeout = 3.):
+    def run(self, macro_name, macro_params=None, sync=True, 
+                                                        timeout=float("inf")):
         # TODO how to use 'see' in documentation?? to point to wait method 
         # in case of asynchronous call
         '''
@@ -72,7 +73,7 @@ class BaseMacroExecutor(object):
         raise NotImplementedError('Method _run not implemented in class %s' %
                                   self.__class__.__name__)
 
-    def wait(self, timeout = 3.):
+    def wait(self, timeout = float("inf")):
         '''
         Wait until macro is done. Use it in asynchronous executions.
         
@@ -92,7 +93,7 @@ class BaseMacroExecutor(object):
         raise NotImplementedError('Method _wait not implemented in class %s' %
                                   self.__class__.__name__)
 
-    def stop(self, timeout = 3.):
+    def stop(self, timeout = float("inf")):
         '''
         Stop macro execution. Execute macro in synchronous way before using
         this method.
