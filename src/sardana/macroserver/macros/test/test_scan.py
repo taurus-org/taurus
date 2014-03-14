@@ -65,13 +65,13 @@ class DNscancTest(DNscanTest):
     pass
 
 
-@testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=None)
+@testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=float("inf"))
 @testStop(macro_params=[_m1, '0', '5', '3', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
     #@TODO: Document!
     macro_name = 'ascan'
 
-    def macro_runs(self, macro_params=None, wait_timeout=1000):
+    def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
         #@TODO: Document!
         
         #call the parent class implementation

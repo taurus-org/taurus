@@ -53,7 +53,7 @@ from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 # test_run_ascan_0 will be tested with mot1 and test_run_ascan_1 with mot2.
 # Since they are nested decorators, the last will be applied first.
 
-# def macroTest(klass=None, test=None, params=None, wait_timeout=1000, 
+# def macroTest(klass=None, test=None, params=None, wait_timeout=float("inf"), 
 #               test_method_name=None):
 #     '''Decorator to create tests'''
 
@@ -166,7 +166,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.macro_executor.registerAll()
         
                   
-    def macro_runs(self, macro_params=None, wait_timeout=1000):
+    def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
         '''Check that the macro can be executed'''
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = macro_params,
@@ -203,7 +203,8 @@ class RunStopMacroTestCase(RunMacroTestCase):
         '''
         RunMacroTestCase.setUp(self)
    
-    def macro_stops(self, macro_params=None, stop_delay=0.1, wait_timeout=1000):
+    def macro_stops(self, macro_params=None, stop_delay=0.1, 
+                                                    wait_timeout=float("inf")):
         '''Check that the macro can be aborted'''
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = macro_params, 

@@ -78,7 +78,7 @@ class BaseMacroExecutor(object):
         
         param timeout: (float) waiting timeout'''
         if timeout <= 0:
-            timeout =  None
+            timeout =  float("inf")
 
         self._wait(timeout)
     
