@@ -34,4 +34,4 @@ aspects of Sardana.
 #:UnitTets door name: is the door to use in our unit tests.
 #:Its definition is a mandatory for the unittests. 
 #:In case the Door is not valid or defined an exception will be raise.
-UNITTEST_DOOR_NAME = "door/cp1/1"
+UNITTEST_DOOR_NAME = "door/demo1/1"
