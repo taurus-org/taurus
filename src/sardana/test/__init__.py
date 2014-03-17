@@ -23,7 +23,6 @@
 ##
 ############################################################################## 
 
-
 """
 
 Sardana includes a framework allowing to test its features. 
@@ -40,6 +39,10 @@ from other institutions to provide their own test classes.
 At the moment the Sardana testing is focused on Unit Tests, but in the future 
 the objective is to extend it to integration and system tests as well.
 
+In order to run all the tests provided by Sardana test framework, at a given 
+moment, just go to 'sardana/src/sardana/test' and execute:
+python testsuite.py
+
 Sardana Test Framework is based on 'unittest'. This means that each of the 
 Sardana python test classes inherits from unittest.TestCase.
 
@@ -47,7 +50,7 @@ Each of the Sardana Tests has to be acompanied by a documentation that is
 written in the module, class and method docstrings; as well as in the assert
 methods.
 
-All tests have to be written in folders named 'test/'.
+All tests have to be written in folders named 'test/'. 
 
 Sardana Test Framework provides tools for testing macros. These tools comes 
 from:
@@ -56,14 +59,16 @@ sardana/src/sardana/macroserver/macros/test/macroexecutor.py
 sardana/src/sardana/macroserver/macros/test/sardemoenv.py
 sardana/src/sardana/tango/macroserver/test/macroexecutor.py
 
+Tests of macros are done using the motors and experimental channels created 
+by Sardana demo.
 
 base.py provides the mean of executing macros and test the function Run and
 Stop for each macro. Macro test classes can inherit from RunMacroTestCase,
 RunStopMacroTestCase or BaseMacroTestCase.
 
 Macros as 'lsm' inherits from RunMacroTestCase as it is interesting to test
-if the macros can be executed, but as they are fast macros, it is not
-so interesting to test if they can be aborted.
+if the macros can be executed. The test methods can override the function
+macro_runs() that is defined in the class RunMacroTestCase.
 
 However, scan macros inherits from RunStopMacroTestCase as it is interesting 
 to test both: if the macros can be executed and if they can be aborted.
@@ -71,9 +76,11 @@ to test both: if the macros can be executed and if they can be aborted.
 Another capacity provided by the Framework is the option to execute the 
 same test method with many different macro input parameters. These is done 
 by the help of a decorator inserted at the beginning of the test function.
-One decorator has to be used for each set of macro input parameters. An 
-example of the decorator usage can be seen in: test_scan.py
+One decorator has to be used for each set of macro input parameters. Examples 
+of the decorator usage can be seen in: test_scan.py
 
+If new tests of scan macros or list macros have to be added, that can be 
+done in test_scan.py or in test_list.py where a useful base class is provided.
 
 
 Examples of Sardana tests using tools of Sardana Test Framework are:
@@ -84,5 +91,6 @@ Examples of Sardana tests using tools of Sardana Test Framework are:
 - sardana/src/sardana/macroserver/macros/test_list.py
 - sardana/src/sardana/macroserver/macros/test_wm.py
 
-
 """
+
+
