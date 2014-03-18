@@ -1132,7 +1132,7 @@ class Macro(Logger):
             self.runMacro(macro)
 
         :param macro_obj: macro object
-        :return: the output of the macro"""
+        :return: macro result"""
         # sync our log before calling the child macro prepare in order to avoid
         # mixed outputs between this macro and the child macro
         self.syncLog()

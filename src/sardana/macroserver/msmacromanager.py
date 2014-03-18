@@ -1134,11 +1134,12 @@ class MacroExecutor(Logger):
             self._macro_stack.append(macro_obj)
             for step in macro_obj.exec_():
                 self.sendMacroStatus((step,))
-
+            result = macro_obj.getResult()
+            # sending result only if we are the top most macro
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
-                result = self.__preprocessResult(macro_obj.getResult())
-                door.debug("sending result %s", result)
-                self.sendResult(result)
+                result_repr = self.__preprocessResult(result)
+                door.debug("sending result %s", result_repr)
+                self.sendResult(result_repr)
         except AbortException as ae:
             macro_exp = ae
         except StopException as se:
