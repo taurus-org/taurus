@@ -398,9 +398,9 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 continue
             labels.append(label)
             values.append(pre_scan_value)
-            # split labels in chunks o 8 items
-            labels_chunks = list(chunks(labels, 8))
-            values_chunks = list(chunks(values, 8))
+        # split labels in chunks o 8 items
+        labels_chunks = list(chunks(labels, 8))
+        values_chunks = list(chunks(values, 8))
         return labels_chunks, values_chunks
         
     def _writeRecord(self, record):
