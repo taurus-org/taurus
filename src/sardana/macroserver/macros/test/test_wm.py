@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""Tests for list macros"""
+"""Tests for wm macros"""
 
 import time
 import unittest
@@ -31,13 +31,13 @@ from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import testRun
 from sardemoenv import SarDemoEnv
 
+
 class WTest(RunMacroTestCase):
-    """Base class for testing macros used to list elements.
-    """
-    #TODO: copypaste error in docstring
-    #TODO: Improve this whole class... not ready for deployment!!!
+    """Base class for testing macros used to read position."""
+    
     header_rows = 2
     names_column_index = 0
+    values_column_index = 1
     sar_demo = SarDemoEnv()
  
     def setUp(self):    
@@ -46,29 +46,17 @@ class WTest(RunMacroTestCase):
     def macro_runs(self, **kw):
         RunMacroTestCase.macro_runs(self, **kw)
         self.logOutput = self.macro_executor.getLog("output")
-        msg = "wm does not contain any position"
+        msg = "wm macro did not return any data."
         self.assertTrue(len(self.logOutput) > 0, msg)
                 
-        #parsing output to get all elements
-        macro_output = []
-        for row, in self.logOutput[self.header_rows:]:
-            macro_output.append(row.split()[self.names_column_index])
-        #TODO: FINISH THIS IMPLEMENATION!!!
-
+    #TODO: Add new tests testing the type of the returned value, etc.
     def tearDown(self):  
-        time.sleep(0.15)  #TODO: Why the sleeps????
         RunMacroTestCase.tearDown(self)
-        time.sleep(0.15)
 
 
-
-# @testRun(macro_params = [SarDemoEnv().getMotors()[0], '3.0'])
-# class WmTest(WTest, unittest.TestCase):
-#     """Class used for testing the 'lspm' macro.
-#        It verifies that all motors created by sar_demo are listed after 
-#        execution of the macro 'lspm'.
-#     """
-#     TODO: copypaste error in docstring
-#     macro_name = "wm"
-
-
+@testRun(macro_params = [SarDemoEnv().getMotors()[0]], wait_timeout=5.0)
+class WmTest(WTest, unittest.TestCase):
+    """Class used for testing 'wm' macro.
+       It checks that the execution of wm returns data.
+    """
+    macro_name = "wm"

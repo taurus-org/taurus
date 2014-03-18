@@ -93,7 +93,7 @@ class LsmTest(LsTest, unittest.TestCase):
 @testRun
 class LspmTest(LsTest, unittest.TestCase):
     """Class used for testing the 'lspm' macro.
-       It verifies that all motors created by sar_demo are listed after 
+       It verifies that all pseudomotors created by sar_demo are listed after 
        execution of the macro 'lspm'.
     """
     macro_name = "lspm"

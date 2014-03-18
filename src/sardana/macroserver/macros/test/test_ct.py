@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""Tests for list macros"""
+"""Tests for ct macros"""
 
 import unittest
 from sardana.macroserver.macros.test import RunStopMacroTestCase
@@ -31,12 +31,11 @@ from sardana.macroserver.macros.test import testRun
 from sardana.macroserver.macros.test import testStop
 
 
-
 @testRun(macro_params=['.1'], wait_timeout=.5)
 @testRun(macro_params=['.3'], wait_timeout=.5)
 @testStop(macro_params=['1'], stop_delay=.1, wait_timeout=2)
-class CtTestAbort(RunStopMacroTestCase, unittest.TestCase):
-    """Class for testing ct.
+class CtRunStopTest(RunStopMacroTestCase, unittest.TestCase):
+    """Test of ct macro. It verifies that macro ct can be executed.
     """
     macro_name = "ct"
 
