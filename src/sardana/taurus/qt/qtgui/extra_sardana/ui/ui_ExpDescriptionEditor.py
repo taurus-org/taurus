@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpSE27_q.ui'
+# Form implementation generated from reading ui file '/tmp/tmphqVXWd.ui'
 #
-# Created: Mon Apr 16 15:17:09 2012
+# Created: Tue Mar 18 10:25:58 2014
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -37,6 +37,10 @@ class Ui_ExpDescriptionEditor(object):
         self.horizontalLayout.addWidget(self.deleteMntGrpBT)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
+        self.plotsButton = QtGui.QToolButton(self.mntGrpTab)
+        self.plotsButton.setCheckable(True)
+        self.plotsButton.setObjectName("plotsButton")
+        self.horizontalLayout.addWidget(self.plotsButton)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.channelEditor = MntGrpChannelEditor(self.mntGrpTab)
         self.channelEditor.setObjectName("channelEditor")
@@ -136,6 +140,8 @@ class Ui_ExpDescriptionEditor(object):
         self.createMntGrpBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "+", None, QtGui.QApplication.UnicodeUTF8))
         self.deleteMntGrpBT.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "Delete the current Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
         self.deleteMntGrpBT.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "-", None, QtGui.QApplication.UnicodeUTF8))
+        self.plotsButton.setToolTip(QtGui.QApplication.translate("ExpDescriptionEditor", "If checked, the configured plots are shown", None, QtGui.QApplication.UnicodeUTF8))
+        self.plotsButton.setText(QtGui.QApplication.translate("ExpDescriptionEditor", "plots", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mntGrpTab), QtGui.QApplication.translate("ExpDescriptionEditor", "Measurement Group", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QtGui.QApplication.translate("ExpDescriptionEditor", "Sardana Elements", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab), QtGui.QApplication.translate("ExpDescriptionEditor", "External (Tango)", None, QtGui.QApplication.UnicodeUTF8))
@@ -162,5 +168,5 @@ class Ui_ExpDescriptionEditor(object):
         self.compressionCB.setItemText(4, QtGui.QApplication.translate("ExpDescriptionEditor", "for datasets of rank 3 or more", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("ExpDescriptionEditor", "Storage", None, QtGui.QApplication.UnicodeUTF8))
 
-from taurus.qt.qtgui.panel import TaurusModelList, TaurusModelSelectorTree
 from sardana.taurus.qt.qtgui.extra_sardana import SardanaElementTreeWidget, MntGrpChannelEditor
+from taurus.qt.qtgui.panel import TaurusModelList, TaurusModelSelectorTree
