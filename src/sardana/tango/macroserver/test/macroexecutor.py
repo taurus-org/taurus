@@ -35,13 +35,14 @@ class TangoLogCb(TangoAttrCb):
 
     def push_event(self, *args, **kwargs):
         event_data = args[0]
-        log = event_data.attr_value.value
-        log_buffer_name = '_%s' % self._log_name
-        log_buffer = getattr(self._tango_macro_executor, log_buffer_name) 
-        log_buffer.append(log)
-        common_buffer = self._tango_macro_executor._common
-        if common_buffer != None:
-            common_buffer.append(log)
+        if event_data.attr_value:
+            log = event_data.attr_value.value
+            log_buffer_name = '_%s' % self._log_name
+            log_buffer = getattr(self._tango_macro_executor, log_buffer_name) 
+            log_buffer.append(log)
+            common_buffer = self._tango_macro_executor._common
+            if common_buffer != None:
+                common_buffer.append(log)
 
 
 class TangoStatusCb(TangoAttrCb):
@@ -92,6 +93,8 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._door = PyTango.DeviceProxy(door_name)
         self._done_event = None
         self._started_event = None
+#        #self.log_levels.append('recorddata')
+#        #self._recorddata = []
         
     def _clean(self):
         '''Recreates threading Events in case the macro executor is reused.'''        
@@ -109,6 +112,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._status_id = self._door.subscribe_event('macrostatus',
                                                PyTango.EventType.CHANGE_EVENT, 
                                                status_cb)
+
         # executing RunMacro command
         self._door.RunMacro(argin)
 
@@ -154,6 +158,12 @@ class TangoMacroExecutor(BaseMacroExecutor):
     
     def _unregisterResult(self):
         self._door.unsubscribe_event(self._result_id)
+
+    def getData(self):
+        data = self._door.RecordData
+        codec = CodecFactory().getCodec('bz2_pickle')
+        decode_data = codec.decode(('', data))
+        return decode_data
 
 def testTangoMacroExecutorRunLsm(door_name):
     macro_executor = TangoMacroExecutor(door_name)
