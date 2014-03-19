@@ -36,7 +36,8 @@ _m1,_m2 = _MOTORS[:2]
 
 
 def parsingOutput(logOutput):
-    #@TODO: Document!
+    """It parses the output of the executed scan macro in order to analyze
+       it and test different aspects of it."""
     firstdataline = 1
     scan_index = 0
     data = []
@@ -52,60 +53,63 @@ def parsingOutput(logOutput):
 
 
 class ANscanTest(RunStopMacroTestCase):
-    #@TODO: naming convention for TestCase classes? RunStopMacroTest{Case}?
-    #@TODO: Document!
+    """Not yet implemented. Once implemented it will test anscan."""
     pass
+
 
 class DNscanTest(ANscanTest):
-    #@TODO: Document!
+    """Not yet implemented. Once implemented it will test the macro dnscanc."""
     pass
 
+
 class DNscancTest(DNscanTest):
-    #@TODO: Document!
+    """Not yet implemented. Once implemented it will test the macro dnscanc."""
     pass
 
 
 @testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=float("inf"))
 @testStop(macro_params=[_m1, '0', '5', '3', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
-    #@TODO: Document!
+    """Test of ascan macro. It verifies that macro ascan can be executed and 
+    stoped and tests the output of the ascan. It inherits from ANscanTest.
+    """
     macro_name = 'ascan'
 
     def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
-        #@TODO: Document!
+        """Verify that the motor initial and final positions of the scan 
+           are the ones given as input. Verify that the intervals in terms
+           of motor position between one point ant the next one have always
+           an error lower than 1% regarding the theoretical interval."""
         
         #call the parent class implementation
         ANscanTest.macro_runs(self, macro_params=macro_params, 
                               wait_timeout=wait_timeout)
         
-        #check extra assertions
         initPos = float(macro_params[1])
         finalPos = float(macro_params[2])
         self.steps = int(macro_params[-2])
-
         logOutput = self.macro_executor.getLog('output')
         self.data = parsingOutput(logOutput)
         interval = abs(finalPos - initPos) / self.steps
         pre = self.data[0]
         for d in self.data[1:]:
-            # TODO use assertAlmostEqual
-            #self.assertAlmostEqual(abs(pre[1] - d[1]), interval,
-            #                       "Real interval differs from set interval")
-            self.assertTrue(abs(abs(pre[1] - d[1]) - interval)
+            self.assertTrue(abs(abs(pre[2] - d[2]) - interval)
                             < interval * 0.01,
                             "Step interval differs for more than 1% ")
             pre = d
 
-        self.assertEqual(self.data[0][1], initPos,
+        self.assertAlmostEqual(self.data[0][2], initPos, 7,
                          "Initial possition differs from set value")
-        self.assertEqual(self.data[-1][1], finalPos,
+        self.assertAlmostEqual(self.data[-1][2], finalPos, 7,
                          "Final possition differs from set value")
-
 
 
 @testRun(macro_params=[_m1, '-1', '1', '2', '.1'])
 @testStop(macro_params=[_m1, '1', '-1', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
+    """Test of dscan macro. It verifies that macro dscan can be executed and 
+    stoped.
+    """
     macro_name = 'dscan'
 
 
@@ -113,6 +117,9 @@ class DscanTest(DNscanTest, unittest.TestCase):
 @testRun(macro_params=[_m1, '-2', '2', '3', _m2, '-2', '-1', '2', '.1'])
 @testStop(macro_params=[_m1, '-3', '0', '3', _m2, '-3', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
+    """Test of mesh macro. It verifies that macro mesh can be executed and 
+    stoped.
+    """
     macro_name = 'mesh'
     
 
