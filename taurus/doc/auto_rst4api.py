@@ -28,9 +28,20 @@
 the API of a python module with sphinx'''
 
 import sys, os
+import imp
 from jinja2 import Environment, FileSystemLoader
 
-from taurus.test.moduleexplorer import ModuleExplorer
+def taurusabspath(*path):
+    """A method to determine absolute path for a given relative path to the
+    directory where the setup.py script is located"""
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    setup_dir = os.path.abspath(os.path.join(this_dir, os.pardir))
+    return os.path.join(setup_dir, *path)
+
+#import moduleexplorer from the sources, and without importing taurus
+__name = "moduleexplorer"
+__path = taurusabspath('lib', 'taurus', 'test', 'moduleexplorer.py')
+ModuleExplorer = imp.load_source(__name, __path).ModuleExplorer
 
 
 class Auto_rst4API_Creator(object):
