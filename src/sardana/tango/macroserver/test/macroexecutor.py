@@ -161,9 +161,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
 
     def getData(self):
         data = self._door.RecordData
-        codec = CodecFactory().getCodec('bz2_pickle')
-        decode_data = codec.decode(('', data))
-        return decode_data
+        return CodecFactory().decode(data)
 
 def testTangoMacroExecutorRunLsm(door_name):
     macro_executor = TangoMacroExecutor(door_name)
