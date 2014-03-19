@@ -32,30 +32,11 @@ import functools
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 
-# macroTest Decorator
-#
-# This decorator will add tests in the macro test cases and define the 
-# macro parameters.
-#
-# Inputs: Test type and test params
-#
-# The resulting test method will be the addition of the inherited test and 
-# the class test.
-# The test method name is composed by "test", test type and macro name
-#
-# For example:
-# @macroTest('run', 'mot2', '0', '100', '10', '.1'])
-# @macroTest('run', 'mot1', '0', '100', '10', '.1'])
-# <test running ascan macro>
-#
-# will add the test "test_run_ascan_0 and test_run_ascan_1".
-# Both will be the addition of inherited and class defined _test_run methods,
-# test_run_ascan_0 will be tested with mot1 and test_run_ascan_1 with mot2.
-# Since they are nested decorators, the last will be applied first.
-
-# def macroTest(klass=None, test=None, params=None, wait_timeout=float("inf"), 
-#               test_method_name=None):
-#     '''Decorator to create tests'''
+#Define a "NotPassed" object to mark a keyword arg which is not passed
+# Note that we do not want to use None because one may want to pass None
+class __NotPassedType(int):
+    pass
+NotPassed = __NotPassedType()
 
 def macroTest(klass=None, helper_name=None, test_method_name=None, 
               test_method_doc = None, **helper_kwargs):
@@ -166,12 +147,24 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.macro_executor.registerAll()
         
                   
-    def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
+    def macro_runs(self, macro_params=None, wait_timeout=float("inf"),
+                   data=NotPassed):
         '''Check that the macro can be executed'''
         self.macro_executor.run(macro_name = self.macro_name, 
-                                 macro_params = macro_params,
-                                 sync = True, timeout = wait_timeout)
+                                macro_params = macro_params,
+                                sync = True, timeout = wait_timeout)
         self.assertFinished('Macro %s did not finish' % self.macro_name)
+        
+        #check if the data of the macro is the expected one 
+        if data is not NotPassed:
+            actual_data = self.macro_executor.getData()
+            msg = 'macro data does not match expected data:\n' + \
+                  'obtained=%s\nexpected=%s'%(actual_data, data)
+            self.assertEqual(actual_data, data, msg)
+        
+        #TODO: implement generic asserts for macro result and macro output, etc
+        #      in a similar way to what is done for macro data
+            
         #TODO debug stream
         #print self.macro_executor.getStateBuffer()
 
@@ -224,11 +217,19 @@ if __name__ == '__main__':
     
     _m1 = SarDemoEnv().getMotors()[0]
     
+    
     #@testRun(macro_params=[_m1, '0', '100', '4', '.1'])
     @testRun(macro_params=[_m1, '1', '0', '2', '.1'])
     @testRun(macro_params=[_m1, '0', '1', '4', '.1'])
     class dummyAscanTest(RunStopMacroTestCase, unittest.TestCase):
         macro_name = 'ascan'
+      
     
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dummyAscanTest)
+    @testRun(macro_params=['1'], data={'in':1,'out':2})
+    @testRun(macro_params=['5'])
+    @testRun
+    class dummyTwiceTest(RunStopMacroTestCase, unittest.TestCase):
+        macro_name = 'twice'
+    
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dummyTwiceTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)  
