@@ -54,7 +54,8 @@ class SarDemoEnv(Singleton):
             self.env = self.ms.getEnvironment()['_SAR_DEMO']['elements'] + \
                       list(self.ms.getEnvironment()['_SAR_DEMO']['controllers'])
         except KeyError:
-            err = 'sar_demo has not been executed for this door %s' % door_name
+            err = 'sar_demo has not been executed (or door %s not ready)' % \
+                  door_name
             raise RuntimeError(err) 
 
 
