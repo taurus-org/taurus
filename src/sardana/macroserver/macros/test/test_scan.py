@@ -34,14 +34,14 @@ from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 _MOTORS = SarDemoEnv().getMotors()
 _m1,_m2 = _MOTORS[:2]
 
-
-def parsingOutput(logOutput):
+# TODO It must be in Test log_output
+def parsingOutput(log_output):
     """It parses the output of the executed scan macro in order to analyze
        it and test different aspects of it."""
     firstdataline = 1
     scan_index = 0
     data = []
-    for line, in logOutput[firstdataline:]:
+    for line, in log_output[firstdataline:]:
         # Get a list of elements without white spaces between them
         l = line.split() 
         # Cast all elements of the scan line (l) to float
@@ -84,23 +84,30 @@ class AscanTest(ANscanTest, unittest.TestCase):
         #call the parent class implementation
         ANscanTest.macro_runs(self, macro_params=macro_params, 
                               wait_timeout=wait_timeout)
-        
-        initPos = float(macro_params[1])
-        finalPos = float(macro_params[2])
-        self.steps = int(macro_params[-2])
-        logOutput = self.macro_executor.getLog('output')
-        self.data = parsingOutput(logOutput)
-        interval = abs(finalPos - initPos) / self.steps
-        pre = self.data[0]
-        for d in self.data[1:]:
-            self.assertTrue(abs(abs(pre[2] - d[2]) - interval)
-                            < interval * 0.01,
-                            "Step interval differs for more than 1% ")
-            pre = d
 
-        self.assertAlmostEqual(self.data[0][2], initPos, 7,
+        mot_name = macro_params[0]
+        expected_init_pos = float(macro_params[1])
+        expected_final_pos = float(macro_params[2])
+        self.steps = int(macro_params[-2])
+        # TODO It must be in Test log_output
+        #log_output = self.macro_executor.getLog('output')
+        #self.data = parsingOutput(log_output)
+        self.data = self.macro_executor.getData()
+
+        mot_init_pos = self.data[min(self.data.keys())].data[mot_name]
+        mot_final_pos = self.data[max(self.data.keys())].data[mot_name]
+
+        interval = abs(expected_final_pos - expected_init_pos) / self.steps
+        pre = mot_init_pos
+
+        for step in range(1, max(self.data.keys())+1):
+            self.assertAlmostEqual(abs(pre - self.data[step].data[mot_name]), 
+                interval, 7, "Step interval differs for more than expected")
+            pre = self.data[step].data[mot_name]
+
+        self.assertAlmostEqual(mot_init_pos, expected_init_pos, 7,
                          "Initial possition differs from set value")
-        self.assertAlmostEqual(self.data[-1][2], finalPos, 7,
+        self.assertAlmostEqual(mot_final_pos, expected_final_pos, 7,
                          "Final possition differs from set value")
 
 
