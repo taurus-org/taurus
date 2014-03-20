@@ -12,6 +12,8 @@ class BaseMacroExecutor(object):
     def __init__(self):
         # macro result
         self._result = None
+        #macro exception status
+        self._exception = None
         # buffer for state history
         self._state_buffer = []
         # log buffers, one for each level
@@ -230,6 +232,13 @@ class BaseMacroExecutor(object):
         if len(self._state_buffer) > 0:
             state = self._state_buffer[-1]
         return state
+    
+    def getExceptionStr(self):
+        '''
+        Get macro exception type representation (None if the macro state is not
+         exception).
+        '''
+        return self._exception
 
     def getStateBuffer(self):
         '''

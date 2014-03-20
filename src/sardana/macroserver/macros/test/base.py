@@ -87,6 +87,7 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
 #TODO: Document these decorators!
 testRun = functools.partial(macroTest, helper_name='macro_runs')
 testStop = functools.partial(macroTest, helper_name='macro_stops')
+testFail = functools.partial(macroTest, helper_name='macro_fails')
 
 class BaseMacroTestCase(object):
     '''
@@ -145,8 +146,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         '''
         BaseMacroTestCase.setUp(self)
         self.macro_executor.registerAll()
-        
-                  
+                      
     def macro_runs(self, macro_params=None, wait_timeout=float("inf"),
                    data=NotPassed):
         '''Check that the macro can be executed'''
@@ -158,7 +158,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         #check if the data of the macro is the expected one 
         if data is not NotPassed:
             actual_data = self.macro_executor.getData()
-            msg = 'macro data does not match expected data:\n' + \
+            msg = 'Macro data does not match expected data:\n' + \
                   'obtained=%s\nexpected=%s'%(actual_data, data)
             self.assertEqual(actual_data, data, msg)
         
@@ -167,6 +167,31 @@ class RunMacroTestCase(BaseMacroTestCase):
             
         #TODO debug stream
         #print self.macro_executor.getStateBuffer()
+        
+    def macro_fails(self, macro_params=None, wait_timeout=float("inf"),
+                   exception=None):
+        '''Check that the macro fails to run for the given input parameters
+        
+        :param macro_params: (seq<str>) input parameters for the macro 
+        :param exception: (str or Exception) if given, an additional check of 
+                        the type of the exception is done. 
+                        (IMPORTANT: this is just a comparison of str 
+                        representations of exception objects)
+        :param wait_timeout: max time allowed for the macro to fail 
+        '''
+        self.macro_executor.run(macro_name = self.macro_name, 
+                                macro_params = macro_params,
+                                sync = True, timeout = wait_timeout)
+        state = self.macro_executor.getState()
+        actual_exc_str = self.macro_executor.getExceptionStr()
+        msg = 'Post-execution state should be "exception" (got "%s")'%state
+        self.assertEqual(state, 'exception', msg) 
+        
+        if exception is not None:
+            msg = 'Raised exception does not match expected exception:\n' + \
+                  'raised=%s\nexpected=%s'%(actual_exc_str, exception)
+            self.assertEqual(actual_exc_str, str(exception), msg) 
+        
 
     def tearDown(self):
         self.macro_executor.unregisterAll()
@@ -231,5 +256,10 @@ if __name__ == '__main__':
     class dummyTwiceTest(RunStopMacroTestCase, unittest.TestCase):
         macro_name = 'twice'
     
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dummyTwiceTest)
+    @testFail
+    @testFail(exception=Exception)
+    class dummyRaiseException(RunStopMacroTestCase, unittest.TestCase):
+        macro_name = 'raise_exception'
+        
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(dummyRaiseException)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)  

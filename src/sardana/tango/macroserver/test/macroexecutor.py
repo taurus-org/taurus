@@ -71,6 +71,7 @@ class TangoStatusCb(TangoAttrCb):
         fmt, data = codec.decode(v)
         for macro_status in data:
             state = macro_status['state']
+            self._tango_macro_executor._exception = macro_status.get('exc_type')
             if state in self.START_STATES:
                 #print 'TangoStatusCb.push_event: setting _started_event'
                 self._tango_macro_executor._started_event.set()
@@ -117,12 +118,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._door.RunMacro(argin)
 
     def _wait(self, timeout):
-        if self._done_event:
-            if timeout is None or timeout>10:
-                self._done_event.wait(3)    
-                if self.getState() is None:
-                    self._door.unsubscribe_event(self._status_id)
-                    return     
+        if self._done_event: 
             self._done_event.wait(timeout)
             self._door.unsubscribe_event(self._status_id)
 
@@ -163,63 +159,6 @@ class TangoMacroExecutor(BaseMacroExecutor):
         data = self._door.RecordData
         return CodecFactory().decode(data)
 
-def testTangoMacroExecutorRunLsm(door_name):
-    macro_executor = TangoMacroExecutor(door_name)
-    macro_executor.registerAll()
-    macro_executor.createCommonBuffer()
-    macro_executor.run('lsm')
-    macro_executor.unregisterAll()
-    common = macro_executor.getCommonBuffer()
-    printLog(common)
-    
-    
-def testTangoMacroDefctrlRun(door_name):
-    macro_executor = TangoMacroExecutor(door_name)
-    macro_executor.registerAll()
-    macro_executor.run('defctrl', ['DummyMotorController', ])
-    macro_executor.unregisterAll()
-    output = macro_executor.getOutput()
-    printLog(output)
-    result = macro_executor.getResult()
-    print 'Result: ', result
-    state = macro_executor.getState()
-    print 'State: ', state
-    state_buffer = macro_executor.getStateBuffer()
-    print 'StateBuffer: ', state_buffer
-
-def testTangoMacroExecutorRunTwice(door_name):
-    macro_executor = TangoMacroExecutor(door_name)
-    macro_executor.registerAll()
-    macro_executor.run('twice')
-    macro_executor.unregisterAll()
-    output = macro_executor.getOutput()
-    printLog(output)
-    result = macro_executor.getResult()
-    print 'Result: ', result
-    state = macro_executor.getState()
-    print 'State: ', state
-    state_buffer = macro_executor.getStateBuffer()
-    print 'StateBuffer: ', state_buffer
-
-def testTangoMacroExecutorAbortLsm(door_name):
-    macro_executor = TangoMacroExecutor(door_name)
-    macro_executor.registerAll()
-    macro_executor.run('lsm', None, False)
-    macro_executor.stop()
-    macro_executor.wait()
-    macro_executor.unregisterAll()
-    output = macro_executor.getOutput()
-    printLog(output)
-    result = macro_executor.getResult()
-    state = macro_executor.getState()
-    state_buffer = macro_executor.getStateBuffer()
-    print 'Result: ', result
-    print 'State: ', state
-    print 'StateBuffer: ', state_buffer
-    
-def printLog(logs):
-    for line in logs: 
-        print line
 
 if __name__ == '__main__':
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
