@@ -26,7 +26,7 @@
 """System tests for Macros"""
 
 __all__ =  ['macroTest', 'BaseMacroTestCase', 'RunMacroTestCase', 
-            'RunStopMacroTestCase', 'testRun', 'testStop']
+            'RunStopMacroTestCase', 'testRun', 'testFail' 'testStop']
 import time
 import functools
 from sardana import sardanacustomsettings
