@@ -37,8 +37,6 @@ class BaseMacroExecutor(object):
 
     def run(self, macro_name, macro_params=None, sync=True, 
                                                         timeout=float("inf")):
-        # TODO how to use 'see' in documentation?? to point to wait method 
-        # in case of asynchronous call
         '''
         Execute macro.
          
@@ -50,6 +48,9 @@ class BaseMacroExecutor(object):
                      (default is sync=True)
         :param timeout: (float) timeout that will be passed to the wait method,
                         in case of synchronous execution
+
+	In asyncrhonous execution method :meth:`~wait` has to be explicitly 
+	called.	
         '''
         if macro_params == None:
             macro_params = []
@@ -217,9 +218,10 @@ class BaseMacroExecutor(object):
         self._common = []
         
     def getCommonBuffer(self):
-        #TODO. See createCommonBuffer method
         '''
-        Get common buffer. 
+        Get common buffer.
+	Method getCommonBuffer can only be used if a buffer exists.
+	See :meth:`~createCommonBuffer` 
         '''
         return self._common
 
@@ -254,7 +256,7 @@ class MacroExecutorFactory(Singleton):
         f =  MacroExecutorFactory()
         f.getMacroExecutor('tango://my/door/name') #returns a TangoMacroExecutor
     
-    ..note:: For the moment, only TangoMacroExecutor is supported
+    Note: For the moment, only TangoMacroExecutor is supported
     '''
         
     def getMacroExecutor(self, door_name=None):

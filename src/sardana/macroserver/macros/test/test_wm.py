@@ -49,7 +49,6 @@ class WTest(RunMacroTestCase):
         msg = "wm macro did not return any data."
         self.assertTrue(len(self.logOutput) > 0, msg)
                 
-    #TODO: Add new tests testing the type of the returned value, etc.
     def tearDown(self):  
         RunMacroTestCase.tearDown(self)
 
