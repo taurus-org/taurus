@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-"""Tests for scan macros"""
+'''Tests for scan macros'''
 
 import unittest
 from sardana.macroserver.macros.test import (RunStopMacroTestCase, 
@@ -34,14 +34,18 @@ from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 _MOTORS = SarDemoEnv().getMotors()
 _m1,_m2 = _MOTORS[:2]
 
-# TODO It must be in Test log_output
-def parsingOutput(log_output):
-    """It parses the output of the executed scan macro in order to analyze
-       it and test different aspects of it."""
-    firstdataline = 1
+
+def parsing_log_output(log_output):
+    '''A helper method to parse log output of an executed scan macro.
+    :params log_output: (seq<str>) Result of macro_executor.getLog('output')
+    (see description in :class:`BaseMacroExecutor`).
+
+    :return: (seq<number>) The numeric data of a scan.
+    '''
+    first_data_line = 1
     scan_index = 0
     data = []
-    for line, in log_output[firstdataline:]:
+    for line, in log_output[first_data_line:]:
         # Get a list of elements without white spaces between them
         l = line.split() 
         # Cast all elements of the scan line (l) to float
@@ -53,33 +57,44 @@ def parsingOutput(log_output):
 
 
 class ANscanTest(RunStopMacroTestCase):
-    """Not yet implemented. Once implemented it will test anscan."""
+    '''Not yet implemented. Once implemented it will test anscan.
+    See :class:`RunStopMacroTestCase` for requirements.
+    '''
     pass
 
 
 class DNscanTest(ANscanTest):
-    """Not yet implemented. Once implemented it will test the macro dnscanc."""
+    '''Not yet implemented. Once implemented it will test the macro dnscanc.
+    See :class:`ANscanTest` for requirements.
+    '''
     pass
 
 
 class DNscancTest(DNscanTest):
-    """Not yet implemented. Once implemented it will test the macro dnscanc."""
+    '''Not yet implemented. Once implemented it will test the macro dnscanc.
+    See :class:`DNscanTest` for requirements.
+    '''
     pass
 
 
 @testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=float("inf"))
 @testStop(macro_params=[_m1, '0', '5', '3', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
-    """Test of ascan macro. It verifies that macro ascan can be executed and 
-    stoped and tests the output of the ascan. It inherits from ANscanTest.
-    """
+    '''Test of ascan macro. See :class:`ANscanTest` for requirements. 
+    It verifies that macro ascan can be executed and stoped and tests 
+    the output of the ascan using data from log system and macro data. 
+    '''
     macro_name = 'ascan'
 
     def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
-        """Verify that the motor initial and final positions of the scan 
-           are the ones given as input. Verify that the intervals in terms
-           of motor position between one point ant the next one have always
-           an error lower than 1% regarding the theoretical interval."""
+        ''' Reimplementation of macro_runs method for ascan macro. 
+        It verifies using double checking, with log output and data from 
+        the macro:
+            - The motor initial and final positions of the scan are the 
+              ones given as input. 
+            - Intervals in terms of motor position between one point and 
+              the next one are equidistant.
+        '''
         
         #call the parent class implementation
         ANscanTest.macro_runs(self, macro_params=macro_params, 
@@ -89,34 +104,49 @@ class AscanTest(ANscanTest, unittest.TestCase):
         expected_init_pos = float(macro_params[1])
         expected_final_pos = float(macro_params[2])
         self.steps = int(macro_params[-2])
-        # TODO It must be in Test log_output
-        #log_output = self.macro_executor.getLog('output')
-        #self.data = parsingOutput(log_output)
-        self.data = self.macro_executor.getData()
-
-        mot_init_pos = self.data[min(self.data.keys())].data[mot_name]
-        mot_final_pos = self.data[max(self.data.keys())].data[mot_name]
-
         interval = abs(expected_final_pos - expected_init_pos) / self.steps
+
+        # Test data from macro (macro_executor.getData())
+        data = self.macro_executor.getData()
+        mot_init_pos = data[min(data.keys())].data[mot_name]
+        mot_final_pos = data[max(data.keys())].data[mot_name]
         pre = mot_init_pos
 
-        for step in range(1, max(self.data.keys())+1):
-            self.assertAlmostEqual(abs(pre - self.data[step].data[mot_name]), 
-                interval, 7, "Step interval differs for more than expected")
-            pre = self.data[step].data[mot_name]
+        for step in range(1, max(data.keys())+1):
+            self.assertAlmostEqual(abs(pre - data[step].data[mot_name]), 
+                interval, 7,
+                "Step interval differs for more than expected (using getData)")
+            pre = data[step].data[mot_name]
 
         self.assertAlmostEqual(mot_init_pos, expected_init_pos, 7,
-                         "Initial possition differs from set value")
+                     "Initial possition differs from set value (using getData)")
         self.assertAlmostEqual(mot_final_pos, expected_final_pos, 7,
-                         "Final possition differs from set value")
+                     "Final possition differs from set value (using getData)")
 
+        # Test data from log_output (macro_executor.getLog('output'))       
+        log_output = self.macro_executor.getLog('output')
+        data = parsing_log_output(log_output)
+        init_pos = 0
+        last_pos = -1
+        value = 1
+        pre = data[init_pos]
+        for step in data[1:]:
+            self.assertAlmostEqual(abs(pre[value] - step[value]), 
+                interval, 7,
+                "Step interval differs for more than expected (using getData)")
+            pre = step
+
+        self.assertAlmostEqual(data[init_pos][value], expected_init_pos, 7,
+                    "Initial possition differs from set value (using getLog)")
+        self.assertAlmostEqual(data[last_pos][value], expected_final_pos, 7,
+                     "Final possition differs from set value (using getLog)")
 
 @testRun(macro_params=[_m1, '-1', '1', '2', '.1'])
 @testStop(macro_params=[_m1, '1', '-1', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
-    """Test of dscan macro. It verifies that macro dscan can be executed and 
-    stoped.
-    """
+    '''Test of dscan macro. It verifies that macro dscan can be executed and 
+    stoped. See :class:`DNscanTest` for requirements.
+    '''
     macro_name = 'dscan'
 
 
@@ -124,9 +154,9 @@ class DscanTest(DNscanTest, unittest.TestCase):
 @testRun(macro_params=[_m1, '-2', '2', '3', _m2, '-2', '-1', '2', '.1'])
 @testStop(macro_params=[_m1, '-3', '0', '3', _m2, '-3', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
-    """Test of mesh macro. It verifies that macro mesh can be executed and 
-    stoped.
-    """
+    '''Test of mesh macro. It verifies that macro mesh can be executed and 
+    stoped. See :class:`RunStopMacroTestCase` for requirements.
+    '''
     macro_name = 'mesh'
     
 
