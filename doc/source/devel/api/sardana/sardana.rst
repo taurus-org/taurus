@@ -27,5 +27,7 @@
     sardanameta <sardanameta>
     sardanamanager <sardanamanager>
     sardanaattribute <sardanaattribute>
-    sardanavalue <sardanavalue>
+    sardanavalue <sardanavalue>	
+    test_sardanavalue <test/test_sardanavalue>
+    test_parameter <spock/test/test_parameter>	 	
 

@@ -1,7 +1,7 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_ct
 
-:mod:`~sardana.macroserver.macros.test`
-=========================================
+:mod:`~sardana.macroserver.macros.test.test_ct`
+===============================================
 
 .. automodule:: sardana.macroserver.macros.test.test_ct
 
