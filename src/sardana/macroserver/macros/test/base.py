@@ -41,8 +41,74 @@ NotPassed = __NotPassedType()
 def macroTest(klass=None, helper_name=None, test_method_name=None, 
               test_method_doc = None, **helper_kwargs):
     '''Decorator to insert test methods from a helper method that accepts
-    arguments'''
-    #TODO Doc it!
+    arguments.
+    
+    macroTest provides a very economic API for creating new tests for a given 
+    class based on a helper method.
+    
+    macroTest accepts the following arguments:
+    
+        - helper_name (str): the name of the helper method. macroTest will
+                             insert a test method which calls the helper with 
+                             any  the helper_kwargs (see below)
+        - test_method_name (str): Optional. Name of the test method to be 
+                                 if None given, one will be generated from the 
+                                 macro and helper names.
+        - test_method_doc (str): The docstring for the inserted test method 
+                                 (this shows in the unit test output). If None 
+                                 given, a default one is generated which 
+                                 includes the input parameters and the helper 
+                                 name
+        - **helper_kwargs: Any remaining keyword arguments are passed to the 
+                           helper.    
+    
+    macroTest assumes that the decorated class inherits from unittest.TestCase 
+    and that it has a macro_name class member.
+    
+    This decorator can be considered a "base" decorator. It is often used to 
+    create other decorators in which the helper method is pre-set. Some 
+    of them are already provided in this module:
+    
+    - :meth:`testRun` is equivalent to macroTest with helper_name='macro_runs'
+    - :meth:`testStop` is equivalent to macroTest with helper_name='macro_stops'
+    - :meth:`testFail` is equivalent to macroTest with helper_name='macro_fails'
+    
+        
+    The advantage of using the decorators compared to writing the test methods 
+    directly is that the helper method can get keyword arguments and therefore 
+    avoid duplication of code for very similar tests (think, e.g. on writing 
+    similar tests for various sets of macro input parameters):
+    
+    Consider the following code written using the 
+    :meth:`RunMacroTestCase.macro_runs` helper::
+    
+        class FooTest(RunMacroTestCase, unittest.TestCase)
+            macro_name = twice
+            
+            def test_foo_runs_with_input_2(self):
+                """test that twice(2) runs"""
+                self.macro_runs(macro_params=['2'])
+                
+            def test_foo_runs_with_input_minus_1(self):
+                """test that twice(2) runs"""
+                self.macro_runs(macro_params=['-1'])
+            
+    The equivalent code could be written as::
+    
+        @macroTest(helper_name='macro_runs', macro_params=['2'])
+        @macroTest(helper_name='macro_runs', macro_params=['-1'])
+        class FooTest(RunMacroTestCase, unittest.TestCase):
+            macro_name = 'twice'
+    
+    
+    Or, even better, using the specialized testRun decorator:
+    
+        @testRun(macro_params=['2'])
+        @testRun(macro_params=['-1'])
+        class FooTest(RunMacroTestCase, unittest.TestCase):
+            macro_name = 'twice'   
+
+    '''
     #TODO: Note: this could be generalized to general tests. 
     #      In fact the only "macro-specific" thing here is the assumption 
     #      that klass.macro_name exists
@@ -84,10 +150,10 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
     
     return klass
     
-#TODO: Document these decorators!
 testRun = functools.partial(macroTest, helper_name='macro_runs')
 testStop = functools.partial(macroTest, helper_name='macro_stops')
 testFail = functools.partial(macroTest, helper_name='macro_fails')
+
 
 class BaseMacroTestCase(object):
     '''
