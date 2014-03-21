@@ -32,11 +32,11 @@ import functools
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 
-#Define a "NotPassed" object to mark a keyword arg which is not passed
+#Define a "_NOT_PASSED" object to mark a keyword arg which is not passed
 # Note that we do not want to use None because one may want to pass None
 class __NotPassedType(int):
     pass
-NotPassed = __NotPassedType()
+_NOT_PASSED = __NotPassedType()
 
 def macroTest(klass=None, helper_name=None, test_method_name=None, 
               test_method_doc = None, **helper_kwargs):
@@ -214,7 +214,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.macro_executor.registerAll()
                       
     def macro_runs(self, macro_params=None, wait_timeout=float("inf"),
-                   data=NotPassed):
+                   data=_NOT_PASSED):
         '''Check that the macro can be executed'''
         self.macro_executor.run(macro_name = self.macro_name, 
                                 macro_params = macro_params,
@@ -222,7 +222,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.assertFinished('Macro %s did not finish' % self.macro_name)
         
         #check if the data of the macro is the expected one 
-        if data is not NotPassed:
+        if data is not _NOT_PASSED:
             actual_data = self.macro_executor.getData()
             msg = 'Macro data does not match expected data:\n' + \
                   'obtained=%s\nexpected=%s'%(actual_data, data)
