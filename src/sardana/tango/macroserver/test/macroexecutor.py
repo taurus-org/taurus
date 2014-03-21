@@ -125,10 +125,7 @@ class TangoMacroExecutor(BaseMacroExecutor):
         try:
             self._door.StopMacro()
         except PyTango.DevFailed, e:
-            #TODO: what to do with Exceptions???
-            print 'DevFailed exception was thrown: ', e
-        except Exception, e:
-            print 'Exception was thrown: ', e
+            raise Exception("Unable to Stop macro: %s"% e) 
             
     def _registerLog(self, log_level):
         log_cb = TangoLogCb(self, log_level)
