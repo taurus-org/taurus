@@ -2,7 +2,6 @@ import copy
 import threading
 import PyTango
 from sardana.macroserver.macros.test import BaseMacroExecutor
-# TODO: not sure if use this codecs, or prepare some easy one...
 from taurus.core.util.codecs import CodecFactory
 from sardana import sardanacustomsettings
 
@@ -20,7 +19,6 @@ class TangoResultCb(TangoAttrCb):
             result = event_data.errors
         else:
             result = event_data.attr_value.value
-            #print 'TangoResultCb.push_event: result = ', result
         self._tango_macro_executor._result = result
 
 
@@ -94,8 +92,6 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._door = PyTango.DeviceProxy(door_name)
         self._done_event = None
         self._started_event = None
-#        #self.log_levels.append('recorddata')
-#        #self._recorddata = []
         
     def _clean(self):
         '''Recreates threading Events in case the macro executor is reused.'''        
@@ -104,7 +100,6 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._done_event = threading.Event()
     
     def _run(self, macro_name, macro_params):
-        #import pdb; pdb.set_trace()
         # preaparing RunMacro command input arguments 
         argin = copy.copy(macro_params)
         argin.insert(0, macro_name)
@@ -118,12 +113,15 @@ class TangoMacroExecutor(BaseMacroExecutor):
         self._door.RunMacro(argin)
 
     def _wait(self, timeout):
+        #TODO: In case of timeout = inf if the macro excecutor run a macro 
+        # with wrong parameters it'll never awake of the done_event wait
+        # Pending to remove this comment when Sardana resolves the bug.
         if self._done_event: 
             self._done_event.wait(timeout)
             self._door.unsubscribe_event(self._status_id)
 
-    def _stop(self, timeout):
-        #self._started_event.wait(timeout) #it should be stop_delay
+    def _stop(self, started_event_timeout=3.0):
+        self._started_event.wait(started_event_timeout)
         try:
             self._door.StopMacro()
         except PyTango.DevFailed, e:
@@ -138,7 +136,6 @@ class TangoMacroExecutor(BaseMacroExecutor):
         id_log =  self._door.subscribe_event(log_level,
                                              PyTango.EventType.CHANGE_EVENT, 
                                              log_cb)
-        #print 'subscribed %s with id %d' % (log_level, id_log)
         setattr(self, id_log_name, id_log)
         
     def _unregisterLog(self, log_level):

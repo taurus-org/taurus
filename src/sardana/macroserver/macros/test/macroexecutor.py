@@ -57,7 +57,6 @@ class BaseMacroExecutor(object):
         self._clean()
         self._run(macro_name, macro_params)
 
-        #sync events when a macro fail #TODO
         if sync:
             self.wait(timeout)
 
@@ -75,7 +74,7 @@ class BaseMacroExecutor(object):
         raise NotImplementedError('Method _run not implemented in class %s' %
                                   self.__class__.__name__)
 
-    def wait(self, timeout = float("inf")):
+    def wait(self, timeout=3.0):
         '''
         Wait until macro is done. Use it in asynchronous executions.
         
@@ -95,14 +94,14 @@ class BaseMacroExecutor(object):
         raise NotImplementedError('Method _wait not implemented in class %s' %
                                   self.__class__.__name__)
 
-    def stop(self, timeout = float("inf")):
+    def stop(self, started_event_timeout=3.0):
         '''
         Stop macro execution. Execute macro in synchronous way before using
         this method.
         
-        param: timeout (float) waiting timeout
+        param: started_event_timeout (float) waiting timeout for started event
         '''
-        self._stop(timeout)
+        self._stop(started_event_timeout)
 
     def _stop(self):
         '''
