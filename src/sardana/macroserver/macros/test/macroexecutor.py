@@ -1,5 +1,30 @@
+#!/usr/bin/env python
+
+##############################################################################
+##
+## This file is part of Sardana
+##
+## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Sardana is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Sardana is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
+##
+##############################################################################
 
 from taurus.core.util.singleton import Singleton
+
 
 class BaseMacroExecutor(object):
     '''
@@ -36,7 +61,7 @@ class BaseMacroExecutor(object):
             self._common.__init__()
 
     def run(self, macro_name, macro_params=None, sync=True, 
-                                                        timeout=float("inf")):
+            timeout=float("inf")):
         '''
         Execute macro.
          
@@ -46,11 +71,11 @@ class BaseMacroExecutor(object):
                              parameters or with the default values)
         :param sync: (bool) whether synchronous or asynchronous call
                      (default is sync=True)
-        :param timeout: (float) timeout that will be passed to the wait method,
-                        in case of synchronous execution
+        :param timeout: (float) timeout (in s) that will be passed to the wait 
+                        method, in case of synchronous execution
 
-	In asyncrhonous execution method :meth:`~wait` has to be explicitly 
-	called.	
+	    In asyncrhonous execution method :meth:`~wait` has to be explicitly 
+	    called.	
         '''
         if macro_params == None:
             macro_params = []
@@ -60,7 +85,6 @@ class BaseMacroExecutor(object):
 
         if sync:
             self.wait(timeout)
-
 
     def _run(self, macro_name, macro_params):
         '''
@@ -75,11 +99,12 @@ class BaseMacroExecutor(object):
         raise NotImplementedError('Method _run not implemented in class %s' %
                                   self.__class__.__name__)
 
-    def wait(self, timeout=3.0):
+    def wait(self, timeout=float("inf")):
         '''
         Wait until macro is done. Use it in asynchronous executions.
         
-        param timeout: (float) waiting timeout'''
+        :param timeout: (float) waiting timeout (in s)
+        '''
         if timeout <= 0:
             timeout =  float("inf")
 
@@ -90,7 +115,7 @@ class BaseMacroExecutor(object):
         Method responsible for waiting until macro is done. Must be
         implemented in your macro executor.
         
-        param timeout: (float) waiting timeout
+        :param timeout: (float) waiting timeout (in s)
         '''
         raise NotImplementedError('Method _wait not implemented in class %s' %
                                   self.__class__.__name__)
@@ -100,14 +125,16 @@ class BaseMacroExecutor(object):
         Stop macro execution. Execute macro in synchronous way before using
         this method.
         
-        param: started_event_timeout (float) waiting timeout for started event
+        :param started_event_timeout: (float) waiting timeout for started event
         '''
         self._stop(started_event_timeout)
 
-    def _stop(self):
+    def _stop(self, started_event_timeout=3.0):
         '''
         Method responsible for stopping the macro execution. Must be
         implemented in your macro executor.
+        
+        :param started_event_timeout: (float) waiting timeout for started event
         '''
         raise NotImplementedError('Method _stop not implemented in class %s' %
                                   self.__class__.__name__)
@@ -116,7 +143,7 @@ class BaseMacroExecutor(object):
         '''
         Start registering log messages.
         
-        param: log_level (string) string indicating the log level
+        :param log_level: (str) string indicating the log level
         '''
         log_buffer_name = '_%s' % log_level
         setattr(self, log_buffer_name, [])
@@ -127,7 +154,7 @@ class BaseMacroExecutor(object):
         Method responsible for starting log registration. Must be
         implemented in your macro executor.
         
-        param: log_level (string) string indicating the log level
+        :param log_level: (str) string indicating the log level
         '''
         raise NotImplementedError('Method _registerLog not implemented in '
                                   'class %s' % self.__class__.__name__)
@@ -136,7 +163,7 @@ class BaseMacroExecutor(object):
         '''
         Stop registering log messages.
         
-        param: log_level (string) string indicating the log level
+        :param log_level: (str) string indicating the log level
         '''
         self._unregisterLog(log_level)
         
@@ -145,7 +172,7 @@ class BaseMacroExecutor(object):
         Method responsible for stopping log registration. Must be
         implemented in your macro executor.
         
-        param: log_level (string) string indicating the log level
+        :param log_level: (str) string indicating the log level
         '''
         raise NotImplementedError('Method _unregisterLog not implemented in '
                                   'class %s' % self.__class__.__name__)
@@ -154,7 +181,9 @@ class BaseMacroExecutor(object):
         '''
         Get log messages.
         
-        param: log_level (string) string indicating the log level
+        :param log_level: (str) string indicating the log level
+        
+        :return: (seq<str>) list of strings with log messages
         '''
         log_buffer_name = '_%s' % log_level
         log = getattr(self, log_buffer_name)
@@ -208,6 +237,8 @@ class BaseMacroExecutor(object):
     def getResult(self):
         '''
         Get macro result.
+        
+        :return: (seq<str>) list of strings with Result messages
         '''
         return self._result
         
@@ -220,33 +251,42 @@ class BaseMacroExecutor(object):
     def getCommonBuffer(self):
         '''
         Get common buffer.
-	Method getCommonBuffer can only be used if a buffer exists.
-	See :meth:`~createCommonBuffer` 
+	    Method getCommonBuffer can only be used if at least one buffer exists.
+        
+        :return: (seq<str>) list of strings with messages from all log levels
+	    
+	    .. seealso:: :meth:`~createCommonBuffer` 
         '''
         return self._common
 
     def getState(self):
         '''
         Get macro execution state.
+        
+        :return: (str)
         '''
         state = None
         if len(self._state_buffer) > 0:
             state = self._state_buffer[-1]
         return state
     
+    def getStateBuffer(self):
+        '''
+        Get buffer (history) of macro execution states.
+        
+        :return: (seq<str>)
+        '''
+        return self._state_buffer
+    
     def getExceptionStr(self):
         '''
         Get macro exception type representation (None if the macro state is not
          exception).
+        
+        :return: (str)
         '''
         return self._exception
-
-    def getStateBuffer(self):
-        '''
-        Get buffer (history) of macro execution states.
-        '''
-        return self._state_buffer
-    
+   
 
 class MacroExecutorFactory(Singleton):
     '''A scheme-agnostic factory for MacroExecutor instances
@@ -287,6 +327,7 @@ class MacroExecutorFactory(Singleton):
         from sardana.tango.macroserver.test.macroexecutor import (
                  TangoMacroExecutor)
         return TangoMacroExecutor(door_name=door_name)
+    
     
 if __name__ == '__main__':
     from sardana import sardanacustomsettings
