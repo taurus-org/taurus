@@ -25,7 +25,6 @@
 
 """Tests for wm macros"""
 
-import time
 import unittest
 from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import testRun
@@ -34,18 +33,7 @@ from sardemoenv import SarDemoEnv
 
 class WBase(RunMacroTestCase):
     """Base class for testing macros used to read position."""
-    
-    header_rows = 2
-    names_column_index = 0
-    values_column_index = 1
-    sar_demo = SarDemoEnv()
- 
-    def setUp(self):
-        '''
-        Execute setUp from the parent class RunMacroTestCase.
-        '''    
-        RunMacroTestCase.setUp(self)     
-    
+     
     def macro_runs(self, **kw):
         '''
         Testing the execution of the 'wm' macro and verify that the log 'output'
@@ -55,12 +43,6 @@ class WBase(RunMacroTestCase):
         self.logOutput = self.macro_executor.getLog("output")
         msg = "wm macro did not return any data."
         self.assertTrue(len(self.logOutput) > 0, msg)
-        
-    def tearDown(self):
-        '''
-        Execute tearDown from the parent class RunMacroTestCase.
-        '''      
-        RunMacroTestCase.tearDown(self)
 
 
 @testRun(macro_params = [SarDemoEnv().getMotors()[0]], wait_timeout=5.0)

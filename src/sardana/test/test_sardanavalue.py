@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
@@ -35,22 +34,20 @@ class SardanaValueTestCase(unittest.TestCase):
        verifications.
     """
 
-
     def testInstanceCreation(self):
         """
         Instantiate in different ways a SardanaValue object.
 	    """
-
         sar_val = SardanaValue()
         self.assertIsInstance(sar_val, SardanaValue, 'Instantiation of an ' + 
                           'object SardanaValue without arguments does not work')
     
-        sar_val1 = SardanaValue(value = 9)
+        sar_val1 = SardanaValue(value=9)
         self.assertIsInstance(sar_val1, SardanaValue, 'Instantiation of an ' +
                     'object SardanaValue with the value argument does not work')
 
-        sar_val2 = SardanaValue(value = 8, exc_info = None, 
-                            timestamp = '09:30', dtype = 'int', dformat = 'int')
+        sar_val2 = SardanaValue(value=8, exc_info=None, 
+                            timestamp='09:30', dtype='int', dformat='int')
 
         self.assertIsInstance(sar_val2, SardanaValue, 'Instantiation of an ' + 
             'object SardanaValue with arguments and exc_info equal None, ' +
@@ -67,10 +64,8 @@ class SardanaValueTestCase(unittest.TestCase):
         """Verify the creation of SardanaValue when exc_info != None.
 	    Verify that 'Error' is contained in the returned string.       
         """
-
         val = 4
-        
-        sar_val = SardanaValue(value = val, exc_info = 'exception_info')
+        sar_val = SardanaValue(value=val, exc_info='exception_info')
         representation = repr(sar_val)     
 
         self.assertEqual(sar_val.error, True, 
@@ -85,7 +80,7 @@ class SardanaValueTestCase(unittest.TestCase):
 	    SardanaValue representation shall contain its value.		
 	    """    
         value = 5
-        sar_val = SardanaValue(value = value)
+        sar_val = SardanaValue(value=value)
         returned_string = sar_val.__repr__()
 
         self.assertRegexpMatches(returned_string, repr(value), 
@@ -93,12 +88,6 @@ class SardanaValueTestCase(unittest.TestCase):
 
         self.assertEqual(sar_val.error, False, 
                 'The error attribute should be False')
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 
 
 

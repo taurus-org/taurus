@@ -43,9 +43,7 @@ class CtRunStopTest(RunStopMacroTestCase, unittest.TestCase):
     Then it does another execution and it tests if the execution can be 
     aborted.     
     '''
-    
     macro_name = "ct"
-
 
 
 

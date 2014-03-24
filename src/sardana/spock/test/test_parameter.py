@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
@@ -40,7 +39,6 @@ class ParamTestCase(unittest.TestCase):
         """
         Instantiate in different ways a Param object.            
         """
-
         spock_param = parameter.Param()
         self.assertIsInstance(spock_param, parameter.Param, 	
 		    'Instantiation of an object Param without arguments ' +
@@ -70,6 +68,3 @@ class ParamTestCase(unittest.TestCase):
 		    'description, type_name and defvalue does not work')
 
 
-
-if __name__ == "__main__":
-    unittest.main()
