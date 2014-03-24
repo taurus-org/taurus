@@ -32,6 +32,7 @@ import functools
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
 
+
 #Define a "_NOT_PASSED" object to mark a keyword arg which is not passed
 # Note that we do not want to use None because one may want to pass None
 class __NotPassedType(int):
@@ -51,8 +52,8 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
         - helper_name (str): the name of the helper method. macroTest will
                              insert a test method which calls the helper with 
                              any  the helper_kwargs (see below)
-        - test_method_name (str): Optional. Name of the test method to be 
-                                 if None given, one will be generated from the 
+        - test_method_name (str): Optional. Name of the test method to be used.
+                                 If None given, one will be generated from the 
                                  macro and helper names.
         - test_method_doc (str): The docstring for the inserted test method 
                                  (this shows in the unit test output). If None 
@@ -133,7 +134,7 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
         argsrep = ', '.join(['%s=%s'%(k,v) for k,v in helper_kwargs.items()])
         test_method_doc = 'Testing %s with %s(%s)'%(klass.macro_name, 
                                                     helper_name, argsrep)
-            
+    
     # New test implementation
     # Sets the passed parameters and adds super and self implementation
     def newTest(obj):
