@@ -58,26 +58,32 @@ class SarDemoEnv(Singleton):
                   door_name
             raise RuntimeError(err) 
 
-
     def getElements(self, elem_type='all'):
         '''Return the name of sardemo element(s) of given elem type  
+        
+        :param elem_type: (str) type of elemnts to return (all by default)
+        
+        :return: (list<str>)
         '''
         if elem_type.lower() == 'all':
             return self.env
         if elem_type.lower() == 'moveable':
             return self.getElements('motor') + self.getElements('pseudomotor')
-        elems = []
         ms_elems = self.ms.getElementNamesOfType(elem_type)
-        [elems.append(elem) for elem in ms_elems if elem in self.env is not None]
+        elems = [e for e in ms_elems if e is not None and e in self.env ]
         return elems
 
     def getMoveables(self):
         '''Return the name of moveable(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         return self.getMotors() + self.getPseudoMotors()
         
     def getControllers(self):
         '''Return the name of controllers(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.controllers:
             self.controllers =  self.getElements('controller')
@@ -85,6 +91,8 @@ class SarDemoEnv(Singleton):
             
     def getCTs(self):
         '''Return the name of counter timer exp channel(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.cts:
             self.cts =  self.getElements('ctexpchannel')
@@ -92,6 +100,8 @@ class SarDemoEnv(Singleton):
 
     def getMotors(self):
         '''Return the name of motor(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.motors:
             self.motors =  self.getElements('motor')
@@ -99,22 +109,26 @@ class SarDemoEnv(Singleton):
 
     def getPseudoMotors(self):
         '''Return the name of pseudomotor(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.pseudos:
             self.pseudos =  self.getElements('pseudomotor')
         return self.pseudos
 
-
     def getZerods(self):
         '''Return the name of zerod exp channel(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.zerods:
             self.zerods =  self.getElements('zerodexpchannel')
         return self.zerods
 
-
     def getOneds(self):
         '''Return the name of one exp channel(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.oneds:
             self.oneds =  self.getElements('onedexpchannel')
@@ -122,6 +136,8 @@ class SarDemoEnv(Singleton):
 
     def getTwods(self):
         '''Return the name of two exp channel(s) defined by SarDemo 
+        
+        :return: (list<str>)
         '''
         if not self.twods:
             self.twods =  self.getElements('twodexpchannel')
