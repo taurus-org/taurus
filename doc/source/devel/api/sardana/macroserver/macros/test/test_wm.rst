@@ -12,19 +12,18 @@
 .. hlist::
     :columns: 3
 
-    * :class:`WTest`
+    * :class:`WBase`
     * :class:`WmTest`
 
 
 
-WTest
+WBase
 -----
 
-.. inheritance-diagram:: WTest
+.. inheritance-diagram:: WBase
     :parts: 1
 
-.. autoclass:: WTest
-    :inherited-members:
+.. autoclass:: WBase
     :members:
     :undoc-members:
 
