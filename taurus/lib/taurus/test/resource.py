@@ -25,15 +25,18 @@
 
 '''Utility code for working with test resources'''
 
-import os, sys
+import os
+import sys
 
 def getResourcePath(resmodule, fname=''):
     '''
     Returns the absolute path to the directory in which the
     resource module named `resmodule` is implemented.
-    If filename is passed, the path to the filename in such directory is returned, e.g.:
+    If filename is passed, the path to the filename in such directory is 
+    returned, e.g.:
     
-    getResourcePath('foo.test.res', 'bar.txt') --> absolute path to <taurus>/foo/test/res/bar.txt
+    getResourcePath('foo.test.res', 'bar.txt') -->
+     absolute path to <taurus>/foo/test/res/bar.txt
     
     
     It raises ImportError if resmodule does not exist and 
@@ -48,8 +51,10 @@ def getResourcePath(resmodule, fname=''):
     
     '''
     __import__(resmodule)
-    module = sys.modules[resmodule] #We use this because __import__('x.y') returns x instead of y !! 
-    path = os.path.join(os.path.abspath(os.path.dirname(module.__file__)), fname)
+    module = sys.modules[resmodule] #We use this because __import__('x.y') 
+                                    #returns x instead of y !! 
+    dirpath = os.path.abspath(os.path.dirname(module.__file__))
+    path = os.path.join(dirpath, fname)
     if not os.path.exists(path):
         raise RuntimeError('File "%s" does not exist'%path)
     return path

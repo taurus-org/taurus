@@ -25,57 +25,42 @@
 
 """
 
-Taurus includes a framework allowing to test its features. This framework is 
-aimed to be used with the objective of finding bugs and promote test driven 
-development. \n
+Taurus provides a framework for testing. 
+This framework intends to facilitate evaluation, bug finding and integration of
+contributed code/patches, as well as to promote test driven development in 
+Taurus. 
 
-This Framework is the outcome of the Sardana Enhancement Proposal 5 (SEP5). Its 
-documentation is located here: 
-http://sourceforge.net/p/sardana/wiki/SEP5/ \n
+The first implementation of this Framework is an outcome of the [Sardana 
+Enhancement Proposal 5 (SEP5)](http://sourceforge.net/p/sardana/wiki/SEP5/) 
 
-Ideally, each bug found should be accompanied by a test revealing the bug.
-That eases the process of correcting bugs. \n
+Ideally, bug reports should be accompanied by a test revealing the bug, 
+whenever possible.
 
-The objective of the Taurus Test Framework is not to provide a test for 
-every piece of code, but rather to ease the process of testing, boost 
-collaborations and allow people from other institutions to provide their 
-own tests. \n
+The first tests implemented are focused on Unit Tests, but the same framework
+should be used for integration and system tests as well.
 
-At the moment Taurus testing is focused on Unit Tests, but in the future 
-the objective is to extend it to integration and system tests as well. \n
+The taurus.test.testsuite module provides an autodiscovered suite for all 
+tests implemented in Taurus.
 
-In order to run all the tests provided by Taurus Test Framework, at a given 
-moment, just go to 'sardana/taurus/lib/taurus/test' and execute:
-python testsuite.py \n
+The following are some key points to keep in mind when using this framework:
 
-All tests have to be written in folders named 'test/'. \n
+- The Taurus test framework is based on :mod:`unittest` which should be imported 
+  from :mod:`taurus.external` in order to be compatible with all versions of 
+  python supported by Taurus. 
 
-Taurus Test Framework is based on 'unittest'. This means that each of the 
-Taurus python test classes inherits from unittest.TestCase. \n
+- all test-related code is contained in submodules named `test` which appear 
+  in any module of taurus.
+  
+- test-related code falls in one of these three categories: 
+  - actual test code (classes that derive from unittest.TestCase)
+  - utility classes/functions (code to simplify development of test code)
+  - resources (accessory files required by some test). They are located in 
+    subdirectories named `res` 
 
-Each of the Taurus Tests has to be acompanied by a documentation that is
-written in the module, class and method docstrings; as well as in the assert
-methods. \n
-
-Devices as motors and experimental channels used by the tests are coming from 
-the execution of the macro sar_demo, because tests have to be reproducible. \n
-
-Taurus Test Framework provides some testing utils. Some of them are: \n
-* sardana/taurus/lib/taurus/test/moduleexplorer.py
-* sardana/taurus/lib/taurus/test/resource.py
-* sardana/taurus/lib/taurus/qt/qtgui/test/base.py
-
-In base.py we found two classes that helps to program tests for widgets:
-BaseWidgetTestCase and GenericWidgetTestCase. GenericWidgetTestCase inherits 
-from BaseWidgetTestCase. It is possible to inherit from one of these classes
-in order to program a new widget test case class. \n
-
-Examples of Taurus tests using tools of Taurus Test Framework are: \n
-* sardana/taurus/lib/taurus/test/test_import.py
-* sardana/taurus/lib/taurus/qt/qtgui/button/test/test_taurusbutton.py
-* sardana/taurus/lib/taurus/qt/qtgui/display/test/test_tauruslabel.py
-* sardana/taurus/lib/taurus/qt/qtgui/panel/test/test_taurusform.py
-
+For a more complete description of the conventions on how to write tests with
+the Taurus testing framework, please refer to the 
+[SEP5](http://sourceforge.net/p/sardana/wiki/SEP5/).
 """
 
-
+from moduleexplorer import ModuleExplorer
+from resource import getResourcePath

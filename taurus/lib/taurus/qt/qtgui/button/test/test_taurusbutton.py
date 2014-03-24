@@ -30,12 +30,14 @@
 
 import unittest
 
-from taurus.qt.qtgui.test.base import BaseWidgetTestCase, GenericWidgetTestCase   
+from taurus.test import getResourcePath
+from taurus.qt.qtgui.test import BaseWidgetTestCase, GenericWidgetTestCase   
 from taurus.qt.qtgui.button import TaurusCommandButton
 
+# The following are Tango-centric imports.
+# TODO: change them if/when TaurusCommandbuttongets generalized 
+from PyTango import CommunicationFailed
 from taurus.core.tango.starter import ProcessStarter
-from taurus.test.resource import getResourcePath 
-from PyTango import CommunicationFailed #TODO: tango-centric. Change If TaurusCommandbutton gets generalized 
 
 
 class TaurusCommandButtonTest(GenericWidgetTestCase, unittest.TestCase):
@@ -61,8 +63,8 @@ class TaurusCommandButtonTest2(BaseWidgetTestCase, unittest.TestCase):
                                       'Timeout')
         #create starter for the Timeout server
         self._starter = ProcessStarter(timeoutExec, 'Timeout/unittest')
-        #register timeoutserver 
-        devname = 'unittests/timeout/temp-1' #TODO: guarantee that devname is not in use 
+        #register timeoutserver  #TODO: guarantee that devname is not in use 
+        devname = 'unittests/timeout/temp-1'
         self._starter.addNewDevice(devname, klass='Timeout')
         #start Timeout server
         self._starter.startDs()
@@ -81,11 +83,12 @@ class TaurusCommandButtonTest2(BaseWidgetTestCase, unittest.TestCase):
         '''Check that the timeout property works'''
         #lets use commands that take at least 200ms in returning
         self._widget.setParameters([.2])
-        #With a long timeout it should work 
+        #With a long timeout it should work...
         self._widget.setTimeout(10)
         ret = self._widget._onClicked()
-        self.assertIsNone(ret, 'expected return None when timeout >> command response time')
-        #but with a shorter timeout we expect a timeout exception
+        msg = 'expected return None when timeout >> command response time'
+        self.assertIsNone(ret, msg)
+        #...but with a shorter timeout we expect a timeout exception
         self._widget.setTimeout(.1)
         self.assertRaises(CommunicationFailed, self._widget._onClicked)
         

@@ -23,7 +23,7 @@
 #############################################################################
 
 
-"""Import tests"""
+"""Taurus import tests"""
 
 import unittest
 
@@ -46,7 +46,7 @@ class TaurusImportTestCase(unittest.TestCase):
         moduleinfo, wrn = self.explore('taurus', verbose=False)
         msg = None
         if wrn:
-            msg = '\n%s'%'\n'.join(zip(*wrn)[1]) 
+            msg = '\n%s'%'\n'.join(zip(*wrn)[1])
         self.assertEqual(len(wrn),0, msg=msg)
         
         

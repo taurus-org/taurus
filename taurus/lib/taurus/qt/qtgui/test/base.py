@@ -24,7 +24,7 @@
 
 
 
-"""Unit tests for Taurus"""
+"""Utilities for creating generic tests for Taurus widgets"""
 
 import unittest
 import taurus.core
