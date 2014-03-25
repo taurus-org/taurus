@@ -30,27 +30,31 @@ from sardana.macroserver.macros.test import RunMacroTestCase
 from sardana.macroserver.macros.test import testRun
 from sardemoenv import SarDemoEnv
 
+try: 
+    _MOTORS = SarDemoEnv().getMotors()
+    _m1,_m2 = _MOTORS[:2]
+except:
+    _m1 = _m2 = None
 
 class WBase(RunMacroTestCase):
-    """Base class for testing macros used to read position."""
+    """Base class for testing macros used to read position.
+    """
      
     def macro_runs(self, **kw):
-        '''
-        Testing the execution of the 'wm' macro and verify that the log 'output'
-        exists.
-        '''
+        """Testing the execution of the 'wm' macro and verify that the log
+        'output' exists.
+        """
         RunMacroTestCase.macro_runs(self, **kw)
         self.logOutput = self.macro_executor.getLog("output")
         msg = "wm macro did not return any data."
         self.assertTrue(len(self.logOutput) > 0, msg)
 
 
-@testRun(macro_params = [SarDemoEnv().getMotors()[0]], wait_timeout=5.0)
+@testRun(macro_params = [_m1], wait_timeout=5.0)
 class WmTest(WBase, unittest.TestCase):
-    '''
-    Test of wm macro. It verifies that the macro 'wm' can be executed.
+    """Test of wm macro. It verifies that the macro 'wm' can be executed.
     It inherits from WmBase and from unittest.TestCase.
     It tests the execution of the 'wm' macro and verifies that the log 'output'
     exists.     
-    '''
+    """
     macro_name = "wm"

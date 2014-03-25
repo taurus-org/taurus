@@ -19,8 +19,7 @@ test-driven development. The "sqrtmac" specifications are:
 
 1. Its data must be {'input':x,'output':s}
 2. Its output must be the square root of the input data.
-3. Macro must rase an Exception of type ValueError if negative numbers are 
-given as input.
+3. Macro must rase an Exception of type ValueError if negative numbers are given as input.
 
 
 Test development

@@ -26,6 +26,7 @@ Run a single test
 
 Executing a single test from command line is done by doing:
     python -m unittest test_name
+
 Where test_name is the test module that has to be run.
 
 That can be done with more verbosity by indicating the option -v.

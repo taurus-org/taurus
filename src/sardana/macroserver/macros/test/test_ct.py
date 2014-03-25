@@ -35,14 +35,13 @@ from sardana.macroserver.macros.test import testStop
 @testRun(macro_params=['.3'], wait_timeout=.5)
 @testStop(macro_params=['1'], stop_delay=.1, wait_timeout=2)
 class CtRunStopTest(RunStopMacroTestCase, unittest.TestCase):
-    '''
-    Test of ct macro. It verifies that macro ct can be executed.
+    """Test of ct macro. It verifies that macro ct can be executed.
     It inherits from RunStopMacroTestCase and from unittest.TestCase.
     It tests two executions of the ct macro with two different input 
     parameters.
     Then it does another execution and it tests if the execution can be 
     aborted.     
-    '''
+    """
     macro_name = "ct"
 
 

@@ -1,13 +1,27 @@
 .. currentmodule:: sardana.macroserver.macros.test.base
 
 :mod:`~sardana.macroserver.macros.test`
-=========================================
+========================================
 
 .. automodule:: sardana.macroserver.macros.test.base
 
-.. rubric:: Functions
+.. rubric:: Decorator
+.. autofunction:: macroTest
 
-.. rubric:: Classes
+.. decorator:: testRun
+
+   Specializations of macroTest for test runables.
+
+.. decorator:: testStop
+
+   Specializations of macroTest for test stopables.
+
+.. decorator:: testFail
+
+   Specializations of macroTest for test fallibles.
+
+
+.. rubric:: Functions
 
 .. hlist::
     :columns: 3

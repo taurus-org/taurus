@@ -23,25 +23,27 @@
 ##
 ##############################################################################
 
-'''Tests for scan macros'''
+"""Tests for scan macros"""
 
 import unittest
 from sardana.macroserver.macros.test import (RunStopMacroTestCase, 
                                              testRun, testStop)
 from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
 
-#get handy motor names from sardemo 
-_MOTORS = SarDemoEnv().getMotors()
-_m1,_m2 = _MOTORS[:2]
-
+#get handy motor names from sardemo
+try: 
+    _MOTORS = SarDemoEnv().getMotors()
+    _m1,_m2 = _MOTORS[:2]
+except:
+    _m1 = _m2 = None
 
 def parsing_log_output(log_output):
-    '''A helper method to parse log output of an executed scan macro.
+    """A helper method to parse log output of an executed scan macro.
     :params log_output: (seq<str>) Result of macro_executor.getLog('output')
-    (see description in :class:`BaseMacroExecutor`).
+    (see description in :class:`.BaseMacroExecutor`).
 
     :return: (seq<number>) The numeric data of a scan.
-    '''
+    """
     first_data_line = 1
     scan_index = 0
     data = []
@@ -57,45 +59,46 @@ def parsing_log_output(log_output):
 
 
 class ANscanTest(RunStopMacroTestCase):
-    '''Not yet implemented. Once implemented it will test anscan.
-    See :class:`RunStopMacroTestCase` for requirements.
-    '''
+    """Not yet implemented. Once implemented it will test anscan.
+    See :class:`.RunStopMacroTestCase` for requirements.
+    """
     pass
 
 
 class DNscanTest(ANscanTest):
-    '''Not yet implemented. Once implemented it will test the macro dnscanc.
+    """Not yet implemented. Once implemented it will test the macro dnscanc.
     See :class:`ANscanTest` for requirements.
-    '''
+    """
     pass
 
 
 class DNscancTest(DNscanTest):
-    '''Not yet implemented. Once implemented it will test the macro dnscanc.
+    """Not yet implemented. Once implemented it will test the macro dnscanc.
     See :class:`DNscanTest` for requirements.
-    '''
+    """
     pass
 
 
 @testRun(macro_params=[_m1, '0', '5', '4', '.1'], wait_timeout=float("inf"))
 @testStop(macro_params=[_m1, '0', '5', '3', '.1'])
 class AscanTest(ANscanTest, unittest.TestCase):
-    '''Test of ascan macro. See :class:`ANscanTest` for requirements. 
+    """Test of ascan macro. See :class:`ANscanTest` for requirements. 
     It verifies that macro ascan can be executed and stoped and tests 
     the output of the ascan using data from log system and macro data. 
-    '''
+    """
     macro_name = 'ascan'
 
     def macro_runs(self, macro_params=None, wait_timeout=float("inf")):
-        ''' Reimplementation of macro_runs method for ascan macro. 
+        """Reimplementation of macro_runs method for ascan macro. 
         It verifies using double checking, with log output and data from 
         the macro:
+
             - The motor initial and final positions of the scan are the 
               ones given as input. 
+
             - Intervals in terms of motor position between one point and 
               the next one are equidistant.
-        '''
-        
+        """
         #call the parent class implementation
         ANscanTest.macro_runs(self, macro_params=macro_params, 
                               wait_timeout=wait_timeout)
@@ -144,9 +147,9 @@ class AscanTest(ANscanTest, unittest.TestCase):
 @testRun(macro_params=[_m1, '-1', '1', '2', '.1'])
 @testStop(macro_params=[_m1, '1', '-1', '3', '.1'])
 class DscanTest(DNscanTest, unittest.TestCase):
-    '''Test of dscan macro. It verifies that macro dscan can be executed and 
+    """Test of dscan macro. It verifies that macro dscan can be executed and 
     stoped. See :class:`DNscanTest` for requirements.
-    '''
+    """
     macro_name = 'dscan'
 
 
@@ -154,9 +157,9 @@ class DscanTest(DNscanTest, unittest.TestCase):
 @testRun(macro_params=[_m1, '-2', '2', '3', _m2, '-2', '-1', '2', '.1'])
 @testStop(macro_params=[_m1, '-3', '0', '3', _m2, '-3', '0', '2', '.1'])
 class MeshTest(RunStopMacroTestCase, unittest.TestCase):
-    '''Test of mesh macro. It verifies that macro mesh can be executed and 
-    stoped. See :class:`RunStopMacroTestCase` for requirements.
-    '''
+    """Test of mesh macro. It verifies that macro mesh can be executed and 
+    stoped. See :class:`.RunStopMacroTestCase` for requirements.
+    """
     macro_name = 'mesh'
     
 

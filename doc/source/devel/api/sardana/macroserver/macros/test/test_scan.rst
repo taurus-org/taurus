@@ -1,11 +1,13 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_scan
 
 :mod:`~sardana.macroserver.macros.test`
-=========================================
+========================================
 
 .. automodule:: sardana.macroserver.macros.test.test_scan
 
 .. rubric:: Functions
+.. autofunction:: parsing_log_output
+
 
 .. rubric:: Classes
 

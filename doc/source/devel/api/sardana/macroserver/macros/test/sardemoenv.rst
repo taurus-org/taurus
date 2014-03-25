@@ -5,8 +5,6 @@
 
 .. automodule:: sardana.macroserver.macros.test.sardemoenv
 
-.. rubric:: Functions
-
 .. rubric:: Classes
 
 .. hlist::

@@ -29,9 +29,9 @@ from taurus.core.util.singleton import Singleton
 from sardana import sardanacustomsettings
 
 class SarDemoEnv(Singleton):
-    '''Class to get _SAR_DEMO environment variable with cross checking with
-       the MacroServer (given by 'UNITTEST_DOOR_NAME') 
-    '''
+    """Class to get _SAR_DEMO environment variable with cross checking with
+    the MacroServer (given by :attr:`UNITTEST_DOOR_NAME`) 
+    """
     def __init__(self, door_name=None):
         if door_name is None:
             door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
@@ -59,12 +59,12 @@ class SarDemoEnv(Singleton):
             raise RuntimeError(err) 
 
     def getElements(self, elem_type='all'):
-        '''Return the name of sardemo element(s) of given elem type  
+        """Return the name of sardemo element(s) of given elem type  
         
         :param elem_type: (str) type of elemnts to return (all by default)
         
         :return: (list<str>)
-        '''
+        """
         if elem_type.lower() == 'all':
             return self.env
         if elem_type.lower() == 'moveable':
@@ -74,78 +74,78 @@ class SarDemoEnv(Singleton):
         return elems
 
     def getMoveables(self):
-        '''Return the name of moveable(s) defined by SarDemo 
+        """Return the name of moveable(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         return self.getMotors() + self.getPseudoMotors()
         
     def getControllers(self):
-        '''Return the name of controllers(s) defined by SarDemo 
+        """Return the name of controllers(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.controllers:
             self.controllers =  self.getElements('controller')
         return self.controllers
             
     def getCTs(self):
-        '''Return the name of counter timer exp channel(s) defined by SarDemo 
+        """Return the name of counter timer exp channel(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.cts:
             self.cts =  self.getElements('ctexpchannel')
         return self.cts
 
     def getMotors(self):
-        '''Return the name of motor(s) defined by SarDemo 
+        """Return the name of motor(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.motors:
             self.motors =  self.getElements('motor')
         return self.motors
 
     def getPseudoMotors(self):
-        '''Return the name of pseudomotor(s) defined by SarDemo 
+        """Return the name of pseudomotor(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.pseudos:
             self.pseudos =  self.getElements('pseudomotor')
         return self.pseudos
 
     def getZerods(self):
-        '''Return the name of zerod exp channel(s) defined by SarDemo 
+        """Return the name of zerod exp channel(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.zerods:
             self.zerods =  self.getElements('zerodexpchannel')
         return self.zerods
 
     def getOneds(self):
-        '''Return the name of one exp channel(s) defined by SarDemo 
+        """Return the name of one exp channel(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.oneds:
             self.oneds =  self.getElements('onedexpchannel')
         return self.oneds
 
     def getTwods(self):
-        '''Return the name of two exp channel(s) defined by SarDemo 
+        """Return the name of two exp channel(s) defined by SarDemo 
         
         :return: (list<str>)
-        '''
+        """
         if not self.twods:
             self.twods =  self.getElements('twodexpchannel')
         return self.twods
     
     def changeDoor(self, door_name):
-        '''Change the door name and reset all lists 
-        '''
+        """Change the door name and reset all lists 
+        """
         self.__init__(door_name)
 
 

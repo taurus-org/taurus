@@ -1,17 +1,15 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_list
 
 :mod:`~sardana.macroserver.macros.test`
-=========================================
+========================================
 
 .. automodule:: sardana.macroserver.macros.test.test_list
-
-.. rubric:: Functions
 
 .. rubric:: Classes
 
 .. hlist::
     :columns: 3
-
+    
     * :class:`LsTest`
     * :class:`LsmTest`
     * :class:`LspmTest`

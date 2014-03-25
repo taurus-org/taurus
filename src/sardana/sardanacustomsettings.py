@@ -23,8 +23,7 @@
 ##
 #############################################################################
 
-"""
-This module contains some Sardana-wide default configurations.
+"""This module contains some Sardana-wide default configurations.
 
 The idea is that the final user may edit the values here to customize certain
 aspects of Sardana.

@@ -41,7 +41,7 @@ _NOT_PASSED = __NotPassedType()
 
 def macroTest(klass=None, helper_name=None, test_method_name=None, 
               test_method_doc = None, **helper_kwargs):
-    '''Decorator to insert test methods from a helper method that accepts
+    """Decorator to insert test methods from a helper method that accepts
     arguments.
     
     macroTest provides a very economic API for creating new tests for a given 
@@ -51,7 +51,7 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
     
         - helper_name (str): the name of the helper method. macroTest will
                              insert a test method which calls the helper with 
-                             any  the helper_kwargs (see below)
+                             any  the helper_kwargs (see below).
         - test_method_name (str): Optional. Name of the test method to be used.
                                  If None given, one will be generated from the 
                                  macro and helper names.
@@ -59,8 +59,8 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
                                  (this shows in the unit test output). If None 
                                  given, a default one is generated which 
                                  includes the input parameters and the helper 
-                                 name
-        - **helper_kwargs: Any remaining keyword arguments are passed to the 
+                                 name.
+        - \*\*helper_kwargs: Any remaining keyword arguments are passed to the 
                            helper.    
     
     macroTest assumes that the decorated class inherits from unittest.TestCase 
@@ -86,11 +86,11 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
             macro_name = twice
             
             def test_foo_runs_with_input_2(self):
-                """test that twice(2) runs"""
+                '''test that twice(2) runs'''
                 self.macro_runs(macro_params=['2'])
                 
             def test_foo_runs_with_input_minus_1(self):
-                """test that twice(2) runs"""
+                '''test that twice(2) runs'''
                 self.macro_runs(macro_params=['-1'])
             
     The equivalent code could be written as::
@@ -107,7 +107,7 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
         class FooTest(RunMacroTestCase, unittest.TestCase):
             macro_name = 'twice'   
 
-    '''
+    """
     #TODO: Note: this could be generalized to general tests. 
     #      In fact the only "macro-specific" thing here is the assumption 
     #      that klass.macro_name exists
@@ -156,8 +156,7 @@ testFail = functools.partial(macroTest, helper_name='macro_fails')
 
 
 class BaseMacroTestCase(object):
-    '''
-    An abstract class for macro testing.
+    """An abstract class for macro testing.
     BaseMacroTestCase will provide a `macro_executor` member which is an 
     instance of BaseMacroExecutor and which can be used to run a macro.
     
@@ -170,13 +169,12 @@ class BaseMacroTestCase(object):
                  `sardanacustomsettings.UNITTEST_DOOR_NAME` is used
       
     Then you may define test methods.
-    '''
+    """
     macro_name = None
     door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME') 
     
     def setUp(self):
-        """ 
-        A macro_executor instance must be created        
+        """ A macro_executor instance must be created        
         """
         if self.macro_name is None:
             msg = '%s does not define macro_name' % self.__class__.__name__ 
@@ -186,24 +184,24 @@ class BaseMacroTestCase(object):
         self.macro_executor = mefact.getMacroExecutor(self.door_name)
         
     def tearDown(self):
-        """ 
-        The macro_executor instance must be removed        
+        """The macro_executor instance must be removed        
         """
         self.macro_executor.unregisterAll()
         self.macro_executor = None
 
 
 class RunMacroTestCase(BaseMacroTestCase):
-    '''A base class for testing execution of arbitrary Sardana macros.
+    """A base class for testing execution of arbitrary Sardana macros.
     See :class:`BaseMacroTestCase` for requirements.
     
     It provides the following helper methods:
       - :meth:`macro_runs` 
       - :meth:`macro_fails` 
-    '''
+    """
     
     def assertFinished(self, msg):
-        '''Asserts that macro has finished.'''
+        """Asserts that macro has finished.
+        """
         finishStates = [u'finish']
         state = self.macro_executor.getState()
         #TODO buffer is just for debugging, attach only the last state
@@ -212,17 +210,16 @@ class RunMacroTestCase(BaseMacroTestCase):
         self.assertIn(state, finishStates, msg)
 
     def setUp(self):
-        '''
-        Preconditions: 
+        """Preconditions: 
         - Those from :class:`BaseMacroTestCase`
         - the macro executor registers to all the log levels
-        '''
+        """
         BaseMacroTestCase.setUp(self)
         self.macro_executor.registerAll()
                       
     def macro_runs(self, macro_params=None, wait_timeout=float("inf"),
                    data=_NOT_PASSED):
-        '''A helper method to create tests that check if the macro can be 
+        """A helper method to create tests that check if the macro can be 
         successfully executed for the given input parameters. It may also 
         optionally perform checks on the outputs from the execution.
         
@@ -233,7 +230,7 @@ class RunMacroTestCase(BaseMacroTestCase):
                              to finish. By default infinite timeout is used.
         :param data: (obj) Optional. If passed, the macro data after the 
                      execution is tested to be equal to this.
-        '''
+        """
         self.macro_executor.run(macro_name = self.macro_name, 
                                 macro_params = macro_params,
                                 sync = True, timeout = wait_timeout)
@@ -251,7 +248,7 @@ class RunMacroTestCase(BaseMacroTestCase):
         
     def macro_fails(self, macro_params=None, wait_timeout=float("inf"),
                    exception=None):
-        '''Check that the macro fails to run for the given input parameters
+        """Check that the macro fails to run for the given input parameters
         
         :param macro_params: (seq<str>) input parameters for the macro 
         :param wait_timeout: maximum allowed time for the macro to fail. By 
@@ -260,7 +257,7 @@ class RunMacroTestCase(BaseMacroTestCase):
                         the type of the exception is done. 
                         (IMPORTANT: this is just a comparison of str 
                         representations of exception objects)
-        '''
+        """
         self.macro_executor.run(macro_name = self.macro_name, 
                                 macro_params = macro_params,
                                 sync = True, timeout = wait_timeout)
@@ -276,15 +273,15 @@ class RunMacroTestCase(BaseMacroTestCase):
         
      
 class RunStopMacroTestCase(RunMacroTestCase):
-    '''
-    This is an extension of :class:`RunMacroTestCase` to include helpers for 
+    """This is an extension of :class:`RunMacroTestCase` to include helpers for 
     testing the abort process of a macro. Useful for Runnable and Stopable 
     macros.
 
     It provides the :meth:`macro_stops` helper 
-    '''
+    """
     def assertStopped(self, msg):
-        '''Asserts that macro was stopped'''
+        """Asserts that macro was stopped
+        """
         stoppedStates = [u'stop']
         state = self.macro_executor.getState()
         #TODO buffer is just for debugging, attach only the last state
@@ -294,7 +291,7 @@ class RunStopMacroTestCase(RunMacroTestCase):
    
     def macro_stops(self, macro_params=None, stop_delay=0.1, 
                     wait_timeout=float("inf")):
-        '''A helper method to create tests that check if the macro can be 
+        """A helper method to create tests that check if the macro can be 
         successfully stoped (a.k.a. aborted) after it has been launched.
         
         :param macro_params: (seq<str>): parameters for running the macro. 
@@ -304,7 +301,7 @@ class RunStopMacroTestCase(RunMacroTestCase):
                            macro and sending the stop command. default=0.1 
         :param wait_timeout: (float) maximum allowed time (in s) for the macro
                              to finish. By default infinite timeout is used.
-        '''
+        """
         self.macro_executor.run(macro_name = self.macro_name, 
                                  macro_params = macro_params, 
                                  sync = False)
