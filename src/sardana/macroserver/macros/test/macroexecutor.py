@@ -303,8 +303,7 @@ class MacroExecutorFactory(Singleton):
                              scheme)
                         
     def _getTangoMacroExecutor(self, door_name):
-        from sardana.tango.macroserver.test.macroexecutor import (
-                 TangoMacroExecutor)
+        from sardana.tango.macroserver.test import TangoMacroExecutor
         return TangoMacroExecutor(door_name=door_name)
     
     

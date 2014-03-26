@@ -27,9 +27,9 @@
 
 import time
 import unittest
-from sardana.macroserver.macros.test import RunMacroTestCase
-from sardana.macroserver.macros.test import testRun
-from sardemoenv import SarDemoEnv
+from sardana.macroserver.macros.test import (RunMacroTestCase, testRun,
+                                             SarDemoEnv)
+
 
 class LsTest(RunMacroTestCase):
     """Base class for testing macros used to list elements.

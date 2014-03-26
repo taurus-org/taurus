@@ -30,7 +30,7 @@ __all__ =  ['macroTest', 'BaseMacroTestCase', 'RunMacroTestCase',
 import time
 import functools
 from sardana import sardanacustomsettings
-from sardana.macroserver.macros.test.macroexecutor import MacroExecutorFactory
+from sardana.macroserver.macros.test import MacroExecutorFactory
 
 
 #Define a "_NOT_PASSED" object to mark a keyword arg which is not passed
@@ -315,7 +315,7 @@ class RunStopMacroTestCase(RunMacroTestCase):
 
 if __name__ == '__main__':
     import unittest
-    from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
+    from sardana.macroserver.macros.test import SarDemoEnv
     
     _m1 = SarDemoEnv().getMotors()[0]
     
