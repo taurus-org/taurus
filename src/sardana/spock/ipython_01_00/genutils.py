@@ -1124,20 +1124,24 @@ def prepare_cmdline(argv=None):
 
 
 def run():
-    from IPython.utils.traitlets import Unicode
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 
-    class SpockConsole(RichIPythonWidget):
+    try:
+        from IPython.utils.traitlets import Unicode
+        from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
         
-        banner = Unicode(config=True)
+        class SpockConsole(RichIPythonWidget):
 
-        def _banner_default(self):
-            config = get_config()
-            return config.FrontendWidget.banner
+            banner = Unicode(config=True)
 
-    import IPython.qt.console.qtconsoleapp
-    IPythonQtConsoleApp = IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp
-    IPythonQtConsoleApp.widget_factory = SpockConsole
+            def _banner_default(self):
+                config = get_config()
+                return config.FrontendWidget.banner
+
+        import IPython.qt.console.qtconsoleapp
+        IPythonQtConsoleApp = IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp
+        IPythonQtConsoleApp.widget_factory = SpockConsole
+    except ImportError:
+        pass
 
     try:
         check_requirements()
