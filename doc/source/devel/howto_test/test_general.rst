@@ -14,77 +14,83 @@ Sardana Testing
 Sardana Test Framework
 ----------------------------
 
+
 A testing framework allowing to test the Sardana features is included with the
 Sardana distribution. It is useful for test-driven development and it allows 
-to find bugs in the code.
+to find bugs in the code. 
 
-A first implementation of the Framework is an outcome of the Sardana Enhancement 
-Proposal 5 (SEP5). 
+The first implementation of the Framework is an outcome of the `Sardana 
+Enhancement Proposal 5 (SEP5)`_. 
 
-SEP5 documentation is located here: http://sourceforge.net/p/sardana/wiki/SEP5/ 
+Ideally, whenever possible, bug reports should be accompanied by a test 
+revealing the bug.
 
-Ideally, each bug found should be accompanied by a test revealing the bug.
-That eases the process of correcting them. 
 
-Sardana test framework should ease Sardana collaborations and allow people from 
-different institutions to provide their own test classes.
+The first tests implemented are focused on Unit Tests, but the same framework
+should be used for integration and system tests as well.
 
-Currently (03-2014) Sardana testing is focused on unit tests, but in the future 
-the objective is to extend it to integration and system tests as well.
+The sardana.test module includes testsuite.py. This file provides an 
+auto-discovering suite for all tests implemented in Sardana.
 
-The test framework is based on 'unittest'. This means that each of the 
-Sardana python test classes inherits from unittest.TestCase. 
+The following are some key points to keep in mind when using this framework:
 
-More information about the module unittest can be found here: 
-http://docs.python.org/2/library/unittest.html
+- The Sardama test framework is based on :mod:`unittest` which should be 
+  imported from :mod:`taurus.external` in order to be compatible with all 
+  versions of python supported by Taurus. 
 
-All tests have to be written in folders named 'test/'.
-Each of the Sardana Tests has to be acompanied by a documentation that is
-written in the module, class and method docstrings; as well as in the assert
-methods. 
+- all test-related code is contained in submodules named `test` which appear 
+  in any module of Sardana.
+  
+- test-related code falls in one of these three categories: 
+    * Actual test code (classes that derive from unittest.TestCase)
+    * Utility classes/functions (code to simplify development of test code)
+    * Resources (accessory files required by some test). They are located in 
+      subdirectories named `res` situated inside the folders named `test`. 
 
-Sardana test framework provides tools for testing macros. These tools comes 
-from:
+For a more complete description of the conventions on how to write tests with
+the Sardana Testing Framework, please refer to the 
+[SEP5](http://sourceforge.net/p/sardana/wiki/SEP5/).
 
-* sardana/src/sardana/macroserver/macros/test/base.py
-* sardana/src/sardana/macroserver/macros/test/macroexecutor.py
-* sardana/src/sardana/macroserver/macros/test/sardemoenv.py
-* sardana/src/sardana/tango/macroserver/test/macroexecutor.py
+
+
+Sardana Test Framework for testing macros
+-----------------------------------------
+
+Sardana test framework provides tools for testing macros. These tools come 
+from sardana.macroserver.macros.test module
 
 Tests meant to be incorporated in the Sardana distribution must be portable. 
-For this reason the elements used in them must be the elements that are created
-with sar_demo macro. Only in the case where this is not possible, it is allowed 
-to create specific elements for a test; these elements has to be removed at the 
-end of the test execution.
+For this reason it is strongly encouraged to use only elements created
+by the sar_demo macro. Only in the case where this is not possible, one may 
+create specific elements for a test; these elements must be removed at the 
+end of the test execution (e.g. using the tearDown method).
 
-The module **base** provides the mean of executing macros and test the that can 
-be executed and some of them stopped (e.g. the scans). Macro test classes 
-can inherit from RunMacroTestCase, RunStopMacroTestCase or BaseMacroTestCase.
+The module :mod:`sardana.macroserver.macros.test` provides utilities to simplify 
+the tests for macro execution and macro stop. Macro test classes can inherit 
+from :class:`~sardana.macroserver.macros.test.RunMacroTestCase`, 
+:class:`~sardana.macroserver.macros.test.RunStopMacroTestCase` or 
+:class:`~sardana.macroserver.macros.test.BaseMacroTestCase`.
 
-Macros as 'lsm' inherits from RunMacroTestCase as it is interesting to test
-if the macros can be executed. The method macro_runs() defined in the class 
-RunMacroTestCase can be overrided unittest.TestCase classes if we want to 
-provide the method with more functionalities.
+Another utility provided is the option to execute the same test method with 
+many different macro input parameters. This is done thanks to a decorator 
+inserted at the beginning of each test method.
+This decorator is provided by :mod:`sardana.macroserver.macro.test`.
 
-Scan macros inherits from RunStopMacroTestCase as it is interesting 
-to test both: if the macros can be executed and if they can be aborted.
 
-Another capacity provided by the framework is the option to execute the 
-same test method with many different macro input parameters. This is done 
-thanks to a decorator inserted at the beginning of each test method.
-This decorator is written in the module **base**.
+**Specificities:**
 
-One decorator has to be used for each set of macro input parameters. Examples 
-of the decorator usage can be seen in: test_scan.py
+* Macros such as 'lsm' inherit from RunMacroTestCase as it is interesting to 
+  test if the macros can be executed. Helper methods 
+  ( such as ..:meth:`RunMacroTestCase.macro_runs` ) can be overriden when 
+  programming new test cases. New helpers can be created as well.
 
-If new tests of scan macros or list macros have to be added, that can be 
-done in test_scan.py or in test_list.py where a useful base class is 
-provided.
+* Scan macros inherits from RunStopMacroTestCase as it is interesting to test 
+  both: if the macros can be executed and if they can be aborted.
 
 
 
-Examples of tests
------------------
+Some examples of tests 
+----------------------
 
 Examples of Sardana tests included in the Sardana distribution are:
 
@@ -95,13 +101,22 @@ Examples of Sardana tests included in the Sardana distribution are:
 * sardana/src/sardana/macroserver/macros/test_wm.py
 
 
-
-
 Links
 -----
 
+For a more complete description of the conventions used when writing tests, see:
 http://sourceforge.net/p/sardana/wiki/SEP5/
 
+For more information about unittest framework:
 http://docs.python.org/2/library/unittest.html
+
+
+.. _Sardana Enhancement Proposal 5 (SEP5): http://sourceforge.net/p/sardana/wiki/SEP5/ 
+.. _RunMacroTestCase: base.rst
+.. _RunStopMacroTestCase: base.rst
+.. _BaseMacroTestCase: base.rst
+
+
+
 
 
