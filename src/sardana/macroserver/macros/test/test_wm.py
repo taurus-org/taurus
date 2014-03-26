@@ -26,15 +26,19 @@
 """Tests for wm macros"""
 
 import unittest
-from sardana.macroserver.macros.test import RunMacroTestCase
-from sardana.macroserver.macros.test import testRun
-from sardemoenv import SarDemoEnv
+from sardana.macroserver.macros.test import (RunMacroTestCase, testRun,
+                                             SarDemoEnv)
 
 try: 
     _MOTORS = SarDemoEnv().getMotors()
     _m1,_m2 = _MOTORS[:2]
-except:
-    _m1 = _m2 = None
+except RuntimeError:
+    import taurus
+    from sardana import sardanacustomsettings
+    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
+    taurus.warning("The door %s is not running ." % (door_name) +\
+                   "Ignore this message if you are building the documentation")
+    _m1 = _m2 = 'motor_not_defined'
 
 class WBase(RunMacroTestCase):
     """Base class for testing macros used to read position.

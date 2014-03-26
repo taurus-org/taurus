@@ -27,15 +27,19 @@
 
 import unittest
 from sardana.macroserver.macros.test import (RunStopMacroTestCase, 
-                                             testRun, testStop)
-from sardana.macroserver.macros.test.sardemoenv import SarDemoEnv
+                                             testRun, testStop, SarDemoEnv)
 
 #get handy motor names from sardemo
 try: 
     _MOTORS = SarDemoEnv().getMotors()
     _m1,_m2 = _MOTORS[:2]
-except:
-    _m1 = _m2 = None
+except RuntimeError:
+    import taurus
+    from sardana import sardanacustomsettings
+    door_name = getattr(sardanacustomsettings,'UNITTEST_DOOR_NAME')
+    taurus.warning("The door %s is not running ." % (door_name) +\
+                   "Ignore this message if you are building the documentation")
+    _m1 = _m2 = 'motor_not_defined'
 
 def parsing_log_output(log_output):
     """A helper method to parse log output of an executed scan macro.
