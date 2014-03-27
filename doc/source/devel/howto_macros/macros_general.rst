@@ -558,7 +558,10 @@ using :meth:`~Macro.data`:
         """This does an ascan starting at 0 ending at 100, in 10 intervals
         with integration time of 0.1s"""
         
-        my_scan = self.createMacro('ascan', moveable, '0', '100', '10', '0.2')
+        ret = self.createMacro('ascan', moveable, '0', '100', '10', '0.2')
+        # createMacro returns a tuple composed from a macro object 
+        # and the result of the Macro.prepare method
+        my_scan, _ = ret 
         self.runMacro(my_scan)
         print len(my_scan.data)
 
