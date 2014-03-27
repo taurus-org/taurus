@@ -1,11 +1,10 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_wm
+.. _test_wm:
 
-:mod:`~sardana.macroserver.macros.test`
-=========================================
+:mod:`~sardana.macroserver.macros.test.test_wm`
+===============================================
 
 .. automodule:: sardana.macroserver.macros.test.test_wm
-
-.. rubric:: Functions
 
 .. rubric:: Classes
 

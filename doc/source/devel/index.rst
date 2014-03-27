@@ -15,3 +15,4 @@ Developer's Guide
     Migration guide <guide_migration>
     Examples <examples/examples>
     Development guidelines <guide_coding>
+    Existing unit tests <tests/index>

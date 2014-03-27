@@ -67,21 +67,21 @@ end of the test execution (e.g. using the tearDown method).
 
 The module :mod:`sardana.macroserver.macros.test` provides utilities to simplify 
 the tests for macro execution and macro stop. Macro test classes can inherit 
-from :class:`~sardana.macroserver.macros.test.RunMacroTestCase`, 
-:class:`~sardana.macroserver.macros.test.RunStopMacroTestCase` or 
-:class:`~sardana.macroserver.macros.test.BaseMacroTestCase`.
+from :class:`.RunMacroTestCase`, 
+:class:`.RunStopMacroTestCase` or 
+:class:`.BaseMacroTestCase`.
 
 Another utility provided is the option to execute the same test method with 
 many different macro input parameters. This is done thanks to a decorator 
 inserted at the beginning of each test method.
-This decorator is provided by :mod:`sardana.macroserver.macro.test`.
+This decorator is provided by :mod:`sardana.macroserver.macros.test`.
 
 
 **Specificities:**
 
 * Macros such as 'lsm' inherit from RunMacroTestCase as it is interesting to 
   test if the macros can be executed. Helper methods 
-  ( such as ..:meth:`RunMacroTestCase.macro_runs` ) can be overriden when 
+  ( such as :meth:`.RunMacroTestCase.macro_runs` ) can be overriden when 
   programming new test cases. New helpers can be created as well.
 
 * Scan macros inherits from RunStopMacroTestCase as it is interesting to test 
@@ -94,11 +94,11 @@ Some examples of tests
 
 Examples of Sardana tests included in the Sardana distribution are:
 
-* sardana/src/sardana/test/test_sardanavalue.py 
-* sardana/src/sardana/test/test_parameter.py
-* sardana/src/sardana/macroserver/macros/test_ct.py
-* sardana/src/sardana/macroserver/macros/test_list.py
-* sardana/src/sardana/macroserver/macros/test_wm.py
+* :ref:`test_sardanavalue`
+* :ref:`test_parameter`
+* :ref:`test_ct`
+* :ref:`test_list`
+* :ref:`test_wm`
 
 
 Links
@@ -112,9 +112,6 @@ http://docs.python.org/2/library/unittest.html
 
 
 .. _Sardana Enhancement Proposal 5 (SEP5): http://sourceforge.net/p/sardana/wiki/SEP5/ 
-.. _RunMacroTestCase: base.rst
-.. _RunStopMacroTestCase: base.rst
-.. _BaseMacroTestCase: base.rst
 
 
 

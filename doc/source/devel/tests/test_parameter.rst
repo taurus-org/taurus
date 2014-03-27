@@ -1,11 +1,10 @@
 .. currentmodule:: sardana.spock.test.test_parameter
+.. _test_parameter:
 
 :mod:`~sardana.spock.test.test_parameter`
 =========================================
 
 .. automodule:: sardana.spock.test.test_parameter
-
-.. rubric:: Functions
 
 .. rubric:: Classes
 

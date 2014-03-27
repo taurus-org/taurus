@@ -1,11 +1,10 @@
 .. currentmodule:: sardana.test.test_sardanavalue
+.. _test_sardanavalue:
 
 :mod:`~sardana.test.test_sardanavalue`
 ======================================
 
 .. automodule:: sardana.test.test_sardanavalue
-
-.. rubric:: Functions
 
 .. rubric:: Classes
 

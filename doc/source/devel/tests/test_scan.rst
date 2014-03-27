@@ -1,7 +1,8 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_scan
+.. _test_scan:
 
-:mod:`~sardana.macroserver.macros.test`
-========================================
+:mod:`~sardana.macroserver.macros.test.test_scan`
+=================================================
 
 .. automodule:: sardana.macroserver.macros.test.test_scan
 

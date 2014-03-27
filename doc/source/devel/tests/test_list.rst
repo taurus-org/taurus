@@ -1,7 +1,8 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_list
+.. _test_list:
 
-:mod:`~sardana.macroserver.macros.test`
-========================================
+:mod:`~sardana.macroserver.macros.test.test_list`
+=================================================
 
 .. automodule:: sardana.macroserver.macros.test.test_list
 

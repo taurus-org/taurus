@@ -1,11 +1,10 @@
 .. currentmodule:: sardana.macroserver.macros.test.test_ct
+.. _test_ct:
 
 :mod:`~sardana.macroserver.macros.test.test_ct`
 ===============================================
 
 .. automodule:: sardana.macroserver.macros.test.test_ct
-
-.. rubric:: Functions
 
 .. rubric:: Classes
 
