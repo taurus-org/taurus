@@ -56,7 +56,7 @@ the Sardana Testing Framework, please refer to the
 Sardana Test Framework for testing macros
 -----------------------------------------
 
-Sardana test framework provides tools for testing macros. These tools come 
+Sardana Test Framework provides tools for testing macros. These tools come 
 from sardana.macroserver.macros.test module
 
 Tests meant to be incorporated in the Sardana distribution must be portable. 
@@ -71,9 +71,10 @@ from :class:`.RunMacroTestCase`,
 :class:`.RunStopMacroTestCase` or 
 :class:`.BaseMacroTestCase`.
 
-Another utility provided is the option to execute the same test method with 
-many different macro input parameters. This is done thanks to a decorator 
-inserted at the beginning of each test method.
+Another utility provided is the option to execute the same test with 
+many different macro input parameters. This is done  by decorating the test 
+class with any of the decorators of the the macro tests family. 
+
 This decorator is provided by :mod:`sardana.macroserver.macros.test`.
 
 
