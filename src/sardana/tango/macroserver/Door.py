@@ -41,6 +41,8 @@ from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.macroserver.macro import Macro
 from sardana.macroserver.msdoor import BaseInputHandler
+from sardana.macroserver.msexception import MacroServerException
+from sardana.tango.core.util import throw_sardana_exception
 from sardana.tango.core.attributehandler import AttributeLogHandler
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
 from sardana.macroserver.msexception import InputCancelled
@@ -328,8 +330,9 @@ class Door(SardanaDevice):
             macro_data = self.door.get_macro_data()
             codec = CodecFactory().getCodec('bz2_pickle')
             data = codec.encode(('', macro_data))
-        except:
-            data = '', ''
+        except MacroServerException, mse:
+            throw_sardana_exception(mse)
+
         attr.set_value(*data)
     
     def read_MacroStatus(self, attr):

@@ -57,7 +57,7 @@ from sardana.macroserver.msparameter import ParamDecoder
 from sardana.macroserver.macro import Macro, MacroFunc
 from sardana.macroserver.msexception import UnknownMacroLibrary, \
     LibraryError, UnknownMacro, MissingEnv, AbortException, StopException, \
-    MacroServerException
+    MacroServerException, UnknownEnv
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -1134,11 +1134,12 @@ class MacroExecutor(Logger):
             self._macro_stack.append(macro_obj)
             for step in macro_obj.exec_():
                 self.sendMacroStatus((step,))
-
+            result = macro_obj.getResult()
+            # sending result only if we are the top most macro
             if macro_obj.hasResult() and macro_obj.getParentMacro() is None:
-                result = self.__preprocessResult(macro_obj.getResult())
-                door.debug("sending result %s", result)
-                self.sendResult(result)
+                result_repr = self.__preprocessResult(result)
+                door.debug("sending result %s", result_repr)
+                self.sendResult(result_repr)
         except AbortException as ae:
             macro_exp = ae
         except StopException as se:
@@ -1188,6 +1189,19 @@ class MacroExecutor(Logger):
             raise macro_exp
         self.debug("[ END ] runMacro %s" % desc)
         self._popMacro()
+        
+        # decide whether to preserve the macro data
+        env_var_name = 'PreserveMacroData' 
+        try:
+            preserve_macro_data = macro_obj.getEnv(env_var_name)
+        except UnknownEnv:
+            preserve_macro_data = True
+        if not preserve_macro_data:
+            self.debug('Macro data will not be preserved. ' + \
+                       'Set "%s" environment variable ' % env_var_name + \
+                       'to True in order to change it.')
+            self._macro_pointer = None
+
         return result
 
     def _popMacro(self):
@@ -1195,10 +1209,7 @@ class MacroExecutor(Logger):
         length = len(self._macro_stack)
         if length > 0:
             self._macro_pointer = self._macro_stack[-1]
-        #disable macro data for now. Comment following lines to enable it again
-        else:
-            self._macro_pointer = None
-
+        
     def sendState(self, state):
         return self.door.set_state(state)
 

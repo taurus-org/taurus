@@ -421,9 +421,11 @@ def throw_sardana_exception(exc):
             tb = "<Unknown>"
             if exc.traceback is not None:
                 tb = str(exc.traceback)
-            Except.throw_exception(exc.msg, tb, exc.type)
+            Except.throw_exception(exc.type, exc.msg, tb)
     elif hasattr(exc, 'exc_info'):
         Except.throw_python_exception(*exc.exc_info)
+    else:
+        raise exc
 
 def ask_yes_no(prompt, default=None):
     """Asks a question and returns a boolean (y/n) answer.
