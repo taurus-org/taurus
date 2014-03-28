@@ -28,7 +28,9 @@
 
 import unittest
 import taurus.core
+from taurus.test import skipUnlessGui
 
+@skipUnlessGui()
 class BaseWidgetTestCase(object):
     '''
     A base class for tests that need a widget instance

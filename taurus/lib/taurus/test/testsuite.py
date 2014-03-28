@@ -53,5 +53,16 @@ def run(disableLogger=True):
     runner.run(suite)
 
 if __name__ == '__main__':
+    import argparse #TODO: use taurus.external.argparse (when available)
+    parser = argparse.ArgumentParser(description=
+                                     'Main test suite for Taurus')
+    parser.add_argument('--skip-gui-tests', dest='skip_gui', 
+                        action='store_true', default=False,
+                        help='Do not perform tests requiring GUI')
+    args = parser.parse_args()
+        
+    if args.skip_gui:
+        import taurus.test
+        taurus.test.GUI_TESTS_ENABLED = False
     run()
-
+        

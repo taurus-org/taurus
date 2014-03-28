@@ -62,5 +62,10 @@ the Taurus testing framework, please refer to the
 [SEP5](http://sourceforge.net/p/sardana/wiki/SEP5/).
 """
 
-from moduleexplorer import ModuleExplorer
-from resource import getResourcePath
+from .moduleexplorer import ModuleExplorer
+from .resource import getResourcePath
+from .skip import GUI_TESTS_ENABLED, skipUnlessGui
+
+
+
+
