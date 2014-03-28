@@ -41,8 +41,10 @@ from taurusconsolewindow import TaurusConsoleWindow
 from taurusconsoleapplication import TaurusConsoleApplication
 
 import taurusconsoleextensions
-
-from IPython.frontend.qt.kernelmanager import QtKernelManager
+try:
+    from IPython.qt.kernelmanager import QtKernelManager
+except ImportError:
+    from IPython.frontend.qt.kernelmanager import QtKernelManager
 
 
 class TaurusConsoleFactory(Singleton):

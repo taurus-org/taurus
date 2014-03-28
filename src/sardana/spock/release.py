@@ -53,6 +53,7 @@ replacement for the interactive Python interpreter with extra functionality.
 license = 'GNU'
 
 authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
+           'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') ,
            'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es') }
 
 url = ''

@@ -36,7 +36,7 @@ from PyTango import Except, DevVoid, DevLong, DevDouble, DevString, \
     DispLevel, DevState, AttrQuality, \
     READ_WRITE, SCALAR
 
-from taurus.core.util import CodecFactory
+from taurus.core.util.codecs import CodecFactory
 from taurus.core.util.log import DebugIt
 
 from sardana import State, SardanaServer

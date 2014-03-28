@@ -38,7 +38,10 @@ try:
     import sphinx
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
-    if V(sphinx.__version__) < V("1.0.0"):
+    if V(sphinx.__version__) < V("1.0.0") \
+       or V(sphinx.__version__) == V("1.2.0"):
+        print("Sphinx documentation can not be compiled"
+              " with sphinx < 1.0.0 or the 1.2.0 version")
         sphinx = None
 except ImportError:
     sphinx = None
@@ -291,7 +294,7 @@ def main():
     Release = get_release_info()
 
     author = Release.authors['Tiago']
-    maintainer = Release.authors['Pascual-Izarra']
+    maintainer = Release.authors['Reszela']
 
     package_dir = {'sardana': abspath('src', 'sardana')}
 
@@ -318,6 +321,7 @@ def main():
         'sardana.spock',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
+        'sardana.spock.ipython_01_00',
     ]
 
     provides = [

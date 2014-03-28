@@ -138,7 +138,7 @@ class TaurusLabelControllerAttribute(TaurusScalarAttributeControllerHelper, Taur
     def _setStyle(self):
         TaurusLabelController._setStyle(self)
         label = self.label()
-        label.setTextInteractionFlags(Qt.Qt.TextSelectableByMouse | Qt.Qt.LinksAccessibleByMouse)
+        label.setDynamicTextInteractionFlags(Qt.Qt.TextSelectableByMouse | Qt.Qt.LinksAccessibleByMouse)
 
         
 class TaurusLabelControllerConfiguration(TaurusConfigurationControllerHelper, TaurusLabelController):
@@ -150,7 +150,7 @@ class TaurusLabelControllerConfiguration(TaurusConfigurationControllerHelper, Ta
     def _setStyle(self):
         TaurusLabelController._setStyle(self)
         label = self.label()
-        label.setTextInteractionFlags(Qt.Qt.NoTextInteraction)
+        label.setDynamicTextInteractionFlags(Qt.Qt.NoTextInteraction)
 
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -239,11 +239,12 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self._autoTrim = self.DefaultAutoTrim
         self._modelIndexStr = ''
         self._controller = None
+        self._dynamicTextInteractionFlags = True
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QLabel, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
 
-	self.setAlignment(self.DefaultAlignment)
+        self.setAlignment(self.DefaultAlignment)
 
         self.connect(self, Qt.SIGNAL("linkActivated (const QString &)"), 
                      self.showValueDialog)
@@ -392,6 +393,21 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def setAutoTrim(self, trim):
         self._autoTrim = trim
         self.controllerUpdate()
+        
+    def setDynamicTextInteractionFlags(self, flags):
+        if self.hasDynamicTextInteractionFlags():
+            Qt.QLabel.setTextInteractionFlags(self, flags)
+
+    def hasDynamicTextInteractionFlags(self):
+        return self._dynamicTextInteractionFlags
+
+    def setTextInteractionFlags(self, flags):
+        Qt.QLabel.setTextInteractionFlags(self, flags)
+        self._dynamicTextInteractionFlags = False
+
+    def resetTextInteractionFlags(self):
+        Qt.QLabel.resetTextInteractionFlags(self)
+        self.dynamicTextInteractionFlags = True
 
     def getAutoTrim(self):
         return self._autoTrim
@@ -502,6 +518,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #:     * :meth:`TaurusLabel.getAutoTrim`
     #:     * :meth:`TaurusLabel.setAutoTrim`
+    #:     * :meth:`TaurusLabel.resetAutoTrim
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
     
@@ -509,13 +526,35 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #: **Access functions:**
     #:
-    #:     * :meth:`TaurusLabel.getAutoTrim`
-    #:     * :meth:`TaurusLabel.setAutoTrim`
-    #:     * :meth:`TaurusLabel.resetAutoTrim`
+    #:     * :meth:`TaurusLabel.isDragEnabled`
+    #:     * :meth:`TaurusLabel.setDragEnabled`
+    #:     * :meth:`TaurusLabel.resetDragEnabled`
     dragEnabled = Qt.pyqtProperty("bool", TaurusBaseWidget.isDragEnabled, 
                                   TaurusBaseWidget.setDragEnabled,
                                   TaurusBaseWidget.resetDragEnabled, 
                                   doc="enable dragging")
+    
+    #: Specifies how the label should interact with user input if it displays
+    #: text.
+    #:
+    #: **Access functions:**
+    #:
+    #:     * :meth:`TaurusLabel.textInteractionFlags`
+    #:     * :meth:`TaurusLabel.setTextInteractionFlags`
+    #:     * :meth:`TaurusLabel.resetTextInteractionFlags
+    try:
+        textInteractionFlags = Qt.pyqtProperty(Qt.Qt.TextInteractionFlag,
+                                   Qt.QLabel.textInteractionFlags,
+                                   setTextInteractionFlags,
+                                   resetTextInteractionFlags,
+                                   doc="Specifies how the label should interact with user input if it displays text.")
+    except TypeError: #Old PyQt4 version only accept strings for the type arg
+        textInteractionFlags = Qt.pyqtProperty("int",
+                                   Qt.QLabel.textInteractionFlags,
+                                   setTextInteractionFlags,
+                                   resetTextInteractionFlags,
+                                   doc="Specifies how the label should interact with user input if it displays text.")
+
     
 def demo():
     "Label"

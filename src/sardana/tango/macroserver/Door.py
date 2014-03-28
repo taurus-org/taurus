@@ -38,7 +38,8 @@ from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
 import taurus
 import taurus.core.util
 from lxml import etree
-from taurus.core.util import CodecFactory, DebugIt
+from taurus.core.util.codecs import CodecFactory
+from taurus.core.util.log import DebugIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
@@ -310,7 +311,7 @@ class Door(SardanaDevice):
     
     def write_Input(self, attr):
         value = attr.get_write_value()
-        self._input_handler.input_received(value)
+        self.door.get_input_handler().input_received(value)
     
     #@DebugIt()
     def read_ElementList(self, attr):

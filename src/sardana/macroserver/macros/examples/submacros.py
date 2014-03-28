@@ -101,14 +101,14 @@ class runsubs(Macro):
     5 - params = 'ascan', motor, 0, 10, 4, 0.2
         self.execMacro(params)
     6 - self.execMacro("ascan %s 0 10 4 0.2" % motor.getName())
-    7 - macro = self.createMacro("ascan %s 0 10 4 0.2" % motor.getName())
+    7 - macro, prep = self.createMacro("ascan %s 0 10 4 0.2" % motor.getName())
         macro.hooks = [ self.hook ]
         self.runMacro(macro)
-    8 - macro = self.createMacro('ascan', motor, 0, 10, 4, 0.2)
+    8 - macro, prep = self.createMacro('ascan', motor, 0, 10, 4, 0.2)
         macro.hooks = [ self.hook ]
         self.runMacro(macro)
     9 - params = 'ascan', motor, 0, 10, 4, 0.2
-        macro = self.createMacro(params)
+        macro, prep = self.createMacro(params)
         macro.hooks = [ self.hook ]
         self.runMacro(macro)
         
@@ -139,16 +139,17 @@ class runsubs(Macro):
         elif call_type == 6:
             self.execMacro("ascan %s 0 10 4 0.2" % motor.getName())
         elif call_type == 7:
-            macro = self.createMacro("ascan %s 0 10 4 0.2" % motor.getName())
+            macro, prep = self.createMacro("ascan %s 0 10 4 0.2" % \
+                                                     motor.getName())
             macro.hooks = [ self.hook ]
             self.runMacro(macro)
         elif call_type == 8:
-            macro = self.createMacro('ascan', motor, 0, 10, 4, 0.2)
+            macro, prep = self.createMacro('ascan', motor, 0, 10, 4, 0.2)
             macro.hooks = [ self.hook ]
             self.runMacro(macro)
         elif call_type == 9:
             params = 'ascan', motor, 0, 10, 4, 0.2
-            macro = self.createMacro(params)
+            macro, prep = self.createMacro(params)
             macro.hooks = [ self.hook ]
             self.runMacro(macro)
         

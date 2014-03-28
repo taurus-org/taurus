@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 ##
 ## This file is part of Sardana
-##
+## 
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
@@ -23,30 +24,4 @@
 ##
 ##############################################################################
 
-"""This module contains the function to access sardana thread pool"""
-
-from __future__ import with_statement
-
-__all__ = ["get_thread_pool"]
-
-__docformat__ = 'restructuredtext'
-
-import threading
-
-from taurus.core.util.threadpool import ThreadPool
-
-__thread_pool_lock = threading.Lock()
-__thread_pool = None
-
-def get_thread_pool():
-    """Returns the global pool of threads for Sardana
-    
-    :return: the global pool of threads object
-    :rtype: taurus.core.util.ThreadPool"""
-    
-    global __thread_pool
-    global __thread_pool_lock
-    with __thread_pool_lock:
-        if __thread_pool is None:
-            __thread_pool = ThreadPool(name="SardanaTP", Psize=10)
-        return __thread_pool
+"""This package provides the spock generic utilities for ipython > 0.10"""

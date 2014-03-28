@@ -50,7 +50,6 @@ from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
 
-
 def parseTangoUri(name):
     from taurus.core import tango
     validator = {tango.TangoDevice    : DeviceNameValidator,
@@ -112,50 +111,6 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
         #End of Thread
 
 
-class newDialog(Qt.QDialog):
-    """ This class create the dialog """
-    def __init__(self, parent = None):
-        #print "newDialog init ....."
-        Qt.QDialog.__init__(self, parent)
-
-    def initComponents(self,newWidget,dev_name,title):
-        #print "init Components ...."
-        self.setWindowTitle(Qt.QApplication.translate("",title, None, Qt.QApplication.UnicodeUTF8))
-        self.resize(Qt.QSize(Qt.QRect(0,0,300,300).size()).expandedTo(self.minimumSizeHint()))
-        palette = Qt.QPalette()
-
-        brush = Qt.QBrush(Qt.QColor(143,165,203))
-        brush.setStyle(Qt.Qt.SolidPattern)
-        palette.setBrush(Qt.QPalette.Active,Qt.QPalette.Button,brush)
-
-        brush = Qt.QBrush(Qt.QColor(255,255,255))
-        brush.setStyle(Qt.Qt.SolidPattern)
-        palette.setBrush(Qt.QPalette.Inactive,Qt.QPalette.Base,brush)
-
-        self.setPalette(palette)
-
-        widgetLayout = Qt.QVBoxLayout(self)
-        widgetLayout.setContentsMargins(10,10,10,10)
-
-        if not dev_name is None:
-            lineText = Qt.QLabel("   Device Name:  ")
-            editText = Qt.QTextEdit()
-            editText.setText(dev_name)
-            editText.setMaximumHeight(24)
-            self.hboxlayout = Qt.QHBoxLayout()
-            self.hboxlayout.setObjectName("hboxlayout")
-            self.hboxlayout.addWidget(lineText)
-            self.hboxlayout.addWidget(editText)
-            widgetLayout.addLayout(self.hboxlayout)
-            #gridLayout.addLayout(self.hboxlayout,0,0,1,1)
-
-        widgetLayout.addWidget(newWidget)
-
-    def closeEvent(self,QCloseEvent):
-        #print "Closing new Dialog ................."
-        pass
-
-    
 class TaurusGraphicsScene(Qt.QGraphicsScene):
     '''
     This class encapsulates TaurusJDrawSynopticsView and TaurusGraphicsScene signals/slots
@@ -172,7 +127,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     
     Mouse Right-button events::
     
-     TaurusGraphicItem.setContextMenu([(ActionName,ActionMethod(device_name))]
+     TaurusGraphicsItem.setContextMenu([(ActionName,ActionMethod(device_name))]
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
@@ -191,7 +146,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._selectedItems = []
         self.threads = []
         self.pids = []
-        self.panel_launcher = ExternalAppAction(parent.defaultPanelClass().split() if parent else ['taurusdevicepanel'])
+        self.panels = []
+        self.panel_launcher = None
         
         try:
             self.logger = Logger(name)
@@ -204,12 +160,91 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         except:
             print 'Unable to initialize TaurusGraphicsSceneLogger: %s'%traceback.format_exc()
             
-        self.setSelectionMark()            
+        try:
+            if parent and parent.panelClass() is not None:
+                defaultClass = parent.panelClass()
+                if defaultClass and isinstance(defaultClass,str):
+                    self.panel_launcher = self.getClass(defaultClass)
+                    if self.panel_launcher is None:
+                        self.panel_launcher = ExternalAppAction(defaultClass.split())
+                else:
+                    self.panel_launcher = defaultClass
+            else:
+                from taurus.qt.qtgui.graphic.jdraw import TaurusJDrawSynopticsView
+                self.panel_launcher = TaurusJDrawSynopticsView.defaultPanelClass()
+        except:
+            self.warning(traceback.format_exc())
+            self.panel_launcher = None
+        
+        self.setSelectionMark()
         if strt:self.start()
         
     def __del__(self):
-        self.panel_launcher.kill()
+        self.closeAllPanels()
         Qt.QGraphicsScene.__del__(self)
+        
+    def showNewPanel(self,args=None,standAlone=False):
+        try:
+            if isinstance(args,TaurusGraphicsItem):
+                objName = args._name
+                clName = args.getExtensions().get('className') or self.panel_launcher
+                #classParams extension overrides Model; if there's no extension then object name is used
+                clParam = args.getExtensions().get('classParams') or objName
+                standAlone = args.standAlone
+            else:
+                clName,clParam,objName = self.panel_launcher,args,args
+            
+            self.debug('TaurusGraphicsScene.showNewPanel(%s,%s,%s)'%(clName,clParam,objName))
+            if isinstance(clName,ExternalAppAction):
+                clName.actionTriggered(clParam if isinstance(clParam,(list,tuple)) else [clParam])
+            else:
+                if isinstance(clName,str):
+                    klass = self.getClass(clName)
+                    if klass is None: 
+                        self.warning("%s Class not found!"%clName)
+                        return
+                else:
+                    klass,clName = clName,getattr(clName,'__name__',str(clName))
+                widget = klass() #self.parent())
+                #if isinstance(widget,taurus.qt.qtgui.panel.TaurusDevicePanel):
+                #    widget.setSpectraAtkMode(True) #Method renamed or deprecated
+                try:widget.setClasses(clParam)
+                except:pass
+                try:widget.setModel(clParam)
+                except:pass
+                try: widget.setTable(clParam)
+                except:pass
+                
+                #if isinstance(widget,Qt.QWidget):
+                    #if not standAlone:
+                        #obj = newDialog(self.parent())
+                    #else:
+                        #obj = newDialog()
+                    #obj.initComponents(widget,objName,clName)
+                    #obj.setModal(False)
+                    #obj.setVisible(True)
+                    
+                widget.setWindowTitle('%s - %s'%(clName,objName))
+                self.panels.append(widget)
+                widget.show() #exec_()
+                return widget
+        except:
+            self.warning(traceback.format_exc())
+        
+    def closeAllPanels(self):
+        """ This method replaces killProcess, using taurus.qt.qtgui.util.ExternalAppAction instead! """
+        try:
+            self.debug('In closeAllPanels(%s,%s)'%(self.panel_launcher,self.panels))
+            if isinstance(self.panel_launcher,ExternalAppAction):
+                self.panel_launcher.kill()
+            for p in self.panels:
+                try:
+                    if hasattr(p,'setModel'): p.setModel(None)
+                    p.close()
+                except: pass
+            while self.panels: self.panels.pop(0)
+        except:
+            self.warning(traceback.format_exc())
 
     def addItem(self,item):
         #self.debug('addItem(%s)'%item)
@@ -260,7 +295,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         """ This method will try first with named objects; if failed then with itemAt """
         pos = Qt.QPointF(x,y)
         itemsAtPos = []
-        for z,o in sorted((i.zValue(),i) for v in self._itemnames.values() for i in v if i.contains(pos)):
+        for z,o in sorted((i.zValue(),i) for v in self._itemnames.values() for i in v if i.contains(pos) or i.isUnderMouse()):
             if not hasattr(o,'getExtensions'):
                 self.debug('getItemByPosition(%d,%d): adding Qt primitive %s'%(x,y,o))
                 itemsAtPos.append(o)
@@ -315,54 +350,43 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if isinstance(obj,TaurusGraphicsItem) and (obj_name or obj.contextMenu() or obj.getExtensions()):
                     menu = Qt.QMenu(None)#self.parent)    
                     last_was_separator = False
-                    if obj_name: 
+                    extensions = obj.getExtensions()
+                    if obj_name and (not extensions or not extensions.get('className')): 
                         #menu.addAction(obj_name)
-                        addMenuAction(menu,obj_name,lambda x=obj_name: self.panel_launcher.actionTriggered([x]))
+                        addMenuAction(menu,'Show %s panel'%obj_name,lambda x=obj_name: self.showNewPanel(x))
                     if obj.contextMenu():
                         if obj_name: 
                             menu.addSeparator()
                             last_was_separator = True
                         for t in obj.contextMenu(): #It must be a list of tuples (ActionName,ActionMethod)
                             last_was_separator = addMenuAction(menu,t[0],t[1],last_was_separator)
-                    if obj.getExtensions():
+                    if extensions:
                         if not menu.isEmpty(): menu.addSeparator()
-                        if obj.getExtensions().get('shellCommand'):
-                            addMenuAction(menu,'Execute',lambda d,x=obj: self.getShellCommand(x))
-                        if obj.getExtensions().get('className'):
+                        className = extensions.get('className')
+                        if className and className!='noPanel':
                             self.debug('launching className extension object')
-                            addMenuAction(menu,obj.getExtensions().get('className'),lambda d,x=obj: self.getClassName(x))
+                            addMenuAction(menu,'Show %s'%className,lambda d,x=obj: self.showNewPanel(x))
+                        if extensions.get('shellCommand'):
+                            addMenuAction(menu,'Execute',lambda d,x=obj: self.getShellCommand(x))
                     if not menu.isEmpty():
                         menu.exec_(Qt.QPoint(mouseEvent.screenPos().x(),mouseEvent.screenPos().y()))
                     del menu
         except Exception:
-            self.error( traceback.format_exc())
+            self.warning( traceback.format_exc())
             
     def mouseDoubleClickEvent(self,event):
         try:
             obj = self.getItemClicked(event)
             obj_name = getattr(obj,'_name', '')
-            if obj_name: self.panel_launcher.actionTriggered([obj_name])
-        except:
-            self.error( traceback.format_exc())
-        
-    def launchProcess(self,process):
-        """ This method is DEPRECATED, use taurus.qt.qtgui.util.ExternalAppAction instead! """
-        if not hasattr(self,'ChildrenProcesses'): self.ChildrenProcesses = {}
-        if process in self.ChildrenProcesses: 
-            self.warning( 'Process %s is already running!'%process)
-            return
-        self.ChildrenProcesses[process] = subprocess.Popen(process,shell=True)
-        return
-        
-    def killProcess(self,regexp):
-        """ This method is DEPRECATED, use taurus.qt.qtgui.util.ExternalAppAction instead! """
-        if '*' in regexp and not '.*' in regexp:
-            regexp = regexp.replace('*','.*')
-        for name,process in self.ChildrenProcesses.iteritems():
             try:
-                if re.match(regexp,name): process.terminate()
-            except Exception,e: self.error( 'Unable to stop %s process: %s' % (name,str(e)))
-        return
+                class_name = obj.getExtensions().get('className')
+            except:
+                class_name = 'noPanel'
+            self.debug('Clicked (%s,%s,%s)'%(obj,obj_name,class_name))
+            if obj_name and class_name != 'noPanel':
+                self.showNewPanel(obj)
+        except:
+            self.warning(traceback.format_exc())
 
     #@Qt.pyqtSignature("selectGraphicItem(const QString &)")
     def selectGraphicItem(self,item_name):
@@ -424,7 +448,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 retval = True
             except Exception,e:
                 self.warning('selectGraphicsItem(%s) failed! %s' % (getattr(item,'_name',item),str(e)))
-                print traceback.format_exc()
+                self.warning(traceback.format_exc())
                 #return False           
         return retval
 
@@ -548,56 +572,24 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     subprocess.call(shellCom,shell=True) 
         return
 
-    def getClassName(self,obj):
-        clName = obj.getExtensions().get('className')
+    def getClass(self,clName):
         if not clName or clName == 'noPanel': 
-            #do nothing
-            #print "        className = ",clName
-            pass
-        elif clName == 'atkpanel.MainPanel' or clName =="atkpanel":
-            self.getTaurusDevicePanel(obj)
-        else:
-            if obj.getExtensions().get('classParams'):
-                clParam = obj.getExtensions().get('classParams')
-                self.getClass(clName,clParam,obj._name,obj.standAlone)
-            else:
-                self.getClass(clName,obj._name,obj._name,obj.standAlone)
-        return
-
-    def getClass(self,clName,clParam,objName,standAlone=False):
-        #self.debug('getClass(%s,%s,%s)'%(clName,clParam,objName))
+            return None
+        elif clName in ('atkpanel.MainPanel','atkpanel'):
+            clName = 'TaurusDevicePanel'
+        #TODO: allow passing class names including module, e.g.: 'foo.Bar'
         if clName in globals():
-            myclass = globals()[clName]
+            return globals()[clName]
         elif clName in locals():
-            myclass = locals()[clName]
+            return locals()[clName]
+        elif clName in dir(Qt):
+            return getattr(Qt,clName)
         else:
+            wf = TaurusWidgetFactory()
             try:
-                myclass = getattr(Qt,clName)
+                return wf.getTaurusWidgetClass(clName)
             except:
-                try:
-                    wf = TaurusWidgetFactory()
-                    myclass = wf.getTaurusWidgetClass(clName)
-                except:
-                    self.warning( "The class ",clName, "can not be found!\n" + '-'*80)
-                    return
-        nameclass = myclass()
-        try:nameclass.setClasses(clParam)
-        except:pass
-        try:nameclass.setModel(clParam)
-        except:pass
-        try: nameclass.setTable(clParam)
-        except:pass
-        if isinstance(nameclass,Qt.QObject):
-            if not standAlone:
-                obj = newDialog(self.parent())
-            else:
-                obj = newDialog()
-    
-            obj.initComponents(nameclass,objName,clName)
-            obj.setModal(False)
-            obj.setVisible(True)
-            obj.exec_()
-        return
+                return None
     
     @staticmethod
     def getTaurusParentItem(item,top=True):
@@ -625,26 +617,6 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             result.extend(c.childItems() for c in children if not klass or isinstance(c,klass))
         except: pass
         return result
-
-    def getTaurusDevicePanel(self,obj,standAlone=False):
-        try:
-            from taurus.qt.qtgui.panel import TaurusDevicePanel
-            nameclass = TaurusDevicePanel()
-            name = "TaurusDevicePanel"
-            nameclass.setModel(obj._name)
-            nameclass.setSpectraAtkMode(True)
-            if not standAlone:
-                obj = newDialog(self.parent())
-            else:
-                obj = newDialog()
-    
-            dev_name = None
-            obj.initComponents(nameclass,dev_name,name)
-            obj.setModal(False)
-            obj.setVisible(True)
-            obj.exec_()
-        except:
-            self.warning('TaurusDevicePanel not available')
 
     def start(self):
         if self.updateThread:
@@ -735,7 +707,6 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self._contextMenu = []
         
     def setName(self,name):
-        #print 'In %s.setName(%s)' % (self.__class__.__name__,name)
         name = str(name or self.__class__.__name__)
         self._name = name#srubio@cells.es: modified to store ._name since initialization (even if a model is not set)
         
@@ -765,6 +736,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.noTooltip = self._extensions.get('noTooltip',False)
         self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
         self.setName(self._extensions.get('name',self._name))
+        self._unitVisible = str(self._extensions.get('unitVisible',True)).lower().strip() in ('yes','true','1')
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
         #self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
         self.setToolTip(tooltip)
@@ -825,9 +797,9 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
     """
     def __init__(self, name = None, parent = None):
         name = name or self.__class__.__name__
-        self.call__init__(TaurusGraphicsItem, name, parent)
         self._unitVisible = True
-        self._currValue = None    
+        self._currValue = None
+        self.call__init__(TaurusGraphicsItem, name, parent)
 
     def getUnit(self):
         unit = ''
@@ -1132,7 +1104,6 @@ class TaurusBaseGraphicsFactory:
         if hasattr(item,'getExtensions'):
             item.getExtensions() #<= must be called here to take extensions from params
         if 'text' in klass.__name__.lower():
-            #print '\tadjusting %s font size'%klass.__name__
             item.scale(.8,.8)
         return item
 

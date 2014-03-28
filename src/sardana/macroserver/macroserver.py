@@ -31,9 +31,11 @@ import codecs
 import logging.handlers
 import time
 
-from taurus import Device, Factory
-from taurus.core import TaurusEventType
-from taurus.core.util import CaselessDict, ThreadPool, Logger
+from taurus.core.taurushelper import Device, Factory
+from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.threadpool import ThreadPool
+from taurus.core.util.log import Logger
 from taurus.core.tango.sardana.motion import Motion, MotionGroup
 from taurus.core.tango.sardana.pool import registerExtensions
 

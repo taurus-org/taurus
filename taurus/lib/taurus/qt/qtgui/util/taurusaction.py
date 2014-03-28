@@ -43,7 +43,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
     with the current cmdArgs list as its argument.
     """
     DEFAULT_ICON_NAME = 'application-x-executable'
-    def __init__(self, cmdargs, text=None, icon=None, parent=None):
+    def __init__(self, cmdargs, text=None, icon=None, parent=None, interactive=True):
         '''creator
         
         :param cmdargs: (list<str> or str) A list of strings to be passed to
@@ -67,6 +67,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
 
         Qt.QAction.__init__(self, Qt.QIcon(icon), text, parent)
         BaseConfigurableClass.__init__(self)
+        self.interactive = interactive
         self._process = []
         self.setCmdArgs(cmdargs)
         self.connect(self, Qt.SIGNAL("triggered()"), self.actionTriggered)
@@ -91,10 +92,6 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         
     def cmdArgs(self):
         return self.__cmdargs
-        
-    #def trigger(self,args=''):
-        #if args: self.setCmdArgs(args) #self.cmdArgs.append(args)
-        #Qt.QAction.trigger(self)
     
     @Qt.pyqtSignature("triggered()")
     def actionTriggered(self,args=None):
@@ -108,13 +105,22 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
                 args = self.cmdArgs()+args
             else: 
                 args = self.cmdArgs()
-            self._process.append(subprocess.Popen(args))
+            if any(args):
+                #Qt.QMessageBox.warning(self.parentWidget(),'Warning','In ExternalAppAction(%s)'%args)
+                self._process.append(subprocess.Popen(args))
+                return True
+            else:
+                return False
         except OSError:
-            Qt.QMessageBox.warning(self.parentWidget(), "Error launching %s"%unicode(self.text()),
-                                   "Cannot launch application:\n"+
-                                   " ".join(self.__cmdargs) +
-                                   "\nHint: Check that %s is installed and in the path"%unicode(self.text())
-                                   )
+            err = "Error launching %s"%unicode(self.text())
+            msg = "Cannot launch application:\n" + \
+                  " ".join(self.__cmdargs) + \
+                  "\nHint: Check that %s is installed and in the path"%unicode(self.text())
+            if self.interactive: 
+                Qt.QMessageBox.warning(self.parentWidget(), err, msg)
+            from taurus.core.util import Logger
+            Logger().warning('%s:\n%s'%(err,msg))
+            return False
     
     def kill(self):
         #Kills all processes opened by this application

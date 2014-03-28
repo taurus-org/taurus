@@ -10,6 +10,8 @@ Welcome to Taurus's |version| documentation!
 
 .. sidebar:: Latest news
 
+    2014-02-14
+        Taurus 3.2.0 released!
 
     2013-07-25
         Taurus 3.1.0 released!
@@ -24,8 +26,8 @@ Welcome to Taurus's |version| documentation!
 Taurus is a python framework for both CLI and GUI tango applications. It is
 build on top of PyTango_ and PyQt_. Taurus stands for TAngo User interface 'R' US.
 
-Taurus was originally known as Tau. Since version 2 the name as
-been changed to taurus.
+Taurus was originally known as Tau. Since version 2 the name was
+changed to Taurus.
 
 An :ref:`introduction` guide will help you getting started with the basic taurus
 concepts.
