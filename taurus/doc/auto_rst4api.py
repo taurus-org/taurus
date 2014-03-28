@@ -30,10 +30,7 @@ the API of a python module with sphinx'''
 import sys, os
 from jinja2 import Environment, FileSystemLoader
 
-#import ModuleExplorer from "../tests/modulexplorer.py"
-from imp import load_source
-mpath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.path.pardir,'tests','moduleexplorer.py'))
-ModuleExplorer = load_source('moduleexplorer', mpath).ModuleExplorer
+from taurus.test.moduleexplorer import ModuleExplorer
 
 
 class Auto_rst4API_Creator(object):

@@ -23,17 +23,26 @@
 #############################################################################
 
 
-"""Unit tests for Taurus"""
+"""Import tests"""
 
 import unittest
 
 class TaurusImportTestCase(unittest.TestCase):
+    '''
+    Test if all the submodules can be imported
+    '''
     def setUp(self):
+        """Preconditions: moduleexplorer utility has to be available """
         from moduleexplorer import ModuleExplorer
         self.explore = ModuleExplorer.explore
     
     def testImportSubmodules(self):
-        """All submodules should import without problems"""
+        """ 
+        Check that all taurus submodules import without problems
+
+        Expected Results: It is expected to get no warning message 
+        on module importing
+        """
         moduleinfo, wrn = self.explore('taurus', verbose=False)
         msg = None
         if wrn:
