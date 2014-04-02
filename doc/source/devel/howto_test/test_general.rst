@@ -95,11 +95,7 @@ Some examples of tests
 
 Examples of Sardana tests included in the Sardana distribution are:
 
-* :ref:`test_sardanavalue`
-* :ref:`test_parameter`
-* :ref:`test_ct`
-* :ref:`test_list`
-* :ref:`test_wm`
+* :ref:`sardana_list_test`
 
 
 Links

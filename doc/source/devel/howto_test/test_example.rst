@@ -32,7 +32,7 @@ In this case the important base class is RunMacroTestCase, and
 we import testRun and testFail to be used as decorators::
 
     """Tests for sqrt macro"""
-    import math
+    import numpy as np
     import unittest
     from sardana.macroserver.macros.test import RunMacroTestCase, testRun, testFail
 
@@ -57,12 +57,11 @@ used for executing the macro::
 
         def test_sqrtmac(self):
             
-            x = 12345.678
             macro_params = [str(x)]
             self.macro_runs(macro_params)
 
             data=self.macro_executor.getData()
-            expected_output = np.sqrt(x)
+            expected_output = 49
 
             msg = 'Macro output does not equals the expected output'
             self.assertEqual(data['in'] ,float(macro_params[0]), msg)      
@@ -99,12 +98,11 @@ the following test will be executed::
 
         def test_sqrtmac(self):
             
-            x = 12345.678
             macro_params = [str(x)]
             self.macro_runs(macro_params)
 
             data=self.macro_executor.getData()
-            expected_output = np.sqrt(x)
+            expected_output = 49
 
             msg = 'Macro output does not equals the expected output'
             self.assertEqual(data['in'] ,float(macro_params[0]), msg)      
@@ -135,12 +133,11 @@ follows::
 
         def test_sqrtmac(self):
             
-            x = 12345.678
             macro_params = [str(x)]
             self.macro_runs(macro_params)
 
             data=self.macro_executor.getData()
-            expected_output = np.sqrt(x)
+            expected_output = 49
 
             msg = 'Macro output does not equals the expected output'
             self.assertEqual(data['in'] ,float(macro_params[0]), msg)      

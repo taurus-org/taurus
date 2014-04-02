@@ -1,7 +1,7 @@
 
 .. currentmodule:: sardana.test
 
-.. _sardana-lis-test:
+.. _sardana_list_test:
 
 ================
 Sardana Unittest
@@ -11,9 +11,9 @@ Sardana Unittest
 .. toctree::
     :maxdepth: 2
 
-    macroexecutor ct <test_ct>
-    macroexecutor list <test_list>
-    macroexecutor scan <test_scan>
-    macroexecutor wm <test_wm>
+    test ct <test_ct>
+    test list <test_list>
+    test scan <test_scan>
+    test wm <test_wm>
     sardanavalue <test_sardanavalue>
     parameter <test_parameter>

@@ -11,16 +11,16 @@
 .. hlist::
     :columns: 3
 
-    * :class:`CtRunStopTest`
+    * :class:`CtTest`
 
 
-CtRunStopTest
------------------
+CtTest
+------
 
-.. inheritance-diagram:: CtRunStopTest
+.. inheritance-diagram:: CtTest
     :parts: 1
 
-.. autoclass:: CtRunStopTest
+.. autoclass:: CtTest
     :members:
     :undoc-members:
 

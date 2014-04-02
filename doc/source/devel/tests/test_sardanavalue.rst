@@ -14,8 +14,8 @@
     * :class:`SardanaValueTestCase`
 
 
-CtRunStopTest
------------------
+SardanaValueTestCase
+--------------------
 
 .. inheritance-diagram:: SardanaValueTestCase
     :parts: 1

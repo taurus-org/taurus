@@ -14,7 +14,7 @@
     * :class:`ParamTestCase`
 
 
-CtRunStopTest
+ParamTestCase
 -------------
 
 .. inheritance-diagram:: ParamTestCase
