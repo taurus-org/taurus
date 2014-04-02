@@ -34,7 +34,7 @@ auto-discovering suite for all tests implemented in Sardana.
 
 The following are some key points to keep in mind when using this framework:
 
-- The Sardama test framework is based on :mod:`unittest` which should be 
+- The Sardana Test Framework is based on :mod:`unittest` which should be 
   imported from :mod:`taurus.external` in order to be compatible with all 
   versions of python supported by Taurus. 
 
@@ -89,13 +89,6 @@ This decorator is provided by :mod:`sardana.macroserver.macros.test`.
   both: if the macros can be executed and if they can be aborted.
 
 
-
-Some examples of tests 
-----------------------
-
-Examples of Sardana tests included in the Sardana distribution are:
-
-* :ref:`sardana_list_test`
 
 
 Links

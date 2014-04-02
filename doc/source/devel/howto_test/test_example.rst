@@ -155,6 +155,79 @@ We do a first implementation of the macro by calculating the square root
 of an input number. Then we will execute the test and analyze the results. The
 first implementation looks like this::
 
+    import numpy as np
+    from sardana.macroserver.macro import Macro, Type
+
+    class sqrtmac(Macro):
+        """Macro sqrtmac"""
+
+        param_def = [ [ "value", Type.Float, 9, 
+                        "input value for which we want the square root"] ]
+        result_def = [ [ "result", Type.Float, None,
+                         "square root of the input value"] ]
+
+        def run (self, n):
+            ret = np.sqrt(n)
+            return ret
+
+
+
+An its ouput on the screen::
+
+    sardana/src/sardana/macroserver/macros/test> python -m unittest -v test_sqrtmac
+    test_sqrtmac (test_sqrtmac.sqrtmacTest) ... ERROR
+    test_sqrtmac_macro_fails (test_sqrtmac.sqrtmacTest)
+    Testing sqrtmac with macro_fails(macro_params=['-3.0'], exception=<type 'exceptions.ValueError'>, wait_timeout=5) ... FAIL
+    test_sqrtmac_macro_runs (test_sqrtmac.sqrtmacTest)
+    Testing sqrtmac with macro_runs(macro_params=['2.25'], wait_timeout=5, data={'out': 1.5, 'in': 2.25}) ... ERROR
+    test_sqrtmac_macro_runs_2 (test_sqrtmac.sqrtmacTest)
+    Testing sqrtmac with macro_runs(macro_params=['9']) ... ok
+
+    ======================================================================
+    ERROR: test_sqrtmac (test_sqrtmac.sqrtmacTest)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+                .
+                .
+                .
+        desc = Exception: Macro 'sqrtmac' does not produce any data
+
+
+    ======================================================================
+    ERROR: test_sqrtmac_macro_runs (test_sqrtmac.sqrtmacTest)
+    Testing sqrtmac with macro_runs(macro_params=['2.25'], wait_timeout=5, data={'out': 1.5, 'in': 2.25})
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+                .
+                .
+                .
+        desc = Exception: Macro 'sqrtmac' does not produce any data
+               
+
+    ======================================================================
+    FAIL: test_sqrtmac_macro_fails (test_sqrtmac.sqrtmacTest)
+    Testing sqrtmac with macro_fails(macro_params=['-3.0'], exception=<type 'exceptions.ValueError'>, wait_timeout=5)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/siciliarep/tmp/mrosanes/workspace/GIT/projects/sardana/src/sardana/macroserver/macros/test/base.py", line 144, in newTest
+        return helper(**helper_kwargs)
+      File "/siciliarep/tmp/mrosanes/workspace/GIT/projects/sardana/src/sardana/macroserver/macros/test/base.py", line 271, in macro_fails
+        self.assertEqual(state, 'exception', msg)
+    AssertionError: Post-execution state should be "exception" (got "finish")
+
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.977s
+
+    FAILED (failures=1, errors=2)
+
+
+At this moment two tests are giving an error because 'sqrtmac' does not produce
+data, and one test is failing because the exception is not treat. 
+The test that is giving 'Ok' is only testing that the macro can be
+executed.
+
+The second step will be to set the input and output data of the macro and 
+execute the test again::
 
     import numpy as np
     from sardana.macroserver.macro import Macro, Type

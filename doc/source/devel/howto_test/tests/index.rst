@@ -3,9 +3,9 @@
 
 .. _sardana_list_test:
 
-================
-Sardana Unittest
-================
+==========================
+Sardana Unit Test Examples
+==========================
 
 
 .. toctree::

@@ -14,4 +14,4 @@ Sardana Testing
     General test documentation <test_general>
     Run Sardana tests from command line <test_run_commands>
     Test-driven development example <test_example>
-    Existing unit tests <../tests/index>
+    Sardana Unit Test examples <tests/index>
