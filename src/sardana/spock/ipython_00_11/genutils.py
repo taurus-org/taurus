@@ -1133,6 +1133,9 @@ def run():
     import IPython.frontend.qt.console.qtconsoleapp
     IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
     IPythonQtConsoleApp.widget_factory = SpockConsole
+    # Set spock version
+    import sardana.spock
+    IPythonQtConsoleApp.version.default_value = sardana.spock.release.version
 
     try:
         check_requirements()
