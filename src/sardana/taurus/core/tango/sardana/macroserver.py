@@ -885,7 +885,7 @@ class BaseMacroServer(MacroServerDevice):
 
     def getExpChannelElements(self):
         channel_types = "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", \
-            "PseudoCounter"
+            "TwoDExpChannel", "PseudoCounter"
         return self.getElementsOfTypes(channel_types)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
