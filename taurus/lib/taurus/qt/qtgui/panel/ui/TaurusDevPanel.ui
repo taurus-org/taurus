@@ -1,6 +1,6 @@
 <ui version="4.0">
- <class>TauDevPanel</class>
- <widget class="QMainWindow" name="TauDevPanel">
+ <class>TaurusDevPanel</class>
+ <widget class="QMainWindow" name="TaurusDevPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout">
      <item>
-      <widget class="TaurusAttrForm" name="tauAttrForm">
+      <widget class="TaurusAttrForm" name="taurusAttrForm">
        <property name="useParentModel">
         <bool>true</bool>
        </property>
@@ -51,7 +51,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QVBoxLayout">
      <item>
-      <widget class="TaurusCommandsForm" name="tauCommandsForm">
+      <widget class="TaurusCommandsForm" name="taurusCommandsForm">
        <property name="useParentModel">
         <bool>true</bool>
        </property>
@@ -70,7 +70,7 @@
    <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QVBoxLayout">
      <item>
-      <widget class="TaurusTrend" name="tauTrend"/>
+      <widget class="TaurusTrend" name="taurusTrend"/>
      </item>
     </layout>
    </widget>

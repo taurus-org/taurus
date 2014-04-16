@@ -60,7 +60,7 @@ class TaurusConfigurationPanel(Qt.QWidget):
 	            w.writeValue()
 
     def _onCancel(self):
-       self._ui._Form.close()
+       self._ui.close()
 
     def _onRestore(self):
 	    widgets=getWidgetsOfType(self, TaurusConfigLineEdit)

@@ -1,6 +1,6 @@
 <ui version="4.0">
  <class>PoolMotorSlim</class>
- <widget class="QDialog" name="PoolMotorSlim">
+ <widget class="TaurusWidget" name="PoolMotorSlim">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -352,6 +352,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>TaurusWidget</class>
+   <extends>QWidget</extends>
+   <header>taurus.qt.qtgui.container</header>
+  </customwidget>
   <customwidget>
    <class>TaurusLauncherButton</class>
    <extends>QPushButton</extends>
