@@ -28,7 +28,7 @@ dooroutput.py:
 """
 
 import taurus.core
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 
 class DoorOutput(Qt.QPlainTextEdit):

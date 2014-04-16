@@ -36,7 +36,7 @@ import PyTango # to change!!
 try:import icons_dev_tree
 except:icons_dev_tree = None
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus.core
 from taurus.core.util.colors import DEVICE_STATE_PALETTE,ATTRIBUTE_QUALITY_PALETTE

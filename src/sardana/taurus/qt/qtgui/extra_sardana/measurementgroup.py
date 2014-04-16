@@ -31,7 +31,7 @@ __all__ = ["MntGrpChannelEditor"]
 __docformat__ = 'restructuredtext'
 
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel
 from taurus.qt.qtgui.model import EditorToolBar
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon

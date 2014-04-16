@@ -32,8 +32,8 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'setLogLevel', 'setLogFormat', 'getLogLevel', 'getLogFormat',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
-           'log', 'trace', 'debug', 'info', 'warning', 'error', 'critical',
-           'changeDefaultPollingPeriod']
+           'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
+           'critical', 'changeDefaultPollingPeriod']
 
 __docformat__ = "restructuredtext"
 
@@ -465,6 +465,7 @@ from taurus.core.util import log as __log_mod
 
 Logger = __log_mod.Logger
 Critical = Logger.Critical
+Fatal = Logger.Fatal
 Error = Logger.Error
 Warning = Logger.Warning
 Info = Logger.Info
@@ -487,6 +488,7 @@ debug = __log_mod.debug
 info = __log_mod.info
 warning = __log_mod.warning
 error = __log_mod.error
+fatal = __log_mod.fatal
 critical = __log_mod.critical
 
 def changeDefaultPollingPeriod(period):

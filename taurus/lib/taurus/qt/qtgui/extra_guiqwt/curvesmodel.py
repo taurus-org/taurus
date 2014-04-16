@@ -31,7 +31,7 @@ __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
 
 import copy
 
-from taurus.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 from guiqwt.styles import CurveParam, AxesParam, update_style_attr
 from guiqwt.builder import make
 

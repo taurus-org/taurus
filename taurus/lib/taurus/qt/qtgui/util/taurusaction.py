@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import xml.dom.minidom
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.resource import getThemeIcon
 

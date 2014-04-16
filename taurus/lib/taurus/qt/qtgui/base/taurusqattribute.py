@@ -31,7 +31,7 @@ import re
 import PyTango
 
 from taurus.core.taurusvalidator import AttributeNameValidator
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util.safeeval import SafeEvaluator
 

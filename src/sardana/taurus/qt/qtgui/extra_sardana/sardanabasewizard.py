@@ -29,7 +29,7 @@ __all__ = ["SardanaBaseWizard"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 
 class SardanaBasePage(Qt.QWizardPage):

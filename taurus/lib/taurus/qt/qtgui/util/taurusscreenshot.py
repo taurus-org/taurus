@@ -33,7 +33,7 @@ import time
 import threading
 import os.path
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
 
 _LOGGER = None
@@ -87,8 +87,8 @@ class Grabber(Qt.QObject, Logger):
         try:
             pixmap = Qt.QPixmap.grabWidget(widget)
             if fileName.endswith('.svg'):
-                import taurus.qt.QtSvg
-                generator = taurus.qt.QtSvg.QSvgGenerator()
+                from taurus.external.qt import QtSvg
+                generator = QtSvg.QSvgGenerator()
                 generator.setFileName(fileName)
                 generator.setSize(pixmap.size());
                 if hasattr(generator, 'setViewBox'):

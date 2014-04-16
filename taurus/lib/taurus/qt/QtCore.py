@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #############################################################################
 ##
@@ -23,45 +23,11 @@
 ##
 #############################################################################
 
-"""This module exposes PyQt4.QtCore module"""
+"""This module exposes QtCore module"""
 
-from taurusqtoptions import QT_API, QT_API_PYQT, QT_API_PYSIDE
+from taurus.core.util.log import info
+info("import of QtCore from taurus.qt is deprecated. "
+     "Use taurus.external.qt instead")
+del info
 
-# Now peform the imports.
-if QT_API == QT_API_PYQT:
-    from PyQt4 import QtCore as __QtCore
-    from PyQt4.QtCore import *
-
-    # Alias PyQt-specific functions for PySide compatibility.
-    if hasattr(__QtCore, "pyqtSignal"):
-        Signal = pyqtSignal
-    if hasattr(__QtCore, "pyqtSlot"):
-        Slot = pyqtSlot
-    else: #implement dummy pyqtSlot decorator for PyQt<4.6
-        class DummyPyqtSlot(object):
-            def __init__(self, *a, **kw):
-                pass
-            def __call__(self, f):
-                return f
-        Slot = pyqtSlot = DummyPyqtSlot
-    if hasattr(__QtCore, "pyqtProperty"):
-        Property = pyqtProperty
-    __version__ = QT_VERSION_STR
-
-elif QT_API == QT_API_PYSIDE:
-    from PySide import QtCore as __QtCore
-    from PySide.QtCore import *
-
-    #a dummy pyqtsignature decorator
-    # CAUTION this totally nulifies the pupose of decorating with pyqtSignature
-    # todo: do a proper implementation of pyqtsignature
-    def pyqtSignature(f):
-        return f
-
-    # Alias PySide functions for PyQt compatibility.
-    if hasattr(__QtCore, "Signal"):
-        pyqtSignal = Signal
-    if hasattr(__QtCore, "Slot"):
-        pyqtSlot = Slot
-    if hasattr(__QtCore, "Property"):
-        pyqtProperty = Property
+from taurus.external.qt.QtCore import *

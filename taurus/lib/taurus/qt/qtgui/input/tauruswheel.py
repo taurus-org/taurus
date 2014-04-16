@@ -29,7 +29,7 @@ __all__ = ["TaurusWheelEdit" ]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus.core
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget

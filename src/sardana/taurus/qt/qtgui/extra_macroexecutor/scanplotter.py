@@ -31,7 +31,7 @@ scanplotter.py:
 
 import taurus.core
 
-from taurus.qt import QtGui, Qwt5
+from taurus.external.qt import QtGui, Qwt5
 from taurus.qt.Qt import *
 
 from taurus.core.util import dictFromSequence

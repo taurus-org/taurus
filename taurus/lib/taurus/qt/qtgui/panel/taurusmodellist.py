@@ -31,7 +31,7 @@ __all__=['TaurusModelModel','TaurusModelItem', 'TaurusModelList']
 
 import copy
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import taurus
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException

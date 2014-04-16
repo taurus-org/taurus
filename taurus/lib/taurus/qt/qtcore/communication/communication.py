@@ -27,7 +27,7 @@
 comunications.py: 
 """
 
-from taurus.qt import QtCore
+from taurus.external.qt import QtCore
 import weakref
 
 _DEBUG = False

@@ -26,8 +26,8 @@
 import PyTango
 
 import taurus
+from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusEventType
-from taurus.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 from taurus.qt.qtgui.container import TaurusMainWindow

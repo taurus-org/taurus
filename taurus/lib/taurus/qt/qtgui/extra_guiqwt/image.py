@@ -29,7 +29,7 @@ Extension of :mod:`guiqwt.image`
 __all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
          "TaurusTrend2DScanItem","TaurusEncodedImageItem"]
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer

@@ -35,7 +35,7 @@ import sys
 
 import PyTango
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus
 from taurus.core.util import eventfilters

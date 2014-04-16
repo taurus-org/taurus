@@ -35,7 +35,7 @@ import tempfile
 import shutil
 import functools
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.editor import TaurusBaseEditor

@@ -33,7 +33,7 @@ import time
 import numpy
 import re
 import gc
-from taurus.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 
 import taurus.core
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer

@@ -28,7 +28,7 @@
 PermanentCustomPanelDlg.py: 
 """
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 class PermanentCustomPanelsDlg(object):
     '''
