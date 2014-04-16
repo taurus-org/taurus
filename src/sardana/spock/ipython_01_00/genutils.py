@@ -74,7 +74,7 @@ from taurus.core.taurushelper import Factory
 from taurus.core.util.codecs import CodecFactory
 
 # make sure Qt is properly initialized
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from sardana.spock import exception
 from sardana.spock import colors
