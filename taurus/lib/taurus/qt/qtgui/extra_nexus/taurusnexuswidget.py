@@ -33,7 +33,7 @@ import numpy
 import posixpath
 
 from PyMca import HDF5Widget, HDF5Info, HDF5DatasetTable
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.plot import TaurusPlot

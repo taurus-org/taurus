@@ -39,7 +39,7 @@ import inspect
 from lxml import etree
 
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager

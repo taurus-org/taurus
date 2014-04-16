@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
 
 app = Qt.QApplication(sys.argv)

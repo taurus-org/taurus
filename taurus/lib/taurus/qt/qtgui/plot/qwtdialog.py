@@ -27,7 +27,7 @@
 qwtdialog.py: Dialogs for Taurusplot
 """
 
-from taurus.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 import time
 
 from ui.ui_TaurusPlotConfigDialog import Ui_TaurusPlotConfigDialog

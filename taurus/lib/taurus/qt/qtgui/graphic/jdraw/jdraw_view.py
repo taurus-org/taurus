@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import traceback
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE

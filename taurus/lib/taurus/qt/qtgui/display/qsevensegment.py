@@ -31,7 +31,7 @@ __all__ = ['Q7SegDigit']
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 POLY = Qt.QPolygonF
 P = Qt.QPointF

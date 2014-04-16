@@ -34,7 +34,7 @@ __docformat__ = 'restructuredtext'
 
 import math
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
 class TaurusLinearGauge(qtcontrols.ELinearGauge, TaurusBaseWidget):

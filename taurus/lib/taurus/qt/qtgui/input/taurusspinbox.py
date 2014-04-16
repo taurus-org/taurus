@@ -29,7 +29,7 @@ __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx" ]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from tauruslineedit import TaurusValueLineEdit

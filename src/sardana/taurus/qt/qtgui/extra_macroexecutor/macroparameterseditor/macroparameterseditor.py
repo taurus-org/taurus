@@ -28,7 +28,7 @@ macroparameterseditor.py:
 """
 import sys, inspect, glob
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.util.singleton import Singleton
 from taurus.qt.qtgui.resource import getThemeIcon
 

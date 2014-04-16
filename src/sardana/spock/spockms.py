@@ -478,7 +478,7 @@ class SpockBaseDoor(BaseDoor):
         return BaseDoor._processRecordData(self, data)
 
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 class QSpockDoor(SpockBaseDoor):
 

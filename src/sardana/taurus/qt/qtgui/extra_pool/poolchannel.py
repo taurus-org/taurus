@@ -26,13 +26,14 @@
 """
 channelWidgets.py: 
 """
-__all__ = ["PoolChannel", "PoolChannelTV"]
-from taurus.qt import Qt
 
+__all__ = ["PoolChannel", "PoolChannelTV"]
+
+import taurus
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusValue, TaurusDevButton
 from taurus.qt.qtgui.container import TaurusWidget
 from poolmotor import LabelWidgetDragsDeviceAndAttribute
-import taurus
 
 
 class _ParentDevButton(TaurusDevButton):

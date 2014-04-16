@@ -26,9 +26,10 @@
 """
 poolioregister.py: 
 """
-__all__ = ["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
-from taurus.qt import Qt
 
+__all__ = ["PoolIORegisterTV", "PoolIORegister", 'PoolIORegisterButtons']
+
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.core.util.eventfilters import EventValueMap
 from taurus.qt.qtgui.input import TaurusValueComboBox

@@ -35,7 +35,7 @@ import PyTango
 
 import taurus
 from  taurus.core import TaurusEventType
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.core.util.colors import DEVICE_STATE_PALETTE

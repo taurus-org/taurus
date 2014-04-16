@@ -40,7 +40,7 @@ import traceback
 import Queue
 from functools import partial
 
-from taurus.qt import Qt, QtGui, QtCore
+from taurus.external.qt import Qt, QtGui, QtCore
 
 import taurus
 from taurus.qt.qtcore.util.emitter import modelSetter,TaurusEmitterThread,SingletonWorker,MethodModel

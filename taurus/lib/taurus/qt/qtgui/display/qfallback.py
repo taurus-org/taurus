@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 import functools
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
 def create_fallback(widget_klass_name):

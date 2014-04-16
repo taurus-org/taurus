@@ -54,3 +54,49 @@ LIGHTWEIGHT_IMPORTS = False
 # Extra Taurus schemes. You can add a list of modules to be loaded for
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
+
+# ----------------------------------------------------------------------------
+# Taurus namespace
+# ----------------------------------------------------------------------------
+
+NAMESPACE = 'taurus'
+
+# ----------------------------------------------------------------------------
+# Qt configuration
+# ----------------------------------------------------------------------------
+
+#: Auto initialize Qt
+DEFAULT_QT_AUTO_INIT = True
+
+#: Set preffered API if not is already loaded
+DEFAULT_QT_AUTO_API = 'PyQt4'
+
+#: Whether or not should be strict in choosing Qt API
+DEFAULT_QT_AUTO_STRICT = False
+
+#: Auto initialize Qt logging to python logging
+DEFAULT_QT_AUTO_INIT_LOG = True
+
+#: Auto initialize taurus resources (icons)
+DEFAULT_QT_AUTO_INIT_RES = True
+
+#: Remove input hook (only valid for PyQt4)
+DEFAULT_QT_AUTO_REMOVE_INPUTHOOK = True
+
+#: Auto initialize Qt
+QT_AUTO_INIT = DEFAULT_QT_AUTO_INIT
+
+#: Set preffered API if not is already loaded
+QT_AUTO_API = DEFAULT_QT_AUTO_API
+
+#: Whether or not should be strict in choosing Qt API
+QT_AUTO_STRICT = DEFAULT_QT_AUTO_STRICT
+
+#: Auto initialize Qt logging to python logging
+QT_AUTO_INIT_LOG = DEFAULT_QT_AUTO_INIT_LOG
+
+#: Auto initialize taurus resources (icons)
+QT_AUTO_INIT_RES = DEFAULT_QT_AUTO_INIT_RES
+
+#: Remove input hook (only valid for PyQt4)
+QT_AUTO_REMOVE_INPUTHOOK = DEFAULT_QT_AUTO_REMOVE_INPUTHOOK

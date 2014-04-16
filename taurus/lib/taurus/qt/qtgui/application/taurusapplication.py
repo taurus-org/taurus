@@ -38,7 +38,7 @@ import logging
 import optparse
 import threading
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.util.log import LogExceptHook, Logger
 import taurus.core.util.argparse

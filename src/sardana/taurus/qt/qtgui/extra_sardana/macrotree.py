@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.util.enumeration import Enumeration
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE, \
     TAURUS_MODEL_LIST_MIME_TYPE
 from taurus.qt.qtcore.model import TaurusBaseTreeItem, TaurusBaseModel, \

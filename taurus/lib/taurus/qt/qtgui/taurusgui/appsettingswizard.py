@@ -43,7 +43,7 @@ import copy
 import datetime
 from lxml import etree
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import taurus.qt.qtgui.resource
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
