@@ -1119,23 +1119,25 @@ def prepare_cmdline(argv=None):
 
 
 def run():
-    from IPython.utils.traitlets import Unicode
-    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
-    class SpockConsole(RichIPythonWidget):
+    try:
+        from IPython.utils.traitlets import Unicode
+        from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
         
-        banner = Unicode(config=True)
+        class SpockConsole(RichIPythonWidget):
 
-        def _banner_default(self):
-            config = get_config()
-            return config.FrontendWidget.banner
+            banner = Unicode(config=True)
 
-    import IPython.frontend.qt.console.qtconsoleapp
-    IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
-    IPythonQtConsoleApp.widget_factory = SpockConsole
-    # Set spock version
-    import sardana.spock
-    IPythonQtConsoleApp.version.default_value = sardana.spock.release.version
+            def _banner_default(self):
+                config = get_config()
+                return config.FrontendWidget.banner
+
+        import IPython.frontend.qt.console.qtconsoleapp
+        IPythonQtConsoleApp = IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp
+        IPythonQtConsoleApp.widget_factory = SpockConsole
+        IPythonQtConsoleApp.version.default_value = release.version
+    except ImportError:
+        pass
 
     try:
         check_requirements()
