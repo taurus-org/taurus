@@ -35,7 +35,7 @@ __docformat__ = 'restructuredtext'
 
 import os
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
 from taurus.core.util.log import Logger

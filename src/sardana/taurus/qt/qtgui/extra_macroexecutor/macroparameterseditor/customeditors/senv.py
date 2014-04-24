@@ -23,7 +23,7 @@
 ##
 ##############################################################################
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus import Database
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusdatabase import TaurusAttrInfo

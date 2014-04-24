@@ -29,7 +29,7 @@ model.py:
 
 from lxml import etree
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from sardana.taurus.core.tango.sardana import macro
 from sardana.taurus.qt.qtgui.extra_macroexecutor import globals

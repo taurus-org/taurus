@@ -34,7 +34,7 @@ from multiprocessing import Process, Pipe
 
 from taurus.core import TaurusManager
 from taurus.core.util.singleton import Singleton
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.dialog import TaurusMessageBox, TaurusInputDialog
 
 from sardana.taurus.core.tango.sardana.macroserver import BaseInputHandler

@@ -32,7 +32,7 @@ __all__ = ["QBaseModelWidget", "TaurusBaseModelWidget",
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon

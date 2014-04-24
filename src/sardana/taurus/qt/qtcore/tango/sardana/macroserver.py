@@ -28,7 +28,7 @@
 __all__ = ["QDoor", "QMacroServer", "MacroServerMessageErrorHandler", "registerExtensions"]
 
 from taurus.core.taurusbasetypes import TaurusEventType
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from sardana.taurus.core.tango.sardana.macroserver import BaseMacroServer, BaseDoor
 

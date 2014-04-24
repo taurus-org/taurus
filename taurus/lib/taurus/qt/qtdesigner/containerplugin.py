@@ -38,8 +38,8 @@
 """
 
 from taurus.core.util.log import Logger
-from taurus.qt import Qt
-from taurus.qt import QtDesigner
+from taurus.external.qt import Qt
+from taurus.external.qt import QtDesigner
 
 from taurus.qt.qtgui.container.qcontainer import QGroupWidget
 

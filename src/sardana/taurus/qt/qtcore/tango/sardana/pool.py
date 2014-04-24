@@ -30,7 +30,7 @@ __all__ = ["QPool", "QMeasurementGroup",
 
 import json
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice

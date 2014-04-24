@@ -31,7 +31,7 @@ taurusgraphicview.py:
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 

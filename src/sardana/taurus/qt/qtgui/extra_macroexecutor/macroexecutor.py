@@ -32,7 +32,7 @@ from copy import deepcopy
 
 import PyTango
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus import Device
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow, TaurusBaseContainer
 from taurus.qt.qtgui.display import TaurusLed

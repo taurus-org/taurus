@@ -28,7 +28,7 @@ historyviewer.py:
 """
 import copy
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from model import MacrosListModel

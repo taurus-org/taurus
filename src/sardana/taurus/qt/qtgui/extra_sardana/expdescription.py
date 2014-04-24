@@ -27,7 +27,7 @@
 
 __all__ = ["ExpDescriptionEditor"]
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import copy
 import taurus
 import taurus.core

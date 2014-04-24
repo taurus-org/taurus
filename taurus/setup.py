@@ -66,6 +66,15 @@ package_dir = { 'taurus' : abspath('lib', 'taurus') }
 
 packages = [
     'taurus',
+
+    'taurus.external',
+    'taurus.external.enum',
+    'taurus.external.ordereddict',
+    'taurus.external.pint',
+    'taurus.external.qt',
+    'taurus.external.unittest',
+    'taurus.external.test',
+
     'taurus.core',
     'taurus.core.util',
     'taurus.core.util.argparse',
@@ -135,6 +144,14 @@ packages = [
 
     'taurus.qt.uic',
 ]
+
+# check if local implementations of enum and pint are here (debian removes them
+# before running setup to avoid license issues)
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
+    packages.append('taurus.external.enum.enum')
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
+    packages.append('taurus.external.pint.pint')
+
 
 extra_packages = [
     'taurus.qt.qtgui.extra_nexus',

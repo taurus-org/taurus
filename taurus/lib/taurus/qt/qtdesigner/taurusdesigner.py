@@ -28,7 +28,7 @@ import os.path
 import optparse 
 
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 def env_index(env, env_name):
     env_name = str(env_name)

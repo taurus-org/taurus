@@ -182,6 +182,8 @@ class TwoDExpChannel(PoolElementDevice):
 
     def read_DataSource(self, attr):
         data_source = self.twod.get_data_source()
+        if data_source is None:
+            data_source = "tango://{0}/value".format(self.get_full_name())
         attr.set_value(data_source)
 
     def Start(self):

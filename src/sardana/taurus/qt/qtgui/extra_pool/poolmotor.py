@@ -28,7 +28,7 @@ import copy
 import PyTango
 import numpy
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus
 from taurus.core.util.colors import DEVICE_STATE_PALETTE

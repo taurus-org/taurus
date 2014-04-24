@@ -34,7 +34,7 @@ __docformat__ = 'restructuredtext'
 import PyTango
 
 from taurus.core.taurusbasetypes import TaurusEventType
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import LedStatus, LedColor
 from qled import QLedOld as QLed

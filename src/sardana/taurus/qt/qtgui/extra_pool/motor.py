@@ -28,7 +28,7 @@ motor.py:
 """
 
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from ui_taurusmotorh import Ui_TaurusMotorH
 from ui_taurusmotorh2 import Ui_TaurusMotorH2

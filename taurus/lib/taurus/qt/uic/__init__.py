@@ -35,7 +35,7 @@ import optparse
 import lxml.etree
 
 import taurus.qt.qtgui.util
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import tau2taurus_map
 

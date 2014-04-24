@@ -1,5 +1,5 @@
 import sys
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.panel import TaurusValue
 

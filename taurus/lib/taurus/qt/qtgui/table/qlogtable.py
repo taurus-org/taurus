@@ -42,7 +42,7 @@ from taurus.core.util.remotelogmonitor import LogRecordStreamHandler, \
     LogRecordSocketReceiver
 from taurus.core.util.decorator.memoize import memoized
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getThemeIcon

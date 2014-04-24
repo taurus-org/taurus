@@ -29,7 +29,7 @@ parameditors.py:
 
 import os
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.input import TaurusAttrListComboBox
 
 from sardana.taurus.qt.qtgui.extra_macroexecutor import globals

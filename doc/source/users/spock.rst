@@ -63,7 +63,19 @@ Starting spock with a custom profile
 ------------------------------------
 
 spock allows each user to start a spock session with different configurations
-(known in spock as *profiles*). All you have to do is start spock with::
+(known in spock as *profiles*). All you have to do is start spock with 
+the profile name as an option. 
+
+If you use ipython version > 0.10 you can do it using **--profile** option::
+
+    spock --profile=<profile name>
+    
+Example::
+
+    marge@machine02:~$ spock --profile=D1
+    
+    
+Otherwise (ipython version 0.10) you can do it using **-p** option::
 
     spock -p <profile name>
     

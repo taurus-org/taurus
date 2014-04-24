@@ -33,7 +33,7 @@ import copy
 from guiqwt.plot import ImageDialog, CurveDialog
 
 import taurus.core
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.util.containers import CaselessList
 from taurus.qt.qtgui.base import TaurusBaseWidget
