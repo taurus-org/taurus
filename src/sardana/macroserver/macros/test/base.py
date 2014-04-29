@@ -31,7 +31,7 @@ import time
 import functools
 from sardana import sardanacustomsettings
 from sardana.macroserver.macros.test import MacroExecutorFactory
-
+from taurus.test import insertTest
 
 #Define a "_NOT_PASSED" object to mark a keyword arg which is not passed
 # Note that we do not want to use None because one may want to pass None
@@ -42,11 +42,12 @@ _NOT_PASSED = __NotPassedType()
 
 def macroTest(klass=None, helper_name=None, test_method_name=None,
               test_method_doc=None, **helper_kwargs):
-    """Decorator to insert test methods from a helper method that accepts
-    arguments.
+    """This decorator is an specialization of :function:`taurus.test.insertTest` 
+    for macro testing. It inserts test methods from a helper method that may 
+    accept arguments.
 
     macroTest provides a very economic API for creating new tests for a given
-    class based on a helper method.
+    macro based on a helper method.
 
     macroTest accepts the following arguments:
 
@@ -61,11 +62,11 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
                                  given, a default one is generated which
                                  includes the input parameters and the helper
                                  name.
-        - \*\*helper_kwargs: Any remaining keyword arguments are passed to the
-                           helper.
+        - \*\*helper_kwargs: All remaining keyword arguments are passed to the
+                             helper.
 
-    macroTest assumes that the decorated class inherits from unittest.TestCase
-    and that it has a macro_name class member.
+    `macroTest` assumes that the decorated class has a `macro_name` 
+    class member.
 
     This decorator can be considered a "base" decorator. It is often used to
     create other decorators in which the helper method is pre-set. Some
@@ -107,49 +108,23 @@ def macroTest(klass=None, helper_name=None, test_method_name=None,
         @testRun(macro_params=['-1'])
         class FooTest(RunMacroTestCase, unittest.TestCase):
             macro_name = 'twice'
+            
+    .. seealso:: :function:`taurus.test.insertTest`
 
     """
-    #TODO: Note: this could be generalized to general tests.
-    #      In fact the only "macro-specific" thing here is the assumption
-    #      that klass.macro_name exists
-
-    if klass is None:  # recipe to use
+    #recipe to allow decorating with and without arguments
+    if klass is None:
         return functools.partial(macroTest, helper_name=helper_name,
                                  test_method_name=test_method_name,
                                  test_method_doc=test_method_doc,
                                  **helper_kwargs)
+        
+    return insertTest(klass=klass, helper_name=helper_name, 
+                      test_method_name=test_method_name,
+                      test_method_doc=test_method_doc, 
+                      tested_name = klass.macro_name, 
+                      **helper_kwargs)
 
-    if helper_name is None:
-        raise ValueError('helper_name argument is not optional')
-
-    if test_method_name is None:
-        test_method_name = 'test_%s_%s' % (klass.macro_name, helper_name)
-    #Append an index if necessary to avoid overwriting the test method
-    name, i = test_method_name, 1
-    while (hasattr(klass, name)):
-        i += 1
-        name = "%s_%i" % (test_method_name, i)
-    test_method_name = name
-
-    if test_method_doc is None:
-        argsrep = ', '.join(['%s=%s' % (k, v)
-                            for k, v in helper_kwargs.items()])
-        test_method_doc = 'Testing %s with %s(%s)' % (klass.macro_name,
-                                                      helper_name, argsrep)
-
-    # New test implementation
-    # Sets the passed parameters and adds super and self implementation
-    def newTest(obj):
-        helper = getattr(obj, helper_name)
-        return helper(**helper_kwargs)
-
-    #setup a custom docstring
-    newTest.__doc__ = test_method_doc
-
-    # Add the new test method with the new implementation
-    setattr(klass, test_method_name, newTest)
-
-    return klass
 
 #Definition of specializations of the macroTest decorator:
 testRun = functools.partial(macroTest, helper_name='macro_runs')

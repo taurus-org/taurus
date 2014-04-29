@@ -65,3 +65,4 @@ the Taurus testing framework, please refer to the
 from .moduleexplorer import ModuleExplorer
 from .resource import getResourcePath
 from .skip import GUI_TESTS_ENABLED, skipUnlessGui
+from .base import insertTest
