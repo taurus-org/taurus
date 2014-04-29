@@ -24,7 +24,7 @@
 
 """Unit tests for Taurus Forms"""
 
-import unittest
+from taurus.external import unittest
 from taurus.qt.qtgui.test import GenericWidgetTestCase
 from taurus.qt.qtgui.panel import TaurusForm, TaurusAttrForm
 

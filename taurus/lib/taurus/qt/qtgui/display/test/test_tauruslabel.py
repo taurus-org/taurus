@@ -25,7 +25,7 @@
 
 """Unit tests for Taurus Label"""
 
-import unittest
+from taurus.external import unittest
 from taurus.qt.qtgui.test import GenericWidgetTestCase
 from taurus.qt.qtgui.display import TaurusLabel
 

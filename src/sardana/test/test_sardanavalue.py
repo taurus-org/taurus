@@ -25,7 +25,7 @@
 
 """Unit tests for sardanavalue module"""
 
-import unittest
+from taurus.external import unittest
 from sardana.sardanavalue import SardanaValue
 
 

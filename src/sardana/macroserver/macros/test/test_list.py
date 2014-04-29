@@ -26,7 +26,7 @@
 """Tests for list macros"""
 
 import time
-import unittest
+from taurus.external import unittest
 from sardana.macroserver.macros.test import (RunMacroTestCase, testRun,
                                              SarDemoEnv)
 

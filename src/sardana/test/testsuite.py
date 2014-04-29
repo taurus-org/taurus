@@ -35,7 +35,7 @@ Usage::
 __docformat__ = 'restructuredtext'
 
 import os
-import unittest
+from taurus.external import unittest
 import sardana
 
 

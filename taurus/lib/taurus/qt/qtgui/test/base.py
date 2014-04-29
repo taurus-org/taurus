@@ -25,7 +25,7 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
-import unittest
+from taurus.external import unittest
 import taurus.core
 from taurus.test import skipUnlessGui
 

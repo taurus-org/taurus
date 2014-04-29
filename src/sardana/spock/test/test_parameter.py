@@ -25,7 +25,7 @@
 
 """test_parameter module documentation"""
 
-import unittest
+from taurus.external import unittest
 from sardana.spock import parameter
 
 

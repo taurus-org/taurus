@@ -25,7 +25,7 @@
 
 """Tests for scan macros"""
 
-import unittest
+from taurus.external import unittest
 from sardana.macroserver.macros.test import (RunStopMacroTestCase,
                                              testRun, testStop, SarDemoEnv)
 

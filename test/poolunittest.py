@@ -1,7 +1,7 @@
 """ An extension to the original PyUnit providing specific Device Pool test 
     utilities """
     
-import unittest
+from taurus.external import unittest
 import PyTango
 import sys
 import os

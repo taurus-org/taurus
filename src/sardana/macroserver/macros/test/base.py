@@ -295,7 +295,7 @@ class RunStopMacroTestCase(RunMacroTestCase):
 
 
 if __name__ == '__main__':
-    import unittest
+    from taurus.external import unittest
     from sardana.macroserver.macros.test import SarDemoEnv
 
     _m1 = SarDemoEnv().getMotors()[0]

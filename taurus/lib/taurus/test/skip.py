@@ -29,7 +29,7 @@
 
 __docformat__ = 'restructuredtext'
 
-import unittest
+from taurus.external import unittest
 from taurus import tauruscustomsettings
 
 
