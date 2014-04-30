@@ -5,5 +5,5 @@
 *.qrc
 *.rcc
 /build/
-parser.out
-parsetab.py
+/taurus/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_lextab.py
+/taurus/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py

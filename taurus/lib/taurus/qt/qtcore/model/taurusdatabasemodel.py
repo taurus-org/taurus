@@ -38,7 +38,7 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
 from taurus.core.taurusdatabase import TaurusInfo, TaurusDatabase
 import taurus.qt.qtcore.mimetypes

@@ -30,8 +30,8 @@ __all__ = ["PoolGroupElement"]
 
 __docformat__ = 'restructuredtext'
 
-from .poolbaseelement import PoolBaseElement
-from .poolbasegroup import PoolBaseGroup
+from sardana.pool.poolbaseelement import PoolBaseElement
+from sardana.pool.poolbasegroup import PoolBaseGroup
 
 
 class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
@@ -44,7 +44,7 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
 
     def serialize(self, *args, **kwargs):
         kwargs = PoolBaseElement.serialize(self, *args, **kwargs)
-        elements = [ elem.name for elem in self.get_user_elements() ]
+        elements = [elem.name for elem in self.get_user_elements()]
         physical_elements = []
         for elem_list in self.get_physical_elements().values():
             for elem in elem_list:
@@ -59,9 +59,9 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
     def set_action_cache(self, action_cache):
         self._set_action_cache(action_cache)
 
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # state information
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def read_state_info(self):
         state_info = {}
@@ -80,26 +80,25 @@ class PoolGroupElement(PoolBaseElement, PoolBaseGroup):
         self._set_status(status, propagate=propagate)
         self._set_state(state, propagate=propagate)
 
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # stop
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def stop(self):
         PoolBaseElement.stop(self)
         PoolBaseGroup.stop(self)
 
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # abort
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def abort(self):
         PoolBaseElement.abort(self)
         PoolBaseGroup.abort(self)
 
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # involved in an operation
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def get_operation(self):
         return PoolBaseGroup.get_operation(self)
-

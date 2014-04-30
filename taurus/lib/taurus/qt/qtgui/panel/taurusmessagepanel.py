@@ -47,7 +47,7 @@ except:
 import PyTango
 
 from taurus.core.util.report import TaurusMessageReportHandler
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.resource import getThemePixmap
 from taurus.qt.qtgui.util.ui import UILoadable
 

@@ -4,7 +4,7 @@ generates a HTML report to show the result at a glance.
 
 The simplest way to use this is to invoke its main method. E.g.
 
-    import unittest
+    from taurus.external import unittest
     import HTMLTestRunner
 
     ... define your tests ...
@@ -90,7 +90,7 @@ import datetime
 import StringIO
 import sys
 import time
-import unittest
+from taurus.external import unittest
 from xml.sax import saxutils
 
 

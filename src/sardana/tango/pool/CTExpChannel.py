@@ -41,7 +41,8 @@ from sardana import State, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import to_tango_type_format, exception_str
 
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class CTExpChannel(PoolElementDevice):
@@ -66,7 +67,7 @@ class CTExpChannel(PoolElementDevice):
         ct = self.ct
         if ct is not None:
             ct.remove_listener(self.on_ct_changed)
-            
+
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
@@ -96,7 +97,7 @@ class CTExpChannel(PoolElementDevice):
             self.error(msg, self.motor.name, event_type.name,
                        exception_str(*exc_info[:2]))
             self.debug("Details", exc_info=exc_info)
-            
+
     def _on_ct_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -110,7 +111,7 @@ class CTExpChannel(PoolElementDevice):
             attr = self.get_attribute_by_name(name)
         except DevFailed:
             return
-                
+
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         value, w_value, error = None, None, None
@@ -128,13 +129,13 @@ class CTExpChannel(PoolElementDevice):
                 timestamp = event_value.timestamp
             else:
                 value = event_value
-                
+
             if name == "value":
                 w_value = event_source.get_value_attribute().w_value
                 state = self.ct.get_state()
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
-                    
+
         self.set_attribute(attr, value=value, w_value=w_value,
                            timestamp=timestamp, quality=quality,
                            priority=priority, error=error, synch=False)
@@ -143,15 +144,15 @@ class CTExpChannel(PoolElementDevice):
         #state = to_tango_state(self.ct.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For value attribute, listen to what the controller says for data
             # type (between long and float)
@@ -174,7 +175,7 @@ class CTExpChannel(PoolElementDevice):
         for attr_name in non_detect_evts:
             if attr_name in attrs:
                 self.set_change_event(attr_name, True, False)
-            
+
     def read_Value(self, attr):
         ct = self.ct
         use_cache = ct.is_in_operation() and not self.Force_HW_Read
@@ -185,7 +186,7 @@ class CTExpChannel(PoolElementDevice):
         quality = None
         if state == State.Moving:
             quality = AttrQuality.ATTR_CHANGING
-        self.set_attribute(attr, value=value.value,quality=quality,
+        self.set_attribute(attr, value=value.value, quality=quality,
                            timestamp=value.timestamp, priority=0)
 
     def is_Value_allowed(self, req_type):
@@ -221,8 +222,8 @@ class CTExpChannelClass(PoolElementDeviceClass):
                         { 'abs_change' : '1.0', } ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
-    
-    
+
+
     def _get_class_properties(self):
         ret = PoolElementDeviceClass._get_class_properties(self)
         ret['Description'] = "Counter/Timer device class"

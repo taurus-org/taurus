@@ -32,16 +32,16 @@ __all__ = ['expconf', 'showscan', 'spsplot', 'debug_completer',
            'spock_pre_prompt_hook']
 
 
-from genutils import page, get_door, get_macro_server, ask_yes_no, arg_split
-from genutils import MSG_DONE, MSG_FAILED
-from genutils import get_ipapi
+from .genutils import page, get_door, get_macro_server, ask_yes_no, arg_split
+from .genutils import MSG_DONE, MSG_FAILED
+from .genutils import get_ipapi
 
 
 def expconf(self, parameter_s=''):
     """Launches a GUI for configuring the environment variables
     for the experiments (scans)"""
     try:
-        from taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
+        from sardana.taurus.qt.qtgui.extra_sardana import ExpDescriptionEditor
     except:
         print "Error importing ExpDescriptionEditor "\
               "(hint: is taurus extra_sardana installed?)"

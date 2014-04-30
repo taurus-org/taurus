@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import sys, traceback
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.input import TaurusConfigLineEdit
 from taurus.qt.qtgui.util import getWidgetsOfType
 from taurus.qt.qtgui.util.ui import UILoadable

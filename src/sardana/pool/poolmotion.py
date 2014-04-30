@@ -32,13 +32,14 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from taurus.core.util import Enumeration, DebugIt
+from taurus.core.util.log import DebugIt
+from taurus.core.util.enumeration import Enumeration
 
 from sardana import State
-from poolaction import ActionContext, PoolActionItem, PoolAction
+from sardana.pool.poolaction import ActionContext, PoolActionItem, PoolAction
 
 #: enumeration representing possible motion states
-MotionState = Enumeration("MotionSate", ( \
+MotionState = Enumeration("MotionSate", (\
     "Stopped",
 #    "StoppedOnError",
 #    "StoppedOnAbort",
@@ -49,7 +50,7 @@ MotionState = Enumeration("MotionSate", ( \
 
 MS = MotionState
 MovingStates = MS.Moving, MS.MovingBacklash, MS.MovingInstability
-StoppedStates = MS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
+StoppedStates = MS.Stopped,  #MS.StoppedOnError, MS.StoppedOnAbort
 
 #MotionAction = Enumeration("MotionAction", ( \
 #    "StartMotion",

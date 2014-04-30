@@ -369,7 +369,7 @@ class BaseConfigurableClass:
             msg = 'Unsupported Config Version %s. (Supported: %s)'%(version, repr(supportedVersions))
             self.warning(msg)
             if showDialog: 
-                from taurus.qt import Qt
+                from taurus.external.qt import Qt
                 Qt.QMessageBox.warning(self, "Wrong Configuration Version", msg, Qt.QMessageBox.Ok)
             return False
         return True
@@ -384,7 +384,7 @@ class BaseConfigurableClass:
         
         .. seealso:: :meth:`restoreQConfig`
         '''
-        from taurus.qt import Qt
+        from taurus.external.qt import Qt
         import cPickle as pickle
         configdict = self.createConfig(allowUnpickable=False)
         return Qt.QByteArray(pickle.dumps(configdict))
@@ -411,7 +411,7 @@ class BaseConfigurableClass:
         """
         import cPickle as pickle
         if ofile is None:
-            from taurus.qt import Qt
+            from taurus.external.qt import Qt
             ofile = unicode(Qt.QFileDialog.getSaveFileName( self, 'Save Configuration', '%s.pck'%self.__class__.__name__, 'Configuration File (*.pck)'))
             if not ofile: return
         if not isinstance(ofile,file): ofile=open(ofile,'w')
@@ -429,7 +429,7 @@ class BaseConfigurableClass:
         """
         import cPickle as pickle
         if ifile is None:
-            from taurus.qt import Qt
+            from taurus.external.qt import Qt
             ifile = unicode(Qt.QFileDialog.getOpenFileName( self, 'Load Configuration', '', 'Configuration File (*.pck)'))
             if not ifile: return
         if not isinstance(ifile,file): ifile=open(ifile,'r')

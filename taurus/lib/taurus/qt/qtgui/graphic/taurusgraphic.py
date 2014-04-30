@@ -45,10 +45,18 @@ from taurus.core.util.log import Logger
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
-from taurus.qt import Qt
+from taurus.core.util.enumeration import Enumeration
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
+
+SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
+    # A blue ellipse is displayed around the selected objects
+    "ELLIPSE",
+    # The own outline of selected object is displayed in blue and bolder
+    "OUTLINE",
+    ])
 
 def parseTangoUri(name):
     from taurus.core import tango
@@ -134,7 +142,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     __pyqtSignals__ = ("refreshTree2","graphicItemSelected(QString)","graphicSceneClicked(QPoint)")
     ANY_ATTRIBUTE_SELECTS_DEVICE = True
     TRACE_ALL = False
-    
+
     def __init__(self, parent = None, strt = True):
         name = self.__class__.__name__
         #self.call__init__(Logger, name, parent) #Inheriting from Logger caused exceptions in CONNECT
@@ -144,6 +152,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         self._itemnames = CaselessDefaultDict(lambda k:set())
         self._selection = []
         self._selectedItems = []
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.threads = []
         self.pids = []
         self.panels = []
@@ -324,12 +333,15 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         try: 
             obj = self.getItemClicked(mouseEvent)
             obj_name = getattr(obj,'_name', '')
-            if not obj_name and isinstance(obj,Qt.QGraphicsTextItem): obj_name = obj.toPlainText()
+            if not obj_name and isinstance(obj,QGraphicsTextBoxing): obj_name = obj.toPlainText()
             if (mouseEvent.button() == Qt.Qt.LeftButton):
                 ## A null obj_name should deselect all, we don't send obj because we want all similar to be matched                
                 if self.selectGraphicItem(obj_name):
                     self.debug(' => graphicItemSelected(QString)(%s)'%obj_name)
-                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name) # A null obj_name should deselect all
+                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),obj_name)
+                else:
+                    # It should send None but the signature do not allow it
+                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), "")
             def addMenuAction(menu,k,action,last_was_separator=False):
                 try:
                     if k:
@@ -388,6 +400,10 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         except:
             self.warning(traceback.format_exc())
 
+    def setSelectionStyle(self, selectionStyle):
+        # TODO We should test that selectionStyle is part of SynopticSelectionStyle but there is nothing about it
+        self._selectionStyle = selectionStyle
+
     #@Qt.pyqtSignature("selectGraphicItem(const QString &)")
     def selectGraphicItem(self,item_name):
         """
@@ -395,7 +411,6 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         If the item_name is empty, or it is a reserved keyword, or it has the "noSelect" extension, then the blue circle is removed from the synoptic.
         """      
         #self.debug('In TaurusGraphicsScene.selectGraphicItem(%s))'%item_name)
-        retval = False
         selected = [str(getattr(item,'_name',item)) for item in self._selectedItems if item]
         if selected:
             iname = str(getattr(item_name,'_name',item_name))
@@ -422,6 +437,16 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
             items = [i for i in items if self.getTaurusParentItem(i) not in (items+self._selectedItems)]
             self.debug('In TaurusGraphicsScene.selectGraphicItem(%s)): matched %d items'%(item_name,len(items)))
 
+        if self._selectionStyle == SynopticSelectionStyle.ELLIPSE:
+            displaySelection = self._displaySelectionAsEllipse
+        elif self._selectionStyle == SynopticSelectionStyle.OUTLINE:
+            displaySelection = self._displaySelectionAsOutline
+        else:
+            raise Exception("Unexpected selectionStyle '%s'" % SynopticSelectionStyle.whatis(self._selectionStyle))
+        return displaySelection(items)
+
+    def _displaySelectionAsEllipse(self, items):
+        retval = False
         for item in items:
             try:
                 if ( (isinstance(item,TaurusGraphicsItem) and item.getExtensions().get('noSelect'))
@@ -451,6 +476,61 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.warning(traceback.format_exc())
                 #return False           
         return retval
+
+    def _displaySelectionAsOutline(self, items):
+        def _outline(shapes):
+            """"Compute the boolean union from a list of QGraphicsItem. """
+            shape = None
+            # TODO we can use a stack instead of recursivity
+            for s in shapes:
+                # TODO we should skip text and things like that
+                if isinstance(s, TaurusGroupItem):
+                    s = _outline(s.childItems())
+                    if s == None:
+                        continue
+
+                s = s.shape()
+                if shape != None:
+                    shape = shape.united(s)
+                else:
+                    shape = s
+
+            if shape == None:
+                return None
+
+            return Qt.QGraphicsPathItem(shape)
+
+        # TODO we can cache the outline instead of computing it again and again
+        selectionShape = _outline(items)
+        if selectionShape:
+            # copy-paste from getSelectionMark
+            color = Qt.QColor(Qt.Qt.blue)
+            color.setAlphaF(.10)
+            pen = Qt.QPen(Qt.Qt.SolidLine)
+            pen.setWidth(4)
+            pen.setColor(Qt.QColor(Qt.Qt.blue))
+            selectionShape.setBrush(color)
+            selectionShape.setPen(pen)
+
+            for item in items:
+                if item not in self._selectedItems: self._selectedItems.append(item)
+
+            # TODO i dont think this function work... or i dont know how...
+            #self.setSelectionMark(picture=selectionShape)
+            # ... Then do it it with hands...
+            # copy-paste from drawSelectionMark
+            self._selection.append(selectionShape)
+            # It's better to add it hidden to avoid resizings
+            selectionShape.hide()
+            self.addItem(selectionShape)
+            # Put on Top
+            selectionShape.setZValue(9999)
+            selectionShape.show()
+            self.updateSceneViews()
+
+            return True
+
+        return False
 
     def clearSelection(self):
         #self.debug('In clearSelection([%d])'%len(self._selectedItems))
@@ -644,6 +724,99 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         return
 
 
+class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
+    """Display a text inside a virtual box. Support horizontal and vertical alignment"""
+
+    _TEXT_RATIO = 0.8
+
+    def __init__(self, parent=None, scene=None):
+        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+        self._rect = Qt.QGraphicsRectItem(self, scene)
+        self._rect.setBrush(Qt.QBrush(Qt.Qt.NoBrush))
+        self._rect.setPen(Qt.QPen(Qt.Qt.NoPen))
+        self._text = Qt.QGraphicsTextItem(self, scene)
+        self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
+        # using that like the previous code create a worst result
+        self.__layoutValide = True
+        self._alignment = Qt.Qt.AlignCenter | Qt.Qt.AlignVCenter
+
+    def setRect(self, x, y, width, height):
+        self._rect.setRect(x, y, width, height)
+        self._invalidateLayout()
+
+    def setPlainText(self, text):
+        self._text.setPlainText(text)
+        self._invalidateLayout()
+
+    def toPlainText(self):
+        return self._text.toPlainText()
+
+    def brush(self):
+        return self._rect.brush()
+
+    def setBrush(self, brush):
+        self._rect.setBrush(brush)
+
+    def setPen(self, pen):
+        self._text.setDefaultTextColor(pen.color())
+
+    def setDefaultTextColor(self, color):
+        self._text.setDefaultTextColor(color)
+
+    def setHtml(self, html):
+        self._text.setHtml(html)
+        self._invalidateLayout()
+
+    def setFont(self, font):
+        self._text.setFont(font)
+        self._invalidateLayout()
+
+    def setAlignment(self, alignment):
+        self._alignment = alignment
+        self._invalidateLayout()
+
+    def _invalidateLayout(self):
+        """Invalidate the current location of the text"""
+        if not self.__layoutValide:
+            return
+        self.__layoutValide = False
+        self.update()
+
+    def _validateLayout(self):
+        """Compute the text location"""
+        if self.__layoutValide:
+            return
+
+        rect = self._rect.rect()
+        width, height = rect.width(), rect.height()
+        textRect = self._text.boundingRect()
+
+        # horizontal layout
+        x = rect.x()
+        alignment = int(self._alignment)
+        if (alignment & int(Qt.Qt.AlignLeft)) != 0:
+            x += 0
+        elif (alignment & int(Qt.Qt.AlignHCenter)) != 0:
+            x += width * 0.5 - textRect.width() * 0.5 * self._TEXT_RATIO
+        elif (alignment & int(Qt.Qt.AlignRight)) != 0:
+            x += width - textRect.width() * self._TEXT_RATIO
+
+        # vertical layout
+        y = rect.y()
+        if (alignment & int(Qt.Qt.AlignTop)) != 0:
+            y += 0
+        elif (alignment & int(Qt.Qt.AlignVCenter)) != 0:
+            y += height * 0.5 - textRect.height() * 0.5 * self._TEXT_RATIO
+        elif (alignment & int(Qt.Qt.AlignBottom)) != 0:
+            y += height - textRect.height() * self._TEXT_RATIO
+
+        self._text.setPos(x, y)
+        self.__layoutValide = True
+
+    def paint(self, painter, option, widget):
+        self._validateLayout()
+        Qt.QGraphicsItemGroup.paint(self, painter, option, widget)
+
 class QSpline(Qt.QGraphicsPathItem):
 
     def __init__(self, parent=None, closed=False, control_points=None):
@@ -655,38 +828,34 @@ class QSpline(Qt.QGraphicsPathItem):
 
     def setControlPoints(self, control_points):
         self.__control_points = control_points
-    
-    def clearPath(self):
-        path = Qt.QPainterPath()
-        self.setPath(path)
-        return path
+        self.updateSplinePath()
 
-    def nextMiddlePoint(self, i):
-        cp = self.__control_points
-        p1, p2 = cp[i], cp[(i+1)%len(cp)]
-        return p1+0.5*(p2-p1)
+    def setClose(self, isClosed):
+        if self.__closed == isClosed:
+            return
+        self.__closed = isClosed
+        self.updateSplinePath()
 
     def updateSplinePath(self):
-        path = self.clearPath()
+        path = Qt.QPainterPath()
         cp = self.__control_points
         nb_points = len(cp)
-        nmp = self.nextMiddlePoint
-        if nb_points == 0:
-            return
+        if nb_points <= 1:
+            pass
         elif nb_points == 2:
             path.moveTo(cp[0])
             path.lineTo(cp[1])
         else:
+            path.moveTo(cp[0])
+            for i in xrange(1, nb_points - 1, 3):
+                p1 = cp[i + 0]
+                p2 = cp[i + 1]
+                end = cp[i + 2]
+                path.cubicTo(p1, p2, end)
             if self.__closed:
-                path.moveTo(nmp(0))
-                for i in range(1, nb_points):
-                    path.quadTo(cp[i], nmp(i))
-            else:
-                path.moveTo(cp[0])
-                path.lineTo(nmp(0))
-                for i in range(1, nb_points-1):
-                    path.quadTo(cp[i], nmp(i))
-                path.lineTo(cp[nb_points-1])
+                path.lineTo(cp[0])
+
+        self.setPath(path)
 
 
 class TaurusGraphicsItem(TaurusBaseComponent):
@@ -737,6 +906,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
         self.setName(self._extensions.get('name',self._name))
         self._unitVisible = str(self._extensions.get('unitVisible',True)).lower().strip() in ('yes','true','1')
+        self._userFormat = self._extensions.get('userFormat', None)
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
         #self.debug('setting %s.tooltip = %s'%(self._name,tooltip))
         self.setToolTip(tooltip)
@@ -799,6 +969,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
         name = name or self.__class__.__name__
         self._unitVisible = True
         self._currValue = None
+        self._userFormat = None
         self.call__init__(TaurusGraphicsItem, name, parent)
 
     def getUnit(self):
@@ -824,7 +995,13 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 #self._currHtmlText += "</tr></table>"
                 self._currHtmlText = QT_ATTRIBUTE_QUALITY_PALETTE.htmlStyle('P',quality)
                 unit = (self._unitVisible and self.getUnit()) or ''
-                self._currHtmlText += "<p class='%s'>%s%s</p>" % (quality,self._currText,' '+unit if unit else '')            
+                if self._userFormat:
+                    text = self._userFormat % (v.value)
+                    if unit:
+                        text += ' ' + unit
+                else:
+                    text = "%s%s" % (self._currText,' '+unit if unit else '')
+                self._currHtmlText += "<p class='%s'>%s</p>" % (quality, text)
                 self._currHtmlText = self._currHtmlText.decode('unicode-escape')
             except:
                 self.warning('In TaurusGraphicsAttributeItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
@@ -835,6 +1012,9 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
             self._currHtmlText = self.currText
         
         TaurusGraphicsItem.updateStyle(self)
+
+    def setUserFormat(self, format):
+        self._userFormat = format
 
     def setUnitVisible(self,yesno):
         self._unitVisible = yesno
@@ -921,15 +1101,34 @@ class TaurusRectStateItem(Qt.QGraphicsRectItem, TaurusGraphicsStateItem):
             self.setBrush(self._currBgBrush)
         Qt.QGraphicsRectItem.paint(self,painter,option,widget)
 
-class TaurusGroupStateItem(Qt.QGraphicsItemGroup, TaurusGraphicsStateItem):
+
+class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
+
+    def __init__(self, name=None, parent=None, scene=None):
+        name = name or self.__class__.__name__
+        QSpline.__init__(self, parent, scene)
+        self.call__init__(TaurusGraphicsStateItem, name, parent)
+
+    def paint(self, painter, option, widget):
+        if self._currBgBrush:
+            self._currBgBrush.setStyle(self.brush().style())
+            self.setBrush(self._currBgBrush)
+        QSpline.paint(self, painter, option, widget)
+
+class TaurusGroupItem(Qt.QGraphicsItemGroup):
+
+    def __init__(self, name = None, parent = None, scene = None):
+        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+
+class TaurusGroupStateItem(TaurusGroupItem, TaurusGraphicsStateItem):
 
     def __init__(self, name = None, parent = None, scene = None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+        TaurusGroupItem.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self,painter,option,widget):
-        Qt.QGraphicsItemGroup.paint(self,painter,option,widget)
+        TaurusGroupItem.paint(self,painter,option,widget)
         
 class TaurusPolygonStateItem(Qt.QGraphicsPolygonItem,TaurusGraphicsStateItem):
     
@@ -956,32 +1155,32 @@ class TaurusLineStateItem(Qt.QGraphicsLineItem,TaurusGraphicsStateItem):
         if self._currBgBrush:
             self._currBgBrush.setStyle(self.brush().style())
             self.setBrush(self._currBgBrush)
-        Qt.QGraphicsLineItem.paint(self,painter,option,widget)
-        
-class TaurusTextStateItem(Qt.QGraphicsTextItem, TaurusGraphicsStateItem):
+        Qt.QGraphicsLineItem.paint(self, painter, option, widget)
+
+class TaurusTextStateItem(QGraphicsTextBoxing, TaurusGraphicsStateItem):
     """
     A QGraphicsItem that represents a text related to a device state or attribute quality
     """      
-    def __init__(self, name = None, parent = None, scene = None):
+    def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsTextItem.__init__(self, parent, scene)
+        QGraphicsTextBoxing.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
         
     def paint(self,painter,option,widget):
         if self._currHtmlText:
             self.setHtml(self._currHtmlText)
         else:
-            self.setPlainText(self._currText or '') 
-        Qt.QGraphicsTextItem.paint(self,painter,option,widget)
+            self.setPlainText(self._currText or '')
+        QGraphicsTextBoxing.paint(self, painter, option, widget)
 
 
-class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem, Qt.QGraphicsRectItem):
+class TaurusTextAttributeItem(QGraphicsTextBoxing, TaurusGraphicsAttributeItem):
     """
     A QGraphicsItem that represents a text related to an attribute value
     """
-    def __init__(self, name = None, parent = None, scene = None):
+    def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsTextItem.__init__(self, parent, scene)
+        QGraphicsTextBoxing.__init__(self, parent, scene)
         self.call__init__(TaurusGraphicsAttributeItem, name, parent)
         
     def paint(self,painter,option,widget):
@@ -990,42 +1189,42 @@ class TaurusTextAttributeItem(Qt.QGraphicsTextItem, TaurusGraphicsAttributeItem,
             self.setHtml(self._currHtmlText)
         else:
             self.setPlainText(self._currText or '')
-        Qt.QGraphicsTextItem.paint(self,painter,option,widget)
+        QGraphicsTextBoxing.paint(self, painter, option, widget)
 
 
-TYPE_TO_GRAPHICS = { 
+TYPE_TO_GRAPHICS = {
     None : { "Rectangle"      : Qt.QGraphicsRectItem,
              "RoundRectangle" : Qt.QGraphicsRectItem,
              "Ellipse"        : Qt.QGraphicsEllipseItem,
              "Polyline"       : Qt.QGraphicsPolygonItem,
-             "Label"          : Qt.QGraphicsTextItem,
+             "Label"          : QGraphicsTextBoxing,
              "Line"           : Qt.QGraphicsLineItem,
-             "Group"          : Qt.QGraphicsItemGroup, 
-             "SwingObject"    : Qt.QGraphicsRectItem, 
+             "Group"          : TaurusGroupItem,
+             "SwingObject"    : Qt.QGraphicsRectItem,
              "Image"          : Qt.QGraphicsPixmapItem,
              "Spline"         : QSpline, },
-             
+
     TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
-                           "Polyline"       : TaurusPolygonStateItem, 
+                           "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextStateItem,
-                           "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
-                           "Group"          : TaurusGroupStateItem, 
+                           "Line"           : Qt.QGraphicsLineItem,  #TaurusLineStateItem,
+                           "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
-                           "Spline"         : QSpline, },
+                           "Spline"         : TaurusSplineStateItem, },
 
     TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
                            "RoundRectangle" : TaurusRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
-                           "Polyline"       : TaurusPolygonStateItem, 
+                           "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextAttributeItem,
-                           "Line"           : Qt.QGraphicsLineItem, #TaurusLineStateItem,
-                           "Group"          : TaurusGroupStateItem, 
+                           "Line"           : Qt.QGraphicsLineItem,  #TaurusLineStateItem,
+                           "Group"          : TaurusGroupStateItem,
                            "SwingObject"    : TaurusTextAttributeItem,
                            "Image"          : Qt.QGraphicsPixmapItem,
-                           "Spline"         : QSpline, },
+                           "Spline"         : TaurusSplineStateItem, },
 }
 
 
@@ -1103,8 +1302,6 @@ class TaurusBaseGraphicsFactory:
         self.set_common_params(item,params)
         if hasattr(item,'getExtensions'):
             item.getExtensions() #<= must be called here to take extensions from params
-        if 'text' in klass.__name__.lower():
-            item.scale(.8,.8)
         return item
 
     def getNameParam(self):

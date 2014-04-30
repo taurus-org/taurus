@@ -28,7 +28,7 @@ QXTermWidget.py:
 """
 
 import sys
-from taurus.qt import QtCore, QtGui, Qt
+from taurus.external.qt import QtCore, QtGui, Qt
 
 class QXTermWidget(QtGui.QWidget):
 

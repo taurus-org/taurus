@@ -29,7 +29,7 @@ __all__ = ["QPixmapWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import taurus.qt.qtgui.resource
 
 getPixmap = taurus.qt.qtgui.resource.getPixmap

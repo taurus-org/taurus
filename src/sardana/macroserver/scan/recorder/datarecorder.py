@@ -32,7 +32,8 @@ __docformat__ = 'restructuredtext'
 
 import time
 
-from taurus.core.util import Enumeration, Logger
+from taurus.core.util.log import Logger
+from taurus.core.util.enumeration import Enumeration
 
 DataFormats = Enumeration('DataFormats', ('Spec', 'CSV', 'XLS', 'w5', 'w4',
                                           'wx', 'fio'))
@@ -42,7 +43,7 @@ RecorderStatus = Enumeration('RecorderStatus', ('Idle', 'Active', 'Disable'))
 
 class DataHandler:
     """ The data handler is the data recording center of a system. It contains
-    one or several recorders.  All data transit through the handler, then
+    one or several recorders.  All data transit through the handler, then 
     given to recorders for final saving """
 
     def __init__(self):
@@ -72,23 +73,22 @@ class DataHandler:
                 pass
 
     def addCustomData(self, value, name, **kwargs):
-        '''Write data other than a record.
-
+        '''Write data other than a record. 
+        
         :param value: The value to be written
         :param name: An identification for this value
-
+        
         Optional keyword arguments can be passed with information that some
-        recorders may need in order to record this value.
-        For example: the NeXus recorder will make use of "nxpath" info if
-        available to place the value where it belongs in the nexus hierarchy.
-        Check the `addCustomData` method of each recorder to see
-        what they use/require.
+        recorders may need in order to record this value. For example: the NeXus
+        recorder will make use of "nxpath" info if available to place the value
+        where it belongs in the nexus hierarchy. Check the `addCustomData`
+        method of each recorder to see what they use/require.
         '''
         for recorder in self.recorders:
             recorder.addCustomData(value, name, **kwargs)
-
+#
 # Recorders
-
+#
 
 class DataRecorder(Logger):
     """ Generic class for data recorder. Does nothing"""

@@ -33,7 +33,7 @@ import sys
 import taurus
 import numpy
 from taurus.core.util.containers import SortedDict
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusBaseContainer,TaurusWidget
 from taurus.qt.qtcore.util.properties import join,djoin
 

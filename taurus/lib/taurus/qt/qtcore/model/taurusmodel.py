@@ -29,7 +29,7 @@ __all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.util.log import Logger
 

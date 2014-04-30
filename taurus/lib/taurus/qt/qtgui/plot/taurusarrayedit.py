@@ -25,7 +25,7 @@
 
 
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import taurus
 import numpy
 

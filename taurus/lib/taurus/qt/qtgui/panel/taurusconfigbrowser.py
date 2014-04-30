@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 raise DeprecationWarning("QConfigViewer is deprecated. Use QConfigEditor instead")
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import cPickle as pickle
 import os
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
