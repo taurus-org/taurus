@@ -29,7 +29,7 @@ __all__ = ["TaurusLCDValue"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 

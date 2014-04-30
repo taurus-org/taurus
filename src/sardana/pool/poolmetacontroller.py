@@ -32,35 +32,34 @@ __all__ = ["CONTROLLER_TEMPLATE", "CTRL_TYPE_MAP", "TYPE_MAP", "TYPE_MAP_OBJ",
 
 __docformat__ = 'restructuredtext'
 
-import inspect
 import types
+import inspect
 
-from taurus.core.util import CaselessDict
+from taurus.core.util.containers import CaselessDict
 
 from sardana import DataType, DataFormat, DataAccess, \
     to_dtype_dformat, to_daccess, \
     ElementType, TYPE_ELEMENTS, InvalidId
 from sardana.sardanameta import SardanaLibrary, SardanaClass
+from sardana.pool.poolmotor import PoolMotor
+from sardana.pool.poolpseudomotor import PoolPseudoMotor
+from sardana.pool.poolmotorgroup import PoolMotorGroup
+from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
+from sardana.pool.poolcountertimer import PoolCounterTimer
+from sardana.pool.poolzerodexpchannel import Pool0DExpChannel
+from sardana.pool.poolonedexpchannel import Pool1DExpChannel
+from sardana.pool.pooltwodexpchannel import Pool2DExpChannel
+from sardana.pool.poolpseudocounter import PoolPseudoCounter
+from sardana.pool.poolinstrument import PoolInstrument
+from sardana.pool.poolioregister import PoolIORegister
+from sardana.pool.poolcontroller import PoolController, \
+    PoolPseudoMotorController, PoolPseudoCounterController
+from sardana.pool.controller import Controller, MotorController, \
+    CounterTimerController, ZeroDController, OneDController, TwoDController, \
+    PseudoMotorController, PseudoCounterController, IORegisterController
+from sardana.pool.controller import Type, Access, Description, DefaultValue, \
+    FGet, FSet, Memorize, Memorized, MaxDimSize
 
-from .poolmotor import PoolMotor
-from .poolpseudomotor import PoolPseudoMotor
-from .poolmotorgroup import PoolMotorGroup
-from .poolmeasurementgroup import PoolMeasurementGroup
-from .poolcountertimer import PoolCounterTimer
-from .poolzerodexpchannel import Pool0DExpChannel
-from .poolonedexpchannel import Pool1DExpChannel
-from .pooltwodexpchannel import Pool2DExpChannel
-from .poolpseudocounter import PoolPseudoCounter
-from .poolinstrument import PoolInstrument
-from .poolioregister import PoolIORegister
-from .poolcontroller import PoolController, PoolPseudoMotorController, \
-    PoolPseudoCounterController
-from .controller import Controller, MotorController, CounterTimerController, \
-    ZeroDController, OneDController, TwoDController, \
-    PseudoMotorController, PseudoCounterController, \
-    IORegisterController
-from .controller import Type, Access, Description, DefaultValue, FGet, FSet, \
-    Memorize, Memorized, MaxDimSize
 
 #: String containing template code for a controller class
 CONTROLLER_TEMPLATE = """class @controller_name@(@controller_type@):
@@ -92,18 +91,18 @@ CTRL_TYPE_MAP = {
 #: #. automatic full name
 #: #. controller class
 TYPE_MAP = {
-    ET.Controller       : ("Controller",       "Controller",       CTRL_TYPE_MAP,          "controller/{klass}/{name}",  Controller),
-    ET.Instrument       : ("Instrument",       "Instrument",       PoolInstrument,         "{full_name}",                None),
-    ET.Motor            : ("Motor",            "Motor",            PoolMotor,              "motor/{ctrl_name}/{axis}",   MotorController),
-    ET.CTExpChannel     : ("CTExpChannel",     "ExpChannel",       PoolCounterTimer,       "expchan/{ctrl_name}/{axis}", CounterTimerController),
-    ET.ZeroDExpChannel  : ("ZeroDExpChannel",  "ExpChannel",       Pool0DExpChannel,       "expchan/{ctrl_name}/{axis}", ZeroDController),
-    ET.OneDExpChannel   : ("OneDExpChannel",   "ExpChannel",       Pool1DExpChannel,       "expchan/{ctrl_name}/{axis}", OneDController),
-    ET.TwoDExpChannel   : ("TwoDExpChannel",   "ExpChannel",       Pool2DExpChannel,       "expchan/{ctrl_name}/{axis}", TwoDController),    
-    ET.PseudoMotor      : ("PseudoMotor",      "Motor",            PoolPseudoMotor,        "pm/{ctrl_name}/{axis}",      PseudoMotorController),
-    ET.PseudoCounter    : ("PseudoCounter",    "ExpChannel",       PoolPseudoCounter,      "pc/{ctrl_name}/{axis}",      PseudoCounterController),
-    ET.MotorGroup       : ("MotorGroup",       "MotorGroup",       PoolMotorGroup,         "mg/{pool_name}/{name}",      None),
-    ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup,   "mntgrp/{pool_name}/{name}",  None),
-    ET.IORegister       : ("IORegister",       "IORegister"      , PoolIORegister,         "ioregister/{ctrl_name}/{axis}", IORegisterController),
+    ET.Controller       : ("Controller", "Controller", CTRL_TYPE_MAP, "controller/{klass}/{name}", Controller),
+    ET.Instrument       : ("Instrument", "Instrument", PoolInstrument, "{full_name}", None),
+    ET.Motor            : ("Motor", "Motor", PoolMotor, "motor/{ctrl_name}/{axis}", MotorController),
+    ET.CTExpChannel     : ("CTExpChannel", "ExpChannel", PoolCounterTimer, "expchan/{ctrl_name}/{axis}", CounterTimerController),
+    ET.ZeroDExpChannel  : ("ZeroDExpChannel", "ExpChannel", Pool0DExpChannel, "expchan/{ctrl_name}/{axis}", ZeroDController),
+    ET.OneDExpChannel   : ("OneDExpChannel", "ExpChannel", Pool1DExpChannel, "expchan/{ctrl_name}/{axis}", OneDController),
+    ET.TwoDExpChannel   : ("TwoDExpChannel", "ExpChannel", Pool2DExpChannel, "expchan/{ctrl_name}/{axis}", TwoDController),
+    ET.PseudoMotor      : ("PseudoMotor", "Motor", PoolPseudoMotor, "pm/{ctrl_name}/{axis}", PseudoMotorController),
+    ET.PseudoCounter    : ("PseudoCounter", "ExpChannel", PoolPseudoCounter, "pc/{ctrl_name}/{axis}", PseudoCounterController),
+    ET.MotorGroup       : ("MotorGroup", "MotorGroup", PoolMotorGroup, "mg/{pool_name}/{name}", None),
+    ET.MeasurementGroup : ("MeasurementGroup", "MeasurementGroup", PoolMeasurementGroup, "mntgrp/{pool_name}/{name}", None),
+    ET.IORegister       : ("IORegister", "IORegister"      , PoolIORegister, "ioregister/{ctrl_name}/{axis}", IORegisterController),
 }
 
 class TypeData(object):
@@ -179,7 +178,7 @@ class DataInfo(object):
             elif dformat == DataFormat.TwoD:
                 maxdimsize = 2048, 2048
         self.maxdimsize = maxdimsize
-    
+
     def copy(self):
         s = self
         d = DataInfo(s.name, s.dtype, dformat=s.dformat, access=s.access,
@@ -187,7 +186,7 @@ class DataInfo(object):
                      memorized=s.memorized, fget=s.fget, fset=s.fset,
                      maxdimsize=self.maxdimsize)
         return d
-          
+
     @classmethod
     def toDataInfo(klass, name, info):
         info = CaselessDict(info)
@@ -265,7 +264,7 @@ class ControllerClass(SardanaClass):
         self.ctrl_features = tuple(klass.ctrl_features)
 
         self.ctrl_properties = props = CaselessDict()
-        for k, v in klass.class_prop.items(): # old member
+        for k, v in klass.class_prop.items():  # old member
             props[k] = DataInfo.toDataInfo(k, v)
         for k, v in klass.ctrl_properties.items():
             props[k] = DataInfo.toDataInfo(k, v)
@@ -275,7 +274,7 @@ class ControllerClass(SardanaClass):
             ctrl_attrs[k] = DataInfo.toDataInfo(k, v)
 
         self.axis_attributes = axis_attrs = CaselessDict()
-        for k, v in klass.ctrl_extra_attributes.items(): # old member
+        for k, v in klass.ctrl_extra_attributes.items():  # old member
             axis_attrs[k] = DataInfo.toDataInfo(k, v)
         for k, v in klass.axis_attributes.items():
             axis_attrs[k] = DataInfo.toDataInfo(k, v)

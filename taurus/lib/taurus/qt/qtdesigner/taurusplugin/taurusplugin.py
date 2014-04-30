@@ -37,8 +37,8 @@
       editing the widget model (same has 'Edit model...' task menu item
 """
 
-from taurus.qt import Qt
-from taurus.qt import QtDesigner
+from taurus.external.qt import Qt
+from taurus.external.qt import QtDesigner
 
 from taurus.core.util.log import Logger
 

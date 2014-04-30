@@ -37,8 +37,8 @@ import string
 from taurus.core.util.codecs import CodecFactory
 from taurus.core.util.containers import CaselessList
 
-from datarecorder import DataRecorder
-from storage import BaseFileRecorder
+from sardana.macroserver.scan.recorder.datarecorder import DataRecorder
+from sardana.macroserver.scan.recorder.storage import BaseFileRecorder
 
 
 class JsonRecorder(DataRecorder):
@@ -84,8 +84,8 @@ class JsonRecorder(DataRecorder):
 
     def _endRecordList(self, recordlist):
         macro_id = recordlist.getEnvironValue('macro_id')
-        data = {'endtime': recordlist.getEnvironValue('endtime').ctime(),
-                'deadtime': recordlist.getEnvironValue('deadtime')}
+        data = { 'endtime'  : recordlist.getEnvironValue('endtime').ctime(),
+                 'deadtime' : recordlist.getEnvironValue('deadtime') }
         self._sendPacket(type="record_end", data=data, macro_id=macro_id)
 
     def _writeRecord(self, record):
@@ -195,9 +195,9 @@ class OutputRecorder(DataRecorder):
         for col, (label, col_size) in enumerate(zip(labels, col_sizes)):
             empty_row_nb = header_rows - len(label)
             for row in range(empty_row_nb):
-                header[row].append(col_size*" ")
+                header[row].append(col_size * " ")
             for i, l in enumerate(label):
-                header[i+empty_row_nb].append(string.center(l, col_size))
+                header[i + empty_row_nb].append(string.center(l, col_size))
         head = []
         for header_row in header:
             head.append(col_sep.join(header_row))
@@ -224,7 +224,7 @@ class OutputRecorder(DataRecorder):
 
         dh = recordlist.getDataHandler()
 
-        for fr in [r for r in dh.recorders if isinstance(r, BaseFileRecorder)]:
+        for fr in [ r for r in dh.recorders if isinstance(r, BaseFileRecorder) ]:
             self._stream.info('Operation saved in %s (%s)', fr.getFileName(),
                               fr.getFormat())
 

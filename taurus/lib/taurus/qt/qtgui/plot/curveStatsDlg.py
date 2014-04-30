@@ -29,7 +29,7 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
-from taurus.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 from datetime import datetime
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.util.ui import UILoadable

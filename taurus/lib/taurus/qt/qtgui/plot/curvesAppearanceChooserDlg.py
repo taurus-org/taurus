@@ -31,7 +31,7 @@ curvesAppearanceChooserDlg.py:
 
 import copy
 
-from taurus.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.util.ui import UILoadable

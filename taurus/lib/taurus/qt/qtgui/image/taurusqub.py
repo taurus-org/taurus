@@ -27,7 +27,7 @@
 
 import weakref
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from Qub.Widget.DataDisplay.QubDataImageDisplay import QubDataImageDisplay
 from Qub.Widget.QubActionSet import QubToolbarToggleButtonAction

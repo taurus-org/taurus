@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -26,6 +26,8 @@
 """This module is part of the Python Pool libray. It defines the base classes
 for pool event mechanism"""
 
+from __future__ import absolute_import
+
 __all__ = ["EventGenerator", "EventReceiver", "EventType"]
 
 __docformat__ = 'restructuredtext'
@@ -33,9 +35,9 @@ __docformat__ = 'restructuredtext'
 import weakref
 import collections
 
+from sardana.sardanautils import is_callable
+from taurus.core.util.event import CallableRef, BoundMethodWeakref
 
-from .sardanautils import is_callable
-from taurus.core.util import CallableRef, BoundMethodWeakref
 
 def _get_callable_ref(listener, callback=None):
     """Returns a callable reference for the given listener"""
@@ -48,7 +50,7 @@ def _get_callable_ref(listener, callback=None):
 
 class EventGenerator(object):
     """A class capable of generating events to their listeners"""
-    
+
     def __init__(self, max_queue_len=10, listeners=None):
         self._listeners = []
         self._event_queue = collections.deque(maxlen=max_queue_len)
@@ -57,35 +59,35 @@ class EventGenerator(object):
                 listeners = listeners,
             for listener in listeners:
                 self.add_listener(listener)
-    
+
     def _listener_died(self, weak_listener):
         """Callback executed when a listener dies"""
-        if self._listeners is None: 
+        if self._listeners is None:
             return
         try:
             self._listeners.remove(weak_listener)
         except ValueError:
             pass
-        
+
     def add_listener(self, listener):
         """Adds a new listener for this object.
         
         :param listener: a listener"""
-        if self._listeners is None or listener is None: 
+        if self._listeners is None or listener is None:
             return False
-        
+
         weak_listener = _get_callable_ref(listener, self._listener_died)
         if weak_listener in self._listeners:
             return False
         self._listeners.append(weak_listener)
         return True
-    
+
     def remove_listener(self, listener):
         """Removes an existing listener for this object.
         
         :param listener: the listener to be removed
         :return: True is succeeded or False otherwise"""
-        if self._listeners is None: 
+        if self._listeners is None:
             return
         weak_listener = _get_callable_ref(listener)
         try:
@@ -93,16 +95,16 @@ class EventGenerator(object):
         except ValueError:
             return False
         return True
-        
+
     def has_listeners(self):
         """Returns True if anybody is listening to events from this object
         
         :return: True is at least one listener is listening or False otherwise
         """
-        if self._listeners is None: 
+        if self._listeners is None:
             return False
         return len(self._listeners) > 0
-        
+
     def fire_event(self, event_type, event_value, listeners=None):
         self.flush_queue()
         self._fire_event(event_type, event_value, listeners=listeners)
@@ -132,41 +134,41 @@ class EventGenerator(object):
     def queue_event(self, event_type, event_value, listeners=None):
         queue = self._event_queue
         queue.append((event_type, event_value, listeners))
-    
+
     def flush_queue(self):
         queue = self._event_queue
         n = len(queue)
-        while n>0:
+        while n > 0:
             self._fire_event(*queue.pop())
             n = n - 1
-            
+
 
 class EventReceiver(object):
     """A simple class that implements useful features for a class which is 
     an event receiver. The actual class may inherit from this EventReceiver class
     and may choose to use just a part of the API provided by this class, the 
     whole API or none of the API."""
-    
+
     def __init__(self):
         self._events_blocked = False
-    
+
     def block_events(self):
         self._events_blocked = True
-        
+
     def unblock_events(self):
         self._events_blocked = False
-    
+
     def are_events_blocked(self):
         return self._events_blocked
 
 
 class EventType(object):
     """Definition of an event type"""
-    
+
     def __init__(self, name, priority=0):
         self.name = name
         self.priority = priority
-    
+
     def __str__(self):
         return "EventType(name=%s, priority=%s)" % (self.name, self.priority)
 

@@ -42,4 +42,7 @@ import utils
 from paneldescriptionwizard import *
 from taurusgui import *
 from appsettingswizard import *
-from macrolistener import *
+try:
+    from macrolistener import *
+except ImportError:
+    pass #allow for sardana not being installed

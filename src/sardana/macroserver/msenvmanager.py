@@ -34,10 +34,10 @@ import os
 import shelve
 import operator
 
-from taurus.core.util import CaselessDict
+from taurus.core.util.containers import CaselessDict
 
-from msmanager import MacroServerManager
-from msexception import UnknownEnv
+from sardana.macroserver.msmanager import MacroServerManager
+from sardana.macroserver.msexception import UnknownEnv
 
 
 class EnvironmentManager(MacroServerManager):

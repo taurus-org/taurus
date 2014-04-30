@@ -29,7 +29,7 @@ __all__ = ["TaurusGroupBox"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurusbasecontainer import TaurusBaseContainer
 
 

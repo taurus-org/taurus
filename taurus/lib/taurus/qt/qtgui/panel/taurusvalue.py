@@ -34,7 +34,7 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "De
 __docformat__ = 'restructuredtext'
 
 import weakref
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import PyTango
 import taurus.core
 

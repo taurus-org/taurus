@@ -1,5 +1,5 @@
 import sys
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusValueLabel, TaurusConfigLabel
 from taurus.qt.qtgui.input import TaurusValueSpinBox

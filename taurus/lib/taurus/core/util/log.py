@@ -29,7 +29,8 @@
 __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
-           "_log", "trace", "debug", "info", "warning", "error", "critical"]
+           "_log", "trace", "debug", "info", "warning", "error", "fatal",
+           "critical"]
 
 __docformat__ = "restructuredtext"
 
@@ -359,6 +360,9 @@ class Logger(Object):
 
     #: Critical message level (constant)
     Critical = logging.CRITICAL
+
+    #: Fatal message level (constant)
+    Fatal = logging.FATAL
 
     #: Error message level (constant)
     Error    = logging.ERROR
@@ -765,6 +769,16 @@ class Logger(Object):
         """
         self.log_obj.error(msg, *args, **kw)
 
+    def fatal(self, msg, *args, **kw):
+        """Record a fatal message in this object's logger. Accepted *args* and
+           *kwargs* are the same as :meth:`logging.Logger.fatal`.
+
+           :param msg: (str) the message to be recorded
+           :param args: list of arguments
+           :param kw: list of keyword arguments
+        """
+        self.log_obj.fatal(msg, *args, **kw)
+
     def critical(self, msg, *args, **kw):
         """Record a critical message in this object's logger. Accepted *args* and
            *kwargs* are the same as :meth:`logging.Logger.critical`.
@@ -872,6 +886,9 @@ def warning(msg, *args, **kw):
 
 def error(msg, *args, **kw):
     return __getrootlogger().error(msg, *args, **kw)
+
+def fatal(msg, *args, **kw):
+    return __getrootlogger().fatal(msg, *args, **kw)
 
 def critical(msg, *args, **kw):
     return __getrootlogger().critical(msg, *args, **kw)

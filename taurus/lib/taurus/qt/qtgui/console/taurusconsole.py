@@ -33,7 +33,7 @@ __all__ = ["TaurusConsole"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurusconsolefactory import TaurusConsoleFactory
 
 

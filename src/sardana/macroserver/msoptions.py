@@ -36,13 +36,14 @@ def ViewOptionMeta(name, bases, attrs):
         attrs[k] = k
     return type(name, bases, attrs)
 
+
 class ViewOption(object):
     __metaclass__ = ViewOptionMeta
 
     _DEFAULT_VIEW_OPTIONS = {
         'ShowDial' : True,
-    }    
-    
+    }
+
     @classmethod
     def init_options(cls, d):
         d.update(cls._DEFAULT_VIEW_OPTIONS)
@@ -54,5 +55,5 @@ class ViewOption(object):
             d[name] = cls._DEFAULT_VIEW_OPTIONS[name]
         else:
             del d[name]
-    
-    
+
+

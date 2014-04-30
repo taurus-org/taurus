@@ -30,7 +30,7 @@ __all__ = ["demo", "main"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 def demo():
     import sys

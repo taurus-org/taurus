@@ -31,7 +31,7 @@ __all__ = ["QConfigEditor"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import cPickle as pickle
 import os
 import tempfile

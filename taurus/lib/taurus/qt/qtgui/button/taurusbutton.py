@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import PyTango
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
