@@ -271,7 +271,12 @@ def new_parser(optimize=1, debug=0, outputdir=None):
     
     common_kwargs = dict(optimize=optimize, outputdir=outputdir,
                          debug=debug, debuglog=debuglog, errorlog=log)
-
+    
+    # lex/yacc v<3.0 do not accept  debuglog or errorlog keyword args
+    if int(lex.__version__.split('.')[0]) < 3: 
+        common_kwargs.pop('debuglog')
+        common_kwargs.pop('errorlog')
+    
     try:
         from . import jdraw_lextab
     except ImportError:
