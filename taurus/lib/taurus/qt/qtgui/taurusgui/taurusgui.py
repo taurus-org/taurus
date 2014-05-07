@@ -1195,7 +1195,7 @@ class TaurusGui(TaurusMainWindow):
         #write to file
         while True:
             if fname is None:
-                fname = Qt.QFileDialog.getOpenFileName(self, "Open File", fname or self._confDirectory, self.tr("XML files (*.xml)"))
+                fname = Qt.QFileDialog.getSaveFileName(self, "Open File", fname or self._confDirectory, self.tr("XML files (*.xml)"))
                 if not fname:
                     return
             fname = str(fname)
