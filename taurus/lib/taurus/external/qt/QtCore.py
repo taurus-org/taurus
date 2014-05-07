@@ -110,6 +110,13 @@ if __backend == 'PyQt4':
         Signal = __QtCore.pyqtSignal
     if hasattr(__QtCore, "pyqtSlot"):
         Slot = __QtCore.pyqtSlot
+    else: #implement dummy pyqtSlot decorator for PyQt<4.6
+        class DummyPyqtSlot(object):
+            def __init__(self, *a, **kw):
+                pass
+            def __call__(self, f):
+                return f
+        Slot = pyqtSlot = DummyPyqtSlot
     if hasattr(__QtCore, "pyqtProperty"):
         Property = __QtCore.pyqtProperty
 
