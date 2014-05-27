@@ -29,7 +29,7 @@ arrayedit.py: Widget for editing a spectrum/array via control points
 
 
 import numpy
-from taurus.exeternal.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
 from curvesAppearanceChooserDlg import CurveAppearanceProperties 
 
