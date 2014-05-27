@@ -571,19 +571,20 @@ def prepare_server(args, tango_args):
     """Register a proper server if the user gave an unknown server"""
     log_messages = []
     _, bin_name = os.path.split(args[0])
+    server_name, _ = os.path.splitext(bin_name)
 
     if "-?" in tango_args:
         return log_messages
 
     nodb = "-nodb" in tango_args
     if nodb and not hasattr(DeviceClass, "device_name_factory"):
-        print "In order to start %s with 'nodb' you need PyTango >= 7.2.3" % bin_name
+        print "In order to start %s with 'nodb' you need PyTango >= 7.2.3" % server_name
         sys.exit(1)
 
     if len(tango_args) < 2:
         valid = False
         while not valid:
-            inst_name = raw_input("Please indicate %s instance name: " % bin_name)
+            inst_name = raw_input("Please indicate %s instance name: " % server_name)
             #should be a instance name validator.
             valid_set = string.letters + string.digits + '_' + '-'
             out = ''.join([c for c in inst_name if c not in valid_set])
@@ -599,9 +600,9 @@ def prepare_server(args, tango_args):
         return log_messages
 
     db = Database()
-    if not exists_server_instance(db, bin_name, inst_name):
+    if not exists_server_instance(db, server_name, inst_name):
         if ask_yes_no('%s does not exist. Do you wish create a new one' % inst_name, default='y'):
-            if bin_name == 'MacroServer' :
+            if server_name == 'MacroServer' :
                 # build list of pools to which the MacroServer should connect to
                 pool_names = []
                 pools = get_dev_from_class(db, "Pool")
@@ -622,9 +623,9 @@ def prepare_server(args, tango_args):
                         print all_pools
                     else:
                         pool_names.append(elem)
-                    log_messages += register_sardana(db, bin_name, inst_name, pool_names)
+                    log_messages += register_sardana(db, server_name, inst_name, pool_names)
             else:
-                log_messages += register_sardana(db, bin_name, inst_name)
+                log_messages += register_sardana(db, server_name, inst_name)
     return log_messages
 
 def exists_server_instance(db, server_name, server_instance):
