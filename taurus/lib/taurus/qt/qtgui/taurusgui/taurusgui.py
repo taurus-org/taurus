@@ -201,17 +201,66 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
 
 class TaurusGui(TaurusMainWindow):
     '''
-    This is main class for constructing the dynamic GUIs. Specific GUIs are
-    supposed to be created by providing a configuration file which is loaded by
-    this class (instead of subclassing it). TaurusGui is a specialised
-    TaurusMainWindow which is able to handle "panels" and load configuration
-    files.
+    This is main class for constructing the dynamic GUIs. TaurusGui is a 
+    specialised TaurusMainWindow which is able to handle "panels" and load 
+    configuration files.
+    There are several ways of using TaurusGui. In the following we will give 
+    3 examples on how to create a simple GUI called "MyGui" which contains one 
+    panel called "Foo" and consisting of a `QWidget`:
     
-    .. note:: 
-        Please be aware that TaurusGui has only recently being developed and it
-        is still under intense development. The syntax of the configuration files
-        may change at some point and more features and bug fixes are likely to
-        be added in the near future.
+    Example 1: use declarative configuration files
+    ----------------------------------------------
+    
+    You can create a purely declarative configuration file to be interpreted by 
+    the standard `taurusgui` script::
+    
+        from taurus.qt.qtgui.taurusgui.utils import PanelDescription
+
+        GUI_NAME = 'MyGui'
+        panel = PanelDescription('Foo', 
+                                 classname='taurus.external.qt.Qt.QWidget')   
+    
+    Note that this just a very simple example. For a much richer one, see the
+    :module:`taurus.qt.qtgui.taurusgui.conf.tgconf_example01`
+      
+    Example 2: do everything programmatically
+    -----------------------------------------
+    
+    A stand-alone python script that launches the gui when executed. No 
+    configuration file is used here. Panels and other components are added 
+    programatically::
+    
+        if __name__ == '__main__':
+            from taurus.qt.qtgui.application import TaurusApplication
+            from taurus.qt.qtgui.taurusgui import TaurusGui
+            from taurus.external.qt import Qt
+            app = TaurusApplication(app_name='MyGui') 
+            gui = TaurusGui()
+            panel = Qt.QWidget()
+            gui.createPanel(panel, 'Foo')
+            gui.show()
+            app.exec_()
+            
+            
+    Example 3: mixing declarative and programmatic ways
+    ---------------------------------------------------
+    
+    It is also possible to create a stand-alone python script which loads itself
+    as a configuration file. In this way you can add things programmatically and 
+    at the same time use the declarative way::
+    
+        GUI_NAME = 'MyGui' # <-- declarative! 
+        if __name__ == '__main__':
+            from taurus.qt.qtgui.application import TaurusApplication
+            from taurus.qt.qtgui.taurusgui import TaurusGui
+            from taurus.external.qt import Qt
+            app = TaurusApplication()
+            gui = TaurusGui(confname=__file__)
+            panel = Qt.QWidget()
+            gui.createPanel(panel, 'Foo')  # <-- programmatic!
+            gui.show()
+            app.exec_()
+    
     '''
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
@@ -673,52 +722,74 @@ class TaurusGui(TaurusMainWindow):
             return default
         else:
             return name.text
+        
+    def _importConfiguration(self, confname):
+        '''returns the module corresponding to `confname` or to 
+        `tgconf_<confname>`. Note: the `conf` subdirectory of the directory in 
+        which taurusgui.py file is installed is temporally prepended to sys.path
+        '''
+        confsubdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf')  #the path to a conf subdirectory of the place where taurusgui.py is
+        oldpath = sys.path
+        try:
+            sys.path = [confsubdir] + sys.path  #add the conf subdirectory dir to the pythonpath
+            conf = __import__(confname)
+        except ImportError:
+            altconfname = "tgconf_%s" % confname
+            try:
+                conf = __import__(altconfname)
+            except ImportError:
+                msg = 'cannot import %s or %s' % (confname, altconfname)
+                self.error(msg)
+                Qt.QMessageBox.critical(self, 'Initialization error', msg, Qt.QMessageBox.Abort)
+                sys.exit()
+        finally:
+            sys.path = oldpath  #restore the previous sys.path
+        return conf
+        
 
     def loadConfiguration(self, confname):
         '''Reads a configuration file
         
-        :param confname: (str) the  name of module located in the PYTHONPATH
-                         or in the conf subdirectory of the directory in which 
-                         taurusgui.py file is installed.
-                         This method will try to import <confname>.  If that fails, 
-                         it will try to import "tgconf_<confname>.
-                         Alternatively, confname can be the path to the configuration 
-                         directory (not necessarily in the python path).
+        :param confname: (str or None) the  name of module located in the 
+                         PYTHONPATH or in the conf subdirectory of the directory
+                         in which taurusgui.py file is installed.
+                         This method will try to import <confname>.  
+                         If that fails, it will try to import 
+                         `tgconf_<confname>`.
+                         Alternatively, `confname` can be the path to the 
+                         configuration module (not necessarily in the 
+                         PYTHONPATH).
+                         `confname` can also be None, in which case a dummy
+                         empty module will be used.
         '''
 
         #import the python config file
         try:
-            if os.path.isdir(confname):  #if confname is a dir name
+            if confname is None:
+                import types
+                conf = types.ModuleType('__dummy_conf_module__') #dummy module
+                confname = str(Qt.qApp.applicationName())
+                self._confDirectory = ''
+            elif os.path.exists(confname):  #if confname is a dir or file name
                 import imp
                 path, name = os.path.split(confname)
-                name, ext = os.path.splitext(name)
-                f, filename, data = imp.find_module(name, [path])
-                conf = imp.load_module(name, f, filename, data)
-            else:  #if confname is not a dir name, we assume it is a module name in the python path
-                confsubdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf')  #the path to a conf subdirectory of the place where taurusgui.py is
-                oldpath = sys.path
-                sys.path = [confsubdir] + sys.path  #add the conf subdirectory dir to the pythonpath
+                name, _ = os.path.splitext(name)
                 try:
-                    conf = __import__(confname)
+                    f, filename, data = imp.find_module(name, [path])
+                    conf = imp.load_module(name, f, filename, data)
+                    confname = name
                 except ImportError:
-                    altconfname = "tgconf_%s" % confname
-                    try:
-                        conf = __import__(altconfname)
-                    except ImportError:
-                        msg = 'cannot import %s or %s' % (confname, altconfname)
-                        self.error(msg)
-                        Qt.QMessageBox.critical(self, 'Initialization error', msg, Qt.QMessageBox.Abort)
-                        sys.exit()
-                sys.path = oldpath  #restore the previous sys.path
+                    conf =  self._importConfiguration(confname)
+                self._confDirectory = os.path.dirname(conf.__file__)
+            else:  #if confname is not a dir name, we assume it is a module name in the python path
+                conf =  self._importConfiguration(confname)
+                self._confDirectory = os.path.dirname(conf.__file__)   
         except Exception, e:
             import traceback
             msg = 'Error loading configuration: %s' % traceback.format_exc()  #repr(e)
             self.error(msg)
             Qt.QMessageBox.critical(self, 'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
-
-        #In any case, once we have imported it we can get the configuration directory:
-        self._confDirectory = os.path.dirname(conf.__file__)
 
         #Get the xml root node from the xml configuration file
         XML_CONFIG = getattr(conf, 'XML_CONFIG', None)
@@ -744,7 +815,7 @@ class TaurusGui(TaurusMainWindow):
 
         #General Qt application settings and jorgs bar logos
         APPNAME = getattr(conf, 'GUI_NAME', self.__getVarFromXML(xmlroot, "GUI_NAME", confname))
-        ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(xmlroot, "ORGANIZATION", 'Taurus'))
+        ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", ':/taurus.png')))
         if CUSTOMLOGO.startswith(':'):
             customIcon = getIcon(CUSTOMLOGO)
