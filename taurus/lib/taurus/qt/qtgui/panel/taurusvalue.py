@@ -582,41 +582,41 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultLabelWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
 
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultReadWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
     
     def writeWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def unitsWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultUnitsWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def customWidgetClassFactory(self, classID):
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def extraWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def updateLabelWidget(self):
         #get the class for the widget and replace it if necessary
