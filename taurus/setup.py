@@ -444,8 +444,7 @@ class build(dftbuild):
                 if pdata is None:
                     package_data[package] = pdata = []
                 pdata.append("*.ui")
-        print( package_data)
-        
+
     def build_jdraw(self):
         print("Building jdraw grammar...", end='')
         taurus_dir = abspath('lib')
