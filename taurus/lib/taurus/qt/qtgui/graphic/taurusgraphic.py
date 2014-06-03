@@ -203,7 +203,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 standAlone = args.standAlone
             else:
                 clName,clParam,objName = self.panel_launcher,args,args
-            
+            if not clName or clName == 'noPanel': 
+                return
             self.debug('TaurusGraphicsScene.showNewPanel(%s,%s,%s)'%(clName,clParam,objName))
             if isinstance(clName,ExternalAppAction):
                 clName.actionTriggered(clParam if isinstance(clParam,(list,tuple)) else [clParam])
@@ -212,7 +213,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     klass = self.getClass(clName)
                     if klass is None: 
                         self.warning("%s Class not found!"%clName)
-                        return
+                        klass = self.getClass("TaurusDevicePanel")
                 else:
                     klass,clName = clName,getattr(clName,'__name__',str(clName))
                 widget = klass() #self.parent())
