@@ -995,7 +995,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 #self._currHtmlText += "</tr></table>"
                 self._currHtmlText = QT_ATTRIBUTE_QUALITY_PALETTE.htmlStyle('P',quality)
                 unit = (self._unitVisible and self.getUnit()) or ''
-                if self._userFormat:
+                if v and self._userFormat:
                     text = self._userFormat % (v.value)
                     if unit:
                         text += ' ' + unit
