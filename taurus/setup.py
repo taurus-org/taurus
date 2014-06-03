@@ -66,6 +66,7 @@ package_dir = { 'taurus' : abspath('lib', 'taurus') }
 
 packages = [
     'taurus',
+    'taurus.test',
 
     'taurus.external',
     'taurus.external.enum',
@@ -109,13 +110,16 @@ packages = [
     'taurus.qt.qtdesigner.taurusplugin',
 
     'taurus.qt.qtgui',
+    'taurus.qt.qtgui.test',
     'taurus.qt.qtgui.application',
     'taurus.qt.qtgui.base',
     'taurus.qt.qtgui.button',
+    'taurus.qt.qtgui.button.test',
 #    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
     'taurus.qt.qtgui.dialog',
     'taurus.qt.qtgui.display',
+    'taurus.qt.qtgui.display.test',
     'taurus.qt.qtgui.display.demo',
     'taurus.qt.qtgui.editor',
     'taurus.qt.qtgui.gauge',
@@ -126,6 +130,7 @@ packages = [
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
     'taurus.qt.qtgui.panel',
+    'taurus.qt.qtgui.panel.test',
     'taurus.qt.qtgui.panel.report',
     'taurus.qt.qtgui.panel.report.ui',
     'taurus.qt.qtgui.panel.ui',
