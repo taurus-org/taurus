@@ -869,6 +869,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
     def __init__(self, name = None, parent = None):
         self.call__init__(TaurusBaseComponent, name, parent) #<- log created here
         #self.debug('TaurusGraphicsItem(%s,%s)' % (name,parent))
+        self.ignoreRepaint = False
         self.setName(name)
         self._currFgBrush = None
         self._currBgBrush = None
@@ -908,7 +909,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         self.noPrompt = self._extensions.get('noPrompt',False)
         self.standAlone = self._extensions.get('standAlone',False)
         self.noTooltip = self._extensions.get('noTooltip',False)
-        self.ignoreRepaint = self._extensions.get('ignoreRepaint',False)
+        self.ignoreRepaint = self._extensions.get('ignoreRepaint', self.ignoreRepaint)
         self.setName(self._extensions.get('name',self._name))
         tooltip = '' if (self.noTooltip or self._name==self.__class__.__name__ or self._name is None) else str(self._name)
         #self.debug('setting %s.tooltip = %s'%(self._name,tooltip))

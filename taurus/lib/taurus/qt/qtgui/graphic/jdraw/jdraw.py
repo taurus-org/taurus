@@ -318,7 +318,14 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         if not item:
             return
         item._params = params
-        name = params.get('name')  
+        name = params.get('name')
+
+        if name.lower() == "ignorerepaint":
+            name = ""
+            if not 'extensions' in params:
+                params['extensions'] = {}
+            params.get('extensions')["ignoreRepaint"] = "true"
+
         if self.alias: 
             for k,v in self.alias.items():
                 name = str(name).replace(k,v)
