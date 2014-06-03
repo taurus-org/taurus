@@ -366,7 +366,9 @@ def main():
         "scripts/Pool",
         "scripts/Sardana",
         "scripts/spectoascii",
-        "scripts/spock"
+        "scripts/spock",
+        "scripts/macroexecutor",
+        "scripts/sequencer"
     ]
 
     classifiers = [
