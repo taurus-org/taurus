@@ -66,7 +66,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     used.
     '''
     def __init__(self, parent=None):
-        Qt.QObject.__init__(self, parent=parent)
+        Qt.QObject.__init__(self, parent)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
 
         self.__panels = {}
