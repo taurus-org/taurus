@@ -1,0 +1,171 @@
+JDFile v11 {
+  Global {
+  }
+  JDRectangle {
+    summit:18,25,496,351
+    origin:257,188
+    background:204,204,204
+    fillStyle:1
+    name:"Rectangle"
+  }
+  JDSwingObject {
+    summit:50,120,181,220
+    origin:84,128
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"true"
+      userFormat:""
+      alarmEnabled:"true"
+      validBackground:"0,255,0"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDLabel {
+    summit:78,96,136,117
+    origin:107,107
+    lineWidth:0
+    name:"Label"
+    text:"big box"
+  }
+  JDSwingObject {
+    summit:300,78,431,95
+    origin:334,86
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"true"
+      userFormat:""
+      alarmEnabled:"true"
+      validBackground:"255,125,215"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDSwingObject {
+    summit:310,195,441,212
+    origin:344,203
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"true"
+      userFormat:""
+      alarmEnabled:"false"
+      validBackground:"0,255,0"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDLabel {
+    summit:276,57,450,78
+    origin:305,68
+    lineWidth:0
+    name:"Label"
+    text:"validBackground = pink"
+  }
+  JDLabel {
+    summit:295,146,452,167
+    origin:324,157
+    lineWidth:0
+    name:"Label"
+    text:"alarmEnabled = false"
+  }
+  JDLabel {
+    summit:307,225,436,246
+    origin:336,236
+    lineWidth:0
+    name:"Label"
+    text:"custom text color"
+  }
+  JDSwingObject {
+    summit:309,244,440,261
+    origin:343,252
+    foreground:51,51,255
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"true"
+      userFormat:""
+      alarmEnabled:"false"
+      validBackground:"0,255,0"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDLabel {
+    summit:318,278,437,299
+    origin:347,289
+    lineWidth:0
+    name:"Label"
+    text:"custom bg color"
+  }
+  JDSwingObject {
+    summit:309,296,440,314
+    origin:343,304
+    background:204,255,255
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"true"
+      userFormat:""
+      alarmEnabled:"false"
+      validBackground:"0,255,0"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDLabel {
+    summit:346,176,402,197
+    origin:375,187
+    lineWidth:0
+    name:"Label"
+    text:"normal"
+  }
+  JDRectangle {
+    summit:270,337,478,166
+    origin:374,245
+    name:"Rectangle"
+  }
+  JDLabel {
+    summit:24,33,188,54
+    origin:97,44
+    lineWidth:0
+    name:"Label"
+    font:"Dialog",1,14
+    text:"SimpleScalarViewer"
+  }
+  JDSwingObject {
+    summit:50,256,181,276
+    origin:84,264
+    fillStyle:1
+    lineWidth:0
+    name:"sys/tg_test/1/float_scalar"
+    extensions:{
+      unitVisible:"false"
+      userFormat:"x = %4.1f"
+      alarmEnabled:"true"
+      validBackground:"0,255,0"
+      invalidText:"-----"
+    }
+    className:"fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer"
+    font:"Dialog",0,12
+  }
+  JDLabel {
+    summit:28,234,263,255
+    origin:146,245
+    lineWidth:0
+    name:"Label"
+    text:"userFormat + unitVisible = false"
+  }
+}
