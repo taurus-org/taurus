@@ -996,7 +996,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 if quality == PyTango.AttrQuality.ATTR_VALID and self._validBackground:
                     background = self._validBackground
                 else:
-                    background = QT_ATTRIBUTE_QUALITY_PALETTE.qcolor(quality)
+                    background, _ = QT_ATTRIBUTE_QUALITY_PALETTE.qcolor(quality)
                 self.setBrush(Qt.QBrush(background))
             except:
                 self.warning('In TaurusGraphicsAttributeItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
