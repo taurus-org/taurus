@@ -358,9 +358,13 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         try:
             getattr(item,'setPen')
             fg = params.get("foreground", (0,0,0))
-            pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
-            pen.setWidth(params.get("lineWidth", 1))
-            pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
+            lineWidth = params.get("lineWidth", 1)
+            if lineWidth == 0:
+                pen = Qt.QPen(Qt.Qt.NoPen)
+            else:
+                pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
+                pen.setWidth(lineWidth)
+                pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
             item.setPen(pen)
         except AttributeError,ae:
             pass
