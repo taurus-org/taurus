@@ -500,9 +500,8 @@ class TaurusGui(TaurusMainWindow):
 
         # create a panel
         panel = DockWidgetPanel(None, widget, name, self)
-        if len(self.__panels) == 0:
-            self.addDockWidget(Qt.Qt.TopDockWidgetArea, panel)  #we will only place panels in this area
-        else:
+        self.addDockWidget(Qt.Qt.TopDockWidgetArea, panel)  #we will only place panels in this area
+        if len(self.__panels) != 0:
             self.tabifyDockWidget(self.__panels.values()[-1], panel)
 
         panel.setFloating(floating)
