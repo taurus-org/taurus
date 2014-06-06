@@ -1203,7 +1203,7 @@ TYPE_TO_GRAPHICS = {
              "Label"          : QGraphicsTextBoxing,
              "Line"           : Qt.QGraphicsLineItem,
              "Group"          : TaurusGroupItem,
-             "SwingObject"    : Qt.QGraphicsRectItem,
+             "SwingObject"    : TaurusTextAttributeItem,
              "Image"          : Qt.QGraphicsPixmapItem,
              "Spline"         : QSpline, },
 
