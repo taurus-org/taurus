@@ -1,0 +1,70 @@
+JDFile v11 {
+  Global {
+  }
+  JDLabel {
+    summit:39,19,148,40
+    origin:120,30
+    lineWidth:0
+    name:"Label"
+    text:"lineWidth=0"
+  }
+  JDLabel {
+    summit:51,50,141,71
+    origin:132,61
+    name:"Label"
+    text:"lineWidth=1"
+  }
+  JDLabel {
+    summit:52,90,142,111
+    origin:133,101
+    lineWidth:2
+    name:"Label"
+    text:"lineWidth=2"
+  }
+  JDRectangle {
+    summit:171,23,196,38
+    origin:182,30
+    background:204,255,255
+    fillStyle:1
+    lineWidth:0
+    name:"Rectangle"
+  }
+  JDRectangle {
+    summit:170,55,195,70
+    origin:181,62
+    background:204,255,255
+    fillStyle:1
+    name:"Rectangle"
+  }
+  JDRectangle {
+    summit:169,91,199,107
+    origin:185,71
+    background:204,255,255
+    fillStyle:1
+    lineWidth:2
+    name:"Rectangle"
+  }
+  JDPolyline {
+    summit:222,71,221,54,230,61,236,55,236,70,228,66,223,70,223,70,221,73
+    origin:229,64
+    background:153,255,255
+    fillStyle:1
+    name:"Polyline"
+  }
+  JDPolyline {
+    summit:221,39,220,22,229,29,235,23,235,38,227,34,222,38,222,38,220,41
+    origin:228,32
+    background:153,255,255
+    fillStyle:1
+    lineWidth:0
+    name:"Polyline"
+  }
+  JDPolyline {
+    summit:223,104,222,87,231,94,237,88,237,103,229,99,224,103,224,103,222,106
+    origin:230,97
+    background:153,255,255
+    fillStyle:1
+    lineWidth:2
+    name:"Polyline"
+  }
+}
