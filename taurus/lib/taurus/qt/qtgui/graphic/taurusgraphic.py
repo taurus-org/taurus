@@ -763,8 +763,11 @@ class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
     def setBrush(self, brush):
         self._rect.setBrush(brush)
 
+    def pen(self):
+        return self._rect.pen()
+
     def setPen(self, pen):
-        self._text.setDefaultTextColor(pen.color())
+        self._rect.setPen(pen)
 
     def setDefaultTextColor(self, color):
         self._text.setDefaultTextColor(color)
@@ -1200,7 +1203,7 @@ TYPE_TO_GRAPHICS = {
              "Label"          : QGraphicsTextBoxing,
              "Line"           : Qt.QGraphicsLineItem,
              "Group"          : TaurusGroupItem,
-             "SwingObject"    : Qt.QGraphicsRectItem,
+             "SwingObject"    : TaurusTextAttributeItem,
              "Image"          : Qt.QGraphicsPixmapItem,
              "Spline"         : QSpline, },
 
