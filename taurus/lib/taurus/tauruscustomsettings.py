@@ -56,6 +56,14 @@ LIGHTWEIGHT_IMPORTS = False
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
 
 # ----------------------------------------------------------------------------
+# PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled. 
+# Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading 
+# synoptics   
+# ----------------------------------------------------------------------------
+
+PLY_OPTIMIZE = 1
+
+# ----------------------------------------------------------------------------
 # Taurus namespace
 # ----------------------------------------------------------------------------
 

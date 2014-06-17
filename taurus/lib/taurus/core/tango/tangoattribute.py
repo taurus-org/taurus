@@ -33,6 +33,7 @@ __docformat__ = "restructuredtext"
 import time
 import threading
 import PyTango
+import numpy
 
 from taurus import Factory, Manager
 from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
@@ -179,8 +180,12 @@ class TangoAttribute(TaurusAttribute):
         fmt = self.getDataFormat()
         type = self.getType()
         if fmt == PyTango.SCALAR:
-            if PyTango.is_float_type(type):
+            if type == DataType.DevDouble:
                 attrvalue = float(value)
+            elif type == DataType.DevFloat:
+                # We encode to float, but rounding to Tango::DevFloat precision
+                # see: http://sf.net/p/sardana/tickets/162
+                attrvalue = float(numpy.float32(value))
             elif PyTango.is_int_type(type):
                 #attrvalue = int(value)
                 attrvalue = long(value)  #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)

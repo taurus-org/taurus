@@ -72,6 +72,19 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QToolButton" name="plotsButton" >
+           <property name="toolTip" >
+            <string>If checked, the configured plots are shown</string>
+           </property>
+           <property name="text" >
+            <string>plots</string>
+           </property>
+           <property name="checkable" >
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -242,25 +255,26 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SardanaElementTreeWidget</class>
-   <extends>QMainWindow</extends>
-   <header>sardana.taurus.qt.qtgui.extra_sardana</header>
-  </customwidget>
-  <customwidget>
    <class>TaurusModelList</class>
    <extends>QListView</extends>
    <header>taurus.qt.qtgui.panel</header>
+  </customwidget>
+  <customwidget>
+   <class>TaurusModelSelectorTree</class>
+   <extends>TaurusWidget</extends>
+   <header>taurus.qt.qtgui.panel</header>
+  </customwidget>
+  <customwidget>
+   <class>SardanaElementTreeWidget</class>
+   <extends>QMainWindow</extends>
+   <header>sardana.taurus.qt.qtgui.extra_sardana</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>MntGrpChannelEditor</class>
    <extends>QMainWindow</extends>
    <header>sardana.taurus.qt.qtgui.extra_sardana</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TaurusModelSelectorTree</class>
-   <extends>TaurusWidget</extends>
-   <header>taurus.qt.qtgui.panel</header>
   </customwidget>
  </customwidgets>
  <resources/>

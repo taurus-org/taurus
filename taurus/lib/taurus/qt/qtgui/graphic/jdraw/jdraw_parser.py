@@ -259,9 +259,12 @@ def p_value_bool(p):
              | false'''
     p[0] = p[1] == 'true'
 
-def new_parser(optimize=1, debug=0, outputdir=None):
+def new_parser(optimize=None, debug=0, outputdir=None):
     log = Logger('JDraw Parser')
 
+    if optimize is None:
+        from taurus import tauruscustomsettings
+        optimize = getattr(tauruscustomsettings, 'PLY_OPTIMIZE', 1)
     if outputdir is None:
         outputdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -291,9 +294,16 @@ def new_parser(optimize=1, debug=0, outputdir=None):
     l = lex.lex(lextab=jdraw_lextab, **common_kwargs)
 
     # Yacc
-    p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
-                  **common_kwargs)
-
+    try:
+        p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
+                      **common_kwargs)
+    except Exception, e:
+        msg = ('Error while parsing. You may solve it by:\n' + \
+               '  a) removing jdraw_lextab.* and jdraw_yacctab.* from\n' +\
+               '     %s , or...\n' % os.path.dirname(__file__) + \
+               '  b) setting PLY_OPTIMIZE=0 in tauruscustomsettings.py')
+        raise RuntimeError(msg)
+        
     return l, p
     
 def parse(filename=None, factory=None):

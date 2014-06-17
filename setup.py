@@ -302,6 +302,7 @@ def main():
 
     packages = [
         'sardana',
+        'sardana.test',
 
         'sardana.util',
         'sardana.util.motion',
@@ -311,6 +312,7 @@ def main():
 
         'sardana.macroserver',
         'sardana.macroserver.macros',
+        'sardana.macroserver.macros.test',
         'sardana.macroserver.macros.examples',
         'sardana.macroserver.scan',
         'sardana.macroserver.scan.recorder',
@@ -319,8 +321,10 @@ def main():
         'sardana.tango.core',
         'sardana.tango.pool',
         'sardana.tango.macroserver',
+        'sardana.tango.macroserver.test',
 
         'sardana.spock',
+        'sardana.spock.test',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
         'sardana.spock.ipython_01_00',
@@ -366,7 +370,9 @@ def main():
         "scripts/Pool",
         "scripts/Sardana",
         "scripts/spectoascii",
-        "scripts/spock"
+        "scripts/spock",
+        "scripts/macroexecutor",
+        "scripts/sequencer"
     ]
 
     classifiers = [

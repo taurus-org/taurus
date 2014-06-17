@@ -66,6 +66,7 @@ package_dir = { 'taurus' : abspath('lib', 'taurus') }
 
 packages = [
     'taurus',
+    'taurus.test',
 
     'taurus.external',
     'taurus.external.enum',
@@ -109,13 +110,16 @@ packages = [
     'taurus.qt.qtdesigner.taurusplugin',
 
     'taurus.qt.qtgui',
+    'taurus.qt.qtgui.test',
     'taurus.qt.qtgui.application',
     'taurus.qt.qtgui.base',
     'taurus.qt.qtgui.button',
+    'taurus.qt.qtgui.button.test',
 #    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
     'taurus.qt.qtgui.dialog',
     'taurus.qt.qtgui.display',
+    'taurus.qt.qtgui.display.test',
     'taurus.qt.qtgui.display.demo',
     'taurus.qt.qtgui.editor',
     'taurus.qt.qtgui.gauge',
@@ -126,6 +130,7 @@ packages = [
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
     'taurus.qt.qtgui.panel',
+    'taurus.qt.qtgui.panel.test',
     'taurus.qt.qtgui.panel.report',
     'taurus.qt.qtgui.panel.report.ui',
     'taurus.qt.qtgui.panel.ui',
@@ -448,16 +453,15 @@ class build(dftbuild):
     def build_jdraw(self):
         print("Building jdraw grammar...", end='')
         taurus_dir = abspath('lib')
-        sys.path.append(taurus_dir)
+        sys.path.insert(0, taurus_dir)
         try:
             from taurus.qt.qtgui.graphic.jdraw import jdraw_parser
             jdraw_parser.new_parser()
             print(" [DONE]")
         except:
             print("[ERROR]")
-            raise
         finally:
-            sys.path.pop()
+            sys.path.pop(0)
         
     def has_doc(self):
         if self.no_doc:

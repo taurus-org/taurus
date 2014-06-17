@@ -261,13 +261,37 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         s = params.get('summit')
         x1, y1 = s[0], s[1]
         item.setPos(x1,y1)
-        ext = params.get('extensions')
 
         className = params.get('className')
         if className == "fr.esrf.tangoatk.widget.attribute.SimpleScalarViewer":
-            self.readLabelObj(item, params)
+            self.readSimpleScalarViewerObj(item, params)
 
         return item
+
+    def readSimpleScalarViewerObj(self, item, params):
+        self.readLabelObj(item, params)
+
+        ext = params.get('extensions')
+
+        c = ext.get('validBackground')
+        c = [int(x) for x in c.split(",")]
+        if c:
+            validBackground = Qt.QColor(*c)
+            item.setValidBackground(validBackground)
+
+        invalidText = ext.get('invalidText', "-----")
+        item.setNoneValue(invalidText)
+
+        alarmEnabled = ext.get('alarmEnabled', True)
+        alarmEnabled = alarmEnabled.lower().strip() in ["yes", "true", "1"]
+        item.setShowQuality(alarmEnabled)
+
+        unitVisible = ext.get('unitVisible', True)
+        unitVisible = unitVisible.lower().strip() in ["yes", "true", "1"]
+        item.setUnitVisible(unitVisible)
+
+        userFormat = ext.get('userFormat', None)
+        item.setUserFormat(userFormat)
 
     def getImageObj(self,params):
         item = self.getGraphicsItem('Image',params)
@@ -294,7 +318,14 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         if not item:
             return
         item._params = params
-        name = params.get('name')  
+        name = params.get('name')
+
+        if name.lower() == "ignorerepaint":
+            name = ""
+            if not 'extensions' in params:
+                params['extensions'] = {}
+            params.get('extensions')["ignoreRepaint"] = "true"
+
         if self.alias: 
             for k,v in self.alias.items():
                 name = str(name).replace(k,v)
@@ -327,9 +358,13 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         try:
             getattr(item,'setPen')
             fg = params.get("foreground", (0,0,0))
-            pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
-            pen.setWidth(params.get("lineWidth", 1))
-            pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
+            lineWidth = params.get("lineWidth", 1)
+            if lineWidth == 0:
+                pen = Qt.QPen(Qt.Qt.NoPen)
+            else:
+                pen = Qt.QPen(Qt.QColor(fg[0],fg[1],fg[2]))
+                pen.setWidth(lineWidth)
+                pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
             item.setPen(pen)
         except AttributeError,ae:
             pass
