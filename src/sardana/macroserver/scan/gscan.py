@@ -1255,15 +1255,15 @@ class CScan(GScan):
             min_dec_time = motor.getDeceleration()
         return min_dec_time
  
-#    def set_max_top_velocity(self, motor):
-#        """Helper method to set the maximum top velocity for the motor to 
-#        its maximum allowed limit."""
-#        
-#        v = self.get_max_top_velocity(motor)
-#        try:
-#            motor.setVelocity(v)
-#        except:
-#            pass
+    def set_max_top_velocity(self, motor):
+        """Helper method to set the maximum top velocity for the motor to 
+        its maximum allowed limit."""
+        
+        v = self.get_max_top_velocity(motor)
+        try:
+            motor.setVelocity(v)
+        except:
+            pass
 
                 
 class CSScan(CScan):
