@@ -30,7 +30,7 @@ __all__ = ["TaurusReadWriteSwitcher"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 

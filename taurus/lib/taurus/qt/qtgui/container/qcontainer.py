@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import json
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.resource import getThemePixmap, getThemeIcon, getStandardIcon
 
 _TitleBarStyleExpanded = """.QFrame {{

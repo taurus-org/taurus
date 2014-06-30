@@ -26,18 +26,21 @@
 """This module is part of the Python Sardana libray. It defines the base
 classes for MetaLibrary and MetaClass"""
 
+from __future__ import absolute_import
+
 __all__ = ["SardanaLibrary", "SardanaClass", "SardanaFunction"]
 
 __docformat__ = 'restructuredtext'
 
 import os
 import inspect
-import linecache
 import string
 import weakref
+import linecache
 import traceback
 
-from sardanabase import SardanaBaseObject
+from sardana.sardanabase import SardanaBaseObject
+
 
 # ----------------------------------------------------------------------------
 # Start patch around inspect issue http://bugs.python.org/issue993580
@@ -472,9 +475,9 @@ class SardanaCode(SardanaBaseObject):
         return kwargs
 
     def get_brief_description(self, max_chars=60):
-        desc = self.description.replace('\n',' ')
-        if len(desc) > (max_chars-5):
-            desc = desc[:max_chars-5] + '[...]'
+        desc = self.description.replace('\n', ' ')
+        if len(desc) > (max_chars - 5):
+            desc = desc[:max_chars - 5] + '[...]'
         return desc
 
 

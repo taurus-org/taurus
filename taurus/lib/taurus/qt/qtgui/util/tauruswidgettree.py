@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import weakref
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.util.enumeration import Enumeration
 

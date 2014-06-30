@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.util.excepthook import BaseExceptHook
 from taurus.core.util.log import LogExceptHook

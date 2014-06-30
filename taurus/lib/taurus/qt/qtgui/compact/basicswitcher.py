@@ -30,7 +30,7 @@ __all__ = ["TaurusLabelEditRW", "TaurusLabelEditRW"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.display import TaurusLabel, TaurusBoolLed
 from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
 from abstractswitcher import TaurusReadWriteSwitcher

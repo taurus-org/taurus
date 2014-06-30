@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 
 import numpy
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import PyTango
 

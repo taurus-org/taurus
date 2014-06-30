@@ -357,3 +357,17 @@ scalar), TaurusTrend will interpret it as a collection of scalar values and will
 plot a separate trend line for each.
 
 .. _PyQwt: http://pyqwt.sourceforge.net/
+
+
+Even higher level: creating a TaurusGui 
+---------------------------------------
+
+:class:`taurusgui.TaurusGui` provides very convenient way of creating 
+feature-rich and very configurable GUIs by using existing widgets as "panels".
+TaurusGuis can be created via a wizard application (no programming at all!) with
+a few clicks. You can try it out by running::
+
+	taurusgui --new-gui
+	
+For more details and tricks regarding TaurusGui, check the :module:`taurusgui`
+

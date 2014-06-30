@@ -26,30 +26,31 @@
 """This module is part of the Python Pool libray. It defines the class for an
 acquisition"""
 
-__all__ = [ "AcquisitionState", "AcquisitionMap", "PoolCTAcquisition",
-            "Pool0DAcquisition", "Channel", "PoolIORAcquisition" ]
+__all__ = ["AcquisitionState", "AcquisitionMap", "PoolCTAcquisition",
+           "Pool0DAcquisition", "Channel", "PoolIORAcquisition"]
 
 __docformat__ = 'restructuredtext'
 
 import time
 
-from taurus.core.util import Enumeration, DebugIt
+from taurus.core.util.log import DebugIt
+from taurus.core.util.enumeration import Enumeration
 
 from sardana import State, ElementType, TYPE_TIMERABLE_ELEMENTS
 from sardana.sardanathreadpool import get_thread_pool
-from poolaction import ActionContext, PoolActionItem, PoolAction
+from sardana.pool.poolaction import ActionContext, PoolActionItem, PoolAction
 
 #: enumeration representing possible motion states
-AcquisitionState = Enumeration("AcquisitionState", ( \
+AcquisitionState = Enumeration("AcquisitionState", (\
     "Stopped",
 #    "StoppedOnError",
 #    "StoppedOnAbort",
     "Acquiring",
-    "Invalid") )
+    "Invalid"))
 
 AS = AcquisitionState
 AcquiringStates = AS.Acquiring,
-StoppedStates = AS.Stopped, #MS.StoppedOnError, MS.StoppedOnAbort
+StoppedStates = AS.Stopped,  #MS.StoppedOnError, MS.StoppedOnAbort
 
 AcquisitionMap = {
     #AS.Stopped           : State.On,
@@ -71,7 +72,7 @@ class PoolAcquisition(PoolAction):
         if n == 1:
             return self._run_single(*args, **kwargs)
         return self._run_multiple(*args, **kwargs)
-    
+
     def _run_multiple(self, *args, **kwargs):
         n = kwargs['multiple']
         synch = kwargs.get("synch", False)
@@ -81,7 +82,7 @@ class PoolAcquisition(PoolAction):
         else:
             kwargs["synch"] = True
             get_thread_pool().add(self._run_multiple, None, *args, **kwargs)
-    
+
     def _run_single(self, *args, **kwargs):
         """Runs this action"""
         synch = kwargs.get("synch", False)
@@ -190,7 +191,7 @@ class PoolCTAcquisition(PoolAction):
 
     def get_read_value_loop_ctrls(self):
         return self._pool_ctrl_dict_loop
-    
+
     def start_action(self, *args, **kwargs):
         """Prepares everything for acquisition and starts it.
 
@@ -219,13 +220,13 @@ class PoolCTAcquisition(PoolAction):
         cfg = kwargs['config']
 
         # determine which is the controller which holds the master channel
-        
+
         if integ_time is not None:
             master_key = 'timer'
             master_value = integ_time
         if mon_count is not None:
             master_key = 'monitor'
-            master_value = - mon_count
+            master_value = -mon_count
 
         master = cfg[master_key]
         master_ctrl = master.controller
@@ -239,7 +240,7 @@ class PoolCTAcquisition(PoolAction):
                 pool_ctrls.append(ctrl)
             if ElementType.CTExpChannel in ctrl.get_ctrl_types():
                 _pool_ctrl_dict_loop[ctrl] = v
-            
+
         # make sure the controller which has the master channel is the last to
         # be called
         pool_ctrls.remove(master_ctrl)
@@ -336,7 +337,7 @@ class PoolCTAcquisition(PoolAction):
             self.raw_read_value_loop(ret=values)
             for acquirable, value in values.items():
                 acquirable.put_value(value, propagate=2)
-        
+
         while True:
             self.read_state_info(ret=states)
 
@@ -348,7 +349,7 @@ class PoolCTAcquisition(PoolAction):
                 self.read_value_loop(ret=values)
                 for acquirable, value in values.items():
                     acquirable.put_value(value)
-                    
+
             time.sleep(nap)
             i += 1
 

@@ -108,8 +108,10 @@ class install_man(Command):
         man_pages = []
         for f in man_elems:
             f = os.path.join(src_man_dir, f)
-            if not os.path.isfile(f): continue
-            if not f.endswith(".1"): continue
+            if not os.path.isfile(f):
+                continue
+            if not f.endswith(".1"):
+                continue
             man_pages.append(f)
 
         install_dir = os.path.join(self.install_dir, 'man1')
@@ -148,15 +150,15 @@ class install_scripts(dftinstall_scripts):
     See rationale in: 
     http://matthew-brett.github.io/pydagogue/installing_scripts.html
     '''
-    
+
     user_options = list(dftinstall_scripts.user_options)
     user_options.extend(
             [
              ('wrappers', None, 'Install .bat wrappers for windows (enabled by default on windows)'),
              ('ignore-shebang', None, 'Use "python" as the interpreter in .bat wrappers (instead of using the interpreter found in the shebang line of the scripts). Note: this only affects to windows .bat wrappers!'),
              ])
-    
-    
+
+
     BAT_TEMPLATE_SHEBANG = \
 r"""@echo off
 REM wrapper to use shebang first line of {FNAME}
@@ -183,7 +185,7 @@ call %py_exe% %pyscript% %*
         self.ignore_shebang = None
         self.wrappers = (os.name == "nt")
         dftinstall_scripts.initialize_options(self)
-        
+
     def run(self):
         dftinstall_scripts.run(self)
         if self.wrappers:
@@ -300,6 +302,7 @@ def main():
 
     packages = [
         'sardana',
+        'sardana.test',
 
         'sardana.util',
         'sardana.util.motion',
@@ -309,6 +312,7 @@ def main():
 
         'sardana.macroserver',
         'sardana.macroserver.macros',
+        'sardana.macroserver.macros.test',
         'sardana.macroserver.macros.examples',
         'sardana.macroserver.scan',
         'sardana.macroserver.scan.recorder',
@@ -317,11 +321,31 @@ def main():
         'sardana.tango.core',
         'sardana.tango.pool',
         'sardana.tango.macroserver',
+        'sardana.tango.macroserver.test',
 
         'sardana.spock',
+        'sardana.spock.test',
         'sardana.spock.ipython_00_10',
         'sardana.spock.ipython_00_11',
         'sardana.spock.ipython_01_00',
+
+        'sardana.taurus',
+        'sardana.taurus.core',
+        'sardana.taurus.core.tango',
+        'sardana.taurus.core.tango.sardana',
+        'sardana.taurus.qt',
+        'sardana.taurus.qt.qtcore',
+        'sardana.taurus.qt.qtcore.tango',
+        'sardana.taurus.qt.qtcore.tango.sardana',
+        'sardana.taurus.qt.qtgui',
+        'sardana.taurus.qt.qtgui.extra_macroexecutor',
+        'sardana.taurus.qt.qtgui.extra_macroexecutor.favouriteseditor',
+        'sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor',
+        'sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.customeditors',
+        'sardana.taurus.qt.qtgui.extra_macroexecutor.sequenceeditor',
+        'sardana.taurus.qt.qtgui.extra_sardana',
+        'sardana.taurus.qt.qtgui.extra_sardana.ui',
+        'sardana.taurus.qt.qtgui.extra_pool',
     ]
 
     provides = [
@@ -346,7 +370,9 @@ def main():
         "scripts/Pool",
         "scripts/Sardana",
         "scripts/spectoascii",
-        "scripts/spock"
+        "scripts/spock",
+        "scripts/macroexecutor",
+        "scripts/sequencer"
     ]
 
     classifiers = [

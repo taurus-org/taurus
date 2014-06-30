@@ -23,32 +23,29 @@
 ##
 ##############################################################################
 
-import sys
-import threading
-import time
-import copy
 import json
+import time
+import threading
 
-from PyTango import Util, DevFailed, Except, DevVoid, DevShort, DevLong, \
-    DevLong64, DevDouble, DevBoolean, DevString, DevState, DevEncoded, \
-    DevVarStringArray, \
-    DispLevel, AttrQuality, TimeVal, AttrData, ArgType, \
+from lxml import etree
+
+from PyTango import Util, DevFailed, Except, DevVoid, DevLong, \
+    DevLong64, DevString, DevState, DevEncoded, \
+    DevVarStringArray, ArgType, \
     READ, READ_WRITE, SCALAR, SPECTRUM
 
-import taurus
-import taurus.core.util
-from lxml import etree
+from taurus.core.util.log import DebugIt, LogFilter
 from taurus.core.util.codecs import CodecFactory
-from taurus.core.util.log import DebugIt
 
 from sardana import State, InvalidId, SardanaServer
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.macroserver.macro import Macro
 from sardana.macroserver.msdoor import BaseInputHandler
+from sardana.macroserver.msexception import MacroServerException
+from sardana.tango.core.util import throw_sardana_exception
 from sardana.tango.core.attributehandler import AttributeLogHandler
 from sardana.tango.core.SardanaDevice import SardanaDevice, SardanaDeviceClass
-from sardana.macroserver.msexception import MacroServerException, \
-    InputCancelled
+from sardana.macroserver.msexception import InputCancelled
 
 
 class TangoInputHandler(BaseInputHandler):
@@ -243,7 +240,7 @@ class Door(SardanaDevice):
         for level in levels:
             handler = AttributeLogHandler(self, level,
                                           max_buff_size=self.MaxMsgBufferSize)
-            filter = taurus.core.util.LogFilter(level=getattr(self, level))
+            filter = LogFilter(level=getattr(self, level))
             handler.addFilter(filter)
             self.addLogHandler(handler)
             format = None
@@ -333,8 +330,9 @@ class Door(SardanaDevice):
             macro_data = self.door.get_macro_data()
             codec = CodecFactory().getCodec('bz2_pickle')
             data = codec.encode(('', macro_data))
-        except:
-            data = '', ''
+        except MacroServerException, mse:
+            throw_sardana_exception(mse)
+
         attr.set_value(*data)
     
     def read_MacroStatus(self, attr):

@@ -32,7 +32,7 @@ __all__ = ["TaurusDevicePanel","TaurusDevPanel"]
 __docformat__ = 'restructuredtext'
 
 import re,traceback
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus.qt.qtgui.resource
 from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusElementType

@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getPixmap
 from .qpixmapwidget import QPixmapWidget

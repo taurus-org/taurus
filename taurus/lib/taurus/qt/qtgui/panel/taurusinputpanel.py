@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import collections
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import ui.ui_TaurusInputPanel
 
 

@@ -1,5 +1,5 @@
 import sys
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.display import TaurusStateLabel
 
 app = Qt.QApplication(sys.argv)

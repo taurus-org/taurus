@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import os
 import traceback
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -392,17 +392,27 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     model = Qt.pyqtProperty("QString", getModel, setModel)
 
     def setSelectionStyle(self, selectionStyle):
+        if isinstance(selectionStyle, (Qt.QString, basestring)):
+            selectionStyle = str(selectionStyle).upper()
+            try:
+                selectionStyle = SynopticSelectionStyle[selectionStyle]
+            except:
+                self.debug('invalid selectionStyle "%s"', selectionStyle)
+                return
         if self.scene() != None:
             self.scene().setSelectionStyle(selectionStyle)
         self._selectionStyle = selectionStyle
 
-    def getSelectionStyle(self, selectionStyle):
+    def getSelectionStyle(self):
         return self._selectionStyle
+    
+    def getSelectionStyleName(self):
+        return SynopticSelectionStyle.whatis(self.getSelectionStyle())
 
-    def resetSelectionStyle(self, selectionStyle):
-        self.setSelectionStyle(SynopticSelectionStyle.ELLIPSE)
+    def resetSelectionStyle(self):
+        self.setSelectionStyle(SynopticSelectionStyle.OUTLINE)
 
-    selectionStyle = Qt.pyqtProperty(str, getSelectionStyle,
+    selectionStyle = Qt.pyqtProperty("QString", getSelectionStyleName,
                                          setSelectionStyle,
                                          resetSelectionStyle)
 

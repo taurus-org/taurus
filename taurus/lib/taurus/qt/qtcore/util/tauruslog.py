@@ -29,7 +29,7 @@ __all__ = ['getQtLogger', 'initTaurusQtLogger']
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus import Logger
 
 qtLogger = None

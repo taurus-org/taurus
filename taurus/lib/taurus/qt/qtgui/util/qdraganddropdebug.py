@@ -26,7 +26,7 @@
 __all__ = ["DropDebugger"]
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 class DropDebugger(Qt.QLabel):
     '''A simple utility for debugging drag&drop. 

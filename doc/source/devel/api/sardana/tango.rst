@@ -12,3 +12,4 @@
     
     core <tango/core>
     pool <tango/pool>
+    macroserver <tango/macroserver>	

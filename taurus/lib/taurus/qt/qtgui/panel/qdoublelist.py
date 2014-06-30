@@ -33,7 +33,7 @@ __all__ = ["QDoubleListDlg"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from ui.ui_DoubleListDlg import Ui_DoubleListDlg
 
 class QDoubleListDlg(Qt.QDialog):

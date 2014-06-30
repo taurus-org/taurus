@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from datetime import datetime
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import PyTango
 
 import taurus.core

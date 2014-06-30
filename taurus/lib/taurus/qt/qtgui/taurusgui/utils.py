@@ -252,7 +252,7 @@ class TaurusGuiComponentDescription(object):
         model = etree.SubElement(root, "model")
         model.text = self._model
         
-        return  etree.tostring(root)
+        return  etree.tostring(root, pretty_print=True)
     
     @staticmethod
     def fromXml(xmlstring):
@@ -367,18 +367,21 @@ class PanelDescription(TaurusGuiComponentDescription):
         floating = panel.isFloating()
         sharedDataWrite = None
         sharedDataRead = None
-        model = getattr(panel.widget(),'model',None)
-        # check if model is not None and is a sequence but not a string,
-        # and convert it to a space-separated string
-        if model is not None and not hasattr(model,'__iter__'):
+        model = getattr(panel.widget(),'model',None)   
+        if model is None or isinstance(model, basestring):
+            pass
+        elif hasattr(model,'__iter__'):
+            # if model is a sequence, convert to space-separated string
             try:
                 model = " ".join(model)
             except Exception, e:
-                msg = 'Could not compose a string representation ' + \
-                      'of a model from a sequence: %s' % e
+                msg = ('Cannot convert %s to a space-separated string: %s' % 
+                       (model, e))
                 Logger().debug(msg)
                 model = None
-            
+        else:
+            # ignore other "model" attributes (they are not from Taurus)
+            model = None
         return PanelDescription(name, classname=classname, 
                                 modulename=modulename, widgetname=widgetname,
                                 floating=floating, 

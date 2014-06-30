@@ -25,6 +25,8 @@
 
 """This module parses jdraw files"""
 
+from __future__ import absolute_import
+
 __all__ = ["new_parser", "parse"]
 
 import os,re,traceback
@@ -257,11 +259,14 @@ def p_value_bool(p):
              | false'''
     p[0] = p[1] == 'true'
 
-def new_parser(optimize=1, debug=0, outputdir=None):
+def new_parser(optimize=None, debug=0, outputdir=None):
     log = Logger('JDraw Parser')
 
+    if optimize is None:
+        from taurus import tauruscustomsettings
+        optimize = getattr(tauruscustomsettings, 'PLY_OPTIMIZE', 1)
     if outputdir is None:
-        outputdir = os.path.dirname(os.path.abspath(__file__))
+        outputdir = os.path.dirname(os.path.realpath(__file__))
 
     debuglog = None
     if debug:
@@ -270,12 +275,35 @@ def new_parser(optimize=1, debug=0, outputdir=None):
     common_kwargs = dict(optimize=optimize, outputdir=outputdir,
                          debug=debug, debuglog=debuglog, errorlog=log)
     
+    # lex/yacc v<3.0 do not accept  debuglog or errorlog keyword args
+    if int(lex.__version__.split('.')[0]) < 3: 
+        common_kwargs.pop('debuglog')
+        common_kwargs.pop('errorlog')
+    
+    try:
+        from . import jdraw_lextab
+    except ImportError:
+        jdraw_lextab = 'jdraw_lextab'
+
+    try:
+        from . import jdraw_yacctab
+    except ImportError:
+        jdraw_yacctab = 'jdraw_yacctab'
+
     # Lexer
-    l = lex.lex(lextab='jdraw_lextab', **common_kwargs)
+    l = lex.lex(lextab=jdraw_lextab, **common_kwargs)
 
     # Yacc
-    p = yacc.yacc(tabmodule='jdraw_yacctab', debugfile=None, write_tables=1,
-                  **common_kwargs)
+    try:
+        p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
+                      **common_kwargs)
+    except Exception, e:
+        msg = ('Error while parsing. You may solve it by:\n' + \
+               '  a) removing jdraw_lextab.* and jdraw_yacctab.* from\n' +\
+               '     %s , or...\n' % os.path.dirname(__file__) + \
+               '  b) setting PLY_OPTIMIZE=0 in tauruscustomsettings.py')
+        raise RuntimeError(msg)
+        
     return l, p
     
 def parse(filename=None, factory=None):

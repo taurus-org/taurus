@@ -30,7 +30,7 @@ __all__ = ["ClipboardReportHandler", "SMTPReportHandler"]
 __docformat__ = 'restructuredtext'
 
 from taurus.core.util.report import TaurusMessageReportHandler
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from ui import ui_SendMailForm
 
 
