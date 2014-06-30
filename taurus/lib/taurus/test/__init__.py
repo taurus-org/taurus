@@ -66,3 +66,4 @@ from .moduleexplorer import ModuleExplorer
 from .resource import getResourcePath
 from .skip import GUI_TESTS_ENABLED, skipUnlessGui
 from .base import insertTest
+from .fuzzytest import calculateTestFuzziness, loopSubprocess, loopTest
