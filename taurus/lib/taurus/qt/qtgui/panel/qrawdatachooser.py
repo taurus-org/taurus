@@ -34,7 +34,7 @@ from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
-@UILoadable(with_ui='ui')
+@UILoadable
 class QRawDataWidget(Qt.QWidget):
     
     def __init__(self, parent=None):

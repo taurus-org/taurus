@@ -33,7 +33,7 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
-@UILoadable(with_ui='ui')
+@UILoadable
 class QDataExportDialog(Qt.QDialog):
     """
     This creates a Qt dialog for showing and exporting x-y Ascii data from one or more curves 
