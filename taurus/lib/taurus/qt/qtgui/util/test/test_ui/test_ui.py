@@ -23,63 +23,60 @@
 ##
 #############################################################################
 
-import os.path as osp
+"""Unit tests for UILoadable decorator"""
 
-import taurus
-taurus.setLogLevel(taurus.Critical)
+import os.path
 
 from taurus.external import unittest
 from taurus.external.qt import Qt
-
 from taurus.qt.qtgui.util.ui import UILoadable
 
-__APP = None
-
-def Application():
-    global __APP
-    app = Qt.QApplication.instance()
-    if app is None:
-        app = Qt.QApplication([])
-        __APP = app
-    return app
-
-
-@UILoadable
-class MyWidget1(Qt.QWidget):
-
-    def __init__(self, parent=None):
-        Qt.QWidget.__init__(self, parent)
-        self.loadUi()
-        self.my_button.setText("This is MY1 button")
-
-
-@UILoadable(with_ui="ui")
-class MyWidget2(Qt.QWidget):
-
-    def __init__(self, parent=None):
-        Qt.QWidget.__init__(self, parent)
-        self.loadUi(filename="mywidget2_custom.ui",
-                    path=osp.join(osp.dirname(__file__), "ui", "mywidget2"))
-        self.ui.my_button.setText("This is MY2 button")
-        
 
 class UILoadableTestCase(unittest.TestCase):
+    """
+    Test cases for UILoadable decorator
+    """
+    
+    @UILoadable
+    class MyWidget1(Qt.QWidget):
+        
+        def __init__(self, parent=None):
+            Qt.QWidget.__init__(self, parent)
+            self.loadUi()
+            self.my_button.setText("This is MY1 button")
 
+    @UILoadable(with_ui="ui")
+    class MyWidget2(Qt.QWidget):
+
+        def __init__(self, parent=None):
+            Qt.QWidget.__init__(self, parent)
+            path = os.path.join(os.path.dirname(__file__), "ui", "mywidget2")
+            self.loadUi(filename="mywidget2_custom.ui", path=path)
+            self.ui.my_button.setText("This is MY2 button")
+        
     def setUp(self):
-        taurus.setLogLevel(taurus.Critical)
-
+        app = Qt.QApplication.instance()
+        if app is None:
+            app = Qt.QApplication([])
+        self.__app = app
+        
     def test_uiloadable_default(self):
-        Application()
-        widget = MyWidget1()
-        self.assertEquals(widget.my_button.text(), "This is MY1 button")
+        """Test UILoadable with default arguments"""
+        widget = self.MyWidget1()
+        self.assertEquals(widget.my_button.text(), "This is MY1 button",
+                          "button text differs from expected")
 
     def test_uiloadable_customized(self):
-        Application()
-        widget = MyWidget2()
-        self.assertTrue(hasattr(widget, "ui"))
-        self.assertTrue(hasattr(widget.ui, "my_button"))        
-        self.assertFalse(hasattr(widget, "my_button"))
-        self.assertEquals(widget.ui.my_button.text(), "This is MY2 button")
+        """Test UILoadable with customized filename and path"""
+        widget = self.MyWidget2()
+        self.assertTrue(hasattr(widget, "ui"),
+                        "widget doesn't have 'ui' member")
+        self.assertTrue(hasattr(widget.ui, "my_button"),
+                        "widget.ui doesn't have a 'my_button' member")
+        self.assertFalse(hasattr(widget, "my_button"),
+                         "widget has a my_button member")
+        self.assertEquals(widget.ui.my_button.text(), "This is MY2 button",
+                          "button text differs from expected")
         
 
 def main():
