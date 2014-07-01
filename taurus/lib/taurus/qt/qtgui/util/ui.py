@@ -30,10 +30,8 @@ import sys
 import functools
 
 #TODO: Change to taurus.external
-from taurus.qt import Qt
-from PyQt4 import uic
-#from taurus.external.qt import Qt
-#from taurus.external.qt import uic
+from taurus.external.qt import Qt
+from taurus.external.qt import uic
 
 def loadUi(obj, filename=None, path=None):
     """

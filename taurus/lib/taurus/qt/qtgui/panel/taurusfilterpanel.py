@@ -419,9 +419,9 @@ class _MessageWidget(Qt.QWidget):
     def setText(self, text):
         self._label.setText(text)
 
-#TODO change in future to:
-#from taurus.external.qt.uic import loadUi
-from PyQt4.uic import loadUi
+
+from taurus.external.qt.uic import loadUi
+
 
 class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     

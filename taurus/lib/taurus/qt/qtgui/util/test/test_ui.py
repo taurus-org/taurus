@@ -28,11 +28,8 @@ import os.path as osp
 import taurus
 taurus.setLogLevel(taurus.Critical)
 
-#TODO change imports 
-import unittest2 as unittest
-from taurus.qt import Qt
-#from taurus.external import unittest
-#from taurus.external.qt import Qt
+from taurus.external import unittest
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.util.ui import UILoadable
 
