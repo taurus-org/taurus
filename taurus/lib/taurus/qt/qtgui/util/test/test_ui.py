@@ -76,6 +76,9 @@ class UILoadableTestCase(unittest.TestCase):
     def test_uiloadable_customized(self):
         Application()
         widget = MyWidget2()
+        self.assertTrue(hasattr(widget, "ui"))
+        self.assertTrue(hasattr(widget.ui, "my_button"))        
+        self.assertFalse(hasattr(widget, "my_button"))
         self.assertEquals(widget.ui.my_button.text(), "This is MY2 button")
         
 
