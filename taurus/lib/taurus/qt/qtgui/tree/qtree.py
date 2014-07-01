@@ -212,6 +212,7 @@ class QBaseTreeWidget(QBaseModelWidget):
             klass = Qt.QTreeView
         tree = klass()
         tree.setSortingEnabled(True)
+        tree.sortByColumn(0, Qt.Qt.AscendingOrder)
         tree.setUniformRowHeights(True)
         tree.setAlternatingRowColors(True)
         tree.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
