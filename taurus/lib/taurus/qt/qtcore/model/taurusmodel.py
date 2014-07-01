@@ -390,7 +390,7 @@ class TaurusBaseProxyModel(Qt.QSortFilterProxyModel):
         self.setSortRole(QtQt.DisplayRole)
         
         # general configuration
-        self.sort(0, QtQt.AscendingOrder)
+        self.setDynamicSortFilter(True)
         
     def __getattr__(self, name):
         return getattr(self.sourceModel(), name)

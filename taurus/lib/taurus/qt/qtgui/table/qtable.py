@@ -43,6 +43,7 @@ class QBaseTableWidget(QBaseModelWidget):
             klass = Qt.QTableView
         table = klass()
         table.setSortingEnabled(True)
+        table.sortByColumn(0, Qt.Qt.AscendingOrder)
         table.setAlternatingRowColors(True)
         table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
         table.setSelectionMode(Qt.QAbstractItemView.ExtendedSelection)
