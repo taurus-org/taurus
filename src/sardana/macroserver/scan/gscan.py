@@ -1075,9 +1075,11 @@ class CScan(GScan):
         triggered)"""
         self.set_all_waypoints_finished(True)
         if restore_positions is not None:
+            self._setFastMotions()
             self.macro.info("Correcting overshoot...")
             self._physical_motion.move(restore_positions)
             #self.motion.move(restore_positions)
+        self.do_restore()
         self.motion_end_event.set()        
         self.motion_event.set()
             
@@ -1190,6 +1192,21 @@ class CScan(GScan):
                 self.debug("Restored %s", motor)
             except:
                 self.macro.warning("Failed to restore %s", motor)
+                self.debug("Details:", exc_info=1)
+                
+    def _setFastMotions(self, motors=None):
+        '''make given motors go at their max speed and accel'''
+        if motors is None:
+            motors = [b.get('moveable') for b in self._backup if b is not None]
+            
+        for motor in motors:
+            try:
+                motor.setVelocity(self.get_max_top_velocity(motor))
+                motor.setAcceleration(self.get_min_acc_time(motor))
+                motor.setDeceleration(self.get_min_dec_time(motor))
+                self.debug("%s put into fast motion", motor)
+            except:
+                self.macro.warning("Failed to put %s into fast motion", motor)
                 self.debug("Details:", exc_info=1)
                 
     def get_max_top_velocity(self, motor):
@@ -1409,19 +1426,20 @@ class CSScan(CScan):
             for path in motion_paths:
                 start_pos.append(path.initial_user_pos)
                 final_pos.append(path.final_user_pos)
-            
+
             if macro.isStopped():
                 self.on_waypoints_end()
-                return
-                       
+                return 
+                      
             # move to start position
             self.macro.debug("Moving to start position: %s" % repr(start_pos))
             motion.move(start_pos)
             
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
-            # prepare motor(s) to move with their maximum velocity
+            # prepare motor(s) with the velocity required for synchronization
             for path in motion_paths:
                 if not path.apply_correction:
                     continue
@@ -1430,7 +1448,8 @@ class CSScan(CScan):
                 motor.setVelocity(vmotor.getMaxVelocity())
 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
                         
             self.timestamp_to_start = time.time() + delta_start
             self.motion_event.set()
@@ -1797,7 +1816,6 @@ class CTScan(CScan):
     
         def setConfiguration(self, configuration):
             pass
-
     
     def __init__(self, macro, generator=None,
                  moveables=[], env={}, constraints=[], extrainfodesc=[]):
@@ -1805,8 +1823,7 @@ class CTScan(CScan):
                        moveables=moveables, env=env, constraints=constraints,
                        extrainfodesc=extrainfodesc)
         self._measurement_group = self.ExtraMntGrp(macro)
-        self.extraTrigger = self.ExtraTrigger(macro)
-            
+        self.extraTrigger = self.ExtraTrigger(macro)            
         
     def prepare_waypoint(self, waypoint, start_positions, iterate_only=False):
         '''Prepare list of MotionPath objects per each physical motor. 
@@ -1940,7 +1957,8 @@ class CTScan(CScan):
             motion.move(start_pos)
             
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             # prepare motor(s) to move with their maximum velocity
             for path in motion_paths:
@@ -1957,7 +1975,8 @@ class CTScan(CScan):
                 motor.setDeceleration(path.min_vel_time)
                 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             if hasattr(macro, 'getHooks'):
                 for hook in macro.getHooks('pre-start'):
@@ -1982,7 +2001,8 @@ class CTScan(CScan):
             self.motion_event.clear()
 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             #execute post-move hooks
             for hook in waypoint.get('post-move-hooks',[]):
