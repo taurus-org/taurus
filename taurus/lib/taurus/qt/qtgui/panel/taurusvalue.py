@@ -605,10 +605,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             W = self.writeWidgetClassFactory(self.writeWidgetClassID, ignoreCompact=True)
             if W is None: 
                 return R
-            class klass(TaurusReadWriteSwitcher):
+            class Switcher(TaurusReadWriteSwitcher):
                 readWClass = R
                 writeWClass = W
-            return klass
+            return Switcher
         return ret
     
     def writeWidgetClassFactory(self, classID, ignoreCompact=False):
