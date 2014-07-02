@@ -1470,6 +1470,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         
         :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
                     If None is given (default) the component fetches the pending operations
+                    
+        :return: (bool) False if the apply was aborted by the user. True otherwise.
         """
         
         if ops is None: ops = self.getPendingOperations()
@@ -1484,7 +1486,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
                                                 Qt.QMessageBox.Ok|Qt.QMessageBox.Cancel,
                                                 Qt.QMessageBox.Ok)
             if result != Qt.QMessageBox.Ok:
-                return
+                return False
                 
         elif len(dangerMsgs)>1:
             warningDlg = Qt.QMessageBox(Qt.QMessageBox.Warning, " %d potentially dangerous actions"%len(dangerMsgs),
@@ -1495,8 +1497,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             warningDlg.setDetailedText(details)
             result = warningDlg.exec_()
             if result != Qt.QMessageBox.Ok:
-                return
+                return False
         self.applyPendingOperations(ops)
+        return True
 
     def setAutoTooltip(self, yesno):
         """Determines if the widget should automatically generate a tooltip
@@ -1539,7 +1542,12 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
 
 class TaurusBaseWritableWidget(TaurusBaseWidget):
-    """The base class for all taurus input widgets"""
+    """The base class for all taurus input widgets
+    
+    it emits the applied signal when the value has been applied.
+    """
+    
+    appliedSignalSignature = 'applied'
     
     def __init__(self, name, taurus_parent=None, designMode = False):
         self.call__init__(TaurusBaseWidget, name, parent=taurus_parent, designMode=designMode)
@@ -1632,13 +1640,17 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         operations or (if the ForcedApply flag is True), it writes directly when
         no operations are pending
         
+        It emits the applied signal if apply is not aborted.
+
         :param forceApply: (bool) If True, it behaves as in forceApply mode 
                            (even if the forceApply mode is disabled by 
                            :meth:`setForceApply`)
         '''
         
         if self.hasPendingOperations():
-            self.safeApplyOperations()
+            applied = self.safeApplyOperations()
+            if applied: 
+                self.emit(Qt.SIGNAL(self.appliedSignalSignature))
             return
         
         #maybe we want to force an apply even if there are no pending ops...
@@ -1652,14 +1664,19 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         WARNING: USE WITH CARE. In most cases what you need is to make sure
         that pending operations are properly created, not calling this method
         
-        .. seealso: :meth:`forceApply` and :meth:`writeValue`
+        It emits the applied signal if apply is not aborted.
+
+        .. seealso: :meth:`setForceApply` and :meth:`writeValue`
+        
         '''
         try:
             v = self.getValue()
             op = WriteAttrOperation(self.getModelObj(), v, 
                                     self.getOperationCallbacks())
             op.setDangerMessage(self.getDangerMessage())
-            self.safeApplyOperations([op])
+            applied = self.safeApplyOperations([op])
+            if applied:
+                self.emit(Qt.SIGNAL(self.appliedSignalSignature))
             self.info('Force-Applied value = %s'%str(v))
         except:
             self.error('Unexpected exception in forceApply')

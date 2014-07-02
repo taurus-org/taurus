@@ -115,6 +115,7 @@ packages = [
     'taurus.qt.qtgui.base',
     'taurus.qt.qtgui.button',
     'taurus.qt.qtgui.button.test',
+    'taurus.qt.qtgui.compact',
 #    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
     'taurus.qt.qtgui.dialog',
