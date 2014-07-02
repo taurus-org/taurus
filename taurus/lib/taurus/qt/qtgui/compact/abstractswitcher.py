@@ -188,6 +188,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             self.readWidget.installEventFilter(self)
         for sig in self.enterEditSignals:
             self.connect(self.readWidget, sig, self.enterEdit)
+        #update size policy
+        self._updateSizePolicy()
         #register configuration (we use the class name to avoid mixing configs in the future)
         self.registerConfigDelegate(self.readWidget, name='_R_'+self.readWidget.__class__.__name__)
     
@@ -207,6 +209,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             self.writeWidget.installEventFilter(self)
         for sig in self.exitEditSignals:
             self.connect(self.writeWidget, sig, self.exitEdit)
+        #update size policy
+        self._updateSizePolicy()
         #register configuration (we use the class name to avoid mixing configs in the future)
         self.registerConfigDelegate(self.readWidget, name='_W_'+self.writeWidget.__class__.__name__)
         
@@ -230,6 +234,22 @@ class TaurusReadWriteSwitcher(TaurusWidget):
     def _onExitEditActionTriggered(self):
         self.layout().setCurrentIndex(0)
         
+    def _updateSizePolicy(self):
+        '''Update the size policy of the switcher widget to the most restrictive
+        combination of the policies of the read and write widgets'''
+        policy = None
+        for w in self.readWidget, self.writeWidget:
+            if w is not None:
+                p = w.sizePolicy()
+                if policy is None:
+                    policy = p
+                else:
+                    h = policy.horizontalPolicy() & p.horizontalPolicy()
+                    v = policy.verticalPolicy() & p.verticalPolicy()
+                    policy = Qt.QSizePolicy(h, v)
+        if policy is not None:
+            self.setSizePolicy(policy)
+
     def setModel(self, model):
         '''This implementation propagates the model to the read and write widgets.
         You may reimplement it to do things like passing different models to each.
