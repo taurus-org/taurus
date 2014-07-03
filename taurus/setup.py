@@ -69,6 +69,7 @@ packages = [
     'taurus.test',
 
     'taurus.external',
+    'taurus.external.argparse',
     'taurus.external.enum',
     'taurus.external.ordereddict',
     'taurus.external.pint',
