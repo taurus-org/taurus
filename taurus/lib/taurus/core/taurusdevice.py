@@ -78,10 +78,10 @@ class TaurusDevice(TaurusModel):
         cls_name = self.__class__.__name__
         raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))
 
-    #def __setattr__(self, name, value):
-    #    if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
-    #        return setattr(self._deviceObj, name, value)
-    #    super(TaurusDevice, self).__setattr__(name, value)
+    def __setattr__(self, name, value):
+        if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
+            return setattr(self._deviceObj, name, value)
+        super(TaurusDevice, self).__setattr__(name, value)
 
     # Export the 'act like dictionary' feature of PyTango.DeviceProxy
     def __getitem__(self, key):
