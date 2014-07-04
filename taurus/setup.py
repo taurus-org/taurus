@@ -697,7 +697,7 @@ class build_doc_api(Command):
 
         docpreffix = abspath('doc', 'source', 'devel', 'api')
         templatespath = abspath('doc')
-        rstCreator = auto_rst4api.Auto_rst4API_Creator(exclude_patterns=['.*\.ui', '_[^\.]*[^_]'],
+        rstCreator = auto_rst4api.Auto_rst4API_Creator(exclude_patterns=['.*\.ui', '_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool', '.*.extra_macroexecutor'],
                                                        templatespath=templatespath,
                                                        overwrite_old=buildcmd.all_files,
                                                        verbose=self.distribution.verbose)
