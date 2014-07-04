@@ -46,6 +46,10 @@ T_FORM_CUSTOM_WIDGET_MAP = \
      'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
     }
 
+# Compact mode for widgets
+# True sets the preferred mode of TaurusForms to use "compact" widgets
+T_FORM_COMPACT = False
+
 # Lightweight imports:
 # True enables delayed imports (may break older code).
 # False (or commented out) for backwards compatibility

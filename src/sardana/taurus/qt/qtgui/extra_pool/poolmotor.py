@@ -1196,6 +1196,9 @@ class PoolMotorTV(TaurusValue):
         self.status_listener = None
         self.position_listener = None
         self.setExpertView(False)
+        
+    def setCompact(self, *args):
+        self.debug('ignoring setCompact')
 
     def setExpertView(self, expertView):
         self._expertView = expertView

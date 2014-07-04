@@ -6,7 +6,7 @@
 ## 
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## Copyright 2013 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
@@ -23,10 +23,10 @@
 ##
 #############################################################################
 
-'''
-This resources module contains:
+"""This package contains a collection of taurus Qt widgets that combine other widgets
+to provide several functionalities in a reduced space"""
 
-  - SimpleScalarViewer.jdw : a jdraw synoptic for testing visualization of 
-  scalars.  
-  - styles.jdw : a jdraw synoptic for testing rendering of different styles
-'''
+__docformat__ = 'restructuredtext'
+
+from .abstractswitcher import *
+from .basicswitcher import *
