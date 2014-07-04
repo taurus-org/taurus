@@ -122,6 +122,26 @@ def UILoadable(klass=None, with_ui=None):
                     can access all UI components [default: None, meaning no
                     member is created]
     :type with_ui: str
+
+    .. warning::
+        the current implementation (Jul14) doesn't prevent Qt from overloading
+        any members you might have defined previously by the widget object names
+        from the UI file. This happens even if *with_ui* parameter is given.
+        For example, if the UI contains a QPushButton with objectName
+        *my_button*::
+
+            @UILoadable(with_ui="_ui")
+            class MyWidget(Qt.QWidget):
+ 
+                def __init__(self, parent=None):
+                    Qt.QWidget.__init__(self, parent)
+                    self.my_button = "hello"
+                    self.loadUi()
+            widget = MyWidget()
+            print widget.my_button
+            <PyQt4.QtGui.QPushButton object at 0x159e2f8>
+
+        This little problem should be solved in the next taurus version.
     """
     if klass is None:
         return functools.partial(UILoadable, with_ui=with_ui)
