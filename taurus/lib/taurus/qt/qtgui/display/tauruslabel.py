@@ -54,7 +54,7 @@ EventType = TaurusEventType
 
 class TaurusLabelController(TaurusBaseController):
     
-    StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
+    StyleSheetTemplate = "border-style: outset; border-width: 2px; border-color: {0}; {1}"
 
     def __init__(self, label):
         self._text = ''
