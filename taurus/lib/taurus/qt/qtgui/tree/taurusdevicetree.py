@@ -348,7 +348,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, 
             TAURUS_MODEL_MIME_TYPE, TREE_ITEM_MIME_TYPE, 'text/plain'])
         
-        self.setTangoHost(os.environ['TANGO_HOST'])
+        self.setTangoHost()
         self.defineStyle()
 
     @property
@@ -495,7 +495,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         if self.TRACE_ALL or self.getLogLevel() in ('DEBUG',40,):
             print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
-    def setTangoHost(self,tango_host):
+    def setTangoHost(self,tango_host=None):
         self.db = taurus.Database(tango_host)
         
     #model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
