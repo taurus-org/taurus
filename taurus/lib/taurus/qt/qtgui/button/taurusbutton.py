@@ -275,10 +275,10 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         name = self.__class__.__name__
         if command is None: command = ""
         if parameters is None: parameters = []
-        if text is None: text = ""
         self._command = command
         self._parameters = parameters
         self._timeout = timeout
+        self._customText = text
         self.call__init__wo_kw(Qt.QPushButton, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
         if icon is not None: self.setIcon(Qt.QIcon(icon))
@@ -289,7 +289,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         
     def getDisplayValue(self):
         '''see :meth:`TaurusBaseComponent.displayValue`'''
-        if len(self._customText) > 0:
+        if self._customText is not None:
             return self._customText
         if len(self._command) == 0:
             return '---'
@@ -443,8 +443,6 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         :param customText: (str or None) the custom text. If None passed, it
                            will use the command name
         '''
-        if customText is None:
-            customText = ""
         self._customText = customText
         self._setText(self.getDisplayValue())
     
