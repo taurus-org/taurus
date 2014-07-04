@@ -259,7 +259,7 @@ class TaurusConfigurationControllerHelper(object):
             try:
                 #@todo: This works for tango, eval and epics configuration names but is not general.
                 #@todo: This should be done calling to the ConfigurationNameValidator
-                self._configParam = model[model.rfind('?configuration=')+15:].lower() 
+                self._configParam = model[model.rfind('?configuration=')+15:]
             except:
                 self._configParam = ''
         return self._configParam
