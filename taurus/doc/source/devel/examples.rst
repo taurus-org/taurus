@@ -369,5 +369,5 @@ a few clicks. You can try it out by running::
 
 	taurusgui --new-gui
 	
-For more details and tricks regarding TaurusGui, check the :module:`taurusgui`
+For more details and tricks regarding TaurusGui, check the :mod:`taurusgui`
 

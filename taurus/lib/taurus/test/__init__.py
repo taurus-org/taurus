@@ -24,7 +24,6 @@
 #############################################################################
 
 """
-
 Taurus provides a framework for testing.
 This framework intends to facilitate evaluation, bug finding and integration of
 contributed code/patches, as well as to promote test driven development in
@@ -52,8 +51,11 @@ The following are some key points to keep in mind when using this framework:
   in any module of taurus.
 
 - test-related code falls in one of these three categories:
+
   - actual test code (classes that derive from unittest.TestCase)
+
   - utility classes/functions (code to simplify development of test code)
+
   - resources (accessory files required by some test). They are located in
     subdirectories named `res`
 

@@ -27,6 +27,8 @@
 This resources module contains:
 
   - SimpleScalarViewer.jdw : a jdraw synoptic for testing visualization of 
-  scalars.  
+    scalars. 
+   
   - styles.jdw : a jdraw synoptic for testing rendering of different styles
+  
 '''

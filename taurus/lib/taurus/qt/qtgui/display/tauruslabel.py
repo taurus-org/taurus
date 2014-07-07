@@ -518,7 +518,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #:     * :meth:`TaurusLabel.getAutoTrim`
     #:     * :meth:`TaurusLabel.setAutoTrim`
-    #:     * :meth:`TaurusLabel.resetAutoTrim
+    #:     * :meth:`TaurusLabel.resetAutoTrim`
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
     

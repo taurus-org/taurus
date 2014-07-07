@@ -30,7 +30,7 @@ def loopTest(testname, maxtries=100, maxfails=10):
     report the number of tries and failures.
     
     :param testname: (str) test name. see: 
-                     :method:`unittest.TestLoader.loadTestsFromName`
+                     :meth:`unittest.TestLoader.loadTestsFromName`
     :param maxtries: (int) maximum number of runs
     :param maxfails: (int) maximum number of failed runs
     
@@ -85,7 +85,7 @@ def calculateTestFuzziness(test, maxtries=100, maxfails=10, **kwargs):
     problem) with a certain failure rate. 
     
     :param testname: (str) test name. see: 
-                     :method:`unittest.TestLoader.loadTestsFromName`
+                     :meth:`unittest.TestLoader.loadTestsFromName`
     :param maxtries: (int) maximum number of runs
     :param maxfails: (int) maximum number of failed runs
     
