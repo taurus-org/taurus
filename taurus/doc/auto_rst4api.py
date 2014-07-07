@@ -159,7 +159,7 @@ class Auto_rst4API_Creator(object):
         for sminfo in info['submodules'].itervalues():
             self.createStubs(sminfo, absdocpath)
     
-    def documentModule(self, modulename, docparentpath, exclude_patterns=()):
+    def documentModule(self, modulename, docparentpath, exclude_patterns=None):
         '''
         recursive function that walks on the module structure and generates
         documentation files for the given module and its submodules. It also
@@ -176,7 +176,11 @@ class Auto_rst4API_Creator(object):
         :return: (list<str>) list of warning messages 
         '''
         if self.verbose: print "\nDocumenting %s..."%modulename
-        moduleinfo, w = ModuleExplorer.explore(modulename, exclude_patterns=self.exclude_patterns, verbose=self.verbose)
+        if exclude_patterns is None:
+            exclude_patterns = self.exclude_patterns
+        moduleinfo, w = ModuleExplorer.explore(modulename, 
+                                               exclude_patterns=exclude_patterns, 
+                                               verbose=self.verbose)
         self.createStubs(moduleinfo, docparentpath)
         self.createClassIndex(moduleinfo, os.path.join(docparentpath,"%s_AllClasses.rst"%modulename))
         if len (w) == 0: return []
