@@ -323,10 +323,14 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
         self.ContextMenu=[]
         self.ExpertMenu=[]
-        
+
         #The SingletonWorker Threads are used for expanding nodes and also for loading a new tree; both objects are the same thread, but read from different queues
-        self.Loader = SingletonWorker(parent=self,name='TreeLoader',cursor=True,start=True )
-        self.Expander = SingletonWorker(parent=self,name='NodeExpander',method=lambda node,expand:node.setExpanded(expand),cursor=True,start=True )
+        self.__loader = None
+        self.__expander = None
+
+        if not designMode:
+            self.Loader
+            self.Expander
         
         self.initConfig()
         
@@ -346,7 +350,26 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
         self.setTangoHost(os.environ['TANGO_HOST'])
         self.defineStyle()
-            
+
+    @property
+    def Loader(self):
+        loader = self.__loader
+        if loader is None:
+            loader = SingletonWorker(parent=self, name='TreeLoader',
+                                     cursor=True, start=True)
+            self.__loader = loader
+        return loader
+
+    @property
+    def Expander(self):
+        expander = self.__expander
+        if expander is None:
+            expander = SingletonWorker(parent=self, name='NodeExpander',
+                                       method=lambda node, expand : node.setExpanded(expand),
+                                       cursor=True, start=True)
+            self.__expander = expander
+        return expander
+
     def getConfig(self,name): 
         properties.get_property(self,name)
     
