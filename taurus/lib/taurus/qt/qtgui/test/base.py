@@ -52,8 +52,10 @@ class BaseWidgetTestCase(object):
     def setUp(self):
         """
         Preconditions:
-        - A TaurusApplication must be initialized.
-        - The widget must be instantiated
+        
+          - A TaurusApplication must be initialized.
+          - The widget must be instantiated
+        
         """
         if self._klass is None:
             self.skipTest('klass is None')
@@ -88,12 +90,13 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
     def setUp(self):
         """
         Preconditions:
-        - Those from :class:`BaseWidgetTestCase`
-        - A list of models corresponding to the modelnames list
-          should be created without using the widget being tested
-          (e.g. by using taurusManager.findObject()).
-          None should be used as a placeholder when a model cannot be created
-          for a given modelname.
+        
+          - Those from :class:`BaseWidgetTestCase`
+          - A list of models corresponding to the modelnames list
+            should be created without using the widget being tested
+            (e.g. by using taurusManager.findObject()).
+            None should be used as a placeholder when a model cannot be created
+            for a given modelname.
         """
         #Make sure the basics are taken care of (QApplication, etc)
         BaseWidgetTestCase.setUp(self)

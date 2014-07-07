@@ -207,8 +207,7 @@ class TaurusGui(TaurusMainWindow):
     3 examples on how to create a simple GUI called "MyGui" which contains one 
     panel called "Foo" and consisting of a `QWidget`:
     
-    Example 1: use declarative configuration files
-    ----------------------------------------------
+    **Example 1: use declarative configuration files.**
     
     You can create a purely declarative configuration file to be interpreted by 
     the standard `taurusgui` script::
@@ -220,10 +219,9 @@ class TaurusGui(TaurusMainWindow):
                                  classname='taurus.external.qt.Qt.QWidget')   
     
     Note that this just a very simple example. For a much richer one, see the
-    :module:`taurus.qt.qtgui.taurusgui.conf.tgconf_example01`
+    :mod:`taurus.qt.qtgui.taurusgui.conf.tgconf_example01`
       
-    Example 2: do everything programmatically
-    -----------------------------------------
+    **Example 2: do everything programmatically.**
     
     A stand-alone python script that launches the gui when executed. No 
     configuration file is used here. Panels and other components are added 
@@ -241,8 +239,7 @@ class TaurusGui(TaurusMainWindow):
             app.exec_()
             
             
-    Example 3: mixing declarative and programmatic ways
-    ---------------------------------------------------
+    **Example 3: mixing declarative and programmatic ways**
     
     It is also possible to create a stand-alone python script which loads itself
     as a configuration file. In this way you can add things programmatically and 

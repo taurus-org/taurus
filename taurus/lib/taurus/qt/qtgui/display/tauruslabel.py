@@ -54,7 +54,7 @@ EventType = TaurusEventType
 
 class TaurusLabelController(TaurusBaseController):
     
-    StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
+    StyleSheetTemplate = "border-style: outset; border-width: 2px; border-color: {0}; {1}"
 
     def __init__(self, label):
         self._text = ''
@@ -518,7 +518,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #:     * :meth:`TaurusLabel.getAutoTrim`
     #:     * :meth:`TaurusLabel.setAutoTrim`
-    #:     * :meth:`TaurusLabel.resetAutoTrim
+    #:     * :meth:`TaurusLabel.resetAutoTrim`
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
     
