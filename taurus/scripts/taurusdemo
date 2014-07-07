@@ -30,7 +30,7 @@ import taurus.core.util
 import taurus.qt.qtgui.util
 import taurus.qt.qtgui.application
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 class TaurusDemoPanel(Qt.QWidget):
 
