@@ -49,6 +49,9 @@ class TaurusConfigurationProxy(object):
 
     def __getattr__(self, name):
         return getattr(self.__parent._getRealConfig(), name)
+    
+    def getRealConfigClass(self):
+        return self.__parent._getRealConfig().__class__
 
 
 class TaurusConfiguration(TaurusModel):

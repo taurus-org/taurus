@@ -42,7 +42,8 @@ from taurus.core.util import eventfilters
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusconfiguration import TaurusConfiguration
+from taurus.core.taurusconfiguration import (TaurusConfiguration,
+                                             TaurusConfigurationProxy)
 from taurus.core.tauruslistener import TaurusListener, TaurusExceptionListener
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
@@ -398,6 +399,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         obj = parent_obj.getChildObj(relative_name)
         if obj is None:
             return None
+        if isinstance(obj, TaurusConfigurationProxy):
+            return obj.getRealConfigClass()
         else:
             return obj.__class__
 
