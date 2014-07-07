@@ -25,8 +25,9 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
-from taurus.external import unittest
 import taurus.core
+from taurus.external import unittest
+from taurus.qt.qtgui.application import TaurusApplication
 from taurus.test import skipUnlessGui
 
 
@@ -62,10 +63,11 @@ class BaseWidgetTestCase(object):
             return
 
         unittest.TestCase.setUp(self)
-
-        from taurus.qt.qtgui.application import TaurusApplication
-        if getattr(self, '_app', None) is None:
-            self._app = TaurusApplication([])
+        
+        app = TaurusApplication.instance()
+        if app is None:
+            app = TaurusApplication([])
+        self._app = app
 
         self._widget = self._klass(*self.initargs, **self.initkwargs)
 
