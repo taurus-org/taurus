@@ -30,6 +30,7 @@ __all__ = ["TaurusLabel"]
 __docformat__ = 'restructuredtext'
 
 import operator
+import re
 
 # shame of me for importing PyTango!
 import PyTango
@@ -59,6 +60,7 @@ class TaurusLabelController(TaurusBaseController):
     def __init__(self, label):
         self._text = ''
         self._trimmedText = False
+        self._trimPattern = re.compile('<[^<]*>')
         TaurusBaseController.__init__(self, label)
 
     def _setStyle(self):
@@ -116,6 +118,7 @@ class TaurusLabelController(TaurusBaseController):
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
             return False
+        text = re.sub(self._trimPattern,'',text)
         font_metrics = Qt.QFontMetrics(label.font())
         size, textSize = label.size().width(), font_metrics.width(text)
         return textSize > size
