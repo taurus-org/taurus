@@ -11,3 +11,4 @@ MANIFEST
 /lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py
 parser.out
 parsetab.py
+/setup.cfg
