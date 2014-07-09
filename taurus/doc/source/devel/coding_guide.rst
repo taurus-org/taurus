@@ -124,12 +124,12 @@ PyQt4/PySide versions.
    
    Should be replaced by::
    
-       from taurus.qt import Qt
-       from taurus.qt import QtCore
-       from taurus.qt import QtGui
-       from taurus.qt import QtNetwork
-       from taurus.qt import QtWebKit
-       from taurus.qt import Qwt5
+       from taurus.external.qt import Qt
+       from taurus.external.qt import QtCore
+       from taurus.external.qt import QtGui
+       from taurus.external.qt import QtNetwork
+       from taurus.external.qt import QtWebKit
+       from taurus.external.qt import Qwt5
 
 2. Usage of :class:`~PyQt4.QString` is **discouraged**. You should always use
    :class:`str`. QString objects don't exist in PySide or in the new PyQt4
@@ -148,7 +148,8 @@ PyQt4/PySide versions.
        print str(label.text())         # never assume Qt objects return str.
 
    For compatibility reasons, QString and QStringList are always available
-   (even when using PySide or PyQt4 with API >=2) from :mod:`taurus.qt.Qt`.
+   (even when using PySide or PyQt4 with API >=2) from 
+   :mod:`taurus.external.qt.Qt`.
    Note that if you are using PySide or PyQt4 with API >=2 then QString is 
    actually :class:`str` and QStringList is actually :class:`list`!
    
@@ -182,10 +183,11 @@ PyQt4/PySide versions.
                return Qt.from_qvariant()
 
    For compatibility reasons, QVariant are always available
-   (even when using PySide or PyQt4 with API >=2) from :mod:`taurus.qt.Qt`.
+   (even when using PySide or PyQt4 with API >=2) from 
+   :mod:`taurus.external.qt.Qt`.
    Note that if you are using PySide or PyQt4 with API >=2 then QVariant(pyobj)
    if function that returns actually pyobj (exactly the same as
-   :func:`~taurus.qt.Qt.from_qvariant`.)
+   :func:`~taurus.external.qt.Qt.from_qvariant`.)
 
 .. _Tango: http://www.tango-controls.org/
 .. _Sardana: http://www.sardana-controls.org/

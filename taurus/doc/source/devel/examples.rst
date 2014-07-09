@@ -46,7 +46,7 @@ does not include the following header and footer code lines:
 header::
 
     import sys
-    from taurus.qt import Qt
+    from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
     
     app = TaurusApplication(sys.argv)
@@ -76,7 +76,7 @@ Displaying a tango attribute value in a GUI is easy with taurus and
 code::
 
     import sys
-    from taurus.qt import Qt
+    from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
 
     app = TaurusApplication(sys.argv)

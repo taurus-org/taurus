@@ -34,7 +34,7 @@ For example, to display the values of four attributes (state, position, velocity
 of a device (motor/icepap/01)::
 
     import sys
-    from PyQt4 import Qt
+    from taurus.external.qt import Qt
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
     
