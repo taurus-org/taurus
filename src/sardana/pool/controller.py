@@ -505,7 +505,9 @@ class Controller(object):
         Sends a string to the controller.
         Default implementation raises :exc:`NotImplementedError`.
 
-        :param str stream: stream to be sent"""
+        :param str stream: stream to be sent
+        :return: any relevant information e.g. response of the controller
+        :rtype: str"""
         raise NotImplementedError("SendToCtrl not implemented")
 
 
