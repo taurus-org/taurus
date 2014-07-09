@@ -168,7 +168,8 @@ class TaurusBaseController(object):
         pass
         
     def _updateToolTip(self, widget):
-        widget.setToolTip(widget.getFormatedToolTip())
+        if widget.getAutoTooltip():
+            widget.setToolTip(widget.getFormatedToolTip())
 
 
 class TaurusAttributeControllerHelper(object):
