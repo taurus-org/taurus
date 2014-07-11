@@ -288,7 +288,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if parent is not None:
             self.setParent(parent)
             
-        self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labeConfig')
+        self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labelConfig')
         self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
             
     def setVisible(self, visible):

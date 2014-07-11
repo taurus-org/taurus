@@ -323,10 +323,14 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         
         self.ContextMenu=[]
         self.ExpertMenu=[]
-        
+
         #The SingletonWorker Threads are used for expanding nodes and also for loading a new tree; both objects are the same thread, but read from different queues
-        self.Loader = SingletonWorker(parent=self,name='TreeLoader',cursor=True,start=True )
-        self.Expander = SingletonWorker(parent=self,name='NodeExpander',method=lambda node,expand:node.setExpanded(expand),cursor=True,start=True )
+        self.__loader = None
+        self.__expander = None
+
+        if not designMode:
+            self.Loader
+            self.Expander
         
         self.initConfig()
         
@@ -344,9 +348,28 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, 
             TAURUS_MODEL_MIME_TYPE, TREE_ITEM_MIME_TYPE, 'text/plain'])
         
-        self.setTangoHost(os.environ['TANGO_HOST'])
+        self.setTangoHost()
         self.defineStyle()
-            
+
+    @property
+    def Loader(self):
+        loader = self.__loader
+        if loader is None:
+            loader = SingletonWorker(parent=self, name='TreeLoader',
+                                     cursor=True, start=True)
+            self.__loader = loader
+        return loader
+
+    @property
+    def Expander(self):
+        expander = self.__expander
+        if expander is None:
+            expander = SingletonWorker(parent=self, name='NodeExpander',
+                                       method=lambda node, expand : node.setExpanded(expand),
+                                       cursor=True, start=True)
+            self.__expander = expander
+        return expander
+
     def getConfig(self,name): 
         properties.get_property(self,name)
     
@@ -472,7 +495,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         if self.TRACE_ALL or self.getLogLevel() in ('DEBUG',40,):
             print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
-    def setTangoHost(self,tango_host):
+    def setTangoHost(self,tango_host=None):
         self.db = taurus.Database(tango_host)
         
     #model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 

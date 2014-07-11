@@ -53,7 +53,7 @@ def run(disableLogger=True):
     runner.run(suite)
 
 if __name__ == '__main__':
-    import argparse  # TODO: use taurus.external.argparse (when available)
+    from taurus.external import argparse
     parser = argparse.ArgumentParser(description=
                                      'Main test suite for Taurus')
     parser.add_argument('--skip-gui-tests', dest='skip_gui',

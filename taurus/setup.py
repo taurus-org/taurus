@@ -69,6 +69,7 @@ packages = [
     'taurus.test',
 
     'taurus.external',
+    'taurus.external.argparse',
     'taurus.external.enum',
     'taurus.external.ordereddict',
     'taurus.external.pint',
@@ -187,7 +188,7 @@ requires = [
     'PyQt4.Qwt5 (>=5.2.0)',   # plotting
     'ply (>=2.3)',            # jdraw parser
     'lxml (>=2.1)',           # tau2taurus, taurusuic4
-    'spyder (>=2.1)',         # shell, editor
+    'spyder (>=2.2)',         # shell, editor
 ]
 
 package_data = {

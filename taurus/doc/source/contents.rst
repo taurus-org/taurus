@@ -12,7 +12,6 @@ Contents
 
    users/index.rst
    devel/index.rst
-   History of changes <revision>
    
 * :ref:`genindex`
 * :ref:`modindex`

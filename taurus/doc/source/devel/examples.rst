@@ -46,7 +46,7 @@ does not include the following header and footer code lines:
 header::
 
     import sys
-    from taurus.qt import Qt
+    from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
     
     app = TaurusApplication(sys.argv)
@@ -59,7 +59,7 @@ footer::
     panel.show()
     sys.exit(app.exec_())
 
-**You must prepend and postpend the above code in order for the examples to 
+**You must prepend and append the above code in order for the examples to 
 work properly.**
 
 .. _examples_display_attribute_value:
@@ -76,7 +76,7 @@ Displaying a tango attribute value in a GUI is easy with taurus and
 code::
 
     import sys
-    from taurus.qt import Qt
+    from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
 
     app = TaurusApplication(sys.argv)
@@ -140,7 +140,7 @@ code::
 Interactively display attribute
 -------------------------------
 
-Humm... Now supose the user wants to change this value. :class:`input.TaurusValueLineEdit`
+Humm... Now suppose the user wants to change this value. :class:`input.TaurusValueLineEdit`
 does this job well (and so does :class:`input.TaurusValueSpinBox` and 
 :class:`input.TaurusWheelEdit` :-)
 
@@ -244,7 +244,7 @@ Let's go graphical
 Simple plotting of various spectrum attributes
 """"""""""""""""""""""""""""""""""""""""""""""
 
-Say you want to plot two SPECTRUM atributes and watch them changing on-line?
+Say you want to plot two SPECTRUM attributes and watch them changing on-line?
 Taurus provides a very complete widget: :class:`plot.TaurusPlot`
 (which makes use of the PyQwt_ library) .
 
@@ -369,5 +369,6 @@ a few clicks. You can try it out by running::
 
 	taurusgui --new-gui
 	
-For more details and tricks regarding TaurusGui, check the :mod:`taurusgui`
+For more details and tricks regarding TaurusGui, check the 
+:mod:`taurus.qt.qtgui.taurusgui` module
 

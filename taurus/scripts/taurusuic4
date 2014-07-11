@@ -294,7 +294,14 @@ def generate_with_old_pyuic4():
     
     os.remove(new_ui_filename)
 
+msg = ('taurusuic4 is deprecated since SEP11 ' + 
+       '(http://sf.net/p/sardana/wiki/SEP11)\n' +
+       'Consider using the taurus.qt.qtgui.util.UILoadable decorator instead')
+
 def main():
+    print "*"*79
+    print msg
+    print "*"*79
     try:
         if is_pyuic4_recent():
             go = generate

@@ -124,6 +124,8 @@ class TaurusLabelController(TaurusBaseController):
         return textSize > size
 
     def _updateToolTip(self, label):
+        if not label.getAutoTooltip():
+            return
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
             toolTip = u"<p><b>Value:</b> %s</p><hr>%s" % (unicode(self._text,errors='replace'), unicode(toolTip,errors='replace'))
