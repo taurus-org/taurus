@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>548</width>
-    <height>616</height>
+    <height>618</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="4" column="0" colspan="3">
-    <widget class="QWidget" name="detailsWidget" native="true">
+    <widget class="QWidget" name="_detailsWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>2</number>
@@ -24,7 +24,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QTabWidget" name="detailsTabWidget">
+       <widget class="QTabWidget" name="_detailsTabWidget">
         <property name="minimumSize">
          <size>
           <width>512</width>
@@ -32,9 +32,9 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
-        <widget class="QWidget" name="tabDetails">
+        <widget class="QWidget" name="_tabDetails">
          <attribute name="title">
           <string>Details</string>
          </attribute>
@@ -43,7 +43,7 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="QTextEdit" name="detailsTextEdit">
+           <widget class="QTextEdit" name="_detailsTextEdit">
             <property name="minimumSize">
              <size>
               <width>512</width>
@@ -57,7 +57,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tabOrigin">
+        <widget class="QWidget" name="_tabOrigin">
          <attribute name="title">
           <string>Origin</string>
          </attribute>
@@ -66,7 +66,7 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="QTextEdit" name="originTextEdit">
+           <widget class="QTextEdit" name="_originTextEdit">
             <property name="minimumSize">
              <size>
               <width>512</width>
@@ -86,13 +86,13 @@
     </widget>
    </item>
    <item row="3" column="0" colspan="3">
-    <widget class="QWidget" name="buttonPanelWidget" native="true">
+    <widget class="QWidget" name="_buttonPanelWidget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0">
       <property name="margin">
        <number>0</number>
       </property>
       <item>
-       <spacer name="horizontalSpacer">
+       <spacer name="_horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -105,7 +105,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="showDetailsButton">
+       <widget class="QPushButton" name="_showDetailsButton">
         <property name="text">
          <string>Show Details...</string>
         </property>
@@ -115,14 +115,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="reportComboBox">
+       <widget class="QComboBox" name="_reportComboBox">
         <property name="toolTip">
          <string>Report error message</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QDialogButtonBox" name="buttonBox">
+       <widget class="QDialogButtonBox" name="_buttonBox">
         <property name="standardButtons">
          <set>QDialogButtonBox::Ok</set>
         </property>
@@ -132,23 +132,23 @@
     </widget>
    </item>
    <item row="5" column="0">
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="_checkBox">
      <property name="text">
       <string>Don't show this message again</string>
      </property>
     </widget>
    </item>
    <item row="1" column="0" rowspan="2" colspan="3">
-    <layout class="QHBoxLayout" name="iconTextLayout" stretch="0,1">
+    <layout class="QHBoxLayout" name="_iconTextLayout" stretch="0,1">
      <item>
-      <widget class="QLabel" name="iconLabel">
+      <widget class="QLabel" name="_iconLabel">
        <property name="text">
         <string>iconLabel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="textLabel">
+      <widget class="QLabel" name="_textLabel">
        <property name="text">
         <string>textLabel</string>
        </property>

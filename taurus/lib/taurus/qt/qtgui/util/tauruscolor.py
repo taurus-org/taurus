@@ -27,7 +27,7 @@
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.core.util.colors import ColorPalette, \
     DEVICE_STATE_DATA, ATTRIBUTE_QUALITY_DATA

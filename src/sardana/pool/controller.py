@@ -42,7 +42,8 @@ from taurus.core.util.log import Logger
 
 from sardana import DataAccess
 from sardana.sardanavalue import SardanaValue
-from .pooldefs import ControllerAPI, AcqTriggerType, AcqMode
+from sardana.pool.pooldefs import ControllerAPI, AcqTriggerType, AcqMode
+
 
 #: Constant data type (to be used as a *key* in the definition of
 #: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
@@ -92,6 +93,7 @@ NotMemorized = "false"
 #: Constant MaxDimSize (to be used as a *key* in the definition of
 #: :attr:`~Controller.axis_attributes` or :attr:`~Controller.ctrl_attributes`)
 MaxDimSize = "maxdimsize"
+
 
 class Controller(object):
     """Base controller class. Do **NOT** inherit from this class directly

@@ -26,15 +26,16 @@
 """This module is part of the Python Pool library. It defines the base classes
 for"""
 
-__all__ = [ "PoolBaseGroup"]
+__all__ = ["PoolBaseGroup"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.core.taurusvalidator import AttributeNameValidator
 
 from sardana import State, ElementType, TYPE_PHYSICAL_ELEMENTS
-from poolexternal import PoolExternalObject
-from poolcontainer import PoolContainer
+from sardana.pool.poolexternal import PoolExternalObject
+from sardana.pool.poolcontainer import PoolContainer
+
 
 class PoolBaseGroup(PoolContainer):
 
@@ -144,9 +145,9 @@ class PoolBaseGroup(PoolContainer):
 
     def _build_elements(self):
         self._user_elements = []
-        self._physical_elements =  {}
+        self._physical_elements = {}
         self._physical_elements_set = set()
-        
+
         pool = self._get_pool()
         for user_element_id in self._user_element_ids:
             # an internal element
@@ -176,25 +177,25 @@ class PoolBaseGroup(PoolContainer):
 
     def on_element_changed(self, evt_src, evt_type, evt_value):
         pass
-        
+
     def set_user_element_ids(self, new_element_ids):
         self.clear_user_elements()
         self._user_element_ids = new_element_ids
-    
+
     def get_user_element_ids(self):
         """Returns the sequence of user element IDs
         
         :return: the sequence of user element IDs
-        :rtype: sequence< :obj:`int`>"""         
+        :rtype: sequence< :obj:`int`>"""
         return self._user_element_ids
-    
+
     user_element_ids = property(get_user_element_ids)
 
     def get_user_elements(self):
         """Returns the sequence of user elements
         
         :return: the sequence of user elements
-        :rtype: sequence< :class:`~sardana.pool.poolelement.PoolElement`>""" 
+        :rtype: sequence< :class:`~sardana.pool.poolelement.PoolElement`>"""
         if self._pending:
             self._build_elements()
         return self._user_elements
@@ -203,13 +204,13 @@ class PoolBaseGroup(PoolContainer):
         """Returns an iterator over the main attribute of each user element.
         
         :return: an iterator over the main attribute of each user element.
-        :rtype: iter< :class:`~sardana.sardanaattribute.SardanaAttribute` >""" 
+        :rtype: iter< :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
         for element in self.get_user_elements():
             yield element.get_default_attribute()
 
     get_user_elements_attribute = get_user_elements_attribute_iterator
     get_user_elements_attribute.__doc__ = get_user_elements_attribute_iterator.__doc__
-    
+
     def get_user_elements_attribute_sequence(self):
         """Returns a sequence of main attribute of each user element.
         
@@ -217,9 +218,9 @@ class PoolBaseGroup(PoolContainer):
         performance and memory reasons.
         
         :return: a sequence of main attribute of each user element.
-        :rtype: sequence< :class:`~sardana.sardanaattribute.SardanaAttribute` >""" 
+        :rtype: sequence< :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
         return list(self.get_user_elements_attribute_iterator())
-    
+
     def get_user_elements_attribute_map(self):
         """Returns a dictionary of main attribute of each user element.
         
@@ -228,16 +229,16 @@ class PoolBaseGroup(PoolContainer):
                 :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
         ret = {}
         for element in self.get_user_elements():
-            ret[element] =  element.get_default_attribute()
+            ret[element] = element.get_default_attribute()
         return ret
-    
+
     def get_physical_elements(self):
         """Returns a dictionary or physical elements where key is a controller
         object and value is a sequence of pool elements
         
         :return: a dictionary of physical elements
         :rtype: dict< :class:`~sardana.pool.poolcontroller.PoolController,
-                sequence<:class:`~sardana.pool.poolelement.PoolElement`>"""            
+                sequence<:class:`~sardana.pool.poolelement.PoolElement`>"""
         if self._pending:
             self._build_elements()
         return self._physical_elements
@@ -248,7 +249,7 @@ class PoolBaseGroup(PoolContainer):
         .. warning:: The order is non deterministic.
         
         :return: an iterator over the physical elements.
-        :rtype: iter<:class:`~sardana.pool.poolelement.PoolElement` >"""         
+        :rtype: iter<:class:`~sardana.pool.poolelement.PoolElement` >"""
         for _, elements in self.get_physical_elements().items():
             for element in elements:
                 yield element
@@ -259,7 +260,7 @@ class PoolBaseGroup(PoolContainer):
         .. warning:: The order is non deterministic.
         
         :return: an iterator over the main attribute of each physical element.
-        :rtype: iter< :class:`~sardana.sardanaattribute.SardanaAttribute` >"""         
+        :rtype: iter< :class:`~sardana.sardanaattribute.SardanaAttribute` >"""
         for element in self.get_physical_elements_iterator():
             yield element.get_default_attribute()
 
@@ -272,13 +273,13 @@ class PoolBaseGroup(PoolContainer):
         user_elements = self._user_elements
         physical_elements = self._physical_elements
         physical_elements_set = self._physical_elements_set
-        
+
         if element in user_elements:
             raise Exception("Group already contains %s" % element.name)
         if index is None:
             index = len(user_elements)
         user_elements.insert(index, element)
-        
+
         if not self._is_managed_element(element):
             return index
 
@@ -300,7 +301,7 @@ class PoolBaseGroup(PoolContainer):
             physical_elements = {}
         if physical_elements_set is None:
             physical_elements_set = set()
-            
+
         if elem_type in TYPE_PHYSICAL_ELEMENTS:
             ctrl = element.controller
             own_elements = physical_elements.get(ctrl)

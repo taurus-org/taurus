@@ -30,12 +30,13 @@ __all__ = ["TaurusLabel"]
 __docformat__ = 'restructuredtext'
 
 import operator
+import re
 
 # shame of me for importing PyTango!
 import PyTango
 
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.base import TaurusBaseController
 from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
@@ -54,11 +55,12 @@ EventType = TaurusEventType
 
 class TaurusLabelController(TaurusBaseController):
     
-    StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
+    StyleSheetTemplate = "border-style: outset; border-width: 2px; border-color: {0}; {1}"
 
     def __init__(self, label):
         self._text = ''
         self._trimmedText = False
+        self._trimPattern = re.compile('<[^<]*>')
         TaurusBaseController.__init__(self, label)
 
     def _setStyle(self):
@@ -116,11 +118,14 @@ class TaurusLabelController(TaurusBaseController):
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
             return False
+        text = re.sub(self._trimPattern,'',text)
         font_metrics = Qt.QFontMetrics(label.font())
         size, textSize = label.size().width(), font_metrics.width(text)
         return textSize > size
 
     def _updateToolTip(self, label):
+        if not label.getAutoTooltip():
+            return
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
             toolTip = u"<p><b>Value:</b> %s</p><hr>%s" % (unicode(self._text,errors='replace'), unicode(toolTip,errors='replace'))
@@ -518,7 +523,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #:
     #:     * :meth:`TaurusLabel.getAutoTrim`
     #:     * :meth:`TaurusLabel.setAutoTrim`
-    #:     * :meth:`TaurusLabel.resetAutoTrim
+    #:     * :meth:`TaurusLabel.resetAutoTrim`
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
     

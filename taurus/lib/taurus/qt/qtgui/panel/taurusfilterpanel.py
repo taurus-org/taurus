@@ -27,9 +27,10 @@
 
 __docformat__ = 'restructuredtext'
 
+import os
 import re
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 import taurus.core
 import taurus.core.util
@@ -401,8 +402,6 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
                             taurus.qt.qtgui.base.TaurusBaseWidget.resetModel)
 
 
-import ui_FilterView
-
 class _MessageWidget(Qt.QWidget):
 
     def __init__(self, parent=None, pixmap=None):
@@ -420,6 +419,10 @@ class _MessageWidget(Qt.QWidget):
     def setText(self, text):
         self._label.setText(text)
 
+
+from taurus.external.qt.uic import loadUi
+
+
 class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     
     _Items = "server", "serverName", "serverInstance", \
@@ -435,13 +438,14 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     def init(self):
         l = Qt.QVBoxLayout()
         self.setLayout(l)
-
+        
         panel = self._mainPanel = Qt.QWidget()
         l.addWidget(panel, 1)
-        form = self.uiForm = ui_FilterView.Ui_FilterForm()
-        form.setupUi(panel)
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        ui_filename = os.path.join(this_dir, 'ui', 'TaurusFilterPanel.ui')
+        self.ui = ui = loadUi(ui_filename, baseinstance=panel)
         
-        comboBox = form.filterTypeCombo
+        comboBox = ui.filterTypeCombo
         comboBox.addItem(getElementTypeIcon(ElemType.Attribute), "Attribute", ElemType.Attribute)
         comboBox.addItem(getElementTypeIcon(ElemType.Device), "Device", ElemType.Device)
         comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass), "Device type", ElemType.DeviceClass)
@@ -449,9 +453,9 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
 
         clickedSig = Qt.SIGNAL("clicked()")
         idxChangedSig = Qt.SIGNAL("currentIndexChanged(int)")
-        Qt.QObject.connect(form.serverNameCombo, idxChangedSig, self._updateServerInstanceCombo)
-        Qt.QObject.connect(form.deviceDomainCombo, idxChangedSig, self._updateDeviceFamilyCombo)
-        Qt.QObject.connect(form.deviceFamilyCombo, idxChangedSig, self._updateDeviceMemberCombo)
+        Qt.QObject.connect(ui.serverNameCombo, idxChangedSig, self._updateServerInstanceCombo)
+        Qt.QObject.connect(ui.deviceDomainCombo, idxChangedSig, self._updateDeviceFamilyCombo)
+        Qt.QObject.connect(ui.deviceFamilyCombo, idxChangedSig, self._updateDeviceMemberCombo)
 
         class clearSelection(object):
             def __init__(self, cb):
@@ -474,13 +478,13 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     
     def combos(self):
         if not hasattr(self, "_combos"):
-            f = self.uiForm
+            f = self.ui
             self._combos = [ getattr(f, name + "Combo") for name in self._Items ]
         return self._combos
 
     def clearButtons(self):
         if not hasattr(self, "_clearButtons"):
-            f = self.uiForm
+            f = self.ui
             self._clearButtons = [ getattr(f, name + "ClearButton") for name in self._Items ]
         return self._clearButtons
     
@@ -490,7 +494,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         return db.cache()
 
     def _updateStatusBar(self, index=None):
-        form = self.uiForm
+        form = self.ui
         server = str(form.serverCombo.currentText())
         serverName = str(form.serverNameCombo.currentText())
         serverInstance = str(form.serverInstanceCombo.currentText())
@@ -519,7 +523,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         
         
     def _updateServerCombo(self, index=None):
-        combo = self.uiForm.serverCombo
+        combo = self.ui.serverCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -531,7 +535,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateServerNameCombo(self, index=None):
-        combo = self.uiForm.serverNameCombo
+        combo = self.ui.serverNameCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -548,7 +552,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateServerInstanceCombo(self, index=None):
-        combo = self.uiForm.serverInstanceCombo
+        combo = self.ui.serverInstanceCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -566,7 +570,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
         
     def _updateDeviceTypeCombo(self, index=None):
-        combo = self.uiForm.deviceTypeCombo
+        combo = self.ui.deviceTypeCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -578,7 +582,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateDeviceNameCombo(self, index=None):
-        combo = self.uiForm.deviceNameCombo
+        combo = self.ui.deviceNameCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -590,7 +594,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateDeviceDomainCombo(self, index=None):
-        combo = self.uiForm.deviceDomainCombo
+        combo = self.ui.deviceDomainCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -602,12 +606,12 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateDeviceFamilyCombo(self, index=None):
-        combo = self.uiForm.deviceFamilyCombo
+        combo = self.ui.deviceFamilyCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
         
-        deviceDomain = str(self.uiForm.deviceDomainCombo.currentText())
+        deviceDomain = str(self.ui.deviceDomainCombo.currentText())
         if deviceDomain == "": return
         families = db_cache.getDeviceFamilyNames(deviceDomain)
         families.sort()
@@ -617,14 +621,14 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
 
     def _updateDeviceMemberCombo(self, index=None):
-        combo = self.uiForm.deviceMemberCombo
+        combo = self.ui.deviceMemberCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
 
-        deviceDomain = str(self.uiForm.deviceDomainCombo.currentText())
+        deviceDomain = str(self.ui.deviceDomainCombo.currentText())
         if deviceDomain == "": return
-        deviceFamily = str(self.uiForm.deviceFamilyCombo.currentText())
+        deviceFamily = str(self.ui.deviceFamilyCombo.currentText())
         if deviceFamily == "": return
         members = db_cache.getDeviceMemberNames(deviceDomain, deviceFamily)
         members.sort()
@@ -634,7 +638,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo.setCurrentIndex(-1)
         
     def _updateAttributeCombo(self, index=None):
-        combo = self.uiForm.attributeCombo
+        combo = self.ui.attributeCombo
         combo.clear()
         db_cache = self._db_cache()
         if db_cache is None: return
@@ -663,7 +667,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         #model = self._deviceEdit.model()
         #if model is None: return
         #model.setDataSource(db)
-        self.uiForm.deviceNameCombo.clear()
+        self.ui.deviceNameCombo.clear()
         self._fillItems()
         
     #: This property holds the unique URI string representing the model name 

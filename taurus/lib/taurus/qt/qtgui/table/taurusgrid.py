@@ -40,7 +40,7 @@ import traceback
 import Queue
 from functools import partial
 
-from taurus.qt import Qt, QtGui, QtCore
+from taurus.external.qt import Qt, QtGui, QtCore
 
 import taurus
 from taurus.qt.qtcore.util.emitter import modelSetter,TaurusEmitterThread,SingletonWorker,MethodModel
@@ -220,9 +220,20 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         
         self.defineStyle()
         self.modelsQueue = Queue.Queue()
-        #self.modelsThread = TaurusEmitterThread(parent=self,queue=self.modelsQueue,method=modelSetter )
-        self.modelsThread = SingletonWorker(parent=self,name='TaurusGrid',queue=self.modelsQueue,method=modelSetter,cursor=True)
-        
+        self.__modelsThread = None
+        if not designMode:
+            self.modelsThread
+
+    @property
+    def modelsThread(self):
+        modelsThread = self.__modelsThread
+        if modelsThread is None:
+            modelsThread = SingletonWorker(parent=self, name='TaurusGrid',
+                                           queue=self.modelsQueue,
+                                           method=modelSetter, cursor=True)
+            self.__modelsThread = modelsThread
+        return modelsThread
+
     def save(self,filename):
         import pickle
         d = {

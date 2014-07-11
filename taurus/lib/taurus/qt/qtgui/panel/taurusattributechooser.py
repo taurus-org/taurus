@@ -31,13 +31,14 @@ __all__ = ["TaurusAttributeChooser"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util.containers import CaselessList
+from taurus.qt.qtgui.util.ui import UILoadable
 
-from .ui.ui_AttributeChooser import *
 
+@UILoadable(with_ui='ui')
 class TaurusAttributeChooser(Qt.QWidget, TaurusBaseWidget):
     
     __pyqtSignals__ = ("modelChanged(const QString &)",) ##
@@ -48,8 +49,7 @@ class TaurusAttributeChooser(Qt.QWidget, TaurusBaseWidget):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, str(self.objectName()))
         ##
-        self.ui = Ui_AttrCh()
-        self.ui.setupUi(self)
+        self.loadUi()
         #Create global variables
         self.dev_name = ""
         self.selectedItems = CaselessList([])

@@ -32,8 +32,9 @@ __docformat__ = 'restructuredtext'
 import sys
 import time
 
-from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, DevDouble, \
-    DevBoolean, DevVarStringArray, DevVarDoubleArray, DevState, AttrQuality
+from PyTango import DevFailed, Except, READ_WRITE, SCALAR, DevVoid, \
+    DevDouble, DevBoolean, DevVarStringArray, DevVarDoubleArray, DevState, \
+    AttrQuality
 
 from taurus.core.util.log import DebugIt
 
@@ -42,7 +43,8 @@ from sardana.sardanaexception import SardanaException
 from sardana.sardanaattribute import SardanaAttribute
 from sardana.tango.core.util import exception_str, to_tango_type_format, \
     throw_sardana_exception
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class PseudoMotor(PoolElementDevice):
@@ -71,11 +73,11 @@ class PseudoMotor(PoolElementDevice):
         pseudo_motor = self.pseudo_motor
         if pseudo_motor is not None:
             pseudo_motor.remove_listener(self.on_pseudo_motor_changed)
-            
+
     @DebugIt()
     def init_device(self):
         PoolElementDevice.init_device(self)
-        
+
         self.Elements = map(int, self.Elements)
         pseudo_motor = self.pseudo_motor
         if self.pseudo_motor is None:
@@ -89,7 +91,7 @@ class PseudoMotor(PoolElementDevice):
                 pseudo_motor.set_instrument(self.instrument)
         pseudo_motor.set_drift_correction(self.DriftCorrection)
         pseudo_motor.add_listener(self.on_pseudo_motor_changed)
-        
+
         self.set_state(DevState.ON)
 
     def on_pseudo_motor_changed(self, event_source, event_type, event_value):
@@ -111,7 +113,7 @@ class PseudoMotor(PoolElementDevice):
 
         timestamp = time.time()
         name = event_type.name.lower()
-        
+
         try:
             attr = self.get_attribute_by_name(name)
         except DevFailed:
@@ -119,7 +121,7 @@ class PseudoMotor(PoolElementDevice):
         quality = AttrQuality.ATTR_VALID
         priority = event_type.priority
         value, w_value, error = None, None, None
-        
+
         if name == "state":
             value = self.calculate_tango_state(event_value)
         elif name == "status":
@@ -134,12 +136,12 @@ class PseudoMotor(PoolElementDevice):
             else:
                 value = event_value
             state = self.pseudo_motor.get_state(propagate=0)
-            
+
             if name == "position":
                 w_value = event_value.w_value
                 if state == State.Moving:
                     quality = AttrQuality.ATTR_CHANGING
-                    
+
         self.set_attribute(attr, value=value, w_value=w_value,
                            timestamp=timestamp, quality=quality,
                            priority=priority, error=error, synch=False)
@@ -153,10 +155,10 @@ class PseudoMotor(PoolElementDevice):
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For position attribute, listen to what the controller says for
             # data type (between long and float)
@@ -194,10 +196,10 @@ class PseudoMotor(PoolElementDevice):
         self.set_attribute(attr, value=position.value, w_value=position.w_value,
                            quality=quality, priority=0,
                            timestamp=position.timestamp)
-    
+
     def write_Position(self, attr):
         self.in_write_position = True
-        try:        
+        try:
             position = attr.get_write_value()
             self.debug("write_Position(%s)", position)
             try:
@@ -240,11 +242,11 @@ class PseudoMotor(PoolElementDevice):
 
     def CalcAllPseudo(self, physical_positions):
         """Returns the pseudo motor position(s) for the given physical positions"""
-        result = self.pseudo_motor.calc_all_pseudo(physical_positions) 
+        result = self.pseudo_motor.calc_all_pseudo(physical_positions)
         if result.error:
             throw_sardana_exception(result)
         return result.value
-                            
+
     def MoveRelative(self, argin):
         raise NotImplementedError
 

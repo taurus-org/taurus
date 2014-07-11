@@ -29,7 +29,7 @@ __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx" ]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from tauruslineedit import TaurusValueLineEdit
@@ -46,35 +46,22 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         self._showQuality = False
         
         self._singleStep = 1.0
-        
-        self.setLineEdit(TaurusValueLineEdit(designMode=designMode))
+
+        lineEdit = TaurusValueLineEdit(designMode=designMode)
+        self.setLineEdit(lineEdit)
         self.setAccelerated(True)
+        self.connect(self, Qt.SIGNAL("editingFinished()"),
+                     self.writeValue)
 
     def __getattr__(self, name):
         return getattr(self.lineEdit(), name)
 
-    # The minimum size of the widget (a limit for the user)
-    #def minimumSizeHint(self):
-    #    return Qt.QSize(20, 20)
-    
-    # The default size of the widget
-    #def sizeHint(self):
-    #    return Qt.QSize(80, 24)
-        
     def setValue(self, v):
         self.lineEdit().setValue(v)
 
     def getValue(self):
         return self.lineEdit().getValue()
     
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
-            self.lineEdit().writeValue()
-            event.accept()
-        else:
-            Qt.QAbstractSpinBox.keyPressEvent(self,event)
-            event.ignore()
-
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory overload from QAbstractSpinBox
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -92,12 +79,17 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
                 self.lineEdit().writeValue(forceApply=True)
     
     def stepEnabled(self):
-        le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
         ret = Qt.QAbstractSpinBox.StepEnabled(Qt.QAbstractSpinBox.StepNone)
-        
+        if self.getModelObj() == None:
+            return ret
+        if self.getModelObj().getValueObj() == None:
+            return ret
+
+        le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
+
         if curr_val == None:
             return ret
-        
+
         if not le._outOfRange(curr_val + ss):
             ret |= Qt.QAbstractSpinBox.StepUpEnabled
         if not le._outOfRange(curr_val - ss):
@@ -223,4 +215,3 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
     
     def __setattr__(self, name, value):
         setattr(self.spinBox, name, value)
-    

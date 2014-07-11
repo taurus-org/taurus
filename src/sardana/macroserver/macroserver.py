@@ -31,13 +31,10 @@ import codecs
 import logging.handlers
 import time
 
-from taurus.core.taurushelper import Device, Factory
-from taurus.core.taurusbasetypes import TaurusEventType
-from taurus.core.util.containers import CaselessDict
-from taurus.core.util.threadpool import ThreadPool
+from taurus import Device
+from taurus.core import TaurusEventType
 from taurus.core.util.log import Logger
-from taurus.core.tango.sardana.motion import Motion, MotionGroup
-from taurus.core.tango.sardana.pool import registerExtensions
+from taurus.core.util.containers import CaselessDict
 
 from sardana import InvalidId, ElementType, Interface
 from sardana.sardanaevent import EventType
@@ -45,15 +42,17 @@ from sardana.sardanamodulemanager import ModuleManager
 from sardana.sardanamanager import SardanaElementManager, SardanaIDManager
 from sardana.sardanathreadpool import get_thread_pool
 from sardana.sardanautils import is_pure_str
+from sardana.taurus.core.tango.sardana.motion import Motion, MotionGroup
+from sardana.taurus.core.tango.sardana.pool import registerExtensions
 
-from .msbase import MSObject
-from .mscontainer import MSContainer
-from .msdoor import MSDoor
-from .msmacromanager import MacroManager
-from .mstypemanager import TypeManager
-from .msenvmanager import EnvironmentManager
-from .msparameter import ParamType
-from .msexception import UnknownMacroLibrary, UnknownMacro
+from sardana.macroserver.msbase import MSObject
+from sardana.macroserver.mscontainer import MSContainer
+from sardana.macroserver.msdoor import MSDoor
+from sardana.macroserver.msmacromanager import MacroManager
+from sardana.macroserver.mstypemanager import TypeManager
+from sardana.macroserver.msenvmanager import EnvironmentManager
+from sardana.macroserver.msparameter import ParamType
+from sardana.macroserver.msexception import UnknownMacroLibrary
 
 CHANGE_EVT_TYPES = TaurusEventType.Change, TaurusEventType.Periodic
 
@@ -101,7 +100,7 @@ class NonOverlappingTimedRotatingFileHandler(logging.handlers.TimedRotatingFileH
                 else:
                     addend = -3600
                 timeTuple = time.localtime(t + addend)
-        
+
         dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
         # PY3K
         if hasattr(self, 'rotation_filename'):
@@ -714,7 +713,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
                 type_name_list = type_class
         obj_set = set()
         param = [ '^%s$' % x for x in param ]
-        re_objs = map(re.compile, param, len(param)*(re.IGNORECASE,))
+        re_objs = map(re.compile, param, len(param) * (re.IGNORECASE,))
         re_subtype = re.compile(subtype, re.IGNORECASE)
         for type_name in type_name_list:
             type_class_name = type_name
@@ -764,7 +763,7 @@ class MacroServer(MSContainer, MSObject, SardanaElementManager, SardanaIDManager
         return interface in self._LOCAL_INTERFACES
     
     def get_elements_with_interface(self, interface):
-        ret=CaselessDict()
+        ret = CaselessDict()
         if is_pure_str(interface):
             interface_str = interface
             interface = Interface[interface_str]

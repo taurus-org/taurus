@@ -29,7 +29,7 @@ __all__ = ["QBaseTreeWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import QBaseModelWidget, BaseToolBar
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
@@ -212,6 +212,7 @@ class QBaseTreeWidget(QBaseModelWidget):
             klass = Qt.QTreeView
         tree = klass()
         tree.setSortingEnabled(True)
+        tree.sortByColumn(0, Qt.Qt.AscendingOrder)
         tree.setUniformRowHeights(True)
         tree.setAlternatingRowColors(True)
         tree.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)

@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+##
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2014 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+"""
+This module contains classes necessary by a simple python Tango Device Server.
+
+TimeoutDs is used to provoke timeout exceptions on requests.
+It comprises one device class: Timeout. 
+This class implements one attribute: Timeout_attr and one command: TimoutCmd.
+
+Timeout_attr is read/write of type float and its dimension is scalar.
+The attibute value is the time that will take the read/write the attribute.
+
+TimeoutCmd expects as an argument a float scalar.
+The argument value is the time that will take to execute the command.
+
+#@TODO: create .bat file to allow starting on windows
+    
+"""
+
+import PyTango
+import sys
+import time
+
+class TimeoutClass(PyTango.DeviceClass):
+
+    cmd_list = { 'TimeoutCmd' : 
+         [[ PyTango.ArgType.DevFloat, "Time the command execution will take" ],
+          [ PyTango.ArgType.DevVoid, "" ]]                               
+    }
+
+    attr_list = { 'Timeout_attr' : [[PyTango.ArgType.DevFloat ,
+                                     PyTango.AttrDataFormat.SCALAR ,
+                                     PyTango.AttrWriteType.READ_WRITE]]
+    }
+    
+    def __init__(self, name):
+        PyTango.DeviceClass.__init__(self, name)
+        self.set_type("TestDevice")
+        
+class Timeout(PyTango.Device_4Impl):
+
+    def __init__(self,cl,name):
+        PyTango.Device_4Impl.__init__(self, cl, name)
+        self.info_stream('In Timeout.__init__')
+        Timeout.init_device(self)
+
+    @PyTango.DebugIt()
+    def init_device(self):
+        self.info_stream('In Python init_device method')
+        self.set_state(PyTango.DevState.ON)
+        self.attr_duration = 4.
+        self.cmd_duration = 4.
+
+    #------------------------------------------------------------------
+
+    @PyTango.DebugIt()
+    def delete_device(self):
+        self.info_stream('Timeout.delete_device')
+
+    #------------------------------------------------------------------
+    # COMMANDS
+    #------------------------------------------------------------------
+
+    @PyTango.DebugIt()
+    def is_TimeoutCmd_allowed(self):
+        return self.get_state() == PyTango.DevState.ON
+
+    @PyTango.DebugIt()
+    def TimeoutCmd(self, in_data):
+        self.info_stream('TimeoutCmd', in_data)
+        self.cmd_duration = in_data
+        time.sleep(self.cmd_duration)
+    
+    #------------------------------------------------------------------
+    # ATTRIBUTES
+    #------------------------------------------------------------------
+
+    @PyTango.DebugIt()
+    def read_attr_hardware(self, data):
+        self.info_stream('In read_attr_hardware')
+
+    @PyTango.DebugIt()
+    def read_Timeout_attr(self, the_att):
+        self.info_stream("read_Long_attr")
+        time.sleep(self.attr_duration)
+        the_att.set_value(self.attr_duration)
+    
+    @PyTango.DebugIt()
+    def write_Timeout_attr(self, the_att):
+        self.info_stream("write_Short_attr_rw")
+        self.attr_duration = the_att.get_write_value()
+        time.sleep(self.attr_duration)
+
+
+if __name__ == '__main__':
+    util = PyTango.Util(sys.argv)
+    util.add_class(TimeoutClass, Timeout)
+
+    U = PyTango.Util.instance()
+    U.server_init()
+    U.server_run()

@@ -40,10 +40,9 @@ import numpy as np
 
 import PyTango
 import taurus
-from taurus.core.util.user import USER_NAME
 from taurus.core.util.log import Logger
+from taurus.core.util.user import USER_NAME
 from taurus.core.tango import FROM_TANGO_TO_STR_TYPE
-from taurus.core.tango.sardana.pool import Ready
 
 from sardana.util.tree import BranchNode, LeafNode, Tree
 from sardana.util.motion import Motor as VMotor
@@ -51,13 +50,20 @@ from sardana.util.motion import MotionPath
 from sardana.macroserver.msexception import MacroServerException, UnknownEnv, \
     InterruptException
 from sardana.macroserver.msparameter import Type
-from scandata import ColumnDesc, MoveableDesc, ScanFactory, ScanDataEnvironment
-from recorder import OutputRecorder, JsonRecorder, SharedMemoryRecorder, \
-    FileRecorder
+from sardana.macroserver.scan.scandata import ColumnDesc, MoveableDesc, \
+    ScanFactory, ScanDataEnvironment
+from sardana.macroserver.scan.recorder import OutputRecorder, JsonRecorder, \
+    SharedMemoryRecorder, FileRecorder
+from sardana.taurus.core.tango.sardana.pool import Ready
 
-class ScanSetupError(Exception): pass
 
-class ScanException(MacroServerException): pass
+class ScanSetupError(Exception):
+    pass
+
+
+class ScanException(MacroServerException):
+    pass
+
 
 class ExtraData(object):
     
@@ -533,24 +539,24 @@ class GScan(Logger):
             plotAxes = []
             i = 0
             for a in ci.plot_axes:
-                if a=='<mov>':
+                if a == '<mov>':
                     plotAxes.append(ref_moveables[i])
-                    i+=1
+                    i += 1
                 else: plotAxes.append(a)
                 
             #create the ColumnDesc object
             column = ColumnDesc(name=ci.full_name,
-                                label = ci.label,
-                                dtype = ci.data_type,
-                                shape = ci.shape,
-                                instrument = instrumentFullName,
-                                source = ci.source,
-                                output = ci.output,
-                                conditioning = ci.conditioning,
-                                normalization = ci.normalization,
-                                plot_type = ci.plot_type,
-                                plot_axes = plotAxes,
-                                data_units = ci.unit)
+                                label=ci.label,
+                                dtype=ci.data_type,
+                                shape=ci.shape,
+                                instrument=instrumentFullName,
+                                source=ci.source,
+                                output=ci.output,
+                                conditioning=ci.conditioning,
+                                normalization=ci.normalization,
+                                plot_type=ci.plot_type,
+                                plot_axes=plotAxes,
+                                data_units=ci.unit)
             data_desc.append(column)
             counters.append(column.name)
         counters.remove(master['full_name'])
@@ -626,26 +632,26 @@ class GScan(Logger):
         manager = self.macro.getManager()
         all_elements_info = manager.get_elements_with_interface('Element')
         ret = []
-        for src,label in elements:
+        for src, label in elements:
             try:
                 if src in all_elements_info:
                     ei = all_elements_info[src]
                     column = ColumnDesc(name=ei.full_name,
                                         label=label,
-                                        instrument = ei.instrument,
-                                        source = ei.source)
+                                        instrument=ei.instrument,
+                                        source=ei.source)
                 else:
                     column = ColumnDesc(name=src,
                                         label=label,
                                         source=src)
-                
-                v = PyTango.AttributeProxy(column.source).read().value #@Fixme: Tango-centric. It should work for any Taurus Attribute
+
+                v = PyTango.AttributeProxy(column.source).read().value  #@Fixme: Tango-centric. It should work for any Taurus Attribute
                 column.pre_scan_value = v
                 column.shape = np.shape(v)
                 column.dtype = getattr(v, 'dtype', np.dtype(type(v))).name
                 ret.append(column)
             except:
-                self.macro.warning('Error taking pre-scan snapshot of %s (%s)',label,src)
+                self.macro.warning('Error taking pre-scan snapshot of %s (%s)', label, src)
                 self.debug('Details:', exc_info=1)
         return ret
 
@@ -849,8 +855,8 @@ class SScan(GScan):
             self.stepUp(i, step, lstep)
             lstep = step
             if scream:
-                yield ((i+1) / nr_points) * 100.0
-        
+                yield ((i + 1) / nr_points) * 100.0
+
         if hasattr(macro, 'getHooks'):
             for hook in macro.getHooks('post-scan'):
                 hook()
@@ -929,7 +935,7 @@ class SScan(GScan):
         self._sum_acq_time += integ_time
 
         #post-acq hooks
-        for hook in step.get('post-acq-hooks',()):
+        for hook in step.get('post-acq-hooks', ()):
             hook()
             try:
                 step['extrainfo'].update(hook.getStepExtraInfo())
@@ -943,7 +949,7 @@ class SScan(GScan):
             self.macro.info('Deprecation warning: you should use '
                             '"post-acq-hooks" instead of "hooks" in the step '
                             'generator')
-            for hook in step.get('hooks',()):
+            for hook in step.get('hooks', ()):
                 hook()
                 try:
                     step['extrainfo'].update(hook.getStepExtraInfo())
@@ -964,7 +970,7 @@ class SScan(GScan):
         self.data.addRecord(data_line)
     
         #post-step hooks
-        for hook in step.get('post-step-hooks',()):
+        for hook in step.get('post-step-hooks', ()):
             hook()
             try:
                 step['extrainfo'].update(hook.getStepExtraInfo())
@@ -1069,9 +1075,11 @@ class CScan(GScan):
         triggered)"""
         self.set_all_waypoints_finished(True)
         if restore_positions is not None:
+            self._setFastMotions()
             self.macro.info("Correcting overshoot...")
             self._physical_motion.move(restore_positions)
             #self.motion.move(restore_positions)
+        self.do_restore()
         self.motion_end_event.set()        
         self.motion_event.set()
             
@@ -1184,6 +1192,21 @@ class CScan(GScan):
                 self.debug("Restored %s", motor)
             except:
                 self.macro.warning("Failed to restore %s", motor)
+                self.debug("Details:", exc_info=1)
+                
+    def _setFastMotions(self, motors=None):
+        '''make given motors go at their max speed and accel'''
+        if motors is None:
+            motors = [b.get('moveable') for b in self._backup if b is not None]
+            
+        for motor in motors:
+            try:
+                motor.setVelocity(self.get_max_top_velocity(motor))
+                motor.setAcceleration(self.get_min_acc_time(motor))
+                motor.setDeceleration(self.get_min_dec_time(motor))
+                self.debug("%s put into fast motion", motor)
+            except:
+                self.macro.warning("Failed to put %s into fast motion", motor)
                 self.debug("Details:", exc_info=1)
                 
     def get_max_top_velocity(self, motor):
@@ -1403,19 +1426,20 @@ class CSScan(CScan):
             for path in motion_paths:
                 start_pos.append(path.initial_user_pos)
                 final_pos.append(path.final_user_pos)
-            
+
             if macro.isStopped():
                 self.on_waypoints_end()
-                return
-                       
+                return 
+                      
             # move to start position
             self.macro.debug("Moving to start position: %s" % repr(start_pos))
             motion.move(start_pos)
             
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
-            # prepare motor(s) to move with their maximum velocity
+            # prepare motor(s) with the velocity required for synchronization
             for path in motion_paths:
                 if not path.apply_correction:
                     continue
@@ -1424,7 +1448,8 @@ class CSScan(CScan):
                 motor.setVelocity(vmotor.getMaxVelocity())
 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
                         
             self.timestamp_to_start = time.time() + delta_start
             self.motion_event.set()
@@ -1574,7 +1599,7 @@ class CSScan(CScan):
                     self.data.addRecord(data_line)
                     
                     if scream:
-                        yield ((point_nb+1) / nr_points) * 100.0
+                        yield ((point_nb + 1) / nr_points) * 100.0
                 else:
                     break
                 old_curr_time = curr_time
@@ -1791,7 +1816,6 @@ class CTScan(CScan):
     
         def setConfiguration(self, configuration):
             pass
-
     
     def __init__(self, macro, generator=None,
                  moveables=[], env={}, constraints=[], extrainfodesc=[]):
@@ -1799,8 +1823,7 @@ class CTScan(CScan):
                        moveables=moveables, env=env, constraints=constraints,
                        extrainfodesc=extrainfodesc)
         self._measurement_group = self.ExtraMntGrp(macro)
-        self.extraTrigger = self.ExtraTrigger(macro)
-            
+        self.extraTrigger = self.ExtraTrigger(macro)            
         
     def prepare_waypoint(self, waypoint, start_positions, iterate_only=False):
         '''Prepare list of MotionPath objects per each physical motor. 
@@ -1934,7 +1957,8 @@ class CTScan(CScan):
             motion.move(start_pos)
             
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             # prepare motor(s) to move with their maximum velocity
             for path in motion_paths:
@@ -1951,7 +1975,8 @@ class CTScan(CScan):
                 motor.setDeceleration(path.min_vel_time)
                 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             if hasattr(macro, 'getHooks'):
                 for hook in macro.getHooks('pre-start'):
@@ -1976,7 +2001,8 @@ class CTScan(CScan):
             self.motion_event.clear()
 
             if macro.isStopped():
-                return self.on_waypoints_end()
+                self.on_waypoints_end()
+                return
             
             #execute post-move hooks
             for hook in waypoint.get('post-move-hooks',[]):
@@ -1999,7 +2025,7 @@ class CTScan(CScan):
                 
                 for moveable, start, final in zip(moveables, starts, finals):
                     name = moveable.moveable.getName()
-                    step_size = abs((end-start)/nr_of_points)
+                    step_size = abs((end - start) / nr_of_points)
                     for point_nr, position in enumerate(np.arange(start, \
                                                             final, step_size)):
                         positions_records[point_nr][name] = position    

@@ -43,7 +43,8 @@ from sardana.sardanaattribute import SardanaAttribute
 from sardana.pool.controller import ZeroDController, Type
 from sardana.tango.core.util import to_tango_type_format
 
-from PoolDevice import PoolElementDevice, PoolElementDeviceClass
+from sardana.tango.pool.PoolDevice import PoolElementDevice, \
+    PoolElementDeviceClass
 
 
 class ZeroDExpChannel(PoolElementDevice):
@@ -81,11 +82,11 @@ class ZeroDExpChannel(PoolElementDevice):
                     full_name=full_name, id=self.Id, axis=self.Axis,
                     ctrl_id=self.Ctrl_id)
         zerod.add_listener(self.on_zerod_changed)
-        
+
         ## force a state read to initialize the state attribute
         #state = zerod.state
         self.set_state(DevState.ON)
-        
+
     def on_zerod_changed(self, event_source, event_type, event_value):
         # during server startup and shutdown avoid processing element
         # creation events
@@ -122,15 +123,15 @@ class ZeroDExpChannel(PoolElementDevice):
         #state = to_tango_state(self.zerod.get_state(cache=False))
         pass
 
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     def get_dynamic_attributes(self):
         cache_built = hasattr(self, "_dynamic_attributes_cache")
-        
+
         std_attrs, dyn_attrs = \
             PoolElementDevice.get_dynamic_attributes(self)
-        
+
         if not cache_built:
             # For value attribute, listen to what the controller says for data
             # type (between long and float)
@@ -139,13 +140,13 @@ class ZeroDExpChannel(PoolElementDevice):
                 attr_name, data_info, attr_info = value
                 ttype, _ = to_tango_type_format(attr_info.dtype)
                 data_info[0][0] = ttype
-            
+
                 # Add manually a 'CurrentValue' with the same time as 'Value'
                 attr_name = 'CurrentValue'
                 attr_info = attr_info.copy()
                 attr_info.description = attr_name
                 std_attrs[attr_name] = [attr_name, data_info, attr_info]
-            
+
         return std_attrs, dyn_attrs
 
     def initialize_dynamic_attributes(self):
@@ -160,7 +161,7 @@ class ZeroDExpChannel(PoolElementDevice):
         for attr_name in non_detect_evts:
             if attr_name in attrs:
                 self.set_change_event(attr_name, True, False)
-                
+
     def read_Value(self, attr):
         zerod = self.zerod
         value = zerod.get_accumulated_value()
@@ -182,7 +183,7 @@ class ZeroDExpChannel(PoolElementDevice):
             quality = AttrQuality.ATTR_CHANGING
         self.set_attribute(attr, value=value.value, quality=quality,
                            priority=0, timestamp=value.timestamp)
-        
+
     def Start(self):
         self.zerod.start_acquisition()
 
@@ -231,8 +232,8 @@ class ZeroDExpChannelClass(PoolElementDeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'ValueBuffer'    : [ [ DevDouble, SPECTRUM, READ, 16*1024 ] ],
-        'TimeBuffer'     : [ [ DevDouble, SPECTRUM, READ, 16*1024 ] ],
+        'ValueBuffer'    : [ [ DevDouble, SPECTRUM, READ, 16 * 1024 ] ],
+        'TimeBuffer'     : [ [ DevDouble, SPECTRUM, READ, 16 * 1024 ] ],
         'CumulationType' : [ [ DevString, SCALAR, READ_WRITE ],
                              { 'Memorized'     : "true",
                                'label'         : "Cumulation Type",
@@ -245,7 +246,7 @@ class ZeroDExpChannelClass(PoolElementDeviceClass):
                              { 'abs_change' : '1.0', } ],
     }
     standard_attr_list.update(PoolElementDeviceClass.standard_attr_list)
-    
+
     def _get_class_properties(self):
         ret = PoolElementDeviceClass._get_class_properties(self)
         ret['Description'] = "0D experimental channel device class"

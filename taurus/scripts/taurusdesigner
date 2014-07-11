@@ -28,7 +28,7 @@ import os.path
 import optparse 
 
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.qt.qtdesigner.taurusdesigner import main
 
 if __name__ == "__main__":

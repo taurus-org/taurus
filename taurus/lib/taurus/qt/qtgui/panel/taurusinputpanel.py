@@ -32,10 +32,11 @@ __docformat__ = 'restructuredtext'
 import sys
 import collections
 
-from taurus.qt import Qt
-import ui.ui_TaurusInputPanel
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.util.ui import UILoadable
 
 
+@UILoadable(with_ui='_ui')
 class TaurusInputPanel(Qt.QWidget):
     """A panel design to get an input from the user.
     
@@ -96,9 +97,8 @@ class TaurusInputPanel(Qt.QWidget):
     def __init__(self, input_data, parent=None):
         Qt.QWidget.__init__(self, parent)
         self._input_data = input_data
-        self._ui = _ui = ui.ui_TaurusInputPanel.Ui_TaurusInputPanel()
-        _ui.setupUi(self)
-        self.fill_main_panel(_ui.inputPanel, input_data)
+        self.loadUi()
+        self.fill_main_panel(self._ui._inputPanel, input_data)
 
     def fill_main_panel(self, panel, input_data):
         layout = Qt.QVBoxLayout()
@@ -339,14 +339,14 @@ class TaurusInputPanel(Qt.QWidget):
         return self._ui.inputWidget.checkState() == Qt.Qt.Checked
     
     def inputPanel(self):
-        return self._ui.inputPanel
+        return self._ui._inputPanel
 
     def buttonBox(self):
         """Returns the button box from this panel
 
         :return: the button box from this panel
         :rtype: PyQt4.Qt.QDialogButtonBox"""
-        return self._ui.buttonBox
+        return self._ui._buttonBox
 
     def addButton(self, button, role=Qt.QDialogButtonBox.ActionRole):
         """Adds the given button with the given to the button box
@@ -355,7 +355,7 @@ class TaurusInputPanel(Qt.QWidget):
         :type button: PyQt4.QtGui.QPushButton
         :param role: button role
         :type role: PyQt4.Qt.QDialogButtonBox.ButtonRole"""
-        self._ui.buttonBox.addButton(button, role)
+        self._ui._buttonBox.addButton(button, role)
 
     def setIconPixmap(self, pixmap):
         """Sets the icon to the dialog

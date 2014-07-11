@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -37,7 +37,7 @@ from taurus.core.util.lock import TaurusLock
 
 from sardana import State
 from sardana.sardanaevent import EventType
-from .poolobject import PoolObject
+from sardana.pool.poolobject import PoolObject
 
 
 class PoolBaseElement(PoolObject):
@@ -57,15 +57,15 @@ class PoolBaseElement(PoolObject):
         self._action_cache = None
         self._aborted = False
         self._stopped = False
-        
+
         lock_name = kwargs['name'] + "Lock"
-        
+
         # A lock for high level operations: monitoring, motion or acquisition
         self._lock = TaurusLock(name=lock_name, lock=threading.RLock())
-        
+
         # The operation context in which the element is involved
         self._operation = None
-        
+
         # The :class:`PoolAction` in which element is involved
         self._pool_action = None
 
@@ -86,7 +86,7 @@ class PoolBaseElement(PoolObject):
         :type blocking: bool"""
         ret = self._lock.acquire(blocking)
         return ret
-    
+
     def unlock(self):
         ret = self._lock.release()
         return ret
@@ -94,11 +94,11 @@ class PoolBaseElement(PoolObject):
     def get_action_cache(self):
         """Returns the internal action cache object"""
         return self._action_cache
-    
+
     def serialize(self, *args, **kwargs):
         ret = PoolObject.serialize(self, *args, **kwargs)
         return ret
-     
+
     # --------------------------------------------------------------------------
     # simulation mode
     # --------------------------------------------------------------------------
@@ -113,7 +113,7 @@ class PoolBaseElement(PoolObject):
         :return: the current simulation mode
         :rtype: bool"""
         return self._simulation_mode
-    
+
     def set_simulation_mode(self, simulation_mode, propagate=1):
         self._simulation_mode = simulation_mode
         if not propagate:
@@ -123,17 +123,17 @@ class PoolBaseElement(PoolObject):
             return
         self.fire_event(EventType("simulation_mode", priority=propagate),
                         simulation_mode)
-    
+
     def put_simulation_mode(self, simulation_mode):
         self._simulation_mode = simulation_mode
-    
+
     simulation_mode = property(get_simulation_mode, set_simulation_mode,
                                doc="element simulation mode")
-    
+
     # --------------------------------------------------------------------------
     # state
     # --------------------------------------------------------------------------
-    
+
     def get_state(self, cache=True, propagate=1):
         """Returns the state for this object. If cache is True (default) it
         returns the current state stored in cache (it will force an update if
@@ -155,17 +155,17 @@ class PoolBaseElement(PoolObject):
             state_info = self.read_state_info()
             self._set_state_info(state_info, propagate=propagate)
         return self._state
-    
+
     def inspect_state(self):
         """Looks at the current cached value of state
 
         :return: the current object state
         :rtype: :obj:`sardana.State`"""
         return self._state
-    
+
     def set_state(self, state, propagate=1):
         self._set_state(state, propagate=propagate)
-        
+
     def _set_state(self, state, propagate=1):
         self._state = state
         if not propagate:
@@ -175,23 +175,23 @@ class PoolBaseElement(PoolObject):
             return
         self._state_event = state
         self.fire_event(EventType("state", priority=propagate), state)
-    
+
     def put_state(self, state):
         self._state = state
 
     state = property(get_state, set_state, doc="element state")
-    
+
     # --------------------------------------------------------------------------
     # status
     # --------------------------------------------------------------------------
-    
+
     def inspect_status(self):
         """Looks at the current cached value of status
 
         :return: the current object status
         :rtype: str"""
         return self._status
-    
+
     def get_status(self, cache=True, propagate=1):
         """Returns the status for this object. If cache is True (default) it
         returns the current status stored in cache (it will force an update if
@@ -213,10 +213,10 @@ class PoolBaseElement(PoolObject):
             state_info = self.read_state_info()
             self._set_state_info(state_info, propagate=propagate)
         return self._status
-    
+
     def set_status(self, status, propagate=1):
         self._set_status(status, propagate=propagate)
-        
+
     def _set_status(self, status, propagate=1):
         self._status = status
         if not propagate:
@@ -227,16 +227,16 @@ class PoolBaseElement(PoolObject):
             return
         self._status_event = status
         self.fire_event(EventType("status", priority=propagate), status)
-    
+
     def put_status(self, status):
         self._status = status
-    
+
     status = property(get_status, set_status, doc="element status")
-    
+
     # --------------------------------------------------------------------------
     # state information
     # --------------------------------------------------------------------------
-    
+
     _STD_STATUS = "{name} is {state}\n{ctrl_status}"
     def calculate_state_info(self, status_info=None):
         """Transforms the given state information. This specific base
@@ -258,24 +258,24 @@ class PoolBaseElement(PoolObject):
         new_status = self._STD_STATUS.format(name=self.name, state=state_str,
                                              ctrl_status=status)
         return status_info[0], new_status
-    
+
     def set_state_info(self, state_info, propagate=1):
         self._set_state_info(state_info, propagate=propagate)
-        
+
     def _set_state_info(self, state_info, propagate=1):
         state_info = self.calculate_state_info(state_info)
         state, status = state_info[:2]
         self._set_status(status, propagate=propagate)
         self._set_state(state, propagate=propagate)
-    
+
     def read_state_info(self):
         action_cache = self.get_action_cache()
         ctrl_state_info = action_cache.read_state_info(serial=True)[self]
         return self._from_ctrl_state_info(ctrl_state_info)
-    
+
     def put_state_info(self, state_info):
         self.set_state_info(state_info, propagate=0)
-        
+
     def _from_ctrl_state_info(self, state_info):
         try:
             state_str = State.whatis(state_info)
@@ -293,28 +293,28 @@ class PoolBaseElement(PoolObject):
 
     def get_default_attribute(self):
         return NotImplementedError("%s doesn't have default attribute" % self.__class__.__name__)
-    
+
     # --------------------------------------------------------------------------
     # default acquisition channel name
     # --------------------------------------------------------------------------
-    
+
     def get_default_acquisition_channel(self):
         return self.get_default_attribute().name
-        
+
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------
-    
+
     def stop(self):
         self._stopped = True
 
     def was_stopped(self):
         return self._stopped
-    
+
     # --------------------------------------------------------------------------
     # abort
     # --------------------------------------------------------------------------
-    
+
     def abort(self):
         self._aborted = True
 
@@ -332,21 +332,21 @@ class PoolBaseElement(PoolObject):
     # --------------------------------------------------------------------------
     # involved in an operation
     # --------------------------------------------------------------------------
-    
+
     def is_action_running(self):
         """Determines if the element action is running or not."""
         return self.get_action_cache().is_running()
-    
+
     def is_in_operation(self):
         """Returns True if this element is involved in any operation"""
         return self.get_operation() is not None
-    
+
     def is_in_local_operation(self):
         return self.get_operation() == self.get_action_cache()
-    
+
     def get_operation(self):
         return self._operation
-    
+
     def set_operation(self, operation):
         if self.is_in_operation() and operation is not None:
             raise Exception("%s is already involved in an operation"
@@ -355,7 +355,7 @@ class PoolBaseElement(PoolObject):
             self._aborted = False
             self._stopped = False
         self._operation = operation
-    
+
     def clear_operation(self):
         return self.set_operation(None)
 
@@ -364,7 +364,7 @@ class PoolElement(PoolBaseElement):
     """A Pool element is an Pool object which is controlled by a controller.
        Therefore it contains a _ctrl_id and a _axis (the id of the element in
        the controller)."""
-    
+
     def __init__(self, **kwargs):
         ctrl = kwargs.pop('ctrl')
         self._ctrl = weakref.ref(ctrl)
@@ -376,11 +376,11 @@ class PoolElement(PoolBaseElement):
         except KeyError:
             self._instrument = None
         super(PoolElement, self).__init__(**kwargs)
-    
+
     def serialize(self, *args, **kwargs):
         kwargs = PoolBaseElement.serialize(self, *args, **kwargs)
         kwargs['controller'] = self.controller.full_name
-        kwargs['unit'] = '0' #TODO: hardcoded unit to 0
+        kwargs['unit'] = '0'  #TODO: hardcoded unit to 0
         kwargs['axis'] = self.axis
         if self.instrument is not None:
             kwargs['instrument'] = self.instrument.full_name
@@ -388,21 +388,21 @@ class PoolElement(PoolBaseElement):
             kwargs['instrument'] = None
         kwargs['source'] = self.get_source()
         return kwargs
-    
+
     def get_parent(self):
         return self.get_controller()
-    
+
     def get_controller(self):
         if self._ctrl is None:
             return None
         return self._ctrl()
-    
+
     def get_controller_id(self):
         return self._ctrl_id
-    
+
     def get_axis(self):
         return self._axis
-    
+
     def set_action_cache(self, action_cache):
         self._action_cache = action_cache
         action_cache.add_element(self)
@@ -413,15 +413,15 @@ class PoolElement(PoolBaseElement):
     # --------------------------------------------------------------------------
     # instrument
     # --------------------------------------------------------------------------
-    
+
     def get_instrument(self):
         if self._instrument is None:
             return None
         return self._instrument()
-    
+
     def set_instrument(self, instrument, propagate=1):
         self._set_instrument(instrument, propagate=propagate)
-    
+
     def _set_instrument(self, instrument, propagate=1):
         if self._instrument is not None:
             self._instrument().remove_element(self)
@@ -436,20 +436,20 @@ class PoolElement(PoolBaseElement):
             return
         self.fire_event(EventType("instrument", priority=propagate),
                         new_instrument_name)
-    
+
     # --------------------------------------------------------------------------
     # stop
     # --------------------------------------------------------------------------
-    
+
     def stop(self):
         self.info("Stop!")
         PoolBaseElement.stop(self)
         self.controller.stop_one(self.axis)
-    
+
     # --------------------------------------------------------------------------
     # abort
     # --------------------------------------------------------------------------
-    
+
     def abort(self):
         self.info("Abort!")
         PoolBaseElement.abort(self)
@@ -466,7 +466,7 @@ class PoolElement(PoolBaseElement):
 
     def set_extra_par(self, name, value):
         return self.controller.set_axis_attr(self.axis, name, value)
-        
+
     axis = property(get_axis, doc="element axis")
     controller = property(get_controller, doc="element controller")
     controller_id = property(get_controller_id, doc="element controller id")

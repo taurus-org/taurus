@@ -36,11 +36,11 @@ import weakref
 import traceback
 import threading
 
-from taurus.core.util import Logger
+from taurus.core.util.log import Logger
 
 from sardana import State
 from sardana.sardanathreadpool import get_thread_pool
-from .poolobject import PoolObject
+from sardana.pool.poolobject import PoolObject
 
 
 class PoolActionItem(object):

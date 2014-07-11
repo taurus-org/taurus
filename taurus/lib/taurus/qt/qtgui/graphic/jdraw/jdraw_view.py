@@ -32,9 +32,9 @@ __docformat__ = 'restructuredtext'
 import os
 import traceback
 import taurus
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
-from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem
+from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 import jdraw_parser
@@ -83,6 +83,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.h_scene = None
         self._fileName ="Root"
         self._mousePos = (0,0)
+        self._selectionStyle = SynopticSelectionStyle.OUTLINE
         self.setResizable(resizable)
         self.setInteractive(True)
         self.setAlias(alias)
@@ -152,17 +153,15 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def selectGraphicItem(self,item_name):
         self.scene().selectGraphicItem(item_name)
         return False
-    
-    @Qt.pyqtSignature("graphicItemSelected(QString)")
-    def graphicItemSelected(self,item_name):
+
+    def _graphicItemSelected(self,item_name):
         self.debug(' => graphicItemSelected(QString)(%s)'%item_name)
         self.emit(Qt.SIGNAL("graphicItemSelected(QString)"),item_name)
-        
-    @Qt.pyqtSignature("graphicSceneClicked(QPoint)")
-    def graphicSceneClicked(self,point):
+
+    def _graphicSceneClicked(self,point):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)'%(point.x(),point.y()))
         self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"),point)        
-        
+
     def modelsChanged(self):
         items = self.get_item_list()
         self.debug('modelsChanged(%s)'%len(items))
@@ -346,6 +345,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
                 scene = jdraw_parser.parse(filename, factory)
+                scene.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__,filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!"%(model,filename))
@@ -354,8 +354,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     self.h_scene = scene.sceneRect().height()
                 else: self.debug('JDrawView.sceneRect() is NONE!!!')
                 self.setScene(scene)
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self, Qt.SLOT("graphicItemSelected(QString)"))
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self, Qt.SLOT("graphicSceneClicked(QPoint)"))
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicItemSelected(QString)"), self._graphicItemSelected)
+                Qt.QObject.connect(self.scene(), Qt.SIGNAL("graphicSceneClicked(QPoint)"), self._graphicSceneClicked)
                 #Qt.QObject.connect(Qt.QApplication.instance(), Qt.SIGNAL("lastWindowClosed()"), self.close) #It caused a segfault!
                 self.modelsChanged()
                 self.setWindowTitle(self.modelName)
@@ -390,8 +390,32 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         return ret
     
     model = Qt.pyqtProperty("QString", getModel, setModel)
+
+    def setSelectionStyle(self, selectionStyle):
+        if isinstance(selectionStyle, (Qt.QString, basestring)):
+            selectionStyle = str(selectionStyle).upper()
+            try:
+                selectionStyle = SynopticSelectionStyle[selectionStyle]
+            except:
+                self.debug('invalid selectionStyle "%s"', selectionStyle)
+                return
+        if self.scene() != None:
+            self.scene().setSelectionStyle(selectionStyle)
+        self._selectionStyle = selectionStyle
+
+    def getSelectionStyle(self):
+        return self._selectionStyle
     
-    
+    def getSelectionStyleName(self):
+        return SynopticSelectionStyle.whatis(self.getSelectionStyle())
+
+    def resetSelectionStyle(self):
+        self.setSelectionStyle(SynopticSelectionStyle.OUTLINE)
+
+    selectionStyle = Qt.pyqtProperty("QString", getSelectionStyleName,
+                                         setSelectionStyle,
+                                         resetSelectionStyle)
+
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def jdraw_view_main():
     import sys,time

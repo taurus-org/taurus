@@ -7,17 +7,17 @@
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -29,21 +29,21 @@ __all__ = ["PoolMonitor"]
 
 __docformat__ = 'restructuredtext'
 
-import threading
 import time
+import threading
 
-from taurus.core.util import Logger
+from taurus.core.util.log import Logger
 
 from sardana import ElementType, TYPE_PSEUDO_ELEMENTS
 
-from .poolobject import PoolObject
+from sardana.pool.poolobject import PoolObject
 
 
 class PoolMonitor(Logger, threading.Thread):
-    
-    MIN_THREADS =  1
+
+    MIN_THREADS = 1
     MAX_THREADS = 10
-    
+
     def __init__(self, pool, name='PoolMonitor', period=5.0, min_sleep=1.0,
                  auto_start=True):
         Logger.__init__(self, name)
@@ -61,7 +61,7 @@ class PoolMonitor(Logger, threading.Thread):
         if not auto_start:
             self.pause()
         self.start()
-    
+
     def on_pool_changed(self, evt_src, evt_type, evt_value):
         evt_name = evt_type.name.lower()
         if "created" in evt_name or "deleted" in evt_name:
@@ -80,10 +80,10 @@ class PoolMonitor(Logger, threading.Thread):
             elem_ids.sort()
             self._elem_ids = elem_ids
             self._ctrl_ids = ctrl_ids
-    
+
     def update_state_info(self):
         """Update state information of every element."""
-        
+
         pool = self._pool
         elems, ctrls, ctrl_items = [], [], {}
         try:
@@ -105,7 +105,7 @@ class PoolMonitor(Logger, threading.Thread):
                     ctrl_elems.append(elem)
                 else:
                     blocked_ctrls.add(ctrl)
-                    
+
             for ctrl, ctrl_elems in ctrl_items.items():
                 ret = ctrl.lock(blocking=False)
                 if ret:
@@ -114,40 +114,40 @@ class PoolMonitor(Logger, threading.Thread):
                     for elem in reversed(ctrl_elems):
                         elem.unlock()
                         elems.remove(elem)
-                
+
             self._update_state_info_serial(ctrl_items)
         finally:
             for ctrl in reversed(ctrls):
                 ctrl.unlock()
             for elem in reversed(elems):
                 elem.unlock()
-        
+
     def _update_state_info_serial(self, pool_ctrls):
         for pool_ctrl, elems in pool_ctrls.items():
             self._update_ctrl_state_info(pool_ctrl, elems)
-    
+
     def _update_ctrl_state_info(self, pool_ctrl, elems):
-        axes = [ elem.axis for elem in elems ]
+        axes = [elem.axis for elem in elems]
         state_infos, exc_info = pool_ctrl.raw_read_axis_states(axes)
         if len(exc_info):
             self.info("STATE ERROR %s", exc_info)
         for elem, state_info in state_infos.items():
             state_info = elem._from_ctrl_state_info(state_info)
             elem.set_state_info(state_info)
-            
+
     def stop(self):
         self.resume()
         self._stop = True
-    
+
     def pause(self):
         self._pause.clear()
-    
+
     def resume(self):
         self._pause.set()
-    
+
     def monitor(self):
         ret = self.update_state_info()
-    
+
     def run(self):
         nap_time = period = self._period
         i, startup = 0, time.time()
@@ -161,4 +161,4 @@ class PoolMonitor(Logger, threading.Thread):
             nap_time = -1
             while nap_time < 0:
                 i += 1
-                nap_time = (startup + i*self._period) - finish
+                nap_time = (startup + i * self._period) - finish

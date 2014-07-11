@@ -1215,4 +1215,7 @@ class ArrayBuffer(object):
         ''' 
         return self.maxSize() - self.contentsSize()
 
-    
+def chunks(l, n):
+    '''Generator which yields successive n-sized chunks from l'''
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]

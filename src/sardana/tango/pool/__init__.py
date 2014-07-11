@@ -8,17 +8,17 @@ from sardana.pool.poolextension import ControllerStateTranslator
 ## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Sardana is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Sardana is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Sardana.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -28,6 +28,7 @@ from sardana.pool.poolextension import ControllerStateTranslator
 
 __docformat__ = 'restructuredtext'
 
+
 def prepare_pool(util):
 
     import PyTango
@@ -36,19 +37,19 @@ def prepare_pool(util):
         ControllerStateTranslator, register_controller_state_translator, \
         CannotTranslateException
     from sardana.tango.core.util import from_deviceattribute
-    
+
     class TangoControllerValueTranslator(ControllerValueTranslator):
-        
+
         def translate(self, value):
             if not isinstance(value, PyTango.DeviceAttribute):
                 return super(TangoControllerValueTranslator, self).translate(value)
             ret = from_deviceattribute(value)
             return ret
-    
+
     register_controller_value_translator(TangoControllerValueTranslator)
-    
+
     class TangoControllerStateTranslator(ControllerStateTranslator):
-        
+
         def translate(self, value):
             if not isinstance(value, PyTango.DeviceAttribute):
                 return super(TangoControllerValueTranslator, self).translate(value)
@@ -84,7 +85,7 @@ def prepare_pool(util):
     util.add_class(PseudoCounterClass, PseudoCounter)
     util.add_class(MotorGroupClass, MotorGroup)
     util.add_class(MeasurementGroupClass, MeasurementGroup)
-    
+
 def main_pool(args=None, start_time=None, mode=None):
     import sardana.tango.core.util
     return sardana.tango.core.util.run(prepare_pool, args=args,

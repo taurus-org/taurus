@@ -56,7 +56,7 @@ Not tested yet with the classical declaration:
 """
 
 from functools import partial
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.tango.search import *
 
 def join(*seqs):

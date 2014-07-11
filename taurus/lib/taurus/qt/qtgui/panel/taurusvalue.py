@@ -34,7 +34,7 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "De
 __docformat__ = 'restructuredtext'
 
 import weakref
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 import PyTango
 import taurus.core
 
@@ -49,6 +49,7 @@ from taurus.qt.qtgui.input import TaurusValueSpinBox, TaurusValueCheckBox
 from taurus.qt.qtgui.input import TaurusWheelEdit, TaurusValueLineEdit
 from taurus.qt.qtgui.button import TaurusLauncherButton
 from taurus.qt.qtgui.util import TaurusWidgetFactory, ConfigurationMenu
+from taurus.qt.qtgui.compact import TaurusReadWriteSwitcher
 
 
 class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
@@ -108,6 +109,11 @@ class DefaultLabelWidget(TaurusLabel):
             menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
             cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
+            cm_action = menu.addAction("Compact")
+            cm_action.setCheckable(True)
+            cm_action.setChecked(self.taurusValueBuddy().isCompact())
+            self.connect(cm_action, Qt.SIGNAL("toggled(bool)"), self.taurusValueBuddy().setCompact)
+            
             
         menu.exec_(event.globalPos())
         event.accept()
@@ -232,6 +238,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         breaks some conventions on the way it manages layouts of its parent model.
     '''
     __pyqtSignals__ = ("modelChanged(const QString &)",)
+    _compact = False
     
     def __init__(self, parent = None, designMode = False, customWidgetMap=None):
         name = self.__class__.__name__
@@ -281,7 +288,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if parent is not None:
             self.setParent(parent)
             
-        self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labeConfig')
+        self.registerConfigProperty(self.getLabelConfig, self.setLabelConfig, 'labelConfig')
+        self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
             
     def setVisible(self, visible):
         for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(), self.customWidget(), self.extraWidget()):
@@ -582,41 +590,54 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultLabelWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
 
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
-        if isinstance(classID, type): return classID
-        elif str(classID) == 'Auto': return self.getDefaultReadWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        
+        if isinstance(classID, type): ret = classID
+        elif str(classID) == 'Auto': ret = self.getDefaultReadWidgetClass()
+        else: ret = TaurusWidgetFactory().getWidgetClass(classID)
+        
+        if self._compact:
+            R = ret
+            W = self.writeWidgetClassFactory(self.writeWidgetClassID, ignoreCompact=True)
+            if W is None: 
+                return R
+            class Switcher(TaurusReadWriteSwitcher):
+                readWClass = R
+                writeWClass = W
+            return Switcher
+        return ret
     
-    def writeWidgetClassFactory(self, classID):
+    def writeWidgetClassFactory(self, classID, ignoreCompact=False):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        if self._compact and not ignoreCompact: return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def unitsWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultUnitsWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def customWidgetClassFactory(self, classID):
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def extraWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
-        else: return TaurusWidgetFactory().getTaurusWidgetClass(classID)
+        else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def updateLabelWidget(self):
         #get the class for the widget and replace it if necessary
@@ -862,6 +883,17 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def resetExtraWidgetClass(self):
         self.extraWidgetClassID = 'Auto'
+        
+    def setCompact(self, compact):
+        if compact == self._compact:
+            return
+        self._compact = compact
+        if self.getModel():
+            self.updateReadWidget()
+            self.updateWriteWidget()
+
+    def isCompact(self):
+        return self._compact
         
     def isReadOnly(self):
         if not self.getAllowWrite(): return True 

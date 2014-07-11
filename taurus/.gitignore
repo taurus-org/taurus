@@ -7,5 +7,8 @@ MANIFEST
 /doc/source/devel/api/
 /doc/source/devel/catalog.html
 /lib/taurus/qt/qtgui/resource/catalog.html
+/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_lextab.py
+/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py
 parser.out
 parsetab.py
+/setup.cfg

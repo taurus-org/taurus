@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -80,7 +80,7 @@ class Enumeration(object):
         >>>print Volkswagen.whatis(homer_car)
         'PASSAT'
     """
-    
+
     def __init__(self, name, enumList, flaggable=False, no_doc=False):
         self._name = name
         lookup = { }
@@ -121,71 +121,71 @@ class Enumeration(object):
         self.reverseLookup = reverseLookup
         if not no_doc:
             self.__doc_enum()
-   
+
     def _generateUniqueId(self):
         if self._flaggable:
-            n = 2**self._uniqueId
+            n = 2 ** self._uniqueId
         else:
             while self._uniqueId in self._uniqueValues:
                 self._uniqueId += 1
             n = self._uniqueId
         self._uniqueId += 1
         return n
-    
+
     def __getitem__(self, i):
         if isinstance(i, (int, long)):
             return self.whatis(i)
         elif isinstance(i, (str, unicode)):
             return self.lookup[i]
-    
+
     def __getattr__(self, attr):
         if not self.has_key(attr):
             raise AttributeError
         return self.lookup[attr]
-    
+
     def __doc_enum(self):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
-        values = "\n".join([ "    - {0} ({1})".format(rl[k],k) for k in keys ])
+        values = "\n".join([ "    - {0} ({1})".format(rl[k], k) for k in keys ])
         self.__doc__ = self._name + " enumeration. " + \
                        "Possible values are:\n\n" + values
-    
+
     def __str__(self):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
         values = ", ".join([ rl[k] for k in keys ])
         return self._name + "(" + values + ")"
-    
+
     def __repr__(self):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
         values = [ rl[k] for k in keys ]
         return "Enumeration('" + self._name + "', " + str(values) + ")"
-    
+
     def has_key(self, key):
         """Determines if the enumeration contains the given key
         :param key: the key
         :type  key: str
         :return: True if the key is in the enumeration or False otherswise
         :rtype: bool"""
-        return self.lookup.has_key(key)
-    
+        return key in self.lookup
+
     def keys(self):
         """Returns an iterable containning the valid enumeration keys
         :return: an interable containning the valid enumeration keys
         :rtype: iter<str>"""
         return self.lookup.keys()
-    
+
     def whatis(self, value):
         """Returns a string representation of the value in the enumeration.
         :param value: a valid enumeration element
         :return: a string representation of the given enumeration element
         :rtype: str"""
         return self.reverseLookup[value]
-    
+
     def get(self, i):
         """Returns the element for the given key/value"""
         return self[i]

@@ -29,7 +29,7 @@ __all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt import Qt
+from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.util.log import Logger
 
@@ -390,7 +390,7 @@ class TaurusBaseProxyModel(Qt.QSortFilterProxyModel):
         self.setSortRole(QtQt.DisplayRole)
         
         # general configuration
-        self.sort(0, QtQt.AscendingOrder)
+        self.setDynamicSortFilter(True)
         
     def __getattr__(self, name):
         return getattr(self.sourceModel(), name)

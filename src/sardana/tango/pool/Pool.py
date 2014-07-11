@@ -46,12 +46,13 @@ from sardana.pool.pool import Pool as POOL
 from sardana.pool.poolmetacontroller import TYPE_MAP_OBJ
 from sardana.tango.core.util import get_tango_version_number
 
+
 class Pool(PyTango.Device_4Impl, Logger):
 
     ElementsCache = None
 
-    def __init__(self,cl, name):
-        PyTango.Device_4Impl.__init__(self,cl,name)
+    def __init__(self, cl, name):
+        PyTango.Device_4Impl.__init__(self, cl, name)
         Logger.__init__(self, name)
         self.init(name)
         self.init_device()
@@ -101,7 +102,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             p.clear_remote_logging()
         else:
             try:
-                h_p = self.RemoteLog.split(":",1)
+                h_p = self.RemoteLog.split(":", 1)
                 if len(h_p) == 1:
                     host = h_p[0]
                     port = None
@@ -130,7 +131,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         instruments = p.get_element_type_map().get(ElementType.Instrument, {})
         ids = set()
         for i in range(0, len(il), 3):
-            iklass, iname, iid = il[i:i+3]
+            iklass, iname, iid = il[i:i + 3]
             iid = int(iid)
             ids.add(iid)
             if iid in instruments:
@@ -144,7 +145,7 @@ class Pool(PyTango.Device_4Impl, Logger):
         pass
 
     #@DebugIt()
-    def read_attr_hardware(self,data):
+    def read_attr_hardware(self, data):
         pass
 
     #@DebugIt()
@@ -346,7 +347,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                                     % (class_name, klass_pseudo_role))
                 pm_id = self.pool.get_new_id()
                 pm_name = roles[klass_pseudo_role]
-                info = dict(id=pm_id, name=pm_name, ctrl_name=name, axis=i+1,
+                info = dict(id=pm_id, name=pm_name, ctrl_name=name, axis=i + 1,
                             type='PseudoMotor', elements=motor_ids)
                 if pm_name.count(',') > 0:
                     n, fn = map(str.strip, pm_name.split(',', 1))
@@ -386,7 +387,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                                     % (class_name, klass_pseudo_role))
                 pc_id = self.pool.get_new_id()
                 pc_name = roles[klass_pseudo_role]
-                info = dict(id=pc_id, name=pc_name, ctrl_name=name, axis=i+1,
+                info = dict(id=pc_id, name=pc_name, ctrl_name=name, axis=i + 1,
                             type='PseudoCounter', elements=counter_ids)
                 if pc_name.count(',') > 0:
                     n, fn = map(str.strip, pc_name.split(',', 1))
@@ -509,7 +510,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                     data["position"] = { "abs_change" : "1.0"}
                     data["dialposition"] = { "abs_change" : "5.0"}
                     if get_tango_version_number() < 80000:
-                        print 20*"AH! "
+                        print 20 * "AH! "
                         data["limit_switches"] = { "abs_change" : "1.0"}
                 elif elem_type == ElementType.CTExpChannel:
                     data["value"] = { "abs_change" : "1.0"}
@@ -739,7 +740,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             elems = [elems]
         for elem in elems:
             d = {}
-            for k,v in elem.items():
+            for k, v in elem.items():
                 d[str(k)] = str(v)
             ret.append(d)
         return ret
@@ -814,7 +815,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 elems = [elems]
             for elem in elems:
                 d = {}
-                for k,v in elem.items():
+                for k, v in elem.items():
                     d[str(k)] = str(v)
                 ret.append(d)
             return ret
@@ -839,7 +840,7 @@ class Pool(PyTango.Device_4Impl, Logger):
                 elems = [elems]
             for elem in elems:
                 d = {}
-                for k,v in elem.items():
+                for k, v in elem.items():
                     d[str(k)] = str(v)
                 ret.append(d)
             return ret
@@ -884,7 +885,7 @@ class Pool(PyTango.Device_4Impl, Logger):
             # update database property
             il = self.InstrumentList
             idx = il.index(full_name)
-            self.InstrumentList = il[:idx-1] + il[idx+2:]
+            self.InstrumentList = il[:idx - 1] + il[idx + 2:]
             db = PyTango.Util.instance().get_database()
             props = { 'InstrumentList' : self.InstrumentList }
             db.put_device_property(self.get_name(), props)
@@ -942,13 +943,13 @@ class Pool(PyTango.Device_4Impl, Logger):
         p = self.pool
         manager = p.ctrl_manager
         manager.setControllerLib(*file_data)
-    
+
     def GetControllerCode(self, argin):
         pass
 
     def SetControllerCode(self, argin):
         pass
-        
+
 
 CREATE_CONTROLLER_PAR_IN_DOC = """\
 Must give either:
@@ -1077,7 +1078,7 @@ Tango command to create motor group.
     {1}
 """.format(CREATE_MOTOR_GROUP_PAR_IN_DOC, CREATE_MOTOR_GROUP_PAR_OUT_DOC)
 
-Pool.CreateMotorGroup.__func__.__doc__= CREATE_MOTOR_GROUP_DOC
+Pool.CreateMotorGroup.__func__.__doc__ = CREATE_MOTOR_GROUP_DOC
 
 CREATE_MEASUREMENT_GROUP_PAR_IN_DOC = """\
 Must give either:
@@ -1112,7 +1113,7 @@ Tango command to create measurement group.
     {1}
 """.format(CREATE_MEASUREMENT_GROUP_PAR_IN_DOC, CREATE_MEASUREMENT_GROUP_PAR_OUT_DOC)
 
-DELETE_ELEMENT_PAR_IN_DOC ="""\
+DELETE_ELEMENT_PAR_IN_DOC = """\
 name of element to be deleted
 """
 
@@ -1231,17 +1232,17 @@ Sends a string to a controller.
     {1}
 """.format(SEND_TO_CONTROLLER_PAR_IN_DOC, SEND_TO_CONTROLLER_PAR_OUT_DOC)
 
-Pool.CreateController.__func__.__doc__= CREATE_CONTROLLER_DOC
-Pool.CreateElement.__func__.__doc__= CREATE_ELEMENT_DOC
-Pool.CreateInstrument.__func__.__doc__= CREATE_INSTRUMENT_DOC
-Pool.CreateMotorGroup.__func__.__doc__= CREATE_MOTOR_GROUP_DOC
-Pool.CreateMeasurementGroup.__func__.__doc__= CREATE_MEASUREMENT_GROUP_DOC
-Pool.DeleteElement.__func__.__doc__= DELETE_ELEMENT_DOC
-Pool.GetControllerClassInfo.__func__.__doc__= GET_CONTROLLER_CLASS_INFO_DOC
-Pool.ReloadControllerLib.__func__.__doc__= RELOAD_CONTROLLER_LIB_INFO_DOC
-Pool.ReloadControllerClass.__func__.__doc__= RELOAD_CONTROLLER_CLASS_INFO_DOC
-Pool.Stop.__func__.__doc__= STOP_DOC
-Pool.Abort.__func__.__doc__= ABORT_DOC
+Pool.CreateController.__func__.__doc__ = CREATE_CONTROLLER_DOC
+Pool.CreateElement.__func__.__doc__ = CREATE_ELEMENT_DOC
+Pool.CreateInstrument.__func__.__doc__ = CREATE_INSTRUMENT_DOC
+Pool.CreateMotorGroup.__func__.__doc__ = CREATE_MOTOR_GROUP_DOC
+Pool.CreateMeasurementGroup.__func__.__doc__ = CREATE_MEASUREMENT_GROUP_DOC
+Pool.DeleteElement.__func__.__doc__ = DELETE_ELEMENT_DOC
+Pool.GetControllerClassInfo.__func__.__doc__ = GET_CONTROLLER_CLASS_INFO_DOC
+Pool.ReloadControllerLib.__func__.__doc__ = RELOAD_CONTROLLER_LIB_INFO_DOC
+Pool.ReloadControllerClass.__func__.__doc__ = RELOAD_CONTROLLER_CLASS_INFO_DOC
+Pool.Stop.__func__.__doc__ = STOP_DOC
+Pool.Abort.__func__.__doc__ = ABORT_DOC
 
 
 class PoolClass(PyTango.DeviceClass):
@@ -1265,8 +1266,8 @@ class PoolClass(PyTango.DeviceClass):
         'MotionLoop_SleepTime':
             [PyTango.DevLong,
             "Sleep time in the motion loop in mS [default: %dms]" %
-            int(POOL.Default_MotionLoop_SleepTime*1000),
-            int(POOL.Default_MotionLoop_SleepTime*1000)],
+            int(POOL.Default_MotionLoop_SleepTime * 1000),
+            int(POOL.Default_MotionLoop_SleepTime * 1000)],
         'MotionLoop_StatesPerPosition':
             [PyTango.DevLong,
             "Number of State reads done before doing a position read in the "
@@ -1275,8 +1276,8 @@ class PoolClass(PyTango.DeviceClass):
         'AcqLoop_SleepTime':
             [PyTango.DevLong,
             "Sleep time in the acquisition loop in mS [default: %dms]" %
-            int(POOL.Default_AcqLoop_SleepTime*1000),
-            int(POOL.Default_AcqLoop_SleepTime*1000)],
+            int(POOL.Default_AcqLoop_SleepTime * 1000),
+            int(POOL.Default_AcqLoop_SleepTime * 1000)],
         'AcqLoop_StatesPerValue':
             [PyTango.DevLong,
             "Number of State reads done before doing a value read in the "

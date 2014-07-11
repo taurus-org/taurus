@@ -29,16 +29,17 @@ __all__ = ["MacroProxy", "BaseInputHandler", "MSDoor"]
 
 __docformat__ = 'restructuredtext'
 
-import collections
 import weakref
+import collections
 
-from taurus.core.util import Logger
+from taurus.core.util.log import Logger
 
 from sardana import ElementType
 from sardana.sardanaevent import EventType
 
-from msbase import MSObject
-from msparameter import Type
+from sardana.macroserver.msbase import MSObject
+from sardana.macroserver.msparameter import Type
+from sardana.macroserver.msexception import MacroServerException
 
 
 class MacroProxy(object):
@@ -60,7 +61,7 @@ class MacroProxy(object):
         parent_macro = door.get_running_macro()
         parent_macro.syncLog()
         executor = parent_macro.executor
-        opts=dict(parent_macro=parent_macro, executor=executor)
+        opts = dict(parent_macro=parent_macro, executor=executor)
         kwargs.update(opts)
         eargs = [self.macro_info.name]
         eargs.extend(args)
@@ -131,18 +132,19 @@ class MSDoor(MSObject):
     def get_macro_data(self):
         macro = self.running_macro
         if macro is None:
-            raise Exception("No macro has run so far!")
+            raise MacroServerException("No macro has run so far " + \
+                            "or the macro data was not preserved.")
         data = macro.data
         return data
 
     def set_pylab_handler(self, ph):
         self._pylab_handler = ph
-    
+
     def get_pylab_handler(self):
         return self._pylab_handler
 
     pylab_handler = property(get_pylab_handler, set_pylab_handler)
-    
+
     def get_pylab(self):
         ph = self.pylab_handler
         if ph is None:
@@ -154,12 +156,12 @@ class MSDoor(MSObject):
 
     def set_pyplot_handler(self, ph):
         self._pyplot_handler = ph
-    
+
     def get_pyplot_handler(self):
         return self._pyplot_handler
 
     pyplot_handler = property(get_pyplot_handler, set_pyplot_handler)
-    
+
     def get_pyplot(self):
         ph = self.pyplot_handler
         if ph is None:
@@ -190,7 +192,7 @@ class MSDoor(MSObject):
     def input(self, msg, *args, **kwargs):
         kwargs['data_type'] = kwargs.get('data_type', Type.String)
         kwargs['allow_multiple'] = kwargs.get('allow_multiple', False)
-        
+
         if args:
             msg = msg % args
         if not msg.endswith(' '):
@@ -213,7 +215,7 @@ class MSDoor(MSObject):
             handle = self._handle_seq_input
         else:
             handle = self._handle_type_input
-        
+
         return handle(macro, input_data, data_type)
 
     def _handle_seq_input(self, obj, input_data, data_type):
@@ -230,7 +232,7 @@ class MSDoor(MSObject):
                     break
             obj.warning("Please give a valid option")
         return result
-    
+
     def _handle_type_input(self, obj, input_data, data_type):
         type_obj = self.type_manager.getTypeObj(data_type)
 

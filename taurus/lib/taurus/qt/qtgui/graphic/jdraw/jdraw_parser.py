@@ -25,14 +25,15 @@
 
 """This module parses jdraw files"""
 
-__all__ = ["parse"]
+from __future__ import absolute_import
+
+__all__ = ["new_parser", "parse"]
 
 import os,re,traceback
 
-import ply.lex as lex
-import ply.yacc as yacc
+from ply import lex
+from ply import yacc
 
-from jdraw import *
 from taurus.core.util.log import Logger
 
 tokens = ( 'NUMBER', 'SYMBOL', 'LBRACKET', 'RBRACKET', 'TWOP', 'COMMA',
@@ -258,25 +259,75 @@ def p_value_bool(p):
              | false'''
     p[0] = p[1] == 'true'
 
-def parse(filename,factory):
-    l = lex.lex()
-    p = yacc.yacc()
+def new_parser(optimize=None, debug=0, outputdir=None):
+    log = Logger('JDraw Parser')
+
+    if optimize is None:
+        from taurus import tauruscustomsettings
+        optimize = getattr(tauruscustomsettings, 'PLY_OPTIMIZE', 1)
+    if outputdir is None:
+        outputdir = os.path.dirname(os.path.realpath(__file__))
+
+    debuglog = None
+    if debug:
+        debuglog = log
+    
+    common_kwargs = dict(optimize=optimize, outputdir=outputdir,
+                         debug=debug, debuglog=debuglog, errorlog=log)
+    
+    # lex/yacc v<3.0 do not accept  debuglog or errorlog keyword args
+    if int(lex.__version__.split('.')[0]) < 3: 
+        common_kwargs.pop('debuglog')
+        common_kwargs.pop('errorlog')
+    
+    try:
+        from . import jdraw_lextab
+    except ImportError:
+        jdraw_lextab = 'jdraw_lextab'
+
+    try:
+        from . import jdraw_yacctab
+    except ImportError:
+        jdraw_yacctab = 'jdraw_yacctab'
+
+    # Lexer
+    l = lex.lex(lextab=jdraw_lextab, **common_kwargs)
+
+    # Yacc
+    try:
+        p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
+                      **common_kwargs)
+    except Exception, e:
+        msg = ('Error while parsing. You may solve it by:\n' + \
+               '  a) removing jdraw_lextab.* and jdraw_yacctab.* from\n' +\
+               '     %s , or...\n' % os.path.dirname(__file__) + \
+               '  b) setting PLY_OPTIMIZE=0 in tauruscustomsettings.py')
+        raise RuntimeError(msg)
+        
+    return l, p
+    
+def parse(filename=None, factory=None):
+
+    if filename is None or factory is None:
+        return
+
+    _, p = new_parser()
+
     p.factory = factory
     p.modelStack = []
     p.modelStack2 = []
-    p.log = Logger('JDraw Parser')
-    l.log = p.log
+
     res = None
     try:
         filename = os.path.realpath(filename)
         f = open(filename)
         res = yacc.parse(f.read())
     except:
-        p.log.warning("Failed to parse %s" % filename)
-        #p.log.traceback()
-        p.log.warning(traceback.format_exc())
+        log = Logger('JDraw Parser')
+        log.warning("Failed to parse %s" % filename)
+        log.debug("Details:", exc_info=1)
     return res
-    
-#if __name__ == '__main__':
-#    res = parse("jd1.jdw",jdraw.JDrawTaurusGraphicsFactory(self))
 
+
+if __name__ == "__main__":
+    new_parser()
