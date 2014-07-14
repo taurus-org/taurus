@@ -347,7 +347,12 @@ def main():
         'sardana.taurus.qt.qtgui.extra_sardana.ui',
         'sardana.taurus.qt.qtgui.extra_pool',
     ]
-
+    
+    package_data = {'sardana.taurus.qt.qtgui.extra_macroexecutor': ['ui/*.ui'],
+                    'sardana.taurus.qt.qtgui.extra_pool': ['ui/*.ui'],
+                    'sardana.taurus.qt.qtgui.extra_sardana': ['ui/*.ui']
+                    }
+    
     provides = [
         'sardana',
         'sardana.pool',
@@ -407,6 +412,7 @@ def main():
           license=Release.license,
           packages=packages,
           package_dir=package_dir,
+          package_data=package_data,
           classifiers=classifiers,
           scripts=scripts,
           provides=provides,
