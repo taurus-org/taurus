@@ -1286,7 +1286,7 @@ class TaurusGui(TaurusMainWindow):
                 fname = None
 
 
-        hint = "XML_CONFIG = %s" % os.path.relpath(fname, self._confDirectory)
+        hint = "XML_CONFIG = '%s'" % os.path.relpath(fname, self._confDirectory)
         msg = 'Configuration written in %s' % fname
         self.info(msg)
         Qt.QMessageBox.information(self, "Configuration updated",
