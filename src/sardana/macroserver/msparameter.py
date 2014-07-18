@@ -188,6 +188,9 @@ class ElementParamType(ParamType):
             return macro_server.get_macro_lib(name)
         except UnknownMacroLibrary:
             pass
+        # neither pool nor macroserver contains any element with this name
+        raise UnknownParamObj('%s with name %s does not exist' % \
+                              (self._name, name))
 
     def getObjDict(self, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
@@ -258,6 +261,9 @@ class ElementParamInterface(ElementParamType):
             return macro_server.get_macro_lib(name)
         except UnknownMacroLibrary:
             pass
+        # neither pool nor macroserver contains any element with this name
+        raise UnknownParamObj('%s with name %s does not exist' % \
+                              (self._name, name))
 
     def getObjDict(self, pool=ParamType.All, cache=False):
         macro_server = self.macro_server
@@ -350,6 +356,8 @@ class ParamDecoder:
                         val = par_type.getObj(par_str)
                     except ValueError, e:
                         raise WrongParamType, e.message
+                    except UnknownParamObj, e:
+                        raise WrongParam, e.message
                     if val is None:
                         msg = 'Could not create %s parameter "%s" for "%s"' % \
                               (par_type.getName(), name, par_str)
