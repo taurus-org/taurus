@@ -28,8 +28,8 @@ from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
-           "edctrllib", "prdef", "rellib", "relmac", "relmaclib", "send2ctrl",
-           "udefctrl", "udefelem", "udefmeas", "sar_info"]
+           "edctrllib", "prdef", "rellib", "relmac", "relmaclib", "addmaclib",
+           "send2ctrl", "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
 import sys
 import traceback
@@ -321,6 +321,23 @@ class relmaclib(Macro):
             macros = new_macro_library.get_macros()
             self.output("%s successfully (re)loaded (found %d macros)", name, len(macros))
 
+class addmaclib(Macro):
+    """Loads a new macro library"""
+
+    param_def = [
+        ['macro_library', Type.String, None,
+         'The module name to be loaded (without extension)']
+        ]
+
+    def run(self, macro_library):
+        new_macro_library = self.reloadMacroLibrary(macro_library)
+        if new_macro_library.has_errors():
+            exc_info = new_macro_library.get_error()
+            msg = "".join(traceback.format_exception_only(*exc_info[:2]))
+            self.error(msg)
+        else:
+            macros = new_macro_library.get_macros()
+            self.output("%s successfully loaded (found %d macros)", macro_library, len(macros))
 
 class relmac(Macro):
     """Reloads the given macro code from the macro server filesystem.
