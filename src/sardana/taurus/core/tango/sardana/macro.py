@@ -1054,6 +1054,7 @@ class MacroNode(BranchNode):
 
 class SequenceNode(BranchNode):
     """Class to represent sequence element."""
+    comment_characters = ('#',)
 
     def __init__(self, parent=None):
         BranchNode.__init__(self, parent)
@@ -1086,8 +1087,13 @@ class SequenceNode(BranchNode):
     def fromPlainText(self, plainText):
         plainMacros = plainText.split('\n')
         for plainMacro in plainMacros:
-            #ignoring empty lines
+            # stripping the whitespace characters 
+            plainMacro = plainMacro.strip()
+            # ignoring the empty lines
             if len(plainMacro) == 0:
+                continue
+            # ignoring the commented lines
+            if plainMacro[0] in self.comment_characters:
                 continue
             macro = MacroNode(self)
             macro.fromPlainText(plainMacro)
