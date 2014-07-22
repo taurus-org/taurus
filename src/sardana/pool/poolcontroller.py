@@ -198,6 +198,46 @@ class PoolBaseController(PoolBaseElement):
         """
         raise NotImplementedError
 
+    def get_status(self, cache=True, propagate=1):
+        """Returns the status for this object. If cache is True (default) it
+        returns the current status stored in cache (it will force an update if
+        cache is empty). If propagate > 0 and if the status changed since last
+        read, it will propagate the status event to all listeners.
+
+        :param cache:
+            tells if return value from local cache or update from HW read
+            [default: True]
+        :type cache: bool
+        :param propagate:
+            if > 0 propagates the event in case it changed since last HW read.
+            Values bigger that mean the event if sent should be a priority event
+            [default: 1]
+        :type propagate: int
+        :return: the current object status
+        :rtype: str"""
+        if not cache or self._status is None:
+            state_info = None
+            self._set_state_info(state_info, propagate=propagate)
+        return self._status
+
+    _STD_STATUS = '{name} is {state}'
+    def calculate_state_info(self, status_info=None):
+        """Transforms the given state information. This specific base
+        implementation transforms the given state,status tuple into a
+        state, new_status tuple where new_status is "*self.name* is *state*.
+
+        :param status_info:
+            given status information [default: None, meaning use current state status.
+        :type status_info: tuple<State, str>
+        :return: a transformed state information
+        :rtype: tuple<State, str>"""
+        if status_info is None:
+            status_info = self._state, self._status
+        state, _ = status_info
+        state_str = State[state]
+        new_status = self._STD_STATUS.format(name=self.name, state=state_str)
+        return status_info[0], new_status
+
 
 def check_ctrl(fn):
     @functools.wraps(fn)
