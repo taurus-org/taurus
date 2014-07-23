@@ -1104,7 +1104,6 @@ class TaurusRectStateItem(Qt.QGraphicsRectItem, TaurusGraphicsStateItem):
             self.setBrush(self._currBgBrush)
         Qt.QGraphicsRectItem.paint(self,painter,option,widget)
 
-
 class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
@@ -1117,6 +1116,52 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
             self._currBgBrush.setStyle(self.brush().style())
             self.setBrush(self._currBgBrush)
         QSpline.paint(self, painter, option, widget)
+
+class TaurusRoundRectItem(Qt.QGraphicsPathItem):
+
+    def __init__(self, name=None, parent=None, scene=None):
+        Qt.QGraphicsPathItem.__init__(self, parent, scene)
+        self.__rect = None
+        self.setCornerWidth(0, 0)
+
+    def __updatePath(self):
+        if self.__rect == None:
+            return
+        if self.__corner == None:
+            return
+
+        path = Qt.QPainterPath()
+        cornerWidth, nbPoints = self.__corner
+        if cornerWidth == 0 or nbPoints == 0:
+            path.addRect(self.__rect)
+        elif cornerWidth * 2 > self.__rect.width():
+            path.addRect(self.__rect)
+        elif cornerWidth * 2 > self.__rect.height():
+            path.addRect(self.__rect)
+        else:
+            path.addRoundedRect(self.__rect, cornerWidth, cornerWidth)
+        self.setPath(path)
+
+    def setRect(self, x, y, width, height):
+        self.__rect = Qt.QRectF(x, y, width, height)
+        self.__updatePath()
+
+    def setCornerWidth(self, width, nbPoints):
+        self.__corner = width, nbPoints
+        self.__updatePath()
+
+class TaurusRoundRectStateItem(TaurusRoundRectItem, TaurusGraphicsStateItem):
+
+    def __init__(self, name=None, parent=None, scene=None):
+        name = name or self.__class__.__name__
+        TaurusRoundRectItem.__init__(self, parent, scene)
+        self.call__init__(TaurusGraphicsStateItem, name, parent)
+
+    def paint(self, painter, option, widget):
+        if self._currBgBrush:
+            self._currBgBrush.setStyle(self.brush().style())
+            self.setBrush(self._currBgBrush)
+        TaurusRoundRectItem.paint(self, painter, option, widget)
 
 class TaurusGroupItem(Qt.QGraphicsItemGroup):
 
@@ -1197,7 +1242,7 @@ class TaurusTextAttributeItem(QGraphicsTextBoxing, TaurusGraphicsAttributeItem):
 
 TYPE_TO_GRAPHICS = {
     None : { "Rectangle"      : Qt.QGraphicsRectItem,
-             "RoundRectangle" : Qt.QGraphicsRectItem,
+             "RoundRectangle" : TaurusRoundRectItem,
              "Ellipse"        : Qt.QGraphicsEllipseItem,
              "Polyline"       : Qt.QGraphicsPolygonItem,
              "Label"          : QGraphicsTextBoxing,
@@ -1208,7 +1253,7 @@ TYPE_TO_GRAPHICS = {
              "Spline"         : QSpline, },
 
     TaurusDevice : { "Rectangle"      : TaurusRectStateItem,
-                           "RoundRectangle" : TaurusRectStateItem,
+                           "RoundRectangle" : TaurusRoundRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
                            "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextStateItem,
@@ -1219,7 +1264,7 @@ TYPE_TO_GRAPHICS = {
                            "Spline"         : TaurusSplineStateItem, },
 
     TaurusAttribute : { "Rectangle"      : TaurusRectStateItem,
-                           "RoundRectangle" : TaurusRectStateItem,
+                           "RoundRectangle" : TaurusRoundRectStateItem,
                            "Ellipse"        : TaurusEllipseStateItem,
                            "Polyline"       : TaurusPolygonStateItem,
                            "Label"          : TaurusTextAttributeItem,
