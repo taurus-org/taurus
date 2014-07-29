@@ -49,7 +49,7 @@ name = 'sardana'
 #: the new substring. We have to avoid using either dashes or underscores,
 #: because bdist_rpm does not accept dashes (an RPM) convention, and
 #: bdist_deb does not accept underscores (a Debian convention).
-version_info = (1, 3, 1, 'rc', 0)
+version_info = (1, 4, 0, 'rc', 0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
