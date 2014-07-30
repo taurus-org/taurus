@@ -39,7 +39,7 @@ name = 'spock'
 revision = '1'
 
 #version = '0.8.1.svn.r' + revision.rstrip('M')
-version = '1.0.0'
+version = '1.4.0'
 
 description = "An enhanced interactive Macro Server shell."
 
