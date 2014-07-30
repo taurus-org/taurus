@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+##
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+
+import sys
+import taurus
+
+def main():
+    taurus.setLogLevel(taurus.Warning)
+
+    from taurus.external.qt import Qt, uic
+    from taurus.core.util.argparse import get_taurus_parser
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    parser = get_taurus_parser()
+    parser.set_usage("%prog [options] <ui_file1> [<ui_file2> ...]")
+    parser.set_description("a taurus application that launches GUI(s) for the "
+                           "given .ui file(s)")
+    app = TaurusApplication(cmd_line_parser=parser,
+                            app_name="taurusui", app_version="1.0",
+                            org_domain="Taurus", org_name="Taurus community")
+
+    args = app.get_command_line_args()
+    if len(args) < 1:
+        print("Need to supply UI file name")
+        sys.exit(1)
+
+    for ui_file in args:
+        gui = uic.loadUi(ui_file)
+        gui.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
