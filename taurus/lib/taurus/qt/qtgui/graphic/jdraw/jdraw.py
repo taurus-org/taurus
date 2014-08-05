@@ -150,9 +150,12 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         x1, y1, x2, y2 = params.get('summit')
         width = x2 - x1
         height = y2 - y1
+        cornerWidth = params.get('cornerWidth', 24)
+        nbPoints = params.get('step', 6)
         #item.setPos(x1,y1)
-        item.setRect(x1,y1,width,height)
-        
+        item.setRect(x1, y1, width, height)
+        item.setCornerWidth(cornerWidth, nbPoints)
+
         return item
         
     def getLineObj(self,params):

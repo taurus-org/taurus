@@ -28,13 +28,15 @@ from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 __all__ = ["commit_ctrllib", "defctrl", "defelem", "defm", "defmeas", "edctrl",
-           "edctrllib", "prdef", "rellib", "relmac", "relmaclib", "send2ctrl",
-           "udefctrl", "udefelem", "udefmeas", "sar_info"]
+           "edctrllib", "prdef", "rellib", "relmac", "relmaclib", "addmaclib",
+           "send2ctrl", "udefctrl", "udefelem", "udefmeas", "sar_info"]
 
 import sys
 import traceback
 import array
 
+from sardana.macroserver.msexception import UnknownMacroLibrary
+from sardana.macroserver.msparameter import WrongParam
 from sardana.macroserver.macro import Macro, Type, ParamRepeat, Table, LibraryError
 
 ################################################################################
@@ -320,6 +322,44 @@ class relmaclib(Macro):
         else:
             macros = new_macro_library.get_macros()
             self.output("%s successfully (re)loaded (found %d macros)", name, len(macros))
+
+class addmaclib(Macro):
+    """Loads a new macro library. Keep in mind that macros from the new library
+    can override macros already present in the system."""
+
+    param_def = [
+        ['macro_library_name', Type.String, None,
+         'The module name to be loaded (without extension)']
+        ]
+
+    def prepare(self, macro_library_name):
+        try:
+            _ = self.getMacroLib(macro_library_name)
+        except UnknownMacroLibrary:
+            pass
+        else:
+            raise WrongParam('%s macro library is already loaded' %
+                             macro_library_name)
+
+    def run(self, macro_library_name):
+        old_macros = self.getMacroNames()
+        new_macro_library = self.reloadMacroLibrary(macro_library_name)
+        if new_macro_library.has_errors():
+            exc_info = new_macro_library.get_error()
+            msg = "".join(traceback.format_exception_only(*exc_info[:2]))
+            self.error(msg)
+        else:
+            new_metamacros = new_macro_library.get_macros()
+            # retrieving the macro names from the metamacros
+            new_macros = [metamacro.name for metamacro in new_metamacros]
+            self.output("%s successfully loaded (found %d macros)",
+                        macro_library_name, len(new_macros))
+            # intersection between old and new indicates the overridden macros
+            overridden_macros = list(set(old_macros) & set(new_macros))
+            if len(overridden_macros) > 0:
+                msg = ('%s macro library has overridden the following ' +
+                       'macros: %s' ) % (macro_library_name, overridden_macros)
+                self.warning(msg)
 
 
 class relmac(Macro):

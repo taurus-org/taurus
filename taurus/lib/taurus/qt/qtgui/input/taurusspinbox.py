@@ -139,6 +139,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def getSingleStep(self):
         return self._singleStep
     
+    @Qt.pyqtSignature("setSingleStep(double)")
     def setSingleStep(self, step):
         self._singleStep = step
     
