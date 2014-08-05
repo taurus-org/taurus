@@ -363,7 +363,7 @@ def main():
 
     requires = [
         'PyTango (>=7.2.3)',
-        'taurus (>= 3.1)',
+        'taurus (>= 3.3)',
         'lxml (>=2.1)',
         'ipython (>=0.10, !=0.11)'
     ]
