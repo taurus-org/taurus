@@ -381,6 +381,7 @@ class TaurusForm(TaurusWidget):
         self.chooseModelsAction.setEnabled(modifiable)
         self.showButtonsAction.setEnabled(modifiable)
         self.changeLabelsAction.setEnabled(modifiable)
+        self.compactModeAction.setEnabled(modifiable)
         for item in self.getItems():
             try: 
                 item.setModifiableByUser(modifiable)
