@@ -246,7 +246,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
                 else:
                     h = policy.horizontalPolicy() & p.horizontalPolicy()
                     v = policy.verticalPolicy() & p.verticalPolicy()
-                    policy = Qt.QSizePolicy(h, v)
+                    policy = Qt.QSizePolicy(Qt.QSizePolicy.Policy(h), 
+                                            Qt.QSizePolicy.Policy(v))
         if policy is not None:
             self.setSizePolicy(policy)
 
