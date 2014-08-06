@@ -503,7 +503,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def getDefaultCustomWidgetClass(self):
         modelclass = self.getModelClass()
-        if modelclass and modelclass.getTaurusElementType() != TaurusElementType.Attribute:
+        if modelclass and modelclass.getTaurusElementType() != TaurusElementType.Device:
             return None
         try:
             key = self.getModelObj().getHWObj().info().dev_class
