@@ -160,13 +160,13 @@ pymca = ExternalApp(['pymca'])
 # Adding other widgets to the catalog of the "new panel" dialog.
 # pass a tuple of (classname,screenshot)
 # -classname may contain the module name.
-# -screenshot can either be a file name relative to the application dir or 
-# a resource URL or None
+# -screenshot can either be a resource URL, a file name (either relative to 
+# the application dir or with an absolute path) or None
 #===============================================================================
-EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit',':/taurus.png'),
-                        ('PyQt4.Qt.QSpinBox','images/syn2.jpg'),
-                        ('PyQt4.Qt.QTextEdit','/tmp/kk.png'),
-                        ('PyQt4.Qt.QLabel',None)]
+EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit',':/taurus.png'),  # a resource
+                        ('PyQt4.Qt.QSpinBox','images/syn2.jpg'), # relative
+                        #('PyQt4.Qt.QTextEdit','/tmp/foo.png'),  # absolute
+                        ('PyQt4.Qt.QLabel',None)]                # none
 
 #===============================================================================
 # Define one or more embedded consoles in the GUI.

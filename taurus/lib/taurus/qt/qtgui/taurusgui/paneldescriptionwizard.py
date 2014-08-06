@@ -632,7 +632,6 @@ def main():
     form.show()
     
     paneldesc,ok = PanelDescriptionWizard.getDialog(form, extraWidgets=[('PyQt4.Qt.QLineEdit',':/taurus.png'),
-                                                                        ('PyQt4.Qt.QSpinBox','/tmp/kk.png'),
                                                                         ('PyQt4.Qt.QTextEdit',None)])
     if ok:
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM)
