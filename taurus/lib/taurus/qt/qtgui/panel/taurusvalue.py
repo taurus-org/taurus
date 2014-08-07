@@ -678,6 +678,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if self._readWidget is not None:
             #give the new widget a reference to its buddy TaurusValue object
             self._readWidget.taurusValueBuddy = weakref.ref(self)
+            if isinstance(self._readWidget, TaurusReadWriteSwitcher):
+                self._readWidget.readWidget.taurusValueBuddy = weakref.ref(self)
+                self._readWidget.writeWidget.taurusValueBuddy = weakref.ref(self)
             
             #tweak the new widget
             if self.minimumHeight() is not None:
