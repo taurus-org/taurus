@@ -868,6 +868,11 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         menu.addAction(action_tango_attributes)
         self.connect(action_tango_attributes, Qt.SIGNAL('triggered()'), self.taurusValueBuddy().showTangoAttributes)
 
+        cm_action = menu.addAction("Compact")
+        cm_action.setCheckable(True)
+        cm_action.setChecked(self.taurusValueBuddy().isCompact())
+        self.connect(cm_action, Qt.SIGNAL("toggled(bool)"), self.taurusValueBuddy().setCompact)
+        
         menu.exec_(event.globalPos())
         event.accept()
 
