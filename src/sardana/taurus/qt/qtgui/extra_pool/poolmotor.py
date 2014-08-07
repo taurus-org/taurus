@@ -980,7 +980,6 @@ class PoolMotorTVReadWidget(TaurusWidget):
         if motor_dev is not None:
             motor_dev.abort()
 
-
     def setExpertView(self, expertView):
         self.lbl_enc.setVisible(False)
         self.lbl_enc_read.setVisible(False)
@@ -1015,6 +1014,7 @@ class PoolMotorTVReadWidget(TaurusWidget):
         self.lbl_read.setModel(model + '/Position')
         self.lbl_enc_read.setModel(model + '/Encoder')
         # Handle User/Expert view
+        self.setExpertView(self.taurusValueBuddy()._expertView)
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
 
 ##################################################
@@ -1208,6 +1208,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.le_write_absolute.setModel(model + '/Position')
 
         # Handle User/Expert View
+        self.setExpertView(self.taurusValueBuddy()._expertView)
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
 
 
