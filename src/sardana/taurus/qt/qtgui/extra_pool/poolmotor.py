@@ -1266,18 +1266,6 @@ class PoolMotorTV(TaurusValue):
     def minimumHeight(self):
         return None  #@todo: UGLY HACK to avoid subwidgets being forced to minimumheight=20
 
-    def readWidget(self):
-        rw = TaurusValue.readWidget(self)
-        if issubclass(rw.__class__, TaurusReadWriteSwitcher):
-            return rw.readWidget
-        return rw
-
-    def writeWidget(self):
-        rw = TaurusValue.readWidget(self)
-        if issubclass(rw.__class__, TaurusReadWriteSwitcher):
-            return rw.writeWidget
-        return TaurusValue.writeWidget(self)
-
     def setModel(self, model):
         TaurusValue.setModel(self, model)
         try:
@@ -1376,12 +1364,12 @@ class PoolMotorTV(TaurusValue):
         if pos_lim:
             pos_btnstylesheet = 'QPushButton{%s}' % DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-        self.readWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
+        self.readWidget(followCompact=True).btn_lim_pos.setStyleSheet(pos_btnstylesheet)
 
-        self.writeWidget().btn_step_up.setEnabled(enabled)
-        self.writeWidget().btn_step_up.setStyleSheet(pos_btnstylesheet)
-        self.writeWidget().btn_to_pos.setEnabled(enabled)
-        self.writeWidget().btn_to_pos_press.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_up.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_up.setStyleSheet(pos_btnstylesheet)
+        self.writeWidget(followCompact=True).btn_to_pos.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_to_pos_press.setEnabled(enabled)
 
         neg_lim = limits[NEG]
         neg_btnstylesheet = ''
@@ -1389,12 +1377,12 @@ class PoolMotorTV(TaurusValue):
         if neg_lim:
             neg_btnstylesheet = 'QPushButton{%s}' % DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-        self.readWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
+        self.readWidget(followCompact=True).btn_lim_neg.setStyleSheet(neg_btnstylesheet)
 
-        self.writeWidget().btn_step_down.setEnabled(enabled)
-        self.writeWidget().btn_step_down.setStyleSheet(neg_btnstylesheet)
-        self.writeWidget().btn_to_neg.setEnabled(enabled)
-        self.writeWidget().btn_to_neg_press.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_down.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_down.setStyleSheet(neg_btnstylesheet)
+        self.writeWidget(followCompact=True).btn_to_neg.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_to_neg_press.setEnabled(enabled)
 
     def updatePowerOn(self, poweron):
         btn_text = 'Set ON'

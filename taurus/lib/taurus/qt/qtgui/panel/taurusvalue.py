@@ -101,8 +101,8 @@ class DefaultLabelWidget(TaurusLabel):
         see :meth:`QWidget.contextMenuEvent`"""
         menu = Qt.QMenu(self)  
         menu.addMenu(ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
-        if hasattr(self.taurusValueBuddy().writeWidget(), 'resetPendingOperations'):
-            r_action = menu.addAction("reset write value",self.taurusValueBuddy().writeWidget().resetPendingOperations)
+        if hasattr(self.taurusValueBuddy().writeWidget(followCompact=True), 'resetPendingOperations'):
+            r_action = menu.addAction("reset write value",self.taurusValueBuddy().writeWidget(followCompact=True).resetPendingOperations)
             r_action.setEnabled(self.taurusValueBuddy().hasPendingOperations())
         if self.taurusValueBuddy().isModifiableByUser():
             menu.addAction("Change label",self.taurusValueBuddy().onChangeLabelConfig)
@@ -297,21 +297,38 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         Qt.QWidget.setVisible(self, visible)
     
     def labelWidget(self):
+        '''Returns the label widget'''
         return self._labelWidget
     
-    def readWidget(self):
+    def readWidget(self, followCompact=False):
+        '''
+        Returns the read widget. If followCompact=True, and compact mode is 
+        used, it returns the switcher's readWidget instead of the switcher 
+        itself.
+        '''
+        if followCompact and self.isCompact():
+            return self._readWidget.readWidget
         return self._readWidget
     
-    def writeWidget(self):
+    def writeWidget(self, followCompact=False):
+        '''
+        Returns the write widget. If followCompact=True, and compact mode is 
+        used, it returns the switcher's writeWidget instead of None.
+        '''
+        if followCompact and self.isCompact():
+            return self._readWidget.writeWidget
         return self._writeWidget
     
     def unitsWidget(self):
+        '''Returns the units widget'''
         return self._unitsWidget
     
     def customWidget(self):
+        '''Returns the custom widget'''
         return self._customWidget
     
     def extraWidget(self):
+        '''Returns the extra widget'''
         return self._extraWidget
     
     def setParent(self, parent):
@@ -1010,7 +1027,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.hasPendingOperations will look at the writeWidget's operations.
         If you want to ask the TaurusValue for its pending operations, call
         self.writeWidget().getPendingOperations()'''
-        w = self.writeWidget()
+        w = self.writeWidget(followCompact=True)
         if w is None: return False
         return w.hasPendingOperations()
                 
