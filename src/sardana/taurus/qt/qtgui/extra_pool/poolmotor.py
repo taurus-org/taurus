@@ -999,7 +999,8 @@ class PoolMotorTVReadWidget(TaurusWidget):
         btn.setText('')
 
     def setModel(self, model):
-        self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        if hasattr(self, 'taurusValueBuddy'):
+            self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
         if model in (None, ''):
             TaurusWidget.setModel(self, model)
             self.lbl_read.setModel(model)
@@ -1192,7 +1193,8 @@ class PoolMotorTVWriteWidget(TaurusWidget):
             self.btn_to_pos_press.setEnabled(pos_sw_limit_enabled)
 
     def setModel(self, model):
-        self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        if hasattr(self, 'taurusValueBuddy'):
+            self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
         if model in (None, ''):
             TaurusWidget.setModel(self, model)
             self.le_write_absolute.setModel(model)
@@ -1478,7 +1480,7 @@ def main():
     args = app.get_command_line_args()
 
     #models = ['tango://controls02:10000/motor/gcipap10ctrl/8']
-    models = ['motor/motctrl06/3']
+    models = ['motor/motctrl13/3']
 
     if len(args) > 0:
         models = args
@@ -1505,6 +1507,7 @@ def main():
 
     # 2) Test PoolMotorTV motor widget
     form_tv = TaurusForm()
+    form_tv.setModifiableByUser(True)
     tv_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorTV'
     tv_tgclass_map = {'SimuMotor':(tv_widget_class, (), {}),
                       'Motor':(tv_widget_class, (), {}),
