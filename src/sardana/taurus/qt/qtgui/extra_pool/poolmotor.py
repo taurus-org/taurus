@@ -1374,6 +1374,7 @@ class PoolMotorTV(TaurusValue):
 
         self.writeWidget(followCompact=True).btn_step_up.setEnabled(enabled)
         self.writeWidget(followCompact=True).btn_step_up.setStyleSheet(pos_btnstylesheet)
+        enabled = enabled and self.motor_dev.getAttribute('Position').max_value.lower() != 'not specified'
         self.writeWidget(followCompact=True).btn_to_pos.setEnabled(enabled)
         self.writeWidget(followCompact=True).btn_to_pos_press.setEnabled(enabled)
 
@@ -1387,6 +1388,7 @@ class PoolMotorTV(TaurusValue):
 
         self.writeWidget(followCompact=True).btn_step_down.setEnabled(enabled)
         self.writeWidget(followCompact=True).btn_step_down.setStyleSheet(neg_btnstylesheet)
+        enabled = enabled and self.motor_dev.getAttribute('Position').min_value.lower() != 'not specified'
         self.writeWidget(followCompact=True).btn_to_neg.setEnabled(enabled)
         self.writeWidget(followCompact=True).btn_to_neg_press.setEnabled(enabled)
 
