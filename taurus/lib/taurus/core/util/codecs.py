@@ -507,17 +507,96 @@ class VideoImageCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-
         if not data[0] == 'VIDEO_IMAGE':
             return data
         header = self.__unpackHeader(data[1][:struct.calcsize(self.VIDEO_HEADER_FORMAT)])
         
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
         dtype = self.__getDtypeId(header['imageMode'])
-        img1D = numpy.fromstring(imgBuffer, dtype)
-        img2D = img1D.reshape(header['height'],header['width'])
+        if header['imageMode'] == 17:
+            # YUV444 3 bytes per pixel
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            y = yuv[0::3]
+            u = yuv[1::3]
+            v = yuv[2::3]
+
+            rbuff, gbuff, bbuff = self.__yuv2rgb(y1,u,v)
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            # Build the RGB image
+            img2D = numpy.dstack((r,g,b))
+
+        elif header['imageMode'] == 16:
+            # YUV422 4 bytes per 2 pixels
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            u = yuv[0::4]
+            y1 = yuv[1::4]
+            v = yuv[2::4]
+            y2 = yuv[3::4]
+
+            r1, g1, b1 = self.__yuv2rgb(y1,u,v)
+            r2, g2, b2 = self.__yuv2rgb(y2,u,v)
+
+            # Create RGB buffers
+            rbuff = numpy.dstack((r1,r2)).reshape(header['height']*header['width'])
+            gbuff = numpy.dstack((g1,g2)).reshape(header['height']*header['width'])
+            bbuff = numpy.dstack((b1,b2)).reshape(header['height']*header['width'])
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            # Build the RGB image
+            img2D = numpy.dstack((r,g,b))
+
+        elif header['imageMode'] == 15:
+            # YUV411 6 bytes per 4 pixels
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            u = yuv[0::6]
+            y1 = yuv[1::6]
+            y2 = yuv[2::6]
+            v = yuv[3::6]
+            y3 = yuv[4::6]
+            y4 = yuv[5::6]
+
+            r1, g1, b1 = self.__yuv2rgb(y1,u,v)
+            r2, g2, b2 = self.__yuv2rgb(y2,u,v)
+            r3, g3, b3 = self.__yuv2rgb(y3,u,v)
+            r4, g4, b4 = self.__yuv2rgb(y4,u,v)
+
+            # Create RGB buffers
+            rbuff = numpy.dstack((r1,r2,r3,r4)).reshape(header['height']*header['width'])
+            gbuff = numpy.dstack((g1,g2,g3,g4)).reshape(header['height']*header['width'])
+            bbuff = numpy.dstack((b1,b2,b3,b4)).reshape(header['height']*header['width'])
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            img2D = numpy.dstack((r,g,b))
+
+        else:
+            img1D = numpy.fromstring(imgBuffer, dtype)
+            img2D = img1D.reshape(header['height'],header['width'])
 
         return '',img2D
+
+    def __yuv2rgb(self, y, u, v):
+        '''YUV444 to RGB888 conversion'''
+        Cr = v - 128.0
+        Cb = u - 128.0
+
+        R = y + 1.402 * Cr
+        G = y - 0.344 * Cb - 0.714 * Cr
+        B = y + 1.772 * Cb
+
+        return (numpy.clip(R,0,255), numpy.clip(G,0,255), numpy.clip(B,0,255))
 
     def __unpackHeader(self,header):
         h = struct.unpack(self.VIDEO_HEADER_FORMAT,header)
@@ -561,18 +640,20 @@ class VideoImageCodec(Codec):
                 'Y32'        : 2,#Core.Y32,
                 'Y64'        : 3,#Core.Y64,
                 #TODO: other modes
-                #'RGB555'     : Core.RGB555,
-                #'RGB565'     : Core.RGB565,
-                #'RGB24'      : Core.RGB24,
-                #'RGB32'      : Core.RGB32,
-                #'BGR24'      : Core.BGR24,
-                #'BGR32'      : Core.BGR32,
-                #'BAYER RG8'  : Core.BAYER_RG8,
-                #'BAYER RG16' : Core.BAYER_RG16,
-                #'I420'       : Core.I420,
-                #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
-                #'YUV444'     : Core.YUV444
+                #'RGB555'     : 4,#Core.RGB555,
+                #'RGB565'     : 5,#Core.RGB565,
+                #'RGB24'      : 6,#Core.RGB24,
+                #'RGB32'      : 7,#Core.RGB32,
+                #'BGR24'      : 8,#Core.BGR24,
+                #'BGR32'      : 9,#Core.BGR32,
+                #'BAYER RG8'  : 10,#Core.BAYER_RG8,
+                #'BAYER RG16' : 11,#Core.BAYER_RG16,
+                #'BAYER BG8'  : 12,#Core.BAYER_BG8,
+                #'BAYER BG16' : 13,#Core.BAYER_BG16,
+                #'I420'       : 14,#Core.I420,
+                #'YUV411'     : 15,#Core.YUV411,
+                'YUV422'     : 16,#Core.YUV422,
+                #'YUV444'     : 17,#Core.YUV444
                }[mode]
 
     def __getFormatId(self,mode):
@@ -588,9 +669,11 @@ class VideoImageCodec(Codec):
                 #'BGR32'      : Core.BGR32,
                 #'BAYER RG8'  : Core.BAYER_RG8,
                 #'BAYER RG16' : Core.BAYER_RG16,
+                #'BAYER BG8'  : Core.BAYER_BG8,
+                #'BAYER BG16' : Core.BAYER_BG16,
                 #'I420'       : Core.I420,
                 #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
+                16     : 'Y'#Core.YUV422,
                 #'YUV444'     : Core.YUV444
                }[mode]
 
@@ -607,9 +690,11 @@ class VideoImageCodec(Codec):
                 #'BGR32'      : Core.BGR32,
                 #'BAYER RG8'  : Core.BAYER_RG8,
                 #'BAYER RG16' : Core.BAYER_RG16,
+                #'BAYER BG8'  : Core.BAYER_BG8,
+                #'BAYER BG16' : Core.BAYER_BG16,
                 #'I420'       : Core.I420,
                 #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
+                16   : 'uint8' # Core.YUV422,
                 #'YUV444'     : Core.YUV444
                }[mode]
 

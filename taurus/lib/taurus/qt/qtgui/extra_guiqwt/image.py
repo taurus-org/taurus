@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+
+ #!/usr/bin/env python
 
 #############################################################################
 ##
@@ -27,7 +28,8 @@
 Extension of :mod:`guiqwt.image`
 """
 __all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
-         "TaurusTrend2DScanItem","TaurusEncodedImageItem"]
+         "TaurusTrend2DScanItem","TaurusEncodedImageItem",
+         "TaurusEncodedRGBImageItem"]
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -112,19 +114,10 @@ class TaurusBaseImageItem(TaurusBaseComponent):
                 raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
             
         return v
-        
-class TaurusImageItem(ImageItem, TaurusBaseImageItem):
-    '''A ImageItem that gets its data from a taurus attribute'''
-    def __init__(self, param=None):
-        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
-        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
 
 
-class TaurusEncodedImageItem(TaurusImageItem):
-    '''A ImageItem that gets its data from a DevEncoded attribute'''
-    def __init__(self, param=None):
-        TaurusImageItem.__init__(self,param=param)
-        
+class TaurusEncodedBaseImageItem(TaurusBaseImageItem):
+    '''A ImageItem that gets its data from a taurus DevEncoded attribute'''
     def setModel(self, model):
         #do the standard stuff
         TaurusBaseComponent.setModel(self, model)
@@ -167,6 +160,20 @@ class TaurusEncodedImageItem(TaurusImageItem):
             raise ValueError('Unexpected data type (%s) for DevEncoded attribute (tuple expected)'%type(data))
 
 
+class TaurusImageItem(ImageItem, TaurusBaseImageItem):
+    '''A ImageItem that gets its data from a taurus attribute'''
+    def __init__(self, param=None):
+        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
+        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+
+
+class TaurusEncodedImageItem(ImageItem, TaurusEncodedBaseImageItem):
+    '''A ImageItem that gets its data from a DevEncoded attribute'''
+    def __init__(self, param=None):
+        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
+        TaurusEncodedBaseImageItem.__init__(self, self.__class__.__name__)
+
+
 class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
     '''A XYImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
@@ -185,6 +192,17 @@ class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
         return RGBImageItem.set_data(self, data, **kwargs)
 
         
+class TaurusEncodedRGBImageItem(RGBImageItem, TaurusEncodedBaseImageItem):
+    '''A RGBImageItem that gets its data from a DevEncoded attribute'''
+    def __init__(self, param=None):
+        RGBImageItem.__init__(self, numpy.zeros((1,1,3)), param=param)
+        TaurusEncodedBaseImageItem.__init__(self, self.__class__.__name__)
+
+    def set_data(self, data, lut_range=None, **kwargs):
+        '''dummy reimplementation to accept the lut_range kwarg (just ignoring it)'''
+        return RGBImageItem.set_data(self, data, **kwargs)
+
+
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
     def __init__(self, param=None, buffersize=512, stackMode='datetime'):
