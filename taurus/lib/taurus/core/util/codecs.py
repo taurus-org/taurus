@@ -585,7 +585,13 @@ class VideoImageCodec(Codec):
             img1D = numpy.fromstring(imgBuffer, dtype)
             img2D = img1D.reshape(header['height'],header['width'])
 
-        return '',img2D
+
+        try:
+            fmt = self.__getFormatId(header['imageMode'])
+        except:
+            fmt = ""
+
+        return fmt, img2D
 
     def __yuv2rgb(self, y, u, v):
         '''YUV444 to RGB888 conversion'''
@@ -673,7 +679,7 @@ class VideoImageCodec(Codec):
                 #'BAYER BG16' : Core.BAYER_BG16,
                 #'I420'       : Core.I420,
                 #'YUV411'     : Core.YUV411,
-                16     : 'Y'#Core.YUV422,
+                16     : 'YUV422'#Core.YUV422,
                 #'YUV444'     : Core.YUV444
                }[mode]
 
