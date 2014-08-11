@@ -667,6 +667,7 @@ def main():
     
     
 def demo():
+    '''Lock button'''
     lock_button = TaurusLockButton()
     lock_button.model = "sys/tg_test/1"
     return lock_button
