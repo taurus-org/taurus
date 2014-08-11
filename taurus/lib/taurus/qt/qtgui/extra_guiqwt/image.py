@@ -1,4 +1,3 @@
-
  #!/usr/bin/env python
 
 #############################################################################
@@ -36,7 +35,8 @@ from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer
 
-from guiqwt.image import ImageItem, RGBImageItem, XYImageItem, INTERP_NEAREST, INTERP_LINEAR
+from guiqwt.image import ImageItem, RGBImageItem, XYImageItem
+from guiqwt.image import INTERP_NEAREST, INTERP_LINEAR
 
 import numpy
 
@@ -50,8 +50,8 @@ class TaurusBaseImageItem(TaurusBaseComponent):
     def getSignaller(self):
         '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
         not (and cannot be) a QObject'''
-        return self._signalGen  
-    
+        return self._signalGen
+
     def setModel(self, model):
         #do the standard stuff
         TaurusBaseComponent.setModel(self, model)
@@ -72,8 +72,11 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         except Exception, e:
             self.info('Ignoring event. Reason: %s', e.message)
             return
-        lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
-        if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
+        #this is the range of the z axis (color scale)
+        lut_range = self.get_lut_range()
+        #if the range was not set, make it None (autoscale z axis)
+        if lut_range[0] == lut_range[1]:
+            lut_range = None
         self.set_data(v, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
@@ -81,7 +84,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
-            
+
     def filterData(self, data):
         '''Reimplement this method if you want to pre-process 
         the data that will be passed to set_data.
@@ -112,7 +115,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
                 v = numpy.int32(v)  
             except OverflowError:
                 raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
-            
+
         return v
 
 
@@ -135,9 +138,10 @@ class TaurusEncodedBaseImageItem(TaurusBaseImageItem):
             codec = CodecFactory().getCodec(data[0])
 
             try:
-                fmt,decoded_data = codec.decode(data)[1]
-            except:
-                decoded_data = codec.decode(data)[1]
+                fmt, decoded_data = codec.decode(data)
+            except Exception, e:
+                self.info('Decoder error: %s', e.message)
+                raise e
 
             try:
                 dtype = decoded_data.dtype
