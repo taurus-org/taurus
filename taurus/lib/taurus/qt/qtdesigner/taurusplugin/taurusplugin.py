@@ -131,13 +131,16 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self.getWidgetInfo('icon')
         
     def icon(self):
-        icon_name = self.getIconName()
-        if icon_name is None:
+        icon = self.getWidgetInfo('icon')
+        if icon is None:
             return Qt.QIcon()
-        if not icon_name.startswith(":"):
-            icon_name = ':/designer/%s' % icon_name
-        import taurus.qt.qtgui.resource
-        return taurus.qt.qtgui.resource.getIcon(icon_name)
+        elif isinstance(icon, Qt.QIcon):
+            return icon
+        else:
+            if not icon.startswith(":"):
+                icon = ':/designer/%s' % icon
+            import taurus.qt.qtgui.resource
+            return taurus.qt.qtgui.resource.getIcon(icon)
     
     def domXml(self):
         name = str(self.name())
