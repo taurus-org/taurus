@@ -263,7 +263,6 @@ class TaurusReadWriteSwitcher(TaurusWidget):
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        print cls
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.compact'
         ret['group'] = 'Taurus R+W'
