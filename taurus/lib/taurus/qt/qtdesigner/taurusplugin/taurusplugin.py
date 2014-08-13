@@ -37,6 +37,8 @@
       editing the widget model (same has 'Edit model...' task menu item
 """
 
+import inspect
+
 from taurus.external.qt import Qt
 from taurus.external.qt import QtDesigner
 
@@ -73,10 +75,32 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
     def _getWidgetClassName(self):
         return self.getWidgetClass().__name__
 
+    def __getWidgetArgs(self, klass=None, designMode=True, parent=None):
+        if klass is None:
+            klass = self.getWidgetClass()
+        ctor = klass.__init__
+        aspec = inspect.getargspec(ctor)
+        if aspec.defaults is None:
+            kwspec = {}
+        else:
+            kwspec = dict(zip(aspec.args[-len(aspec.defaults):],
+                              aspec.defaults))
+        args, kwargs = [], {}
+        if 'designMode' in kwspec:
+            kwargs['designMode'] = designMode
+        if 'parent' in kwspec:
+            kwargs['parent'] = parent
+        else:
+            args.append(parent)
+        return args, kwargs
+
     def createWidget(self, parent):
         try:
             klass = self.getWidgetClass()
-            w = klass(parent, designMode = True)
+            args, kwargs = self.__getWidgetArgs(klass=klass,
+                                                designMode=True,
+                                                parent=parent)
+            w = klass(*args, **kwargs)
         except Exception, e:
             name = self._getWidgetClassName()
             print 100*"="
