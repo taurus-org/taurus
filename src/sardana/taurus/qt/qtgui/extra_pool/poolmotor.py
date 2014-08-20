@@ -1127,11 +1127,11 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.btn_to_pos_press.setVisible(False)
 
         # IN EXPERT VIEW, WE HAVE TO FORWARD THE ''editingFinished()' SIGNAL FROM TaurusValueLineEdit TO Switcher
-        self.connect(self.le_write_absolute, Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature), self.fwdEditingFinished)
-        self.connect(self.btn_step_down, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
-        self.connect(self.btn_step_up, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
-        self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
-        self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
+        self.connect(self.le_write_absolute, Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature), self.emitEditingFinished)
+        self.connect(self.btn_step_down, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_step_up, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
         
         self.btn_to_neg_press.installEventFilter(self)
         self.btn_to_pos_press.installEventFilter(self)
@@ -1140,7 +1140,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         '''reimplemented to intercept events from the subwidgets'''
         if obj in (self.btn_to_neg_press, self.btn_to_pos_press):
             if event.type() == Qt.QEvent.MouseButtonRelease:
-                self.fwdEditingFinished()
+                self.emitEditingFinished()
         return False
 
     def cbAbsoluteRelativeChanged(self, abs_rel_option):
@@ -1230,7 +1230,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
             key_event.accept()
         TaurusWidget.keyPressEvent(self, key_event)
 
-    def fwdEditingFinished(self):
+    def emitEditingFinished(self):
         self.emit(Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature))
 
 
