@@ -1128,7 +1128,20 @@ class PoolMotorTVWriteWidget(TaurusWidget):
 
         # IN EXPERT VIEW, WE HAVE TO FORWARD THE ''editingFinished()' SIGNAL FROM TaurusValueLineEdit TO Switcher
         self.connect(self.le_write_absolute, Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature), self.fwdEditingFinished)
+        self.connect(self.btn_step_down, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
+        self.connect(self.btn_step_up, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
+        self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
+        self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
 
+        self.btn_to_neg_press.installEventFilter(self)
+        self.btn_to_pos_press.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        '''reimplemented to intercept events from the subwidgets'''
+        if obj in (self.btn_to_neg_press, self.btn_to_pos_press):
+            if event.type() == Qt.QEvent.MouseButtonRelease:
+                self.fwdEditingFinished()
+        return False
 
 
     def cbAbsoluteReltaiveChanged(self, abs_rel_option):
