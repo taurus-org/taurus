@@ -622,10 +622,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             W = self.writeWidgetClassFactory(self.writeWidgetClassID, ignoreCompact=True)
             if W is None: 
                 return R
-            class Switcher(TaurusReadWriteSwitcher):
-                readWClass = R
-                writeWClass = W
-            return Switcher
+            switcherClass = self.getSwitcherClass()
+            switcherClass.readWClass = R
+            switcherClass.writeWClass = W
+            return switcherClass
         return ret
     
     def writeWidgetClassFactory(self, classID, ignoreCompact=False):
@@ -1051,6 +1051,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetLabelConfig(self):
         self._labelConfig = 'label'
         self.updateLabelWidget()
+        
+    def getSwitcherClass(self):
+        '''Returns the TaurusValue switcher class (used in compact mode).        
+        Override this method if you want to use a custom switcher in 
+        TaurusValue subclasses.
+        '''
+        class TVSwitcher(TaurusReadWriteSwitcher):
+            pass
+        return TVSwitcher
     
     @classmethod
     def getQtDesignerPluginInfo(cls):
