@@ -1057,10 +1057,10 @@ class PoolMotorTVWriteWidget(TaurusWidget):
 
         self.layout().addWidget(self.qw_write_relative, 0, 0)
 
-        self.cbAbsoluteReltaive = Qt.QComboBox()
-        self.connect(self.cbAbsoluteReltaive, Qt.SIGNAL('currentIndexChanged(QString)'), self.cbAbsoluteReltaiveChanged)
-        self.cbAbsoluteReltaive.addItems(['Abs', 'Rel'])
-        self.layout().addWidget(self.cbAbsoluteReltaive, 0, 1)
+        self.cbAbsoluteRelative = Qt.QComboBox()
+        self.connect(self.cbAbsoluteRelative, Qt.SIGNAL('currentIndexChanged(QString)'), self.cbAbsoluteRelativeChanged)
+        self.cbAbsoluteRelative.addItems(['Abs', 'Rel'])
+        self.layout().addWidget(self.cbAbsoluteRelative, 0, 1)
 
         # WITH THE COMPACCT VIEW FEATURE, BETTER TO HAVE IT IN THE READ WIDGET
         # WOULD BE BETTER AS AN 'EXTRA WIDGET' (SOME DAY...)
@@ -1132,7 +1132,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.connect(self.btn_step_up, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
         self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
         self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.fwdEditingFinished)
-
+        
         self.btn_to_neg_press.installEventFilter(self)
         self.btn_to_pos_press.installEventFilter(self)
 
@@ -1143,8 +1143,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
                 self.fwdEditingFinished()
         return False
 
-
-    def cbAbsoluteReltaiveChanged(self, abs_rel_option):
+    def cbAbsoluteRelativeChanged(self, abs_rel_option):
         abs_visible = abs_rel_option == 'Abs'
         rel_visible = abs_rel_option == 'Rel'
         self.le_write_absolute.setVisible(abs_visible)
@@ -1441,6 +1440,8 @@ class PoolMotorTV(TaurusValue):
         taurus_attr_form.setModel(model)
         taurus_attr_form.setWindowTitle('%s Tango Attributes' % taurus.Factory().getDevice(model).getSimpleName())
         taurus_attr_form.show()
+
+
 
     ### def showEvent(self, event):
     ###     TaurusValue.showEvent(self, event)
