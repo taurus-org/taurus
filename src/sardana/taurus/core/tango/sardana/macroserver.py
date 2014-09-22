@@ -573,7 +573,7 @@ class BaseDoor(MacroServerDevice):
         return self._processRecordData(v)
 
     def _processRecordData(self, data):
-        if data is None: return
+        if data is None or data.value is None: return
         # make sure we get it as string since PyTango 7.1.4 returns a buffer
         # object and json.loads doesn't support buffer objects (only str)
         data = map(str, data.value)
