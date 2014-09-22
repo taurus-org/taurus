@@ -34,3 +34,8 @@ aspects of Sardana.
 #:Its definition is a mandatory for the unittests. 
 #:In case the Door is not valid or defined an exception will be raise.
 UNITTEST_DOOR_NAME = "door/demo1/1"
+
+#:Variable controlling the size and number of rotating backups of the log files.
+#:The Pool and MacroServer Device servers will use these values for their logs. 
+LOG_FILES_SIZE = 1e7
+LOG_BCK_COUNT = 5
