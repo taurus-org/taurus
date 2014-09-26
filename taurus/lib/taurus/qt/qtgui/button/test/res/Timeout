@@ -90,7 +90,7 @@ class Timeout(PyTango.Device_4Impl):
 
     @PyTango.DebugIt()
     def TimeoutCmd(self, in_data):
-        self.info_stream('TimeoutCmd', in_data)
+        self.info_stream('TimeoutCmd' + str(in_data))
         self.cmd_duration = in_data
         time.sleep(self.cmd_duration)
     
