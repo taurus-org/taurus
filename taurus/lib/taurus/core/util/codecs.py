@@ -489,16 +489,18 @@ class VideoImageCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+        
+        #TODO: support encoding for colour imgage modes 
 
-        format = 'VIDEO_IMAGE'
-        if len(data[0]): format += '_%s' % data[0]
+        fmt = 'videoimage'
+        if len(data[0]): fmt += '_%s' % data[0]
         #imgMode depends on numpy.array dtype
         imgMode = self.__getModeId(str(data[1].dtype))
         #frameNumber, unknown then -1
         height,width = data[1].shape
         header = self.__packHeader(imgMode,-1,width,height)
         buffer = data[1].tostring()
-        return format,header+buffer
+        return fmt, header+buffer
     
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a LImA's video_image.
@@ -506,7 +508,15 @@ class VideoImageCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-        if not data[0] == 'VIDEO_IMAGE':
+        
+        if data[0].startswith('VIDEO_IMAGE'):
+            self.warning(('"VIDEO_IMAGE" format name is deprecated.' + 
+                          'Use "videoimage" instead'))
+            fixedformat = data[0].replace('VIDEO_IMAGE','videoimage')
+            _, _, fmt = fixedformat.partition('_')
+        elif data[0].startswith('videoimage'):
+            _, _, fmt = data[0].partition('_') 
+        else:
             return data
         header = self.__unpackHeader(data[1][:struct.calcsize(self.VIDEO_HEADER_FORMAT)])
 
@@ -596,12 +606,6 @@ class VideoImageCodec(Codec):
         else:
             img1D = numpy.fromstring(imgBuffer, dtype)
             img2D = img1D.reshape(header['height'],header['width'])
-
-
-        try:
-            fmt = self.__getFormatId(header['imageMode'])
-        except:
-            fmt = ""
 
         return fmt, img2D
 
@@ -819,7 +823,8 @@ class CodecFactory(Singleton, Logger):
         'zip'    : ZIPCodec,
         'pickle' : PickleCodec,
         'plot'   : PlotCodec,
-        'VIDEO_IMAGE' : VideoImageCodec,
+        'VIDEO_IMAGE' : VideoImageCodec, #deprecated
+        'videoimage' : VideoImageCodec,
         'null'   : NullCodec,
         'none'   : NullCodec,
         ''       : NullCodec })
