@@ -69,15 +69,13 @@ __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
 __docformat__ = "restructuredtext"
 
 import copy
-import operator
-import types
 
 #need by VideoImageCodec
 import struct
 import numpy
 
 from singleton import Singleton
-from log import Logger, DebugIt
+from log import Logger
 from containers import CaselessDict
 
 
@@ -400,6 +398,7 @@ class BSONCodec(Codec):
         
         :return: (sequence[str, obj]) a sequence of two elements where the
                  first item is the encoding format of the second item object"""
+        import bson
         if not data[0].startswith('bson'):
             return data
         format = data[0].partition('_')[2]
@@ -407,7 +406,7 @@ class BSONCodec(Codec):
         
         data = data[0], bson.BSON(data[1])
         
-        data = decode(data[1])
+        data = self.decode(data[1])
         if ensure_ascii:
             data = self._transform_ascii(data)
         return format, data
