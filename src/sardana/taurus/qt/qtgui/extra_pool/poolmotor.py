@@ -1133,13 +1133,26 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
         self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
         
-        self.btn_to_neg_press.installEventFilter(self)
-        self.btn_to_pos_press.installEventFilter(self)
+        # list of widgets used for edition
+        editingWidgets = (self.le_write_absolute, self.cbAbsoluteRelative,
+                          self.cb_step, self.btn_step_down, 
+                          self.btn_step_up, self.btn_to_neg, 
+                          self.btn_to_pos, self.btn_to_neg_press,
+                          self.btn_to_pos_press)        
 
+        for w in editingWidgets:
+            w.installEventFilter(self)
+        
     def eventFilter(self, obj, event):
         '''reimplemented to intercept events from the subwidgets'''
         if obj in (self.btn_to_neg_press, self.btn_to_pos_press):
-            if event.type() == Qt.QEvent.MouseButtonRelease:
+            if event.type() == Qt.QEvent.MouseButtonRelease:                
+                self.emitEditingFinished()
+        # emit editingFinished when focus out to a non-editing widget        
+        if event.type() == Qt.QEvent.FocusOut:                  
+            focused = Qt.qApp.focusWidget()            
+            focusInChild = focused in self.findChildren(focused.__class__)            
+            if not focusInChild:
                 self.emitEditingFinished()
         return False
 
