@@ -781,6 +781,9 @@ class PoolMotorTVLabelWidget(TaurusWidget):
     For the (3), a drop event should accept if it is a device, and add it to the 'change-motor' list and select
     @TODO on the 'expert' row, it could be an ENABLE section with a button to set PowerOn to True/False
     '''
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
         self.setLayout(Qt.QGridLayout())
@@ -898,6 +901,9 @@ class PoolMotorTVReadWidget(TaurusWidget):
     @TODO on the 'expert' row, there should be an Indexer/Encoder radiobuttongroup to show units from raw dial/indx/enc
     @TODO TaurusLCD may be used but, now it does not display the sign, and color is WHITE... 
     '''
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
@@ -1021,6 +1027,9 @@ class PoolMotorTVReadWidget(TaurusWidget):
 #                  WRITE WIDGET                  #
 ##################################################
 class PoolMotorTVWriteWidget(TaurusWidget):
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
         self.setLayout(Qt.QGridLayout())
@@ -1251,6 +1260,9 @@ class PoolMotorTVWriteWidget(TaurusWidget):
 #                  UNITS WIDGET                  #
 ##################################################
 class PoolMotorTVUnitsWidget(DefaultUnitsWidget):
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         DefaultUnitsWidget.__init__(self, parent, designMode)
 
