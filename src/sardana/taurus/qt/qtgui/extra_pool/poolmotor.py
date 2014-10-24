@@ -35,6 +35,8 @@ from taurus.core.util.colors import DEVICE_STATE_PALETTE
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.taurusvalidator import DeviceNameValidator
 import taurus.qt.qtcore.mimetypes
+from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+from taurus.qt.qtgui.compact import TaurusReadWriteSwitcher
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
@@ -779,6 +781,9 @@ class PoolMotorTVLabelWidget(TaurusWidget):
     For the (3), a drop event should accept if it is a device, and add it to the 'change-motor' list and select
     @TODO on the 'expert' row, it could be an ENABLE section with a button to set PowerOn to True/False
     '''
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
         self.setLayout(Qt.QGridLayout())
@@ -821,16 +826,20 @@ class PoolMotorTVLabelWidget(TaurusWidget):
             motor_dev.getAttribute('PowerOn').write(poweron)
 
     def setModel(self, model):
+        TaurusWidget.setModel(self, model)
+        # Handle User/Expert view
+        self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        self.disconnect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
+        if model in (None, ''):
+            return
         TaurusWidget.setModel(self, model + '/Status')
         self.lbl_alias.taurusValueBuddy = self.taurusValueBuddy
         self.lbl_alias.setModel(model)
 
-        # Handle User/Expert view
-        self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
         # Handle Power ON/OFF
-        self.disconnect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
         self.connect(self.btn_poweron, Qt.SIGNAL('clicked()'), self.setPowerOn)
+        self.setExpertView(self.taurusValueBuddy()._expertView)
 
     def calculateExtendedTooltip(self, cache=False):
         default_label_widget_tooltip = DefaultLabelWidget.getFormatedToolTip(self.lbl_alias, cache)
@@ -862,6 +871,11 @@ class PoolMotorTVLabelWidget(TaurusWidget):
         menu.addAction(action_tango_attributes)
         self.connect(action_tango_attributes, Qt.SIGNAL('triggered()'), self.taurusValueBuddy().showTangoAttributes)
 
+        cm_action = menu.addAction("Compact")
+        cm_action.setCheckable(True)
+        cm_action.setChecked(self.taurusValueBuddy().isCompact())
+        self.connect(cm_action, Qt.SIGNAL("toggled(bool)"), self.taurusValueBuddy().setCompact)
+        
         menu.exec_(event.globalPos())
         event.accept()
 
@@ -887,8 +901,12 @@ class PoolMotorTVReadWidget(TaurusWidget):
     @TODO on the 'expert' row, there should be an Indexer/Encoder radiobuttongroup to show units from raw dial/indx/enc
     @TODO TaurusLCD may be used but, now it does not display the sign, and color is WHITE... 
     '''
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
+
         self.setLayout(Qt.QGridLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
@@ -918,6 +936,18 @@ class PoolMotorTVReadWidget(TaurusWidget):
         self.lbl_read.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed))
         self.layout().addWidget(self.lbl_read, 0, 1)
 
+        # WITH A COMPACT VIEW, BETTER TO BE ABLE TO STOP!
+        self.btn_stop = Qt.QPushButton()
+        self.btn_stop.setToolTip('Stops the motor')
+        self.prepare_button(self.btn_stop)
+        self.btn_stop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
+        self.layout().addWidget(self.btn_stop, 0, 2)
+
+        self.connect(self.btn_stop, Qt.SIGNAL('clicked()'), self.abort)
+
+        # WITH COMPACT VIEW, WE NEED TO FORWARD DOUBLE CLICK EVENT
+        self.lbl_read.installEventFilter(self)
+
         ## @TODO right now, no options here...
         #self.cb_expertRead = Qt.QComboBox()
         #self.cb_expertRead.addItems(['Enc'])
@@ -933,6 +963,28 @@ class PoolMotorTVReadWidget(TaurusWidget):
 
         # Align everything on top
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 2, 0, 1, 2)
+
+        # IN ORDER TO BEHAVE AS EXPECTED REGARDING THE 'COMPACT VIEW' FEATURE
+        # WE NEED TO SET THE 'EXPERTVIEW' WITHOUT ACCESSING THE taurusValueBuddy WHICH IS STILL NOT LINKED
+        # SO WE ASSUME 'expertview is FALSE' AND WE HAVE TO AVOID self.setExpertView :-(
+        # WOULD BE NICE THAT THE taurusValueBuddy COULD EMIT THE PROPER SIGNAL...
+        self.lbl_enc.setVisible(False)
+        self.lbl_enc_read.setVisible(False)
+
+    def eventFilter(self, obj, event):
+        if event.type() == Qt.QEvent.MouseButtonDblClick:
+            if isinstance(self.parent(), TaurusReadWriteSwitcher):
+                self.parent().enterEdit()
+                return True
+        if obj is self.lbl_read:
+            return self.lbl_read.eventFilter(obj, event)
+        return True
+
+    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the motion.')
+    def abort(self):
+        motor_dev = self.taurusValueBuddy().motor_dev
+        if motor_dev is not None:
+            motor_dev.abort()
 
     def setExpertView(self, expertView):
         self.lbl_enc.setVisible(False)
@@ -957,17 +1009,27 @@ class PoolMotorTVReadWidget(TaurusWidget):
         btn.setText('')
 
     def setModel(self, model):
+        if hasattr(self, 'taurusValueBuddy'):
+            self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        if model in (None, ''):
+            TaurusWidget.setModel(self, model)
+            self.lbl_read.setModel(model)
+            self.lbl_enc_read.setModel(model)
+            return
         TaurusWidget.setModel(self, model + '/Position')
         self.lbl_read.setModel(model + '/Position')
         self.lbl_enc_read.setModel(model + '/Encoder')
-
         # Handle User/Expert view
+        self.setExpertView(self.taurusValueBuddy()._expertView)
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
 
 ##################################################
 #                  WRITE WIDGET                  #
 ##################################################
 class PoolMotorTVWriteWidget(TaurusWidget):
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
         self.setLayout(Qt.QGridLayout())
@@ -1004,16 +1066,18 @@ class PoolMotorTVWriteWidget(TaurusWidget):
 
         self.layout().addWidget(self.qw_write_relative, 0, 0)
 
-        self.cbAbsoluteReltaive = Qt.QComboBox()
-        self.connect(self.cbAbsoluteReltaive, Qt.SIGNAL('currentIndexChanged(QString)'), self.cbAbsoluteReltaiveChanged)
-        self.cbAbsoluteReltaive.addItems(['Abs', 'Rel'])
-        self.layout().addWidget(self.cbAbsoluteReltaive, 0, 1)
+        self.cbAbsoluteRelative = Qt.QComboBox()
+        self.connect(self.cbAbsoluteRelative, Qt.SIGNAL('currentIndexChanged(QString)'), self.cbAbsoluteRelativeChanged)
+        self.cbAbsoluteRelative.addItems(['Abs', 'Rel'])
+        self.layout().addWidget(self.cbAbsoluteRelative, 0, 1)
 
-        self.btn_stop = Qt.QPushButton()
-        self.btn_stop.setToolTip('Stops the motor')
-        self.prepare_button(self.btn_stop)
-        self.btn_stop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
-        self.layout().addWidget(self.btn_stop, 0, 2)
+        # WITH THE COMPACCT VIEW FEATURE, BETTER TO HAVE IT IN THE READ WIDGET
+        # WOULD BE BETTER AS AN 'EXTRA WIDGET' (SOME DAY...)
+        #self.btn_stop = Qt.QPushButton()
+        #self.btn_stop.setToolTip('Stops the motor')
+        #self.prepare_button(self.btn_stop)
+        #self.btn_stop.setIcon(getIcon(':/actions/media_playback_stop.svg'))
+        #self.layout().addWidget(self.btn_stop, 0, 2)
 
         btns_layout = Qt.QHBoxLayout()
         btns_layout.setMargin(0)
@@ -1051,7 +1115,7 @@ class PoolMotorTVWriteWidget(TaurusWidget):
 
         self.connect(self.btn_step_down, Qt.SIGNAL('clicked()'), self.stepDown)
         self.connect(self.btn_step_up, Qt.SIGNAL('clicked()'), self.stepUp)
-        self.connect(self.btn_stop, Qt.SIGNAL('clicked()'), self.abort)
+        ###self.connect(self.btn_stop, Qt.SIGNAL('clicked()'), self.abort)
         self.connect(self.btn_to_neg, Qt.SIGNAL('clicked()'), self.goNegative)
         self.connect(self.btn_to_neg_press, Qt.SIGNAL('pressed()'), self.goNegative)
         self.connect(self.btn_to_neg_press, Qt.SIGNAL('released()'), self.abort)
@@ -1062,7 +1126,46 @@ class PoolMotorTVWriteWidget(TaurusWidget):
         # Align everything on top
         self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding), 2, 0, 1, 3)
 
-    def cbAbsoluteReltaiveChanged(self, abs_rel_option):
+        # IN ORDER TO BEHAVE AS EXPECTED REGARDING THE 'COMPACT VIEW' FEATURE
+        # WE NEED TO SET THE 'EXPERTVIEW' WITHOUT ACCESSING THE taurusValueBuddy WHICH IS STILL NOT LINKED
+        # SO WE ASSUME 'expertview is FALSE' AND WE HAVE TO AVOID self.setExpertView :-(
+        # WOULD BE NICE THAT THE taurusValueBuddy COULD EMIT THE PROPER SIGNAL...
+        self.btn_to_neg.setVisible(False)
+        self.btn_to_neg_press.setVisible(False)
+        self.btn_to_pos.setVisible(False)
+        self.btn_to_pos_press.setVisible(False)
+
+        # IN EXPERT VIEW, WE HAVE TO FORWARD THE ''editingFinished()' SIGNAL FROM TaurusValueLineEdit TO Switcher
+        self.connect(self.le_write_absolute, Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature), self.emitEditingFinished)
+        self.connect(self.btn_step_down, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_step_up, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_to_neg, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        self.connect(self.btn_to_pos, Qt.SIGNAL("clicked()"), self.emitEditingFinished)
+        
+        # list of widgets used for edition
+        editingWidgets = (self.le_write_absolute, self.cbAbsoluteRelative,
+                          self.cb_step, self.btn_step_down, 
+                          self.btn_step_up, self.btn_to_neg, 
+                          self.btn_to_pos, self.btn_to_neg_press,
+                          self.btn_to_pos_press)        
+
+        for w in editingWidgets:
+            w.installEventFilter(self)
+        
+    def eventFilter(self, obj, event):
+        '''reimplemented to intercept events from the subwidgets'''
+        if obj in (self.btn_to_neg_press, self.btn_to_pos_press):
+            if event.type() == Qt.QEvent.MouseButtonRelease:                
+                self.emitEditingFinished()
+        # emit editingFinished when focus out to a non-editing widget        
+        if event.type() == Qt.QEvent.FocusOut:                  
+            focused = Qt.qApp.focusWidget()            
+            focusInChild = focused in self.findChildren(focused.__class__)            
+            if not focusInChild:
+                self.emitEditingFinished()
+        return False
+
+    def cbAbsoluteRelativeChanged(self, abs_rel_option):
         abs_visible = abs_rel_option == 'Abs'
         rel_visible = abs_rel_option == 'Rel'
         self.le_write_absolute.setVisible(abs_visible)
@@ -1129,10 +1232,17 @@ class PoolMotorTVWriteWidget(TaurusWidget):
             self.btn_to_pos_press.setEnabled(pos_sw_limit_enabled)
 
     def setModel(self, model):
+        if hasattr(self, 'taurusValueBuddy'):
+            self.disconnect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        if model in (None, ''):
+            TaurusWidget.setModel(self, model)
+            self.le_write_absolute.setModel(model)
+            return
         TaurusWidget.setModel(self, model + '/Position')
         self.le_write_absolute.setModel(model + '/Position')
 
         # Handle User/Expert View
+        self.setExpertView(self.taurusValueBuddy()._expertView)
         self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
 
 
@@ -1142,35 +1252,30 @@ class PoolMotorTVWriteWidget(TaurusWidget):
             key_event.accept()
         TaurusWidget.keyPressEvent(self, key_event)
 
+    def emitEditingFinished(self):
+        self.emit(Qt.SIGNAL(TaurusBaseWritableWidget.appliedSignalSignature))
+
+
 ##################################################
 #                  UNITS WIDGET                  #
 ##################################################
-class PoolMotorTVUnitsWidget(TaurusWidget):
+class PoolMotorTVUnitsWidget(DefaultUnitsWidget):
+    
+    layoutAlignment = Qt.Qt.AlignTop
+    
     def __init__(self, parent=None, designMode=False):
-        TaurusWidget.__init__(self, parent, designMode)
-        self.setLayout(Qt.QGridLayout())
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
-
-        self.lbl_unit = DefaultUnitsWidget(parent, designMode)
-        self.layout().addWidget(self.lbl_unit)
-
-        # Align everything on top
-        self.layout().addItem(Qt.QSpacerItem(1, 1, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Expanding))
-
-    def setExpertView(self, expertView):
-        pass
+        DefaultUnitsWidget.__init__(self, parent, designMode)
 
     def setModel(self, model):
-        TaurusWidget.setModel(self, model + '/Position')
-        self.lbl_unit.taurusValueBuddy = self.taurusValueBuddy
-        self.lbl_unit.setModel(model + '/Position')
-        # Handle User/Expert view
-        self.connect(self.taurusValueBuddy(), Qt.SIGNAL('expertViewChanged(bool)'), self.setExpertView)
+        if model in (None,''):
+            DefaultUnitsWidget.setModel(self, model)
+            return
+        DefaultUnitsWidget.setModel(self, model + '/Position')
 
 ##################################################
 #                TV MOTOR WIDGET                 #
 ##################################################
+
 class PoolMotorTV(TaurusValue):
     ''' A widget that displays and controls a pool Motor device.  It
     behaves as a TaurusValue.
@@ -1196,9 +1301,6 @@ class PoolMotorTV(TaurusValue):
         self.status_listener = None
         self.position_listener = None
         self.setExpertView(False)
-        
-    def setCompact(self, *args):
-        self.debug('ignoring setCompact')
 
     def setExpertView(self, expertView):
         self._expertView = expertView
@@ -1305,12 +1407,13 @@ class PoolMotorTV(TaurusValue):
         if pos_lim:
             pos_btnstylesheet = 'QPushButton{%s}' % DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-        self.readWidget().btn_lim_pos.setStyleSheet(pos_btnstylesheet)
+        self.readWidget(followCompact=True).btn_lim_pos.setStyleSheet(pos_btnstylesheet)
 
-        self.writeWidget().btn_step_up.setEnabled(enabled)
-        self.writeWidget().btn_step_up.setStyleSheet(pos_btnstylesheet)
-        self.writeWidget().btn_to_pos.setEnabled(enabled)
-        self.writeWidget().btn_to_pos_press.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_up.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_up.setStyleSheet(pos_btnstylesheet)
+        enabled = enabled and self.motor_dev.getAttribute('Position').max_value.lower() != 'not specified'
+        self.writeWidget(followCompact=True).btn_to_pos.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_to_pos_press.setEnabled(enabled)
 
         neg_lim = limits[NEG]
         neg_btnstylesheet = ''
@@ -1318,12 +1421,13 @@ class PoolMotorTV(TaurusValue):
         if neg_lim:
             neg_btnstylesheet = 'QPushButton{%s}' % DEVICE_STATE_PALETTE.qtStyleSheet(PyTango.DevState.ALARM)
             enabled = False
-        self.readWidget().btn_lim_neg.setStyleSheet(neg_btnstylesheet)
+        self.readWidget(followCompact=True).btn_lim_neg.setStyleSheet(neg_btnstylesheet)
 
-        self.writeWidget().btn_step_down.setEnabled(enabled)
-        self.writeWidget().btn_step_down.setStyleSheet(neg_btnstylesheet)
-        self.writeWidget().btn_to_neg.setEnabled(enabled)
-        self.writeWidget().btn_to_neg_press.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_down.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_step_down.setStyleSheet(neg_btnstylesheet)
+        enabled = enabled and self.motor_dev.getAttribute('Position').min_value.lower() != 'not specified'
+        self.writeWidget(followCompact=True).btn_to_neg.setEnabled(enabled)
+        self.writeWidget(followCompact=True).btn_to_neg_press.setEnabled(enabled)
 
     def updatePowerOn(self, poweron):
         btn_text = 'Set ON'
@@ -1361,6 +1465,8 @@ class PoolMotorTV(TaurusValue):
         taurus_attr_form.setModel(model)
         taurus_attr_form.setWindowTitle('%s Tango Attributes' % taurus.Factory().getDevice(model).getSimpleName())
         taurus_attr_form.show()
+
+
 
     ### def showEvent(self, event):
     ###     TaurusValue.showEvent(self, event)
@@ -1409,7 +1515,7 @@ def main():
     args = app.get_command_line_args()
 
     #models = ['tango://controls02:10000/motor/gcipap10ctrl/8']
-    models = ['motor/motctrl06/3']
+    models = ['motor/motctrl13/3']
 
     if len(args) > 0:
         models = args
@@ -1418,9 +1524,10 @@ def main():
     w.setLayout(Qt.QVBoxLayout())
 
     tests = []
-    tests.append(1)
+    #tests.append(1)
     tests.append(2)
-    tests.append(3)
+    #tests.append(3)
+    #tests.append(4)
 
     # 1) Test PoolMotorSlim motor widget
     form_pms = TaurusForm()
@@ -1435,6 +1542,7 @@ def main():
 
     # 2) Test PoolMotorTV motor widget
     form_tv = TaurusForm()
+    form_tv.setModifiableByUser(True)
     tv_widget_class = 'taurus.qt.qtgui.extra_pool.PoolMotorTV'
     tv_tgclass_map = {'SimuMotor':(tv_widget_class, (), {}),
                       'Motor':(tv_widget_class, (), {}),
@@ -1444,13 +1552,21 @@ def main():
     if 2 in tests:
         form_tv.setModel(models)
         w.layout().addWidget(form_tv)
-
+        form_tv.setCompact(True)
 
     # 3) Test Stand-Alone PoolMotor widget
     # New approach would be to let PoolMotorTV live outside a TaurusForm.... but inside a GridLayout
     # Carlos already said this is not a good approach but...
+    if 3 in tests:
         for motor in models:
             motor_widget = PoolMotor()
+            motor_widget.setModel(motor)
+            w.layout().addWidget(motor_widget)
+
+    # 4) Test Stand-Alone PoolMotorSlim widget
+    if 4 in tests:
+        for motor in models:
+            motor_widget = PoolMotorSlim()
             motor_widget.setModel(motor)
             w.layout().addWidget(motor_widget)
 
