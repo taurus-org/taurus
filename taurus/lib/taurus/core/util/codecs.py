@@ -69,15 +69,13 @@ __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
 __docformat__ = "restructuredtext"
 
 import copy
-import operator
-import types
 
 #need by VideoImageCodec
 import struct
 import numpy
 
 from singleton import Singleton
-from log import Logger, DebugIt
+from log import Logger
 from containers import CaselessDict
 
 
@@ -400,6 +398,7 @@ class BSONCodec(Codec):
         
         :return: (sequence[str, obj]) a sequence of two elements where the
                  first item is the encoding format of the second item object"""
+        import bson
         if not data[0].startswith('bson'):
             return data
         format = data[0].partition('_')[2]
@@ -407,7 +406,7 @@ class BSONCodec(Codec):
         
         data = data[0], bson.BSON(data[1])
         
-        data = decode(data[1])
+        data = self.decode(data[1])
         if ensure_ascii:
             data = self._transform_ascii(data)
         return format, data
@@ -490,16 +489,18 @@ class VideoImageCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
+        
+        #TODO: support encoding for colour imgage modes 
 
-        format = 'VIDEO_IMAGE'
-        if len(data[0]): format += '_%s' % data[0]
+        fmt = 'videoimage'
+        if len(data[0]): fmt += '_%s' % data[0]
         #imgMode depends on numpy.array dtype
         imgMode = self.__getModeId(str(data[1].dtype))
         #frameNumber, unknown then -1
         height,width = data[1].shape
         header = self.__packHeader(imgMode,-1,width,height)
         buffer = data[1].tostring()
-        return format,header+buffer
+        return fmt, header+buffer
     
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a LImA's video_image.
@@ -507,17 +508,117 @@ class VideoImageCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-
-        if not data[0] == 'VIDEO_IMAGE':
+        
+        if data[0].startswith('VIDEO_IMAGE'):
+            self.warning(('"VIDEO_IMAGE" format name is deprecated.' + 
+                          'Use "videoimage" instead'))
+            fixedformat = data[0].replace('VIDEO_IMAGE','videoimage')
+            _, _, fmt = fixedformat.partition('_')
+        elif data[0].startswith('videoimage'):
+            _, _, fmt = data[0].partition('_') 
+        else:
             return data
         header = self.__unpackHeader(data[1][:struct.calcsize(self.VIDEO_HEADER_FORMAT)])
-        
+
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
         dtype = self.__getDtypeId(header['imageMode'])
-        img1D = numpy.fromstring(imgBuffer, dtype)
-        img2D = img1D.reshape(header['height'],header['width'])
+        if header['imageMode'] == 7:
+            # RGBA 4 bytes per pixel
+            rgba = numpy.fromstring(imgBuffer, dtype)
+            bbuf = rgba[0::4]
+            gbuf = rgba[1::4]
+            rbuf = rgba[2::4]
+            #abuf = rgba[3::4]
+            r = rbuf.reshape(header['height'],header['width'])
+            g = gbuf.reshape(header['height'],header['width'])
+            b = bbuf.reshape(header['height'],header['width'])
+            #a = abuf.reshape(header['height'],header['width'])
+            img2D = numpy.dstack((r,g,b))
 
-        return '',img2D
+        elif header['imageMode'] == 17:
+            # YUV444 3 bytes per pixel
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            y = yuv[0::3]
+            u = yuv[1::3]
+            v = yuv[2::3]
+
+            rbuff, gbuff, bbuff = self.__yuv2rgb(y,u,v)
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            # Build the RGB image
+            img2D = numpy.dstack((r,g,b))
+
+        elif header['imageMode'] == 16:
+            # YUV422 4 bytes per 2 pixels
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            u = yuv[0::4]
+            y1 = yuv[1::4]
+            v = yuv[2::4]
+            y2 = yuv[3::4]
+
+            r1, g1, b1 = self.__yuv2rgb(y1,u,v)
+            r2, g2, b2 = self.__yuv2rgb(y2,u,v)
+
+            # Create RGB buffers
+            rbuff = numpy.dstack((r1,r2)).reshape(header['height']*header['width'])
+            gbuff = numpy.dstack((g1,g2)).reshape(header['height']*header['width'])
+            bbuff = numpy.dstack((b1,b2)).reshape(header['height']*header['width'])
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            # Build the RGB image
+            img2D = numpy.dstack((r,g,b))
+
+        elif header['imageMode'] == 15:
+            # YUV411 6 bytes per 4 pixels
+            yuv = numpy.fromstring(imgBuffer, dtype)
+            u = yuv[0::6]
+            y1 = yuv[1::6]
+            y2 = yuv[2::6]
+            v = yuv[3::6]
+            y3 = yuv[4::6]
+            y4 = yuv[5::6]
+
+            r1, g1, b1 = self.__yuv2rgb(y1,u,v)
+            r2, g2, b2 = self.__yuv2rgb(y2,u,v)
+            r3, g3, b3 = self.__yuv2rgb(y3,u,v)
+            r4, g4, b4 = self.__yuv2rgb(y4,u,v)
+
+            # Create RGB buffers
+            rbuff = numpy.dstack((r1,r2,r3,r4)).reshape(header['height']*header['width'])
+            gbuff = numpy.dstack((g1,g2,g3,g4)).reshape(header['height']*header['width'])
+            bbuff = numpy.dstack((b1,b2,b3,b4)).reshape(header['height']*header['width'])
+
+            # Shape buffers to image size
+            r = rbuff.reshape(header['height'],header['width'])
+            g = gbuff.reshape(header['height'],header['width'])
+            b = bbuff.reshape(header['height'],header['width'])
+
+            img2D = numpy.dstack((r,g,b))
+
+        else:
+            img1D = numpy.fromstring(imgBuffer, dtype)
+            img2D = img1D.reshape(header['height'],header['width'])
+
+        return fmt, img2D
+
+    def __yuv2rgb(self, y, u, v):
+        '''YUV444 to RGB888 conversion'''
+        Cr = v - 128.0
+        Cb = u - 128.0
+
+        R = y + 1.402 * Cr
+        G = y - 0.344 * Cb - 0.714 * Cr
+        B = y + 1.772 * Cb
+
+        return (numpy.clip(R,0,255), numpy.clip(G,0,255), numpy.clip(B,0,255))
 
     def __unpackHeader(self,header):
         h = struct.unpack(self.VIDEO_HEADER_FORMAT,header)
@@ -561,18 +662,20 @@ class VideoImageCodec(Codec):
                 'Y32'        : 2,#Core.Y32,
                 'Y64'        : 3,#Core.Y64,
                 #TODO: other modes
-                #'RGB555'     : Core.RGB555,
-                #'RGB565'     : Core.RGB565,
-                #'RGB24'      : Core.RGB24,
-                #'RGB32'      : Core.RGB32,
-                #'BGR24'      : Core.BGR24,
-                #'BGR32'      : Core.BGR32,
-                #'BAYER RG8'  : Core.BAYER_RG8,
-                #'BAYER RG16' : Core.BAYER_RG16,
-                #'I420'       : Core.I420,
-                #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
-                #'YUV444'     : Core.YUV444
+                #'RGB555'     : 4,#Core.RGB555,
+                #'RGB565'     : 5,#Core.RGB565,
+                #'RGB24'      : 6,#Core.RGB24,
+                'RGB32'      : 7,#Core.RGB32,
+                #'BGR24'      : 8,#Core.BGR24,
+                #'BGR32'      : 9,#Core.BGR32,
+                #'BAYER RG8'  : 10,#Core.BAYER_RG8,
+                #'BAYER RG16' : 11,#Core.BAYER_RG16,
+                #'BAYER BG8'  : 12,#Core.BAYER_BG8,
+                #'BAYER BG16' : 13,#Core.BAYER_BG16,
+                #'I420'       : 14,#Core.I420,
+                #'YUV411'     : 15,#Core.YUV411,
+                'YUV422'     : 16,#Core.YUV422,
+                #'YUV444'     : 17,#Core.YUV444
                }[mode]
 
     def __getFormatId(self,mode):
@@ -583,14 +686,16 @@ class VideoImageCodec(Codec):
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
                 #'RGB24'      : Core.RGB24,
-                #'RGB32'      : Core.RGB32,
-                #'BGR24'      : Core.BGR24,
+                7     : 'RGB32',#Core.RGB32,
+                #8     : 'BGR24',#Core.BGR24,
                 #'BGR32'      : Core.BGR32,
                 #'BAYER RG8'  : Core.BAYER_RG8,
                 #'BAYER RG16' : Core.BAYER_RG16,
+                #'BAYER BG8'  : Core.BAYER_BG8,
+                #'BAYER BG16' : Core.BAYER_BG16,
                 #'I420'       : Core.I420,
                 #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
+                16     : 'YUV422',#Core.YUV422,
                 #'YUV444'     : Core.YUV444
                }[mode]
 
@@ -601,15 +706,17 @@ class VideoImageCodec(Codec):
                 3      : 'uint64',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
-                #'RGB24'      : Core.RGB24,
-                #'RGB32'      : Core.RGB32,
+                #6      : 'uint8', # Core.RGB24,
+                7      : 'uint8', # Core.RGB32,
                 #'BGR24'      : Core.BGR24,
                 #'BGR32'      : Core.BGR32,
                 #'BAYER RG8'  : Core.BAYER_RG8,
                 #'BAYER RG16' : Core.BAYER_RG16,
+                #'BAYER BG8'  : Core.BAYER_BG8,
+                #'BAYER BG16' : Core.BAYER_BG16,
                 #'I420'       : Core.I420,
                 #'YUV411'     : Core.YUV411,
-                #'YUV422'     : Core.YUV422,
+                16     : 'uint8', # Core.YUV422,
                 #'YUV444'     : Core.YUV444
                }[mode]
 
@@ -716,7 +823,8 @@ class CodecFactory(Singleton, Logger):
         'zip'    : ZIPCodec,
         'pickle' : PickleCodec,
         'plot'   : PlotCodec,
-        'VIDEO_IMAGE' : VideoImageCodec,
+        'VIDEO_IMAGE' : VideoImageCodec, #deprecated
+        'videoimage' : VideoImageCodec,
         'null'   : NullCodec,
         'none'   : NullCodec,
         ''       : NullCodec })

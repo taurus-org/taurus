@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 
 #############################################################################
 ##
@@ -27,14 +27,16 @@
 Extension of :mod:`guiqwt.image`
 """
 __all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
-         "TaurusTrend2DScanItem","TaurusEncodedImageItem"]
+         "TaurusTrend2DScanItem","TaurusEncodedImageItem",
+         "TaurusEncodedRGBImageItem"]
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer
 
-from guiqwt.image import ImageItem, RGBImageItem, XYImageItem, INTERP_NEAREST, INTERP_LINEAR
+from guiqwt.image import ImageItem, RGBImageItem, XYImageItem
+from guiqwt.image import INTERP_NEAREST, INTERP_LINEAR
 
 import numpy
 
@@ -48,8 +50,8 @@ class TaurusBaseImageItem(TaurusBaseComponent):
     def getSignaller(self):
         '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
         not (and cannot be) a QObject'''
-        return self._signalGen  
-    
+        return self._signalGen
+
     def setModel(self, model):
         #do the standard stuff
         TaurusBaseComponent.setModel(self, model)
@@ -70,8 +72,11 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         except Exception, e:
             self.info('Ignoring event. Reason: %s', e.message)
             return
-        lut_range = self.get_lut_range() #this is the range of the z axis (color scale)
-        if lut_range[0] == lut_range[1]: lut_range = None #if the range was not set, make it None (autoscale z axis)
+        #this is the range of the z axis (color scale)
+        lut_range = self.get_lut_range()
+        #if the range was not set, make it None (autoscale z axis)
+        if lut_range[0] == lut_range[1]:
+            lut_range = None
         self.set_data(v, lut_range=lut_range)
         self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         p = self.plot()
@@ -79,7 +84,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if p is not None:
             p.update_colormap_axis(self)
             p.replot()
-            
+
     def filterData(self, data):
         '''Reimplement this method if you want to pre-process 
         the data that will be passed to set_data.
@@ -110,21 +115,12 @@ class TaurusBaseImageItem(TaurusBaseComponent):
                 v = numpy.int32(v)  
             except OverflowError:
                 raise OverflowError("type %s not supported by guiqwt and cannot be casted to int32"%repr(v.dtype))
-            
+
         return v
-        
-class TaurusImageItem(ImageItem, TaurusBaseImageItem):
-    '''A ImageItem that gets its data from a taurus attribute'''
-    def __init__(self, param=None):
-        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
-        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
 
 
-class TaurusEncodedImageItem(TaurusImageItem):
-    '''A ImageItem that gets its data from a DevEncoded attribute'''
-    def __init__(self, param=None):
-        TaurusImageItem.__init__(self,param=param)
-        
+class TaurusEncodedBaseImageItem(TaurusBaseImageItem):
+    '''A ImageItem that gets its data from a taurus DevEncoded attribute'''
     def setModel(self, model):
         #do the standard stuff
         TaurusBaseComponent.setModel(self, model)
@@ -142,9 +138,10 @@ class TaurusEncodedImageItem(TaurusImageItem):
             codec = CodecFactory().getCodec(data[0])
 
             try:
-                fmt,decoded_data = codec.decode(data)[1]
-            except:
-                decoded_data = codec.decode(data)[1]
+                fmt, decoded_data = codec.decode(data)
+            except Exception, e:
+                self.info('Decoder error: %s', e.message)
+                raise e
 
             try:
                 dtype = decoded_data.dtype
@@ -167,6 +164,20 @@ class TaurusEncodedImageItem(TaurusImageItem):
             raise ValueError('Unexpected data type (%s) for DevEncoded attribute (tuple expected)'%type(data))
 
 
+class TaurusImageItem(ImageItem, TaurusBaseImageItem):
+    '''A ImageItem that gets its data from a taurus attribute'''
+    def __init__(self, param=None):
+        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
+        TaurusBaseImageItem.__init__(self, self.__class__.__name__)
+
+
+class TaurusEncodedImageItem(ImageItem, TaurusEncodedBaseImageItem):
+    '''A ImageItem that gets its data from a DevEncoded attribute'''
+    def __init__(self, param=None):
+        ImageItem.__init__(self, numpy.zeros((1,1)), param=param)
+        TaurusEncodedBaseImageItem.__init__(self, self.__class__.__name__)
+
+
 class TaurusXYImageItem(XYImageItem, TaurusBaseImageItem):
     '''A XYImageItem that gets its data from a taurus attribute'''
     def __init__(self, param=None):
@@ -185,6 +196,17 @@ class TaurusRGBImageItem(RGBImageItem, TaurusBaseImageItem):
         return RGBImageItem.set_data(self, data, **kwargs)
 
         
+class TaurusEncodedRGBImageItem(RGBImageItem, TaurusEncodedBaseImageItem):
+    '''A RGBImageItem that gets its data from a DevEncoded attribute'''
+    def __init__(self, param=None):
+        RGBImageItem.__init__(self, numpy.zeros((1,1,3)), param=param)
+        TaurusEncodedBaseImageItem.__init__(self, self.__class__.__name__)
+
+    def set_data(self, data, lut_range=None, **kwargs):
+        '''dummy reimplementation to accept the lut_range kwarg (just ignoring it)'''
+        return RGBImageItem.set_data(self, data, **kwargs)
+
+
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
     def __init__(self, param=None, buffersize=512, stackMode='datetime'):
