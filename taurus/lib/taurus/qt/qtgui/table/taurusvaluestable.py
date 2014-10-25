@@ -420,7 +420,7 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         else:
             data = index.model().data(index, Qt.Qt.EditRole)
             self._initialText = Qt.from_qvariant(data, str)
-            editor.setText(self._initialText)
+            editor.setText(str(self._initialText))
     
     def setModelData(self, editor, model,index):
         '''

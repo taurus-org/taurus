@@ -3,39 +3,54 @@
 #############################################################################
 ##
 ## This file is part of Taurus, a Tango User Interface Library
-## 
+##
 ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
-"""This module contains some Sardana-wide default configurations.
+import sys
+import taurus
 
-The idea is that the final user may edit the values here to customize certain
-aspects of Sardana.
-"""
+def main():
+    taurus.setLogLevel(taurus.Warning)
+
+    from taurus.external.qt import Qt, uic
+    from taurus.core.util.argparse import get_taurus_parser
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    parser = get_taurus_parser()
+    parser.set_usage("%prog [options] <ui_file1> [<ui_file2> ...]")
+    parser.set_description("a taurus application that launches GUI(s) for the "
+                           "given .ui file(s)")
+    app = TaurusApplication(cmd_line_parser=parser,
+                            app_name="taurusui", app_version="1.0",
+                            org_domain="Taurus", org_name="Taurus community")
+
+    args = app.get_command_line_args()
+    if len(args) < 1:
+        print("Need to supply UI file name")
+        sys.exit(1)
+
+    for ui_file in args:
+        gui = uic.loadUi(ui_file)
+        gui.show()
+    sys.exit(app.exec_())
 
 
-#:UnitTets door name: is the door to use in our unit tests.
-#:Its definition is a mandatory for the unittests. 
-#:In case the Door is not valid or defined an exception will be raise.
-UNITTEST_DOOR_NAME = "door/demo1/1"
-
-#:Variable controlling the size and number of rotating backups of the log files.
-#:The Pool and MacroServer Device servers will use these values for their logs. 
-LOG_FILES_SIZE = 1e7
-LOG_BCK_COUNT = 5
+if __name__ == "__main__":
+    main()

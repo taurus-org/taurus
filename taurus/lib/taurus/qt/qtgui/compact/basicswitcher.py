@@ -49,7 +49,7 @@ class TaurusBoolRW(TaurusReadWriteSwitcher):
         widget.setShowText(False)
         TaurusReadWriteSwitcher.setWriteWidget(self, widget)
         
-def demo():
+def _demo():
     '''demo of integrability in a form'''
     import sys
     from taurus.qt.qtgui.panel import TaurusForm
@@ -72,5 +72,5 @@ def demo():
 
 
 if __name__ == "__main__":
-    demo()
+    _demo()
     

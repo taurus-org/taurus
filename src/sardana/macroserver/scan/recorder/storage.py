@@ -337,7 +337,7 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 'nocols':    len(names),
                 'labels':    '  '.join(labels)
                }
-        header = ''
+        header = '\n'
         header += '#S %(serialno)s %(title)s\n'
         header += '#U %(user)s\n'
         header += '#D %(epoch)s\n'

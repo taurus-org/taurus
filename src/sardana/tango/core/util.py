@@ -820,11 +820,15 @@ def prepare_logging(options, args, tango_args, start_time=None, log_messages=Non
         try:
             if not os.path.exists(path):
                 os.makedirs(path, 0777)
+            
+            from sardana import sardanacustomsettings    
+            maxBytes = getattr(sardanacustomsettings, 'LOG_FILES_SIZE', 1E7)
+            backupCount = getattr(sardanacustomsettings, 'LOG_BCK_COUNT', 5)
 
             fmt = Logger.getLogFormat()
             f_h = logging.handlers.RotatingFileHandler(log_file_name,
-                                                       maxBytes=1E7,
-                                                       backupCount=5)
+                                                       maxBytes=maxBytes,
+                                                       backupCount=backupCount)
             f_h.setFormatter(fmt)
             f_h.setLevel(log_file_level)
             root.addHandler(f_h)

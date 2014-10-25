@@ -31,6 +31,7 @@ __all__ = ["initialize", "getQtName", "getQt", "_updateQtSubModule", "requires"]
 from taurus import tauruscustomsettings as __config
 from taurus.core.util import log as __log
 
+import os
 
 __QT = None
 __QT_NAME = None
@@ -343,6 +344,17 @@ def initialize(name=None, strict=True, logging=True,
         __removePyQtInputHook()
 
     __QT_INIT = True
+
+    QT_API = os.environ.get('QT_API')
+    if QT_API is None:
+        global __QT_NAME
+        if __QT_NAME == 'PySide':
+            QT_API = 'pyside'
+        else:
+            QT_API = 'pyqt'
+
+    os.environ['QT_API'] = QT_API
+
     return qt
 
 
