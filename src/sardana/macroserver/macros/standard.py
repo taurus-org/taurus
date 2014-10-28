@@ -462,7 +462,6 @@ class ct(Macro):
         self.mnt_grp = self.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
 
     def run(self, integ_time):
-        self.output("hello")
         if self.mnt_grp is None:
             self.error('ActiveMntGrp is not defined or has invalid value')
             return
