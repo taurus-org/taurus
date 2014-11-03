@@ -266,7 +266,24 @@ class MacroButtonAbortDoor(TaurusWidget):
 
 if __name__ == '__main__':
     import sys
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.core.util.argparse import get_taurus_parser
+    from sardana.macroserver.macros.test import SarDemoEnv
+
+    parser = get_taurus_parser()
+    parser.set_usage("python macrobutton.py [door_name]")
+    parser.set_description("Macro button for macro execution")
+
+    app = TaurusApplication(app_name="macrobutton",
+                            app_version=taurus.Release.version)
+
+    args = app.get_command_line_args()
+
+    if len(args) < 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    door_name = args[0]
 
     w = Qt.QWidget()
     w.setLayout(Qt.QGridLayout())
@@ -308,7 +325,7 @@ if __name__ == '__main__':
     from sardana.taurus.qt.qtcore.tango.sardana.macroserver import registerExtensions
     registerExtensions()
     mb = MacroButton()
-    mb.setModel('door/gc/1')
+    mb.setModel(door_name)
 
     w.layout().addWidget(mb, 2, 0, 2, 7)
 
@@ -322,7 +339,7 @@ if __name__ == '__main__':
     w.layout().addWidget(show_progress, 5, 0)
 
     mb_abort = MacroButtonAbortDoor()
-    mb_abort.setModel('door/gc/1')
+    mb_abort.setModel(door_name)
     w.layout().addWidget(mb_abort, 5, 1)
 
     # Change macro name
@@ -355,9 +372,18 @@ if __name__ == '__main__':
     # Clear parameters
     Qt.QObject.connect(clear_button, Qt.SIGNAL('clicked()'), clear_params)
 
+    # Obtain a demo motor
+    try:
+        demo_motor_name = SarDemoEnv(door_name).getMotors()[0]
+    except Exception, e:
+        from taurus.core.util.log import warning, debug
+        warning('It was unable to obtain a demo motor')
+        debug('Details: %s' % e.message)
+        demo_motor_name = ''
+
     # Since everything is now connected, the parameters will be updated
     macro_name.setText('ascan')
-    arg0.setText('gcdmot1')
+    arg0.setText(demo_motor_name)
     arg1.setText('1')
     arg2.setText('10')
     arg3.setText('5')
