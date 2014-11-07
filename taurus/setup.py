@@ -152,7 +152,8 @@ packages = [
     'taurus.qt.qtgui.tree',
     'taurus.qt.qtgui.ui',
     'taurus.qt.qtgui.util',
-
+    'taurus.qt.qtgui.util.test',
+    'taurus.qt.qtgui.util.test.test_ui',
     'taurus.qt.uic',
 ]
 
@@ -205,6 +206,7 @@ package_data = {
     'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template',
                                   'tauruswidget_qtdesignerplugin_template'],
+    'taurus.qt.qtgui.util.test.test_ui' : ['ui/*', 'ui/mywidget2/*'],
     'taurus.qt.uic'            : ['pyuic4/*'],
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
     'taurus.qt.qtgui.button.test' : ['res/*'],
