@@ -141,11 +141,17 @@ class wu(Macro):
 class wa(Macro):
     """Show all motor positions"""
 
-    def prepare(self, **opts):
-        self.all_motors = self.findObjs('.*', type_class=Type.Moveable)
+    param_def = [
+        ['filter',
+         ParamRepeat(['filter', Type.String, '.*', 'a regular expression filter'], min=0, max=1),
+         '.*', 'a regular expression filter'],
+    ]
+
+    def prepare(self, *filter, **opts):
+        self.all_motors = self.findObjs(filter, type_class=Type.Moveable)
         self.table_opts = {}
     
-    def run(self):
+    def run(self, *filter):
         nr_motors = len(self.all_motors)
         if nr_motors == 0:
             self.output('No motor defined')
@@ -164,8 +170,14 @@ class wa(Macro):
 class pwa(Macro):
     """Show all motor positions in a pretty table"""
 
-    def run(self):
-        self.execMacro('wa', **Table.PrettyOpts)
+    param_def = [
+        ['filter',
+         ParamRepeat(['filter', Type.String, '.*', 'a regular expression filter'], min=0, max=1),
+         '.*', 'a regular expression filter'],
+    ]
+
+    def run(self, *filter):
+        self.execMacro('wa', *filter, **Table.PrettyOpts)
 
 class set_lim(Macro):
     """Sets the software limits on the specified motor hello"""
