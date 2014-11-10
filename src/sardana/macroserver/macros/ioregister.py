@@ -43,7 +43,7 @@ class write_ioreg(Macro):
     def run(self, ioreg, data):
         name = ioreg.getName()
         o = "Writing " + str(data) + " to " + name + " register "
-        self.output(o)
+        self.debug(o)
         data = ioreg.writeIORegister(data)
 
 
