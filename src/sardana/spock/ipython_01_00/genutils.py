@@ -829,8 +829,8 @@ def load_ipython_extension(ipython):
         ipython.register_magics(Sardana)
     else:
         expose_magic('debug', magic.debug, magic.debug_completer)
-        expose_magic('www', magic.www, magic.www_completer)
-        expose_magic('post_mortem', magic.post_mortem, magic.post_mortem_completer)
+        expose_magic('www', magic.www, None)
+        expose_magic('post_mortem', magic.post_mortem, None)
         expose_magic('spsplot', magic.spsplot, None)
         expose_magic('macrodata', magic.macrodata, None)
         expose_magic('edmac', magic.edmac, None)
