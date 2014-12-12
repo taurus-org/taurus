@@ -38,6 +38,7 @@ from taurus.core import TaurusEventType, TaurusSWDevState
 from sardana.sardanautils import is_pure_str, is_non_str_seq
 from sardana.spock import genutils
 from sardana.spock.inputhandler import SpockInputHandler, InputHandler
+from sardana import sardanacustomsettings
 
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
@@ -506,7 +507,13 @@ class QSpockDoor(SpockBaseDoor):
         return res
 
     def create_input_handler(self):
-        return SpockInputHandler()
+        inputhandler = getattr(sardanacustomsettings, 'SPOCK_INPUT_HANDLER',
+                               "CLI")
+
+        if inputhandler == "Qt":
+            return InputHandler()
+        else:
+            return SpockInputHandler()
 
 
 class SpockDoor(SpockBaseDoor):
