@@ -172,12 +172,12 @@ class FIO_FileRecorder(BaseFileRecorder):
             outLine = " Col %d %s %s\n" % ( i, col.label, dType)
             self.fd.write( outLine)
             i += 1
-        # +++
+        #
         # 11.9.2012 timestamp to the end
         #
         outLine = " Col %d %s %s\n" % ( i, 'timestamp', 'DOUBLE')
         self.fd.write( outLine)
-        # +++
+
         self.fd.flush()
 
     def _writeRecord(self, record):
@@ -186,12 +186,13 @@ class FIO_FileRecorder(BaseFileRecorder):
         nan, ctNames, fd = float('nan'), self.ctNames, self.fd
         outstr = ''
         for c in ctNames:
+            if c == "timestamp" or c == "point_nb":
+                continue
             outstr += ' ' + str(record.data.get(c, nan))
-        # +++
+        #
         # 11.9.2012 timestamp to the end
         #
         outstr += ' ' + str(record.data.get('timestamp', nan))
-        # +++
         outstr += '\n'
         
         fd.write( outstr )
