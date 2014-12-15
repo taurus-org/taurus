@@ -250,7 +250,7 @@ class GScan(Logger):
         except UnknownEnv:
             mnt_grps = macro.getObjs(".*", type_class=Type.MeasurementGroup)
             if len(mnt_grps) == 0:
-                ScanSetupError('No Measurement Group defined')
+                raise ScanSetupError('No Measurement Group defined')
             mnt_grp = mnt_grps[0]
             macro.info("ActiveMntGrp not defined. Using %s", mnt_grp)
             macro.setEnv('ActiveMntGrp', mnt_grp.getName())
