@@ -820,7 +820,7 @@ def load_ipython_extension(ipython):
             debug = IPython.core.magic.line_magic(magic.debug)
             www = IPython.core.magic.line_magic(magic.www)
             post_mortem = IPython.core.magic.line_magic(magic.post_mortem)
-            spsplot = IPython.core.magic.line_magic(magic.post_mortem)
+            spsplot = IPython.core.magic.line_magic(magic.spsplot)
             macrodata = IPython.core.magic.line_magic(magic.macrodata)
             edmac = IPython.core.magic.line_magic(magic.edmac)
             showscan = IPython.core.magic.line_magic(magic.showscan)
