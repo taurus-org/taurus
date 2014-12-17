@@ -72,6 +72,8 @@ class FIO_FileRecorder(BaseFileRecorder):
         if macro:
             self.macro = macro
         self.db = PyTango.Database()
+        if filename:
+            self.setFileName(self.base_filename)
 
     def setFileName(self, filename):
         if self.fd != None: 
@@ -90,12 +92,15 @@ class FIO_FileRecorder(BaseFileRecorder):
         # construct the filename, e.g. : /dir/subdir/etcdir/prefix_00123.fio
         #
         tpl = filename.rpartition('.')
-        serial = self.recordlist.getEnvironValue('serialno')
-        self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
-        #
-        # in case we have MCAs, prepare the dir name
-        #
-        self.mcaDirName = "%s_%05d" % (tpl[0], serial)
+        try: # For avoiding error when calling at __init__
+            serial = self.recordlist.getEnvironValue('serialno')
+            self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
+            #
+            # in case we have MCAs, prepare the dir name
+            #
+            self.mcaDirName = "%s_%05d" % (tpl[0], serial)
+        except:
+            self.filename = "%s_%s.%s" % (tpl[0], "[ScanId]", tpl[2])
 
     def getFormat(self):
         return DataFormats.whatis(DataFormats.fio)
