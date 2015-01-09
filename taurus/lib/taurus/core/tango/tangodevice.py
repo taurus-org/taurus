@@ -194,23 +194,46 @@ class TangoDevice(TaurusDevice):
     def _getDefaultDescription(self):
         return DFT_TANGO_DEVICE_DESCRIPTION
 
-    def poll(self, attrs):
-        '''optimized by reading of multiple attributes in one go'''
-        t = time.time()
-        try:
-            result = self.read_attributes(attrs.keys())
-        except PyTango.DevFailed, e:
-            for attr in attrs.values():
-                attr.poll(single=False, value=None, error=e, time=t)
-            return
-        
-        for i, da in enumerate(result):
+    def __pollResult(self, attrs, ts, result):
+        if isinstance(result, PyTango.DeviceAttribute):
+            result = (result,)
+        for da in result:
             if da.has_failed:
                 v, err = None, PyTango.DevFailed(*da.get_err_stack())
             else:
                 v, err = da, None
             attr = attrs[da.name]
-            attr.poll(single=False, value=v, error=err, time=t)
+            attr.poll(single=False, value=v, error=err, time=ts)
+
+    def __pollAsynch(self, attrs):
+        req_id = self.read_attributes_asynch(attrs.keys())
+        return req_id, time.time()
+
+    def __pollReply(self, attrs, req_id, timeout=None):
+        req_id, ts = req_id
+        if timeout is None:
+            timeout = 0
+        timeout = int(timeout*1000)
+        result = self.read_attributes_reply(req_id, timeout)
+        self.__pollResult(attrs, ts, result)
+
+    def poll(self, attrs, asynch=False, req_id=None):
+        '''optimized by reading of multiple attributes in one go'''
+        if req_id is not None:
+            return self.__pollReply(attrs, req_id)
+
+        if asynch:
+            return self.__pollAsynch(attrs)
+
+        ts = time.time()
+        try:
+            result = self.read_attributes(attrs.keys())
+        except PyTango.DevFailed, e:
+            for attr in attrs.values():
+                attr.poll(single=False, value=None, error=e, time=ts)
+            return
+
+        self.__pollResult(attrs, ts, result)
     
     def _repr_html_(self):
         try:
