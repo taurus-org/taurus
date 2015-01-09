@@ -146,7 +146,10 @@ def UILoadable(klass=None, with_ui=None):
     if klass is None:
         return functools.partial(UILoadable, with_ui=with_ui)
 
+    klass_name = klass.__name__
     def _loadUi(self, filename=None, path=None):
+        if filename is None:
+            filename = klass_name + os.path.extsep + 'ui'
         return loadUi(self, filename=filename, path=path, with_ui=with_ui)
     
     klass.loadUi = _loadUi
