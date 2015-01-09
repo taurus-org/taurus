@@ -72,6 +72,7 @@ class BaseWidgetTestCase(object):
         self._widget = self._klass(*self.initargs, **self.initkwargs)
 
 
+@skipUnlessGui()
 class GenericWidgetTestCase(BaseWidgetTestCase):
 
     '''a base class for testing common cases of arbitrary Taurus widget classes
