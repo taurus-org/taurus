@@ -194,9 +194,12 @@ class TangoDevice(TaurusDevice):
     def _getDefaultDescription(self):
         return DFT_TANGO_DEVICE_DESCRIPTION
 
-    def __pollResult(self, attrs, ts, result):
-        if isinstance(result, PyTango.DeviceAttribute):
-            result = (result,)
+    def __pollResult(self, attrs, ts, result, error=False):
+        if error:
+            for attr in attrs.values():
+                attr.poll(single=False, value=None, error=result, time=ts)
+            return
+
         for da in result:
             if da.has_failed:
                 v, err = None, PyTango.DevFailed(*da.get_err_stack())
@@ -206,11 +209,19 @@ class TangoDevice(TaurusDevice):
             attr.poll(single=False, value=v, error=err, time=ts)
 
     def __pollAsynch(self, attrs):
-        req_id = self.read_attributes_asynch(attrs.keys())
-        return req_id, time.time()
+        ts = time.time()
+        try:
+            req_id = self.read_attributes_asynch(attrs.keys())
+        except PyTango.DevFailed as e:
+            return False, e, ts
+        return True, req_id, ts
 
     def __pollReply(self, attrs, req_id, timeout=None):
-        req_id, ts = req_id
+        ok, req_id, ts = req_id
+        if not ok:
+            self.__pollResult(attrs, ts, req_id, error=True)
+            return
+
         if timeout is None:
             timeout = 0
         timeout = int(timeout*1000)
@@ -225,15 +236,14 @@ class TangoDevice(TaurusDevice):
         if asynch:
             return self.__pollAsynch(attrs)
 
+        error = False
         ts = time.time()
         try:
             result = self.read_attributes(attrs.keys())
-        except PyTango.DevFailed, e:
-            for attr in attrs.values():
-                attr.poll(single=False, value=None, error=e, time=ts)
-            return
-
-        self.__pollResult(attrs, ts, result)
+        except PyTango.DevFailed as e:
+            error = True
+            result = e
+        self.__pollResult(attrs, ts, result, error=error)
     
     def _repr_html_(self):
         try:
