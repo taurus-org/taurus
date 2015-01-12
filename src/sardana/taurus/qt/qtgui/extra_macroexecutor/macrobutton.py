@@ -30,6 +30,7 @@ macrobutton.py:
 __all__ = ['MacroButton']
 
 import functools
+import uuid
 
 import PyTango
 
@@ -82,6 +83,7 @@ class MacroButton(TaurusWidget):
         self.door_state_listener = None
         self.macro_name = ''
         self.macro_args = []
+        self.macro_id = None
         self.running_macro = None
 
         self.ui.progress.setValue(0)
@@ -119,7 +121,6 @@ class MacroButton(TaurusWidget):
         door_available = True
         if state not in [PyTango.DevState.ON, PyTango.DevState.ALARM] and not self.ui.button.isChecked():
             door_available = False
-            self.ui.progress.setValue(0)
 
         self.ui.button.setEnabled(door_available)
         self.ui.progress.setEnabled(door_available)
@@ -139,10 +140,16 @@ class MacroButton(TaurusWidget):
 
         status_dict = first_tuple[1][0]
         # KEYS RECEIVED FROM A 'SCAN' MACRO AND A 'TWICE' MACRO: IS IT GENERAL ?!?!?!
+        macro_id = status_dict['id']
+        # if macro id is unknown ignoring this signal
+        if macro_id is None:
+            return
+        # check if we have launch this macro, otherwise ignore the signal
+        if macro_id != str(self.macro_id):
+            return
         state = status_dict['state']
         step = status_dict['step']
         step_range = status_dict['range']
-        macro_id = status_dict['id']
 
         # Update progress bar
         self.ui.progress.setMinimum(step_range[0])
@@ -194,7 +201,9 @@ class MacroButton(TaurusWidget):
 
         # Thanks to gjover for the hint... :-D
         #macro_cmd = self.macro_name + ' ' + ' '.join(self.macro_args)
-        macro_cmd_xml = '<macro name="%s">\n' % self.macro_name
+        self.macro_id = uuid.uuid1()
+        macro_cmd_xml = '<macro name="%s" id="%s">\n' % \
+                        (self.macro_name, self.macro_id)
         for arg in self.macro_args:
             macro_cmd_xml += '<param value="%s"/>\n' % arg
         macro_cmd_xml += '</macro>'
