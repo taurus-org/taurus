@@ -789,50 +789,50 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         if self._labelWidget is not None and self.parent() is not None:
             alignment = getattr(self._labelWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0))
-            self.parent().layout().addWidget(self._labelWidget, self._row, 1, 1, 1,
-                                             alignment=alignment)
+                                Qt.Qt.AlignmentFlag(0))
+            self.parent().layout().addWidget(self._labelWidget, self._row, 1, 1,
+                                             1, alignment)
 
     
     def addReadWidgetToLayout(self):
         if self._readWidget is not None and self.parent() is not None:
             alignment = getattr(self._readWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0)) 
+                                Qt.Qt.AlignmentFlag(0))
             if self._writeWidget is None:
                 self.parent().layout().addWidget(self._readWidget, self._row,
-                                                 2, 1, 2, alignment=alignment)
+                                                 2, 1, 2, alignment)
             else:
                 self.parent().layout().addWidget(self._readWidget, self._row,
-                                                 2, 1, 1, alignment=alignment)
+                                                 2, 1, 1, alignment)
                     
     def addWriteWidgetToLayout(self):
         if self._writeWidget is not None and self.parent() is not None:
             alignment = getattr(self._writeWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0))
+                                Qt.Qt.AlignmentFlag(0))
             self.parent().layout().addWidget(self._writeWidget, self._row,
-                                             3, 1, 1, alignment=alignment)
+                                             3, 1, 1, alignment)
 
     
     def addUnitsWidgetToLayout(self):
         if self._unitsWidget is not None and self.parent() is not None:
             alignment = getattr(self._unitsWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0))
+                                Qt.Qt.AlignmentFlag(0))
             self.parent().layout().addWidget(self._unitsWidget, self._row,
-                                             4, 1, 1, alignment=alignment)
+                                             4, 1, 1, alignment)
 
     def addCustomWidgetToLayout(self):
         if self._customWidget is not None and self.parent() is not None:
             alignment = getattr(self._customWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0))
+                                Qt.Qt.AlignmentFlag(0))
             self.parent().layout().addWidget(self._customWidget, self._row,
-                                             1, 1, -1, alignment=alignment)
+                                             1, 1, -1, alignment)
     
     def addExtraWidgetToLayout(self):
         if self._extraWidget is not None and self.parent() is not None:
             alignment = getattr(self._extraWidget, 'layoutAlignment', 
-                                Qt.Qt.Alignment(0))
+                                Qt.Qt.AlignmentFlag(0))
             self.parent().layout().addWidget(self._extraWidget, self._row,
-                                             5, 1, 1, alignment=alignment)
+                                             5, 1, 1, alignment)
 
     @Qt.pyqtSignature("parentModelChanged(const QString &)")
     def parentModelChanged(self, parentmodel_name):
