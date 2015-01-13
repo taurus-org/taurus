@@ -343,7 +343,11 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 'nocols':    len(names),
                 'labels':    '  '.join(labels)
                }
-        header = '\n'
+        #Compatibility with PyMca
+        if os.path.exists(self.filename):
+            header = '\n'
+        else:
+            header = ''
         header += '#S %(serialno)s %(title)s\n'
         header += '#U %(user)s\n'
         header += '#D %(epoch)s\n'
