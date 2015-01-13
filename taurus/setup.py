@@ -116,6 +116,7 @@ packages = [
     'taurus.qt.qtgui.base',
     'taurus.qt.qtgui.button',
     'taurus.qt.qtgui.button.test',
+    'taurus.qt.qtgui.button.test.res',
     'taurus.qt.qtgui.compact',
 #    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
@@ -128,6 +129,7 @@ packages = [
     'taurus.qt.qtgui.gauge.demo',
     'taurus.qt.qtgui.graphic',
     'taurus.qt.qtgui.graphic.jdraw',
+    'taurus.qt.qtgui.graphic.jdraw.test.res',
     'taurus.qt.qtgui.image',
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
@@ -203,6 +205,8 @@ package_data = {
                                   'tauruswidget_qtdesignerplugin_template'],
     'taurus.qt.uic'            : ['pyuic4/*'],
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
+    'taurus.qt.qtgui.button.test' : ['res/*'],
+    'taurus.qt.qtgui.graphic.jdraw.test' : ['res/*']
 }
 
 def get_script_files():
