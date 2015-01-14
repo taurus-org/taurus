@@ -45,3 +45,4 @@ class PoolControllerTestCase(unittest.TestCase):
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+        self.pc = None

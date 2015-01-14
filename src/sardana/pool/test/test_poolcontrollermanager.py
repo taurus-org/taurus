@@ -42,3 +42,4 @@ class ControllerManagerTestCase(unittest.TestCase):
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+        self.cm = None

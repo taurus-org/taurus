@@ -48,3 +48,4 @@ class PoolCounterTimerTestCase(unittest.TestCase):
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+        self.pct = None

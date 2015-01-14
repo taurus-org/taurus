@@ -77,3 +77,4 @@ class PoolMeasurementGroupTestCase(unittest.TestCase):
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+        self.pmg = None
