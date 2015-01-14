@@ -26,7 +26,7 @@
 import time
 from taurus.external import unittest
 from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
-from sardana.pool.test import (PoolFake, createPoolController,
+from sardana.pool.test import (FakePool, createPoolController,
                                createPoolMeasurementGroup,
                                createPoolCounterTimer, dummyCounterTimerConf01,
                                dummyPoolCTCtrlConf01,
@@ -44,7 +44,7 @@ class PoolMeasurementGroupTestCase(unittest.TestCase):
         features.
         - Create Controller, CounterTimer and MeasurementGroup.
         """
-        pool = PoolFake()
+        pool = FakePool()
 
         pc = createPoolController(pool, dummyPoolCTCtrlConf01)
         pct = createPoolCounterTimer(pool, pc, dummyCounterTimerConf01)

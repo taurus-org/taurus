@@ -23,11 +23,11 @@
 ##
 ##############################################################################
 
-__all__ = ['PoolFake']
+__all__ = ['FakePool']
 
 from sardana.pool.poolcontrollermanager import ControllerManager
 
-class PoolFake(object):
+class FakePool(object):
     ''' Fake class to simulate the behaviour of the Pool class
     '''
     acq_loop_sleep_time = 0.1

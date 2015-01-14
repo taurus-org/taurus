@@ -24,7 +24,7 @@
 ##############################################################################
 
 from taurus.external import unittest
-from sardana.pool.test import (PoolFake, createPoolController,
+from sardana.pool.test import (FakePool, createPoolController,
                                dummyPoolCTCtrlConf01)
 from sardana.pool.poolcontroller import PoolController
 
@@ -33,7 +33,7 @@ class PoolControllerTestCase(unittest.TestCase):
 
     def setUp(self):
         """Instantiate a fake Pool and create a Controller"""
-        pool = PoolFake()
+        pool = FakePool()
         self.pc = createPoolController(pool, dummyPoolCTCtrlConf01)
 
     def test_init(self):

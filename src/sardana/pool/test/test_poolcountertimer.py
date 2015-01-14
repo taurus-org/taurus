@@ -25,7 +25,7 @@
 
 from taurus.external import unittest
 from sardana.pool.poolcountertimer import PoolCounterTimer
-from sardana.pool.test import (PoolFake, createPoolController,
+from sardana.pool.test import (FakePool, createPoolController,
                                createPoolCounterTimer, dummyCounterTimerConf01,
                                dummyPoolCTCtrlConf01)
 
@@ -34,7 +34,7 @@ class PoolCounterTimerTestCase(unittest.TestCase):
 
     def setUp(self):
         """Create a Controller and a CounterTimer element"""
-        pool = PoolFake()
+        pool = FakePool()
 
         pc = createPoolController(pool, dummyPoolCTCtrlConf01)
         self.pct = createPoolCounterTimer(pool, pc, dummyCounterTimerConf01)
