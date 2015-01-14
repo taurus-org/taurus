@@ -30,36 +30,33 @@ from sardana.pool.poolcontroller import PoolController
 from sardana.pool.poolcountertimer import PoolCounterTimer
 from sardana.pool.poolmeasurementgroup import PoolMeasurementGroup
 
-def createPoolController(pool, res):
-    '''Method to create a PoolController using a resource file
+def createPoolController(pool, conf):
+    '''Method to create a PoolController using a configuration dictionary
     '''
-    args = ()
-    kwargs = res
+    kwargs = conf
 
     ctrl_manager = pool.ctrl_manager
     ctrl_class_info = None
     ctrl_lib_info = ctrl_manager.getControllerLib(kwargs['library'])
     if ctrl_lib_info is not None:
-       ctrl_class_info = ctrl_lib_info.get_controller(kwargs['klass'])
+        ctrl_class_info = ctrl_lib_info.get_controller(kwargs['klass'])
 
     kwargs['pool'] = pool
     kwargs['lib_info'] = ctrl_lib_info
     kwargs['class_info'] = ctrl_class_info
-    return PoolController(*args, **kwargs)
+    return PoolController(**kwargs)
 
-def createPoolCounterTimer(pool, poolcontroller, res):
-    '''Method to create a PoolCounterTimer using a resource file
+def createPoolCounterTimer(pool, poolcontroller, conf):
+    '''Method to create a PoolCounterTimer using a configuration dictionary
     '''
-    args = ()
-    kwargs = res
+    kwargs = conf
     kwargs['pool'] = pool
     kwargs['ctrl'] = poolcontroller
-    return PoolCounterTimer(*args, **kwargs)
+    return PoolCounterTimer(**kwargs)
 
-def createPoolMeasurementGroup(pool, res):
-    '''Method to create a PoolMeasurementGroup using a resource file
+def createPoolMeasurementGroup(pool, conf):
+    '''Method to create a PoolMeasurementGroup using a configuration dictionary
     '''
-    args = ()
-    kwargs = res
+    kwargs = conf
     kwargs['pool'] = pool
-    return PoolMeasurementGroup(*args, **kwargs)
+    return PoolMeasurementGroup(**kwargs)

@@ -27,4 +27,4 @@
 
 from .fake import *
 from .helper import *
-from .res import *
+from .dummyconfs import *
