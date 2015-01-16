@@ -2025,9 +2025,8 @@ class CTScan(CScan):
                 
                 for moveable, start, final in zip(moveables, starts, finals):
                     name = moveable.moveable.getName()
-                    step_size = abs((end - start) / nr_of_points)
-                    for point_nr, position in enumerate(np.arange(start, \
-                                                            final, step_size)):
+                    for point_nr, position in enumerate(np.linspace(start, \
+                                                        final, nr_of_points)):
                         positions_records[point_nr][name] = position    
                     
                 return positions_records
