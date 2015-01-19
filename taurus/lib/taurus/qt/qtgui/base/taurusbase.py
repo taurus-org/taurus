@@ -32,6 +32,7 @@ __all__ = ["TaurusBaseComponent", "TaurusBaseWidget", "TaurusBaseWritableWidget"
 __docformat__ = 'restructuredtext'
 
 import sys
+import threading
 
 import PyTango
 
@@ -39,6 +40,7 @@ from taurus.external.qt import Qt
 
 import taurus
 from taurus.core.util import eventfilters
+from taurus.core.util.timer import Timer
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
@@ -46,6 +48,7 @@ from taurus.core.taurusconfiguration import (TaurusConfiguration,
                                              TaurusConfigurationProxy)
 from taurus.core.tauruslistener import TaurusListener, TaurusExceptionListener
 from taurus.core.taurusoperation import WriteAttrOperation
+from taurus.core.util.eventfilters import filterEvent
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
@@ -97,6 +100,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     """
     _modifiableByUser = False
     _showQuality = True
+    _eventBufferPeriod = 0
     
     def __init__(self, name, parent=None, designMode=False):
         """Initialization of TaurusBaseComponent"""
@@ -120,10 +124,15 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self._isDangerous = False
         self._forceDangerousOperations = False
         self._eventFilters = []
+        self._preFilters = []
         self._isPaused = False
         self._operations = []
         self._modelInConfig = False
         self._autoProtectOperation = True
+        
+        self._bufferedEvents = {}
+        self._bufferedEventsTimer = None
+        self.setEventBufferPeriod(self._eventBufferPeriod)
         
         if parent != None and hasattr(parent, "_exception_listener"):
             self._exception_listener = parent._exception_listener
@@ -216,6 +225,33 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     # Event handling chain
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
+    def setEventBufferPeriod(self, period):
+        '''Set the period at wich :meth:`fireBufferedEvents` will be called.
+        If period is 0, the event buffering is disabled (i.e., events are fired 
+        as soon as they are received) 
+        
+        :param period: (float) period in seconds for the automatic event firing.
+                    period=0 will disable the event buffering.
+        '''
+        self._eventBufferPeriod = period
+        if period == 0:
+            if self._bufferedEventsTimer is not None:
+                self._bufferedEventsTimer.stop()
+                self._bufferedEventsTimer = None
+                self.fireBufferedEvents() #flush the buffer
+        else:
+            self._eventsBufferLock = threading.RLock()
+            self._bufferedEventsTimer = Timer(period, self.fireBufferedEvents, 
+                                              self)
+            self._bufferedEventsTimer.start()
+            
+    def getEventBufferPeriod(self):
+        '''Returns the event buffer period 
+        
+        :return: (float) period (in s). 0 means event buffering is disabled.
+        ''' 
+        return self._eventBufferPeriod
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         """The basic implementation of the event handling chain is as
         follows:
@@ -227,9 +263,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
               filtered event
         
         .. note::
-            in the earlier steps of the chain (i.e., in :meth:`eventReceived`/:meth:`fireEvent`),
-            the code is executed in a Python thread, while from eventFilter
-            ahead, the code is executed in a Qt thread.
+            in the earlier steps of the chain (i.e., in :meth:`eventReceived`/
+            :meth:`fireEvent`), the code is executed in a Python thread, while 
+            from eventFilter ahead, the code is executed in a Qt thread.
             When writing widgets, one should normally work on the Qt thread
             (i.e. reimplementing :meth:`handleEvent`)
             
@@ -237,21 +273,48 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
-        self.fireEvent(evt_src, evt_type, evt_value)
+        evt = filterEvent(evt_src, evt_type, evt_value, 
+                          filters=self._preFilters)
+        if evt is not None:
+            self.fireEvent(*evt)
         
-    def fireEvent(self, evt_src = None, evt_type = None, evt_value = None):
+    def fireEvent(self, evt_src=None, evt_type=None, evt_value=None):
         """Emits a "taurusEvent" signal.
-        It is unlikely that you may need to reimplement this method in subclasses.
+        It is unlikely that you need to reimplement this method in subclasses.
         Consider reimplementing :meth:`eventReceived` or :meth:`handleEvent` 
         instead depending on whether you need to execute code in the python 
         or Qt threads, respectively
 
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) type of event
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) 
+                         type of event
         :param evt_value: (object or None) event value
         """
-        try: self.getSignaller().emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
-        except: pass #self.error('%s.fireEvent(...) failed!'%type(self))
+        if self._eventBufferPeriod:
+            # If we have an active event buffer delay, store the event...
+            with self._eventsBufferLock:
+                self._bufferedEvents[(evt_src, evt_type)] =  (evt_src, evt_type, 
+                                                              evt_value) 
+        else:
+            # if we are not buffering, directly emit the signal
+            try: 
+                self.getSignaller().emit(Qt.SIGNAL('taurusEvent'), 
+                                         evt_src, evt_type, evt_value)
+            except: 
+                pass #self.error('%s.fireEvent(...) failed!'%type(self))
+            
+    def fireBufferedEvents(self):
+        '''Fire all events currently buffered (and flush the buffer)
+        
+        Note: this method is normally called from an event buffer timer thread
+              but it can also be called any time the buffer needs to be flushed
+        '''
+        signaller = self.getSignaller()
+        with self._eventsBufferLock:
+            for evt in self._bufferedEvents.values():
+                signaller.emit(Qt.SIGNAL('taurusEvent'), *evt)
+            self._bufferedEvents = {}
+        
         
     def filterEvent(self, evt_src=-1, evt_type=-1, evt_value=-1):
         """The event is processed by each and all filters in strict order
@@ -261,9 +324,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
         :param evt_value: (object) event value
         """
-        r = evt_src, evt_type, evt_value
+        evt = evt_src, evt_type, evt_value
         
-        if r == (-1,-1,-1):
+        if evt == (-1,-1,-1):
             # @todo In an ideal world the signature of this method should be
             # (evt_src, evt_type, evt_value). However there's a bug in PyQt:
             # If a signal is disconnected between the moment it is emitted and
@@ -273,10 +336,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             # If this gets fixed, we should remove this line.
             return
         
-        for f in self._eventFilters:
-            r = f(*r)
-            if r is None: return
-        self.handleEvent(*r)
+        evt = filterEvent(*evt, filters=self._eventFilters)
+        if evt is not None:
+            self.handleEvent(*evt)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         """Event handling. Default implementation does nothing.
@@ -288,7 +350,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """
         pass
         
-    def setEventFilters(self, filters = None):
+    def setEventFilters(self, filters=None, preqt=False):
         """sets the taurus event filters list.
         The filters are run in order, using each output to feed the next filter.
         A filter must be a function that accepts 3 arguments ``(evt_src, evt_type, evt_value)``
@@ -299,6 +361,10 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         For a library of common filters, see taurus/core/util/eventfilters.py
         
         :param filters: (sequence) a sequence of filters
+        :param preqt: (bool) If true, set the pre-filters (that are applied in
+                      eventReceived, at the python thread),
+                      otherwise, set the filters to be applied at the main
+                      Qt thread (default)
         
         *Note*: If you are setting a filter that applies a transformation on
         the parameters, you may want to generate a fake event to force the last
@@ -310,25 +376,42 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         
         See also: insertEventFilter
         """
-        if filters is None: filters = []
-        self._eventFilters = list(filters)
+        if filters is None: 
+            filters = []
+        if preqt:
+            self._preFilters = list(filters)
+        else:
+            self._eventFilters = list(filters)
         
-    def getEventFilters(self):
+    def getEventFilters(self, preqt=False):
         """Returns the list of event filters for this widget
+        
+        :param preqt: (bool) If true, return the pre-filters (that are applied 
+                      in eventReceived, at the python thread),
+                      otherwise, return the filters to be applied at the main
+                      Qt thread (default)
         
         :return: (sequence<callable>) the event filters
         """
-        return self._eventFilters
+        return (self._preFilters if preqt else self._eventFilters)
     
-    def insertEventFilter(self, filter, index=-1):
+    def insertEventFilter(self, filter, index=-1, preqt=False):
         """insert a filter in a given position
         
         :param filter: (callable(evt_src, evt_type, evt_value)) a filter
         :param index: (int) index to place the filter (default = -1 meaning place at the end)
+        :param preqt: (bool) If true, set the pre-filters (that are applied in
+                      eventReceived, at the python thread),
+                      otherwise, set the filters to be applied at the main
+                      Qt thread (default)
+        
         
         See also: setEventFilters
         """
-        self._eventFilters.insert(index, filter)
+        if preqt:
+            self._preFilters.insert(index, filter)
+        else:
+            self._eventFilters.insert(index, filter)
     
     def setPaused(self, paused = True):
         """Toggles the pause mode.
