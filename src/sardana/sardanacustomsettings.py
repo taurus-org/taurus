@@ -30,12 +30,16 @@ aspects of Sardana.
 """
 
 
-#:UnitTets door name: is the door to use in our unit tests.
-#:Its definition is a mandatory for the unittests. 
-#:In case the Door is not valid or defined an exception will be raise.
+#:UnitTest door name: the door to be used by unit tests.
+#:UNITTEST_DOOR_NAME Must be defined for running sardana unittests. 
 UNITTEST_DOOR_NAME = "door/demo1/1"
 
-#:Variable controlling the size and number of rotating backups of the log files.
+#:Size and number of rotating backups of the log files.
 #:The Pool and MacroServer Device servers will use these values for their logs. 
 LOG_FILES_SIZE = 1e7
 LOG_BCK_COUNT = 5
+
+#:Input handler for spock interactive macros. Accepted values are:
+#: - "CLI": Input via spock command line. This is the default.
+#: - "Qt": Input via Qt dialogs
+SPOCK_INPUT_HANDLER = "CLI"

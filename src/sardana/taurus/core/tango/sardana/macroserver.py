@@ -561,8 +561,8 @@ class BaseDoor(MacroServerDevice):
         input_type = input_data['type']
         if input_type == 'input':
             result = self._input_handler.input(input_data)
-            if result is '' and 'default_value' in input_data:
-                result = input_data['default_value']
+            if result['input'] is '' and 'default_value' in input_data:
+                result['input'] = input_data['default_value']
             result = CodecFactory().encode('json', ('', result))[1]
             self.write_attribute('Input', result)
         elif input_type == 'timeout':

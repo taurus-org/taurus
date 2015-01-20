@@ -30,7 +30,7 @@ __all__ = ['GUIViewer', 'SpockBaseDoor', 'QSpockDoor', 'SpockDoor',
            'SpockMacroServer']
 
 import os
-
+import ctypes
 import PyTango
 
 from taurus.core import TaurusEventType, TaurusSWDevState
@@ -38,6 +38,7 @@ from taurus.core import TaurusEventType, TaurusSWDevState
 from sardana.sardanautils import is_pure_str, is_non_str_seq
 from sardana.spock import genutils
 from sardana.spock.inputhandler import SpockInputHandler, InputHandler
+from sardana import sardanacustomsettings
 
 CHANGE_EVTS = TaurusEventType.Change, TaurusEventType.Periodic
 
@@ -467,6 +468,14 @@ class SpockBaseDoor(BaseDoor):
 
     _RECORD_DATA_THRESOLD = 4 * 1024 * 1024  # 4Mb
 
+    def _processInput(self, input_data):
+        pyos_inputhook_ptr = ctypes.c_void_p.in_dll(ctypes.pythonapi, "PyOS_InputHook")
+        old_pyos_inputhook_ptr = pyos_inputhook_ptr.value
+        pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
+        ret = BaseDoor._processInput(self, input_data)
+        pyos_inputhook_ptr.value = old_pyos_inputhook_ptr
+        return ret
+
     def _processRecordData(self, data):
         if data is None: return
         value = data.value
@@ -498,7 +507,13 @@ class QSpockDoor(SpockBaseDoor):
         return res
 
     def create_input_handler(self):
-        return InputHandler()
+        inputhandler = getattr(sardanacustomsettings, 'SPOCK_INPUT_HANDLER',
+                               "CLI")
+
+        if inputhandler == "Qt":
+            return InputHandler()
+        else:
+            return SpockInputHandler()
 
 
 class SpockDoor(SpockBaseDoor):
