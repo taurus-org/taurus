@@ -395,7 +395,7 @@ class GScan(Logger):
             raise
         except Exception:
             macro.warning('ScanFile is not defined. This operation will not '
-                          'be stored persistently. Use "expconf" (or "senv ScanDir <scan '
+                          'be stored persistently. Use "expconf" (or "senv ScanFile <scan '
                           'file(s)>") to enable it')
             return ()
 
