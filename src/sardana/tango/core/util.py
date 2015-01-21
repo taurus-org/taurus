@@ -743,6 +743,14 @@ def get_dev_from_class(db, classname):
         res[dev] = full_name, name, alias, out
     return res
 
+def get_free_server(db, prefix, start_from=1):
+    prefix = prefix + "_"
+    server_members = db.get_server_list(prefix + "*")
+    server = server_members.value_string
+    while prefix + str(start_from) in server:
+        start_from += 1
+    return prefix + str(start_from)
+
 def get_free_device(db, prefix, start_from=1):
     members = db.get_device_member(prefix + "/*")
     while str(start_from) in members:
